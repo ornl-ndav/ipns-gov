@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/11 23:37:10  dennis
+ * Moved to MathTools.Geometry package
+ *
  * Revision 1.2  2004/01/19 17:00:00  dennis
  * Minor improvement in javadocs.
  *
@@ -42,10 +45,10 @@
  *
  */
 
-package DataSetTools.math;
+package gov.anl.ipns.MathTools.Geometry;
 
 import Jama.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Sys.*;
 
 /**
  *  This class represents a Plane in 3D by a unit normal vector and the 
