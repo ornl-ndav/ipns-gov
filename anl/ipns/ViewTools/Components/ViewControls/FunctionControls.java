@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.45  2005/01/10 16:21:37  rmikk
+ * Fixed code to get error bars to correspond to spectra
+ *
  * Revision 1.44  2004/12/08 22:03:48  serumb
  * Set the x and y range controls on zoom and reset zoom.
  *
@@ -239,6 +242,7 @@ import javax.swing.border.*;
   private JComboBox ShiftFactor = new JComboBox(  );
   private JComboBox LogBox = new JComboBox(  );
   private String[] lines;
+  private int[]  SelGraphDSIndx;
   private String[] line_type;
   private String[] line_width;
   private String[] mark_types;
@@ -330,11 +334,13 @@ import javax.swing.border.*;
     String group_id;
     
     lines = new String[Varray1D.getNumSelectedGraphs(  )];
+    SelGraphDSIndx = new int[Varray1D.getNumSelectedGraphs(  )];
     int index = 0;
     for( int i = 0; i < Varray1D.getNumGraphs(  ); i++ ) {
       if( Varray1D.isSelected(i) )
       {
         group_id   = Varray1D.getGraphTitle( i );
+        SelGraphDSIndx[index] = i;
         lines[index++]   = "Group ID:" + group_id;
       }
     }
@@ -916,13 +922,14 @@ import javax.swing.border.*;
           //CoordBounds data_bound = getGlobalWorldCoords();
           //data_bound.getBounds()
           if( ErrorBarBox.getSelectedItem(  ).equals( "None" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues( line_index - 1  ), 0, 
+           
+            gjp.setErrors( Varray1D.getErrorValues( SelGraphDSIndx[line_index - 1]  ), 0, 
                            line_index, true );
           } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Points" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues( line_index - 1  ), 
+            gjp.setErrors( Varray1D.getErrorValues( SelGraphDSIndx[line_index - 1]  ), 
                            GraphJPanel.ERROR_AT_POINT, line_index, true );
           } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Top" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues( line_index - 1 ),
+            gjp.setErrors( Varray1D.getErrorValues( SelGraphDSIndx[line_index - 1] ),
                            GraphJPanel.ERROR_AT_TOP, line_index, true );
           }
 
