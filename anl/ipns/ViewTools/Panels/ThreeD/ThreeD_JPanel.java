@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2002/07/31 16:42:31  dennis
+ * Now uses Java's built in sort instead of customized Q-Sort
+ *
  * Revision 1.9  2001/07/13 22:02:58  dennis
  * Modified request_painting() to sleep for the specified
  * number of milliseconds, and to just return if the panel is
@@ -533,7 +536,8 @@ public class ThreeD_JPanel extends    CoordJPanel
     for ( int i = 0; i < all_objects.length; i++ )
       all_objects[i].Project( tran, local_transform, clip_distance );
 
-    q_sort( all_objects, index, 0, all_objects.length-1 );
+    //q_sort( all_objects, index, 0, all_objects.length-1 );
+    JavaSort( all_objects, index );
 
     tran3D_used = new Tran3D( tran );
     tran2D_used = new CoordTransform( local_transform );
@@ -542,7 +546,7 @@ public class ThreeD_JPanel extends    CoordJPanel
 
 /* ------------------------------- swap ---------------------------------- */
 
-private static void swap( int index[], int i, int j )
+private void swap( int index[], int i, int j )
 {
    int  temp = index[i];
    index[i]  = index[j];
@@ -552,10 +556,10 @@ private static void swap( int index[], int i, int j )
 
 /* ------------------------------ q_sort --------------------------------- */
 
-private static void q_sort( IThreeD_Object list[], 
-                            int            index[], 
-                            int            start, 
-                            int            end    )
+private void q_sort( IThreeD_Object list[], 
+                     int            index[], 
+                     int            start, 
+                     int            end    )
 {
    int   i = start;
    int   j = end;
@@ -580,6 +584,49 @@ private static void q_sort( IThreeD_Object list[],
 
    q_sort( list, index, start, j-1 );
    q_sort( list, index, j+1, end );
+}
+
+/* -------------------------- JavaSort -------------------------------- */
+
+private void JavaSort( IThreeD_Object list[],
+                       int            index[] )
+{
+  Integer Index[] = new Integer[ index.length ];   // make list of Integer
+  for ( int i = 0; i < index.length; i++ )         // objects
+    Index[i] = new Integer(i);
+
+  Arrays.sort( Index, new DepthComparator( list ) );
+
+  for ( int i = 0; i < index.length; i++ )         // copy back to int[] list 
+    index[i] = Index[i].intValue();
+}
+
+
+/* ------------------------ DepthComparator ---------------------------- */
+
+private class DepthComparator implements Serializable, 
+                                         Comparator 
+{
+  IThreeD_Object list[];
+
+  public DepthComparator( IThreeD_Object list[] )
+  {
+    this.list = list;
+  }
+
+  public int compare( Object o1, Object o2 )
+  {
+    int i1 = ((Integer)o1).intValue();
+    int i2 = ((Integer)o2).intValue();
+    float d1 = list[ i1 ].depth();
+    float d2 = list[ i2 ].depth();
+    if ( d1 < d2 ) 
+      return -1;
+    else if ( d1 > d2 )
+      return 1;
+    else
+      return 0;
+  }
 }
 
 
