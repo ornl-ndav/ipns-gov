@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.17  2003/06/19 22:23:29  dennis
+ *  Fixed java docs
+ *
  *  Revision 1.16  2003/06/19 15:34:12  dennis
  *  Added float versions of routines to print arrays.
  *
@@ -300,7 +303,8 @@ public final class LinearAlgebra
 
 
   /**
-   * Converts a rectangular float array to a rectangular double array
+   * Converts a one dimensional float array to a 
+   * one dimensional double array
    */
   public static double[] float2double(float[] f){
     double[] d=new double[f.length];
@@ -312,7 +316,8 @@ public final class LinearAlgebra
   }
 
   /**
-   * Converts a double array to a float array
+   * Converts a one dimensional double array to a 
+   * one dimensional float array
    */
   public static float[] double2float(double[] d){
     float[] f=new float[d.length];
