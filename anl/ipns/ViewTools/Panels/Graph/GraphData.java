@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2003/06/13 19:47:29  serumb
+ * Added a variable for point marker size and initialized the mark color to red.
+ *
  * Revision 1.6  2003/06/06 14:37:15  serumb
  * added a variable of type BasicStroke for different line styles
  * added a variable, markcolor, to determine point marker color
@@ -49,11 +52,12 @@ public class GraphData implements Serializable
 {
   float  x_vals[]  = { 0, 1 };
   float  y_vals[]  = { 0, 1 };
-  Color  color     = Color.black;
-  int    linetype  = 1;
-  float  linewidth = 1;
-  int    marktype  = 0;
-  Color  markcolor = Color.black;
-  BasicStroke Stroke = new BasicStroke();
+  public Color  color     = Color.black;
+  public int    linetype  = 1;
+  public float  linewidth = 1;
+  public int    marktype  = 0;
+  public Color  markcolor = Color.red;
+  public int    marksize  = 1;
+  public BasicStroke Stroke;
 }
 
