@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.22  2004/03/11 23:27:16  dennis
+ *  Moved to MathTools package
+ *
  *  Revision 1.21  2004/03/06 21:57:45  dennis
  *  Fixed error in calculation of inverse matrix sizes > 3x3.
  *
@@ -105,9 +108,10 @@
  *
  */
 
-package DataSetTools.math;
+package gov.anl.ipns.MathTools;
 
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Numeric.*;
+import gov.anl.ipns.Util.Sys.*;
 import java.util.*;
 import Jama.*;
 

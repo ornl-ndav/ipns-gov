@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/11 23:29:48  dennis
+ * Moved to MathTools package
+ *
  * Revision 1.2  2003/07/14 13:35:08  dennis
  * Fixed a java doc comment and added more tests to the main program.
  *
@@ -43,11 +46,11 @@
  *
  */
 
-package DataSetTools.math;
+package gov.anl.ipns.MathTools;
+
+import  gov.anl.ipns.Util.Numeric.*;
 
 import java.io.*;
-import DataSetTools.math.*;
-import DataSetTools.util.*;
 
 /**
  *  This class provides basic calculations for direct and reciprocal lattices.
