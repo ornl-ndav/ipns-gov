@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.31  2004/04/29 06:12:24  millermi
+ *  - Revised the AnnotationEditor. New features include turning
+ *    the anchor line on/off, a new color selection process,
+ *    and a more flexible add/remove/edit format for manipulating
+ *    annotations.
+ *
  *  Revision 1.30  2004/03/15 23:53:52  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -204,6 +210,7 @@ import gov.anl.ipns.ViewTools.Components.Cursor.Line;
 import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 import gov.anl.ipns.ViewTools.UI.ColorScaleImage;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 
@@ -270,12 +277,11 @@ public class AnnotationOverlay extends OverlayJPanel
   private Color line_color;		 // annotation arrow color
   private Color text_color;		 // annotation text color
   private transient AnnotationEditor editor;
-  // if ADD_COMPONENTS changes in the editor, the 5 should be incremented in
-  // the statement below.
-  private Rectangle editor_bounds = new Rectangle(0,0,200,(35 * 5) );
+  private Rectangle editor_bounds = new Rectangle(0,0,430,265 );
   private Font font;
   private Font default_font;
   private transient CoordTransform pixel_local;
+  private boolean show_anchor_line = true;
   
  /**
   * Constructor creates OverlayJPanel with a transparent AnnotationJPanel that
@@ -301,16 +307,9 @@ public class AnnotationOverlay extends OverlayJPanel
     default_font = izta.getFont();
     this.add(overlay); 
     overlay.setOpaque(false); 
-    overlay.addActionListener( new NoteListener() );  
-    current_bounds =  component.getRegionInfo();
-    Rectangle temp = component.getRegionInfo();
-    CoordBounds pixel_map = 
- 		 new CoordBounds( (float)temp.getX(), 
- 				  (float)temp.getY(),
- 				  (float)(temp.getX() + temp.getWidth()),
- 				  (float)(temp.getY() + temp.getHeight() ) );
-    pixel_local = new CoordTransform( pixel_map, 
- 				      component.getLocalCoordBounds() );
+    overlay.addActionListener( new NoteListener() );
+    pixel_local = new CoordTransform();
+    updateTransform();
     overlay.requestFocus();	      
   }
   
@@ -334,6 +333,7 @@ public class AnnotationOverlay extends OverlayJPanel
   public static void help()
   {
     helper = new JFrame("Help for Annotation Overlay");
+    helper.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
     helper.setBounds(0,0,600,400);
     
     JEditorPane textpane = new JEditorPane();
@@ -359,18 +359,21 @@ public class AnnotationOverlay extends OverlayJPanel
                   "<H2>AnnotationEditor Commands <BR>" +
 		  "(Edit Button under Annotation Overlay Control)</H2>" +
                   "<P>Commands below are listed in the following way:<BR>" +
-                  "(Focus>Action>Result) where Focus is where the cursor or " +
+                  "(Focus>Action>Result) Focus is where the cursor or " +
  		  "mouse must be. Focus is gained by clicking the mouse on " +
  		  "the desired area. Action is the action performed by you, " +
  		  "the user. Result is the consequence of your action.<BR>" +
                   "TextArea>Press Enter>REFRESH WINDOW<BR>" +
                   "TextArea>Hold Ctrl, Press Arrow Keys>MOVE LINE ANCHOR<BR>" +
                   "TextArea>Hold Shift, Press Arrow Keys>MOVE ANNOTATION<BR>" +
-                  "TextArea>Remove All Text, Press Enter/Refresh>REMOVE " +
- 		  "ANNOTATION<BR>" +	       
-                  "ColorScale>Click Mouse>CHANGE TEXT AND LINE COLOR<BR>" +
-                  "ColorScale>Hold Ctrl, Click Mouse>CHANGE LINE COLOR<BR>" +
-                  "ColorScale>Hold Shift, Click Mouse>CHANGE TEXT COLOR</P>";
+                  "Remove Button>Single Click>REMOVE ANNOTATION<BR>Change " +
+                  "Button>Single Click>CHANGE CURRENTLY SELECTED ANNOTATION, " +
+		  "IF NO ANNOTATIONS EXIST, TEXT IS ADDED TO CENTER OF IMAGE" +
+		  "AS A NEW ANNOTATION.<BR>" +
+                  "ColorSelector>Click Mouse>CHANGE TEXT AND LINE COLOR<BR>" +
+                  "Checkbox>If Checked, line from anchor to text is drawn>" +
+		  "ADD/REMOVE LINE<BR>" +
+                  "Close Button>Single Mouse Click>CLOSE EDITOR</P>";
     textpane.setText(text);
     JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
@@ -537,13 +540,28 @@ public class AnnotationOverlay extends OverlayJPanel
   */
   public void addAnnotation( String a_note, Line placement )
   {
-    CoordBounds now = new CoordBounds( pixel_local.getDestination().getX1(),
- 				       pixel_local.getDestination().getY1(),
- 				       pixel_local.getDestination().getX2(),
- 				       pixel_local.getDestination().getY2() );
     floatPoint2D p12d = convertToWorldPoint( placement.getP1() );
     floatPoint2D p22d = convertToWorldPoint( placement.getP2() );
-    notes.add( new Note( a_note, placement, now, p12d, p22d ) );
+    notes.add( new Note( a_note, placement, p12d, p22d ) );
+    // Update the combobox containing the list of notes.
+    editor.updateNoteList();
+    repaint();
+  }
+  
+ /**
+  * Remove the annotation at the specified index.
+  *
+  *  @param  index The index of the annotation.
+  */ 
+  public void removeAnnotation( int index )
+  {
+    if( !(index < 0 ) && index < notes.size() )
+    {
+      notes.remove(index);
+      // Update the combobox containing the list of notes.
+      editor.updateNoteList();
+    }
+    repaint();
   }
 
  /**
@@ -552,6 +570,9 @@ public class AnnotationOverlay extends OverlayJPanel
   public void clearAnnotations()
   {
     notes.clear();
+    // Update the combobox containing the list of notes.
+    editor.updateNoteList();
+    repaint();
   }
      
  /**
@@ -576,21 +597,11 @@ public class AnnotationOverlay extends OverlayJPanel
     Graphics2D g2d = (Graphics2D)g;
     g2d.setFont( font );
     
-    current_bounds = component.getRegionInfo(); // current size of center 
+    updateTransform();
     g2d.clipRect( (int)current_bounds.getX(),
  		  (int)current_bounds.getY(),
  		  (int)current_bounds.getWidth(),
  		  (int)current_bounds.getHeight() ); 
-    // the current pixel coordinates
-    CoordBounds pixel_map = 
- 	    new CoordBounds( (float)current_bounds.getX(), 
- 			     (float)current_bounds.getY(),
- 			     (float)(current_bounds.getX() + 
- 				     current_bounds.getWidth()),
- 			     (float)(current_bounds.getY() + 
- 				     current_bounds.getHeight() ) );
-    pixel_local.setSource( pixel_map );
-    pixel_local.setDestination( component.getLocalCoordBounds() );
     FontMetrics fontinfo = g2d.getFontMetrics();
     // resize center "overlay" to size of center jpanel
     overlay.setBounds( current_bounds );
@@ -609,7 +620,7 @@ public class AnnotationOverlay extends OverlayJPanel
     for( int comment = 0; comment < notes.size(); comment++ )
     {
       note = (Note)notes.elementAt(comment);
-      snote = note.getText();
+      snote = note.toString();
       textwidth = fontinfo.stringWidth(snote);
       p1 = new Point( note.getLine().getP1() );
       p2 = new Point( note.getLine().getP2() );
@@ -688,16 +699,38 @@ public class AnnotationOverlay extends OverlayJPanel
       p2 = convertToPixelPoint( note.getWCP2() );
       //System.out.println("WCP1 = " + note.getWCP1() );
       //System.out.println("P1 = " + p1 );
-
-      // line color of all of the annotations.
-      g2d.setColor(line_color);
-      g2d.drawLine( p1.x, p1.y, p2.x, p2.y );	      
+      
+      // Only draw the line if it is specified, drawn by default.
+      if( show_anchor_line )
+      {
+        // line color of all of the annotations.
+        g2d.setColor(line_color);
+        g2d.drawLine( p1.x, p1.y, p2.x, p2.y );
+      }
 
       // text color of all of the annotations.
       g2d.setColor(text_color);
       g2d.drawString( snote, p2.x + autolocatex, p2.y + autolocatey );
     }	  
   } // end of paint()
+  
+ /*
+  * This method will get the current bounds of the center and reset
+  * the transform that converts pixel to world coords.
+  */
+  private void updateTransform()
+  {
+    current_bounds = component.getRegionInfo(); // current size of center 
+    CoordBounds pixel_map = 
+ 	    new CoordBounds( (float)current_bounds.getX(), 
+ 			     (float)current_bounds.getY(),
+ 			     (float)(current_bounds.getX() + 
+ 				     current_bounds.getWidth()),
+ 			     (float)(current_bounds.getY() + 
+ 				     current_bounds.getHeight() ) );
+    pixel_local.setSource( pixel_map );
+    pixel_local.setDestination( component.getLocalCoordBounds() );
+  }
 
  /*
   * Converts from world coordinates to a pixel point
@@ -730,12 +763,7 @@ public class AnnotationOverlay extends OverlayJPanel
  	if( notes.size() > 0 )
  	{
  	  notes.clear(); 
- 	  // if an editAnnotaton window is open, update it to the changes
- 	  if( editor.isVisible() )
- 	  {
-	    editor.setVisible(false);
-	    editAnnotation();
- 	  }
+ 	  editor.updateNoteList();
  	}	  
       }
       // remove the last note from the vector
@@ -744,12 +772,7 @@ public class AnnotationOverlay extends OverlayJPanel
  	if( notes.size() > 0 )
  	{
  	  notes.removeElementAt(notes.size() - 1);
- 	  // if an editAnnotaton window is open, update it to the changes 
- 	  if( editor.isVisible() )
- 	  {
-	    editor.setVisible(false);
-	    editAnnotation();
- 	  }
+ 	  editor.updateNoteList();
  	}	  
       }       
       else if( message.equals( AnnotationJPanel.NOTE_REQUESTED ) )
@@ -826,12 +849,6 @@ public class AnnotationOverlay extends OverlayJPanel
  	  this_mini.dispose();  // since a new viewer is made each time,
  			        // dispose of the old one.
  	  this_panel.repaint();
-	  // if an editAnnotaton window is open, update it to the changes
- 	  if( editor.isVisible() )
- 	  {
-	    editor.setVisible(false);
-	    editAnnotation();
- 	  }
  	  //System.out.println("KeyTyped " + e.getKeyChar() );         
  	}
       }
@@ -845,12 +862,11 @@ public class AnnotationOverlay extends OverlayJPanel
   private class AnnotationEditor extends JFrame
   {
     private AnnotationEditor this_viewer;
-    // adjust this if more than the font, fontsize, text color editor, 
-    // refresh button, and close button are added. Anything that is not a 
-    // JTextField from a note should increment this number.
-    private final int ADD_COMPONENTS = 5; 
+    private JComboBox note_list;
+    private JTextField text;
     private int current_fontsize;
     private Font[] fonts;
+    private JPanel north_component;
    
    /*
     * constructs a new annotation editor.
@@ -860,41 +876,19 @@ public class AnnotationOverlay extends OverlayJPanel
       super("Annotation Editor");
       this_viewer = this;
       current_fontsize = font.getSize();
-      int height = 35 * (ADD_COMPONENTS + notes.size() );
-      if( editor_bounds.getHeight() > height )
-        height = (int)editor_bounds.getHeight();
-      this.setBounds( (int)editor_bounds.getX(), (int)editor_bounds.getY(), 
-                      (int)editor_bounds.getWidth(), height );
+      
+      this.setBounds( editor_bounds );
       this.addComponentListener( new EditorListener() );
       this.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-      this.getContentPane().setLayout( 
-        	     new GridLayout(notes.size() + ADD_COMPONENTS, 1) );
+      this.getContentPane().setLayout( new BorderLayout() );
+      buildFirstComponent();
+      this.getContentPane().add(north_component, BorderLayout.NORTH );
       
-      JTextField text = new JTextField();
-      for( int i = 0; i < notes.size(); i++ )
-      { 
-        text = ((Note)notes.elementAt(i)).getTextField();
-        
-        text.addKeyListener( new TextFieldListener() );
-	text.setToolTipText("Shift+Arrow Key=Move Text, " +
-			    "Ctrl+Arrow Key=Move Anchor");
-        this.getContentPane().add(text);
-      }
-      GraphicsEnvironment ge =
-        	   GraphicsEnvironment.getLocalGraphicsEnvironment();
-      fonts = ge.getAllFonts();
-      String[] fontnames = ge.getAvailableFontFamilyNames();
-      JComboBox fontlist = new JComboBox( fontnames );
-      fontlist.insertItemAt("Change Font",0);
-      fontlist.setSelectedIndex(0);
-      fontlist.addActionListener( new ComboBoxListener() );
-      this.getContentPane().add( fontlist );
-      
-      String[] sizes = {"Change Font Size","8","12","16","20","24","28"};
-      JComboBox sizelist = new JComboBox( sizes );
-      sizelist.addActionListener( new ComboBoxListener() );
-      this.getContentPane().add( sizelist );
-      
+      /* 
+       * This is the old color selection method, it included
+       * options to set line and annotation color independently.
+       * This option is no longer available, unless a radio button
+       * or multiple checkboxes were added to give users options.
       ColorScaleImage notecolor = 
             new ColorScaleImage(ColorScaleImage.HORIZONTAL_DUAL);
       notecolor.setNamedColorModel( IndexColorMaker.MULTI_SCALE,true,false );
@@ -903,15 +897,34 @@ public class AnnotationOverlay extends OverlayJPanel
       notecolor.setToolTipText("Shift+Click=Text Color Only, " +
         		       "Ctrl+Click=Line Color Only");
       this.getContentPane().add( notecolor );
+      */
       
-      JButton refreshbutton = new JButton("Refresh");
-      refreshbutton.addActionListener( new ButtonListener() );
-      this.getContentPane().add( refreshbutton );
+      // Add a color selector to allow users to change the color of 
+      // the annotation.
+      ColorSelector colorchooser = new ColorSelector(ColorSelector.SWATCH);
+      colorchooser.addActionListener( new ColorChangeListener() );
+      this.getContentPane().add(colorchooser, BorderLayout.CENTER);
+      
+      JCheckBox draw_anchor = new JCheckBox("Draw Anchor Line");
+      draw_anchor.setSelected(true);
+      draw_anchor.addActionListener( new ButtonListener() );
+      
+      JButton help = new JButton("Help");
+      help.addActionListener( new ButtonListener() );
+      JPanel checkbox_and_help = new JPanel( new GridLayout(1,2) );
+      checkbox_and_help.add(draw_anchor);
+      checkbox_and_help.add(help);
       
       JButton closebutton = new JButton("Close");
       closebutton.addActionListener( new ButtonListener() );
-      this.getContentPane().add( closebutton );
-
+      
+      
+      // To correct layout issues, put first two rows into one component.
+      JPanel comp4 = new JPanel(new GridLayout(2,1));
+      comp4.add(checkbox_and_help);
+      comp4.add(closebutton);
+      this.getContentPane().add(comp4, BorderLayout.SOUTH);
+      
       // These commands will create key events for moving the annotation
       //*********************************************************************
       Keymap km = text.getKeymap();
@@ -955,39 +968,193 @@ public class AnnotationOverlay extends OverlayJPanel
       km.addActionForKeyStroke( sright, actsright );
     } // end of constructor
 
+   /* *******************************updateNoteList****************************
+    * This method will update the combo box containing the list of notes.
+    */ 
+    protected void updateNoteList()
+    {
+      int selected_index = 0;
+      boolean constructor_call = true;
+      // Store the selected index so that the new combo box can be set with
+      // that index.
+      if( note_list != null )
+      {
+        selected_index = note_list.getSelectedIndex();
+        this.getContentPane().remove(north_component);
+	// When first note is added, selected_index is kept at -1, need to
+	// set it to 0.
+	if( notes.size() > 0 && selected_index < 0 )
+	  selected_index = 0;
+      }
+      buildFirstComponent();
+      note_list.setSelectedIndex(selected_index);
+      this.getContentPane().add( north_component, BorderLayout.NORTH );
+      this_viewer.validate();
+      this_viewer.repaint();
+    }
     
+   /*
+    * This class builds the first three rows of buttons on the Annotation
+    * Editor. This is done in a separate method so that the note_list
+    * can be updated.
+    */
+    private void buildFirstComponent()
+    {
+      // Add a textfield which will allow the user to edit the annotations.
+      // "text" must be initialized before updateNoteList() is called.
+      text = new JTextField();
+      text.addKeyListener( new TextFieldListener() );
+      text.setToolTipText("Shift+Arrow Key=Move Text, " +
+        		  "Ctrl+Arrow Key=Move Anchor");
+      
+      // construct the note_list
+      note_list = new JComboBox(notes);
+      note_list.addActionListener( new NoteListListener() );
+      // restore the new combobox to the index of the old combo box.
+      if( notes.size() > 0 )
+      {
+	text.setText( note_list.getSelectedItem().toString() );
+      }
+      else
+        text.setText("");
+      
+      // This button will remove notes from the notes vector and consequently
+      // from the JComboBox that displays the list of notes.
+      JButton remove = new JButton("Remove");
+      remove.addActionListener( new ButtonListener() );
+      
+      // A jpanel that contains both the JComboBox list of notes and the
+      // remove button.
+      JPanel list_and_remove = new JPanel( new BorderLayout() );
+      list_and_remove.add( note_list, BorderLayout.CENTER );
+      list_and_remove.add( remove, BorderLayout.EAST );
+      
+      
+      // This button will remove notes from the notes vector and consequently
+      // from the JComboBox that displays the list of notes.
+      JButton change = new JButton("Change");
+      change.addActionListener( new ButtonListener() );
+      
+      // A jpanel that contains both the textfield to edit notes and the
+      // change button.
+      JPanel text_and_change = new JPanel( new BorderLayout() );
+      text_and_change.add( text, BorderLayout.CENTER );
+      text_and_change.add( change, BorderLayout.EAST );
+      
+      GraphicsEnvironment ge =
+        	   GraphicsEnvironment.getLocalGraphicsEnvironment();
+      fonts = ge.getAllFonts();
+      String[] fontnames = ge.getAvailableFontFamilyNames();
+      JComboBox fontlist = new JComboBox( fontnames );
+      fontlist.insertItemAt("Change Font",0);
+      fontlist.setSelectedIndex(0);
+      fontlist.addActionListener( new ComboBoxListener() );
+      
+      // Enable users to adjust size of the annotations.
+      String[] sizes = {"Change Font Size","8","12","16","20","24","28"};
+      JComboBox sizelist = new JComboBox( sizes );
+      sizelist.addActionListener( new ComboBoxListener() );
+      
+      // To correct layout issues, put third row into one component.
+      JPanel row3 = new JPanel(new GridLayout(1,2));
+      row3.add(fontlist);
+      row3.add(sizelist);
+      
+      // To correct layout issues, put first two rows into one component.
+      north_component = new JPanel(new GridLayout(3,1));
+      north_component.add(list_and_remove);
+      north_component.add(text_and_change);
+      north_component.add(row3);
+    }
+   
+   /*
+    * This method is called when either "Enter" is pressed while the textfield
+    * has focus, or the "Change" button is pressed. This method will take the
+    * text from the text area and change it in the note selected by the 
+    * JComboBox. If no notes exist, the text will be added as a note to the
+    * center of the image.
+    */ 
+    private void changeText()
+    {
+      int index = note_list.getSelectedIndex();
+      // If there are no notes, add a note if text was entered.
+      if( index < 0 )
+      {
+        // Make sure text has been entered into the TextField
+        if( !text.getText().equals("") )
+	{
+	  // place new annotation at the center of the image.
+	  CoordBounds pixel_coords = pixel_local.getSource();
+	  Point anchor_pt = new Point();
+	  Point text_pt = new Point();
+	  anchor_pt.x = (int)((pixel_coords.getX1() + pixel_coords.getX2())/2f);
+	  text_pt.x = anchor_pt.x;
+	  anchor_pt.y = (int)((pixel_coords.getY1() + pixel_coords.getY2())/2f);
+	  text_pt.y = anchor_pt.y/2;
+	  addAnnotation( text.getText(), new Line(anchor_pt,text_pt) );
+	}
+      }
+      // If notes exist, edit the selected note.
+      else
+      {
+        ((Note)notes.elementAt(index)).setText( text.getText() );
+        updateNoteList();
+        this_panel.repaint();
+      }
+    }
+    
+   /*
+    * Listener class for all of the buttons on the AnnotationEditor
+    */ 
     class ButtonListener implements ActionListener
     {
       public void actionPerformed( ActionEvent e )
       {
         String message = e.getActionCommand();
-        
-        int viewersize = this_viewer.getContentPane().getComponentCount();
-        // ADD_COMPONENTS accountS for components added to viewer that 
-        // are not notes.
-	boolean noteRemoved = false;
-        for( int compid = 0; compid < 
-                	     (viewersize - ADD_COMPONENTS); compid++ )
-        { 
-          if( ((JTextField)this_viewer.getContentPane().
-          		     getComponent(compid)).getText().equals("") )
-          {
-            notes.removeElementAt(compid);
-            this_viewer.repaint();
-            viewersize = this_viewer.getContentPane().getComponentCount();
-            noteRemoved = true;
-	  }
-        }
-        
-        if( message.equals("Refresh") )
-        {
-	  if( noteRemoved )
+        if( message.equals("Remove") )
+	{
+	  int index = note_list.getSelectedIndex();
+	  this_panel.removeAnnotation( index );
+	  // If index < 0, do nothing
+	  if( index < 0 )
+	    return;
+	  // If index is 0, and there are no notes, make index invalid.
+	  if( index == 0 )
 	  {
-	    editor.setVisible(false);
-	    editAnnotation();
-          }
-	  this_panel.repaint();
-        }
+	    if( notes.size() == 0 )
+	    {
+	      index = -1;
+	    }
+	  }
+	  // Else index > 0, move selected to the previous item
+	  else
+	    note_list.setSelectedIndex(index - 1);
+	  
+	  // If index is invalid, clear the TextField.
+	  if( index < 0 )
+	  {
+	    text.setText("");
+	    return;
+	  }	  
+	  text.setText(note_list.getSelectedItem().toString());
+	}
+	else if( message.equals("Change") )
+	{
+	  changeText();
+	}
+        else if( message.equals("Draw Anchor Line") )
+        {
+	  JCheckBox anchor = (JCheckBox)e.getSource();
+	  if( anchor.isSelected() )
+	    show_anchor_line = true;
+	  else
+	    show_anchor_line = false;
+          this_panel.repaint();
+	}
+	else if( message.equals("Help") )
+	{
+	  help();
+	}
         else if( message.equals("Close") )
         {  
           this_viewer.setVisible(false);
@@ -1003,26 +1170,14 @@ public class AnnotationOverlay extends OverlayJPanel
    	// if enter is pressed, update the image
         if( e.getKeyChar() == KeyEvent.VK_ENTER )
         {
-   	  int viewersize = this_viewer.getContentPane().getComponentCount();
-   	  // -2 in for is to account for two buttons added to viewer
-   	  for( int compid = 0; compid < 
-   			       (viewersize - ADD_COMPONENTS); compid++ )
-   	  { 
-   	    if( ((JTextField)this_viewer.getContentPane().
-   		    getComponent(compid)).getText().equals("") )
-   	    {
-   	      notes.removeElementAt(compid);
-   	      this_viewer.repaint();
-   	      viewersize = this_viewer.getContentPane().getComponentCount();
-   	    }
-   	  }
-          this_panel.repaint(); 	       
+	  changeText();
         }
       }
     }  // end TextFieldListener
    
    /*
-    * This class defines the actions for the key strokes created above. 
+    * This class defines the actions for the key strokes created above.
+    * This class will cause notes to move using arrow keys and modifiers. 
     */ 
     class KeyAction extends TextAction
     {
@@ -1035,22 +1190,14 @@ public class AnnotationOverlay extends OverlayJPanel
 
       public void actionPerformed( ActionEvent e )
       {
-   	int viewersize = this_viewer.getContentPane().getComponentCount();
-   	// -2 in for is to account for two buttons added to viewer
-   	
-   	int compid = 0;
-   	while( this_viewer.getContentPane().getComponent(compid) 
-   	       != e.getSource() && compid < (viewersize - ADD_COMPONENTS))
-   	{
-   	   compid++; 
-   	}
-   	
-   	Note tempnote = (Note)notes.elementAt(compid);
+        // find the selected note to move.
+   	int note_index = note_list.getSelectedIndex();
+   	// Make sure a note is selected.
+	if( note_index < 0 )
+	  return;
+   	Note tempnote = (Note)notes.elementAt(note_index);
    	Point tempp1 = tempnote.getLine().getP1();
    	Point tempp2 = tempnote.getLocation();
-   	CoordTransform pix_to_world = new 
-   		    CoordTransform( pixel_local.getSource(),
-   				    tempnote.getScale() );
    	
    	if( name.indexOf("Ctrl") > -1 )
    	{
@@ -1074,7 +1221,7 @@ public class AnnotationOverlay extends OverlayJPanel
    	     //if( tempp1.x < current_bounds.getWidth() )
    		tempp1.x = tempp1.x + 1;
    	  }
-   	  tempnote.setWCP1( pix_to_world.MapTo( new floatPoint2D(
+   	  tempnote.setWCP1( pixel_local.MapTo( new floatPoint2D(
    						(float)tempp1.x, 
    						(float)tempp1.y) ) );
    	}
@@ -1100,7 +1247,7 @@ public class AnnotationOverlay extends OverlayJPanel
    	     //if( tempp2.x < current_bounds.getWidth() )
    		tempp2.x = tempp2.x + 1;
    	  }
-   	  tempnote.setWCP2( pix_to_world.MapTo( new floatPoint2D(
+   	  tempnote.setWCP2( pixel_local.MapTo( new floatPoint2D(
    						(float)tempp2.x, 
    						(float)tempp2.y) ) );
    	}
@@ -1112,7 +1259,8 @@ public class AnnotationOverlay extends OverlayJPanel
    /*
     * This class listens to the ColorScaleImage on the AnnotationEditor.
     * This listener allows for annotation color change.
-    */ 
+    * This listener corresponds to the old color chooser that used
+    * the ColorScaleImage.
     class NoteColorListener extends MouseAdapter
     {
       public void mousePressed( MouseEvent e )
@@ -1142,6 +1290,24 @@ public class AnnotationOverlay extends OverlayJPanel
    	    line_color = grayarray[colorindex]; 	  
    	}
    	this_panel.repaint();	     
+      }
+    }*/
+    
+   /*
+    * This class changes the color of annotations.
+    */
+    class ColorChangeListener implements ActionListener
+    {
+      public void actionPerformed( ActionEvent ae )
+      {
+        String message = ae.getActionCommand();
+        if( message.equals( ColorSelector.COLOR_CHANGED ) )
+	{
+	  ColorSelector cs = (ColorSelector)ae.getSource();
+	  text_color = cs.getSelectedColor();
+	  line_color = cs.getSelectedColor();
+	  this_panel.repaint();
+	}
       }
     }
 
@@ -1194,7 +1360,25 @@ public class AnnotationOverlay extends OverlayJPanel
  	}
       }
     } // end ComboBoxListener
-     
+
+   /*
+    * This class handles the note list combobox.
+    */
+    class NoteListListener implements ActionListener
+    {
+      public void actionPerformed( ActionEvent e )
+      {
+ 	JComboBox temp = ((JComboBox)e.getSource());
+	// make sure selected index is not less than zero.
+	if( !(temp.getSelectedIndex() < 0) )
+	{
+	  text.setText(temp.getSelectedItem().toString());
+	}
+	else
+	  text.setText("");
+      }
+    }
+    
     class EditorListener extends ComponentAdapter
     {
       public void componentResized( ComponentEvent we )
