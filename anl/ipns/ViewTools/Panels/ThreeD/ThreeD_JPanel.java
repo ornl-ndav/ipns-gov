@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2001/07/10 16:31:36  dennis
+ * Now uses Hashtable to keep the list of named ThreeD objects, instead
+ * of using a Vector.
+ *
  * Revision 1.5  2001/06/28 20:23:24  dennis
  * Now maintains separate named lists of 3D objects, that can
  * be added, removed and colored independently.
@@ -75,9 +79,9 @@ import DataSetTools.components.image.*;
 public class ThreeD_JPanel extends    CoordJPanel 
                            implements Serializable
 {
-  private  Vector          obj_lists     = null;  // Vector with name, object[]
-                                                  // pairs stored in successive
-                                                  // locations.
+  private  Hashtable       obj_lists     = null;  // Hastable storing, object[]
+                                                  // lists referenced by name 
+                                                  
   private  IThreeD_Object  all_objects[] = null;  // array of all current 
                                                   // objects
   private  int             index[]       = null;  // depth sorted array of
@@ -99,7 +103,7 @@ public class ThreeD_JPanel extends    CoordJPanel
   { 
     super();
 
-    obj_lists = new Vector();
+    obj_lists = new Hashtable();
     setVirtualScreenSize( 1, 1, true );
     setBackground( Color.black );
   }
@@ -240,16 +244,14 @@ public class ThreeD_JPanel extends    CoordJPanel
  * 
  *  @param  name     Name of the list of objects whose colors are to be 
  *                   changed.
- *  @param  colors   Array of colors to use for the name list of objects.
+ *  @param  colors   Array of colors to use for the named list of objects.
  */
   public void setColors( String name, Color colors[] )
   {
-    int  i = find( name );
+    IThreeD_Object objects[] = (IThreeD_Object[])obj_lists.get(name);
 
-    if ( i >= 0 )
+    if ( objects != null )
     {
-      IThreeD_Object objects[] = (IThreeD_Object[])obj_lists.elementAt(i+1);
-
       int n_colors = colors.length;
       if ( n_colors > objects.length )
         n_colors = objects.length;
@@ -262,9 +264,36 @@ public class ThreeD_JPanel extends    CoordJPanel
   }
 
 
+/* ----------------------------- setColor --------------------------- */
+/**
+ *  Change the the color for all objects in the specified list of
+ *  ThreeD objects.
+ *
+ *  NOTE: The application must call repaint() or request_painting() to show
+ *        the new colors.
+ *
+ *  @param  name     Name of the list of objects whose colors are to be
+ *                   changed.
+ *  @param  color    New color to use for the named list of objects.
+ */
+  public void setColors( String name, Color color )
+  {
+    IThreeD_Object objects[] = (IThreeD_Object[])obj_lists.get(name);
+
+    if ( objects != null )
+    {
+      for ( int j = 0; j < objects.length; j++ )
+        objects[j].setColor( color );
+
+      data_painted = false;
+    }
+  }
+
+
+
 /* ----------------------------- setObjects ----------------------------- */
 /**
- *  Set a named list of ThreeD objects in the Vector of objects to be 
+ *  Set a named list of ThreeD objects in the list of objects to be 
  *  handled by this panel, if the name is already used, the new objects
  *  will replace the old objects.
  *
@@ -281,15 +310,7 @@ public class ThreeD_JPanel extends    CoordJPanel
    if ( name == null || obj == null || obj.length <= 0 )  
      return;
 
-   int i = find( name );
-
-   if ( i < 0 )
-   {
-     obj_lists.addElement( name );
-     obj_lists.addElement( obj );
-   }
-   else
-     obj_lists.setElementAt( obj, i+1 );
+   obj_lists.put( name, obj );
 
    build_object_list();
  }
@@ -309,14 +330,8 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
  public void removeObjects( String name )
  {
-   int i = find( name );
-
-   if ( i >= 0 )
-   {
-     obj_lists.removeElementAt( i );      // remove name
-     obj_lists.removeElementAt( i );      // remove objects
-     build_object_list();
-   } 
+   obj_lists.remove( name );
+   build_object_list();
  }
 
 
@@ -398,35 +413,6 @@ public class ThreeD_JPanel extends    CoordJPanel
  *
  */
 
-/* --------------------------------- find --------------------------------- */
-/**
- *  Find the specified name in the Vector of object lists.
- *
- *  @return Retruns the position in the Vector if it is found, -1 if not found.
- */
- public int find( String name )
- {
-   if ( name == null )
-     return -1;
-
-   boolean found = false;
-   int     i = 0;
-
-   while ( i < obj_lists.size() && !found )
-   {
-     String current_name = (String)(obj_lists.elementAt(i));
-     if ( current_name.equals( name ) )
-       found = true;
-     else
-       i += 2;
-   }
-    
-   if ( found )
-     return i;
-   else
-     return -1;
- }
-
 
 /* ------------------------- build_object_list --------------------------- */
 /**
@@ -435,7 +421,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
  private void build_object_list()
  {
-   if ( obj_lists.size() <= 0 )               // no more objects, so clean up
+   if ( obj_lists.isEmpty() )               // no more objects, so clean up
    {
      index = null;
      all_objects = null;
@@ -443,18 +429,18 @@ public class ThreeD_JPanel extends    CoordJPanel
      return;
    }
 
-   int n_lists = obj_lists.size()/2;
-
    int n_objects = 0;
-   for ( int i = 0; i < n_lists; i++ )
-     n_objects += ((IThreeD_Object[])(obj_lists.elementAt( 2*i + 1 ))).length;
+   Enumeration e = obj_lists.elements();
+   while ( e.hasMoreElements() ) 
+     n_objects += ( (IThreeD_Object[])(e.nextElement()) ).length;
 
    all_objects = new IThreeD_Object[n_objects];
    IThreeD_Object list[];
    int place = 0;
-   for ( int i = 0; i < n_lists; i++ )
+   e = obj_lists.elements();
+   while ( e.hasMoreElements() ) 
    {
-     list = (IThreeD_Object[])obj_lists.elementAt( 2*i + 1 );
+     list = (IThreeD_Object[])e.nextElement();
      for ( int j = 0; j < list.length; j++ )
      {
        all_objects[ place ] = list[j];
