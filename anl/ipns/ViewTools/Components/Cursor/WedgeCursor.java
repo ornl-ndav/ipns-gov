@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/12/11 17:11:23  millermi
+ *  - Minor change so line is not redrawn while cursor stretches.
+ *
  *  Revision 1.2  2003/09/02 21:08:10  millermi
  *  - Removed bounding rectangle from cursor.
  *  - Directional vector new is redrawn when the wedge is being
@@ -93,14 +96,14 @@ public class WedgeCursor extends  XOR_Cursor3pt
   */
   public void draw( Graphics graphics, Point p1, Point p2, Point p3 )
   {
-    // if first and second points are the same, draw only the line
+    // if second and third points are the same, draw only the line
     if( p2.x == p3.x && p2.y == p3.y )
-      graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
+      ;//graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
       //graphics.drawLine( p2.x, p2.y, p3.x, p3.y );
     else
     { 
       // draw line from "if" again to make it disappear using XOR
-      graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
+      //graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
       // draw line passing through p1 and p3
       graphics.drawLine( p1.x, p1.y, p3.x, p3.y );
       
@@ -179,6 +182,8 @@ public class WedgeCursor extends  XOR_Cursor3pt
       angles.x = startangle;
       angles.y = arcangle;
     }
+    // this line is the directional vector
+    graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
   }
 
  /**
