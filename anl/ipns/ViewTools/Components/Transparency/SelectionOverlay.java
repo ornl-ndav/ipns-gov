@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2003/12/20 20:07:39  millermi
+ *  - Added clearSelectedRegions() so selections can be cleared by
+ *    method call.
+ *
  *  Revision 1.23  2003/12/18 22:54:37  millermi
  *  - 3 defining points are now passed to the EllipseRegion.
  *    The new point, the center is used in case the selection
@@ -501,6 +505,18 @@ public class SelectionOverlay extends OverlayJPanel
   public Vector getSelectedRegions()
   {
     return regions;
+  }
+  
+ /**
+  * Remove all selections from the overlay.
+  */
+  public void clearSelectedRegions()
+  {
+    if( regions.size() > 0 )
+    {
+      regions.clear(); 
+      sendMessage(ALL_REGIONS_REMOVED);
+    }
   }
   
  /**
