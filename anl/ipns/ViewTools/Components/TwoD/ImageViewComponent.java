@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.35  2003/10/27 08:49:33  millermi
+ *  - Added the PanViewControl so users can now pan
+ *    the image if it is larger than the viewport.
+ *
  *  Revision 1.34  2003/10/23 05:49:51  millermi
  *  - Uncommented code that makes use of the ObjectState
  *    information from the ImageJPanel. Prior to now,
@@ -214,6 +218,7 @@ import DataSetTools.util.floatPoint2D;
 import DataSetTools.util.FontUtil;
 import DataSetTools.components.image.*;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
+import DataSetTools.components.View.Cursor.TranslationJPanel;
 import DataSetTools.components.View.Transparency.*;
 import DataSetTools.components.View.*;
 import DataSetTools.components.View.ViewControls.*;
@@ -382,7 +387,7 @@ public class ImageViewComponent implements IViewComponent2D,
   private Vector transparencies = new Vector();
   private int precision;
   private Font font;
-  private ViewControl[] controls = new ViewControl[5];
+  private ViewControl[] controls = new ViewControl[6];
   private ViewMenuItem[] menus = new ViewMenuItem[2];
   private String colorscale;
   private boolean isTwoSided = true;
@@ -986,7 +991,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public JPanel getDisplayPanel()
   {
-      return big_picture;   
+    return big_picture;   
   }
   
    
@@ -997,7 +1002,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void kill()
   {
-  
+    ;
   }
   
  /**
@@ -1215,28 +1220,38 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   private void buildViewControls()
   {
-     // Note: If controls are added here, the size of the array controls[]
-     // must be incremented.
-     controls[0] = new ControlSlider();
-     controls[0].setTitle("Intensity Slider");
-     ((ControlSlider)controls[0]).setValue((float)logscale);
-     //logscale = ((ControlSlider)controls[0]).getValue();		   
-     controls[0].addActionListener( new ControlListener() );
-		
-     controls[1] = new ControlColorScale(colorscale, isTwoSided );
-     controls[1].setTitle("Color Scale");
-     
-     controls[2] = new ControlCheckboxButton(true);
-     ((ControlCheckboxButton)controls[2]).setTitle("Axis Overlay");
-     controls[2].addActionListener( new ControlListener() );
+    // Note: If controls are added here, the size of the array controls[]
+    // must be incremented.
+    controls[0] = new ControlSlider();
+    controls[0].setTitle("Intensity Slider");
+    ((ControlSlider)controls[0]).setValue((float)logscale);
+    //logscale = ((ControlSlider)controls[0]).getValue();		  
+    controls[0].addActionListener( new ControlListener() );
+               
+    controls[1] = new ControlColorScale(colorscale, isTwoSided );
+    controls[1].setTitle("Color Scale");
+    
+    controls[2] = new ControlCheckboxButton(true);
+    ((ControlCheckboxButton)controls[2]).setTitle("Axis Overlay");
+    controls[2].addActionListener( new ControlListener() );
    
-     controls[3] = new ControlCheckboxButton();  // initially unchecked
-     ((ControlCheckboxButton)controls[3]).setTitle("Selection Overlay");
-     controls[3].addActionListener( new ControlListener() );
-     
-     controls[4] = new ControlCheckboxButton();  // initially unchecked
-     ((ControlCheckboxButton)controls[4]).setTitle("Annotation Overlay");
-     controls[4].addActionListener( new ControlListener() );	      
+    controls[3] = new ControlCheckboxButton();  // initially unchecked
+    ((ControlCheckboxButton)controls[3]).setTitle("Selection Overlay");
+    controls[3].addActionListener( new ControlListener() );
+    
+    controls[4] = new ControlCheckboxButton();  // initially unchecked
+    ((ControlCheckboxButton)controls[4]).setTitle("Annotation Overlay");
+    controls[4].addActionListener( new ControlListener() );
+    
+    ImageJPanel ijp_copy = new ImageJPanel();
+    ijp_copy.setGlobalWorldCoords( global_bounds );
+    ijp_copy.setLocalWorldCoords( local_bounds );
+    //Make ijp correspond to the data in f_array
+    ijp_copy.setData( Varray2D.getRegionValues(0, MAXDATASIZE, 0, MAXDATASIZE),
+   		      true);
+    controls[5] = new PanViewControl(ijp_copy); 
+    ((PanViewControl)controls[5]).setLocalBounds( ijp.getLocalWorldCoords() );
+    controls[5].addActionListener( new ControlListener() );     
   }
   
  /*
@@ -1284,18 +1299,18 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   private class ComponentAltered extends ComponentAdapter
   {
-     public void componentResized( ComponentEvent e )
-     {
-	//System.out.println("Component Resized");
-        Component center = e.getComponent();
-        regioninfo = new Rectangle( center.getLocation(), center.getSize() );
-        sendMessage(COMPONENT_RESIZED);
-        /*
-        System.out.println("Location = " + center.getLocation() );
-        System.out.println("Size = " + center.getSize() );
-        System.out.println("class is " + center.getClass() );  
-        */
-     }
+    public void componentResized( ComponentEvent e )
+    {
+      //System.out.println("Component Resized");
+      Component center = e.getComponent();
+      regioninfo = new Rectangle( center.getLocation(), center.getSize() );
+      sendMessage(COMPONENT_RESIZED);
+      /*
+      System.out.println("Location = " + center.getLocation() );
+      System.out.println("Size = " + center.getSize() );
+      System.out.println("class is " + center.getClass() );  
+      */
+    }
   }
 
  /*
@@ -1319,7 +1334,10 @@ public class ImageViewComponent implements IViewComponent2D,
 	//System.out.println("Sending SELECTED_CHANGED " + regioninfo );
 	ImageJPanel center = (ImageJPanel)ae.getSource();
 	local_bounds = center.getLocalWorldCoords().MakeCopy();
+	System.out.println("IVC: " + local_bounds.toString() );
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
+	((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
+	((PanViewControl)controls[5]).setLocalBounds(local_bounds);
 	//for(int next = 0; next < transparencies.size(); next++ )
 	//   ((OverlayJPanel)transparencies.elementAt(next)).repaint();
 	paintComponents( big_picture.getGraphics() ); 
@@ -1345,115 +1363,131 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   private class ControlListener implements ActionListener
   { 
-     public void actionPerformed( ActionEvent ae )
-     {
-	String message = ae.getActionCommand();
-			     // set image log scale when slider stops moving
-	if ( message == IViewControl.SLIDER_CHANGED )
-	{
-           ControlSlider control = (ControlSlider)ae.getSource();
-           logscale = control.getValue();				       
-           ijp.changeLogScale( logscale, true );
-           ((ControlColorScale)controls[1]).setLogScale( logscale );
-	} 
-	else if ( message == IViewControl.CHECKBOX_CHANGED )
-	{ 
-           int bpsize = big_picture.getComponentCount();
-           
-           if( ae.getSource() instanceof ControlCheckboxButton )
-           {
-             ControlCheckboxButton control = 
-        				 (ControlCheckboxButton)ae.getSource();
-             // if this control turns on/off the axis overlay...
-             if( control.getTitle().equals("Axis Overlay") )
-             {     
-               JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
-	       if( !control.isSelected() )
-               {						// axis overlay
-        	((AxisOverlay2D)transparencies.elementAt(2)).setVisible(false);
-        	 back.getComponent(1).setVisible(false);	// north
-        	 back.getComponent(2).setVisible(false);	// west
-        	 back.getComponent(3).setVisible(false);	// south
-        	 back.getComponent(4).setVisible(false);	// east
-        	 //System.out.println("visible..." + 
-        	  //((AxisOverlay2D)transparencies.elementAt(2)).isVisible() );
-               }
-               else
-               {	      
-        	 back.getComponent(1).setVisible(true);
-		 back.getComponent(2).setVisible(true);
-        	 back.getComponent(3).setVisible(true);
-        	 back.getComponent(4).setVisible(true);
-        	 ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(true);
-               }
-             }// end of if( axis overlay control ) 
-             else if( control.getTitle().equals("Annotation Overlay") )
-             {
-               AnnotationOverlay note = (AnnotationOverlay)
-        		      big_picture.getComponent(
-        		      big_picture.getComponentCount() - 4 ); 
-	       if( !control.isSelected() )
-               {
-        	 note.setVisible(false);
-               }
-               else
-               {
-        	 note.setVisible(true);
-        	 note.getFocus();
-               }	     
-             }
-             else if( control.getTitle().equals("Selection Overlay") )
-             {
-               // if this control turns on/off the selection overlay...
-               SelectionOverlay select = (SelectionOverlay)
-        		    big_picture.getComponent(
-        		    big_picture.getComponentCount() - 3 ); 
-	       if( !control.isSelected() )
-               {
-        	 select.setVisible(false);
-               }
-               else
-               {
-        	 select.setVisible(true); 
-        	 select.getFocus();
-               }
-             }
-           }		   
-        } // end if checkbox
-        else if( message.equals( IViewControl.BUTTON_PRESSED ) )
+    public void actionPerformed( ActionEvent ae )
+    {
+      String message = ae.getActionCommand();
+        		   // set image log scale when slider stops moving
+      if ( message == IViewControl.SLIDER_CHANGED )
+      {
+        ControlSlider control = (ControlSlider)ae.getSource();
+        logscale = control.getValue();  				    
+        ijp.changeLogScale( logscale, true );
+        ((ControlColorScale)controls[1]).setLogScale( logscale );
+	((PanViewControl)controls[5]).setLogScale( logscale );
+      } 
+      else if ( message == IViewControl.CHECKBOX_CHANGED )
+      { 
+        int bpsize = big_picture.getComponentCount();
+        
+        if( ae.getSource() instanceof ControlCheckboxButton )
         {
-          if( ae.getSource() instanceof ControlCheckboxButton )
+          ControlCheckboxButton control = 
+                		      (ControlCheckboxButton)ae.getSource();
+          // if this control turns on/off the axis overlay...
+          if( control.getTitle().equals("Axis Overlay") )
+          {	
+            JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
+            if( !control.isSelected() )
+            {						     // axis overlay
+             ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(false);
+              back.getComponent(1).setVisible(false);	     // north
+              back.getComponent(2).setVisible(false);	     // west
+              back.getComponent(3).setVisible(false);	     // south
+              back.getComponent(4).setVisible(false);	     // east
+              //System.out.println("visible..." + 
+               //((AxisOverlay2D)transparencies.elementAt(2)).isVisible() );
+            }
+            else
+            {		   
+              back.getComponent(1).setVisible(true);
+              back.getComponent(2).setVisible(true);
+              back.getComponent(3).setVisible(true);
+              back.getComponent(4).setVisible(true);
+              ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(true);
+            }
+          }// end of if( axis overlay control ) 
+          else if( control.getTitle().equals("Annotation Overlay") )
           {
-            ControlCheckboxButton ccb = (ControlCheckboxButton)ae.getSource();
-            if( ccb.getTitle().equals("Axis Overlay") )
+            AnnotationOverlay note = (AnnotationOverlay)
+                	   big_picture.getComponent(
+                	   big_picture.getComponentCount() - 4 ); 
+            if( !control.isSelected() )
             {
-              AxisOverlay2D axis = (AxisOverlay2D)big_picture.getComponent(
-        			   big_picture.getComponentCount() - 2 );
-              axis.editGridLines();
+              note.setVisible(false);
             }
-            else if( ccb.getTitle().equals("Annotation Overlay") )
+            else
             {
-              AnnotationOverlay note = (AnnotationOverlay)
-        			big_picture.getComponent(
-        			big_picture.getComponentCount() - 4 ); 
-              note.editAnnotation();
+              note.setVisible(true);
               note.getFocus();
-            }
-            else if( ccb.getTitle().equals("Selection Overlay") )
+            }		  
+          }
+          else if( control.getTitle().equals("Selection Overlay") )
+          {
+            // if this control turns on/off the selection overlay...
+            SelectionOverlay select = (SelectionOverlay)
+                	 big_picture.getComponent(
+                	 big_picture.getComponentCount() - 3 ); 
+            if( !control.isSelected() )
             {
-              SelectionOverlay select = (SelectionOverlay)
-        		      big_picture.getComponent(
-        		      big_picture.getComponentCount() - 3 ); 
-              select.editSelection();
+              select.setVisible(false);
+            }
+            else
+            {
+              select.setVisible(true); 
               select.getFocus();
             }
-          }	  
+          }
+        }		
+      } // end if checkbox
+      else if( message.equals( IViewControl.BUTTON_PRESSED ) )
+      {
+        if( ae.getSource() instanceof ControlCheckboxButton )
+        {
+          ControlCheckboxButton ccb = (ControlCheckboxButton)ae.getSource();
+          if( ccb.getTitle().equals("Axis Overlay") )
+          {
+            AxisOverlay2D axis = (AxisOverlay2D)big_picture.getComponent(
+        			 big_picture.getComponentCount() - 2 );
+            axis.editGridLines();
+          }
+          else if( ccb.getTitle().equals("Annotation Overlay") )
+          {
+            AnnotationOverlay note = (AnnotationOverlay)
+        		      big_picture.getComponent(
+        		      big_picture.getComponentCount() - 4 ); 
+            note.editAnnotation();
+            note.getFocus();
+          }
+          else if( ccb.getTitle().equals("Selection Overlay") )
+          {
+            SelectionOverlay select = (SelectionOverlay)
+        		    big_picture.getComponent(
+        		    big_picture.getComponentCount() - 3 ); 
+            select.editSelection();
+            select.getFocus();
+          }
+        }	
+      }
+      // This message is sent by the pan view control when the viewable
+      // subregion changes.
+      else if( message.equals( TranslationJPanel.BOUNDS_CHANGED ) )
+      {
+        if( ae.getSource() instanceof PanViewControl )
+        {
+          PanViewControl pvc = (PanViewControl)ae.getSource();
+          // since the pan view control has a CoordJPanel in it with the
+          // same bounds, set its local bounds to the image local bounds.
+          ijp.setLocalWorldCoords( pvc.getLocalBounds() );
+          // this method is only here to repaint the image
+          ijp.changeLogScale( logscale, true );
+          sendMessage(SELECTED_CHANGED);
         }
-        //repaints overlays accurately 
-        sendMessage( message );
-        returnFocus();
-	paintComponents( big_picture.getGraphics() ); 
-     }
+      }
+      //repaints overlays accurately 
+      sendMessage( message );
+      returnFocus();
+      paintComponents( big_picture.getGraphics() ); 
+    }
   } 
 
  /*
