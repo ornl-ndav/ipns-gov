@@ -1,7 +1,7 @@
 /*
  * File:  SANDWedgeViewer.java
  *
- * Copyright (C) 2003, Dennis Mikkelson, Mike Miller
+ * Copyright (C) 2003, Mike Miller
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2003/12/20 03:55:43  millermi
+ * - Fixed javadocs error.
+ *
  * Revision 1.1  2003/12/19 02:20:09  millermi
  * - Initial Version - Adds specialized functionality to the
  *   IVCTester class. This class allows users to specifically
@@ -121,9 +124,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 
  /**
   * Construct a frame with no data to start with. This constructor will be
-  * used to load data in.
-  *  
-  *  @param  iva
+  * used when data is being loaded in.
   */
   public SANDWedgeViewer()
   {
