@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/08/21 22:41:08  millermi
+ *  - Commented out debug statements and removed out code
+ *    that was commented out.
+ *
  *  Revision 1.1  2003/08/21 18:21:36  millermi
  *  - Initial Version - uses equation for elipse and slope of a line to
  *    determine if a point is in the region.
@@ -160,7 +164,7 @@ public class WedgeRegion extends Region
          rp1quad = 3;
      }
      
-     System.out.println("p1/rp1 Quad: " + p1quad + "/" + rp1quad );
+     //System.out.println("p1/rp1 Quad: " + p1quad + "/" + rp1quad );
      
      // this code will avoid slope of 0 or +/- infinity
      float numerator = p1.y - center.y;
@@ -181,7 +185,7 @@ public class WedgeRegion extends Region
      
      //lowerslope = (float)(p1.y - center.y)/(float)(p1.x - center.x);
      //upperslope = (float)(rp1.y - center.y)/(float)(rp1.x - center.x);
-     System.out.println("Lower/Upper Slope: " + lowerslope + "/" + upperslope);
+    //System.out.println("Lower/Upper Slope: " + lowerslope + "/" + upperslope);
      // using formula for elipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
      // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
      int quadnum = 0;
@@ -231,7 +235,7 @@ public class WedgeRegion extends Region
 	   xstop  = bottomright.x;
 	 }
 	   
-         System.out.println("Current quad(c): " + quadnum );
+         //System.out.println("Current quad(c): " + quadnum );
 
      	 for( int y = ystart; y <= ystop; y++ )
          {
@@ -324,7 +328,7 @@ public class WedgeRegion extends Region
 	   xstop  = bottomright.x;
 	 }
        
-         System.out.println("Current quad: " + quadnum );
+         //System.out.println("Current quad: " + quadnum );
 	 
          if( quadenteredcount < 4 )
          { 
@@ -378,435 +382,6 @@ public class WedgeRegion extends Region
          } // end if quadenteredcount
        } // for quadcount
      } // end else clockwise
-     
-     /*
-     if( counterclockwise )
-     {
-       if( rp1quad < p1quad )
-         rp1quad += 4;
-       for( int quadcount = p1quad; quadcount <= rp1quad; quadcount++ )
-       {
-         if(quadcount > 4 )
-           quadnum = quadcount - 4;
-         else
-	   quadnum = quadcount;
-	   
-         System.out.println("Current quad(c): " + quadnum );
-	 
-         if( quadnum == 1 )
-         {
-     	   for( int y = topleft.y; y <= center.y - 1; y++ )
-           {
-     	     for( int x = center.x + 1; x <= bottomright.x; x++ )
-     	     {
-     	       double dist = Math.pow((x - center.x),2)/xextent + 
-        		     Math.pow((y - center.y),2)/yextent;
-               //System.out.println("(" + x + "," + y + ")..." + dist ); 
-               if( dist <= 1 )
-               {
-	         if( p1quad != 1 && ( rp1quad != 1 && (rp1quad - 4) != 1 ) )
-		 {
-		   points.add( new Point( x, y ) );
-		 }
-		 else
-		 {
-		   //midslope = (float)(y - center.y)/(float)( x - center.x );
-		   
-                   numerator = y - center.y;
-                   if( numerator == 0 )
-                     numerator = 1;
-                   denominator = x - center.x;
-                   if( denominator == 0 )
-                     denominator = -.01f;
-     	           midslope = numerator/denominator;
-		   
-                   if( rp1quad != quadnum )
-                   {
-                     if( midslope <= lowerslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else if( p1quad != quadnum )
-                   {
-                     if( midslope >= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else
-                   {
-                     if( midslope <= lowerslope &&
-     	                 midslope >= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                 }
-               }
-             } // end for x
-           } // end for y
-         } // end if
-         else if( quadnum == 2 )
-         {
-     	   for( int y = topleft.y; y <= center.y - 1; y++ )
-           {
-     	     for( int x = topleft.x; x <= center.x; x++ )
-     	     {
-     	       double dist = Math.pow((x - center.x),2)/xextent + 
-        	  	   Math.pow((y - center.y),2)/yextent;
-               //System.out.println("(" + x + "," + y + ")..." + dist ); 
-               if( dist <= 1 )
-               {
-	         if( p1quad != 2 && ( rp1quad != 2 && (rp1quad - 4) != 2 ) )
-		 {
-		   points.add( new Point( x, y ) );
-		 }
-		 else
-		 {
-		   //midslope = (float)(y - center.y)/(float)( x - center.x );
-		   
-                   numerator = y - center.y;
-                   if( numerator == 0 )
-                     numerator = 1;
-                   denominator = x - center.x;
-                   if( denominator == 0 )
-                     denominator = -.01f;
-     	           midslope = numerator/denominator;
-		   
-                   if( rp1quad != quadnum )
-                   {
-                     if( midslope <= lowerslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else if( p1quad != quadnum )
-                   {
-                     if( midslope >= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else
-                   {
-                     if( midslope <= lowerslope &&
-     	                 midslope >= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                 }
-               }
-             } // end for x
-           } // end for y
-         } // end if
-         else if( quadnum == 3 )
-         {
-     	   for( int y = center.y; y <= bottomright.y; y++ )
-           {
-     	     for( int x = topleft.x; x <= center.x; x++ )
-     	     {
-     	       double dist = Math.pow((x - center.x),2)/xextent + 
-        		     Math.pow((y - center.y),2)/yextent;
-               //System.out.println("(" + x + "," + y + ")..." + dist ); 
-               if( dist <= 1 )
-               {
-	         if( p1quad != 3 && ( rp1quad != 3 && (rp1quad - 4) != 3 ) )
-		 {
-		   points.add( new Point( x, y ) );
-		 }
-		 else
-		 {
-		   //midslope = (float)(y - center.y)/(float)( x - center.x );
-		   
-                   numerator = y - center.y;
-                   if( numerator == 0 )
-                     numerator = 1;
-                   denominator = x - center.x;
-                   if( denominator == 0 )
-                     denominator = -.01f;
-     	           midslope = numerator/denominator;
-		   
-                   if( rp1quad != quadnum )
-                   {
-                     if( midslope <= lowerslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else if( p1quad != quadnum )
-                   {
-                     if( midslope >= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else
-                   {
-                     if( midslope <= lowerslope &&
-     	                 midslope >= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                 }
-               }
-             } // end for x
-           } // end for y
-         } // end if
-         else if( quadnum == 4 )
-         {
-     	   for( int y = center.y; y <= bottomright.y; y++ )
-           {
-     	     for( int x = center.x + 1; x <= bottomright.x; x++ )
-     	     {
-     	       double dist = Math.pow((x - center.x),2)/xextent + 
-        		     Math.pow((y - center.y),2)/yextent;
-               //System.out.println("(" + x + "," + y + ")..." + dist ); 
-               if( dist <= 1 )
-               {
-	         if( p1quad != 4 && ( rp1quad != 4 && (rp1quad - 4) != 4 ) )
-		 {
-		   points.add( new Point( x, y ) );
-		 }
-		 else
-		 {
-		   //midslope = (float)(y - center.y)/(float)( x - center.x );
-		   
-                   numerator = y - center.y;
-                   if( numerator == 0 )
-                     numerator = 1;
-                   denominator = x - center.x;
-                   if( denominator == 0 )
-                     denominator = -.01f;
-     	           midslope = numerator/denominator;
-		   
-                   if( rp1quad != quadnum )
-                   {
-                     if( midslope <= lowerslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else if( p1quad != quadnum )
-                   {
-                     if( midslope >= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else
-                   {
-                     if( midslope <= lowerslope &&
-     	                 midslope >= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                 }
-               }
-             } // end for x
-           } // end for y
-         } // end if
-       } // end for quad 
-     } // end if counterclockwise
-     // *********************else its clockwise**********************
-     else
-     {
-       if( rp1quad >= p1quad )
-         p1quad += 4;
-       boolean quad1entered = false;
-       boolean quad2entered = false;
-       boolean quad3entered = false;
-       boolean quad4entered = false;
-       for( int quadcount = p1quad; quadcount >= rp1quad; quadcount-- )
-       {
-         if(quadcount > 4 )
-           quadnum = quadcount - 4;
-	 else
-	   quadnum = quadcount;
-       
-         System.out.println("Current quad: " + quadnum );
-	 
-         if( quadnum == 1 && !quad1entered )
-         { 
-	   quad1entered = true;
-     	   for( int y = topleft.y; y <= center.y - 1; y++ )
-           {
-     	     for( int x = center.x + 1; x <= bottomright.x; x++ )
-     	     {
-     	       double dist = Math.pow((x - center.x),2)/xextent + 
-        		     Math.pow((y - center.y),2)/yextent;
-               //System.out.println("(" + x + "," + y + ")..." + dist ); 
-               if( dist <= 1 )
-               {
-	         if( ( p1quad != 1 && (p1quad - 4) != 1 ) && rp1quad != 1 )
-		 {
-		   points.add( new Point( x, y ) );
-		 }
-		 else
-		 {
-		   //midslope = (float)(y - center.y)/(float)( x - center.x );
-		   
-                   numerator = y - center.y;
-                   if( numerator == 0 )
-                     numerator = 1;
-                   denominator = x - center.x;
-                   if( denominator == 0 )
-                     denominator = -.01f;
-     	           midslope = numerator/denominator;
-		   
-                   if( rp1quad != quadnum )
-                   {
-                     if( midslope >= lowerslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else if( p1quad != quadnum && (p1quad - 4) != quadnum )
-                   {
-                     if( midslope <= upperslope )
-     	               points.add( new Point( x, y ) );
-		   }
-                   else
-                   {
-                     if( midslope >= lowerslope ||
-     	                 midslope <= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                 }
-	       }
-             } // end for x
-           } // end for y
-         } // end if
-         else if( quadnum == 2 && !quad2entered )
-         {
-	   quad2entered = true;
-     	   for( int y = topleft.y; y <= center.y - 1; y++ )
-           {
-     	     for( int x = topleft.x; x <= center.x; x++ )
-     	     {
-     	       double dist = Math.pow((x - center.x),2)/xextent + 
-        	  	   Math.pow((y - center.y),2)/yextent;
-               //System.out.println("(" + x + "," + y + ")..." + dist ); 
-               if( dist <= 1 )
-               {
-	         if( ( p1quad != 2 && (p1quad - 4) != 2 ) && rp1quad != 2 )
-		 {
-		   points.add( new Point( x, y ) );
-		 }
-		 else
-		 {
-		   //midslope = (float)(y - center.y)/(float)( x - center.x );
-		   
-                   numerator = y - center.y;
-                   if( numerator == 0 )
-                     numerator = 1;
-                   denominator = x - center.x;
-                   if( denominator == 0 )
-                     denominator = -.01f;
-     	           midslope = numerator/denominator;
-		   
-                   if( rp1quad != quadnum )
-                   {
-                     if( midslope >= lowerslope )
-     	               points.add( new Point( x, y ) );
-		   }
-                   else if( p1quad != quadnum && (p1quad - 4) != quadnum )
-                   {
-                     if( midslope <= upperslope )
-     	               points.add( new Point( x, y ) );
-		   }
-                   else
-                   {
-                     if( midslope >= lowerslope ||
-     	                 midslope <= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                 }
-               }
-             } // end for x
-           } // end for y
-         } // end if
-         else if( quadnum == 3 && !quad3entered )
-         {
-	   quad3entered = true;
-     	   for( int y = center.y; y <= bottomright.y; y++ )
-           {
-     	     for( int x = topleft.x; x <= center.x; x++ )
-     	     {
-     	       double dist = Math.pow((x - center.x),2)/xextent + 
-        		     Math.pow((y - center.y),2)/yextent;
-               //System.out.println("(" + x + "," + y + ")..." + dist ); 
-               if( dist <= 1 )
-               {
-	         if( ( p1quad != 3 && (p1quad - 4) != 3 ) && rp1quad != 3 )
-		 {
-		   points.add( new Point( x, y ) );
-		 }
-		 else
-		 {
-		   //midslope = (float)(y - center.y)/(float)( x - center.x );
-		   
-                   numerator = y - center.y;
-                   if( numerator == 0 )
-                     numerator = 1;
-                   denominator = x - center.x;
-                   if( denominator == 0 )
-                     denominator = -.01f;
-     	           midslope = numerator/denominator;
-		   
-                   //System.out.println("(" + x + "," + y + ") " + center.x +
-		   //                   "," + center.y + " " + midslope);
-                   
-		   if( rp1quad != quadnum )
-                   {
-                     if( midslope >= lowerslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else if( p1quad != quadnum && (p1quad - 4) != quadnum )
-                   {
-                     if( midslope <= upperslope )
-     	               points.add( new Point( x, y ) );
-		   }
-                   else
-                   {
-                     if( midslope >= lowerslope ||
-     	                 midslope <= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                 }
-               }
-             } // end for x
-           } // end for y
-         } // end if
-         else if( quadnum == 4 && !quad4entered )
-         {
-	   quad4entered = true;
-     	   for( int y = center.y; y <= bottomright.y; y++ )
-           {
-     	     for( int x = center.x + 1; x <= bottomright.x; x++ )
-     	     {
-     	       double dist = Math.pow((x - center.x),2)/xextent + 
-        		     Math.pow((y - center.y),2)/yextent;
-               //System.out.println("(" + x + "," + y + ")..." + dist ); 
-               if( dist <= 1 )
-               {
-	         if( ( p1quad != 4 && (p1quad - 4) != 4 ) && rp1quad != 4 )
-		 {
-		   points.add( new Point( x, y ) );
-		 }
-		 else
-		 {
-		   //midslope = (float)(y - center.y)/(float)( x - center.x );
-		   
-                   numerator = y - center.y;
-                   if( numerator == 0 )
-                     numerator = 1;
-                   denominator = x - center.x;
-                   if( denominator == 0 )
-                     denominator = .01f;
-     	           midslope = numerator/denominator;
-		   
-                   if( rp1quad != quadnum )
-                   {
-                     if( midslope >= lowerslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else if( p1quad != quadnum && (p1quad - 4) != quadnum )
-                   {
-                     if( midslope <= upperslope )
-     	               points.add( new Point( x, y ) );
-                   }
-                   else
-                   {
-                     if( midslope >= lowerslope ||
-     	                 midslope <= upperslope )
-     	               points.add( new Point( x, y ) );
-		   }
-                 }
-               }
-             } // end for x
-           } // end for y
-	 } // end if
-       } // end for quad 
-     } // end else clockwise
-     */
      
      // put the vector of points into an array of points
      selectedpoints = new Point[points.size()];
