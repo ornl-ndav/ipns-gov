@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/10/08 16:32:14  pfpeterson
+ *  Improved the getExecInPath method to actually check the path
+ *  (if available). Since how java gets the path is kinda goofy,
+ *  it still supports the old method of checking a few fixed places.
+ *
  *  Revision 1.1  2002/09/17 22:29:40  pfpeterson
  *  Added to CVS.
  *
@@ -219,7 +224,7 @@ public class SysUtil{
 
         // first try the path (it returns null if not found)
         result=getExecInPath(command);
-        if(result!=null)return result;
+        if( result!=null && ! result.equals(command) )return result;
 
         // get the class name and repair it
         String myClassName=klass.getClass().getName();
@@ -251,23 +256,56 @@ public class SysUtil{
     }
 
     /**
-     * Find the name of the executable in the path. This tries some
-     * likely places ($HOME/bin, /usr/local/bin, and /usr/bin in that
-     * order) to find the fully qualified command. This should be
-     * changed to search the user's path.
+     * Find the name of the executable in the path. If the path is not
+     * available via the system properties (remember "java
+     * -DPATH=$PATH" or "java -DPATH=%PATH%") this tries some likely
+     * places ($HOME/bin, /usr/local/bin, and /usr/bin in that order
+     * for linux) to find the fully qualified command.
      */
     public static String getExecInPath(String command){
-        String com=null;
+        String  com   = null;
+        String  path  = null;
+        String  sep   = System.getProperty("path.separator");
+        boolean found = false;
 
-        // try some likely places
-        com=System.getProperty("user.home")+"/bin/"+command;
-        if(fileExists(com)) return com;
-        com="/usr/local/bin/"+command;
-        if(fileExists(com)) return com;
-        com="/usr/bin/"+command;
-        if(fileExists(com)) return com;
+        // make sure that a command was given
+        if(command==null) return null;
 
-        return null;
+        // see if the path is listed in lowercase
+        path=System.getProperty("path");
+        // and try uppercase
+        if(path==null)
+            path=System.getProperty("PATH");
+        // if we are in linux here is a guess of the path
+        if(path==null){
+            path=System.getProperty("ISAW_HOME");
+            if(isOSokay(LINUX_ONLY))
+                path=path+sep+System.getProperty("user.home")+"/bin"+sep
+                    +"/usr/local/bin"+sep+"/usr/bin";
+        }
+
+        // search through the path for the executable
+        int index=path.indexOf(sep);
+        while(index>0){
+            com=FilenameUtil.fixSeparator(path.substring(0,index)+"/"+command);
+            path=path.substring(index+1);
+            index=path.indexOf(sep);
+            if(fileExists(com)){
+                found=true;
+                break;
+            }
+        }
+        // one last time for the remainder of the path after the last seperator
+        if(! found){
+            com=FilenameUtil.fixSeparator(path+"/"+command);
+            if(fileExists(com)) found=true;
+        }
+
+        if(found){ // return the fully qualified version (if possible)
+            return com;
+        }else{     // otherwise return what was sent here and hope for the best
+            return command;
+        }
     }
 
     /**
