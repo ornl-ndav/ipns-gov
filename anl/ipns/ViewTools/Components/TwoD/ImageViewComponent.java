@@ -34,6 +34,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.73  2004/08/04 18:55:16  millermi
+ *  - Added java doc comments clarifying coordinate systems.
+ *  - Added getColumnRowAtPixel(), getColumnRowAtWorldCoords(),
+ *    getWorldCoordsAtPixel(), and getWorldCoordsAtColumnRow()
+ *    to convert between coordinate systems.
+ *  - Added check for null data being passed in. Methods will
+ *    now either ignore requests or return dummy values if the
+ *    data was null. Controls will also be disabled is data
+ *    was null.
+ *
  *  Revision 1.72  2004/07/10 04:50:25  millermi
  *  - Added setPrecision() method to allow outside programmers to
  *    set the precision of the displayed numbers.
@@ -403,6 +413,7 @@ import java.awt.event.*;
 import java.util.Vector; 
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.UI.FontUtil;
 import gov.anl.ipns.ViewTools.Panels.Image.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
@@ -417,6 +428,11 @@ import gov.anl.ipns.ViewTools.Components.Region.*;
  * This class allows the user to view data in the form of an image. Meaning
  * is given to the data by way of overlays, which add calibration, selection,
  * and annotation abilities.
+ * <BR><BR>
+ * The ImageViewComponent uses a series of coordinate systems. The only
+ * coordinate system visible to programmers is the "World Coordinate" system,
+ * which is the range of x-axis and y-axis values that can be found in
+ * the AxisInfo class of each axis. 
  */
 public class ImageViewComponent implements IViewComponent2D, 
            /*for IAxisAddible2D*/          IColorScaleAddible,
@@ -622,8 +638,8 @@ public class ImageViewComponent implements IViewComponent2D,
   private transient Vector transparencies = new Vector();
   private int precision;
   private Font font;
-  private transient ViewControl[] controls = new ViewControl[8];
-  private transient ViewMenuItem[] menus = new ViewMenuItem[2];
+  private transient ViewControl[] controls;
+  private transient ViewMenuItem[] menus;
   private String colorscale;
   private boolean isTwoSided = true;
   private double logscale = 0;
@@ -635,6 +651,7 @@ public class ImageViewComponent implements IViewComponent2D,
   private int east_width = 0;    // west components of the background panel to
   private int west_width = 0;    // be used for setting aspect ratio of image.
   private boolean preserve_ratio = false;  // if true, preserve aspect ratio
+  private boolean null_data = false;
  
  /**
   * Constructor that takes in a virtual array and creates an imagejpanel
@@ -644,10 +661,22 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public ImageViewComponent( IVirtualArray2D varr )  
   {
-    Varray2D = varr; // Get reference to varr
-    setPrecision(4);
     font = FontUtil.LABEL_FONT2;
     ijp = new ImageJPanel();
+    colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
+    setPrecision(4);
+    if( varr == null )
+    {
+      null_data = true;
+      Varray2D = new VirtualArray2D(1,1);
+      big_picture.add( new JLabel("No data to display as image.") );
+      controls = new ViewControl[0];
+      menus = new ViewMenuItem[0];
+      local_bounds = new CoordBounds();
+      global_bounds = new CoordBounds();
+      return;
+    }
+    Varray2D = varr; // Get reference to varr
     //Make ijp correspond to the data in f_array
     ijp.setData(varr.getRegionValues(0, varr.getNumRows()-1,
                                      0, varr.getNumColumns()-1), true); 
@@ -670,7 +699,6 @@ public class ImageViewComponent implements IViewComponent2D,
     local_bounds = ijp.getLocalWorldCoords().MakeCopy();
     global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
     
-    colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
     // two-sided model
     if( ijp.getDataMin() < 0 )
        isTwoSided = true;
@@ -731,6 +759,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void setObjectState( ObjectState new_state )
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
     boolean redraw = false;  // if any values are changed, repaint overlay.
     Object temp = new_state.get(FONT);
     if( temp != null )
@@ -873,6 +904,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public ObjectState getObjectState( boolean isDefault )
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return new ObjectState();
     ObjectState state = new ObjectState();
     state.insert( ANNOTATION_CONTROL,
               ((ControlCheckboxButton)controls[6]).getObjectState(isDefault) );
@@ -915,6 +949,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void addMarker( Marker mark )
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
     ((MarkerOverlay)(transparencies.elementAt(3))).addMarker(mark);
   }
   
@@ -927,6 +964,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void preserveAspectRatio( boolean doPreserve )
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
     // add AspectRatio listener only if one has not been added.
     ComponentListener[] bp_list = getDisplayPanel().getComponentListeners();
     if( doPreserve )
@@ -967,6 +1007,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void disableSelection(String[] names)
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
     ((SelectionOverlay)(transparencies.elementAt(1))).disableSelection( names );
   }
      
@@ -979,6 +1022,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void enableSelection(String[] names)
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
     ((SelectionOverlay)(transparencies.elementAt(1))).enableSelection( names );
   } 
   
@@ -1002,6 +1048,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public AxisInfo getValueAxisInfo()
   {
+    // If the original data passed in was null, return dummy values.
+    if( null_data )
+      return new AxisInfo( 0, 1, "", "", AxisInfo.LINEAR );
     return getAxisInformation( AxisInfo.Z_AXIS );
   }
   
@@ -1023,6 +1072,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public AxisInfo getAxisInformation( int axiscode )
   {
+    // If the original data passed in was null, return dummy values.
+    if( null_data )
+      return new AxisInfo( 0, 1, "", "", AxisInfo.LINEAR );
     // if true, return x info
     if( axiscode == AxisInfo.X_AXIS )
     {
@@ -1057,6 +1109,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public Rectangle getRegionInfo()
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return new Rectangle();
     return regioninfo;
   }    
  
@@ -1068,6 +1123,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public String getTitle()
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return "";
     return Varray2D.getTitle();
   }
   
@@ -1112,7 +1170,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * This method will return the local coordinate bounds of the center
   * jpanel. To be implemented, the center may have to be a coordjpanel.
   *
-  *  @return local coordinate bounds of ImageJPanel
+  *  @return local coordinate bounds of ImageJPanel, in world coordinates.
   */
   public CoordBounds getLocalCoordBounds()
   {
@@ -1123,7 +1181,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * This method will return the global coordinate bounds of the center
   * jpanel. To be implemented, the center may have to be a coordjpanel.
   *
-  *  @return global coordinate bounds of ImageJPanel
+  *  @return global coordinate bounds of ImageJPanel, in world coordinates.
   */
   public CoordBounds getGlobalCoordBounds()
   {
@@ -1145,26 +1203,34 @@ public class ImageViewComponent implements IViewComponent2D,
 
  // Methods required since this component implements IViewComponent2D
  /**
-  * This method adjusts the crosshairs on the imagejpanel.
-  * setPointedAt is called from the viewer when another component
-  * changes the selected point.
+  * This method sets the pointed-at position and adjusts the crosshairs on
+  * the image. setPointedAt() can be called from the viewer to synchronize
+  * the pointed-at of this component with the pointed-at of another component.
   *
-  *  @param  fpt
+  *  @param  fpt The current pointed-at floatPoint2D in world coordinates.
   */
   public void setPointedAt( floatPoint2D fpt )
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
     //set the cursor position on ImageJPanel
     ijp.setCurrent_WC_point( fpt ); 
   }
 
  /**
-  * This method gets the current floatPoint2D from the ImageJPanel and 
-  * converts it to a Point.
+  * This method gets the current pointed-at position in world coordinates. The
+  * current pointed-at position is point on the image where the crosshairs
+  * intersect. getPointedAt() can be called from the viewer to synchronize
+  * the pointed-at of this component with the pointed-at of another component.
   *
-  *  @return  The current pointed-at world coordinate point as a floatPoint2D
+  *  @return  The current pointed-at floatPoint2D in world coordinate.
   */
   public floatPoint2D getPointedAt()
   {
+    // If the original data passed in was null, return dummy value.
+    if( null_data )
+      return new floatPoint2D();
     return new floatPoint2D(ijp.getCurrent_WC_point());
   }
   
@@ -1178,6 +1244,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void addSelectedRegion( Region world_coord_region )
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
     Region[] reg = new Region[1];
     reg[0] = world_coord_region;
     ((SelectionOverlay)
@@ -1201,6 +1270,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public void setSelectedRegions( Region[] rgn ) 
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
     ((SelectionOverlay)(transparencies.elementAt(1))).clearRegions();
     if( rgn != null )
     {
@@ -1221,6 +1293,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public Region[] getSelectedRegions() //keep the same (for now)
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return new Region[0];
     Vector regions = 
        ((SelectionOverlay)transparencies.elementAt(1)).getRegions();
     Region[] selectedregions = new Region[regions.size()];
@@ -1242,6 +1317,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void dataChanged()  
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
     float[][] f_array = Varray2D.getRegionValues( 0, Varray2D.getNumRows()-1, 
         				        0, Varray2D.getNumColumns()-1 );
     ijp.setData(f_array, true);
@@ -1263,6 +1341,18 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public void dataChanged( IVirtualArray2D pin_Varray ) // pin == "passed in"
   {
+    // If the original data passed in was null, do nothing.
+    if( pin_Varray == null )
+    {
+      big_picture.removeAll();
+      ijp.removeAllActionListeners();
+      big_picture.add( new JLabel("No data to display as image.") );
+      null_data = true;
+      // Redraw big_picture with new JLabel.
+      big_picture.validate();
+      big_picture.repaint();
+      return;
+    }
     // compare references, if not the same, reinitialize the virtual array.
     if( pin_Varray != Varray2D )
     {
@@ -1283,16 +1373,87 @@ public class ImageViewComponent implements IViewComponent2D,
     			      pin_Varray.getAxisInfo( AxisInfo.Y_AXIS ) );
         Varray2D.setTitle( pin_Varray.getTitle() );
       }
-      // since new data array, remove all selections and annotations.
-      ((AnnotationOverlay)(transparencies.elementAt(0))).clearAnnotations();
-      ((SelectionOverlay)(transparencies.elementAt(1))).clearRegions();
+      
+      // If the initial data passed in was null, initialize variables that
+      // would have been initialized in the constructor, had the data been
+      // valid.
+      if( null_data )
+      {
+        big_picture.removeAll();
+        ImageListener ijp_listener = new ImageListener();
+        ijp.addActionListener( ijp_listener );
+        	    
+        ComponentAltered comp_listener = new ComponentAltered();   
+        ijp.addComponentListener( comp_listener );
+        
+        regioninfo = new Rectangle( ijp.getBounds() );
+        
+        AxisInfo xinfo = Varray2D.getAxisInfo(AxisInfo.X_AXIS);
+        AxisInfo yinfo = Varray2D.getAxisInfo(AxisInfo.Y_AXIS);
+        
+        ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
+        					    yinfo.getMax(),	 
+        					    xinfo.getMax(),
+        					    yinfo.getMin() ) ); 
+        
+        local_bounds = ijp.getLocalWorldCoords().MakeCopy();
+        global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
+        
+        // two-sided model
+        if( ijp.getDataMin() < 0 )
+           isTwoSided = true;
+        // one-sided model
+        else
+           isTwoSided = false;
+        ijp.setNamedColorModel(colorscale, isTwoSided, false); 
+        
+        //create transparencies
+        AnnotationOverlay top = new AnnotationOverlay(this);
+        top.setVisible(false);      // initialize this overlay to off.
+        SelectionOverlay nextup = new SelectionOverlay(this);
+        nextup.setVisible(false);   // initialize this overlay to off.
+        nextup.setRegionColor(Color.magenta);
+        nextup.addActionListener( new SelectedRegionListener() );
+        AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
+        MarkerOverlay marker_overlay = new MarkerOverlay(this);
+        
+        // add the transparencies to the transparencies vector
+        transparencies.clear();
+        transparencies.add(top);
+        transparencies.add(nextup);
+        transparencies.add(bottom_overlay);
+        transparencies.add(marker_overlay); 
+        
+        OverlayLayout overlay = new OverlayLayout(big_picture);
+        big_picture.setLayout(overlay);
+        for( int trans = 0; trans < transparencies.size(); trans++ )
+          big_picture.add((OverlayJPanel)transparencies.elementAt(trans));
+        big_picture.add(background);
+        
+        Listeners = new Vector();
+        buildViewComponent();	 // initializes big_picture to jpanel containing
+        			 // the background and transparencies
+        buildViewControls(); 
+        buildViewMenuItems();
+	null_data = false;
+	// Redraw the new image.
+	big_picture.validate();
+	big_picture.repaint();
+	//paintComponents(big_picture.getGraphics());
+      }
+      else
+      {
+        // since new data array, remove all selections and annotations.
+        ((AnnotationOverlay)(transparencies.elementAt(0))).clearAnnotations();
+        ((SelectionOverlay)(transparencies.elementAt(1))).clearRegions();
 
-      AxisInfo xinfo = Varray2D.getAxisInfo(AxisInfo.X_AXIS);
-      AxisInfo yinfo = Varray2D.getAxisInfo(AxisInfo.Y_AXIS);
-      ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
-    					          yinfo.getMax(),
-    					          xinfo.getMax(),
-    					          yinfo.getMin() ) );
+        AxisInfo xinfo = Varray2D.getAxisInfo(AxisInfo.X_AXIS);
+        AxisInfo yinfo = Varray2D.getAxisInfo(AxisInfo.Y_AXIS);
+        ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
+    					            yinfo.getMax(),
+    					            xinfo.getMax(),
+    					            yinfo.getMin() ) );
+      }
     }
     dataChanged();   // call other dataChanged() method to reset the ijp and 
                      // redraw the display.
@@ -1371,7 +1532,8 @@ public class ImageViewComponent implements IViewComponent2D,
     for( int trans = 0; trans < transparencies.size(); trans++ )
       ((OverlayJPanel)transparencies.elementAt(trans)).kill();
   }
-  
+ 
+ // *************************** Miscellaneous methods ************************* 
  /**
   * This method allows the user to place a VERTICAL color control in the
   * east panel of the view component. If this method is called, it is assumed
@@ -1383,6 +1545,10 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void setColorControlEast( boolean isOn )
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
+    
     ((ControlColorScale)controls[1]).setVisible(false);
     addColorControlEast = isOn;
     // if calibrated colorscale is requested, turn off control colorscale
@@ -1404,6 +1570,10 @@ public class ImageViewComponent implements IViewComponent2D,
   */   
   public void setColorControlSouth( boolean isOn )
   {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
+  
     ((ControlColorScale)controls[1]).setVisible(false);
     addColorControlSouth = isOn;
     // if calibrated colorscale is requested, turn off control colorscale
@@ -1413,6 +1583,80 @@ public class ImageViewComponent implements IViewComponent2D,
       ((ControlColorScale)controls[1]).setVisible(false);
     }
     buildViewComponent();
+  }
+ 
+ /*
+  * Here are methods to outside programmers get access to the other coordinate
+  * systems.
+  */ 
+ /**
+  * Get the (x = column, y = row) "image coordinate" point of the image at
+  * the "pixel coordinate" point given. This method will map pixel values
+  * to image column/row values.
+  *
+  *  @param  pixel_pt The pixel value (x=row,y=column) of the image.
+  *  @return The "Image Coordinate" value of pixel_pt.
+  */
+  public Point getColumnRowAtPixel( Point pixel_pt )
+  {
+    // If the original data passed in was null, return dummy values.
+    if( null_data )
+      return new Point();
+    return new Point( ijp.ImageCol_of_PixelCol(pixel_pt.y),
+                      ijp.ImageRow_of_PixelRow(pixel_pt.x) );
+  }
+   
+ /**
+  * Get the (x = column, y = row) "image coordinate" point of the image at
+  * the "world coordinate" point given. This method will map world coordinate
+  * values (defined by AxisInfo) to image column/row values.
+  *
+  *  @param  wc_pt The world coordinate value (x-axis,y-axis) of the image.
+  *  @return The "Image Coordinate" value of wc_pt.
+  */
+  public Point getColumnRowAtWorldCoords( floatPoint2D wc_pt )
+  {
+    // If the original data passed in was null, return dummy values.
+    if( null_data )
+      return new Point();
+    return new Point( ijp.ImageCol_of_WC_x(wc_pt.x),
+                      ijp.ImageRow_of_WC_y(wc_pt.y) );
+  }
+ /**
+  * Get the (x-axis, y-axis) "world coordinate" point of the image at
+  * the "pixel coordinate" point given. This method will map pixel values
+  * to world coordinate x-axis/y-axis values.
+  *
+  *  @param  pixel_pt The pixel value (x=row,y=column) of the image.
+  *  @return The "World Coordinate" value of pixel_pt.
+  */
+  public floatPoint2D getWorldCoordsAtPixel( Point pixel_pt )
+  {
+    // If the original data passed in was null, return dummy values.
+    if( null_data )
+      return new floatPoint2D();
+    return getWorldCoordsAtColumnRow( getColumnRowAtPixel(pixel_pt) );
+  }
+   
+ /**
+  * Get the (x-axis,y-axis) "world coordinate" value of the
+  * (x = column, y = row) "image coordinate" point given.
+  * This method will map image column/row values to world coordinate
+  * values (defined by AxisInfo).
+  *
+  *  @param  col_row_pt The image coordinate value (column,row) of the image.
+  *  @return The "World Coordinate" point of col_row_pt.
+  */
+  public floatPoint2D getWorldCoordsAtColumnRow( Point col_row_pt )
+  {
+    // If the original data passed in was null, return dummy values.
+    if( null_data )
+      return new floatPoint2D();
+    CoordBounds imagebounds = ijp.getImageCoords();
+    CoordBounds wcbounds = ijp.getGlobalWorldCoords();
+    CoordTransform image_to_wc = new CoordTransform( imagebounds, wcbounds );
+    return new floatPoint2D( image_to_wc.MapXTo(col_row_pt.x),
+                             image_to_wc.MapYTo(col_row_pt.y) );
   }
   
  /*
@@ -1449,7 +1693,11 @@ public class ImageViewComponent implements IViewComponent2D,
   * events are recognized after controls are given focus.
   */ 
   public void returnFocus()
-  {	       
+  {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
+    
     AnnotationOverlay note = (AnnotationOverlay)transparencies.elementAt(0); 
     SelectionOverlay select = (SelectionOverlay)transparencies.elementAt(1); 
     AxisOverlay2D axis = (AxisOverlay2D)transparencies.elementAt(2);
@@ -1572,11 +1820,11 @@ public class ImageViewComponent implements IViewComponent2D,
   private void buildViewControls()
   {
     // Note: If controls are added here, the size of the array controls[]
-    // must be incremented in the private data members.
+    // must be incremented.
     // IT IS RECOMMENDED THAT THE PANVIEWCONTROL REMAIN THE LAST CONTROL,
     // Adding a spacer panel to "crunch" controls may result in the
     // PanViewControl getting drawn over any latter controls.
-    
+    controls = new ViewControl[8];
     // Control that adjusts the image intensity
     controls[0] = new ControlSlider();
     controls[0].setTitle(INTENSITY_SLIDER_NAME);
@@ -1615,7 +1863,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * This method constructs the menu items required by the ImageViewComponent
   */   
   private void buildViewMenuItems()
-  {  
+  {
     Vector colorscale = new Vector();
     Vector position = new Vector();
     Vector choices = new Vector();
@@ -1642,6 +1890,7 @@ public class ImageViewComponent implements IViewComponent2D,
       position.add("Right of Image (calibrated)");
       position.add("None");
     
+    menus = new ViewMenuItem[2];
     JMenuItem scalemenu = MenuItemMaker.makeMenuItem( colorscale,cs_listener );
     menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, scalemenu ); 
 
@@ -1758,6 +2007,9 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     public void componentResized( ComponentEvent e )
     {
+      // If the original data passed in was null, do nothing.
+      if( null_data )
+        return;
       //System.out.println("Component Resized");
       Component center = e.getComponent();
       regioninfo = new Rectangle( center.getLocation(), center.getSize() );
@@ -1777,6 +2029,9 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     public void actionPerformed( ActionEvent ae )
     {
+      // If the original data passed in was null, do nothing.
+      if( null_data )
+        return;
       String message = ae.getActionCommand();
 
       if (message == CoordJPanel.CURSOR_MOVED)
@@ -1831,6 +2086,9 @@ public class ImageViewComponent implements IViewComponent2D,
   { 
     public void actionPerformed( ActionEvent ae )
     {
+      // If the original data passed in was null, do nothing.
+      if( null_data )
+        return;
       String message = ae.getActionCommand();
         		   // set image log scale when slider stops moving
       if ( message == ControlSlider.SLIDER_CHANGED )
@@ -1949,7 +2207,9 @@ public class ImageViewComponent implements IViewComponent2D,
       }
       // This message is sent by the pan view control when the viewable
       // subregion changes.
-      else if( message.equals( TranslationJPanel.BOUNDS_CHANGED ) )
+      else if( message.equals( PanViewControl.BOUNDS_CHANGED ) ||
+               message.equals( PanViewControl.BOUNDS_MOVED ) ||
+	       message.equals( PanViewControl.BOUNDS_RESIZED ) )
       {
         if( ae.getSource() instanceof PanViewControl )
         {
@@ -1977,6 +2237,9 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     public void actionPerformed( ActionEvent ae )
     {
+      // If the original data passed in was null, do nothing.
+      if( null_data )
+        return;
       String message = ae.getActionCommand();
       // these determine which color scale is to be viewed.
       if( message.equals("Control Panel") )
@@ -2084,6 +2347,9 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     public void actionPerformed( ActionEvent ae )
     {
+      // If the original data passed in was null, do nothing.
+      if( null_data )
+        return;
       sendMessage( ae.getActionCommand() );
     }
   }
@@ -2096,6 +2362,9 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     public void componentResized( ComponentEvent e )
     {
+      // If the original data passed in was null, do nothing.
+      if( null_data )
+        return;
       buildAspectImage();
     }
   }
@@ -2130,6 +2399,34 @@ public class ImageViewComponent implements IViewComponent2D,
       }
     }
     
-    IVCTester test = new IVCTester( va2D );
+    JFrame frame = new JFrame("TableViewComponent Test");
+    frame.setBounds(0,0,600,300);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    
+    ImageViewComponent ivc = new ImageViewComponent(va2D);
+    frame.getContentPane().add(ivc.getDisplayPanel());
+    
+    WindowShower shower = new WindowShower(frame);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
+    
+    JFrame ctrlframe = new JFrame("TVC Controls");
+    ctrlframe.setBounds(0,0,300,400);
+    ctrlframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    
+    ivc.dataChanged( null );
+    ViewControl[] my_controls = ivc.getControls();
+    ctrlframe.getContentPane().setLayout( new javax.swing.BoxLayout(
+                                       ctrlframe.getContentPane(),
+                                       javax.swing.BoxLayout.Y_AXIS) );
+    for( int i = 0; i < my_controls.length; i++ )
+      ctrlframe.getContentPane().add( my_controls[i] );
+    if( my_controls.length > 0 )
+    {
+      WindowShower shower2 = new WindowShower(ctrlframe);
+      java.awt.EventQueue.invokeLater(shower2);
+      shower2 = null;
+    }
+    //IVCTester test = new IVCTester( va2D );
   }
 }
