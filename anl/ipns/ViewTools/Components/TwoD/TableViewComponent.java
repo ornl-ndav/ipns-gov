@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/08/17 20:58:38  millermi
+ *  - Added menu item under Help menu for table commands.
+ *
  *  Revision 1.4  2004/08/17 01:23:54  millermi
  *  - Now implements IPreserveState.
  *  - Added code to repaint TVC after setObjectState() is called.
@@ -149,6 +152,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   private boolean setVisibleLocationCalled = false; // This is needed to ignore
                                            // messages sent out by the tjp when
 			                   // setVisibleLocation() is called.
+  private JFrame helper = null;
   
  /**
   * Constructor - Data is passed in the form of an IVirtualArray2D to be display
@@ -392,7 +396,8 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   */
   public void kill()
   {
-    ;
+    if( helper != null )
+      helper.dispose();
   }
   
  // ************************ Miscellaneous Methods ***************************
@@ -491,10 +496,17 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   */
   private void buildMenu()
   {
-    menus = new ViewMenuItem[1];
+    menus = new ViewMenuItem[2];
     
     menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS,
                  MenuItemMaker.getColorScaleMenu( new ColorChangedListener()) );
+    
+    Vector help_item = new Vector();
+    help_item.add("Table");
+    Vector help_listener = new Vector();
+    help_listener.add( new HelpListener() );
+    menus[1] = new ViewMenuItem( ViewMenuItem.PUT_IN_HELP,
+                 MenuItemMaker.makeMenuItem( help_item, help_listener ) );
   }
   
  /*
@@ -609,6 +621,21 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     public void actionPerformed( ActionEvent ae )
     {
       setThumbnailColorScale( ae.getActionCommand() );
+    }
+  }
+  
+ /*
+  * This listens for messages sent out by the ViewMenuItems of
+  * this view component.
+  */ 
+  private class HelpListener implements ActionListener
+  {
+    public void actionPerformed( ActionEvent ae )
+    {
+      helper = tjp.help();
+      WindowShower shower = new WindowShower(helper);
+      java.awt.EventQueue.invokeLater(shower);
+      shower = null;
     }
   }
  
