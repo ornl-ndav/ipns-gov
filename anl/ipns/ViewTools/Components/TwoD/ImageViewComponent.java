@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.44  2003/12/20 20:08:55  millermi
+ *  - Added ability to clear selections.
+ *  - Added axis information for z axis.
+ *  - replaced getDataMin() and getDataMax() with getValueAxisInfo()
+ *    which returns an AxisInfo object containing the min, max, and more.
+ *
  *  Revision 1.43  2003/12/18 22:36:29  millermi
  *  - Now allows selections made on border of image.
  *  - Now uses new AxisInfo class.
@@ -689,30 +695,22 @@ public class ImageViewComponent implements IViewComponent2D,
   {
      return colorscale;
   }
- 
+  
  /**
-  * This method will get the current data minimum from the imagejpanel.
+  * This method will get the AxisInfo for the value axis. Use this for
+  * finding the datamin, datamax, units, and labels for the data.
   *
-  *  @return minimum data value
+  *  @return axisinfo about the data being analyzed.
   */
-  public float getDataMin()
+  public AxisInfo getValueAxisInfo()
   {
-     return ijp.getDataMin();
+    return getAxisInformation( AxisInfo.Z_AXIS );
   }
   
- /**
-  * This method will get the current data maximum from the imagejpanel.
-  *
-  *  @return maximum data value
-  */ 
-  public float getDataMax()
-  {
-     return ijp.getDataMax();
-  }
-  
- // The following methods are required because this component implements 
- // IColorScaleAddible which extends ILogAxisAddible2D which extends 
- // IAxisAddible2D
+ // The following methods are required by IAxisAddible and ILogAxisAddible
+ // and must be implemented because this component implements 
+ // IColorScaleAddible which extends ILogAxisAddible which extends 
+ // IAxisAddible.
  /**
   * This method returns the info about the specified axis. Currently, axes
   * for the image can only be viewed in linear form. If log axes are required,
@@ -722,25 +720,35 @@ public class ImageViewComponent implements IViewComponent2D,
   * 
   *  @param  axiscode Use AxisInfo integer codes.
   *  @return If axiscode = AxisInfo.X_AXIS, return info about x axis.
-  *	     else, return info about y axis.
+  *	     If axiscode = AxisInfo.Y_AXIS, return info about y axis.
+  *	     If axiscode = AxisInfo.Z_AXIS, return info about "value" axis.
   */
   public AxisInfo getAxisInformation( int axiscode )
   {
-     // if true, return x info
-     if( axiscode == AxisInfo.X_AXIS )
-     {
-	return new AxisInfo( ijp.getLocalWorldCoords().getX1(),
-        	      ijp.getLocalWorldCoords().getX2(),
-        	      Varray2D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
-        	      Varray2D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
-        	      AxisInfo.LINEAR );
-     }
-     // if false return y info
-     return new AxisInfo( ijp.getLocalWorldCoords().getY1(),
-        	      ijp.getLocalWorldCoords().getY2(),
-        	      Varray2D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
-        	      Varray2D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
-        	      AxisInfo.LINEAR );
+    // if true, return x info
+    if( axiscode == AxisInfo.X_AXIS )
+    {
+       return new AxisInfo( ijp.getLocalWorldCoords().getX1(),
+    			    ijp.getLocalWorldCoords().getX2(),
+    			    Varray2D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
+    			    Varray2D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
+    			    AxisInfo.LINEAR );
+    }
+    // if true, return y info
+    if( axiscode == AxisInfo.Y_AXIS )
+    {
+      return new AxisInfo( ijp.getLocalWorldCoords().getY1(),
+    			   ijp.getLocalWorldCoords().getY2(),
+    			   Varray2D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
+    			   Varray2D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
+    			   AxisInfo.LINEAR );
+    }
+    // else return z info
+    return new AxisInfo( ijp.getDataMin(),
+        		 ijp.getDataMax(),
+        		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getLabel(),
+        		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getUnits(),
+        		 AxisInfo.LINEAR );
   }
   
  /**
@@ -863,6 +871,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * selected regions. To prevent this, add..., remove..., and clear... could
   * be added to allow for appending selections. A stack could be added to
   * allow for undo and redo. 
+  * If null is passed as a parameter, the selections will be cleared.
   *
   *  @param  rgn - array of selected Regions
   */ 
@@ -871,17 +880,24 @@ public class ImageViewComponent implements IViewComponent2D,
     selectedregions = rgn;
     dynamicregionlist.clear();
     //dynamicpointlist.clear();
-    for( int i = 0; i < selectedregions.length; i++ )
-    {/*
-      // if multiple points, this combines them.
-      if( selectedregions[i] instanceof PointRegion )
-      {
-        for( int i = 0; i < selectedregions.length; i++ )
-          dynamicpointlist.add(selectedregions[i]);	    
+    if( selectedregions != null )
+    {
+      for( int i = 0; i < selectedregions.length; i++ )
+      {/*
+        // if multiple points, this combines them.
+        if( selectedregions[i] instanceof PointRegion )
+        {
+          for( int i = 0; i < selectedregions.length; i++ )
+            dynamicpointlist.add(selectedregions[i]);	    
+        }
+        else
+	  dynamicregionlist.add( selectedregions[i] );*/
+        dynamicregionlist.push( selectedregions[i] );
       }
-      else
-	dynamicregionlist.add( selectedregions[i] );*/
-      dynamicregionlist.push( selectedregions[i] );
+    }
+    else
+    {
+      ((SelectionOverlay)(transparencies.elementAt(1))).clearSelectedRegions();
     }
   }
  
@@ -1215,7 +1231,8 @@ public class ImageViewComponent implements IViewComponent2D,
     int southwidth = font.getSize() * 3 + 9;
     // this will be the background for the master panel
     background.removeAll();
-    
+    String title = getValueAxisInfo().getLabel() + " (" + 
+                   getValueAxisInfo().getUnits() + ")";
     JPanel north = new JPanel();
     north.setPreferredSize(new Dimension( 0, 25 ) );
     JPanel east; 
@@ -1224,7 +1241,7 @@ public class ImageViewComponent implements IViewComponent2D,
     {
       east = new ControlColorScale( this, ControlColorScale.VERTICAL );
       east.setPreferredSize( new Dimension( 90, 0 ) );
-      ((ControlColorScale)east).setTitle("Z Axis Color Scale");
+      ((ControlColorScale)east).setTitle(title);
     }
     else
     {
@@ -1239,7 +1256,7 @@ public class ImageViewComponent implements IViewComponent2D,
       south.add( mininorth, "North" );
       ControlColorScale ccs = new ControlColorScale(
 				    this,ControlColorScale.HORIZONTAL);
-      ccs.setTitle("Z Axis Color Scale");
+      ccs.setTitle(title);
       south.add( ccs, "Center" );
       south.setPreferredSize( new Dimension( 0, southwidth + 75) );
     }
