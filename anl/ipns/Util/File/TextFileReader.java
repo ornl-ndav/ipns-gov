@@ -31,6 +31,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/06/07 16:19:53  dennis
+ *  Now has additional constructors that accept an existing InputStream
+ *  or an existing Reader, so that this TextFileReader can be "wrapped"
+ *  around streams that are opened elsewhere (eg. an InputStream from
+ *  a network connection).
+ *
  *  Revision 1.4  2002/03/29 17:34:04  dennis
  *  Added eof() method.
  *  Removed unneeded try{}catch{} blocks in methods that throw
@@ -68,8 +74,10 @@ public class TextFileReader
   public static final int    BUFFER_SIZE = 200;    // Maximum number of chars 
                                                    // in a String or one line
   private BufferedReader     in       = null;
-  private FileInputStream    f_stream = null;
-
+  private InputStreamReader  reader   = null;
+  private boolean            close_in = true;      // Flag indicating whether
+                                                   // it is our responsibility
+                                                   // to close the Reader "in". 
 
   /* -------------------------- Constructor -------------------------- */
   /**
@@ -84,8 +92,8 @@ public class TextFileReader
   {
     try
     {
-      f_stream = new FileInputStream( file_name );
-      in = new BufferedReader( new InputStreamReader( f_stream ) );
+      reader   = new FileReader( file_name );
+      in = new BufferedReader( reader );
       in.mark( BUFFER_SIZE );
     }
     catch ( IOException e )
@@ -94,6 +102,63 @@ public class TextFileReader
       throw e;
     }
   }
+
+
+  /* -------------------------- Constructor -------------------------- */
+  /**
+   *  Construct a TextFileReader to read from the specified byte stream. 
+   *  NOTE: If the close method is invoked the readers constructed by this
+   *        object will be closed, but the InputStream passed to this
+   *        constructor will NOT be closed. 
+   *
+   *  @param stream  The byte stream from which to read data. 
+   */
+  public TextFileReader( InputStream stream ) throws IOException
+  {
+    try
+    {
+      reader   = new InputStreamReader( stream );
+      in = new BufferedReader( reader );
+      in.mark( BUFFER_SIZE );
+    }
+    catch ( IOException e )
+    {
+      close();
+      throw e;
+    }
+  }
+
+
+  /* -------------------------- Constructor -------------------------- */
+  /**
+   *  Construct a TextFileReader to read from the specified character stream.
+   *  NOTE: If the close method is invoked any reader constructed by this
+   *        object will be closed, but the Reader passed to this constructor 
+   *        will NOT be closed. 
+   *
+   *  @param stream  The character stream from which to read data.
+   */
+  public TextFileReader( Reader stream ) throws IOException
+  {
+    try
+    {
+      if ( stream instanceof BufferedReader )
+      {
+        in = (BufferedReader)stream;
+        close_in = false;      // if someone else passes us the stream, we 
+      }                        // won't close it.
+      else
+        in = new BufferedReader( stream );
+
+      in.mark( BUFFER_SIZE );
+    }
+    catch ( IOException e )
+    {
+      close();
+      throw e;
+    }
+  }
+
 
   /* ---------------------------- eof -------------------------------- */
   /**
@@ -324,19 +389,21 @@ public class TextFileReader
 
   /* ----------------------------- close ------------------------------ */
   /**
-   *  Close the file.  Both the BufferedReader and underlying FileInputStream 
-   *  are closed.  
+   *  Close any stream or file that was opened when this object was constructed
+   *  NOTE: If this was constructed using an existing InputStream or Reader
+   *        object the stream or reader passed to the constructor will NOT
+   *        be closed.
    *
    *  @throws IOException if something goes wrong when trying to close the
    *          BufferedReader or FileInputStream.
    */
   public void close() throws IOException
   {
-    if ( in != null ) 
-      in.close();
+    if ( reader != null )
+      reader.close();
 
-    if ( f_stream != null )
-      f_stream.close();
+    if ( in != null && close_in ) 
+      in.close();
   }
 
  
@@ -356,7 +423,15 @@ public class TextFileReader
 
     try
     {
-      f = new TextFileReader("my_file.dat");
+                     // Construct the TextFileReader using one of:
+                     //   -- file name
+                     //   -- byte stream
+                     //   -- character stream
+
+      // f = new TextFileReader("my_file.dat");
+         f = new TextFileReader( new FileInputStream("my_file.dat") );
+      // f = new TextFileReader( new FileReader("my_file.dat") );
+
       line = f.read_line();
       System.out.println("First line is " + line );
       f.unread();
@@ -395,7 +470,7 @@ public class TextFileReader
     }
 
 
-    while ( !f.eof() )
+    while ( f != null && !f.eof() )
     {
       try
       {
