@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2004/03/11 23:00:11  rmikk
+ *  Added the correct package name to all java files
+ *
  *  Revision 1.18  2003/10/16 00:34:42  dennis
  *  Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -45,7 +48,7 @@
  *  The reverse() method now just returns if the array is null.
  *
  */ 
-package DataSetTools.util;
+package gov.anl.ipns.Util.Numeric;
 
 /**
  *

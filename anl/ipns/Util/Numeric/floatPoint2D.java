@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/11 23:00:11  rmikk
+ *  Added the correct package name to all java files
+ *
  *  Revision 1.8  2004/01/06 20:26:51  dennis
  *  Added method "magnitude()" that calculates the distance from
  *  the origin to the point.
@@ -45,7 +48,7 @@
  *
  */
 
-package DataSetTools.util;
+package gov.anl.ipns.Util.Numeric;
 
 import java.awt.Point;
 

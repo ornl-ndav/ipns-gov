@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/03/11 23:00:11  rmikk
+ *  Added the correct package name to all java files
+ *
  *  Revision 1.12  2003/07/05 19:36:03  dennis
  *  - Fixed bug in choiceFormat() which did not take into account (-) or (.).
  *  - Fixed bug in setE() which did not account for numbers represented with
@@ -76,7 +79,7 @@
  *
  */ 
 
-package DataSetTools.util;
+package gov.anl.ipns.Util.Numeric;
 
 import java.text.*;
 

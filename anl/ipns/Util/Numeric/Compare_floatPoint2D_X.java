@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/11 23:00:11  rmikk
+ *  Added the correct package name to all java files
+ *
  *  Revision 1.6  2003/10/16 00:34:42  dennis
  *  Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -37,7 +40,7 @@
  *  standardized header
  *
  */
-package DataSetTools.util;
+package gov.anl.ipns.Util.Numeric;
 
 import java.util.*;
 

@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/11 23:00:11  rmikk
+ *  Added the correct package name to all java files
+ *
  *  Revision 1.7  2004/01/24 20:52:36  bouzekc
  *  Removed unused imports.
  *
@@ -43,7 +46,7 @@
  *  Mistakenly continued to use list[] instead of new_list[].
  *
  */
-package DataSetTools.util;
+package gov.anl.ipns.Util.Numeric;
 
 import java.util.*;
 
