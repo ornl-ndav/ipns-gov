@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.47  2005/02/04 22:52:54  millermi
+ * - ImageListener now listens for
+ *   FunctionViewComponent.POINTED_AT_CHANGED to update range values
+ *   when a new pointed at graph is selected.
+ *
  * Revision 1.46  2005/02/01 03:13:15  millermi
  * - Fixed x and y range control bounds when log axes are selected.
  *
@@ -576,7 +581,6 @@ import javax.swing.border.*;
                                                                                              
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
-     
        float xmin,xmax,ymin,ymax;
        xmin = gjp.getPositiveXmin();
        xmax = gjp.getXmax();
@@ -586,7 +590,8 @@ import javax.swing.border.*;
        LogScaleUtil loggery = new LogScaleUtil(ymin,ymax,ymin,ymax);
        LogScaleUtil loggerx = new LogScaleUtil(xmin,xmax,xmin,xmax); 
 
-      if( message.equals("Reset Zoom") || message.equals("Zoom In") ) {
+      if( message.equals("Reset Zoom") || message.equals("Zoom In") || 
+          message.equals(FunctionViewComponent.POINTED_AT_CHANGED) ) {
       
        float x_lower, x_upper, y_lower, y_upper;	      
        CoordBounds range = gjp.getLocalWorldCoords();
