@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/08/13 03:32:18  millermi
+ *  - Fixed javadoc errors.
+ *
  *  Revision 1.5  2004/08/11 20:07:18  dennis
  *  The default vector passed in to the constructor is now used for the
  *  initial vector value for the vector readout.
@@ -180,7 +183,7 @@ public class SimpleVectorReadout extends    ActiveJPanel
 /**
  *  Set a new value for the vector.
  *
- *  @param Set a new value for the vector.  If the new value is null, and
+ *  @param vec Set a new value for the vector.  If the new value is null, and
  *         no default value has been specified, this will set the value
  *         to null.  If a default vector has been specified, then that
  *         default value will be used if the new value is null.
