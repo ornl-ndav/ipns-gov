@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.83  2005/02/03 22:09:38  millermi
+ *  - Added sendMessage(COLORSCALE_CHANGED) when slider moves. This
+ *    will update any calibrated controlcolorscales. Removing
+ *    miscellaneous messages being sent from the ImageViewComponent
+ *    caused this bug.
+ *
  *  Revision 1.82  2005/01/20 23:33:52  millermi
  *  - Commented out big_picture.update() in paintComponents(). No
  *    longer needed when super.paint() was added to overlay
@@ -2182,8 +2188,10 @@ public class ImageViewComponent implements IViewComponent2D,
         ControlSlider control = (ControlSlider)ae.getSource();
         logscale = control.getValue();
         ijp.changeLogScale( logscale, true );
-        ((ControlColorScale)controls[1]).setLogScale( logscale );
 	((PanViewControl)controls[7]).repaint();
+	// Causes any calibrated ControlColorScale to be updated
+	// with slider movements.
+	sendMessage(COLORSCALE_CHANGED);
       } 
       else if ( message == ControlCheckboxButton.CHECKBOX_CHANGED )
       { 
