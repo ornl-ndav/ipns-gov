@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2002/12/03 21:42:41  pfpeterson
+ *  Fixed bug where Format.string did not accept null values.
+ *
  *  Revision 1.7  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -242,6 +245,7 @@ public class Format
    */
   public static String string(StringBuffer val, int field_width,
                               boolean pad_left){
+      if(val==null) val=new StringBuffer("");
       while( val.length()<field_width ){
           if(pad_left)
               val.insert(0," ");
@@ -267,6 +271,9 @@ public class Format
    * characters.
    */
   public static String string(String val, int field_width, boolean pad_left){
+    if(val==null)
+      return string(new StringBuffer(""),field_width,pad_left);
+    else
       return string(new StringBuffer(val),field_width,pad_left);
   }
 
@@ -302,6 +309,9 @@ public class Format
    * characters.
    */
   public static String string(String val, int field_width ){
+    if(val==null)
+      return string(new StringBuffer(""),field_width,true);
+    else
       return string(new StringBuffer(val),field_width,true);
   }
 
