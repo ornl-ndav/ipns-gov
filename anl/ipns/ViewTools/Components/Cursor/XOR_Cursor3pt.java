@@ -33,6 +33,10 @@
  *   Prentice Hall, 1997 )
  *
  *  $Log$
+ *  Revision 1.3  2003/12/29 22:13:32  millermi
+ *  - Fixed bug that did not erase the portion of the cursor
+ *    drawn before midpoint() was called.
+ *
  *  Revision 1.2  2003/10/16 05:00:05  millermi
  *  - Fixed java docs errors.
  *
@@ -250,6 +254,12 @@ abstract public class XOR_Cursor3pt implements Serializable
       last_pt.y = p.y;
 
       graphics.setXORMode( color );
+      
+      // this will erase the portion of the cursor drawn before the midpoint
+      // was set.
+      draw( graphics, first_pt, mid_pt, mid_pt );
+      // this will erase the portion of the cursor drawn after the midpoint
+      // was set.
       draw( graphics, first_pt, mid_pt, last_pt );
     }
 
