@@ -28,6 +28,11 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.6  2004/03/15 23:50:12  dennis
+ * Simplifed logic to avoid un-needed assignment
+ * replaced: ! if((c1=='n')||(c1=='p'))
+ * with: if((c1!='n')&&(c1!='p'))
+ *
  * Revision 1.5  2004/03/12 01:23:09  rmikk
  * Fixed the name of the super class
  *
@@ -814,9 +819,7 @@ private int PopopStack(char opstack[],int nops, DataOutputStream ss) throws IOEx
         {ss.write(184); ss.writeShort(15);}
 
    c1=opstack[nops]; 
-   if((c1=='n')||(c1=='p'))
-          stacksize=stacksize; 
-    else 
+   if((c1!='n')&&(c1!='p'))
           stacksize=stacksize-2;
    if(debug)System.out.println("   Popstck end "+opstack[nops]+"="+nops+","+stacksize);
    return nops;
