@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2004/11/12 17:22:54  millermi
+ *  - Removed pseudo-log mapping functions. Now in PseudoLogScaleUtil.
+ *
  *  Revision 1.11  2004/11/11 19:47:58  millermi
  *  - Reimplemented toDest() and toSource(), simplifying the mapping
  *    from source to destination, and back.
@@ -86,10 +89,10 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 /**
  * This class logarithmically maps from a source interval
  * [source_min,source_max] to a destination interval [dest_min,dest_max].
- * Both true log and pseudo logs are supported by this class.
- * Pseudo-log uses a log scale factor to adjust the
- * amount of log mapping (used in colorscale) while tru-log maps using log
- * with no variability, thus requiring no scale factor.
+ * Use this class only for tru-log mapping. Use PseudoLogScaleUtil for
+ * pseudo-log mapping. Tru-log maps uses log with no variability,
+ * thus requiring no scale factor, while pseudo-log uses a log scale
+ * factor to adjust the amount of log mapping (used in colorscale and slider).
  */
 public class LogScaleUtil
 {
@@ -207,83 +210,6 @@ public class LogScaleUtil
     float a = ((float)Math.log(smax/smin))/(smax - smin);
     float power = num * a;
     return ( smin*((float)Math.exp((double)power)) );
-  }
-  
- /**
-  * This method is for "pseudo" log mapping from the source interval to the
-  * destination interval.
-  *
-  *  @param  num Source number on interval [source_min,source_max].
-  *  @param  s - logscale value
-  *  @return Log(num) mapped to interval [dest_min,dest_max].
-  */
-  public float toDest( float num, double s )
-  {
-    // clamp number to the interval [min,max]
-    if( num < smin )
-    {
-      if( -num > smin )
-        num = -num;
-      else
-        num = smin;
-    }
-    if( num > smax )
-      num = smax;
-                                       
-    if ( s > 100 )                                // clamp s to [0,100]
-      s = 100;
-    if ( s < 0 )
-      s = 0;
-
-    // Create scale factor.
-    s = Math.exp(20 * s / 100.0) + 0.1; // map [0,100] exponentially to get 
-                                        // scale change that appears more linear
-    double scale = (smax - smin) / Math.log(s);
-    // Map from linear to log.
-    float returnvalue = (float)( smin + ( scale * Math.log( 1.0 + 
-		     ((s-1.0)*(num-dmin)/(dmax - dmin)) ) ) );    
-    return returnvalue;
-  }
- 
- /**
-  * This method is for "pseudo" exponential mapping from the destination
-  * interval to the source interval. 
-  * 
-  *  @param  num Number on interval [dest_min, dest_max].
-  *  @param  s - logscale value
-  *  @return Mapped value of num on interval [source_min, source_max].
-  */  
-  public float toSource( float num, double s )
-  {
-    // clamp number to the destination interval
-    if( num < dmin )
-    {
-      if( -num > dmin )
-        num = -num;
-      else
-        num = dmin;
-    }
-    if( num > dmax )
-      num = dmax;
-         
-    if ( s < 0 )                               // clamp s to [0,100]
-    {
-      // negate, if -s > 100, let s = 0
-      s = -s;
-      if( s > 100 )
-        s = 0;                              
-    }
-    if ( s > 100 ) 
-      s = 100;
-
-    s = Math.exp(20 * s / 100.0) + 0.1; // map [0,100] exponentially to get 
-                                        // scale change that appears more linear
-
-    // Map a log value to a linear value.
-    float returnvalue = (float)( ( Math.exp( (double)(num - smin) *
-                    Math.log(s) / (smax - smin) ) - 1 ) *
-                    ( dmax - dmin)/(s-1) ) + dmin;
-    return returnvalue;
   }
  
   //For Test purposes only...
