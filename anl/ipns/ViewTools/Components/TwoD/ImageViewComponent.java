@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.33  2003/10/21 00:48:40  millermi
+ *  - Added kill() to keep consistent with new IViewComponent.
+ *
  *  Revision 1.32  2003/10/17 16:09:36  millermi
  *  - getObjectState() now returns a copy of the colorscale string.
  *
@@ -979,6 +982,17 @@ public class ImageViewComponent implements IViewComponent2D,
   public JPanel getDisplayPanel()
   {
       return big_picture;   
+  }
+  
+   
+ /**
+  * This method is called by the viewer to inform the view component
+  * it is no longer needed. In turn, the view component closes all windows
+  * created by it before closing.
+  */
+  public void kill()
+  {
+  
   }
   
  /**
