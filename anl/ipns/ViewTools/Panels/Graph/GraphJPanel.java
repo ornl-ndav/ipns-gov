@@ -30,11 +30,10 @@
  *
  * Modified:
  *
- *  1.1  2000/04/24  Dennis Mikkelson
- *                   Added ability to maintain multiple separate graphs with
- *                   different colors for each graph.
- *
  * $Log$
+ * Revision 1.6  2001/05/07 21:20:01  dennis
+ * Fixed error in format of documentation.
+ *
  * Revision 1.5  2001/05/07 21:04:21  dennis
  * Removed the LocalTransformChanged() method, since the
  * default implementation of this method in CoordJPanel
@@ -68,6 +67,10 @@
  * 
  *  Revision 1.11  2000/05/11 16:53:19  dennis
  *  Added RCS logging
+ *
+ *  1.1  2000/04/24  Dennis Mikkelson
+ *                   Added ability to maintain multiple separate graphs with
+ *                   different colors for each graph.
  *
  */
 
