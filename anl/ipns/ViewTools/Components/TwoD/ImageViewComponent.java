@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2003/07/05 19:47:34  dennis
+ *  - Added methods getDataMin() and getDataMax().
+ *  - Added capability for one- or two-sided color models. Currently,
+ *    only two-sided color models are allowed. Alter line 187 to
+ *    enable this feature.  (Mike Miller)
+ *
  *  Revision 1.14  2003/06/18 22:16:42  dennis
  *  (Mike Miller)
  *  - Changed how horizontal color scale was added to the view
@@ -141,6 +147,7 @@ public class ImageViewComponent implements IViewComponent2D,
    private ViewControl[] controls = new ViewControl[6];
    private ViewMenuItem[] menus = new ViewMenuItem[2];
    private String colorscale;
+   private boolean isTwoSided = true;
    private double logscale = 0;
    private boolean addColorControlEast = false;
    private boolean addColorControlSouth = false;
@@ -178,7 +185,13 @@ public class ImageViewComponent implements IViewComponent2D,
 						  yinfo.getMin() ) ); 
       
       colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
-      ijp.setNamedColorModel(colorscale, false);
+      // two-sided model
+      if( ijp.getDataMin() < 0 )
+         isTwoSided = true;
+      // one-sided model
+      else
+         isTwoSided = true; //********change this to false when working********
+      ijp.setNamedColorModel(colorscale, isTwoSided, false); 
       
       Listeners = new Vector();
       buildViewComponent();    // initializes big_picture to jpanel containing
@@ -200,15 +213,24 @@ public class ImageViewComponent implements IViewComponent2D,
    }
   
   /**
-   * This method will get the current log scale value for the imagejpanel.
-   */ 
-   public double getLogScale()
+   * This method will get the current data minimum from the imagejpanel.
+   */
+   public float getDataMin()
    {
-      return logscale;
+      return ijp.getDataMin();
+   }
+   
+  /**
+   * This method will get the current data maximum from the imagejpanel.
+   */ 
+   public float getDataMax()
+   {
+      return ijp.getDataMax();
    }
    
 // The following methods are required because this component implements 
-// IColorScaleAddible which extends IAxisAddible2D
+// IColorScaleAddible which extends ILogAxisAddible2D which extends 
+// IAxisAddible2D
   /**
    * This method returns the info about the specified axis. 
    * 
@@ -296,7 +318,16 @@ public class ImageViewComponent implements IViewComponent2D,
    {
       //return global_bounds;
       return ijp.getGlobalWorldCoords().MakeCopy();
+   }  
+   
+  /**
+   * This method will get the current log scale value for the imagejpanel.
+   */ 
+   public double getLogScale()
+   {
+      return logscale;
    }
+   
 //****************************************************************************
 
 // Methods required since this component implements IViewComponent2D
@@ -586,9 +617,10 @@ public class ImageViewComponent implements IViewComponent2D,
       nextup.setRegionColor(Color.magenta);
       AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
       
+      // add the transparencies to the transparencies vector
       transparencies.add(top);
       transparencies.add(nextup);
-      transparencies.add(bottom_overlay);       // add the transparency the the vector
+      transparencies.add(bottom_overlay); 
 
       	  
       // create master panel and
@@ -616,8 +648,8 @@ public class ImageViewComponent implements IViewComponent2D,
       logscale = ((ControlSlider)controls[0]).getValue();	       	    
       controls[0].addActionListener( new ControlListener() );
                  
-      controls[1] = new ControlColorScale( 
-                                       IndexColorMaker.HEATED_OBJECT_SCALE_2 );
+      controls[1] = new ControlColorScale(IndexColorMaker.HEATED_OBJECT_SCALE_2,
+                                          isTwoSided );
       controls[1].setTitle("Color Scale");
       
       controls[2] = new ControlCheckbox(true);
@@ -722,7 +754,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	    ControlSlider control = (ControlSlider)ae.getSource();
 	    logscale = control.getValue();	       	              	       	
 	    ijp.changeLogScale( logscale, true );
-	    ((ControlColorScale)controls[1]).setLogScale( logscale );       	       	       	       
+	    ((ControlColorScale)controls[1]).setLogScale( logscale );
          } 
          else if ( message == IViewControl.CHECKBOX_CHANGED )
          {
@@ -799,8 +831,9 @@ public class ImageViewComponent implements IViewComponent2D,
       public void actionPerformed( ActionEvent ae )
       {
          colorscale = ae.getActionCommand();
-         ijp.setNamedColorModel( colorscale, true );
-	 ((ControlColorScale)controls[1]).setColorScale( colorscale );
+         ijp.setNamedColorModel( colorscale, isTwoSided, true );
+	 ((ControlColorScale)controls[1]).setColorScale( colorscale, 
+	                                                 isTwoSided );
          
 	 sendMessage( colorscale );
 	 //System.out.println("ViewComponent Color Scheme = " + 
@@ -876,12 +909,12 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    public static void main( String args[] ) 
    {
-      int col = 250;
-      int row = 250;
+      int col = 200;
+      int row = 200;
 
       //Make a sample 2D array
       VirtualArray2D va2D = new VirtualArray2D(row, col); 
-      va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, 100f, 
+      va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, 10000f, 
         		 "TestX","TestUnits", true );
       va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, 1000f, 
         		  "TestY","TestYUnits", true );
