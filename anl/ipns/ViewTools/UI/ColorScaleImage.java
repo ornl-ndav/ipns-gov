@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2003/11/18 01:52:56  millermi
+ * - Added javadocs to public static final variables.
+ *
  * Revision 1.4  2003/07/05 19:39:45  dennis
  * - Altered 2nd constructor to take in integer code instead of
  *   boolean codes.  These new integer codes allow for specification
@@ -62,9 +65,28 @@ import DataSetTools.components.image.*;
 public class ColorScaleImage extends    ImageJPanel 
                              implements Serializable 
 {
+ /**
+  * 0 (zero), use this to specify that you want a colorscaleimage with
+  * all positive or all negative data that is arranged on the x axis.
+  */
   public static final int HORIZONTAL_SINGLE = 0; // single color model
+  
+ /**
+  * 1, use this to specify that you want a colorscaleimage with
+  * both positive and negative data that is arranged on the x axis.
+  */
   public static final int HORIZONTAL_DUAL   = 1; // dual color model
+  
+ /**
+  * 2, use this to specify that you want a colorscaleimage with
+  * all positive or all negative data that is arranged on the y axis.
+  */
   public static final int VERTICAL_SINGLE   = 2; // single color model
+  
+ /**
+  * 3, use this to specify that you want a colorscaleimage with
+  * both positive and negative data that is arranged on the y axis.
+  */
   public static final int VERTICAL_DUAL     = 3; // dual color model
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
