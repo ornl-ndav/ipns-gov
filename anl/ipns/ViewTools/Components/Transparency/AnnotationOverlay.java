@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/06/17 13:20:39  dennis
+ *  (Mike Miller)
+ *  - Corrected the "jump" when a note is zoomed in.
+ *  - Annotations no longer changed in the viewer, now displayed as is
+ *    when zoomed.  This was possible after clipRect() was added to
+ *    paint method, restricting the painted region.
+ *
  *  Revision 1.6  2003/06/13 14:40:23  dennis
  *  (Mike Miller)
  *  - Removed debug statements.
@@ -189,12 +196,8 @@ public class AnnotationOverlay extends OverlayJPanel
       text.append("Note:\n" +
                   "- These commands will NOT work if the Annotation " +
                   "Overlay checkbox IS NOT checked.\n" +
-		  "- If zooming is done (this annotation must first be " +
-		  "turned off to zoom) the anchor of the annotation must be " +
-		  "included in the zoom. If the anchor is included, but the " +
-		  "text itself is not, the text will be temporarily relocated" +
-		  " for your convenience. As a side effect, if you try to " +
-		  "move the annotation after a zoom, it may jump.\n\n" );
+		  "- Zooming on the image is only allowed if this annotation " +
+		  "is turned off.\n\n" );
       text.append("Image Commands in conjunction with AnnotationEditor:\n");
       text.append("Click/Drag/Release Mouse w/N_Key pressed>" + 
                   "CREATE ANNOTATION\n");
@@ -279,9 +282,13 @@ public class AnnotationOverlay extends OverlayJPanel
    */
    public void addAnnotation( String a_note, Line placement )
    {
+      CoordBounds now = new CoordBounds( pixel_local.getDestination().getX1(),
+                                         pixel_local.getDestination().getY1(),
+					 pixel_local.getDestination().getX2(),
+					 pixel_local.getDestination().getY2() );
       floatPoint2D p12d = convertToWorldPoint( placement.getP1() );
       floatPoint2D p22d	= convertToWorldPoint( placement.getP2() );
-      notes.add( new Note( a_note, placement, current_bounds, p12d, p22d ) );
+      notes.add( new Note( a_note, placement, now, p12d, p22d ) );
    }
 
   /**
@@ -294,7 +301,11 @@ public class AnnotationOverlay extends OverlayJPanel
       Graphics2D g2d = (Graphics2D)g;
       g2d.setFont( font );
       
-      current_bounds = component.getRegionInfo(); // current size of center  
+      current_bounds = component.getRegionInfo(); // current size of center 
+      g2d.clipRect( (int)current_bounds.getX(),
+                    (int)current_bounds.getY(),
+		    (int)current_bounds.getWidth(),
+		    (int)current_bounds.getHeight() ); 
       // the current pixel coordinates
       CoordBounds pixel_map = 
               new CoordBounds( (float)current_bounds.getX(), 
@@ -319,12 +330,9 @@ public class AnnotationOverlay extends OverlayJPanel
       int autolocatey = 0;
       int fontheight = fontinfo.getAscent();
       int textwidth = 0;
-      boolean drawNote; // if the anchor (p1) of the note is not in a zoom,
-                        // don't draw it.
       // draw each note
       for( int comment = 0; comment < notes.size(); comment++ )
       {
-         drawNote = true;
          note = (Note)notes.elementAt(comment);
 	 snote = note.getText();
          textwidth = fontinfo.stringWidth(snote);
@@ -405,49 +413,14 @@ public class AnnotationOverlay extends OverlayJPanel
 	 p2 = convertToPixelPoint( note.getWCP2() );
          //System.out.println("WCP1 = " + note.getWCP1() );
 	 //System.out.println("P1 = " + p1 );
-	 
-	 Rectangle bounds = new Rectangle(current_bounds);
-	 
-	 // This section of code controls how the annotation reacts to a zoom.
-	 // If the entire "anchor" or p1 is not in the zoom, none of the 
-	 // annotation will show. If p2 is not in the zoom, it is readjusted
-	 // by the rules below.
-	 if( p1.x < bounds.getLocation().x || 
-	     p1.y < bounds.getLocation().y )
-	 {  //if p1 cut off, don't draw anything
-	    drawNote = false;
-	 }
-	 else if( p1.x > (bounds.getLocation().x + bounds.getWidth()) || 
-	          p1.y > (bounds.getLocation().y + bounds.getHeight()) )
-	 {   // if p1 cut off, don't draw anything
-	    drawNote = false;	    
-	 }
-         
-	 if( p2.x < (bounds.getLocation().x + textwidth + 3) )
-	    p2.x = bounds.getLocation().x + textwidth + 3;
-	 else if( p2.x > 
-	          (bounds.getLocation().x + bounds.getWidth() - textwidth - 3) )
-	    p2.x = (int)(bounds.getLocation().x + bounds.getWidth())
-	           - textwidth - 3;
-	 
-	 if( p2.y < (bounds.getLocation().y + fontheight + 2) )
-	    p2.y = bounds.getLocation().y + fontheight + 2;
-	 else if( p2.y > (bounds.getLocation().y + 
-		 bounds.getHeight() - fontheight - 2) )
-	    p2.y = (int)(bounds.getLocation().y + bounds.getHeight())
-	           - fontheight - 2;
-	 	   
-	 // only draw annotation if p1 was in the selected region.	 	 
-	 if( drawNote )
-	 {
-	    // line color of all of the annotations.
-            g2d.setColor(line_color);
-	    g2d.drawLine( p1.x, p1.y, p2.x, p2.y );         
 
-            // text color of all of the annotations.
-            g2d.setColor(text_color);
-	    g2d.drawString( snote, p2.x + autolocatex, p2.y + autolocatey );
-         }
+	 // line color of all of the annotations.
+         g2d.setColor(line_color);
+	 g2d.drawLine( p1.x, p1.y, p2.x, p2.y );	 
+
+         // text color of all of the annotations.
+         g2d.setColor(text_color);
+	 g2d.drawString( snote, p2.x + autolocatex, p2.y + autolocatey );
       }     
    } // end of paint()
 
@@ -592,7 +565,7 @@ public class AnnotationOverlay extends OverlayJPanel
    {
       private JTextField textfield; // actual note being drawn
       private Line arrow;           // location to draw this note (p1, p2)
-      private Rectangle scale;      // the bounds of the overlay when this 
+      private CoordBounds scale;    // the bounds of the overlay when this 
                                     // note was created
       private floatPoint2D wcp1;    // the world coordinate associated with p1
       private floatPoint2D wcp2;    // the world coordinate associated with p2
@@ -604,12 +577,12 @@ public class AnnotationOverlay extends OverlayJPanel
       * created, and two world points, corresponding to the world values
       * referred to by p1 and p2 of the line.
       */ 
-      public Note(String t, Line l, Rectangle s, floatPoint2D wc_p1,
+      public Note(String t, Line l, CoordBounds s, floatPoint2D wc_p1,
                                                  floatPoint2D wc_p2 )
       {
      	 textfield = new JTextField(t);
      	 arrow = new Line(l.getP1(), l.getP2());
-	 scale = new Rectangle(s);
+	 scale = s;
 	 wcp1 = new floatPoint2D( wc_p1 );
 	 wcp2 = new floatPoint2D( wc_p2 );
       }
@@ -633,7 +606,7 @@ public class AnnotationOverlay extends OverlayJPanel
      /*
       * @return the rectangle bounds this annotation was created in.
       */ 
-      public Rectangle getScale()
+      public CoordBounds getScale()
       {
          return scale;
       }
@@ -926,55 +899,62 @@ public class AnnotationOverlay extends OverlayJPanel
 	    Note tempnote = (Note)textfields.elementAt(compid);
 	    Point tempp1 = tempnote.getLine().getP1();
 	    Point tempp2 = tempnote.getLocation();
+	    CoordTransform pix_to_world = new 
+	                CoordTransform( pixel_local.getSource(),
+			                tempnote.getScale() );
 	    
 	    if( name.indexOf("Ctrl") > -1 )
 	    {
 	       if( name.equals("Ctrl-UP") )
 	       {
-	          if( tempp2.y > 0 )
+	          //if( tempp2.y > 0 )
 	             tempp2.y = tempp2.y - 1;
 	       }	    
 	       else if( name.equals("Ctrl-DOWN") )
 	       {
-	          if( tempp2.y < current_bounds.getHeight() )
+	          //if( tempp2.y < current_bounds.getHeight() )
 	             tempp2.y = tempp2.y + 1;
                }	    
 	       else if( name.equals("Ctrl-LEFT") )
 	       {
-	          if( tempp2.x > 0 )
+	          //if( tempp2.x > 0 )
 	             tempp2.x = tempp2.x - 1;
 	       }
 	       else if( name.equals("Ctrl-RIGHT") )
 	       {
-	          if( tempp2.x < current_bounds.getWidth() )
+	          //if( tempp2.x < current_bounds.getWidth() )
 	             tempp2.x = tempp2.x + 1;
 	       }
+	       tempnote.setWCP2( pix_to_world.MapTo( new floatPoint2D(
+	                                             (float)tempp2.x, 
+	                                             (float)tempp2.y) ) );
 	    }
 	    else if( name.indexOf("Shift") > -1 )
 	    {
 	       if( name.equals("Shift-UP") )
 	       {
-	          if( tempp1.y > 0 )
+	          //if( tempp1.y > 0 )
 	             tempp1.y = tempp1.y - 1;
 	       }	    
 	       else if( name.equals("Shift-DOWN") )
 	       {
-	          if( tempp1.y < current_bounds.getHeight() )
+	          //if( tempp1.y < current_bounds.getHeight() )
 	             tempp1.y = tempp1.y + 1;
                }	    
 	       else if( name.equals("Shift-LEFT") )
 	       {
-	          if( tempp1.x > 0 )
+	          //if( tempp1.x > 0 )
 	             tempp1.x = tempp1.x - 1;
 	       }
 	       else if( name.equals("Shift-RIGHT") )
 	       {
-	          if( tempp1.x < current_bounds.getWidth() )
+	          //if( tempp1.x < current_bounds.getWidth() )
 	             tempp1.x = tempp1.x + 1;
 	       }
+	       tempnote.setWCP1( pix_to_world.MapTo( new floatPoint2D(
+	                                             (float)tempp1.x, 
+	                                             (float)tempp1.y) ) );
 	    }
-	    tempnote.setWCP1( convertToWorldPoint( tempp1 ) );
-	    tempnote.setWCP2( convertToWorldPoint( tempp2 ) );
 	    
 	    this_panel.repaint();	    
 	 }     
