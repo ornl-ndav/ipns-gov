@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/08/17 01:22:05  millermi
+ * - Added colorscale reset to ViewCompListener. This fixed bug
+ *   that incorrectly saved the colorscale.
+ *
  * Revision 1.7  2004/08/13 03:39:13  millermi
  * - Added TableViewComponent capabilities.
  * - Moved image specific menu items from Display to this class.
@@ -518,7 +522,16 @@ public class Display2D extends Display
   {
     public void actionPerformed( ActionEvent ae )
     {
-      sendMessage( ae.getActionCommand() );
+      String message = ae.getActionCommand();
+      sendMessage( message );
+      if( message.equals( ImageViewComponent.COLORSCALE_CHANGED ) )
+      {
+        colorscale = ((ImageViewComponent)ivc).getColorScale();
+      }
+      else if(message.equals(TableViewComponent.THUMBNAIL_COLOR_SCALE_CHANGED))
+      {
+        colorscale = ((TableViewComponent)ivc).getThumbnailColorScale();
+      }      
     }
   }
   
