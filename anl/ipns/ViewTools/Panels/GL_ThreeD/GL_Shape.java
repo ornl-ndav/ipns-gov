@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/01 03:46:24  dennis
+ * Added setLighting(onoff) method to allow disabling lighting and
+ * shading for drawing stroke fonts.  Finished adding javadoc comments.
+ *
  * Revision 1.1  2004/05/28 20:51:12  dennis
  * Initial (test) version of classes for displaying and picking
  * 3D objects using OpenGL from Java, built on the "jogl" system.
@@ -65,14 +69,21 @@ abstract public class GL_Shape implements IThreeD_GL_Object
                                                // ID for the GL display list
                                                // for this entire object.
 
+  protected boolean use_lighting = true;       // Flag indicating whether to
+                                               // do lighting & shading or just
+                                               // use object colors
   private float material[] = null;             // Color and transparency info
                                                // for this object.
   private Tran3D transform = null;
 
   private Texture  texture = null;
 
+  /* ----------------------- setTransform ----------------------------- */
   /**
-   *  Set the transform for this object
+   *  Set a transform to be applied to this object.  The matrix stack is
+   *  pushed before drawing the object and popped after drawing the object.
+   *
+   *  @param trans  A transform to apply to the vertices of this object.
    */
   public void setTransform( Tran3D trans )
   {
@@ -81,6 +92,13 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
 
 
+  /* ----------------------- setTexture ----------------------------- */
+  /**
+   *  Set a texture map to use with this object.  The object will need to
+   *  define texture coordinates.
+   *
+   *  @param tex  The 1, 2 or 3 dimensional texture to use with this object. 
+   */
   public void setTexture( Texture tex )
   {
     texture = tex;
@@ -88,6 +106,12 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
 
 
+  /* ----------------------- isTextured ----------------------------- */
+  /**
+   *  Check whether or not a texture map has been set for this object.
+   *
+   *  @return true if a texture map was set, false otherwise.
+   */
   public boolean isTextured()
   {
     if ( texture == null )
@@ -97,10 +121,19 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
 
 
+  /* ----------------------- TextureDimension -------------------------- */
+  /**
+   *  Get the dimension of the texture map (if any) for this object.
+   *
+   *  @return  0 if no texture map has been set, and the dimension,
+   *           1, 2, etc. if one was set.
+   */
   public int TextureDimension()
   {
     if ( texture == null )
       return 0;
+    else if ( texture instanceof Texture1D )
+      return 1;
     else if ( texture instanceof Texture2D )
       return 2;
  
@@ -108,6 +141,20 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
 
 
+  /* ----------------------- setLighting -------------------------- */
+  /**
+   *  Turn lighting on or off for this object.  Note: lighting is on by
+   *  default for most shapes.
+   *
+   *  @param onoff  Flag to turn lighting on (if true) or off (if false)
+   */
+  public void setLighting( boolean onoff )
+  {
+    use_lighting = onoff;
+  }
+
+
+  /* ------------------------- setColor -------------------------- */
   /**
    *  Set the color of this object.
    *
@@ -149,13 +196,15 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
 
 
+  /* --------------------------- setColor --------------------------- */
   /**
-   *  
+   *  NOT IMTPLEMENTED  (TO DO) 
    */
   public void setColor( Color color )
   {}
 
 
+  /* ------------------------- setTransparency ----------------------- */
   /**
    *  Set the transparency of this object.
    *
@@ -178,12 +227,13 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
 
 
+  /* ----------------------------- Render ---------------------------- */
   /**
    *  Draw this object using the specified drawable.
    *
    *  @param  drawable  The drawable into which the object is to be drawn.
    */
-  public void Render( GLDrawable drawable )
+  synchronized public void Render( GLDrawable drawable )
   {
      GL gl = drawable.getGL();
 
@@ -219,11 +269,19 @@ abstract public class GL_Shape implements IThreeD_GL_Object
 
        if ( material != null )                    // only use material if set
        {
-         gl.glMaterialfv( GL.GL_FRONT_AND_BACK,
-                          GL.GL_AMBIENT_AND_DIFFUSE,
-                          material );
-         if ( material[3] < 1 )                   // if alpha != 1, do blending
-           gl.glEnable( GL.GL_BLEND );
+         if ( use_lighting )
+         {
+           gl.glMaterialfv( GL.GL_FRONT_AND_BACK,
+                            GL.GL_AMBIENT_AND_DIFFUSE,
+                            material );
+           if ( material[3] < 1 )                  // if alpha != 1, do blending
+             gl.glEnable( GL.GL_BLEND );
+         }  
+         else
+         {
+           gl.glColor3f( material[0], material[1], material[2] );
+           gl.glDisable( GL.GL_LIGHTING );
+         }
        }
 
        if ( pick_id != INVALID_PICK_ID )
@@ -235,8 +293,16 @@ abstract public class GL_Shape implements IThreeD_GL_Object
        else
          Draw( drawable );
 
-       if ( material != null && material[3] < 1 )
-         gl.glDisable( GL.GL_BLEND );
+       if ( material != null )
+       {
+         if ( use_lighting )      
+         {
+           if ( material[3] < 1 )
+             gl.glDisable( GL.GL_BLEND );
+         }
+         else                             // if we turned off lighting, turn it
+           gl.glEnable( GL.GL_LIGHTING ); // on again, default behavior is on
+       }
 
        if ( transform != null )
          gl.glPopMatrix();
@@ -251,10 +317,16 @@ abstract public class GL_Shape implements IThreeD_GL_Object
      gl.glCallList( list_id );
   }
 
-
+ 
+  /* ---------------------------- Draw --------------------------- */
+  /**
+   *  The draw method is implemented in derived classes to actually draw 
+   *  the object.  
+   */
   abstract protected void Draw( GLDrawable drawable );
 
 
+  /* --------------------------- setPickID ------------------------- */
   /**
    *  Set ID to be returned if this object is picked.  The ID is set to 
    *  INVALID_PICK_ID by default, which indicates that the object is not 
@@ -270,6 +342,7 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
 
 
+  /* --------------------------- getPickID ------------------------- */
   /**
    *  Get the pick ID of this object. 
    *
@@ -281,6 +354,12 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
   
 
+  /* ---------------------------- finalize -------------------------- */
+  /**
+   *  The finalize method SHOULD NOT BE CALLED BY USER CODE, since it 
+   *  frees the display list allocated for this object, when the object
+   *  is garbage collected.
+   */
   protected void finalize()
   {                                           // free our display list if it
                                               // was allocated.
@@ -289,6 +368,7 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
 
 
+  /* ---------------------------- initMaterial -------------------------- */
   /*
    *  Initialize material to white, by default.
    */
