@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2003/07/03 16:08:14  serumb
+ * Added methods get_x_vals and get_y_vals, and added java docs commemts.
+ *
  * Revision 1.11  2003/07/02 22:31:49  serumb
  * Fixed ImageView display problem.
  *
@@ -64,6 +67,7 @@ public class GraphData implements Serializable
 {
   float  x_vals[]  = { 0, 1 };
   float  y_vals[]  = { 0, 1 };
+
   public Color  color     = Color.black;
   public int    linetype  = 1;
   public float  linewidth = 1;
@@ -76,26 +80,66 @@ public class GraphData implements Serializable
 
   private float[] error_bars = null;
   private int errors = 0;
-  // public methods
 
-  public boolean setErrorVals(int error_loc, float[] error_vals)
+  // public methods
+/*--------------------------- setErrorVals ----------------------------------*/
+/**
+  *  Sets the location and the error values from the values passed in.
+  *
+  *  @param errorloc    the integer constant for the location of the 
+  *                     errors. 
+  *
+  *  @param error_vals  the array of error values.
+  *
+  **/             
+  public void setErrorVals(int error_loc, float[] error_vals)
   {
     errors = error_loc;
 
     error_bars = new float[error_vals.length];
     System.arraycopy( error_vals, 0 , 
                         error_bars, 0, error_vals.length - 1 );
-    return true;
   }
-  
+
+/*---------------------------- getErrorLocation -----------------------------*/
+/**
+  * @return  returns the integer constant for the location of the error bars.
+  *
+  **/  
   public int getErrorLocation()
   {
     return errors;
   }
 
+/*---------------------------- getErrorVals ---------------------------------*/
+/**
+  * @return  returns the array of error values.
+  *
+  **/  
   public float[] getErrorVals()
   {
    return error_bars;
   }
+  
+/*---------------------------- get_x_vals -----------------------------------*/
+/**
+  * @return  returns the array of x values for the graph.
+  *
+  **/  
+  public float[] get_x_vals()
+  {
+   return x_vals;
+  }
+
+/*---------------------------- get_y_vals -----------------------------------*/
+/**
+  * @return  returns the y values for the graph.
+  *
+  **/  
+  public float[] get_y_vals()
+  {
+   return y_vals;
+  }
+
 }
 
