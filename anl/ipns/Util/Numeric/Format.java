@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/07/25 22:12:21  pfpeterson
+ *  Added methods to print 'real' numbers w/o a minimum number
+ *  digits past the decimal.
+ *
  *  Revision 1.5  2002/07/17 16:53:17  pfpeterson
  *  Changed the MinimumFractionDigits to be equal to the
  *  MaximumFractionDigits.
@@ -118,6 +122,29 @@ public class Format
     return real( num, field_width, num_digits, false );    
   }
 
+
+  /**
+   *  Format a real number into a string.
+   *
+   *  @param num           The number to format
+   *  @param field_width   The total number of spaces to be used for the
+   *                       number.  If the formatted number does not
+   *                       occupy all of the spaces, leading blanks
+   *                       will be prepended.  If more spaces are
+   *                       needed, they will be used.
+   *
+   *  @return  A string containing the formatted number with at least the 
+   *           specified number of characters.  
+   */
+
+  static public String real( double   num, int field_width ){
+      f.setMinimumFractionDigits( 0 );
+      int index=Double.toString(num).indexOf(".");
+      f.setMaximumFractionDigits( field_width-index-1 );
+      f.setGroupingUsed( false );
+
+      return string(f.format(num),field_width,true);
+  }
 
   /**
    *  Format a real number into a string using scientific notation,
