@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.16  2003/06/19 15:34:12  dennis
+ *  Added float versions of routines to print arrays.
+ *
  *  Revision 1.15  2003/06/18 14:59:38  dennis
  *  Added convenience method to print an array of doubles.
  *
@@ -260,10 +263,36 @@ public final class LinearAlgebra
     }
   }
 
+
+  /**
+   * Prints to STDOUT any nXm matrix of floats
+   */
+  public static void print(float[][] a){
+    int ay=a[0].length;
+
+    for( int i=0 ; i<a.length ; i++ ){
+      for( int j=0 ; j<a[i].length ; j++ ){
+        System.out.print( Format.real( a[i][j], 15, 7 ) + " ");
+      }
+      System.out.println("");
+    }
+  }
+
+
   /**
    * Prints to STDOUT any one-dimensional array of doubles
    */
   public static void print(double[] a){
+    for( int j=0 ; j<a.length ; j++ )
+      System.out.print( Format.real( a[j], 15, 7 ) + " ");
+    System.out.println("");
+  }
+
+
+  /**
+   * Prints to STDOUT any one-dimensional array of floats
+   */
+  public static void print(float[] a){
     for( int j=0 ; j<a.length ; j++ )
       System.out.print( Format.real( a[j], 15, 7 ) + " ");
     System.out.println("");
