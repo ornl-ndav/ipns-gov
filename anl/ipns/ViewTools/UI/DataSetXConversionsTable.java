@@ -1,7 +1,7 @@
 /*
  * File:  DataSetXConversionsTable
  *
- * Copyright (C) 2000, Dennis Mikkelson
+ * Copyright (C) 2000-2003, Dennis Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2003/07/09 14:36:23  dennis
+ * Added another form of the method showConversions(), that takes
+ * a new XScale and calculates the y value based on Data rebinned
+ * to match the new XScale.  This will make it possible to display
+ * proper values in the ImageView, ThreeDView and ContourView, even
+ * when the Data has been rebinned.
+ *
  * Revision 1.11  2003/07/08 15:20:07  dennis
  * Added some debug prints and boolean debug flag.
  *
@@ -156,7 +163,7 @@ public class DataSetXConversionsTable  implements Serializable
  
   public void showConversions( float x, float y, int index )
   {
-    if ( ds == null )
+    if ( ds == null || x == Float.NaN )
       x_specified = false;
 
     else if ( index < 0 || index >= ds.getNum_entries() )
@@ -175,6 +182,60 @@ public class DataSetXConversionsTable  implements Serializable
 
   /* -------------------------- showConversions ---------------------------- */
   /**
+   *  Change the x and y value used to generate the table and repaint the
+   *  table.  Since a y value is not specified in this form of the
+   *  showConversions() method, a y value will be calculated.  This form of
+   *  showConversions() will find the value of the data by first resampling
+   *  the data, with respect to the specified x-scale.  This works well for
+   *  histogram data.  It may NOT work well for function data, since more
+   *  information is needed about how the function values should be resampled.
+   *  This method calls the simpler showConversions(x,index) if problems
+   *  are encounterd.
+   *
+   *  @param  x            The x value at which the x-axis conversions 
+   *                       should be calculated.
+   *  @param  index        The index of the Data block in the DataSet that
+   *                       is to be used for the x-axis conversions.
+   *  @param  new_x_scale  The XScale to be used when resampling the
+   *                       Data block. 
+   */
+  public void showConversions( float x, int index, XScale new_x_scale )
+  {
+    boolean success = false;
+
+    if ( ds   != null             &&
+          x   != Float.NaN        && 
+         index >= 0               && 
+         index < ds.getNum_entries() )
+    {                                       // try to calculate a rebinned y
+      Data d = ds.getData_entry( index );
+      int glb_i = new_x_scale.getI_GLB( x );
+      int lub_i = new_x_scale.getI( x );
+      if (glb_i == lub_i)                    // by chance, frame value
+        lub_i++;                             // was on a grid point
+
+      float glb = new_x_scale.getX( glb_i );
+      float lub = new_x_scale.getX( lub_i );
+
+      if ( glb != Float.NaN && lub != Float.NaN && glb < lub )      
+      {
+        new_x_scale = new UniformXScale( glb, lub, 2 );
+        float y[];
+        y = d.getY_values(new_x_scale, IData.SMOOTH_NONE);
+        if ( y.length > 0 )
+        {
+          showConversions( x, y[0], index );
+          success = true;
+        }
+      }
+    }
+
+    if ( !success )
+      showConversions( x, index );                   // just use the default 
+  }
+
+  /* -------------------------- showConversions ---------------------------- */
+  /**
    *  Change the x and y value used to generate the table and repaint the 
    *  table.  Since a y value is not specified in this form of the
    *  showConversions() method, a y value that corresponds to the specified
@@ -189,7 +250,7 @@ public class DataSetXConversionsTable  implements Serializable
    */
   public void showConversions( float x, int index )
   {
-    if ( ds == null )
+    if ( ds == null || x == Float.NaN )
       x_specified = false;
 
     else if ( index < 0 || index >= ds.getNum_entries() )
