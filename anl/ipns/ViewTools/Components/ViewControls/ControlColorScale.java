@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2004/03/19 18:04:37  millermi
+ *  - Replaced labels and units in getAxisInformation() from ""
+ *    to AxisInfo static variables.
+ *
  *  Revision 1.20  2004/03/17 20:26:51  dennis
  *  Fixed @see tag that was broken when view components, math and
  *  util were moved to gov package.
@@ -528,7 +532,9 @@ public class ControlColorScale extends ViewControl
   {
     if( !isBasic )
       return new AxisInfo( value_info.getMin(),
-                           value_info.getMax(), "", "", false );
+                           value_info.getMax(), 
+			   AxisInfo.NO_LABEL, 
+			   AxisInfo.NO_UNITS, false );
     else
     {
       System.out.println("getAxisInfo() is not available with the " +
@@ -536,7 +542,7 @@ public class ControlColorScale extends ViewControl
         		 "public ControlColorScale( " +
         		 "IColorScaleAddible icsa, boolean orientation ) " +
         		 "to enable this method." );
-      return new AxisInfo( 0,1,"","",false );
+      return new AxisInfo( 0,1,AxisInfo.NO_LABEL,AxisInfo.NO_UNITS,false );
     }
   }
   
