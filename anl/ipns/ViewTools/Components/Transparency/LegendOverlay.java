@@ -34,9 +34,8 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.3  2004/06/23 16:10:36  serumb
- *  Changed if statment to check the length of the graphs array
- *  is > 0 instead of null.
+ *  Revision 1.4  2004/06/23 18:58:44  serumb
+ *  Added controls to change the Legend label and to hide the border.
  *
  *  Revision 1.2  2004/06/17 22:36:27  serumb
  *  Added controls to move the legend by holding the control key
@@ -109,13 +108,14 @@ public class LegendOverlay extends OverlayJPanel
   private transient LegendOverlay this_panel;
   private transient LegendEditor editor;
   private transient Rectangle current_bounds;
-  private Rectangle editor_bounds = new Rectangle(0,0,500,70);
+  private Rectangle editor_bounds = new Rectangle(0,0,500,140);
   private String[] graphs;
   private int[] selectedGraphs;
   private GraphData[] lineInfo;
   private int x_offset = 0;
   private int y_offset = 0;
-
+  private boolean draw_border = true;
+  private String legend_label = "Legend";
 
  /**
   * Constructor for initializing a new LegendOverlay
@@ -289,6 +289,8 @@ public class LegendOverlay extends OverlayJPanel
   {
     //legend border width =120 hieght = 25 per line
     // left line
+   if(draw_border)
+   {
     g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125
                  + x_offset,
                  (int)current_bounds.getY()+5 + y_offset,
@@ -303,16 +305,19 @@ public class LegendOverlay extends OverlayJPanel
                  (int)current_bounds.getX()+(int)current_bounds.getWidth() - 120
                  + x_offset,
                  (int)current_bounds.getY()+5 + y_offset);
-    g2d.drawString( "Legend",
+    g2d.drawString(  legend_label,
                  (int)current_bounds.getX()+(int)current_bounds.getWidth() - 118
                  + x_offset,
                  (int)current_bounds.getY()+10 + y_offset);
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 74
+    if((120 - 7.6f * legend_label.length()) > 0)
+      g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() -
+                 (int)(120 - 7.6f * legend_label.length())
                  + x_offset,
                  (int)current_bounds.getY()+5 + y_offset,
                  (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
                  + x_offset,
                  (int)current_bounds.getY()+5 + y_offset);
+   
     //right line
     g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
                  + x_offset,
@@ -330,7 +335,7 @@ public class LegendOverlay extends OverlayJPanel
                  + x_offset,
                  (int)current_bounds.getY()+10 + 20*(int)graphs.length
                  + y_offset );
-
+   }
     //Draw text
     for (int index = 0; index < graphs.length; index++)
       {
@@ -413,10 +418,18 @@ public class LegendOverlay extends OverlayJPanel
     private LegendEditor this_editor;
     private LabelCombobox selectedLineBox;
     private JTextField labelField = new JTextField((int)20);      
-    private JTextField titleField = new JTextField(null);      
-    private JButton changebutton = new JButton("Change");
-    private Box theBox = new Box(0);
-
+    private JTextField titleField = new JTextField(null);
+    private JLabel the_label = new JLabel("   Legend Label   "); 
+    private JTextField legend_field = new JTextField(legend_label);      
+    private JButton changebutton = new JButton("Change Label");
+    private JButton changebutton2 = new JButton("Change Legend Label");
+    private Box vertical = new Box(1);
+    private Box topBox = new Box(0);
+    private Box middle = new Box(0);
+    private Box bottomBox = new Box(0);
+    private ControlCheckbox border_check = 
+                                  new ControlCheckbox(true);
+    
     public LegendEditor(String[] graphs)
     {
       super("Legend Editor");
@@ -425,7 +438,6 @@ public class LegendOverlay extends OverlayJPanel
       this.setBounds(editor_bounds);
       this.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
       
-      //if (!(graphs == null))
       if(graphs.length > 0) 
         labelField.setText(graphs[0]);
 
@@ -435,19 +447,29 @@ public class LegendOverlay extends OverlayJPanel
       titleField.setEditable(false);
 
       changebutton.addActionListener( new ControlListener() );
+      changebutton2.addActionListener( new ControlListener() );
+
+      border_check.setText("Display Border");
+      border_check.addActionListener( new ControlListener() );
       
       // this jpanel groups all other miscellaneous options into one row.
       JPanel labelPanel = new JPanel( new GridLayout() );
-      theBox.add(titleField);
-      theBox.add(selectedLineBox);
-      theBox.add(labelField);
-      theBox.add(changebutton);
-      labelPanel.add(theBox);
+      vertical.add(titleField);
+      topBox.add(border_check);
+      middle.add(selectedLineBox);
+      middle.add(labelField);
+      middle.add(changebutton);
+      bottomBox.add(the_label);
+      bottomBox.add(legend_field);
+      bottomBox.add(changebutton2);
+      vertical.add(topBox);
+      vertical.add(middle);
+      vertical.add(bottomBox);
+      labelPanel.add(vertical);
 
-      // These commands will create key events for moving the annotation
+      // These commands will create key events for moving the Legend
       //*********************************************************************
       Keymap km = titleField.getKeymap();
-      // these move p2 of the line (the actual note)
       KeyStroke up = KeyStroke.getKeyStroke( KeyEvent.VK_UP,
                                              Event.CTRL_MASK );
       KeyStroke down = KeyStroke.getKeyStroke( KeyEvent.VK_DOWN,
@@ -479,21 +501,24 @@ public class LegendOverlay extends OverlayJPanel
         if( e.getSource() instanceof JButton )
         {
           String message = e.getActionCommand();
-          if( message.equals("Change") )
+          if( message.equals("Change Label") )
           {
             graphs[selectedLineBox.cbox.getSelectedIndex()] = 
                                                 labelField.getText();
-            
             this_panel.repaint();
 	    
           }
+          else if( message.equals("Change Legend Label"))
+          {
+            legend_label = legend_field.getText();
+            this_panel.repaint();
+          } 
           else if( message.equals("Close") )
           { 
 	    editor_bounds = this_editor.getBounds(); 
             this_editor.dispose();
             this_panel.repaint();
           }
-          
         }
         else if( e.getSource() instanceof LabelCombobox )
         {
@@ -503,7 +528,13 @@ public class LegendOverlay extends OverlayJPanel
              labelField.setText(graphs[selectedLineBox.cbox.getSelectedIndex()]);        
           }  
         }
-           
+        else if( e.getSource() instanceof ControlCheckbox )
+        {
+          String message = e.getActionCommand();
+          if (message.equals("Checkbox Changed") )
+          draw_border = border_check.isSelected();
+          this_panel.repaint();
+        }    
       }
     }
     
