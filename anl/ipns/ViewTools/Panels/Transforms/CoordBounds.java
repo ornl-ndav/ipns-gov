@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2004/03/12 00:42:59  millermi
+ * - Changed package and fixed imports.
+ *
  * Revision 1.11  2004/02/12 04:24:17  millermi
  * - Added methods onXInterval() and onYInterval() which return
  *   true if parameter is on interval [min,max] or [max,min].
@@ -45,10 +48,11 @@
  * standardized header
  *
  */
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Transforms;
 
 import java.io.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Numeric.ClosedInterval;
 
 /**
  *  Objects of this class maintain bounds on a rectangular region of the

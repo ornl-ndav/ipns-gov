@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2004/03/12 00:42:59  millermi
+ *  - Changed package and fixed imports.
+ *
  *  Revision 1.29  2004/01/29 08:18:14  millermi
  *  - Updated the getObjectState() to include parameter for specifying
  *    default state.
@@ -109,7 +112,7 @@
  *
  */
 
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Transforms;
 
 import java.io.*;
 import java.awt.*;
@@ -117,11 +120,12 @@ import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-import DataSetTools.util.*;
-import DataSetTools.components.ui.*;
-import DataSetTools.components.View.LogScaleUtil;
-import DataSetTools.components.View.IPreserveState;
-import DataSetTools.components.View.ObjectState;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
+import gov.anl.ipns.ViewTools.Components.LogScaleUtil;
+import gov.anl.ipns.ViewTools.Components.IPreserveState;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Panels.Cursors.*;
 
 /**
  *  This class is a base class for panels that have a "world" coordinate

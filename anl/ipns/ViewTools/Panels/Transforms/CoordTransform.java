@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/03/12 00:42:59  millermi
+ *  - Changed package and fixed imports.
+ *
  *  Revision 1.9  2003/06/19 15:03:32  serumb
  *  Added methods MapXListTo, MapYListTo, MapXListFrom, and MapYListFrom.
  *
@@ -44,10 +47,10 @@
  *
  */
 
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Transforms;
 
 import java.io.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
  *  Class CoordTransform represents a separable transformation from a 
