@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/12/15 02:20:38  bouzekc
+ *  Removed unused imports.
+ *
  *  Revision 1.2  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -40,7 +43,6 @@
  */
 package DataSetTools.util;
 
-import java.io.*;
 
 /**
  * The LoadFileString class is used to pass a filename string between
