@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/24 03:05:31  millermi
+ *  - convertFloatPoint() now converts image row/column values to
+ *    world coord values corresponding to the center of the pixel.
+ *
  *  Revision 1.7  2004/03/12 02:00:35  rmikk
  *  Fixed package Names
  *
@@ -151,7 +155,9 @@ public abstract class Region implements java.io.Serializable
  /**
   * This method converts a floatPoint2D from one coordinate system to the
   * coordinate system specified. It is assumed that the floatPoint2D lives
-  * in either the image or world coordinate system.
+  * in either the image or world coordinate system. If image coordinates
+  * are converted to world coords, the world coordinate values at the center
+  * of the pixel are returned.
   *
   *  @param  fpt floatPoint2D that is going to be mapped to the other coord
   *              system.
@@ -161,8 +167,24 @@ public abstract class Region implements java.io.Serializable
   public floatPoint2D convertFloatPoint( floatPoint2D fpt, int to_coordsystem )
   {
     // convert to world coords
+    // Since image coords are whole numbers, map world coords to pixel centers.
     if( to_coordsystem == WORLD )
-      return world_to_image.MapFrom(fpt);
+    {
+      // the transform goes from upper left-hand corner
+      floatPoint2D map_to_center = world_to_image.MapFrom(fpt);
+      floatPoint2D wcpt1 = world_to_image.MapFrom(new floatPoint2D(0,0));
+      floatPoint2D wcpt2 = world_to_image.MapFrom(new floatPoint2D(1,1));
+      float x_offset = (wcpt2.x - wcpt1.x)/2f;
+      float y_offset = (wcpt2.y - wcpt1.y)/2f;
+      CoordBounds world_bounds = world_to_image.getSource();
+      // Since offset takes care of increasing vs decreasing bounds, only
+      // need to use one case.
+      // This will adjust the bounds by half a pixel in world coordinates
+      // so the coordinates are given at pixel centers.
+      map_to_center.x += x_offset;
+      map_to_center.y += y_offset;
+      return map_to_center;
+    }
     // convert to image coords
     if( to_coordsystem == IMAGE )
       return world_to_image.MapTo(fpt);
