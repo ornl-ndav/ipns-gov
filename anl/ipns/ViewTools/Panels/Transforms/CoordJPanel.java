@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2002/07/15 19:29:35  dennis
+ *  Commented out code that sets the cursor... this is an attempt to
+ *  prevent crash in native code outside of VM when cursor is set on
+ *  Linux.
+ *
  *  Revision 1.11  2001/08/08 14:24:58  dennis
  *  Now extends ActiveJPanel and sends action events to any
  *  ActionListeners when the cursor is moved, or when the
@@ -591,7 +596,7 @@ class CoordMouseAdapter extends MouseAdapter
     requestFocus();                // so we can also move cursor with arrow
                                    // keys
     Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
-    setCursor( cursor );
+    //###### setCursor( cursor );
   }
 };
 
