@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2004/08/03 23:40:36  dennis
+ * Made all class level variables private.
+ * Commented out mouse event handler used for debugging.
+ * Renamed getPixelWorldCoordinates() to pickedWorldCoordinates()
+ * for consistency.
+ * Removed a couple of unused variables.
+ *
  * Revision 1.12  2004/07/28 15:48:55  dennis
  * Decreased default light intensity to 0.7, instead of 1.  Made LIGHT0
  * also contribute to the ambient light.
@@ -94,7 +101,8 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 
 import java.awt.*;
-import java.awt.event.*;
+//import java.awt.event.*;    // uncomment this if MouseClickHandler is needed
+                              // for debugging
 import java.io.*;
 import java.nio.*;
 import java.util.*;
@@ -111,47 +119,43 @@ import net.java.games.jogl.util.*;
 
 public class ThreeD_GL_Panel implements Serializable
 {
-  private static int panel_counter = 0;
-  private int panel_id = -1;
   private static Vector old_list_ids = null;
 
-  protected GLCanvas         canvas;
+  private GLCanvas      canvas;
 
-  private   Color            background = Color.BLACK;
+  private Color         background = Color.BLACK;
 
-  protected Hashtable        obj_lists     = null; // Hastable storing, object[]
-                                                     // lists referenced by name
-  protected IThreeD_GL_Object  picked_object = null; // last object picked
-  protected IThreeD_GL_Object  all_objects[] = null; // array of all current 
-                                                     // objects
-  protected Tran3D           tran;
+  private Hashtable     obj_lists     = null;   // Hastable storing, object[]
+                                                // lists referenced by name
 
-  protected volatile boolean obj_lists_valid = false;
+  private IThreeD_GL_Object picked_object = null;   // last object picked
 
-  protected float            clip_factor  = 0.9f;  // relative location of the
-                                                   // front clipping plane as 
-                                                   // fraction of distance from
-                                                   // VRP to COP
+  private IThreeD_GL_Object all_objects[] = null;   // array of all current 
+                                                    // objects
+  private volatile boolean obj_lists_valid = false;
+
   private Vector3D  cop, 
                     vrp, 
                     vuv;
-  private float view_angle = 40;
-  private float near_plane = 1;
-  private float far_plane  = 200;
+  private float     view_angle = 40;
+  private float     near_plane = 0.5f;
+  private float     far_plane  = 200;
 
-  private boolean use_perspective_proj = true;
+  private boolean  use_perspective_proj = true;
 
-  private boolean do_select = false;
-  private boolean do_locate = false;
+  private boolean  do_select = false;
+  private boolean  do_locate = false;
   private Vector3D last_picked_point = new Vector3D();
 
   private final int HIT_BUFFER_SIZE = 512;
   private int n_hits = 0;
   private IntBuffer hit_buffer = BufferUtils.newIntBuffer( HIT_BUFFER_SIZE );
+
   private int cur_x,                              // x,y pixel coords of point
               cur_y;                              // used for picking and 
                                                   // locating objects 
   private float world_coords[] = new float[3];
+
 
 /* --------------------- Default Constructor ------------------------------ */
 /**
@@ -180,10 +184,8 @@ public class ThreeD_GL_Panel implements Serializable
 
     obj_lists = new Hashtable();
     old_list_ids = new Vector();
-    panel_counter++;
-    panel_id = panel_counter;
 
-    canvas.addMouseListener( new MouseClickHandler() );
+//    canvas.addMouseListener( new MouseClickHandler() );  // use for debugging
   }
 
 
@@ -195,6 +197,7 @@ public class ThreeD_GL_Panel implements Serializable
   {
     background = new_background;
   }
+
 
 /* ------------------------ ChangeOldLists  ------------------------------ */
 /**
@@ -370,6 +373,7 @@ public class ThreeD_GL_Panel implements Serializable
    obj_lists_valid = false; 
  }
 
+
 /* --------------------------- getPickHitList ------------------------------ */
 /**
  *  Get the OpenGL selection hit list for the specified window coordinates
@@ -404,30 +408,6 @@ public HitRecord[] pickHitList( int x, int y )
   }
 
   return hit_recs;
-}
-
-
-/* ---------------------- getPixelWorldCoordinates ------------------------ */
-/**
- *  Get the world coordinates of the specified point.
- *
- *  @param x  The pixel x (i.e. column) value
- *  @param y  The pixel y (i.e. row) value, in window coordinates.
- */
-public float[] getPixelWorldCoordinates( int x, int y )
-{
-  cur_x = x;
-  cur_y = y;
-
-  do_locate = true;
-  canvas.display();         // this will cause Renderer.display(drawable) to be
-                            // called with the correct drawable, GL and thread
-
-  float coords[] = new float[3];
-  for ( int i = 0; i < 3; i++ )
-    coords[i] = world_coords[i];
-
-  return coords;
 }
 
 
@@ -496,6 +476,31 @@ public float[] getPixelWorldCoordinates( int x, int y )
  }
 
 
+/* ---------------------- pickedWorldCoordinates ------------------------ */
+/**
+ *  Get the world coordinates of the specified point.
+ *
+ *  @param x  The pixel x (i.e. column) value
+ *  @param y  The pixel y (i.e. row) value, in window coordinates.
+ */
+public float[] pickedWorldCoordinates( int x, int y )
+{
+  cur_x = x;
+  cur_y = y;
+
+  do_locate = true;
+  canvas.display();         // this will cause Renderer.display(drawable) to be
+                            // called with the correct drawable, GL and thread
+
+  float coords[] = new float[3];
+  for ( int i = 0; i < 3; i++ )
+    coords[i] = world_coords[i];
+
+  last_picked_point = new Vector3D( coords );
+  return coords;
+}
+
+
 /* ---------------------------- pickedPoint ----------------------------- */
 /*
  *  Return the point in 3D corresponding to the specified pixel location.
@@ -507,8 +512,7 @@ public float[] getPixelWorldCoordinates( int x, int y )
  */
  public Vector3D pickedPoint( int x, int y )
  {  
-   float wc[] = getPixelWorldCoordinates( x, y );
-   last_picked_point = new Vector3D( wc );
+   pickedWorldCoordinates( x, y );
    return new Vector3D( last_picked_point );
  }
 
@@ -537,6 +541,7 @@ public float[] getPixelWorldCoordinates( int x, int y )
    cop = new Vector3D( new_cop );
  }
 
+
 /* ---------------------------- setVRP ---------------------------------- */
 /**
  *  Set the view reference point (i.e. the position the viewer is looking
@@ -548,6 +553,7 @@ public float[] getPixelWorldCoordinates( int x, int y )
  {
    vrp = new Vector3D( new_vrp );
  }
+
 
 /* ---------------------------- setVUV ---------------------------------- */
 /**
@@ -651,6 +657,11 @@ public float[] getPixelWorldCoordinates( int x, int y )
  *  INTERNAL CLASSES 
  *
  */
+
+  /**
+   *  The class Renderer provides the interface to OpenGL through jogl.
+   *  It's display() method is called by the system to do the OpenGL drawing.
+   */
   public class Renderer implements GLEventListener
   {
     /* ---------------------------- init ----------------------------- */
@@ -726,6 +737,7 @@ public float[] getPixelWorldCoordinates( int x, int y )
                                 boolean deviceChanged)
     {
     }
+
 
     /* --------------------------- display ----------------------------- */
     /**
@@ -866,7 +878,6 @@ public float[] getPixelWorldCoordinates( int x, int y )
           list[i].Render( drawable );
 
       gl.glFlush();
-//      drawable.swapBuffers();
 
       if ( do_select )                            // switch back to render mode
       {                                           // to get the number of hits
@@ -882,8 +893,9 @@ public float[] getPixelWorldCoordinates( int x, int y )
   /**
    *  This class listens for mouse clicks and then uses pickHitList() to get
    *  and print a list of the OpenGL names that are "hit" by a ray through
-   *  the current x,y pixel locations.
+   *  the current x,y pixel locations for debugging purposes.
    */
+/*
    private class MouseClickHandler extends MouseAdapter
    {
       public void mouseClicked (MouseEvent e)
@@ -892,15 +904,16 @@ public float[] getPixelWorldCoordinates( int x, int y )
         {
            int x = e.getX();
            int y = e.getY();
-/* locate ...... 
-*/
+
+           // Test locate point in 3D ...... 
+
            float wc[] = getPixelWorldCoordinates( x, y );
            System.out.println("World Coordinates " + wc[0] + 
                                               ", " + wc[1] +
                                               ", " + wc[2] );
 
-/* selection......
-*/
+           // Test object selection ......
+
            HitRecord hitlist[] = pickHitList( x, y );           
            System.out.println( "MouseClickHandler: length = "+hitlist.length );
            System.out.println( "x,y = " + x + ", " + y );
@@ -909,4 +922,5 @@ public float[] getPixelWorldCoordinates( int x, int y )
         }
       }
    }
+*/
 }
