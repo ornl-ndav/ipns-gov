@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2001/08/14 15:14:54  dennis
+ *  Fixed documentation.
+ *
  *  Revision 1.4  2001/08/10 19:49:28  dennis
  *  Added method commandPresent() to check whether or not a specified
  *  single command with no argument occurs in an argument list.
@@ -53,13 +56,13 @@ import java.awt.*;
 import java.io.*;
 
 /**
- *  Provide utilitiy for fixing file names
+ *  Provide utilities for fixing file names, parsing command lines, etc.
  */
 
 public class StringUtil
 {
   /**
-   *  Don't instantiate this class, just use the Fonts provided.
+   *  Don't instantiate this class.
    */
   private StringUtil() {}
 
