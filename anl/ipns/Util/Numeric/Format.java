@@ -30,6 +30,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/04/11 14:23:31  dennis
+ *  Added methods to format numbers for display as axis labels.(Mike Miller)
+ *  doubleEng() uses engineering units (powers are multiples of 3).
+ *  choiceFormat() allows selection of format controlled by parameter.
+ *  round() rounds values to a specified number of significant digits.
+ *  setE() formats number to have a specified exponent.
+ *
  *  Revision 1.8  2002/12/03 21:42:41  pfpeterson
  *  Fixed bug where Format.string did not accept null values.
  *
@@ -63,15 +70,195 @@ import java.text.*;
 
 public class Format 
 {
+  public static final String AUTO       = "0";
+  public static final String DECIMAL    = "1";
+  public static final String SCIENTIFIC = "2";
+  public static final String ENGINEER   = "3";
+  
   static NumberFormat  f          =  NumberFormat.getInstance();
   static DecimalFormat sciFormatf = new DecimalFormat( "0.######E0" );
   static DecimalFormat sciFormatd = new DecimalFormat( "0.###############E0" );
-
+  static DecimalFormat engFormatd = new DecimalFormat( "##0.#############E00" );
   /*
    * Don't instantiate this class, just use the methods provided.
    */
   private Format() {}
 
+  /**
+   *  Format a real number into a string using engineering notation,
+   *  with thirteen digits after the decimal, appropriate for double precision
+   *  values.
+   *
+   *  @param  num          The number to format
+   *  @param  field_width  The total number of spaces to be used for the number.   *                       If the formatted number does not occupy all of the
+   *                       spaces, leading blanks will be prepended.
+   *                       If more spaces are needed, they will be used.
+   *
+   *  @return A string containing the formatted number with at least the
+   *          specified number of characters.
+   */ 
+   static public String doubleEng( double   num,
+                                   int      field_width )
+   {
+      String result = engFormatd.format( num );
+      return string( result, field_width, true );
+   }
+
+  /**
+   *  Format a real number into a string.
+   *
+   *  @param  num           The number to format
+   *  @param  form          The specified format for displaying num
+   *  @param  sig_digits    Significant digits to round and display number.
+   *
+   *  @return A string containing the formatted number with at least the 
+   *          specified number of characters.  
+   */ 
+   static public String choiceFormat( double num, String form, 
+                                      int sig_digits )
+   {
+      num = round(num,sig_digits); 
+      
+      if( form == AUTO )
+      {
+         if( Math.abs(num) >= 10000 || Math.abs(num) < .001 )
+	    return doubleEng( num, sig_digits );
+         else 
+	    return real(num, sig_digits);
+      }
+      if( form == DECIMAL )
+         return real(num, sig_digits);
+      if( form == SCIENTIFIC )
+         return doubleExp( num, sig_digits );
+      return doubleEng( num, sig_digits );      
+   }
+  
+  /**
+   *  Format a real number into a string. 
+   *  Calls the choiceFormat( double, String, int ) with sig_digits = 4
+   *
+   *  @param  num           The number to format
+   *  @param  form          The specified format for displaying num
+   *
+   *  @return A string containing the formatted number with at least the 
+   *          specified number of characters.  
+   */
+   static public String choiceFormat( double num, String form )
+   {
+      return choiceFormat(num, form, 4);
+   }
+
+  /**
+   *  Format a real number into a string. 
+   *  Calls the choiceFormat( double, String, int ) 
+   *  with form = AUTO and sig_digits = 4.
+   *
+   *  @param  num           The number to format
+   *
+   *  @return A string containing the formatted number with at least the 
+   *          specified number of characters.  
+   */
+   static public String choiceFormat( double num )
+   {
+      return choiceFormat( num, AUTO, 4 );
+   }
+  
+  /**
+   *  Round a real number to the significant digits. This round() method
+   *  will preserve decimal values. 
+   *  NOTE: Because a double is returned, if the number is rounded to an
+   *        integer, the number will still contain a decimal and zero.
+   *        EX. round(100.5,3) = 100.0
+   *
+   *  @param  num           The number to format
+   *  @param  sig_dig       The significant digits to round the number
+   *
+   *  @return A double rounded to the specified length.  
+   */ 
+   static public double round( double num, int sig_dig )
+   {
+      int numex = 0;
+      // figure out the degree of num
+      while ( Math.abs(num) >= 10.0 )
+      { 
+	 num = num / 10.0f;
+	 numex = numex + 1;
+      }
+      while ( Math.abs(num) < 1.0 && num != 0 )
+      {
+	 num = num * 10.0f;
+	 numex = numex - 1;
+      }
+      num = num*Math.pow(10.0,sig_dig - 1);
+      num = Math.round(num);
+      num = num/Math.pow(10.0,sig_dig - 1 - numex);
+      	  
+      return num;
+   }
+
+  /**
+   *  Format a real number into a string number with a specified exponent. 
+   *
+   *  @param  num           The number to format
+   *  @param  at_exp        The exponent the number will be converted to.
+   *  @param  sig_dig       Significant digits to round the number.
+   *
+   *  @return A string containing the formatted number with at least the 
+   *          specified number of characters.  
+   */   
+   static public String setE( double num, int at_exp, int sig_dig )
+   {
+      int numex = 0;
+      // figure out the degree of num
+      while ( Math.abs(num) >= 10.0 )
+      { 
+	 num = num / 10.0;
+	 numex = numex + 1;
+      }
+      while ( Math.abs(num) < 1.0 && num != 0 )
+      {
+	 num = num * 10.0;
+	 numex = numex - 1;
+      }
+      
+      // if numex != at_exp, change until it is.
+      int exp = numex;
+      while( exp != at_exp )
+      {
+         if( exp < at_exp )
+	 {
+	    exp++;
+	    num = num/10;
+	 }
+	 if(exp > at_exp )
+	 {
+	    exp--;
+	    num = num * 10;
+	 }   
+      }
+      num = round(num, sig_dig);
+      String snum = Double.toString(num);
+      // String must be at least as long as the number of significant digits.
+      // The "+2" takes into account negative sign and decimal.
+      while( snum.length() < sig_dig + 2 )
+         snum = snum + "0";
+      int predecimal = 1 + (numex - at_exp);
+      if( predecimal > sig_dig )
+      {
+         SharedData.addmsg("WARNING -- Specified significant digits not " + 
+     			   "sufficient. Number exceeds significant digits.");
+         sig_dig = predecimal;
+      }
+      // take into account the negative sign
+      if( num < 0 )
+         sig_dig++;
+      if( predecimal - sig_dig != 0 )
+         snum = snum.substring(0, sig_dig + 1);
+      else
+         snum = snum.substring(0, sig_dig);      
+      snum = snum + "E" + Integer.toString(at_exp);
+      return snum;
+   }
 
   /**
    *  Format a real number into a string.
@@ -151,7 +338,8 @@ public class Format
    *  values. 
    *
    *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   *                       If the formatted number does not occupy all of the
+   *  @param field_width   The total number of spaces to be used for the number.   
+   *                       If the formatted number does not occupy all of the
    *                       spaces, leading blanks will be prepended.
    *                       If more spaces are needed, they will be used.
    *
@@ -320,10 +508,18 @@ public class Format
    */
   public static void main( String argv[] )
   {
-    System.out.println("Real Formmated 12345.678 = "+ 
+    System.out.println("Real Formatted 12345.678 = "+ 
                        Format.real( 12345.678, 12, 1, true ) );
-    System.out.println("Integer Formmated 12345 = "+ 
-                       Format.integer( 12345, 12, false ) );
+    System.out.println("Integer Formatted 12345 = "+ 
+                       Format.integer( 12345, 12, false ) );                        
+    System.out.println("Engineer Format: .001234567 = "+ 
+                        Format.choiceFormat( .001234567, ENGINEER, 6) );
+    System.out.println("Decimal Format: 1234567800 = "+ 
+                        Format.choiceFormat( 1234567800, DECIMAL, 4 ) );       
+    System.out.println("setE: 1234567800 = "+ 
+                        Format.setE( 1234567800, 8, 5 ) );
+    System.out.println("setE: 1234567800 = "+ 
+                        Format.setE( 1234567800, 6, 6 ) );
   }
 
 }
