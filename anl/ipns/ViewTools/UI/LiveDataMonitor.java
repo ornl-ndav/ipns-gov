@@ -4,6 +4,10 @@
  *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.3  2001/02/16 16:40:21  dennis
+ *  Changed order of buttons in GUI panel.
+ *  Added some @see comments.
+ *
  *  Revision 1.2  2001/02/15 23:18:05  dennis
  *  This version now works, using a default flow layout
  *
@@ -25,6 +29,14 @@ import DataSetTools.viewer.*;
 import DataSetTools.retriever.*;
 
 /**
+ *
+ *  This class is a JPanel that contains a user interface to control a
+ *  LiveDataManager, which can periodically update DataSets from a 
+ *  LiveDataServer.
+ *
+ *  @see NetComm.LiveDataServer
+ *  @see DataSetTools.retriever.LiveDataRetriever
+ *  @see DataSetTools.retriever.LiveDataManager
  */
 
 public class LiveDataMonitor extends    JPanel
@@ -38,6 +50,12 @@ public class LiveDataMonitor extends    JPanel
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
+  *  Construct a LiveDataMonitor GUI, and a LiveDataManager to control the
+  *  updates of live data from the specified data source.  This also
+  *  makes the connection to the LiveDataServer via a LiveDataRetriever.
+  *
+  *  @param  data_source_name  The name or IP address of the system that is
+  *                            running the LiveDataServer.
   *
   */
   public LiveDataMonitor( String data_source_name )
@@ -62,7 +80,6 @@ public class LiveDataMonitor extends    JPanel
       JButton button = new JButton("Update");
       UpdateButtonListener button_listener = new UpdateButtonListener( i );
       button.addActionListener( button_listener );
-      add( button );
 
       checkbox[i] = new JCheckBox( "Show" );
       if ( i < 2 )
@@ -80,6 +97,8 @@ public class LiveDataMonitor extends    JPanel
       ShowCheckboxListener checkbox_listener = new ShowCheckboxListener( i );
       checkbox[i].addActionListener( checkbox_listener );
       add( checkbox[i] );
+
+      add( button );
     }
 
     add( time_widget );
@@ -175,7 +194,7 @@ public class LiveDataMonitor extends    JPanel
      LiveDataMonitor monitor = new LiveDataMonitor( instrument_computer );
 
      JFrame frame = new JFrame( instrument_computer );
-     frame.setBounds(0,0,200,250);
+     frame.setBounds(0,0,350,150);
      frame.getContentPane().add( monitor );
  
      frame.setVisible( true );
