@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.35  2004/07/28 19:36:28  robertsonj
+ *  changed the getLocalLogWorldCoords to use the TruLogCoord function
+ *  from logScale util.
+ *
  *  Revision 1.34  2004/05/03 18:10:19  dennis
  *  Removed unused local variable.
  *
@@ -664,10 +668,11 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
                                             b.getX1(),b.getX2());
     LogScaleUtil loggery = new LogScaleUtil(b.getY1(),b.getY2(),
                                             b.getY1(),b.getY2());
-    b2.setBounds(loggerx.toDest(x1, scale),
-                loggery.toDest(y1, scale),
-                loggerx.toDest(x2, scale),
-                loggery.toDest(y2, scale));
+    b2.setBounds(loggerx.truLogCoord(x1),
+                loggery.truLogCoord(y1),
+                loggerx.truLogCoord(x2),
+                loggery.truLogCoord(y2));
+
 
     return( b2 );
   }
@@ -692,10 +697,11 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
     y2 = b2.getY2();    
     LogScaleUtil loggerx = new LogScaleUtil(xmin,xmax,xmin,xmax);
     LogScaleUtil loggery = new LogScaleUtil(ymin,ymax,ymin,ymax);
-    b2.setBounds(loggerx.toDest(x1, scale),
-                loggery.toDest(y1, scale),
-                loggerx.toDest(x2, scale),
-                loggery.toDest(y2, scale));
+    b2.setBounds(loggerx.truLogCoord(x1),
+                loggery.truLogCoord(y1),
+                loggerx.truLogCoord(x2),
+                loggery.truLogCoord(y2));
+
 
     return( b2 );
   }
