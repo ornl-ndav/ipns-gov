@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.29  2003/08/07 15:18:32  serumb
+ * Changed paint method so transparent lines are not drawn.
+ *
  * Revision 1.28  2003/08/05 23:21:45  serumb
  * Added methods for getting the log scale and for getting which axes
  * are logarithmically scaled.
@@ -1018,15 +1021,6 @@ public boolean is_autoY_bounds()
         local_transform.MapYListTo(error_bars_upper); // map errors from WC to
         local_transform.MapYListTo(error_bars_lower); // pixels
       }
-      
-      if(gd.transparent) {
-         g2.setComposite((Composite)AlphaComposite.getInstance(
-                                    AlphaComposite.SRC_OVER, 0.0f));
-      }
-      else {
-         g2.setComposite((Composite)AlphaComposite.getInstance(
-                                    AlphaComposite.SRC_OVER, 1.0f));
-      }  
          
       local_transform.MapTo( x_copy, y_copy );       // map from WC to pixels
 
@@ -1036,7 +1030,9 @@ public boolean is_autoY_bounds()
       
       if ( x_copy.length == y_copy.length )            // Function data
       { 
-        
+       //if transparent do not draw line
+       if(gd.transparent) {}
+       else { 
         if ( remove_hidden_lines )
         {
           int x_int[] = new int[ n_points + 2 ];
@@ -1069,15 +1065,7 @@ public boolean is_autoY_bounds()
           g2.setColor( gd.color );
           g2.drawPolyline( x_int, y_int, n_points );
         }
-        /* 
-          Sets the graphics twod back to visible to show point markers 
-          and error bars for transparent lines.
-        */
-         if(gd.transparent)
-         {
-           g2.setComposite((Composite)AlphaComposite.getInstance(
-                                      AlphaComposite.SRC_OVER, 1.0f));
-         } 
+       } 
          
         /*
           Draw point markers if they are selected
@@ -1194,7 +1182,9 @@ public boolean is_autoY_bounds()
       }
       else if ( is_histogram )  // Histogram data
       { 
-	
+       //if transparent do not draw line
+       if(gd.transparent) {}
+       else { 	
         if ( remove_hidden_lines )
         {
           int x_int[] = new int[ 2*y_copy.length + 2 ];
@@ -1229,15 +1219,7 @@ public boolean is_autoY_bounds()
           g2.setColor( gd.color );
           g2.drawPolyline( x_int, y_int, 2*y_copy.length );
         }
-        /* 
-          Sets the graphics twod back to visible to show point markers 
-          and error bars for transparent lines.
-        */
-         if(gd.transparent)
-         {
-           g2.setComposite((Composite)AlphaComposite.getInstance(
-                                      AlphaComposite.SRC_OVER, 1.0f));
-         } 
+       }
         
         /*
           Draw point markers if they are selected
