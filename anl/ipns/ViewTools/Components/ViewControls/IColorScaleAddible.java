@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/08/06 18:48:52  millermi
+ *  - Added public messaging String COLORSCALE_CHANGED which is to be
+ *    sent out whenever the colorscale is changed.
+ *
  *  Revision 1.3  2004/03/17 20:26:51  dennis
  *  Fixed @see tag that was broken when view components, math and
  *  util were moved to gov package.
@@ -81,6 +85,12 @@ import gov.anl.ipns.ViewTools.Components.Transparency.ILogAxisAddible;
  */
 public interface IColorScaleAddible extends ILogAxisAddible
 {
+  /**
+   * "ColorScale Changed" - This messaging String is to be sent out by all
+   * IColorScaleAddible objects when the colorscale is changed.
+   */
+   public static final String COLORSCALE_CHANGED = "ColorScale Changed";
+   
   /**
    * This method returns the color scale of the center image. 
    * Possible scales are listed in file IndexColorMaker.java.
