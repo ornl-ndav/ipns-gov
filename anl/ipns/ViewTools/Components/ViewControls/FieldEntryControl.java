@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/02/13 21:02:50  millermi
+ *  - Factored out existing code into new method resetLabels()
+ *    so it may be used by outside classes.
+ *
  *  Revision 1.11  2004/05/20 03:29:56  millermi
  *  - Removed unused imports.
  *
@@ -631,6 +635,48 @@ public class FieldEntryControl extends ViewControl
     }    
     return values;
   }
+  
+ /**
+  * Use this method to reset the labels. If the number of labels exceeds
+  * the number of text fields, the extra labels are ignored. If there are
+  * not enough labels to fill the text fields, the unfilled text fields are
+  * disabled and cleared.
+  *
+  * @param  labels The new labels for the text fields.
+  */ 
+  public void resetLabels( String[] labels )
+  {
+    // if true, use text.length, ignore extra labels
+    if( labels.length > text.length )
+    {
+      for( int i = 0; i < text.length; i++ )
+      {
+        setLabel(i,labels[i]);
+        text[i][1].setEditable(true);
+        text[i][1].setFocusable(true);
+      }
+    }
+    else
+    {
+      for( int i = 0; i < labels.length; i++ )
+      {
+        setLabel(i,labels[i]);
+        text[i][1].setEditable(true);
+        text[i][1].setFocusable(true);
+      }
+      // if true, set labels to "" and disable.
+      if( labels.length < text.length )
+      {
+        for( int dis = labels.length; dis < text.length; dis++ )
+        {
+          setLabel(dis,"");
+          setValue(dis,"");
+          text[dis][1].setEditable(false);
+          text[dis][1].setFocusable(false);
+        }
+      }
+    }
+  }
  
  /**
   * Use this method to clear all of the values in the control.
@@ -897,37 +943,7 @@ public class FieldEntryControl extends ViewControl
       while( temp_key instanceof String )
         temp_key = radiotable.get(temp_key);
       */
-      String[] labels = (String[])temp_key;
-      // if true, use text.length, ignore extra labels
-      if( labels.length > text.length )
-      {
-        for( int i = 0; i < text.length; i++ )
-	{
-	  setLabel(i,labels[i]);
-	  text[i][1].setEditable(true);
-	  text[i][1].setFocusable(true);
-	}
-      }
-      else
-      {
-        for( int i = 0; i < labels.length; i++ )
-	{
-	  setLabel(i,labels[i]);
-	  text[i][1].setEditable(true);
-	  text[i][1].setFocusable(true);
-	}
-	// if true, set labels to "" and disable.
-	if( labels.length < text.length )
-	{
-	  for( int dis = labels.length; dis < text.length; dis++ )
-	  {
-	    setLabel(dis,"");
-	    setValue(dis,"");
-	    text[dis][1].setEditable(false);
-	    text[dis][1].setFocusable(false);
-	  }
-	}
-      }
+      resetLabels( (String[])temp_key );
     }
   }
   
