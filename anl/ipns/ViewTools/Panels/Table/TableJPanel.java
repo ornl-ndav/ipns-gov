@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/08/17 20:57:47  millermi
+ *  - Added help() to provide help window for users.
+ *  - Added functionality for selecting entire rows/columns using
+ *    a single click.
+ *  - Fixed bug that cleared selections when a table column was clicked
+ *    on, but never moved.
+ *
  *  Revision 1.7  2004/08/13 03:41:29  millermi
  *  - Added VIEWPORT_POSITION ObjectState key to save the visible
  *    area of the table for any Project saves.
@@ -111,6 +118,7 @@ import java.awt.Rectangle;
 import java.awt.Point;
 import java.util.Vector;
 import javax.swing.JScrollPane;
+import javax.swing.JEditorPane;
 import javax.swing.JScrollBar;
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -127,6 +135,7 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import javax.swing.text.html.HTMLEditorKit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -380,6 +389,10 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     active_selection = null;
     label_color = table.getTableHeader().getBackground();
     column_labels = table.getTableHeader();
+    // Add listener to make column selections when a double-click occurs on
+    // the table header.
+    if( column_labels != null )
+      column_labels.addMouseListener(new ColumnRowSelectListener());
     selections = new Vector();
     ignore_notify = false;
     do_clear = false;
@@ -410,6 +423,10 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     table.addMouseListener( new SelectionStarted() );
     // put in dummy values
     row_labels = new JTable();
+    row_labels.setCellSelectionEnabled( false );
+    // Add listener to make row selections when a double-click occurs on
+    // the row_labels table.
+    row_labels.addMouseListener(new ColumnRowSelectListener());
     // Initialize the label lists to contain "Column #" or "Row #".
     row_label_list = new Vector();
     for( int row_num = 0; row_num < rows; row_num++ )
@@ -546,6 +563,56 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     }
     
     return state;
+  }
+  
+ /**
+  * Contains control information about the TableJPanel. To view the information,
+  * use the WindowShower to visualize the help frame.
+  *
+  *  @return JFrame containing help information for the table.
+  */
+  public static JFrame help()
+  {
+    JFrame helper = new JFrame("Help for Table");
+    helper.setBounds(0,0,600,400);
+    
+    JEditorPane textpane = new JEditorPane();
+    textpane.setEditable(false);
+    textpane.setEditorKit( new HTMLEditorKit() );
+    String text = "<H1>Description:</H1><P>" +
+                  "The TableJPanel displays two-dimensional data in "+
+		  "a table for detailed analysis of small portions of data. "+
+                  "The functionality of the table mimics many of the "+
+		  "features of a typical spreadsheet.</P>" +
+                  "<H2>Commands for Table</H2>" +
+		  "<I><B>Note:</B> The cut, copy, and paste key commands will "+
+		  "only work for single selections. Complex selections are "+
+		  "not supported by these commands.</I><BR><BR>"+
+		  "<B>Ctrl+X</B> -> <I>Cut</I><BR>"+
+		  "<B>Ctrl+C</B> -> <I>Copy</I><BR>"+
+		  "<B>Ctrl+V</B> -> <I>Paste</I><BR><BR>"+
+		  "<B>Mouse Click</B> -> <I>Clear Selections/Set New "+
+		  "Pointed-at Cell</I><BR>"+
+		  "<B>Mouse Click/Drag</B> -> <I>Begin New Selection</I><BR>"+
+		  "<B>Ctrl+Mouse Click/Drag</B> -> <I>Add Selection to "+
+		  "Existing Selections</I><BR>"+
+		  "<B>Shift+Mouse Click</B> -> <I>Start/Stop of New Selection"+
+		  "</I><BR>"+
+		  "<B>Mouse Click on Column/Row Header</B> -> "+
+		  "<I>Clear Selections and Select Entire Column/Row</I><BR>"+
+		  "<B>Ctrl+Mouse Click on Column/Row Header</B> -> "+
+		  "<I>Add Column/Row Selection to Existing Selections</I><BR>"+
+		  "<B>Mouse Click/Drag on Column Header</B> -> "+
+		  "<I>Move Column</I><BR>"+
+		  "<B>Mouse Click/Drag on Column Header Boundary</B> -> "+
+		  "<I>Resize Column</I><BR>";
+		  
+    textpane.setText(text);
+    JScrollPane scroll = new JScrollPane(textpane);
+    scroll.setVerticalScrollBarPolicy(
+ 				    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    helper.getContentPane().add(scroll);
+    return helper;
   }
   
  /**
@@ -763,7 +830,12 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       // the column_labels variable so it may be restored if the labels
       // need to be displayed at a later date.
       if( table.getTableHeader() != null )
+      {
         column_labels = table.getTableHeader();
+        // Add listener to make column selections when a double-click
+        // occurs on the table header.
+        column_labels.addMouseListener(new ColumnRowSelectListener());
+      }
       table.setTableHeader(null);
     }
   }
@@ -1539,8 +1611,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       selections.add( tr );
     }
     
-    //System.out.println("Row Min/Max: "+row_min+"/"+row_max);
-    //System.out.println("Column Min/Max: "+col_min+"/"+col_max);
+    // Mark the boolean table with new (un)selected values.
     for( int row = row_min; row < row_max + 1; row++ )
     {
       for( int col = col_min; col < col_max + 1; col++ )
@@ -1912,6 +1983,9 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       // The actual labels containing the number of cells equal to the
       // number of entirely visible rows.
       row_labels = new JTable(num_rows,1);
+      // Add listener to make row selections when a double-click occurs on
+      // the row_labels table.
+      row_labels.addMouseListener(new ColumnRowSelectListener());
       // Make sure there are rows to render.
       if( num_rows > 0 )
         row_labels.setDefaultRenderer( row_labels.getColumnClass(0),
@@ -2006,6 +2080,50 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       
       // Tell all listeners that the viewport has been changed.
       send_message(VIEWPORT_CHANGED);
+    }
+  }
+  
+ /*
+  *
+  */
+  private class ColumnRowSelectListener extends MouseAdapter
+  {
+    public void mouseClicked( MouseEvent me )
+    {
+      if( me.getSource() == column_labels )
+      {
+        int col = table.columnAtPoint(me.getPoint());
+     	floatPoint2D[] def_pts = new floatPoint2D[2];
+     	def_pts[0] = new floatPoint2D(col,0);
+     	def_pts[1] = new floatPoint2D(col,table.getRowCount()-1);
+        if( me.isControlDown() )
+	{
+	  addSelectedRegion( new TableRegion(def_pts, true) );
+	}
+	else
+	{
+	  TableRegion[] new_region = new TableRegion[1];
+	  new_region[0] = new TableRegion(def_pts, true);
+	  setSelectedRegions(new_region);
+        }
+      }
+      else if( me.getSource() == row_labels )
+      {
+        int row = row_labels.rowAtPoint(me.getPoint());
+     	floatPoint2D[] def_pts = new floatPoint2D[2];
+     	def_pts[0] = new floatPoint2D(0,row);
+     	def_pts[1] = new floatPoint2D(table.getColumnCount()-1, row);
+        if( me.isControlDown() )
+	{
+	  addSelectedRegion( new TableRegion(def_pts, true) );
+	}
+	else
+	{
+	  TableRegion[] new_region = new TableRegion[1];
+	  new_region[0] = new TableRegion(def_pts, true);
+	  setSelectedRegions(new_region);
+        }
+      }
     }
   }
  
@@ -2110,13 +2228,14 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     
     public void columnMoved( TableColumnModelEvent tme )
     {
-      // Unselect all selections made since column order is disrupted.
-      unselectAll();
       // If the range is more than one cell, see if the to or from move affected
       // the column with the pointed-at cell.
       if( tme.getFromIndex() != tme.getToIndex() )
       {
-        // Check to see if the pointed-at cell was the column moved.
+        // Unselect all selections made since column order is disrupted.
+        unselectAll();
+        
+	// Check to see if the pointed-at cell was the column moved.
         if( tme.getFromIndex() == getPointedAtCell().x )
 	{
 	  // Disable the auto-positioning done by setPointedAtCell() since it
