@@ -1,6 +1,18 @@
 /*
  * @(#) Position3D.java     1.0  98/08/05  Dennis Mikkelson
  *
+ * ---------------------------------------------------------------------------
+ *  $Log$
+ *  Revision 1.2  2000/07/10 22:25:14  dennis
+ *  July 10, 2000 version... many changes
+ *
+ *  Revision 1.4  2000/06/12 14:53:55  dennis
+ *  Added method getCenterOfMass() to calculate a weighted sum of position
+ *  objects.
+ *
+ *  Revision 1.3  2000/05/11 16:08:13  dennis
+ *  Added RCS logging
+ *
  */
 package  DataSetTools.math;
 
@@ -59,6 +71,9 @@ public class Position3D implements Serializable
   /**
    *  Get the position as a triple of values, (x, y, z) in Cartesian
    *  coordinates.
+   *
+   *  @return  Returns the x, y, z values for the point in positions 0, 1 and 2
+   *           respectively, of an array of floats.
    */
   public float[] getCartesianCoords()
   {
@@ -87,6 +102,9 @@ public class Position3D implements Serializable
   /**
    *  Get the position as a triple of values, (r, theata, phi) in spherical
    *  polar coordinates.
+   *
+   *  @return  Returns the values of the radius, azimuth angle and polar angle
+   *           in positions 0, 1 and 2 respectively, of an array of floats.
    */
   public float[] getSphericalCoords()
   {
@@ -121,6 +139,9 @@ public class Position3D implements Serializable
   /**
    *  Get the position as a triple of values, (r, theata, z) in cylindrical 
    *  coordinates.
+   *
+   *  @return  Returns the values of the radius, azimuth angle and z value in 
+   *           positions 0, 1 and 2 respectively, of an array of floats.
    */
   public float[] getCylindricalCoords()
   {
@@ -130,6 +151,53 @@ public class Position3D implements Serializable
     coords[2] = sph_radius * (float)Math.cos( polar_angle );
     return coords;
   }
+
+  /**
+   *  Calculate the weighted average of a list of 3D points, given a list of
+   *  weights for the points.  Any points for which a weight is not given 
+   *  will be given weight 0.  
+   *
+   *  @param  points   Array of Position3D objects whose weighted average is
+   *                   calculated
+   *
+   *  @param  weights  Array of floats giving the weights of the points.
+   *
+   *  @return  A point containing the weighted average of the specified points.
+   */
+ 
+  public static Position3D getCenterOfMass( Position3D points[],
+                                            float       weights[] )
+  {
+    int n_points = points.length;
+
+    if ( n_points > weights.length )
+      n_points = weights.length;
+
+    if ( n_points == 0 )
+    {
+      System.out.println("ERROR: no points or weights specified in" +
+                         " Postion3D.getCenterOfMass");
+      return null;
+    }
+ 
+    float sum_x = 0;
+    float sum_y = 0;
+    float sum_z = 0;
+    float sum_w = 0;
+    float coords[] = null;
+    for ( int i = 0; i < n_points; i++ )
+    {
+      coords = points[i].getCartesianCoords();
+      sum_x += coords[0] * weights[i];
+      sum_y += coords[1] * weights[i];
+      sum_z += coords[2] * weights[i]; 
+      sum_w += weights[i]; 
+    }
+
+    Position3D center = new Position3D();
+    center.setCartesianCoords( sum_x / sum_w, sum_y / sum_w, sum_z / sum_w ); 
+    return center; 
+  }    
 
   /**
    *  Print the position in Cartesian, Cylindrical and Sphereical coords
@@ -183,6 +251,20 @@ public class Position3D implements Serializable
 
     Position3D new_point = (Position3D)point.clone();
     point.PrintPoint( "******Cloned point:" );
+
+    Position3D points[]  = new Position3D[2];
+    float      weights[] = new float[2];
+
+    points[0] = new Position3D();
+    points[0].setCartesianCoords( 0, 1, 2 );
+    points[1] = new Position3D();
+    points[1].setCartesianCoords( 10, 11, 12 );
+    weights[0] = 5;
+    weights[1] = 10;
+
+    Position3D center = Position3D.getCenterOfMass( points, weights );
+    center.PrintPoint("Center = "); 
+
   }
 
 }
