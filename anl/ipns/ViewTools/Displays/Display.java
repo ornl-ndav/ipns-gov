@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/07/30 17:43:12  millermi
+ * - Fixed null pointer exception, now checks to see if controls
+ *   list is null before checking if length = 0.
+ *
  * Revision 1.8  2004/05/20 03:33:37  millermi
  * - Removed unused variables.
  *
@@ -324,7 +328,7 @@ abstract public class Display extends JFrame implements IPreserveState,
     ivc_controls.setBorder( ivc_border );
     ViewControl[] ivc_ctrl = ivc.getControls();
     // if no controls, return null.
-    if( ivc_ctrl.length == 0 )
+    if( ivc_ctrl == null || ivc_ctrl.length == 0 )
       return null;
     for( int i = 0; i < ivc_ctrl.length; i++ )
     {
