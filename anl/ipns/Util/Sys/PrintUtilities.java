@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2005/03/24 00:01:57  dennis
+ *  Changed property file for last printer used to be
+ *  IsawDefaultPrinter.dat in the user's home directory.
+ *
  *  Revision 1.13  2005/03/23 22:02:28  dennis
  *  Reformated for legibility.
  *
@@ -94,25 +98,29 @@ import javax.swing.RepaintManager;
 
 //getting nullpointerexceptions at save and load.  do something about this.
 
-public class PrintUtilities implements Printable {
-
+public class PrintUtilities implements Printable 
+{
   private Component componentToBePrinted;
   private static Properties myProperties = new Properties();
   private FileOutputStream bw;
   private FileInputStream br;
 
-  public static void printComponent(Component c) {
+  public static void printComponent(Component c) 
+  {
     new PrintUtilities(c).print();
   }
   
-  public PrintUtilities(Component componentToBePrinted) {
+  public PrintUtilities(Component componentToBePrinted) 
+  {
     this.componentToBePrinted = componentToBePrinted;
     // create a file outputstream/fileinputstream to save and load the 
     // properties file
     try
     {  
-       bw = new FileOutputStream("properties.dat");
-       br = new FileInputStream("properties.dat");
+       String home_dir = System.getProperty( "user.home"  );
+       String prop_file = home_dir + "/" + "IsawDefaultPrinter.dat";
+       bw = new FileOutputStream( prop_file );
+       br = new FileInputStream( prop_file );
     }
     catch(IOException io)
     {
@@ -136,7 +144,6 @@ public class PrintUtilities implements Printable {
   public void print() 
   {
     PrinterJob printJob = PrinterJob.getPrinterJob();
-    // String printerName = "houdini HP LaserJet 4000 PS in A140";
 	
     // PageFormat newFormat = printJob.defaultPage();
     HashPrintRequestAttributeSet aset2 = new HashPrintRequestAttributeSet();
