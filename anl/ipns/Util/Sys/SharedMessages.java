@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/11 23:53:56  millermi
+ *  - Removed Command prefix from StatusPane
+ *
  *  Revision 1.1  2004/03/11 22:13:14  millermi
  *  - Changed package names and replaced SharedData with
  *    SharedMessages class.
@@ -57,16 +60,16 @@ public class SharedMessages implements java.io.Serializable
   /** The Global StatusPane.  Everyone can "add"(Display) values on this pane
    * if Displayable or the Values will be displayed on System.out
    */
-  private static Command.StatusPane status_pane=  null;
+  private static StatusPane status_pane=  null;
 
   /**
    * Returns a pointer to this classes (static) StatusPane for use in
    * GUIs. This will create the StatusPane if it does not already
    * exist.
    */
-  public static Command.StatusPane getStatusPane(){
+  public static StatusPane getStatusPane(){
     if(status_pane==null)
-      status_pane=new Command.StatusPane( 30,70);
+      status_pane=new StatusPane( 30,70);
     return status_pane;
   }
  
