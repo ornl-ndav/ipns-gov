@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2003/11/18 01:00:17  millermi
+ *  - Made non-save dependent private variables transient.
+ *
  *  Revision 1.20  2003/10/20 22:46:53  millermi
  *  - Added private class NotVisibleListener to listen
  *    when the overlay is no longer visible. When not
@@ -182,7 +185,9 @@ import DataSetTools.util.floatPoint2D;
 /**
  * This class allows users to select a region for calculation purposes.
  * Three types of regions may currently be selected: point, box, and circle.
- * The selected region will initially show up in white.
+ * The selected region will initially show up in white.  Since this class
+ * extends an OverlayJPanel, which extends a JPanel, this class is
+ * already serializable.
  */
 public class SelectionOverlay extends OverlayJPanel
 {
@@ -220,14 +225,6 @@ public class SelectionOverlay extends OverlayJPanel
   public static final String SELECTION_COLOR  = "Selection Color";
   
  /**
-  * "Listeners" - This constant String is a key for referencing the
-  * state information about the classes listenering to this overlay.
-  * The value that this key references is a Vector of ActionListener
-  * instances.
-  */
-  public static final String LISTENERS        = "Listeners";
-  
- /**
   * "Opacity" - This constant String is a key for referencing the
   * state information about the invisibility of the selection outline.
   * The value that this key references is a primative float on the range
@@ -243,17 +240,18 @@ public class SelectionOverlay extends OverlayJPanel
   */
   public static final String EDITOR_BOUNDS    = "Editor Bounds";
   
-  private SelectionJPanel sjp;  	 // panel overlaying the center jpanel
-  private IZoomAddible component;	 // component being passed
+  private transient SelectionJPanel sjp; // panel overlaying the center jpanel
+  private transient IZoomAddible component;	 // component being passed
   private Vector regions;		 // all selected regions
-  private SelectionOverlay this_panel;   // used for repaint by SelectListener 
+  // used for repaint by SelectListener 
+  private transient SelectionOverlay this_panel;
   private Color reg_color;
-  private Rectangle current_bounds;
-  private CoordTransform pixel_local;  
-  private Vector Listeners = null;  
+  private transient Rectangle current_bounds;
+  private transient CoordTransform pixel_local;  
+  private transient Vector Listeners = null;  
   private float opacity = 1.0f; 	 // value [0,1] where 0 is clear, 
 					 // and 1 is solid.
-  private SelectionEditor editor;
+  private transient SelectionEditor editor;
   private Rectangle editor_bounds = new Rectangle(0,0,385,200);
  
  /**
@@ -311,7 +309,7 @@ public class SelectionOverlay extends OverlayJPanel
   {
     JFrame helper = new JFrame("Help for Selection Overlay");
     helper.setBounds(0,0,600,400);
-    JTextArea text = new JTextArea("Discription:\n\n");
+    JTextArea text = new JTextArea("Description:\n\n");
     text.setEditable(false);
     text.setLineWrap(true);
     text.append("The Selection Overlay is used to selection regions of " +
@@ -380,14 +378,7 @@ public class SelectionOverlay extends OverlayJPanel
     {
       reg_color = (Color)temp;
       redraw = true;  
-    }  
-    
-    temp = new_state.get(LISTENERS);
-    if( temp != null )
-    {
-      Listeners = ((Vector)temp);; 
-      redraw = true;  
-    }  
+    }
     
     temp = new_state.get(OPACITY);
     if( temp != null )
@@ -418,7 +409,6 @@ public class SelectionOverlay extends OverlayJPanel
     ObjectState state = new ObjectState();
     state.insert( SELECTED_REGIONS, regions );
     state.insert( SELECTION_COLOR, reg_color );
-    state.insert( LISTENERS, Listeners );
     state.insert( OPACITY, new Float(opacity) );
     state.insert( EDITOR_BOUNDS, editor_bounds );
     

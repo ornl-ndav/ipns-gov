@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2003/11/18 01:00:17  millermi
+ *  - Made non-save dependent private variables transient.
+ *
  *  Revision 1.17  2003/10/20 22:46:51  millermi
  *  - Added private class NotVisibleListener to listen
  *    when the overlay is no longer visible. When not
@@ -247,15 +250,15 @@ public class AxisOverlay2D extends OverlayJPanel
   public static final String EDITOR_BOUNDS  = "Editor Bounds";
   
   // these variables simulate the interval of values of the data
-  private float xmin;
-  private float xmax;
-  private float ymin;
-  private float ymax;
-  private int xaxis = 0;
-  private int yaxis = 0;
-  private int xstart = 0;
-  private int ystart = 0;
-  private IAxisAddible2D component;
+  private transient float xmin;
+  private transient float xmax;
+  private transient float ymin;
+  private transient float ymax;
+  private transient int xaxis = 0;
+  private transient int yaxis = 0;
+  private transient int xstart = 0;
+  private transient int ystart = 0;
+  private transient IAxisAddible2D component;
   private int precision;
   private Font f;
   private int axesdrawn;
@@ -264,8 +267,8 @@ public class AxisOverlay2D extends OverlayJPanel
   private boolean isTwoSided = true;
   private int gridxdisplay = 0;  // 0 = none, 1 = major, 2 = major/minor
   private int gridydisplay = 0;
-  private AxisOverlay2D this_panel;
-  private AxisEditor editor;
+  private transient AxisOverlay2D this_panel;
+  private transient AxisEditor editor;
   private Color gridcolor = Color.black;
   private Rectangle editor_bounds = new Rectangle(0,0,400,110);
   

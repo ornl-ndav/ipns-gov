@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2003/11/18 01:00:17  millermi
+ *  - Made non-save dependent private variables transient.
+ *
  *  Revision 1.19  2003/10/20 22:46:49  millermi
  *  - Added private class NotVisibleListener to listen
  *    when the overlay is no longer visible. When not
@@ -169,7 +172,8 @@ import DataSetTools.util.floatPoint2D;
 
 /**
  * This class allows a user to write comments near a region on the 
- * IZoomTextAddible component. 
+ * IZoomTextAddible component. Since this class extends an OverlayJPanel,
+ * which extends a JPanel, this class is already serializable.
  */
 public class AnnotationOverlay extends OverlayJPanel
 {
@@ -217,21 +221,22 @@ public class AnnotationOverlay extends OverlayJPanel
   * the dimensions for the editor.
   */
   public static final String EDITOR_BOUNDS  = "Editor Bounds";
-  
-  private AnnotationJPanel overlay;	 // panel overlaying the center jpanel
-  private IZoomTextAddible component;	 // component being passed
+  // panel overlaying the center jpanel
+  private transient AnnotationJPanel overlay;
+  private transient IZoomTextAddible component;	 // component being passed
   private Vector notes; 		 // all annotations
-  private AnnotationOverlay this_panel;  // used for repaint by SelectListener 
-  private Rectangle current_bounds;
+  // used for repaint by NoteListener  
+  private transient AnnotationOverlay this_panel;
+  private transient Rectangle current_bounds;
   private Color line_color;		 // annotation arrow color
   private Color text_color;		 // annotation text color
-  private AnnotationEditor editor;
+  private transient AnnotationEditor editor;
   // if ADD_COMPONENTS changes in the editor, the 5 should be incremented in
   // the statement below.
-  private Rectangle editor_bounds = new Rectangle(0,0,200,(35 * 5) );
+  private transient Rectangle editor_bounds = new Rectangle(0,0,200,(35 * 5) );
   private Font font;
   private Font default_font;
-  private CoordTransform pixel_local;
+  private transient CoordTransform pixel_local;
   
  /**
   * Constructor creates OverlayJPanel with a transparent AnnotationJPanel that
@@ -291,7 +296,7 @@ public class AnnotationOverlay extends OverlayJPanel
   {
     JFrame helper = new JFrame("Help for Annotation Overlay");
     helper.setBounds(0,0,600,400);
-    JTextArea text = new JTextArea("Discription:\n\n");
+    JTextArea text = new JTextArea("Description:\n\n");
     text.setEditable(false);
     text.setLineWrap(true);
     text.append("The Annotation Overlay is used to add on-screen notes to " +
