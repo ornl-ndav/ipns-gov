@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2001/08/14 15:16:28  dennis
+ *  Temporarily displays status messages on console.
+ *
  *  Revision 1.17  2001/08/13 23:35:42  dennis
  *  Uses RemoteDataRetriever.error_message() to generate string form
  *  of error message in some cases.
@@ -474,7 +477,11 @@ public class LiveDataMonitor extends    JPanel
         data_manager.setUpdateIgnoreFlag( i, true );
 
       if ( viewers[i] != null && viewers[i].isVisible()  )
-        viewers[i].setDataSet( data_manager.getDataSet(i) );
+      {
+        DataSet ds = data_manager.getDataSet(i);
+        if ( ds != null )
+          viewers[i].setDataSet( ds );
+      }
       else 
         viewers[i] = null;
     }
@@ -696,7 +703,13 @@ public class LiveDataMonitor extends    JPanel
   {
     public void actionPerformed( ActionEvent e )
     {
-      SetUpGUI();
+      String message = e.getActionCommand();
+
+      if ( message.startsWith( LiveDataManager.DATA_CHANGED ) )
+        SetUpGUI();
+
+      else
+        System.out.println( message );
     }
   }
 
