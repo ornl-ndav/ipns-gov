@@ -32,6 +32,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2004/03/11 23:55:16  rmikk
+ * Fixed Package Names
+ *
  * Revision 1.2  2003/06/09 22:35:50  dennis
  * - Updated comments, no functional changes made. (Mike Miller)
  *
@@ -41,7 +44,7 @@
  *
  */
 
-package DataSetTools.components.View.Menu;
+package gov.anl.ipns.ViewTools.Components.Menu;
 
 import java.io.*;
 import java.awt.*;
