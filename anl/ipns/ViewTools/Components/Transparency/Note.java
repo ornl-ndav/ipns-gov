@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/04/29 06:10:43  millermi
+ *  - Removed coordbounds parameter. It is unnecessary since
+ *    world coords are used to place the annotation.
+ *
  *  Revision 1.4  2004/04/02 20:58:33  millermi
  *  - Fixed javadoc errors
  *
@@ -66,10 +70,8 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
  */
 public class Note implements java.io.Serializable
 {
-   private JTextField textfield; // actual note being drawn
+   private String text;
    private Line arrow;  	 // location to draw this note (p1, p2)
-   private CoordBounds scale;	 // the bounds of the overlay when this 
-        			 // note was created
    private floatPoint2D wcp1;	 // the world coordinate associated with p1
    private floatPoint2D wcp2;	 // the world coordinate associated with p2
   
@@ -80,18 +82,15 @@ public class Note implements java.io.Serializable
    *  @param  t - the actual text message
    *  @param  l - the line from point of interest to the annotation (in pixel
    *              coordinates)
-   *  @param  s - the image bounds in which the annotation was created
    *  @param  wc_p1 - the world coordinate value of p1 of the line.
    *  @param  wc_p2 - the world coordinate value of p2 of the line.
    */ 
-   public Note(String t, Line l, CoordBounds s, floatPoint2D wc_p1,
-        				      floatPoint2D wc_p2 )
+   public Note(String t, Line l, floatPoint2D wc_p1, floatPoint2D wc_p2 )
    {
-      textfield = new JTextField(t);
-      arrow = new Line(l.getP1(), l.getP2());
-      scale = s;
-      wcp1 = new floatPoint2D( wc_p1 );
-      wcp2 = new floatPoint2D( wc_p2 );
+     text = t;
+     arrow = new Line(l.getP1(), l.getP2());
+     wcp1 = new floatPoint2D( wc_p1 );
+     wcp2 = new floatPoint2D( wc_p2 );
    }
   
   /**
@@ -99,9 +98,19 @@ public class Note implements java.io.Serializable
    *
    *  @return the actual note itself
    */ 
-   public String getText()
+   public String toString()
    {
-      return textfield.getText();
+     return text;
+   }
+   
+  /**
+   * Set the text of this annotation.
+   *
+   *  @param  note The text this note reads.
+   */
+   public void setText( String note )
+   {
+     text = note;
    }
    
   /**
@@ -111,31 +120,7 @@ public class Note implements java.io.Serializable
    */ 
    public Point getLocation()
    {
-      return arrow.getP2();
-   }
-  
-  /**
-   * Since zooming is allowed, each annotation could be created in a different
-   * world coordinate scale. This returns the CoordBounds at the time the
-   * annotation was created.
-   *
-   *  @return the rectangle bounds this annotation was created in.
-   */ 
-   public CoordBounds getScale()
-   {
-      return scale;
-   }
-  
-  /**
-   * The textfield that was originally used to enter the annotation.
-   *
-   *  @return the textfield containing the string. A textfield was chosen
-   *	      instead of just a string because when editing is allowed,
-   *	      a textfield will be required anyways.
-   */ 
-   public JTextField getTextField()
-   {
-      return textfield;
+     return arrow.getP2();
    }
   
   /**
@@ -147,7 +132,7 @@ public class Note implements java.io.Serializable
    */ 
    public Line getLine()
    {
-      return arrow;
+     return arrow;
    }
   
   /**
@@ -157,7 +142,7 @@ public class Note implements java.io.Serializable
    */ 
    public floatPoint2D getWCP1()
    {
-      return wcp1;
+     return wcp1;
    } 
   
   /**
@@ -167,7 +152,7 @@ public class Note implements java.io.Serializable
    */ 
    public void setWCP1( floatPoint2D p1 )
    {
-      wcp1 = p1;
+     wcp1 = p1;
    }
   
   /**
@@ -177,7 +162,7 @@ public class Note implements java.io.Serializable
    */ 
    public floatPoint2D getWCP2()
    {
-      return wcp2;
+     return wcp2;
    }
   
   /**
@@ -187,7 +172,7 @@ public class Note implements java.io.Serializable
    */ 
    public void setWCP2( floatPoint2D p2 )
    {
-      wcp2 = p2;
+     wcp2 = p2;
    }
 } // end of Note
 
