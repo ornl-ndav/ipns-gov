@@ -30,6 +30,16 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.17  2005/03/06 23:32:38  dennis
+ * Added a pixel_depth_scale_factor that can be set from
+ * IsawProps.dat to allow the user to specify a non-standard
+ * scale factor for interpreting pixel depths.  This provides
+ * a workaround for the problem of incorrect pixel depths using
+ * the ATI proprietary OpenGL driver.  Such cards require setting
+ * "PixelDepthScale=256" in IsawProps.dat to get proper depth
+ * values.  Other cards, or the Mesa OpenGL driver don't need
+ * anything set, or a scale value of 1 can be set.
+ *
  * Revision 1.16  2004/09/16 18:40:15  dennis
  * Fixed one javadoc error.
  *
@@ -122,6 +132,7 @@ import java.util.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ViewControls.*;
+import DataSetTools.util.*;
 import net.java.games.jogl.*;
 import net.java.games.jogl.util.*;
 
@@ -133,8 +144,13 @@ import net.java.games.jogl.util.*;
 
 public class ThreeD_GL_Panel implements Serializable
 {
+  public  static final String PIXEL_DEPTH_SCALE_PROPERTY = 
+                              "PixelDepthScale";
+
   private static boolean debug = false;
 
+  private static float   pixel_depth_scale_factor = 1;  // needed to workaround
+                                                        // quirk with ATI cards
   private static Vector  old_list_ids = null;
 
   private GLCanvas       canvas;
@@ -206,6 +222,28 @@ public class ThreeD_GL_Panel implements Serializable
 
     if ( debug )
       canvas.addMouseListener( new MouseClickHandler() );
+
+    String depth_scale_prop = 
+                            SharedData.getProperty(PIXEL_DEPTH_SCALE_PROPERTY);
+    if ( depth_scale_prop != null )
+    try
+    {  
+      depth_scale_prop.trim();
+      Double scale_d = new Double( depth_scale_prop );
+      float  scale_f = scale_d.floatValue();
+      if ( scale_f > 0 )
+      {
+        pixel_depth_scale_factor = scale_f; 
+        System.out.println("Using non-standard " + PIXEL_DEPTH_SCALE_PROPERTY +
+                           ": " + pixel_depth_scale_factor + 
+                           " from IsawProps.dat" );
+      }
+    }
+    catch ( NumberFormatException e )
+    {
+      SharedData.addmsg( "Warning: invalid number " + depth_scale_prop + 
+                         " in " + PIXEL_DEPTH_SCALE_PROPERTY );
+    }
   }
 
 
@@ -825,6 +863,7 @@ public float[] pickedWorldCoordinates( int x, int y )
                          GL.GL_FLOAT,
                          depths ); 
         float cur_z = depths[0];
+        cur_z *= pixel_depth_scale_factor; 
 
         int    viewport[] = new int[4];  
         gl.glGetIntegerv( GL.GL_VIEWPORT, viewport ); 
