@@ -31,6 +31,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2002/08/01 22:39:02  dennis
+ *  Set Java's serialVersionUID = 1.
+ *  Set the local object's IsawSerialVersion = 1 for our
+ *  own version handling.
+ *  Added readObject() method to handle reading of different
+ *  versions of serialized object.
+ *
  *  Revision 1.9  2002/07/08 15:43:03  pfpeterson
  *  Explicitly defined equals() method.
  *
@@ -78,6 +85,26 @@ import DataSetTools.dataset.*;
 public class Position3D implements Serializable,
                                    IXmlIO
 {
+  // NOTE: any field that is static or transient is NOT serialized.
+  //
+  // CHANGE THE "serialVersionUID" IF THE SERIALIZATION IS INCOMPATIBLE WITH
+  // PREVIOUS VERSIONS, IN WAYS THAT CAN NOT BE FIXED BY THE readObject()
+  // METHOD.  SEE "IsawSerialVersion" COMMENTS BELOW.  CHANGING THIS CAUSES
+  // JAVA TO REFUSE TO READ DIFFERENT VERSIONS.
+  //
+  public  static final long serialVersionUID = 1L;
+
+
+  // NOTE: The following fields are serialized.  If new fields are added that
+  //       are not static, reasonable default values should be assigned in the
+  //       readObject() method for compatibility with old servers, until the
+  //       servers can be updated.
+
+  private int IsawSerialVersion = 1;         // CHANGE THIS WHEN ADDING OR
+                                             // REMOVING FIELDS, IF
+                                             // readObject() CAN FIX ANY
+                                             // COMPATIBILITY PROBLEMS
+
   private  float  sph_radius;     // distance from the origin to the point
 
   private  float  azimuth_angle;  // angle between +X axis and projection of
@@ -439,7 +466,32 @@ public class Position3D implements Serializable,
 
     Position3D center = Position3D.getCenterOfMass( points, weights );
     center.PrintPoint("Center = "); 
+  }
 
+/* -----------------------------------------------------------------------
+ *
+ *  PRIVATE METHODS
+ *
+ */
+
+/* ---------------------------- readObject ------------------------------- */
+/**
+ *  The readObject method is called when objects are read from a serialized
+ *  ojbect stream, such as a file or network stream.  The non-transient and
+ *  non-static fields that are common to the serialized class and the
+ *  current class are read by the defaultReadObject() method.  The current
+ *  readObject() method MUST include code to fill out any transient fields
+ *  and new fields that are required in the current version but are not
+ *  present in the serialized version being read.
+ */
+
+  private void readObject( ObjectInputStream s ) throws IOException,
+                                                        ClassNotFoundException
+  {
+    s.defaultReadObject();               // read basic information
+
+    if ( IsawSerialVersion != 1 )
+      System.out.println("Warning:Position3D IsawSerialVersion != 1");
   }
 
 }
