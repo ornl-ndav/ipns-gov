@@ -5,6 +5,11 @@
  *  of a list of integers.
  *
  *  $Log$
+ *  Revision 1.3  2000/11/10 22:47:48  dennis
+ *  Added code to main test program to test behavior with unordered lists of
+ *  integers.
+ *
+ *
  *  Revision 1.2  2000/07/21 18:56:30  dennis
  *  Now can convert empty string to empty array of ints.
  *
@@ -263,7 +268,30 @@ private static int[] AppendToList( int new_int, int list[], int position )
     ilist = ToArray( s );
     for (int j=0; j<ilist.length; j++)
       System.out.println(ilist[j]);
-  } 
 
+    // test list with repeated values
+    ilist = new int[10];
+    for ( int i = 0; i < 10; i++ )
+    {
+      if ( i < 5 )
+        ilist[i] = i;
+      else
+        ilist[i] = i-1;
+      System.out.print( ""+ilist[i]+"," );
+    }
+    System.out.println();
+    System.out.println( "list with repeats: "+ ToString( ilist ) );
+
+    // test unordered list
+    ilist[0]=7; 
+    ilist[1]=5; 
+    ilist[2]=5; 
+    ilist[3]=5; 
+    for ( int i = 0; i < 10; i++ )
+      System.out.print( ""+ilist[i]+"," );
+    System.out.println();
+    System.out.println( "unordered list with repeats: "+ ToString( ilist ) );
+
+  } 
 
 }  // end List class
