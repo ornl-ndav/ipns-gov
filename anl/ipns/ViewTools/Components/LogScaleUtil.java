@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/12 00:27:17  millermi
+ *  - Changed package.
+ *
  *  Revision 1.5  2004/01/08 17:53:52  millermi
  *  - Changed values in main() to test new implementation.
  *
@@ -57,7 +60,7 @@
  *
  */
 
-package DataSetTools.components.View;
+package gov.anl.ipns.ViewTools.Components;
 
 /**
  * This class logarithmically maps a linear interval to another linear interval,
