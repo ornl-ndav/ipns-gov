@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/18 01:02:01  millermi
+ *  - Fixed bug that assumed global bounds x1 < x2 and y1 < y2,
+ *    which may not always be true.
+ *
  *  Revision 1.2  2003/10/29 20:31:45  millermi
  *  -Fixed java docs
  *  -Added ability to stretch
@@ -128,10 +132,10 @@ public class TranslationJPanel extends CoordJPanel
   */ 
   public void setViewPort( Point vp1, Point vp2 )
   {
+    
     setLocalWorldCoords( new CoordBounds( vp1.x, vp1.y, vp2.x, vp2.y ) );
-    // bounds are assumed to be stable when set here.
+    // bounds are assumed to be stable when set here. Set the restore value.
     restoreBounds(true);
-    //System.out.println("TJP: " + getLocalWorldCoords().toString() );
     floatPoint2D wctopleft  = new floatPoint2D( (float)vp1.x,
                                                 (float)vp1.y );
     floatPoint2D wcbotright = new floatPoint2D( (float)vp2.x,
@@ -140,8 +144,6 @@ public class TranslationJPanel extends CoordJPanel
     Point pixeltopleft = convertToPixelPoint(wctopleft);
     Point pixelbotright = convertToPixelPoint(wcbotright);
     
-    //System.out.println("TJP Pixel: " + pixeltopleft.toString() + "..." +
-    //                   pixelbotright.toString() );
     box.init( pixeltopleft, pixelbotright );
     send_message(BOUNDS_CHANGED);
   }
@@ -169,13 +171,28 @@ public class TranslationJPanel extends CoordJPanel
   {
     setGlobalWorldCoords( global.MakeCopy() );
     CoordBounds local_bounds = getLocalWorldCoords();
+    // since it is possible for x1 > x2 and/or y1 > y2, must check this.
+    boolean reverse_x = false;
+    boolean reverse_y = false;
+    if( global.getX1() > global.getX2() )
+      reverse_x = true;
+    if( global.getY1() > global.getY2() )
+      reverse_y = true;
+    
     // if local bounds are larger than new global bounds, set local to global
-    if( global.getX1() > local_bounds.getX1() ||
-        global.getX2() < local_bounds.getX2() ||
-	global.getY1() > local_bounds.getY1() ||
-	global.getX2() < local_bounds.getY1() )
+    // x2 > x1
+    if( reverse_x )
+      if( global.getX1() < local_bounds.getX1() ||
+          global.getX2() > local_bounds.getX2() )
+        setViewPort(global);
+    // y2 > y1
+    else if( reverse_y )
+      if( global.getY1() < local_bounds.getY1() ||
+	  global.getX2() > local_bounds.getY1() )
+        setViewPort(global);
+    // standard x1 < x2, y1 < y2
+    else
       setViewPort(global);
-    //System.out.println("TJP Global: " + getGlobalWorldCoords().toString() );
   }
   
  /**
@@ -211,11 +228,15 @@ public class TranslationJPanel extends CoordJPanel
  /*
   * This method will restore the bounds to the last "stable" ratio. 
   * If the bounds are stretched, the bounds are no longer considered stable.
+  * This method only sets the restore value, it does not change the local_bounds
   */ 
   private void restoreBounds(boolean uselocal)
   {
+    // if true, use local bounds
     if( uselocal )
       restore = getLocalWorldCoords().MakeCopy();
+    // else keep dimension the same as the last stable bounds, just put it
+    // around the center of the currently selected bounds.
     else
     {
       CoordBounds local = getLocalWorldCoords();
