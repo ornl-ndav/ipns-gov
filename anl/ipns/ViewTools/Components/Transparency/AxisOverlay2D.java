@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2003/10/20 22:46:51  millermi
+ *  - Added private class NotVisibleListener to listen
+ *    when the overlay is no longer visible. When not
+ *    visible, any editor that is visible will be made
+ *    invisible too. This will not dispose the editor,
+ *    just setVisible(false).
+ *
  *  Revision 1.16  2003/10/16 05:00:07  millermi
  *  - Fixed java docs errors.
  *
@@ -270,6 +277,7 @@ public class AxisOverlay2D extends OverlayJPanel
   public AxisOverlay2D(IAxisAddible2D iaa)
   {
     super();
+    addComponentListener( new NotVisibleListener() );
     component = iaa;
     f = iaa.getFont();
     xmin = component.getAxisInfo(true).getMin();
@@ -1657,5 +1665,17 @@ public class AxisOverlay2D extends OverlayJPanel
 	editor_bounds = editor.getBounds();
       }
     }	    
+  }
+  
+ /*
+  * This class will hide the AxisEditor if the editor is visible but
+  * the overlay is not.
+  */
+  private class NotVisibleListener extends ComponentAdapter
+  {
+    public void componentHidden( ComponentEvent ce )
+    {
+      editor.setVisible(false);
+    }
   }
 }

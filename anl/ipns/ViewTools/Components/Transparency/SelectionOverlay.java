@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2003/10/20 22:46:53  millermi
+ *  - Added private class NotVisibleListener to listen
+ *    when the overlay is no longer visible. When not
+ *    visible, any editor that is visible will be made
+ *    invisible too. This will not dispose the editor,
+ *    just setVisible(false).
+ *
  *  Revision 1.19  2003/10/16 05:00:09  millermi
  *  - Fixed java docs errors.
  *
@@ -261,6 +268,7 @@ public class SelectionOverlay extends OverlayJPanel
     this.setLayout( new GridLayout(1,1) );
     sjp = new SelectionJPanel();
     editor = new SelectionEditor();
+    addComponentListener( new NotVisibleListener() );
     component = iza;
     regions = new Vector();	  
     this_panel = this;
@@ -904,5 +912,17 @@ public class SelectionOverlay extends OverlayJPanel
     	editor_bounds = editor.getBounds();
       }
     }	     
+  }
+  
+ /*
+  * This class will hide the SelectionEditor if the editor is visible but
+  * the overlay is not.
+  */
+  private class NotVisibleListener extends ComponentAdapter
+  {
+    public void componentHidden( ComponentEvent ce )
+    {
+      editor.setVisible(false);
+    }
   }
 }

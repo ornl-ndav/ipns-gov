@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2003/10/20 22:46:49  millermi
+ *  - Added private class NotVisibleListener to listen
+ *    when the overlay is no longer visible. When not
+ *    visible, any editor that is visible will be made
+ *    invisible too. This will not dispose the editor,
+ *    just setVisible(false).
+ *
  *  Revision 1.18  2003/10/17 23:01:47  millermi
  *  - Removed private class Note. Note is now a public
  *    class inside the package.
@@ -239,6 +246,7 @@ public class AnnotationOverlay extends OverlayJPanel
     this.setLayout( new GridLayout(1,1) );
     
     overlay = new AnnotationJPanel();
+    addComponentListener( new NotVisibleListener() );
     component = izta;
     notes = new Vector();      
     this_panel = this;
@@ -1116,5 +1124,17 @@ public class AnnotationOverlay extends OverlayJPanel
     	editor_bounds = editor.getBounds();
       }
     }	     
+  }
+  
+ /*
+  * This class will hide the AnnotationEditor if the editor is visible but
+  * the overlay is not.
+  */
+  private class NotVisibleListener extends ComponentAdapter
+  {
+    public void componentHidden( ComponentEvent ce )
+    {
+      editor.setVisible(false);
+    }
   }
 }
