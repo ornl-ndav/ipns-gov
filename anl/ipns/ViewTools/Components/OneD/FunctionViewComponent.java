@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2003/07/31 16:50:34  serumb
+ *  Draw the pointed at line to the correct zoomed region.
+ *
  *  Revision 1.16  2003/07/30 20:58:44  serumb
  *  Implement LogAxisAddible2D.
  *
@@ -357,7 +360,10 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       gjp.setErrors( Varray1D.getErrorValues( i ), 0, i, true );
     }
 */
-    if(draw_pointed_at)
+       gjp.clearData();
+       mainControls.close_frame();
+       DrawSelectedGraphs();
+       if(draw_pointed_at)
        DrawPointedAtGraph();
 /*    else{
        mainControls.close_frame();
@@ -822,7 +828,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
               gjp.setTransparent(true, 0, true);
             draw_pointed_at = false;
           }
-          dataChanged();
+          paintComponents(big_picture.getGraphics()); 
+           
         }
         
       }    
