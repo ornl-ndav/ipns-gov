@@ -35,6 +35,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/05/02 22:45:24  millermi
+ *  - Created init() method to factor out common functionality
+ *    between the constructors.
+ *  - Added method call setFocusable(false) to all textfields
+ *    that are uneditable.
+ *
  *  Revision 1.9  2004/03/12 02:24:53  millermi
  *  - Changed package, fixed imports.
  *
@@ -86,8 +92,13 @@ import javax.swing.JRadioButton;
 import javax.swing.JButton;
 import javax.swing.ButtonGroup;
 import java.awt.GridLayout;
+import java.awt.Container;
+import java.awt.Component;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusAdapter;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
@@ -170,7 +181,8 @@ public class FieldEntryControl extends ViewControl
   */
   public FieldEntryControl( int num_entries )
   {
-    this( new String[num_entries] );
+    super("Field Entries");
+    init( new String[num_entries], new String[num_entries] );
   }  
 
  /**
@@ -182,22 +194,7 @@ public class FieldEntryControl extends ViewControl
   public FieldEntryControl( String[] name )
   {
     super("Field Entries");
-    if (name.length < 1) return;
-    setLayout( new GridLayout(1,1) );
-    text = new JTextField[name.length][2];
-    for(int i = 0; i < name.length; i++)
-    { 
-      text[i][0] = new JTextField(name[i],10);
-      text[i][0].setEditable(false);
-      text[i][1] = new JTextField("",10);
-      Box fieldholder = new Box(BoxLayout.X_AXIS);
-      fieldholder.add(text[i][0]);
-      fieldholder.add(text[i][1]);
-      all_fields.add(fieldholder);
-    }
-    enter.addActionListener( new EnterListener() );
-    all_fields.add(enter);
-    add(all_fields);
+    init( name, new String[name.length] );
   }  
   
  /**
@@ -212,25 +209,10 @@ public class FieldEntryControl extends ViewControl
   public FieldEntryControl( String[] name, int[] values )
   {
     super("Field Entries");
-    if (name.length < 1) return;
-    setLayout( new GridLayout(1,1) );
-    text = new JTextField[name.length][2];
-    for(int i = 0; i < name.length; i++)
-    { 
-      text[i][0] = new JTextField(name[i],10);
-      text[i][0].setEditable(false);
-      if( values.length > i )
-        text[i][1] = new JTextField(new Integer(values[i]).toString(),10);
-      else
-        text[i][1] = new JTextField("",10);
-      Box fieldholder = new Box(BoxLayout.X_AXIS);
-      fieldholder.add(text[i][0]);
-      fieldholder.add(text[i][1]);
-      all_fields.add(fieldholder);
-    }
-    enter.addActionListener( new EnterListener() );
-    all_fields.add(enter);
-    add(all_fields);
+    String[] int_to_string = new String[values.length];
+    for( int i = 0; i < values.length; i++ )
+      int_to_string[i] = new Integer(values[i]).toString();
+    init( name, int_to_string );
   }  
   
  /**
@@ -245,25 +227,10 @@ public class FieldEntryControl extends ViewControl
   public FieldEntryControl( String[] name, float[] values )
   {
     super("Field Entries");
-    if (name.length < 1) return;
-    setLayout( new GridLayout(1,1) );
-    text = new JTextField[name.length][2];
-    for(int i = 0; i < name.length; i++)
-    { 
-      text[i][0] = new JTextField(name[i],10);
-      text[i][0].setEditable(false);
-      if( values.length > i )
-        text[i][1] = new JTextField(new Float(values[i]).toString(),10);
-      else
-        text[i][1] = new JTextField("",10);
-      Box fieldholder = new Box(BoxLayout.X_AXIS);
-      fieldholder.add(text[i][0]);
-      fieldholder.add(text[i][1]);
-      all_fields.add(fieldholder);
-    }
-    enter.addActionListener( new EnterListener() );
-    all_fields.add(enter);
-    add(all_fields);
+    String[] float_to_string = new String[values.length];
+    for( int i = 0; i < values.length; i++ )
+      float_to_string[i] = new Float(values[i]).toString();
+    init( name, float_to_string );
   }  
   
  /**
@@ -278,25 +245,10 @@ public class FieldEntryControl extends ViewControl
   public FieldEntryControl( String[] name, double[] values )
   {
     super("Field Entries");
-    if (name.length < 1) return;
-    setLayout( new GridLayout(1,1) );
-    text = new JTextField[name.length][2];
-    for(int i = 0; i < name.length; i++)
-    { 
-      text[i][0] = new JTextField(name[i],10);
-      text[i][0].setEditable(false);
-      if( values.length > i )
-        text[i][1] = new JTextField(new Double(values[i]).toString(),10);
-      else
-        text[i][1] = new JTextField("",10);
-      Box fieldholder = new Box(BoxLayout.X_AXIS);
-      fieldholder.add(text[i][0]);
-      fieldholder.add(text[i][1]);
-      all_fields.add(fieldholder);
-    }
-    enter.addActionListener( new EnterListener() );
-    all_fields.add(enter);
-    add(all_fields);
+    String[] double_to_string = new String[values.length];
+    for( int i = 0; i < values.length; i++ )
+      double_to_string[i] = new Double(values[i]).toString();
+    init( name, double_to_string );
   } 
   
  /**
@@ -312,13 +264,25 @@ public class FieldEntryControl extends ViewControl
   public FieldEntryControl( String[] name, String[] values )
   {
     super("Field Entries");
+    init( name, values );
+  }
+  
+ /*
+  * Common functionality among the constructors.
+  */ 
+  private void init( String[] name, String[] values )
+  {
+    // If no names in the list, do nothing.
     if (name.length < 1) return;
     setLayout( new GridLayout(1,1) );
     text = new JTextField[name.length][2];
+    // For each name, add two JTextFields, the first acts as a label, the
+    // second acts as a place to enter values. 
     for(int i = 0; i < name.length; i++)
     { 
       text[i][0] = new JTextField(name[i],10);
       text[i][0].setEditable(false);
+      text[i][0].setFocusable(false);
       if( values.length > i )
         text[i][1] = new JTextField(values[i],10);
       else
@@ -331,7 +295,7 @@ public class FieldEntryControl extends ViewControl
     enter.addActionListener( new EnterListener() );
     all_fields.add(enter);
     add(all_fields);
-  } 
+  }
  
  /**
   * This method will get the current values of the state variables for this
@@ -943,6 +907,7 @@ public class FieldEntryControl extends ViewControl
 	{
 	  setLabel(i,labels[i]);
 	  text[i][1].setEditable(true);
+	  text[i][1].setFocusable(true);
 	}
       }
       else
@@ -951,6 +916,7 @@ public class FieldEntryControl extends ViewControl
 	{
 	  setLabel(i,labels[i]);
 	  text[i][1].setEditable(true);
+	  text[i][1].setFocusable(true);
 	}
 	// if true, set labels to "" and disable.
 	if( labels.length < text.length )
@@ -960,6 +926,7 @@ public class FieldEntryControl extends ViewControl
 	    setLabel(dis,"");
 	    setValue(dis,"");
 	    text[dis][1].setEditable(false);
+	    text[dis][1].setFocusable(false);
 	  }
 	}
       }
