@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/12/18 22:33:50  millermi
+ *  - Removed getAxisInfoVA(), now done in IVirtualArray.
+ *  - All references to AxisInfo2D changed to AxisInfo.
+ *
  *  Revision 1.4  2003/10/22 20:15:08  millermi
  *  - Removed methods now defined by IVirtualArray.
  *  - Added java docs where needed.
@@ -72,45 +76,35 @@ import DataSetTools.components.View.TwoD.*;
  * start at zero and go to M-1 and the column numbers
  * start at zero and go to N-1. 
  *
- *  @see DataSetTools.components.View.AxisInfo2D
+ *  @see DataSetTools.components.View.AxisInfo
  */
 
 public interface IVirtualArray2D extends IVirtualArray
-{
+{  
  /**
-  * Returns the attributes of the data array in a AxisInfo2D wrapper.
-  * This method will take in a boolean value to determine for which axis
-  * info is being retrieved for.    true = X axis, false = Y axis.
+  * Sets the attributes of the data array within a AxisInfo wrapper.
+  * This method will take in an integer to determine which axis
+  * info is being altered.
   *
-  *  @param  isX - Use AxisInfo2D.XAXIS (true) or AxisInfo2D.YAXIS (false). 
-  *  @return the axis info for the axis specified.
+  *  @param  axis Use AxisInfo.X_AXIS (0) or AxisInfo.Y_AXIS (1).
+  *  @param  min Minimum value for this axis.
+  *  @param  max Maximum value for this axis.
+  *  @param  label Label associated with the axis.
+  *  @param  units Units associated with the values for this axis.
+  *  @param  islinear Is axis linear (true) or logarithmic (false)
   */
-  public AxisInfo2D getAxisInfoVA( boolean isX );
+  public void setAxisInfo( int axis, float min, float max,
+			   String label, String units, boolean islinear ); 
   
  /**
-  * Sets the attributes of the data array within a AxisInfo2D wrapper.
-  * This method will take in a boolean value to determine for which axis
-  * info is being altered.	    true = X axis, false = Y axis.
-  *
-  *  @param  isX - Use AxisInfo2D.XAXIS (true) or AxisInfo2D.YAXIS (false).
-  *  @param  min - Minimum value for this axis.
-  *  @param  max - Maximum value for this axis.
-  *  @param  label - label associated with the axis.
-  *  @param  units - units associated with the values for this axis.
-  *  @param  islinear - is axis linear (true) or logarithmic (false)
-  */
-  public void setAxisInfoVA( boolean isX, float min, float max,
-			     String label, String units, boolean islinear ); 
-  
- /**
-  * Sets the attributes of the data array within a AxisInfo2D wrapper.
-  * This method will take in a boolean value to determine for which axis
-  * info is being altered.	    true = X axis, false = Y axis.
+  * Sets the attributes of the data array within a AxisInfo wrapper.
+  * This method will take in an integer to determine which axis
+  * info is being altered.
   * 
-  *  @param  isX - Use AxisInfo2D.XAXIS (true) or AxisInfo2D.YAXIS (false).
-  *  @param  info - The axis info object associated with the axis specified.
+  *  @param  axis Use AxisInfo.X_AXIS (0) or AxisInfo.Y_AXIS (1).
+  *  @param  info The axis info object associated with the axis specified.
   */
-  public void setAxisInfoVA( boolean isX, AxisInfo2D info );
+  public void setAxisInfo( int axis, AxisInfo info );
   
  /*
   ***************************************************************************
