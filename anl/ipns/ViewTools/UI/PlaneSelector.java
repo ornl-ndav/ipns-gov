@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/22 02:06:03  bouzekc
+ * Removed unused imports.
+ *
  * Revision 1.1  2003/05/19 15:15:39  rmikk
  * Initial Checkin
  *
@@ -39,7 +42,6 @@
 package DataSetTools.components.ui;
 
 import javax.swing.*;
-import java.lang.System.*;
 import java.awt.*;
 import java.util.*;
 import java.awt.event.*;

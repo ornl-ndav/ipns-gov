@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/01/22 02:06:03  bouzekc
+ * Removed unused imports.
+ *
  * Revision 1.4  2002/11/27 23:13:34  pfpeterson
  * standardized header
  *
@@ -38,7 +41,6 @@ package DataSetTools.components.ui;
 
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
-import javax.swing.JPanel;
 import javax.swing.JFrame;
 import java.awt.*;
 import java.awt.event.*;

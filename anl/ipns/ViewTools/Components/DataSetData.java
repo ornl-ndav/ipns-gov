@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2004/01/22 02:08:18  bouzekc
+ * Removed unused imports.
+ *
  * Revision 1.13  2004/01/06 23:30:28  serumb
  * Added documentation.
  *
@@ -58,7 +61,6 @@
 
 package DataSetTools.components.View;
 import DataSetTools.dataset.*;
-import javax.swing.*;
 import java.awt.event.*;
 import java.util.*;
 
