@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2001/05/29 14:58:54  dennis
+ * Now complete and documented
+ *
  * Revision 1.1  2001/05/23 17:36:35  dennis
  * Control view matrix using sliders that adjust the
  * altitude angle, azimuthal angle and distance from the
@@ -45,8 +48,10 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.event.*;
 import DataSetTools.math.*;
+import DataSetTools.util.*;
 
 /**
  *  A ViewController object controls the ViewTransform for one or more
@@ -77,20 +82,33 @@ public class AltAzController extends    ViewController
                           float distance  )
   {
     setLayout( new GridLayout(3,1) );
+    TitledBorder border = new TitledBorder(
+                             LineBorder.createBlackLineBorder(),"View Control");
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    setBorder( border );
 
     altitude_slider = new JSlider( JSlider.HORIZONTAL, 
                                   -MAX_ALT_ANGLE, 
                                    MAX_ALT_ANGLE, 
                                    0 );
     altitude_slider.addChangeListener( new SliderChanged() );
+    border = new TitledBorder( LineBorder.createBlackLineBorder(),"Altitude");
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    altitude_slider.setBorder( border );
     add( altitude_slider ); 
 
     azimuth_slider = new JSlider( JSlider.HORIZONTAL, -180, 180, 0 );
     azimuth_slider.addChangeListener( new SliderChanged() );
+    border = new TitledBorder( LineBorder.createBlackLineBorder(),"Azimuth");
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    azimuth_slider.setBorder( border );
     add( azimuth_slider ); 
 
     distance_slider = new JSlider( JSlider.HORIZONTAL, 1, 20, 10 );
     distance_slider.addChangeListener( new SliderChanged() );
+    border = new TitledBorder( LineBorder.createBlackLineBorder(),"Distance");
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    distance_slider.setBorder( border );
     add( distance_slider ); 
 
     setDistanceRange( min_distance, max_distance );
@@ -98,7 +116,7 @@ public class AltAzController extends    ViewController
     setAltitudeAngle( altitude );
     setAzimuthAngle( azimuth );
 
-    setView();
+    setView( true );
   }
 
   public void setDistanceRange( float min_distance, float max_distance )
@@ -152,7 +170,15 @@ public class AltAzController extends    ViewController
  *
  */
 
- private void setView()
+/**
+ *  Calculate the new COP and apply the view controller to change the view
+ *  for all of the controlled panels.
+ *
+ *  @param  reset_zoom   Flag indicating whether or not to reset the local
+ *                      "zoomed" transform as well as the global transform.
+ */
+
+ private void setView( boolean reset_zoom )
  {
    float azimuth  = azimuth_slider.getValue();
    float altitude = altitude_slider.getValue();
@@ -168,7 +194,7 @@ public class AltAzController extends    ViewController
  
    setCOP( new Vector3D( x-vrp[0], y-vrp[0], z-vrp[0] ) );
 
-   apply();
+   apply( reset_zoom );
  }
  
 
@@ -185,7 +211,11 @@ public class AltAzController extends    ViewController
        JSlider slider = (JSlider)e.getSource();
 
 //     if ( !slider.getValueIsAdjusting() )
-         setView();
+
+       if ( slider.equals( distance_slider ) )
+         setView( true );
+       else
+         setView( false );
      }
   }
 
@@ -220,7 +250,7 @@ public class AltAzController extends    ViewController
     pts[3] = new Vector3D( -1, -1, 0 );
     objs[0] = new Polyline( pts, Color.green );
     test.setObjects( objs );
-    controller.apply();
+    controller.apply( true );
   }
  
 }
