@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/02/05 21:19:38  dennis
+ *  Added constructor to construct a DetectorPosition object from a
+ *  Vector3D object.
+ *
  *  Revision 1.10  2002/11/27 23:15:47  pfpeterson
  *  standardized header
  *
@@ -80,6 +84,9 @@ public class DetectorPosition extends    Position3D
                                              // readObject() CAN FIX ANY
                                              // COMPATIBILITY PROBLEMS
 
+  /**
+   *  Construct a default position at the origin.
+   */
   public DetectorPosition()
   {
     super();
@@ -87,12 +94,34 @@ public class DetectorPosition extends    Position3D
  
   /**
    *  Construct a DetectorPosition object from a generic Position3D object
+   *
+   *  @param position  The Position3D object that provides the position
+   *                   information for this new DetectorPosition object. 
    */
   public DetectorPosition( Position3D position )
   {
     super( position ); 
   }
 
+
+  /**
+   *  Construct a Position3D object from a Vector3D object.
+   * 
+   *  @param  vector The vector that supplies the x,y,z coordinates for this
+   *                 new Position3D object.
+   */
+  public DetectorPosition( Vector3D vector )
+  {
+    super( vector );
+  }
+
+
+  /**
+   *  Calculate the angle (in radians) between vector from the origin to 
+   *  this detector position and the positive x-axis.
+   *  
+   *  @return  the scattering angle in radians.
+   */
   public float getScatteringAngle()
   {
     float x, y, z, dist_from_x;
