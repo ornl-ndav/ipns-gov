@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/07/14 13:43:55  dennis
+ *  Fixed sign error in alternate way of estimating the standard
+ *  deviations of the parameters.
+ *
  *  Revision 1.6  2003/06/19 22:20:02  dennis
  *  Now uses the methods that evaluate the function and derivatives
  *  at a list of x values, so that the evaluation can be done more
@@ -152,7 +156,7 @@ public class MarquardtArrayFitter extends CurveFitter
 
         diff = Math.abs(chi_1-2*chi_2+chi_3);
         if ( diff != 0 )
-          p_sigmas[k] = delta * Math.sqrt(2.0/diff);
+          p_sigmas[k] = Math.abs(delta) * Math.sqrt(2.0/diff);
         else
           p_sigmas[k] = Double.POSITIVE_INFINITY; 
 
