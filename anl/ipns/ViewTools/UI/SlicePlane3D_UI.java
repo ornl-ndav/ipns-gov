@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2004/03/19 17:24:28  dennis
+ * Removed unused variables
+ *
  * Revision 1.9  2004/03/15 23:53:59  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -169,13 +172,11 @@ public class SlicePlane3D_UI extends    ActiveJPanel
 
     String title       = HKL_TITLE;
     String tab_title   = HKL_TAB_TITLE;
-    int    label_mode  = HKL_MODE;
 
     if ( mode == QXYZ_MODE )
     {
       title      = QXYZ_TITLE;
       tab_title  = QXYZ_TAB_TITLE;
-      label_mode = QXYZ_MODE;
     }
 
     hkl_selector.setMode( mode );

@@ -33,6 +33,9 @@
  *  of first and second moments, etc.   
  * 
  *  $Log$
+ *  Revision 1.13  2004/03/19 17:24:25  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.12  2004/03/11 23:18:47  dennis
  *  Fixed imports.
  *
@@ -518,8 +521,6 @@ public final class NumericalAnalysis
       return 0;
     }
     double h   = (b-a)/(n_grid_pts-1);
-    double x0  = a;
-    double x1  = a + h;
 
     double sum = (f.getValue(a) + f.getValue(b)) / 2.0;
     for ( int i = 1; i < n_grid_pts-1; i++ )

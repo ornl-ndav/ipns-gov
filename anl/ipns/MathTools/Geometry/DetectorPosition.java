@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2004/03/19 17:24:26  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.13  2004/03/11 23:44:51  dennis
  *  Moved to package MathTools.Geometry.
  *  Copied constants for Greek phi & theta used in toString() from
@@ -242,7 +245,6 @@ public class DetectorPosition extends    Position3D
   static public void main( String[] args )
   {
     DetectorPosition point = new DetectorPosition();
-    float[]    coords;
 
     point.setSphericalCoords( -10, (float)Math.PI/6, (float)Math.PI/4 );
     point.PrintPoint( "******Spherical coord point: -10, PI/6, PI/4" );

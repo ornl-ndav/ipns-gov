@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/03/19 17:24:25  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.9  2004/03/11 22:02:01  dennis
  *  Changed package to java gov.anl.ipns.MathTools.Statistics
  *
@@ -482,8 +485,7 @@ public final class Sample
                                      float  nHist[]  )
   {
     int      num_n;          
-    int      i, 
-             n_steps;
+    int      i;
     int      n_first, 
              n_last;
     float    counts;
@@ -534,7 +536,6 @@ public final class Sample
                                   /* from first to last, if there are any.   */
     if ( n_last > n_first )
     {
-      n_steps = n_last - n_first;
       counts  = iBin * delta_x / (iXmax - iXmin);
       for ( i = n_first; i < n_last; i++ )
         nHist[i] += counts;

@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/19 17:24:26  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.2  2004/03/11 22:52:55  dennis
  *  Changed to gov.anl.ipns.MathTools.Geometry package
  *
@@ -441,7 +444,6 @@ public class Position3D_d implements Serializable,
   static public void main( String[] args )
   {
     Position3D_d point = new Position3D_d();
-    double[]    coords;
 
     point.setSphericalCoords( -10, Math.PI/6, Math.PI/4 );
     point.PrintPoint( "******Spherical coord point: -10, PI/6, PI/4" );
@@ -453,7 +455,7 @@ public class Position3D_d implements Serializable,
     point.PrintPoint( "******Cylindrical Coord point: 100, PI/6, 50" );
 
     Position3D_d new_point = (Position3D_d)point.clone();
-    point.PrintPoint( "******Cloned point:" );
+    new_point.PrintPoint( "******Cloned point:" );
 
     Position3D_d points[]  = new Position3D_d[2];
     double      weights[] = new double[2];

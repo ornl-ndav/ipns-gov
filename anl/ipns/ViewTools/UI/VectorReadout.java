@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/19 17:24:28  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.5  2004/03/15 23:54:00  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -226,7 +229,6 @@ private class ValueListener implements ActionListener
 {
   public void actionPerformed( ActionEvent e )
   {
-    String action = e.getActionCommand();
     TextValueUI scale_value = (TextValueUI)(e.getSource());
     float value = scale_value.getValue();
     send_message( ""+value ); 

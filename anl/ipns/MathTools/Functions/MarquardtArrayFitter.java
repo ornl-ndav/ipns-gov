@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2004/03/19 17:24:26  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.13  2004/03/12 02:19:44  dennis
  *  Moved to package gov.anl.ipns.MathToolsr.Functions
  *
@@ -211,7 +214,6 @@ public class MarquardtArrayFitter extends CurveFitter
     {
       double a[] = f.getParameters();
       double diff = 0.0;
-      int    n_steps = 0;
 
       a_save = a[k];
 
@@ -277,7 +279,6 @@ public class MarquardtArrayFitter extends CurveFitter
                                                     // messages.
     double lamda   = 0.001;
     int    n_steps = 0;
-    double delta_chisq = tolerance + 1;
     double chisq_1 = 0;
     double chisq_2 = 0;
     boolean chisq_increasing;
@@ -391,7 +392,6 @@ public class MarquardtArrayFitter extends CurveFitter
         f.setParameters(a);
         
         chisq_2 = getChiSqr();
-        delta_chisq = Math.abs( chisq_2 - chisq_1 );
         if ( chisq_2 > chisq_1 )
         {
           lamda *= 10;

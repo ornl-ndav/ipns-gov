@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2004/03/19 17:24:27  dennis
+ * Removed unused variables
+ *
  * Revision 1.10  2004/03/12 00:22:47  dennis
  * Put in MathTools.Geometry package
  * Removed dependency on tof_calc.
@@ -123,8 +126,6 @@ public class Tran3D
    */ 
   public boolean equals( Tran3D tran )
   {
-    boolean equal = true;
-
     for ( int row = 0; row < 3; row++ )
       for ( int col = 0; col < 3; col++ )
         if ( a[row][col] != tran.a[row][col] )

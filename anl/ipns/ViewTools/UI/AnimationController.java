@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2004/03/19 17:24:28  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.17  2004/03/15 23:53:56  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -421,9 +424,7 @@ private class ValueListener implements ActionListener
 {
   public void actionPerformed( ActionEvent e )
   {
-    String action = e.getActionCommand();
     float value = value_box.getValue();
-
     setFrameValue( value );
   }
 }
@@ -439,9 +440,7 @@ private class FrameListener implements ActionListener
 {
   public void actionPerformed( ActionEvent e )
   {
-    String action   = e.getActionCommand();
     float frame_num = frame_box.getValue();
-
     set_frame( (int)frame_num );   
   }
 }

@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2004/03/19 17:24:25  dennis
+ * Removed unused variables
+ *
  * Revision 1.4  2004/03/12 02:14:41  dennis
  * Moved to package gov.anl.ipns.MathTools.Functions;
  *
@@ -112,7 +115,6 @@ abstract public class CurveFitter implements ICurveFitter
     double diff;
     double sum = 0.0;
 
-    int n_zero = 0;
     for ( int i = 0; i < x.length; i++ )
     {
       diff = f.getValue( x[i] ) - y[i];

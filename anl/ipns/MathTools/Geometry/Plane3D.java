@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/19 17:24:26  dennis
+ * Removed unused variables
+ *
  * Revision 1.3  2004/03/11 23:37:10  dennis
  * Moved to MathTools.Geometry package
  *
@@ -289,7 +292,6 @@ public class Plane3D
      Matrix A = new Matrix( vals );
      SingularValueDecomposition svd = A.svd();
 
-     double sing_vals[] = svd.getSingularValues();
      Matrix V = svd.getV();
 
      float temp[] = new float[4];               // now pull out solution from V
@@ -299,7 +301,6 @@ public class Plane3D
        temp[i] = (float)v_vals[i][last_col];
                                                // make unit normal 
      Vector3D n = new Vector3D( temp );
-     float length = n.length();
      n.normalize();    
      float c = n.dot( average_pt );            // calculate c based on average
 

@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.27  2004/03/19 17:24:27  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.26  2004/03/15 23:53:55  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -690,8 +693,7 @@ protected void LocalTransformChanged()
   private void makeImage()
   {
     float       temp;
-    float       scale_factor,
-                shift;
+    float       scale_factor;
 
     if ( ! isVisible() )              // don't do it yet if it's not visible
       return;

@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/19 17:24:26  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.4  2004/03/12 02:00:53  dennis
  *  Moved to package gov.anl.ipns.MathTools.Functions
  *
@@ -124,7 +127,6 @@ public class Polynomial extends    OneVarParameterizedFunction
       polynomial = new Polynomial( coef );
 
       String par_name[] = polynomial.getParameterNames();
-      double coef_2[]   = polynomial.getParameters();
 
       System.out.println( "Polynomial: " );
       for ( int i = 0; i < par_name.length; i++ )

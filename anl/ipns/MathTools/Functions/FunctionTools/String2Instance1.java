@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.7  2004/03/19 17:24:26  dennis
+ * Removed unused variables
+ *
  * Revision 1.6  2004/03/15 23:50:12  dennis
  * Simplifed logic to avoid un-needed assignment
  * replaced: ! if((c1=='n')||(c1=='p'))
@@ -879,13 +882,13 @@ public static void main(String args[])
 
     Fxn X;
 
-    DataInputStream D;
+//    DataInputStream D;
 
     double xx[];
 
     xx=new double[3];
 
-    D= new DataInputStream(System.in);
+//    D= new DataInputStream(System.in);
    
     dat=new C_Input();
    

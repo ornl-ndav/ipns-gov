@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2004/03/19 17:24:27  dennis
+ * Removed unused variables
+ *
  * Revision 1.9  2004/03/11 22:52:55  dennis
  * Changed to gov.anl.ipns.MathTools.Geometry package
  *
@@ -160,8 +163,6 @@ public class Vector3D
    */
   public boolean equals( Vector3D vec )
   {
-    boolean equal = true;
-
     for ( int i = 0; i < 3; i++ )
       if ( v[i] != vec.v[i] )
         return false;

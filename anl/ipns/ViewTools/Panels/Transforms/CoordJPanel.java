@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.33  2004/03/19 17:24:27  dennis
+ *  Removed unused variables
+ *
  *  Revision 1.32  2004/03/15 23:53:56  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -1171,7 +1174,7 @@ class CoordMouseAdapter extends MouseAdapter
       mouse_on_panel = true;
       requestFocus();                // so we can also move cursor with arrow
                                      // keys
-      Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
+      //Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
       //###### setCursor( cursor );
     }
   }
