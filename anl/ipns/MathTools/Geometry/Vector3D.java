@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2002/10/29 23:43:35  dennis
+ * Added methods add() and multiply() to add and multiply by a scalar.
+ *
  * Revision 1.1  2001/05/07 21:36:04  dennis
  * Representation of 3D homogeneous vectors with basic operations such
  * as length, normalize, add, subtract, dot and cross products.
@@ -186,6 +189,34 @@ public class Vector3D
      v[0] -= vector.v[0];
      v[1] -= vector.v[1];
      v[2] -= vector.v[2];
+  }
+
+  /*------------------------------- add ---------------------------------*/
+  /**
+   *  Add a scalar to the first three components of this vector.
+   *
+   *  @param  scalar  the scalar value to add the components of the 
+   *                  current vector.
+   */
+  public void add( float scalar )
+  {
+     v[0] += scalar;
+     v[1] += scalar;
+     v[2] += scalar;
+  }
+
+  /*----------------------------- multiply -------------------------------*/
+  /**
+   *  Multiply a scalar times the first three components of this vector.
+   *
+   *  @param  scalar  the scalar value to multiply times the components of the 
+   *                  current vector.
+   */
+  public void multiply( float scalar )
+  {
+     v[0] *= scalar;
+     v[1] *= scalar;
+     v[2] *= scalar;
   }
 
   /*--------------------------- standardize ------------------------------*/
