@@ -148,7 +148,7 @@ class CoordMouseAdapter extends MouseAdapter
 
   public void mouseEntered (MouseEvent e)
   {
-    Cursor cursor = new Cursor( Cursor.HAND_CURSOR );
+    Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
     setCursor( cursor );
   }
 };
