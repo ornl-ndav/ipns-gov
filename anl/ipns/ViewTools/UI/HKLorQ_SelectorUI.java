@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/03/03 23:18:34  dennis
+ * Added isEnabled() method.
+ *
  * Revision 1.1  2004/02/03 23:42:39  dennis
  * Component to use for specifying display and selection modes as
  * HKL or QXYZ.
@@ -93,6 +96,18 @@ public class HKLorQ_SelectorUI extends    ActiveJPanel
   public void setEnabled( boolean enabled )
   {
     selector.setEnabled( enabled ); 
+  }
+
+
+  /* --------------------------- isEnabled ----------------------------- */
+  /**
+   *  Check whether or not the user can adjust the value. 
+   *
+   *  @return true if the control is enabled, false otherwise.
+   */
+  public boolean isEnabled()
+  {
+    return selector.isEnabled();
   }
 
 
