@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.49  2005/01/24 22:30:38  millermi
+ *  - Added code to truLog axis paint methods to include painting
+ *    of the units and label.
+ *
  *  Revision 1.48  2004/12/05 05:37:52  millermi
  *  - Fixed Eclipse warnings.
  *
@@ -2037,6 +2041,7 @@ public class AxisOverlay2D extends OverlayJPanel
         } // end for minorsteps
       } // end for steps
     } // end else large
+    paintLabelsAndUnits( "", X_AXIS, true, g2d );
   }
 /*------------------------paintTruLogY(Graphics2D)----------------------------
  * This function paints Logrithmic axis on the overlay for the y axis using
@@ -2192,6 +2197,7 @@ public class AxisOverlay2D extends OverlayJPanel
         } // end for( minorsteps )
       } // end for( steps )
     } // end else
+    paintLabelsAndUnits( "", Y_AXIS, true, g2d );
   }
   
  /*
