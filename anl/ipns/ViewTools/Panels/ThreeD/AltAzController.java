@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/03/12 01:31:11  dennis
+ * Moved to ViewTools.Panels.ThreeD package
+ *
  * Revision 1.8  2002/11/27 23:12:52  pfpeterson
  * standardized header
  *
@@ -38,7 +41,7 @@
  *
  */
 
-package DataSetTools.components.ThreeD;
+package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
 import java.io.*;
@@ -46,8 +49,8 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
-import DataSetTools.math.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.UI.*;
 
 /**
  *  An AltAzController object controls the ViewTransform for one or more

@@ -30,12 +30,15 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/03/12 01:29:16  dennis
+ * Moved to ViewTools.Panels.ThreeD package
+ *
  * Revision 1.5  2002/11/27 23:12:53  pfpeterson
  * standardized header
  *
  */
 
-package DataSetTools.components.ThreeD;
+package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
 import java.io.*;
@@ -43,9 +46,8 @@ import java.util.*;
 import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.util.*;
-import DataSetTools.math.*;
-import DataSetTools.components.image.*;
+
+import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
  *  A ViewController object controls the ViewTransform for one or more
