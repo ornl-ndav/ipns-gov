@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/03/09 22:36:04  millermi
+ *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
+ *    to enable controls to be linked.
+ *  - Added "cm" as parameter to main() to test control with the
+ *    ControlManager.
+ *
  *  Revision 1.10  2004/03/12 02:24:52  millermi
  *  - Changed package, fixed imports.
  *
@@ -156,6 +162,7 @@ public class ControlCheckboxButton extends ViewControl
   private Color checkcolor;
   private Color uncheckcolor;
   private ControlCheckboxButton this_panel;
+  private boolean ignore_change = false;
   
  /**
   * Default constructor specifies no title but initializes checkbox to be
@@ -262,7 +269,32 @@ public class ControlCheckboxButton extends ViewControl
     {
       setTextUnCheckedColor((Color)temp); 
     }
-  }  
+  }
+  
+ /**
+  * Similar functionality as setSelected(), controls checkbox.
+  *
+  *  @param  Boolean value that determines whether the checkbox is checked
+  *          (true) or unchecked (false).
+  */
+  public void setControlValue(Object value)
+  {
+    if( value == null || !(value instanceof Boolean) )
+      return;
+    ignore_change = true;
+    setSelected( ((Boolean)value).booleanValue() );
+    ignore_change = false;
+  }
+  
+ /**
+  * Determine whether checkbox is selected or not, similar to isSelected().
+  *
+  *  @return Boolean value: true if checked, false if unchecked.
+  */
+  public Object getControlValue()
+  {
+    return new Boolean(isSelected());
+  }
   
  /**
   * isSelected() tells when the checkbox is checked, true when checked.
@@ -391,6 +423,10 @@ public class ControlCheckboxButton extends ViewControl
       //System.out.println("Checkbox Listener...");
       this_panel.repaint();
       this_panel.send_message(CHECKBOX_CHANGED);
+      // This if statement will prevent VALUE_CHANGED to be sent out when
+      // the setControlValue() method is called.
+      if( !ignore_change )
+        this_panel.send_message(VALUE_CHANGED);
     }
   }   
   
@@ -407,11 +443,31 @@ public class ControlCheckboxButton extends ViewControl
     }
   } 
   
- /*
-  *  For testing purposes only
+ /**
+  *  For testing purposes only... If "cm" is passed as an argument, the
+  *  ControlManager will link controls.
   */
   public static void main(String[] args)
   {
+    // If cm is passed in, test with control manager.
+    if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
+    {
+      ViewControl[] controls = new ViewControl[3];
+      controls[0] = new ControlCheckboxButton("Checkbox1");
+      controls[1] = new ControlCheckboxButton("Checkbox2");
+      controls[2] = new ControlCheckboxButton("Checkbox3");
+      
+      String[] keys = new String[3];
+      keys[0] = "CheckboxButton";
+      keys[1] = "CheckboxButton";
+      keys[2] = "CheckboxButton";
+      
+      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      WindowShower shower = new WindowShower(frame);
+      java.awt.EventQueue.invokeLater(shower);
+      shower = null;
+      return;
+    }
     ControlCheckboxButton check = new ControlCheckboxButton();
     ControlCheckboxButton check2 = new ControlCheckboxButton(true);
     JFrame frame = new JFrame();

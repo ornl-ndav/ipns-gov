@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2005/03/09 22:36:10  millermi
+ *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
+ *    to enable controls to be linked.
+ *  - Added "cm" as parameter to main() to test control with the
+ *    ControlManager.
+ *
  *  Revision 1.6  2004/03/12 02:36:16  millermi
  *  - Changed package, fixed imports.
  *
@@ -65,6 +71,7 @@
  import javax.swing.JComponent;
  import javax.swing.JFrame;
  import javax.swing.JComboBox;
+ import javax.swing.JButton;
  import javax.swing.AbstractButton;
  import java.awt.event.ActionEvent;
  import java.awt.event.ActionListener;
@@ -74,11 +81,16 @@
 /**
  * This class is to quickly convert JComponents to ViewControls. However,
  * only components extending an AbstractButton or JComboBox will have listeners.
+ * Because of the generality of this class, the setControlValue() and
+ * getControlValue() methods are unimplemented. Also, VALUE_CHANGED is not
+ * sent out when a value is changed.
  */
 public class ViewControlMaker extends ViewControl
 {
   private JComponent component;
   private ViewControlMaker this_panel;
+  private boolean ignore_change = false;
+  private boolean button_pressed = false;
   
  /**
   * Contructor - builds a ViewControl out of the JComponent
@@ -107,12 +119,79 @@ public class ViewControlMaker extends ViewControl
     return component;
   }
   
+ /**
+  * This method is just a stub, since multiple JComponents could be passed
+  * in and there is no way to standardize the input.
+  *
+  *  @param  value Value unimportant.
+  */
+  public void setControlValue(Object value)
+  {
+    // If no value, do nothing.
+    if( value == null )
+      return;
+    if( component instanceof AbstractButton )
+    {
+      // Make sure value is valid.
+      if( !(value instanceof Boolean) )
+        return; 
+      // Do nothing if button was not pressed.
+      if( !((Boolean)value).booleanValue() )
+        return;
+      ignore_change = true;
+      ((AbstractButton)component).doClick();
+      ignore_change = false;
+    }
+    else if ( component instanceof JComboBox )
+    {
+      // Make sure Integer is passed in.
+      if( !(value instanceof Integer) )
+        return;
+      int int_value = ((Integer)value).intValue();
+      // Do nothing if int_value is not a valid index. If -1, then none are
+      // selected.
+      if( int_value >= ((JComboBox)component).getItemCount() || int_value < -1 )
+        return;
+      ignore_change = true;
+      ((JComboBox)component).setSelectedIndex(int_value);
+      ignore_change = false;
+    }
+  }
+  
+ /**
+  * This method is just a stub, since multiple JComponents could be passed
+  * in and there is no way to standardize the output.
+  *
+  *  @return null.
+  */
+  public Object getControlValue()
+  {
+    if( component instanceof AbstractButton )
+    {
+      return new Boolean(button_pressed);
+    }
+    else if ( component instanceof JComboBox )
+    {
+      return new Integer(((JComboBox)component).getSelectedIndex());
+    }
+    // else return null
+    return null;
+  }
+  
   private class ActionList implements ActionListener
   {
     public void actionPerformed( ActionEvent e )
     {
       //System.out.println("ActionCommand: " + e.getActionCommand() );
       this_panel.send_message( e.getActionCommand() );
+      // This if statement will prevent VALUE_CHANGED to be sent out when
+      // the setControlValue() method is called.
+      if( !ignore_change )
+      {
+        button_pressed = true;
+        send_message(VALUE_CHANGED);
+	button_pressed = false;
+      }
     }
   }  
  
@@ -120,7 +199,37 @@ public class ViewControlMaker extends ViewControl
   *  For testing purposes only
   */
   public static void main(String[] args)
-  { 
+  {
+    // If cm is passed in, test with control manager.
+    if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
+    {
+      String[] alist = {"A1","A2","A3"};
+      String[] blist = {"B1","B2","B3"};
+      JComboBox cbox1 = new JComboBox(alist);
+      JComboBox cbox2 = new JComboBox(blist);
+
+      ViewControl[] controls = new ViewControl[4];
+      controls[0] = new ViewControlMaker(cbox1);
+      controls[0].setTitle("Combobox1");
+      controls[1] = new ViewControlMaker(cbox2);
+      controls[1].setTitle("Combobox2");
+      controls[2] = new ViewControlMaker(new JButton("Button1"));
+      controls[2].setTitle("Button1");
+      controls[3] = new ViewControlMaker(new JButton("Button2"));
+      controls[3].setTitle("Button2");
+      
+      String[] keys = new String[controls.length];
+      keys[0] = "Combobox";
+      keys[1] = "Combobox";
+      keys[2] = "Button";
+      keys[3] = "Button";
+    
+      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      WindowShower shower = new WindowShower(frame);
+      java.awt.EventQueue.invokeLater(shower);
+      shower = null;
+      return;
+    }
     String[] list = {"1","2","3"};
     ViewControlMaker jcb = new ViewControlMaker( new JComboBox(list) );
     JFrame frame = new JFrame("JComboBox Test");

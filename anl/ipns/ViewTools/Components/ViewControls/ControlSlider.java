@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2005/03/09 22:36:04  millermi
+ *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
+ *    to enable controls to be linked.
+ *  - Added "cm" as parameter to main() to test control with the
+ *    ControlManager.
+ *
  *  Revision 1.12  2004/05/20 03:28:26  millermi
  *  - Removed unused variables.
  *
@@ -158,7 +164,7 @@ public class ControlSlider extends ViewControl
                                         // convert the float range to a
 					// suitable integer range for use
 					// with a JSlider.
-  
+  private boolean ignore_change = false;
  /**
   * Default constructor specifies no title but initializes slider with range
   * (0.0,100.0) and interval of 0.1. The default slider is useful for use as
@@ -287,6 +293,30 @@ public class ControlSlider extends ViewControl
     {
       setMinorTickSpace(((Float)temp).floatValue()); 
     }
+  }
+  
+ /**
+  * Set the slider position, same functionality as setValue().
+  *
+  *  @param  Float value for slider position.
+  */
+  public void setControlValue(Object value)
+  {
+    if( value == null || !(value instanceof Float) )
+      return;
+    ignore_change = true;
+    setValue( ((Float)value).floatValue() );
+    ignore_change = false;
+  }
+  
+ /**
+  * Get value associated slider knob position, same functionality as getValue().
+  *
+  *  @return Float value corresponding to slider position.
+  */
+  public Object getControlValue()
+  {
+    return new Float(getValue());
   }
   
  /**
@@ -503,15 +533,39 @@ public class ControlSlider extends ViewControl
       {
         // System.out.println("In stateChanged(), Value = " + getValue());
         this_slider.send_message(SLIDER_CHANGED);
+        // This if statement will prevent VALUE_CHANGED to be sent out when
+        // the setControlValue() method is called.
+	if( !ignore_change )
+	  this_slider.send_message(VALUE_CHANGED);
       } 
     }
   }
   
- /*
-  *  For testing purposes only
+ /**
+  *  For testing purposes only. If "cm" is passed as an argument, the
+  *  ControlManager will link controls.
   */
   public static void main(String[] args)
   {
+    // If cm is passed in, test with control manager.
+    if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
+    {
+      ViewControl[] controls = new ViewControl[3];
+      controls[0] = new ControlSlider("Slider1");
+      controls[1] = new ControlSlider("Slider2");
+      controls[2] = new ControlSlider("Slider3");
+      
+      String[] keys = new String[3];
+      keys[0] = "Slider";
+      keys[1] = "Slider";
+      keys[2] = "Slider";
+      
+      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      WindowShower shower = new WindowShower(frame);
+      java.awt.EventQueue.invokeLater(shower);
+      shower = null;
+      return;
+    }
     ControlSlider slide = new ControlSlider();
     JFrame frame = new JFrame();
     frame.setBounds(0,0,150,90);

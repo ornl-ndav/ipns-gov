@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.28  2005/03/09 22:36:04  millermi
+ *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
+ *    to enable controls to be linked.
+ *  - Added "cm" as parameter to main() to test control with the
+ *    ControlManager.
+ *
  *  Revision 1.27  2005/02/03 22:07:52  millermi
  *  - No longer listens for ControlSlider messages. Only listens
  *    for messages produced by IColorScaleAddible components.
@@ -249,6 +255,7 @@ public class ControlColorScale extends ViewControl
   private double logscale;
   private boolean isTwoSided;
   private boolean orientate = HORIZONTAL;
+  private boolean ignore_change = true;
   
  /* Possible color schemes as designated by 
   * DataSetTools/components/image/IndexColorMaker.java
@@ -392,7 +399,31 @@ public class ControlColorScale extends ViewControl
     }
     if( redraw )
       repaint();
-  } 
+  }
+  
+ /**
+  * Set the color scheme of the colorscale.
+  *
+  *  @param  String representing the color scheme.
+  */
+  public void setControlValue(Object value)
+  {
+    if( value == null || !(value instanceof String) )
+      return;
+    ignore_change = true;
+    setColorScale((String)value,isTwoSided());
+    ignore_change = false;
+  }
+  
+ /**
+  * Get String value for colorscheme as defined in IndexColorMaker.
+  *
+  *  @return String colorscale.
+  */
+  public Object getControlValue()
+  {
+    return getColorScale();
+  }
  
  /**
   * This method allows the calibrated colorscale to always appear
@@ -409,6 +440,17 @@ public class ControlColorScale extends ViewControl
       isTwoSided = is_two_sided;
       setColorScale( colorscheme, isTwoSided );
     }
+  }
+  
+ /**
+  * This method tells whether the colorscale is two-sided (positive and
+  * negative values) or just one sided (positive only).
+  *
+  *  @return True if two-sided, false if one-sided.
+  */
+  public boolean isTwoSided()
+  {
+    return isTwoSided;
   }
  
  /**
@@ -465,9 +507,24 @@ public class ControlColorScale extends ViewControl
   */
   public void setColorScale( String colorscale, boolean doublesided )
   {
+    // Make sure scheme is a valid option.
+    if( !( colorscale.equals(IndexColorMaker.GRAY_SCALE) ||
+           colorscale.equals(IndexColorMaker.NEGATIVE_GRAY_SCALE) ||
+           colorscale.equals(IndexColorMaker.GREEN_YELLOW_SCALE) ||
+	   colorscale.equals(IndexColorMaker.HEATED_OBJECT_SCALE) ||
+	   colorscale.equals(IndexColorMaker.HEATED_OBJECT_SCALE_2) ||
+	   colorscale.equals(IndexColorMaker.RAINBOW_SCALE) ||
+	   colorscale.equals(IndexColorMaker.OPTIMAL_SCALE) ||
+	   colorscale.equals(IndexColorMaker.MULTI_SCALE) ||
+	   colorscale.equals(IndexColorMaker.SPECTRUM_SCALE) ) )
+      return;
     colorscheme = colorscale;
     isTwoSided = doublesided;
     csi.setNamedColorModel( colorscale, isTwoSided, true );
+    // This if statement will prevent VALUE_CHANGED to be sent out when
+    // the setControlValue() method is called.
+    if( !ignore_change )
+      send_message(VALUE_CHANGED);
   } 
   
  /**
@@ -760,8 +817,8 @@ public class ControlColorScale extends ViewControl
     }
   }   
 
- /*
-  *  For testing purposes only
+ /**
+  *  For testing purposes only...
   */
   public static void main(String[] args)
   {	 

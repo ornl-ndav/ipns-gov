@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/03/09 22:36:09  millermi
+ *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
+ *    to enable controls to be linked.
+ *  - Added "cm" as parameter to main() to test control with the
+ *    ControlManager.
+ *
  *  Revision 1.3  2004/03/15 23:53:54  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -45,8 +51,7 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
  import java.awt.event.*;
  import java.awt.*;
  
- //import DataSetTools.viewer.ViewerState;
- //import DataSetTools.util.*;
+ import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a generic checkbox for use 
@@ -62,8 +67,7 @@ public class LabelCombobox extends ViewControl
    private Box box2 = new Box(1);
    private FlowLayout f_layout;
    public Box theBox = new Box(0);
-
-  
+   private boolean ignore_change = false;
  
   /**
    * constructor 
@@ -88,10 +92,36 @@ public class LabelCombobox extends ViewControl
   
       this.add(theBox);
       cbox.addActionListener( new ComboboxListener() ); 
-     
    }
   
-
+ /**
+  * Set the selected index of the combo box.
+  *
+  *  @param  value Integer containing the selected index.
+  */
+  public void setControlValue(Object value)
+  {
+    if( value == null || !(value instanceof Integer) )
+      return;
+    int int_value = ((Integer)value).intValue();
+    // Do nothing if int_value is not a valid index. If -1, then none are
+    // selected.
+    if( int_value >= cbox.getItemCount() || int_value < -1 )
+      return;
+    ignore_change = true;
+    setSelected(int_value);
+    ignore_change = false;
+  }
+  
+ /**
+  * Get selected index of the combobox as an Integer.
+  *
+  *  @return Returns an Integer containing the selected index.
+  */
+  public Object getControlValue()
+  {
+    return new Integer(cbox.getSelectedIndex());
+  }
 
   /**
    * Allows the combo box to be initialized to the index.
@@ -111,7 +141,11 @@ public class LabelCombobox extends ViewControl
       public void actionPerformed( ActionEvent ae )
       {
          send_message(COMBOBOX_CHANGED);
-         //System.out.println("the selected item is: " + cbox.getSelectedItem());
+         //System.out.println("the selected item is: " + cbox.getSelectedItem())
+         // This if statement will prevent VALUE_CHANGED to be sent out when
+         // the setControlValue() method is called.
+         if( !ignore_change )
+           send_message( VALUE_CHANGED );
       }
    }
 
@@ -119,7 +153,30 @@ public class LabelCombobox extends ViewControl
    *  For testing purposes only
    */
    public static void main(String[] args)
-   { 
+   {
+      // If cm is passed in, test with control manager.
+      if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
+      {
+        String[] alist = {"A1","A2","A3"};
+        String[] blist = {"B1","B2","B3","B4"};
+        String[] clist = {"C1","C2"};
+	
+        ViewControl[] controls = new ViewControl[3];
+        controls[0] = new LabelCombobox("Combobox1",alist);
+        controls[1] = new LabelCombobox("Combobox2",blist);
+        controls[2] = new LabelCombobox("Combobox3",clist);
+      
+        String[] keys = new String[3];
+        keys[0] = "Combobox";
+        keys[1] = "Combobox";
+        keys[2] = "Combobox";
+      
+        JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+        WindowShower shower = new WindowShower(frame);
+        java.awt.EventQueue.invokeLater(shower);
+        shower = null;
+        return;
+      }
       String[] line_type = new String[5];
       line_type[0] = "Solid"; 
       line_type[1] = "Dashed";     

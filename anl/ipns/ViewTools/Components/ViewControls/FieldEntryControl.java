@@ -35,6 +35,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2005/03/09 22:36:06  millermi
+ *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
+ *    to enable controls to be linked.
+ *  - Added "cm" as parameter to main() to test control with the
+ *    ControlManager.
+ *
  *  Revision 1.12  2005/02/13 21:02:50  millermi
  *  - Factored out existing code into new method resetLabels()
  *    so it may be used by outside classes.
@@ -174,6 +180,7 @@ public class FieldEntryControl extends ViewControl
   private Hashtable radiotable = new Hashtable();
   private transient boolean radio_added = false;
   private transient JButton enter = new JButton("Enter");
+  private transient boolean ignore_change = false;
 
  /**
   * This constructor will be used to create a control with labels but no
@@ -381,6 +388,40 @@ public class FieldEntryControl extends ViewControl
       for( int i = 0; i < values.length; i++ )
         setValue(i,values[i]);
     }
+  }
+  
+ /**
+  * This method will set all the values in the field entry control given an
+  * an array of Strings. Since values can be parsed later, use strings for
+  * generic purposes.
+  *
+  *  @param  value String[] of field entry values.
+  */
+  public void setControlValue(Object value)
+  {
+    if( value == null || !(value instanceof String[]) )
+      return;
+    String[] values = (String[])value;
+    int min_length = values.length;
+    // Let min_length be the smallest value between the String[] and number of
+    // field entries.
+    if( min_length > text.length )
+      min_length = text.length;
+    ignore_change = true;
+    for( int i = 0; i < min_length; i++ )
+      setValue(i,values[i]);
+    ignore_change = false;
+  }
+  
+ /**
+  * Get String[] of values in field entries. Parsing the strings is done
+  * within this control to determine if the strings are numeric values.
+  *
+  *  @return Array of selected indicies for each combobox.
+  */
+  public Object getControlValue()
+  {
+    return getAllStringValues();
   }
  
  /**
@@ -957,15 +998,50 @@ public class FieldEntryControl extends ViewControl
       if( ae.getActionCommand().equals(enter.getText()) )
       {
         send_message(BUTTON_PRESSED);
+        // This if statement will prevent VALUE_CHANGED to be sent out when
+        // the setControlValue() method is called.
+        if( !ignore_change )
+	  send_message(VALUE_CHANGED);
       }
     }
   }
   
  /**
-  * Test purposes only...
+  *  Test purposes only... If "cm" is passed as an argument, the
+  *  ControlManager will link controls.
   */
   public static void main( String args[] ) 
   {
+    // If cm is passed in, test with control manager.
+    if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
+    {
+      String[] namelist = {"A1","A2","A3"};
+      String[] valuelist = {"B1","B2","B3"};
+      String[] namelist2 = {"C1","C2","C3"};
+      String[] valuelist2 = {"D1","D2","D3"};
+      String[] namelist3 = {"E1","E2","E3"};
+      String[] valuelist3 = {"F1","F2","F3"};
+      
+      ViewControl[] controls = new ViewControl[3];
+      controls[0] = new FieldEntryControl(namelist,valuelist);
+      controls[0].setTitle("FieldEntry1");
+      controls[1] = new FieldEntryControl(namelist2,valuelist2);
+      controls[1].setTitle("FieldEntry2");
+      controls[2] = new FieldEntryControl(namelist3,valuelist3);
+      controls[2].setTitle("FieldEntry3");
+      
+      String[] keys = new String[3];
+      keys[0] = "FieldEntry";
+      keys[1] = "FieldEntry";
+      keys[2] = "FieldEntry";
+      
+      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      frame.setBounds(0,0,300,300);
+      WindowShower shower = new WindowShower(frame);
+      java.awt.EventQueue.invokeLater(shower);
+      shower = null;
+      return;
+    }
     JFrame tester = new JFrame("FieldEntryControl Test");
     tester.setBounds(0,0,150,250);
     tester.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );

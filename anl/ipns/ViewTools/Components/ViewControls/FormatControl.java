@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/03/09 22:36:09  millermi
+ *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
+ *    to enable controls to be linked.
+ *  - Added "cm" as parameter to main() to test control with the
+ *    ControlManager.
+ *
  *  Revision 1.3  2004/12/05 05:48:57  millermi
  *  - Fixed Eclipse warnings.
  *
@@ -98,6 +104,7 @@ public class FormatControl extends ViewControl
   
   private JComboBox[] formats;
   private int changed_index;
+  private transient boolean ignore_change = false;
   
  /**
   * Default constructor - specifies no title, with one JComboBox.
@@ -220,6 +227,38 @@ public class FormatControl extends ViewControl
   }
   
  /**
+  * Set the selected index for all of the combo boxes in this control.
+  *
+  *  @param  value int[] containing selected indicies for each combobox.
+  */
+  public void setControlValue(Object value)
+  {
+    if( value == null || !(value instanceof int[]) )
+      return;
+    int[] values = (int[])value;
+    ignore_change = true;
+    for( int i = 0; i < values.length; i++ )
+      setSelectedIndex(i,values[i]);
+    ignore_change = false;
+  }
+  
+ /**
+  * Get int[] containing the selected index for all of the combo boxes
+  * in this control.
+  *
+  *  @return Array containing the selected index for all of the combo boxes
+  *          in this control.
+  */
+  public Object getControlValue()
+  {
+    // Build list.
+    int[] values = new int[formats.length];
+    for( int i = 0; i < values.length; i++ )
+      values[i] = getSelectedIndex(i);
+    return values;
+  }
+  
+ /**
   * Get the index of the COMBO BOX that was most recently changed. If this
   * method is called before a combo box has been changed, -1 is returned.
   *
@@ -242,7 +281,7 @@ public class FormatControl extends ViewControl
   */ 
   public int getLastChangedSelectedIndex()
   {
-    return getSelectedIndex(changed_index);
+    return getSelectedIndex( getLastChangedIndex() );
   }
   
  /**
@@ -452,14 +491,49 @@ public class FormatControl extends ViewControl
       // Record the last changed combo box.
       changed_index = findIndex( (JComboBox)ae.getSource() );
       send_message( FORMAT_CHANGED );
+      // This if statement will prevent VALUE_CHANGED to be sent out when
+      // the setControlValue() method is called.
+      if( !ignore_change )
+        send_message( VALUE_CHANGED );
     }
   }
   
- /*
-  *  For testing purposes only
+ /**
+  *  For testing purposes only... If "cm" is passed as an argument, the
+  *  ControlManager will link controls.
   */
   public static void main(String[] args)
   {
+    // If cm is passed in, test with control manager.
+    if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
+    {
+      String[] alist = {"A1","A2","A3"};
+      String[] blist = {"B1","B2","B3","B4"};
+      String[] clist = {"C1","C2"};
+      Vector list = new Vector();
+      list.add(alist);
+      list.add(blist);
+      list.add(clist);
+      ViewControl[] controls = new ViewControl[3];
+      controls[0] = new FormatControl(list);
+      controls[0].setTitle("Format1");
+      controls[1] = new FormatControl(list);
+      controls[1].setTitle("Format2");
+      controls[2] = new FormatControl(list);
+      controls[2].setTitle("Format3");
+      
+      String[] keys = new String[3];
+      keys[0] = "Format";
+      keys[1] = "Format";
+      keys[2] = "Format";
+      
+      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      frame.setBounds(0,0,300,300);
+      WindowShower shower = new WindowShower(frame);
+      java.awt.EventQueue.invokeLater(shower);
+      shower = null;
+      return;
+    }
     JFrame frame = new JFrame();
     //frame.getContentPane().setLayout( new GridLayout(2,1) );
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

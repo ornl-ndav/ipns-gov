@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/03/09 22:36:02  millermi
+ *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
+ *    to enable controls to be linked.
+ *  - Added "cm" as parameter to main() to test control with the
+ *    ControlManager.
+ *
  *  Revision 1.8  2005/01/19 20:56:24  millermi
  *  - Fixed error identified by Tom Worlton in class description.
  *    Now reads "extends this class".
@@ -178,5 +184,20 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
 	  new TitledBorder(LineBorder.createBlackLineBorder(),title);
     border.setTitleFont( FontUtil.BORDER_FONT ); 
     this.setBorder( border ); 
-  }  
+  }
+  
+ /**
+  * Set value associated with this control.
+  *
+  *  @param  value Setable value for this control.
+  */
+  abstract public void setControlValue(Object value);
+  
+ /**
+  * Get value associated with this control that will change and need to be
+  * updated.
+  *
+  *  @return Value for this control.
+  */
+  abstract public Object getControlValue();  
 }
