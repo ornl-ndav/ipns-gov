@@ -4,6 +4,13 @@
  *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.4  2001/02/16 22:08:00  dennis
+ *  Now the main program will get the instrument computer name
+ *  or IP address from the command line.
+ *  Fixed bug which caused auto updates for a DataSet to be missed
+ *  if the DataSet was first hidden by "unchecking" the Show box and
+ *  then made visible by pressing the Update button.
+ *
  *  Revision 1.3  2001/02/16 16:40:21  dennis
  *  Changed order of buttons in GUI panel.
  *  Added some @see comments.
@@ -142,6 +149,7 @@ public class LiveDataMonitor extends    JPanel
       }
 
       data_manager.UpdateDataSetNow( my_index ); 
+      data_manager.setUpdateIgnoreFlag( my_index, false );
       checkbox[ my_index ].setSelected( true );
     }
   }
@@ -189,8 +197,14 @@ public class LiveDataMonitor extends    JPanel
  */
   public static void main(String[] args)
   {
-     String instrument_computer = "dmikk.mscs.uwstout.edu";
+     if ( args.length < 1 )
+     {
+       System.out.println("Please enter the instrument computer name ");
+       System.out.println("or IP address on the command line ");
+       System.exit(1);
+     } 
 
+     String instrument_computer = args[0];
      LiveDataMonitor monitor = new LiveDataMonitor( instrument_computer );
 
      JFrame frame = new JFrame( instrument_computer );
