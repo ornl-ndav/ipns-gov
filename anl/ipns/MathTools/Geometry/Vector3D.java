@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2003/02/05 21:06:13  dennis
+ * Added constructor to make a Vector3D object from a Position3D object.
+ *
  * Revision 1.4  2003/02/04 19:13:13  dennis
  * Added constructor that takes an array of floats.
  *
@@ -111,6 +114,26 @@ public class Vector3D
       }
     }
   }
+
+  /*--------------------------- constructor ----------------------------*/
+  /**
+   *  Construct the 4 dimensional homogeneous point corresponding to the
+   *  Position3D object 
+   *
+   *  @param position  The Position3D object that provides the x,y,z 
+   *                   values to use for this Vector3D object.
+   */
+  public Vector3D( Position3D position )
+  {
+    if ( position != null )
+    {
+      float pos[] = position.getCartesianCoords();
+
+      for ( int i = 0; i < 3; i++ )
+        v[i] = pos[i];
+    }
+  }
+
 
   /* ----------------------------- equals ------------------------------- */
   /**
