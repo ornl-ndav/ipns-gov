@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/11 23:01:00  serumb
+ *  Changed package.
+ *
  *  Revision 1.7  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -45,7 +48,7 @@
  *
  */ 
 
-package DataSetTools.util;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.awt.*;
 import javax.swing.*;
