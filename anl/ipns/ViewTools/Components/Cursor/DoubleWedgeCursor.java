@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 01:33:22  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.3  2003/12/16 01:43:41  millermi
  *  - Restructured selection so parameters define region
  *    in a counterclockwise direction.
@@ -52,7 +55,7 @@
  *
  */
 
- package DataSetTools.components.View.Cursor;
+ package gov.anl.ipns.ViewTools.Components.Cursor;
 
  import javax.swing.JPanel;
  import java.io.Serializable;

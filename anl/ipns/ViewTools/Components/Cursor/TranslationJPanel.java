@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/12 01:33:23  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.7  2003/12/15 20:49:54  millermi
  *  - changed setViewPort() parameters from ints to floats.
  *  - Now swaps bounds if passed in local bounds are not
@@ -71,19 +74,15 @@
  *
  */
 
-package DataSetTools.components.View.Cursor;
+package gov.anl.ipns.ViewTools.Components.Cursor;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-import DataSetTools.components.image.CoordJPanel;
-import DataSetTools.components.image.CoordBounds;
-import DataSetTools.components.image.CoordTransform;
-import DataSetTools.components.View.ObjectState;
-import DataSetTools.components.View.Cursor.XOR_PanCursor;
-import DataSetTools.components.View.Cursor.BoxPanCursor;
-import DataSetTools.util.floatPoint2D;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
  * This class allows for the drawing of a translating box cursor.

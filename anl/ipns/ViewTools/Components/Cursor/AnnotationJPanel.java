@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/12 01:33:21  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.5  2003/10/16 05:00:04  millermi
  *  - Fixed java docs errors.
  *
@@ -56,7 +59,7 @@
  *
  */
 
-package DataSetTools.components.View.Cursor;
+package gov.anl.ipns.ViewTools.Components.Cursor;
 
 import java.io.*;
 import java.awt.*;
@@ -64,9 +67,7 @@ import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-import DataSetTools.util.*;
-import DataSetTools.components.ui.*;
-import DataSetTools.components.image.*;
+import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
 
 /**
  * This class is used by the AnnotationOverlay to create an arrow from the 

@@ -36,19 +36,22 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/12 01:33:22  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.1  2003/06/05 22:11:19  dennis
  *   - Initial Version, cursor used by AnnotationJPanel (Mike Miller)
  *
  *
  */
 
- package DataSetTools.components.View.Cursor;
+ package gov.anl.ipns.ViewTools.Components.Cursor;
 
  import javax.swing.*;
  import java.io.*;
  import java.awt.*;
  
- import DataSetTools.components.image.*;
+ import gov.anl.ipns.ViewTools.Panels.Cursors.XOR_Cursor;
 
 /** 
  *  This class implements a Rubberband line cursor for arrowing an annotation.

@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2004/03/12 01:33:23  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.15  2004/03/09 21:06:47  millermi
  *  - Added ToolTips to editors for user assistance.
  *
@@ -94,15 +97,15 @@
  *
  */
 
-package DataSetTools.components.View.Cursor;
+package gov.anl.ipns.ViewTools.Components.Cursor;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-import DataSetTools.components.ui.ActiveJPanel;
-import DataSetTools.components.image.XOR_Cursor;
-import DataSetTools.components.image.BoxCursor;
+import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
+import gov.anl.ipns.ViewTools.Panels.Cursors.XOR_Cursor;
+import gov.anl.ipns.ViewTools.Panels.Cursors.BoxCursor;
 
 /**
  * This class allows for the drawing of rubber band box/circle/point cursors.

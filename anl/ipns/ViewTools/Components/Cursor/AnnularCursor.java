@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/12 01:33:22  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.2  2004/01/08 21:55:38  millermi
  *  - Added crosshairs to center of ring.
  *
@@ -45,7 +48,7 @@
  *
  */
 
- package DataSetTools.components.View.Cursor;
+ package gov.anl.ipns.ViewTools.Components.Cursor;
 
  import javax.swing.JPanel;
  import java.io.Serializable;

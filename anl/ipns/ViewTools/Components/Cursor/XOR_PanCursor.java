@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/12 01:33:24  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.2  2003/10/29 20:35:46  millermi
  *  -Added moveEdge() and public variables for use by this method. moveEdge()
  *   allows for stretching bounds.
@@ -46,7 +49,7 @@
  *
  */
 
-package DataSetTools.components.View.Cursor;
+package gov.anl.ipns.ViewTools.Components.Cursor;
 
 import java.awt.Point;
 import java.awt.Color;

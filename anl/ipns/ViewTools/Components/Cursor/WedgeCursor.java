@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/12 01:33:23  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.5  2003/12/12 20:04:40  millermi
  *  - Fixed bug that caused entire circle to be drawn.
  *
@@ -59,7 +62,7 @@
  *
  */
 
- package DataSetTools.components.View.Cursor;
+ package gov.anl.ipns.ViewTools.Components.Cursor;
 
  import javax.swing.JPanel;
  import java.io.Serializable;

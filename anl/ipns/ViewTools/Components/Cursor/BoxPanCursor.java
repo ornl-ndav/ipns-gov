@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/12 01:33:22  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.1  2003/10/27 08:47:48  millermi
  *  - Initial Version - This class was created to enable users
  *    panning options for images too large to view in the
@@ -42,7 +45,7 @@
  *
  */
 
-package DataSetTools.components.View.Cursor;
+package gov.anl.ipns.ViewTools.Components.Cursor;
 
 import javax.swing.JPanel;
 import java.io.Serializable;

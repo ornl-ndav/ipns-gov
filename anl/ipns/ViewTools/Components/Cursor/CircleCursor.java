@@ -36,6 +36,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/12 01:33:22  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.2  2003/12/29 20:59:29  millermi
  *  - Reduced imported packages.
  *
@@ -43,14 +46,14 @@
  *  Initial version of cursor selection. (Mike Miller)
  *
  */
- package DataSetTools.components.View.Cursor;
+ package gov.anl.ipns.ViewTools.Components.Cursor;
 
  import javax.swing.JPanel;
  import java.io.Serializable;
  import java.awt.Graphics;
  import java.awt.Point;
  
- import DataSetTools.components.image.XOR_Cursor;
+ import gov.anl.ipns.ViewTools.Panels.Cursors.XOR_Cursor;
 
 /** 
  *  This class implements a Rubberband Circle cursor for selecting regions.

@@ -36,6 +36,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/12 01:33:22  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.2  2003/06/05 22:16:19  dennis
  *   - Updated comments, no functional changes made. (Mike Miller)
  *
@@ -43,13 +46,13 @@
  *  Initial version of cursor selection. (Mike Miller)
  */
 
- package DataSetTools.components.View.Cursor;
+ package gov.anl.ipns.ViewTools.Components.Cursor;
 
  import javax.swing.*;
  import java.io.*;
  import java.awt.*;
  
- import DataSetTools.components.image.*;
+ import gov.anl.ipns.ViewTools.Panels.Cursors.XOR_Cursor;
 
 /** 
  *  This class implements a point cursor for selecting regions.

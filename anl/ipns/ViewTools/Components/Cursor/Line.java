@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 01:33:22  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.3  2003/11/18 01:03:29  millermi
  *  - Now implement serializable to allow saving of state.
  *
@@ -46,7 +49,7 @@
  *
  */
 
- package DataSetTools.components.View.Cursor;
+ package gov.anl.ipns.ViewTools.Components.Cursor;
 
  import java.awt.Point;
 

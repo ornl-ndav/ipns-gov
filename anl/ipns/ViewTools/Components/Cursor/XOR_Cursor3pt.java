@@ -33,6 +33,9 @@
  *   Prentice Hall, 1997 )
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 01:33:23  millermi
+ *  - Changed package and imports.
+ *
  *  Revision 1.3  2003/12/29 22:13:32  millermi
  *  - Fixed bug that did not erase the portion of the cursor
  *    drawn before midpoint() was called.
@@ -46,7 +49,7 @@
  *
  */
 
-package DataSetTools.components.View.Cursor;
+package gov.anl.ipns.ViewTools.Components.Cursor;
 
 import java.awt.Color;
 import java.awt.Graphics;
