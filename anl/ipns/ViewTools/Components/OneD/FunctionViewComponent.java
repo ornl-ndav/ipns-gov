@@ -33,9 +33,9 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.20  2003/08/08 16:08:09  serumb
- *  Check to see if "Show Pointed At" is checked then change axes as
- *  scale changes.
+ *  Revision 1.21  2003/08/08 17:07:03  serumb
+ *  Changed dataChanged() method to only re-draw selected graphs when
+ *  selected graphs are changed.
  *
  *  Revision 1.19  2003/08/06 16:26:13  serumb
  *  Function controls will not close when pointed at changes.
@@ -376,30 +376,14 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    * This method will be called to notify this component of a change in data.
    */
   public void dataChanged(  ) {
-/*    for(int i = 0; i < Varray1D.getNumlines(); i++)
-    {
-      float[] x_array = Varray1D.getXValues( i );
-      float[] y_array = Varray1D.getYValues( i );
 
-      gjp.setData( x_array, y_array, i, true );
-      gjp.setErrors( Varray1D.getErrorValues( i ), 0, i, true );
-    }
-*/
-       if (draw_pointed_at) {
-       DrawSelectedGraphs();
-       if(draw_pointed_at)
+       if(draw_pointed_at) {
        DrawPointedAtGraph();
        paintComponents(big_picture.getGraphics());
        }
-/*    else{
-       mainControls.close_frame();
-       DrawSelectedGraphs();
-       mainControls = new FunctionControls(Varray1D, gjp, getDisplayPanel());
-    }*/
-    //if(getDisplayPanel().getGraphics() != null)
-    //  paintComponents(getDisplayPanel().getGraphics());
-  }
-  /**
+    }
+  
+/**
    * To be continued...
    */
   public void dataChanged( IVirtualArray1D pin_varray )  // pin == "passed in"
