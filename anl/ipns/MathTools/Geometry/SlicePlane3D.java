@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/24 23:46:37  dennis
+ * Added copy constructor.
+ *
  * Revision 1.1  2004/01/19 23:55:17  dennis
  * Initial version of class to represent the plane of a slice through
  * reciprocal space.
@@ -62,6 +65,21 @@ public class SlicePlane3D
     origin = new Vector3D( 0, 0, 0 );
     u      = new Vector3D( 1, 0, 0 );
     v      = new Vector3D( 0, 1, 0 );
+  }
+
+
+  /*--------------------------- copy constructor -----------------------*/
+  /**
+   *  Construct the x,y plane, using the values from the specified plane.
+   *
+   *  @param old_plane  The plane whose values are to be used in 
+   *                    constructing this new plane.
+   */
+  public SlicePlane3D( SlicePlane3D old_plane )
+  {
+    origin = new Vector3D( old_plane.origin );
+    u      = new Vector3D( old_plane.u      );
+    v      = new Vector3D( old_plane.v      );
   }
 
   
@@ -267,6 +285,7 @@ public class SlicePlane3D
   {
     Vector3D normal = new Vector3D();
     normal.cross( u, v );
+    normal.normalize();
     return normal;
   }
 
