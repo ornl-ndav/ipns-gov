@@ -30,6 +30,9 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.7  2004/03/12 02:15:48  dennis
+ *  Moved to package gov.anl.ipns.MathTools.Functions;
+ *
  *  Revision 1.6  2003/10/15 23:59:02  dennis
  *  Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -44,9 +47,10 @@
  *
  */
 
-package DataSetTools.math;
+package gov.anl.ipns.MathTools.Functions;
 
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.*;
+
 
 /**
  *  Basic curve fitting operations such as least squares fitting of a 

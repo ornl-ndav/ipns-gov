@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 02:12:58  dennis
+ *  Moved to package gov.anl.ipns.MathTools.Functions;
+ *
  *  Revision 1.3  2002/11/27 23:14:24  pfpeterson
  *  standardized header
  *
@@ -41,11 +44,9 @@
  *
  */
 
-package  DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
 
 import java.io.*;
-import DataSetTools.math.*;
-import DataSetTools.dataset.*;
 
 /**
  * This class implements an exponential growth or decay model, a exp(kx)  as a 
