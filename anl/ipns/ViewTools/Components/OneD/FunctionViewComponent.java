@@ -558,7 +558,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    {  
       public void actionPerformed( ActionEvent ae )
       {
-	//String message = ae.getActionCommand();
+	String message = ae.getActionCommand();
 	//System.out.println("Graph sent message " + message );
         
 	if(message.equals("Line Color"))
