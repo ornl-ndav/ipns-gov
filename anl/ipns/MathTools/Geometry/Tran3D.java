@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2004/03/12 00:22:47  dennis
+ * Put in MathTools.Geometry package
+ * Removed dependency on tof_calc.
+ *
  * Revision 1.9  2004/03/11 23:06:13  dennis
  * Changed to MathTools.Geometry package
  *
@@ -717,8 +721,8 @@ public class Tran3D
     System.out.println( "View matrix is : \n" + tran_1 );
 
     System.out.println( "Testing inverse..." );
-    tran_1 = tof_calc.makeEulerRotation( 20, 30, 40 );
-    tran_2 = tof_calc.makeEulerRotationInverse( 20, 30, 40 );
+    tran_1 = EulerAngles.makeEulerRotation( 20, 30, 40 );
+    tran_2 = EulerAngles.makeEulerRotationInverse( 20, 30, 40 );
 
     System.out.println("tran 1 = ");
     System.out.println("" + tran_1 );

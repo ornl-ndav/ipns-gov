@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/12 00:22:47  dennis
+ * Put in MathTools.Geometry package
+ * Removed dependency on tof_calc.
+ *
  * Revision 1.3  2004/01/28 21:58:00  dennis
  * Made set() method, and constructor more flexible, so that the
  * transformation can be initialized from either a 3x3 or 4x4
@@ -45,9 +49,10 @@
  *
  */
 
-package DataSetTools.math;
+package gov.anl.ipns.MathTools.Geometry;
 
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Sys.*;
+import gov.anl.ipns.MathTools.*;
 
 /**
  *  This class represents basic transformations of Vector3D_d objects, such
