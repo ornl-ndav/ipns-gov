@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/08/07 17:57:41  millermi
+ *  - Added line selection capabilities
+ *  - Changed Help menu for REMOVE ALL SELECTIONS from "Double" to "Single" click
+ *
  *  Revision 1.6  2003/08/06 13:56:45  dennis
  *  - Added sjp.setOpaque(false) to constructor. Fixes bug when
  *    Axis Overlay is turned off and Selection Overlay is on.
@@ -181,7 +185,7 @@ public class SelectionOverlay extends OverlayJPanel
       text.append("Click/Drag/Release Mouse w/P_Key pressed>" + 
                   "ADD POINT SELECTION\n");
       text.append("Double Click Mouse>REMOVE LAST SELECTION\n");
-      text.append("Double Click Mouse w/A_Key>REMOVE ALL SELECTIONS\n\n");
+      text.append("Single Click Mouse w/A_Key>REMOVE ALL SELECTIONS\n\n");
       
       helper.setVisible(true);
    }
@@ -291,11 +295,15 @@ public class SelectionOverlay extends OverlayJPanel
 	 {
 	    g2d.drawOval( p1.x, p1.y, p2.x - p1.x, p2.y - p1.y );   
 	 }
-         if( region instanceof Rectangle )
+         else if( region instanceof Rectangle )
 	 {
 	    g2d.drawRect( p1.x, p1.y, p2.x - p1.x, p2.y - p1.y ); 	    
 	 }
-         if( region instanceof Point )
+         else if( region instanceof Line )
+	 {
+	    g2d.drawLine( p1.x, p1.y, p2.x, p2.y ); 	    
+	 }
+         else if( region instanceof Point )
 	 {
 	    //System.out.println("Drawing instance of point at " + 
 	    //                 ((Point)region).x + "/" + ((Point)region).y );
@@ -403,9 +411,22 @@ public class SelectionOverlay extends OverlayJPanel
 	       sendMessage(REGION_ADDED);
 	       //System.out.println("Drawing circle region" );
 	    }	    
-	    else if( message.indexOf( SelectionJPanel.ELIPSE ) > -1 )
+	    else if( message.indexOf( SelectionJPanel.LINE ) > -1 )
 	    {
-	       //System.out.println("Elipse region not implemented" );
+	      Line line = ((LineCursor)sjp.getCursor( 
+	                              SelectionJPanel.LINE )).region();
+	      Point p1 = new Point( line.getP1() );
+	      p1.x += (int)current_bounds.getX();
+	      p1.y += (int)current_bounds.getY();
+	      Point p2 = new Point( line.getP2() );
+	      p2.x += (int)current_bounds.getX();
+	      p2.y += (int)current_bounds.getY();
+	      floatPoint2D tempwcp1 = convertToWorldPoint( p1 );
+	      floatPoint2D tempwcp2 = convertToWorldPoint( p2 );
+	                                           
+	      Region lineregion = new Region( line, tempwcp1, tempwcp2 );
+	      regions.add( lineregion );
+	      sendMessage(REGION_ADDED);
 	    }	    
 	    else if( message.indexOf( SelectionJPanel.POINT ) > -1 )
 	    { 
