@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/12 02:36:16  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.5  2004/01/29 08:20:45  millermi
  *  - Now implements IPreserveState, thus state can now be saved for
  *    all ViewControls. Each control is responsible for detailed
@@ -57,7 +60,7 @@
  *
  */
  
- package DataSetTools.components.View.ViewControls;
+ package gov.anl.ipns.ViewTools.Components.ViewControls;
 
  import javax.swing.JComponent;
  import javax.swing.JFrame;
@@ -66,7 +69,7 @@
  import java.awt.event.ActionEvent;
  import java.awt.event.ActionListener;
  
- import DataSetTools.util.WindowShower;
+ import gov.anl.ipns.Util.Sys.WindowShower;
  
 /**
  * This class is to quickly convert JComponents to ViewControls. However,
