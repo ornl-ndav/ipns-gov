@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/01/10 16:13:16  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.1  2004/06/10 23:20:10  serumb
  *  Initial Version of an interface that a class needs to implement
  *  to use the legend overlay.
@@ -43,9 +46,7 @@
 package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import java.awt.Font;
-import java.awt.Graphics2D;
 
-import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Graph.*;
 
 /**

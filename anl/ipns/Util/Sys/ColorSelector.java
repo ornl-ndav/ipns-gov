@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/01/10 16:13:16  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.1  2004/04/23 16:58:05  millermi
  *  - Initial Version - This class allows programmers to easily
  *    add a color chooser to the GUI application without
@@ -49,7 +52,6 @@ import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
-import javax.swing.colorchooser.ColorSelectionModel;
 
 import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
 import gov.anl.ipns.Util.Sys.WindowShower;

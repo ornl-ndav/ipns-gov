@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2005/01/10 16:14:45  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.6  2004/07/02 19:15:49  serumb
  *  Added controls for help and close to the editor.
  *
@@ -57,17 +60,13 @@ package gov.anl.ipns.ViewTools.Components.Transparency;
 import javax.swing.*; 
 import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
-import javax.swing.border.TitledBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.text.TextAction;
 import javax.swing.text.Keymap;
 import java.awt.event.*;
 
 import gov.anl.ipns.ViewTools.Components.*;
-import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
-import gov.anl.ipns.ViewTools.UI.*;
 import gov.anl.ipns.ViewTools.Panels.Graph.*;
 
 /**
