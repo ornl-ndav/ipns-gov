@@ -29,6 +29,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2002/11/12 03:36:24  dennis
+ *  Since Attributes are no longer mutable, this can't call setValue()
+ *  for Double, Float and Int Attributes (line 421).  This must still be
+ *  modified to adapt to immutable Attributes.
+ *
  *  Revision 1.3  2002/07/10 19:35:23  rmikk
  *  Change in documentation
  *
@@ -418,7 +423,11 @@ public static boolean AttribXMLread( InputStream stream, Attribute A )
               (A instanceof FloatAttribute) ||
               (A instanceof DoubleAttribute))
             value= new Double(v);
-          A.setValue( value );
+          System.out.println("ERROR: setValue no longer supported " +
+                             "by Attribute class" );
+          // A.setValue( value );        ######## now that Attributes are
+          //                                      immutable, we need a new
+          //                                      way to do this
           }
        catch( Exception s)
           { DataSetTools.util.SharedData.status_pane.add(
