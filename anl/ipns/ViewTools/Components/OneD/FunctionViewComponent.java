@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.34  2004/01/08 22:53:49  serumb
+ *  Undo bad Y axis fix.
+ *
  *  Revision 1.33  2004/01/08 20:45:23  serumb
  *  Fixed the y-axis decreasing on start-up problem.
  *
@@ -291,8 +294,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     }
     else
     return new AxisInfo( 
-      gjp.getLocalWorldCoords(  ).getY2(  ),
       gjp.getLocalWorldCoords(  ).getY1(  ),
+      gjp.getLocalWorldCoords(  ).getY2(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
@@ -369,7 +372,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   /**
    * This method will return the graph JPanel. 
    */
-  public GraphJPanel getGraphJPanel(  ) {
+  public GraphJPanel GaphJPanel(  ) {
     return gjp;
   }
   
