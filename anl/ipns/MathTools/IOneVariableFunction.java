@@ -30,11 +30,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/11 23:11:14  dennis
+ *  Changed to MathTools package
+ *
  *  Revision 1.5  2002/11/27 23:15:47  pfpeterson
  *  standardized header
  *
  */
-package  DataSetTools.math;
+package  gov.anl.pns.MathTools;
 
 import java.io.*;
 
