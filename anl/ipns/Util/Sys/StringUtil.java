@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.28  2004/01/22 01:21:55  bouzekc
+ *  Reinserted check for null String argument.
+ *
  *  Revision 1.27  2004/01/21 17:48:32  bouzekc
  *  Backwards-compatible with previous version; if the splitter for split()
  *  is null, it is treated as a space separator.
@@ -502,10 +505,10 @@ public class StringUtil
    * is null.  Now uses Java 1.4's split() method.
    */
   public static String[] split(String string, String splitter){
-    /*if(string==null || string.length()<=0)
+    if(string==null || string.length()<=0)
         return null;
       
-    if(splitter==null) splitter=" ";
+    /*if(splitter==null) splitter=" ";
     int splitter_length=splitter.length();
 
     int count=1;
