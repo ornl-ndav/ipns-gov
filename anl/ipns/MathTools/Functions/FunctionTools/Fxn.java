@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2004/03/12 00:48:19  dennis
+ * moved to package MathTools.Functions.FunctionTools
+ *
  * Revision 1.4  2004/01/22 02:28:09  bouzekc
  * Removed/commented out unused imports and variables.
  *
@@ -43,7 +46,7 @@
  *
  */
 
-package DataSetTools.functions.FunctionTools;
+package gov.anl.ipns.MathTools.Functions.FunctionTools;
 
 /**
 *Super class for all the new classes.

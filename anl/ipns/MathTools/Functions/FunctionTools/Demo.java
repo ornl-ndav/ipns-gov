@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2004/03/12 00:48:19  dennis
+ * moved to package MathTools.Functions.FunctionTools
+ *
  * Revision 1.3  2004/01/22 02:28:09  bouzekc
  * Removed/commented out unused imports and variables.
  *
@@ -39,7 +42,7 @@
  * byte code for evaluating the functions.
  *
  */
-package DataSetTools.functions.FunctionTools;
+package gov.anl.ipns.MathTools.Functions.FunctionTools;
 
 import java.awt.*;
 import java.applet.Applet;

@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2004/03/12 00:48:19  dennis
+ * moved to package MathTools.Functions.FunctionTools
+ *
  * Revision 1.3  2004/01/22 02:28:09  bouzekc
  * Removed/commented out unused imports and variables.
  *
@@ -39,7 +42,7 @@
  * byte code for evaluating the functions.
  *
  */
-package DataSetTools.functions.FunctionTools;
+package gov.anl.ipns.MathTools.Functions.FunctionTools;
 
 /**
 * A Classloader that Loads the class from bytes instead of files
@@ -73,7 +76,8 @@ in the search path, the newly created class may not be the one that is loaded.
 */
   public Class findClass(String name) throws ClassNotFoundException
    {  
-     if( !name.equals("DataSetTools.functions.FunctionTools.Fxn"))
+     System.out.println("name = " + name ); 
+     if( !name.equals("gov.anl.ipns.MathTools.Functions.FunctionTools.Fxn"))
        return defineClass(name, bb, 0, bb.length);
      else
       return  super.findClass( name);
