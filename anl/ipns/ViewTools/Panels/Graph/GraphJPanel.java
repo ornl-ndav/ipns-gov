@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.34  2003/11/05 20:44:08  serumb
+ * Fix java docs.
+ *
  * Revision 1.33  2003/10/30 17:13:36  serumb
  * Changed the paint function so that it marks all the points when
  * the point markers are selected.
@@ -394,7 +397,7 @@ public class GraphJPanel extends    CoordJPanel
 
 /* ----------------------------- getMarkColor --------------------------------*/
 /**
- *  Set the mark color for the specified graph.  
+ *  Gets the mark color for the specified graph.  
  *
  *  @param  graph_num  the index of the graph whose color is gotten.
  *                     The index must be at least zero and less than the
@@ -413,7 +416,7 @@ public class GraphJPanel extends    CoordJPanel
 
 /* ----------------------------- getColor --------------------------------*/
 /**
- *  Set the mark color for the specified graph.  
+ *  Gets the mark color for the specified graph.  
  *
  *  @param  graph_num  the index of the graph whose color is gotten.
  *                     The index must be at least zero and less than the
@@ -431,7 +434,7 @@ public class GraphJPanel extends    CoordJPanel
   }
 /* ----------------------------- getErrorColor --------------------------------*/
 /**
- *  Set the mark color for the specified graph.  
+ *  Gets the mark color for the specified graph.  
  *
  *  @param  graph_num  the index of the graph whose color is gotten.
  *                     The index must be at least zero and less than the
