@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2001/05/29 14:55:39  dennis
+ * setVirtualScreen() now takes a third parameter to specify
+ * whether or not to reset the local transform as well as
+ * the global transform.
+ *
  * Revision 1.3  2001/05/23 17:33:51  dennis
  * Now calculates front clipping plane between COP and VRP.
  * Also improved error checking for null transforms.
@@ -85,7 +90,7 @@ public class ThreeD_JPanel extends    CoordJPanel
   { 
     super();
 
-    setVirtualScreenSize( 1, 1 );
+    setVirtualScreenSize( 1, 1, true );
     setBackground( Color.black );
   }
 
@@ -130,13 +135,14 @@ public class ThreeD_JPanel extends    CoordJPanel
   public void paint( Graphics g )
   {
     data_painted = true;
-    stop_box( current_point, false );   // if the system redraws this without
-    stop_crosshair( current_point );    // our knowlege, we've got to get rid
-                                        // of the cursors, or the old position
-                                        // will be drawn rather than erased
-                                        // when the user moves the cursor (due
-                                        // to XOR drawing).
-
+    if ( isDoingCrosshair() )                  // if the system redraws this
+      stop_crosshair( current_point );         // without our knowledge, 
+                                               // we've got to get rid
+    if ( isDoingBox() )                        // of the cursors, or the 
+      stop_box( current_point, false );        // old position will be drawn
+                                               // instead of erased when the
+                                               // user moves the cursor (due
+                                               // to XOR drawing).
     super.paint(g);
     if ( objects == null )
     {
@@ -186,11 +192,15 @@ public class ThreeD_JPanel extends    CoordJPanel
  *  NOTE: The application must call repaint() or request_painting() to show
  *        the objects on the new virtual screen.
  *
- *  @param  width  The width of the virtual viewing screen.
- *  @param  height The height of the virtual viewing screen.
+ *  @param  width       The width of the virtual viewing screen.
+ *  @param  height      The height of the virtual viewing screen.
+ *  @param  reset_zoom  Flag indicating whether or not to reset the local
+ *                      "zoomed" transform as well as the global transform.
  *
  */
-  public void setVirtualScreenSize( float width, float height )
+  public void setVirtualScreenSize( float   width, 
+                                    float   height, 
+                                    boolean reset_zoom )
   {
      width  =  Math.abs(width);
      height = Math.abs(height);
@@ -201,8 +211,12 @@ public class ThreeD_JPanel extends    CoordJPanel
      if ( height == 0 )
        height = 1;
 
-     setGlobalWorldCoords( new CoordBounds( -width/2,  height/2, 
-                                             width/2, -height/2 ) );
+     if ( reset_zoom )
+       initializeWorldCoords( new CoordBounds( -width/2,  height/2, 
+                                                width/2, -height/2 ) );
+     else
+       setGlobalWorldCoords( new CoordBounds( -width/2,  height/2, 
+                                               width/2, -height/2 ) );
      data_painted = false;
   }
   
@@ -338,8 +352,6 @@ public class ThreeD_JPanel extends    CoordJPanel
   {
     if ( objects == null )         // nothing to project
       return;
-
-    SetTransformsToWindowSize();
                                    // can't project using null transforms
     if ( tran == null || local_transform == null )
     {
@@ -463,7 +475,7 @@ private static void q_sort( IThreeD_Object list[],
       ((Polymarker)objs[p]).setType(Polymarker.STAR);
     }
     test.setObjects( objs );
-    v_control.apply( );
+    v_control.apply( true );
                                                      // test showing frames
                                                      // with different colors
     Color colors[] = new Color[ n_objects ];
@@ -492,7 +504,7 @@ private static void q_sort( IThreeD_Object list[],
       v_control.setCOP( new Vector3D(5+count/5.0f,
                                      4+count/5.0f,
                                      10.0f - count/5.0f) );
-      v_control.apply();
+      v_control.apply( false );
     }
   }
 
