@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/12/29 04:17:25  millermi
+ *  - Added doClick() method that calls the JCheckbox.doClick().
+ *    This will simulate a mouse click.
+ *
  *  Revision 1.2  2003/10/16 05:00:12  millermi
  *  - Fixed java docs errors.
  *
@@ -176,7 +180,16 @@ public class ControlCheckbox extends ViewControl
       uncheckcolor = unchecked;
       if( !cbox.isSelected() )
          cbox.setForeground( uncheckcolor );
-   }   
+   }
+   
+  /**
+   * Acts as an artifical mouse click. Extends the capability of the
+   * JCheckbox.doClick().
+   */
+   public void doClick()
+   {
+     cbox.doClick();
+   }    
    
   /*
    * CheckboxListener moniters the JCheckBox private data member for the
@@ -213,7 +226,7 @@ public class ControlCheckbox extends ViewControl
       check2.setText("myCheckbox2");   
       check.setTextCheckedColor( Color.orange );
       check.setTextUnCheckedColor( Color.green );
-      
+      check2.doClick();
       frame.show();
    }
 }
