@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2002/10/29 23:48:06  dennis
+ * Added method, pickedObject(), to get the last object that was picked.
+ *
  * Revision 1.10  2002/07/31 16:42:31  dennis
  * Now uses Java's built in sort instead of customized Q-Sort
  *
@@ -102,6 +105,7 @@ public class ThreeD_JPanel extends    CoordJPanel
   private  Hashtable       obj_lists     = null;  // Hastable storing, object[]
                                                   // lists referenced by name 
                                                   
+  private  IThreeD_Object  picked_object = null;  // last object picked
   private  IThreeD_Object  all_objects[] = null;  // array of all current 
                                                   // objects
   private  int             index[]       = null;  // depth sorted array of
@@ -412,10 +416,34 @@ public class ThreeD_JPanel extends    CoordJPanel
    }
 
    if ( min_distance < pick_radius )
+   {
+     picked_object = all_objects[ min_index ];
      return all_objects[ min_index ].getPickID();
+   }
    else
+   {
+     picked_object = null;
      return IThreeD_Object.INVALID_PICK_ID;
+   }
  }
+
+
+/* ---------------------------- pickedObject ----------------------------- */
+/*
+ *  Return a reference to the object that was last picked by a call to
+ *  pickID(,,).  The pickID(,,) method must have been previously called and
+ *  returned a valid pick ID for this to be valid.  Otherwise it will return
+ *  null.
+ *
+ *  @return  The IThreeD_Object that was last picked by pickID(,,) or null
+ *           if the last attempt at picking returned INVALID_PICK_ID.
+ *           If no such object is found, this returns INVALID_PICK_ID.
+ */
+ public IThreeD_Object pickedObject()
+ {
+   return picked_object;
+ }
+
 
 /* ------------------------------- project ------------------------------ */
 /**
@@ -536,7 +564,6 @@ public class ThreeD_JPanel extends    CoordJPanel
     for ( int i = 0; i < all_objects.length; i++ )
       all_objects[i].Project( tran, local_transform, clip_distance );
 
-    //q_sort( all_objects, index, 0, all_objects.length-1 );
     JavaSort( all_objects, index );
 
     tran3D_used = new Tran3D( tran );
@@ -553,38 +580,6 @@ private void swap( int index[], int i, int j )
    index[j]  = temp;
 }
 
-
-/* ------------------------------ q_sort --------------------------------- */
-
-private void q_sort( IThreeD_Object list[], 
-                     int            index[], 
-                     int            start, 
-                     int            end    )
-{
-   int   i = start;
-   int   j = end;
-   float key;
-
-   if ( i >= j )                      // at most one element, so we're
-     return;                          // done with this sublist
-
-   swap( index, start, (i+j)/2 );
-
-   key = list[ index[start] ].depth();
-   while ( i < j )
-   {
-     while ( list[ index[i] ].depth() <= key && i < end )
-       i++;
-     while ( list[ index[j] ].depth() > key )
-       j--;
-     if ( i < j )
-       swap( index, i, j );
-   }
-   swap( index, start, j );
-
-   q_sort( list, index, start, j-1 );
-   q_sort( list, index, j+1, end );
-}
 
 /* -------------------------- JavaSort -------------------------------- */
 
