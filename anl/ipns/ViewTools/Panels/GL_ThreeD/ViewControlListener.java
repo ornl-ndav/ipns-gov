@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/04 14:09:04  dennis
+ * Now transfers data regarding whether or not the projection is a
+ * perspective projection, from the ViewController to the ThreeD_GL_Panel,
+ * when the ViewControl changes.
+ *
  * Revision 1.1  2004/05/28 20:51:18  dennis
  * Initial (test) version of classes for displaying and picking
  * 3D objects using OpenGL from Java, built on the "jogl" system.
@@ -107,10 +112,12 @@ public class ViewControlListener implements ActionListener
     Vector3D cop = controller.getCOP();
     Vector3D vrp = controller.getVRP();
     Vector3D vuv = controller.getVUV();
+    boolean  perspective_onoff = controller.isPerspective();
 
     panel.setCOP(cop);
     panel.setVRP(vrp);
     panel.setVUV(vuv);
+    panel.setPerspective( perspective_onoff );
     panel.Draw();
   }
 
