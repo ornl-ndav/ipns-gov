@@ -32,6 +32,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2003/09/16 16:12:33  rmikk
+ * Improved End Condition response
+ *
  * Revision 1.1  2003/07/14 16:49:58  rmikk
  * Initial Checkin
  *
@@ -44,7 +47,7 @@ import DataSetTools.util.*;
 import java.lang.reflect.*;
 public class FileIO{
   public static final String NO_MORE_DATA = "No More Data";
-
+  public static boolean debug = false;
   public FileIO(){
   }
 
@@ -157,19 +160,21 @@ public class FileIO{
      Vector Copy = new Vector(); //Contains the copy of the Return values
      for( int i=0; i < V.size() ; i++)
         Copy.addElement( new Vector() );
-
+     int omitLast = 0;
      FormatHandler Fhandler = new FormatHandler( Format);
-     
+     if( debug) System.out.println( "FileIO Read Format="+Format);
      int line = 0;
      boolean done = false;
     
      while( !done){
         Vector LastLine = new Vector();         //For comparison using end conditions
+        omitLast = 0;
         for( int i = 0; i< V.size(); i++){
          
           Object S ;
           try{
              S= Fhandler.read( f );
+             if( debug) System.out.println("line,entry,val="+line+","+i+","+S);
               }
           catch( Exception u){
              u.printStackTrace();
@@ -181,23 +186,29 @@ public class FileIO{
              else 
                 done = true; 
           LastLine.addElement( S );
-          if( !done)
-          ((Vector)(Copy.elementAt(i))).addElement( S );
+          
          }
-      
-       if( !done) line++;
-
+       line++;
        if ( (MaxLines >= 0) &&(line >= MaxLines))
          done = true;
        else if( EndConditions == null){
        }
        else{
           boolean end = true;
-          for( int j = 0;(j < LastLine.size()) && (j> EndConditions.size()) && end; j++)
-            end = end && ((EndCond)(EndConditions.elementAt( j ))).done( LastLine.elementAt( j ));
-          if( end)
+          for( int j = 0;(j < LastLine.size()) && (j< EndConditions.size()) && end; j++)
+            {end = end && ((EndCond)(EndConditions.elementAt( j ))).
+                                done( LastLine.elementAt( j ));
+            }
+          if( end){
             done = true;
+            omitLast = 1;
+            line--;
+          }
        }
+     if( omitLast != 1){
+         for( int jj=0; jj< V.size(); jj++)  
+           ((Vector)Copy.elementAt(jj)).addElement( LastLine.elementAt(jj));
+     }
      }//while !done
  
  
@@ -214,14 +225,13 @@ public class FileIO{
        
        }else if( O != null ){
         Class c = getBaseClass( O );
-
         Object arry = Array.newInstance( c, line );
         for( int j = 0; j< line; j++){
           try{
               Array.set( arry, j, C.elementAt(j) );
              }
           catch( Exception ss){
-            return new ErrorString( ss.getMessage() );
+            return new ErrorString( "x"+ss.toString()+","+j+","+line+","+C.size()+","+i );
           }
          
         }
@@ -295,7 +305,13 @@ public class FileIO{
 
 
   }
-
+  /**
+  *    This method produces an EndCond that can be put into a Vector of
+  *    end conditions
+  *   @param  relation  Should be "<","<=",">",">=","<>","="
+  *   @param  Value     The value the corresponding variable is compared to
+  *   @return  an Ending Condition   
+  */
   public static EndCond  getEndCondition( String relation,  Object Value){
      return new EndCond( relation, Value);
 
@@ -334,10 +350,12 @@ class EndCond{
   *           that this satisies a terminating read condition so you are done reading
   */ 
   boolean done( Object Val){
-    
     return Cond.compare(Val);
     
     }
+  public String toString(){
+    return( "EndCond="+relation+","+Value);
+  }
 }//EndCond
 
 /**
@@ -456,6 +474,7 @@ class Nulll{
    interface FOps{
         public Object write( Object O, int line); 
         public Object read( FileInputStream fin) throws IOException;
+        public boolean hasReadReturn();
     
      }
 
@@ -469,7 +488,7 @@ class Nulll{
      int currentFormat;
      FOps[] f_operations;
      boolean LineBreak = true; //line oriented or not.  NOT implemented yet
-
+     boolean haveReadReturn = false;
      /**
      *    Constructor- sets up variables to handle the Format
      *   @param   Format  A  simple Fortran-like Format string
@@ -534,7 +553,10 @@ class Nulll{
        LineBreakModeOp lbmop= new LineBreakModeOp();
        while( !done)
           if( f_operations[currentFormat]  instanceof newLineOp){
-               Object O = f_operations[ currentFormat ].read(fin);
+               Object O;
+               if(!haveReadReturn)
+                  O = f_operations[ currentFormat ].read(fin);
+               haveReadReturn = false;
                currentFormat++;
                currentFormat = fixup(currentFormat);
                //return O;
@@ -546,6 +568,7 @@ class Nulll{
            done =true;
        
        Object O = f_operations[ currentFormat].read(fin);
+       haveReadReturn = f_operations[currentFormat].hasReadReturn();
        currentFormat++;
        currentFormat = fixup( currentFormat);
        return O;
@@ -616,7 +639,12 @@ class Nulll{
             left = true;
           if( "+-".indexOf( c ) >= 0)
              S = S.substring(0, S.length()-1);
-          int width = (new Integer( S.substring(1 ) ) ).intValue();
+          int width;
+          try{
+            width = (new Integer( S.substring(1 ) ) ).intValue();
+          }catch( Exception uu){
+            return new ErrorOp();
+          }
        
           return new StringWrite(width, left);
         }
@@ -630,13 +658,14 @@ class Nulll{
  
      }//getOp
 
-
+     
     // Utility to read the next characters that are in the proper form for numbers
     //  It returns an ErrorString or the string representation of the number
     public static Object getNextNumericChars( FileInputStream fin, int width)
                       throws IOException{
        String S ="";
         int c;
+       
        if( width < 0){
          
           for( c = fin.read(); (c != -1) && ( c <= 32); c = fin.read()){};
@@ -665,9 +694,12 @@ class Nulll{
              cc =(char)c;
           }
          if( c >32)
-           return new ErrorString( "improper Numeric Format");
-         else
-           return S;
+           return new ErrorString( "improper Numeric Format " + S);
+         
+         else if( c < 32)
+            S+="\n";    
+         
+         return S;
 
 
        }else{
@@ -696,6 +728,7 @@ class Nulll{
     // Utility to get the line-th entry in Object O and return it as a double
     //   value or ErrorString errorS is set.
     public static ErrorString errorS;
+    
     public static double getDouble( Object O, int line ){
         errorS = null;
         if( O == null){
@@ -722,6 +755,7 @@ class Nulll{
                    return ((Number)Array.get( O,line)).doubleValue();
                  else{
                    errorS = new ErrorString( "Entry is not a Number at line "+line);
+
                    return Double.NaN;
                  }
               else{
@@ -737,6 +771,7 @@ class Nulll{
               return ((Number)O).doubleValue();
            else{
              errorS = new ErrorString( "Entry is not a Number at line "+line);
+
              return Double.NaN;
            }
              
@@ -752,10 +787,11 @@ class Nulll{
   }//FormatHandler
 
      /**  
-     *    An FOps that handles the I format specifier
+     *    An public that handles the I format specifier
      */
      class IntWrite implements FOps{
         int width;
+        boolean ReadReturn;
         public IntWrite( int width){
            this.width = width;
         }
@@ -767,11 +803,17 @@ class Nulll{
            return DataSetTools.util.Format.integer( N , width);
            
         }
-       
+       public boolean hasReadReturn(){
+          return ReadReturn;
+       }
+      
+         
        public Object read(FileInputStream fin )throws IOException{
+        ReadReturn =false;
         Object S = FormatHandler.getNextNumericChars( fin,width);
          if( S instanceof ErrorString)
            return S;
+         if( ((String)S).endsWith( "\n")) ReadReturn = true;
          String SS = ((String)S).trim();
          if( SS.length() <1)
             if( fin.available() ==0)
@@ -791,7 +833,7 @@ class Nulll{
      class FloatWrite implements FOps{
         int width;
         int dec;
-        
+        boolean ReadReturn;
         public FloatWrite( int width, int dec){
            this.width = width;
            this.dec  = dec;
@@ -803,10 +845,17 @@ class Nulll{
               return  FormatHandler.errorS;
            return DataSetTools.util.Format.real( N , width, dec);
         }
+
+        public boolean hasReadReturn(){
+           return ReadReturn;
+        }
        public Object read(FileInputStream fin )throws IOException{
+         ReadReturn = false;
          Object S = FormatHandler.getNextNumericChars(fin, width);
+         
          if( S instanceof ErrorString)
            return S;
+         if( ((String)S).endsWith("\n")) ReadReturn = true;
          String SS = ((String)S).trim();
          if( SS.length() <1)
             if( fin.available() ==0)
@@ -827,6 +876,7 @@ class Nulll{
     class ExpWrite implements FOps{
         int width;
         int dec;
+        boolean ReadReturn;
         public ExpWrite( int width,int dec){
            this.width = width;
            this.dec  = dec;
@@ -838,10 +888,14 @@ class Nulll{
            return DataSetTools.util.Format.singleExp( N , width);
         }
 
+       public boolean hasReadReturn(){
+         return ReadReturn;
+       }
        public Object read(FileInputStream fin )throws IOException{
         Object S = FormatHandler.getNextNumericChars(fin, width);
          if( S instanceof ErrorString)
            return S;
+         if( ((String)S).endsWith("\n")) ReadReturn = true;
          String SS = ((String)S).trim();
          if( SS.length() <1)
             if( fin.available() ==0)
@@ -892,8 +946,16 @@ class Nulll{
            
            return DataSetTools.util.Format.string( S ,width, left);
         }
+       boolean ReadReturn = false;
+
+       public boolean hasReadReturn(){
+
+         return ReadReturn;
+
+       }
        public Object read(FileInputStream fin ) throws IOException{
          String S ="";
+         ReadReturn = false;
          if( width < 0){
            int c  = fin.read();;
            while( (c <= 32) && (c != -1))
@@ -910,15 +972,22 @@ class Nulll{
               S+=(char)c;
               c = fin.read();
            }
+           if( c < 32) ReadReturn = true;
          }else{
-           int nn =fin.read( buff);
-           if( nn < 0)
-             return new ErrorString( FileIO.NO_MORE_DATA);
-           if( nn < width)
-             Arrays.fill( buff, nn,width,(byte)' ');
-           S = new String( buff);
+           S ="";
+           int c =fin.read();
+           int nn = 0;
+           while( (c <= 32) && (c != -1))
+              c =(char)fin.read();
+           if( c == -1)
+              return new ErrorString( FileIO.NO_MORE_DATA);
+           while( (c >=32) && nn < width){
+              S +=(char)c;
+              nn++;
+              if( nn< width)c=fin.read();
+           }
+          if( c< 32) ReadReturn = true;
          }
-
          return S;
 
        }
@@ -936,6 +1005,10 @@ class Nulll{
         public Object write( Object O, int line){
            return "\n";
         }
+
+       public boolean hasReadReturn(){
+           return false;
+       }
        public Object read(FileInputStream fin )throws IOException{
           int c = fin.read();
           while( (c != -1)&& ( ((char)c) != '\n') )
@@ -959,6 +1032,8 @@ class Nulll{
            return new ErrorString("Improper Format specifier");
 
         }
+       public boolean hasReadReturn(){return false;}
+
        public Object read(FileInputStream fin )throws IOException{
            return new ErrorString( "Improper Format specifier");
        }
@@ -976,6 +1051,7 @@ class Nulll{
            return new ErrorString("Improper Format specifier for write");
 
         }
+        public boolean hasReadReturn(){return false;}
        public Object read(FileInputStream fin )throws IOException{
             return "OK";
        }
