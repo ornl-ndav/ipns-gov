@@ -30,13 +30,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/06/02 20:59:07  pfpeterson
+ *  Added a constructor which takes a Throwable.
+ *
  *  Revision 1.6  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
  */
 package DataSetTools.util;
 
-import java.io.*;
+import java.io.Serializable;
 
 /**
  * The ErrorString class is used to construct and return strings for error
@@ -56,4 +59,21 @@ public class ErrorString  extends     SpecialString
      super( message );
    }
 
+  public ErrorString(Throwable exception){
+    this();
+    if(exception==null) return; // don't change anything
+
+    // get the exception name
+    String name=exception.getClass().getName();
+    int index=name.lastIndexOf(".");
+    if(index>=0)
+      name=name.substring(index+1);
+
+    // get the message from the exception and set the string
+    String message=exception.getMessage();
+    if(message==null && message.length()<=0)
+      this.setString(name);
+    else
+      this.setString(name+": "+message);
+  }
 }
