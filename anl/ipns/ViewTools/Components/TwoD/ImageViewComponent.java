@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.52  2004/01/29 23:43:58  millermi
+ *  - Added Dennis's changes to dataChanged(), which fixed refresh
+ *    bug.
+ *  - dataChanged(v2d) now checks to see if new virtual array
+ *    references current virtual array. Removed check for arrays
+ *    of the same size.
+ *
  *  Revision 1.51  2004/01/29 08:16:25  millermi
  *  - Updated the getObjectState() to include parameter for specifying
  *    default state.
@@ -1006,11 +1013,71 @@ public class ImageViewComponent implements IViewComponent2D,
     for( int i = 0; i < dynamicregionlist.size(); i++ )
       selectedregions[i] = ((Region)dynamicregionlist.elementAt(i));
     return selectedregions;
-  }
+  } 
  
  /**
   * This method will be called to notify this component of a change in data.
   */
+  public void dataChanged()  
+  {
+    float[][] f_array = Varray2D.getRegionValues( 0, MAXDATASIZE, 
+        					  0, MAXDATASIZE );
+    ijp.setData(f_array, true);
+
+    AxisInfo xinfo = Varray2D.getAxisInfo(AxisInfo.X_AXIS);
+    AxisInfo yinfo = Varray2D.getAxisInfo(AxisInfo.Y_AXIS);
+
+    ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
+    					       yinfo.getMax(),
+    					       xinfo.getMax(),
+    					       yinfo.getMin() ) );
+
+    local_bounds = ijp.getLocalWorldCoords().MakeCopy();
+    global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
+    
+    // since data has changed, remove all selections and annotations.
+    ((AnnotationOverlay)(transparencies.elementAt(0))).clearAnnotations();
+    ((SelectionOverlay)(transparencies.elementAt(1))).clearSelectedRegions();
+
+    ((PanViewControl)controls[5]).repaint();
+    paintComponents( big_picture.getGraphics() );
+  }
+ 
+ /**
+  * This method will be called to notify this component of a change in data 
+  * and an entirely new VirtualArray is used.
+  *
+  *  @param  pin_Varray - passed in array
+  */ 
+  public void dataChanged( IVirtualArray2D pin_Varray ) // pin == "passed in"
+  {
+    //get the complete 2D array of floats from pin_Varray
+    float[][] f_array = pin_Varray.getRegionValues( 0, MAXDATASIZE, 
+        					    0, MAXDATASIZE );
+    // compare references, if not the same, reinitialize the virtual array.
+    if( pin_Varray != Varray2D )
+    {
+      // let Varray2D reference pin_Varray
+      if( pin_Varray instanceof VirtualArray2D )
+        Varray2D = pin_Varray;
+      else
+      {
+        Varray2D.setRegionValues(f_array,0,0);
+        Varray2D.setAxisInfo( AxisInfo.X_AXIS,
+    			      pin_Varray.getAxisInfo( AxisInfo.X_AXIS ) );
+        Varray2D.setAxisInfo( AxisInfo.Y_AXIS,
+    			      pin_Varray.getAxisInfo( AxisInfo.Y_AXIS ) );
+        Varray2D.setTitle( pin_Varray.getTitle() );
+      }
+    }
+    dataChanged();   // call other dataChanged() method to reset the ijp and 
+                     // redraw the display.
+  }
+  /*
+ 
+ /**
+  * This method will be called to notify this component of a change in data.
+  *
   public void dataChanged()  
   {
      float[][] f_array = Varray2D.getRegionValues( 0, MAXDATASIZE, 
@@ -1025,7 +1092,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * and an entirely new VirtualArray is used.
   *
   *  @param  pin_Varray - passed in array
-  */ 
+  * 
   public void dataChanged( IVirtualArray2D pin_Varray ) // pin == "passed in"
   {
     //get the complete 2D array of floats from pin_Varray
@@ -1050,7 +1117,7 @@ public class ImageViewComponent implements IViewComponent2D,
     ((PanViewControl)controls[5]).repaint();
     paintComponents( big_picture.getGraphics() );  
   }
-  
+  */
  /**
   * Method to add a listener to this component.
   *
@@ -1511,8 +1578,7 @@ public class ImageViewComponent implements IViewComponent2D,
           else if( control.getTitle().equals("Annotation Overlay") )
           {
             AnnotationOverlay note = (AnnotationOverlay)
-                	   big_picture.getComponent(
-                	   big_picture.getComponentCount() - 4 ); 
+                	             transparencies.elementAt(0); 
             if( !control.isSelected() )
             {
               note.setVisible(false);
@@ -1527,8 +1593,7 @@ public class ImageViewComponent implements IViewComponent2D,
           {
             // if this control turns on/off the selection overlay...
             SelectionOverlay select = (SelectionOverlay)
-                	 big_picture.getComponent(
-                	 big_picture.getComponentCount() - 3 ); 
+                	              transparencies.elementAt(1); 
             if( !control.isSelected() )
             {
               select.setVisible(false);
@@ -1548,23 +1613,20 @@ public class ImageViewComponent implements IViewComponent2D,
           ControlCheckboxButton ccb = (ControlCheckboxButton)ae.getSource();
           if( ccb.getTitle().equals("Axis Overlay") )
           {
-            AxisOverlay2D axis = (AxisOverlay2D)big_picture.getComponent(
-        			 big_picture.getComponentCount() - 2 );
+            AxisOverlay2D axis = (AxisOverlay2D)transparencies.elementAt(2);
             axis.editGridLines();
           }
           else if( ccb.getTitle().equals("Annotation Overlay") )
           {
             AnnotationOverlay note = (AnnotationOverlay)
-        		      big_picture.getComponent(
-        		      big_picture.getComponentCount() - 4 ); 
+	                             transparencies.elementAt(0); 
             note.editAnnotation();
             note.getFocus();
           }
           else if( ccb.getTitle().equals("Selection Overlay") )
           {
             SelectionOverlay select = (SelectionOverlay)
-        		    big_picture.getComponent(
-        		    big_picture.getComponentCount() - 3 ); 
+			              transparencies.elementAt(1); 
             select.editSelection();
             select.getFocus();
           }
