@@ -31,6 +31,10 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.11  2004/08/17 21:05:20  rmikk
+ * Eliminated the UpdateScroll method call.  The new version of Java seems to
+ * do this automatically.  Causes text to be written in random places(?)
+ *
  * Revision 1.10  2004/03/11 22:46:18  millermi
  * - Changed package.
  *
@@ -144,7 +148,7 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
      */
     public void add( Object Value){
         spb.add( Value);
-        UpdateScroll();
+        //UpdateScroll();
     } 
     
     public Document getDocument(){
