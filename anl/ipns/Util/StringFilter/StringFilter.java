@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/11 23:02:01  hammonds
+ *  Changed classpath to gov.anl.ipns.Util.StringFilter.
+ *
  *  Revision 1.6  2004/01/24 21:55:03  bouzekc
  *  Is now the superclass for all filters except RobustFileFilter in this
  *  directory.
@@ -54,7 +57,7 @@
  *
  */
  
-package DataSetTools.util;
+package gov.anl.ipns.Util.StringFilter;
 
 /**
  * Internal class to do all of the formatting checks and pass out

@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/11 23:02:02  hammonds
+ *  Changed classpath to gov.anl.ipns.Util.StringFilter.
+ *
  *  Revision 1.5  2004/01/24 21:03:47  bouzekc
  *  Added javadocs.
  *
@@ -50,7 +53,7 @@
  *
  */
  
-package DataSetTools.util;
+package gov.anl.ipns.Util.StringFilter;
 
 import java.io.Serializable;
 

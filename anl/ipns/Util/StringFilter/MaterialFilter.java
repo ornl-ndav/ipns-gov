@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/11 23:02:00  hammonds
+ *  Changed classpath to gov.anl.ipns.Util.StringFilter.
+ *
  *  Revision 1.4  2004/01/24 21:55:22  bouzekc
  *  Now inherits from StringFilter.
  *
@@ -45,7 +48,7 @@
  *
  */
  
-package DataSetTools.util;
+package gov.anl.ipns.Util.StringFilter;
 
 /**
  * Internal class to do all of the formatting checks and pass out
