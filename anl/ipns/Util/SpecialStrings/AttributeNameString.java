@@ -2,6 +2,9 @@
  * @(#)AttrbiuteNameString.java  0.1  DennisMikkelson
  *
  *  $Log$
+ *  Revision 1.4  2000/07/31 15:40:53  dennis
+ *  Now includes default constructor
+ *
  *  Revision 1.3  2000/07/10 22:55:37  dennis
  *  July 10, 2000 version... many changes
  *
@@ -25,6 +28,11 @@ import java.io.*;
 public class AttributeNameString  extends     SpecialString
                                   implements  Serializable
 {
+   public AttributeNameString()
+   {
+     super( "" );
+   }
+
    public AttributeNameString( String message )
    {
      super( message );
