@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.20  2004/05/03 18:13:54  dennis
+ * Now implements interface IThreeD_Panel.
+ * Removed private method swap(,) that is no longer used.
+ *
  * Revision 1.19  2004/03/17 20:26:51  dennis
  * Fixed @see tag that was broken when view components, math and
  * util were moved to gov package.
@@ -91,7 +95,8 @@ import gov.anl.ipns.Util.Numeric.*;
  */ 
 
 public class ThreeD_JPanel extends    CoordJPanel 
-                           implements Serializable
+                           implements IThreeD_Panel,
+                                      Serializable
 {
   private  Hashtable       obj_lists     = null;  // Hastable storing, object[]
                                                   // lists referenced by name 
@@ -147,41 +152,8 @@ public class ThreeD_JPanel extends    CoordJPanel
     setBackground( Color.black );
   }
 
-/* ------------------------ request_painting --------------------------- */
-/**
- *  Call repaint and wait for the system to actually paint the list of
- *  of 3D objects.  This can be used to draw a sequence of "frames", where
- *  each frame has different colors assigned to the objects.  In such 
- *  cases, it is important to wait until the objects are actually drawn 
- *  before changing the colors again.  This method sleeps for the specified
- *  time interval before checking again whether or not the objects have been
- *  completely painted.
- *
- *  @param  time_ms  The time to sleep each time through the wait loop.  This
- *                   should be 30 milliseconds or more in most cases.
- */
-  public void request_painting( int time_ms )
-  {
-      if ( !isVisible() )
-        return;
 
-      if ( data_painted )               // nothing to do
-        return;
-
-      repaint();
-
-      while ( !data_painted )           // wait till it's done painting
-      try
-      {
-        Thread.sleep( time_ms );
-      }
-      catch( Exception e )
-      {
-        System.out.println("Exception while sleeping in request_painting "+e);
-      }
-  }
-
-
+/* ------------------------------ repaint ------------------------------- */
    /**
     *  This repaint method just calls update() so that the offscreen buffer
     *  is used for drawing.
@@ -194,6 +166,8 @@ public class ThreeD_JPanel extends    CoordJPanel
      update( getGraphics() );
    }
 
+
+/* ------------------------------ update ------------------------------- */
    /**
     *  This update method creates a new off screen buffer, if the buffer 
     *  doesn't exist, or is of the wrong size, then calls paint(), passing
@@ -239,7 +213,6 @@ public class ThreeD_JPanel extends    CoordJPanel
       if ( debug && timer != null )
         System.out.println("Update screen took: " + timer.elapsed() );
    }
-
 
 
 /* --------------------------------- paint ------------------------------- */
@@ -328,6 +301,7 @@ public class ThreeD_JPanel extends    CoordJPanel
     if ( debug && timer != null )
       System.out.println("actually painting took: " + timer.elapsed() );
   }
+
 
 /* --------------------------- setViewTran --------------------------- */
 /**
@@ -446,7 +420,6 @@ public class ThreeD_JPanel extends    CoordJPanel
       data_painted = false;
     }
   }
-
 
 
 /* ----------------------------- setObjects ----------------------------- */
@@ -665,6 +638,40 @@ public class ThreeD_JPanel extends    CoordJPanel
  *
  */
 
+/* ------------------------ request_painting --------------------------- */
+/**
+ *  Call repaint and wait for the system to actually paint the list of
+ *  of 3D objects.  This can be used to draw a sequence of "frames", where
+ *  each frame has different colors assigned to the objects.  In such 
+ *  cases, it is important to wait until the objects are actually drawn 
+ *  before changing the colors again.  This method sleeps for the specified
+ *  time interval before checking again whether or not the objects have been
+ *  completely painted.
+ *
+ *  @param  time_ms  The time to sleep each time through the wait loop.  This
+ *                   should be 30 milliseconds or more in most cases.
+ */
+  private void request_painting( int time_ms )
+  {
+      if ( !isVisible() )
+        return;
+
+      if ( data_painted )               // nothing to do
+        return;
+
+      repaint();
+
+      while ( !data_painted )           // wait till it's done painting
+      try
+      {
+        Thread.sleep( time_ms );
+      }
+      catch( Exception e )
+      {
+        System.out.println("Exception while sleeping in request_painting "+e);
+      }
+  }
+
 
 /* ------------------------- build_object_list --------------------------- */
 /**
@@ -755,16 +762,6 @@ public class ThreeD_JPanel extends    CoordJPanel
     tran3D_used = new Tran3D( tran );
     tran2D_used = new CoordTransform( local_transform );
   }
-
-
-/* ------------------------------- swap ---------------------------------- */
-
-private void swap( int index[], int i, int j )
-{
-   int  temp = index[i];
-   index[i]  = index[j];
-   index[j]  = temp;
-}
 
 
 /* -------------------------- JavaSort -------------------------------- */
