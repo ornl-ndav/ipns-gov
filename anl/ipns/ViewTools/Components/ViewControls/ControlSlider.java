@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/02/03 21:44:48  millermi
+ *  - Updated javadocs
+ *
  *  Revision 1.7  2004/01/30 22:14:59  millermi
  *  - Reimplemented this control, now uses CoordTransform to
  *    map from the float interval to the interval used by the
@@ -256,7 +259,9 @@ public class ControlSlider extends ViewControl
   
  /**
   * This method sets the slider "knob" to the specified value.
-  * If an invalid value is entered, nothing is done.
+  * If an invalid value is entered, the knob is moved to the nearest
+  * valid value. The value parameter should be on the interval
+  * [range min, range max], THIS IS NOT A PERCENTAGE PARAMETER.
   *
   *  @param  new_val - position of "knob"
   */
@@ -273,10 +278,12 @@ public class ControlSlider extends ViewControl
       float_min = float_max;
       float_max = temp;
     }
+    // make sure value is valid.
     if( new_val < float_min )
       new_val = float_min;
     else if( new_val > float_max )
       new_val = float_max;
+    // set the integer slider value equivalent to the float value passed in.
     slide.setValue( Math.round(float_to_int.MapXTo(new_val)) );
   }
 

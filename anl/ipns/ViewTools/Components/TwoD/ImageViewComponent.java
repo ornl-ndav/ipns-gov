@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.54  2004/02/03 21:44:48  millermi
+ *  - Updated javadocs
+ *
  *  Revision 1.53  2004/01/30 22:16:12  millermi
  *  - Changed references of messaging Strings from the IViewControl
  *    to the respective control that sent the message.
@@ -847,8 +850,15 @@ public class ImageViewComponent implements IViewComponent2D,
     			   AxisInfo.LINEAR );
     }
     // else return z info
-    return new AxisInfo( ijp.getDataMin(),
+    /*return new AxisInfo( ijp.getDataMin(),
         		 ijp.getDataMax(),
+        		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getLabel(),
+        		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getUnits(),
+        		 AxisInfo.LINEAR );*/
+    return new AxisInfo( 1,
+        		 10, 
+			 //ijp.getDataMin(),
+        		 //ijp.getDataMax(),
         		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getLabel(),
         		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getUnits(),
         		 AxisInfo.LINEAR );
@@ -923,6 +933,7 @@ public class ImageViewComponent implements IViewComponent2D,
   
  /**
   * This method will get the current log scale value for the imagejpanel.
+  * This value is on the interval of [0,100].
   *
   *  @return logscale value from the intensity slider
   */ 
@@ -1543,7 +1554,7 @@ public class ImageViewComponent implements IViewComponent2D,
       if ( message == ControlSlider.SLIDER_CHANGED )
       {
         ControlSlider control = (ControlSlider)ae.getSource();
-        logscale = control.getValue();  				    
+        logscale = control.getValue();
         ijp.changeLogScale( logscale, true );
         ((ControlColorScale)controls[1]).setLogScale( logscale );
 	((PanViewControl)controls[5]).repaint();
