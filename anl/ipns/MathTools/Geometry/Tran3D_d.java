@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/01/28 21:58:00  dennis
+ * Made set() method, and constructor more flexible, so that the
+ * transformation can be initialized from either a 3x3 or 4x4
+ * array.
+ *
  * Revision 1.2  2003/07/28 22:23:33  dennis
  * Minor documentation fix.
  *
@@ -144,31 +149,52 @@ public class Tran3D_d
         a[row][col] = tran.a[row][col];
   }
 
+
   /*------------------------------ set --------------------------------- */
   /**
-   *  Set this transformation to the specified matrix.  The matrix must 
-   *  have at least four rows and each of them must have at least four 
-   *  columns.
+   *  Set this transformation to the specified matrix.  The matrix must
+   *  have at least three rows and each of them must have at least three
+   *  columns.  In most cases, the matrix should be 4x4.  If it is at least
+   *  3X3 but not 4x4, then the last row and column will be filled out with
+   *  the values 0,0,0,1.
    *
-   *  @param matrix the matrix that is to be used for the transform.
+   *  @param  matrix  the matrix that is to be used for the transform, padded
+   *                  by 0,0,0,1 in the last row and column, if it is at least
+   *                  3x3 but not a full 4x4 matrix.
    */
   public void set( double matrix[][] )
   {
-    if ( matrix.length < 4 )
+    int n_rows = Math.min( matrix.length, 4 );
+    if ( n_rows < 3 )
     {
-      System.out.println("ERROR: too few rows in matrix in Tran3D_d.set()" );
+      System.out.println("ERROR: too few rows in matrix in Tran3D.set()" );
       return;
     }
-    for ( int row = 0; row < 4; row++ )
-      if ( matrix[row].length < 4 )
+
+    int n_cols = 4;
+    for ( int row = 0; row < n_rows; row++ )
+    {
+      n_cols = Math.min( matrix[row].length, n_cols );
+      if ( n_cols < 3 )
       {
-        System.out.println("ERROR: too few columns in Tran3D_d.set()" );
+        System.out.println("ERROR: too few columns in Tran3D.set()" );
         return;
       }
+    }
 
-    for ( int row = 0; row < 4; row++ )
-      for ( int col = 0; col < 4; col++ )
+    for ( int row = 0; row < n_rows; row++ )
+      for ( int col = 0; col < n_cols; col++ )
         a[row][col] = matrix[row][col];
+
+    if ( n_rows == 3 || n_cols == 3 )           // we didn't assign full matrix
+    {                                           // so fill last row and col
+      a[3][3] = 1;                              // with 0,0,0,1
+      for ( int k = 0; k < 3; k++ )
+      {
+         a[3][k] = 0;
+         a[k][3] = 0;
+      }
+    }
   }
 
 
