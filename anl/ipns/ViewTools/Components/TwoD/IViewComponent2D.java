@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/05/22 13:04:56  dennis
+ *  Added method to get the display panel.  Changed to pass ViewMenuItems
+ *  rather than JMenuItems to be placed in Menu bar. (Mike Miller)
+ *
  *  Revision 1.2  2003/05/16 14:59:53  dennis
  *  Added acknowlegement of NSF funding.
  *
@@ -46,9 +50,11 @@ import java.awt.*;
 import java.lang.*;
 import java.awt.event.*;
 
+import DataSetTools.components.View.Menu.ViewMenuItem;
+
 /**
  * Any class that implements this interface will interpret and display
- * data in a usable form. Examples include images, tables, and graphs.
+ * data in a graphical form. Examples include images, tables, and graphs.
  */
 public interface IViewComponent2D
 {
@@ -94,9 +100,14 @@ public interface IViewComponent2D
    * Remove all listeners from this view component.
    */ 
    public void removeAllActionListeners();
+
+  /**
+   * Retrieve the jpanel that this component constructs.  
+   */
+   public JPanel getDisplayPanel();
   
   /**
-   * To be continued...
+   * Return controls needed by the component.
    */ 
    public JComponent[] getSharedControls();
 
@@ -106,13 +117,13 @@ public interface IViewComponent2D
    public JComponent[] getPrivateControls();
 
   /**
-   * To be continued...
+   * Return view menu items needed by the component.
    */   
-   public JMenuItem[] getSharedMenuItems();
+   public ViewMenuItem[] getSharedMenuItems();
    
   /**
    * To be continued...
    */
-   public JMenuItem[] getPrivateMenuItems();
+   public ViewMenuItem[] getPrivateMenuItems();
    
 }
