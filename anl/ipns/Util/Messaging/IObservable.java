@@ -1,8 +1,12 @@
 /*
- * @(#)IObservable.java     1.0  2000/01/31  Dennis Mikkelson
+ * @(#)IObservable.java   
  *
- * ---------------------------------------------------------------------------
+ *  Programmer:  Dennis Mikkelson
+ *
  *  $Log$
+ *  Revision 1.2  2001/01/29 20:52:48  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.1  2000/07/10 22:53:04  dennis
  *  Interfaces for observer/observable communications mechanism
  *
@@ -11,7 +15,6 @@
  *
  *  Revision 1.2  2000/05/11 16:18:22  dennis
  *  Added RCS logging
- *
  *
  */
 

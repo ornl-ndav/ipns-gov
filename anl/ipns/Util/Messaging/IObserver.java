@@ -1,8 +1,12 @@
 /*
- * @(#)IObserver.java     1.0  2000/01/31  Dennis Mikkelson
+ * @(#)IObserver.java
  *
- * ---------------------------------------------------------------------------
+ *  Programmer: Dennis Mikkelson
+ *
  *  $Log$
+ *  Revision 1.3  2001/01/29 20:52:51  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.2  2000/11/07 15:31:27  dennis
  *  Added ATTRIBUTE_CHANGED and FIELD_CHANGED messages.
  *
