@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/12/17 20:32:26  millermi
+ *  - made refreshData() private, now is called by the repaint()
+ *    method which is overloaded.
+ *  - Fixed bug which did not allow the image to refresh properly.
+ *
  *  Revision 1.6  2003/11/25 23:33:18  millermi
  *  - Bug Fix - panel_size in refreshData is set to the
  *    size of the containing panel and not the size of
@@ -103,10 +108,6 @@ public class PanViewControl extends ViewControl
   private TranslationOverlay overlay;  // where the region outline is drawn.
   private double data_width = 0;
   private double data_height = 0;
-  // local bounds of the panel must be the same as global bounds, thus
-  // the local bounds must be saved separately.
-  //private CoordBounds local_bounds = new CoordBounds();
-  //private CoordBounds global_bounds = new CoordBounds();
   
  /**
   * Constructor for creating a thumbnail of the CoordJPanel passed in.
@@ -123,9 +124,7 @@ public class PanViewControl extends ViewControl
     overlay.addActionListener( new OverlayListener() );
     setGlobalBounds( cjp.getGlobalWorldCoords() );
     setLocalBounds( cjp.getLocalWorldCoords() );
-    //panel.setEventListening(false);
-    OverlayLayout layout = new OverlayLayout(this);
-    setLayout(layout);
+    setLayout( new OverlayLayout(this) );
     setPreferredSize( new Dimension(0,150) );
     add(overlay);
     add(panel);
@@ -182,24 +181,11 @@ public class PanViewControl extends ViewControl
   }
   
  /**
-  * Call this method to repaint the thumbnail whenever the actual image changes.
-  * This method calls the repaint method, so calling refreshData() will 
-  * correctly update the thumbnail.
-  */ 
-  public void refreshData()
+  * This will overload the repaint method. This method calls refreshData()
+  */
+  public void repaint()
   {
-    setImageDimension();
-    setAspectRatio();
-    if( actual_cjp instanceof ImageJPanel )
-    { 
-      Dimension panel_size = panel.getSize();
-      panel_image = ((ImageJPanel)actual_cjp).getThumbnail( panel_size.width, 
-                                                           panel_size.height ); 
-    }
-    panel.setImage(panel_image);
-    Graphics g = getGraphics();
-    if( g != null )
-      update(g);
+    refreshData();
   }
 
  /*
@@ -224,6 +210,33 @@ public class PanViewControl extends ViewControl
     f.setVisible(true);
   }
   
+ /*
+  * Call this method to repaint the thumbnail whenever the actual image changes.
+  * This method calls the repaint method, so calling refreshData() will 
+  * correctly update the thumbnail.
+  */ 
+  private void refreshData()
+  {
+    setImageDimension();
+    double aspect_ratio = setAspectRatio();
+    if( actual_cjp instanceof ImageJPanel )
+    { 
+      Dimension panel_size = panel.getSize();
+      panel_image = ((ImageJPanel)actual_cjp).getThumbnail( panel_size.width, 
+                            (int)(panel_size.width*aspect_ratio) ); 
+      if( panel_image != null )
+      {
+        panel.setImage(panel_image);
+        super.repaint();
+      }
+    }
+    else
+      super.repaint();
+  }
+  
+ /*
+  * This method will find the dimension of the data we are working with.
+  */ 
   private void setImageDimension()
   {
     if( actual_cjp instanceof ImageJPanel )
@@ -232,8 +245,12 @@ public class PanViewControl extends ViewControl
       data_height = (double)((ImageJPanel)actual_cjp).getNumDataRows();
     }
   }
-  
-  private void setAspectRatio()
+ 
+ /*
+  * This method uses aspect ratio of height/width to keep the ratio of the
+  * panviewcontrol similar to that of the data.
+  */ 
+  private double setAspectRatio()
   { 
     double aspect_ratio = data_height / data_width;
     
@@ -249,8 +266,9 @@ public class PanViewControl extends ViewControl
     //                   actual_cjp.getWidth() );
     //System.out.println("Pan Width: " + pan_width );
     //System.out.println("Pan Height: " + pan_height );
-    setMinimumSize( new Dimension( 0, (int)pan_height ) );
     setPreferredSize( new Dimension( (int)pan_width, (int)pan_height ) );
+    setSize( new Dimension( (int)pan_width, (int)pan_height ) );
+    return aspect_ratio;
   }
 
  /*
