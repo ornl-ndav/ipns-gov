@@ -30,8 +30,8 @@
  * Modified:
  *
  * $Log$
- * Revision 1.24  2003/07/17 20:36:48  serumb
- * Added in the x and y offsets when drawing point markers and error bars.
+ * Revision 1.25  2003/07/18 15:05:58  serumb
+ * Set the error value to the correct index.
  *
  * Revision 1.23  2003/07/03 16:12:41  serumb
  * Moved local_transform.MapTo(x_copy, y_copy) to after the if
@@ -872,18 +872,22 @@ public boolean is_autoY_bounds()
       }
       y_copy = new float[ n_points ];
       System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
-  
-      float error_bars_upper[] = null;
-      float error_bars_lower[] = null;
+        
+       float error_bars_upper[] = null;
+       float error_bars_lower[] = null;
+      
       if ( gd.getErrorVals() != null )
       {
+        float error_copy[] = new float[ n_points ];  
         error_bars_upper = new float[ n_points ];
-        error_bars_lower = new float[ n_points ]; 
+        error_bars_lower = new float[ n_points ];
+       
+        System.arraycopy( gd.getErrorVals(), first_index, error_copy,
+                          0, n_points); 
         for ( int i = 0; i < n_points ; i++ )
-        { // System.out.println("Error_val:" + gd.getErrorVals()[i] +
-          // "   Yval:" + y_copy[i]);
-           error_bars_upper[i] = y_copy[i] + gd.getErrorVals()[i]; 
-           error_bars_lower[i] = y_copy[i] - gd.getErrorVals()[i];
+        {
+           error_bars_upper[i] = y_copy[i] + error_copy[i]; 
+           error_bars_lower[i] = y_copy[i] - error_copy[i];
         }
         local_transform.MapYListTo(error_bars_upper); // map errors from WC to
         local_transform.MapYListTo(error_bars_lower); // pixels
@@ -1014,9 +1018,11 @@ public boolean is_autoY_bounds()
         if (gd.getErrorLocation() != 0)
         {
           int x_int[] = new int[ n_points ];
+          int y_int[] = new int[ n_points ];
           for ( int i = 0; i < n_points; i++ )
           {
             x_int[i] = (int)( x_copy[i] ) + x_offset;
+            y_int[i] = (int)( y_copy[i] ) - y_offset;
           }
           Line2D.Float line1 = new Line2D.Float();
           Line2D.Float line2 = new Line2D.Float();
@@ -1037,6 +1043,18 @@ public boolean is_autoY_bounds()
                g2.draw( line2 );
                line3.setLine( x_int[i] + size, error_bars_lower[i]-y_offset,
                               x_int[i] - size, error_bars_lower[i]-y_offset);   
+               g2.draw( line3 );
+             }
+             else if (loc == ERROR_AT_TOP)
+             {
+               line1.setLine(x_int[i], error_bars_upper[i] - y_int[i], 
+	  	             x_int[i], error_bars_lower[i] - y_int[i]);
+               g2.draw(line1);
+               line2.setLine(x_int[i] + size, error_bars_upper[i] - y_int[i], 
+                             x_int[i] - size, error_bars_upper[i] - y_int[i]);
+               g2.draw( line2 );
+               line3.setLine(x_int[i] + size, error_bars_lower[i] - y_int[i],
+                             x_int[i] - size, error_bars_lower[i] - y_int[i]);   
                g2.draw( line3 );
              }
 
@@ -1080,7 +1098,6 @@ public boolean is_autoY_bounds()
             x_int[i] = (int)( x_copy[(i+1)/2] ) + x_offset;
             y_int[i] = (int)( y_copy[i/2] ) - y_offset;
           }
-          //System.out.println("the stroke width:" + gd.Stroke.getLineWidth());
           g2.setColor( gd.color );
           g2.drawPolyline( x_int, y_int, 2*y_copy.length );
         }
@@ -1160,6 +1177,7 @@ public boolean is_autoY_bounds()
         */ 
         if (gd.getErrorLocation() != 0)
         {
+          float x_midpt;
           int x_int[] = new int[ n_points ];
           int y_int[] = new int[ n_points ];
           for ( int i = 0; i < n_points; i++ )
@@ -1179,11 +1197,11 @@ public boolean is_autoY_bounds()
 
           for ( int i =0 ; i <  n_points - 1; i++ )
           {
-             float x_midpt = ((x_int[i] + x_int[i+1])/2);
+             x_midpt = ((x_int[i] + x_int[i+1])/2);
              if ( loc == ERROR_AT_POINT )
              {
-               line1.setLine( x_midpt, error_bars_upper[i]-y_offset, 
-	  	            x_midpt, error_bars_lower[i]-y_offset);
+               line1.setLine( x_midpt,  error_bars_upper[i]-y_offset, 
+	  	            x_midpt,  error_bars_lower[i]-y_offset);
                g2.draw(line1);
                line2.setLine( x_midpt + size, error_bars_upper[i]-y_offset,
                               x_midpt - size, error_bars_upper[i]-y_offset);
@@ -1195,14 +1213,14 @@ public boolean is_autoY_bounds()
 
             else if (loc == ERROR_AT_TOP)
              {
-               line1.setLine(x_copy[i], error_bars_upper[i] - y_int[i], 
-	  	             x_copy[i], error_bars_lower[i] - y_int[i]);
+               line1.setLine(x_midpt, error_bars_upper[i] - y_int[i], 
+	  	             x_midpt, error_bars_lower[i] - y_int[i]);
                g2.draw(line1);
-               line2.setLine(x_copy[i] + size, error_bars_upper[i] - y_int[i], 
-                             x_copy[i] - size, error_bars_upper[i] - y_int[i]);
+               line2.setLine(x_midpt + size, error_bars_upper[i] - y_int[i], 
+                             x_midpt - size, error_bars_upper[i] - y_int[i]);
                g2.draw( line2 );
-               line3.setLine(x_copy[i] + size, error_bars_lower[i] - y_int[i],
-                             x_copy[i] - size, error_bars_lower[i] - y_int[i]);   
+               line3.setLine(x_midpt + size, error_bars_lower[i] - y_int[i],
+                             x_midpt - size, error_bars_lower[i] - y_int[i]);   
                g2.draw( line3 );
             }
           }   
