@@ -37,6 +37,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/09/02 21:08:10  millermi
+ *  - Removed bounding rectangle from cursor.
+ *  - Directional vector new is redrawn when the wedge is being
+ *    drawn, thus causing the vector to disappear.
+ *
  *  Revision 1.1  2003/08/26 03:38:58  millermi
  *  - Initial Version - Makes rubberband cursor in the shape of a symmetric
  *    double wedge.
@@ -94,7 +99,10 @@ public class DoubleWedgeCursor extends  XOR_Cursor3pt
       graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
       //graphics.drawLine( p2.x, p2.y, p3.x, p3.y );
     else
-    {       
+    {  
+      // draw line from "if" again to make it disappear using XOR
+      graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
+         
       // draw reflection of line passing through p1 and p3 about the line 
       // passing through p1 and p2.
       
@@ -217,7 +225,7 @@ public class DoubleWedgeCursor extends  XOR_Cursor3pt
       // represented with this line.
       graphics.drawLine( 2*p1.x - p4.x, 2*p1.y - p4.y, p4.x, p4.y );
       //graphics.drawLine( p1.x, p1.y, p4.x, p4.y );
-      graphics.drawRect(topleft.x,topleft.y,(int)(2*radius),(int)(2*radius) );
+      //graphics.drawRect(topleft.x,topleft.y,(int)(2*radius),(int)(2*radius) );
       graphics.drawArc(topleft.x,topleft.y,(int)(2*radius),(int)(2*radius),
                        startangle,arcangle);
       // draw arc of second wedge

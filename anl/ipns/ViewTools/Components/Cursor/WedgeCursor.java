@@ -37,6 +37,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/09/02 21:08:10  millermi
+ *  - Removed bounding rectangle from cursor.
+ *  - Directional vector new is redrawn when the wedge is being
+ *    drawn, thus causing the vector to disappear.
+ *
  *  Revision 1.1  2003/08/21 18:19:46  millermi
  *  - Initial Version, allows for "pie slice" selection.
  *
@@ -94,6 +99,8 @@ public class WedgeCursor extends  XOR_Cursor3pt
       //graphics.drawLine( p2.x, p2.y, p3.x, p3.y );
     else
     { 
+      // draw line from "if" again to make it disappear using XOR
+      graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
       // draw line passing through p1 and p3
       graphics.drawLine( p1.x, p1.y, p3.x, p3.y );
       
@@ -165,7 +172,7 @@ public class WedgeCursor extends  XOR_Cursor3pt
      //System.out.println("Start/Stop angle: " + startangle + "/" + stopangle );
       //System.out.println("StartPt: (" + topleft.x + "," + topleft.y +")" );
       
-      graphics.drawRect(topleft.x,topleft.y,(int)(2*radius),(int)(2*radius) );
+      //graphics.drawRect(topleft.x,topleft.y,(int)(2*radius),(int)(2*radius) );
       graphics.drawArc(topleft.x,topleft.y,(int)(2*radius),(int)(2*radius),
                        startangle,arcangle);
       // put angles in point for passing to overlay.
