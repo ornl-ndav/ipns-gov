@@ -29,6 +29,9 @@
 
  *
  * $Log$
+ * Revision 1.4  2004/01/22 02:05:38  bouzekc
+ * Removed unused variables.
+ *
  * Revision 1.3  2002/11/27 23:13:34  pfpeterson
  * standardized header
  *
@@ -52,8 +55,6 @@ import javax.swing.JMenuItem;
  */
 public class ViewMenu
 {
-
-  private static final String VIEW_M             = "View";
   private static final String IMAGE_VIEW_MI      = "Image View";
   private static final String SCROLL_VIEW_MI     = "Scrolled Graph View";
   private static final String SELECTED_VIEW_MI   = "Selected Graph View";

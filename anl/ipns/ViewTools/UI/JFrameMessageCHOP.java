@@ -29,6 +29,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/01/22 02:05:38  bouzekc
+ * Removed unused variables.
+ *
  * Revision 1.5  2003/12/15 23:56:33  bouzekc
  * Removed unused imports.
  *
@@ -78,7 +81,6 @@ public class JFrameMessageCHOP extends javax.swing.JFrame
 		//{{REGISTER_LISTENERS
 		SymWindow aSymWindow = new SymWindow();
 		this.addWindowListener(aSymWindow);
-		SymAction lSymAction = new SymAction();
 		//}}
 	}
 
@@ -130,7 +132,7 @@ public class JFrameMessageCHOP extends javax.swing.JFrame
 	public void addNotify()
 	{
 		// Record the size of the window prior to calling parents addNotify.
-		Dimension size = getSize();
+		//Dimension size = getSize();
 
 		super.addNotify();
 
@@ -211,11 +213,10 @@ public class JFrameMessageCHOP extends javax.swing.JFrame
 
 	class SymAction implements java.awt.event.ActionListener
 	{
+    
+    //does nothing
 		public void actionPerformed(java.awt.event.ActionEvent event)
 		{
-			Object object = event.getSource();
-
-
 		}
 	}
 
