@@ -34,9 +34,16 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.7  2003/08/07 17:57:41  millermi
+ *  Revision 1.8  2003/08/07 22:47:55  millermi
  *  - Added line selection capabilities
  *  - Changed Help menu for REMOVE ALL SELECTIONS from "Double" to "Single" click
+ *  - Usage of Region class changed to WCRegion class and adapted for generic
+ *  number of points
+ *
+ *  Revision 1.7  2003/08/07 17:57:41  millermi
+ *  - Added line selection capabilities
+ *  - Changed Help menu for REMOVE ALL SELECTIONS from "Double" to "Single"
+ *    click
  *
  *  Revision 1.6  2003/08/06 13:56:45  dennis
  *  - Added sjp.setOpaque(false) to constructor. Fixes bug when
@@ -84,9 +91,10 @@
  ***************************************************************
  * press B	     * Press/Drag mouse  * box selection       *
  * press C	     * Press/Drag mouse  * circle selection    *
+ * press L           * Press/Drag mouse  * line selection      *
  * press P	     * Press/Drag mouse  * point selection     * 
  * none  	     * Double click      * clear last selected *
- * press A (all)     * Double click      * clear all selected  *
+ * press A (all)     * Single click      * clear all selected  *
  ***************************************************************
  * Important: 
  * All keyboard events must be done prior to mouse events.
@@ -101,6 +109,7 @@ import java.util.*;
 import java.lang.Math;
 
 import DataSetTools.components.image.*;
+import DataSetTools.components.View.Region.WCRegion;
 import DataSetTools.components.View.TwoD.*;
 import DataSetTools.components.View.Cursor.*; 
 import DataSetTools.util.floatPoint2D;
@@ -175,7 +184,7 @@ public class SelectionOverlay extends OverlayJPanel
                   "- These commands will NOT work if the Annotation " +
                   "Overlay checkbox IS checked or if the Selection " + 
 		  "Overlay IS NOT checked.\n" +
-		  "- Zooming on the image is only allowed if this annotation " +
+		  "- Zooming on the image is only allowed if this overlay " +
 		  "is turned off.\n\n" );
       text.append("Image Commands:\n");
       text.append("Click/Drag/Release Mouse w/B_Key pressed>" + 
@@ -276,39 +285,37 @@ public class SelectionOverlay extends OverlayJPanel
       pixel_local.setDestination( component.getLocalCoordBounds() );
       // color of all of the selections.
       g2d.setColor(reg_color);
-      // top left corner of sjp
 
-      Region regionclass;      
-      Object region;
-      Point p1 = new Point();
-      Point p2 = new Point();
-      
+      WCRegion regionclass;      
+      String region;
+      Point[] p;
       for( int num_reg = 0; num_reg < regions.size(); num_reg++ )
       {
-         regionclass = (Region)regions.elementAt(num_reg);
-	 p1 = convertToPixelPoint( regionclass.getWCP1() );
-	 if( regionclass.getWCP2() != null )
-	    p2 = convertToPixelPoint( regionclass.getWCP2() );
+         regionclass = (WCRegion)regions.elementAt(num_reg);
+         p = new Point[regionclass.getNumWCP()];
+	 for( int i = 0; i < regionclass.getNumWCP(); i++ )
+	   p[i] = convertToPixelPoint( regionclass.getWCP(i) );
 	 	    	   
-	 region = ((Region)regions.elementAt(num_reg)).getRegion();    
-         if( region instanceof Circle )
+	 region = ((WCRegion)regions.elementAt(num_reg)).getRegionType(); 
+         //System.out.println("Point: " + p[0].x + "," + p[0].y );   
+         if( region.equals( SelectionJPanel.CIRCLE ) )
 	 {
-	    g2d.drawOval( p1.x, p1.y, p2.x - p1.x, p2.y - p1.y );   
+	    g2d.drawOval( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
 	 }
-         else if( region instanceof Rectangle )
+         else if( region.equals( SelectionJPanel.BOX ) )
 	 {
-	    g2d.drawRect( p1.x, p1.y, p2.x - p1.x, p2.y - p1.y ); 	    
+	    g2d.drawRect( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
 	 }
-         else if( region instanceof Line )
+         else if( region.equals( SelectionJPanel.LINE ) )
 	 {
-	    g2d.drawLine( p1.x, p1.y, p2.x, p2.y ); 	    
+	    g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y ); 	    
 	 }
-         else if( region instanceof Point )
+         else if( region.equals( SelectionJPanel.POINT ) )
 	 {
 	    //System.out.println("Drawing instance of point at " + 
 	    //                 ((Point)region).x + "/" + ((Point)region).y );
-	    g2d.drawLine( p1.x - 5, p1.y, p1.x + 5, p1.y ); 	    
-	    g2d.drawLine( p1.x, p1.y - 5, p1.x, p1.y + 5 );
+	    g2d.drawLine( p[0].x - 5, p[0].y, p[0].x + 5, p[0].y ); 	    
+	    g2d.drawLine( p[0].x, p[0].y - 5, p[0].x, p[0].y + 5 );
 	 }	 	 
       }
    } // end of paint()
@@ -384,10 +391,11 @@ public class SelectionOverlay extends OverlayJPanel
 	       Point p2 = new Point( p1 );
 	       p2.x += (int)box.getWidth();
 	       p2.y += (int)box.getHeight();
-	       floatPoint2D tempwcp1 = convertToWorldPoint( p1 );
-	       floatPoint2D tempwcp2 = convertToWorldPoint( p2 );
+	       floatPoint2D[] tempwcp = new floatPoint2D[2];
+	       tempwcp[0] = convertToWorldPoint( p1 );
+	       tempwcp[1] = convertToWorldPoint( p2 );
 	                                            
-	       Region boxregion = new Region( box, tempwcp1, tempwcp2 );
+	       WCRegion boxregion = new WCRegion(SelectionJPanel.BOX, tempwcp);
 	                                      
 	       regions.add( boxregion );
 	       sendMessage(REGION_ADDED);
@@ -403,10 +411,12 @@ public class SelectionOverlay extends OverlayJPanel
 	       Point p2 = new Point( circle.getCenter() );
 	       p2.x += circle.getRadius() + (int)current_bounds.getX();
 	       p2.y += circle.getRadius() + (int)current_bounds.getY();
-	       floatPoint2D tempwcp1 = convertToWorldPoint( p1 );
-	       floatPoint2D tempwcp2 = convertToWorldPoint( p2 );
+	       floatPoint2D[] tempwcp = new floatPoint2D[2];
+	       tempwcp[0] = convertToWorldPoint( p1 );
+	       tempwcp[1] = convertToWorldPoint( p2 );
 	                                            
-	       Region circleregion = new Region( circle, tempwcp1, tempwcp2 );
+	       WCRegion circleregion = new WCRegion( SelectionJPanel.CIRCLE, 
+	                                             tempwcp );
 	       regions.add( circleregion );
 	       sendMessage(REGION_ADDED);
 	       //System.out.println("Drawing circle region" );
@@ -421,10 +431,12 @@ public class SelectionOverlay extends OverlayJPanel
 	      Point p2 = new Point( line.getP2() );
 	      p2.x += (int)current_bounds.getX();
 	      p2.y += (int)current_bounds.getY();
-	      floatPoint2D tempwcp1 = convertToWorldPoint( p1 );
-	      floatPoint2D tempwcp2 = convertToWorldPoint( p2 );
+	      floatPoint2D[] tempwcp = new floatPoint2D[2];
+	      tempwcp[0] = convertToWorldPoint( p1 );
+	      tempwcp[1] = convertToWorldPoint( p2 );
 	                                           
-	      Region lineregion = new Region( line, tempwcp1, tempwcp2 );
+	      WCRegion lineregion = new WCRegion( SelectionJPanel.LINE, 
+	                                          tempwcp );
 	      regions.add( lineregion );
 	      sendMessage(REGION_ADDED);
 	    }	    
@@ -436,8 +448,9 @@ public class SelectionOverlay extends OverlayJPanel
 	               sjp.getCursor( SelectionJPanel.POINT )).region() );
 	       np.x += (int)current_bounds.getX();
 	       np.y += (int)current_bounds.getY();
-	       floatPoint2D tempwcp1 = convertToWorldPoint( np );
-	       regions.add( new Region(np, tempwcp1, null) );
+	       floatPoint2D[] tempwcp = new floatPoint2D[1];
+	       tempwcp[0] = convertToWorldPoint( np );
+	       regions.add( new WCRegion(SelectionJPanel.POINT, tempwcp) );
 	       sendMessage(REGION_ADDED);
 	    }
 	 }
