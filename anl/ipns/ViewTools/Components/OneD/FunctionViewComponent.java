@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.64  2005/01/10 16:16:00  dennis
+ *  Added check for existence of GraphData object before using it.
+ *
  *  Revision 1.63  2004/11/12 03:36:19  millermi
  *  - Since the min/max of getAxisInformation() are no longer used
  *    to determine the zoom region by the AxisOverlay2D, the AxisInfo
@@ -613,9 +616,12 @@ public class FunctionViewComponent implements IViewComponent1D,
    *  @return graphic to be displayed
    */
    public GraphData getGraphData(int graph){
-          GraphData data;
-          data = ( GraphData )gjp.graphs.elementAt( graph );
-   return data; //test 
+     GraphData data = null;
+
+     if ( gjp != null && gjp.graphs != null && graph > 0 && graph < gjp.graphs.size() )
+       data = ( GraphData )gjp.graphs.elementAt( graph );
+    
+     return data; //test 
    }
 
   /**
@@ -989,8 +995,7 @@ public class FunctionViewComponent implements IViewComponent1D,
        return;
      for( int trans = 0; trans < transparencies.size(); trans++ )
       ((OverlayJPanel)transparencies.elementAt(trans)).kill();
-
-   };
+   }
    
   // required since implementing ActionListener
 
