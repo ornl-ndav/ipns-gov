@@ -34,6 +34,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2003/06/18 13:33:50  dennis
+ *  (Mike Miller)
+ *  - Added method getColorScale() to pass on the current color scale
+ *    being used.
+ *  - Now implements IColorScaleAddible, which required the addition of
+ *    getColorScale() and getLogScale().
+ *  - Added methods setColorControlEast() and setColorControlSouth() to
+ *    allow user to add the vertical calibrated color scale to the east
+ *    panel, or the horizontal calibrated color scale to the south panel.
+ *
  *  Revision 1.12  2003/06/13 14:43:53  dennis
  *  - Added methods and implementation for getLocalCoordBounds() and
  *  getGlobalCoordBounds() to allow selection and annotation overlays to adjust
@@ -109,7 +119,7 @@ import java.awt.geom.*;
  */
 public class ImageViewComponent implements IViewComponent2D, 
                                            ActionListener,
-					   IAxisAddible2D
+					   IColorScaleAddible
 {
    private IVirtualArray2D Varray2D;  //An object containing our array of data
    private Point[] selectedset; //To be returned by getSelectedSet()   
@@ -127,6 +137,9 @@ public class ImageViewComponent implements IViewComponent2D,
    private ViewControl[] controls = new ViewControl[6];
    private ViewMenuItem[] menus = new ViewMenuItem[2];
    private String colorscale;
+   private double logscale = 0;
+   private boolean addColorControlEast = false;
+   private boolean addColorControlSouth = false;
    
   /**
    * Constructor that takes in a virtual array and creates an imagejpanel
@@ -164,14 +177,34 @@ public class ImageViewComponent implements IViewComponent2D,
       ijp.setNamedColorModel(colorscale, false);
       
       Listeners = new Vector();
-      buildViewComponent(ijp); // initializes big_picture to jpanel containing
-                               // the background and transparencies 		       
+      buildViewComponent();    // initializes big_picture to jpanel containing
+                               // the background and transparencies
       buildViewControls(); 
       buildViewMenuItems();  
    }  
    
-  // getAxisInfo(), getRegionInfo(), getTitle(), getPrecision(), getFont() 
-  // all required since this component implements IAxisAddible2D
+// These method are required because this component implements 
+// IColorScaleAddible
+  /**
+   * This method returns the color scale used by the imagejpanel.
+   *
+   *  @return colorscale
+   */
+   public String getColorScale()
+   {
+      return colorscale;
+   }
+  
+  /**
+   * This method will get the current log scale value for the imagejpanel.
+   */ 
+   public double getLogScale()
+   {
+      return logscale;
+   }
+   
+// The following methods are required because this component implements 
+// IColorScaleAddible which extends IAxisAddible2D
   /**
    * This method returns the info about the specified axis. 
    * 
@@ -260,8 +293,9 @@ public class ImageViewComponent implements IViewComponent2D,
       //return global_bounds;
       return ijp.getGlobalWorldCoords().MakeCopy();
    }
-       
-  // Methods required since implementing IViewComponent2D
+//****************************************************************************
+
+// Methods required since this component implements IViewComponent2D
   /**
    * This method adjusts the crosshairs on the imagejpanel.
    * setPointedAt is called from the viewer when another component
@@ -427,6 +461,26 @@ public class ImageViewComponent implements IViewComponent2D,
      return pt;
    }
    
+  /**
+   * This method allows the user to place a VERTICAL color control in the
+   * east panel of the view component.
+   */
+   public void setColorControlEast( boolean isOn )
+   {
+      addColorControlEast = isOn;
+      buildViewComponent();
+   }
+   
+  /**
+   * This method allows the user to place a HORIZONTAL color control in the
+   * south panel of the view component.
+   */   
+   public void setColorControlSouth( boolean isOn )
+   {
+      addColorControlSouth = isOn;
+      buildViewComponent();
+   }
+   
   /*
    * Tells all listeners about a new action.
    *
@@ -470,7 +524,7 @@ public class ImageViewComponent implements IViewComponent2D,
    * This method takes in an imagejpanel and puts it into a borderlayout.
    * Overlays are added to allow for calibration, selection, and annotation.
    */
-   private void buildViewComponent( ImageJPanel panel )
+   private void buildViewComponent()
    {   
       int westwidth = font.getSize() * precision + 22;
       int southwidth = font.getSize() * 3 + 9;
@@ -479,16 +533,41 @@ public class ImageViewComponent implements IViewComponent2D,
       
       JPanel north = new JPanel(new FlowLayout());
       north.setPreferredSize(new Dimension( 0, 25 ) );
-      JPanel east = new JPanel(new FlowLayout());
-      east.setPreferredSize(new Dimension( 50, 0 ) );
-      JPanel south = new JPanel(new FlowLayout());
-      south.setPreferredSize(new Dimension( 0, southwidth ) );
+      JPanel east; 
+      JPanel south;
+      if( addColorControlEast )
+      {
+         east = new ControlColorScale( this, ControlColorScale.VERTICAL );
+         east.setPreferredSize( new Dimension( 120, 0 ) );
+	 ((ControlColorScale)east).setTitle("Y Axis Color Scale");
+      }
+      else
+      {
+         east = new JPanel(new FlowLayout());
+         east.setPreferredSize(new Dimension( 50, 0 ) );
+      }
+      if( addColorControlSouth )
+      {
+         south = new JPanel( new GridLayout( 2,1 ) );
+	 south.add( new JPanel() );
+	 ControlColorScale ccs = new ControlColorScale(
+	                               this,ControlColorScale.HORIZONTAL);
+	 ccs.setTitle("X Axis Color Scale");
+	 south.add( ccs );
+	 south.setPreferredSize( new Dimension( 0, southwidth + 100) );
+      }
+      else
+      {
+         south = new JPanel(new FlowLayout());    
+         south.setPreferredSize(new Dimension( 0, southwidth ) );
+      }
+  
       JPanel west = new JPanel(new FlowLayout());
       west.setPreferredSize(new Dimension( westwidth, 0 ) );
       
       //Construct the background JPanel
 	
-      background.add(panel, "Center");
+      background.add(ijp, "Center");
       background.add(north, "North");
       background.add(west, "West");
       background.add(south, "South");
@@ -528,6 +607,7 @@ public class ImageViewComponent implements IViewComponent2D,
       // must be incremented.
       controls[0] = new ControlSlider();
       controls[0].setTitle("Intensity Slider");
+      logscale = ((ControlSlider)controls[0]).getValue();	       	    
       controls[0].addActionListener( new ControlListener() );
                  
       controls[1] = new ControlColorScale( 
@@ -634,7 +714,9 @@ public class ImageViewComponent implements IViewComponent2D,
          if ( message == IViewControl.SLIDER_CHANGED )
          {
 	    ControlSlider control = (ControlSlider)ae.getSource();
-	    ijp.changeLogScale( control.getValue(), true );	       	              	       	       	       	       	       
+	    logscale = control.getValue();	       	              	       	
+	    ijp.changeLogScale( logscale, true );
+	    ((ControlColorScale)controls[1]).setLogScale( logscale );       	       	       	       
          } 
          else if ( message == IViewControl.CHECKBOX_CHANGED )
          {
@@ -698,6 +780,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	    note.editAnnotation();
 	 } 	
 	 //repaints overlays accurately	
+	 sendMessage( message );
          paintComponents( big_picture.getGraphics() ); 
       }
    } 
@@ -787,35 +870,36 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    public static void main( String args[] ) 
    {
-        int col = 250;
-	int row = 250;
-	
-        //Make a sample 2D array
-	VirtualArray2D va2D = new VirtualArray2D(row, col); 
-        va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, 100f, 
-                           "TestX","TestUnits", true );
-	va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, 1000f, 
-                            "TestY","TestYUnits", true );
-	va2D.setTitle("Main Test");
-	//Fill the 2D array with the function x*y
-	float ftemp;
-	for(int i = 0; i < row; i++)
-	{
-	    for(int j = 0; j < col; j++)
-	    {
-		ftemp = i*j;
-                if ( i % 25 == 0 )
-	          va2D.setDataValue(i, j, i*col); //put float into va2D
-                else if ( j % 25 == 0 )
-	          va2D.setDataValue(i, j, j*row); //put float into va2D
-                else
-	          va2D.setDataValue(i, j, ftemp); //put float into va2D
-	    }
-	}
+      int col = 250;
+      int row = 250;
 
-        //Construct an ImageViewComponent with array2D
-	ImageViewComponent ivc = new ImageViewComponent(va2D);
-   
+      //Make a sample 2D array
+      VirtualArray2D va2D = new VirtualArray2D(row, col); 
+      va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, 100f, 
+        		 "TestX","TestUnits", true );
+      va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, 1000f, 
+        		  "TestY","TestYUnits", true );
+      va2D.setTitle("Main Test");
+      //Fill the 2D array with the function x*y
+      float ftemp;
+      for(int i = 0; i < row; i++)
+      {
+          for(int j = 0; j < col; j++)
+          {
+              ftemp = i*j;
+              if ( i % 25 == 0 )
+        	va2D.setDataValue(i, j, i*col); //put float into va2D
+              else if ( j % 25 == 0 )
+        	va2D.setDataValue(i, j, j*row); //put float into va2D
+              else
+        	va2D.setDataValue(i, j, ftemp); //put float into va2D
+          }
+      }
+
+      //Construct an ImageViewComponent with array2D
+      ImageViewComponent ivc = new ImageViewComponent(va2D);
+      ivc.setColorControlEast(true);
+      ivc.setColorControlSouth(true);
       ViewerSim viewer = new ViewerSim(ivc);
       viewer.show();	
    }
