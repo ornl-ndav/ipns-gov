@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2004/12/05 05:51:24  millermi
+ * - Fixed Eclipse warnings.
+ *
  * Revision 1.10  2004/08/13 03:38:04  millermi
  * - Added removeComponentMenuItems() to remove a component's menu
  *   items from the JMenuBar.
@@ -85,7 +88,6 @@ package gov.anl.ipns.ViewTools.Displays;
 import javax.swing.*;
 import java.util.Vector;
 import java.awt.Container;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -97,7 +99,6 @@ import java.io.Serializable;
 import javax.swing.border.TitledBorder;
 import javax.swing.border.LineBorder;
 
-import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;

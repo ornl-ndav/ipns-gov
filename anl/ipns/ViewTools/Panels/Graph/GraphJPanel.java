@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.48  2004/12/05 05:58:20  millermi
+ * - Fixed Eclipse warnings.
+ *
  * Revision 1.47  2004/11/17 22:22:43  serumb
  * Mapped the error bar values to log coords for the log axis.
  *
@@ -200,7 +203,6 @@ public class GraphJPanel extends    CoordJPanel
   private int             y_offset_factor = 0;  
   private boolean         remove_hidden_lines = false;
   private CoordBounds     auto_data_bound;
-  private float           log_scale = 10;
   private boolean         log_scale_x = false;
   private boolean         log_scale_y = false;
   private float maxy;

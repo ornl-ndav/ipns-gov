@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2004/12/05 05:55:40  millermi
+ * - Fixed Eclipse warnings.
+ *
  * Revision 1.9  2004/09/15 21:58:29  millermi
  * - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *   Adding a second log required the boolean parameter to be changed
@@ -87,7 +90,6 @@ package gov.anl.ipns.ViewTools.Displays;
 
 import javax.swing.*;
 import java.util.Vector;
-import java.awt.Container;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -102,7 +104,6 @@ import gov.anl.ipns.ViewTools.Components.TwoD.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
-import gov.anl.ipns.ViewTools.Panels.Table.TableModelMaker;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
@@ -440,7 +441,6 @@ public class Display2D extends Display
     Vector options           = new Vector();
     Vector save_default      = new Vector();
     Vector switch_view       = new Vector();
-    Vector view_list         = new Vector();
     Vector help              = new Vector();
     Vector display_help      = new Vector();
     Vector option_listeners  = new Vector();

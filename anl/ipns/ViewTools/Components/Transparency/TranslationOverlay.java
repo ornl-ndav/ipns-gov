@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2004/12/05 05:41:33  millermi
+ *  - Fixed Eclipse warnings.
+ *
  *  Revision 1.13  2004/08/04 18:53:19  millermi
  *  - Added enableStretch() and isStretchEnabled() to turn resizing
  *    of the viewport on/off.
@@ -107,8 +110,6 @@ import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Cursor.BoxPanCursor;
 import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
-import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
-import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**

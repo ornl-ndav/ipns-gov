@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.48  2004/12/05 05:37:52  millermi
+ *  - Fixed Eclipse warnings.
+ *
  *  Revision 1.47  2004/11/12 21:21:31  millermi
  *  - Tru-log painting of axes now restricted if upper bounds is
  *    negative (entire interval is negative).
@@ -255,7 +258,6 @@ import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 import gov.anl.ipns.Util.Numeric.Format;
-import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
@@ -1947,7 +1949,6 @@ public class AxisOverlay2D extends OverlayJPanel
     
     float lub = util.leastUpperBound();
     float glb = util.greatestLowerBound();
-    float powerdiff = lub/glb;
     
     float num = 0;
     int pixel = 0;
@@ -2150,7 +2151,6 @@ public class AxisOverlay2D extends OverlayJPanel
     { 
       float[] largevalues = yUtil.subDivideLogLarge(glb, lub);
       float start = largevalues[1];
-      float step = largevalues[0];
       float major_tick = 0;
       float minor_tick = 0;
       float numysteps = largevalues[2];

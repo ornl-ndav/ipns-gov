@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/12/05 05:48:57  millermi
+ *  - Fixed Eclipse warnings.
+ *
  *  Revision 1.2  2004/08/17 01:25:21  millermi
  *  - Made getFormat() and setFormat() public methods.
  *  - Fixed bug that caused state to be saved incorrectly.
@@ -47,7 +50,6 @@
  package gov.anl.ipns.ViewTools.Components.ViewControls;
  
  import javax.swing.JComboBox;
- import javax.swing.JTable;
  import javax.swing.JFrame;
  import java.util.Vector;
  import java.awt.event.ActionEvent;

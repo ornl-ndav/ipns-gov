@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/12/05 05:46:15  millermi
+ *  - Fixed Eclipse warnings.
+ *
  *  Revision 1.5  2004/08/17 20:58:38  millermi
  *  - Added menu item under Help menu for table commands.
  *
@@ -63,11 +66,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 import javax.swing.JFrame;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.table.TableModel;
-import javax.swing.event.TableModelListener;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
@@ -632,7 +632,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   {
     public void actionPerformed( ActionEvent ae )
     {
-      helper = tjp.help();
+      helper = TableJPanel.help();
       WindowShower shower = new WindowShower(helper);
       java.awt.EventQueue.invokeLater(shower);
       shower = null;
