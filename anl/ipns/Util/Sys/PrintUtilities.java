@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2002/12/10 22:14:18  pfpeterson
+ *  Fixed javadoc
+ *
  *  Revision 1.8  2002/11/27 23:27:07  pfpeterson
  *  standardized header
  *
@@ -126,7 +129,7 @@ public class PrintUtilities implements Printable {
   /** The speed and quality of printing suffers dramatically if
    *  any of the containers have double buffering turned on.
    *  So this turns if off globally.
-   *  @see enableDoubleBuffering
+   *  @see #enableDoubleBuffering(Component)
    */
   public static void disableDoubleBuffering(Component c) {
     RepaintManager currentManager = RepaintManager.currentManager(c);
