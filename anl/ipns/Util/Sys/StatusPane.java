@@ -31,6 +31,11 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.8  2003/07/09 14:58:26  rmikk
+ * The Scroll pane is now positioned to the last line of text that
+ * was entered and also works with threads without locking
+ * up the system
+ *
  * Revision 1.7  2003/07/08 22:05:18  rmikk
  * Status Pane now moves to where last characters
  *    are printed
@@ -95,7 +100,7 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
         spb= new StatusPane_Base( rows,cols,
                                   new TitledBorder( "Status" ),true, false);
         X = new JScrollPane( spb);
-        spb.getDocument().addDocumentListener( new DocListener( X , spb) );
+        //spb.getDocument().addDocumentListener( new DocListener( X , spb) );
         setLayout( new BorderLayout());
         add( X, BorderLayout.CENTER);
         
@@ -137,6 +142,7 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
      */
     public void add( Object Value){
         spb.add( Value);
+        UpdateScroll();
     } 
     
     public Document getDocument(){
@@ -149,6 +155,27 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
     public void Clearr(){
         spb.Clearr(); 
     }
+
+   public void UpdateScroll(){
+          try{
+             
+             if( spb == null)
+               return;
+             if( spb.getRows() < 2)
+                return;
+             int line;// = spb.getRows();
+             Document D = spb.getDocument();
+             int length =D.getLength();
+             line = spb.getLineOfOffset(length-1);
+
+             int RowHeight = spb.getBounds().height/spb.getRows();
+                  
+             X.getViewport().setViewPosition( new Point( 0, (line -1)*RowHeight) );
+             }
+           catch( Exception ss){
+             System.out.println("StatusPane listen error ="+ss);
+           }
+   }
 
     
 } 
@@ -180,7 +207,9 @@ class DocListener implements DocumentListener{
                   
              Scroll.getViewport().setViewPosition( new Point( 0, (line -1)*RowHeight) );
              }
-           catch( Exception ss){}
+           catch( Exception ss){
+             System.out.println("StatusPane listen error ="+ss);
+           }
        }
 
        public void removeUpdate(DocumentEvent e){
