@@ -1,27 +1,51 @@
+/*
+ * @(#) ImageJPanel.java  1.0    1998/07/29   Dennis Mikkelson
+ *
+ * ---------------------------------------------------------------------------   *  $Log$
+ * ---------------------------------------------------------------------------   *  Revision 1.2  2000/07/10 22:11:50  dennis
+ * ---------------------------------------------------------------------------   *  7/10/2000 version, many changes and improvements
+ * ---------------------------------------------------------------------------   *
+ * ---------------------------------------------------------------------------   *  Revision 1.13  2000/05/31 21:32:53  dennis
+ * ---------------------------------------------------------------------------   *  Modified method that generates mouse events from key events to
+ * ---------------------------------------------------------------------------   *  send a MOUSE_DRAGGED event with a MOUSE_PRESSED event so that the
+ * ---------------------------------------------------------------------------   *  cursor draws/updates immediately
+ * ---------------------------------------------------------------------------   *
+ * ---------------------------------------------------------------------------   *  Revision 1.12  2000/05/16 22:28:40  dennis
+ * ---------------------------------------------------------------------------   *  modified it to not copy the data array that is passed in.  This means
+ * ---------------------------------------------------------------------------   *  that it will no longer work for "ragged" arrays, but it will be somewhat
+ * ---------------------------------------------------------------------------   *  more efficient.
+ * ---------------------------------------------------------------------------   *
+ * ---------------------------------------------------------------------------   *  Revision 1.11  2000/05/11 16:53:19  dennis
+ * ---------------------------------------------------------------------------   *  Added RCS logging
+ * ---------------------------------------------------------------------------   *
+ *
+ */
+
 package DataSetTools.components.image;
 
 import java.awt.*;
+import java.io.*;
 import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.text.*;
 
+import DataSetTools.util.*;
 
-public class ImageJPanel extends  CoordJPanel 
+
+public class ImageJPanel extends    CoordJPanel 
+                         implements Serializable
 {
   private final int       LOG_TABLE_SIZE    = 60000;
   private final int       NUM_PSEUDO_COLORS = 128;
   private Image           image;
-  private Image           rescaled_image;
+  private Image           rescaled_image = null;
   private float           data[][] = { {0,1}, {2,3} };
   private float           min_data = 0;;
   private float           max_data = 3;
 
   private IndexColorModel color_model;
   private byte[]          log_scale;
-
-  private boolean         v_scroll = false;
-  private boolean         h_scroll = false;
 
   public ImageJPanel()
   { 
@@ -33,6 +57,9 @@ public class ImageJPanel extends  CoordJPanel
   
     h_scroll     = false;
     v_scroll     = true;
+
+    CJP_handle_arrow_keys = false;
+    addKeyListener( new ImageKeyAdapter() );
   }
 
 /* ------------------------- changeLogScale -------------------------- */
@@ -41,14 +68,21 @@ public class ImageJPanel extends  CoordJPanel
   {                                       
     setLogScale( s );
     if ( rebuild_image )
+    {
       makeImage();
+    }
   }
 
 /* ----------------------------- setColorModel --------------------------- */
 
-  public void setColorModel( IndexColorModel new_color_model )
+  public void setColorModel( IndexColorModel new_color_model, 
+                             boolean         rebuild_image   )
   {
     color_model = new_color_model;
+    if ( rebuild_image )
+    {
+      makeImage();
+    }
   }
 
 /* ------------------------------- setData -------------------------------- */
@@ -56,6 +90,14 @@ public class ImageJPanel extends  CoordJPanel
   public void setData( float new_data[][], boolean rebuild_image  )
   {
     int h = new_data.length;
+
+    data = new_data;  //###### Technically, since we may have "ragged" arrays,
+                      //       we should allocate a new rectangular array and
+                      //       fill it out as is done in the commented out 
+                      //       code below.  However, since our ISAW app only 
+                      //       passes in rectangular arrays, we will omit this
+                      //       copy step for now. 
+/*  #########
     int max_row_length = -1;
 
     for (int i = 0; i < new_data.length; i++ )
@@ -70,13 +112,14 @@ public class ImageJPanel extends  CoordJPanel
       return;
     }
     data  = new float[h][max_row_length];
+*/
 
     max_data = Float.NEGATIVE_INFINITY;
     min_data = Float.POSITIVE_INFINITY;
     for ( int row = 0; row < h; row++ )
       for ( int col = 0; col < new_data[row].length; col++ )
       {
-        data[row][col] = new_data[row][col];
+//######        data[row][col] = new_data[row][col];
         if ( data[row][col] > max_data )
           max_data = data[row][col]; 
         if ( data[row][col] < min_data )
@@ -86,7 +129,9 @@ public class ImageJPanel extends  CoordJPanel
       max_data = min_data + 1;
 
     if ( rebuild_image )
+    {
       makeImage();
+    }
   }
 
 /* -------------------------------- update ------------------------------- */
@@ -99,6 +144,13 @@ public class ImageJPanel extends  CoordJPanel
 /* --------------------------------- paint ------------------------------- */
   public void paint( Graphics g )
   {
+    stop_box( current_point, false );   // if the system redraws this without
+    stop_crosshair( current_point );    // our knowlege, we've got to get rid
+                                        // of the cursors, or the old position
+                                        // will be drawn rather than erased 
+                                        // when the user moves the cursor (due
+                                        // to XOR drawing). 
+    prepareImage( rescaled_image, this );
     if ( rescaled_image != null )
       g.drawImage( rescaled_image, 0, 0, this ); 
   }
@@ -107,10 +159,18 @@ public class ImageJPanel extends  CoordJPanel
 
   public int ImageRow_of_PixelRow( int pix_row )
   {
-    CoordTransform world_to_image = getWorldToImageTransform(); 
-    
     float WC_y = local_transform.MapYFrom( pix_row );
-    int   row = (int)( world_to_image.MapYTo( WC_y ) );
+ 
+    return ImageRow_of_WC_y( WC_y );
+  }
+
+/* -------------------------- ImageRow_of_WC_y ----------------------- */
+
+  public int ImageRow_of_WC_y( float y )
+  {
+    CoordTransform world_to_image = getWorldToImageTransform();
+   
+    int   row = (int)( world_to_image.MapYTo( y ) );
     if ( row < 0 )
       row = 0;
     else if ( row > data.length - 1 )
@@ -122,10 +182,18 @@ public class ImageJPanel extends  CoordJPanel
 
   public int ImageCol_of_PixelCol( int pix_col )
   {
-    CoordTransform world_to_image = getWorldToImageTransform(); 
-    
     float WC_x = local_transform.MapXFrom( pix_col );
-    int col = (int)( world_to_image.MapXTo( WC_x ) );
+
+    return  ImageCol_of_WC_x( WC_x );
+  }
+
+/* -------------------------- ImageCol_of_WC_x ----------------------- */
+
+  public int ImageCol_of_WC_x( float x )
+  {
+    CoordTransform world_to_image = getWorldToImageTransform();
+   
+    int col = (int)( world_to_image.MapXTo( x ) );
     if ( col < 0 )
       col = 0;
     else if ( col > data[0].length - 1 )
@@ -156,18 +224,16 @@ public class ImageJPanel extends  CoordJPanel
 
 /* ---------------------- LocalTransformChanged -------------------------- */
 
-public void LocalTransformChanged()
+protected void LocalTransformChanged()
 {
   makeImage();
 }
-
-
 
 /* -----------------------------------------------------------------------
  *
  * PRIVATE METHODS
  *
- */ 
+ */
 
 /* ----------------------- getWorldToImageTransform ---------------------- */
 
@@ -182,6 +248,7 @@ public void LocalTransformChanged()
     world_bounds = getGlobal_transform().getSource();
     return( new CoordTransform( world_bounds, image_bounds ) );   
   }
+
 
 /* ---------------------------------- makeImage --------------------------- */
 
@@ -215,6 +282,7 @@ public void LocalTransformChanged()
     System.out.println("makeImage..." );
     System.out.println("rows: " + start_row + " to " + end_row );
     System.out.println("cols: " + start_col + " to " + end_col );
+    System.out.println("Panel Size = " + getSize() );
 */
     byte pix[] = new byte[h*w];
     int index = 0;
@@ -227,6 +295,9 @@ public void LocalTransformChanged()
         pix[index++] = log_scale[(int)temp];
       }
     image = createImage(new MemoryImageSource(w, h, color_model, pix, 0, w));
+
+    stop_box( current_point, false );
+    stop_crosshair( current_point );
 
     rescaleImage();
     repaint();
@@ -249,6 +320,9 @@ public void LocalTransformChanged()
     new_width  = size.width;
     new_height = size.height;
 
+    if ( new_width == 0 || new_height == 0 )   // region not yet sized properly
+      return;
+
     if ( image != null )
     {
       if ( v_scroll && new_height < data.length )
@@ -266,8 +340,12 @@ public void LocalTransformChanged()
 
 public Dimension getPreferredSize()
 {
-    int rows, cols;
+    if ( preferred_size != null )     // if someone has specified a preferred
+      return preferred_size;          // size, just use it.
 
+    int rows, cols;                   // otherwise calculate the preferred
+                                      // width based on the data dimensions
+                                      // if scrolling is to be used. 
     if ( v_scroll )
       rows = data.length;
     else
@@ -315,4 +393,106 @@ public Dimension getPreferredSize()
         f.getContentPane().add(panel);
         f.setVisible(true);
     }
+
+
+class ImageKeyAdapter extends KeyAdapter
+{
+  public void keyPressed( KeyEvent e )
+  {
+    int code = e.getKeyCode();
+
+    boolean  is_arrow_key;
+    is_arrow_key = ( code == KeyEvent.VK_LEFT || code == KeyEvent.VK_RIGHT ||
+                     code == KeyEvent.VK_UP   || code == KeyEvent.VK_DOWN   );
+                                                 // only process arrow keys
+    if ( !is_arrow_key )
+      return;
+
+    CoordTransform world_to_image = getWorldToImageTransform();
+    floatPoint2D cur_WC_point = getCurrent_WC_point();
+    floatPoint2D cur_image_pix = world_to_image.MapTo( cur_WC_point );
+
+    cur_image_pix.x = ImageCol_of_PixelCol( current_point.x ) + 0.5f;
+    cur_image_pix.y = ImageRow_of_PixelRow( current_point.y ) + 0.5f;
+
+    if ( code == KeyEvent.VK_UP )
+    {
+      if ( cur_image_pix.y > 1 )
+        cur_image_pix.y = cur_image_pix.y - 1;
+    }
+    else if ( code == KeyEvent.VK_DOWN )
+    {
+      if ( cur_image_pix.y < data.length - 1 )
+        cur_image_pix.y = cur_image_pix.y + 1;
+    }
+    else if ( code == KeyEvent.VK_LEFT )
+    {
+      if ( cur_image_pix.x > 1 )
+        cur_image_pix.x = cur_image_pix.x - 1;
+    }
+    else if ( code == KeyEvent.VK_RIGHT )
+    { 
+      if ( cur_image_pix.x < data[0].length - 1 )
+        cur_image_pix.x = cur_image_pix.x + 1;
+    }
+
+    Point old_screen_pix_pt = getCurrent_pixel_point();
+    cur_WC_point = world_to_image.MapFrom( cur_image_pix );
+    setCurrent_WC_point( cur_WC_point );
+    Point new_screen_pix_pt = getCurrent_pixel_point();
+
+    if ( (new_screen_pix_pt.x == old_screen_pix_pt.x) &&
+         (new_screen_pix_pt.y == old_screen_pix_pt.y)   )
+    {
+      if ( code == KeyEvent.VK_UP )
+        new_screen_pix_pt.y--;
+      else if ( code == KeyEvent.VK_DOWN )
+        new_screen_pix_pt.y++;
+      else if ( code == KeyEvent.VK_LEFT )
+        new_screen_pix_pt.x--;
+      else if ( code == KeyEvent.VK_RIGHT )
+        new_screen_pix_pt.x++;
+    }
+    setCurrent_pixel_point( new_screen_pix_pt );
+
+    int id = 0;                               // synthesize a mouse event and
+    int modifiers = 0;                        // send it to this CoordJPanel
+    int clickcount = 0;                       // to trigger the proper response
+
+    if ( !isDoingBox() && !isDoingCrosshair() )
+      id = MouseEvent.MOUSE_PRESSED;
+    else
+      id = MouseEvent.MOUSE_DRAGGED;
+
+    if ( e.isShiftDown() )
+      modifiers  = InputEvent.BUTTON2_MASK;
+    else
+      modifiers  = MouseEvent.BUTTON1_MASK;
+
+    MouseEvent mouse_e = new MouseEvent( this_panel,
+                                         id,
+                                         e.getWhen(),
+                                         modifiers,
+                                         current_point.x,
+                                         current_point.y,
+                                         clickcount,
+                                         false );
+    this_panel.dispatchEvent( mouse_e );
+
+    if ( id == MouseEvent.MOUSE_PRESSED )      // Also send dragged event
+    {
+       mouse_e = new MouseEvent( this_panel,
+                                 MouseEvent.MOUSE_DRAGGED,
+                                 e.getWhen()+1,
+                                 modifiers,
+                                 current_point.x,
+                                 current_point.y,
+                                 clickcount,
+                                 false );
+      this_panel.dispatchEvent( mouse_e );
+    }
+
+  }
+}
+
 }

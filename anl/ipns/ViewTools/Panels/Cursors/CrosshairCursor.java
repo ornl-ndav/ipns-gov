@@ -1,17 +1,30 @@
+/*
+ * @(#) CrosshairCursor.java  1.0    1998/07/29   Dennis Mikkelson
+ *
+ * $Log$
+ * Revision 1.2  2000/07/10 22:11:48  dennis
+ * 7/10/2000 version, many changes and improvements
+ *
+ *  Revision 1.3  2000/05/11 16:53:19  dennis
+ *  Added RCS logging
+ *
+ */
+
 package DataSetTools.components.image;
 
 import javax.swing.*;
+import java.io.*;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
 /** 
  * A Rubberband that draws a crosshair cursor.
  *
- * @version 1.00, 7/29/98
- * @author  Dennis Mikkelson
  * @see     Rubberband
  */
-public class CrosshairCursor extends Rubberband {
+public class CrosshairCursor extends    Rubberband
+                             implements Serializable
+{
 
     public CrosshairCursor(JPanel component) {
         super(component);

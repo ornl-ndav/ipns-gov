@@ -1,6 +1,20 @@
+/*
+ * @(#) CoordBounds.java  1.0    1998/07/25   Dennis Mikkelson
+ *
+ * $Log$
+ * Revision 1.2  2000/07/10 22:11:45  dennis
+ * 7/10/2000 version, many changes and improvements
+ *
+ * Revision 1.4  2000/05/11 16:53:19  dennis
+ * Added RCS logging
+ *
+ */
 package DataSetTools.components.image;
 
-public class CoordBounds
+import java.io.*;
+
+
+public class CoordBounds implements Serializable
 {
   private float x1, x2, y1, y2;
 
@@ -51,6 +65,20 @@ public class CoordBounds
       max_y = min_y + 1;
 
     setBounds( min_x, min_y, max_x, max_y );
+  }
+
+  public void growBounds( float x_vals[], float y_vals[] )
+  {
+     CoordBounds temp = new CoordBounds();
+     temp.setBounds( x_vals, y_vals ); 
+     if ( this.x1 > temp.x1 )
+       this.x1 = temp.x1;
+     if ( this.x2 < temp.x2 )
+       this.x2 = temp.x2;
+     if ( this.y1 > temp.y1 )
+       this.y1 = temp.y1;
+     if ( this.y2 < temp.y2 )
+       this.y2 = temp.y2;
   }
 
   public void invertBounds( )

@@ -1,7 +1,21 @@
+/*
+ * @(#)  CoordTransform.java  1.0  1999/07/25  Dennis Mikkelson
+ *
+ *  $Log$
+ *  Revision 1.2  2000/07/10 22:11:47  dennis
+ *  7/10/2000 version, many changes and improvements
+ *
+ *  Revision 1.4  2000/05/11 16:53:19  dennis
+ *  Added RCS logging
+ *
+ */
+
 package DataSetTools.components.image;
 
+import java.io.*;
+import DataSetTools.util.*;
 
-public class CoordTransform
+public class CoordTransform implements Serializable
 {
   private CoordBounds  from;
   private CoordBounds  to;
@@ -29,6 +43,22 @@ public class CoordTransform
   {
     transformXList( x, to, from );
     transformYList( y, to, from );
+  }
+
+  public floatPoint2D MapTo( floatPoint2D p1 )
+  {
+    floatPoint2D p2 = new floatPoint2D();
+    p2.x = transformX( p1.x, from, to );
+    p2.y = transformY( p1.y, from, to );
+    return p2;
+  }
+
+  public floatPoint2D MapFrom( floatPoint2D p1 )
+  {
+    floatPoint2D p2 = new floatPoint2D();
+    p2.x = transformX( p1.x, to, from );
+    p2.y = transformY( p1.y, to, from );
+    return p2;
   }
 
   public CoordBounds MapTo( CoordBounds b )

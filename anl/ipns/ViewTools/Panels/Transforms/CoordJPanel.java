@@ -1,5 +1,24 @@
+/*
+ * @(#)  CoordJPanel.java  1.0  1999/07/25  Dennis Mikkelson
+ *
+ *  $Log$
+ *  Revision 1.3  2000/07/10 22:11:46  dennis
+ *  7/10/2000 version, many changes and improvements
+ *
+ *  Revision 1.18  2000/05/31 21:34:13  dennis
+ *  Modified method that generates mouse events from key events to
+ *  send a MOUSE_DRAGGED event with a MOUSE_PRESSED event so that the
+ *  cursor draws/updates immediately
+ *
+ *  Revision 1.17  2000/05/11 16:53:19  dennis
+ *  Added RCS logging
+ *
+ */
+
+
 package DataSetTools.components.image;
 
+import java.io.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.awt.event.*;
@@ -7,21 +26,36 @@ import javax.swing.*;
 
 import DataSetTools.util.*;
 
-abstract public class CoordJPanel extends JPanel 
+abstract public class CoordJPanel extends    JPanel 
+                                  implements Serializable
 {
-  private Rubberband      rb_box;
-  private Rubberband      crosshair_cursor;
-  private CoordTransform  global_transform;
-          CoordTransform  local_transform;
-  private Point           current_point = new Point(0,0);
+  private boolean doing_crosshair = false;    // flags used by several device
+  private boolean doing_box       = false;    // adapter classes to control
+                                              // zooming/crosshair cursors
+
+  protected boolean         h_scroll = false;
+  protected boolean         v_scroll = false;
+
+  protected boolean         CJP_handle_arrow_keys;
+  private   Rubberband      rb_box;
+  private   Rubberband      crosshair_cursor;
+  private   CoordTransform  global_transform;
+            CoordTransform  local_transform;
+  protected Point           current_point = new Point(0,0);
+  protected CoordJPanel     this_panel;
+  
+  protected Dimension       preferred_size = null;
 
   public CoordJPanel()
   { 
     CoordMouseAdapter mouse_adapter = new CoordMouseAdapter();
     addMouseListener( mouse_adapter );
 
-    CoordMouseMotionAdapter mouse_motion_adapter = new CoordMouseMotionAdapter();
+    CoordMouseMotionAdapter mouse_motion_adapter =new CoordMouseMotionAdapter();
     addMouseMotionListener( mouse_motion_adapter );
+
+    CoordKeyAdapter key_adapter = new CoordKeyAdapter();
+    addKeyListener( key_adapter ); 
 
     CoordComponentAdapter component_adapter = new CoordComponentAdapter();
     addComponentListener( component_adapter );
@@ -33,12 +67,27 @@ abstract public class CoordJPanel extends JPanel
     local_transform  = new CoordTransform();
 
     SetTransformsToWindowSize();
+    this_panel = this;
+
+    set_crosshair( current_point );      // ##############
+    stop_crosshair( current_point );
+
+    set_box( current_point );            // ##############
+    stop_box( current_point, false );
+    CJP_handle_arrow_keys = true;
   }
+
+ 
+  public void SetHorizontalScrolling( boolean scroll )
+  {
+    h_scroll = scroll;
+    invalidate();
+  }
+
 
   public Point getCurrent_pixel_point()
   {
-    SetTransformsToWindowSize();
-    return current_point;
+    return new Point( current_point );
   }
 
   public floatPoint2D getCurrent_WC_point()
@@ -46,6 +95,18 @@ abstract public class CoordJPanel extends JPanel
     SetTransformsToWindowSize();
     return new floatPoint2D( local_transform.MapXFrom( current_point.x ),
                              local_transform.MapYFrom( current_point.y ) );
+  }
+
+  public void setCurrent_pixel_point( Point p )
+  {
+    current_point = new Point(p);
+  }
+
+  public void setCurrent_WC_point( floatPoint2D WC_point )
+  {
+    SetTransformsToWindowSize();
+    current_point.x = (int)( 0.5 + local_transform.MapXTo( WC_point.x ) );
+    current_point.y = (int)( 0.5 + local_transform.MapYTo( WC_point.y ) );
   }
 
   public CoordTransform getLocal_transform()
@@ -87,99 +148,147 @@ abstract public class CoordJPanel extends JPanel
     return( local_transform.getSource( ) );
   }
 
-  abstract public void LocalTransformChanged();
+
+/* ------------------------- LocalTransformChanged ------------------------ */
+
+  abstract protected void LocalTransformChanged();
 
 
-/* -----------------------------------------------------------------------
- *
- * UTILITY CLASSES 
- *
- */ 
+/* ------------------------------ showState ------------------------------ */
 
-class CoordMouseAdapter extends MouseAdapter
+public void showState( String str )
 {
-  public void mouseClicked (MouseEvent e)
-  {                                    
-    SetTransformsToWindowSize();
-    current_point = e.getPoint();
-    if ( e.getClickCount() == 2 )    // reset zoom region to whole array
-    {
-      resetZoom();
-    } 
-  }
+  System.out.println( "-------------------------------------------" );
+  System.out.println( str );
+  System.out.println( "-------------------------------------------" );
+  showBounds();
+  showCurrentPoint();
+}
 
-  public void mousePressed (MouseEvent e)
+/* ------------------------ set_crosshair_WC ------------------------------ */
+
+public void set_crosshair_WC( floatPoint2D pt )
+{
+ setCurrent_WC_point( pt );
+ set_crosshair( current_point );
+}
+
+/* ------------------------ set_crosshair ------------------------------ */
+
+public void set_crosshair( Point current )
+{
+  stop_box( current, false );
+  current_point = current;
+  if ( doing_crosshair )
+    crosshair_cursor.stretch( current );
+  else
   {
-    SetTransformsToWindowSize();
-    current_point = e.getPoint();
-    crosshair_cursor.anchor( e.getPoint() );
-
-    if ( (e.getModifiers() & InputEvent.BUTTON2_MASK) != 0 )
-      rb_box.anchor( e.getPoint() );
+    crosshair_cursor.anchor( current );
+    crosshair_cursor.stretch( current );
+    doing_crosshair = true;
   }
+}
 
-  public void mouseReleased(MouseEvent e)
+
+/* ------------------------ set_box_WC ------------------------------ */
+
+public void set_box_WC( floatPoint2D pt )
+{
+ setCurrent_WC_point( pt );
+ set_box( current_point );
+}
+
+
+/* ------------------------ set_box ------------------------------ */
+
+public void set_box( Point current )
+{
+  stop_crosshair( current );
+  current_point = current;
+  if ( doing_box )
+    rb_box.stretch( current );
+  else
   {
-    SetTransformsToWindowSize();
-    current_point = e.getPoint();
-    if (  (e.getModifiers() & InputEvent.BUTTON1_MASK) != 0 )
-    {
-      crosshair_cursor.end( e.getPoint() ); 
-      return; 
-    }
+    rb_box.anchor( current );
+    rb_box.stretch( current );
+    doing_box = true;
+  }
+}
 
-    if (  (e.getModifiers() & InputEvent.BUTTON2_MASK) != 0 )
-    {
-      if ( !rb_box.end( e.getPoint() ) )       // ignore release, if not
-        return;                                // previously pressed
-          
-      if ( rb_box.bounds().width  > 0  &&      // valid new region
+
+/* -------------------------- stop_crosshair_WC ---------------------------- */
+
+public void stop_crosshair_WC( floatPoint2D pt )
+{
+ setCurrent_WC_point( pt );
+ stop_crosshair( current_point );
+}
+
+
+/* -------------------------- stop_crosshair ---------------------------- */
+
+public void stop_crosshair( Point current )
+{
+  if ( doing_crosshair )
+  {
+    current_point = current;
+    crosshair_cursor.stretch( current );
+    crosshair_cursor.end( current );
+    doing_crosshair = false;
+  }
+}
+
+
+/* -------------------------- stop_box_WC ---------------------------- */
+
+public void stop_box_WC( floatPoint2D pt, boolean do_zoom )
+{
+ setCurrent_WC_point( pt );
+ stop_box( current_point, do_zoom );
+}
+
+
+/* -------------------------- stop_box ---------------------------- */
+
+public void stop_box( Point current, boolean do_zoom )
+{
+  if ( doing_box )
+  {
+    current_point = current;
+    rb_box.stretch( current );
+    rb_box.end( current );
+    doing_box = false;
+                                               // process zoom if requested
+    if ( do_zoom )
+      if ( rb_box.bounds().width  > 0  &&
            rb_box.bounds().height > 0   )
       {
          int x1 = rb_box.bounds().x;
-         int y1 = rb_box.bounds().y;             
+         int y1 = rb_box.bounds().y;
          int x2 = x1 + rb_box.bounds().width;
-         int y2 = y1 + rb_box.bounds().height;             
+         int y2 = y1 + rb_box.bounds().height;
+
          ZoomToPixelSubregion( x1, y1, x2, y2 );
          LocalTransformChanged();
       }
-    }
-  }
-
-  public void mouseEntered (MouseEvent e)
-  {
-    Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
-    setCursor( cursor );
-  }
-};
-
-class CoordMouseMotionAdapter extends MouseMotionAdapter
-{
-  public void mouseDragged(MouseEvent e)
-  {
-    SetTransformsToWindowSize();
-    current_point = e.getPoint();
- 
-    if (  (e.getModifiers() & InputEvent.BUTTON1_MASK) != 0 )
-    {
-      crosshair_cursor.stretch( e.getPoint() ); 
-    }
-    else if (  (e.getModifiers() & InputEvent.BUTTON2_MASK) != 0 )
-    {
-      rb_box.stretch( e.getPoint() ); 
-    }
   }
 }
 
-class CoordComponentAdapter extends ComponentAdapter
+
+/* -------------------------- isDoingCrosshair ------------------------- */
+
+public boolean isDoingCrosshair()
 {
-  public void componentResized( ComponentEvent c )
-  {
-    SetTransformsToWindowSize();
-    LocalTransformChanged();
-  }
+  return doing_crosshair;
 }
 
+
+/* -------------------------- isDoingBox ------------------------- */
+
+public boolean isDoingBox()
+{
+  return doing_box;
+}
 
 
 /* -----------------------------------------------------------------------
@@ -197,17 +306,6 @@ private void resetZoom()
   LocalTransformChanged();
 }
 
-
-/* ------------------------------ showState ------------------------------ */
-
-public void showState( String str )
-{
-  System.out.println( "-------------------------------------------" );
-  System.out.println( str );
-  System.out.println( "-------------------------------------------" );
-  showBounds();
-  showCurrentPoint();
-}
 
 /* ------------------------------ showBounds ------------------------------ */
 
@@ -293,11 +391,34 @@ private void ZoomToPixelSubregion( float x1, float y1, float x2, float y2 )
   local_transform.setSource( WC_x1, WC_y1, WC_x2, WC_y2 );
 }
 
+/* --------------------------- my_setPreferredSize ------------------------ */
+/**
+ *  Set a size that this object will return in a call to getPreferredSize.
+ *  However, we don't want to override the setPreferredSize method of this 
+ *  JPanel, since that has too many other uses.  If derived classes such as
+ *  ImageJPanel and GraphJPanel overided the getPreferredSize method, they
+ *  should check if the preferred_size variable has been set.  If so, they 
+ *  should return it, otherwise, they should calculate their own preferred
+ *  size.
+ *
+ *  @param  preferredSize   The size to return in calls to getPreferredSize. 
+ *                          Pass in null to allow the derived class to 
+ *                          calculate it's own preferred size.
+ */
+public void my_setPreferredSize( Dimension preferredSize )
+{
+  preferred_size = preferredSize; 
+}
+
+
+
+
+
 /* -----------------------------------------------------------------------
  *
  * MAIN PROGRAM FOR TEST PURPOSES
  *
- */ 
+ */
 /*
 public static void main(String[] args)
   {
@@ -308,4 +429,184 @@ public static void main(String[] args)
     f.setVisible(true);
   }
 */
+
+
+/* -----------------------------------------------------------------------
+ *
+ * UTILITY CLASSES
+ *
+ */
+
+
+class CoordMouseAdapter extends MouseAdapter
+{
+  public void mouseClicked (MouseEvent e)
+  {
+    SetTransformsToWindowSize();
+    current_point = e.getPoint();
+
+    stop_box( current_point, false );
+    stop_crosshair( current_point );
+
+    if ( e.getClickCount() == 2 )    // reset zoom region to whole array
+      resetZoom();
+  }
+
+  public void mousePressed (MouseEvent e)
+  {
+    SetTransformsToWindowSize();
+
+    if ( (e.getModifiers() & InputEvent.BUTTON2_MASK) != 0  ||
+          e.isShiftDown()                                         )
+      set_box( e.getPoint() ); 
+    else  
+      set_crosshair( e.getPoint() );
+  }
+
+  public void mouseReleased(MouseEvent e)
+  {
+    SetTransformsToWindowSize();
+    current_point = e.getPoint();
+    stop_crosshair( e.getPoint() );
+    stop_box( e.getPoint(), true );
+  }
+
+  public void mouseEntered (MouseEvent e)
+  {
+    requestFocus();                // so we can also move cursor with arrow
+                                   // keys
+    Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
+    setCursor( cursor );
+  }
+};
+
+
+class CoordMouseMotionAdapter extends MouseMotionAdapter
+{
+  public void mouseDragged(MouseEvent e)
+  {
+
+    SetTransformsToWindowSize();
+    current_point = e.getPoint();
+
+    if ( doing_box )
+      set_box( e.getPoint() );
+
+    else
+      set_crosshair( e.getPoint() );
+  }
+}
+
+
+class CoordKeyAdapter extends KeyAdapter
+{
+  public void keyPressed( KeyEvent e )
+  {
+    int code = e.getKeyCode();
+
+    boolean  is_arrow_key;
+    is_arrow_key = ( code == KeyEvent.VK_LEFT || code == KeyEvent.VK_RIGHT ||
+                     code == KeyEvent.VK_UP   || code == KeyEvent.VK_DOWN   );
+
+    Point increment = new Point(0,0);
+                                                 // only process arrow keys 
+                                                 // and <ENTER>, <BACKSPACE> 
+    if ( !is_arrow_key && 
+         code != KeyEvent.VK_ENTER && code != KeyEvent.VK_BACK_SPACE   ) 
+      return;
+
+    if ( is_arrow_key && !CJP_handle_arrow_keys )
+      return;
+
+    if ( code == KeyEvent.VK_LEFT )
+      increment.x = -1;
+
+    else if ( code == KeyEvent.VK_RIGHT )
+      increment.x = 1;
+
+    else if ( code == KeyEvent.VK_UP )
+      increment.y = -1;
+
+    else if ( e.getKeyCode() == KeyEvent.VK_DOWN )
+      increment.y = 1;
+
+    current_point.x += increment.x;
+    current_point.y += increment.y;
+
+    int id = 0;                               // synthesize a mouse event and
+    int modifiers = 0;                        // send it to this CoordJPanel
+    int clickcount = 0;                       // to trigger the proper response
+
+    if ( code == KeyEvent.VK_ENTER )
+      id = MouseEvent.MOUSE_RELEASED;
+
+    else if ( code == KeyEvent.VK_BACK_SPACE )
+    {
+      id = MouseEvent.MOUSE_CLICKED;
+      clickcount = 2; 
+    } 
+
+    else
+    {
+      if ( !doing_box && !doing_crosshair )
+        id = MouseEvent.MOUSE_PRESSED;
+      else
+        id = MouseEvent.MOUSE_DRAGGED;
+         
+      if ( e.isShiftDown() )
+        modifiers  = InputEvent.BUTTON2_MASK;
+      else
+        modifiers  = MouseEvent.BUTTON1_MASK;
+    }
+
+    MouseEvent mouse_e = new MouseEvent( this_panel, 
+                                         id, 
+                                         e.getWhen(), 
+                                         modifiers, 
+                                         current_point.x, 
+                                         current_point.y, 
+                                         clickcount,
+                                         false ); 
+    this_panel.dispatchEvent( mouse_e );
+    if ( id == MouseEvent.MOUSE_PRESSED )      // Also send dragged event
+    {
+      mouse_e = new MouseEvent( this_panel,
+                                 MouseEvent.MOUSE_DRAGGED,
+                                 e.getWhen()+1,
+                                 modifiers,
+                                 current_point.x,
+                                 current_point.y,
+                                 clickcount,
+                                 false );
+      this_panel.dispatchEvent( mouse_e );
+    }
+
+  }
+}
+
+
+class CoordComponentAdapter extends ComponentAdapter
+{
+  Dimension current_size = new Dimension( 0, 0 );
+
+  public void componentResized( ComponentEvent c )
+  {
+    Dimension size = getSize();
+    if ( size.width == 0 || size.height == 0 )
+      return;
+
+    if ( size.equals( current_size ) )       // no need to change it!
+      return;
+
+    stop_box( current_point, false );
+    stop_crosshair( current_point );
+
+    SetTransformsToWindowSize();
+    LocalTransformChanged();
+    current_size = size;
+  }
+}
+
+
+
 }

@@ -1,28 +1,35 @@
+/*
+ * @(#) IndexColorMaker.java  1.0    1998/07/29   Dennis Mikkelson
+ *
+ *  $Log$
+ *  Revision 1.2  2000/07/10 22:11:51  dennis
+ *  7/10/2000 version, many changes and improvements
+ *
+ *  Revision 1.3  2000/05/11 16:53:19  dennis
+ *  Added RCS logging
+ *
+ */
+
 package DataSetTools.components.image;
 
 import java.awt.image.*;
+import java.io.*;
 
-public class IndexColorMaker
+public class IndexColorMaker implements Serializable
 {
-  public static final int GRAY_SCALE            = 0;
-  public static final int NEGATIVE_GRAY_SCALE   = 1;
-  public static final int GREEN_YELLOW_SCALE    = 2;
-  public static final int HEATED_OBJECT_SCALE   = 3;
-  public static final int HEATED_OBJECT_SCALE_2 = 4;
-  public static final int RAINBOW_SCALE         = 5;
-  public static final int OPTIMAL_SCALE         = 6;
-  public static final int MULTI_SCALE           = 7;
-  public static final int SPECTRUM_SCALE        = 8;
-  public static final int NUM_SCALES            = 9;
+  public static final String GRAY_SCALE            = "Gray";
+  public static final String NEGATIVE_GRAY_SCALE   = "Negative Gray";
+  public static final String GREEN_YELLOW_SCALE    = "Green-Yellow";
+  public static final String HEATED_OBJECT_SCALE   = "Heat 1";
+  public static final String HEATED_OBJECT_SCALE_2 = "Heat 2";
+  public static final String RAINBOW_SCALE         = "Rainbow";
+  public static final String OPTIMAL_SCALE         = "Optimal";
+  public static final String MULTI_SCALE           = "Multi";
+  public static final String SPECTRUM_SCALE        = "Spectrum";
 
-  public static IndexColorModel getColorModel( int color_scale_id, 
+  public static IndexColorModel getColorModel( String scale_type, 
                                                int num_colors      )
   {
-    if ( color_scale_id < 0 )                  // force valid color_scale_id 
-      color_scale_id = 0;
-    else if ( color_scale_id >= NUM_SCALES )
-      color_scale_id = SPECTRUM_SCALE;
-
     if ( num_colors > 256 )                // force valid and usable num_colors
       num_colors = 256;
     else if ( num_colors < 16 ) 
@@ -32,28 +39,36 @@ public class IndexColorMaker
     byte green[] = new byte [ num_colors ];
     byte blue[]  = new byte [ num_colors ];
 
-    switch ( color_scale_id )
-    {
-    case GRAY_SCALE           : BuildGrayScale( red, green, blue ); 
-                                break;
-    case NEGATIVE_GRAY_SCALE  : BuildNegativeGrayScale( red, green, blue ); 
-                                break;
-    case GREEN_YELLOW_SCALE   : BuildGreenYellowScale( red, green, blue ); 
-                                break;
-    case HEATED_OBJECT_SCALE  : BuildHeatedObjectScale( red, green, blue ); 
-                                break;
-    case HEATED_OBJECT_SCALE_2: BuildHeatedObjectScale2( red, green, blue ); 
-                                break;
-    case RAINBOW_SCALE        : BuildRainbowScale( red, green, blue ); 
-                                break;
-    case OPTIMAL_SCALE        : BuildOptimalScale( red, green, blue ); 
-                                break;
-    case MULTI_SCALE          : BuildMultiScale( red, green, blue ); 
-                                break;
-    case SPECTRUM_SCALE       : BuildSpectrumScale( red, green, blue ); 
-                                break;
-    default        : BuildGrayScale( red, green, blue );
-    }
+    if (scale_type == GRAY_SCALE)
+      BuildGrayScale( red, green, blue ); 
+
+    else if (scale_type == NEGATIVE_GRAY_SCALE )
+      BuildNegativeGrayScale( red, green, blue ); 
+
+    else if (scale_type == GREEN_YELLOW_SCALE ) 
+      BuildGreenYellowScale( red, green, blue ); 
+
+    else if (scale_type == HEATED_OBJECT_SCALE ) 
+      BuildHeatedObjectScale( red, green, blue ); 
+
+    else if (scale_type == HEATED_OBJECT_SCALE_2 ) 
+      BuildHeatedObjectScale2( red, green, blue ); 
+
+    else if (scale_type == RAINBOW_SCALE )
+      BuildRainbowScale( red, green, blue ); 
+
+    else if (scale_type == OPTIMAL_SCALE )
+      BuildOptimalScale( red, green, blue ); 
+
+    else if (scale_type == MULTI_SCALE )
+      BuildMultiScale( red, green, blue ); 
+
+    else if (scale_type == SPECTRUM_SCALE )
+      BuildSpectrumScale( red, green, blue ); 
+
+    else
+      BuildGrayScale( red, green, blue );
+    
     IndexColorModel colors = new IndexColorModel( 8, num_colors, 
                                                      red, green, blue );
     return( colors );
