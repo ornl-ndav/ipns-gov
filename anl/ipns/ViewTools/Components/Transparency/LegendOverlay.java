@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/06/17 22:36:27  serumb
+ *  Added controls to move the legend by holding the control key
+ *  and pressing a directional key while the legend editor is open.
+ *
  *  Revision 1.1  2004/06/10 23:29:49  serumb
  *  Initial version of a class that displays a legend on a graph.
  *
@@ -44,12 +48,11 @@ package gov.anl.ipns.ViewTools.Components.Transparency;
 import javax.swing.*; 
 import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import javax.swing.border.TitledBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.text.TextAction;
+import javax.swing.text.Keymap;
+import java.awt.event.*;
 
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.Util.Numeric.Format;
@@ -106,6 +109,9 @@ public class LegendOverlay extends OverlayJPanel
   private String[] graphs;
   private int[] selectedGraphs;
   private GraphData[] lineInfo;
+  private int x_offset = 0;
+  private int y_offset = 0;
+
 
  /**
   * Constructor for initializing a new LegendOverlay
@@ -254,65 +260,104 @@ public class LegendOverlay extends OverlayJPanel
     FontMetrics fontdata = g2d.getFontMetrics();
     // System.out.println("Precision = " + precision);
     updateTransform();
+    
+    drawLegend(g2d);
 
-   //legend border width =120 hieght = 25 per line
-    // left line
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125,
-                 (int)current_bounds.getY()+5,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 125,
-                 (int)current_bounds.getY()+10 + 20*(int)graphs.length );
-    //top line
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125,
-                 (int)current_bounds.getY()+5,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 120,
-                 (int)current_bounds.getY()+5);
-    g2d.drawString( "Legend", 
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 118,
-                 (int)current_bounds.getY()+10);
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 74,
-                 (int)current_bounds.getY()+5,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5,
-                 (int)current_bounds.getY()+5);
-    //right line
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 5,
-                 (int)current_bounds.getY()+5,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5,
-                 (int)current_bounds.getY()+10 + 20*(int)graphs.length );
-    //Bottom line
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125,
-                 (int)current_bounds.getY()+10 + 20*(int)graphs.length,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5,
-                 (int)current_bounds.getY()+10 + 20*(int)graphs.length );
+   }  
+
+
+  
    
+ /*
+  * This method will get the current bounds of the center and reset
+  * the transform that converts pixel to world coords.
+  */
+  private void updateTransform()
+  {
+    current_bounds = component.getRegionInfo(); // current size of center 
+  }
+
+
+  /*
+   * This method draws the legend in the top left corner of the graph.
+   */
+  private void drawLegend(Graphics2D g2d)
+  {
+    //legend border width =120 hieght = 25 per line
+    // left line
+    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125
+                 + x_offset,
+                 (int)current_bounds.getY()+5 + y_offset,
+                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 125
+                 + x_offset,
+                 (int)current_bounds.getY()+10 + 20*(int)graphs.length
+                 + y_offset );
+    //top line
+    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125
+                 + x_offset,
+                 (int)current_bounds.getY()+5 + y_offset,
+                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 120
+                 + x_offset,
+                 (int)current_bounds.getY()+5 + y_offset);
+    g2d.drawString( "Legend",
+                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 118
+                 + x_offset,
+                 (int)current_bounds.getY()+10 + y_offset);
+    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 74
+                 + x_offset,
+                 (int)current_bounds.getY()+5 + y_offset,
+                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
+                 + x_offset,
+                 (int)current_bounds.getY()+5 + y_offset);
+    //right line
+    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
+                 + x_offset,
+                 (int)current_bounds.getY()+5 + y_offset,
+                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
+                 + x_offset,
+                 (int)current_bounds.getY()+10 + 20*(int)graphs.length
+                 + y_offset );
+    //Bottom line
+    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125
+                 + x_offset,
+                 (int)current_bounds.getY()+10 + 20*(int)graphs.length 
+                 + y_offset,
+                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
+                 + x_offset,
+                 (int)current_bounds.getY()+10 + 20*(int)graphs.length
+                 + y_offset );
+
     //Draw text
     for (int index = 0; index < graphs.length; index++)
       {
-        g2d.drawString( graphs[index], 
-        (int)current_bounds.getX()+(int)current_bounds.getWidth() - 120,
-        (int)current_bounds.getY()+ 5 + 20*(index+1) );
+        g2d.drawString( graphs[index],
+        (int)current_bounds.getX()+(int)current_bounds.getWidth() - 120
+        + x_offset,
+        (int)current_bounds.getY()+ 5 + 20*(index+1)+ y_offset );
       }
 
     //Draw line
     for (int index = 0; index < graphs.length; index++)
-      {  
+      {
          g2d.setStroke(lineInfo[index].Stroke);
          g2d.setColor(lineInfo[index].color);
          g2d.drawLine((int)current_bounds.getX()+(int)current_bounds
-                                                    .getWidth() - 40,
-                 (int)current_bounds.getY() + 20*(index+1),
-                 (int)current_bounds.getX() +(int)current_bounds.getWidth() - 10,
-                 (int)current_bounds.getY() + 20*(index+1) );
+                              .getWidth() - 40 + x_offset,
+                 (int)current_bounds.getY() + 20*(index+1) + y_offset,
+                 (int)current_bounds.getX() +(int)current_bounds.getWidth() - 10
+                 + x_offset,
+                 (int)current_bounds.getY() + 20*(index+1) + y_offset );
       }
-
     //Draw marks
       int size = 2;
       for (int index = 0; index < graphs.length; index++)
       {
-         g2d.setColor(lineInfo[index].markcolor); 
+         g2d.setColor(lineInfo[index].markcolor);
          int x_int =(int)current_bounds.getX()+(int)current_bounds
-                                                    .getWidth() - 30;
-         int y_int =(int)current_bounds.getY() + 20*(index+1);         
-         
+                            .getWidth() - 30 + x_offset;
+         int y_int =(int)current_bounds.getY() + 20*(index+1)
+                            + y_offset;
+
          if( lineInfo[index].marktype == 0){}
          else if( lineInfo[index].marktype == 1)
          {
@@ -356,74 +401,68 @@ public class LegendOverlay extends OverlayJPanel
                      x_int+size, y_int-size );
          }
       }
-
-   }  
-
-
-  
-   
- /*
-  * This method will get the current bounds of the center and reset
-  * the transform that converts pixel to world coords.
-  */
-  private void updateTransform()
-  {
-    current_bounds = component.getRegionInfo(); // current size of center 
-   /* CoordBounds pixel_map =
-            new CoordBounds( (float)current_bounds.getX(),
-                             (float)current_bounds.getY(),
-                             (float)(current_bounds.getX() +
-                                     current_bounds.getWidth()),
-                             (float)(current_bounds.getY() +
-                                     current_bounds.getHeight() ) );
-    pixel_local.setSource( pixel_map );
-    pixel_local.setDestination( component.getLocalCoordBounds() );*/
   }
 
- /*
-  * Converts from world coordinates to a pixel point
-  */
- /* private Point convertToPixelPoint( floatPoint2D fp )
-  {
-    floatPoint2D fp2d = pixel_local.MapFrom( fp );
-    return new Point( (int)fp2d.x, (int)fp2d.y );
-  }*/
-
- /*
-  * Converts from pixel coordinates to world coordinates.
-  */
- /* private floatPoint2D convertToWorldPoint( Point p )
-  {
-    return pixel_local.MapTo( new floatPoint2D((float)p.x, (float)p.y) );
-  }*/
-  
+ 
   private class LegendEditor extends JFrame
   {
     private LegendEditor this_editor;
     private LabelCombobox selectedLineBox;
-    private TextField labelField = new TextField((int)20);      
+    private JTextField labelField = new JTextField((int)20);      
+    private JTextField titleField = new JTextField(null);      
     private JButton changebutton = new JButton("Change");
-    
+    private Box theBox = new Box(0);
+
     public LegendEditor(String[] graphs)
     {
       super("Legend Editor");
       this_editor = this;
-      this.getContentPane().setLayout( new GridLayout() );
+      this.getContentPane().setLayout( new GridLayout(1,3) );
       this.setBounds(editor_bounds);
       this.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
       
+      if (!(graphs == null))
+         labelField.setText(graphs[0]);
+
       selectedLineBox = new LabelCombobox("Graph", graphs);
       selectedLineBox.addActionListener( new ControlListener() );
-      
+ 
+      titleField.setEditable(false);
 
       changebutton.addActionListener( new ControlListener() );
       
       // this jpanel groups all other miscellaneous options into one row.
       JPanel labelPanel = new JPanel( new GridLayout() );
-      labelPanel.add(selectedLineBox);
-      labelPanel.add(labelField);
-      labelPanel.add(changebutton);
-      //miscoptions.add(
+      theBox.add(titleField);
+      theBox.add(selectedLineBox);
+      theBox.add(labelField);
+      theBox.add(changebutton);
+      labelPanel.add(theBox);
+
+      // These commands will create key events for moving the annotation
+      //*********************************************************************
+      Keymap km = titleField.getKeymap();
+      // these move p2 of the line (the actual note)
+      KeyStroke up = KeyStroke.getKeyStroke( KeyEvent.VK_UP,
+                                             Event.CTRL_MASK );
+      KeyStroke down = KeyStroke.getKeyStroke( KeyEvent.VK_DOWN,
+                                               Event.CTRL_MASK );
+      KeyStroke left = KeyStroke.getKeyStroke( KeyEvent.VK_LEFT,
+                                               Event.CTRL_MASK );
+      KeyStroke right = KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT,
+                                                Event.CTRL_MASK );
+
+      Action actup = new KeyAction("Ctrl-UP");
+      Action actdown = new KeyAction("Ctrl-DOWN");
+      Action actleft = new KeyAction("Ctrl-LEFT");
+      Action actright = new KeyAction("Ctrl-RIGHT");
+
+      km.addActionForKeyStroke( up, actup );
+      km.addActionForKeyStroke( down, actdown );
+      km.addActionForKeyStroke( left, actleft );
+      km.addActionForKeyStroke( right, actright );
+    
+      labelPanel.remove(titleField);
       this.getContentPane().add( labelPanel );
       this_editor.addComponentListener( new EditorListener() );
     }
@@ -469,7 +508,48 @@ public class LegendOverlay extends OverlayJPanel
       {
 	editor_bounds = editor.getBounds();
       }
-    }	    
+    }
+    
+   /*
+    * This class defines the actions for the key strokes created above.
+    * This class will cause notes to move using arrow keys and modifiers. 
+    */
+    class KeyAction extends TextAction
+    {
+      private String name;
+      public KeyAction( String tname )
+      {
+         super(tname);
+         name = tname;
+      }
+
+      public void actionPerformed( ActionEvent e )
+      {
+        if( name.indexOf("Ctrl") > -1 )
+        {
+          if( name.equals("Ctrl-UP") )
+          {
+                y_offset--;
+          }
+          else if( name.equals("Ctrl-DOWN") )
+          {
+                y_offset++;
+          }
+          else if( name.equals("Ctrl-LEFT") )
+          {
+                x_offset--;
+          }
+          else if( name.equals("Ctrl-RIGHT") )
+          {
+                x_offset++;
+          }
+
+        this_panel.repaint();
+        }
+      } 
+    }
+
+	    
   }
   
  /*
