@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.56  2004/06/17 16:45:17  serumb
+ *  Repainted the components after zoom.
+ *
  *  Revision 1.55  2004/06/16 22:09:10  serumb
  *  Repainted the transparencies after the components are rebuilt.
  *
@@ -281,13 +284,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     font        = FontUtil.LABEL_FONT2;
     gjp         = new GraphJPanel(  );
    
-/*
-    //initialize the pointed at graph to 0
-       float x1[] = {0};
-       float y1[] = {0};
-       gjp.setData( x1, y1, 0, false );     
-*/     
-
     //initialize GraphJPanel with the virtual array
     int num_lines = varr.getNumSelectedGraphs(  );
     for( int i = 1; i < num_lines+1; i++ ) {
@@ -727,8 +723,8 @@ public class FunctionViewComponent implements IViewComponent1D,
        
     }
   
-/**
-   * To be continued...
+  /**
+   * This method takes in a new array of data and redraws the graph accordingly.
    */
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
    {
@@ -1124,19 +1120,13 @@ public class FunctionViewComponent implements IViewComponent1D,
 
       if( message == CoordJPanel.ZOOM_IN ) {
         //System.out.println("Sending SELECTED_CHANGED " + regioninfo );
-        for( int next = 0; next < transparencies.size(  ); next++ ) {
-          ( ( OverlayJPanel )transparencies.elementAt( next ) ).repaint(  );
-        }
-
+        paintComponents();
         sendMessage( SELECTED_CHANGED );
       }
 
       if( message == CoordJPanel.RESET_ZOOM ) {
         //System.out.println("Sending SELECTED_CHANGED" );
-        for( int next = 0; next < transparencies.size(  ); next++ ) {
-          ( ( OverlayJPanel )transparencies.elementAt( next ) ).repaint(  );
-        }
-
+        paintComponents();
         sendMessage( SELECTED_CHANGED );
       }
     }
