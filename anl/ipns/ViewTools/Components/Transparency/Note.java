@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/12 02:16:58  serumb
+ *  Added package and imports.
+ *
  *  Revision 1.2  2003/11/18 01:03:29  millermi
  *  - Now implement serializable to allow saving of state.
  *
@@ -42,14 +45,14 @@
  *    and made it a separate public class.
  *
  */
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import javax.swing.JTextField; 
 import java.awt.Point;
 
-import DataSetTools.components.View.Cursor.Line;
-import DataSetTools.components.image.CoordBounds;
-import DataSetTools.util.floatPoint2D;
+import gov.anl.ipns.ViewTools.Components.Cursor.Line;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
  * This class creates a datastructure to easily group together a String 
