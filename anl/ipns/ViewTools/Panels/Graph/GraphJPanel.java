@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.52  2005/03/11 19:52:01  serumb
+ * Added get and set Object State methods and changed get and set Stroke
+ * methods to use an integer key as a paremeter.
+ *
  * Revision 1.51  2005/02/04 22:55:21  millermi
  * - Added ZoomListener to flag if local bounds are zoomed.
  * - Added check in SetDataBounds() to determine if local bounds are
@@ -201,31 +205,74 @@ import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 
 
+  
 /**
  *  A GraphJPanel Test object maintains and draws a list of graphs.
  */ 
 
 public class GraphJPanel extends    CoordJPanel 
-                         implements Serializable
+                         implements Serializable,
+				    IPreserveState
 {
-  public Vector  graphs;
+
+      
+/**
+ * "x offset factor" - This constant String is a key for referencing the State
+ * information about the x offset factor for the graphs when they are displayed 
+ * in the GraphJPanel.
+ */
+ public static final String X_OFFSET_FACTOR = "x offset factor";
+
+/**
+ * "y offset factor" - This constant String is a key for referencing the State
+ * information about the y offset factor for the graphs when they are displayed
+ * in the GraphJPanel.
+ */
+  public static final String Y_OFFSET_FACTOR = "y offset factor";
+
+/**
+ * "log scale x" - This constant String is a key for referencing the State
+ * information about the logarithmic x axis for the GraphJPanel. This 
+ * log scale is a boolean value to determine if the log axis is drawn
+ * for the x values.
+ */
+  public static final String LOG_SCALE_X = "log scale x";
+
+/**
+ * "log scale y" - This constant String is a key for referencing the State
+ * information about the logarithmic y axis for the GraphJPanel. This
+ * log scale is a boolean value to determine if the log axis is drawn
+ * for the y values.
+ */
+  public static final String LOG_SCALE_Y = "log scale y";
+
+/**
+ * "Graph Data" - This constant String is a key for referencing the state 
+ * information about the Graph Data.  Since the Graph Data has its own 
+ * state, this value is of type ObjectState, and contains the state of the 
+ * Graph Data.
+ */
+  public static final String GRAPH_DATA = "Graph Data";
 
 
-  private boolean         y_bound_set = false;
-  private boolean         x_bound_set = false;
-  private int             x_offset_factor = 0;  
-  private int             y_offset_factor = 0;  
-  private boolean         remove_hidden_lines = false;
-  private CoordBounds     auto_data_bound;
+  public transient Vector  graphs;
+
+  private transient boolean         y_bound_set = false;
+  private transient boolean         x_bound_set = false;
+  private int                       x_offset_factor = 0;  
+  private int                       y_offset_factor = 0;  
+  private transient boolean         remove_hidden_lines = false;
+  private transient CoordBounds     auto_data_bound;
   private boolean         log_scale_x = false;
   private boolean         log_scale_y = false;
-  private float maxy;
-  private float minx;
-  private float maxx;
-  private float miny;
-  private float min_positive_x;
-  private float min_positive_y;
-  private boolean reset_local = true; // This variable is used to determine
+  private transient float maxy;
+  private transient float minx;
+  private transient float maxx;
+  private transient float miny;
+  private transient float min_positive_x;
+  private transient float min_positive_y;
+  private transient boolean 
+	  reset_local = true; // This variable is used to determine
                                       // whether or not the local bounds
 				      // are zoomed or global.
 
@@ -260,7 +307,88 @@ public class GraphJPanel extends    CoordJPanel
     set_auto_data_bound();
   }
 
+ // setState() and getState() are required by IPreserveState interface
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    boolean redraw = false;  // if any values change redraw.
 
+    Object temp = new_state.get(GRAPH_DATA);
+    for( int x = 0; x < graphs.size(); x++){
+      String GRAPH_DATAX = GRAPH_DATA + x;	    
+      temp = new_state.get(GRAPH_DATAX);
+      if ( temp != null)
+      {
+      ((GraphData)graphs.elementAt(x)).setObjectState(
+				    (ObjectState)temp);
+      redraw = true;
+      }
+    }
+                                                    
+    temp = new_state.get(X_OFFSET_FACTOR);
+    if ( temp != null)
+    {
+      x_offset_factor = ((Integer)temp).intValue();
+      redraw = true;
+    } 
+
+    temp = new_state.get(Y_OFFSET_FACTOR);
+    if ( temp != null)
+    {
+      y_offset_factor = ((Integer)temp).intValue();
+      redraw = true;
+    }
+    
+    temp = new_state.get(LOG_SCALE_X);
+    if ( temp != null)
+    {
+      log_scale_x = ((Boolean)temp).booleanValue();
+      redraw = true;
+    }
+
+    temp = new_state.get(LOG_SCALE_Y);
+    if ( temp != null)
+    {
+      log_scale_y = ((Boolean)temp).booleanValue();
+      redraw = true;
+    }
+
+    if( redraw )
+       repaint();
+  }
+	
+  /**
+   * This method will get the current values of the state variables for this
+   * object. These variables will be wrapped in an ObjectState. Keys will be
+   * put in alphabetic order.
+   */
+    public ObjectState getObjectState(boolean isDefault)
+    {
+      ObjectState state = new ObjectState();
+      for(int x =0; x < graphs.size(); x++){
+      String GRAPH_DATAX = GRAPH_DATA + x;
+      state.insert(GRAPH_DATAX, 
+		  ((GraphData)graphs.elementAt(x)).getObjectState(isDefault) );
+      }
+      state.insert(LOG_SCALE_X, new Boolean(log_scale_x) );
+      state.insert(LOG_SCALE_Y, new Boolean(log_scale_y) );
+      state.insert(X_OFFSET_FACTOR, new Integer(x_offset_factor) );
+      state.insert(Y_OFFSET_FACTOR, new Integer(y_offset_factor) );
+
+      if(! isDefault){
+      }
+
+      return state;
+
+    } 
+		      
+  
+  
 /* ------------------------------- setData -------------------------------- */
 /**
  *  Set the data for the "0th" graph to the specified x and y values.  The
@@ -558,13 +686,13 @@ public class GraphJPanel extends    CoordJPanel
  *
  *  @return            true if the graph_num is valid, false otherwise.
  */
-public boolean setStroke(BasicStroke theStroke, int graph_num, boolean redraw)
+public boolean setStroke(int strokeType, int graph_num, boolean redraw)
   {
     if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
       return false;
 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
-    gd.Stroke = theStroke; 
+    gd.linetype = strokeType; 
 
     if ( redraw )
       repaint(); 
@@ -616,13 +744,13 @@ public boolean setTransparent(boolean transparent, int graph_num,
  *  @return            the Stroke type.
  */
 
-public BasicStroke getStroke(int graph_num)
+public int getStroke(int graph_num)
   { 
     if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
-       return new BasicStroke();
+       return LINE;
 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
-    return gd.Stroke;
+    return gd.linetype;
   }
 
 
@@ -1182,8 +1310,10 @@ public boolean is_autoY_bounds()
 	      float min = getPositiveYmin();
 	      float max = getYmax();
 	      LogScaleUtil logger = new LogScaleUtil(min,max);
-	      error_bars_upper[i] = logger.toDest( logger.toSource(y_copy[i]) + error_copy[i] );
-	      error_bars_lower[i] = logger.toDest( logger.toSource(y_copy[i]) - error_copy[i] );
+	      error_bars_upper[i] = logger.toDest( logger.toSource(y_copy[i]) + 
+			      error_copy[i] );
+	      error_bars_lower[i] = logger.toDest( logger.toSource(y_copy[i]) - 
+			      error_copy[i] );
 	   }   
 	  else{						  
            error_bars_upper[i] = y_copy[i] + error_copy[i]; 
@@ -1198,7 +1328,7 @@ public boolean is_autoY_bounds()
 
 
 
-      g2.setStroke(gd.Stroke);
+      g2.setStroke(strokeType(gd.linetype, gr_index));
       
       if ( x_copy.length == y_copy.length )            // Function data
       { 
@@ -1823,24 +1953,24 @@ public CoordBounds getLocalLogWorldCoords()
     graph.setData( g1_x_vals, g1_y_vals, 0, false );
     graph.setErrors( g1_e_vals, 11, 1, true );
     graph.setColor( Color.black, 0, false );
-    graph.setStroke( graph.strokeType(TRANSPARENT,0), 0, false);
+    graph.setStroke( TRANSPARENT, 0, false);
     graph.setLineWidth(1,0,true);
     graph.setMarkColor(Color.green,0,false);
     graph.setMarkType(BOX, 0, false);
 
     graph.setData( g2_x_vals, g2_y_vals, 1, true );
     graph.setColor( Color.red, 1, true );
-    graph.setStroke( graph.strokeType(DOTTED,1), 1, true);
+    graph.setStroke(DOTTED, 1, true);
 
     graph.setData( g3_x_vals, g3_y_vals, 2, true );
     graph.setColor( Color.green, 2, false );
-    graph.setStroke( graph.strokeType(LINE,2), 2, true);
+    graph.setStroke(LINE, 2, true);
     graph.setMarkColor(Color.red,2,true);
     graph.setMarkType(CROSS, 2, true);
    
     graph.setData( g4_x_vals, g4_y_vals, 3, true );
     graph.setColor( Color.blue, 3, false );
-    graph.setStroke( graph.strokeType(DASHDOT,3), 3, true);
+    graph.setStroke( DASHDOT, 3, true);
     graph.setMarkColor(Color.black,2,true);
     graph.setMarkType(STAR, 3, true);
     
