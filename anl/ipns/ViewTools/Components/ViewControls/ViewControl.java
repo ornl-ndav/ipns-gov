@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/08/06 13:51:18  dennis
+ *  - Abstract class layout now initialized to GridLayout(1,1)
+ *    (Mike Miller)
+ *
  *  Revision 1.2  2003/05/24 17:36:10  dennis
  *  Changed comments to maintain consistency between ViewControl and
  *  IViewControl action event strings.
@@ -49,6 +53,7 @@
  package DataSetTools.components.View.ViewControls;
 
  import java.awt.event.*;
+ import java.awt.GridLayout;
  import javax.swing.border.*;
  
  import DataSetTools.components.ui.ActiveJPanel;
@@ -74,7 +79,8 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
    
    public ViewControl(String con_title)
    {
-      this.setTitle(con_title);      
+      this.setTitle(con_title); 
+      this.setLayout( new GridLayout(1,1) );
    }
       
   /* *************** Methods implemented by ActiveJPanel *************** */ 
