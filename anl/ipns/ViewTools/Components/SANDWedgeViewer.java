@@ -33,6 +33,18 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.17  2004/01/23 22:59:12  millermi
+ * - Results window now automatically popped up when a selection
+ *   is made. The menu item previously used to show the results
+ *   now will read "Hide Results Window" when the window is
+ *   visible and "Show Results Window" when the window is not.
+ * - Changed how the distance was calculated. Now goes from center of
+ *   image, not center of Region.
+ * - Removed all references to the FunctionViewComponent, now housed
+ *   in the ViewManager.
+ * - Changed label from "Width of Angle" to "Interior Angle" for
+ *   Wedge and DoubleWedge field labels (in SANDEditor).
+ *
  * Revision 1.16  2004/01/20 00:59:59  millermi
  * - Since Save is not yet implemented, added information in
  *   the help menu to help users find the save option.
@@ -134,6 +146,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.Serializable;
 import java.io.IOException;
 import java.io.EOFException;
@@ -144,7 +158,6 @@ import javax.swing.text.html.HTMLEditorKit;
 import DataSetTools.components.image.*;
 import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.TwoD.ImageViewComponent;
-import DataSetTools.components.View.OneD.FunctionViewComponent;
 import DataSetTools.components.View.Menu.MenuItemMaker;
 import DataSetTools.components.View.Menu.ViewMenuItem;
 import DataSetTools.components.View.Transparency.SelectionOverlay;
@@ -186,14 +199,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   public static final String IMAGE_VIEW_COMPONENT    = "ImageViewComponent";
   
  /**
-  * "FunctionViewComponent" - This constant String is a key for referencing
-  * the state information about the FunctionViewComponent. Since the
-  * FunctionViewComponent has its own state, this value is of type
-  * ObjectState, and contains the state of the FunctionViewComponent. 
-  */
-  public static final String FUNCTION_VIEW_COMPONENT = "FunctionViewComponent";
-  
- /**
   * "ViewerSize" - This constant String is a key for referencing
   * the state information about the size of the viewer at the time
   * the state was saved. The value this key references is of type
@@ -214,7 +219,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   // complete viewer, includes controls and ijp
   private transient SplitPaneWithState pane;
   private transient ImageViewComponent ivc;
-  //private transient FunctionViewComponent fvc;
   private transient IVirtualArray2D data;
   private transient float[][]       errors;      // error estimates in the data
   private transient JMenuBar menu_bar;
@@ -223,6 +227,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient SANDEditor editor = new SANDEditor();
   private transient CoordTransform image_to_world_tran = new CoordTransform();
   private transient ViewManager oldview;
+  private transient SANDWedgeViewer this_viewer;
 
  /**
   * Construct a frame with no data to start with. This constructor will be
@@ -282,13 +287,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       redraw = true;  
     } 
     
-    temp = new_state.get(FUNCTION_VIEW_COMPONENT);
-    if( temp != null )
-    {
-      //fvc.setObjectState( (ObjectState)temp );
-      redraw = true;  
-    } 
-    
     temp = new_state.get(VIEWER_SIZE); 
     if( temp != null )
     {
@@ -315,7 +313,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   {
     ObjectState state = new ObjectState();
     state.insert( IMAGE_VIEW_COMPONENT, ivc.getObjectState() );
-    //state.insert( FUNCTION_VIEW_COMPONENT, fvc.getObjectState() );
     state.insert( VIEWER_SIZE, getSize() );
     state.insert( DATA_DIRECTORY, new String(projectsDirectory) );
     
@@ -346,9 +343,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
                 "<P> <I>ATTENTION: Selections must be made before using the " +
 		"Table View or saving results to file. </I><BR><BR> " +
 		"SAVE RESULTS TO FILE: To save the Q , Intensity, and " +
-		"Error to file, Go to the SWV's Options Menu. Click on " +
-		"\"View Results\", the \"Intensity vs Q\" window will " +
-		"appear. Click on View>Table Generator. Select and add X " +
+		"Error to file, Go to the \"Intensity vs Q\" window. " +
+		"Click on View>Table Generator. Select and add X " +
 		"values, Y values, and Error values. To view the table, " +
 		"press Make a Table, to save, press Save to File<BR>" +
 		"<BR>Note:<BR>" +
@@ -473,12 +469,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */ 
   public void setData( IVirtualArray2D values, float[][] err_array )
   {
-    // since data is changing, kill all windows created by ivc and fvc.
+    // since data is changing, kill all windows created by ivc.
     // If they are null, no windows were made.
     if( ivc != null )
       ivc.kill();
-    //if( fvc != null )
-    //  fvc.kill();
     
     // if new array is same size as old array
     if( values != null && data != null &&
@@ -533,6 +527,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */ 
   private void init( IVirtualArray2D iva, float[][] err_array )
   {
+    this_viewer = this;
     setTitle("SAND Wedge Viewer");
     if( iva != null )
     {
@@ -551,8 +546,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     buildMenubar();
     
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    // this was the old bounds with the function view component
-    //setBounds(0,0,550,615);
     setBounds(0,0,700,485);
     data_set   = new DataSet("Intensity vs Q in Region", 
                              "Calculated Intensity vs Q in Region");
@@ -582,15 +575,12 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       ivc.disableSelection( disSelect );
       ivc.setColorControlEast(true);
       //ivc.preserveAspectRatio(true);
-      ivc.addActionListener( new ImageListener() ); 
-      //fvc = new FunctionViewComponent( new DataSetData( data_set ) );   
+      ivc.addActionListener( new ImageListener() );    
       Box componentholder = new Box(BoxLayout.Y_AXIS);
       componentholder.add( ivc.getDisplayPanel() );
-      //componentholder.add(fvc.getDisplayPanel() );
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
     	  			    componentholder,
         			    buildControls(), .75f );
-      // old divider ratio was .68f with function view component
       // get menu items from view component and place it in a menu
       ViewMenuItem[] menus = ivc.getSharedMenuItems();
       for( int i = 0; i < menus.length; i++ )
@@ -611,28 +601,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	  menu_bar.getMenu(2).add( menus[i].getItem() );
         }
       }
-      /*
-      // get menu items from function view component and place it in a menu
-      ViewMenuItem[] fmenus = fvc.getSharedMenuItems();
-      for( int i = 0; i < fmenus.length; i++ )
-      {
-        if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(
-    	    fmenus[i].getPath().toLowerCase()) )
-    	{
-	  menu_bar.getMenu(0).add( fmenus[i].getItem() ); 
-        }
-	else if( ViewMenuItem.PUT_IN_OPTIONS.toLowerCase().equals(
-    	         fmenus[i].getPath().toLowerCase()) )
-    	{
-	  menu_bar.getMenu(1).add( fmenus[i].getItem() );	   
-        }
-	else if( ViewMenuItem.PUT_IN_HELP.toLowerCase().equals(
-    	         fmenus[i].getPath().toLowerCase()) )
-        {
-	  menu_bar.getMenu(2).add( fmenus[i].getItem() );
-        }
-      }
-      */
     }
     // no data, build an empty split pane.
     else
@@ -644,8 +612,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
  
  /*
   * This private method will (re)build the menubar. This is necessary since
-  * the ImageViewComponent or FunctionViewComponent could add menu items to
-  * the Menubar. If the file being loaded is not found, those menu items
+  * the ImageViewComponent could add menu items to the Menubar.
+  * If the file being loaded is not found, those menu items
   * must be removed. To do so, rebuild the Menubar.
   */ 
   private void buildMenubar()
@@ -674,7 +642,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     options.add("Options");
     option_listeners.add( new WVListener() ); // listener for options
     options.add(view_man);
-      view_man.add("View Results");
+      view_man.add("Hide Results Window");
       option_listeners.add( new WVListener() ); // listener for view results
     options.add(save_menu);
       save_menu.add("Save State");
@@ -691,7 +659,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     menu_bar.add( MenuItemMaker.makeMenuItem(file,file_listeners) ); 
     menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
-    // since the IVC and FVC are not created unless data is available,
+    // since the IVC is not created unless data is available,
     // do not load state unless data is available.
     if( data == null )
     {
@@ -699,6 +667,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       option_menu.getItem(0).setEnabled(false);
       option_menu.getItem(1).setEnabled(false);
       option_menu.getItem(2).setEnabled(false);
+    }
+    // if ViewManager not visible, disable "Hide Results Window" button
+    if( oldview == null || !oldview.isVisible() )
+    {
+      menu_bar.getMenu(1).getItem(0).setEnabled(false);
     }
   }
   
@@ -740,29 +713,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       controls.add(ivc_controls);
     }
     
-    // add spacer between ivc controls and fvc controls
+    // add spacer between ivc controls
     JPanel spacer = new JPanel();
     spacer.setPreferredSize( new Dimension(0, 10000) );
     controls.add(spacer);
-    /*
-    // add functionviewcomponent controls if any exist
-    Box fvc_controls = new Box(BoxLayout.Y_AXIS); 
-    TitledBorder fvc_border = 
-    		     new TitledBorder(LineBorder.createBlackLineBorder(),
-        			      "Graph Controls");
-    fvc_border.setTitleFont( FontUtil.BORDER_FONT );
-    fvc_controls.setBorder( fvc_border );
-    JComponent[] fvc_ctrl = fvc.getPrivateControls();
-    // since 1st control is just a labeled jpanel, don't get that one.
-    for( int i = 1; i < fvc_ctrl.length; i++ )
-    {
-      fvc_controls.add(fvc_ctrl[i]);
-    }
-    if( fvc_ctrl.length != 0 )
-    {
-      controls.add(fvc_controls);
-    }
-    */
     return controls;
   }
 
@@ -925,7 +879,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       return;
     }
 
-    Data          spectrum;     // data block that will hold a "spectrum"
     UniformXScale x_scale;      // "time channels" for the spectrum
 
     // build list of Q bin centers, with one bin for each "pixel" in the radius
@@ -940,14 +893,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     Point[] selected_pts = region.getSelectedPoints();
     // this loop will sum up values at the same distance and count the number
     // of hits at each distance.
+    // NOTE: The distance calculation is done in image row/col values, not
+    // in world coord values.
+    // Map world coord origin to image origin for magnitude calculation
+    floatPoint2D image_origin = 
+                        image_to_world_tran.MapFrom( new floatPoint2D(0,0) );
     float x = 0;
     float y = 0;
     float dist = 0;
     int index = 0;
     for ( int i = 0; i < selected_pts.length; i++ )
     {
-      x = Math.abs( selected_pts[i].x - center.x );
-      y = Math.abs( selected_pts[i].y - center.y );
+      x = Math.abs( selected_pts[i].x - image_origin.x );
+      y = Math.abs( selected_pts[i].y - image_origin.y );
       dist = (float)Math.sqrt( x*x + y*y );
       index = binarySearch( x_vals, dist );
       y_vals[index] += data.getDataValue( selected_pts[i].y,
@@ -967,9 +925,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
                                   (float)hit_count[bindex];
       }
     }
-    // put it into a "Data" object and then add it to the dataset
-    spectrum = new FunctionTable( x_scale, y_vals, err_vals, ID );
-    spectrum.setAttribute( new Float1DAttribute( attribute_name, attributes ) );
 
     // Convert the spectrum into a spectrum relative to "Q".  Also, discard the
     // the first bin, at the central vertex of the wedge, since the counts
@@ -986,6 +941,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 
     float new_start_x = start_point.magnitude(); 
     float new_end_x   = end_point.magnitude(); 
+    // increment to avoid first bin.
     if ( n_xvals > 1 )
     {
       float step = (new_end_x - new_start_x) / (n_xvals-1);
@@ -994,6 +950,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 
     System.out.println("Using Q between " + new_start_x + 
                               " and " + new_end_x );
+    // first bin gone, so n_xvals-1 values
     UniformXScale new_x_scale = new UniformXScale( new_start_x, 
                                                    new_end_x, 
                                                    n_xvals-1 );
@@ -1005,7 +962,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       new_err_vals[i] = err_vals[i+1];
     }
   
-    ID++;
+    // put it into a "Data" object and then add it to the dataset
     Data new_spectrum = new FunctionTable( new_x_scale, 
                                            new_y_vals, 
                                            new_err_vals,  
@@ -1013,7 +970,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     new_spectrum.setAttribute( new Float1DAttribute( attribute_name, 
                                attributes ) );
 
-//    data_set.addData_entry( spectrum ); 
     data_set.addData_entry( new_spectrum ); 
     data_set.setSelectFlag( data_set.getNum_entries() - 1, true );
   }
@@ -1069,13 +1025,18 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
           loadData(filename);
         }
       } // end else if load data
-      else if( ae.getActionCommand().equals("View Results") )
+      else if( ae.getActionCommand().equals("Hide Results Window") )
       {
-        oldview = new ViewManager( data_set, IViewManager.SELECTED_GRAPHS );
-        /*oldview.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        WindowShower shower = new WindowShower(oldview);
-        java.awt.EventQueue.invokeLater(shower);
-        shower = null;*/
+        oldview.setVisible(false);
+      }
+      else if( ae.getActionCommand().equals("Show Results Window") )
+      {
+	if( !oldview.isVisible() )
+	{
+          WindowShower shower = new WindowShower(oldview);
+          java.awt.EventQueue.invokeLater(shower);
+          shower = null;
+	}
       }
       else if( ae.getActionCommand().equals("Save State") )
       {
@@ -1117,21 +1078,30 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       {
         // get points from the last selected region.
         integrate( selectedregions[selectedregions.length-1] );
-        //fvc.dataChanged(new DataSetData(data_set));
-	if( oldview != null )
+	if( oldview == null )
 	{
-	  //oldview.setDataSet( data_set );
+          oldview = new ViewManager( data_set, IViewManager.SELECTED_GRAPHS );
+          oldview.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
+	  oldview.addComponentListener( new VisibleListener() );
+	  oldview.addWindowListener( new ClosingListener() );
+	}
+	else
+	{
 	  oldview.update(data_set, IObserver.DATA_CHANGED);
+	  if( !oldview.isVisible() )
+	  {
+            WindowShower shower = new WindowShower(oldview);
+            java.awt.EventQueue.invokeLater(shower);
+            shower = null;
+	  }
 	}
 	editor.selectionChanged();
       }
       else if( message.equals(SelectionOverlay.REGION_REMOVED) )
       {
         data_set.removeData_entry( data_set.getNum_entries() - 1 );
-        //fvc.dataChanged(new DataSetData(data_set));
 	if( oldview != null )
 	{
-	  //oldview.setDataSet( data_set );
 	  oldview.update(data_set, IObserver.DATA_CHANGED);
 	}
 	editor.selectionChanged();
@@ -1139,10 +1109,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       else if( message.equals(SelectionOverlay.ALL_REGIONS_REMOVED) )
       {
         data_set.removeAll_data_entries();
-        //fvc.dataChanged(new DataSetData(data_set));
 	if( oldview != null )
 	{
-	  //oldview.setDataSet( data_set );
 	  oldview.update(data_set, IObserver.DATA_CHANGED);
 	}
 	editor.selectionChanged();
@@ -1153,6 +1121,41 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	//System.out.println("Pointed At Changed " + 
 	//                   ivc.getPointedAt().toString() );
       }
+    }
+  }
+  
+ /*
+  * If ViewManager is visible, make button read "Hide Results Window",
+  * otherwise have it read "Show Results Window"
+  */
+  private class VisibleListener extends ComponentAdapter
+  {
+    public void componentHidden( ComponentEvent e )
+    {
+      menu_bar.getMenu(1).getItem(0).setText("Show Results Window");
+      menu_bar.validate();
+    }  
+    
+    public void componentShown( ComponentEvent e )
+    {
+      // since menu item starts out disabled, make sure it is enabled.
+      if( !menu_bar.getMenu(1).getItem(0).isEnabled() )
+        menu_bar.getMenu(1).getItem(0).setEnabled(true);
+      menu_bar.getMenu(1).getItem(0).setText("Hide Results Window");
+    }
+  } 
+ 
+ /*
+  * This class is needed if to check of the user hides the ViewManager by
+  * the close button on the frame. This was needed to extend the functionality
+  * of the VisibleListener class.
+  */ 
+  private class ClosingListener extends WindowAdapter
+  {
+    public void windowClosing( WindowEvent we )
+    {
+      menu_bar.getMenu(1).getItem(0).setText("Show Results Window");
+      menu_bar.validate();
     }
   }
   
@@ -1233,7 +1236,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       String[] ellipselabels = {"X Center", "Y Center",
                                 "X Radius", "Y Radius"};
       String[] wedgelabels = {"X Center", "Y Center", "Radius", 
-                              "Wedge Axis Angle", "Width of Angle"};
+                              "Wedge Axis Angle", "Interior Angle"};
       String[] ringlabels = {"X Center", "Y Center",
                              "Inner Radius", "Outer Radius"};
       String[] cursorlabels = {"X","Y"};
@@ -1570,6 +1573,12 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	  }
 	  this_editor.validate();
 	  this_editor.repaint();
+	  // this will repaint the image when a selection is made.
+	  if( this_viewer != null )
+	  {
+	    this_viewer.validate();
+	    this_viewer.repaint();
+	  }
 	}
       }
     }
