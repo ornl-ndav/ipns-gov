@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/29 08:20:45  millermi
+ *  - Now implements IPreserveState, thus state can now be saved for
+ *    all ViewControls. Each control is responsible for detailed
+ *    state information.
+ *
  *  Revision 1.5  2004/01/05 18:15:59  millermi
  *  - Removed excess imports.
  *
@@ -64,6 +69,7 @@
  
  import DataSetTools.components.ui.ActiveJPanel;
  import DataSetTools.util.FontUtil;
+ import DataSetTools.components.View.ObjectState;
  
 /**
  * Any class that implements this interface will be used to adjust
@@ -82,6 +88,14 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   * Method data:
   */
   private String title;
+ 
+ /**
+  * "Title" - This constant String is a key for referencing the state
+  * information about the title of this view control. This title is usually
+  * displayed via a titled border. The value that this key references is of
+  * type String.
+  */
+  public static final String TITLE = "Title";
   
   public ViewControl(String con_title)
   {
@@ -102,6 +116,37 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   * these methods are implemented by ActiveJPanel, which ViewControl
   * implements.
   */
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault )
+  {
+    ObjectState state = new ObjectState();
+    state.insert( TITLE, new String(title) );
+    return state;
+  }
+     
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    Object temp = new_state.get(TITLE);
+    if( temp != null )
+    {
+      title = (String)title;
+    }
+  }
  
  /**
   * Get title of the view control.

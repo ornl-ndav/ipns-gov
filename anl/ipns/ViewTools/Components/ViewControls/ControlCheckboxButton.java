@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/29 08:20:46  millermi
+ *  - Now implements IPreserveState, thus state can now be saved for
+ *    all ViewControls. Each control is responsible for detailed
+ *    state information.
+ *
  *  Revision 1.6  2004/01/28 21:55:52  dennis
  *  Added methods to get and set the font used on the Edit button
  *
@@ -76,6 +81,7 @@
  import javax.swing.border.TitledBorder;
  
  import DataSetTools.util.WindowShower;
+ import DataSetTools.components.View.ObjectState;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a generic checkbox and button
@@ -83,7 +89,45 @@
  * checkbox has been checked or unchecked or the button is pressed. 
  */ 
 public class ControlCheckboxButton extends ViewControl
-{
+{ 
+ /**
+  * "Selected" - This constant String is a key for referencing the state
+  * information about whether or not the checkbox is checked.
+  * The value that this key references is a primative boolean.
+  * If the value is true, the checkbox will be checked.
+  */
+  public static final String SELECTED = "Selected";
+ 
+ /**
+  * "Button Text" - This constant String is a key for referencing the state
+  * information about the text label on the button of this view control.
+  * The value that this key references is of type String.
+  */
+  public static final String BUTTON_TEXT = "Button Text";
+ 
+ /**
+  * "Button Font" - This constant String is a key for referencing the state
+  * information about the font of the label on the button of this view control.
+  * The value that this key references is of type Font.
+  */
+  public static final String BUTTON_FONT = "Button Font";
+ 
+ /**
+  * "Selected Color" - This constant String is a key for referencing the state
+  * information about the color of the label on the button of this view control
+  * when the checkbox is checked. The value that this key references is of
+  * type Color.
+  */
+  public static final String SELECTED_COLOR = "Selected Color";
+ 
+ /**
+  * "Unselected Color" - This constant String is a key for referencing the state
+  * information about the color of the label on the button of this view control
+  * when the checkbox is NOT checked. The value that this key references is of
+  * type Color.
+  */
+  public static final String UNSELECTED_COLOR = "Unselected Color";
+  
   private JPanel pane;
   private JCheckBox cbox;
   private JButton edit;
@@ -135,7 +179,68 @@ public class ControlCheckboxButton extends ViewControl
   {
     this();
     this.setSelected(isChecked);
-  }   
+  } 
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault )
+  {
+    ObjectState state = super.getObjectState(isDefault);
+    state.insert( SELECTED, new Boolean(isSelected()) );
+    state.insert( BUTTON_TEXT, new String(getText()) );
+    state.insert( BUTTON_FONT, getButtonFont() );
+    state.insert( SELECTED_COLOR, checkcolor );
+    state.insert( UNSELECTED_COLOR, uncheckcolor );
+    return state;
+  }
+     
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    super.setObjectState( new_state );
+    
+    Object temp = new_state.get(SELECTED);
+    if( temp != null )
+    {
+      setSelected(((Boolean)temp).booleanValue()); 
+    }
+    
+    temp = new_state.get(BUTTON_TEXT);
+    if( temp != null )
+    {
+      setText((String)temp); 
+    }
+    
+    temp = new_state.get(BUTTON_FONT);
+    if( temp != null )
+    {
+      setButtonFont((Font)temp); 
+    }
+    
+    temp = new_state.get(SELECTED_COLOR);
+    if( temp != null )
+    {
+      setTextCheckedColor((Color)temp); 
+    }
+    
+    temp = new_state.get(UNSELECTED_COLOR);
+    if( temp != null )
+    {
+      setTextUnCheckedColor((Color)temp); 
+    }
+  }  
   
  /**
   * isSelected() tells when the checkbox is checked, true when checked.
@@ -157,7 +262,14 @@ public class ControlCheckboxButton extends ViewControl
   */
   public void setSelected(boolean isChecked)
   {
-    cbox.setSelected(isChecked);
+    // use doClick() so action event is sent out.
+    // if currently not selected, but wants it to be selected.
+    if( !isSelected() && isChecked )
+      doClick();
+    // if currently selected, but wants it unselected.
+    else if( isSelected() && !isChecked )
+      doClick();
+    // cbox.setSelected(isChecked);
     if( cbox.isSelected() )
     {
       ((TitledBorder)this.getBorder()).setTitleColor( checkcolor );
@@ -266,8 +378,7 @@ public class ControlCheckboxButton extends ViewControl
         ((TitledBorder)this_panel.getBorder()).setTitleColor(uncheckcolor);
         edit.setEnabled(false);
       }
-      //System.out.println("Currently selected? " + 
-      //		 ((ControlCheckbox)cbox.getParent()).isSelected() );
+      //System.out.println("Checkbox Listener...");
       this_panel.repaint();
     }
   }   
@@ -280,7 +391,7 @@ public class ControlCheckboxButton extends ViewControl
   { 
     public void actionPerformed( ActionEvent ae )
     {
-      //System.out.println("Button Pressed " + ae.getActionCommand() );
+      // System.out.println("Button Pressed " + ae.getActionCommand() );
       this_panel.send_message(BUTTON_PRESSED);
     }
   } 
@@ -306,7 +417,12 @@ public class ControlCheckboxButton extends ViewControl
     check.setTextUnCheckedColor( Color.green );
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
+    ObjectState state = new ObjectState();
+    state.insert( ControlCheckboxButton.SELECTED, new Boolean(true) );
+    System.out.println("Prestate");
+    check.setObjectState( state );
     check2.doClick();
-    check.doClick();
+    check.setSelected(false);
   }
 }

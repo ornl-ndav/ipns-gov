@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/29 08:20:45  millermi
+ *  - Now implements IPreserveState, thus state can now be saved for
+ *    all ViewControls. Each control is responsible for detailed
+ *    state information.
+ *
  *  Revision 1.4  2004/01/05 18:14:06  millermi
  *  - Replaced show()/setVisible(true) with WindowShower.
  *  - Removed excess imports.
@@ -97,16 +102,6 @@ public class ViewControlMaker extends ViewControl
   public JComponent getComponent()
   {
     return component;
-  }
-  
- /**
-  * Change component to a new JComponent.
-  *
-  *  @param  c - component
-  */ 
-  public void changeComponent(JComponent c)
-  {
-    component = c;
   }
   
   private class ActionList implements ActionListener

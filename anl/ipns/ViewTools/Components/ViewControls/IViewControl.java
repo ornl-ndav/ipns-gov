@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/29 08:20:45  millermi
+ *  - Now implements IPreserveState, thus state can now be saved for
+ *    all ViewControls. Each control is responsible for detailed
+ *    state information.
+ *
  *  Revision 1.4  2004/01/05 18:14:06  millermi
  *  - Replaced show()/setVisible(true) with WindowShower.
  *  - Removed excess imports.
@@ -55,11 +60,14 @@
 
  import java.awt.event.ActionListener;
  
+ import DataSetTools.components.View.ObjectState;
+ import DataSetTools.components.View.IPreserveState;
+ 
 /**
  * Any class that implements this interface will be used to adjust
  * settings on the IViewComponent.
  */
-public interface IViewControl
+public interface IViewControl extends IPreserveState
 {
  /*
   * These variables are messaging strings for use by action listeners.
@@ -72,15 +80,38 @@ public interface IViewControl
   public static final String COMBOBOX_CHANGED  = "COMBOBOX_CHANGED";
   // Used by ButtonControl.java
   public static final String BUTTON_PRESSED  = "BUTTON_PRESSED";
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault );
+   
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state );
   
  /**
   * Add a listener to this view control. A listener will be notified
   * when this control is modified.
+  *
+  *  @param  act_listener The action listener to add.
   */
   public void addActionListener( ActionListener act_listener );
   
  /**
   * Remove a specified listener from this view control.
+  *
+  *  @param  act_listener The action listener to remove.
   */ 
   public void removeActionListener( ActionListener act_listener );
  
@@ -96,6 +127,8 @@ public interface IViewControl
   
  /**
   * Set title of the view control.
+  *
+  *  @param  title Title of this control.
   */ 
-  public void setTitle(String title);  
+  public void setTitle(String title);
 }
