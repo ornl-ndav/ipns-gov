@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.31  2003/09/19 16:59:50  serumb
+ * Fixed null pointer exception.
+ *
  * Revision 1.30  2003/08/29 18:55:31  serumb
  * Added methods for getting the line, error bar, and point marker colors.
  *
@@ -1189,7 +1192,7 @@ public boolean is_autoY_bounds()
         /*
           Draw error bars if they are selected
         */ 
-        if (gd.getErrorLocation() != 0)
+        if (gd.getErrorLocation() != 0 && gd.getErrorVals() != null)
         {
           int x_int[] = new int[ n_points ];
           int y_int[] = new int[ n_points ];
@@ -1343,7 +1346,7 @@ public boolean is_autoY_bounds()
         /*
           Draw error bars if they are selected
         */ 
-        if (gd.getErrorLocation() != 0)
+        if (gd.getErrorLocation() != 0 && gd.getErrorVals() != null)
         {
           float x_midpt;
           int x_int[] = new int[ n_points ];
