@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/08/04 18:35:11  dennis
+ * Put error messages for invalid data in the constructor into
+ * if (debug) statements.
+ *
  * Revision 1.1  2004/07/16 14:48:48  dennis
  * Class to hold information about intersections of a line-of-sight
  * with objects in a 3D scene, as returned by the OpenGL selection
@@ -46,6 +50,8 @@ package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 public class HitRecord 
 {
+  private static boolean debug = false;
+
   private int num_names = 0;
   private int min = Integer.MAX_VALUE,
               max = Integer.MAX_VALUE;
@@ -67,20 +73,24 @@ public class HitRecord
     int n_names = buffer[ start ];
     if ( n_names <= 0 || n_names > 100 )     // something must be wrong with
     {                                        // the hit buffer
-      System.out.println("Invalid number of names in HitRecord constructor: " +
-                          n_names );
+      if ( debug )
+        System.out.println("Invalid number of names in HitRecord constructor: "
+                           + n_names );
       return;
     }
 
     if ( buffer == null || buffer.length < start + n_names + 3 ) 
     {                                       
-      System.out.println("Invalid buffer in HitRecord constructor " );
-      if ( buffer == null )
-        System.out.println("buffer is null " );
-      else
-        System.out.println("length = " + buffer.length + 
-                           ", start = " + start +
-                           ", num_names = " + n_names );
+      if ( debug )
+      {
+        System.out.println("Invalid buffer in HitRecord constructor " );
+        if ( buffer == null )
+          System.out.println("buffer is null " );
+        else
+          System.out.println("length = " + buffer.length + 
+                             ", start = " + start +
+                             ", num_names = " + n_names );
+      }
       return;
     }
 
