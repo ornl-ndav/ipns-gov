@@ -1,7 +1,7 @@
 /*
  * File: Region.java
  *
- * Copyright (C) 2003, Mike Miller
+ * Copyright (C) 2003-2004, Mike Miller
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/02/15 21:42:01  millermi
+ *  - Revised javadocs. Commented out world/image_coords_set
+ *    variables since they are not being used.
+ *
  *  Revision 1.5  2004/02/14 03:33:02  millermi
  *  - revised getRegionUnion()
  *  - added setImageBounds(), setWorldBounds(), convertFloatPoint(),
@@ -80,16 +84,28 @@ import DataSetTools.components.image.CoordTransform;
  * subclasses of this class can return all of the points inside the selected
  * region. The defining points are saved in the world coordinate system, so
  * all subclasses must map the defining points to image values before using.
+ * ALL CLASSES THAT USE THE REGION CLASS SHOULD CALL setWorldBounds() AND
+ * setImageBounds() IMMEDIATELY AFTER CONSTRUCTING A REGION INSTANCE.
  */ 
 public abstract class Region implements java.io.Serializable
 {
+ /**
+  * "0" - This primative integer defines the coordinate system in
+  * world coordinates.
+  */
   public static final int WORLD = 0;
+  
+ /**
+  * "1" - This primative integer defines the coordinate system in
+  * image row/column coordinates.
+  */
   public static final int IMAGE = 1;
+  
   protected floatPoint2D[] definingpoints;  // saved in world coords.
   protected Point[] selectedpoints;
   protected CoordTransform world_to_image;
-  protected boolean world_coords_set = false;  // use these flags to tell if
-  protected boolean image_coords_set = false;  // coordtransform is complete.
+  //protected boolean world_coords_set = false;  // use these flags to tell if
+  //protected boolean image_coords_set = false;  // coordtransform is complete.
   
  /**
   * Constructor - provides basic initialization for all subclasses
@@ -104,25 +120,29 @@ public abstract class Region implements java.io.Serializable
   }
   
  /**
-  * Set the world coordinate system.
+  * Set the world coordinate system. This must be done immediately following
+  * the construction of the Region since the selected area is dependent on
+  * the image and world bounds.
   *
   *  @param  wb The world bounds.
   */
   public void setWorldBounds( CoordBounds wb )
   {
     world_to_image.setSource(wb);
-    world_coords_set = true;
+    //world_coords_set = true;
   }
   
  /**
-  * Set the image coordinate system.
+  * Set the image coordinate system. This must be done immediately following
+  * the construction of the Region since the selected area is dependent on
+  * the image and world bounds.
   *
   *  @param  ib The image bounds.
   */
   public void setImageBounds( CoordBounds ib )
   {
     world_to_image.setDestination(ib);
-    image_coords_set = true;
+    //image_coords_set = true;
   }
   
  /**
@@ -138,10 +158,10 @@ public abstract class Region implements java.io.Serializable
   public floatPoint2D convertFloatPoint( floatPoint2D fpt, int to_coordsystem )
   {
     // convert to world coords
-    if( to_coordsystem == 0 )
+    if( to_coordsystem == WORLD )
       return world_to_image.MapFrom(fpt);
     // convert to image coords
-    if( to_coordsystem == 1 )
+    if( to_coordsystem == IMAGE )
       return world_to_image.MapTo(fpt);
     // if invalid number
     return null;
@@ -150,8 +170,8 @@ public abstract class Region implements java.io.Serializable
  /**
   * Get the world coordinate points used to define the geometric shape.
   *
-  *  @param  coordsystem - the coordinate system from which the defining
-  *                        points are taken from, either WORLD or IMAGE.
+  *  @param  coordsystem The coordinate system from which the defining
+  *                      points are taken from, either WORLD or IMAGE.
   *  @return array of points that define the region.
   */
   public floatPoint2D[] getDefiningPoints( int coordsystem )
@@ -177,9 +197,10 @@ public abstract class Region implements java.io.Serializable
   * are of the same class, have the same world_to_image transform, and have
   * identical defining points. Be aware that it is difficult to compare
   * float values reliably, so even identical regions will return false if
-  * one of the values is off by .0000001. This will reliably return true if the
-  * references of the two regions match. 
+  * one of the values is off by a small amount. This will reliably return true
+  * if the references of the two regions match. 
   *
+  *  @param  reg2 The region to be compared.
   *  @return true if equal, false if not.
   */
   public boolean equals( Region reg2 )
@@ -242,7 +263,14 @@ public abstract class Region implements java.io.Serializable
   protected abstract CoordBounds getRegionBounds();
   
  /**
+  * Since image row/column values are integers, the mapping from world to
+  * image coordinates must be converted from image float values to integers.
+  * To display properly, the decimal portion of the float values must be
+  * truncated instead of rounded. Off-by-one errors will occur if image decimal
+  * is >= .5.
   *
+  *  @param  imagept Float image row/column values.
+  *  @return The corresponding integer image row/column values.
   */
   protected Point floorImagePoint( floatPoint2D imagept )
   {
