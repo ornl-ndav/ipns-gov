@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.26  2003/07/30 20:57:19  serumb
+ * Added function for checking if the axies are logarithimic,
+ * and scale the data to the log scale.
+ *
  * Revision 1.25  2003/07/18 15:05:58  serumb
  * Set the error value to the correct index.
  *
@@ -104,6 +108,7 @@ import javax.swing.*;
 import DataSetTools.util.*;
 import DataSetTools.math.*;
 import DataSetTools.components.ThreeD.*;
+import DataSetTools.components.View.*;
 import java.lang.Object.*;
 import java.awt.geom.*;
 
@@ -123,7 +128,9 @@ public class GraphJPanel extends    CoordJPanel
   private int             y_offset_factor = 0;  
   private boolean         remove_hidden_lines = false;
   private CoordBounds     auto_data_bound;
-
+  private float           log_scale = 10;
+  private boolean         log_scale_x = false;
+  private boolean         log_scale_y = false;
 
   public static final int DOT   = 1;
   public static final int PLUS  = 2;
@@ -601,7 +608,50 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
     return true;
  }
 
-/* --------------------------- setMultiPlotOffsets ------------------------ */
+/* --------------------------- setLogScale  ------------------------ */
+/**
+  *  Set the value for the log scale.
+  *
+  *  @param  scale      the flot representing the log scale.
+  **/
+  public void setLogScale(float scale, boolean redraw)
+  {
+    if( scale < 0 || scale > 100 )
+      return;
+    
+    log_scale = scale;
+
+    if ( redraw )
+      repaint();
+  }
+  
+
+/* --------------------------- setLogScaleX  ------------------------ */
+/**
+  *  Set the boolean value to check wether or not to scale the x
+  *  values for the graph.
+  *
+  *  @param  x_log       the boolean value to determine if the x values 
+  *                      should be scaled.
+  **/
+  public void setLogScaleX(boolean x_log)
+  {
+    log_scale_x = x_log;
+  }  
+
+/* --------------------------- setLogScaleY  ------------------------ */
+/**
+ *  Set the boolean value to check wether or not to scale the y
+ *  values for the graph.
+ *
+ *  @param  y_log       the boolean value to determine if the y values 
+ *                      should be scaled.
+ */
+  public void setLogScaleY(boolean y_log)
+  {
+    log_scale_y = y_log;
+  } 
+ 
 /**
  * Set the number of pixels that additional graphs are offset vertically
  * and horizontally.
@@ -796,6 +846,7 @@ public boolean is_autoY_bounds()
   public void paint( Graphics g )
   {
     stop_box( current_point, false );   // if the system redraws this without
+
     stop_crosshair( current_point );    // our knowlege, we've got to get rid
                                         // of the cursors, or the old position
                                         // will be drawn rather than erased
@@ -808,11 +859,20 @@ public boolean is_autoY_bounds()
     int x_offset = 0;
     int y_offset = 0;
 
+   // CoordBounds bounds = getGlobalWorldCoords();    // temporarily don't clip
     CoordBounds bounds = getLocalWorldCoords();
+
     float first_x = bounds.getX1();
-    float last_x  = bounds.getX2();	
-
-
+    float last_x  = bounds.getX2();
+    //bounds = getLocalWorldCoords();   
+    if ( log_scale_x)
+    {
+      float min = getXmin();
+      float max = getXmax();
+      LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
+      first_x = logger.toDest(first_x, log_scale);
+      last_x = logger.toDest(last_x, log_scale);
+    }
     int height = getHeight();
 
 
@@ -833,7 +893,7 @@ public boolean is_autoY_bounds()
       else if ( first_x >= gd.x_vals[ gd.x_vals.length-1 ] )
         first_index = gd.x_vals.length-1;
       else
-        first_index = arrayUtil.get_index_of( first_x, gd.x_vals );
+        first_index = arrayUtil.get_index_of( first_x, gd.x_vals )-1;
       if ( first_index > 0 )                     // include one extra point 
         first_index--;                           // to include first segment
                                                  // going off screen
@@ -845,7 +905,6 @@ public boolean is_autoY_bounds()
         last_index = gd.x_vals.length-1;
       else
         last_index = arrayUtil.get_index_of( last_x, gd.x_vals );
-
       if ( last_index < gd.x_vals.length-1 )     // include one extra point 
         last_index++;                            // to include last segment
                                                  // going off screen
@@ -872,7 +931,30 @@ public boolean is_autoY_bounds()
       }
       y_copy = new float[ n_points ];
       System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
-        
+      
+      if( log_scale_x )
+      {
+        float min = getXmin();
+        float max = getXmax();
+        LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
+        if( is_histogram ){
+          for(int i = 0; i <= n_points; i++) {
+            x_copy[i] = logger.toSource(x_copy[i], log_scale);
+          }
+        }else
+          for(int i = 0; i < n_points; i++) {
+            x_copy[i] = logger.toSource(x_copy[i], log_scale);
+          }
+      }
+      if( log_scale_y )
+      {
+        float min = getYmin();
+        float max = getYmax();
+        LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
+        for(int i = 0; i < n_points; i++)
+          y_copy[i] = logger.toSource(y_copy[i], log_scale);
+      }
+  
        float error_bars_upper[] = null;
        float error_bars_lower[] = null;
       
@@ -903,6 +985,8 @@ public boolean is_autoY_bounds()
       }  
          
       local_transform.MapTo( x_copy, y_copy );       // map from WC to pixels
+
+
 
       g2.setStroke(gd.Stroke);
       
@@ -967,7 +1051,7 @@ public boolean is_autoY_bounds()
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = 0; i < n_points; i++ )
+          for ( int i = 0; i < n_points - 2; i=i+2 )
           {
 	     
 	     if ( type == DOT )
@@ -1093,7 +1177,7 @@ public boolean is_autoY_bounds()
         {
           int x_int[] = new int[ 2*y_copy.length ];
           int y_int[] = new int[ 2*y_copy.length ];
-          for ( int i = 0; i < 2*y_copy.length; i++ )
+          for ( int i = 0; i < 2*y_copy.length ; i++ )
           {
             x_int[i] = (int)( x_copy[(i+1)/2] ) + x_offset;
             y_int[i] = (int)( y_copy[i/2] ) - y_offset;
@@ -1127,7 +1211,7 @@ public boolean is_autoY_bounds()
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = 0; i < n_points - 1; i++ )
+          for ( int i = 0; i < n_points - 2; i=i+2 )
           {
 	     int x_midpt = ((x_int[i] + x_int[i+1])/2);
 	     if ( type == DOT )
@@ -1316,6 +1400,75 @@ private void SetDataBounds()
     initializeWorldCoords( data_bound );     // coordinates
 }
 
+   float maxy;
+   float minx;
+   float maxx;
+   float miny;
+/* ------------------------------getYmin--------------------------------*/
+
+private float getYmin()
+{
+    GraphData gd = (GraphData)graphs.elementAt(0);
+    float [] yvals = gd.y_vals;
+                                                                                
+    miny =  yvals[0];
+    maxy =  yvals[0];
+    for (int line=0; line < graphs.size(); line++)
+        {
+          gd = (GraphData)graphs.elementAt(line);
+          yvals = gd.y_vals;
+           for (int i=1; i < yvals.length; i++)
+           {
+              if (yvals[i] < miny)
+                miny = yvals[i];
+              if (yvals[i] > maxy)
+                maxy = yvals[i];
+           }
+        }
+    return miny;
+}
+
+/*------------------------------- getYmax -----------------------------------*/
+private float getYmax()
+{
+  getYmin();
+  return maxy;
+}
+
+
+/* ------------------------------getXmin--------------------------------*/
+                                                                                    
+private float getXmin()
+{
+    GraphData gd = (GraphData)graphs.elementAt(0);
+    float [] xvals = gd.x_vals;
+                                                                                    
+    minx =  xvals[0];
+    maxx =  xvals[0];
+    for (int line=0; line < graphs.size(); line++)
+        {
+          gd = (GraphData)graphs.elementAt(line);
+          xvals = gd.x_vals;
+           for (int i=1; i < xvals.length; i++)
+           {
+              if (xvals[i] < minx)
+                minx = xvals[i];
+              if (xvals[i] > maxx)
+                maxx = xvals[i];
+           }
+        }
+
+    return minx;
+}
+                                                                                    
+/*------------------------------- getXmax -----------------------------------*/
+private float getXmax()
+{
+  getXmin();
+  return maxx;
+}
+
+                                                                                  
 
 /* -------------------------------- Main ------------------------------- */
 
