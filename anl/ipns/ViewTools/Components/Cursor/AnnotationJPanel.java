@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/08/11 23:48:07  millermi
+ *  - Changed remove all from double click with A down, to single click
+ *    with A down
+ *
  *  Revision 1.2  2003/06/06 14:37:38  dennis
  *  Temporarily commented out call to setFocusable() so that
  *  it will compile under jdk 1.3.1.  The call to setFocusable()
@@ -184,10 +188,7 @@ public class AnnotationJPanel extends ActiveJPanel
       {
          if ( e.getClickCount() == 2 ) 
 	 {
-	    if( isAdown )
-	       send_message(RESET_NOTE);	
-	    else
-	       send_message(RESET_LAST_NOTE);
+	    send_message(RESET_LAST_NOTE);
 	 }	        	    
       }
 
@@ -195,6 +196,8 @@ public class AnnotationJPanel extends ActiveJPanel
       {
          //System.out.println("here in mousepressed");
 
+	 if( isAdown )
+	    send_message(RESET_NOTE);
          if( isNdown )
 	    set_cursor( e.getPoint() );	       
       }
