@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/07/23 13:08:02  dennis
+ * Now calculates the tick mark length (and spacing of labels from
+ * the axis) in terms of the character height.
+ *
  * Revision 1.3  2004/07/16 14:24:02  dennis
  * The Draw() method now calls gl.glEnable( GL.GL_NORMALIZE ) to
  * have OpenGL change all normals to unit length after scaling and
@@ -479,7 +483,13 @@ public class Axis extends GL_Shape
     float axis_length = axis_dir.length();
     axis_dir.normalize();
 
-    float tick_length = axis_length/100;
+    float char_height;
+    if ( Float.isNaN( user_height ) )          // use default char height
+      char_height = 1.5f*axis_length/100;
+    else
+      char_height = user_height;
+
+    float tick_length = char_height / 1.5f;
     Vector3D tick_start = new Vector3D( tick_dir );
     Vector3D tick_end   = new Vector3D( tick_dir );
     tick_start.multiply( -tick_length );
@@ -487,12 +497,6 @@ public class Axis extends GL_Shape
                                                // make each tick mark and label
     float label_space = 0;
     float width = 0;
-    float char_height;
-
-    if ( Float.isNaN( user_height ) )          // use default char height
-      char_height = 1.5f*tick_length;
-    else
-      char_height = user_height;
 
     for ( int i = 0; i < div_points.length; i++ )
     {
