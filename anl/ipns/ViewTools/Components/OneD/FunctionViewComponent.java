@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.59  2004/09/13 22:30:46  serumb
+ *  Added path to the view menu items, so the Display1DExample
+ *  puts them in the options menu.
+ *
  *  Revision 1.58  2004/07/15 19:29:25  dennis
  *  Fixed serious inefficiency problem when constructing a selected
  *  graph view from a DataSet with many spectra. (Ruth)
@@ -848,10 +852,10 @@ public class FunctionViewComponent implements IViewComponent1D,
    
    ViewMenuItem[] Res = new ViewMenuItem [2];
    
-   Res[0] = new ViewMenuItem(new JCheckBoxMenuItem("Function Controls"));
+   Res[0] = new ViewMenuItem(ViewMenuItem.PUT_IN_OPTIONS, new JCheckBoxMenuItem("Function Controls"));
    (Res[0]).addActionListener( new ControlListener() );
 
-   Res[1] = new ViewMenuItem (new JCheckBoxMenuItem("Show Pointed At"));
+   Res[1] = new ViewMenuItem (ViewMenuItem.PUT_IN_OPTIONS, new JCheckBoxMenuItem("Show Pointed At"));
    ((JCheckBoxMenuItem)Res[1].getItem()).setState(true);
    (Res[1]).addActionListener( new ControlListener() );
 
@@ -1154,8 +1158,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
 
-      //System.out.println( "action command: " + message );
-      //System.out.println( "action event: " + ae );
+      System.out.println( "action command: " + message );
+      System.out.println( "action event: " + ae );
       if( message.equals( ControlCheckbox.CHECKBOX_CHANGED ) ) {
         ControlCheckbox control = ( ControlCheckbox )ae.getSource(  );
         
@@ -1181,7 +1185,7 @@ public class FunctionViewComponent implements IViewComponent1D,
         }
         
       }
-      else if( message.equals(".Function Controls"))
+      else if( message.equals("Options.Function Controls"))
       {  
          JMenuItem theItem = ((ViewMenuItem)ae.getSource()).getItem();
          if (((JCheckBoxMenuItem)theItem).getState())
@@ -1191,7 +1195,7 @@ public class FunctionViewComponent implements IViewComponent1D,
             control_box.setSelected(false);
          }  
       }  
-      else if( message.equals(".Show Pointed At"))
+      else if( message.equals("Options.Show Pointed At"))
       {
          JMenuItem theItem = ((ViewMenuItem)ae.getSource()).getItem();
          if (((JCheckBoxMenuItem)theItem).getState()){
