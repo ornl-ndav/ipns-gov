@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/11/25 00:59:51  millermi
+ *  - Removed private data member global_bounds, now uses call to
+ *    TranslationJPanel's global bounds.
+ *
  *  Revision 1.3  2003/11/18 01:01:28  millermi
  *  - Minor changes to help()
  *
@@ -91,7 +95,6 @@ public class TranslationOverlay extends OverlayJPanel
   private TranslationJPanel tjp;
   private CoordJPanel main_image;
   private CoordBounds viewport;       // local_bounds in pixel coords
-  private CoordBounds global_bounds; 
   private Vector Listeners = null;  
 
  /**
@@ -190,7 +193,7 @@ public class TranslationOverlay extends OverlayJPanel
   */ 
   public CoordBounds getGlobalBounds()
   {
-    return global_bounds.MakeCopy();
+    return tjp.getGlobalWorldCoords();
   }
   
  /**
@@ -201,8 +204,6 @@ public class TranslationOverlay extends OverlayJPanel
   */ 
   public void setGlobalBounds( CoordBounds global )
   {
-    global_bounds = global.MakeCopy();
-
     tjp.setGlobalPanelBounds( global.MakeCopy() );
     repaint();
   }
