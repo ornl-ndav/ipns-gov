@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.27  2005/02/03 22:07:52  millermi
+ *  - No longer listens for ControlSlider messages. Only listens
+ *    for messages produced by IColorScaleAddible components.
+ *
  *  Revision 1.26  2004/11/12 21:20:05  millermi
  *  - Changed LogScaleUtil to PseudoLogScaleUtil since pseudo-log
  *    mapping was moved.
@@ -483,15 +487,15 @@ public class ControlColorScale extends ViewControl
   * This method sets the logscale of this control. The logscale
   * is only used for calibrated colorscales.
   *
-  *  @param  value Double value on interval [0,1]
+  *  @param  value Double value on interval [0,100]
   */
   public void setLogScale( double value )
   {
-    // restrict value to interval [0,1]
+    // restrict value to interval [0,100]
     if( value < 0 )
       value = 0;
-    if( value > 1 )
-      value = 1;
+    if( value > 100 )
+      value = 100;
     logscale = value;
   }
   
@@ -747,10 +751,11 @@ public class ControlColorScale extends ViewControl
       String message = e.getActionCommand(); 
       IColorScaleAddible temp = (IColorScaleAddible)e.getSource();
       if( message.equals( IColorScaleAddible.COLORSCALE_CHANGED ) )
-        setColorScale( temp.getColorScale(), isTwoSided );
-      else if ( message.equals(ControlSlider.SLIDER_CHANGED) )
       {
-        logscale = temp.getLogScale();
+        // Update the logscale factor.
+        setLogScale(temp.getLogScale());
+	// Set the color scheme for the colorscale.
+        setColorScale( temp.getColorScale(), isTwoSided );
       }
     }
   }   
