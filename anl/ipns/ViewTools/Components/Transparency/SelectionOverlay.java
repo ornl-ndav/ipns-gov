@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2003/08/21 18:18:17  millermi
+ *  - Updated help() to reflect new controls in editor.
+ *  - Added capabilities for wedge selection
+ *  CV: S----------------------------------------------------------------------
+ *
  *  Revision 1.14  2003/08/18 20:52:40  millermi
  *  - Added "Add Selection" controls to SelectionEditor so user no longer
  *    needs to know the keyboard events to make selections.
@@ -233,18 +238,24 @@ public class SelectionOverlay extends OverlayJPanel
                   "ADD BOX SELECTION\n");
       text.append("Click/Drag/Release Mouse w/C_Key pressed>" + 
                   "ADD CIRCLE SELECTION\n");
+      text.append("Click/Drag/Release Mouse w/L_Key pressed>" + 
+                  "ADD LINE SELECTION\n");
       text.append("Click/Drag/Release Mouse w/P_Key pressed>" + 
                   "ADD POINT SELECTION\n");
+      text.append("Click/Drag/Release Mouse w/W_Key pressed>" + 
+                  "ADD WEDGE SELECTION\n");
       text.append("Double Click Mouse>REMOVE LAST SELECTION\n");
       text.append("Single Click Mouse w/A_Key>REMOVE ALL SELECTIONS\n\n");
       text.append("*******************************************\n");
       text.append("Selection Editor Commands (Edit button under Selection " +
                   "Overlay Control)\n");
       text.append("*******************************************\n");
-      text.append("Click on \"Change Color\" to CHANGE COLOR OF SELECTION.\n");
+      text.append("Click on button corresponding to region type in editor, " +
+                  "then on image Click/Drag/Release mouse to ADD SELECTION\n");
       text.append("Move slider to CHANGE OPACITY OF SELECTION. If highly " +
                   "opaque, lines show bright. Low opacity makes selections " +
-		  "clear or transparent.\n\n");
+		  "clear or transparent.\n");
+      text.append("Click on \"Change Color\" to CHANGE COLOR OF SELECTION.\n");
       
       JScrollPane scroll = new JScrollPane(text);
       scroll.setVerticalScrollBarPolicy(
@@ -402,23 +413,43 @@ public class SelectionOverlay extends OverlayJPanel
          //System.out.println("Point: " + p[0].x + "," + p[0].y );   
          if( region.equals( SelectionJPanel.CIRCLE ) )
 	 {
-	    g2d.drawOval( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
+	   g2d.drawOval( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
 	 }
          else if( region.equals( SelectionJPanel.BOX ) )
 	 {
-	    g2d.drawRect( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
+	   g2d.drawRect( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
 	 }
          else if( region.equals( SelectionJPanel.LINE ) )
 	 {
-	    g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y ); 	    
+	   g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y ); 	    
 	 }
          else if( region.equals( SelectionJPanel.POINT ) )
 	 {
-	    //System.out.println("Drawing instance of point at " + 
-	    //                 ((Point)region).x + "/" + ((Point)region).y );
-	    g2d.drawLine( p[0].x - 5, p[0].y, p[0].x + 5, p[0].y ); 	    
-	    g2d.drawLine( p[0].x, p[0].y - 5, p[0].x, p[0].y + 5 );
-	 }	 	 
+	   //System.out.println("Drawing instance of point at " + 
+	   //		      ((Point)region).x + "/" + ((Point)region).y );
+	   g2d.drawLine( p[0].x - 5, p[0].y, p[0].x + 5, p[0].y );	   
+	   g2d.drawLine( p[0].x, p[0].y - 5, p[0].x, p[0].y + 5 );
+	 }
+	 else if( region.equals( SelectionJPanel.WEDGE ) )
+	 {
+	  /* p[0]   = center pt of circle that arc is taken from
+	   * p[1]   = last mouse point/point at intersection of line and arc
+	   * p[2]   = reflection of p[1]
+	   * p[3]   = top left corner of bounding box around arc's total circle
+	   * p[4]   = bottom right corner of bounding box around arc's circle
+	   * p[5].x = startangle, the directional vector in degrees
+	   * p[5].y = degrees covered by arc.
+	   */
+	   // Since p[5] is not a point, but angular measures, they are a direct
+	   // cast from float to int, no convertion needed.
+	   p[p.length - 1].x = (int)fp[p.length - 1].x;
+	   p[p.length - 1].y = (int)fp[p.length - 1].y;
+	   g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y );
+	   g2d.drawLine( p[0].x, p[0].y, p[2].x, p[2].y );           
+	   
+           g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
+	               p[4].y - p[3].y, p[5].x, p[5].y);
+	 }
       }
    } // end of paint()
 
@@ -458,106 +489,139 @@ public class SelectionOverlay extends OverlayJPanel
    */
    private class SelectListener implements ActionListener
    {
-      public void actionPerformed( ActionEvent ae )
-      {
-         String message = ae.getActionCommand(); 
-         // clear all selections from the vector
-         if( message.equals( SelectionJPanel.RESET_SELECTED ) )
+     public void actionPerformed( ActionEvent ae )
+     {
+       String message = ae.getActionCommand(); 
+       // clear all selections from the vector
+       if( message.equals( SelectionJPanel.RESET_SELECTED ) )
+       { 
+         if( regions.size() > 0 )
+         {
+           regions.clear(); 
+           sendMessage(ALL_REGIONS_REMOVED);
+         }	   
+       }
+       // remove the last selection from the vector
+       else if( message.equals( SelectionJPanel.RESET_LAST_SELECTED ) )
+       {
+         if( regions.size() > 0 )
+         {
+           regions.removeElementAt(regions.size() - 1);  
+           sendMessage(REGION_REMOVED);
+         }		   
+       }
+       // region is specified by REGION_SELECTED>BOX >CIRCLE >POINT   
+       // if REGION_SELECTED is in the string, find which region 
+       else if( message.indexOf( SelectionJPanel.REGION_SELECTED ) > -1 )
+       {
+         boolean regionadded = true;
+         if( message.indexOf( SelectionJPanel.BOX ) > -1 )
+         {
+           Rectangle box = ((BoxCursor)sjp.getCursor( 
+        			  SelectionJPanel.BOX )).region();
+           Point p1 = new Point( box.getLocation() );
+           p1.x += (int)current_bounds.getX();
+           p1.y += (int)current_bounds.getY();
+           Point p2 = new Point( p1 );
+           p2.x += (int)box.getWidth();
+           p2.y += (int)box.getHeight();
+           floatPoint2D[] tempwcp = new floatPoint2D[2];
+           tempwcp[0] = convertToWorldPoint( p1 );
+           tempwcp[1] = convertToWorldPoint( p2 );
+        					
+           WCRegion boxregion = new WCRegion(SelectionJPanel.BOX, tempwcp);
+        				  
+           regions.add( boxregion );
+           //System.out.println("Drawing box region" );
+         }
+         else if( message.indexOf( SelectionJPanel.CIRCLE ) > -1 )
+         {
+           Circle circle = ((CircleCursor)sjp.getCursor( 
+        			  SelectionJPanel.CIRCLE )).region();
+           Point p1 = new Point( circle.getDrawPoint() );
+           p1.x += (int)current_bounds.getX();
+           p1.y += (int)current_bounds.getY();
+           Point p2 = new Point( circle.getCenter() );
+           p2.x += circle.getRadius() + (int)current_bounds.getX();
+           p2.y += circle.getRadius() + (int)current_bounds.getY();
+           floatPoint2D[] tempwcp = new floatPoint2D[2];
+           tempwcp[0] = convertToWorldPoint( p1 );
+           tempwcp[1] = convertToWorldPoint( p2 );
+        					
+           WCRegion circleregion = new WCRegion( SelectionJPanel.CIRCLE, 
+        					 tempwcp );
+           regions.add( circleregion );
+         }	 
+         else if( message.indexOf( SelectionJPanel.LINE ) > -1 )
+         {
+           Line line = ((LineCursor)sjp.getCursor( 
+        			   SelectionJPanel.LINE )).region();
+           Point p1 = new Point( line.getP1() );
+           p1.x += (int)current_bounds.getX();
+           p1.y += (int)current_bounds.getY();
+           Point p2 = new Point( line.getP2() );
+           p2.x += (int)current_bounds.getX();
+           p2.y += (int)current_bounds.getY();
+           floatPoint2D[] tempwcp = new floatPoint2D[2];
+           tempwcp[0] = convertToWorldPoint( p1 );
+           tempwcp[1] = convertToWorldPoint( p2 );
+        					
+           WCRegion lineregion = new WCRegion( SelectionJPanel.LINE, 
+        				       tempwcp );
+           regions.add( lineregion );
+         }	 
+         else if( message.indexOf( SelectionJPanel.POINT ) > -1 )
          { 
-	    if( regions.size() > 0 )
-	    {
-	       regions.clear(); 
-	       sendMessage(ALL_REGIONS_REMOVED);
-	    }         
-	 }
-	 // remove the last selection from the vector
-         else if( message.equals( SelectionJPanel.RESET_LAST_SELECTED ) )
-         {
-	    if( regions.size() > 0 )
-	    {
-	       regions.removeElementAt(regions.size() - 1);  
-	       sendMessage(REGION_REMOVED);
-	    }      	      
-	 }
-	 // region is specified by REGION_SELECTED>BOX >CIRCLE >POINT	
-	 // if REGION_SELECTED is in the string, find which region 
-	 else if( message.indexOf( SelectionJPanel.REGION_SELECTED ) > -1 )
-         {
-	    if( message.indexOf( SelectionJPanel.BOX ) > -1 )
-	    {
-	       Rectangle box = ((BoxCursor)sjp.getCursor( 
-	                              SelectionJPanel.BOX )).region();
-	       Point p1 = new Point( box.getLocation() );
-	       p1.x += (int)current_bounds.getX();
-	       p1.y += (int)current_bounds.getY();
-	       Point p2 = new Point( p1 );
-	       p2.x += (int)box.getWidth();
-	       p2.y += (int)box.getHeight();
-	       floatPoint2D[] tempwcp = new floatPoint2D[2];
-	       tempwcp[0] = convertToWorldPoint( p1 );
-	       tempwcp[1] = convertToWorldPoint( p2 );
-	                                            
-	       WCRegion boxregion = new WCRegion(SelectionJPanel.BOX, tempwcp);
-	                                      
-	       regions.add( boxregion );
-	       //System.out.println("Drawing box region" );
-	    }
-	    else if( message.indexOf( SelectionJPanel.CIRCLE ) > -1 )
-	    {
-	       Circle circle = ((CircleCursor)sjp.getCursor( 
-	                              SelectionJPanel.CIRCLE )).region();
-	       Point p1 = new Point( circle.getDrawPoint() );
-	       p1.x += (int)current_bounds.getX();
-	       p1.y += (int)current_bounds.getY();
-	       Point p2 = new Point( circle.getCenter() );
-	       p2.x += circle.getRadius() + (int)current_bounds.getX();
-	       p2.y += circle.getRadius() + (int)current_bounds.getY();
-	       floatPoint2D[] tempwcp = new floatPoint2D[2];
-	       tempwcp[0] = convertToWorldPoint( p1 );
-	       tempwcp[1] = convertToWorldPoint( p2 );
-	                                            
-	       WCRegion circleregion = new WCRegion( SelectionJPanel.CIRCLE, 
-	                                             tempwcp );
-	       regions.add( circleregion );
-	    }	    
-	    else if( message.indexOf( SelectionJPanel.LINE ) > -1 )
-	    {
-	      Line line = ((LineCursor)sjp.getCursor( 
-	                              SelectionJPanel.LINE )).region();
-	      Point p1 = new Point( line.getP1() );
-	      p1.x += (int)current_bounds.getX();
-	      p1.y += (int)current_bounds.getY();
-	      Point p2 = new Point( line.getP2() );
-	      p2.x += (int)current_bounds.getX();
-	      p2.y += (int)current_bounds.getY();
-	      floatPoint2D[] tempwcp = new floatPoint2D[2];
-	      tempwcp[0] = convertToWorldPoint( p1 );
-	      tempwcp[1] = convertToWorldPoint( p2 );
-	                                           
-	      WCRegion lineregion = new WCRegion( SelectionJPanel.LINE, 
-	                                          tempwcp );
-	      regions.add( lineregion );
-	    }	    
-	    else if( message.indexOf( SelectionJPanel.POINT ) > -1 )
-	    { 
-	       //System.out.println("Drawing point region" );
-	       // create new point, otherwise regions would be shared.
-	       Point np = new Point( ((PointCursor)
-	               sjp.getCursor( SelectionJPanel.POINT )).region() );
-	       np.x += (int)current_bounds.getX();
-	       np.y += (int)current_bounds.getY();
-	       floatPoint2D[] tempwcp = new floatPoint2D[1];
-	       tempwcp[0] = convertToWorldPoint( np );
-               //System.out.println("tempwcp[0]: "+tempwcp[0].x+tempwcp[0].y );
-	       regions.add( new WCRegion(SelectionJPanel.POINT, tempwcp) );
-	    }
-	    sendMessage(REGION_ADDED);
-	 }
-	 this_panel.repaint();  // Without this, the newly drawn regions would
-	                        // not appear.
-      }  // end actionPerformed()   
+           //System.out.println("Drawing point region" );
+           // create new point, otherwise regions would be shared.
+           Point np = new Point( ((PointCursor)
+        	   sjp.getCursor( SelectionJPanel.POINT )).region() );
+           np.x += (int)current_bounds.getX();
+           np.y += (int)current_bounds.getY();
+           floatPoint2D[] tempwcp = new floatPoint2D[1];
+           tempwcp[0] = convertToWorldPoint( np );
+     	   //System.out.println("tempwcp[0]: "+tempwcp[0].x+tempwcp[0].y );
+           regions.add( new WCRegion(SelectionJPanel.POINT, tempwcp) );
+         }    
+         else if( message.indexOf( SelectionJPanel.WEDGE ) > -1 )
+         { 
+           //System.out.println("Drawing wedge region" );
+           // create new point, otherwise regions would be shared.
+           Point[] p_array = ( ((WedgeCursor)
+        	   sjp.get3ptCursor( SelectionJPanel.WEDGE )).region() );
+           floatPoint2D[] tempwcp = new floatPoint2D[p_array.length];
+           for( int i = 0; i < p_array.length - 1; i++ )
+	   {
+	     p_array[i].x += (int)current_bounds.getX();
+             p_array[i].y += (int)current_bounds.getY();
+             tempwcp[i] = convertToWorldPoint( p_array[i] );
+	   }
+	   // Since these are angles, they do not need transforming
+	   if( p_array.length > 0 )
+	   {
+	     tempwcp[p_array.length - 1] = new floatPoint2D( 
+	                                (float)p_array[p_array.length - 1].x,
+	                                (float)p_array[p_array.length - 1].y );
+	   }
+	   
+           regions.add( new WCRegion(SelectionJPanel.WEDGE, tempwcp) );
+         }
+	 else  // no recognized region was added
+	   regionadded = false;
+         
+	 if( regionadded )
+	   sendMessage(REGION_ADDED);
+       }
+       this_panel.repaint();  // Without this, the newly drawn regions would
+        		      // not appear.
+     }  // end actionPerformed()   
    } // end SelectListener
    
+  /*
+   * This class is the editor for the Selection Overlay. This is used to 
+   * create a selection, change opacity of a selection, and change selection
+   * color.
+   */ 
    private class SelectionEditor extends JFrame
    {
      private Box pane;
@@ -602,6 +666,10 @@ public class SelectionOverlay extends OverlayJPanel
        this.getContentPane().add(pane);
      }
      
+    /*
+     * Private listener for the SelectionEditor. This class listens to all
+     * of the controls on the editor.
+     */ 
      class ControlListener implements ActionListener
      {
        public void actionPerformed( ActionEvent ae )
