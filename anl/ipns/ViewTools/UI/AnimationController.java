@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2001/07/25 16:55:13  dennis
+ *  addActionListener() now checks for duplicates and doesn't add
+ *  a listener twice.
+ *
  *  Revision 1.7  2001/07/13 22:04:47  dennis
  *  The text box displaying the frame value now will also display
  *  the frame number.
@@ -202,6 +206,10 @@ public class AnimationController extends    JPanel
  
   public void addActionListener( ActionListener listener )
   {
+    for ( int i = 0; i < listeners.size(); i++ )       // don't add it if it's
+      if ( listeners.elementAt(i).equals( listener ) ) // already there
+        return;
+
     listeners.add( listener );
   }
 
