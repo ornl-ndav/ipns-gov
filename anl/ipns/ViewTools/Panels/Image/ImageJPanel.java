@@ -1,23 +1,25 @@
 /*
  * @(#) ImageJPanel.java  1.0    1998/07/29   Dennis Mikkelson
  *
- * ---------------------------------------------------------------------------   *  $Log$
- * ---------------------------------------------------------------------------   *  Revision 1.2  2000/07/10 22:11:50  dennis
- * ---------------------------------------------------------------------------   *  7/10/2000 version, many changes and improvements
- * ---------------------------------------------------------------------------   *
- * ---------------------------------------------------------------------------   *  Revision 1.13  2000/05/31 21:32:53  dennis
- * ---------------------------------------------------------------------------   *  Modified method that generates mouse events from key events to
- * ---------------------------------------------------------------------------   *  send a MOUSE_DRAGGED event with a MOUSE_PRESSED event so that the
- * ---------------------------------------------------------------------------   *  cursor draws/updates immediately
- * ---------------------------------------------------------------------------   *
- * ---------------------------------------------------------------------------   *  Revision 1.12  2000/05/16 22:28:40  dennis
- * ---------------------------------------------------------------------------   *  modified it to not copy the data array that is passed in.  This means
- * ---------------------------------------------------------------------------   *  that it will no longer work for "ragged" arrays, but it will be somewhat
- * ---------------------------------------------------------------------------   *  more efficient.
- * ---------------------------------------------------------------------------   *
- * ---------------------------------------------------------------------------   *  Revision 1.11  2000/05/11 16:53:19  dennis
- * ---------------------------------------------------------------------------   *  Added RCS logging
- * ---------------------------------------------------------------------------   *
+ *  $Log$
+ *  Revision 1.3  2000/07/10 22:17:00  dennis
+ *  minor format change to documentation
+ *
+ *  Revision 1.2  2000/07/10 22:11:50  dennis
+ *  7/10/2000 version, many changes and improvements
+ *
+ *  Revision 1.13  2000/05/31 21:32:53  dennis
+ *  Modified method that generates mouse events from key events to
+ *  send a MOUSE_DRAGGED event with a MOUSE_PRESSED event so that the
+ *  cursor draws/updates immediately
+ *
+ *  Revision 1.12  2000/05/16 22:28:40  dennis
+ *  modified it to not copy the data array that is passed in.  This means
+ *  that it will no longer work for "ragged" arrays, but it will be somewhat
+ *  more efficient.
+ *
+ *  Revision 1.11  2000/05/11 16:53:19  dennis
+ *  Added RCS logging
  *
  */
 
