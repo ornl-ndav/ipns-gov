@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/07/25 14:42:04  dennis
+ *  - Constructor now takes component of type IZoomTestAddible instead
+ *    of IAxisAddible2D. (Mike Miller)
+ *
  *  Revision 1.8  2003/07/05 19:43:17  dennis
  *  - Updated to match the changes made to the ImageJPanel
  *    and the ColorScaleImage.  (Mike Miller)
@@ -134,12 +138,12 @@ import DataSetTools.util.floatPoint2D;
 
 /**
  * This class allows a user to write comments near a region on the 
- * IAxisAddible2D component. 
+ * IZoomTextAddible component. 
  */
 public class AnnotationOverlay extends OverlayJPanel 
 {
    private AnnotationJPanel overlay;      // panel overlaying the center jpanel
-   private IAxisAddible2D component;      // component being passed
+   private IZoomTextAddible component;    // component being passed
    private Vector notes;                  // all annotations
    private AnnotationOverlay this_panel;  // used for repaint by SelectListener 
    private Rectangle current_bounds;
@@ -153,24 +157,24 @@ public class AnnotationOverlay extends OverlayJPanel
    
   /**
    * Constructor creates OverlayJPanel with a transparent AnnotationJPanel that
-   * shadows the region specified by the getRegionInfo() of the IAxisAddible2D
-   * interface.
+   * shadows the region specified by the getRegionInfo() of the 
+   * IZoomTextAddible interface.
    *
-   *  @param  component - must implement IAxisAddible2D interface
+   *  @param  component - must implement IZoomTextAddible interface
    */ 
-   public AnnotationOverlay(IAxisAddible2D iaa)
+   public AnnotationOverlay(IZoomTextAddible izta)
    {
       super();
       this.setLayout( new GridLayout(1,1) );
       
       overlay = new AnnotationJPanel();
-      component = iaa;
+      component = izta;
       notes = new Vector();      
       this_panel = this;
       line_color = Color.black;
       text_color = Color.black;
       editorOpen = false; 
-      font = iaa.getFont();
+      font = izta.getFont();
       this.add(overlay); 
       overlay.setOpaque(false); 
       overlay.addActionListener( new NoteListener() );  
@@ -455,31 +459,25 @@ public class AnnotationOverlay extends OverlayJPanel
          String message = ae.getActionCommand(); 
          // clear all notes from the vector
          if( message.equals( AnnotationJPanel.RESET_NOTE ) )
-         {
-	    //System.out.println("Clear all selected" ); 
+         { 
 	    if( notes.size() > 0 )
 	    {
 	       notes.clear(); 
 	       // if an editAnnotaton window is open, update it to the changes
 	       if( editorOpen )
 	          editor.refresh();
-	    }
-	    else
-	       System.out.println("No annotations created");          
+	    }         
 	 }
 	 // remove the last note from the vector
          else if( message.equals( AnnotationJPanel.RESET_LAST_NOTE ) )
-         {
-	    //System.out.println("Clear last selected" ); 
+         { 
 	    if( notes.size() > 0 )
 	    {
 	       notes.removeElementAt(notes.size() - 1);
 	       // if an editAnnotaton window is open, update it to the changes 
 	       if( editorOpen )
 	          editor.refresh();
-	    }	       
-	    else
-	       System.out.println("No annotations created");	      
+	    }	      
 	 }	 
 	 else if( message.equals( AnnotationJPanel.NOTE_REQUESTED ) )
 	 {	
