@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2001/05/29 15:02:08  dennis
+ *  Changed min_limit to allow negative values as well as positive.
+ *
  *  Revision 1.3  2001/04/23 21:50:34  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -69,8 +72,8 @@ import java.io.*;
 public class TextValueUI extends    JTextField
                          implements Serializable 
 {
-  private float  min_limit = Float.MIN_VALUE;
-  private float  max_limit = Float.MAX_VALUE;
+  private float  min_limit = -Float.MAX_VALUE;
+  private float  max_limit =  Float.MAX_VALUE;
   private float  value; 
   private String label;
  
