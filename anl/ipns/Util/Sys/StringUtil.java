@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2003/07/07 14:05:34  bouzekc
+ *  Added method to find the number of occurrences of one
+ *  String within another.
+ *
  *  Revision 1.18  2003/06/18 19:32:40  pfpeterson
  *  Implemented toString(Object) which will create a string containing
  *  the value of an object.
@@ -762,7 +766,29 @@ public class StringUtil
     return end;
   }
 
+  /**
+   * Utility to find the number of occurrences within a String. Currently uses
+   * Strings, so it could be sped up some.  Note that this method is
+   * case-sensitive.
+   *
+   * @param source The String to find the occurrences in.
+   * @param occ The occurrence to find.
+   */
+  public static int getNumOccurrences( String source, String occ ) {
+    int numFound = 0;
+    int index;
+    String temp  = source;
 
+    index        = temp.indexOf( occ );
+
+    while( ( temp.length(  ) > 0 ) && ( index >= 0 ) ) {
+      numFound++;
+      temp    = temp.substring( index + 1, temp.length(  ) );
+      index   = temp.indexOf( occ );
+    }
+
+    return numFound;
+  }
 
 /* ---------------------------------------------------------------------------
  *
