@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.25  2004/03/10 19:34:22  serumb
+ * Added kill method.
+ *
  * Revision 1.24  2004/03/10 16:38:19  serumb
  * Changed the action listener to listen for the correct
  * message when listening to the axis and annotation
@@ -480,6 +483,10 @@ import javax.swing.border.*;
     Point location =  the_frame.getLocation();
     the_frame.setVisible( false );
     the_frame.setBounds( location.x, location.y, FRAME_WIDTH, FRAME_HEIGHT );
+  }
+  
+  // method to remove panels upon removal of view components 
+  public void kill() {
   }
 
   private class x_rangeListener implements ActionListener {
