@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/12/12 18:33:04  millermi
+ *  - Changed initialization of AxisInfo max from 1 to 10,
+ *    the value of 1 interferred with the axisoverlay.
+ *
  *  Revision 1.5  2003/10/22 20:16:16  millermi
  *  - Added method getDimension() which is now required
  *    since the IVirtualArray2D now extends IVirtualArray.
@@ -72,7 +76,7 @@ public class VirtualArray2D implements IVirtualArray2D
 {
   // data members
   private float[][] dataArray;
-  private int num_rows; 	     // In M x N array, stores M								    
+  private int num_rows; 	     // In M x N array, stores M
   private int num_columns;	     // In M x N array, stores N
   private AxisInfo2D rowinfo;
   private AxisInfo2D colinfo;
@@ -94,8 +98,8 @@ public class VirtualArray2D implements IVirtualArray2D
 	  
     num_rows = rows;
     num_columns = columns;
-    rowinfo = new AxisInfo2D(0, 1, NO_XLABEL, NO_XUNITS, true);
-    colinfo = new AxisInfo2D(0, 1, NO_YLABEL, NO_YUNITS, true);
+    rowinfo = new AxisInfo2D(0, 10, NO_XLABEL, NO_XUNITS, true);
+    colinfo = new AxisInfo2D(0, 10, NO_YLABEL, NO_YUNITS, true);
     title = NO_TITLE;
   }
 
@@ -110,8 +114,8 @@ public class VirtualArray2D implements IVirtualArray2D
     dataArray = array2d;
     num_columns = array2d[0].length;
     num_rows = array2d.length;
-    rowinfo = new AxisInfo2D(0,1, NO_XLABEL, NO_XUNITS, true);
-    colinfo = new AxisInfo2D(0,1, NO_YLABEL, NO_YUNITS, true);
+    rowinfo = new AxisInfo2D(0,10, NO_XLABEL, NO_XUNITS, true);
+    colinfo = new AxisInfo2D(0,10, NO_YLABEL, NO_YUNITS, true);
     title = NO_TITLE;
   }	 
 
