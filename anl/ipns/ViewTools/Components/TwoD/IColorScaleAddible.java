@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/12/20 20:07:03  millermi
+ *  - Replaced getDataMin() and getDataMax() with getValueAxisInfo()
+ *    which will return an AxisInfo object containing the min, max,
+ *    and more.
+ *
  *  Revision 1.3  2003/12/18 22:42:13  millermi
  *  - This file was involved in generalizing AxisInfo2D to
  *    AxisInfo. This change was made so that the AxisInfo
@@ -55,6 +60,8 @@ package DataSetTools.components.View.TwoD;
 
 import java.awt.event.ActionListener;
 
+import DataSetTools.components.View.AxisInfo;
+
 /**
  * This interface is implemented by view components that utilize the 
  * ControlColorScale with calibrations. 
@@ -63,24 +70,28 @@ public interface IColorScaleAddible extends ILogAxisAddible
 {
   /**
    * This method returns the color scale of the center image. 
-   * Possible scales are listed in file IndexColorScale.java.
+   * Possible scales are listed in file IndexColorMaker.java.
+   *
+   *  @return IndexColorScale string code
+   *  @see DataSetTools.components.image.IndexColorMaker
    */
    public String getColorScale();
    
   /**
    * This method adds an action listener to this component.
+   *
+   *  @param  actionlistener A listener of this component.
    */ 
-   public void addActionListener( ActionListener a );
+   public void addActionListener( ActionListener actionlistener );
    
   /**
-   * This method will get the current data minimum from the component.
+   * This method will get the current AxisInfo about the data from the
+   * component.
+   *
+   *  @return AxisInfo of the data, 
+   *          Including: datamin, datamax, units, and label
    */    
-   public float getDataMin();
-   
-  /**
-   * This method will get the current data maximum from the component.
-   */    
-   public float getDataMax();
+   public AxisInfo getValueAxisInfo();
 }
 
 
