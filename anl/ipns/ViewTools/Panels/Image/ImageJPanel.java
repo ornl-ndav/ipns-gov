@@ -2,6 +2,9 @@
  * @(#) ImageJPanel.java  1.0    1998/07/29   Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.5  2000/12/07 22:32:32  dennis
+ *  Added some debug prints
+ *
  *  Revision 1.4  2000/10/03 21:48:27  dennis
  *  Modified to work with "Dual" color scales for both positive and negative
  *  values.
@@ -300,6 +303,9 @@ protected void LocalTransformChanged()
     System.out.println("rows: " + start_row + " to " + end_row );
     System.out.println("cols: " + start_col + " to " + end_col );
     System.out.println("Panel Size = " + getSize() );
+    System.out.println("num rows = " + data.length );
+    for ( int i = 0; i < data.length; i++ )
+      System.out.println("row " + i +" length = " + data[i].length );
 */
     byte pix[] = new byte[h*w];
     int index = 0;
