@@ -35,6 +35,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/01/03 03:01:13  millermi
+ *  - getAll*Values() now returns an array with the same number of
+ *    elements as there are labels. Previously, the array size was
+ *    always the largest number of labels.
+ *
  *  Revision 1.3  2003/12/29 20:43:13  millermi
  *  - Added setButtonText() so button message could be personalized.
  *  - Changed message string from ENTER_PRESSED to BUTTON_PRESSED
@@ -451,8 +456,23 @@ public class FieldEntryControl extends ViewControl
   */
   public float[] getAllFloatValues()
   {
-    float[] values = new float[text.length];
-    for( int index = 0; index < text.length; index++ )
+    // this will reduce the array size to the number of labels.
+    // if a String, then this is a key to another array.
+    Object temp_key = radiotable.get( getSelected() );
+    while( temp_key instanceof String )
+      temp_key = radiotable.get(temp_key);
+    String[] labellist = (String[])temp_key;
+    float[] values;
+    if( labellist != null )
+    {
+      values = new float[labellist.length];
+    }
+    else
+    {
+      values = new float[text.length];
+    }
+    // build the array of values
+    for( int index = 0; index < values.length; index++ )
     {
       // make sure text in JTextField is numeric.
       try
@@ -475,8 +495,24 @@ public class FieldEntryControl extends ViewControl
   */
   public String[] getAllStringValues()
   {
-    String[] values = new String[text.length];
-    for( int index = 0; index < text.length; index++ )
+    // this will reduce the array size to the number of labels.
+    // if a String, then this is a key to another array.
+    Object temp_key = radiotable.get( getSelected() );
+    while( temp_key instanceof String )
+      temp_key = radiotable.get(temp_key);
+    String[] labellist = (String[])temp_key;
+    String[] values;
+    if( labellist != null )
+    {
+      values = new String[labellist.length];
+    }
+    else
+    {
+      values = new String[text.length];
+    }
+    
+    // build the array of values
+    for( int index = 0; index < values.length; index++ )
     {
       values[index] = text[index][1].getText();
     }    
