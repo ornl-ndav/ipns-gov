@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.74  2004/08/06 18:49:50  millermi
+ *  - Added setColorScale(), now called when menu items are used to change
+ *    the colorscale.
+ *  - IColorScaleAddible.COLORSCALE_CHANGED is now sent out when the
+ *    colorscale is changed.
+ *
  *  Revision 1.73  2004/08/04 18:55:16  millermi
  *  - Added java doc comments clarifying coordinate systems.
  *  - Added getColumnRowAtPixel(), getColumnRowAtWorldCoords(),
@@ -1038,6 +1044,32 @@ public class ImageViewComponent implements IViewComponent2D,
   public String getColorScale()
   {
     return colorscale;
+  }
+  
+ /**
+  *
+  */
+  public void setColorScale( String color_scale )
+  {
+    // If not a valid colorscale, ignore request.
+    if( !( color_scale.equals(IndexColorMaker.GRAY_SCALE) ||
+           color_scale.equals(IndexColorMaker.GREEN_YELLOW_SCALE) ||
+           color_scale.equals(IndexColorMaker.HEATED_OBJECT_SCALE) ||
+           color_scale.equals(IndexColorMaker.HEATED_OBJECT_SCALE_2) ||
+           color_scale.equals(IndexColorMaker.MULTI_SCALE) ||
+           color_scale.equals(IndexColorMaker.NEGATIVE_GRAY_SCALE) ||
+           color_scale.equals(IndexColorMaker.OPTIMAL_SCALE) ||
+           color_scale.equals(IndexColorMaker.RAINBOW_SCALE) ||
+           color_scale.equals(IndexColorMaker.SPECTRUM_SCALE) ) )
+      return;
+    // else change color scale.
+    colorscale = color_scale;
+    ijp.setNamedColorModel( colorscale, isTwoSided, true );
+    ((ControlColorScale)controls[1]).setColorScale( colorscale, 
+    						    isTwoSided );	 
+    ((PanViewControl)controls[7]).repaint();
+    sendMessage(COLORSCALE_CHANGED);
+    paintComponents( big_picture.getGraphics() );
   }
   
  /**
@@ -2296,11 +2328,8 @@ public class ImageViewComponent implements IViewComponent2D,
       // else change color scale.
       else
       {
-	colorscale = message;
-	ijp.setNamedColorModel( colorscale, isTwoSided, true );
-	((ControlColorScale)controls[1]).setColorScale( colorscale, 
-							isTwoSided );        
-	((PanViewControl)controls[7]).repaint();
+	setColorScale(message);
+	return;
       }
       sendMessage( message );
       background.validate();
