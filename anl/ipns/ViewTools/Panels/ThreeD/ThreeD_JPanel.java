@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2003/10/08 22:24:31  dennis
+ * Put two debug prints inside of "if (debug) " statements.
+ *
  * Revision 1.15  2003/10/02 20:27:09  dennis
  * Now draws objects to an offscreen buffer first, then copies
  * the offscreen buffer to the panel.  If the panel is exposed,
@@ -624,7 +627,8 @@ public class ThreeD_JPanel extends    CoordJPanel
 
  public Point project( Vector3D point )
  {
-   System.out.println("Doing projection ...." );
+   if ( debug )
+     System.out.println("Doing projection ...." );
 
    if ( tran3D_used == null || tran2D_used == null || point == null )
    {
@@ -711,7 +715,8 @@ public class ThreeD_JPanel extends    CoordJPanel
                                    // can't project using null transforms
     if ( tran == null || local_transform == null )
     {
-      System.out.println("transforms null in ThreeD_JPanel");
+      if ( debug )
+        System.out.println("transforms null in ThreeD_JPanel");
       return;
     }
                                    // no need to recalculate projections and
