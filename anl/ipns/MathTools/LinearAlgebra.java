@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.18  2003/07/14 13:36:01  dennis
+ *  Fixed a java doc comment.
+ *
  *  Revision 1.17  2003/06/19 22:23:29  dennis
  *  Fixed java docs
  *
@@ -671,7 +674,7 @@ public final class LinearAlgebra
    *  for vectors qi, ri, i=0,...,k-1, where k is the number of data vectors.
    *
    *  @param  M      The n X m matrix that maps vector q[i][*] to 
-   *                 vector r[i][*].  The componets of M are set by this
+   *                 vector r[i][*].  The components of M are set by this
    *                 method, but the storage for M must be properly allocated
    *                 by the calling code.
    *  @param  q      This is the list of vector q data points.  Each row of
