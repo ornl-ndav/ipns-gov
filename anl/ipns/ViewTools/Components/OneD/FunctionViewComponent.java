@@ -33,9 +33,9 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.21  2003/08/08 17:07:03  serumb
- *  Changed dataChanged() method to only re-draw selected graphs when
- *  selected graphs are changed.
+ *  Revision 1.22  2003/08/08 18:28:17  serumb
+ *  Sends message to function controls letting it know to update x and y
+ *  range info.
  *
  *  Revision 1.19  2003/08/06 16:26:13  serumb
  *  Function controls will not close when pointed at changes.
@@ -203,7 +203,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     if(draw_pointed_at)
       DrawPointedAtGraph();
 
-    mainControls = new FunctionControls(varr, gjp, getDisplayPanel());
+    mainControls = new FunctionControls(varr, gjp, getDisplayPanel(),this);
    // buildViewControls( gjp );
   }
 
@@ -380,6 +380,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
        if(draw_pointed_at) {
        DrawPointedAtGraph();
        paintComponents(big_picture.getGraphics());
+       sendMessage("Reset Zoom");
        }
     }
   
@@ -395,7 +396,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     DrawSelectedGraphs();
     if(draw_pointed_at)
       DrawPointedAtGraph();  
-    mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel());
+    mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel(),
+                                        this);
 
     //      System.out.println("Value of first element: " + x_array[0] +
     //							y_array[0] );
