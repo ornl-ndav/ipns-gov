@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/12/20 07:04:48  millermi
+ *  - Fixed copy/paste bug that caused an array out of bounds
+ *    exception.
+ *
  *  Revision 1.3  2003/12/20 05:42:25  millermi
  *  - Now corrects the topleft/bottomright defining points if
  *    they were scaled incorrectly by the image.
@@ -111,23 +115,23 @@ public class EllipseRegion extends Region
      {
        xextent = bottomright.x - pcenter.x; 
        topleft.x = (int)(pcenter.x - xextent); 
-       definingpoints[3].x = topleft.x;
+       definingpoints[0].x = topleft.x;
      }
      else
      {
        bottomright.x = (int)(pcenter.x + xextent);
-       definingpoints[4].x = bottomright.x;
+       definingpoints[1].x = bottomright.x;
      }
      if( (bottomright.y - pcenter.y)-1 > yextent )
      {
        yextent = bottomright.y - pcenter.y;
        topleft.y = (int)(pcenter.y - yextent);
-       definingpoints[3].y = topleft.y;
+       definingpoints[0].y = topleft.y;
      }
      else
      {
        bottomright.y = (int)(pcenter.y + yextent);
-       definingpoints[4].y = bottomright.y;
+       definingpoints[1].y = bottomright.y;
      }
      
      floatPoint2D center = new floatPoint2D( (float)(topleft.x + xextent),
