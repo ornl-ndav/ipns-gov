@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2004/01/22 02:28:10  bouzekc
+ * Removed/commented out unused imports and variables.
+ *
  * Revision 1.2  2002/11/27 23:14:36  pfpeterson
  * standardized header
  *
@@ -40,7 +43,6 @@
 package DataSetTools.functions.FunctionTools;
 
 import java.io.*;
-import java.lang.*;
 
 /**
 * This class converts a string representing an equation
@@ -93,7 +95,9 @@ public class String2Instance1
 
 */  
 public String2Instance1(String S,  String Classname)  
-  {int i,j,k,x; char c;  
+  {
+    int i,k,x; 
+    char c;  
    classname=Classname;
    s = S;
   
@@ -295,7 +299,8 @@ private int find(String s, String slist[], int nlist) 	//returns index in list o
 */
 public Fxn parse()		//returns an instance of a subclass of Fxn
   
-  {int i,k,k1,x,kk;
+  {
+    int i,k;
    ByteArrayOutputStream  b2; DataOutputStream newDataStream;
    ByteClassLoader B; Class Fclass;Fxn f;
    errorposition=0; errormessage=" ";
@@ -429,8 +434,8 @@ public Fxn parse()		//returns an instance of a subclass of Fxn
 
 private int parseString(int start,DataOutputStream ss) throws IOException
   {char opstack[]; int nops;
-   char c,c1;
-   int i,j,k,m,n,kk;
+   char c;
+   int i,k,m;
    i=0;
    int prevNonspc=-1;
    try{
@@ -855,7 +860,7 @@ public String geterrormessage()
 * Then enter the equation and x values.
 */
 public static void main(String args[])
-  {char choice;
+  {
    C_Input dat;
    String2Instance1 S; 
 

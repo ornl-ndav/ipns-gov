@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2004/01/22 02:28:09  bouzekc
+ * Removed/commented out unused imports and variables.
+ *
  * Revision 1.3  2003/10/20 16:32:01  rmikk
  * Fixed javadoc error
  *
@@ -41,9 +44,6 @@
  */
 
 package DataSetTools.functions.FunctionTools;
-
-import java.lang.*;
-import java.awt.*;
 
 /**
 *Super class for all the new classes.

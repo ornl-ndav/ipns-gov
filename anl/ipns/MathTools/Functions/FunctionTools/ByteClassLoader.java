@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2004/01/22 02:28:09  bouzekc
+ * Removed/commented out unused imports and variables.
+ *
  * Revision 1.2  2002/11/27 23:14:36  pfpeterson
  * standardized header
  *
@@ -37,8 +40,6 @@
  *
  */
 package DataSetTools.functions.FunctionTools;
-
-import java.lang.*;
 
 /**
 * A Classloader that Loads the class from bytes instead of files
