@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.28  2004/03/10 21:08:20  millermi
+ * - Added menu item for saving image as a JPEG.
+ *
  * Revision 1.27  2004/03/10 17:39:42  millermi
  * - Cursor readout control from ImageViewComponent is
  *   filtered out of the controls.
@@ -242,12 +245,13 @@ import DataSetTools.util.IObserver;
 import DataSetTools.util.FontUtil;
 import DataSetTools.viewer.IViewManager;
 import DataSetTools.viewer.ViewManager;
+import DataSetTools.viewer.PrintComponentActionListener;
+import DataSetTools.viewer.SaveImageActionListener;
 import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.Data;
 import DataSetTools.dataset.FunctionTable;
 import DataSetTools.dataset.UniformXScale;
 import DataSetTools.dataset.Float1DAttribute;
-import DataSetTools.viewer.PrintComponentActionListener;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -725,16 +729,18 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       ObjectState temp = getObjectState(IPreserveState.DEFAULT);
       temp.silentFileChooser(props,false);
       setObjectState(temp);
-      // enable Print Image menu item
+      // enable Print Image and Make Image menu items
       menu_bar.getMenu(0).getItem(3).setEnabled(true); // print image
+      menu_bar.getMenu(0).getItem(4).setEnabled(true); // make image
     }
     // no data, build an empty split pane.
     else
     {
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
                                     new JPanel(), new JPanel(), .75f );
-      // disable Print Image menu item
+      // disable Print Image and Make Image menu items
       menu_bar.getMenu(0).getItem(3).setEnabled(false); // print image
+      menu_bar.getMenu(0).getItem(4).setEnabled(false); // make image
     }   
   }
  
@@ -761,6 +767,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     Vector load_data         = new Vector();
     Vector swv_help          = new Vector();
     Vector print             = new Vector();
+    Vector save_image        = new Vector();
     Vector exit              = new Vector();
     Vector file_listeners    = new Vector();
     Vector option_listeners  = new Vector();
@@ -781,6 +788,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     file.add(print);
       print.add("Print Image");
       file_listeners.add( new WVListener() ); // listener for printing IVC
+    file.add(save_image);
+      save_image.add("Make Image (JPEG)");
+      file_listeners.add( new WVListener() ); // listener for saving IVC as jpg
     file.add(exit);
       exit.add("Exit");
       file_listeners.add( new WVListener() ); // listener for exiting SWViewer
@@ -817,6 +827,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       JMenu file_menu = menu_bar.getMenu(0);
       file_menu.getItem(2).setEnabled(false);   // disable Save Project Settings
       file_menu.getItem(3).setEnabled(false);   // disable Print Image
+      file_menu.getItem(4).setEnabled(false);   // disable Make Image
       JMenu option_menu = menu_bar.getMenu(1);
       option_menu.getItem(0).setEnabled(false); // disable Hide Results Window
       option_menu.getItem(1).setEnabled(false); // disable Save Results
@@ -1284,6 +1295,15 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         // since the left component may change from data to data, only
 	// get the component when printing has been asked for.
         JMenuItem silent_menu = PrintComponentActionListener.getActiveMenuItem(
+	                                "not visible",
+	                                pane.getLeftComponent() );
+	silent_menu.doClick();
+      }
+      else if( ae.getActionCommand().equals("Make Image (JPEG)") )
+      {
+        // since the left component may change from data to data, only
+	// get the component when saving has been asked for.
+        JMenuItem silent_menu = SaveImageActionListener.getActiveMenuItem(
 	                                "not visible",
 	                                pane.getLeftComponent() );
 	silent_menu.doClick();
