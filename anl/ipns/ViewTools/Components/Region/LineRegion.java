@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/22 20:27:58  millermi
+ *  - Fixed java doc error.
+ *
  *  Revision 1.1  2003/08/11 23:40:41  millermi
  *  - Initial Version - Used to pass region info from a
  *    ViewComponent to the viewer. WCRegion is an unrelated
@@ -59,7 +62,7 @@ public class LineRegion extends Region
   /**
    * Constructor - provides basic initialization for all subclasses
    *
-   *  @param  definingpoints
+   *  @param  dp - defining points of the line
    */ 
    public LineRegion( Point[] dp )
    {

@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2003/10/22 20:26:47  millermi
+ *  - Fixed java doc error.
+ *
  *  Revision 1.16  2003/07/10 13:37:05  dennis
  *  - Added some functionality to main() for testing purposes
  *  - Added isTwoSided as private data member to be used by the makeImage()
@@ -167,7 +170,7 @@ public class ImageJPanel extends    CoordJPanel
  *  @param   color_scale_name  Name of the new color scale to use for the
  *                             image.  Supported color scales are listed in
  *                             the IndexColorMaker class.
- *  @param   isTwoSided        Flag that determines whether a color scale 
+ *  @param   twosided          Flag that determines whether a color scale 
  *                             that includes colors for both positive and 
  *                             negative values is used, or if only positive
  *                             values are represented.
