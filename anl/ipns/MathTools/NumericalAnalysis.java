@@ -33,6 +33,9 @@
  *  of first and second moments, etc.   
  * 
  *  $Log$
+ *  Revision 1.12  2004/03/11 23:18:47  dennis
+ *  Fixed imports.
+ *
  *  Revision 1.11  2004/03/11 23:05:45  dennis
  *  Changed to MathTools package
  *
@@ -53,7 +56,7 @@
 
 package gov.anl.ipns.MathTools;
 
-import gov.anl.ipns.Util.Sys.*;
+import gov.anl.ipns.Util.Numeric.*;
 
 /**
  *  Basic numerical analysis operations, such as integration, calculation 
