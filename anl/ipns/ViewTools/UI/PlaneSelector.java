@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/12 00:23:57  serumb
+ * Changed Package.
+ *
  * Revision 1.2  2004/01/22 02:06:03  bouzekc
  * Removed unused imports.
  *
@@ -39,7 +42,7 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import javax.swing.*;
 import java.awt.*;
