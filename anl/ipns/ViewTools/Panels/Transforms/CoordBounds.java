@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2004/02/12 04:24:17  millermi
+ * - Added methods onXInterval() and onYInterval() which return
+ *   true if parameter is on interval [min,max] or [max,min].
+ *
  * Revision 1.10  2003/11/21 18:20:15  dennis
  * Added method scaleBounds() to scale the bounding rectangle about
  * it's center, by specified scale factors in the x and y directions.
@@ -388,7 +392,54 @@ public class CoordBounds implements Serializable
     return new CoordBounds( x1, y1, x2, y2 );
   }
 
- 
+  /**
+   *  Check to see if x value is on the x interval.
+   *
+   *  @param  x Value to be checked on interval [xmin,xmax]
+   *  @return true if on interval [xmin,xmax]
+   */
+  public boolean onXInterval( float x )
+  {
+    // assume x1 < x2
+    float xmin = x1;
+    float xmax = x2;
+    // if x1 > x2, make max = x1
+    if( xmin > xmax )
+    {
+      xmax = x1;
+      xmin = x2;
+    }
+    // is x on interval [xmin,xmax]
+    if( x >= xmin && x <= xmax )
+      return true;
+    // otherwise not on interval [xmin,xmax]
+    return false;
+  }
+
+  /**
+   *  Check to see if y value is on the y interval.
+   *
+   *  @param  y Value to be checked on interval [ymin,ymax]
+   *  @return true if on interval [ymin,ymax]
+   */
+  public boolean onYInterval( float y )
+  {
+    // assume y1 < y2
+    float ymin = y1;
+    float ymax = y2;
+    // if y1 > y2, make max = y1
+    if( ymin > ymax )
+    {
+      ymax = y1;
+      ymin = y2;
+    }
+    // is y on interval [ymin,ymax]
+    if( y >= ymin && y <= ymax )
+      return true;
+    // otherwise not on interval [ymin,ymax]
+    return false;
+  }
+  
   /* ----------------------------- main -------------------------------- */
   /*
    *  Main program for testing purposes.
@@ -408,6 +459,10 @@ public class CoordBounds implements Serializable
     System.out.println( "Intersecting b3 = " + b3 );
     System.out.println( "with b4 = " + b4 );
     System.out.println( "gives " + b3.intersect( b4 ) );
+    System.out.println( "Is 10 on b3 x interval? " + b3.onXInterval(10f) );
+    System.out.println( "Is 11 on b1 x interval? " + b1.onXInterval(11f) );
+    System.out.println( "Is 0 on b1 y interval? " + b1.onYInterval(0) );
+    System.out.println( "Is -5 on b1 y interval? " + b1.onYInterval(-5f) );
   }
 
 }
