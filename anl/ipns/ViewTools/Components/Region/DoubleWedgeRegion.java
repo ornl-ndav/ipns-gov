@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/07 06:44:53  millermi
+ *  - Added static method getRegionUnion() which removes duplicate
+ *    points from one or more selections.
+ *  - Added protected methods initializeSelectedPoints() and
+ *    getRegionBounds(). Each is needed by getRegionUnion()
+ *    to calculate a unique set of points.
+ *
  *  Revision 1.5  2003/12/23 18:39:22  millermi
  *  - Improved how region was calculated.
  *
@@ -59,6 +66,8 @@ package DataSetTools.components.View.Region;
 import java.awt.Point;
 import java.util.Vector;
  
+import DataSetTools.util.floatPoint2D; 
+import DataSetTools.components.image.CoordBounds;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
 
 /**
@@ -83,135 +92,164 @@ import DataSetTools.components.View.Cursor.SelectionJPanel;
  */ 
 public class DoubleWedgeRegion extends Region
 {
-  /**
-   * Constructor - uses Region's constructor to set the defining points.
-   * The defining points are assumed to be in image values, where
-   * the input points are in (x,y) where (x = col, y = row ) form.
-   * The only exception is definingpoint[5] which holds angular (in degrees)
-   * values.
-   *
-   *  @param  dp - defining points of the DoubleWedge
-   */ 
-   public DoubleWedgeRegion( Point[] dp )
-   {
-     super(dp);
-   }
+ /**
+  * Constructor - uses Region's constructor to set the defining points.
+  * The defining points are assumed to be in image values, where
+  * the input points are in (x,y) where (x = col, y = row ) form.
+  * The only exception is definingpoint[5] which holds angular (in degrees)
+  * values.
+  *
+  *  @param  dp - defining points of the DoubleWedge
+  */ 
+  public DoubleWedgeRegion( floatPoint2D[] dp )
+  {
+    super(dp);
+    float xextent = definingpoints[0].x - definingpoints[3].x;
+    float yextent = definingpoints[0].y - definingpoints[3].y; 
+    // since a mapping is done with the imagejpanel, the topleft or bottomright
+    // could have been mapped to the side of the image. However, at most
+    // one will be affected, so take the maximum extent of the two.
+    // Correct the defining points if selection made near border of image.
+    // Bottomright to center
+    if( (definingpoints[4].x - definingpoints[0].x) > xextent )
+    {
+      xextent = definingpoints[4].x - definingpoints[0].x; 
+      definingpoints[3].x = definingpoints[0].x - xextent;
+    }
+    else if( (definingpoints[4].x - definingpoints[0].x) < xextent )
+    {
+      definingpoints[4].x = definingpoints[0].x + xextent;
+    }
+    // topleft to center
+    if( (definingpoints[4].y - definingpoints[0].y) > yextent )
+    {
+      yextent = definingpoints[4].y - definingpoints[0].y;
+      definingpoints[3].y = definingpoints[0].y - yextent;
+    }
+    else if( (definingpoints[4].y - definingpoints[0].y) < yextent )
+    {
+      definingpoints[4].y = definingpoints[0].y + yextent;
+    }
+  }
+  
+ /**
+  * Get all of the points inside the double wedge region. 
+  *
+  *  @return array of points included within the double wedge region.
+  */
+  public Point[] getSelectedPoints()
+  {  
+    initializeSelectedPoints();
+    Region[] dwedge = {this};
+    // get rid of duplicate points.
+    selectedpoints = getRegionUnion( dwedge );
+    return selectedpoints;
+  }
+  
+ /**
+  * This method is here to factor out the setting of the selected points.
+  * By doing this, regions can make use of the getRegionUnion() method.
+  *
+  *  @return array of points included within the region.
+  */
+  protected Point[] initializeSelectedPoints()
+  { 
+   /* p[0]   = center pt of circle that arc is taken from
+    * p[1]   = last mouse point/point at intersection of line and arc
+    * p[2]   = reflection of p[1]
+    * p[3]   = top left corner of bounding box around arc's total circle
+    * p[4]   = bottom right corner of bounding box around arc's circle
+    * p[5].x = startangle, the directional vector in degrees
+    * p[5].y = degrees covered by arc.
+    *
+    * Although this method uses quadrants similar to the unit circle,
+    * be aware that the slope in these quadrants does not behave in the same
+    * fashion. Quad II & III have positive slope while Quad I & IV have neg.
+    */
+    floatPoint2D center = new floatPoint2D( definingpoints[0] );
+    floatPoint2D p1 = new floatPoint2D( definingpoints[1] );
+    floatPoint2D rp1 = new floatPoint2D( definingpoints[2] );
+    floatPoint2D topleft = new floatPoint2D( definingpoints[3] );
+    floatPoint2D bottomright = new floatPoint2D( definingpoints[4] );	  
+    float xextent = center.x - topleft.x;
+    float yextent = center.y - topleft.y; 
+    //System.out.println(bottomright.toString() + " " + topleft.toString() );
+    
+    WedgeRegion wedge1 = new WedgeRegion(definingpoints);
+    Point[] selected_pts_wedge1 = wedge1.initializeSelectedPoints();
+    
+    floatPoint2D[] defpt2 = new floatPoint2D[definingpoints.length];
+    defpt2[0] = new floatPoint2D( definingpoints[0] );
+    defpt2[1] = new floatPoint2D( 2f*center.x - p1.x, 2f*center.y - p1.y );
+    defpt2[2] = new floatPoint2D( 2f*center.x - rp1.x, 2f*center.y - rp1.y );
+    defpt2[3] = new floatPoint2D( definingpoints[3] );
+    defpt2[4] = new floatPoint2D( definingpoints[4] );
+    
+    // since defpt2[1] & defpt2[2] are calculated, it is possible for them
+    // to fall outside of the bounds. This will make sure they don't.
+    // bound defpt2[1].x   topleft-x
+    if( defpt2[1].x > bottomright.x )
+      defpt2[1].x = bottomright.x;
+    else if( defpt2[1].x < topleft.x )
+      defpt2[1].x = topleft.x;
+    
+    // bound defpt2[1].y   topleft-y
+    if( defpt2[1].y > bottomright.y )
+      defpt2[1].y = bottomright.y;
+    else if( defpt2[1].y < topleft.y )
+      defpt2[1].y = topleft.y;
+    
+    // bound defpt2[2].x   bottomright.x
+    if( defpt2[2].x > bottomright.x )
+      defpt2[2].x = bottomright.x;
+    else if( defpt2[2].x < topleft.x )
+      defpt2[2].x = topleft.x;
+    
+    // bound defpt2[2].y   bottomright.y
+    if( defpt2[2].y > bottomright.y )
+      defpt2[2].y = bottomright.y;
+    else if( defpt2[2].y < topleft.y )
+      defpt2[2].y = topleft.y;
+    
+    // adjust starting angle to either 180 degrees ahead or behind,
+    // depending on the angle. Always keep angle on interval [0,360)
+    if( (definingpoints[5].x + 180f) >= 360 )
+      defpt2[5] = new floatPoint2D( definingpoints[5].x - 180f,
+				    definingpoints[5].y );
+    else
+      defpt2[5] = new floatPoint2D( definingpoints[5].x + 180f,
+				    definingpoints[5].y );
+    
+    WedgeRegion wedge2 = new WedgeRegion(defpt2);
+    Point[] selected_pts_wedge2 = wedge2.initializeSelectedPoints();
+    int total_num_pts = selected_pts_wedge1.length +
+			selected_pts_wedge2.length;
+    
+    selectedpoints = new Point[total_num_pts];
+    for( int i = 0; i < selected_pts_wedge1.length; i++ )
+      selectedpoints[i] = new Point(selected_pts_wedge1[i]);
+    Point temp;
+    // this increment value is used to avoid gaps in the array when
+    // duplicate points are bypassed and not added to the selectedpoints array.
+    int inc = 0;
+    for( int j = 0; j < selected_pts_wedge2.length; j++ )
+      selectedpoints[selected_pts_wedge1.length + j] = 
+				new Point(selected_pts_wedge2[j]);
+    
+    return selectedpoints;
+  } 
    
-  /**
-   * Get all of the points inside the double wedge region. 
-   *
-   *  @return array of points included within the double wedge region.
-   */
-   public Point[] getSelectedPoints()
-   { 
-    /* p[0]   = center pt of circle that arc is taken from
-     * p[1]   = last mouse point/point at intersection of line and arc
-     * p[2]   = reflection of p[1]
-     * p[3]   = top left corner of bounding box around arc's total circle
-     * p[4]   = bottom right corner of bounding box around arc's circle
-     * p[5].x = startangle, the directional vector in degrees
-     * p[5].y = degrees covered by arc.
-     *
-     * Although this method uses quadrants similar to the unit circle,
-     * be aware that the slope in these quadrants does not behave in the same
-     * fashion. Quad II & III have positive slope while Quad I & IV have neg.
-     */
-     Point center = new Point( definingpoints[0] );
-     Point p1 = new Point( definingpoints[1] );
-     Point rp1 = new Point( definingpoints[2] );
-     Point topleft = new Point( definingpoints[3] );
-     Point bottomright = new Point( definingpoints[4] );     
-     double xextent = (double)(center.x - topleft.x);
-     double yextent = (double)(center.y - topleft.y); 
-     // since a mapping is done with the imagejpanel, the topleft or bottomright
-     // could have been mapped to the side of the image. However, at most
-     // one will be affected, so take the maximum extent of the two.
-     // Correct the defining points if selection made near border of image.
-     if( (bottomright.x - center.x) - 1 > xextent )
-     {
-       xextent = bottomright.x - center.x; 
-       topleft.x = (int)(center.x - xextent); 
-       definingpoints[3].x = topleft.x;
-     }
-     else if( (bottomright.x - center.x) + 1 < xextent )
-     {
-       bottomright.x = (int)(center.x + xextent);
-       definingpoints[4].x = bottomright.x;
-     }
-     
-     if( (bottomright.y - center.y) - 1 > yextent )
-     {
-       yextent = bottomright.y - center.y;
-       topleft.y = (int)(center.y - yextent);
-       definingpoints[3].y = topleft.y;
-     }
-     else if( (bottomright.y - center.y) + 1 < yextent )
-     {
-       bottomright.y = (int)(center.y + yextent);
-       definingpoints[4].y = bottomright.y;
-     }
-     
-     //System.out.println(bottomright.toString() + " " + topleft.toString() );
-     
-     WedgeRegion wedge1 = new WedgeRegion(definingpoints);
-     Point[] selected_pts_wedge1 = wedge1.getSelectedPoints();
-     
-     Point[] defpt2 = new Point[definingpoints.length];
-     defpt2[0] = new Point( definingpoints[0] );
-     defpt2[1] = new Point( 2*center.x - p1.x, 2*center.y - p1.y );
-     defpt2[2] = new Point( 2*center.x - rp1.x, 2*center.y - rp1.y );
-     defpt2[3] = new Point( definingpoints[3] );
-     defpt2[4] = new Point( definingpoints[4] );
-     
-     // since defpt2[1] & defpt2[2] are calculated, it is possible for them
-     // to fall outside of the bounds. This will make sure they don't.
-     // bound defpt2[1].x
-     if( defpt2[1].x > bottomright.x )
-       defpt2[1].x = bottomright.x;
-     else if( defpt2[1].x < topleft.x )
-       defpt2[1].x = topleft.x;
-     
-     // bound defpt2[1].y
-     if( defpt2[1].y > bottomright.y )
-       defpt2[1].y = bottomright.y;
-     else if( defpt2[1].y < topleft.y )
-       defpt2[1].y = topleft.y;
-     
-     // bound defpt2[2].x
-     if( defpt2[2].x > bottomright.x )
-       defpt2[2].x = bottomright.x;
-     else if( defpt2[2].x < topleft.x )
-       defpt2[2].x = topleft.x;
-     
-     // bound defpt2[2].y
-     if( defpt2[2].y > bottomright.y )
-       defpt2[2].y = bottomright.y;
-     else if( defpt2[2].y < topleft.y )
-       defpt2[2].y = topleft.y;
-     
-     if( (definingpoints[5].x + 180) >= 360 )
-       defpt2[5] = new Point( definingpoints[5].x - 180, definingpoints[5].y );
-     else
-       defpt2[5] = new Point( definingpoints[5].x + 180, definingpoints[5].y );
-     
-     WedgeRegion wedge2 = new WedgeRegion(defpt2);
-     //wedge1.pointchecker[center.x-topleft.x][center.y-topleft.y] = true;
-     wedge2.pointchecker = wedge1.pointchecker;
-     Point[] selected_pts_wedge2 = wedge2.getSelectedPoints();
-     int total_num_pts = selected_pts_wedge1.length +
-                         selected_pts_wedge2.length;
-     
-     selectedpoints = new Point[total_num_pts];
-     for( int i = 0; i < selected_pts_wedge1.length; i++ )
-       selectedpoints[i] = new Point(selected_pts_wedge1[i]);
-     Point temp;
-     // this increment value is used to avoid gaps in the array when
-     // duplicate points are bypassed and not added to the selectedpoints array.
-     int inc = 0;
-     for( int j = 0; j < selected_pts_wedge2.length; j++ )
-       selectedpoints[selected_pts_wedge1.length + j] = 
-                                 new Point(selected_pts_wedge2[j]);
-     
-     return selectedpoints;
-   }
+ /**
+  * This method returns the rectangle containing the ellipse from which the
+  * double wedge is taken from.
+  *
+  *  @return The bounds of the DoubleWedgeRegion.
+  */
+  protected CoordBounds getRegionBounds()
+  {
+    return new CoordBounds( definingpoints[3].x,
+                            definingpoints[3].y, 
+                            definingpoints[4].x,
+			    definingpoints[4].y );
+  }
 }

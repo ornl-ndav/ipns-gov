@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/01/07 06:44:53  millermi
+ *  - Added static method getRegionUnion() which removes duplicate
+ *    points from one or more selections.
+ *  - Added protected methods initializeSelectedPoints() and
+ *    getRegionBounds(). Each is needed by getRegionUnion()
+ *    to calculate a unique set of points.
+ *
  *  Revision 1.2  2003/10/22 20:26:09  millermi
  *  - Fixed java doc errors.
  *
@@ -47,7 +54,9 @@
 package DataSetTools.components.View.Region;
 
 import java.awt.Point;
- 
+
+import DataSetTools.util.floatPoint2D;
+import DataSetTools.components.image.CoordBounds;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
 
 /**
@@ -58,46 +67,70 @@ import DataSetTools.components.View.Cursor.SelectionJPanel;
  */ 
 public class BoxRegion extends Region
 {
-  /**
-   * Constructor - provides basic initialization for all subclasses
-   *
-   *  @param  dp - defining points of the box
-   */ 
-   public BoxRegion( Point[] dp )
-   {
-     super(dp);
-   }
+ /**
+  * Constructor - provides basic initialization for all subclasses
+  *
+  *  @param  dp - defining points of the box
+  */ 
+  public BoxRegion( floatPoint2D[] dp )
+  {
+    super(dp);
+  }
+  
+ /**
+  * Get all of the points inside the region. This method assumes
+  * that the input points are in (x,y) where (x = col, y = row ) form.
+  * The points are entered into the array row by row.
+  *
+  *  @return array of points included within the region.
+  */
+  public Point[] getSelectedPoints()
+  {
+    return initializeSelectedPoints();
+  }
+  
+ /**
+  * This method is here to factor out the setting of the selected points.
+  * By doing this, regions can make use of the getRegionUnion() method.
+  *
+  *  @return array of points included within the region.
+  */
+  protected Point[] initializeSelectedPoints()
+  { 
+    floatPoint2D topleft = new floatPoint2D( definingpoints[0] );
+    floatPoint2D bottomright = new floatPoint2D( definingpoints[1] );
+    float w = bottomright.x - topleft.x + 1;
+    float h = bottomright.y - topleft.y + 1;
+    
+    selectedpoints = new Point[Math.round(w*h)];
+    if( selectedpoints.length > 0 )
+    {
+      int index = 0;
+      for( int col = Math.round(topleft.x); col <= bottomright.x; col++ )
+	for( int row = Math.round(topleft.y); row <= bottomright.y; row++ )
+        {
+	  selectedpoints[index] = new Point( col, row );
+          index++;
+        }
+    }
+    else
+    {
+      selectedpoints = new Point[1];
+      selectedpoints[0] = topleft.toPoint();
+    }
+    return selectedpoints;
+  } 
    
-  /**
-   * Get all of the points inside the region. This method assumes
-   * that the input points are in (x,y) where (x = col, y = row ) form.
-   * The points are entered into the array row by row.
-   *
-   *  @return array of points included within the region.
-   */
-   public Point[] getSelectedPoints()
-   {
-     Point topleft = new Point( definingpoints[0] );
-     Point bottomright = new Point( definingpoints[1] );
-     int w = bottomright.x - topleft.x + 1;
-     int h = bottomright.y - topleft.y + 1;
-     
-     selectedpoints = new Point[w*h];
-     if( selectedpoints.length > 0 )
-     {
-       int index = 0;
-       for( int col = topleft.x; col <= bottomright.x; col++ )
-         for( int row = topleft.y; row <= bottomright.y; row++ )
-	 {
-           selectedpoints[index] = new Point( col, row );
-	   index++;
-	 }
-     }
-     else
-     {
-       selectedpoints = new Point[1];
-       selectedpoints[0] = topleft;
-     }
-     return selectedpoints;
-   }
+ /**
+  * This method returns the rectangle containing the line.
+  *
+  *  @return The bounds of the LineRegion.
+  */
+  protected CoordBounds getRegionBounds()
+  {
+    return new CoordBounds( definingpoints[0].x,
+                            definingpoints[0].y, 
+                            definingpoints[1].x,
+			    definingpoints[1].y );
+  }
 }

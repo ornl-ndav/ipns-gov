@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/01/07 06:44:53  millermi
+ *  - Added static method getRegionUnion() which removes duplicate
+ *    points from one or more selections.
+ *  - Added protected methods initializeSelectedPoints() and
+ *    getRegionBounds(). Each is needed by getRegionUnion()
+ *    to calculate a unique set of points.
+ *
  *  Revision 1.10  2003/12/23 18:41:53  millermi
  *  - Added adjustments to p1 and rp1 so the LineRegion is
  *    closer to the rest of the wedge.
@@ -90,6 +97,7 @@ import java.awt.Point;
 import java.util.Vector;
  
 import DataSetTools.util.floatPoint2D;
+import DataSetTools.components.image.CoordBounds;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
 
 /**
@@ -114,347 +122,341 @@ import DataSetTools.components.View.Cursor.SelectionJPanel;
  */ 
 public class WedgeRegion extends Region
 {
-  protected boolean[][] pointchecker = new boolean[0][0];
-  /**
-   * Constructor - uses Region's constructor to set the defining points.
-   * The defining points are assumed to be in image values, where
-   * the input points are in (x,y) where (x = col, y = row ) form.
-   * The only exception is definingpoint[5] which holds angular (in degrees)
-   * values.
-   *
-   *  @param  dp - defining points of the wedge
-   */ 
-   public WedgeRegion( Point[] dp )
-   {
-     super(dp);
-   }
-   
-  /**
-   * Get all of the points inside the wedge region. This method first determines
-   * if the point is in the ellipse, then uses angles to find if the points
-   * in the wedge region. 
-   *
-   *  @return array of points included within the wedge region.
-   */
-   public Point[] getSelectedPoints()
-   { 
-    /* p[0]   = center pt of circle that arc is taken from
-     * p[1]   = last mouse point/point at intersection of line and arc
-     * p[2]   = reflection of p[1]
-     * p[3]   = top left corner of bounding box around arc's total circle
-     * p[4]   = bottom right corner of bounding box around arc's circle
-     * p[5].x = startangle, the directional vector in degrees
-     * p[5].y = degrees covered by arc.
-     */
-     Point center = new Point( definingpoints[0] );
-     Point p1 = new Point( definingpoints[1] );
-     Point rp1 = new Point( definingpoints[2] );   // reflection of p1
-     Point topleft = new Point( definingpoints[3] );
-     Point bottomright = new Point( definingpoints[4] );
-     
-     double xextent = (double)(center.x - topleft.x);
-     double yextent = (double)(center.y - topleft.y); 
-     // since a mapping is done with the imagejpanel, the topleft or bottomright
-     // could have been mapped to the side of the image. However, at most
-     // one will be affected, so take the maximum extent of the two.
-     // Correct the defining points if selection made near border of image.
-     if( (bottomright.x - center.x) > xextent )
-     {
-       xextent = bottomright.x - center.x; 
-       topleft.x = (int)(center.x - xextent);
-       definingpoints[3].x = topleft.x;
-     }
-     else if( (bottomright.x - center.x) < xextent )
-     {
-       bottomright.x = (int)(center.x + xextent);
-       definingpoints[4].x = bottomright.x;
-     }
-     
-     if( (bottomright.y - center.y) > yextent )
-     {
-       yextent = bottomright.y - center.y;
-       topleft.y = (int)(center.y - yextent);
-       definingpoints[3].y = topleft.y;
-     }
-     else if( (bottomright.y - center.y) < yextent )
-     {
-       bottomright.y = (int)(center.y + yextent);
-       definingpoints[4].y = bottomright.y;
-     }
-     
-     Vector points = new Vector();
-     // use this 2-d array to mark points that have been selected.
-     // First, all points inside the wedge are selected. To maintain a
-     // consistent way of selecting regions, all boundry points are also
-     // included. To do this, LineRegions are used to find the inclusive points
-     // on each line bounding the wedge. This pointchecker acts as a board
-     // to mark which points have already been added. When a point is added,
-     // the corresponding boolean value is changed to true. If true, the point
-     // will not be added.
-     // Since this value is now a protected variable, if it is set correctly
-     // by an outside source, use the array given.
-     int xdist = bottomright.x - topleft.x + 1;
-     int ydist = bottomright.y - topleft.y + 1;
-     if( !( pointchecker.length == xdist && pointchecker[0].length == ydist) )
-     {
-       pointchecker = new boolean[xdist][ydist];
-     }
-     int startangle = definingpoints[5].x;
-     int totalangle = definingpoints[5].y + startangle;
-     int stopangle = totalangle;
-     int p1quad = 0; 
-     // these adjustments are used when for the LineRegion selection near
-     // the end.
-     int p1xadjust = 0;
-     int p1yadjust = 0;
-     int rp1xadjust = 0;
-     int rp1yadjust = 0; 
-     // using the startangle, find the quadrant of p1
-     if( startangle <= 180 )
-     {
-       if( startangle <= 90 )
-       {
-         p1quad =  1;
-	 p1xadjust = -1;
-	 p1yadjust = 1;
-       }
-       else
-       {
-         p1quad =  2;
-	 p1xadjust = 1;
-	 p1yadjust = 1;
-       }
-     }
-     else
-     {
-       if( startangle < 270 )
-       {
-         p1quad =  3;
-	 p1xadjust = 1;
-	 p1yadjust = -1;
-       }
-       else
-       {
-         p1quad =  4;
-	 p1xadjust = -1;
-	 p1yadjust = -1;
-       }
-     } 
-     // make sure angle is between 0 and 360  
-     if( totalangle >= 360 )
-       totalangle -= 360;
-     //System.out.println("Total: " + totalangle );
-     int rp1quad = 0;
-     // using the startangle + arcangle, find quadrant of reflection of p1
-     if( totalangle <= 180 )
-     {
-       if( totalangle <= 90 )
-       {
-         rp1quad =  1;
-	 rp1xadjust = -1;
-	 rp1yadjust = 1;
-       }
-       else
-       {
-         rp1quad =  2;
-	 rp1xadjust = 1;
-	 rp1yadjust = 1;
-       }
-     }
-     else
-     {
-       if( totalangle < 270 )
-       {
-         rp1quad =  3;
-	 rp1xadjust = 1;
-	 rp1yadjust = -1;
-       }
-       else
-       {
-         rp1quad =  4;
-	 rp1xadjust = -1;
-	 rp1yadjust = -1;
-       }
-     }
-     //System.out.println("p1/rp1 Quad: " + p1quad + "/" + rp1quad );
-     
-     // using formula for ellipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
-     // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
-     int quadnum = 0;
-     // these values are specific to each quadrant, once quadrant is know, set
-     // these values.
-     int ystart = 0;
-     int ystop = 0;
-     int xstart = 0;
-     int xstop = 0;
-     
-     // if rp1quad < p1quad, angle goes from 4th quad to 1st quad. so
-     // adjust rp1quad so it works as a ending bound for the for loop.
-     if( rp1quad < p1quad )
-       rp1quad += 4;
-     // if the two are in the same quad, but the total angle is greater than 90,
-     // the shape must be a pie with a slice removed.
-     else if( rp1quad == p1quad && definingpoints[5].y > 90 )
-       rp1quad += 3;
+ /**
+  * Constructor - uses Region's constructor to set the defining points.
+  * The defining points are assumed to be in image values, where
+  * the input points are in (x,y) where (x = col, y = row ) form.
+  * The only exception is definingpoint[5] which holds angular (in degrees)
+  * values.
+  *
+  *  @param  dp - defining points of the wedge
+  */ 
+  public WedgeRegion( floatPoint2D[] dp )
+  {
+    super(dp);
+    float xextent = definingpoints[0].x - definingpoints[3].x;
+    float yextent = definingpoints[0].y - definingpoints[3].y; 
+    // since a mapping is done with the imagejpanel, the topleft or bottomright
+    // could have been mapped to the side of the image. However, at most
+    // one will be affected, so take the maximum extent of the two.
+    // Correct the defining points if selection made near border of image.
+    // Bottomright to center
+    if( (definingpoints[4].x - definingpoints[0].x) > xextent )
+    {
+      xextent = definingpoints[4].x - definingpoints[0].x; 
+      definingpoints[3].x = definingpoints[0].x - xextent;
+    }
+    else if( (definingpoints[4].x - definingpoints[0].x) < xextent )
+    {
+      definingpoints[4].x = definingpoints[0].x + xextent;
+    }
+    // topleft to center
+    if( (definingpoints[4].y - definingpoints[0].y) > yextent )
+    {
+      yextent = definingpoints[4].y - definingpoints[0].y;
+      definingpoints[3].y = definingpoints[0].y - yextent;
+    }
+    else if( (definingpoints[4].y - definingpoints[0].y) < yextent )
+    {
+      definingpoints[4].y = definingpoints[0].y + yextent;
+    }
+  }
+  
+ /**
+  * Get all of the points inside the wedge region. This method first determines
+  * if the point is in the ellipse, then uses angles to find if the points
+  * in the wedge region. 
+  *
+  *  @return array of points included within the wedge region.
+  */
+  public Point[] getSelectedPoints()
+  { 
+    initializeSelectedPoints();
+    Region[] wedge = {this};
+    // get rid of duplicate points.
+    selectedpoints = getRegionUnion( wedge );
+    return selectedpoints;
+  }
+  
+ /**
+  * This method is here to factor out the setting of the selected points.
+  * By doing this, regions can make use of the getRegionUnion() method.
+  *
+  *  @return array of points included within the region.
+  */
+  protected Point[] initializeSelectedPoints()
+  { 
+   /* p[0]   = center pt of circle that arc is taken from
+    * p[1]   = last mouse point/point at intersection of line and arc
+    * p[2]   = reflection of p[1]
+    * p[3]   = top left corner of bounding box around arc's total circle
+    * p[4]   = bottom right corner of bounding box around arc's circle
+    * p[5].x = startangle, the directional vector in degrees
+    * p[5].y = degrees covered by arc.
+    */
+    floatPoint2D center = new floatPoint2D( definingpoints[0] );
+    floatPoint2D p1 = new floatPoint2D( definingpoints[1] );
+    // rp1 is reflection of p1
+    floatPoint2D rp1 = new floatPoint2D( definingpoints[2] );
+    floatPoint2D topleft = new floatPoint2D( definingpoints[3] );
+    floatPoint2D bottomright = new floatPoint2D( definingpoints[4] );
+    
+    float xextent = center.x - topleft.x;
+    float yextent = center.y - topleft.y; 
+    
+    Vector points = new Vector();  // dynamic array of points
+    float startangle = definingpoints[5].x;
+    float totalangle = definingpoints[5].y + startangle;
+    float stopangle = totalangle;
+    int p1quad = 0; 
+    // these adjustments are used when for the LineRegion selection near
+    // the end.
+    float p1xadjust = 0;
+    float p1yadjust = 0;
+    float rp1xadjust = 0;
+    float rp1yadjust = 0; 
+    // using the startangle, find the quadrant of p1
+    if( startangle <= 180 )
+    {
+      if( startangle <= 90 )
+      {
+	p1quad =  1;
+        p1xadjust = -0.5f;
+        p1yadjust = -0.5f;
+      }
+      else
+      {
+	p1quad =  2;
+        p1xadjust = -0.5f;
+        p1yadjust = 0.5f;
+      }
+    }
+    else
+    {
+      if( startangle < 270 )
+      {
+	p1quad =  3;
+        p1xadjust = 0.5f;
+        p1yadjust = 0.5f;
+      }
+      else
+      {
+	p1quad =  4;
+        p1xadjust = 0.5f;
+        p1yadjust = -0.5f;
+      }
+    } 
+    // make sure angle is between 0 and 360  
+    if( totalangle >= 360 )
+      totalangle -= 360f;
+    //System.out.println("Total: " + totalangle );
+    int rp1quad = 0;
+    // using the startangle + arcangle, find quadrant of reflection of p1
+    if( totalangle <= 180 )
+    {
+      if( totalangle <= 90 )
+      {
+	rp1quad =  1;
+        rp1xadjust = 0.5f;
+        rp1yadjust = 0.5f;
+      }
+      else
+      {
+	rp1quad =  2;
+        rp1xadjust = 0.5f;
+        rp1yadjust = -0.5f;
+      }
+    }
+    else
+    {
+      if( totalangle < 270 )
+      {
+	rp1quad =  3;
+        rp1xadjust = -0.5f;
+        rp1yadjust = -0.5f;
+      }
+      else
+      {
+	rp1quad =  4;
+        rp1xadjust = -0.5f;
+        rp1yadjust = 0.5f;
+      }
+    }
+    //System.out.println("p1/rp1 Quad: " + p1quad + "/" + rp1quad );
+    
+    // using formula for ellipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
+    // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
+    int quadnum = 0;
+    // these values are specific to each quadrant, once quadrant is know, set
+    // these values.
+    int ystart = 0;
+    int ystop = 0;
+    int xstart = 0;
+    int xstop = 0;
+    
+    // if rp1quad < p1quad, angle goes from 4th quad to 1st quad. so
+    // adjust rp1quad so it works as a ending bound for the for loop.
+    if( rp1quad < p1quad )
+      rp1quad += 4;
+    // if the two are in the same quad, but the total angle is greater than 90,
+    // the shape must be a pie with a slice removed.
+    else if( rp1quad == p1quad && definingpoints[5].y > 90 )
+      rp1quad += 3;
 
-     //System.out.println("p1quad/rp1quad: " + p1quad + "/" + rp1quad );
-     // Step through each quadrant involved in the selection.
-     for( int quadcount = p1quad; quadcount <= rp1quad; quadcount++ )
-     {
-       // since rp1quad could be > 4, restrict the quadnum to max of 4.
-       if(quadcount > 4 )
-     	 quadnum = quadcount - 4;
-       else
-         quadnum = quadcount;
-       
-       // Depending on which quadrant, set the bounds for the two for loops
-       // below which will step through all the points in that quadrant
-       // and add ones contained in the selection.
-       // Since y values go top to bottom, the ystart and stop are switched
-       // and since quad 2 & 3 x values should go right to left, those xstart
-       // and stop are switched.
-       if( quadnum == 1 )
-       {
-         ystart = center.y;
-         ystop  = topleft.y;
-         xstart = center.x;
-         xstop  = bottomright.x;
-       }
-       else if( quadnum == 2 )
-       {
-         ystart = center.y;
-         ystop  = topleft.y;
-         xstart = topleft.x;
-         xstop  = center.x - 1;
-       }
-       else if( quadnum == 3 )
-       {
-         ystart = bottomright.y;
-         ystop  = center.y + 1;
-         xstart = topleft.x;
-         xstop  = center.x - 1;
-       }
-       else if( quadnum == 4 )
-       {
-         ystart = bottomright.y;
-         ystop  = center.y + 1;
-         xstart = center.x;
-         xstop  = bottomright.x;
-       }
-       //System.out.println("Current quad(c): " + quadnum );
-       double dist = 0;
-       double xdiff = 0;
-       double ydiff = 0;
-       // These two loops will check every point within the given quadrant
-       // and test to see if the point is in the ellipse from which the
-       // arc comes from.
-       for( int y = ystart; y >= ystop; y-- )
-       {
-         for( int x = xstart; x <= xstop; x++ )
-         {
-     	   xdiff = 0;
-           ydiff = 0;
-           // x/y diff represent x-h/y-k respectively
-     	   xdiff = Math.abs( (double)x - center.x );
-     	   ydiff = Math.abs( (double)y - center.y );
-           // Subtracting 1/(xextent*4) is to account for fractional pixels.
-           // This will give a smoother, more accurate selected region.
-     	   dist = Math.pow((xdiff - 1/(xextent*4)),2)/Math.pow(xextent,2) + 
-        	  Math.pow((ydiff - 1/(yextent*4)),2)/Math.pow(yextent,2);
-     	   //System.out.println("(" + x + "," + y + ")..." + dist ); 
-     	   // Using ellipse equation, the distance must be < 1 in order to
-	   // be contained within the ellipse.
-	   if( dist <= 1 )
-     	   {
-	     int pointangle  = -Math.round( (float)Math.toDegrees(Math.atan2( 
-                                                    (double)(y - center.y),
-                                                    (double)(x - center.x))));
-             // put everything from 0-360
-             if( pointangle < 0 )
-               pointangle = 360 + pointangle;
-             
-     	    //System.out.println("Point/Stop: " + pointangle + "/" + stopangle);
-	     // if stopangle >= 360, the angle goes from 4th to 1st quadrant,
-	     // thus start - 360, and 0 - stop becomes the interval.
-	     // Add/Subtract 1 to pointangle to include border points.
-	     if( stopangle >= 360 )
-	     {
-	       if( pointangle >= startangle || 
-	           pointangle <= stopangle - 360 )
-	       {
-        	 points.add( new Point( x, y ) );
-		 // add one to the index as a lower cushion, prevents index=-1
-		 pointchecker[x-topleft.x][y-topleft.y] = true;
-	       }
-	     }
-	     // otherwise the angle must be between the start and stop angle.
-	     // Add/subtract one so pointangle = 0 or 360 not a problem
-	     else
-	     {
-	       if( pointangle >= startangle && pointangle <= stopangle )
-	       {
-        	 points.add( new Point( x, y ) );
-		 // add one to the index as a lower cushion, prevents index=-1
-		 pointchecker[x-topleft.x][y-topleft.y] = true;
-	       }
-	     }
-     	   } // if( dist < 1 )
-     	 } // end for x
-       } // end for y
-     } // for quad
-     
-     //System.out.println("Center: (" + (center.x - topleft.x) + "," +
-     //                   (center.y - topleft.y) + ")");
-     
-     // this code uses line regions to select the points along the bounding
-     // lines of the wedge
-     Point p1temp = new Point( p1.x + p1xadjust, p1.y + p1yadjust );
-     Point[] p1pts = {center,p1temp};
-     LineRegion p1line = new LineRegion( p1pts );
-     p1pts = p1line.getSelectedPoints();
-     int tempx = -1;
-     int tempy = -1;
-     for( int i = 0; i < p1pts.length; i++ )
-     {
-       if( !(p1pts[i].x < topleft.x || p1pts[i].y < topleft.y) &&
-           !(p1pts[i].x > bottomright.x || p1pts[i].y > bottomright.y) )
-       {
-         tempx = p1pts[i].x-topleft.x;
-         tempy = p1pts[i].y-topleft.y;
-	 //System.out.println("(" + tempx + "," + tempy + ") " + 
-	 //                   pointchecker[tempx][tempy] );
-         if( !pointchecker[tempx][tempy] )
-         {
-           points.add( new Point( p1pts[i].x, p1pts[i].y ) );
-           pointchecker[p1pts[i].x-topleft.x][p1pts[i].y-topleft.y] = true;
-         }
-       }
-     }
-     Point rp1temp = new Point( rp1.x + rp1xadjust, rp1.y + rp1yadjust );
-     Point[] rp1pts = {center,rp1temp};
-     LineRegion rp1line = new LineRegion( rp1pts );
-     rp1pts = rp1line.getSelectedPoints();
-     for( int i = 0; i < rp1pts.length; i++ )
-     {
-       if( !(rp1pts[i].x < topleft.x || rp1pts[i].y < topleft.y) &&
-           !(rp1pts[i].x > bottomright.x || rp1pts[i].y > bottomright.y) )
-       {
-         tempx = rp1pts[i].x-topleft.x;
-         tempy = rp1pts[i].y-topleft.y;
-	 //System.out.println("(" + tempx + "," + tempy + ") " + 
-	 //                   pointchecker[tempx][tempy] );
-         if( !pointchecker[tempx][tempy] )
-         {
-           points.add( new Point( rp1pts[i].x, rp1pts[i].y ) );
-           pointchecker[rp1pts[i].x-topleft.x][rp1pts[i].y-topleft.y] = true;
-         }
-       }
-     }
-     
-     // put the vector of points into an array of points
-     selectedpoints = new Point[points.size()];
-     for( int i = 0; i < points.size(); i++ )
-       selectedpoints[i] = (Point)points.elementAt(i);
-     return selectedpoints;     
-   }
+    //System.out.println("p1quad/rp1quad: " + p1quad + "/" + rp1quad );
+    // Step through each quadrant involved in the selection.
+    for( int quadcount = p1quad; quadcount <= rp1quad; quadcount++ )
+    {
+      // since rp1quad could be > 4, restrict the quadnum to max of 4.
+      if( quadcount > 4 )
+	quadnum = quadcount - 4;
+      else
+	quadnum = quadcount;
+      
+      // Depending on which quadrant, set the bounds for the two for loops
+      // below which will step through all the points in that quadrant
+      // and add ones contained in the selection.
+      // Since y values go top to bottom, the ystart and stop are switched
+      // and since quad 2 & 3 x values should go right to left, those xstart
+      // and stop are switched.
+      if( quadnum == 1 )
+      {
+	ystart = Math.round(center.y);
+	ystop  = Math.round(topleft.y);
+	xstart = Math.round(center.x);
+	xstop  = Math.round(bottomright.x);
+      }
+      else if( quadnum == 2 )
+      {
+	ystart = Math.round(center.y);
+	ystop  = Math.round(topleft.y);
+	xstart = Math.round(topleft.x);
+	xstop  = Math.round(center.x - 1);
+      }
+      else if( quadnum == 3 )
+      {
+	ystart = Math.round(bottomright.y);
+	ystop  = Math.round(center.y + 1);
+	xstart = Math.round(topleft.x);
+	xstop  = Math.round(center.x - 1);
+      }
+      else if( quadnum == 4 )
+      {
+	ystart = Math.round(bottomright.y);
+	ystop  = Math.round(center.y + 1);
+	xstart = Math.round(center.x);
+	xstop  = Math.round(bottomright.x);
+      }
+      //System.out.println("Current quad(c): " + quadnum );
+      double dist = 0;
+      float xdiff = 0;
+      float ydiff = 0;
+      // These two loops will check every point within the given quadrant
+      // and test to see if the point is in the ellipse from which the
+      // arc comes from.
+      for( int y = ystart; y >= ystop; y-- )
+      {
+	for( int x = xstart; x <= xstop; x++ )
+	{
+	  xdiff = 0;
+	  ydiff = 0;
+	  // x/y diff represent x-h/y-k respectively
+	  xdiff = Math.abs( (float)x - center.x );
+	  ydiff = Math.abs( (float)y - center.y );
+	  // Subtracting 1/(xextent*4) is to account for fractional pixels.
+	  // This will give a smoother, more accurate selected region.
+	  dist = Math.pow((double)(xdiff - 1/(xextent*4)),2) /
+        	 Math.pow((double)xextent,2) + 
+		   Math.pow((double)(ydiff - 1/(yextent*4)),2) /
+        	   Math.pow((double)yextent,2);
+	  //System.out.println("(" + x + "," + y + ")..." + dist ); 
+	  // Using ellipse equation, the distance must be < 1 in order to
+          // be contained within the ellipse.
+          if( dist <= 1 )
+	  {
+            int pointangle  = -Math.round( (float)Math.toDegrees(Math.atan2( 
+						   (double)(y - center.y),
+						   (double)(x - center.x))));
+	    // put everything from 0-360
+	    if( pointangle < 0 )
+	      pointangle = 360 + pointangle;
+	    
+	   //System.out.println("Point/Stop: " + pointangle + "/" + stopangle);
+            // if stopangle >= 360, the angle goes from 4th to 1st quadrant,
+            // thus start - 360, and 0 - stop becomes the interval.
+            if( stopangle >= 360 )
+            {
+              if( pointangle >= startangle || 
+        	  pointangle <= stopangle - 360f )
+              {
+		points.add( new Point( x, y ) );
+              }
+            }
+            // otherwise the angle must be between the start and stop angle.
+            else
+            {
+              if( pointangle >= startangle && pointangle <= stopangle )
+              {
+		points.add( new Point( x, y ) );
+              }
+            }
+	  } // if( dist < 1 )
+	} // end for x
+      } // end for y
+    } // for quad
+    
+    //System.out.println("Center: (" + (center.x - topleft.x) + "," +
+    //  		 (center.y - topleft.y) + ")");
+    
+    // this code uses line regions to select the points along the bounding
+    // lines of the wedge
+    floatPoint2D p1temp = new floatPoint2D( p1.x + p1xadjust,
+					    p1.y + p1yadjust );
+    floatPoint2D[] p1pts = {center,p1temp};
+    LineRegion p1line = new LineRegion( p1pts );
+    Point[] p1select = p1line.initializeSelectedPoints();
+    for( int i = 0; i < p1select.length; i++ )
+    {
+      // make sure points are within accepted bounds of the region.
+      if( !(p1select[i].x < topleft.x || p1select[i].y < topleft.y) &&
+	  !(p1select[i].x > bottomright.x || p1select[i].y > bottomright.y) )
+      {
+	points.add( new Point( p1select[i] ) );
+      }
+    }
+    floatPoint2D rp1temp = new floatPoint2D( rp1.x + rp1xadjust,
+					    rp1.y + rp1yadjust );
+    floatPoint2D[] rp1pts = {center,rp1temp};
+    LineRegion rp1line = new LineRegion( rp1pts );
+    Point[] rp1select = rp1line.initializeSelectedPoints();
+    for( int i = 0; i < rp1pts.length; i++ )
+    {
+      // make sure points are within accepted bounds of the region.
+      if( !(rp1select[i].x < topleft.x || rp1select[i].y < topleft.y) &&
+	  !(rp1select[i].x > bottomright.x || rp1select[i].y > bottomright.y) )
+      {
+	points.add( new Point( rp1select[i] ) );
+      }
+    }
+    
+    // put the vector of points into an array of points
+    selectedpoints = new Point[points.size()];
+    for( int i = 0; i < points.size(); i++ )
+      selectedpoints[i] = (Point)points.elementAt(i);
+    return selectedpoints;     
+  } 
+   
+ /**
+  * This method returns the rectangle containing the ellipse from which the
+  * wedge is taken from.
+  *
+  *  @return The bounds of the WedgeRegion.
+  */
+  protected CoordBounds getRegionBounds()
+  {
+    return new CoordBounds( definingpoints[3].x,
+                            definingpoints[3].y, 
+                            definingpoints[4].x,
+			    definingpoints[4].y );
+  }
 }

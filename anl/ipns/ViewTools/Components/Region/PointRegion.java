@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/01/07 06:44:53  millermi
+ *  - Added static method getRegionUnion() which removes duplicate
+ *    points from one or more selections.
+ *  - Added protected methods initializeSelectedPoints() and
+ *    getRegionBounds(). Each is needed by getRegionUnion()
+ *    to calculate a unique set of points.
+ *
  *  Revision 1.3  2003/10/29 20:30:11  millermi
  *  - Fixed java docs.
  *
@@ -50,8 +57,10 @@
 package DataSetTools.components.View.Region;
 
 import java.awt.Point;
- 
+
+import DataSetTools.util.floatPoint2D;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
+import DataSetTools.components.image.CoordBounds;
 
 /**
  * This class passes one or more selected points. Most of the functionality
@@ -60,13 +69,65 @@ import DataSetTools.components.View.Cursor.SelectionJPanel;
  */ 
 public class PointRegion extends Region
 {
-  /**
-   * Constructor takes in an array of Points, each defining a point region.
-   *
-   *  @param  dp - defining point regions
-   */ 
-   public PointRegion( Point[] dp )
-   {
-     super(dp);
-   }
+ /**
+  * Constructor takes in an array of Points, each defining a point region.
+  *
+  *  @param  dp - defining point regions
+  */ 
+  public PointRegion( floatPoint2D[] dp )
+  {
+    super(dp);
+  }
+  
+ /**
+  * The PointRegion returns the defining points as an array of Points.
+  *
+  *  @return array of points.
+  */
+  public Point[] getSelectedPoints()
+  { 
+    initializeSelectedPoints();
+    Region[] points = {this};
+    selectedpoints = getRegionUnion( points );
+    return selectedpoints;
+  }
+  
+ /**
+  * This method is here to factor out the setting of the selected points.
+  * By doing this, regions can make use of the getRegionUnion() method.
+  *
+  *  @return array of points included within the region.
+  */
+  protected Point[] initializeSelectedPoints()
+  { 
+    selectedpoints = new Point[definingpoints.length];
+    for( int i = 0; i < definingpoints.length; i++ )
+      selectedpoints[i] = definingpoints[i].toPoint();
+    return selectedpoints;
+  } 
+   
+ /**
+  * This method returns the extent of the Points selected.
+  *
+  *  @return The bounds of the PointRegion.
+  */
+  protected CoordBounds getRegionBounds()
+  {
+    float xmin = definingpoints[0].x;
+    float xmax = definingpoints[0].x;
+    float ymin = definingpoints[0].y;
+    float ymax = definingpoints[0].y;
+    for( int i = 1; i < definingpoints.length; i++ )
+    {
+      if( definingpoints[i].x < xmin )
+        xmin = definingpoints[i].x;
+      if( definingpoints[i].x > xmax )
+        xmax = definingpoints[i].x;
+      if( definingpoints[i].y < ymin )
+        ymin = definingpoints[i].y;
+      if( definingpoints[i].y > ymax )
+        ymax = definingpoints[i].y;
+    }
+    return new CoordBounds( xmin, ymin, xmax, ymax );
+  }
 }

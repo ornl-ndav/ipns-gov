@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/01/07 06:44:53  millermi
+ *  - Added static method getRegionUnion() which removes duplicate
+ *    points from one or more selections.
+ *  - Added protected methods initializeSelectedPoints() and
+ *    getRegionBounds(). Each is needed by getRegionUnion()
+ *    to calculate a unique set of points.
+ *
  *  Revision 1.3  2003/12/20 04:14:24  millermi
  *  - Cosmetic changes, made code more user friendly.
  *
@@ -51,7 +58,8 @@ package DataSetTools.components.View.Region;
 
 import java.awt.Point;
 
-import DataSetTools.util.floatPoint2D; 
+import DataSetTools.util.floatPoint2D;
+import DataSetTools.components.image.CoordBounds; 
 import DataSetTools.components.View.Cursor.SelectionJPanel;
 
 /**
@@ -62,52 +70,75 @@ import DataSetTools.components.View.Cursor.SelectionJPanel;
  */ 
 public class LineRegion extends Region
 {
-  /**
-   * Constructor - provides basic initialization for all subclasses
-   *
-   *  @param  dp - defining points of the line
-   */ 
-   public LineRegion( Point[] dp )
-   {
-     super(dp);
-   }
+ /**
+  * Constructor - provides basic initialization for all subclasses
+  *
+  *  @param  dp - defining points of the line
+  */ 
+  public LineRegion( floatPoint2D[] dp )
+  {
+    super(dp);
+  }
+  
+ /**
+  * Get all of the integer points on the line. This method assumes
+  * that the input points are in (x,y) where (x = col, y = row ) form.
+  *
+  *  @return array of points on the line.
+  */
+  public Point[] getSelectedPoints()
+  {
+    return initializeSelectedPoints();
+  }
+  
+ /**
+  * This method is here to factor out the setting of the selected points.
+  * By doing this, regions can make use of the getRegionUnion() method.
+  *
+  *  @return array of points included within the region.
+  */
+  protected Point[] initializeSelectedPoints()
+  { 
+    floatPoint2D p1 = new floatPoint2D( definingpoints[0] );
+    floatPoint2D p2 = new floatPoint2D( definingpoints[1] );
+    // assume dx > dy
+    float numsegments = Math.abs( p2.x - p1.x );
+    // if dy > dx, use dy
+    if( numsegments < Math.abs( p2.y - p1.y ) )
+    {
+      numsegments = Math.abs( p2.y - p1.y );
+    }
+    // numsegments counts the interval not the points, so their are
+    // numsegments+1 points.
+    
+    selectedpoints = new Point[Math.round(numsegments) + 1];
+    floatPoint2D delta_p = new floatPoint2D();
+    delta_p.x = (p2.x - p1.x)/numsegments;
+    delta_p.y = (p2.y - p1.y)/numsegments;
+    
+    floatPoint2D actual = new floatPoint2D( p1 );
+    selectedpoints[0] = actual.toPoint();
+    for( int i = 1; i < numsegments; i++ )
+    {
+      actual.x += delta_p.x;
+      actual.y += delta_p.y;
+      selectedpoints[i] = actual.toPoint();
+    }
+    selectedpoints[Math.round(numsegments)] = p2.toPoint();
+    
+    return selectedpoints;
+  } 
    
-  /**
-   * Get all of the integer points on the line. This method assumes
-   * that the input points are in (x,y) where (x = col, y = row ) form.
-   *
-   *  @return array of points on the line.
-   */
-   public Point[] getSelectedPoints()
-   { // needs to be changed.
-     Point p1 = new Point( definingpoints[0] );
-     Point p2 = new Point( definingpoints[1] );
-     // assume dx > dy
-     int numsegments = Math.abs( p2.x - p1.x );
-     // if dy > dx, use dy
-     if( numsegments < Math.abs( p2.y - p1.y ) )
-     {
-       numsegments = Math.abs( p2.y - p1.y );
-     }
-     // numsegments counts the interval not the points, so their are
-     // numsegments+1 points.
-     
-     selectedpoints = new Point[numsegments + 1];
-     floatPoint2D delta_p = new floatPoint2D();
-     delta_p.x = (float)(p2.x - p1.x)/(float)(numsegments);
-     delta_p.y = (float)(p2.y - p1.y)/(float)(numsegments);
-     
-     floatPoint2D actual = new floatPoint2D( (float)p1.x, (float)p1.y );
-     selectedpoints[0] = new Point(p1);
-     for( int i = 1; i < numsegments; i++ )
-     {
-       actual.x += delta_p.x;
-       actual.y += delta_p.y;
-       selectedpoints[i] = new Point( (int)Math.round(actual.x),
-                                      (int)Math.round(actual.y) );
-     }
-     selectedpoints[numsegments] = new Point(p2);
-     
-     return selectedpoints;
-   }
+ /**
+  * This method returns the rectangle containing the line.
+  *
+  *  @return The bounds of the LineRegion.
+  */
+  protected CoordBounds getRegionBounds()
+  {
+    return new CoordBounds( definingpoints[0].x,
+                            definingpoints[0].y, 
+                            definingpoints[1].x,
+			    definingpoints[1].y );
+  }
 }

@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/07 06:44:53  millermi
+ *  - Added static method getRegionUnion() which removes duplicate
+ *    points from one or more selections.
+ *  - Added protected methods initializeSelectedPoints() and
+ *    getRegionBounds(). Each is needed by getRegionUnion()
+ *    to calculate a unique set of points.
+ *
  *  Revision 1.4  2003/12/20 07:04:48  millermi
  *  - Fixed copy/paste bug that caused an array out of bounds
  *    exception.
@@ -68,6 +75,7 @@ import java.awt.Point;
 import java.util.Vector;
 
 import DataSetTools.util.floatPoint2D;
+import DataSetTools.components.image.CoordBounds;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
 
 /**
@@ -83,108 +91,130 @@ import DataSetTools.components.View.Cursor.SelectionJPanel;
  */ 
 public class EllipseRegion extends Region
 {
-  /**
-   * Constructor - uses Region's constructor to set the defining points.
-   * The defining points are assumed to be in image values, where
-   * the input points are in (x,y) where (x = col, y = row ) form.
-   *
-   *  @param  dp - defining points of an ellipse or circle.
-   */ 
-   public EllipseRegion( Point[] dp )
-   {
-     super(dp);
-   }
+ /**
+  * Constructor - uses Region's constructor to set the defining points.
+  * The defining points are assumed to be in image values, where
+  * the input points are in (x,y) where (x = col, y = row ) form.
+  *
+  *  @param  dp - defining points of an ellipse or circle.
+  */ 
+  public EllipseRegion( floatPoint2D[] dp )
+  {
+    super(dp);
+    float xextent = definingpoints[2].x - definingpoints[0].x;
+    float yextent = definingpoints[2].y - definingpoints[0].y; 
+    // since a mapping is done with the imagejpanel, the topleft or bottomright
+    // could have been mapped to the side of the image. However, at most
+    // one will be affected, so take the maximum extent of the two.
+    // Correct the defining points if selection made near border of image.
+    // Bottomright to center
+    if( (definingpoints[1].x - definingpoints[2].x) > xextent )
+    {
+      xextent = definingpoints[1].x - definingpoints[2].x; 
+      definingpoints[0].x = definingpoints[2].x - xextent;
+    }
+    else if( (definingpoints[1].x - definingpoints[2].x) < xextent )
+    {
+      definingpoints[1].x = definingpoints[2].x + xextent;
+    }
+    // topleft to center
+    if( (definingpoints[1].y - definingpoints[2].y) > yextent )
+    {
+      yextent = definingpoints[1].y - definingpoints[2].y;
+      definingpoints[0].y = definingpoints[2].y - yextent;
+    }
+    else if( (definingpoints[1].y - definingpoints[2].y) < yextent )
+    {
+      definingpoints[1].y = definingpoints[2].y + yextent;
+    }
+  }
+  
+ /**
+  * Get all of the points inside the elliptical region. 
+  *
+  *  @return array of points included within the elliptical region.
+  */
+  public Point[] getSelectedPoints()
+  {
+    return initializeSelectedPoints();
+  }
+  
+ /**
+  * This method is here to factor out the setting of the selected points.
+  * By doing this, regions can make use of the getRegionUnion() method.
+  *
+  *  @return array of points included within the region.
+  */
+  protected Point[] initializeSelectedPoints()
+  { 
+    floatPoint2D topleft = new floatPoint2D( definingpoints[0] );
+    floatPoint2D bottomright = new floatPoint2D( definingpoints[1] );
+    floatPoint2D center = new floatPoint2D( definingpoints[2] );
+    float xextent = center.x - topleft.x;
+    float yextent = center.y - topleft.y; 
+    Vector points = new Vector();  // dynamic array of points
+    
+    // if only one pixel is selected by the circle, for low resolution.
+    if( xextent == 0 && yextent == 0 )
+      points.add( center.toPoint() );
+    // if one pixel in x, and more than one in y is selected
+    else if( xextent == 0 )
+    {
+      for( int y = Math.round(topleft.y); y <= bottomright.y; y++ ) 
+	points.add( new Point( Math.round(topleft.x), y ) );
+    }
+    // if one pixel in y, and more than one in x is selected
+    else if( yextent == 0 )
+    {
+      for( int x = Math.round(topleft.x); x <= bottomright.x; x++ ) 
+	points.add( new Point( x, Math.round(topleft.y) ) );
+      
+    }
+    // large region, more than one pixel in both x and y
+    else
+    {
+      double dist = 0;
+      float xdiff = 0;
+      float ydiff = 0;
+      // using formula for ellipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
+      // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
+      for( int y = Math.round(topleft.y); y <= bottomright.y; y++ )
+      {
+	for( int x = Math.round(topleft.x); x <= bottomright.x; x++ )
+	{
+	  xdiff = 0;
+          ydiff = 0;
+          // x/y diff represent x-h/y-k respectively
+	  xdiff = Math.abs( (float)x - center.x );
+	  ydiff = Math.abs( (float)y - center.y );
+          // Subtracting 1/(xextent*4) is to account for fractional pixels.
+          // This will give a smoother, more accurate selected region.
+	  dist = Math.pow((double)(xdiff - 1/(xextent*4)),2) / 
+        	 Math.pow((double)xextent,2) + 
+        	   Math.pow((double)(ydiff - 1/(yextent*4)),2) /
+        	   Math.pow((double)yextent,2);
+          //System.out.println("(" + x + "," + y + ")..." + dist ); 
+          if( dist <= 1 )
+            points.add( new Point( x, y ) ); 
+	} 
+      }
+    }
+    selectedpoints = new Point[points.size()];
+    for( int i = 0; i < points.size(); i++ )
+	selectedpoints[i] = (Point)points.elementAt(i);
+    return selectedpoints;
+  } 
    
-  /**
-   * Get all of the points inside the elliptical region. 
-   *
-   *  @return array of points included within the elliptical region.
-   */
-   public Point[] getSelectedPoints()
-   { // needs to be changed.
-     Point topleft = new Point( definingpoints[0] );
-     Point bottomright = new Point( definingpoints[1] );
-     Point pcenter = new Point( definingpoints[2] );
-     double xextent = (double)(pcenter.x - topleft.x);
-     double yextent = (double)(pcenter.y - topleft.y); 
-     // since a mapping is done with the imagejpanel, the topleft or bottomright
-     // could have been mapped to the side of the image. However, at most
-     // one will be affected, so take the maximum extent of the two.
-     // Correct the defining points if selection made near border of image.
-     if( (bottomright.x - pcenter.x)-1 > xextent )
-     {
-       xextent = bottomright.x - pcenter.x; 
-       topleft.x = (int)(pcenter.x - xextent); 
-       definingpoints[0].x = topleft.x;
-     }
-     else
-     {
-       bottomright.x = (int)(pcenter.x + xextent);
-       definingpoints[1].x = bottomright.x;
-     }
-     if( (bottomright.y - pcenter.y)-1 > yextent )
-     {
-       yextent = bottomright.y - pcenter.y;
-       topleft.y = (int)(pcenter.y - yextent);
-       definingpoints[0].y = topleft.y;
-     }
-     else
-     {
-       bottomright.y = (int)(pcenter.y + yextent);
-       definingpoints[1].y = bottomright.y;
-     }
-     
-     floatPoint2D center = new floatPoint2D( (float)(topleft.x + xextent),
-                               (float)(topleft.y + yextent) );
-     
-     Vector points = new Vector();
-     
-     // if only one pixel is selected by the circle, for low resolution.
-     if( xextent == 0 && yextent == 0 )
-       points.add( new Point( (int)(center.x + .5), (int)(center.y + .5) ) );
-     // if one pixel in x, and more than one in y is selected
-     else if( xextent == 0 )
-     {
-       for( int y = topleft.y; y <= bottomright.y; y++ ) 
-         points.add( new Point( topleft.x, y ) );
-     }
-     // if one pixel in y, and more than one in x is selected
-     else if( yextent == 0 )
-     {
-       for( int x = topleft.x; x <= bottomright.x; x++ ) 
-         points.add( new Point( x, topleft.y ) );
-       
-     }
-     // large region, more than one pixel in both x and y
-     else
-     {
-       double dist = 0;
-       double xdiff = 0;
-       double ydiff = 0;
-       // using formula for ellipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
-       // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
-       for( int y = topleft.y; y <= bottomright.y; y++ )
-       {
-         for( int x = topleft.x; x <= bottomright.x; x++ )
-         {
-           xdiff = 0;
-	   ydiff = 0;
-	   // x/y diff represent x-h/y-k respectively
-           xdiff = Math.abs( (double)x - center.x );
-           ydiff = Math.abs( (double)y - center.y );
-	   // Subtracting 1/(xextent*4) is to account for fractional pixels.
-	   // This will give a smoother, more accurate selected region.
-           dist = Math.pow((xdiff - 1/(xextent*4)),2)/Math.pow(xextent,2) + 
-	          Math.pow((ydiff - 1/(yextent*4)),2)/Math.pow(yextent,2);
-	   //System.out.println("(" + x + "," + y + ")..." + dist ); 
-	   if( dist <= 1 )
-	     points.add( new Point( x, y ) ); 
-         } 
-       }
-     }
-     selectedpoints = new Point[points.size()];
-     for( int i = 0; i < points.size(); i++ )
-         selectedpoints[i] = (Point)points.elementAt(i);
-     return selectedpoints;
-   }
+ /**
+  * This method returns the rectangle containing the ellipse.
+  *
+  *  @return The bounds of the EllipseRegion.
+  */
+  protected CoordBounds getRegionBounds()
+  {
+    return new CoordBounds( definingpoints[0].x,
+                            definingpoints[0].y, 
+                            definingpoints[1].x,
+			    definingpoints[1].y );
+  }
 }
