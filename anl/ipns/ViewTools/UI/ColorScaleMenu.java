@@ -28,18 +28,21 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2004/03/12 02:01:13  serumb
+ * Changed package and imports.
+ *
  * Revision 1.2  2002/11/27 23:13:34  pfpeterson
  * standardized header
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.components.image.*;
+import gov.anl.ipns.ViewTools.Panels.Image.*;
 
 /**
  *  This class represents a JMenu listing available "named" pseudo color
