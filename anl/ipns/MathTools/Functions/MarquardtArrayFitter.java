@@ -35,6 +35,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/06/19 20:51:32  dennis
+ *  Pulled evaluation of f(x) out one level to make it
+ *  more efficient for functions where evaluating f(x) is
+ *  "expensive".
+ *
  *  Revision 1.4  2003/01/30 21:03:50  pfpeterson
  *  Works with new method names in DataSetTools.math.LinearAlgebra.
  *
@@ -193,12 +198,14 @@ public class MarquardtArrayFitter extends CurveFitter
           A[k][j] = 0;
       }       
 
+      double w_diff_i;
       for ( int i = 0; i < n_points; i++ )            // sum over points x[i]
       {
         derivs = f.get_dFda( x[i] );
+        w_diff_i = weights[i] * ( y[i] - f.getValue(x[i]) );
         for ( int k = 0; k < n_params; k++ )          // for each row k
         {
-          beta[k] += weights[i] * ( y[i] - f.getValue(x[i]) ) * derivs[k];
+          beta[k] += w_diff_i * derivs[k];
           for ( int j = 0; j < n_params; j++ )
             A[k][j] += weights[i] * derivs[k] * derivs[j]; 
         }
@@ -309,7 +316,7 @@ public class MarquardtArrayFitter extends CurveFitter
                          " +- " + p_sigmas_2[i] );
     System.out.println("Chi Sq = " + fitter.getChiSqr() );
 
-    String file_name = "/home/dennis/ARGONNE_DATA/hrcs2447.run";
+    String file_name = "/usr/local/ARGONNE_DATA/hrcs2447.run";
     RunfileRetriever rr = new RunfileRetriever(file_name); 
     DataSet monitor_ds = rr.getDataSet( 0 );
     ViewManager view_manager = new ViewManager(monitor_ds, IViewManager.IMAGE);
