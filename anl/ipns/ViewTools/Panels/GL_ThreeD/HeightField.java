@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/15 16:48:23  dennis
+ * Now uses 1-D texture map based on z value.
+ *
  * Revision 1.1  2004/05/28 20:51:13  dennis
  * Initial (test) version of classes for displaying and picking
  * 3D objects using OpenGL from Java, built on the "jogl" system.
@@ -63,23 +66,36 @@ public class HeightField extends GeometryDisplayListObject
   private float width = -1,
                 depth = -1;
 
-  private float z[][] = null;
+  private float z[][]     = null;
+  private float range_min = 0;
+  private float range_max = 1;
 
 
   public HeightField()
   {
     float heights[][] = { {1, 2}, {3, 4} };    // default values
-    setHeights( heights, 2, 2 );
+    setHeights( heights, 2, 2, 1, 4 );
   }
 
 
-  public HeightField( float heights[][], float x_size, float y_size )
+  /**
+   *  
+   */
+  public HeightField( float heights[][],
+                      float x_size, 
+                      float y_size,
+                      float range_min,
+                      float range_max )
   {
-    setHeights( heights, x_size, y_size );
+    setHeights( heights, x_size, y_size, range_min, range_max );
   }
 
 
-  public boolean setHeights( float heights[][], float x_size, float y_size )
+  public boolean setHeights( float heights[][], 
+                             float x_size, 
+                             float y_size,
+                             float range_min, 
+                             float range_max )
   {
      if ( x_size <= 0 || y_size <= 0 )
      {
@@ -102,6 +118,12 @@ public class HeightField extends GeometryDisplayListObject
      {
        z[row] = new float[ heights[0].length ];
        System.arraycopy( heights[row], 0, z[row], 0, z[row].length );
+     }
+
+     if ( range_max > range_min )
+     {
+       this.range_min = range_min;
+       this.range_max = range_max;
      }
 
      rebuild_list = true;
@@ -130,52 +152,46 @@ public class HeightField extends GeometryDisplayListObject
   {
      GL gl = drawable.getGL();
 
-     boolean make_tex_coords;
-     if ( isTextured() && TextureDimension() == 2  )
-       make_tex_coords = true;
-     else
-       make_tex_coords = false;
-
      float x,
            y;
-     float s,
-           s1,
-           t;
      float x_min = -depth/2;
      float y_min = -width/2;
      float dx    = depth/(z.length - 1); 
      float dy    = width/(z[0].length - 1);
  
-     Vector3D edge1  = new Vector3D(); 
-     Vector3D edge2  = new Vector3D(); 
-     Vector3D product = new Vector3D(); 
      float    n[];
+     float    h;
+     float    tex_coord;
 
      for ( int row = 0; row < z.length - 1; row++ )
      {
        x = x_min + row * dx;
-       s  = (x    - x_min)/depth;
-       s1 = (x+dx - x_min)/depth;
 
        gl.glBegin( GL.GL_TRIANGLE_STRIP );
+//       gl.glBegin( GL.GL_QUAD_STRIP );
        for ( int col = 0; col < z[0].length; col++ )
        {
          y = y_min + col * dy;
-         t = (y - y_min)/width;
  
          n = ave_normal( row, col, x, y, dx, dy );
-
-         if ( make_tex_coords )
-           gl.glTexCoord2f( s, t );
+         h = z[row][col];
+         tex_coord = (h - range_min)/(range_max - range_min);
+         gl.glTexCoord1f( tex_coord );
          gl.glNormal3f( n[0], n[1], n[2] );
-         gl.glVertex3f( x,    y, z[row  ][col] );
+         gl.glVertex3f( x, y, h );
+         if ( row == col )
+           System.out.println("row, col, n = " + row + ", " + col + ", " + 
+                               n[0] + ", " + n[1] + ", " + n[2] );
 
          n = ave_normal( row+1, col, x+dx, y, dx, dy );
-
-         if ( make_tex_coords )
-           gl.glTexCoord2f( s1, t );
+         h = z[row+1][col];
+         tex_coord = (h - range_min)/(range_max - range_min);
+         gl.glTexCoord1f( tex_coord );
          gl.glNormal3f( n[0], n[1], n[2] ); 
-         gl.glVertex3f( x+dx, y, z[row+1][col] );
+         gl.glVertex3f( x+dx, y, h );
+         if ( row == col )
+           System.out.println("row, col, n = " + row + ", " + col + ", " + 
+                               n[0] + ", " + n[1] + ", " + n[2] );
        }
        gl.glEnd();
      }
@@ -183,15 +199,15 @@ public class HeightField extends GeometryDisplayListObject
 
 
   private float[] ave_normal( int   row, int   col, 
-                               float x,   float y, 
-                               float dx,  float dy )
+                              float x,   float y, 
+                              float dx,  float dy )
   {
     if ( row == 0 || row == z.length-1 ||
          col == 0 || col == z[0].length-1 )
       return (new Vector3D( 0,0,1 )).get();
 
     Vector3D v10 = new Vector3D( x, y - dy, z[row][col-1] );
-    Vector3D v11 = new Vector3D( x, x,      z[row][col] );
+    Vector3D v11 = new Vector3D( x, y,      z[row][col] );
     Vector3D v12 = new Vector3D( x, y + dy, z[row][col+1] );
     Vector3D v01 = new Vector3D( x - dx, y, z[row-1][col] );
     Vector3D v21 = new Vector3D( x + dx, y, z[row+1][col] );
