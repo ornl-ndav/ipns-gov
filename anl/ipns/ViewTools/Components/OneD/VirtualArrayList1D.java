@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/04/20 05:03:11  millermi
+ *  - Added init() method to group functionality of constructors.
+ *  - Added constructor that takes in one DataArray1D object.
+ *
  *  Revision 1.1  2004/04/16 20:23:02  millermi
  *  - Initial Version - Implementation of IVirtualArrayList1D. This
  *    class is used by the FunctionViewComponent.
@@ -58,11 +62,32 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
   private String vtitle;
   
  /**
-  * Constructor
+  * Constructor - for one graph
+  *
+  *  @param  graph_data A DataArray1D object containing graph information.
+  */ 
+  public VirtualArrayList1D( DataArray1D graph_data )
+  {
+    Vector temp = new Vector();
+    temp.add(graph_data);
+    init(temp);
+  }
+  
+ /**
+  * Constructor - for multiple graphs
   *
   *  @param  graph_data A Vector of DataArray1D objects.
   */ 
   public VirtualArrayList1D( Vector graph_data )
+  {
+    init(graph_data);
+  }
+  
+ /*
+  * This method is used by the contructors to initialize an instance of this
+  * class.
+  */
+  private void init( Vector graph_data )
   {
     xinfo = new AxisInfo();
     yinfo = new AxisInfo();
