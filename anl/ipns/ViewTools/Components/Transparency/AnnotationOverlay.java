@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.35  2005/01/20 23:05:51  millermi
+ *  - Added super.paint(g) to paint method.
+ *
  *  Revision 1.34  2004/05/18 19:38:47  millermi
  *  - Added opacity slider to editor.
  *  - Editor layout now uses BoxLayout, this allows users to stretch
@@ -640,6 +643,7 @@ public class AnnotationOverlay extends OverlayJPanel
   */
   public void paint(Graphics g) 
   {  
+    super.paint(g);
     Graphics2D g2d = (Graphics2D)g;
     g2d.setFont( font );
     // Change the opaqueness of the annotations.

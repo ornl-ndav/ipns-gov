@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/01/20 23:05:52  millermi
+ *  - Added super.paint(g) to paint method.
+ *
  *  Revision 1.7  2005/01/10 16:14:45  dennis
  *  Removed unused imports.
  *
@@ -223,7 +226,7 @@ public class LegendOverlay extends OverlayJPanel
   */
   public static void help()
   {
-    helper = new JFrame("Help for Annotation Overlay");
+    helper = new JFrame("Help for Legend Overlay");
     helper.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
     helper.setBounds(0,0,600,400);
 
@@ -310,6 +313,7 @@ public class LegendOverlay extends OverlayJPanel
   */
   public void paint(Graphics g)
   {
+    super.paint(g);
     Graphics2D g2d = (Graphics2D)g;
     f.deriveFont(0.1f);
     g2d.setFont(f);
@@ -318,7 +322,6 @@ public class LegendOverlay extends OverlayJPanel
     updateTransform();
     
     drawLegend(g2d);
-
    }  
 
 

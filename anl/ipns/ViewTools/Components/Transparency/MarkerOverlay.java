@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/01/20 23:05:52  millermi
+ *  - Added super.paint(g) to paint method.
+ *
  *  Revision 1.8  2004/09/15 21:55:47  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -382,6 +385,7 @@ public class MarkerOverlay extends OverlayJPanel
   */
   public void paint(Graphics g) 
   {  
+    super.paint(g);
     Graphics2D g2d = (Graphics2D)g;
     
     current_bounds = component.getRegionInfo(); // current size of center 

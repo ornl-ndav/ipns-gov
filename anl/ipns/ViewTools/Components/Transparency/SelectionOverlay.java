@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.39  2005/01/20 23:05:52  millermi
+ *  - Added super.paint(g) to paint method.
+ *
  *  Revision 1.38  2004/05/18 19:40:17  millermi
  *  - Changed layout of editor to BoxLayout.
  *  - Make use of set...() methods to set private variables.
@@ -344,6 +347,7 @@ public class SelectionOverlay extends OverlayJPanel
     super();
     this.setLayout( new GridLayout(1,1) );
     sjp = new SelectionJPanel();
+    sjp.setOpaque(false);
     sjpbuttons = sjp.getControls();
     editor = new SelectionEditor();
     addComponentListener( new NotVisibleListener() );
@@ -699,6 +703,7 @@ public class SelectionOverlay extends OverlayJPanel
   */
   public void paint(Graphics g) 
   { 
+    super.paint(g);
     Graphics2D g2d = (Graphics2D)g; 
     // Change the opaqueness of the selections.
     AlphaComposite ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER,

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/01/20 23:05:51  millermi
+ *  - Added super.paint(g) to paint method.
+ *
  *  Revision 1.14  2004/12/05 05:41:33  millermi
  *  - Fixed Eclipse warnings.
  *
@@ -148,6 +151,7 @@ public class TranslationOverlay extends OverlayJPanel
     super();
     this.setLayout( new GridLayout(1,1) );
     tjp = new TranslationJPanel();
+    tjp.setOpaque(false);
     setLocalBounds( new CoordBounds(0,0,1,1) );
     setGlobalBounds( new CoordBounds(0,0,1,1) );
     tjp.addActionListener( new TranslateListener() );
@@ -223,6 +227,7 @@ public class TranslationOverlay extends OverlayJPanel
   */ 
   public void paint(Graphics g)
   {
+    super.paint(g);
     g.drawRect( (int)viewport.getX1(), (int)viewport.getY1(),
                 (int)viewport.getX2() - (int)viewport.getX1(),
 		(int)viewport.getY2() - (int)viewport.getY1() );
