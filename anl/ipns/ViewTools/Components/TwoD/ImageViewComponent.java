@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.58  2004/02/27 23:57:02  millermi
+ *  - Replaced variable MAXDATASIZE with getNumRows() or
+ *    getNumColumns() so future problems are not encountered
+ *    if the array is larger than MAXDATASIZE.
+ *  - BUG FIX: Fixed bug found by Dennis where image was not
+ *    being updated properly. Now the new local and global
+ *    bounds are set in the PanViewControl in dataChanged().
+ *  - For dataChanged(new_array), if new_array is not an instanceof
+ *    VirtualArray2D, a new array is now created. Previously, the
+ *    existing VirtualArray2D instance was used.
+ *
  *  Revision 1.57  2004/02/19 23:24:54  millermi
  *  - Added preserveAspectRatio() to ImageViewComponent,
  *    the image dimensions are now similar to that of the selected
@@ -466,8 +477,6 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public static final String PRESERVE_ASPECT_RATIO   = "Preserve Aspect Ratio";
   
-  // this variable controls the max size of the virtual array to be analyzed.
-  private static final int MAXDATASIZE = 1000000000;
   //An object containing our array of data
   private transient IVirtualArray2D Varray2D;  
   private transient Vector Listeners = null;   
@@ -493,6 +502,7 @@ public class ImageViewComponent implements IViewComponent2D,
   private int east_width = 0;    // west components of the background panel to
   private int west_width = 0;    // be used for setting aspect ratio of image.
   private boolean preserve_ratio = false;  // if true, preserve aspect ratio
+ 
  /**
   * Constructor that takes in a virtual array and creates an imagejpanel
   * to be viewed in a border layout.
@@ -506,7 +516,8 @@ public class ImageViewComponent implements IViewComponent2D,
     font = FontUtil.LABEL_FONT2;
     ijp = new ImageJPanel();
     //Make ijp correspond to the data in f_array
-    ijp.setData(varr.getRegionValues(0, MAXDATASIZE, 0, MAXDATASIZE), true); 
+    ijp.setData(varr.getRegionValues(0, varr.getNumRows()-1,
+                                     0, varr.getNumColumns()-1), true); 
     ImageListener ijp_listener = new ImageListener();
     ijp.addActionListener( ijp_listener );
 		
@@ -1048,13 +1059,15 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void dataChanged()  
   {
-    float[][] f_array = Varray2D.getRegionValues( 0, MAXDATASIZE, 
-        					  0, MAXDATASIZE );
+    float[][] f_array = Varray2D.getRegionValues( 0, Varray2D.getNumRows()-1, 
+        				        0, Varray2D.getNumColumns()-1 );
     ijp.setData(f_array, true);
     
     local_bounds = ijp.getLocalWorldCoords().MakeCopy();
     global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
-
+    // this is required since the PanViewControl holds its own bounds.
+    ((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
+    ((PanViewControl)controls[5]).setLocalBounds(local_bounds);
     ((PanViewControl)controls[5]).repaint();
     paintComponents( big_picture.getGraphics() );
   }
@@ -1067,18 +1080,20 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public void dataChanged( IVirtualArray2D pin_Varray ) // pin == "passed in"
   {
-    //get the complete 2D array of floats from pin_Varray
-    float[][] f_array = pin_Varray.getRegionValues( 0, MAXDATASIZE, 
-        					    0, MAXDATASIZE );
     // compare references, if not the same, reinitialize the virtual array.
     if( pin_Varray != Varray2D )
     {
-      // let Varray2D reference pin_Varray
+      // let Varray2D reference pin_Varray if it is a VirtualArray2D
       if( pin_Varray instanceof VirtualArray2D )
         Varray2D = pin_Varray;
+      // otherwise convert the IVirtualArray2D object to a VirtualArray2D
       else
       {
-        Varray2D.setRegionValues(f_array,0,0);
+        //get the complete 2D array of floats from pin_Varray
+        float[][] f_array = pin_Varray.getRegionValues( 0,
+	                        pin_Varray.getNumRows()-1, 0,
+				pin_Varray.getNumColumns()-1 );
+        Varray2D = new VirtualArray2D(f_array);
         Varray2D.setAxisInfo( AxisInfo.X_AXIS,
     			      pin_Varray.getAxisInfo( AxisInfo.X_AXIS ) );
         Varray2D.setAxisInfo( AxisInfo.Y_AXIS,
