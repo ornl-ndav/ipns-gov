@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.34  2004/05/18 19:38:47  millermi
+ *  - Added opacity slider to editor.
+ *  - Editor layout now uses BoxLayout, this allows users to stretch
+ *    the controls into a horizontal allignment if desired.
+ *
  *  Revision 1.33  2004/05/18 03:03:22  millermi
  *  - Added ability to change opacity on annotations.
  *  - "Show Line" checkbox now set to the value of show_anchor_line.
@@ -263,6 +268,14 @@ public class AnnotationOverlay extends OverlayJPanel
   * this key references is of type Font.
   */
   public static final String DEFAULT_FONT = "Default Font";
+  
+ /**
+  * "Opacity" - This constant String is a key for referencing the
+  * state information about the invisibility of the selection outline.
+  * The value that this key references is a primative float on the range
+  * [0,1], with 0 = transparent, 1 = opaque.
+  */
+  public static final String OPACITY	      = "Opacity";
     
  /**
   * "Editor Bounds" - This constant String is a key for referencing the state
@@ -283,13 +296,14 @@ public class AnnotationOverlay extends OverlayJPanel
   private Color line_color;		 // annotation arrow color
   private Color text_color;		 // annotation text color
   private transient AnnotationEditor editor;
-  private Rectangle editor_bounds = new Rectangle(0,0,430,265 ); 
+  private Rectangle editor_bounds = new Rectangle(0,0,430,320 ); 
   private float opacity = 1.0f; 	 // value [0,1] where 0 is clear, 
 					 // and 1 is solid.
   private Font font;
   private Font default_font;
   private transient CoordTransform pixel_local;
   private boolean show_anchor_line = true;
+  private int selected_index = -1;
   
  /**
   * Constructor creates OverlayJPanel with a transparent AnnotationJPanel that
@@ -308,10 +322,10 @@ public class AnnotationOverlay extends OverlayJPanel
     component = izta;
     notes = new Vector();      
     this_panel = this;
-    line_color = Color.black;
-    text_color = Color.black;
+    setLineColor( Color.black );
+    setTextColor( Color.black );
     editor = new AnnotationEditor();
-    font = izta.getFont();
+    setFont( izta.getFont() );
     default_font = izta.getFont();
     this.add(overlay); 
     overlay.setOpaque(false); 
@@ -411,21 +425,21 @@ public class AnnotationOverlay extends OverlayJPanel
      temp = new_state.get(LINE_COLOR);
      if( temp != null )
      {
-       line_color = (Color)temp;
+       setLineColor( (Color)temp );
        redraw = true;  
      } 
      
      temp = new_state.get(TEXT_COLOR);
      if( temp != null )
      {
-       text_color = (Color)temp;
+       setTextColor( (Color)temp );
        redraw = true;  
      }   
      
      temp = new_state.get(FONT);
      if( temp != null )
      {
-       font = ((Font)temp); 
+       setFont( ((Font)temp) ); 
        redraw = true;  
      }  
      
@@ -434,7 +448,14 @@ public class AnnotationOverlay extends OverlayJPanel
      {
        default_font = ((Font)temp); 
        redraw = true;  
-     }  
+     }
+    
+     temp = new_state.get(OPACITY);
+     if( temp != null )
+     {
+       setOpacity( ((Float)temp).floatValue() );
+       redraw = true;  
+     }
      
      temp = new_state.get(EDITOR_BOUNDS);
      if( temp != null )
@@ -463,6 +484,7 @@ public class AnnotationOverlay extends OverlayJPanel
      state.insert( TEXT_COLOR, text_color );
      state.insert( FONT, font );
      state.insert( DEFAULT_FONT, default_font );
+     state.insert( OPACITY, new Float(opacity) );
      state.insert( EDITOR_BOUNDS, editor_bounds );
     
      // load these for project specific instances.
@@ -552,7 +574,7 @@ public class AnnotationOverlay extends OverlayJPanel
     floatPoint2D p22d = convertToWorldPoint( placement.getP2() );
     notes.add( new Note( a_note, placement, p12d, p22d ) );
     // Update the combobox containing the list of notes.
-    editor.updateNoteList();
+    editor.updateNoteList(true);
     repaint();
   }
   
@@ -567,7 +589,7 @@ public class AnnotationOverlay extends OverlayJPanel
     {
       notes.remove(index);
       // Update the combobox containing the list of notes.
-      editor.updateNoteList();
+      editor.updateNoteList(false);
     }
     repaint();
   }
@@ -579,7 +601,7 @@ public class AnnotationOverlay extends OverlayJPanel
   {
     notes.clear();
     // Update the combobox containing the list of notes.
-    editor.updateNoteList();
+    editor.updateNoteList(false);
     repaint();
   }
  
@@ -791,7 +813,7 @@ public class AnnotationOverlay extends OverlayJPanel
  	if( notes.size() > 0 )
  	{
  	  notes.clear(); 
- 	  editor.updateNoteList();
+ 	  editor.updateNoteList(false);
  	}	  
       }
       // remove the last note from the vector
@@ -800,7 +822,7 @@ public class AnnotationOverlay extends OverlayJPanel
  	if( notes.size() > 0 )
  	{
  	  notes.removeElementAt(notes.size() - 1);
- 	  editor.updateNoteList();
+ 	  editor.updateNoteList(false);
  	}	  
       }       
       else if( message.equals( AnnotationJPanel.NOTE_REQUESTED ) )
@@ -895,6 +917,7 @@ public class AnnotationOverlay extends OverlayJPanel
     private int current_fontsize;
     private Font[] fonts;
     private JPanel north_component;
+    private JPanel pane;
    
    /*
     * constructs a new annotation editor.
@@ -904,47 +927,38 @@ public class AnnotationOverlay extends OverlayJPanel
       super("Annotation Editor");
       this_viewer = this;
       current_fontsize = font.getSize();
-      
+      pane = new JPanel();
+      new BoxLayout( pane, BoxLayout.Y_AXIS );
       this.setBounds( editor_bounds );
       this.addComponentListener( new EditorListener() );
       this.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-      this.getContentPane().setLayout( new BorderLayout() );
       buildFirstComponent();
-      this.getContentPane().add(north_component, BorderLayout.NORTH );
       
-      /* 
-       * This is the old color selection method, it included
-       * options to set line and annotation color independently.
-       * This option is no longer available, unless a radio button
-       * or multiple checkboxes were added to give users options.
-      ColorScaleImage notecolor = 
-            new ColorScaleImage(ColorScaleImage.HORIZONTAL_DUAL);
-      notecolor.setNamedColorModel( IndexColorMaker.MULTI_SCALE,true,false );
-      notecolor.setEventListening(false);
-      notecolor.addMouseListener( new NoteColorListener() );
-      notecolor.setToolTipText("Shift+Click=Text Color Only, " +
-        		       "Ctrl+Click=Line Color Only");
-      this.getContentPane().add( notecolor );
-      */
+      pane.add( north_component );
       
       // Add a color selector to allow users to change the color of 
       // the annotation.
       ColorSelector colorchooser = new ColorSelector(ColorSelector.SWATCH);
       colorchooser.addActionListener( new AppearanceChangeListener() );
-      this.getContentPane().add(colorchooser, BorderLayout.CENTER);
       
-      // Slider that returns values on interval [0,1] in steps of 100.
-      ControlSlider opaque_slider = new ControlSlider(0,1f,100);
-      opaque_slider.setTitle("Change Opacity");
-      opaque_slider.setValue(opacity);
-      opaque_slider.addActionListener( new AppearanceChangeListener() );
+      pane.add( colorchooser );
+      
       JCheckBox draw_anchor = new JCheckBox("Draw Anchor Line");
       draw_anchor.setSelected(show_anchor_line);
       draw_anchor.addActionListener( new ButtonListener() );
+      // Slider that returns values on interval [0,1] in steps of 100.
+      ControlSlider opaque_slider = new ControlSlider(0,1f,100);
+      opaque_slider.setTitle("Change Opacity");
+      opaque_slider.setMajorTickSpace(.2f);
+      opaque_slider.setMinorTickSpace(.05f);
+      opaque_slider.setValue(opacity);
+      opaque_slider.addActionListener( new AppearanceChangeListener() );
       // For layout reasons, put both of them into this JPanel.
-      JPanel slider_and_checkbox = new JPanel( new GridLayout(1,2) );
-      slider_and_checkbox.add(opaque_slider);
-      slider_and_checkbox.add(draw_anchor);
+      JPanel checkbox_and_slider = new JPanel( new GridLayout(1,2) );
+      checkbox_and_slider.add(draw_anchor);
+      checkbox_and_slider.add(opaque_slider);
+      
+      pane.add( checkbox_and_slider );
       
       JButton help = new JButton("Help");
       help.addActionListener( new ButtonListener() );
@@ -955,12 +969,9 @@ public class AnnotationOverlay extends OverlayJPanel
       close_and_help.add(closebutton);
       close_and_help.add(help);
       
+      pane.add( close_and_help );
       
-      // To correct layout issues, put first two rows into one component.
-      JPanel comp4 = new JPanel(new GridLayout(2,1));
-      comp4.add(slider_and_checkbox);
-      comp4.add(close_and_help);
-      this.getContentPane().add(comp4, BorderLayout.SOUTH);
+      this.getContentPane().add(pane);
       
       // These commands will create key events for moving the annotation
       //*********************************************************************
@@ -1007,25 +1018,35 @@ public class AnnotationOverlay extends OverlayJPanel
 
    /* *******************************updateNoteList****************************
     * This method will update the combo box containing the list of notes.
+    * If an item was added, pass in true, if an item was removed or changed,
+    * pass in false.
     */ 
-    protected void updateNoteList()
+    protected void updateNoteList( boolean item_added )
     {
-      int selected_index = 0;
-      // Store the selected index so that the new combo box can be set with
-      // that index.
-      if( note_list != null )
+      // This code is only here to update the list in the combobox.
+      Object temp = new Object();
+      note_list.addItem(temp);
+      note_list.removeItem(temp);
+      // *********************************************************
+      
+      // If item was added, set the combobox to the new item index.
+      if( item_added )
+        selected_index = note_list.getItemCount() - 1;
+      // Item was removed or changed.
+      else
       {
-        selected_index = note_list.getSelectedIndex();
-        this.getContentPane().remove(north_component);
-	// When first note is added, selected_index is kept at -1, need to
-	// set it to 0.
-	if( notes.size() > 0 && selected_index < 0 )
-	  selected_index = 0;
+        // Make sure index is not larger than vector size.
+        if( selected_index >= notes.size() )
+          selected_index = notes.size() - 1;
       }
-      buildFirstComponent();
       note_list.setSelectedIndex(selected_index);
-      this.getContentPane().add( north_component, BorderLayout.NORTH );
-      this_viewer.validate();
+      // If index is invalid, clear the TextField.
+      if( selected_index < 0 )
+      {
+        text.setText("");
+      }
+      else      
+        text.setText(note_list.getSelectedItem().toString());
       this_viewer.repaint();
     }
     
@@ -1035,7 +1056,7 @@ public class AnnotationOverlay extends OverlayJPanel
     * can be updated.
     */
     private void buildFirstComponent()
-    {
+    {      
       // Add a textfield which will allow the user to edit the annotations.
       // "text" must be initialized before updateNoteList() is called.
       text = new JTextField();
@@ -1096,7 +1117,7 @@ public class AnnotationOverlay extends OverlayJPanel
       row3.add(fontlist);
       row3.add(sizelist);
       
-      // To correct layout issues, put first two rows into one component.
+      // To correct layout issues, put three two rows into one component.
       north_component = new JPanel(new GridLayout(3,1));
       north_component.add(list_and_remove);
       north_component.add(text_and_change);
@@ -1134,7 +1155,7 @@ public class AnnotationOverlay extends OverlayJPanel
       else
       {
         ((Note)notes.elementAt(index)).setText( text.getText() );
-        updateNoteList();
+        updateNoteList(false);
         this_panel.repaint();
       }
     }
@@ -1151,28 +1172,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	{
 	  int index = note_list.getSelectedIndex();
 	  this_panel.removeAnnotation( index );
-	  // If index < 0, do nothing
-	  if( index < 0 )
-	    return;
-	  // If index is 0, and there are no notes, make index invalid.
-	  if( index == 0 )
-	  {
-	    if( notes.size() == 0 )
-	    {
-	      index = -1;
-	    }
-	  }
-	  // Else index > 0, move selected to the previous item
-	  else
-	    note_list.setSelectedIndex(index - 1);
-	  
-	  // If index is invalid, clear the TextField.
-	  if( index < 0 )
-	  {
-	    text.setText("");
-	    return;
-	  }	  
-	  text.setText(note_list.getSelectedItem().toString());
+	  updateNoteList(false);
 	}
 	else if( message.equals("Change") )
 	{
@@ -1303,13 +1303,13 @@ public class AnnotationOverlay extends OverlayJPanel
         if( message.equals( ColorSelector.COLOR_CHANGED ) )
 	{
 	  ColorSelector cs = (ColorSelector)ae.getSource();
-	  text_color = cs.getSelectedColor();
-	  line_color = cs.getSelectedColor();
+	  setTextColor( cs.getSelectedColor() );
+	  setLineColor( cs.getSelectedColor() );
 	  this_panel.repaint();
 	}
 	else if( message.equals( ControlSlider.SLIDER_CHANGED ) )
 	{
-	  opacity = ((ControlSlider)ae.getSource()).getValue();
+	  setOpacity( ((ControlSlider)ae.getSource()).getValue() );
 	  this_panel.repaint();
 	}
       }
@@ -1348,16 +1348,16 @@ public class AnnotationOverlay extends OverlayJPanel
 	  // automatically. Default represents a different font.
  	  else if( message.equals("Default") )
  	  {
- 	    font = default_font;
- 	    font = font.deriveFont( Font.PLAIN );
- 	    font = font.deriveFont( (float)current_fontsize );
+	    // Set font to a temporary copy of the default font.
+ 	    this_panel.setFont( default_font.deriveFont( 
+	                                          (float)current_fontsize ) );
  	  }
 	  // Else set the font to the new font.
  	  else
  	  {
- 	    font = fonts[fontindex];
- 	    font = font.deriveFont( Font.PLAIN );
- 	    font = font.deriveFont( (float)current_fontsize );
+	    // Set font to a temporary copy of the pointed-at font.
+ 	    this_panel.setFont( fonts[fontindex].deriveFont( 
+	                                          (float)current_fontsize ) );
  	  }
  	}
 	// If numeric, a font size was set.
@@ -1383,6 +1383,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	{
 	  text.setText(temp.getSelectedItem().toString());
 	}
+	// If invalid index, clear the text field.
 	else
 	  text.setText("");
       }
