@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.43  2003/12/18 22:36:29  millermi
+ *  - Now allows selections made on border of image.
+ *  - Now uses new AxisInfo class.
+ *
  *  Revision 1.42  2003/12/17 20:31:06  millermi
  *  - Removed private static final COMPONENT_RESIZED since
  *    recent changes make this variable obsolete.
@@ -447,8 +451,8 @@ public class ImageViewComponent implements IViewComponent2D,
     
     regioninfo = new Rectangle( ijp.getBounds() );
     
-    AxisInfo2D xinfo = varr.getAxisInfoVA(AxisInfo2D.XAXIS);
-    AxisInfo2D yinfo = varr.getAxisInfoVA(AxisInfo2D.YAXIS);
+    AxisInfo xinfo = varr.getAxisInfo(AxisInfo.X_AXIS);
+    AxisInfo yinfo = varr.getAxisInfo(AxisInfo.Y_AXIS);
     
     ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
 						yinfo.getMax(),      
@@ -713,30 +717,30 @@ public class ImageViewComponent implements IViewComponent2D,
   * This method returns the info about the specified axis. Currently, axes
   * for the image can only be viewed in linear form. If log axes are required,
   * FunctionViewComponent does this and may provide code to implement this.
-  * The getAxisInfo method will need to call getLocalLogWorldCoords() in
+  * The getAxisInfo() method will need to call getLocalLogWorldCoords() in
   * CoordJPanel.java if the log axes are needed.
   * 
-  *  @param  isX
-  *  @return If isX = true, return info about x axis.
-  *	     If isX = false, return info about y axis.
+  *  @param  axiscode Use AxisInfo integer codes.
+  *  @return If axiscode = AxisInfo.X_AXIS, return info about x axis.
+  *	     else, return info about y axis.
   */
-  public AxisInfo2D getAxisInfo( boolean isX )
+  public AxisInfo getAxisInformation( int axiscode )
   {
      // if true, return x info
-     if( isX )
+     if( axiscode == AxisInfo.X_AXIS )
      {
-	return new AxisInfo2D( ijp.getLocalWorldCoords().getX1(),
+	return new AxisInfo( ijp.getLocalWorldCoords().getX1(),
         	      ijp.getLocalWorldCoords().getX2(),
-        	      Varray2D.getAxisInfoVA(AxisInfo2D.XAXIS).getLabel(),
-        	      Varray2D.getAxisInfoVA(AxisInfo2D.XAXIS).getUnits(),
-        	      AxisOverlay2D.LINEAR );
+        	      Varray2D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
+        	      Varray2D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
+        	      AxisInfo.LINEAR );
      }
      // if false return y info
-     return new AxisInfo2D( ijp.getLocalWorldCoords().getY1(),
+     return new AxisInfo( ijp.getLocalWorldCoords().getY1(),
         	      ijp.getLocalWorldCoords().getY2(),
-        	      Varray2D.getAxisInfoVA(AxisInfo2D.YAXIS).getLabel(),
-        	      Varray2D.getAxisInfoVA(AxisInfo2D.YAXIS).getUnits(),
-        	      AxisOverlay2D.LINEAR );
+        	      Varray2D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
+        	      Varray2D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
+        	      AxisInfo.LINEAR );
   }
   
  /**
@@ -933,10 +937,10 @@ public class ImageViewComponent implements IViewComponent2D,
 	 pin_Varray.getNumColumns() == Varray2D.getNumColumns() )
      {
        Varray2D.setRegionValues(f_array,0,0);
-       Varray2D.setAxisInfoVA( AxisInfo2D.XAXIS,
-        		       pin_Varray.getAxisInfoVA( AxisInfo2D.XAXIS ) );
-       Varray2D.setAxisInfoVA( AxisInfo2D.YAXIS,
-        		       pin_Varray.getAxisInfoVA( AxisInfo2D.YAXIS ) );
+       Varray2D.setAxisInfo( AxisInfo.X_AXIS,
+        		       pin_Varray.getAxisInfo( AxisInfo.X_AXIS ) );
+       Varray2D.setAxisInfo( AxisInfo.Y_AXIS,
+        		       pin_Varray.getAxisInfo( AxisInfo.Y_AXIS ) );
        Varray2D.setTitle( pin_Varray.getTitle() );
      }
      else
@@ -1656,17 +1660,71 @@ public class ImageViewComponent implements IViewComponent2D,
         String regiontype = lastregion.getRegionType();
 	floatPoint2D[] wcp = lastregion.getWorldCoordPoints();
         Point[] imagecolrow = new Point[wcp.length];
-        for( int i = 0; i < imagecolrow.length; i++ )
-        {
-          imagecolrow[i] = new Point( ijp.ImageCol_of_WC_x( wcp[i].x ),
-        			      ijp.ImageRow_of_WC_y( wcp[i].y ) );
-          /*System.out.println("ImageCoords: " + 
+	
+	// wcp[0] must be on image, but wcp[1] may not always be.
+	// If wcp[1] isn't on the image, move endpoint to edge of image.
+        if( regiontype.equals(SelectionJPanel.LINE) )
+	{
+	  float wcxmin = ijp.getGlobalWorldCoords().getX1();
+	  float wcxmax = ijp.getGlobalWorldCoords().getX2();
+	  // since y max and min were entered in opposite order, switch them.
+	  float wcymax = ijp.getGlobalWorldCoords().getY1();
+	  float wcymin = ijp.getGlobalWorldCoords().getY2();
+	  float slope = (wcp[1].y - wcp[0].y)/(wcp[1].x - wcp[0].x);
+	  // if less than xmin, set wcp1.x = xmin, calculate wcp1.y
+	  if( wcp[1].x < wcxmin ) 
+	  {
+	    // solve equation used to find "slope" for wcp[1].y since all
+	    // other elements are known.
+	    wcp[1].x = wcxmin;
+	    wcp[1].y = slope*(wcp[1].x - wcp[0].x) + wcp[0].y;
+	    
+	  }
+	  // if greater than xmax, set wcp1.x = xmax, calculate wcp1.y
+	  else if( wcp[1].x > wcxmax )
+	  {
+	    // solve equation used to find "slope" for wcp[1].y since all
+	    // other elements are known.
+	    wcp[1].x = wcxmax;
+	    wcp[1].y = slope*(wcp[1].x - wcp[0].x) + wcp[0].y;
+	  }
+	  
+	  // if less than ymin, set wcp1.y = ymin, calculate wcp1.x
+	  if( wcp[1].y < wcymin )
+	  {
+	    // solve equation used to find "slope" for wcp[1].x since all
+	    // other elements are known.
+	    wcp[1].y = wcymin;
+	    wcp[1].x = (wcp[1].y - wcp[0].y)/slope + wcp[0].x;
+	  }
+	  // if greater than ymax, set wcp1.y = ymax, calculate wcp1.x
+	  else if( wcp[1].y > wcymax )
+	  {
+	    // solve equation used to find "slope" for wcp[1].x since all
+	    // other elements are known.
+	    wcp[1].y = wcymax;
+	    wcp[1].x = (wcp[1].y - wcp[0].y)/slope + wcp[0].x;
+	  }
+	    
+          imagecolrow[0] = new Point( ijp.ImageCol_of_WC_x( wcp[0].x ),
+                		      ijp.ImageRow_of_WC_y( wcp[0].y ) );
+          imagecolrow[1] = new Point( ijp.ImageCol_of_WC_x( wcp[1].x ),
+                		      ijp.ImageRow_of_WC_y( wcp[1].y ) );
+	}
+	else
+	{
+          for( int i = 0; i < imagecolrow.length; i++ )
+          {
+	    imagecolrow[i] = new Point( ijp.ImageCol_of_WC_x( wcp[i].x ),
+        			        ijp.ImageRow_of_WC_y( wcp[i].y ) );
+	  /*System.out.println("ImageCoords: " + 
         		   ijp.ImageCol_of_WC_x( wcp[i].x ) + "/" +
         		   ijp.ImageRow_of_WC_y( wcp[i].y ) );
           System.out.println("WorldCoords: " + 
         		   wcp[i].x + "/" +
         		   wcp[i].y );*/
-        }
+          }
+	}
         Region selregion;
         
         if( regiontype.equals(SelectionJPanel.BOX) )
@@ -1714,9 +1772,9 @@ public class ImageViewComponent implements IViewComponent2D,
 
     //Make a sample 2D array
     VirtualArray2D va2D = new VirtualArray2D(row, col); 
-    va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, 10000f, 
+    va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
         	       "TestX","TestUnits", true );
-    va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, 1500f, 
+    va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
         		"TestY","TestYUnits", false );
     va2D.setTitle("Main Test");
     //Fill the 2D array with the function x*y
