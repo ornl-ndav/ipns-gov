@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2002/10/04 14:41:34  dennis
+ * getY_value() method now handles case where x_value is NaN.
+ * ("Pointed At" x is initially NaN.)
+ *
  * Revision 1.8  2002/06/14 20:52:11  dennis
  * Added field: auto_data_bound
  * Added methods: setX_bounds(), autoX_bounds(), set_auto_data_bound()
@@ -310,6 +314,9 @@ public class GraphJPanel extends    CoordJPanel
 public float getY_value( float x_value, int graph_number )
 {
   if ( graph_number < 0 || graph_number >= graphs.size() )     // no such graph
+    return Float.NaN;
+
+  if ( Float.isNaN(x_value) )
     return Float.NaN;
    
   GraphData gd = (GraphData)graphs.elementAt(graph_number);
