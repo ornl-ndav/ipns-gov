@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/29 13:31:50  dennis
+ * Added size parameter to control size of points.
+ *
  * Revision 1.1  2004/06/18 19:21:23  dennis
  * Moved to Shapes package.
  *
@@ -53,14 +56,16 @@ public class ColoredPoints extends GeometryDisplayListObject
                                      // Nx3 arrays
   private float color[][] = null;
 
+  private float point_size = 1;
 
-  public ColoredPoints( Vector3D new_points[], Color new_colors[] )
+
+  public ColoredPoints( Vector3D new_points[], Color new_colors[], float size )
   {
-    set( new_points, new_colors );
+    set( new_points, new_colors, size );
   }
 
 
-  public void set( Vector3D new_points[], Color new_colors[] )
+  public void set( Vector3D new_points[], Color new_colors[], float size )
   {
     if ( new_points == null || new_points.length == 0 )
     {
@@ -68,6 +73,9 @@ public class ColoredPoints extends GeometryDisplayListObject
       return;
     }
     
+    if ( size >= 1 )
+      point_size = size;
+
     float temp[];
     point = new float[new_points.length][3];
     System.out.println("n points = " + point.length );
@@ -131,6 +139,7 @@ public class ColoredPoints extends GeometryDisplayListObject
 
     if ( point != null )
     {
+      gl.glPointSize(point_size);
       gl.glBegin( GL.GL_POINTS );
         for ( int i = 0; i < point.length; i++ )
         {  
