@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.21  2004/05/06 18:58:48  dennis
+ * The setObject() method now makes a new list containing references
+ * to the 3D objects and stores the new list in it's hash table.
+ *
  * Revision 1.20  2004/05/03 18:13:54  dennis
  * Now implements interface IThreeD_Panel.
  * Removed private method swap(,) that is no longer used.
@@ -441,7 +445,11 @@ public class ThreeD_JPanel extends    CoordJPanel
    if ( name == null || obj == null || obj.length <= 0 )  
      return;
 
-   obj_lists.put( name, obj );
+   IThreeD_Object new_obj[] = new IThreeD_Object[ obj.length ];
+   for ( int i = 0; i < obj.length; i++ )
+     new_obj[i] = obj[i];
+
+   obj_lists.put( name, new_obj );
    obj_lists_valid = false; 
  }
 
