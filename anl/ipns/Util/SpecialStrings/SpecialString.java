@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2001/08/07 15:57:13  dennis
+ *  Made the message private.
+ *
  *  Revision 1.5  2001/04/25 22:24:43  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -62,7 +65,7 @@ import java.io.*;
  */
 public abstract class SpecialString  implements  Serializable 
 {
-  String message;
+  private String message;
 
     /**
      * Constructs a special string with the specified message.
@@ -72,7 +75,7 @@ public abstract class SpecialString  implements  Serializable
      */
     public SpecialString( String message )
     {
-	this.message = message;
+      this.message = message;
     }
 
 
@@ -84,7 +87,7 @@ public abstract class SpecialString  implements  Serializable
      */
     public void setString( String message )
     {
-       this.message = message;
+      this.message = message;
     }
 
     /**
