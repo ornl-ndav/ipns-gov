@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/07 17:54:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.5  2004/01/05 18:14:06  millermi
  *  - Replaced show()/setVisible(true) with WindowShower.
  *  - Removed excess imports.
@@ -673,10 +676,6 @@ public class FieldEntryControl extends ViewControl
   * This method is used to remove a radio button choice.
   *
   *  @param  radiolabel The label on the radio button.
-  *  @param  new_labels A list of new labels for the text fields. If the list
-  *                     is shorter than the amount set by the constructor, the
-  *                     remaining fields will be disabled. If the list is too
-  *                     long, the exceeding values will be ignored.
   */ 
   public void removeRadioChoice( String radiolabel )
   {

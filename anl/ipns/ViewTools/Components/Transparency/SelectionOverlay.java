@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2004/01/07 17:54:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.29  2004/01/03 04:36:13  millermi
  *  - help() now uses html tool kit to display text.
  *  - Replaced all setVisible(true) with WindowShower.
@@ -599,7 +602,8 @@ public class SelectionOverlay extends OverlayJPanel
   * This method will disable the selections and cursors included in the names
   * list. Names are defined by static Strings in the SelectionJPanel class.
   *
-  *  @param  names List of selection names defined by SelectionJPanel class.
+  *  @param  select_names List of selection names defined by
+  *                       SelectionJPanel class.
   *  @see DataSetTools.components.View.Cursor.SelectionJPanel
   */ 
   public void disableSelection( String[] select_names )
@@ -618,7 +622,8 @@ public class SelectionOverlay extends OverlayJPanel
   * This method will enable the selections and cursors included in the names
   * list. Names are defined by static Strings in the SelectionJPanel class.
   *
-  *  @param  names List of selection names defined by SelectionJPanel class.
+  *  @param  select_names List of selection names defined by
+  *                       SelectionJPanel class.
   *  @see DataSetTools.components.View.Cursor.SelectionJPanel
   */ 
   public void enableSelection( String[] select_names )
