@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2003/10/16 00:35:41  dennis
+ *  Partly fixed javadocs to build cleanly with jdk 1.4.2
+ *  Line 433 @link MAX_ARRAY_DEPTH reference still not found
+ *
  *  Revision 1.21  2003/10/14 16:22:12  dennis
  *  Fixed bug in trim( StringBuffer ) method.  Now checks that string is
  *  still non-empty while removing characters.
@@ -122,7 +126,8 @@ public class StringUtil
 
   /* ---------------------------- fixSeparator --------------------------- */
   /**
-   *  Replace all occurrences of the possible file separators "/", "\", "\\" with the file separator needed for the local system.
+   *  Replace all occurrences of the possible file separators
+   *  "/", "\", "\\" with the file separator needed for the local system.
    *
    *  @param  file_name  A file name string possibly containing improper
    *                     separators.
@@ -302,7 +307,7 @@ public class StringUtil
    *  the, calling this method with num = 2, and command = "-D" will return
    *  "/usr/data/".
    *
-   *  @param  n        The number of the occurence of the command, 1, 2, etc.
+   *  @param  num      The number of the occurence of the command, 1, 2, etc.
    *  @param  command  The command to look for
    *  @param  s        The string containing commands and arguments
    *                   with space between successive command-argument pairs.
@@ -427,7 +432,7 @@ public class StringUtil
    * Method for turning an Object into a String that represents its
    * value. This turns {@link java.util.Collection Collection} and
    * Arrays into a comma delimeted list with square brackets, these
-   * are only printed up to {@link MAX_ARRAY_DEPTH MAX_ARRAY_DEPTH}
+   * are only printed up to {@link MAX_ARRAY_DEPTH}
    * values long.
    */
   public static String toString(Object object){
