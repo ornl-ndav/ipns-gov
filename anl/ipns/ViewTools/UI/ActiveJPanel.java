@@ -28,6 +28,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.7  2005/01/26 22:25:52  millermi
+ * - Removed STATE_CHANGED public message String from class since
+ *   it was unused.
+ *
  * Revision 1.6  2004/03/15 23:53:56  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -70,8 +74,6 @@ import java.io.*;
 public class ActiveJPanel extends JPanel
                                   implements Serializable 
 {
-  public static final String STATE_CHANGED = "State Changed";
-
   protected Vector listeners = null;
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
