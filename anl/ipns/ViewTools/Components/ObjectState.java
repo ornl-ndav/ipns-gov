@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/12/17 06:37:10  millermi
+ *  - openFileChooser() now returns a boolean, true if successful,
+ *    false if not. Also added javadocs to this method.
+ *
  *  Revision 1.4  2003/11/18 17:29:47  millermi
  *  - Fixed bug found by Chris Bouzek that prevented ObjectState
  *    from saving to the current directory set by the user.
@@ -198,7 +202,15 @@ public class ObjectState implements java.io.Serializable
     return table.size();
   }
   
-  public void openFileChooser( boolean isSave )
+ /**
+  * This method will pop-up a JFileChooser to allow ObjectState to be loaded
+  * or saved. 
+  *
+  *  @param  isSave true if saving state, false if loading state
+  *  @return true if save/load was successful,
+  *          false if unsuccessful or operation was cancelled.
+  */ 
+  public boolean openFileChooser( boolean isSave )
   {
     String title = "";
     // if projectsDirectory is null, java handles it.
@@ -231,6 +243,8 @@ public class ObjectState implements java.io.Serializable
           SharedData.addmsg("Error saving state information in " +
         		     "ObjectState.java. State was not saved!!!" );
         }
+	else
+	  return true;
       }
       else if( fc.getApproveButtonText().equals("Load State") )
       {
@@ -243,9 +257,11 @@ public class ObjectState implements java.io.Serializable
         else
         {	  
           this_state.table = ((ObjectState)temp).table;
+	  return true;
         }
       }
     }
+    return false;
   }
   
   /* 
