@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2003/11/18 00:59:20  millermi
+ * - Now implements Serializable, requiring many private variables
+ *   to be made transient.
+ * - Added Load and Save options to the file menu for testing th
+ *   loading and saving of state information.
+ *
  * Revision 1.3  2003/09/23 23:14:39  millermi
  * - Added getObjectState() and setObjectState() to preserve
  *   state information.
@@ -69,13 +75,16 @@
 package DataSetTools.components.View;
 
 import javax.swing.*;
+import java.util.Vector;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.Serializable;
 
 import DataSetTools.components.View.TwoD.ImageViewComponent;
+import DataSetTools.components.View.Menu.MenuItemMaker;
 import DataSetTools.components.View.Menu.ViewMenuItem;
 import DataSetTools.components.image.*;
 import DataSetTools.components.containers.SplitPaneWithState;
@@ -87,13 +96,16 @@ import DataSetTools.components.View.Region.Region;
  * 2D array of floats, in a frame. This class adds further implementation to
  * the ImageFrame2.java class for thorough testing of the ImageViewComponent.
  */
-public class IVCTester extends JFrame implements IPreserveState
+public class IVCTester extends JFrame implements IPreserveState,
+                                                 Serializable
 {
-  private SplitPaneWithState pane; // complete viewer, includes controls and ijp
-  private ImageViewComponent ivc;
-  private IVirtualArray2D data;
-  private JMenuBar menu_bar;
-  private boolean helpAdded = false;
+  // complete viewer, includes controls and ijp
+  private transient SplitPaneWithState pane;
+  private transient ImageViewComponent ivc;
+  private transient IVirtualArray2D data;
+  private transient JMenuBar menu_bar;
+  private transient boolean helpAdded = false;
+  private ObjectState state;
 
  /**
   * Construct a frame with the specified image and title
@@ -105,8 +117,28 @@ public class IVCTester extends JFrame implements IPreserveState
     data = new VirtualArray2D(1,1);
     
     menu_bar = new JMenuBar();
-    setJMenuBar(menu_bar);   
-    menu_bar.add(new JMenu("File")); 
+    setJMenuBar(menu_bar);
+    state = new ObjectState();
+    state.setProjectsDirectory("/home/mike");
+    // build File menu 
+    Vector file = new Vector();
+    Vector new_menu = new Vector();
+    Vector save_menu = new Vector();
+    Vector load_menu = new Vector();
+    Vector listeners = new Vector();
+    listeners.add( new ImageListener() );
+    listeners.add( new ImageListener() );
+    listeners.add( new ImageListener() );
+    listeners.add( new ImageListener() );
+    file.add("File");
+    file.add(new_menu);
+      new_menu.add("New");
+    file.add(save_menu);
+      save_menu.add("Save State");
+    file.add(load_menu);
+      load_menu.add("Load State");
+    
+    menu_bar.add( MenuItemMaker.makeMenuItem(file,listeners) ); 
     menu_bar.add(new JMenu("Options"));
     menu_bar.add(new JMenu("Help"));
     
@@ -252,6 +284,32 @@ public class IVCTester extends JFrame implements IPreserveState
     {
       if( ae.getActionCommand().equals(ImageViewComponent.COMPONENT_RESIZED) )
         repaint();
+      else if( ae.getActionCommand().equals("New") )
+      {
+        //ivc = new ImageViewComponent( data );
+	remove(pane);
+	
+        float temp_array[][] = new float[500][500];
+        for ( int i = 0; i < 500; i++ )
+          for ( int j = 0; j < 500; j++ )
+            temp_array[i][j] = i + 3*j;
+
+	data = new VirtualArray2D(1,1);	
+	setData( temp_array );
+	//setVisible(true);
+	repaint();	
+      }
+      else if( ae.getActionCommand().equals("Save State") )
+      {
+        state = ivc.getObjectState();
+	state.openFileChooser(true);
+      }
+      else if( ae.getActionCommand().equals("Load State") )
+      {
+        state = ivc.getObjectState();
+	state.openFileChooser(false);
+	setObjectState(state);
+      }
     }
   }
   
