@@ -80,16 +80,39 @@ abstract public class CurveFitter implements ICurveFitter
 
   abstract public double[] getParameterSigmas();
 
+  public double getWeightedChiSqr()
+  {
+    double diff;
+    double sum = 0.0;
+
+    int n_zero = 0;
+    for ( int i = 0; i < x.length; i++ )
+    {
+      if ( weights[i] == 0 )
+        n_zero++;
+      else
+      {
+        diff = f.getValue( x[i] ) - y[i];
+        sum += diff * diff * weights[i];
+      }
+    } 
+    int n_free = x.length - f.numParameters() - n_zero;
+
+    return sum/n_free;
+  }
+
   public double getChiSqr()
   {
     double diff;
     double sum = 0.0;
 
+    int n_zero = 0;
     for ( int i = 0; i < x.length; i++ )
     {
       diff = f.getValue( x[i] ) - y[i];
       sum += diff * diff * weights[i];
-    } 
+    }
     return sum;
   }
+
 }
