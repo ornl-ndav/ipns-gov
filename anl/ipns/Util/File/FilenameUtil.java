@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2003/11/20 19:36:51  rmikk
+ *  Added a method, URLSpacetoSpace, to convert %20
+ *  to spaces.
+ *
  *  Revision 1.17  2003/05/28 20:51:40  pfpeterson
  *  Changed System.getProperty to SharedData.getProperty
  *
@@ -182,6 +186,27 @@ public class FilenameUtil
     return null;
   }
 
+   /**
+     *  Replaces character string "%20" by a space. The "%20" replaces spaces 
+     *  in URL names.
+     *  @param  S   The string that is to have the "%20"'s removed
+     *  @return  The string with the "%20"'s replaced by spaces
+     */
+   public static String URLSpacetoSpace( String S){
+     String Res="";
+     int j=0;
+     if( S == null)
+        return S;
+     j=0;
+     for( int i = S.indexOf("%20"); (i>=0)&&(j < S.length()); ){
+        Res =Res + S.substring( j,i)+" ";
+        j = i+3;
+        i =S.indexOf("%20",j);
+     }
+    if( j <S.length())
+      Res +=S.substring( j);
+    return Res;
+    }
     /**
      * Produces the appropriate directory for a given document
      *
