@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/03/04 20:49:09  dennis
+ * Removed local constants for HKL and QXYZ modes.
+ *
  * Revision 1.6  2004/03/03 23:17:52  dennis
  * Added methods to get/set the values in the display and
  * slice mode selection boxes.  The methods also allow the
@@ -81,9 +84,6 @@ public class SliceSelectorUI extends    ActiveJPanel
 {
   private static final String HKL_TITLE  = "Slice in HKL Space";
   private static final String QXYZ_TITLE = "Slice in Qxyz Space";
-
-  public  static final int  HKL_MODE  = SlicePlane3D_UI.HKL_MODE;
-  public  static final int  QXYZ_MODE = SlicePlane3D_UI.QXYZ_MODE;
 
   private HKLorQ_SelectorUI display_mode;
   private HKLorQ_SelectorUI slice_mode;
