@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2004/08/04 18:54:23  millermi
+ *  - Added code so selection would not disappear.
+ *  - Added messaging Strings from TranslationJPanel.
+ *  - Added enableStretch() and isStretchEnabled() to turn resizing
+ *    of the viewport on/off.
+ *
  *  Revision 1.15  2004/04/05 02:36:43  millermi
  *  - Fixed bug that scaled the image in the refreshData() when
  *    the actual panel_size should have been used.
@@ -104,6 +110,7 @@
  
  package gov.anl.ipns.ViewTools.Components.ViewControls;
 
+ import java.awt.Component;
  import java.awt.Image;
  import java.awt.event.ActionListener;
  import java.awt.event.ActionEvent;
@@ -120,6 +127,7 @@
  import gov.anl.ipns.ViewTools.Panels.Transforms.*;
  import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
+ import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
  import gov.anl.ipns.ViewTools.Components.Transparency.TranslationOverlay;
  import gov.anl.ipns.Util.Sys.WindowShower;
  
@@ -129,6 +137,30 @@
  */
 public class PanViewControl extends ViewControl
 {
+ /**
+  * This messaging String is sent out when either to local or global bounds
+  * change by way of setLocalBounds() or ObjectState restoration.
+  */
+  public static final String BOUNDS_CHANGED = TranslationJPanel.BOUNDS_CHANGED;
+ 
+ /**
+  * "Bounds Moved" - This message String is used to tell listeners that
+  * the "viewport" or local bounds have been translated.
+  */ 
+  public static final String BOUNDS_MOVED = TranslationJPanel.BOUNDS_MOVED;
+  
+ /**
+  * "Bounds Resized" - This message String is used to tell listeners that
+  * the "viewport" or local bounds have been resized.
+  */ 
+  public static final String BOUNDS_RESIZED = TranslationJPanel.BOUNDS_RESIZED;
+  
+ /**
+  * "Cursor Changed" - This message String is used to tell listeners that
+  * the mouse cursor has been changed due to boundry dragging.
+  */
+  public static final String CURSOR_CHANGED = TranslationJPanel.CURSOR_CHANGED;
+  
  // ---------------------ObjectState Keys---------------------------------
  /**
   * "Overlay" - This constant String is a key for referencing the state
@@ -200,6 +232,26 @@ public class PanViewControl extends ViewControl
     {
       overlay.setObjectState(new_state);
     }
+  }
+  
+ /**
+  * Use this method to enable/disable the stretching ability of the viewport.
+  *
+  *  @param  can_stretch True to enable stretching, false to disable.
+  */ 
+  public void enableStretch( boolean can_stretch )
+  {
+    overlay.enableStretch(can_stretch);
+  }
+  
+ /**
+  * Use this method to find out if stretching is enabled.
+  *
+  *  @return True is enabled, false if disabled.
+  */
+  public boolean isStretchEnabled()
+  {
+    return overlay.isStretchEnabled();
   }
   
  /**
@@ -304,7 +356,15 @@ public class PanViewControl extends ViewControl
 	// have to use update so Overlay is always displayed over the image.
 	if( getGraphics() != null && isShowing() )
 	  update( getGraphics() );
-        //super.repaint();
+        // Go up to the top-most level and repaint everything. This will
+	// draw the overlay on the image correctly.
+	Component temppainter = this;
+        while( temppainter.getParent() != null )
+          temppainter = temppainter.getParent();
+        // This prevents an infinite loop, since this method is called in the
+	// repaint() method.
+	if( temppainter != this )
+	  temppainter.repaint();
       }
     }
     else
@@ -355,12 +415,7 @@ public class PanViewControl extends ViewControl
   {
     public void actionPerformed( ActionEvent ae )
     {
-      String message = ae.getActionCommand(); /*
-      if( message.equals( TranslationJPanel.BOUNDS_CHANGED ) )
-      {
-        local_bounds = overlay.getLocalBounds();
-      }*/
-      send_message(message);
+      send_message(ae.getActionCommand());
     }
   }
  
