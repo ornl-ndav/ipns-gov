@@ -3,6 +3,12 @@
  *                                    
  *  Utilities to switch between a string represntation and array representation
  *  of a list of integers.
+ *
+ *  $Log$
+ *  Revision 1.2  2000/07/21 18:56:30  dennis
+ *  Now can convert empty string to empty array of ints.
+ *
+ *
  */
 package DataSetTools.util;
 
@@ -86,13 +92,16 @@ public static int[] ToArray( String string_list )
                                    // make a tokenizer for the non-blank string
   boolean         getDelim=true;
   StringTokenizer t = new StringTokenizer(instring, ",:", getDelim);
-
+  
   int new_list[];
   int ilist[] = new int[0];
   int i1, 
       i2;
 
   int is = 0;  
+
+  if ( !t.hasMoreTokens() )      // trap degenerate string 
+    return ilist;
 
   try                            // get the first integer is there is one
   {
