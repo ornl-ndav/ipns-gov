@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/08/21 18:18:59  millermi
+ *  - Added ability to handle XOR_Cursor3pt class.
+ *
  *  Revision 1.6  2003/08/18 20:53:19  millermi
  *  - Added JButton controls to simulate a keyboard event, making the
  *    selection process more user friendly.
@@ -63,15 +66,13 @@
 
 package DataSetTools.components.View.Cursor;
 
-import java.io.*;
 import java.awt.*;
-import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-import DataSetTools.util.*;
-import DataSetTools.components.ui.*;
-import DataSetTools.components.image.*;
+import DataSetTools.components.ui.ActiveJPanel;
+import DataSetTools.components.image.XOR_Cursor;
+import DataSetTools.components.image.BoxCursor;
 
 /**
  * This class allows for the drawing of rubber band box/circle/point cursors.
@@ -88,20 +89,26 @@ public class SelectionJPanel extends ActiveJPanel
    public static final String CIRCLE = "circle";
    public static final String LINE = "line";
    public static final String POINT = "point";
+   public static final String WEDGE = "wedge";
    
    private BoxCursor box;
    private CircleCursor circle;
    private PointCursor point;
    private LineCursor line;
+   private WedgeCursor wedge;
    private boolean isAdown;   // true if A is pressed (for RESET_SELECTED)
    private boolean isBdown;   // true if B is pressed (for box selection)
    private boolean isCdown;   // true if C is pressed (for circle selection)
-   private boolean isLdown;   // true if E is pressed (for eliptical selection)
+   private boolean isLdown;   // true if L is pressed (for line selection)
    private boolean isPdown;   // true if P is pressed (for point selection)
+   private boolean isWdown;   // true if W is pressed (for wedge selection)
+   private boolean isAnydown; // true if any of the keys above is down
    private boolean doing_box;     // true if box selection started
    private boolean doing_circle;  // true if circle selection started
    private boolean doing_line;    // true if line selection started
    private boolean doing_point;   // true if point selection started
+   private boolean doing_wedge;   // true if wedge selection started
+   private boolean firstRun;      // true if 3pt cursor hasn't drawn midpoint
    
   /**
    * Constructor adds listeners to this SelectionJPanel. All boolean values
@@ -115,16 +122,22 @@ public class SelectionJPanel extends ActiveJPanel
       isCdown = false;
       isLdown = false;
       isPdown = false;
+      isWdown = false;
+      isAnydown = false;
       
       doing_box = false;
       doing_circle = false;
       doing_line = false;
       doing_point = false;
+      doing_wedge = false;
+      
+      firstRun = true;
    
       box = new BoxCursor(this);
       circle = new CircleCursor(this);
       line = new LineCursor(this);
       point = new PointCursor(this);
+      wedge = new WedgeCursor(this);
       
       requestFocus();
       
@@ -192,6 +205,33 @@ public class SelectionJPanel extends ActiveJPanel
       }  
   }
 
+  /* --------------- set_cursor for XOR_Cursor3pt --------------------- */
+  /**
+   *  Move the rubber band cursor to the specified pixel point. If the
+   *  rubber band region was not previously started, this will specifiy the
+   *  initial point for that region.  If the rubber band region was previously
+   *  started, this will specify a new location for the ending point of the
+   *  region.
+   *
+   *  @param  cursor  The type of 3 pt cursor that was selected. 
+   *  @param  pt  The point where the rubber band region should be drawn
+   */
+   public void set_cursor( XOR_Cursor3pt cursor, Point current )
+   {
+     if( cursor instanceof WedgeCursor )
+     {
+       if ( doing_wedge )
+         cursor.redraw( current );
+       else
+       {
+         cursor.start( current );
+         cursor.redraw( current );
+         doing_wedge = true;
+       }
+       
+     }
+   }
+
   /* -------------------------- stop_cursor ---------------------------- */
   /**
    *  Stop the rubber band cursor and set the current position to the
@@ -240,9 +280,39 @@ public class SelectionJPanel extends ActiveJPanel
          }
       }      
    }
+
+  /* -------------------------- stop_cursor ---------------------------- */
+  /**
+   *  Stop the rubber band cursor and set the current position to the
+   *  specifed pixel coordinate point. 
+   *
+   *  @param  cursor   the type of cursor being used.
+   *  @param  current  the point to record as the current point,
+   *                   in pixel coordinates
+   */
+   public void stop_cursor( XOR_Cursor3pt cursor, Point current )
+   {
+     if( cursor instanceof WedgeCursor )
+     {   
+       if ( doing_wedge )
+       {
+         if( firstRun )
+	 {
+	   cursor.redraw( current );
+	   cursor.midpoint( current );
+	 }
+	 else
+	 {
+           cursor.redraw( current );
+           cursor.stop( current );
+           doing_wedge = false;
+	 }
+       }
+     }  
+   }
    
   /**
-   * Since there are 3 types of cursors, this method gived us
+   * Since there are 4 types of xor cursors, this method gives us
    * which cursor was used.
    *
    *  @param  cursor - string label
@@ -250,20 +320,39 @@ public class SelectionJPanel extends ActiveJPanel
    */ 
    public XOR_Cursor getCursor( String cursor )
    {
-   
-      if( cursor.equals(BOX) )
-         return box;
-      else if( cursor.equals(CIRCLE) )
-         return circle;
-      else if( cursor.equals(LINE) )
-         return line; 	 
-      else //( cursor.equals(POINT) )
-         return point;
+     if( cursor.equals(BOX) )
+       return box;
+     else if( cursor.equals(CIRCLE) )
+       return circle;
+     else if( cursor.equals(LINE) )
+       return line;	
+     else //( cursor.equals(POINT) )
+       return point;
    }
    
+  /**
+   * Since there are other types of cursors, this method gives us
+   * the xor 3pt cursor that was used.
+   *
+   *  @param  cursor - string label
+   *  @return cursor - actual XOR_Cursor corresponding to the string label.
+   */ 
+   public XOR_Cursor3pt get3ptCursor( String cursor )
+   {
+     if( cursor.equals(WEDGE) )
+       return wedge;
+     return new WedgeCursor(this);
+   }
+  
+  /**
+   * This method returns controls to be used as an alternative to key events
+   * when making selections. Also included is a "Clear All" button.
+   *
+   *  @return array of JButtons, each button corresponding to a region.
+   */ 
    public JButton[] getControls()
    {
-     JButton[] controls = new JButton[5];
+     JButton[] controls = new JButton[6];
      controls[0] = new JButton("Box");
      controls[0].addActionListener( new ButtonListener() );
      controls[1] = new JButton("Circle");
@@ -272,8 +361,10 @@ public class SelectionJPanel extends ActiveJPanel
      controls[2].addActionListener( new ButtonListener() );
      controls[3] = new JButton("Point");
      controls[3].addActionListener( new ButtonListener() );
-     controls[4] = new JButton("Clear All");
+     controls[4] = new JButton("Wedge");
      controls[4].addActionListener( new ButtonListener() );
+     controls[5] = new JButton("Clear All");
+     controls[5].addActionListener( new ButtonListener() );
      
      return controls;
    }
@@ -283,42 +374,85 @@ public class SelectionJPanel extends ActiveJPanel
    */
    private class SelectKeyAdapter extends KeyAdapter
    {
-      public void keyPressed( KeyEvent e )
-      {
-         //System.out.println("here in keypressed");
-         int code = e.getKeyCode();
+     public void keyPressed( KeyEvent e )
+     {
+       //System.out.println("here in keypressed");
+       int code = e.getKeyCode();
+       // only make a selection if no other selections are in progress
+       if( !isAnydown )
+       {
+         if( code == KeyEvent.VK_A )
+         {
+           isAdown = true; 
+	   isAnydown = true;     
+         }
+         else if( code == KeyEvent.VK_B )
+         {
+           isBdown = true; 
+	   isAnydown = true;    
+         }
+         else if( code == KeyEvent.VK_C )
+         {
+           isCdown = true; 
+	   isAnydown = true;    
+         }
+         else if( code == KeyEvent.VK_L )
+         {
+           isLdown = true;
+	   isAnydown = true;     
+         }
+         else if( code == KeyEvent.VK_P )
+         {
+           isPdown = true; 
+	   isAnydown = true;    
+         }
+         else if( code == KeyEvent.VK_W )
+         {
+           isWdown = true; 
+	   isAnydown = true;    
+         }
+       }			       
+     }
+     
+     public void keyReleased( KeyEvent ke )
+     {
+       //System.out.println("here in keyreleased");
 
-	 if( code == KeyEvent.VK_A )
-	    isAdown = true;	 
-	 if( code == KeyEvent.VK_B )
-	    isBdown = true;
-	 if( code == KeyEvent.VK_C )
-	    isCdown = true;
-	 if( code == KeyEvent.VK_L )
-	    isLdown = true;
-	 if( code == KeyEvent.VK_P )
-	    isPdown = true;		 	 
-      }
-      
-      public void keyReleased( KeyEvent ke )
-      {
-         //System.out.println("here in keyreleased");
-	 
-         int code = ke.getKeyCode();
+       int code = ke.getKeyCode();
 
-	 if( code == KeyEvent.VK_A )
-	    isAdown = false;	 
-	 if( code == KeyEvent.VK_B )
-	    isBdown = false;
-	 if( code == KeyEvent.VK_C )
-	    isCdown = false;
-	 if( code == KeyEvent.VK_L )
-	    isLdown = false;
-	 if( code == KeyEvent.VK_P )
-	    isPdown = false;              
-      }
+       if( code == KeyEvent.VK_A )
+       {
+         isAdown = false;      
+       }    
+       else if( code == KeyEvent.VK_B )
+       {
+         isBdown = false;    
+       }
+       else if( code == KeyEvent.VK_C )
+       {
+         isCdown = false;     
+       }
+       else if( code == KeyEvent.VK_L )
+       {
+         isLdown = false;     
+       }
+       else if( code == KeyEvent.VK_P )
+       {
+         isPdown = false;     
+       } 
+       //else if( code == KeyEvent.VK_W )
+       //  isWdown = false;
+       
+       // if no one is down, then set isAnydown = false		 
+       if( !isAdown && !isBdown && !isCdown && 
+           !isLdown && ! isPdown && !isWdown )
+	 isAnydown = false; 
+     }
    }
    
+  /*
+   * This class receives button events and substitutes them for key events.
+   */ 
    private class ButtonListener implements ActionListener
    {
      public void actionPerformed( ActionEvent ae )
@@ -327,18 +461,27 @@ public class SelectionJPanel extends ActiveJPanel
        if( message.equals("Box") )
        {
          isBdown = true;
+	 isAnydown = true;
        }
        else if( message.equals("Circle") )
        {
          isCdown = true;
+	 isAnydown = true;
        }
        else if( message.equals("Line") )
        {
          isLdown = true;
+	 isAnydown = true;
        }
        else if( message.equals("Point") )
        {
          isPdown = true;
+	 isAnydown = true;
+       }
+       else if( message.equals("Wedge") )
+       {
+         isWdown = true;
+	 isAnydown = true;
        }
        else if( message.equals("Clear All") )
        {
@@ -353,57 +496,79 @@ public class SelectionJPanel extends ActiveJPanel
    */
    private class SelectMouseAdapter extends MouseAdapter
    {
-      public void mouseClicked (MouseEvent e)
-      {
-         if ( e.getClickCount() == 2 ) 
-	    send_message(RESET_LAST_SELECTED);
-      }
+     public void mouseClicked (MouseEvent e)
+     {
+       if ( e.getClickCount() == 2 ) 
+          send_message(RESET_LAST_SELECTED);
+     }
 
-      public void mousePressed (MouseEvent e)
-      {
-         //System.out.println("here in mousepressed");
-	 // if A is pressed, delete all selections.      
-         if( isAdown )
-	    send_message(RESET_SELECTED);
-         if( isBdown )
-	    set_cursor( box, e.getPoint() );
-	 if( isCdown )
-	    set_cursor( circle, e.getPoint() );
-         if( isLdown )
-	    set_cursor( line, e.getPoint() ); 
-	 if( isPdown )
-	    set_cursor( point, e.getPoint() );	       
-      }
+     public void mousePressed (MouseEvent e)
+     {
+       //System.out.println("here in mousepressed");
+       // if A is pressed, delete all selections.      
+       if( isAdown )
+         send_message(RESET_SELECTED);
+       else if( isBdown )
+         set_cursor( box, e.getPoint() );
+       else if( isCdown )
+         set_cursor( circle, e.getPoint() );
+       else if( isLdown )
+         set_cursor( line, e.getPoint() ); 
+       else if( isPdown )
+         set_cursor( point, e.getPoint() );
+       else if( isWdown )
+         set_cursor( wedge, e.getPoint() );
+     }
 
-      public void mouseReleased(MouseEvent e)
-      {
-         //System.out.println("here in mousereleased");
+     public void mouseReleased(MouseEvent e)
+     {
+       //System.out.println("here in mousereleased");
 
-         if( doing_box )
+       if( doing_box )
+       {
+         stop_cursor( box, e.getPoint() );
+         isBdown = false;
+	 isAnydown = false;
+         send_message(REGION_SELECTED + ">" + BOX);
+       }
+       else if( doing_circle )
+       {
+         stop_cursor( circle, e.getPoint() );
+         isCdown = false;
+	 isAnydown = false;
+         send_message(REGION_SELECTED + ">" + CIRCLE);
+       }
+       else if( doing_line )
+       {
+         stop_cursor( line, e.getPoint() );
+         isLdown = false;
+	 isAnydown = false;
+         send_message(REGION_SELECTED + ">" + LINE);
+       }
+       else if( doing_point )
+       {
+         stop_cursor( point, e.getPoint() ); 
+         isPdown = false;
+	 isAnydown = false;
+         send_message(REGION_SELECTED + ">" + POINT); 
+       }  
+       else if( doing_wedge )
+       {
+         stop_cursor( wedge, e.getPoint() ); 
+	 if( firstRun )
 	 {
-	    stop_cursor( box, e.getPoint() );
-	    isBdown = false;
-	    send_message(REGION_SELECTED + ">" + BOX);
-         }
-	 else if( doing_circle )
+           isWdown = true;
+	   isAnydown = true;
+	 }
+	 else
 	 {
-	    stop_cursor( circle, e.getPoint() );
-	    isCdown = false;
-	    send_message(REGION_SELECTED + ">" + CIRCLE);
-         }
-	 else if( doing_line )
-	 {
-	    stop_cursor( line, e.getPoint() );
-	    isLdown = false;
-	    send_message(REGION_SELECTED + ">" + LINE);
-         }
-	 else if( doing_point )
-	 {
-	    stop_cursor( point, e.getPoint() ); 
-	    isPdown = false;
-	    send_message(REGION_SELECTED + ">" + POINT); 
-	 }    
-      }
+	   isWdown = false;
+	   isAnydown = false;
+           send_message(REGION_SELECTED + ">" + WEDGE);
+	 }
+	 firstRun = !firstRun; 
+       }      
+     }
    } 
    
   /*
@@ -411,20 +576,22 @@ public class SelectionJPanel extends ActiveJPanel
    */ 
    class SelectMouseMotionAdapter extends MouseMotionAdapter
    {
-      public void mouseDragged(MouseEvent e)
-      {
-         //System.out.println("here in mousedragged");
+     public void mouseDragged(MouseEvent e)
+     {
+       //System.out.println("here in mousedragged");
 
-	 //System.out.println("Point: " + e.getPoint() );
-         if( doing_box )
-            set_cursor( box, e.getPoint() );
-         if( doing_circle )
-	    set_cursor( circle, e.getPoint() );
-         if( doing_line )
-	    set_cursor( line, e.getPoint() );
-         if( doing_point )
-	    set_cursor( point, e.getPoint() );
-      }
+       //System.out.println("Point: " + e.getPoint() );
+       if( doing_box )
+         set_cursor( box, e.getPoint() );
+       else if( doing_circle )
+         set_cursor( circle, e.getPoint() );
+       else if( doing_line )
+         set_cursor( line, e.getPoint() );
+       else if( doing_point )
+         set_cursor( point, e.getPoint() );
+       else if( doing_wedge )
+         set_cursor( wedge, e.getPoint() );
+     }
    }    
    
 /* -----------------------------------------------------------------------
