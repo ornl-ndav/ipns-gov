@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2003/04/14 18:54:21  dennis
+ * Added method .average(v[]) to set the current vector to the average
+ * of a list of vectors.
+ *
  * Revision 1.5  2003/02/05 21:06:13  dennis
  * Added constructor to make a Vector3D object from a Position3D object.
  *
@@ -262,6 +266,38 @@ public class Vector3D
      v[0] *= scalar;
      v[1] *= scalar;
      v[2] *= scalar;
+  }
+
+  /*------------------------------- average -------------------------------*/
+  /**
+   *  Set the vector to the average of the vectors in the given list of
+   *  vectors.
+   *
+   *  @param  list  the list of vectors to be averaged.
+   */
+  public void average( Vector3D list[] )
+  {
+     if ( list == null || list.length == 0 )
+     {
+       System.out.println("WARNING: average of empty list in Vector3D.average");
+       set( 0, 0, 0 );
+       return;
+     }
+
+     double x = 0.0,
+            y = 0.0,
+            z = 0.0;
+
+     for ( int i = 0; i < list.length; i++ )
+     {
+       x += list[i].v[0];
+       y += list[i].v[1];
+       z += list[i].v[2];
+     } 
+     
+     v[0] = (float)(x/list.length);
+     v[1] = (float)(y/list.length);
+     v[2] = (float)(z/list.length);
   }
 
   /*--------------------------- standardize ------------------------------*/
