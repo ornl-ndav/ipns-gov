@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2001/06/08 22:00:22  dennis
+ *  Now keeps and reuses the old buttons, labels and viewers when
+ *  the runs change.
+ *
  *  Revision 1.12  2001/06/07 16:47:16  dennis
  *  Now sets up the control pane initially, even if there are no
  *  DataSets available yet from the LiveDataManager.
@@ -115,12 +119,16 @@ import DataSetTools.util.*;
 public class LiveDataMonitor extends    JPanel
                              implements Serializable 
 {
+  public static final Color  BACKGROUND = Color.white;
+  public static final Color  FOREGROUND = Color.black;
   private String           data_source_name = "";
   private LiveDataManager  data_manager = null;
   private ViewManager      viewers[]  = new ViewManager[0];
   private JCheckBox        show_box[] = new JCheckBox[0];
   private JCheckBox        auto_box[] = new JCheckBox[0];
+  private JButton          button  [] = new JButton[0];
   private JLabel           ds_label[] = new JLabel[0];
+  private JPanel           panel[]    = new JPanel[0];
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -206,7 +214,6 @@ public class LiveDataMonitor extends    JPanel
     // SHOULD FIRST SHUTDOWN THE data_manager... NOT YET IMPLEMENTED
 
     removeAll();                    // get rid of all of the components
-    ResetPrivateData();
   }
 
  /* ------------------------------------------------------------------------
@@ -215,39 +222,93 @@ public class LiveDataMonitor extends    JPanel
   *
   */
 
-  /* ----------------------- ResetPrivateData --------------------------- */
 
-  private void ResetPrivateData()
+  private void ExpandStorage()
   {
-    data_source_name = "";
-    data_manager = null;
-    viewers  = new ViewManager[0];
-    show_box = new JCheckBox[0];
-    auto_box = new JCheckBox[0];
-    ds_label = new JLabel[0];
+    int num_ds     = data_manager.numDataSets();
+    int old_length = viewers.length;
+
+    if ( num_ds > old_length )
+    {                                                         // get more space
+      ViewManager new_viewers[]  = new ViewManager[ num_ds ];
+      JCheckBox   new_show_box[] = new JCheckBox[ num_ds ];
+      JCheckBox   new_auto_box[] = new JCheckBox[ num_ds ];
+      JButton     new_button[]   = new JButton[ num_ds ];
+      JLabel      new_ds_label[] = new JLabel[ num_ds ];
+      JPanel      new_panel[]    = new JPanel[ num_ds ];
+
+      for ( int i = 0; i < viewers.length; i++ )             // save the old
+      {                                                      // objects
+        new_viewers[i]  = viewers[i];
+        new_show_box[i] = show_box[i];
+        new_auto_box[i] = auto_box[i];
+        new_button[i]   = button[i];
+        new_ds_label[i] = ds_label[i];
+        new_panel[i]    = panel[i];
+      }
+                                                             // shift over to
+      viewers  = new_viewers;                                // the new ones
+      show_box = new_show_box;
+      auto_box = new_auto_box;
+      button   = new_button;
+      ds_label = new_ds_label;
+      panel    = new_panel;
+                                                             // construct new
+                                                             // labels, etc.
+      for ( int i = old_length; i < viewers.length; i++ )
+      {
+        viewers[i]  = null;
+
+        panel[i] = new JPanel();                // use a separate "sub" panel
+        panel[i].setLayout( new FlowLayout() ); // for each possible DataSet
+        panel[i].setBackground( BACKGROUND );
+        TitledBorder border = 
+           new TitledBorder( LineBorder.createBlackLineBorder(),"DataSet #"+i);
+        border.setTitleFont( FontUtil.BORDER_FONT );
+        border.setTitleColor( FOREGROUND );
+        panel[i].setBorder( border );
+
+        show_box[i] = new JCheckBox( "Show" );
+        show_box[i].setFont( FontUtil.BORDER_FONT );
+        show_box[i].setSelected( false );
+        show_box[i].setBackground( BACKGROUND );
+        ShowCheckboxListener show_box_listener = new ShowCheckboxListener( i );
+        show_box[i].addActionListener( show_box_listener );
+
+        auto_box[i] = new JCheckBox( "Auto" );
+        auto_box[i].setFont( FontUtil.BORDER_FONT );
+        auto_box[i].setBackground( BACKGROUND );
+        auto_box[i].setSelected( false );
+        AutoCheckboxListener auto_box_listener = new AutoCheckboxListener( i );
+        auto_box[i].addActionListener( auto_box_listener );
+
+        button[i] = new JButton("Update");
+        button[i].setFont( FontUtil.BORDER_FONT );
+        button[i].setBackground( BACKGROUND );
+        UpdateButtonListener button_listener = new UpdateButtonListener( i );
+        button[i].addActionListener( button_listener );
+
+        ds_label[i]  = new JLabel( "DATA SET" );
+        ds_label[i].setFont( FontUtil.BORDER_FONT );
+        ds_label[i].setForeground( FOREGROUND );
+
+        panel[i].add( ds_label[i] );             // Add the components for this
+        panel[i].add( show_box[i] );             // DataSet to the current panel
+        panel[i].add( auto_box[i] );
+        panel[i].add( button[i] );
+      }
+    }
   }
+ 
 
   /* ------------------------------ SetUpGUI ------------------------------- */
 
-  private void SetUpGUI()
+  synchronized private void SetUpGUI()
   {
-    final Color  BACKGROUND = Color.white;
-    final Color  FOREGROUND = Color.black;
-
     setBackground( BACKGROUND );
     setForeground( FOREGROUND );
 
-    int num_ds   = data_manager.numDataSets();
-
-    ViewManager  old_viewers[]  = viewers;
-    JCheckBox    old_show_box[] = show_box;
-
-                                        // make lists to save references to the
-                                        // viewers and "Show" checkboxes
-    viewers  = new ViewManager[ num_ds ];
-    show_box = new JCheckBox[ num_ds ];
-    auto_box = new JCheckBox[ num_ds ];
-    ds_label = new JLabel[ num_ds ];
+    ExpandStorage();
                                                   // Clear the panel and set up
                                                   // a new layout using a box.
     setVisible( false );
@@ -291,58 +352,16 @@ public class LiveDataMonitor extends    JPanel
 
     for ( int i = 0; i < data_manager.numDataSets(); i++ )
     {
-      JPanel panel = new JPanel();               // use a separate "sub" panel
-      panel.setLayout( new FlowLayout() );       // for each possible DataSet
-      panel.setBackground( BACKGROUND );
-      border = new TitledBorder( LineBorder.createBlackLineBorder(),
-                                 "DataSet #" + i );
-      border.setTitleFont( FontUtil.BORDER_FONT );
-      border.setTitleColor( FOREGROUND );
-      panel.setBorder( border );
-
-      DataSet ds   = data_manager.getDataSet( i );
-      ds_label[i]  = new JLabel( ds.getTitle() );
-      ds_label[i].setFont( FontUtil.BORDER_FONT );
-      ds_label[i].setForeground( FOREGROUND );
-
-      JButton button = new JButton("Update");
-//      button.setFont( FontUtil.LABEL_FONT );
-      button.setFont( FontUtil.BORDER_FONT );
-      button.setBackground( BACKGROUND );
-      UpdateButtonListener button_listener = new UpdateButtonListener( i );
-      button.addActionListener( button_listener );
-
-      show_box[i] = new JCheckBox( "Show" );
-//      show_box[i].setFont( FontUtil.LABEL_FONT );
-      show_box[i].setFont( FontUtil.BORDER_FONT );
-      if ( i < old_show_box.length )
-        show_box[i].setSelected( old_show_box[i].isSelected() );
-      else
-        show_box[i].setSelected( false );
-      show_box[i].setBackground( BACKGROUND );
-      ShowCheckboxListener show_box_listener = new ShowCheckboxListener( i );
-      show_box[i].addActionListener( show_box_listener );
-
-      if ( i < old_viewers.length )
-        viewers[i] = old_viewers[i];
-      else
-        viewers[i] = null;                           // by default, don't show
-
-      auto_box[i] = new JCheckBox( "Auto" );
-//      auto_box[i].setFont( FontUtil.LABEL_FONT );
-      auto_box[i].setFont( FontUtil.BORDER_FONT );
-      auto_box[i].setBackground( BACKGROUND );
-      auto_box[i].setSelected( !data_manager.getUpdateIgnoreFlag( i ) );
-      AutoCheckboxListener auto_box_listener = new AutoCheckboxListener( i );
-      auto_box[i].addActionListener( auto_box_listener ); 
-
-      panel.add( ds_label[i] );                  // Add the components for this
-      panel.add( show_box[i] );                  // DataSet to the current panel
-      panel.add( auto_box[i] );
-      panel.add( button );
-
-      panel_box.add( panel );                    // Add the panel to this
+      panel_box.add( panel[i] );                 // Add the panel to this
                                                  // LiveDataMonitor
+
+      if ( auto_box[i].isSelected() )
+        data_manager.setUpdateIgnoreFlag( i, false );
+      else
+        data_manager.setUpdateIgnoreFlag( i, true );
+
+      if ( viewers[i] != null )
+          viewers[i].setDataSet( data_manager.getDataSet(i) );
     }
 
     border = new TitledBorder( LineBorder.createBlackLineBorder(),
@@ -352,6 +371,8 @@ public class LiveDataMonitor extends    JPanel
     time_slider.setBorder( border );
 
     panel_box.add( time_slider );
+
+    FixLabels();
     validate(); 
     setVisible( true );
   }
@@ -364,7 +385,14 @@ public class LiveDataMonitor extends    JPanel
   */
   private void FixLabels()
   {
-    for ( int i = 0; i < ds_label.length; i++ )
+    if (ds_label == null || ds_label.length == 0 )
+      return;
+
+    int num_labels = data_manager.numDataSets();
+    if ( num_labels > ds_label.length )
+      num_labels = ds_label.length;
+
+    for ( int i = 0; i < num_labels; i++ )
     {
       DataSet ds = data_manager.getDataSet( i );
       String cur_title = ds.getTitle();
@@ -533,7 +561,7 @@ public class LiveDataMonitor extends    JPanel
      LiveDataMonitor monitor = new LiveDataMonitor( instrument_computer );
 
      JFrame frame = new JFrame( "Live Data Monitor" );
-     frame.setBounds( 0, 0, 350, 350 );
+     frame.setBounds( 20, 20, 350, 350 );
      frame.getContentPane().add( monitor );
  
      frame.setVisible( true );
