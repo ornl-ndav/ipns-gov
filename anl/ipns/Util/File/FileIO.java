@@ -1,4 +1,3 @@
-
 /*
  * File:  FileIO.java 
  *             
@@ -32,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/01/24 20:55:02  bouzekc
+ * Removed unused variables and imports.
+ *
  * Revision 1.3  2003/10/27 15:00:06  rmikk
  * End of File conditions now work
  *
@@ -46,7 +48,6 @@
 package DataSetTools.util;
 import java.io.*;
 import java.util.*;
-import DataSetTools.util.*;
 import java.lang.reflect.*;
 public class FileIO{
   public static final String NO_MORE_DATA = "No More Data";
@@ -77,8 +78,7 @@ public class FileIO{
 
   public static Object Write( String filename,  boolean append, 
           boolean ReturnAtEnd,  Vector V,  String Format){
-     
-     File f = new File( filename);
+
      FileOutputStream fout;
      try{
         if( append) 
@@ -273,7 +273,7 @@ public class FileIO{
   */  
   public static void main( String args[] ){
 
-    int i;
+    //int i;
     Vector V;
     /*String[] x = new String[30];
     for(  i = 0; i< 30; i++)
@@ -296,7 +296,6 @@ public class FileIO{
     try{
        FileInputStream fin = new FileInputStream( "x.dat");
        System.out.println( FileIO.Read( fin, V,"F8.2", -1, null) );
-       Vector V1 = new Vector();
       
        System.out.println("Res1="+ StringUtil.toString( V.elementAt(0) ) );
        }
@@ -550,13 +549,11 @@ class Nulll{
     public Object read(FileInputStream fin )throws IOException{
        currentFormat = fixup( currentFormat);
        boolean done = false;
-       newLineOp  nl = new newLineOp();
-       LineBreakModeOp lbmop= new LineBreakModeOp();
+
        while( !done)
           if( f_operations[currentFormat]  instanceof newLineOp){
-               Object O;
                if(!haveReadReturn)
-                  O = f_operations[ currentFormat ].read(fin);
+                  f_operations[ currentFormat ].read(fin);
                haveReadReturn = false;
                currentFormat++;
                currentFormat = fixup(currentFormat);
