@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.25  2004/03/05 04:46:29  millermi
+ * - Removed unnecessary variables from binarySearch().
+ * - Added comments to code for better readability.
+ *
  * Revision 1.24  2004/02/28 00:32:59  millermi
  * - Added ivc.preserveAspectRatio(true) to prevent image distortion.
  *
@@ -1096,14 +1100,15 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */ 
   private int binarySearch(  float[] x_values, float dist )
   { 
-    float start = x_values[0];
-    float end = x_values[x_values.length - 1];
     int bin_low = 0;
     int bin_high = x_values.length - 1;
     int bin = Math.round( (float)(bin_high-bin_low)/2f );
-    float half_increment = (x_values[1] - start)/2f;
+    // half of the step from one x_value to the next.
+    float half_increment = (x_values[1] - x_values[0])/2f;
+    // if dist is within half a step of the x_value, or if the bin is an
+    // extreme, return that bin index.
     while( !( dist <= (x_values[bin] + half_increment) &&
-              dist >= (x_values[bin] - half_increment) ) &&
+              dist > (x_values[bin] - half_increment) ) &&
 	    !( bin == bin_low || bin == bin_high ) )
     {
       //System.out.println("Dist/X_val/bin: " + dist + "/" + x_values[bin] +
@@ -1111,13 +1116,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       if( dist < (x_values[bin] - half_increment) )
       {
         bin_high = bin;
-	bin = bin_low + Math.round((float)(bin_high-bin_low)/2f);
       }
       else
       {
         bin_low = bin;
-	bin = bin_low + Math.round((float)(bin_high-bin_low)/2f);
       }
+      // move bin to midpoint of bin_low and bin_high
+      bin = bin_low + Math.round((float)(bin_high-bin_low)/2f);
     }
     return bin;
   }
@@ -1313,7 +1318,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	//System.out.println("Pointed At Changed " + 
 	//                   ivc.getPointedAt().toString() );
       }
-      // disable "Hide/Show Results Window" if no selections exist.
+      // enable/disable "Hide/Show Results Window" if no selections exist.
       if( data_set.getNum_entries() > 0 )
       {
         menu_bar.getMenu(0).getItem(1).setEnabled(true);
