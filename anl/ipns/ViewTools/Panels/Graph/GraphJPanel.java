@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.41  2004/04/21 02:36:12  millermi
+ * - Added validation check to setData() and min/max calculations
+ *   to make sure data wasn't null.
+ *
  * Revision 1.40  2004/03/15 23:53:55  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -260,7 +264,11 @@ public class GraphJPanel extends    CoordJPanel
   {
     if ( graph_num < 0 || graph_num > graphs.size() )  // only allow adding one
       return false;
-
+    
+    if( x_vals == null || x_vals.length == 0 ||
+        y_vals == null || y_vals.length == 0 )
+      return false;
+    
     if ( graph_num == graphs.size() )                  // add a new graph
       graphs.addElement( new GraphData() ); 
    
@@ -1525,7 +1533,6 @@ private void SetDataBounds()
     }
 
     CoordBounds data_bound =  new CoordBounds( x1, y1, x2, y2 );
-
     data_bound.invertBounds();               // needed for "upside down" pixel
     initializeWorldCoords( data_bound );     // coordinates
 }
@@ -1538,6 +1545,9 @@ private void SetDataBounds()
 
 public float getYmin()
 {
+  // check number of graphs
+  if( graphs.size() == 0 || ((GraphData)graphs.elementAt(0)).y_vals == null )
+    return Float.NaN;
     GraphData gd = (GraphData)graphs.elementAt(0);
     float [] yvals = gd.y_vals;
                                                                                 
@@ -1570,6 +1580,9 @@ public float getYmax()
                                                                                     
 public float getXmin()
 {
+  // check number of graphs
+  if( graphs.size() == 0 || ((GraphData)graphs.elementAt(0)).y_vals == null )
+    return Float.NaN;
     GraphData gd = (GraphData)graphs.elementAt(0);
     float [] xvals = gd.x_vals;
                                                                                     
