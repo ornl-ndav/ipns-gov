@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/04 20:47:31  dennis
+ * Now uses ISlicePlaneSelector.HKL_MODE and ISlicePlaneSelector.QXYZ_MODE
+ * rather than locally defined constants for the mode.
+ *
  * Revision 1.2  2004/03/03 23:18:34  dennis
  * Added isEnabled() method.
  *
@@ -58,11 +62,8 @@ public class HKLorQ_SelectorUI extends    ActiveJPanel
 {
   public static final String MODE_CHANGED = "Mode Changed";
 
-  private int HKL_MODE  = SliceSelectorUI.HKL_MODE;
-  private int QXYZ_MODE = SliceSelectorUI.QXYZ_MODE;
-
   private JComboBox selector;
-  private int       mode = HKL_MODE;
+  private int       mode = ISlicePlaneSelector.HKL_MODE;
 
 
   /* --------------------------- constructor --------------------------- */
@@ -83,7 +84,7 @@ public class HKLorQ_SelectorUI extends    ActiveJPanel
     add( selector ); 
 
     selector.addActionListener( new SelectorListener() );
-    setMode( HKL_MODE );
+    setMode( ISlicePlaneSelector.HKL_MODE );
   }
 
   /* --------------------------- setEnabled ----------------------------- */
@@ -116,11 +117,13 @@ public class HKLorQ_SelectorUI extends    ActiveJPanel
    *  Set the displayed option this selector to be HKL or Q
    *
    *  @param  new_mode  The integer code for the new mode, one of 
-   *                    SliceSelector.HKL_MODE or SliceSelector.QXYZ_MODE.
+   *                    ISlicePlaneSelector.HKL_MODE or 
+   *                    ISlicePlaneSelector.QXYZ_MODE.
    */
   public void setMode( int new_mode )
   { 
-    if ( new_mode >= HKL_MODE &&  new_mode <= QXYZ_MODE  ) 
+    if ( new_mode >= ISlicePlaneSelector.HKL_MODE &&  
+         new_mode <= ISlicePlaneSelector.QXYZ_MODE  ) 
     {
       mode = new_mode;
 
@@ -135,16 +138,17 @@ public class HKLorQ_SelectorUI extends    ActiveJPanel
    *  Get the displayed option this selector.
    *
    *  @return  The integer code for the mode, one of 
-   *           SliceSelector.HKL_MODE or SliceSelector.QXYZ_MODE.
+   *                    ISlicePlaneSelector.HKL_MODE or 
+   *                    ISlicePlaneSelector.QXYZ_MODE.
    */
   public int getMode()
   {
     int mode = selector.getSelectedIndex();
     
     if ( mode == 0 )
-      return SliceSelectorUI.HKL_MODE;
+      return ISlicePlaneSelector.HKL_MODE;
     else
-      return SliceSelectorUI.QXYZ_MODE; 
+      return ISlicePlaneSelector.QXYZ_MODE; 
   }
 
   
