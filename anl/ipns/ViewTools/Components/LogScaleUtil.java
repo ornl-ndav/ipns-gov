@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/11/05 22:06:00  millermi
+ *  - Reimplemented toDest(float) and toSource(float) for true logscale.
+ *
  *  Revision 1.9  2004/07/29 16:44:08  robertsonj
  *  added some comments and javadocs
  *
@@ -72,12 +75,16 @@
 
 package gov.anl.ipns.ViewTools.Components;
 
-
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
 
 /**
- * This class logarithmically maps a linear interval to another linear interval,
- * especially useful for altering pixel coordinates logarithmically.
+ * This class linearly maps the log(destination_value) to
+ * a value in the source interval. Both true log and pseudo logs are supported.
+ * Pseudo-log uses a log scale factor to map from destination to source
+ * (used in colorscale) while tru-log maps the log of a destination value to
+ * the source with no scale factor.
  */
 public class LogScaleUtil
 {
@@ -90,7 +97,11 @@ public class LogScaleUtil
   
  /**
   * Constructor - construct intervals sourcemin - sourcemax, and map it to
-  * the interval destinationmin - destinationmax.
+  * the interval destinationmin - destinationmax. The source interval is
+  * assumed to be the logarithmic interval, and the destination interval
+  * is assumed to be the linear interval. Thus, if source_min = 1 and
+  * source_max = 100, a value = 10 would appear half way inbetween while the
+  * same value on the destination interval would appear 1/10 of the way.
   *
   *  @param  smin - the source minimum
   *  @param  smax - the source maximum
@@ -107,6 +118,8 @@ public class LogScaleUtil
       smin = smax;
       smax = temp;
     }
+    // Source interval may contain negatives since log(dest_value) is linearly
+    // mapped to this interval.
     source_min = smin;
     source_max = smax;
     
@@ -117,55 +130,22 @@ public class LogScaleUtil
       dmin = dmax;
       dmax = temp;
     }
-    if(dmin <= 0){
-    	dmin = Float.MIN_VALUE;
-    }
     
-    if(smin <= 0){
-    	smin = Float.MIN_VALUE;
-    }
-    
-    
-    //if(dmin < 0)
-    //{
-    //	dmin = (-1)*dmin;
-    //}
     // make sure interval is positive
-    /*if( dmax < 0 )
+    if( dmax < 0 )
     {
       float temp = dmin;
       dmin = -dmax; // when negated, the max becomes the min.
       dmax = -temp; // when negated, the min becomes the max.
     }
-    // if dmax > 0, but dmin < 0
-    if( dmin < 0 )
-      dmin = 0;*/
+    // if dmax > 0, but dmin < 0, set dmin = 1/2 dmax
+    else if( dmin < 0 )
+      dmin = dmax/2f;
     dest_min = dmin;
     dest_max = dmax;
 
   }
-  public LogScaleUtil(float sliderPos, float xMax){
-  	this.sliderPos = sliderPos;
-  	this.xMax = xMax;
-  }
-  public LogScaleUtil(float[] data_points){
-  	float tempmin = Float.MAX_VALUE;
-  	float tempmax = Float.MIN_VALUE;
-  	for(int i = 0; i < data_points.length; i++){
-  		if((data_points[i] < tempmin) && (data_points[i] > Float.MIN_VALUE)){
-  			tempmin = data_points[i];
-  		}
-  	}
-  	for(int i = 0; i < data_points.length; i++){
-  		if(data_points[i] > tempmax){
-  			tempmax = data_points[i];
-  		}
-  	}
-  	source_min = tempmin;
-  	dest_min = tempmin;
-  	dest_max = tempmax;
-  	source_max = tempmax;
-  }
+  
  /**
   * This method is for "normal" log scaling.
   *
@@ -173,22 +153,36 @@ public class LogScaleUtil
   *  @return source value;
   */ 
   public float toSource( float num )
-  {  
-    return toSource( num, (double)(source_max/source_min) );
+  {
+    // Destination values must be positive to do the log conversion.
+    if( num < 0 )
+      return Float.NaN;
+    float a = (dest_max - dest_min)/
+              ((float)Math.log(dest_max/dest_min));
+    // This will map num to the interval [0,dest_max-dest_min]
+    float intermediate_value = ( a*(float)Math.log(num/dest_min) );
+    CoordBounds intermediate = new CoordBounds( 0,0,dest_max-dest_min,
+                                                dest_max-dest_min );
+    CoordBounds source = new CoordBounds( source_min,source_min,
+                                          source_max, source_max );
+    CoordTransform dest_to_source = new CoordTransform( intermediate,
+                                                        source );
+    // Now map from [0,dest_max-dest_min] to [source_min,source_max]
+    return dest_to_source.MapXTo(intermediate_value);
   }
 
  /**
   * This method converts num to a source value within the interval.
   *
-  *  @param  num
+  *  @param  num - Number on the destination interval.
   *  @param  s - logscale value
   *  @return source value;
   */ 
   public float toSource( float num, double s )
   {
-  	//System.out.println("toSource num = " + num);
-  	//System.out.println("toSource s = " + s);
-  	//System.out.println("toSource dest_max = " + dest_max);
+    //System.out.println("toSource num = " + num);
+    //System.out.println("toSource s = " + s);
+    //System.out.println("toSource dest_max = " + dest_max);
     // clamp number to the destination interval
     if( num < dest_min )
     {
@@ -210,8 +204,6 @@ public class LogScaleUtil
 	//System.out.println("Source_max = " + source_max);
     s =Math.exp(20 * s / 100.0) + 0.1; // map [0,100] exponentially to get 
                                        // scale change that appears more linear
-	//System.out.println("S = " + s);
-    //System.out.println("(source_max - source_min) / Math.log(s)" + source_max + " - " + source_min + "/" + Math.log(s));
     double scale = (source_max - source_min) / Math.log(s);
     //System.out.println("scale = " + scale);
     //System.out.println("source_min = " + source_min);
@@ -224,13 +216,29 @@ public class LogScaleUtil
  /**
   * This method finds the destination value for "normal" log scaling. 
   * 
-  *  @param  source
+  *  @param  num
   *  @return destination value - the first table value that the source value
   *                              maps to.
   */ 
-  public float toDest( float source )
+  public float toDest( float num )
   {
-    return toDest(source, (double)(source_max/source_min) );
+    // Restrict num to valid source values.
+    if( num < source_min )
+      num = source_min;
+    else if( num > source_max )
+      num = source_max;
+    CoordBounds intermediate = new CoordBounds( 0,0,dest_max-dest_min,
+                                                dest_max-dest_min );
+    CoordBounds source = new CoordBounds( source_min,source_min,
+                                          source_max, source_max );
+    CoordTransform dest_to_source = new CoordTransform( intermediate,
+                                                        source );
+    // Map num to the [0,dest_max-dest_min] interval.
+    num = dest_to_source.MapXFrom(num);
+    
+    float a = ((float)Math.log(dest_max/dest_min))/(dest_max - dest_min);
+    float power = num * a;
+    return ( dest_min*((float)Math.exp((double)power)) );
   }
  
  /**
@@ -244,8 +252,8 @@ public class LogScaleUtil
   */ 
   public float toDest( float source, double s )
   {
-  	//System.out.println("toDest source = " + source);
-  	//System.out.println("toDest s = " + s);
+    //System.out.println("toDest source = " + source);
+    //System.out.println("toDest s = " + s);
     // clamp number to the destination interval
     if( source < source_min )
     {
@@ -271,90 +279,30 @@ public class LogScaleUtil
                                         // scale change that appears more linear
 
 
-    float returnvalue = (float)( ( Math.exp( (double)(source - source_min) * Math.log(s)/
-                    (source_max - source_min) ) - 1 ) *
+    float returnvalue = (float)( ( Math.exp( (double)(source - source_min) *
+                    Math.log(s) / (source_max - source_min) ) - 1 ) *
                     ( dest_max - dest_min)/(s-1) ) + dest_min;
     //System.out.println("toDest returnValue = " + returnvalue);
     return returnvalue;
   }
-public float returna(float num){
-	return (dest_max - dest_min)/((float)Math.log(dest_max/dest_min));
-}
-
-/**
-  * This method maps a single linear number into a single logrithmic number.
-  *@param num
-  *  @return  a number scaled logrithmically.
-  */
-public float truLogScale(float num){
-	float returnvalue = 0;
-	float a = (dest_max - dest_min)/((float)Math.log(dest_max/dest_min));
-	returnvalue = a*(float)Math.log(num/dest_min);
-	return returnvalue;
-}
-
-/**
-  * This method maps a single log scale number into a single linear number
-  * @param num
-  *
-  *  @return  a linear scaled number.
-  */
-public float truLogCoord(float num)
-{   
-
-	float returnvalue = 0;
-	float a = (dest_max - dest_min)/((float)Math.log(dest_max/dest_min));
-	float power = num / a;
-	returnvalue = dest_min*((float)Math.exp((double)power));
-	return returnvalue;
-}
-  
  
   //For Test purposes only...
  
- public static void main( String argv[] )
+  public static void main( String args[] )
   {
-  	
-    float smin   = 1f;
-    float smax = 1000f;
+    float smin   = 20f;
+    float smax   = 30f;
     float dmin   = 1f;
-    float dmax   = 1000f;
+    float dmax   = 10f;
+    
     LogScaleUtil testutil = new LogScaleUtil(smin,smax,dmin,dmax);
-    //float dmin   = 1f;
-    //float dest   = 1000f;
-    //FileWriter fw = null;
-   // try{
-	//fw = new FileWriter("output.txt");	
-   // }catch(IOException e){
-    //	System.out.println(e);
-   // }
-	//BufferedWriter br = new BufferedWriter(fw);
-    //String answer;
-	float[] testarray = new float[1000];
-	for(int i=1; i<1000; i++){
-		testarray[i] = i;
-		//testarray[i] = testutil.truLogCoord(testarray[i]);
-		
-	}
-for (int i = 1; i < 999; i++){
-	System.out.println("div = " + testarray[i+1]/testarray[i]);	
-}
-    /*System.out.println("Smin: " + testutil.toSource(dmin,0) );
-    System.out.println("Smax: " + testutil.toSource(dmax,0) );
-    System.out.println("Dmin: " + testutil.toDest(smin,0) );
-    System.out.println("Dmax: " + testutil.toDest(smax,0) );*/
-    
-    /*for( int i = (int)(dmin*1000); i < dmax*1000; i++ )
-      if( i%10 == 0 )
-        System.out.println("Dest/Source: " + (float)i/1000 + "/" + 
-	                    testutil.toSource((float)i/1000, .3) );
-    System.out.println("");
-    for( int j = (int)(smin); j < smax; j++ )
-      if( j%10 == 0 )
-        System.out.println("Source/Dest: " + j + "/" + 
-                        testutil.toDest((float)j, .3) );
-    
-    //System.out.println("Extreme tests: " + testutil.toSource(1f) );*/
+    System.out.println("Source Min/Max:"+smin+"/"+smax);
+    System.out.println("Dest Min/Max:"+dmin+"/"+dmax);
+    System.out.println("1 to log: "+testutil.toSource(1f));
+    System.out.println("2 to log: "+testutil.toSource(2f));
+    System.out.println("3 to log: "+testutil.toSource(3f));
+    System.out.println("5 to log: "+testutil.toSource(5f));
+    System.out.println("10 to log: "+testutil.toSource(10f));
   }
 }
 
