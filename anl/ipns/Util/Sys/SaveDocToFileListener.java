@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2002/01/25 19:41:33  pfpeterson
+ * Use the script filter to show only iss files. Also remembers the last item and
+ * defaults to the Script_Path directory.
+ *
  * Revision 1.2  2002/01/10 15:39:45  rmikk
  * Fixed an error that caused it not to remember the last
  * directory
@@ -47,13 +51,16 @@ import java.io.*;
  import java.beans.*;
  import IsawGUI.*;
  import javax.swing.*;
+import java.awt.*;
 
 /** Pops up a file dialog so the filename can be selected.  Then saves the contents
- * of the PlainDocument doc to this file. Other features include <UL><LI>to notify listeners of
- * a new filename <LI> also listen for a new "current filename" <LI>The current filename
- * appears in the pop up file dialog box.
- *  <LI> As a PropertyChange Listener, this class only listens for the property with
- * the name "filename".  The New Value is the new filename.</ul>
+ * of the PlainDocument doc to this file. Other features include 
+ * <UL><LI>to notify listeners of a new filename 
+ * <LI> also listen for a new "current filename"
+ * <LI>The current filename appears in the pop up file dialog box.
+ * <LI> As a PropertyChange Listener, this class only listens for the
+ * property with the name "filename".  The New Value is the new
+ * filename.</UL>
 
 */
 public class SaveDocToFileListener  implements ActionListener , PropertyChangeListener
@@ -102,23 +109,36 @@ public class SaveDocToFileListener  implements ActionListener , PropertyChangeLi
      */
      public void actionPerformed( ActionEvent evt)
       {
-        final JFileChooser fc ;
+        final JFileChooser fc=new JFileChooser() ;
+	if( filename != null ){
+	    fc.setCurrentDirectory(new File(filename));
+	    fc.setSelectedFile(new File(filename));
+	}
+	Dimension d= new Dimension(650,300);
+	fc.setPreferredSize(d);
+	
+	fc.setFileFilter(new scriptFilter());
+	
+	try{
+	    int state = fc.showSaveDialog(null);
+	    if( state==0 && fc.getSelectedFile()!=null ){
+		File f = fc.getSelectedFile();
+		filename=f.toString();
+	    }else{
+		return;
+	    }
+	}catch(Exception e){
+	    DataSetTools.util.SharedData.status_pane.add("Choose and input file");
+	    return;
+	}
 
-        if( filename == null)
-            fc= new JFileChooser() ;
-        else
-             fc= new JFileChooser( filename ) ;
-
-         int state  ;
-         if( filename != null )
-           fc.setSelectedFile( new File(filename));
-    
-	 state = fc.showSaveDialog( null ) ;
-         if( state != JFileChooser.APPROVE_OPTION )
-               return ;
-       
-	 File SelectedFile = fc.getSelectedFile() ;
-         filename  = SelectedFile.toString() ;
+	/* int state  ;
+	   state = fc.showSaveDialog( null ) ;
+	   if( state != JFileChooser.APPROVE_OPTION )
+	   return ;
+	   
+	   File SelectedFile = fc.getSelectedFile() ;
+	   filename  = SelectedFile.toString() ; */
       
 
 	 (new Util()).saveDoc( doc , filename );
