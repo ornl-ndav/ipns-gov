@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2002/01/09 19:31:00  rmikk
+ * -Added two methods add and clear to the Status Pane.
+ *   These methods allow for adding or clearing a StatusPane
+ *    if there is a handle to it
+ *
  * Revision 1.1  2001/12/21 17:44:45  dennis
  * The CommandPane's Status Line. It is event driven
  * (propertyChange event).
@@ -131,11 +136,42 @@ public class StatusPane extends JTextArea implements
           { 
              setText("");
            }
+   }
+ /** This method can be used to add information to the text area.
+ *
+ *  @param Value  <ul>The value to be displayed. Arrays and Vectors will
+ *                   be converted to a small list and each element will
+ *                   be displayed the best possible </ul>
+ */
+ public void add( Object Value)
+    {
+        String S = null;
+         // System.out.println("In status Pane.add "+ Value);
+             if( Value == null)
 
+                S = "null";
 
+             else if( ! Value.getClass().isArray( ))
 
-     }
+                if( !(Value instanceof Vector))
+                   S = Value.toString();
 
+             if( S == null)
+
+                S = (new NxNodeUtils()).Showw( Value);
+                
+
+             new Util().appendDoc(getDocument(), S ) ; 
+
+    }
+
+     
+
+/** Clears the contents of the text area
+*/
+ public void Clearr()
+    { setText("");
+    }
 
 
 
