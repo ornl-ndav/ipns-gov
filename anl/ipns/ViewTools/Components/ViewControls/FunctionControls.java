@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.32  2004/04/16 20:25:41  millermi
+ * - Now uses new methods from the IVirtualArrayList1D.
+ *
  * Revision 1.31  2004/03/15 23:52:01  dennis
  * Cleaned up imports and changed references to static fields to
  * be interms of the class.
@@ -292,15 +295,15 @@ import javax.swing.border.*;
     control_label.setFont( label_font );
     label_panel.add( control_label );
     
-    int group_id;
+    String group_id;
     
-    lines = new String[Varray1D.getNumlines(  )];
+    lines = new String[Varray1D.getNumSelectedGraphs(  )];
 
-    for( int i = 0; i < Varray1D.getNumlines(  ); i++ ) {
-      group_id   = Varray1D.getGroupID( i );
+    for( int i = 0; i < Varray1D.getNumSelectedGraphs(  ); i++ ) {
+      group_id   = Varray1D.getGraphTitle( i );
       lines[i]   = "Group ID:" + group_id;
     }
-                                                                                   
+          
     //LineBox = new JComboBox(lines);
     labelbox1 = new LabelCombobox( label1, lines );
                                                                                    
