@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2003/10/16 00:01:25  dennis
+ * Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  * Revision 1.7  2003/06/03 16:52:39  dennis
  * Added method to set value from an array of floats.
  *
@@ -186,9 +189,8 @@ public class Vector3D
   /**
    *  Set the value for this vector to the same value as the given vector.
    *
-   *  @param x    The x coordinate of the point
-   *  @param y    The y coordinate of the point
-   *  @param z    The z coordinate of the point
+   *  @param vector  The vector whose values are to be copied into the
+   *                 current vector.
    */
   public void set( Vector3D vector )
   {

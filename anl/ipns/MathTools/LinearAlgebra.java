@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.20  2003/10/15 23:59:02  dennis
+ *  Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  *  Revision 1.19  2003/07/14 22:29:57  dennis
  *  print methods now format their output in 5 columns.
  *
@@ -521,7 +524,7 @@ public final class LinearAlgebra
     *                side of the linear system of equations Ax = b.  "b" must
     *                have as many rows as matrix "A".
     *
-    * @ return  The return value represents the residual error in the least
+    * @return  The return value represents the residual error in the least
     *           squares approximation if A has more rows than columns.  If
     *           A is square, the return value is 0.  If A has more columns
     *           than rows, or if the system is singular, this function fails 

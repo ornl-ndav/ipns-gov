@@ -30,6 +30,9 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.6  2003/10/15 23:59:02  dennis
+ *  Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  *  Revision 1.5  2003/07/22 22:14:40  dennis
  *  Added option to use "statistical weighting" by 1/sqrt(|y[i]|)
  *  in the method to fit a polynomial.
@@ -147,10 +150,10 @@ public final class CurveFit
    *  Convenience method for evaluating a polynomial, specified by it's
    *  array of coefficients, at a list of x values.
    *
-   *  @ param  x     Array of x values where the polynomial is to be evaluated.
-   *  @ param  y     Array in which the values will be stored; this must have
+   *  @param  x     Array of x values where the polynomial is to be evaluated.
+   *  @param  y     Array in which the values will be stored; this must have
    *                 at least as many entries as x.
-   *  @ param  coef  The list of coefficents A0, A1, A2, ... etc.
+   *  @param  coef  The list of coefficents A0, A1, A2, ... etc.
    */
   static public void eval( double x[], double y[], double coef[] )
   {
