@@ -30,6 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/06/17 15:32:28  dennis
+ * Added initial implementation of code to locate 3D world coordinate
+ * point given a pixel position.  Currently this only works the second
+ * time a point is selected.  Also this currently contains many debug
+ * prints.
+ *
  * Revision 1.5  2004/06/15 22:14:41  dennis
  * Now uses ported versions of gluLookAt(), gluPerspective() and
  * gluPickMatrix() from the BasicGLU class, instead of the actual
@@ -100,17 +106,20 @@ public class ThreeD_GL_Panel implements Serializable
                     vuv;
   private float view_angle = 40;
   private float near_plane = 1;
-  private float far_plane  = 500;
+  private float far_plane  = 50;
 
   private boolean use_perspective_proj = true;
 
   private boolean do_select = false;
+  private boolean do_locate = false;
 
   private final int HIT_BUFFER_SIZE = 512;
   private int n_hits = 0;
   private IntBuffer hit_buffer = BufferUtils.newIntBuffer( HIT_BUFFER_SIZE );
-  private int pick_x,                              // x,y pixel coords of point
-              pick_y;                              // used for picking objects
+  private int cur_x,                              // x,y pixel coords of point
+              cur_y;                              // used for picking and 
+                                                  // locating objects 
+  private float world_coords[] = new float[3];
 
 /* --------------------- Default Constructor ------------------------------ */
 /**
@@ -125,9 +134,10 @@ public class ThreeD_GL_Panel implements Serializable
     try
     {
       GLCapabilities capabilities = new GLCapabilities();
-//      capabilities.setDoubleBuffered( false );
+      capabilities.setDoubleBuffered( true );
       System.out.println("capabilites = " + capabilities );
       canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
+//    canvas.setAutoSwapBufferMode(false);
       canvas.addGLEventListener(new Renderer());
     }
     catch (Exception e)
@@ -342,15 +352,40 @@ public int[] pickHitList( int x, int y )
   if ( do_select )             // ignore more requests to do selection
     return new int[0];         // if currently doing selection
 
-  pick_x = x;
-  pick_y = y;
+  cur_x = x;
+  cur_y = y;
 
   do_select = true;
-  canvas.display();
+  canvas.display();         // this will cause Renderer.display(drawable) to be
+                            // called with the correct drawable, GL and thread
 
   int hits[] = new int[6*n_hits];
   hit_buffer.get( hits );
   return hits;
+}
+
+
+/* ---------------------- getPixelWorldCoordinates ------------------------ */
+/**
+ *  Get the world coordinates of the specified point.
+ *
+ *  @param x  The pixel x (i.e. column) value
+ *  @param y  The pixel y (i.e. row) value, in window coordinates.
+ */
+public float[] getPixelWorldCoordinates( int x, int y )
+{
+  cur_x = x;
+  cur_y = y;
+
+  do_locate = true;
+  canvas.display();         // this will cause Renderer.display(drawable) to be
+                            // called with the correct drawable, GL and thread
+
+  float coords[] = new float[3];
+  for ( int i = 0; i < 3; i++ )
+    coords[i] = world_coords[i];
+
+  return coords;
 }
 
 
@@ -521,7 +556,7 @@ public int[] pickHitList( int x, int y )
  */
   public class Renderer implements GLEventListener
   {
-    /* ---------------------------- reshape ----------------------------- */
+    /* ---------------------------- init ----------------------------- */
     /**
      *  Called by the JOGL system when the panel is initialized. 
      *
@@ -552,27 +587,27 @@ public int[] pickHitList( int x, int y )
                          int width,
                          int height)
     {
+      System.out.println("**** reshape called with x,y,width,height = " +
+                          x + ", " + y + ", " + width + ", " + height ); 
       GL  gl  = drawable.getGL();
 
       gl.glViewport( 0, 0, width, height );
-      if ( use_perspective_proj )
+      gl.glMatrixMode(GL.GL_PROJECTION);
+      gl.glLoadIdentity();
+      if ( do_select )
       {
-        gl.glMatrixMode(GL.GL_PROJECTION);
-        gl.glLoadIdentity();
-        if ( do_select )
-        {
-          System.out.println("Selection in reshape, x, y = " + pick_x + 
-                             ", " + pick_y );
-          int viewport[] = { 0, 0, width, height };
-          BasicGLU.gluPickMatrix( gl, pick_x, height-pick_y, 1, 1, viewport );
-        }
+        System.out.println("Selection in reshape, x, y = " + cur_x + 
+                           ", " + cur_y );
+        int viewport[] = { 0, 0, width, height };
+        BasicGLU.gluPickMatrix( gl, cur_x, height-cur_y, 1, 1, viewport );
+      }
 
+      if ( use_perspective_proj )
         BasicGLU.gluPerspective( gl, 
                                  view_angle, 
                                  width/(float)height, 
                                  near_plane, 
                                  far_plane );
-      }
       else
       {
         Vector3D difference_v = new Vector3D( cop );
@@ -581,15 +616,28 @@ public int[] pickHitList( int x, int y )
         float angle_radians = (float)(Math.PI * view_angle / 180);
         float half_h = (float)Math.tan( angle_radians ) * distance;
         float half_w = half_h * width/(float)height;
-
-        gl.glMatrixMode(GL.GL_PROJECTION);
-        gl.glLoadIdentity();
         gl.glOrtho( -half_w, half_w, -half_h, half_h, -1000, 1000 );
       }
     
-      gl.glMatrixMode(GL.GL_MODELVIEW);
-      gl.glLoadIdentity();
       gl.glFlush();
+
+        double model_view_mat[] = new double[16];
+        double projection_mat[] = new double[16];
+        int    viewport[] = new int[4];
+        gl.glGetDoublev( GL.GL_MODELVIEW_MATRIX, model_view_mat );
+        gl.glGetDoublev( GL.GL_PROJECTION_MATRIX, projection_mat );
+        gl.glGetIntegerv( GL.GL_VIEWPORT, viewport );
+
+        float cur_z = -1;
+        double world_x[] = new double[1];
+        double world_y[] = new double[1];
+        double world_z[] = new double[1];
+        System.out.println("UnProject called from reshape ****************");
+        BasicGLU.gluUnProject( cur_x, height-cur_y, cur_z,
+                               model_view_mat, projection_mat, viewport,
+                               world_x, world_y, world_z );
+        System.out.println("END UnProject called from reshape ***************");
+
     }
 
     /* ---------------------- displayChanged --------------------------- */
@@ -634,6 +682,43 @@ public int[] pickHitList( int x, int y )
         return;
       }
 
+      if ( do_locate )
+      {
+        System.out.println("Locate in GL Panel Number --------" + panel_id );
+        System.out.println( "cur_x, cur_y = " + cur_x + ", " + cur_y );
+        float depths[] = new float[1];
+        gl.glReadPixels( cur_x, size.height-cur_y, 
+                         1, 1, 
+                         GL.GL_DEPTH_COMPONENT,
+                         GL.GL_FLOAT,
+                         depths ); 
+        float cur_z = depths[0];
+        System.out.println("Current depth = " + cur_z );
+
+        double model_view_mat[] = new double[16];
+        double projection_mat[] = new double[16];
+        int    viewport[] = new int[4];  
+        gl.glGetDoublev( GL.GL_MODELVIEW_MATRIX, model_view_mat ); 
+        gl.glGetDoublev( GL.GL_PROJECTION_MATRIX, projection_mat ); 
+        gl.glGetIntegerv( GL.GL_VIEWPORT, viewport ); 
+        double world_x[] = new double[1];
+        double world_y[] = new double[1];
+        double world_z[] = new double[1];
+        BasicGLU.gluUnProject( cur_x, size.height-cur_y, cur_z, 
+                               model_view_mat, projection_mat, viewport,
+                               world_x, world_y, world_z );
+        System.out.println("WORLD COORDS = " + world_x[0] + ", "
+                                             + world_y[0] + ", "
+                                             + world_z[0]  );
+        world_coords[0] = (float)world_x[0];
+        world_coords[1] = (float)world_y[0];
+        world_coords[2] = (float)world_z[0];
+
+        System.out.println("Resetting do_locate flag");
+        do_locate = false;
+        return;
+      }
+
       IThreeD_GL_Object list[] = getAllObjects();
 
       gl.glClearColor( background.getRed()/256.0f, 
@@ -650,7 +735,8 @@ public int[] pickHitList( int x, int y )
 
       if ( do_select )
       {
-        System.out.println("Rendering in selection mode");
+        System.out.println("Rendering in selection mode ++++++++++");
+        System.out.println( "cur_x, cur_y = " + cur_x + ", " + cur_y );
         n_hits = 0;
         for ( int i = 0; i < HIT_BUFFER_SIZE; i++ )
           hit_buffer.put( i, 0 );
@@ -663,6 +749,8 @@ public int[] pickHitList( int x, int y )
 
       gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT );
       reshape( drawable, 0, 0, size.width, size.height ); 
+      gl.glMatrixMode(GL.GL_MODELVIEW);
+      gl.glLoadIdentity();
 
       if ( !do_select )     // don't need lighting if doing selection mode
       {
@@ -694,13 +782,14 @@ public int[] pickHitList( int x, int y )
         list[i].Render( drawable );
 
       gl.glFlush();
+//      drawable.swapBuffers();
 
       if ( do_select )
       {
         System.out.println("Selection in GL Panel Number " + panel_id );
         n_hits = gl.glRenderMode( GL.GL_RENDER );
         System.out.println("Resetting do_select flag");
-        do_select = false;             // reset old view params
+        do_select = false; 
         System.out.println("n_hits = " + n_hits );
       }
     }
@@ -721,8 +810,17 @@ public int[] pickHitList( int x, int y )
         {
            int x = e.getX();
            int y = e.getY();
+/* locate ...... 
+*/
+           float wc[] = getPixelWorldCoordinates( x, y );
+           System.out.println("World Coordinates " + wc[0] + 
+                                              ", " + wc[1] +
+                                              ", " + wc[2] );
+
+/* selection......
+*/
            int hitlist[] = pickHitList( x, y );           
-           System.out.println( "MouseClickHandler:N Hits = " + hitlist.length );
+           System.out.println( "MouseClickHandler: length = "+hitlist.length );
            System.out.println( "x,y = " + x + ", " + y );
            for ( int i = 0; i < hitlist.length; i++ )
              System.out.println("hit = " + hitlist[i] );
