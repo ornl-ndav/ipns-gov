@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/08/17 01:23:54  millermi
+ *  - Now implements IPreserveState.
+ *  - Added code to repaint TVC after setObjectState() is called.
+ *  - getObjectState() no longer returns new ObjectState().
+ *
  *  Revision 1.3  2004/08/13 02:59:46  millermi
  *  - Fixed javadocs.
  *
@@ -72,6 +77,7 @@ import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 import gov.anl.ipns.ViewTools.Components.Region.*;
+import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
@@ -81,7 +87,7 @@ import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
  * the tables will only display rectangular arrays, ragged arrays must be
  * put into a rectangular array.
  */
-public class TableViewComponent implements IViewComponent2D
+public class TableViewComponent implements IViewComponent2D, IPreserveState
 {
  /**
   * This messaging String is sent out to all listeners when the pointed-at
@@ -95,6 +101,13 @@ public class TableViewComponent implements IViewComponent2D
   * has been completed (mouse dragged, then released).
   */
   public static final String SELECTED_CHANGED = TableJPanel.SELECTED_CHANGED;
+ 
+ /**
+  * "Thumbnail Colorscale Changed" - This messaging String is sent out to all
+  * listeners when the thumbnail colorscale has been changed.
+  */
+  public static final String THUMBNAIL_COLOR_SCALE_CHANGED = ("Thumbnail "+
+                                                          "Colorscale Changed");
  
  // **************************** ObjectState Keys ****************************
  /**
@@ -198,7 +211,11 @@ public class TableViewComponent implements IViewComponent2D
     }
     
     if( redraw )
-      ;  // create method to redraw everything?
+    {
+      tjp.repaint();
+      controls[0].validate();
+      controls[0].repaint();
+    }
   }
   
  /**
@@ -215,7 +232,7 @@ public class TableViewComponent implements IViewComponent2D
     state.insert( TABLEJPANEL, tjp.getObjectState(is_default) );
     state.insert( FORMAT_CONTROL, controls[0].getObjectState(is_default) );
     state.insert( THUMBNAIL_COLOR_SCALE, getThumbnailColorScale() );
-    return new ObjectState();
+    return state;
   }
   
  /**
@@ -381,7 +398,11 @@ public class TableViewComponent implements IViewComponent2D
  // ************************ Miscellaneous Methods ***************************
  
  /**
-  * 
+  * Get the colorscale of the thumbnail image representing the data in the
+  * table.
+  *
+  *  @return String colorscale code as defined by the IndexColorMaker class.
+  *  @see gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker
   */
   public String getThumbnailColorScale()
   {
@@ -389,7 +410,11 @@ public class TableViewComponent implements IViewComponent2D
   }
   
  /**
-  * 
+  * Set the colorscale of the thumbnail image representing the data in the
+  * table.
+  *
+  *  @param  color_scale String code as defined by the IndexColorMaker class.
+  *  @see gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker
   */
   public void setThumbnailColorScale( String color_scale )
   {
@@ -399,6 +424,7 @@ public class TableViewComponent implements IViewComponent2D
       isTwoSided = true;
     ijp.setNamedColorModel( colorscale, isTwoSided, true );
     ((PanViewControl)controls[1]).repaint();
+    sendMessage(THUMBNAIL_COLOR_SCALE_CHANGED);
   }
   
  /*
@@ -414,7 +440,10 @@ public class TableViewComponent implements IViewComponent2D
       listener.actionPerformed( new ActionEvent( this, 0, message ) );
     }
   }
-  
+ 
+ /*
+  * Builds the view controls for this component.
+  */
   private void buildControls()
   {
     // If no data to display, no controls are necessary.
@@ -457,6 +486,9 @@ public class TableViewComponent implements IViewComponent2D
     ((PanViewControl)controls[1]).addActionListener( new ControlListener() );
   }
   
+ /*
+  * Build the menu items for this component.
+  */
   private void buildMenu()
   {
     menus = new ViewMenuItem[1];
@@ -465,6 +497,9 @@ public class TableViewComponent implements IViewComponent2D
                  MenuItemMaker.getColorScaleMenu( new ColorChangedListener()) );
   }
   
+ /*
+  * This listener will listen to any table messages.
+  */
   private class TableListener implements ActionListener
   {
     public void actionPerformed( ActionEvent ae )
@@ -623,11 +658,15 @@ public class TableViewComponent implements IViewComponent2D
     def_pts4[1] = new floatPoint2D(2f,12f);
     reg[3] = new TableRegion( def_pts4, false );
     
+    //tvc.setPointedAt(new floatPoint2D(3f,5f));
+    //tvc.setThumbnailColorScale( IndexColorMaker.MULTI_SCALE );
+    ObjectState state = tvc.getObjectState(IPreserveState.PROJECT);
+    tvc.setThumbnailColorScale( IndexColorMaker.MULTI_SCALE );
+    tvc.setPointedAt(new floatPoint2D(8f,10f));
+    tvc.setObjectState(state);
     tvc.setSelectedRegions(reg);
     tvc.setSelectedRegions( tvc.getSelectedRegions() );
     // Set Pointed-At cell to (column=3, row=5)
-    tvc.setPointedAt(new floatPoint2D(3f,5f));
-    tvc.setThumbnailColorScale( IndexColorMaker.MULTI_SCALE );
     frame.getContentPane().add(tvc.getDisplayPanel());
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
