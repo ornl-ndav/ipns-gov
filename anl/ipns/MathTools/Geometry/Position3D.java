@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2002/12/05 20:41:34  pfpeterson
+ *  Added method to determine distance between two Position3D.
+ *
  *  Revision 1.11  2002/11/27 23:15:47  pfpeterson
  *  standardized header
  *
@@ -174,6 +177,23 @@ public class Position3D implements Serializable,
   public float getDistance()
   {
     return sph_radius;
+  }
+
+  /**
+   * Determine the distance between this and the given Position3D
+   */
+  public float distance(Position3D pos){
+    float[] mycoords  = this.getCartesianCoords();
+    float[] hiscoords = pos.getCartesianCoords();
+    double diff;
+    double distance=0.;
+
+    for( int i=0 ; i<3 ; i++ ){
+      diff=(double)(mycoords[i]-hiscoords[i]);
+      distance=distance+diff*diff;
+    }
+
+    return (float)Math.sqrt(distance);
   }
 
   /**
