@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.42  2003/12/17 20:31:06  millermi
+ *  - Removed private static final COMPONENT_RESIZED since
+ *    recent changes make this variable obsolete.
+ *  - Changed PanViewControl.refreshData() to PanViewControl.repaint()
+ *    to stay consistent with changes in the PanViewControl.
+ *
  *  Revision 1.41  2003/11/26 18:49:45  millermi
  *  - Changed ElipseRegion reference to EllipseRegion.
  *
@@ -263,13 +269,7 @@ public class ImageViewComponent implements IViewComponent2D,
            /*for Selection/Annotation*/    IZoomTextAddible,
 	                                   IPreserveState,
 					   Serializable
-{
- /**
-  * "COMPONENT_RESIZED" - This constant String is a messaging string sent out
-  * by the ImageViewComponent when the component has been resized.
-  */
-  public static final String COMPONENT_RESIZED   = "COMPONENT_RESIZED";
-  
+{  
   // these variables preserve the state of the ImageViewComponent
  /**
   * "Selected Regions" - This constant String is a key for referencing the state
@@ -914,7 +914,7 @@ public class ImageViewComponent implements IViewComponent2D,
      float[][] f_array = Varray2D.getRegionValues( 0, MAXDATASIZE, 
 						   0, MAXDATASIZE );
      ijp.setData(f_array, true);
-     ((PanViewControl)controls[5]).refreshData();
+     ((PanViewControl)controls[5]).repaint();
      paintComponents( big_picture.getGraphics() );
   }
  
@@ -945,7 +945,7 @@ public class ImageViewComponent implements IViewComponent2D,
      }
      ijp.setData(Varray2D.getRegionValues( 0, MAXDATASIZE, 
 					   0, MAXDATASIZE ), true);
-     ((PanViewControl)controls[5]).refreshData();
+     ((PanViewControl)controls[5]).repaint();
      paintComponents( big_picture.getGraphics() );  
   }
   
@@ -990,7 +990,11 @@ public class ImageViewComponent implements IViewComponent2D,
   {    
      return controls;
   }
-  
+ 
+ /**
+  * This method is here to fulfill the implementation required by the
+  * IViewComponent2D interface.
+  */ 
   public JComponent[] getPrivateControls()
   {
      System.out.println("***Currently unimplemented***");
@@ -1092,25 +1096,26 @@ public class ImageViewComponent implements IViewComponent2D,
       listener.actionPerformed( new ActionEvent( this, 0, message ) );
     }
   }
-  
+ 
+ /*
+  * This method repaints the ImageViewComponent correctly
+  */ 
   private void paintComponents( Graphics g )
   {
     if( g != null )
     {
       big_picture.update(g);
-      /*
-      for( int i = big_picture.getComponentCount(); i > 0; i-- )
-      {
-	if( big_picture.getComponent( i - 1 ).isVisible() )
-          big_picture.getComponent( i - 1 ).update(g);
-      }*/
     }
     Component temppainter = big_picture;
     while( temppainter.getParent() != null )
       temppainter = temppainter.getParent();
     temppainter.repaint();
   }
-  
+ 
+ /*
+  * This method is needed so that keyboard events from the overlays
+  * are recognized after controls are given focus.
+  */ 
   private void returnFocus()
   {	       
     AnnotationOverlay note = (AnnotationOverlay)transparencies.elementAt(0); 
@@ -1124,15 +1129,18 @@ public class ImageViewComponent implements IViewComponent2D,
     else if(axis.isVisible() )
       axis.getFocus();   
   }
-  
+ 
+ /*
+  * This method is used by the setObjectState() to set all saved state.
+  */ 
   private void reInit()  
   {
     ijp.setNamedColorModel(colorscale, isTwoSided, false); 
     local_bounds = ijp.getLocalWorldCoords().MakeCopy();
     global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
   
-    buildViewComponent();    // initializes big_picture to jpanel containing
-			     // the background and transparencies
+    buildViewComponent();    // builds the background jpanel containing
+			     // the image and possibly a calibrated color scale
     ((ControlSlider)controls[0]).setValue((float)logscale);
     // this control is an uncalibrated colorscale
     ((ControlColorScale)controls[1]).setColorScale( colorscale, isTwoSided );
@@ -1152,8 +1160,6 @@ public class ImageViewComponent implements IViewComponent2D,
       back.getComponent(2).setVisible(false);	     // west
       back.getComponent(3).setVisible(false);	     // south
       back.getComponent(4).setVisible(false);	     // east
-      //System.out.println("visible..." + 
-       //((AxisOverlay2D)transparencies.elementAt(2)).isVisible() );
     }
     else
     {		   
@@ -1192,9 +1198,7 @@ public class ImageViewComponent implements IViewComponent2D,
     
     ((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
     ((PanViewControl)controls[5]).setLocalBounds(local_bounds);
-    ((PanViewControl)controls[5]).refreshData();
-    
-    //buildViewMenuItems(); 
+    ((PanViewControl)controls[5]).repaint();
   } 
   
  /*
@@ -1216,7 +1220,7 @@ public class ImageViewComponent implements IViewComponent2D,
     {
       east = new ControlColorScale( this, ControlColorScale.VERTICAL );
       east.setPreferredSize( new Dimension( 90, 0 ) );
-      ((ControlColorScale)east).setTitle("Y Axis Color Scale");
+      ((ControlColorScale)east).setTitle("Z Axis Color Scale");
     }
     else
     {
@@ -1231,7 +1235,7 @@ public class ImageViewComponent implements IViewComponent2D,
       south.add( mininorth, "North" );
       ControlColorScale ccs = new ControlColorScale(
 				    this,ControlColorScale.HORIZONTAL);
-      ccs.setTitle("X Axis Color Scale");
+      ccs.setTitle("Z Axis Color Scale");
       south.add( ccs, "Center" );
       south.setPreferredSize( new Dimension( 0, southwidth + 75) );
     }
@@ -1259,7 +1263,7 @@ public class ImageViewComponent implements IViewComponent2D,
   private void buildViewControls()
   {
     // Note: If controls are added here, the size of the array controls[]
-    // must be incremented.
+    // must be incremented in the private data members.
     controls[0] = new ControlSlider();
     controls[0].setTitle("Intensity Slider");
     ((ControlSlider)controls[0]).setValue((float)logscale);
@@ -1335,7 +1339,6 @@ public class ImageViewComponent implements IViewComponent2D,
       //System.out.println("Component Resized");
       Component center = e.getComponent();
       regioninfo = new Rectangle( center.getLocation(), center.getSize() );
-      sendMessage(COMPONENT_RESIZED);
       /*
       System.out.println("Location = " + center.getLocation() );
       System.out.println("Size = " + center.getSize() );
@@ -1412,7 +1415,7 @@ public class ImageViewComponent implements IViewComponent2D,
         logscale = control.getValue();  				    
         ijp.changeLogScale( logscale, true );
         ((ControlColorScale)controls[1]).setLogScale( logscale );
-	((PanViewControl)controls[5]).refreshData();
+	((PanViewControl)controls[5]).repaint();
       } 
       else if ( message == IViewControl.CHECKBOX_CHANGED )
       { 
@@ -1599,7 +1602,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	ijp.setNamedColorModel( colorscale, isTwoSided, true );
 	((ControlColorScale)controls[1]).setColorScale( colorscale, 
 							isTwoSided );        
-	((PanViewControl)controls[5]).refreshData();
+	((PanViewControl)controls[5]).repaint();
       }
       sendMessage( message );
       background.validate();
@@ -1732,12 +1735,5 @@ public class ImageViewComponent implements IViewComponent2D,
     }
     
     IVCTester test = new IVCTester( va2D );
-    /* instead of using ViewerSim, use IVCTester, which is specific to IVC
-    //Construct an ImageViewComponent with array2D
-    ImageViewComponent ivc = new ImageViewComponent(va2D);
-    ivc.setColorControlEast(true);
-    ivc.setColorControlSouth(true);
-    ViewerSim viewer = new ViewerSim(ivc);
-    viewer.show();*/  
   }
 }
