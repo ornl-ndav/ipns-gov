@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2002/03/18 21:15:49  dennis
+ *  The reverse() method now just returns if the array is null.
+ *
  *  Revision 1.14  2001/10/17 18:32:33  dennis
  *  Added methods to check if a list of integers has distinct values in increasing
  *  order and to remove duplicates and put a list in increasing order.
@@ -111,6 +114,9 @@ public class arrayUtil
    */
   public static void Reverse( float arr[] )
   {
+    if ( arr == null )              // nothing to do
+      return;
+
     float temp;
     int   length = arr.length;
     int   length_m_1 = length-1;
