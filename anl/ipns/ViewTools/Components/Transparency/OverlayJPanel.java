@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/09/24 01:34:32  millermi
+ *  - Now implements IPreserveState, all classes extending OverlayJPanel
+ *    will now preserve state.
+ *
  *  Revision 1.3  2003/06/09 22:35:06  dennis
  *  - Added methods help() and getFocus() with implementation.
  *    (Mike Miller)
@@ -48,7 +52,11 @@ package DataSetTools.components.View.Transparency;
 import java.awt.*;
 import javax.swing.*;
 
-public abstract class OverlayJPanel extends JPanel implements IOverlay
+import DataSetTools.components.View.ObjectState;
+import DataSetTools.components.View.IPreserveState;
+
+public abstract class OverlayJPanel extends JPanel implements IOverlay,
+                                                              IPreserveState
 {
    public OverlayJPanel()
    {
@@ -80,6 +88,21 @@ public abstract class OverlayJPanel extends JPanel implements IOverlay
    public void getFocus()
    {
       this.requestFocus();
-   }
+   } 
+   
+  /**
+   * This method will set the current state variables of the object to state
+   * variables wrapped in the ObjectState passed in.
+   *
+   *  @param new_state
+   */
+   public abstract void setObjectState( ObjectState new_state );
+  
+  /**
+   * This method will get the current values of the state variables for this
+   * object. These variables will be wrapped in an ObjectState. Keys will be
+   * put in alphabetic order.
+   */ 
+   public abstract ObjectState getObjectState();
    
 }
