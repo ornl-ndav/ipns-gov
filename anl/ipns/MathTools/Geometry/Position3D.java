@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2001/07/25 18:05:30  dennis
+ *  Added check for sum of weights == 0 to getCenterOfMass()
+ *  method.
+ *
  *  Revision 1.5  2001/04/25 20:56:39  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -200,7 +204,7 @@ public class Position3D implements Serializable
    */
  
   public static Position3D getCenterOfMass( Position3D points[],
-                                            float       weights[] )
+                                            float      weights[] )
   {
     int n_points = points.length;
 
@@ -210,7 +214,7 @@ public class Position3D implements Serializable
     if ( n_points == 0 )
     {
       System.out.println("ERROR: no points or weights specified in" +
-                         " Postion3D.getCenterOfMass");
+                         " Position3D.getCenterOfMass");
       return null;
     }
  
@@ -226,6 +230,13 @@ public class Position3D implements Serializable
       sum_y += coords[1] * weights[i];
       sum_z += coords[2] * weights[i]; 
       sum_w += weights[i]; 
+    }
+
+    if ( sum_w == 0 )
+    {
+      System.out.println("ERROR: sum of weights is zero in " + 
+                         "Position3D.getCenterOfMass " );
+      return null;
     }
 
     Position3D center = new Position3D();
