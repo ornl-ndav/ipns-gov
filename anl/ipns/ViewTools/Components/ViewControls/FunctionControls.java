@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2003/08/29 18:58:13  serumb
+ * Change the color of the button text for the color buttons to the
+ * color selected.
+ *
  * Revision 1.9  2003/08/08 21:05:21  serumb
  * Added get_frame() method.
  *
@@ -554,6 +558,7 @@ import javax.swing.event.*;
           Color c = choosecolors.showDialog( null, "color chart", Color.black );
 
           if( c != null ) {
+            LineColor.button.setForeground( c );
             gjp.setColor( c, line_index, true );
           }
         }
@@ -562,6 +567,7 @@ import javax.swing.event.*;
           Color m = choosecolors.showDialog( null, "color chart", Color.black );
 
           if( m != null ) {
+            MarkColor.button.setForeground( m );
             gjp.setMarkColor( m, line_index, true );
           }
         }
@@ -569,6 +575,7 @@ import javax.swing.event.*;
           Color e = choosecolors.showDialog( null, "color chart", Color.black );
 
           if( e != null ) {
+            ErrorColor.button.setForeground( e );
             gjp.setErrorColor( e, line_index, true );
           }
         }
@@ -696,6 +703,10 @@ import javax.swing.event.*;
             ErrorBarBox.setSelectedIndex( 3 );
           }
 
+            MarkColor.button.setForeground( gjp.getMarkColor(line_index) );
+            LineColor.button.setForeground( gjp.getColor(line_index) );
+            ErrorColor.button.setForeground( gjp.getErrorColor(line_index) );
+          
         /*
           Sets the appropriate line style
         */
