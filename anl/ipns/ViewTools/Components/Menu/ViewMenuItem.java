@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/11 15:03:30  millermi
+ *  - Replaced equals() and toLowerCase() with equalsIgnoreCase() in
+ *    validPath() and main().
+ *
  *  Revision 1.4  2003/10/16 15:57:17  millermi
  *  - Added javadocs to public static final variables.
  *
@@ -55,6 +59,8 @@
  import java.awt.event.ActionEvent;
  import java.awt.event.ActionListener;
  import java.util.Vector;
+ 
+ import DataSetTools.util.WindowShower;
 
 /**
  * ViewMenuItem wraps a JMenuItem with its "path". The path specifies where
@@ -210,24 +216,25 @@ public class ViewMenuItem
   }
   
  /*
-  * Makes sure the given path starts with one of the four menus.
+  * Makes sure the given path starts with one of the five menus.
   */ 
   private boolean validPath( String path )
   {
     int dot_index = path.indexOf(".");
     String menu = path;
+    // get everything before first delimiter.
     if( dot_index > 0 )
       menu = path.substring(0,dot_index - 1);
     
-    if( PUT_IN_FILE.toLowerCase().equals(menu.toLowerCase()) )
+    if( PUT_IN_FILE.equalsIgnoreCase(menu))
       return true; 
-    else if( PUT_IN_EDIT.toLowerCase().equals(menu.toLowerCase()) )
+    else if( PUT_IN_EDIT.equalsIgnoreCase(menu) )
       return true; 
-    else if( PUT_IN_VIEW.toLowerCase().equals(menu.toLowerCase()) )
+    else if( PUT_IN_VIEW.equalsIgnoreCase(menu) )
       return true; 
-    else if( PUT_IN_OPTIONS.toLowerCase().equals(menu.toLowerCase()) )
+    else if( PUT_IN_OPTIONS.equalsIgnoreCase(menu) )
       return true; 
-    else if( PUT_IN_HELP.toLowerCase().equals(menu.toLowerCase()) )
+    else if( PUT_IN_HELP.equalsIgnoreCase(menu) )
       return true; 
     return false;
   }
@@ -276,19 +283,19 @@ public class ViewMenuItem
     
     for( int i = 0; i < 4; i++ )
     {
-      if( PUT_IN_FILE.toLowerCase().equals(item[i].getPath().toLowerCase()) )
+      if( PUT_IN_FILE.equalsIgnoreCase(item[i].getPath()) )
         fileMenu.add( item[i].getItem() ); 
-      else if( 
-    	PUT_IN_EDIT.toLowerCase().equals(item[i].getPath().toLowerCase()) )
+      else if( PUT_IN_EDIT.equalsIgnoreCase(item[i].getPath()) )
           editMenu.add( item[i].getItem() );
-      else if( 
-    	PUT_IN_VIEW.toLowerCase().equals(item[i].getPath().toLowerCase()) )
+      else if( PUT_IN_VIEW.equalsIgnoreCase(item[i].getPath()) )
           viewMenu.add( item[i].getItem() );
-    //if(PUT_IN_OPTIONS.toLowerCase().equals(item[i].getPath().toLowerCase()))
+    //if(PUT_IN_OPTIONS.equalsIgnoreCase(item[i].getPath()))
       else
         optionsMenu.add( item[i].getItem() ); 	  
     }
     
-    window.show();
+    WindowShower shower = new WindowShower(window);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
 }
