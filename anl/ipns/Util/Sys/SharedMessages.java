@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/08/19 12:19:43  rmikk
+ *  Added routines openLog, closeLog and LOGaddmsg to handle global logging
+ *
  *  Revision 1.2  2004/03/11 23:53:56  millermi
  *  - Removed Command prefix from StatusPane
  *
@@ -49,6 +52,7 @@
  */
 
 package gov.anl.ipns.Util.Sys;
+import java.io.*;
 /**
  *  Objects of this class have one instance of objects that are to be shared
  *  by several packages.  The shared objects are instantiated one time 
@@ -61,7 +65,17 @@ public class SharedMessages implements java.io.Serializable
    * if Displayable or the Values will be displayed on System.out
    */
   private static StatusPane status_pane=  null;
-
+  
+  /**
+   *  The Global LOGoutput file.  Everyone can write to this log file with
+   *  LOGaddmsg.  If LOGout is null, the information will be sent to the
+   *  status_pane(or System.out if status_pane is null)
+   */
+  private static FileOutputStream LOGout = null;
+  
+  //addmsg places a return after each message.  LOGaddmsg may have several
+  //entries per line so this stores output until a return is entered
+  private static String buff ="";
   /**
    * Returns a pointer to this classes (static) StatusPane for use in
    * GUIs. This will create the StatusPane if it does not already
@@ -73,6 +87,13 @@ public class SharedMessages implements java.io.Serializable
     return status_pane;
   }
  
+ 
+  /**
+   *  Returns the FileOutputStream where the log information is sent
+   */
+  public static FileOutputStream getLogStream(){
+    return LOGout;
+  }
   /**
    * Convenience method to ease adding to the status pane.
    */
@@ -82,4 +103,79 @@ public class SharedMessages implements java.io.Serializable
     else
       status_pane.add(value);
   }
+  
+  /**
+   *  Adds the message to the log file( or status pane if  the logfile has
+   *  not been sent). NOTE: "\n" MUST be part of the message to get returns
+   *  unlike addmsg
+   * @param message  The message to be appended to the log file
+   */
+  public static void LOGaddmsg( String message){
+    if( message == null)
+       return;
+    if( LOGout !=null)
+      try{
+        LOGout.write( message.getBytes());
+      }catch(Exception ss){
+         return;
+      }
+    else{
+      buff +=message;
+      buff= sendmsg(buff);
+    }
+    
+  }
+  
+ // Sends the message to the addmsg command.  Strips out "\n"'s
+ private static String sendmsg( String buff){
+   if( buff==null)
+     return "";
+   int i= buff.indexOf('\n');
+   if( i<0)
+      return buff;
+   addmsg( buff.substring(0,i));
+   return sendmsg( buff.substring(i+1));
+      
+   
+ }
+ 
+ /**
+  *  Sets up the file that information will be logged to.
+  *  The previous log file will be updated and closed
+  * @param filename   The name of the file that will receive log information
+  */
+ public static void openLog( String filename){
+    
+    if( filename == null)
+       LOGout = null;
+    else
+      try{
+         if( LOGout != null)
+            LOGout.close();
+         LOGout = new FileOutputStream( filename);
+      }catch(Exception s){
+         LOGout = null;
+      }
+    buff = "";
+ }
+ 
+ 
+ /**
+  *  Closes the log file.
+  *  Any subsequent log information will go to the status_pane
+  *
+  */
+ public static void closeLog(){
+   try{
+     if(LOGout != null)
+       LOGout.close();
+     else if( buff.length()>1)
+       addmsg( buff);
+    buff="";
+    LOGout = null;
+   }catch(Exception ss){
+       buff = null;
+       LOGout = null;
+   }
+ }
 }
