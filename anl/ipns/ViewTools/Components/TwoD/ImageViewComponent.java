@@ -25,10 +25,19 @@
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
  *
- * This work was supported by the Intense Pulsed Neutron Source Division
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0218882, and by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ * Modified:
+ *
+ *  $Log$
+ *  Revision 1.3  2003/05/16 14:59:11  dennis
+ *  Calculates space needed for labels, and adjusts space as the component
+ *  is resized.  (Mike Miller)
+ *
  */
  
 /*
@@ -43,6 +52,7 @@ import java.lang.*;
 import java.awt.event.*;
 import java.awt.Rectangle.*;
 import java.util.*; 
+import java.awt.font.FontRenderContext;
 
 import DataSetTools.util.*;  //floatPoint2D
 import DataSetTools.math.*;
@@ -70,7 +80,7 @@ public class ImageViewComponent implements IViewComponent2D,
    private Point[] selectedset; //To be returned by getSelectedSet()   
    private Vector Listeners = null;   
    private JPanel big_picture = new JPanel();    
-   private ImageJPanel ijp = new ImageJPanel();
+   private ImageJPanel ijp;
    // for component size and location adjustments
    //private ComponentAltered comp_listener;
    private Rectangle regioninfo;
@@ -86,7 +96,8 @@ public class ImageViewComponent implements IViewComponent2D,
    {
       Varray2D = varr; // Get reference to varr
       precision = 4;
-      font = FontUtil.LABEL_FONT;
+      font = FontUtil.LABEL_FONT2;
+      ijp = new ImageJPanel();
       //Make ijp correspond to the data in f_array
       ijp.setData(varr.getRegionValues(0, 1000000, 0, 1000000), true); 
       ImageListener ijp_listener = new ImageListener();
@@ -101,8 +112,7 @@ public class ImageViewComponent implements IViewComponent2D,
       ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
                                                   yinfo.getMax(),      
                                                   xinfo.getMax(),
-						  yinfo.getMin() ) );      
-      
+						  yinfo.getMin() ) ); 
       Listeners = new Vector();
       buildViewComponent(ijp); // initializes big_picture to jpanel containing
                                // the background and transparencies    
@@ -382,64 +392,17 @@ public class ImageViewComponent implements IViewComponent2D,
    * Overlays are added to allow for calibration, selection, and annotation.
    */
    private void buildViewComponent( ImageJPanel panel )
-   {
-   /* ************************ old background model *************************
-      // this will be the background for the master panel
-      JPanel background = new JPanel(new BorderLayout());
-     	
-	//NORTH - Put a JLabel in the center of a JPanel's FlowLayout *******
-	JPanel north = new JPanel(new FlowLayout());
-	
-	//String text = "ImageViewComponent";
-	JLabel title = new JLabel(" ", JLabel.CENTER);
-
-	north.add(title);
-	
-	//WEST - Y Tick Marks & Y info ***************************************
-	JPanel west = new JPanel(new BorderLayout());
-	
-        JLabel y_label = new JLabel(" ", JLabel.CENTER );
-	y_label.setUI( new VerticalLabelUI(false) );
-	
-	JLabel y_space = new JLabel(" ", JLabel.CENTER);  // spacer
-        y_space.setUI( new VerticalLabelUI(false) );
-	  
-	JLabel y_ticks = new JLabel(" ", JLabel.CENTER);  // spacer
-        y_ticks.setUI( new VerticalLabelUI(false) );  
-	
-	west.add(y_label, "West");
-	west.add(y_space, "Center");
-	west.add(y_ticks, "East");
-	
-        //SOUTH - X Tick Marks & X info **************************************
-	JPanel south = new JPanel(new BorderLayout());
-	
-	JLabel x_ticks = new JLabel(" ", JLabel.CENTER); // spacer
-	JLabel x_space = new JLabel(" ", JLabel.CENTER); // spacer
-	
-	JLabel x_label = new JLabel( " ", JLabel.CENTER );
-	
-	south.add(x_ticks, "North");
-	south.add(x_space, "Center");
-	south.add(x_label, "South");
-	
-	//East - Spacer ******************************************
-	JPanel east = new JPanel(new BorderLayout());
-	
-	JLabel e_space = new JLabel(" ", JLabel.CENTER);  // spacer
-        e_space.setUI( new VerticalLabelUI(false) );
-	
-	JLabel e_space2 = new JLabel(" ", JLabel.CENTER);  // spacer
-        e_space2.setUI( new VerticalLabelUI(false) );
-	
-	JLabel e_space3 = new JLabel(" ", JLabel.CENTER);  // spacer
-        e_space3.setUI( new VerticalLabelUI(false) );
-	 
-	east.add(e_space, "West");
-	east.add(e_space2, "Center");
-	east.add(e_space3, "East");
-      *********************** end of old background *************************/
-      
+   {   
+      /*       
+      FontRenderContext g2dfrc = (FontRenderContext) (               
+                  ( (Graphics2D)panel.getGraphics() ).getFontRenderContext() );
+      Rectangle2D maxchar = font.getMaxCharBounds( 
+	   ((Graphics2D)panel.getGraphics()).getFontRenderContext() ); 
+      int westwidth = (int)(precision * maxchar.getWidth() + 
+                      maxchar.getHeight() + 10);
+      */
+      int westwidth = font.getSize() * precision + 22;
+      int southwidth = font.getSize() * 3 + 9;
       // this will be the background for the master panel
       JPanel background = new JPanel(new BorderLayout());
       
@@ -448,9 +411,18 @@ public class ImageViewComponent implements IViewComponent2D,
       JPanel east = new JPanel(new FlowLayout());
       east.setPreferredSize(new Dimension( 50, 0 ) );
       JPanel south = new JPanel(new FlowLayout());
-      south.setPreferredSize(new Dimension( 0, 50 ) );
+      south.setPreferredSize(new Dimension( 0, southwidth ) );
       JPanel west = new JPanel(new FlowLayout());
-      west.setPreferredSize(new Dimension( 70, 0 ) );
+      //west.setVisible(false);
+      //WestSizer west_listener = new WestSizer();   
+      //west.addComponentListener( west_listener );
+      //west.setVisible(true);
+
+      /*
+      System.out.println("FontRender " + 
+               ((Graphics2D)big_picture.getGraphics()) );*/
+      //west.setPreferredSize(new Dimension( 70, 0 ) );
+      west.setPreferredSize(new Dimension( westwidth, 0 ) );
       
       //Construct the background JPanel
 	
@@ -470,7 +442,7 @@ public class ImageViewComponent implements IViewComponent2D,
       OverlayLayout overlay = new OverlayLayout(master);
       master.setLayout(overlay);
       for( int trans = 0; trans < transparencies.size(); trans++ )
-         master.add((JPanel)transparencies.elementAt(trans)); 
+         master.add((OverlayJPanel)transparencies.elementAt(trans)); 
       master.add(background);
 
       big_picture = master;
@@ -486,8 +458,7 @@ public class ImageViewComponent implements IViewComponent2D,
       public void componentResized( ComponentEvent e )
       {
          //System.out.println("Component Resized");
-	 Component center;
-	 center = e.getComponent();
+	 Component center = e.getComponent();
 	 regioninfo = new Rectangle( center.getLocation(), center.getSize() );
 	 /*
 	 System.out.println("Location = " + center.getLocation() );
@@ -530,6 +501,21 @@ public class ImageViewComponent implements IViewComponent2D,
       }      
    }
    
+  /*
+   * WestSizer monitors if the west panel of the background panel 
+   * (border layout)has been displayed. If so, get it's graphics context
+   * to be used by the fontmetrics to determine to width of the west panel.
+   *
+   private class WestSizer extends ComponentAdapter
+   {
+      public void componentShown( ComponentEvent e )
+      {
+         System.out.println("In componentShown()");
+	 Component west = e.getComponent();
+	 System.out.println("Graphics: " + west.getGraphics() );
+      }
+      
+   }*/
       
    /*
     * MAIN - Basic main program to test an ImageViewComponent object
@@ -538,7 +524,7 @@ public class ImageViewComponent implements IViewComponent2D,
    {
         int col = 250;
 	int row = 250;
-   
+	
         //Make a sample 2D array
 	VirtualArray2D va2D = new VirtualArray2D(row, col); 
         va2D.setAxisInfoVA(AxisInfo2D.XAXIS, .001f, .1f, "TestX","TestUnits", true);
@@ -559,7 +545,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	ImageViewComponent ivc = new ImageViewComponent(va2D);
 
         //A tester frame to throw the bottom and top JPanel into *******************************
-        JFrame f = new JFrame("ImageViewComponent");  
+        JFrame f = new JFrame("ISAW ImageViewComponent");  
 	f.setBounds(0,0,500,500);
 	final Container c = f.getContentPane();
 	c.add(ivc.getDisplayPanel());
