@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.47  2003/12/29 02:41:26  millermi
+ *  - get/setPointedAt() now uses floatPoint2D to pass information
+ *    about the current pointed at instead of java.awt.Point.
+ *
  *  Revision 1.46  2003/12/23 02:21:37  millermi
  *  - Added methods and functionality to allow enabling/disabling
  *    of selections.
@@ -725,7 +729,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public String getColorScale()
   {
-     return colorscale;
+    return colorscale;
   }
   
  /**
@@ -791,7 +795,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public Rectangle getRegionInfo()
   {
-     return regioninfo;
+    return regioninfo;
   }    
  
  /**
@@ -802,7 +806,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public String getTitle()
   {
-     return Varray2D.getTitle();
+    return Varray2D.getTitle();
   }
   
  /**
@@ -814,7 +818,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public int getPrecision() 
   {
-     return precision;
+    return precision;
   }  
   
  /**
@@ -825,7 +829,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public Font getFont()
   {
-     return font;
+    return font;
   }
   
  /**
@@ -836,8 +840,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public CoordBounds getLocalCoordBounds()
   {
-     return local_bounds;
-     //return ijp.getLocalWorldCoords().MakeCopy();
+    return local_bounds;
   }
      
  /**
@@ -848,8 +851,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public CoordBounds getGlobalCoordBounds()
   {
-     return global_bounds;
-     //return ijp.getGlobalWorldCoords().MakeCopy();
+    return global_bounds;
   }  
   
  /**
@@ -859,7 +861,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public double getLogScale()
   {
-     return logscale;
+    return logscale;
   }
   
  //****************************************************************************
@@ -870,31 +872,23 @@ public class ImageViewComponent implements IViewComponent2D,
   * setPointedAt is called from the viewer when another component
   * changes the selected point.
   *
-  *  @param  pt
+  *  @param  fpt
   */
-  public void setPointedAt( Point pt )
+  public void setPointedAt( floatPoint2D fpt )
   {
-     //Type cast Point pt  into  floatPoint2D fpt
-     floatPoint2D fpt = new floatPoint2D( (float)pt.x, (float)pt.y );
-     
-     //set the cursor position on ImageJPanel
-     ijp.setCurrent_WC_point( fpt ); 
+    //set the cursor position on ImageJPanel
+    ijp.setCurrent_WC_point( fpt ); 
   }
 
  /**
   * This method gets the current floatPoint2D from the ImageJPanel and 
   * converts it to a Point.
   *
-  *  @return pt - The current pointed-at point
+  *  @return  The current pointed-at world coordinate point as a floatPoint2D
   */
-  public Point getPointedAt()
+  public floatPoint2D getPointedAt()
   {
-    floatPoint2D fpt = new floatPoint2D();
-    fpt = ijp.getCurrent_WC_point();
-    
-    Point pt = new Point((int)fpt.x, (int)fpt.y);
-    
-    return pt;
+    return new floatPoint2D(ijp.getCurrent_WC_point());
   }
  
  /**
@@ -978,27 +972,27 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public void dataChanged( IVirtualArray2D pin_Varray ) // pin == "passed in"
   {
-     //get the complete 2D array of floats from pin_Varray
-     float[][] f_array = pin_Varray.getRegionValues( 0, MAXDATASIZE, 
-						     0, MAXDATASIZE );
-     if( pin_Varray.getNumRows() == Varray2D.getNumRows() &&
-	 pin_Varray.getNumColumns() == Varray2D.getNumColumns() )
-     {
-       Varray2D.setRegionValues(f_array,0,0);
-       Varray2D.setAxisInfo( AxisInfo.X_AXIS,
-        		       pin_Varray.getAxisInfo( AxisInfo.X_AXIS ) );
-       Varray2D.setAxisInfo( AxisInfo.Y_AXIS,
-        		       pin_Varray.getAxisInfo( AxisInfo.Y_AXIS ) );
-       Varray2D.setTitle( pin_Varray.getTitle() );
-     }
-     else
-     {
-       Varray2D = new VirtualArray2D( f_array );
-     }
-     ijp.setData(Varray2D.getRegionValues( 0, MAXDATASIZE, 
-					   0, MAXDATASIZE ), true);
-     ((PanViewControl)controls[5]).repaint();
-     paintComponents( big_picture.getGraphics() );  
+    //get the complete 2D array of floats from pin_Varray
+    float[][] f_array = pin_Varray.getRegionValues( 0, MAXDATASIZE, 
+        					    0, MAXDATASIZE );
+    if( pin_Varray.getNumRows() == Varray2D.getNumRows() &&
+        pin_Varray.getNumColumns() == Varray2D.getNumColumns() )
+    {
+      Varray2D.setRegionValues(f_array,0,0);
+      Varray2D.setAxisInfo( AxisInfo.X_AXIS,
+    			      pin_Varray.getAxisInfo( AxisInfo.X_AXIS ) );
+      Varray2D.setAxisInfo( AxisInfo.Y_AXIS,
+    			      pin_Varray.getAxisInfo( AxisInfo.Y_AXIS ) );
+      Varray2D.setTitle( pin_Varray.getTitle() );
+    }
+    else
+    {
+      Varray2D = new VirtualArray2D( f_array );
+    }
+    ijp.setData(Varray2D.getRegionValues( 0, MAXDATASIZE, 
+        				  0, MAXDATASIZE ), true);
+    ((PanViewControl)controls[5]).repaint();
+    paintComponents( big_picture.getGraphics() );  
   }
   
  /**
@@ -1008,11 +1002,11 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void addActionListener( ActionListener act_listener )
   {	     
-     for ( int i = 0; i < Listeners.size(); i++ )    // don't add it if it's
-       if ( Listeners.elementAt(i).equals( act_listener ) ) // already there
-	 return;
+    for ( int i = 0; i < Listeners.size(); i++ )    // don't add it if it's
+      if ( Listeners.elementAt(i).equals( act_listener ) ) // already there
+        return;
 
-     Listeners.add( act_listener ); //Otherwise add act_listener
+    Listeners.add( act_listener ); //Otherwise add act_listener
   }
  
  /**
@@ -1022,7 +1016,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public void removeActionListener( ActionListener act_listener )
   {
-     Listeners.remove( act_listener );
+    Listeners.remove( act_listener );
   }
  
  /**
@@ -1030,7 +1024,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public void removeAllActionListeners()
   {
-     Listeners.removeAllElements();
+    Listeners.removeAllElements();
   }
  
  /**
@@ -1040,7 +1034,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public JComponent[] getSharedControls()
   {    
-     return controls;
+    return controls;
   }
  
  /**
@@ -1049,9 +1043,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public JComponent[] getPrivateControls()
   {
-     System.out.println("***Currently unimplemented***");
+    System.out.println("***Currently unimplemented***");
      
-     return new JComponent[0];
+    return new JComponent[0];
   }
  
  /**
@@ -1061,14 +1055,14 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public ViewMenuItem[] getSharedMenuItems()
   {
-     return menus;
+    return menus;
   }
   
   public ViewMenuItem[] getPrivateMenuItems()
   {
-     System.out.println("***Currently unimplemented***");
+    System.out.println("***Currently unimplemented***");
      
-     return new ViewMenuItem[0];
+    return new ViewMenuItem[0];
   }
   
  /**
@@ -1090,7 +1084,7 @@ public class ImageViewComponent implements IViewComponent2D,
   public void kill()
   {    
     for( int trans = 0; trans < transparencies.size(); trans++ )
-       ((OverlayJPanel)transparencies.elementAt(trans)).kill();
+      ((OverlayJPanel)transparencies.elementAt(trans)).kill();
   }
   
  /**
@@ -1133,7 +1127,7 @@ public class ImageViewComponent implements IViewComponent2D,
     
     //Send message to listeners 
     if ( message.equals(POINTED_AT_CHANGED) )
-	sendMessage(POINTED_AT_CHANGED);
+      sendMessage(POINTED_AT_CHANGED);
   }
   
  /*
