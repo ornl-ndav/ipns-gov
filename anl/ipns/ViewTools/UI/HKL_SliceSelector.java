@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/02/02 23:50:46  dennis
+ * Added option to select constant Qxyz planes instead
+ * of constant HKL planes.
+ *
  * Revision 1.3  2004/01/26 20:50:49  dennis
  * Added constructor that takes a specified initial plane.
  * Simplified default constructor.
@@ -55,26 +59,34 @@ import javax.swing.*;
 import DataSetTools.math.*;
 import DataSetTools.util.*;
 
+
 /**
- *  This class selects a plane in HKL space by specifying which of the 
- *  components, h, k or l should be held constant, and by specifying
- *  an "origin" in the plane.
+ *  This class selects a plane in HKL space or Qxyz space by specifying 
+ *  which of the axis directions, 1, 2, or 3 should be held constant, 
+ *  and by specifying an "origin" in the plane.
  */
 
 public class HKL_SliceSelector extends     ActiveJPanel
                                implements  ISlicePlaneSelector,
                                            Serializable
 {
-  public static final int H_CONSTANT = 0;
-  public static final int K_CONSTANT = 1;
-  public static final int L_CONSTANT = 2;
+  public static final int CONSTANT_HKL_MODE = 0;
+  public static final int CONSTANT_QXYZ_MODE = 1;
+
+  public static final int COMPONENT_1_CONSTANT = 0;
+  public static final int COMPONENT_2_CONSTANT = 1;
+  public static final int COMPONENT_3_CONSTANT = 2;
 
   private static final String H_STRING = "Constant H";
   private static final String K_STRING = "Constant K";
   private static final String L_STRING = "Constant L";
 
+  private static final String QX_STRING = "Constant Qx";
+  private static final String QY_STRING = "Constant Qy";
+  private static final String QZ_STRING = "Constant Qz";
+
   private Vector3D_UI  origin_selector;
-  private JComboBox    hkl_selector;
+  private JComboBox    normal_selector;
   int mode = -1;
 
 
@@ -88,17 +100,15 @@ public class HKL_SliceSelector extends     ActiveJPanel
 
     origin_selector = new Vector3D_UI( "Center " );
 
-    hkl_selector = new JComboBox();
-    hkl_selector.setFont( FontUtil.LABEL_FONT );
-    hkl_selector.addItem( H_STRING );
-    hkl_selector.addItem( K_STRING );
-    hkl_selector.addItem( L_STRING );
+    normal_selector = new JComboBox();
+    normal_selector.setFont( FontUtil.LABEL_FONT );
+    setLabels( CONSTANT_HKL_MODE );
 
     add( origin_selector );
-    add( hkl_selector ); 
+    add( normal_selector ); 
 
     origin_selector.addActionListener( new CenterListener() );
-    hkl_selector.addActionListener( new HKL_ModeListener() );
+    normal_selector.addActionListener( new NormalVectorListener() );
 
     setPlane( new SlicePlane3D() );
   }
@@ -171,37 +181,64 @@ public class HKL_SliceSelector extends     ActiveJPanel
     SlicePlane3D plane = new SlicePlane3D();
     plane.setOrigin( origin_selector.getVector() ); 
 
-    mode = hkl_selector.getSelectedIndex();
-    if ( mode == H_CONSTANT )
+    mode = normal_selector.getSelectedIndex();
+    if ( mode == COMPONENT_1_CONSTANT )
       plane.setU_and_V( new Vector3D( 0, 1, 0 ), new Vector3D( 0, 0, 1 ) );
 
-    else if ( mode == K_CONSTANT )
+    else if ( mode == COMPONENT_2_CONSTANT )
       plane.setU_and_V( new Vector3D( 0, 0, 1 ), new Vector3D( 1, 0, 0 ) );
 
-    else if ( mode == L_CONSTANT )
+    else if ( mode == COMPONENT_3_CONSTANT )
       plane.setU_and_V( new Vector3D( 1, 0, 0 ), new Vector3D( 0, 1, 0 ) );
 
     return plane;
   }
 
 
+ /* --------------------------- setLabels ---------------------------- */
+ /**
+  *  Set the labels on the combo box to either indicate choice of a 
+  *  normal vector in the direction of an hkl axis or in the direction
+  *  of a Qxyz axis.
+  *
+  *  @param  label_mode  One of the constants CONSTANT_HKL_MODE or
+  *                      CONSTANT_QXYZ_MODE. Other values will be ignored
+  */
+  public void setLabels( int label_mode )
+  {  
+    if ( label_mode == CONSTANT_HKL_MODE )
+    {
+      normal_selector.removeAllItems();
+      normal_selector.addItem( H_STRING );
+      normal_selector.addItem( K_STRING );
+      normal_selector.addItem( L_STRING );
+    }
+    else if  ( label_mode == CONSTANT_QXYZ_MODE )
+    {
+      normal_selector.removeAllItems();
+      normal_selector.addItem( QX_STRING );
+      normal_selector.addItem( QY_STRING );
+      normal_selector.addItem( QZ_STRING );
+    }
+  }
+
   /* --------------------------- setMode ----------------------------- */
   /**
-   *  Set the mode of this selector to be one of H_CONSTANT, K_CONSTANT or
-   *  L_CONSTANT.
+   *  Set the mode of this selector to be one of 
+   *  COMPONENT_1_CONSTANT, COMPONENT_2_CONSTANT or COMPONENT_3_CONSTANT.
    *
    *  @param  mode  The integer code for the mode, as defined by the 
    *                public static integer mode values for this class.
    */
   public void setMode( int mode )
   { 
-    if ( mode >= H_CONSTANT &&  
-         mode <= L_CONSTANT  ) 
+    if ( mode >= COMPONENT_1_CONSTANT &&  
+         mode <= COMPONENT_3_CONSTANT  ) 
     {
       this.mode = mode;                                // record valid mode 
 
-      if ( mode != hkl_selector.getSelectedIndex() )   // update display if 
-        hkl_selector.setSelectedIndex( mode );         // needed
+      if ( mode != normal_selector.getSelectedIndex() )   // update display if 
+        normal_selector.setSelectedIndex( mode );         // needed
     }
   }
   
@@ -224,16 +261,17 @@ public class HKL_SliceSelector extends     ActiveJPanel
      }
   }
 
-  /* ----------------------- HKL_ModeListener ----------------------------- */
+  /* ----------------------- NormalVectorListener ----------------------- */
   /*
-   *  Listener for the HKL combo box 
+   *  Listener for the combo box that chooses which coordinate axis is
+   *  the normal vector
    */ 
-  private class HKL_ModeListener implements ActionListener,
-                                            Serializable
+  private class NormalVectorListener implements ActionListener,
+                                                Serializable
   {
      public void actionPerformed( ActionEvent e )
      {
-       int new_mode = hkl_selector.getSelectedIndex();
+       int new_mode = normal_selector.getSelectedIndex();
        if ( new_mode != mode )
        {
          mode = new_mode;
@@ -241,5 +279,34 @@ public class HKL_SliceSelector extends     ActiveJPanel
        }
      }
   }
+
+  /* ---------------------------- main ----------------------------- */
+  /** 
+   *  main program for testing purposes.
+   */ 
+   public static void main( String[] args )
+   {
+      JFrame f = new JFrame("Test for HKL_SliceSelector");
+
+      f.setBounds(0,0,200,150);
+
+      final HKL_SliceSelector selector = 
+                               new HKL_SliceSelector(new SlicePlane3D());
+      selector.setLabels( CONSTANT_HKL_MODE );
+      selector.setLabels( CONSTANT_QXYZ_MODE );
+
+      f.getContentPane().setLayout( new GridLayout(1,1) );
+      f.getContentPane().add( selector );
+
+      selector.addActionListener( new ActionListener()
+       {
+         public void actionPerformed(ActionEvent e)
+         {
+           System.out.println("Entered: " + selector.getPlane() );
+         }
+       });
+
+      f.setVisible(true);
+    }
 
 }
