@@ -47,6 +47,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    // for component size and location adjustments
    //private ComponentAltered comp_listener;
    private Rectangle regioninfo;
+   private CoordBounds local_bounds;
+   private CoordBounds global_bounds;
    private Vector transparencies = new Vector();
    private int precision;
    private Font font;
@@ -56,28 +58,32 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    private JPanel panel2 = new JPanel();
    private JPanel boxPanel = new JPanel();
    private JPanel buttonPanel = new JPanel();
-
+   private JPanel label_panel = new JPanel();
 
    private String label1 = "Line Selected";
    private String label2 = "Line Style";
    private String label3 = "Line Width";
    private String label4 = "Point Marker";
    private String label5 = "Point Marker Size";
+   private String label6 = "Error Bars";
 
    private JComboBox LineBox            = new JComboBox();
    private JComboBox LineStyleBox       = new JComboBox();
    private JComboBox LineWidthBox       = new JComboBox();
    private JComboBox PointMarkerBox     = new JComboBox();
    private JComboBox PointMarkerSizeBox = new JComboBox();
+   private JComboBox ErrorBarBox        = new JComboBox();
 
    private String[] lines;
    private String[] line_type;
    private String[] line_width;
    private String[] mark_types;
    private String[] mark_size;
+   private String[] bar_types;
 
    private ButtonControl LineColor;
    private ButtonControl MarkColor;
+   private ButtonControl annotationButton;
 
    private int line_index = 0;
    private int linewidth = 1;	
@@ -92,6 +98,12 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    private LabelCombobox labelbox3;
    private LabelCombobox labelbox4;
    private LabelCombobox labelbox5;
+   private LabelCombobox labelbox6;
+
+   private JLabel control_label;
+   private Font label_font;
+   private float[] errorvals;
+  
 
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
@@ -99,13 +111,26 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    */
    public FunctionViewComponent( IVirtualArray1D varr )  
    {
-     lines = new String[varr.getNumlines()];
+    label_panel.setLayout(new FlowLayout(1));
+    label_font = new Font("Times", Font.PLAIN,16);
+    control_label = new JLabel("Controls");
+    control_label.setFont(label_font);
+    label_panel.add(control_label);
+ 
+    
+    Data d;
+    int group_id;
+    int[] selected_indices = new int[varr.getNumlines()];
+    selected_indices = ((DataSetData)varr).ds.getSelectedIndices();
+
+    lines = new String[varr.getNumlines()];
     for (int i = 0; i < varr.getNumlines(); i++)
-    {	
-       lines[i] = "Line_"+(i+1);
+    {  d = ((DataSetData)varr).ds.getData_entry(selected_indices[i]);	
+       group_id = d.getGroup_ID();
+       lines[i] = "Group ID:"+ group_id;
     } 
     //LineBox = new JComboBox(lines);
-    LabelCombobox labelbox1 = new LabelCombobox(label1,lines); 
+    LabelCombobox labelbox1 = new LabelCombobox(label1,lines);
 
     line_type = new String[5];
     line_type[0] = "Solid"; 
@@ -132,7 +157,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     mark_types[4] = "CROSS";
     mark_types[5] = "NO POINT MARKS";
     labelbox4 = new LabelCombobox(label4, mark_types);
-    labelbox4.setSelected(3);
+    labelbox4.setSelected(5);
 
     mark_size = new String[5];
     mark_size[0] = "1";
@@ -141,37 +166,55 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     mark_size[3] = "4";
     mark_size[4] = "5";
     labelbox5 = new LabelCombobox(label5, mark_size);
-
-    theBox.add(labelbox1.theBox);
-    theBox.add(labelbox2.theBox);
-    theBox.add(labelbox3.theBox);
-    theBox.add(labelbox4.theBox);
-    theBox.add(labelbox5.theBox);
-   
-  
-    boxPanel.add(theBox);
     
-        LineBox = labelbox1.cbox;          
-	LineStyleBox = labelbox2.cbox;      
-	LineWidthBox = labelbox3.cbox;  
-	PointMarkerBox = labelbox4.cbox;    
-	PointMarkerSizeBox = labelbox5.cbox;
-
-
-    FlowLayout Flayout = new FlowLayout(1);
+    bar_types = new String[3];
+    bar_types[1] = "At Points";
+    bar_types[2] = "At Top";
+    bar_types[0] = "None";
+    labelbox6 = new LabelCombobox(label6, bar_types);
 
     LineColor = new ButtonControl("Line Color");
     MarkColor = new ButtonControl("Point Marker Color");
+    GridLayout G_lout = new GridLayout(1,1);
 
-    panel1.setLayout(Flayout);
-    panel2.setLayout(Flayout);
+    panel1.setLayout(G_lout);
+    panel2.setLayout(G_lout);
     panel1.add(LineColor.button);
     panel2.add(MarkColor.button);
-    box1.add(panel1);
-    box1.add(panel2);
-    buttonPanel.add(box1);
+    //box1.add(panel1);
+    //box1.add(panel2);
+    //buttonPanel.add(box1);
+ 
+    theBox.add(labelbox1.theBox);
+    theBox.add(labelbox2.theBox);
+    theBox.add(labelbox3.theBox);
+    theBox.add(panel1);
+    theBox.add(labelbox4.theBox);
+    theBox.add(labelbox5.theBox);
+    theBox.add(panel2);
+    theBox.add(labelbox6.theBox);
+   
+    LineBox = labelbox1.cbox;          
+    LineStyleBox = labelbox2.cbox;      
+    LineWidthBox = labelbox3.cbox;  
+    PointMarkerBox = labelbox4.cbox;    
+    PointMarkerSizeBox = labelbox5.cbox;
+    ErrorBarBox = labelbox6.cbox;
 
-  
+   
+
+
+
+    
+    boxPanel.setLayout(G_lout);
+    theBox.add(box1);
+    boxPanel.add(theBox);
+
+
+    annotationButton = new ButtonControl("Edit Annotations");
+     
+    
+   
     Varray1D = varr; // Get reference to varr
     precision = 4;
     font = FontUtil.LABEL_FONT2;
@@ -180,39 +223,48 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     int num_lines = varr.getNumlines();
     boolean bool = false;
     for (int i = 0; i < num_lines; i++)
-    {
+    {  d = ((DataSetData)varr).ds.getData_entry(selected_indices[i]);
 
        gjp.setData(varr.getXValues(i),
 	    varr.getYValues(i),i, bool); 
        if(i >= num_lines -2)
 	    bool = true;
+       gjp.setErrors(d.getErrors(),0,i,true);
+    
+       //for(int p = 0; p < (int)(d.getErrors().length/10);p++)
+         
+         // System.out.println("the line number:"+i+" the point;"+ p+" the errors:"+d.getErrors()[p]);
     }
-    // set initial line styles
+
     gjp.setBackground(Color.white);
-    gjp.setColor( Color.black, 0, false );
-    gjp.setStroke( gjp.strokeType(gjp.LINE,0), 0, false);
-    gjp.setLineWidth(linewidth,0,false);
-    gjp.setMarkColor(Color.blue,0,false);
-    gjp.setMarkType(gjp.BOX, 0, false);
-
     
-    gjp.setColor( Color.red, 1, true );
-    gjp.setStroke( gjp.strokeType(gjp.LINE,1), 1, true);
-    gjp.setLineWidth(linewidth,1,false);
-
+    // set initial line styles
     
-    gjp.setColor( Color.green, 2, false );
-    gjp.setStroke( gjp.strokeType(gjp.LINE,2), 2, true);
-    gjp.setLineWidth(linewidth,0,false);
-    gjp.setMarkColor(Color.red,2,true);
-    gjp.setMarkType(gjp.CROSS, 2, true);
+
+    if (varr.getNumlines()  > 1)
+    {
+      gjp.setColor( Color.red, 1, true );
+      gjp.setStroke( gjp.strokeType(gjp.LINE,1), 1, true);
+      gjp.setLineWidth(linewidth,1,false);
+    }
+    if (varr.getNumlines()  > 2)
+    {
+      gjp.setColor( Color.green, 2, false );
+      gjp.setStroke( gjp.strokeType(gjp.LINE,2), 2, true);
+      gjp.setLineWidth(linewidth,0,false);
+    }
 
 
       ImageListener gjp_listener = new ImageListener();
       gjp.addActionListener( gjp_listener );
+
                   
       ComponentAltered comp_listener = new ComponentAltered();   
       gjp.addComponentListener( comp_listener );
+
+      regioninfo = new Rectangle( gjp.getBounds() );
+      local_bounds = gjp.getLocalWorldCoords().MakeCopy();
+      global_bounds = gjp.getGlobalWorldCoords().MakeCopy();
       
       AxisInfo2D xinfo = varr.getAxisInfo(AxisInfo2D.XAXIS);
       AxisInfo2D yinfo = varr.getAxisInfo(AxisInfo2D.YAXIS);
@@ -360,9 +412,11 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    */
    public void dataChanged()  
    {
-//      float[][][] f_array = Varray1D.getRegionValues( 0, 1000000, 0, 1000000 );
-//System.out.println("f_array:" + f_array);
-//     gjp.setData(f_array, true);
+     
+      float[] x_array = Varray1D.getXValues( line_index );
+      float[] y_array = Varray1D.getYValues( line_index );
+
+      gjp.setData(x_array, y_array, line_index, true);
    }
   
   /**
@@ -373,11 +427,13 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       System.out.println("Now in void dataChanged(VirtualArray1D pin_varray)");
 
       //get the complete 2D array of floats from pin_varray
-//      float[][][] f_array = Varray1D.getRegionValues( 0, 1000000, 0, 1000000 );
-//System.out.println("f_array:" + f_array);
-//      gjp.setData(f_array, true);  
+      float[] x_array = Varray1D.getXValues( line_index );
+      float[] y_array = Varray1D.getYValues( line_index );
+
+      gjp.setData(x_array, y_array, line_index, true);  
       
-//      System.out.println("Value of first element: " + f_array[0][0] );
+//      System.out.println("Value of first element: " + x_array[0] +
+//							y_array[0] );
       System.out.println("Thank you for notifying us");
       System.out.println("");
    }
@@ -444,9 +500,11 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       //System.out.println("Entering: JComponent[] getPrivateControls()");
       //System.out.println("");
 
-           JComponent[] Res = new JComponent[2];
+           JComponent[] Res = new JComponent[4];
 
-           Res[0] = (JComponent) boxPanel;
+           Res[0] = (JComponent) label_panel;
+
+           Res[1] = (JComponent) boxPanel;
 	
 	
 	LineBox.addActionListener(new ControlListener());
@@ -454,7 +512,9 @@ public class FunctionViewComponent implements IFunctionComponent1D,
 	LineWidthBox.addActionListener(new ControlListener());
 	PointMarkerBox.addActionListener(new ControlListener());
 	PointMarkerSizeBox.addActionListener(new ControlListener());
-
+        ErrorBarBox.addActionListener(new ControlListener());
+	LineColor.addActionListener(new ControlListener());
+        MarkColor.addActionListener(new ControlListener());
   
 /*           Res[0] = (JComponent) panel1;
            LineBox.addActionListener(new ControlListener());
@@ -470,12 +530,17 @@ public class FunctionViewComponent implements IFunctionComponent1D,
 
            Res[4] = (JComponent)panel5;
 	   PointMarkerSizeBox.addActionListener(new ControlListener());
-*/
+
 	   Res[1] = (JComponent)buttonPanel;
 	   LineColor.addActionListener(new ControlListener());
            MarkColor.addActionListener(new ControlListener());
-	  // Res[2] = (JComponent)markColor;
-	  // MarkColor.addActionListener(new ControlListener());
+*/	  
+           Res[2] = new ControlCheckbox();
+           ((ControlCheckbox)Res[2]).setText("Annotation Overlay");
+           ((ControlCheckbox)Res[2]).addActionListener( new ControlListener() ); 
+           
+           Res[3] = annotationButton;
+           annotationButton.addActionListener( new ControlListener() ); 
       
            return Res;
 
@@ -535,6 +600,16 @@ public class FunctionViewComponent implements IFunctionComponent1D,
      }
    }
   
+   private void paintComponents( Graphics g )
+   {
+      //big_picture.revalidate();
+      for( int i = big_picture.getComponentCount(); i > 0; i-- )
+      {
+         if( big_picture.getComponent( i - 1 ).isVisible() )
+	    big_picture.getComponent( i - 1 ).update(g);
+      }
+      big_picture.getParent().getParent().getParent().getParent().repaint();
+   }
   // required since implementing ActionListener
   /**
    * To be continued...
@@ -577,8 +652,12 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       background.add(south, "South");
       background.add(east, "East" );      
       
-      AxisOverlay2D top = new AxisOverlay2D(this);
-      transparencies.add(top);       // add the transparency the the vector
+      AnnotationOverlay top = new AnnotationOverlay(this);
+      top.setVisible(false);      // initialize this overlay to off.
+      AxisOverlay2D bottom = new AxisOverlay2D(this);
+      
+      transparencies.add(top);
+      transparencies.add(bottom);       // add the transparency the the vector
       	  
       // create master panel and
       // add background and transparency to the master layout
@@ -660,6 +739,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       {
 
 	String message = ae.getActionCommand();
+      System.out.println("action event " + message);
 
 	if(message.equals("BUTTON_PRESSED"))
 
@@ -677,8 +757,17 @@ public class FunctionViewComponent implements IFunctionComponent1D,
              if (m != null)
              gjp.setMarkColor(m,line_index, true);
 	   }
+           if(ae.getSource() == annotationButton)
+           {
+	    AnnotationOverlay note = (AnnotationOverlay)
+	                       big_picture.getComponent(
+	                       big_picture.getComponentCount() - 3 ); 
+	    note.editAnnotation();
+	 } 	
+	 //repaints overlays accurately	
+         paintComponents( big_picture.getGraphics() ); 
         }
-	   
+
 
 	else if(message.equals("comboBoxChanged"))
 	{
@@ -745,6 +834,14 @@ public class FunctionViewComponent implements IFunctionComponent1D,
 	       else if(gd.linewidth == 5) 
 		  LineWidthBox.setSelectedIndex(4);
               
+               if(gd.getErrorLocation() == 0) 
+		  ErrorBarBox.setSelectedIndex(0);
+	       else if(gd.getErrorLocation() == 11) 
+		  ErrorBarBox.setSelectedIndex(1);		
+	       else if(gd.getErrorLocation() == 12) 
+		  ErrorBarBox.setSelectedIndex(2);		
+	       else if(gd.getErrorLocation() == 13) 
+		  ErrorBarBox.setSelectedIndex(3);
 
 
 	   }
@@ -837,8 +934,52 @@ public class FunctionViewComponent implements IFunctionComponent1D,
 	     else if (PointMarkerSizeBox.getSelectedItem().equals("5"))
 	        gjp.setMarkSize(4, line_index, true);
 	   }
-            
+           else if (ae.getSource() == ErrorBarBox) 
+           {
+              //System.out.println("zoom region:"+ gjp.getZoom_region());
+            //CoordBounds data_bound = getGlobalWorldCoords();
+            //data_bound.getBounds()
+             Data d;
+             int[] selected_indices = new int[Varray1D.getNumlines()];
+             selected_indices = ((DataSetData)Varray1D).ds.getSelectedIndices();
+             
+             d = ((DataSetData)Varray1D).ds.getData_entry(
+                                     selected_indices[line_index]);
+
+              if (ErrorBarBox.getSelectedItem().equals("None"))
+               gjp.setErrors(d.getErrors(), 0, line_index, true);
+              else if (ErrorBarBox.getSelectedItem().equals("At Points"))
+               gjp.setErrors(d.getErrors(), gjp.ERROR_AT_POINT,
+                             line_index, true);
+              else if (ErrorBarBox.getSelectedItem().equals("At Top"))
+               gjp.setErrors(d.getErrors(), gjp.ERROR_AT_TOP,
+                             line_index, true);
+
+	   }
+              
 	}    
+	   
+        else if(message.equals("CHECKBOX_CHANGED"))
+        { 
+            ControlCheckbox control = (ControlCheckbox)ae.getSource();
+	    int bpsize = big_picture.getComponentCount();
+            
+            if( control.getText().equals("Annotation Overlay") )
+	    { 
+	       AnnotationOverlay note = (AnnotationOverlay)
+	                       big_picture.getComponent(
+	                       big_picture.getComponentCount() - 3 ); 
+               if( !control.isSelected() )
+	          note.setVisible(false);
+	       else
+	       {
+	          note.setVisible(true);
+		  note.getFocus();
+	       } 
+	    }
+
+            paintComponents( big_picture.getGraphics() );
+	}
 
       }
    }
