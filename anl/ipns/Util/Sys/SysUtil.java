@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/11/21 21:53:43  pfpeterson
+ *  Modified readline and jumpline to also take a handle to the process's
+ *  stderr and throw exceptions when stderr contains anything.
+ *
  *  Revision 1.4  2002/11/01 15:46:13  pfpeterson
  *  Fixed bug where could not find an executable on windows. Also
  *  added more intelligent debug prints when mode is on.
@@ -163,8 +167,27 @@ public class SysUtil{
     /**
      * Read a line of text from the BufferedReader. In some cases this
      * can hang indefinitely (should be fixed).
+     *
+     * @param in STDOUT of the process being monitored (input to Java)
+     * @param err STDERR of the process being monitored (input to Java)
+     *
+     * @return String containing the next line from the process
+     *
+     * @throws IOException if anything goes wrong in the reading
      */
-    public static String readline(BufferedReader in) throws IOException{
+    public static String readline(BufferedReader in, BufferedReader err)
+                                      throws IOException, InterruptedException{
+        // check the error stream
+        if( err!=null && err.ready() ){
+          String msg=err.readLine();
+          if(msg.toLowerCase().indexOf("interrupt")>=0){
+            throw new InterruptedException("");
+          }else{
+            System.out.println("ERR:"+msg);
+            throw new IOException(msg);
+          }
+        }
+
         char buff[]=new char[BUFF_SIZE];
         String result=null;
         int go_back=0;
@@ -212,12 +235,12 @@ public class SysUtil{
     /**
      * Just print the lines as they come in until the proper phrase comes up.
      */
-    public static void jumpline(BufferedReader in, String match)
-                                                          throws IOException{
-        String output=readline(in);
+    public static void jumpline(BufferedReader in, BufferedReader err,
+                        String match) throws IOException, InterruptedException{
+        String output=readline(in,err);
         while(output.indexOf(match)<0){
             if(output!=null)System.out.println(output);
-            output=readline(in);
+            output=readline(in,err);
         }
         if(output!=null)System.out.println(output);
         return;
