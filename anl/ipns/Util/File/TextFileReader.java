@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/07/15 21:42:40  dennis
+ *  The whitespace character that terminates a squence of non-blank
+ *  characters is now put back in the file when the non-blank sequence
+ *  is read.
+ *
  *  Revision 1.5  2002/06/07 16:19:53  dennis
  *  Now has additional constructors that accept an existing InputStream
  *  or an existing Reader, so that this TextFileReader can be "wrapped"
@@ -240,8 +245,9 @@ public class TextFileReader
    *  the current position in the file.  If the current position in the
    *  file is a whitespace character, whitespace characters will be skipped
    *  until the first non-whitespace character is encountered.  After reading
-   *  the squences of non-whitespace characters, the following whitespace 
-   *  character is read and NOT putback in the stream. 
+   *  the squences of non-whitespace characters, the file will be left 
+   *  positioned at the first whitespace character following the non-blank
+   *  sequence of characters. 
    *
    *  @return The first non-blank sequence of characters encountered, 
    *          starting from the current position.
@@ -265,9 +271,13 @@ public class TextFileReader
     {
       buffer[n] = (byte)ch;
       n++;
+      in.mark(2);
       ch = in.read();
     }
        
+    if (Character.isWhitespace( (char)ch ))    // put back the whitespace that
+      in.reset();                              // ended the string
+
     if ( n > 0 )
       return new String( buffer, 0, n );
     else
@@ -461,8 +471,6 @@ public class TextFileReader
       f.unread();
       ch = f.read_char();
       System.out.println("char value again is " + ch );
-
-      f.close();
     }
     catch ( Exception e )
     {
@@ -470,7 +478,7 @@ public class TextFileReader
     }
 
 
-    while ( f != null && !f.eof() )
+    while ( f != null && !f.eof() && f_num != 16 )
     {
       try
       {
@@ -481,6 +489,23 @@ public class TextFileReader
       {
         System.out.println("2: EXCEPTION: " + e );
       }
+    }
+
+    try
+    {
+      f_num = f.read_float();
+      System.out.println("Finally Read: " + f_num );
+      f_num = f.read_float();
+      System.out.println("Finally Read: " + f_num );
+      f.read_line();                                  // skip EOL
+
+      f_num = f.read_float();
+      System.out.println("Finally Read: " + f_num );
+      f.close();
+    }
+    catch ( Exception e )
+    {
+      System.out.println("3: EXCEPTION: " + e );
     }
   }
 } 
