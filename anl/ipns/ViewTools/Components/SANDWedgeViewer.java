@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2004/01/09 21:08:17  dennis
+ * Added cacluation of error estimates.
+ *
  * Revision 1.13  2004/01/08 22:26:03  millermi
  * - Separated off the FunctionViewComponent. Now use "View Results"
  *   under the options menu to view a ViewManager with all of the
@@ -204,6 +207,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient ImageViewComponent ivc;
   //private transient FunctionViewComponent fvc;
   private transient IVirtualArray2D data;
+  private transient float[][]       errors;      // error estimates in the data
   private transient JMenuBar menu_bar;
   private transient DataSet data_set;
   private String projectsDirectory = SharedData.getProperty("Data_Directory");
@@ -217,7 +221,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */
   public SANDWedgeViewer()
   {
-    init(null);
+    init(null,null);
   }
 
  /**
@@ -225,9 +229,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   *  
   *  @param  iva
   */
-  public SANDWedgeViewer( IVirtualArray2D iva )
+  public SANDWedgeViewer( IVirtualArray2D iva, float[][] err_array )
   {
-    init(iva);
+    init(iva, err_array);
   }
 
  /**
@@ -239,6 +243,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   *  @param  title
   */  
   public SANDWedgeViewer( float[][] array, 
+                          float[][] err_array,
                           AxisInfo xinfo,
 		          AxisInfo yinfo,
 		          String title )
@@ -248,7 +253,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     temp.setAxisInfo( AxisInfo.Y_AXIS, yinfo.copy() );
     temp.setTitle(title);
     
-    init(temp);
+    init(temp, err_array);
   }
  
  /**
@@ -351,7 +356,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   {
     int NUM_ROWS = 200;
     int NUM_COLS = 200;
-    float[][] array = new float[NUM_COLS][NUM_ROWS];
+    float[][] array     = new float[NUM_COLS][NUM_ROWS];
+    float[][] err_array = new float[NUM_COLS][NUM_ROWS];
     float qxmin = 0;
     float qymin = 0;
     float qxmax = 0;
@@ -371,7 +377,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       StringTokenizer datarow = new StringTokenizer(reader.read_line());
       qxmin = (new Float( datarow.nextToken() )).floatValue();
       qymin = (new Float( datarow.nextToken() )).floatValue();
-      array[col][row] = (new Float( datarow.nextToken() )).floatValue();
+      array[col][row]     = (new Float( datarow.nextToken() )).floatValue();
+      err_array[col][row] = (new Float( datarow.nextToken() )).floatValue();
+    
       col++;  // increment row since first element was read in.
       // let the exception EOF end the loop.
       while( true )
@@ -383,6 +391,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         qxmax = (new Float( datarow.nextToken() )).floatValue();
         qymax = (new Float( datarow.nextToken() )).floatValue();
         array[col][row] = (new Float( datarow.nextToken() )).floatValue();
+        err_array[col][row] = (new Float( datarow.nextToken() )).floatValue();
 	//System.out.println("Row/Col: (" + row + "," + col + ")" );
 	
 	// increment column if at last row, reset row to start.
@@ -417,13 +426,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	va2D.setAxisInfo( AxisInfo.Z_AXIS, 0, 1, 
     			    "","Intensity", true );
         va2D.setTitle("SAND Wedge Viewer");
-	setData( va2D );
+	setData( va2D, err_array );
       }
       // no file to be read, display file not found on empty jpanel.
       else
       {
         VirtualArray2D nullarray = null;
-        this.setData(nullarray);
+        this.setData(nullarray,null);
         ((JComponent)pane.getLeftComponent()).add( 
 	                                       new JLabel("File Not Found") );
         validate();
@@ -440,7 +449,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   *
   *  @param  values
   */ 
-  public void setData( IVirtualArray2D values )
+  public void setData( IVirtualArray2D values, float[][] err_array )
   {
     // since data is changing, kill all windows created by ivc and fvc.
     // If they are null, no windows were made.
@@ -454,7 +463,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         ( values.getNumRows() == data.getNumRows() &&
           values.getNumColumns() == data.getNumColumns() ) )
     {  
-      data = values;
+      data   = values;
+      errors = err_array;
       ivc.setSelectedRegions(null);
       ivc.dataChanged(data);
       integrate(null);
@@ -462,7 +472,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     // if different sized array, remove everything and build again.
     else
     { 
-      data = values;
+      data   = values;
+      errors = err_array;
       getContentPane().removeAll();
       buildMenubar();
       buildPane();
@@ -480,9 +491,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   *
   *  @param  array
   */ 
-  public void setData( float[][] array )
+  public void setData( float[][] array, float[][] err_array )
   {
-    setData( new VirtualArray2D(array) );
+    setData( new VirtualArray2D(array), err_array );
   }
  
  /**
@@ -498,7 +509,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   * so that the code does not have to exist in 3 spots. This will build the
   * niceties of the viewer.
   */ 
-  private void init( IVirtualArray2D iva )
+  private void init( IVirtualArray2D iva, float[][] err_array )
   {
     setTitle("SAND Wedge Viewer");
     if( iva != null )
@@ -530,7 +541,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     data_set.setY_label("Relative Intensity" );
     if( data_set.getNum_entries() > 0 )
       data_set.setSelectFlag( data_set.getNum_entries() - 1, true );
-    setData(iva);
+    setData(iva, err_array);
   }
 
  /*
@@ -894,8 +905,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     n_xvals = Math.round(end_x);
     x_scale = new UniformXScale( start_x, end_x, n_xvals );
 
-    int hit_count[] = new int[n_xvals];
-    float y_vals[] = new float[n_xvals];
+    int hit_count[]  = new int[n_xvals];
+    float y_vals[]   = new float[n_xvals];
+    float err_vals[] = new float[n_xvals];
+    float err;
     float x_vals[] = x_scale.getXs();
     Point[] selected_pts = region.getSelectedPoints();
     // this loop will sum up values at the same distance and count the number
@@ -907,13 +920,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     for ( int i = 0; i < selected_pts.length; i++ )
     {
       x = Math.abs( selected_pts[i].x - center.x );
-      x = x*x;  // square x
       y = Math.abs( selected_pts[i].y - center.y );
-      y = y*y;  // square y
-      dist = (float)Math.sqrt( x + y );
+      dist = (float)Math.sqrt( x*x + y*y );
       index = binarySearch( x_vals, dist );
       y_vals[index] += data.getDataValue( selected_pts[i].y,
                                           selected_pts[i].x );
+      err = errors[selected_pts[i].y][selected_pts[i].x];
+      err_vals[index] += err*err; 
       hit_count[index]++;
     }
     
@@ -921,10 +934,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     for( int bindex = 0; bindex < n_xvals; bindex++ )
     {
       if( hit_count[bindex] != 0 )
+      {
         y_vals[bindex] = y_vals[bindex]/(float)hit_count[bindex];
+        err_vals[bindex] = (float)Math.sqrt(err_vals[bindex]) /
+                                  (float)hit_count[bindex];
+      }
     }
     // put it into a "Data" object and then add it to the dataset
-    spectrum = new FunctionTable( x_scale, y_vals, ID );
+    spectrum = new FunctionTable( x_scale, y_vals, err_vals, ID );
     spectrum.setAttribute( new Float1DAttribute( attribute_name, attributes ) );
 
     // Convert the spectrum into a spectrum relative to "Q".  Also, discard the
@@ -953,12 +970,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     UniformXScale new_x_scale = new UniformXScale( new_start_x, 
                                                    new_end_x, 
                                                    n_xvals-1 );
-    float new_y_vals[] = new float[ y_vals.length - 1 ];
+    float new_y_vals[]   = new float[ y_vals.length - 1 ];
+    float new_err_vals[] = new float[ y_vals.length - 1 ];
     for ( int i = 0; i < new_y_vals.length; i++ )
-      new_y_vals[i] = y_vals[i+1];
+    {
+      new_y_vals[i]   = y_vals[i+1];
+      new_err_vals[i] = err_vals[i+1];
+    }
   
     ID++;
-    Data new_spectrum = new FunctionTable( new_x_scale, new_y_vals, ID );
+    Data new_spectrum = new FunctionTable( new_x_scale, 
+                                           new_y_vals, 
+                                           new_err_vals,  
+                                           ID );
     new_spectrum.setAttribute( new Float1DAttribute( attribute_name, 
                                attributes ) );
 
