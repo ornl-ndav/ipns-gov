@@ -31,6 +31,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/04/19 16:53:48  dennis
+ *  Added more javadocs.  Also added methods numFunctions() and
+ *  getFunction() to allow access to the individual component
+ *  functions.  This will be useful for changing the domains
+ *  of the component functions, after constructing the sum function.
+ *
  *  Revision 1.1  2002/04/11 21:00:55  dennis
  *  Class for parameterized functions of one variable that are
  *  sums of other functios of one variable.
@@ -45,6 +51,8 @@ import DataSetTools.dataset.*;
 import DataSetTools.viewer.*;
 
 /**
+ *  This class represents new OneVarParameterizedFunctions defined as the
+ *  sum of component OneVarParameterizedFunctions.  
  */
 
 public class SumFunction extends    OneVarFunction
@@ -54,6 +62,13 @@ public class SumFunction extends    OneVarFunction
   private IOneVarParameterizedFunction functions[];
 
 
+  /**
+   *  Construct a new parameterized function as the sum of a collection of
+   *  individual parameterized functions.  
+   *
+   *  @param functions   Array containing the component functions that will
+   *                     form this sum function.
+   */
    public SumFunction( IOneVarParameterizedFunction functions[] )
    {
      super( "Sum of Functions" );
@@ -64,6 +79,49 @@ public class SumFunction extends    OneVarFunction
    }
 
 
+  /**
+   *  Get the number of component functions that make up this SumFunction.
+   *
+   *  @return the number of component functions for this function. 
+   */
+  public int numFunctions()
+  {
+    if ( functions == null )
+      return 0;
+
+    return functions.length;
+  }
+
+
+  /**
+   *  Get a reference to one of the component functions that make up this 
+   *  SumFunction.
+   *
+   *  @param  index  The position of the requested component function in the
+   *                 list of components specified when this sum function was
+   *                 constructed. 
+   *
+   *  @return A reference to the specified component function, if it exists,
+   *          or null if it does not exist. 
+   */
+  public IOneVarParameterizedFunction getFunction( int index )
+  {
+    if ( functions == null )
+      return null;
+
+    if ( index < 0 || index >= functions.length )
+      return null;
+ 
+    return functions[index];
+  }
+
+
+  /**
+   *  Get the total number of parameters for all components of this function.
+   *
+   *  @return the sum of the number of parameters for the components of
+   *          this function.
+   */
   public int numParameters()
   {
     int n = 0; 
@@ -73,6 +131,13 @@ public class SumFunction extends    OneVarFunction
   }
 
 
+  /**
+   *  Get a list of the current parameter values for this function by 
+   *  combining the lists of values for the component functions, in order. 
+   *
+   *  @return  Array containing the combined list of parameter values for
+   *           all component functions of this sum function.
+   */
   public float[] getParameters()
   {
     int n_params = numParameters();
@@ -91,7 +156,20 @@ public class SumFunction extends    OneVarFunction
     return params;
   }
 
-
+  /**
+   *  Set new values for the list of parameters for this function.  The 
+   *  specified values will be copied into the parameters for the component
+   *  functions in order.  For example, if there are two component functions,
+   *  f1 and f2 with 3 and 4 parameters respectively, then the parameters
+   *  array should have 7 values.  In that case, the first 3 will specify
+   *  paramter values for f1 and the next 4 will specify parameter values for  
+   *  f2.  If there are not enough parameters in the array, the specified 
+   *  parameters will still be used in order to set the corresponding 
+   *  parameter values. 
+   *
+   *  @param  parameters  Array containing values to copy into the list of
+   *                      parameter values for this function.
+   */
   public void setParameters( float parameters[] )
   {
     if ( parameters == null )
@@ -118,6 +196,14 @@ public class SumFunction extends    OneVarFunction
   }
 
 
+  /**
+   *  Get a reference to the list of parameter names for this function by
+   *  concatenating the lists of parameter names for each of the component
+   *  functions.
+   *
+   *  @return  Reference to the combined lists of parameter names for this 
+   *           function.
+   */
   public String[] getParameterNames()
   {
     int n_params = numParameters();
@@ -138,12 +224,13 @@ public class SumFunction extends    OneVarFunction
 
 
   /**
-   *  Evaluate the y-value of the polynomial at the specified (double) x-value.
+   *  Evaluate the y-value of this sum function at the specified (double) i
+   *  x-value.
    *
-   *  @param  x  the point at which the polynomial is to be evaluated
+   *  @param  x  the point at which the sum is to be evaluated
    *
-   *  @return the value of the polynomial, at the specified point, provided 
-   *          the point is in the currently specified domain.
+   *  @return the sum of the values of the components of this sum function, 
+   *          at the specified point.
    */
   public double getValue( double x )
   {
