@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/08/03 23:37:21  dennis
+ * Added methods setCOP() and setVRP() that override the
+ * corresponding methods from the base class, and update the
+ * view after changing the COP and VRP.
+ *
  * Revision 1.3  2004/07/23 13:09:07  dennis
  * Fixed bug in calculating view when the View Reference Point
  * is not at the origin.
@@ -275,6 +280,43 @@ public class AltAzController extends    ViewController
   }
 
 
+/* -------------------------------- setCOP ------------------------------- */
+/**
+ *   Set the observer's position (i.e. the Center of Projection )
+ *   for this view.  The view reference point will be adjusted as well to
+ *   keep the same view direction.
+ *
+ *   @param  cop  The new vector to use for the observer's position.  
+ */
+ public void setCOP( Vector3D cop )
+ {
+   Vector3D old_cop = getCOP();            // calculate how COP changed
+   Vector3D diff = new Vector3D( cop );
+   diff.subtract( old_cop );
+                                           // and shift the VRP the same way
+   Vector3D vrp     = getVRP();
+   vrp.add( diff );
+   super.setVRP( vrp );
+
+   setView();                              // new COP is calcuated in setView()
+ }
+
+
+/* -------------------------------- setVRP ------------------------------- */
+/**
+ *   Set the point the observer is looking at (i.e. the View Reference Point )
+ *   for this view.
+ *
+ *   @param  vrp  The new vector to use for the point the observer is looking
+ *                at.  
+ */
+  public void setVRP( Vector3D vrp )
+  {
+    super.setVRP( vrp );
+    setView();                             // new COP is calcuated in setView()
+  }
+
+
 /* -------------------------------------------------------------------------
  *
  *  PRIVATE METHODS 
@@ -301,7 +343,7 @@ public class AltAzController extends    ViewController
 
    float vrp[] = getVRP().get();
  
-   setCOP( new Vector3D( x + vrp[0], y + vrp[1], z + vrp[2] ) );
+   super.setCOP( new Vector3D( x + vrp[0], y + vrp[1], z + vrp[2] ) );
    
    send_message(VIEW_CHANGED);
  }
