@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.23  2003/07/03 16:12:41  serumb
+ * Moved local_transform.MapTo(x_copy, y_copy) to after the if
+ * block that uses origional x_copy and y_copy values.
+ *
  * Revision 1.22  2003/07/02 22:37:28  dennis
  * Replaced code to map the graph data to pixel coordinates.
  *
@@ -867,8 +871,6 @@ public boolean is_autoY_bounds()
       y_copy = new float[ n_points ];
       System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
   
-      local_transform.MapTo( x_copy, y_copy );  // map graphs from WC to pixels
-
       float error_bars_upper[] = null;
       float error_bars_lower[] = null;
       if ( gd.getErrorVals() != null )
@@ -895,6 +897,7 @@ public boolean is_autoY_bounds()
                                     AlphaComposite.SRC_OVER, 1.0f));
       }  
          
+      local_transform.MapTo( x_copy, y_copy );       // map from WC to pixels
 
       g2.setStroke(gd.Stroke);
       
