@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/01/18 23:11:00  millermi
+ *  - Listeners that previously listened for events from the
+ *    SelectionOverlay now listen for the SELECTED_CHANGED event
+ *    from the ImageViewComponent.
+ *
  *  Revision 1.10  2004/09/15 21:55:44  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -90,7 +95,6 @@
  import gov.anl.ipns.ViewTools.Components.TwoD.*;
  import gov.anl.ipns.ViewTools.Components.Menu.*;
  import gov.anl.ipns.ViewTools.Components.Region.Region;
- import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
 
 /**
  * This class is a mock viewer to test basic functionality of any 
@@ -186,7 +190,7 @@ public class ViewerSim
      public void actionPerformed( ActionEvent ae )
      {
        String message = ae.getActionCommand();
-       if( message.equals(SelectionOverlay.REGION_ADDED) )
+       if( message.equals(ImageViewComponent.SELECTED_CHANGED) )
        {
          Region[] selectedregions = ivc.getSelectedRegions();
 	 for( int i = 0; i < selectedregions.length; i++ )

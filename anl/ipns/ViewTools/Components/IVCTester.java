@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.24  2005/01/18 23:11:00  millermi
+ * - Listeners that previously listened for events from the
+ *   SelectionOverlay now listen for the SELECTED_CHANGED event
+ *   from the ImageViewComponent.
+ *
  * Revision 1.23  2004/09/15 21:55:44  millermi
  * - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *   Adding a second log required the boolean parameter to be changed
@@ -167,7 +172,6 @@ import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
-import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
 import gov.anl.ipns.ViewTools.Components.Transparency.Marker;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
@@ -451,9 +455,12 @@ public class IVCTester extends JFrame implements IPreserveState,
     public void actionPerformed( ActionEvent ae )
     {
       String message = ae.getActionCommand();
-      if( message.equals(SelectionOverlay.REGION_ADDED) )
+      if( message.equals(ImageViewComponent.SELECTED_CHANGED) )
       {
   	Region[] selectedregions = ivc.getSelectedRegions();
+	// Make sure regions exist.
+	if( selectedregions.length < 1 )
+	  return;
         Point[] selectedpoints = 
 	          selectedregions[selectedregions.length-1].getSelectedPoints();
         //System.out.println("NumSelectedPoints: " + selectedpoints.length);
