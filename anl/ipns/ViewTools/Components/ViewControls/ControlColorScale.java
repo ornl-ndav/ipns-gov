@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2003/12/20 20:36:25  millermi
+ *  - setLogScale() now bounds the logscale value in the
+ *    interval [0,1]. Previously, it just assumed it true.
+ *
  *  Revision 1.13  2003/12/20 20:08:20  millermi
  *  - Now uses getValueAxisInfo() to get data min/max.
  *
@@ -260,6 +264,11 @@ public class ControlColorScale extends ViewControl
   */
   public void setLogScale( double value )
   {
+    // restrict value to interval [0,1]
+    if( value < 0 )
+      value = 0;
+    if( value > 1 )
+      value = 1;
     logscale = value;
   }
   
