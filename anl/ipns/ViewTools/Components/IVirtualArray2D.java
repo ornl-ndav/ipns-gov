@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/02/16 05:21:38  millermi
+ *  - Added methods getErrors(), setErrors(), setSquareRootErrors(),
+ *    and getErrorValue() which allow an array of errors to be
+ *    associated with the data in that array.
+ *
  *  Revision 1.5  2003/12/18 22:33:50  millermi
  *  - Removed getAxisInfoVA(), now done in IVirtualArray.
  *  - All references to AxisInfo2D changed to AxisInfo.
@@ -62,13 +67,13 @@ import DataSetTools.components.View.TwoD.*;
  * 2-D array of floats and is used to pass data to viewers and view components.
  * Along with the data, some data attributes are kept in the virtual 
  * array.  An IVirtualArray2D has the same logical format as a typical 2D array.
- * Below is an example of an M x N virtual array.
+ * Below is an example of an M x N virtual array.<br><br>
  *
- * | (0,0)    (0,1)   (0,2)  ...  (0,N-1)  |
- * | (1,0)    (1,1)   (1,2)  ...  (1,N-1)  |
- * | (2,0)    (2,1)   (2,2)  ...  (2,N-1)  |
- * |  ...   ...   ...  ...   ...           |
- * | (M-1,0) (M-1,1) (M-1,2) ... (M-1,N-1) |
+ * | (0,0)    (0,1)   (0,2)  ...  (0,N-1)  |<br>
+ * | (1,0)    (1,1)   (1,2)  ...  (1,N-1)  |<br>
+ * | (2,0)    (2,1)   (2,2)  ...  (2,N-1)  |<br>
+ * |  ...   ...   ...  ...   ...           |<br>
+ * | (M-1,0) (M-1,1) (M-1,2) ... (M-1,N-1) |<br>
  *
  * All references to rows and columns are interpretted
  * to mean row number and column number where an
@@ -235,5 +240,43 @@ public interface IVirtualArray2D extends IVirtualArray
   *  @return This returns the number of columns in the array. 
   */
   public int getNumColumns();
-     
+  
+ /**
+  * Set the error values that correspond to the data. The dimensions of the
+  * error values array should match the dimensions of the data array. Zeroes
+  * will be used to fill undersized error arrays. Values that are in an array
+  * that exceeds the data array will be ignored.
+  *
+  *  @param  error_values The array of error values corresponding to the data.
+  *  @return true if data array dimensions match the error array dimensions.
+  */
+  public boolean setErrors( float[][] error_values );
+  
+ /**
+  * Get the error values corresponding to the data. If no error values have
+  * been set, the square-root of the data value will be returned.
+  *
+  *  @return error values of the data.
+  */
+  public float[][] getErrors();
+  
+ /**
+  * Use this method to specify whether to use error values that were passed
+  * into the setErrors() method or to use the square-root of the data value.
+  *
+  *  @param  use_sqrt If true, use square-root.
+  *                   If false, use set error values if they exist.
+  */
+  public void setSquareRootErrors( boolean use_sqrt );
+ 
+ /**
+  * Get an error value for a given row and column. Returns Float.NaN if
+  * row or column are invalid.
+  *
+  *  @param  row Row number.
+  *  @param  column Column number.
+  *  @return error value for data at [row,column]. If row or column is invalid,
+  *          Float.NaN is returned.
+  */
+  public float getErrorValue( int row, int column ); 
 }

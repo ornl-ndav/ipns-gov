@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/02/16 05:21:37  millermi
+ *  - Added methods getErrors(), setErrors(), setSquareRootErrors(),
+ *    and getErrorValue() which allow an array of errors to be
+ *    associated with the data in that array.
+ *
  *  Revision 1.9  2003/12/20 19:37:33  millermi
  *  - Added axisinfo for value axis.
  *
@@ -93,6 +98,9 @@ public class VirtualArray2D implements IVirtualArray2D
   private AxisInfo colinfo;
   private AxisInfo datainfo;
   private String title;
+  private float[][] errorArray;      // array of error values.
+  private boolean errors_set;        // has setErrors() method been called.
+  private boolean use_sqrt;          // should square-root errors be used.
    
  /**
   * Constructor that allows the user to enter dimensions M,N and
@@ -104,10 +112,11 @@ public class VirtualArray2D implements IVirtualArray2D
   public VirtualArray2D( int rows, int columns )
   {
     dataArray = new float[rows][columns];
-    
+    errors_set = false;
+    use_sqrt = false;
     /* Initialize Array to all zeros */
     this.setAllValues(0);
-	  
+      
     num_rows = rows;
     num_columns = columns;
     rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
@@ -127,10 +136,28 @@ public class VirtualArray2D implements IVirtualArray2D
     dataArray = array2d;
     num_columns = array2d[0].length;
     num_rows = array2d.length;
+    errors_set = false;
+    use_sqrt = false;
     rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
     colinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
     datainfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
     title = NO_TITLE;
+  }
+
+ /**
+  * Constructor that allows the user to pass in a 2D array of float
+  * to be made into a new virtual array and a 2D array of error values
+  * corresponding to the values in the first parameter.
+  *
+  *  @param  array2d  2-D array of floats put into a virtual array shell
+  *  @param  errs     2-D array of error values. If the dimension of this
+  *                   array is different from the values, the dimension
+  *                   of this array will be modified to equal size.  
+  */  
+  public VirtualArray2D( float[][] array2d, float[][] errs )
+  {
+    this(array2d);
+    setErrors(errs);
   }	 
 
 /* 
@@ -602,5 +629,186 @@ public class VirtualArray2D implements IVirtualArray2D
     return 2;
   }
   
+ /**
+  * Set the error values that correspond to the data. The dimensions of the
+  * error values array should match the dimensions of the data array. Zeroes
+  * will be used to fill undersized error arrays. Values that are in an array
+  * that exceeds the data array will be ignored.
+  *
+  *  @param  error_values The array of error values corresponding to the data.
+  *  @return true if data array dimensions match the error array dimensions.
+  */
+  public boolean setErrors( float[][] error_values )
+  {
+    errors_set = true;
+    // by setting these values, do not use the calculated
+    // square-root errors
+    setSquareRootErrors( false );
+    
+    // Check to see if error values array is same size as data array.
+    // If so, reference the array passed in.
+    if( error_values.length == getNumRows() &&
+        error_values[0].length == getNumColumns() )
+    {
+      errorArray = error_values;
+      return true;
+    }
+    // If dimensions are not equal, copy values that are valid into an array
+    // the same size as the data.
+    else
+    {
+      errorArray = new float[getNumRows()][getNumColumns()];
+      // If error_values is too large, the extra values are ignored
+      // by these "for" loops. If too small, the zeroes are inserted.
+      for( int row = 0; row < getNumRows(); row++ )
+      {
+        for( int col = 0; col < getNumColumns(); col++ )
+	{
+	  if( row >= error_values.length || col >= error_values[0].length )
+	  {
+	    errorArray[row][col] = 0;
+	  }
+	  else
+	  {
+	    errorArray[row][col] = error_values[row][col];
+	  }
+	}
+      }
+      return false;
+    }
+  }
+  
+ /**
+  * Get the error values corresponding to the data. setSquareRootErrors(true)
+  * or setErrors(array) must be called to have meaningful values returned.
+  * By default, null will be returned. If square-root values are
+  * desired and the data value is negative, the square-root of the positive
+  * value will be returned. If setErrors() was called, then the error array
+  * passed in will be returned (this array will be always have the same
+  * dimensions as the data, it will be modified if the dimensions are
+  * different).
+  *
+  *  @return error values of the data.
+  */
+  public float[][] getErrors()
+  {
+    // if setSquareRootErrors(true) was called
+    if( use_sqrt )
+    {
+      float[][] sqrt_errors = new float[getNumRows()][getNumColumns()];
+      for( int row = 0; row < getNumRows(); row++ )
+      {
+        for( int col = 0; col < getNumColumns(); col++ )
+        {
+          sqrt_errors[row][col] = (float)
+	            Math.sqrt( (double)Math.abs( getDataValue(row,col) ) );
+        }
+      }
+      return sqrt_errors;
+    }
+    // if the errors were set using the setErrors() method
+    if( errors_set )
+      return errorArray;
+    // if neither use_sqrt nor errors_set, return null.
+    return null;
+  }
+  
+ /**
+  * Use this method to specify whether to use error values that were passed
+  * into the setErrors() method or to use the square-root of the data value.
+  *
+  *  @param  use_sqrt_errs If true, use square-root.
+  *                        If false, use set error values if they exist.
+  */
+  public void setSquareRootErrors( boolean use_sqrt_errs )
+  {
+    use_sqrt = use_sqrt_errs;
+  }
+ 
+ /**
+  * Get an error value for a given row and column. Returns Float.NaN if
+  * row or column are invalid.
+  *
+  *  @param  row Row number.
+  *  @param  column Column number.
+  *  @return error value for data at [row,column]. If row or column is invalid,
+  *          or if setSquareRootErrors() or setErrors is not called,
+  *          Float.NaN is returned.
+  */
+  public float getErrorValue( int row, int column )
+  {
+    // make sure row/column are valid values.
+    if( row >= getNumRows() || column >= getNumColumns() )
+      return Float.NaN;
+    // return sqrt error value if specified.
+    if( use_sqrt )
+      return (float)Math.sqrt( (double)Math.abs( getDataValue(row,column) ) );
+    // if the errors were set using the setErrors() method, return them
+    if( errors_set )
+      return errorArray[row][column];
+    // if neither use_sqrt or errors_set, then return NaN
+    return Float.NaN;
+  }
+  
+ /*
+  * MAIN - Basic main program to test the VirtualArray2D class
+  */
+  public static void main( String args[] ) 
+  {
+    // build test array
+    int rows = 10;
+    int cols = 8;
+    float[][] array = new float[rows][cols];
+    System.out.println("*************************DATA***********************");
+    // create an array with perfect squares.
+    for( int i = 0; i < rows; i++ )
+    {
+      for( int j = 0; j < cols; j++ )
+      {
+        array[i][j] = (float)(i*i);
+        // negate some values.
+	if( i == j )
+	  array[i][j] = -array[i][j];
+	System.out.print(array[i][j] + "\t");
+      }
+      System.out.println(); // advance to next line
+    }
+    VirtualArray2D test = new VirtualArray2D(array);
+    System.out.println("************************ERRORS**********************");
+    // null since neither setErrors() nor setSquareRootErrors() were called.
+    float[][] errs = test.getErrors();
+    System.out.println(errs);
+    System.out.println("*********************SET ERRORS*********************");
+    float[][] new_errs = new float[test.getNumRows()+2][test.getNumColumns()-2];
+    for( int i = 0; i < rows+2; i++ ) // too many rows
+    {
+      for( int j = 0; j < cols-2; j++ ) // too few columns
+      {
+        new_errs[i][j] = 1;  // make all errors the same.
+      }
+    }
+    test.setErrors(new_errs);
+    errs = test.getErrors();
+    for( int i = 0; i < rows; i++ )
+    {
+      for( int j = 0; j < cols; j++ )
+      {
+	System.out.print(errs[i][j] + "\t");
+      }
+      System.out.println(); // advance to next line
+    }
+    // test setSquareRootErrors()
+    test.setSquareRootErrors(true);
+    System.out.println("*********************SQRT ERRORS********************");
+    errs = test.getErrors();
+    for( int i = 0; i < rows; i++ )
+    {
+      for( int j = 0; j < cols; j++ )
+      {
+	System.out.print(errs[i][j] + "\t");
+      }
+      System.out.println(); // advance to next line
+    }
+  } // END OF MAIN  
 }
    
