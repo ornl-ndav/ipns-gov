@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.24  2003/07/17 20:36:48  serumb
+ * Added in the x and y offsets when drawing point markers and error bars.
+ *
  * Revision 1.23  2003/07/03 16:12:41  serumb
  * Moved local_transform.MapTo(x_copy, y_copy) to after the if
  * block that uses origional x_copy and y_copy values.
@@ -112,6 +115,7 @@ public class GraphJPanel extends    CoordJPanel
                          implements Serializable
 {
   public Vector  graphs;
+
 
   private boolean         y_bound_set = false;
   private boolean         x_bound_set = false;
@@ -273,7 +277,7 @@ public class GraphJPanel extends    CoordJPanel
 /* ----------------------------- setErrorColor -------------------------------- */
 /**
  *  Set the error color for the specified graph.  
- *
+
  *  @param  color      the color of the error bars
  *
  *  @param  graph_num  the index of the graph whose color is set.
@@ -558,7 +562,6 @@ public boolean setMarkType(int marktype, int graph_num, boolean redraw)
 {
     if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
       return false;
- 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
     gd.marktype = marktype; 
 	
@@ -831,7 +834,6 @@ public boolean is_autoY_bounds()
         first_index = gd.x_vals.length-1;
       else
         first_index = arrayUtil.get_index_of( first_x, gd.x_vals );
-
       if ( first_index > 0 )                     // include one extra point 
         first_index--;                           // to include first segment
                                                  // going off screen
@@ -875,12 +877,11 @@ public boolean is_autoY_bounds()
       float error_bars_lower[] = null;
       if ( gd.getErrorVals() != null )
       {
-        //System.out.println("Copying errors " + gr_index + ", " + n_points );
         error_bars_upper = new float[ n_points ];
         error_bars_lower = new float[ n_points ]; 
-
-        for ( int i = 0; i < n_points; i++ )
-        {
+        for ( int i = 0; i < n_points ; i++ )
+        { // System.out.println("Error_val:" + gd.getErrorVals()[i] +
+          // "   Yval:" + y_copy[i]);
            error_bars_upper[i] = y_copy[i] + gd.getErrorVals()[i]; 
            error_bars_lower[i] = y_copy[i] - gd.getErrorVals()[i];
         }
@@ -951,6 +952,13 @@ public boolean is_autoY_bounds()
         */ 
 	if (gd.marktype != 0)
 	{
+          int x_int[] = new int[ n_points ];
+          int y_int[] = new int[ n_points ];
+          for ( int i = 0; i < n_points; i++ )
+          {
+            x_int[i] = (int)( x_copy[i] ) + x_offset;
+            y_int[i] = (int)( y_copy[i] ) - y_offset;
+          }
 	  g2.setStroke(new BasicStroke(1));
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
@@ -959,43 +967,43 @@ public boolean is_autoY_bounds()
           {
 	     
 	     if ( type == DOT )
-              g2.drawLine( (int)x_copy[i], (int)y_copy[i], 
-	  			(int)x_copy[i], (int)y_copy[i] );      
+              g2.drawLine( x_int[i], y_int[i], 
+	  			x_int[i], y_int[i] );      
              else if ( type == PLUS )
              {
-               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i],
-	  		      (int)x_copy[i]+size, (int)y_copy[i]      );      
-              g2.drawLine( (int)x_copy[i],      (int)y_copy[i]-size, 
-	  			(int)x_copy[i],      (int)y_copy[i]+size );      
+               g2.drawLine( x_int[i]-size, y_int[i],
+	  		      x_int[i]+size, y_int[i]      );      
+              g2.drawLine( x_int[i],     y_int[i]-size, 
+	  			x_int[i],      y_int[i]+size );      
              }
              else if ( type == STAR )
              {
-               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i],
-	  			 (int)x_copy[i]+size, (int)y_copy[i]      );      
-               g2.drawLine( (int)x_copy[i],      (int)y_copy[i]-size,
-	  			 (int)x_copy[i],      (int)y_copy[i]+size );      
-               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
-	  			 (int)x_copy[i]+size, (int)y_copy[i]+size );      
-               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
-				 (int)x_copy[i]+size, (int)y_copy[i]-size );      
+               g2.drawLine( x_int[i]-size, y_int[i],
+	  			 x_int[i]+size, y_int[i]      );      
+               g2.drawLine( x_int[i],      y_int[i]-size,
+	  			 x_int[i],      y_int[i]+size );      
+               g2.drawLine( x_int[i]-size, y_int[i]-size,
+	  			 x_int[i]+size, y_int[i]+size );      
+               g2.drawLine( x_int[i]-size, y_int[i]+size,
+				 x_int[i]+size, y_int[i]-size );      
              }
              else if ( type == BOX )
              {
-               g2.drawLine( (int)x_copy[i]-size, (int)(y_copy[i]-size), 
-	 		(int)x_copy[i]-size, (int)(y_copy[i]+size) );      
-               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
-			 (int)x_copy[i]+size, (int)y_copy[i]+size );      
-               g2.drawLine( (int)x_copy[i]+size, (int)y_copy[i]+size,
-	 		 (int)x_copy[i]+size, (int)y_copy[i]-size );      
-               g2.drawLine( (int)x_copy[i]+size, (int)y_copy[i]-size,
-	 		 (int)x_copy[i]-size, (int)y_copy[i]-size );     
+               g2.drawLine( x_int[i]-size, (y_int[i]-size), 
+	 		x_int[i]-size, (y_int[i]+size) );      
+               g2.drawLine( x_int[i]-size, y_int[i]+size,
+			 x_int[i]+size, y_int[i]+size );      
+               g2.drawLine( x_int[i]+size, y_int[i]+size,
+	 		 x_int[i]+size, y_int[i]-size );      
+               g2.drawLine( x_int[i]+size, y_int[i]-size,
+	 		 x_int[i]-size, y_int[i]-size );     
              }
              else   // type = CROSS
              {
-               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
-	  		 (int)x_copy[i]+size, (int)y_copy[i]+size );      
-               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
-	  		 (int)x_copy[i]+size, (int)y_copy[i]-size );      
+               g2.drawLine( x_int[i]-size, y_int[i]-size,
+	  		 x_int[i]+size, y_int[i]+size );      
+               g2.drawLine( x_int[i]-size, y_int[i]+size,
+	  		 x_int[i]+size, y_int[i]-size );      
              }    
 	  } 
 	} 
@@ -1005,6 +1013,11 @@ public boolean is_autoY_bounds()
         */ 
         if (gd.getErrorLocation() != 0)
         {
+          int x_int[] = new int[ n_points ];
+          for ( int i = 0; i < n_points; i++ )
+          {
+            x_int[i] = (int)( x_copy[i] ) + x_offset;
+          }
           Line2D.Float line1 = new Line2D.Float();
           Line2D.Float line2 = new Line2D.Float();
           Line2D.Float line3 = new Line2D.Float();
@@ -1016,14 +1029,14 @@ public boolean is_autoY_bounds()
           {
              if ( loc == ERROR_AT_POINT )
              {
-               line1.setLine( x_copy[i], error_bars_upper[i], 
-	  	                     x_copy[i], error_bars_lower[i]);
+               line1.setLine( x_int[i], error_bars_upper[i]-y_offset, 
+	  	                     x_int[i], error_bars_lower[i]-y_offset);
                g2.draw(line1);
-               line2.setLine( x_copy[i] + size, error_bars_upper[i],
-                                     x_copy[i] - size, error_bars_upper[i]);
+               line2.setLine( x_int[i] + size, error_bars_upper[i]-y_offset,
+                              x_int[i] - size, error_bars_upper[i]-y_offset);
                g2.draw( line2 );
-               line3.setLine( x_copy[i] + size, error_bars_lower[i],
-                                     x_copy[i] - size, error_bars_lower[i]);   
+               line3.setLine( x_int[i] + size, error_bars_lower[i]-y_offset,
+                              x_int[i] - size, error_bars_lower[i]-y_offset);   
                g2.draw( line3 );
              }
 
@@ -1086,51 +1099,58 @@ public boolean is_autoY_bounds()
         */ 
 	if (gd.marktype != 0)
 	{
+          int x_int[] = new int[ n_points ];
+          int y_int[] = new int[ n_points ];
+          for ( int i = 0; i < n_points; i++ )
+          {
+            x_int[i] = (int)( x_copy[i] ) + x_offset;
+            y_int[i] = (int)( y_copy[i] ) - y_offset;
+          }
 	  g2.setStroke(new BasicStroke(1));
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = 0; i < n_points; i++ )
+          for ( int i = 0; i < n_points - 1; i++ )
           {
-	     int x_midpt = (int)((x_copy[i] + x_copy[i+1])/2);
+	     int x_midpt = ((x_int[i] + x_int[i+1])/2);
 	     if ( type == DOT )
-              g2.drawLine( x_midpt, (int)y_copy[i], 
-	  			x_midpt, (int)y_copy[i] );      
+              g2.drawLine( x_midpt, y_int[i], 
+	  			x_midpt, y_int[i] );      
              else if ( type == PLUS )
              {
-               g2.drawLine( x_midpt-size, (int)y_copy[i],
-	  		      x_midpt+size, (int)y_copy[i]      );      
-              g2.drawLine( x_midpt,      (int)y_copy[i]-size, 
-	  			x_midpt,      (int)y_copy[i]+size );      
+               g2.drawLine( x_midpt-size, y_int[i],
+	  		      x_midpt+size, y_int[i]      );      
+              g2.drawLine( x_midpt,      y_int[i]-size, 
+	  			x_midpt,      y_int[i]+size );      
              }
              else if ( type == STAR )
              {
-               g2.drawLine( x_midpt-size, (int)y_copy[i],
-	  			 x_midpt+size, (int)y_copy[i]      );      
-               g2.drawLine( x_midpt,      (int)y_copy[i]-size,
-	  			 x_midpt,      (int)y_copy[i]+size );      
-               g2.drawLine( x_midpt-size, (int)y_copy[i]-size,
-	  			 x_midpt+size, (int)y_copy[i]+size );      
-               g2.drawLine( x_midpt-size, (int)y_copy[i]+size,
-				 x_midpt+size, (int)y_copy[i]-size );      
+               g2.drawLine( x_midpt-size, y_int[i],
+	  			 x_midpt+size, y_int[i]      );      
+               g2.drawLine( x_midpt,      y_int[i]-size,
+	  			 x_midpt,      y_int[i]+size );      
+               g2.drawLine( x_midpt-size, y_int[i]-size,
+	  			 x_midpt+size, y_int[i]+size );      
+               g2.drawLine( x_midpt-size, y_int[i]+size,
+				 x_midpt+size, y_int[i]-size );      
              }
              else if ( type == BOX )
              {
-               g2.drawLine( x_midpt-size, (int)(y_copy[i]-size), 
-	 		x_midpt-size, (int)(y_copy[i]+size) );      
-               g2.drawLine( x_midpt-size, (int)y_copy[i]+size,
-			 x_midpt+size, (int)y_copy[i]+size );      
-               g2.drawLine( x_midpt+size, (int)y_copy[i]+size,
-	 		 x_midpt+size, (int)y_copy[i]-size );      
-               g2.drawLine( x_midpt+size, (int)y_copy[i]-size,
-	 		 x_midpt-size, (int)y_copy[i]-size );     
+               g2.drawLine( x_midpt-size, (y_int[i]-size), 
+	 		x_midpt-size, (y_int[i]+size) );      
+               g2.drawLine( x_midpt-size, y_int[i]+size,
+			 x_midpt+size, y_int[i]+size );      
+               g2.drawLine( x_midpt+size, y_int[i]+size,
+	 		 x_midpt+size, y_int[i]-size );      
+               g2.drawLine( x_midpt+size, y_int[i]-size,
+	 		 x_midpt-size, y_int[i]-size );     
              }
              else   // type = CROSS
              {
-               g2.drawLine( x_midpt-size, (int)y_copy[i]-size,
-	  		 x_midpt+size, (int)y_copy[i]+size );      
-               g2.drawLine( x_midpt-size, (int)y_copy[i]+size,
-	  		 x_midpt+size, (int)y_copy[i]-size );      
+               g2.drawLine( x_midpt-size, y_int[i]-size,
+	  		 x_midpt+size, y_int[i]+size );      
+               g2.drawLine( x_midpt-size, y_int[i]+size,
+	  		 x_midpt+size, y_int[i]-size );      
              }    
 	  } 
 	}
@@ -1140,49 +1160,51 @@ public boolean is_autoY_bounds()
         */ 
         if (gd.getErrorLocation() != 0)
         {
-          //local_transform.MapYListTo(error_bars_copy);
+          int x_int[] = new int[ n_points ];
+          int y_int[] = new int[ n_points ];
+          for ( int i = 0; i < n_points; i++ )
+          {
+            x_int[i] = (int)( x_copy[i] ) + x_offset;
+            y_int[i] = (int)( y_copy[i] ) - y_offset;
+          }
           Line2D.Float line1 = new Line2D.Float();
           Line2D.Float line2 = new Line2D.Float();
           Line2D.Float line3 = new Line2D.Float();
           int size = 1;
           int loc = gd.getErrorLocation();
-        //  int x_val = getZoom_region().x;
-        //  int y_val = getZoom_region().y;
-        //  int x_width = getZoom_region().width;
-        //  int y_height = getZoom_region().height;
 
 	  g2.setStroke(new BasicStroke(1));
 	  g2.setColor( gd.errorcolor );
 
 
-          for ( int i =0 ; i <  n_points; i++ )
+          for ( int i =0 ; i <  n_points - 1; i++ )
           {
-             float x_midpt = ((x_copy[i] + x_copy[i+1])/2);
+             float x_midpt = ((x_int[i] + x_int[i+1])/2);
              if ( loc == ERROR_AT_POINT )
              {
-               line1.setLine( x_midpt, error_bars_upper[i], 
-	  	            x_midpt, error_bars_lower[i]);
+               line1.setLine( x_midpt, error_bars_upper[i]-y_offset, 
+	  	            x_midpt, error_bars_lower[i]-y_offset);
                g2.draw(line1);
-               line2.setLine( x_midpt + size, error_bars_upper[i],
-                                     x_midpt - size, error_bars_upper[i]);
+               line2.setLine( x_midpt + size, error_bars_upper[i]-y_offset,
+                              x_midpt - size, error_bars_upper[i]-y_offset);
                g2.draw( line2 );
-               line3.setLine( x_midpt + size, error_bars_lower[i],
-                                     x_midpt - size, error_bars_lower[i]);   
+               line3.setLine( x_midpt + size, error_bars_lower[i]-y_offset,
+                              x_midpt - size, error_bars_lower[i]-y_offset);   
                g2.draw( line3 );
              }
 
             else if (loc == ERROR_AT_TOP)
              {
-               line1.setLine(x_copy[i], error_bars_upper[i] - y_copy[i], 
-	  	             x_copy[i], error_bars_lower[i] - y_copy[i]);
+               line1.setLine(x_copy[i], error_bars_upper[i] - y_int[i], 
+	  	             x_copy[i], error_bars_lower[i] - y_int[i]);
                g2.draw(line1);
-               line2.setLine(x_copy[i] + size, error_bars_upper[i] - y_copy[i], 
-                             x_copy[i] - size, error_bars_upper[i] - y_copy[i]);
+               line2.setLine(x_copy[i] + size, error_bars_upper[i] - y_int[i], 
+                             x_copy[i] - size, error_bars_upper[i] - y_int[i]);
                g2.draw( line2 );
-               line3.setLine(x_copy[i] + size, error_bars_lower[i] - y_copy[i],
-                             x_copy[i] - size, error_bars_lower[i] - y_copy[i]);   
+               line3.setLine(x_copy[i] + size, error_bars_lower[i] - y_int[i],
+                             x_copy[i] - size, error_bars_lower[i] - y_int[i]);   
                g2.draw( line3 );
-             }
+            }
           }   
         }
 
