@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/07/02 16:40:52  millermi
+ *  - Added comments and println message to getRegionUnion() notifying
+ *    them that TableRegions may not work with this method.
+ *
  *  Revision 1.10  2004/05/20 17:02:26  millermi
  *  - Made method getRegionBounds() public so it may be used by
  *    outside classes.
@@ -87,6 +91,7 @@ package gov.anl.ipns.ViewTools.Components.Region;
 import java.awt.Point;
 import java.util.Vector;
 
+import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
@@ -319,6 +324,18 @@ public abstract class Region implements java.io.Serializable
   */
   public static Point[] getRegionUnion( Region[] regions )
   {
+    // Only the TableRegion class has the concept of selected and deselected
+    // regions. This means only TableRegions can "subtract". However, the
+    // getRegionUnion() is generalized for the other regions, thus the
+    // selected and deselected concept is not implemented. If all TableRegions
+    // are selected, the TableRegion class behaves just like any other
+    // Region class.
+    if( regions instanceof TableRegion[] )
+      SharedMessages.addmsg( "Note: Using Region.getRegionUnion() with " +
+                             "TableRegions will return an incorrect list of " +
+			     "points if any of the TableRegions are " +
+			     "unselected." );
+    
     // this transform will map image bounds to an integer grid from
     // [0,#rows-1] x [0,#col-1]
     CoordTransform image_to_array = new CoordTransform();
