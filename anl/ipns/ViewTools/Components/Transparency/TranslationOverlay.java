@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/18 01:01:28  millermi
+ *  - Minor changes to help()
+ *
  *  Revision 1.2  2003/10/29 20:33:52  millermi
  *  -Fixed java docs.
  *  -Added ObjectState info.
@@ -88,7 +91,6 @@ public class TranslationOverlay extends OverlayJPanel
   private TranslationJPanel tjp;
   private CoordJPanel main_image;
   private CoordBounds viewport;       // local_bounds in pixel coords
-  //private CoordBounds local_bounds;
   private CoordBounds global_bounds; 
   private Vector Listeners = null;  
 
@@ -129,7 +131,7 @@ public class TranslationOverlay extends OverlayJPanel
   {
     JFrame helper = new JFrame("Help for Translation Overlay");
     helper.setBounds(0,0,600,400);
-    JTextArea text = new JTextArea("Discription:\n\n");
+    JTextArea text = new JTextArea("Description:\n\n");
     text.setEditable(false);
     text.setLineWrap(true);
     text.append("The Translation Overlay is used to pan over an image " +
@@ -152,23 +154,10 @@ public class TranslationOverlay extends OverlayJPanel
   *  @param  g - graphics object required by the paint method.
   */ 
   public void paint(Graphics g)
-  {/*
-    floatPoint2D wctopleft  = new floatPoint2D( viewport.getX1(),
-                                                viewport.getY1() );
-    floatPoint2D wcbotright = new floatPoint2D( viewport.getX2(),
-                                                viewport.getY2() );
-    // convert from wc to pixel
-    Point pixeltopleft = convertToPixelPoint(wctopleft);
-    Point pixelbotright = convertToPixelPoint(wcbotright);
-    
-    g.drawRect( pixeltopleft.x, pixeltopleft.y,
-                pixelbotright.x - pixeltopleft.x,
-		pixelbotright.y - pixeltopleft.y );*/
-    
+  {
     g.drawRect( (int)viewport.getX1(), (int)viewport.getY1(),
                 (int)viewport.getX2() - (int)viewport.getX1(),
 		(int)viewport.getY2() - (int)viewport.getY1() );
-    
   }
   
  /**
@@ -190,9 +179,6 @@ public class TranslationOverlay extends OverlayJPanel
   */ 
   public void setLocalBounds( CoordBounds vp )
   {
-    // commented out because viewport is no longer world coords.
-    //viewport = vp.MakeCopy();
-
     tjp.setViewPort( vp.MakeCopy() );
   }
   
@@ -351,17 +337,6 @@ public class TranslationOverlay extends OverlayJPanel
         p2.x += (int)box.getWidth();
         p2.y += (int)box.getHeight();
 	
-       /* This code was used to maintain local world coords for the viewport,
-	* however, using this causes rounding errors, thus distorting the
-	* viewport. As a result, the pixel coordinates are stored in the
-	* viewport, the local world coords can be found in the tjp. 
-        // convert from pixel to wc
-        floatPoint2D wctopleft  = convertToWorldPoint(p1);
-        floatPoint2D wcbotright = convertToWorldPoint(p2);
-	
-	local_bounds = new CoordBounds( (int)wctopleft.x, (int)wctopleft.y,
-	                                (int)wcbotright.x, (int)wcbotright.y );
-	*/
 	viewport = new CoordBounds( p1.x, p1.y,
 	                            p2.x, p2.y );
 	
