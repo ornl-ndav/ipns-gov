@@ -1,4 +1,4 @@
- /**
+/*
  * File: StringUtil.java
  *
  * Copyright (C) 2000, Dennis Mikkelson
@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2004/01/30 02:43:04  bouzekc
+ *  Added method to pad a String on the left with spaces.
+ *
  *  Revision 1.28  2004/01/22 01:21:55  bouzekc
  *  Reinserted check for null String argument.
  *
@@ -443,6 +446,20 @@ public class StringUtil
        k = s.indexOf( wanted, k+1 );
      }
      return -1;
+  }
+  
+  /**
+   * Pad a string with spaces on the left.
+   * 
+   * @param rs The String to pad.
+   * @param length The number of spaces to pad with.
+   */
+  public static String padSpacesLeft(String rs, int length){
+    while(rs.length()<length){
+      rs=" "+rs;
+    }
+    
+    return rs;
   }
   
   /**
