@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/12/05 05:39:01  millermi
+ *  - Fixed Eclipse warning.
+ *
  *  Revision 1.1  2004/11/05 22:00:10  millermi
  *  - Interface to be implemented when tru log axes are desired
  *    by a component.
@@ -41,7 +44,6 @@
  */
  
 package gov.anl.ipns.ViewTools.Components.Transparency;
-import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
  * This interface is implemented by components that utilize the 

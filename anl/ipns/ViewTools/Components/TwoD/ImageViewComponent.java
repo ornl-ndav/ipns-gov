@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.79  2004/12/05 05:43:08  millermi
+ *  - Fixed Eclipse warning.
+ *
  *  Revision 1.78  2004/11/12 03:36:20  millermi
  *  - Since the min/max of getAxisInformation() are no longer used
  *    to determine the zoom region by the AxisOverlay2D, the AxisInfo
@@ -442,7 +445,6 @@ import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.UI.FontUtil;
 import gov.anl.ipns.ViewTools.Panels.Image.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
-import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
