@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2003/09/19 03:42:20  millermi
+ *  - Added/fixed java docs.
+ *
  *  Revision 1.7  2003/07/25 14:44:14  dennis
  *  - Removed method implementation of getLocalCoordBounds() and
  *    getGlobalCoordBounds() since implementation of ILogAxisAddible2D
@@ -163,7 +166,8 @@ public class ControlColorScale extends ViewControl
    * Constructor creates a basic colorscale without calibration.
    * Possible color schemes are listed in IndexColorMaker.java.
    *
-   *  @param  colorscale
+   *  @param  colorscale Colorscale for this control
+   *  @param  doublesided Is data double-sided?
    */ 
    public ControlColorScale( String colorscale, boolean doublesided )
    {  
@@ -185,7 +189,8 @@ public class ControlColorScale extends ViewControl
    * This method sets the color scheme of the ColorScaleImage.
    * Possible color schemes are listed in IndexColorMaker.java.
    *
-   *  @param  colorscale
+   *  @param  colorscale Colorscale for this control
+   *  @param  doublesided Is data double-sided?
    */
    public void setColorScale( String colorscale, boolean doublesided )
    {
@@ -208,10 +213,10 @@ public class ControlColorScale extends ViewControl
    }  
   
   /**
-   * This method sets the color scheme of the ColorScaleImage.
-   * Possible color schemes are listed in IndexColorMaker.java.
+   * This method sets the logscale of this control. The logscale
+   * is only used for calibrated colorscales.
    *
-   *  @param  colorscale
+   *  @param  value Double value on interval [0,1]
    */
    public void setLogScale( double value )
    {
@@ -233,7 +238,7 @@ public class ControlColorScale extends ViewControl
    * This method sets the orientation of the ColorScaleImage to either
    * horizontal or vertical.
    *
-   *  @param  showAxis
+   *  @param  showAxis Either HORIZONTAL or VERTICAL
    */
    public void setAxisVisible( boolean showAxis)
    {
@@ -330,7 +335,9 @@ public class ControlColorScale extends ViewControl
    * will call this to determine what font to use.
    *
    *  @return font of component
-   *          If a basic color scale, the view control font is returned.
+   * 
+   * Note: If a basic (non-calibrated) color scale, 
+   *       the view control font is returned.
    */
    public Font getFont()
    {
@@ -345,7 +352,7 @@ public class ControlColorScale extends ViewControl
    * passed. Because the axis overlay displays the title, we need to set it
    * to an empty string. The title is already displayed by the titled border.
    *
-   *  @return empty string
+   *  @return empty_string
    */
    public String getTitle()
    {
@@ -375,7 +382,7 @@ public class ControlColorScale extends ViewControl
 	 if( isTwoSided ) 
             csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL_DUAL);
          else
-            csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL_SINGLE);	 
+            csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL_SINGLE);
       }
       // else vertical alignment
       else
