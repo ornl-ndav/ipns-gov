@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.31  2004/03/12 16:16:13  millermi
+ *  - CURSOR_MOVED message now sent only when mouse is moved
+ *    over the panel.
+ *
  *  Revision 1.30  2004/03/12 00:42:59  millermi
  *  - Changed package and fixed imports.
  *
@@ -234,6 +238,8 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
   protected Point           current_point = new Point(0,0);
   protected CoordJPanel     this_panel;
   private   boolean         isListening = true; // turns listeners on/off
+  private   boolean         mouse_on_panel = false; // true if mouse visibly
+                                                    // on this panel
   
   protected Dimension       preferred_size = null;
 
@@ -1159,10 +1165,19 @@ class CoordMouseAdapter extends MouseAdapter
   {
     if ( isListening )
     {
+      mouse_on_panel = true;
       requestFocus();                // so we can also move cursor with arrow
                                      // keys
       Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
       //###### setCursor( cursor );
+    }
+  }
+  
+  public void mouseExited( MouseEvent e )
+  {
+    if( isListening )
+    {
+      mouse_on_panel = false;
     }
   }
 };
@@ -1179,9 +1194,9 @@ class CoordMouseMotionAdapter extends MouseMotionAdapter
 
       if ( doing_box )
         set_box( e.getPoint() );
-
       else
-        set_crosshair( e.getPoint() );
+        if( mouse_on_panel )
+          set_crosshair( e.getPoint() );
     }
     else
       current_point = e.getPoint();
