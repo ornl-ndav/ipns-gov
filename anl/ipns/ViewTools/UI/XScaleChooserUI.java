@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2002/03/18 21:40:16  dennis
+ *  Constructor now checks that the min and max values are valid.
+ *
  *  Revision 1.2  2001/07/26 19:56:59  dennis
  *  Now extends ActiveJPanel instead of JPanel, so that it doesn't
  *  have to maintain the list of listeners itself.
@@ -89,6 +92,25 @@ public class XScaleChooserUI extends    ActiveJPanel
              new TitledBorder(LineBorder.createBlackLineBorder(), border_label);
     border.setTitleFont( FontUtil.BORDER_FONT );
     setBorder( border );
+
+    if ( Float.isNaN(x_min) || Float.isInfinite(x_min)  ||
+         Float.isNaN(x_max) || Float.isInfinite(x_max)  ||
+         x_min >= x_max )
+    {
+      System.out.println("Error: x_min, x_max invalid in XScaleChooserUI");
+      System.out.println("x_min = " + x_min + ", x_max = " + x_max);
+      System.out.println("using default interval [0,1]");
+      x_min = 0;
+      x_max = 1; 
+    } 
+
+    if ( n_steps <= 1 )
+    {
+      System.out.println("Error: n_steps invalid in XScaleChooserUI");
+      System.out.println("n_steps = " + n_steps);
+      System.out.println("using default, 1 ");
+      n_steps = 1;
+    }
 
     setLayout( new GridLayout(2,1) );
     x_range_ui = new TextRangeUI(units_label, x_min, x_max );

@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/03/18 21:40:15  dennis
+ *  Constructor now checks that the min and max values are valid.
+ *
  *  Revision 1.4  2001/06/05 20:25:08  dennis
  *  Now uses ':' as separator when specifying the range, for
  *  consistency with our  integer list <--> string  convention.
@@ -102,6 +105,17 @@ public class TextRangeUI extends    JTextField
   */
   public TextRangeUI( String label, float min, float max )
   { 
+    if ( Float.isNaN(min) || Float.isInfinite(min)  ||
+         Float.isNaN(max) || Float.isInfinite(max)  ||
+         min > max )
+    {
+      System.out.println("Error: min, max invalid in TextRangeUI");
+      System.out.println("min = " + min + ", max = " + max);
+      System.out.println("using default interval [0,1]");
+      min = 0;
+      max = 1;
+    }
+
     this.min   = min;
     this.max   = max;
     this.label = label;
