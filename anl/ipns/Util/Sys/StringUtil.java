@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2003/02/06 15:22:04  pfpeterson
+ *  Pulled out the functionality to determine the next space for StringBuffers
+ *  into a private method. Also now understands tabs as spaces.
+ *
  *  Revision 1.13  2003/02/05 19:30:26  pfpeterson
  *  Added methods to get a boolean value from a StringBuffer, updated
  *  some documentation, and made getFloat and getInt explicitly throw
@@ -402,12 +406,7 @@ public class StringUtil
       if(sb.length()<=0) return val; // don't bother if we have an empty string
       
       Float temp=null;
-      int end=0;
-      String start=sb.substring(0,1);
-      if(Character.isDigit(sb.charAt(0)) || start.equals("-")){
-          end=sb.toString().indexOf(" ");
-          if(end==-1) end=sb.length();
-      }            
+      int end=getSpace(sb);
       if(end>0){
         try{
           temp=Float.valueOf(sb.substring(0,end));
@@ -463,13 +462,8 @@ public class StringUtil
       if(sb.length()<=0) return val; // don't bother if we have an empty string
       
       Integer temp=null;
-      int end=0;
+      int end=getSpace(sb);
       
-      String start=sb.substring(0,1);
-      if(Character.isDigit(sb.charAt(0)) || start.equals("-")){
-          end=sb.toString().indexOf(" ");
-          if(end==-1) end=sb.length();
-      }
       if(end>0){
         try{
           temp=Integer.valueOf(sb.substring(0,end));
@@ -524,11 +518,8 @@ public class StringUtil
                                                throws IllegalArgumentException{
     boolean val=false;
     if(sb.length()<=0) return val; // don't bother if we have an empty string
-      
 
-    // figure out how far to go
-    int end=sb.toString().indexOf(" ");
-    if(end==-1) end=sb.length();
+    int end=getSpace(sb);
 
     String temp=null;
     if(end>0){
@@ -597,17 +588,13 @@ public class StringUtil
       String val=null;
       if(sb.length()<=0) return val; // don't bother if we have an empty string
 
-      int end=0;
-      
-      if(!Character.isWhitespace(sb.charAt(0))){
-          end=sb.toString().indexOf(" ");
-          if(end==-1) end=sb.length();
-      }
+      int end=getSpace(sb);
       if(end>0){
-          val=sb.substring(0,end);
-          sb.delete(0,end);
-          StringUtil.trim(sb);
+        val=sb.substring(0,end);
+        sb.delete(0,end);
+        StringUtil.trim(sb);
       }
+
       return val;
   }
 
@@ -625,6 +612,38 @@ public class StringUtil
       val=sb.substring(0,nchar);
       sb.delete(0,nchar);
       return val;
+  }
+
+  /**
+   * Determine when the next bit of whitespace occurs. This currently
+   * only checks for " " and "\t".
+   */
+  private static int getSpace(StringBuffer sb){
+    // confirm that we start with non-whitespace
+    if(Character.isWhitespace(sb.charAt(0)))  return -1;
+
+    // find all of the good information
+    int end=-1;
+    int space=sb.toString().indexOf(" ");
+    int tab=sb.toString().indexOf("\t");
+
+    // sort out which is the first one to appear
+    if(tab>=0 && space>=0){
+      if(tab<space)
+        end=tab;
+      else
+        end=space;
+    }else if(space>=0){
+      end=space;
+    }else if(tab>=0){
+      end=tab;
+    }
+
+    // the must have both been -1 so just go for the length
+    if(end<0)
+      end=sb.length();
+
+    return end;
   }
 
 
