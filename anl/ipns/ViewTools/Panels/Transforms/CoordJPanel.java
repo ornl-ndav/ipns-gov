@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2002/11/25 13:47:20  rmikk
+ *  Eliminated the "abstract" in the class declaration.
+ *  Added a method "getZoomRegion" that returns the zoom
+ *     region in pixel coordinates
+ *
  *  Revision 1.12  2002/07/15 19:29:35  dennis
  *  Commented out code that sets the cursor... this is an attempt to
  *  prevent crash in native code outside of VM when cursor is set on
@@ -91,14 +96,14 @@ import javax.swing.*;
 import DataSetTools.util.*;
 import DataSetTools.components.ui.*;
 
-abstract public class CoordJPanel extends    ActiveJPanel 
+public class CoordJPanel extends    ActiveJPanel 
                                   implements Serializable
 {
   public static final String ZOOM_IN      = "Zoom In";
   public static final String RESET_ZOOM   = "Reset Zoom";
   public static final String CURSOR_MOVED = "Cursor Moved";
 
-
+  private Rectangle zoom_region   = null;     // current zoom_region
   private boolean doing_crosshair = false;    // flags used by several device
   private boolean doing_box       = false;    // adapter classes to control
                                               // zooming/crosshair cursors
@@ -137,6 +142,7 @@ abstract public class CoordJPanel extends    ActiveJPanel
     local_transform  = new CoordTransform();
 
     SetTransformsToWindowSize();
+    SetZoomRegionToWindowSize();
     this_panel = this;
 
     set_crosshair( current_point );      // ##############
@@ -154,6 +160,10 @@ abstract public class CoordJPanel extends    ActiveJPanel
     invalidate();
   }
 
+  public Rectangle getZoom_region()
+  {
+    return zoom_region;
+  }
 
   public Point getCurrent_pixel_point()
   {
@@ -262,6 +272,7 @@ public void set_crosshair( Point current )
     crosshair_cursor.redraw( current );
     doing_crosshair = true;
   }
+   
   send_message( CURSOR_MOVED );
 }
 
@@ -289,6 +300,7 @@ public void set_box( Point current )
     rb_box.redraw( current );
     doing_box = true;
   }
+  
   send_message( CURSOR_MOVED );
 }
 
@@ -336,16 +348,16 @@ public void stop_box( Point current, boolean do_zoom )
     rb_box.stop( current );
     doing_box = false;
 
-    Rectangle r = rb_box.region();
+    zoom_region = rb_box.region();
                                                // process zoom if requested
     if ( do_zoom )
-      if ( r.width  > 0  &&
-           r.height > 0   )
+      if ( zoom_region.width  > 0  &&
+           zoom_region.height > 0   )
       {
-         int x1 = r.x;
-         int y1 = r.y;
-         int x2 = x1 + r.width;
-         int y2 = y1 + r.height;
+         int x1 = zoom_region.x;
+         int y1 = zoom_region.y;
+         int x2 = x1 + zoom_region.width;
+         int y2 = y1 + zoom_region.height;
 
          ZoomToPixelSubregion( x1, y1, x2, y2 );
          LocalTransformChanged();
@@ -394,6 +406,7 @@ protected void LocalTransformChanged()
 
 private void resetZoom()
 {
+  SetZoomRegionToWindowSize();
   send_message( RESET_ZOOM );
   SetTransformsToWindowSize();
   local_transform.setSource( global_transform.getSource() );
@@ -417,6 +430,18 @@ private void showCurrentPoint( )
 {
   System.out.println( "pixel_point = " + getCurrent_pixel_point() );
   System.out.println( "WC_point    = " + getCurrent_WC_point() );
+}
+
+
+/* ----------------------- SetZoomRegionToWindowSize  -------------------- */
+
+private void SetZoomRegionToWindowSize()
+{
+  if ( !isVisible() )   // not yet visible, so ignore it
+    return;
+
+  Dimension total_size = this.getSize();
+  zoom_region = new Rectangle( 0, 0, total_size.width, total_size.height );
 }
 
 /* ----------------------- SetTransformsToWindowSize  -------------------- */
@@ -455,7 +480,6 @@ private void ZoomToPixelSubregion( float x1, float y1, float x2, float y2 )
   System.out.println("Size =           " + getSize() );
   System.out.println();
 */
-  send_message( ZOOM_IN );
 
   int SNAP_REGION = 10;
 
@@ -465,7 +489,12 @@ private void ZoomToPixelSubregion( float x1, float y1, float x2, float y2 )
         WC_y2;
 
   if ( ( x1 == x2 ) || ( y1 == y2 ) )         // ignore degenerate region
+  {
+    SetZoomRegionToWindowSize();
     return;
+  }
+
+  send_message( ZOOM_IN );
 
   SetTransformsToWindowSize();
 
@@ -539,7 +568,7 @@ public void my_setPreferredSize( Dimension preferredSize )
  * MAIN PROGRAM FOR TEST PURPOSES
  *
  */
-/*
+
 public static void main(String[] args)
   {
     JFrame f = new JFrame("Test for CoordJPanel");
@@ -548,7 +577,7 @@ public static void main(String[] args)
     f.getContentPane().add(panel);
     f.setVisible(true);
   }
-*/
+
 
 
 /* -----------------------------------------------------------------------
