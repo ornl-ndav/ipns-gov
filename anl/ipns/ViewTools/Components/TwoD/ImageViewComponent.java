@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.37  2003/11/18 00:58:43  millermi
+ *  - Now implements Serializable, requiring many private variables
+ *    to be made transient.
+ *  - Added method calls to PanViewControl.setLogScale() to update
+ *    the PanViewControl image.
+ *
  *  Revision 1.36  2003/10/29 20:32:57  millermi
  *  -Added further support for the PanViewControl, including colorscale
  *   and logscale response.
@@ -217,6 +223,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector; 
 import java.util.Stack; 
+import java.io.Serializable;
 
 import DataSetTools.util.floatPoint2D;
 import DataSetTools.util.FontUtil;
@@ -239,7 +246,8 @@ public class ImageViewComponent implements IViewComponent2D,
                                            ActionListener,
            /*for IAxisAddible2D*/          IColorScaleAddible,
            /*for Selection/Annotation*/    IZoomTextAddible,
-	                                   IPreserveState
+	                                   IPreserveState,
+					   Serializable
 {
  /**
   * "COMPONENT_RESIZED" - This constant String is a messaging string sent out
@@ -378,21 +386,23 @@ public class ImageViewComponent implements IViewComponent2D,
   
   // this variable controls the max size of the virtual array to be analyzed.
   private static final int MAXDATASIZE = 1000000000;
-  private IVirtualArray2D Varray2D;  //An object containing our array of data
-  private Stack dynamicregionlist = new Stack(); // dynamic list of regions.
+  //An object containing our array of data
+  private transient IVirtualArray2D Varray2D;
+  // dynamic list of regions.
+  private transient Stack dynamicregionlist = new Stack();
   private Region[] selectedregions = new Region[0];   
-  private Vector Listeners = null;   
-  private JPanel big_picture = new JPanel();  
-  private JPanel background = new JPanel(new BorderLayout());  
-  private ImageJPanel ijp;
-  private Rectangle regioninfo;
-  private CoordBounds local_bounds;
-  private CoordBounds global_bounds;
-  private Vector transparencies = new Vector();
+  private transient Vector Listeners = null;   
+  private transient JPanel big_picture = new JPanel();  
+  private transient JPanel background = new JPanel(new BorderLayout());  
+  private transient ImageJPanel ijp;
+  private transient Rectangle regioninfo;
+  private transient CoordBounds local_bounds;
+  private transient CoordBounds global_bounds;
+  private transient Vector transparencies = new Vector();
   private int precision;
   private Font font;
-  private ViewControl[] controls = new ViewControl[6];
-  private ViewMenuItem[] menus = new ViewMenuItem[2];
+  private transient ViewControl[] controls = new ViewControl[6];
+  private transient ViewMenuItem[] menus = new ViewMenuItem[2];
   private String colorscale;
   private boolean isTwoSided = true;
   private double logscale = 0;
@@ -1100,6 +1110,8 @@ public class ImageViewComponent implements IViewComponent2D,
   private void reInit()  
   {
     ijp.setNamedColorModel(colorscale, isTwoSided, false); 
+    local_bounds = ijp.getLocalWorldCoords().MakeCopy();
+    global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
   
     buildViewComponent();    // initializes big_picture to jpanel containing
 			     // the background and transparencies
@@ -1161,6 +1173,8 @@ public class ImageViewComponent implements IViewComponent2D,
     } 
     
     ((PanViewControl)controls[5]).setImageColorScale( colorscale, isTwoSided );
+    ((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
+    ((PanViewControl)controls[5]).setLocalBounds(local_bounds);
     
     //buildViewMenuItems(); 
   } 
@@ -1327,38 +1341,29 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     public void actionPerformed( ActionEvent ae )
     {
-      String message = ae.getActionCommand();	  
-      //System.out.println("Image sent message " + message );
+      String message = ae.getActionCommand();
 
       if (message == CoordJPanel.CURSOR_MOVED)
       {
-	//System.out.println("Sending POINTED_AT_CHANGED" );
 	sendMessage(POINTED_AT_CHANGED);
       }
       else if (message == CoordJPanel.ZOOM_IN)
       {
-	//System.out.println("Sending SELECTED_CHANGED " + regioninfo );
 	ImageJPanel center = (ImageJPanel)ae.getSource();
 	local_bounds = center.getLocalWorldCoords().MakeCopy();
-	//System.out.println("IVC: " + local_bounds.toString() );
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
 	((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
 	((PanViewControl)controls[5]).setLocalBounds(local_bounds);
-	//for(int next = 0; next < transparencies.size(); next++ )
-	//   ((OverlayJPanel)transparencies.elementAt(next)).repaint();
 	paintComponents( big_picture.getGraphics() ); 
 	sendMessage(SELECTED_CHANGED);
       }
       else if (message == CoordJPanel.RESET_ZOOM)
       {
-	//System.out.println("Sending SELECTED_CHANGED" );
 	ImageJPanel center = (ImageJPanel)ae.getSource();
 	local_bounds = center.getLocalWorldCoords().MakeCopy();
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
 	((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
 	((PanViewControl)controls[5]).setLocalBounds(local_bounds);
-	//for(int next = 0; next < transparencies.size(); next++ )
-	//   ((OverlayJPanel)transparencies.elementAt(next)).repaint();
 	paintComponents( big_picture.getGraphics() ); 
 	sendMessage(SELECTED_CHANGED);
       }
@@ -1485,9 +1490,10 @@ public class ImageViewComponent implements IViewComponent2D,
           PanViewControl pvc = (PanViewControl)ae.getSource();
           // since the pan view control has a CoordJPanel in it with the
           // same bounds, set its local bounds to the image local bounds.
-	  CoordBounds temp = pvc.getLocalBounds();
-	  //temp.invertBounds();
-          ijp.setLocalWorldCoords( temp );
+	//System.out.println("IVCLocal: " + local_bounds.toString() );
+	  local_bounds = pvc.getLocalBounds();
+	//System.out.println("IVCLocal2: " + local_bounds.toString() );
+          ijp.setLocalWorldCoords( local_bounds );
           // this method is only here to repaint the image
           ijp.changeLogScale( logscale, true );
           sendMessage(SELECTED_CHANGED);
@@ -1612,7 +1618,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * Regions whenever the SelectionOverlay sends a message that
   * a selected region is added or removed.
   */  
-  private class SelectedRegionListener implements ActionListener
+  private class SelectedRegionListener implements ActionListener, Serializable
   {
     public void actionPerformed( ActionEvent ae )
     {
