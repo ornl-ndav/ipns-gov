@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/03/12 17:21:55  hammonds
+ *  Moved from IsawGUI to gov.anl.ipns.Util.Sys
+ *
  *  Revision 1.9  2002/12/10 22:14:18  pfpeterson
  *  Fixed javadoc
  *
@@ -45,7 +48,7 @@
  *
 */
 
-package IsawGUI;
+package gov.anl.ipns.Util.Sys;
 
 import java.awt.*;
 import javax.swing.*;
