@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2003/08/06 19:33:19  serumb
+ * Added controls for adding grid lines.
+ *
  * Revision 1.6  2003/08/05 23:28:31  serumb
  * Zoom controls adjust to log and linear axes.
  *
@@ -142,7 +145,6 @@ import javax.swing.event.*;
   private ButtonControl LineColor;
   private ButtonControl MarkColor;
   private ButtonControl ErrorColor;
-  private ButtonControl annotationButton;
   private ButtonControl ZoomButton;
   private int line_index     = 1;
   private int linewidth      = 1;
@@ -178,8 +180,9 @@ import javax.swing.event.*;
   private TextRangeUI x_range; 
   private TextRangeUI y_range; 
   private Box vert_box = new Box(1);
-  private ControlCheckbox axis_checkbox = new ControlCheckbox( true );
-  private ControlCheckbox annotation_checkbox = new ControlCheckbox(  );
+  private ControlCheckboxButton axis_checkbox = new ControlCheckboxButton(true);
+  private ControlCheckboxButton annotation_checkbox = 
+                                    new ControlCheckboxButton(  );
   private ControlSlider log_slider;
   private double log_scale = 10;
   private ViewControlsPanel main_panel;
@@ -276,10 +279,8 @@ import javax.swing.event.*;
     LineColor   = new ButtonControl( "Line Color" );
     MarkColor   = new ButtonControl( "Point Marker Color" );
     ErrorColor  = new ButtonControl( "Error Bar Color" );
-    
-    axis_checkbox.setText( "Axis Overlay" );
-    annotation_checkbox.setText( "Annotation Overlay" );
-    annotationButton = new ButtonControl( "Edit Annotations" );
+    axis_checkbox.setTitle( "Axis Overlay" );
+    annotation_checkbox.setTitle( "Annotation Overlay" );
 
     x_range = new TextRangeUI("X Range", 
                       Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMin(),
@@ -331,7 +332,6 @@ import javax.swing.event.*;
                                                                                
     rightBox.add( axis_checkbox );
     rightBox.add( annotation_checkbox );
-    rightBox.add( annotationButton );
     rightBox.add( TFP );
     rightBox.add( labelbox7 );
     rightBox.add( labelbox8 );
@@ -356,7 +356,6 @@ import javax.swing.event.*;
     ErrorColor.addActionListener( new ControlListener(  ) );
     axis_checkbox.addActionListener( new ControlListener(  ) );
     annotation_checkbox.addActionListener( new ControlListener(  ) );
-    annotationButton.addActionListener( new ControlListener(  ) );
     ShiftBox.addActionListener( new ControlListener(  ) );
     LogBox.addActionListener( new ControlListener(  ) );
     log_slider.addActionListener( new ControlListener( ) );                         x_range.addActionListener( new x_rangeListener(  ) );
@@ -540,21 +539,28 @@ import javax.swing.event.*;
             gjp.setErrorColor( e, line_index, true );
           }
         }
-
+        if( ae.getSource() instanceof ControlCheckboxButton )
+           {
+             ControlCheckboxButton ccb = (ControlCheckboxButton)ae.getSource();
+             if( ccb.getTitle().equals("Axis Overlay") )
+             {
+               AxisOverlay2D axis = (AxisOverlay2D)big_picture.getComponent(
+                                    big_picture.getComponentCount() - 2 );
+               axis.editGridLines();
+             }
+             else if( ccb.getTitle().equals("Annotation Overlay") )
+             {
+               AnnotationOverlay note = (AnnotationOverlay)
+                                 big_picture.getComponent(
+                                 big_picture.getComponentCount() - 3 );
+               note.editAnnotation();
+             }
+            paintComponents( big_picture.getGraphics(  ) );
+           } 
         /* 
            listens for the edit annotation button and brings up an edit 
            annotation pane.
         */
-        if( ae.getSource(  ) == annotationButton ) {
-          AnnotationOverlay note = ( AnnotationOverlay )big_picture.getComponent
-                        (big_picture.getComponentCount(  ) - 3 );
-
-          note.editAnnotation(  );
-
-          //repaints overlays accurately	
-          paintComponents( big_picture.getGraphics(  ) );
-        }
-
       } else if( message.equals( "comboBoxChanged" ) ) {
         // System.out.println("action" + LineBox.getSelectedItem());
         // System.out.println("index" + LineBox.getSelectedIndex());
@@ -852,9 +858,10 @@ import javax.swing.event.*;
           Listens for an overlay change and sets the appropriate overlay.
         */  
       else if( message.equals( "CHECKBOX_CHANGED" ) ) {
-        ControlCheckbox control = ( ControlCheckbox )ae.getSource(  );
+        ControlCheckboxButton control = 
+                              ( ControlCheckboxButton )ae.getSource(  );
         int bpsize              = big_picture.getComponentCount(  );
-        if( control.getText(  ).equals( "Annotation Overlay" ) ) {
+        if( control.getTitle(  ).equals( "Annotation Overlay" ) ) {
 
           AnnotationOverlay note = ( AnnotationOverlay )big_picture.getComponent
                   ( big_picture.getComponentCount(  ) - 3 );
@@ -866,7 +873,7 @@ import javax.swing.event.*;
             note.getFocus(  );
           }
         }
-        else if(control.getText(  ).equals( "Axis Overlay") ) {
+        else if(control.getTitle().equals( "Axis Overlay" ) ) {
           JPanel back = (JPanel)big_picture.getComponent( bpsize - 1);
           if( !control.isSelected() ) {
             big_picture.getComponent(bpsize - 2).setVisible(false);
