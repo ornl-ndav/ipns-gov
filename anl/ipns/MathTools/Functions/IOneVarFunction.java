@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/07/16 22:29:49  dennis
+ *  Changed DELTA for evaluating numerical derivatives from
+ *  1e-5 to 1e-8, since now using double precision for
+ *  all calculations in SCD calibration program.
+ *
  *  Revision 1.4  2003/06/17 23:04:07  dennis
  *  Changed step factor for approximating numerical derivatives
  *  to 1.0E-5
@@ -62,7 +67,7 @@ import DataSetTools.util.*;
  */
 public interface IOneVarFunction extends IOneVariableFunction
 {
-  public static final double DELTA = 1.0E-5;   // step size used for evaluating
+  public static final double DELTA = 1.0E-8;  // step size used for evaluating
                                                // numerical derivatives
   public float    getValue( float x );
   public double   getValue( double x );
