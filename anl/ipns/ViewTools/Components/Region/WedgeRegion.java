@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2005/01/18 22:59:00  millermi
+ *  - Fixed gramatical error in comments.
+ *
  *  Revision 1.19  2004/05/20 20:48:27  millermi
  *  - Constructor now initializes world and image bounds to
  *    the bounds of the defining points.
@@ -316,7 +319,7 @@ public class WedgeRegion extends Region
     int xstop = 0;
     
     // if rp1quad < p1quad, angle goes from 4th quad to 1st quad. so
-    // adjust rp1quad so it works as a ending bound for the for loop.
+    // adjust rp1quad so it works as an ending bound for the for loop.
     if( rp1quad < p1quad )
       rp1quad += 4;
     // if the two are in the same quad, but the total angle is greater than 90,
