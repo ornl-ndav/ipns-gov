@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/05/20 03:35:50  millermi
+ * - Removed unused variables and imports.
+ *
  * Revision 1.3  2004/05/11 01:47:38  millermi
  * - Updated javadocs for class description.
  *
@@ -60,11 +63,8 @@ import javax.swing.text.html.HTMLEditorKit;
 import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.OneD.*;
-import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
-import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.Util.Sys.WindowShower;
-import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
  * Simple class to display a 1-dimensional or list of 1-dimensional arrays,
@@ -102,7 +102,6 @@ public class Display1D extends Display
   private final String PROP_FILE = System.getProperty("user.home") + 
     		                   System.getProperty("file.separator") +
 		                   "Display1DProps.isv";
-  private boolean os_region_added = false;
   
  /**
   * Construct a frame with the specified image and title
