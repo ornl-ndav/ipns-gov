@@ -30,6 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2004/07/16 14:54:14  dennis
+ * Now uses HitRecords to keep track of OpenGL selection information.
+ * Stubs for methods pickedPoint() and pickID() to get 3D coordinates
+ * and the integer name (ie. ID) of a selected object are now
+ * implemented.
+ *
  * Revision 1.9  2004/07/14 16:41:05  dennis
  * Changed return type on pickedObject() to be Gl_Shape, rather than
  * IThreeD_GL_Object, since only actual shapes can be picked.
@@ -130,6 +136,7 @@ public class ThreeD_GL_Panel implements Serializable
 
   private boolean do_select = false;
   private boolean do_locate = false;
+  private Vector3D last_picked_point = new Vector3D();
 
   private final int HIT_BUFFER_SIZE = 512;
   private int n_hits = 0;
@@ -365,10 +372,10 @@ public class ThreeD_GL_Panel implements Serializable
  *  @param x  The pixel x (i.e. column) value
  *  @param y  The pixel y (i.e. row) value, in window coordinates.
  */
-public int[] pickHitList( int x, int y )
+public HitRecord[] pickHitList( int x, int y )
 {
   if ( do_select )             // ignore more requests to do selection
-    return new int[0];         // if currently doing selection
+    return new HitRecord[0];   // if currently doing selection
 
   cur_x = x;
   cur_y = y;
@@ -379,7 +386,16 @@ public int[] pickHitList( int x, int y )
 
   int hits[] = new int[6*n_hits];
   hit_buffer.get( hits );
-  return hits;
+
+  HitRecord hit_recs[] = new HitRecord[n_hits];
+  int start = 0;
+  for ( int i = 0; i < hit_recs.length; i++ )
+  {
+    hit_recs[i] = new HitRecord( hits, start );
+    start += hits[ start ] + 3;
+  }
+
+  return hit_recs;
 }
 
 
@@ -409,9 +425,10 @@ public float[] getPixelWorldCoordinates( int x, int y )
 
 /* ----------------------------- pickID ----------------------------- */
 /*
- *  NOT IMPLEMENTED YET.
  *  Return the Pick ID of the object whose projection is closest to
  *  the specified pixel, provided it is within the specified pick radius.
+ *  NOTE: Currently the pick_radius parameter is ignored, so picking 
+ *  must be "exact".
  *
  *  @param  x            The x coordinate of the specified pixel
  *  @param  y            The y coordinate of the specified pixel
@@ -424,13 +441,35 @@ public float[] getPixelWorldCoordinates( int x, int y )
  */
  public int pickID( int x, int y, int pick_radius )
  {
-   return GL_Shape.INVALID_PICK_ID;
- }
+   HitRecord hitlist[] = pickHitList( x, y );
+
+   System.out.println( "pickID() method, length = " + hitlist.length );
+   System.out.println( "x,y = " + x + ", " + y );
+   for ( int i = 0; i < hitlist.length; i++ )
+     System.out.println("hit = " + hitlist[i] );
+
+   if ( hitlist.length <= 0 )
+     return GL_Shape.INVALID_PICK_ID;
+
+   int min_distance = Integer.MAX_VALUE;
+   for ( int i = 0; i < hitlist.length; i++ )
+     if ( hitlist[i].getMin() < min_distance )
+       min_distance = hitlist[i].getMin();
+
+   if ( min_distance == Integer.MAX_VALUE )    
+     return GL_Shape.INVALID_PICK_ID;
+
+   for ( int i = 0; i < hitlist.length; i++ )
+     if ( hitlist[i].getMin() == min_distance )
+       return hitlist[i].lastName();
+
+   return GL_Shape.INVALID_PICK_ID;   // this should never be reached, but
+ }                                    // the compiler requires it.
 
 
 /* ---------------------------- pickedObject ----------------------------- */
 /*
- *  NOT IMPLEMENTED YET.
+ *  NOT IMPLEMENTED YET, so it just returns null.
  *  Return a reference to the object that was last picked by a call to
  *  pickID(,,).  The pickID(,,) method must have been previously called and
  *  returned a valid pick ID for this to be valid.  Otherwise it will return
@@ -451,15 +490,30 @@ public float[] getPixelWorldCoordinates( int x, int y )
 
 /* ---------------------------- pickedPoint ----------------------------- */
 /*
- *  NOT IMPLEMENTED YET.
- *  Return the most recently selected point in 3D.
+ *  Return the point in 3D corresponding to the specified pixel location.
  *
- *  @return  A vector corresponding to the position in 3D that was last
- *           clicked on, or null
+ *  @param   x  The x coordinate of the specified pixel
+ *  @param   y  The y coordinate of the specified pixel
+ *
+ *  @return  A vector corresponding to pixel (x,y)
+ */
+ public Vector3D pickedPoint( int x, int y )
+ {  
+   float wc[] = getPixelWorldCoordinates( x, y );
+   last_picked_point = new Vector3D( wc );
+   return new Vector3D( last_picked_point );
+ }
+
+
+/* ---------------------------- pickedPoint ----------------------------- */
+/*
+ *  Return the point in 3D corresponding to the last selected location.
+ *
+ *  @return  A vector corresponding to the last point in 3D that was selected 
  */
  public Vector3D pickedPoint()
- {  
-   return null;
+ {
+   return new Vector3D( last_picked_point );
  }
 
 
@@ -751,8 +805,8 @@ public float[] getPixelWorldCoordinates( int x, int y )
         return; 
       }
 
-      if ( do_select )
-      {
+      if ( do_select )                     // get ready to do the drawing 
+      {                                    // in select mode, not render mode
         n_hits = 0;
         for ( int i = 0; i < HIT_BUFFER_SIZE; i++ )
           hit_buffer.put( i, 0 );
@@ -768,8 +822,8 @@ public float[] getPixelWorldCoordinates( int x, int y )
       gl.glMatrixMode(GL.GL_MODELVIEW);
       gl.glLoadIdentity();
 
-      if ( !do_select )     // don't need lighting if doing selection mode
-      {
+      if ( !do_select )                    // only need lighting for actual
+      {                                    // rendering, not if doing selection
         float white[] = { 1, 1, 1, 1 };
         float l0_position[] = { 0, 0, 0, 1 };
         gl.glLightModeli( GL.GL_LIGHT_MODEL_COLOR_CONTROL,
@@ -805,8 +859,8 @@ public float[] getPixelWorldCoordinates( int x, int y )
       gl.glFlush();
 //      drawable.swapBuffers();
 
-      if ( do_select )
-      {
+      if ( do_select )                            // switch back to render mode
+      {                                           // to get the number of hits
         n_hits = gl.glRenderMode( GL.GL_RENDER );
         do_select = false; 
         System.out.println("n_hits = " + n_hits );
@@ -838,7 +892,7 @@ public float[] getPixelWorldCoordinates( int x, int y )
 
 /* selection......
 */
-           int hitlist[] = pickHitList( x, y );           
+           HitRecord hitlist[] = pickHitList( x, y );           
            System.out.println( "MouseClickHandler: length = "+hitlist.length );
            System.out.println( "x,y = " + x + ", " + y );
            for ( int i = 0; i < hitlist.length; i++ )
