@@ -33,6 +33,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/08/13 03:39:13  millermi
+ * - Added TableViewComponent capabilities.
+ * - Moved image specific menu items from Display to this class.
+ * - Colorscale is now saved when switching between view components
+ * - ***KNOWN BUG*** ObjectState currently does not correctly save
+ *   all attributes.
+ *
  * Revision 1.6  2004/05/11 01:49:49  millermi
  * - Updated javadocs for class description.
  *
@@ -70,6 +77,8 @@ package gov.anl.ipns.ViewTools.Displays;
 
 import javax.swing.*;
 import java.util.Vector;
+import java.awt.Container;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -83,8 +92,11 @@ import gov.anl.ipns.ViewTools.Components.TwoD.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
+import gov.anl.ipns.ViewTools.Panels.Table.TableModelMaker;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
+import gov.anl.ipns.Util.Sys.SaveImageActionListener;
 
 /**
  * Simple class to display an 2-dimensional array of data, specified by an
@@ -92,7 +104,21 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
  * as a table (in progress).
  */
 public class Display2D extends Display
-{ 
+{
+ /**
+  * "View Option" - This constant String is a key for referencing
+  * the state information about which view component is used to display data.
+  * The value this key references is of type Integer.
+  */
+  public static final String VIEW_OPTION           = "View Option";
+  
+ /**
+  * "Control Option" - This constant String is a key for referencing
+  * the state information about whether or not controls are displayed with
+  * the view component. The value this key references is of type Integer.
+  */
+  public static final String CONTROL_OPTION           = "Control Option";
+  
  /**
   * "ViewerSize" - This constant String is a key for referencing
   * the state information about the size of the viewer at the time
@@ -109,6 +135,13 @@ public class Display2D extends Display
   public static final String VIEW_COMPONENT        = "View Component";
   
  /**
+  * "Color Scale" - This constant String is a key for referencing
+  * the state information about the colorscale used to display the
+  * ViewComponents. The value this key references is of type String.
+  */
+  public static final String COLOR_SCALE           = "Color Scale";
+  
+ /**
   * 0 - Use this int to specify display using the ImageViewComponent.
   */ 
   public static final int IMAGE = 0;
@@ -117,12 +150,14 @@ public class Display2D extends Display
   * 1 - Use this int to specify display using the TableViewComponent.
   */
   public static final int TABLE = 1;
+  
   // many of the variables are protected in the Display base class
   private static JFrame helper = null;
   private final String PROP_FILE = System.getProperty("user.home") + 
     		                   System.getProperty("file.separator") +
 		                   "Display2DProps.isv";
   private boolean os_region_added = false;
+  private String colorscale;
   
  /**
   * Construct a frame with the specified image and title
@@ -139,6 +174,7 @@ public class Display2D extends Display
     addToMenubar();
     buildPane();
     loadProps(PROP_FILE);
+    saveColorScale();
   }
  
  /**
@@ -151,14 +187,39 @@ public class Display2D extends Display
   public void setObjectState( ObjectState new_state )
   {
     boolean redraw = false;  // if any values are changed, repaint overlay.
-    Object temp = new_state.get(VIEW_COMPONENT);
+    Object temp = new_state.get(VIEW_OPTION); 
+    if( temp != null )
+    {
+      // If this view is different than the saved view, rebuild with new view.
+      if( current_view != ((Integer)temp).intValue() )
+      {
+        removeComponentMenuItems();
+        current_view = ((Integer)temp).intValue();
+        buildPane();
+      }
+      redraw = true;  
+    }
+    
+    temp = new_state.get(CONTROL_OPTION); 
+    if( temp != null )
+    {
+      if( add_controls != ((Integer)temp).intValue() )
+      {
+        removeComponentMenuItems();
+        add_controls = ((Integer)temp).intValue();
+        buildPane();
+      }
+      redraw = true;  
+    }
+    
+    temp = new_state.get(VIEW_COMPONENT);
     if( temp != null )
     {
       if( current_view == IMAGE )
       {
         Object os = ((ObjectState)temp).get(
 	                        ImageViewComponent.SELECTION_OVERLAY);
-        if( os != null )
+	if( os != null )
         {
           os = ((ObjectState)os).get(SelectionOverlay.SELECTED_REGIONS);
 	  if( os != null )
@@ -169,14 +230,25 @@ public class Display2D extends Display
       if( ivc != null )
         ivc.setObjectState( (ObjectState)temp );
       redraw = true;  
-    } 
+    }
     
     temp = new_state.get(VIEWER_SIZE); 
     if( temp != null )
     {
       setSize( (Dimension)temp );
       redraw = true;  
-    } 
+    }
+    
+    temp = new_state.get(COLOR_SCALE); 
+    if( temp != null )
+    {
+      colorscale = (String)temp;
+      if( current_view == IMAGE )
+        ((ImageViewComponent)ivc).setColorScale(colorscale);
+      else if( current_view == TABLE )
+        ((TableViewComponent)ivc).setThumbnailColorScale(colorscale);
+      redraw = true;  
+    }
     
     if( redraw )
       repaint();
@@ -194,9 +266,13 @@ public class Display2D extends Display
   public ObjectState getObjectState( boolean isDefault )
   {
     ObjectState state = new ObjectState();
+    state.insert( VIEW_OPTION, new Integer(current_view) );
+    state.insert( CONTROL_OPTION, new Integer(add_controls) );
     if( ivc != null )
       state.insert( VIEW_COMPONENT, ivc.getObjectState(isDefault) );
     state.insert( VIEWER_SIZE, getSize() );
+    if( colorscale != null )
+      state.insert( COLOR_SCALE, colorscale );
     return state;
   }
 
@@ -300,15 +376,22 @@ public class Display2D extends Display
   */
   private void buildPane()
   { 
+    // Clear any existing views, so it can be rebuilt.
+    getContentPane().removeAll();
+    
     if( current_view == IMAGE )
     {
       ivc = new ImageViewComponent( (IVirtualArray2D)data );
       ((ImageViewComponent)ivc).setColorControlEast(true);
       ((ImageViewComponent)ivc).preserveAspectRatio(true);
+      if( colorscale != null )
+        ((ImageViewComponent)ivc).setColorScale(colorscale);
     }
     if( current_view == TABLE )
     {
-      System.out.println("Table view currently unavailable.");
+      ivc = new TableViewComponent( (IVirtualArray2D)data );
+      if( colorscale != null )
+        ((TableViewComponent)ivc).setThumbnailColorScale(colorscale);
     }
     ivc.addActionListener( new ViewCompListener() );    
     
@@ -318,7 +401,7 @@ public class Display2D extends Display
     // if user wants controls, and controls exist, display them in a splitpane.
     if( add_controls == CTRL_ALL && view_comp_controls != null )
     {
-      setBounds(0,0,700,485);
+      setBounds(0,0,700,510);
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
     	  			    ivc.getDisplayPanel(),
         			    view_comp_controls, .75f );
@@ -330,6 +413,10 @@ public class Display2D extends Display
     }
     getContentPane().add(pane);
     addComponentMenuItems();
+    // Repaint the display, this is needed when the menu items are used
+    // the switch between views.
+    validate();
+    repaint();
   }
  
  /*
@@ -342,11 +429,12 @@ public class Display2D extends Display
   {
     Vector options           = new Vector();
     Vector save_default      = new Vector();
+    Vector switch_view       = new Vector();
+    Vector view_list         = new Vector();
     Vector help              = new Vector();
     Vector display_help      = new Vector();
     Vector option_listeners  = new Vector();
     Vector help_listeners    = new Vector();
-    
     
     // build options menu
     options.add("Options");
@@ -354,6 +442,12 @@ public class Display2D extends Display
     options.add(save_default);
       save_default.add("Save User Settings");
       option_listeners.add( new Menu2DListener() ); // listener for user prefs.
+    options.add(switch_view);
+      switch_view.add("View Data As...");
+      switch_view.add("Image");
+      option_listeners.add( new Menu2DListener() ); // listener for user prefs
+      switch_view.add("Table");
+      option_listeners.add( new Menu2DListener() ); // listener for user prefs
     
     // build help menu
     help.add("Help");
@@ -364,14 +458,57 @@ public class Display2D extends Display
     menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
     
+    // Add image specific menu items.
+    Vector print             = new Vector();
+    Vector save_image        = new Vector();
+    Vector file_listeners    = new Vector();
+    
+    print.add("Print Image");
+    save_image.add("Make JPEG Image");
+    file_listeners.add( new Menu2DListener() );
+    JMenu file_menu = menu_bar.getMenu(0);
+    file_menu.add( MenuItemMaker.makeMenuItem( print, file_listeners ),
+		   file_menu.getItemCount() - 1 );
+    file_menu.add( MenuItemMaker.makeMenuItem( save_image, file_listeners ),
+		   file_menu.getItemCount() - 1 );
+    
+    // If view is not currently an image, disable the "Print Image" and
+    // "Make JPEG Image" menu items, since they are Image specific.
+    if( current_view != IMAGE )
+    {
+      file_menu.getItem(2).setEnabled(false);
+      file_menu.getItem(3).setEnabled(false);
+    }
+    
     // Add keyboard shortcuts
-    JMenu option_menu = menu_bar.getMenu(1);
     KeyStroke binding = 
-               KeyStroke.getKeyStroke(KeyEvent.VK_U,InputEvent.ALT_MASK);
+               KeyStroke.getKeyStroke(KeyEvent.VK_P,InputEvent.ALT_MASK);
+    file_menu.getItem(2).setAccelerator(binding);   // Print Image
+    binding = KeyStroke.getKeyStroke(KeyEvent.VK_J,InputEvent.ALT_MASK);
+    file_menu.getItem(3).setAccelerator(binding);   // Make JPEG Image
+    JMenu option_menu = menu_bar.getMenu(1);
+    binding = KeyStroke.getKeyStroke(KeyEvent.VK_U,InputEvent.ALT_MASK);
     option_menu.getItem(0).setAccelerator(binding); // Save User Settings
     JMenu help_menu = menu_bar.getMenu(2);
     binding = KeyStroke.getKeyStroke(KeyEvent.VK_H,InputEvent.ALT_MASK);
     help_menu.getItem(0).setAccelerator(binding);   // Help Menu
+    
+  }
+  
+ /*
+  * This method saves the colorscale of the current component so it may
+  * be applied to other view components, should the view be switched.
+  */ 
+  private void saveColorScale()
+  {
+    if( current_view == IMAGE )
+    {
+      colorscale = ((ImageViewComponent)ivc).getColorScale();
+    }
+    else if( current_view == TABLE )
+    {
+      colorscale = ((TableViewComponent)ivc).getThumbnailColorScale();
+    }
   }
   
  /*
@@ -397,9 +534,80 @@ public class Display2D extends Display
 	getObjectState(IPreserveState.DEFAULT).silentFileChooser( PROP_FILE,
 	                                                          true );
       }
+      // Called if user selects help option.
       else if( ae.getActionCommand().equals("Using Display2D") )
       {
         help();
+      }
+      // This is called if the user switches the view to an image.
+      else if( ae.getActionCommand().equals("Image") )
+      {
+        // Check to see if current view is already image, if not change it.
+        if( current_view != IMAGE )
+	{
+	  // Remove the menu items of the previous view component.
+	  removeComponentMenuItems();
+	  // Save colorscale of previous view component so it may be
+	  // applied to the image.
+	  saveColorScale();
+          current_view = IMAGE;
+	  // Enable the "Print Image" and "Make JPEG Image" menu items.
+          JMenu file_menu = menu_bar.getMenu(0);
+	  file_menu.getItem(2).setEnabled(true);
+	  file_menu.getItem(3).setEnabled(true);
+	  // Rebuild the display with an image.
+	  buildPane();
+	}
+      }
+      // This is called if the user switches the view to a table.
+      else if( ae.getActionCommand().equals("Table") )
+      {
+        // Check to see if current view is already a table, if not change it.
+        if( current_view != TABLE )
+	{
+	  // Remove the menu items of the previous view component.
+	  removeComponentMenuItems();
+	  // Save colorscale of previous view component so it may be
+	  // applied to the thumbnail image of the table.
+	  saveColorScale();
+          current_view = TABLE;
+	  // Disable the "Print Image" and "Make JPEG Image" menu items.
+          JMenu file_menu = menu_bar.getMenu(0);
+	  file_menu.getItem(2).setEnabled(false);
+	  file_menu.getItem(3).setEnabled(false);
+	  // Rebuild the display with a table.
+	  buildPane();
+	}
+      }
+      // Called when user selects "Print Image" menu item, only enabled if
+      // view is Image.
+      else if( ae.getActionCommand().equals("Print Image") )
+      {
+        // Since pane could be one of two things, determine which one
+	// it is, then determine the image accordingly.
+	Component image;
+	if( pane instanceof SplitPaneWithState )
+	  image = ((SplitPaneWithState)pane).getLeftComponent();
+        else
+	  image = pane;
+	JMenuItem silent_menu = PrintComponentActionListener.getActiveMenuItem(
+	                                "not visible", image );
+	silent_menu.doClick();
+      }
+      // Called when user selects "Make JPEG Image" menu item, only enabled if
+      // view is Image.
+      else if( ae.getActionCommand().equals("Make JPEG Image") )
+      {
+        // Since pane could be one of two things, determine which one
+	// it is, then determine the image accordingly.
+	Component image;
+	if( pane instanceof SplitPaneWithState )
+	  image = ((SplitPaneWithState)pane).getLeftComponent();
+        else
+	  image = pane;
+        JMenuItem silent_menu = SaveImageActionListener.getActiveMenuItem(
+	                                "not visible", image );
+	silent_menu.doClick();
       }
     }
   }
@@ -437,7 +645,7 @@ public class Display2D extends Display
   {
     // build my 2-D data
     int row = 200;
-    int col = 200;
+    int col = 180;
     float test_array[][] = new float[row][col];
     for ( int i = 0; i < row; i++ )
       for ( int j = 0; j < col; j++ )
@@ -454,7 +662,7 @@ public class Display2D extends Display
     va2D.setTitle("Display2D Test");
     // Make instance of a Display2D frame, giving the array, the initial
     // view type, and whether or not to add controls.
-    Display2D display = new Display2D(va2D,Display2D.IMAGE,Display2D.CTRL_ALL);
+    Display2D display = new Display2D(va2D,Display2D.TABLE,Display2D.CTRL_ALL);
     
     // Class that "correctly" draws the display.
     WindowShower shower = new WindowShower(display);
