@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/06/10 22:20:24  dennis
+ *  Made constructor public, so that it can be used by classes
+ *  outside of its package.
+ *
  *  Revision 1.4  2002/11/27 23:14:24  pfpeterson
  *  standardized header
  *
@@ -79,9 +83,9 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
    *                           If no names, or not enough names are specified,
    *                           default names P0, P1, P2, etc. will be generated.
    */
-  OneVarParameterizedFunction( String name, 
-                               double parameters[], 
-                               String parameter_names[] )
+  public OneVarParameterizedFunction( String name, 
+                                      double parameters[], 
+                                      String parameter_names[] )
   {
     super( name );
                                 
