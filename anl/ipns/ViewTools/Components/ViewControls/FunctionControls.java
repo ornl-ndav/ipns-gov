@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.42  2004/11/11 19:49:37  millermi
+ * - Changed LogScaleUtil functions to match reimplementation.
+ *
  * Revision 1.41  2004/11/05 22:02:44  millermi
  * - Revised method for generating log cursor readouts.
  * - Removed getLogScale().
@@ -534,15 +537,15 @@ import javax.swing.border.*;
 
       if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
 
-        gjp.setZoom_region( loggerx.toSource(x_range.getMin()),
-        		    loggery.toSource(y_range.getMax()),
-        		    loggerx.toSource(x_range.getMax()),
-        		    loggery.toSource(y_range.getMin()) );
+        gjp.setZoom_region( loggerx.toDest(x_range.getMin()),
+        		    loggery.toDest(y_range.getMax()),
+        		    loggerx.toDest(x_range.getMax()),
+        		    loggery.toDest(y_range.getMin()) );
       }
       else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) { 
-        gjp.setZoom_region( loggerx.toSource(x_range.getMin()), 
+        gjp.setZoom_region( loggerx.toDest(x_range.getMin()), 
         		    y_range.getMax(),
-        		    loggerx.toSource(x_range.getMax()),
+        		    loggerx.toDest(x_range.getMax()),
         		    y_range.getMin() );
       }
       else
@@ -587,16 +590,16 @@ import javax.swing.border.*;
       }
       else if(message.equals("Cursor Moved")){
          if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-             cursor.setValue(0,loggerx.toDest(gjp.getCurrent_WC_point().x));
-             cursor.setValue(1,loggery.toDest(gjp.getCurrent_WC_point().y));
+             cursor.setValue(0,loggerx.toSource(gjp.getCurrent_WC_point().x));
+             cursor.setValue(1,loggery.toSource(gjp.getCurrent_WC_point().y));
 
            }
            else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
              cursor.setValue(0,gjp.getCurrent_WC_point().x);
-             cursor.setValue(1,loggery.toDest(gjp.getCurrent_WC_point().y));
+             cursor.setValue(1,loggery.toSource(gjp.getCurrent_WC_point().y));
            }
            else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
-             cursor.setValue(0,loggerx.toDest(gjp.getCurrent_WC_point().x));
+             cursor.setValue(0,loggerx.toSource(gjp.getCurrent_WC_point().x));
              cursor.setValue(1,gjp.getCurrent_WC_point().y);
            }
            else {
