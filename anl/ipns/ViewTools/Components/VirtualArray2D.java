@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/12/18 22:34:33  millermi
+ *  - get/setAxisInfoVA() changed to get/setAxisInfo() with first parameter
+ *    int instead of boolean to make more general.
+ *  - All references to AxisInfo2D changed to AxisInfo.
+ *
  *  Revision 1.6  2003/12/12 18:33:04  millermi
  *  - Changed initialization of AxisInfo max from 1 to 10,
  *    the value of 1 interferred with the axisoverlay.
@@ -78,8 +83,8 @@ public class VirtualArray2D implements IVirtualArray2D
   private float[][] dataArray;
   private int num_rows; 	     // In M x N array, stores M
   private int num_columns;	     // In M x N array, stores N
-  private AxisInfo2D rowinfo;
-  private AxisInfo2D colinfo;
+  private AxisInfo rowinfo;
+  private AxisInfo colinfo;
   private String title;
    
  /**
@@ -98,8 +103,8 @@ public class VirtualArray2D implements IVirtualArray2D
 	  
     num_rows = rows;
     num_columns = columns;
-    rowinfo = new AxisInfo2D(0, 10, NO_XLABEL, NO_XUNITS, true);
-    colinfo = new AxisInfo2D(0, 10, NO_YLABEL, NO_YUNITS, true);
+    rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
+    colinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
     title = NO_TITLE;
   }
 
@@ -114,65 +119,66 @@ public class VirtualArray2D implements IVirtualArray2D
     dataArray = array2d;
     num_columns = array2d[0].length;
     num_rows = array2d.length;
-    rowinfo = new AxisInfo2D(0,10, NO_XLABEL, NO_XUNITS, true);
-    colinfo = new AxisInfo2D(0,10, NO_YLABEL, NO_YUNITS, true);
+    rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
+    colinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
     title = NO_TITLE;
   }	 
 
 /* 
  * The following methods allow the user to attach meaningful discription
  * to the values stored in the virtual array.
- * An object AxisInfo2D contains information about a particular axis.
+ * An object AxisInfo contains information about a particular axis.
  */
 
  /**
-  * Returns the attributes of the data array in a AxisInfo2D wrapper.
+  * Returns the attributes of the data array in a AxisInfo wrapper.
   * This method will take in a boolean value to determine for which axis
   * info is being retrieved for. 
   *
-  *  @param  isX
-  *  @return If true, AxisInfo2D object with X axis info is returned.
-  ,	     If false, AxisInfo2D object with Y axis info is returned.
+  *  @param  axiscode The integer code for this axis.
+  *  @return If true, AxisInfo object with X axis info is returned.
+  *	     If false, AxisInfo object with Y axis info is returned.
+  *  @see    DataSetTools.components.View.AxisInfo
   */
-  public AxisInfo2D getAxisInfoVA( boolean isX )
+  public AxisInfo getAxisInfo( int axiscode )
   {
-    if(isX)
+    if( axiscode == AxisInfo.X_AXIS )
       return rowinfo;
     return colinfo;
   }
   
  /**
-  * Sets the attributes of the data array within a AxisInfo2D wrapper.
-  * This method will take in a boolean value to determine for which axis
-  * info is being altered.	    true = X axis, false = Y axis.
+  * Sets the attributes of the data array within a AxisInfo wrapper.
+  * This method will take in an integer to determine which axis
+  * info is being altered.
   *
-  *  @param  isX
+  *  @param  axiscode
   *  @param  min
   *  @param  max
   *  @param  label
   *  @param  units
   *  @param  islinear
   */
-  public void setAxisInfoVA( boolean isX, float min, float max,
-			     String label, String units, boolean islinear)
+  public void setAxisInfo( int axiscode, float min, float max,
+			   String label, String units, boolean islinear)
   {
-    if(isX)
-      rowinfo = new AxisInfo2D(min,max,label,units, islinear);
+    if(axiscode == AxisInfo.X_AXIS)
+      rowinfo = new AxisInfo(min,max,label,units, islinear);
     else
-      colinfo = new AxisInfo2D(min,max,label,units, islinear);
+      colinfo = new AxisInfo(min,max,label,units, islinear);
   } 
   
  /**
-  * Sets the attributes of the data array within a AxisInfo2D wrapper.
-  * This method will take in a boolean value to determine for which axis
-  * info is being altered.	    true = X axis, false = Y axis.
+  * Sets the attributes of the data array within a AxisInfo wrapper.
+  * This method will take in an integer to determine which axis
+  * info is being altered.
   *
-  *  @param  isX
+  *  @param  axiscode
   *  @param  info - axis info
   */
-  public void setAxisInfoVA( boolean isX, AxisInfo2D info )
+  public void setAxisInfo( int axiscode, AxisInfo info )
   {
-    if(isX)
+    if( axiscode == AxisInfo.X_AXIS )
       rowinfo = info.copy();
     else
       colinfo = info.copy();
@@ -199,12 +205,15 @@ public class VirtualArray2D implements IVirtualArray2D
   }
   
  /**
-  * Get value for a single array element.
+  * Get value for a single array element. If row or column exceeds the array,
+  * Float.NaN is returned. Use a statement similar to:
+  * " Float.compare(data.getDataValue(row,col), Float.NaN) != 0 " to make sure
+  * that the value returned is not Float.NaN.
   *
   *  @param  row     row number of element
   *  @param  column  column number of element
   *  @return If element is found, the float value for that element is returned.
-  *	     If element is not found, zero is returned.
+  *	     If element is not found, Float.NaN is returned.
   */ 
   public float getDataValue( int row, int column )
   {
@@ -212,9 +221,9 @@ public class VirtualArray2D implements IVirtualArray2D
       return dataArray[row][column];
     else
     {
-      SharedData.addmsg("Warning - cell at position (" + row + "," + column +
-        				") exceeds the array bounds." );
-      return 0f;
+      //SharedData.addmsg("Warning - cell at position (" + row + "," + column +
+      //  				") exceeds the array bounds." );
+      return Float.NaN;
     }
   }  
   
@@ -571,7 +580,7 @@ public class VirtualArray2D implements IVirtualArray2D
  /**
   * Convenience method for getting the dimension of the VirtualArray2D.
   *
-  *  @return 2
+  *  @return 2 The array dimension.
   */
   public int getDimension()
   {
