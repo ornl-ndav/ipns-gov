@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/03/04 20:31:34  pfpeterson
+ *  Updated help finder to be more rhobust.
+ *
  *  Revision 1.5  2002/02/14 22:41:11  pfpeterson
  *  Added method to locate files in the docs subdirectory of ISAW: docDir().
  *
@@ -173,7 +176,10 @@ public class FilenameUtil
 
 
 	// start the string as being the value of helpdirectory
-	String S = System.getProperty("Help_Directory").trim();
+	String S = System.getProperty("Help_Directory");
+        if(S!=null){
+            S=S.trim();
+        }
 
 	//System.out.println("1: Source is "+S); 
 
