@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2002/10/29 22:12:48  dennis
+ * Improved error checking in constructor.  Now allows construction
+ * with an initially empty list of vertices.
+ *
  * Revision 1.2  2001/05/23 17:31:48  dennis
  * Added clipping using front clipping plane between COP and VRP
  *
@@ -73,12 +77,15 @@ abstract public class ThreeD_Object implements IThreeD_Object
   {
     this.color = color;
 
-    vertices = new Vector3D[ verts.length ];
-    for ( int i = 0; i < verts.length; i++ )
-      vertices[i] = new Vector3D( verts[i] );
+    if ( verts != null )
+    {
+      vertices = new Vector3D[ verts.length ];
+      for ( int i = 0; i < verts.length; i++ )
+        vertices[i] = new Vector3D( verts[i] );
 
-    x = new float [ verts.length ];
-    y = new float [ verts.length ];
+      x = new float [ verts.length ];
+      y = new float [ verts.length ];
+    }
   }
 
 
