@@ -3,6 +3,9 @@
  *
  * ---------------------------------------------------------------------------
  *  $Log$
+ *  Revision 1.3  2000/07/18 18:15:49  dennis
+ *  Added toString() method
+ *
  *  Revision 1.2  2000/07/10 22:25:12  dennis
  *  July 10, 2000 version... many changes
  *
@@ -17,6 +20,7 @@
 package  DataSetTools.math;
 
 import java.io.*;
+import java.text.*;
 
 /**
  * DetectorPosition represents the position of a neutron detector relative to
@@ -54,6 +58,35 @@ public class DetectorPosition extends    Position3D
     dist_from_x = (float)Math.sqrt( y*y + z*z ); 
 
     return (float)Math.atan2( dist_from_x, x ); 
+  }
+
+  /**
+   *  Form a string giving the scattering angle followed by the position
+   *  of the detector in cylindrical coordinates.
+   */
+  public String toString()
+  {
+     float cyl_coords[] = getCylindricalCoords();
+
+     NumberFormat f = NumberFormat.getInstance();
+     f.setMaximumFractionDigits( 2 );
+     String scat_ang = f.format( getScatteringAngle() * 180.0/Math.PI );
+
+     f.setMaximumFractionDigits( 3 );
+     String r     = f.format( cyl_coords[0] );
+     f.setMaximumFractionDigits( 2 );
+     String cyl_angle = f.format( cyl_coords[1] * 180.0/Math.PI );
+     f.setMaximumFractionDigits( 3 );
+     String z     = f.format( cyl_coords[2] );
+                                                    // upper case theta: \u0398
+                                                    // lower case theta: \u03b8
+                                                    // upper case phi:   \u03a6
+                                                    // lower case phi:   \u03c6
+     String string = "2\u03b8" +"=" + scat_ang +
+                     ":r="  + r +
+                     ","+"\u03c6" +"=" + cyl_angle +
+                     ",z=" + z;
+     return string;
   }
 
   static public void main( String[] args )

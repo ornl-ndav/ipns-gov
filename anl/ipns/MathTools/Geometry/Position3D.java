@@ -3,6 +3,9 @@
  *
  * ---------------------------------------------------------------------------
  *  $Log$
+ *  Revision 1.3  2000/07/18 18:15:49  dennis
+ *  Added toString() method
+ *
  *  Revision 1.2  2000/07/10 22:25:14  dennis
  *  July 10, 2000 version... many changes
  *
@@ -17,6 +20,7 @@
 package  DataSetTools.math;
 
 import java.io.*;
+import java.text.*;
 
 /**
  * Position3D represents a position in 3D space in cartesian, cylindrical
@@ -220,6 +224,32 @@ public class Position3D implements Serializable
     coords = getSphericalCoords();
     System.out.println( "[ "+coords[0]+", "+coords[1]+", "+coords[2]+" ]" );
   }
+
+
+  /**
+   *  Form a string giving the position of the detector in cylindrical 
+   *  coordinates.
+   */
+  public String toString()
+  {
+     float cyl_coords[] = getCylindricalCoords();
+
+     NumberFormat f = NumberFormat.getInstance();
+
+     f.setMaximumFractionDigits( 3 );
+     String r     = f.format( cyl_coords[0] );
+     f.setMaximumFractionDigits( 2 );
+     String cyl_angle = f.format( cyl_coords[1] * 180.0/Math.PI );
+     f.setMaximumFractionDigits( 3 );
+     String z     = f.format( cyl_coords[2] );
+                                                    // upper case phi:   \u03a6
+                                                    // lower case phi:   \u03c6
+     String string = "r="  + r +
+                     ","+"\u03c6" +"=" + cyl_angle +
+                     ",z=" + z;
+     return string;
+  }
+
 
   /**
    *  Make a new Position3D object that contains the same data as the current
