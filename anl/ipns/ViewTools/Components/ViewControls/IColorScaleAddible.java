@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/12 02:33:05  rmikk
+ *  Fixed Package names
+ *
  *  Revision 1.1  2003/12/23 01:55:51  millermi
  *  - Moved from TwoD directory to a more logical directory. Now
  *    in the same directory as the class that it provides
@@ -61,12 +64,12 @@
  *
  */
  
-package DataSetTools.components.View.ViewControls;
+package gov.anl.ipns.ViewTools.Components.ViewControls;
 
 import java.awt.event.ActionListener;
 
-import DataSetTools.components.View.AxisInfo;
-import DataSetTools.components.View.Transparency.ILogAxisAddible;
+import gov.anl.ipns.ViewTools.Components.AxisInfo;
+import gov.anl.ipns.ViewTools.Components.Transparency.ILogAxisAddible;
 
 /**
  * This interface is implemented by view components that utilize the 
