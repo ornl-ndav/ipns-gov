@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/01/30 22:11:13  millermi
+ *  - Removed messaging Strings from interface and into respective
+ *    implementing classes that actually send out the message.
+ *
  *  Revision 1.8  2004/01/30 06:36:48  millermi
  *  - removed code that set color since doClick() does it
  *
@@ -93,6 +97,18 @@
  */ 
 public class ControlCheckboxButton extends ViewControl
 { 
+ /**
+  * "Button Pressed" - This is a message String sent out when the button
+  * is pressed.
+  */ 
+  public static final String BUTTON_PRESSED  = "Button Pressed";
+  
+ /**
+  * "Checkbox Changed" - This is a messaging String sent out when the
+  * checkbox is checked or unchecked.
+  */
+  public static final String CHECKBOX_CHANGED  = "Checkbox Changed";
+ // ------------------------ObjectState Keys------------------------------- 
  /**
   * "Selected" - This constant String is a key for referencing the state
   * information about whether or not the checkbox is checked.

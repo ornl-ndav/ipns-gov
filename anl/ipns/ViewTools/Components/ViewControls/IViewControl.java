@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/30 22:11:12  millermi
+ *  - Removed messaging Strings from interface and into respective
+ *    implementing classes that actually send out the message.
+ *
  *  Revision 1.5  2004/01/29 08:20:45  millermi
  *  - Now implements IPreserveState, thus state can now be saved for
  *    all ViewControls. Each control is responsible for detailed
@@ -69,13 +73,6 @@
  */
 public interface IViewControl extends IPreserveState
 {
- /*
-  * These variables are messaging strings for use by action listeners.
-  */
-  // Used by ControlSlider.java
-  public static final String SLIDER_CHANGED  = "SLIDER_CHANGED";
-  // Used by ControlCheckBox.java
-  public static final String CHECKBOX_CHANGED  = "CHECKBOX_CHANGED";
   // Used by LabelCombobox.java
   public static final String COMBOBOX_CHANGED  = "COMBOBOX_CHANGED";
   // Used by ButtonControl.java

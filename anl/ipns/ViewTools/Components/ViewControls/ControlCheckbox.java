@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/30 22:11:13  millermi
+ *  - Removed messaging Strings from interface and into respective
+ *    implementing classes that actually send out the message.
+ *
  *  Revision 1.5  2004/01/30 06:38:10  millermi
  *  - Added specific ObjectState information.
  *
@@ -73,6 +77,12 @@
 public class ControlCheckbox extends ViewControl
 {
  /**
+  * "Checkbox Changed" - This is a messaging String sent out when the
+  * checkbox is checked or unchecked.
+  */
+  public static final String CHECKBOX_CHANGED  = "Checkbox Changed";
+ // ------------------------ObjectState Keys------------------------------- 
+ /**
   * "Selected" - This constant String is a key for referencing the state
   * information about whether or not the checkbox is checked.
   * The value that this key references is a primative boolean.
@@ -106,6 +116,7 @@ public class ControlCheckbox extends ViewControl
   private JCheckBox cbox;
   private Color checkcolor;
   private Color uncheckcolor;
+  private ControlCheckbox this_cbox;
   
  /**
   * Default constructor specifies no title but initializes checkbox to be
@@ -117,6 +128,7 @@ public class ControlCheckbox extends ViewControl
     this.setLayout( new GridLayout(1,1) );
     cbox = new JCheckBox();
     this.add(cbox);
+    this_cbox = this;
     cbox.addActionListener( new CheckboxListener() );
     checkcolor = Color.red;
     uncheckcolor = Color.black;      
@@ -299,7 +311,7 @@ public class ControlCheckbox extends ViewControl
         cbox.setForeground( checkcolor );
       else
         cbox.setForeground( uncheckcolor );
-      ((ViewControl)cbox.getParent()).send_message(CHECKBOX_CHANGED);
+      this_cbox.send_message(CHECKBOX_CHANGED);
     }
   } 
   

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2004/01/30 22:11:12  millermi
+ *  - Removed messaging Strings from interface and into respective
+ *    implementing classes that actually send out the message.
+ *
  *  Revision 1.17  2004/01/30 06:38:10  millermi
  *  - Added specific ObjectState information.
  *
@@ -687,7 +691,7 @@ public class ControlColorScale extends ViewControl
       String message = e.getActionCommand();
       if( message.equals( component.getColorScale() ) )
         setColorScale( message, isTwoSided );
-      else if ( message == IViewControl.SLIDER_CHANGED )
+      else if ( message.equals(ControlSlider.SLIDER_CHANGED) )
       { 
         IColorScaleAddible temp = (IColorScaleAddible)e.getSource();
         logscale = temp.getLogScale();
