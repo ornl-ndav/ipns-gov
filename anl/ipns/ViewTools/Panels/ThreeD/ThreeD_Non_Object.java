@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2002/10/29 23:46:02  dennis
+ * Added method position().
+ *
  * Revision 1.2  2001/05/23 17:31:46  dennis
  * Added clipping using front clipping plane between COP and VRP
  *
@@ -60,6 +63,15 @@ public class ThreeD_Non_Object implements IThreeD_Object
    */
   public void setColor( Color color )
   {
+  }
+
+
+  /**
+   *  This returns null. 
+   */
+  public Vector3D position()
+  {
+    return null;
   }
 
 
