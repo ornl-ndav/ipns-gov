@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2003/11/21 02:52:34  millermi
+ *  - Improved the repainting of the overlay.
+ *  - Editor bounds are now saved before dispose() is called.
+ *
  *  Revision 1.20  2003/11/18 01:00:17  millermi
  *  - Made non-save dependent private variables transient.
  *
@@ -221,6 +225,7 @@ public class AnnotationOverlay extends OverlayJPanel
   * the dimensions for the editor.
   */
   public static final String EDITOR_BOUNDS  = "Editor Bounds";
+  
   // panel overlaying the center jpanel
   private transient AnnotationJPanel overlay;
   private transient IZoomTextAddible component;	 // component being passed
@@ -233,7 +238,7 @@ public class AnnotationOverlay extends OverlayJPanel
   private transient AnnotationEditor editor;
   // if ADD_COMPONENTS changes in the editor, the 5 should be incremented in
   // the statement below.
-  private transient Rectangle editor_bounds = new Rectangle(0,0,200,(35 * 5) );
+  private Rectangle editor_bounds = new Rectangle(0,0,200,(35 * 5) );
   private Font font;
   private Font default_font;
   private transient CoordTransform pixel_local;
@@ -470,6 +475,7 @@ public class AnnotationOverlay extends OverlayJPanel
     }
     else
     {
+      editor_bounds = editor.getBounds();
       editor.dispose();
       editor = new AnnotationEditor();
       editor.setVisible(true);
@@ -663,9 +669,8 @@ public class AnnotationOverlay extends OverlayJPanel
  	  // if an editAnnotaton window is open, update it to the changes
  	  if( editor.isVisible() )
  	  {
- 	    editor.dispose();
- 	    editor = new AnnotationEditor();
-	    editor.setVisible(true);
+	    editor.setVisible(false);
+	    editAnnotation();
  	  }
  	}	  
       }
@@ -678,9 +683,8 @@ public class AnnotationOverlay extends OverlayJPanel
  	  // if an editAnnotaton window is open, update it to the changes 
  	  if( editor.isVisible() )
  	  {
- 	    editor.dispose();
- 	    editor = new AnnotationEditor();
-	    editor.setVisible(true);
+	    editor.setVisible(false);
+	    editAnnotation();
  	  }
  	}	  
       }       
@@ -689,8 +693,9 @@ public class AnnotationOverlay extends OverlayJPanel
  	 //****************** this code here may change ********************
  	 // this is here to allow the pop-up textfield to adjust if the
  	 // viewer itself is moved.
- 	 Container viewer = this_panel.getParent().getParent().
- 		       getParent().getParent().getParent(); 
+ 	 Container viewer = this_panel;
+         while( viewer.getParent() != null )
+           viewer = viewer.getParent();
  	 //*****************************************************************
  	 // all new stuff is created here otherwise the reference is
  	 // maintained, which adjusts all notes to the same location...BAD
@@ -754,13 +759,12 @@ public class AnnotationOverlay extends OverlayJPanel
  	  this_panel.addAnnotation( text.getText(), region );
  	  this_mini.dispose();  // since a new viewer is made each time,
  			        // dispose of the old one.
- 	  this_panel.getParent().getParent().repaint();
- 	  // if an editAnnotaton window is open, update it to the changes
+ 	  this_panel.repaint();
+	  // if an editAnnotaton window is open, update it to the changes
  	  if( editor.isVisible() )
  	  {
- 	    editor.dispose();
- 	    editor = new AnnotationEditor();
-	    editor.setVisible(true);
+	    editor.setVisible(false);
+	    editAnnotation();
  	  }
  	  //System.out.println("KeyTyped " + e.getKeyChar() );         
  	}
@@ -909,9 +913,8 @@ public class AnnotationOverlay extends OverlayJPanel
         {
 	  if( noteRemoved )
 	  {
-	    editor.dispose();
-	    editor = new AnnotationEditor();
-	    editor.setVisible(true);
+	    editor.setVisible(false);
+	    editAnnotation();
           }
 	  this_panel.repaint();
         }
