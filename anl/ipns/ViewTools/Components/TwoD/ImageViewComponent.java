@@ -34,10 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2003/06/18 22:16:42  dennis
+ *  (Mike Miller)
+ *  - Changed how horizontal color scale was added to the view
+ *    component, now less wasted space.
+ *  - Reduced size of vertical color scale.
+ *
  *  Revision 1.13  2003/06/18 13:33:50  dennis
  *  (Mike Miller)
- *  - Added method getColorScale() to pass on the current color scale
- *    being used.
  *  - Now implements IColorScaleAddible, which required the addition of
  *    getColorScale() and getLogScale().
  *  - Added methods setColorControlEast() and setColorControlSouth() to
@@ -531,38 +535,40 @@ public class ImageViewComponent implements IViewComponent2D,
       // this will be the background for the master panel
       JPanel background = new JPanel(new BorderLayout());
       
-      JPanel north = new JPanel(new FlowLayout());
+      JPanel north = new JPanel();
       north.setPreferredSize(new Dimension( 0, 25 ) );
       JPanel east; 
       JPanel south;
       if( addColorControlEast )
       {
          east = new ControlColorScale( this, ControlColorScale.VERTICAL );
-         east.setPreferredSize( new Dimension( 120, 0 ) );
+         east.setPreferredSize( new Dimension( 90, 0 ) );
 	 ((ControlColorScale)east).setTitle("Y Axis Color Scale");
       }
       else
       {
-         east = new JPanel(new FlowLayout());
+         east = new JPanel();
          east.setPreferredSize(new Dimension( 50, 0 ) );
       }
       if( addColorControlSouth )
       {
-         south = new JPanel( new GridLayout( 2,1 ) );
-	 south.add( new JPanel() );
+         south = new JPanel( new BorderLayout() );
+	 JPanel mininorth = new JPanel();
+	 mininorth.setPreferredSize( new Dimension( 0, southwidth ) );
+	 south.add( mininorth, "North" );
 	 ControlColorScale ccs = new ControlColorScale(
 	                               this,ControlColorScale.HORIZONTAL);
 	 ccs.setTitle("X Axis Color Scale");
-	 south.add( ccs );
-	 south.setPreferredSize( new Dimension( 0, southwidth + 100) );
+	 south.add( ccs, "Center" );
+	 south.setPreferredSize( new Dimension( 0, southwidth + 75) );
       }
       else
       {
-         south = new JPanel(new FlowLayout());    
+         south = new JPanel();    
          south.setPreferredSize(new Dimension( 0, southwidth ) );
       }
   
-      JPanel west = new JPanel(new FlowLayout());
+      JPanel west = new JPanel();
       west.setPreferredSize(new Dimension( westwidth, 0 ) );
       
       //Construct the background JPanel
