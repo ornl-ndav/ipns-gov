@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2002/08/15 18:45:07  pfpeterson
+ *  Now replaces "//" in fixSeparator as well.
+ *
  *  Revision 1.9  2002/08/12 18:51:02  pfpeterson
  *  Updated the documentation to reflect what fixSeparator actually does.
  *
@@ -94,6 +97,7 @@ public class FilenameUtil
 
     String result = StringUtil.replace( file_name, "\\\\", separator );
     result = StringUtil.replace( result, "\\", separator );
+    result = StringUtil.replace( result, "//", separator );
     result = StringUtil.replace( result, "/", separator );
 
     return result;

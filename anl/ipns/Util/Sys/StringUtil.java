@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2002/08/15 18:45:09  pfpeterson
+ *  Now replaces "//" in fixSeparator as well.
+ *
  *  Revision 1.9  2002/08/12 20:23:59  pfpeterson
  *  Returned the fixSeparator method to its original purpose. Last
  *  version caused a bug that made runfiles not load under windows.
@@ -105,6 +108,7 @@ public class StringUtil
       
       result = replace( file_name, "\\\\", separator);
       result = replace( result,    "\\",   separator);
+      result = replace( result,    "//",   separator);
       result = replace( result,    "/",    separator);
 
       return result;
