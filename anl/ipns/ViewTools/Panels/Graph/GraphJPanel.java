@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.27  2003/07/31 15:16:56  dennis
+ * Fixed off-by-one error with first_index.
+ *
  * Revision 1.26  2003/07/30 20:57:19  serumb
  * Added function for checking if the axies are logarithimic,
  * and scale the data to the log scale.
@@ -893,7 +896,8 @@ public boolean is_autoY_bounds()
       else if ( first_x >= gd.x_vals[ gd.x_vals.length-1 ] )
         first_index = gd.x_vals.length-1;
       else
-        first_index = arrayUtil.get_index_of( first_x, gd.x_vals )-1;
+        first_index = arrayUtil.get_index_of( first_x, gd.x_vals );
+
       if ( first_index > 0 )                     // include one extra point 
         first_index--;                           // to include first segment
                                                  // going off screen
