@@ -33,6 +33,17 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.26  2004/03/10 16:30:23  millermi
+ * - Added filename to header of Results Files.
+ * - Focus now returned to the ImageViewComponent after
+ *   the ViewManager is no longer visible.
+ * - Bin IDs now correspond to where the selection is stored
+ *   in the Vector of selections.
+ * - Added File|Exit and File|Print Image to menus.
+ * - Fixed bug that did not allow a runfile to be loaded
+ *   after an invalid runfile was unsuccessfully loaded.
+ * - Rearranged menu items into more logical categories.
+ *
  * Revision 1.25  2004/03/05 04:46:29  millermi
  * - Removed unnecessary variables from binarySearch().
  * - Added comments to code for better readability.
@@ -231,6 +242,7 @@ import DataSetTools.dataset.Data;
 import DataSetTools.dataset.FunctionTable;
 import DataSetTools.dataset.UniformXScale;
 import DataSetTools.dataset.Float1DAttribute;
+import DataSetTools.viewer.PrintComponentActionListener;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -277,7 +289,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient SplitPaneWithState pane;
   private transient ImageViewComponent ivc;
   private transient IVirtualArray2D data;
- //private transient float[][]       errors;      // error estimates in the data
   private transient JMenuBar menu_bar;
   private transient DataSet data_set;
   private String projectsDirectory = SharedData.getProperty("Data_Directory");
@@ -567,17 +578,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */ 
   public void setData( IVirtualArray2D values )
   {
-    data   = values;
-    
-    if( ivc != null && data != null )
+    // make sure an ivc exists, the values passed in are not null, and the
+    // previous data was not null.
+    if( ivc != null && values != null && data != null )
     {
+      data = values;
       ivc.kill();  // since data is changing, kill all windows created by ivc.
       ivc.dataChanged(data);  // if ivc exists, update the image.
     }  
-    // if data == null, remove everything and build again.
+    // if data == null or values = null, remove everything and build again.
     // if ivc == null, build for the first time.
     else
     { 
+      data = values;
       getContentPane().removeAll();
       buildMenubar();
       buildPane();
@@ -639,7 +652,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
                                      iva.getNumColumns()-0.001f,
 				     iva.getNumRows()-0.001f );
     }
-    data = new VirtualArray2D(1,1);
+    data = null;
     datafile = "";
     buildMenubar();
     
@@ -683,18 +696,18 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       ViewMenuItem[] menus = ivc.getSharedMenuItems();
       for( int i = 0; i < menus.length; i++ )
       {
-        if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(
-    	    menus[i].getPath().toLowerCase()) )
+        if( ViewMenuItem.PUT_IN_FILE.equalsIgnoreCase(
+    	    menus[i].getPath()) )
     	{
 	  menu_bar.getMenu(0).add( menus[i].getItem() ); 
         }
-	else if( ViewMenuItem.PUT_IN_OPTIONS.toLowerCase().equals(
-    	         menus[i].getPath().toLowerCase()) )
+	else if( ViewMenuItem.PUT_IN_OPTIONS.equalsIgnoreCase(
+    	         menus[i].getPath()) )
     	{
 	  menu_bar.getMenu(1).add( menus[i].getItem() );	   
         }
-	else if( ViewMenuItem.PUT_IN_HELP.toLowerCase().equals(
-    	         menus[i].getPath().toLowerCase()) )
+	else if( ViewMenuItem.PUT_IN_HELP.equalsIgnoreCase(
+    	         menus[i].getPath()) )
         {
 	  menu_bar.getMenu(2).add( menus[i].getItem() );
         }
@@ -707,12 +720,16 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       ObjectState temp = getObjectState(IPreserveState.DEFAULT);
       temp.silentFileChooser(props,false);
       setObjectState(temp);
+      // enable Print Image menu item
+      menu_bar.getMenu(0).getItem(3).setEnabled(true); // print image
     }
     // no data, build an empty split pane.
     else
     {
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
                                     new JPanel(), new JPanel(), .75f );
+      // disable Print Image menu item
+      menu_bar.getMenu(0).getItem(3).setEnabled(false); // print image
     }   
   }
  
@@ -738,53 +755,69 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     Vector save_default      = new Vector();
     Vector load_data         = new Vector();
     Vector swv_help          = new Vector();
+    Vector print             = new Vector();
+    Vector exit              = new Vector();
     Vector file_listeners    = new Vector();
     Vector option_listeners  = new Vector();
     Vector help_listeners    = new Vector();
+    
+    // build file menu
     file.add("File");
     file_listeners.add( new WVListener() ); // listener for file
     file.add(load_data);
-      load_data.add("Load Data");
+      load_data.add("Load Runfile");
       file_listeners.add( new WVListener() ); // listener for load data
-    file.add(save_results_menu);
-      save_results_menu.add("Save Results");
-      file_listeners.add( new WVListener() ); // listener for saving results
-    file.add(save_default);
-      save_default.add("Save User Settings");
-      file_listeners.add( new WVListener() ); // listener for saving results
+    file.add(load_menu);
+      load_menu.add("Open Project");
+      file_listeners.add( new WVListener() ); // listener for load project
+    file.add(save_menu);
+      save_menu.add("Save Project");
+      file_listeners.add( new WVListener() ); // listener for save project
+    file.add(print);
+      print.add("Print Image");
+      file_listeners.add( new WVListener() ); // listener for printing IVC
+    file.add(exit);
+      exit.add("Exit");
+      file_listeners.add( new WVListener() ); // listener for exiting SWViewer
     
+    // build options menu
     options.add("Options");
     option_listeners.add( new WVListener() ); // listener for options
     options.add(view_man);
       view_man.add("Hide Results Window");
       option_listeners.add( new WVListener() ); // listener for view results
-    options.add(save_menu);
-      save_menu.add("Save Project");
-      option_listeners.add( new WVListener() ); // listener for save project
-    options.add(load_menu);
-      load_menu.add("Load Project");
-      option_listeners.add( new WVListener() ); // listener for load project
+    options.add(save_results_menu);
+      save_results_menu.add("Save Results to File");
+      option_listeners.add( new WVListener() ); // listener for saving results
+    options.add(save_default);
+      save_default.add("Save User Settings");
+      option_listeners.add( new WVListener() ); // listener for saving results
+    
+    // build help menu
     help.add("Help");
     help_listeners.add( new WVListener() );
     help.add( swv_help );
       swv_help.add("SAND Wedge Viewer");
       help_listeners.add( new WVListener() );  // listener for SAND helper
     
+    // add menus to the menu bar.
     menu_bar.add( MenuItemMaker.makeMenuItem(file,file_listeners) ); 
     menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
+    
     // since the IVC is not created unless data is available,
     // do not load state unless data is available.
     if( data == null )
     {
       JMenu file_menu = menu_bar.getMenu(0);
-      file_menu.getItem(1).setEnabled(false);   // disable Save Results
-      file_menu.getItem(2).setEnabled(false);   // disable Save User Settings
+      file_menu.getItem(2).setEnabled(false);   // disable Save Project Settings
+      file_menu.getItem(3).setEnabled(false);   // disable Print Image
       JMenu option_menu = menu_bar.getMenu(1);
       option_menu.getItem(0).setEnabled(false); // disable Hide Results Window
-      option_menu.getItem(1).setEnabled(false); // disable Save Project Settings
-    //option_menu.getItem(2).setEnabled(false); // disable Load Project Settings
+      option_menu.getItem(1).setEnabled(false); // disable Save Results
+      option_menu.getItem(2).setEnabled(false); // disable Save User Settings
     }
+    
     // if ViewManager not visible, disable "Hide Results Window" button
     if( oldview == null || !oldview.isVisible() )
     {
@@ -841,9 +874,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   *                 **************Integrate*******************
   * This method does the calculations that produce the graph.
   */
-  private void integrate( Region region )
-  {   
-    int   ID      = 1;
+  private void integrate( Region region, int ID )
+  {
     float start_x = 0;
     float end_x   = 0;
     floatPoint2D center = new floatPoint2D(); 
@@ -1134,11 +1166,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals("Load Data") )
+      if( ae.getActionCommand().equals("Load Runfile") )
       {
         JFileChooser fc = new JFileChooser(projectsDirectory);
         fc.setFileFilter( new DataFileFilter() );
-        int result = fc.showDialog(new JFrame(),"Load Data");
+        int result = fc.showDialog(new JFrame(),"Load Runfile");
      
         if( result == JFileChooser.APPROVE_OPTION )
         {
@@ -1147,7 +1179,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
           loadData(filename);
         }
       } // end else if load data
-      else if( ae.getActionCommand().equals("Save Results") )
+      else if( ae.getActionCommand().equals("Save Results to File") )
       {
         JFileChooser fc = new JFileChooser(projectsDirectory);
         fc.setFileFilter( new DataFileFilter() );
@@ -1191,8 +1223,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	  String at_name = fat.getName();
 	  // This portion will put the data attributes at the top of the
 	  // file, each line preceeded with a pound (#) symbol.
-	  StringBuffer header = new StringBuffer("# Selection Type: ");
-	  header.append(at_name).append('\n');
+	  StringBuffer header = new StringBuffer("# Run File: ");
+	  header.append(datafile).append('\n');
+	  header.append("# Selection Type: ").append(at_name).append('\n');
 	  // make sure there are the same number of values as descriptors.
 	  int length = vals.length;
 	  if( length > descriptors.length )
@@ -1232,11 +1265,20 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       {
 	getObjectState(IPreserveState.PROJECT).openFileChooser(true);
       }
-      else if( ae.getActionCommand().equals("Load Project") )
+      else if( ae.getActionCommand().equals("Open Project") )
       {
         ObjectState state = new ObjectState();
 	if( state.openFileChooser(false) )
 	  setObjectState(state);
+      }
+      else if( ae.getActionCommand().equals("Print Image") )
+      {
+        // since the left component may change from data to data, only
+	// get the component when printing has been asked for.
+        JMenuItem silent_menu = PrintComponentActionListener.getActiveMenuItem(
+	                                "not visible",
+	                                pane.getLeftComponent() );
+	silent_menu.doClick();
       }
       else if( ae.getActionCommand().equals("SAND Wedge Viewer") )
       {
@@ -1248,6 +1290,17 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	WindowShower shower = new WindowShower(editor);
         java.awt.EventQueue.invokeLater(shower);
 	shower = null;
+      }
+      else if( ae.getActionCommand().equals("Exit") )
+      {
+        if( oldview != null )
+	{
+	  oldview.dispose();
+	  oldview = null;
+	}
+	this_viewer.dispose();
+	System.gc();
+	System.exit(0);
       }
     }
   }
@@ -1265,19 +1318,21 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       Region[] selectedregions = ivc.getSelectedRegions();
         
       if( message.equals(SelectionOverlay.REGION_ADDED) )
-      {
+      {	
         // REGION_ADDED message coming from setObjectState(), need to look
 	// at all of the selections, not just the last one.
         if( os_region_added )
 	{
 	  for( int i = 0; i < selectedregions.length; i++ )
-            integrate( selectedregions[i] );
+            integrate( selectedregions[i], i );
 	  os_region_added = false;
 	}
         // region added graphically or manually, only need to get points
 	// from the last selected region.
 	else
-          integrate( selectedregions[selectedregions.length-1] );
+          integrate( selectedregions[selectedregions.length-1],
+	             selectedregions.length-1 );
+	
 	// if a viewmanager has not been created yet, make one.
 	if( oldview == null )
 	{
@@ -1288,7 +1343,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	}
 	else
 	{
-	  data_set.notifyIObservers(IObserver.DATA_CHANGED);
+	  // the update revises the tempDataSet, and the notify causes
+	  // the graphs to be updated.
+	  oldview.update(data_set, IObserver.DATA_CHANGED);
+	  data_set.notifyIObservers(IObserver.SELECTION_CHANGED);
 	  if( !oldview.isVisible() )
 	  {
             WindowShower shower = new WindowShower(oldview);
@@ -1302,38 +1360,62 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       }
       else if( message.equals(SelectionOverlay.REGION_REMOVED) )
       {
-        data_set.removeData_entry( data_set.getNum_entries() - 1 );
-	data_set.notifyIObservers( IObserver.DATA_DELETED );
+        // set the selected flag of last entry to false
+        data_set.setSelectFlag( data_set.getNum_entries() - 1, false );
+        // since we will be removing the last entry, this serves as
+	// both an index of the old last entry and a new number of entries.
+        int num_entries = data_set.getNum_entries() - 1;
+        data_set.removeData_entry( num_entries );
+	// if no entries in dataset, do not make ViewManager viewable.
+	if( num_entries == 0 )
+	  oldview.setVisible(false);
+	// the update revises the tempDataSet, and the notify causes
+	// the graphs to be updated.
+	oldview.update(data_set, IObserver.DATA_CHANGED);
+	data_set.notifyIObservers( IObserver.SELECTION_CHANGED );
 	editor.selectionChanged();
       }
       else if( message.equals(SelectionOverlay.ALL_REGIONS_REMOVED) )
       {
+	// if no data, don't allow view manager to be viewed.
+	oldview.setVisible(false);
+	// unselect all data so they will not be displayed.
+        data_set.clearSelections();
         data_set.removeAll_data_entries();
-	data_set.notifyIObservers( IObserver.DATA_DELETED );
+	// the update revises the tempDataSet, and the notify causes
+	// the graphs to be updated.
+	oldview.update(data_set, IObserver.DATA_CHANGED);
+	data_set.notifyIObservers( IObserver.SELECTION_CHANGED );
 	editor.selectionChanged();
       }
       else if( message.equals(IViewComponent.POINTED_AT_CHANGED) )
       {
         editor.setCurrentPoint( ivc.getPointedAt() );
+	data_set.notifyIObservers( IObserver.POINTED_AT_CHANGED );
 	//System.out.println("Pointed At Changed " + 
 	//                   ivc.getPointedAt().toString() );
       }
-      // enable/disable "Hide/Show Results Window" if no selections exist.
+      // enable "Save Results" under File menu and
+      // "Hide/Show Results Window" under Options menu if selections exist.
       if( data_set.getNum_entries() > 0 )
       {
-        menu_bar.getMenu(0).getItem(1).setEnabled(true);
+        menu_bar.getMenu(1).getItem(0).setEnabled(true); // show projects window
+        menu_bar.getMenu(1).getItem(1).setEnabled(true); // save results
       }
+      // disable "Save Results" under File menu and
+      // "Hide/Show Results Window" under Options menu if no selections exist.
       else
       {
-        menu_bar.getMenu(0).getItem(1).setEnabled(false);
+        menu_bar.getMenu(1).getItem(0).setEnabled(false); // show proj. window
+        menu_bar.getMenu(1).getItem(1).setEnabled(false); // save results
       }
       // ################## Consider revising ########################
       // Potential bottleneck...
       // This is a hack to get the ViewManager to update when selections
       // are removed. Need to ignore all messages except when a region is
       // added or removed, otherwise the viewer bogs down.
-      if( oldview != null && message.toLowerCase().indexOf("region") >= 0 )
-        oldview.setView( oldview.getView() );      
+      //if( oldview != null && message.toLowerCase().indexOf("region") >= 0 )
+      //  oldview.setView( oldview.getView() );      
     }
   }
   
@@ -1347,11 +1429,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     {
       menu_bar.getMenu(1).getItem(0).setText("Show Results Window");
       menu_bar.validate();
+      // if ViewManager is hidden, SANDWedgeViewer should take focus.
+      ivc.returnFocus();
     }  
     
     public void componentShown( ComponentEvent e )
     {
       // since menu item starts out disabled, make sure it is enabled.
+      // This will change the text, since ViewManager is displayed.
       if( !menu_bar.getMenu(1).getItem(0).isEnabled() )
         menu_bar.getMenu(1).getItem(0).setEnabled(true);
       menu_bar.getMenu(1).getItem(0).setText("Hide Results Window");
@@ -1369,6 +1454,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     {
       menu_bar.getMenu(1).getItem(0).setText("Show Results Window");
       menu_bar.validate();
+      // if ViewManager is closing, SANDWedgeViewer should take focus.
+      ivc.returnFocus();
     }
   }
   
