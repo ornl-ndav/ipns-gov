@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2003/11/18 00:56:19  millermi
+ *  - ObjectState for IndexColorModel now saved as a string name,
+ *    since IndexColorModel isn't serializable.
+ *  - Made color_model transient.
+ *  - Line 671, added check to make sure temp is a valid index.
+ *
  *  Revision 1.18  2003/10/23 05:44:14  millermi
  *  - Added getObjectState() and setObjectState() methods to
  *    allow for preservation of state.
@@ -117,7 +123,7 @@ public class ImageJPanel extends    CoordJPanel
  /**
   * "Color Model" - This constant String is a key for referencing the state
   * information about the IndexColorModel used by the ImageJPanel. The value
-  * referenced by this key is of type IndexColorModel.
+  * referenced by this key is a String name constant from IndexColorMaker.java.
   */
   public static final String COLOR_MODEL = "Color Model";
   
@@ -148,7 +154,8 @@ public class ImageJPanel extends    CoordJPanel
   private float           min_data = 0;
   private float           max_data = 3;
 
-  private IndexColorModel color_model;
+  private transient IndexColorModel color_model;
+  private String          color_model_string;
   private byte[]          log_scale;
   private boolean         isTwoSided = true;
 
@@ -160,8 +167,9 @@ public class ImageJPanel extends    CoordJPanel
  */
   public ImageJPanel()
   { 
+    color_model_string = IndexColorMaker.HEATED_OBJECT_SCALE_2;
     color_model =
-    IndexColorMaker.getDualColorModel( IndexColorMaker.HEATED_OBJECT_SCALE_2,
+    IndexColorMaker.getDualColorModel( color_model_string,
           NUM_POSITIVE_COLORS );
  
     log_scale = new byte[LOG_TABLE_SIZE];
@@ -182,14 +190,7 @@ public class ImageJPanel extends    CoordJPanel
     // since ImageJPanel extends CoordJPanel, set those state variables first.
     super.setObjectState(new_state);
     boolean redraw = false;  // if any values are changed, repaint.
-    Object temp = new_state.get(COLOR_MODEL);
-    if( temp != null )
-    {
-      color_model = (IndexColorModel)temp;
-      redraw = true;  
-    }
-    
-    temp = new_state.get(LOG_SCALE);
+    Object temp = new_state.get(LOG_SCALE);
     if( temp != null )
     {
       log_scale = (byte[])temp;
@@ -200,6 +201,14 @@ public class ImageJPanel extends    CoordJPanel
     if( temp != null )
     {
       isTwoSided = ((Boolean)temp).booleanValue();
+      redraw = true;  
+    }
+    
+    temp = new_state.get(COLOR_MODEL);
+    if( temp != null )
+    {
+      color_model_string = (String)temp;
+      setNamedColorModel( color_model_string, isTwoSided, true );
       redraw = true;  
     }
     
@@ -217,7 +226,7 @@ public class ImageJPanel extends    CoordJPanel
   public ObjectState getObjectState()
   {
     ObjectState state = super.getObjectState(); //get ObjectState of CoordJPanel
-    state.insert( COLOR_MODEL, color_model );
+    state.insert( COLOR_MODEL, color_model_string );
     state.insert( LOG_SCALE, log_scale );
     state.insert( TWO_SIDED, new Boolean(isTwoSided) );
     
@@ -275,11 +284,12 @@ public class ImageJPanel extends    CoordJPanel
                                   boolean  rebuild_image   )
   {
     isTwoSided = twosided;
+    color_model_string =  color_scale_name;
     if( isTwoSided )
-      color_model = IndexColorMaker.getDualColorModel( color_scale_name,
+      color_model = IndexColorMaker.getDualColorModel( color_model_string,
                                                        NUM_POSITIVE_COLORS );
     else
-      color_model = IndexColorMaker.getColorModel( color_scale_name,
+      color_model = IndexColorMaker.getColorModel( color_model_string,
                                                    NUM_POSITIVE_COLORS );
     if ( rebuild_image )
     {
@@ -664,7 +674,12 @@ protected void LocalTransformChanged()
       for (int x = start_col; x <= end_col; x++)
       {
         temp = data[y][x] * scale_factor;
-        if ( temp >= 0 )
+	if( temp > LOG_TABLE_SIZE - 1 )
+	  temp = LOG_TABLE_SIZE - 1;
+        else if( temp < 0 )
+	  temp = 0;
+	
+	if ( temp >= 0 )
           pix[index++] = (byte)(zero_index + log_scale[(int)temp]);
         else
           pix[index++] = (byte)(zero_index - log_scale[(int)(-temp)]);
