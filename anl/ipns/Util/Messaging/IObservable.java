@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/11 22:53:03  rmikk
+ *  Changed the package name
+ *
  *  Revision 1.5  2004/01/24 20:54:24  bouzekc
  *  Removed unused imports.
  *
@@ -38,7 +41,7 @@
  *
  */
 
-package DataSetTools.util;
+package gov.anl.ipns.Util.Messaging;
 
 /**
  * The IObservable interface provides an interface that "observable" objects

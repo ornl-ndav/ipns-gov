@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/11 22:53:04  rmikk
+ *  Changed the package name
+ *
  *  Revision 1.2  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -40,7 +43,7 @@
  *
  */
  
-package DataSetTools.util;
+package gov.anl.ipns.Util.Messaging;
 import java.beans.PropertyChangeListener;
 /**
  * Internal class to do all of the formatting checks and pass out

@@ -30,12 +30,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/11 22:53:03  rmikk
+ *  Changed the package name
+ *
  *  Revision 1.4  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
  */
 
-package DataSetTools.util;
+package gov.anl.ipns.Util.Messaging;
 
 import java.io.*;
 import java.util.*;
