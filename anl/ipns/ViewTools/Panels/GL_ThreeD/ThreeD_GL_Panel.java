@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/05/30 04:31:07  dennis
+ * Commented out calls to canvas.setRenderingThread() which prevented
+ * test program from running on Compaq Evo N1000c running Windows XP
+ * with ATI Mobility Radeon 7500 graphics.  More tests needed.
+ *
  * Revision 1.1  2004/05/28 20:51:18  dennis
  * Initial (test) version of classes for displaying and picking
  * 3D objects using OpenGL from Java, built on the "jogl" system.
@@ -430,9 +435,9 @@ public int[] pickHitList( int x, int y )
  */
  public void Draw()
  {
-   canvas.setRenderingThread( Thread.currentThread() );
+//   canvas.setRenderingThread( Thread.currentThread() );
    canvas.repaint();
-   canvas.setRenderingThread( null );
+//   canvas.setRenderingThread( null );
  }
 
 
@@ -496,7 +501,7 @@ public int[] pickHitList( int x, int y )
      */
     public void init(GLDrawable drawable)
     {
-      canvas.setRenderingThread( Thread.currentThread());
+//      canvas.setRenderingThread( Thread.currentThread());
       GL gl = drawable.getGL();
       gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     }
