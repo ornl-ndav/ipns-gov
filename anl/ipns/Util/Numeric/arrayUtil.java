@@ -2,6 +2,9 @@
  * @(#)arrayUtil.java  1999/01/10   Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.9  2001/04/20 19:51:05  dennis
+ *  Added function to sort an array of integer values.
+ *
  *  Revision 1.8  2000/11/07 15:29:57  dennis
  *  Temporarily commented out SortOnX method that used java.util.Arrays.sort()
  *  menthod that is not present in Java 1.1.8 on Mac computers.
@@ -238,6 +241,24 @@ public static void SortOnX( floatPoint2D points[] )
   java.util.Arrays.sort( points, comp );
 }
 */
+
+/**
+ *  Sort an array of integers to place them in increasing order
+ *
+ *  @param  values  the array of integers to sort
+ */
+public static void sort( int values[] )
+{
+  int temp;
+  for ( int pass = 1; pass < values.length; pass++ )
+    for ( int k = 0; k < values.length - pass; k++ )
+      if ( values[k] > values[k+1] )
+      {
+        temp        = values[k];
+        values[k]   = values[k+1];
+        values[k+1] = temp;
+      }
+}
 
 
   /**
