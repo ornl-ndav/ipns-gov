@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2003/12/30 03:55:31  millermi
+ *  - Fixed bug that caused no log calibrations to be shown when
+ *    image was very small.
+ *  - Ticks associated with labels will always be shown when
+ *    the label itself is visible (for log axes).
+ *
  *  Revision 1.23  2003/12/23 01:58:32  millermi
  *  - Adjusted interface package locations since they
  *    were moved from the TwoD directory
@@ -477,7 +483,7 @@ public class AxisOverlay2D extends OverlayJPanel
   */ 
   public void setPrecision( int digits )
   {
-     precision = digits;
+    precision = digits;
   } 
   
  /**
@@ -488,7 +494,7 @@ public class AxisOverlay2D extends OverlayJPanel
   */ 
   public void setDisplayAxes( int display_scheme )
   {
-     axesdrawn = display_scheme;
+    axesdrawn = display_scheme;
   }
   
  /**
@@ -499,7 +505,7 @@ public class AxisOverlay2D extends OverlayJPanel
   */ 
   public void setTwoSided( boolean doublesided )
   {
-     isTwoSided = doublesided;
+    isTwoSided = doublesided;
   }
   
  /**
@@ -549,8 +555,8 @@ public class AxisOverlay2D extends OverlayJPanel
   */
   public void setGridColor( Color color )
   {
-     gridcolor = color;
-     this_panel.repaint();
+    gridcolor = color;
+    this_panel.repaint();
   }
  
  /**
@@ -644,48 +650,48 @@ public class AxisOverlay2D extends OverlayJPanel
   */  
   public void paint(Graphics g) 
   {  
-     Graphics2D g2d = (Graphics2D)g;
-     g2d.setFont(f);
-     FontMetrics fontdata = g2d.getFontMetrics();
-     // System.out.println("Precision = " + precision);
-     
-     xmin = component.getAxisInformation(AxisInfo.X_AXIS).getMin();
-     xmax = component.getAxisInformation(AxisInfo.X_AXIS).getMax();
-     
-     // ymin & ymax swapped to adjust for axis standard
-     ymax = component.getAxisInformation(AxisInfo.Y_AXIS).getMin();
-     ymin = component.getAxisInformation(AxisInfo.Y_AXIS).getMax();
-       
-     // get the dimension of the center panel (imagejpanel)
-     xaxis = (int)( component.getRegionInfo().getWidth() );
-     yaxis = (int)( component.getRegionInfo().getHeight() );
-     // x and y coordinate for upper left hand corner of component
-     xstart = (int)( component.getRegionInfo().getLocation().getX() );
-     ystart = (int)( component.getRegionInfo().getLocation().getY() );
-	  
-     // System.out.println("X,Y axis = " + xaxis + ", " + yaxis );
-     // System.out.println("X,Y start = " +  xstart + ", " + ystart );
-     
-     // draw title on the overlay if one exists
-     if( component.getTitle() != IVirtualArray2D.NO_TITLE )
-       g2d.drawString( component.getTitle(), xstart + xaxis/2 -
-        	    fontdata.stringWidth(component.getTitle())/2, 
-        	    ystart/2 + (fontdata.getHeight())/2 );
+    Graphics2D g2d = (Graphics2D)g;
+    g2d.setFont(f);
+    FontMetrics fontdata = g2d.getFontMetrics();
+    // System.out.println("Precision = " + precision);
+    
+    xmin = component.getAxisInformation(AxisInfo.X_AXIS).getMin();
+    xmax = component.getAxisInformation(AxisInfo.X_AXIS).getMax();
+    
+    // ymin & ymax swapped to adjust for axis standard
+    ymax = component.getAxisInformation(AxisInfo.Y_AXIS).getMin();
+    ymin = component.getAxisInformation(AxisInfo.Y_AXIS).getMax();
+      
+    // get the dimension of the center panel (imagejpanel)
+    xaxis = (int)( component.getRegionInfo().getWidth() );
+    yaxis = (int)( component.getRegionInfo().getHeight() );
+    // x and y coordinate for upper left hand corner of component
+    xstart = (int)( component.getRegionInfo().getLocation().getX() );
+    ystart = (int)( component.getRegionInfo().getLocation().getY() );
+         
+    // System.out.println("X,Y axis = " + xaxis + ", " + yaxis );
+    // System.out.println("X,Y start = " +  xstart + ", " + ystart );
+    
+    // draw title on the overlay if one exists
+    if( component.getTitle() != IVirtualArray2D.NO_TITLE )
+      g2d.drawString( component.getTitle(), xstart + xaxis/2 -
+    		   fontdata.stringWidth(component.getTitle())/2, 
+    		   ystart/2 + (fontdata.getHeight())/2 );
 
-     if( axesdrawn == X_AXIS || axesdrawn == DUAL_AXES )
-     {
-       if( drawXLinear )
-         paintLinearX( g2d );
-       else
-         paintLogX( g2d );
-     }
-     if( axesdrawn == Y_AXIS || axesdrawn == DUAL_AXES )
-     {
-       if( drawYLinear )
-         paintLinearY( g2d );
-       else
-         paintLogY( g2d );
-     }
+    if( axesdrawn == X_AXIS || axesdrawn == DUAL_AXES )
+    {
+      if( drawXLinear )
+    	paintLinearX( g2d );
+      else
+    	paintLogX( g2d );
+    }
+    if( axesdrawn == Y_AXIS || axesdrawn == DUAL_AXES )
+    {
+      if( drawYLinear )
+    	paintLinearY( g2d );
+      else
+    	paintLogY( g2d );
+    }
   } // end of paint()
   
  /* ***********************Private Methods************************** */
@@ -695,157 +701,161 @@ public class AxisOverlay2D extends OverlayJPanel
   */   
   private void paintLinearX( Graphics2D g2d )
   {
-     FontMetrics fontdata = g2d.getFontMetrics();
-     
-     // info for putting tick marks and numbers on transparency   
-     String num = "";
-     int xtick_length = 5;
+    FontMetrics fontdata = g2d.getFontMetrics();
+    
+    // info for putting tick marks and numbers on transparency   
+    String num = "";
+    int xtick_length = 5;
 
-     CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
-						 Format.ENGINEER );
-     float[] values = util.subDivide();
-     float step = values[0];
-     float start = values[1];	 // the power of the step
-     int numxsteps = (int)values[2];	     
-  //   System.out.println("X ticks = " + numxsteps );	     
-     int pixel = 0;
-     int subpixel = 0;
-     /* xaxis represents Pmax - Pmin
-     float Pmin = start;
-     float Pmax = start + xaxis;
-     float Amin = xmin;
-     */
-     float A = 0;   
-     int exp_index = 0;
-     //boolean drawn = false;
-     int prepix = (int)( (float)xaxis*(start - xmin)/
-			 (xmax-xmin) + xstart); 
-     int skip = 0;
-     
-     for( int steps = 0; steps < numxsteps; steps++ )
-     {  
-	A = (float)steps*step + start;  	     
-	pixel = (int)( 
-		(float)xaxis*(A - xmin)/
-		(xmax-xmin) + xstart);       
-	//System.out.println("Pixel " + pixel );
-      //System.out.println("Xmin/Xmax " + xstart + "/" + (xstart + xaxis) );
-	subpixel = (int)( 
-		( (float)xaxis*(A - xmin - step/2 ) )/
-		(xmax-xmin) + xstart);      
+    CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
+        					Format.ENGINEER );
+    float[] values = util.subDivide();
+    float step = values[0];
+    float start = values[1];	// the power of the step
+    int numxsteps = (int)values[2];	    
+  //  System.out.println("X ticks = " + numxsteps );	    
+    int pixel = 0;
+    int subpixel = 0;
+    /* xaxis represents Pmax - Pmin
+    float Pmin = start;
+    float Pmax = start + xaxis;
+    float Amin = xmin;
+    */
+    float A = 0;   
+    int exp_index = 0;
+    //boolean drawn = false;
+    int prepix = (int)( (float)xaxis*(start - xmin)/
+        		(xmax-xmin) + xstart); 
+    int skip = 0;
+    // Step through and draw x axis tick marks.
+    for( int steps = 0; steps < numxsteps; steps++ )
+    {  
+      A = (float)steps*step + start;		   
+      pixel = (int)( 
+              (float)xaxis*(A - xmin)/
+              (xmax-xmin) + xstart);	   
+      //System.out.println("Pixel " + pixel );
+     //System.out.println("Xmin/Xmax " + xstart + "/" + (xstart + xaxis) );
+      subpixel = (int)( 
+              ( (float)xaxis*(A - xmin - step/2 ) )/
+              (xmax-xmin) + xstart);	  
 
-	num = util.standardize( (step * (float)steps + start) );
-	exp_index = num.lastIndexOf('E');	 
+      num = util.standardize( (step * (float)steps + start) );
+      exp_index = num.lastIndexOf('E');        
 
+      // determine a nice spacing for the labels.
+      if( (prepix + 2 + 
+           fontdata.stringWidth(num.substring(0,exp_index))/2) >
+          (pixel - fontdata.stringWidth(num.substring(0,exp_index))/2) )
+      {
+        skip++;
+      }
+      // draw evenly spaced numeric labels.
+      if( steps%skip == 0 )
+      {
+        g2d.drawString( num.substring(0,exp_index), 
+             pixel - fontdata.stringWidth(num.substring(0,exp_index))/2, 
+             yaxis + ystart + xtick_length + fontdata.getHeight() );
+      } 	
 
-	if( (prepix + 2 + 
-	     fontdata.stringWidth(num.substring(0,exp_index))/2) >
-	    (pixel - fontdata.stringWidth(num.substring(0,exp_index))/2) )
-	{
-	   skip++;
-	}
-
-	if( steps%skip == 0 )
-	{
-	   g2d.drawString( num.substring(0,exp_index), 
-		pixel - fontdata.stringWidth(num.substring(0,exp_index))/2, 
-		yaxis + ystart + xtick_length + fontdata.getHeight() );
-	}	  
-
-	//System.out.println("Subpixel/XStart " + subpixel + "/" + xstart );
-	if( subpixel > xstart && subpixel < (xstart + xaxis) )
-	{
-          if( gridxdisplay == 2 )
-          {
-            // first draw gridlines in their color
-            g2d.setColor( gridcolor );
-	    g2d.drawLine( subpixel, ystart, subpixel, yaxis + ystart );
-	    
-            // then draw tick mark in black
-            g2d.setColor( Color.black );
-          }
-          //always draw tick marks
-	  g2d.drawLine( subpixel, yaxis + ystart, 
-			subpixel, yaxis + ystart + xtick_length-2 );
-	}
-        
-        // to draw grid line for major ticks
-	if( gridxdisplay == 1 || gridxdisplay == 2 )
+      //System.out.println("Subpixel/XStart " + subpixel + "/" + xstart );
+      // draw minor tick marks (subpixel refers to minor tick mark)
+      if( subpixel > xstart && subpixel < (xstart + xaxis) )
+      {
+        if( gridxdisplay == 2 )
         {
           // first draw gridlines in their color
           g2d.setColor( gridcolor );
-	  g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
-	  
+          g2d.drawLine( subpixel, ystart, subpixel, yaxis + ystart );
+          
           // then draw tick mark in black
           g2d.setColor( Color.black );
         }
-        g2d.drawLine( pixel, yaxis + ystart, 
-		      pixel, yaxis + ystart + xtick_length );  
-	//System.out.println("Y Position: " + (yaxis + ystart + 
-	//				       xtick_length) );
-	if( steps == (numxsteps - 1) && 
-	    ( xaxis + xstart - pixel) > xaxis/(2*numxsteps) )
-	{ 
-          // draw gridlines for subtick after last major tick
-          if( gridxdisplay == 2 )
+        //always draw tick marks
+        g2d.drawLine( subpixel, yaxis + ystart, 
+        	      subpixel, yaxis + ystart + xtick_length-2 );
+      }
+      
+      // to draw grid line for major ticks
+      if( gridxdisplay == 1 || gridxdisplay == 2 )
+      {
+        // first draw gridlines in their color
+        g2d.setColor( gridcolor );
+        g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
+        
+        // then draw tick mark in black
+        g2d.setColor( Color.black );
+      }
+      g2d.drawLine( pixel, yaxis + ystart, 
+        	    pixel, yaxis + ystart + xtick_length );  
+      //System.out.println("Y Position: " + (yaxis + ystart + 
+      //				     xtick_length) );
+      // if last step but another tick should be drawn
+      if( steps == (numxsteps - 1) && 
+          ( xaxis + xstart - pixel) > xaxis/(2*numxsteps) )
+      { 
+        // draw gridlines for subtick after last major tick
+        if( gridxdisplay == 2 )
+        {
+          // first draw gridlines in their color
+          g2d.setColor( gridcolor );
+          g2d.drawLine( pixel + (pixel - subpixel), ystart, 
+        		pixel + (pixel - subpixel), 
+        		yaxis + ystart );
+          
+          // then draw tick mark in black
+          g2d.setColor( Color.black );
+        }
+	// draw major tickmarks
+        g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
+        	      pixel + (pixel - subpixel), 
+        	      yaxis + ystart + xtick_length-2 );
+        steps++;
+        A = (float)steps*step + start;  	  
+        pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart); 
+        
+	if( steps%skip == 0 && pixel <= (xstart + xaxis) )
+        {
+          num = util.standardize( (step * (float)steps + start) );
+          exp_index = num.lastIndexOf('E');
+        
+          g2d.drawString( num.substring(0,exp_index), pixel - 
+               fontdata.stringWidth(num.substring(0,exp_index))/2, 
+               yaxis + ystart + xtick_length + fontdata.getHeight() );
+          // to draw grid line for major ticks
+          if( gridxdisplay == 1 || gridxdisplay == 2 )
           {
             // first draw gridlines in their color
             g2d.setColor( gridcolor );
-            g2d.drawLine( pixel + (pixel - subpixel), ystart, 
-			  pixel + (pixel - subpixel), 
-			  yaxis + ystart );
-	    
+            g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
+          
             // then draw tick mark in black
             g2d.setColor( Color.black );
           }
-          g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
-			pixel + (pixel - subpixel), 
-			yaxis + ystart + xtick_length-2 );
-	  steps++;
-	  A = (float)steps*step + start;	    
-	  pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart); 
-	  if( steps%skip == 0 && pixel <= (xstart + xaxis) )
-	  {
-	     num = util.standardize( (step * (float)steps + start) );
-	     exp_index = num.lastIndexOf('E');
-	  
-	     g2d.drawString( num.substring(0,exp_index), pixel - 
-        	  fontdata.stringWidth(num.substring(0,exp_index))/2, 
-		  yaxis + ystart + xtick_length + fontdata.getHeight() );
-             // to draw grid line for major ticks
-	     if( gridxdisplay == 1 || gridxdisplay == 2 )
-             {
-               // first draw gridlines in their color
-               g2d.setColor( gridcolor );
-               g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
-	    
-               // then draw tick mark in black
-               g2d.setColor( Color.black );
-	     }
-             g2d.drawLine( pixel, yaxis + ystart, 
-			   pixel, yaxis + ystart + xtick_length );
-	  }    
-	}   
-     } // end of for
+          g2d.drawLine( pixel, yaxis + ystart, 
+                	pixel, yaxis + ystart + xtick_length );
+        }    
+      }   
+    } // end of for
    
   // This will display the x label, x units, and common exponent (if not 0).
-     // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
-     // strings then no strings will be displayed.
-     String xlabel = "";
-     if( component.getAxisInformation(AxisInfo.X_AXIS).getLabel() != 
-	 AxisInfo.NO_LABEL )
-       xlabel = xlabel + 
-                component.getAxisInformation(AxisInfo.X_AXIS).getLabel();
-     if( component.getAxisInformation(AxisInfo.X_AXIS).getUnits() != 
-	 AxisInfo.NO_UNITS )
-       xlabel = xlabel + "  " + 
-                component.getAxisInformation(AxisInfo.X_AXIS).getUnits();
-     if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
-       xlabel = xlabel + "  " + num.substring( exp_index );
-     if( xlabel != "" )
-       g2d.drawString( xlabel, xstart + xaxis/2 -
-        	 fontdata.stringWidth(xlabel)/2, 
-        	 yaxis + ystart + fontdata.getHeight() * 2 + 6 );
+    // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
+    // strings then no strings will be displayed.
+    String xlabel = "";
+    if( component.getAxisInformation(AxisInfo.X_AXIS).getLabel() != 
+        AxisInfo.NO_LABEL )
+      xlabel = xlabel + 
+    	       component.getAxisInformation(AxisInfo.X_AXIS).getLabel();
+    if( component.getAxisInformation(AxisInfo.X_AXIS).getUnits() != 
+        AxisInfo.NO_UNITS )
+      xlabel = xlabel + "  " + 
+    	       component.getAxisInformation(AxisInfo.X_AXIS).getUnits();
+    if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
+      xlabel = xlabel + "  " + num.substring( exp_index );
+    if( xlabel != "" )
+      g2d.drawString( xlabel, xstart + xaxis/2 -
+    		fontdata.stringWidth(xlabel)/2, 
+    		yaxis + ystart + fontdata.getHeight() * 2 + 6 );
   } // end of paintLinearX()
   
  /*
@@ -853,147 +863,147 @@ public class AxisOverlay2D extends OverlayJPanel
   */
   private void paintLinearY( Graphics2D g2d )
   {
-     FontMetrics fontdata = g2d.getFontMetrics();   
-     String num = "";
-     int xtick_length = 5;
-     
-     CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
-						  Format.ENGINEER );
-     float[] values = yutil.subDivide();
-     float ystep = values[0];
-     float starty = values[1];
-     int numysteps = (int)values[2];
-     
-     //   System.out.println("Y Start/Step = " + starty + "/" + ystep);
-     int ytick_length = 5;     // the length of the tickmark is 5 pixels
-     int ypixel = 0;	       // where to place major ticks
-     int ysubpixel = 0;        // where to place minor ticks
-       
-     int exp_index = 0;
-		
-     float pmin = ystart + yaxis;
-     float pmax = ystart;
-     float a = 0;
-     float amin = ymin - starty;
-     
-     // yskip is the space between calibrations: 1 = every #, 2 = every other
-     
-     int yskip = 1;
-     while( (yaxis*yskip/numysteps) < 
-	    fontdata.getHeight() && yskip < numysteps)
-	yskip++;
-     int mult = (int)(numysteps/yskip);
-     int rem = numysteps%yskip;
-  //   System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
-  //			  ") = " + mult + "R" + rem);
-
-     for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
-     {   
-	a = ysteps * ystep;
+    FontMetrics fontdata = g2d.getFontMetrics();   
+    String num = "";
+    int xtick_length = 5;
     
-	ypixel = (int)( (pmax - pmin) * ( a - amin) /
-			(ymax - ymin) + pmin);
-  //	     System.out.println("YPixel " + ypixel ); 
-
-	//System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
+    CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
+        					 Format.ENGINEER );
+    float[] values = yutil.subDivide();
+    float ystep = values[0];
+    float starty = values[1];
+    int numysteps = (int)values[2];
     
-	ysubpixel = (int)( (pmax - pmin) * ( a - amin  + ystep/2 ) /
-			(ymax - ymin) + pmin); 
+    //   System.out.println("Y Start/Step = " + starty + "/" + ystep);
+    int ytick_length = 5;     // the length of the tickmark is 5 pixels
+    int ypixel = 0;	      // where to place major ticks
+    int ysubpixel = 0;        // where to place minor ticks
+      
+    int exp_index = 0;
+               
+    float pmin = ystart + yaxis;
+    float pmax = ystart;
+    float a = 0;
+    float amin = ymin - starty;
     
-	num = yutil.standardize(ystep * (float)ysteps + starty);
-	exp_index = num.lastIndexOf('E');
+    // yskip is the space between calibrations: 1 = every #, 2 = every other
+    
+    int yskip = 1;
+    while( (yaxis*yskip/numysteps) < 
+           fontdata.getHeight() && yskip < numysteps)
+       yskip++;
+    int mult = (int)(numysteps/yskip);
+    int rem = numysteps%yskip;
+  //  System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
+  //    		 ") = " + mult + "R" + rem);
 
-	/*
-	System.out.println("Ypixel/Pmin = " + ypixel + "/" + pmin );
-	System.out.println("Ypixel/Pmax = " + ypixel + "/" + pmax );
-	System.out.println("Num = " + num );
-	*/
-	// if pixel is between top and bottom of imagejpanel, draw it  
-	if( ypixel <= pmin && ypixel >= pmax )
-	{
-	   if( ((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip) )
-	   {
-	      g2d.drawString( num.substring(0,exp_index), 
-			xstart - ytick_length - 
-        		fontdata.stringWidth(num.substring(0,exp_index)),
-			ypixel + fontdata.getHeight()/4 );
-	   }		  
-	   
-           // paint gridlines for major ticks
-	   if( gridydisplay == 1 || gridydisplay == 2 )
-           {
-             // change color for grid painting
-             g2d.setColor(gridcolor);
-             g2d.drawLine( xstart - 1, ypixel - 1, 
-			   xstart + xaxis - 1, ypixel - 1 );   
-             // change color for tick marks
-             g2d.setColor(Color.black);
-           }
-           g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-			 xstart - 1, ypixel - 1 );   
-	}
-	// if subpixel is between top and bottom of imagejpanel, draw it
-	if( ysubpixel <= pmin && ysubpixel >= pmax )
-	{
-           // paint gridlines for minor ticks
-	   if( gridydisplay == 2 )
-           {
-             // change color for grid painting
-             g2d.setColor(gridcolor);
-	     g2d.drawLine( xstart - 1, ysubpixel - 1, 
-			   xstart + xaxis - 1, ysubpixel - 1 );   
-             // change color for tick marks
-             g2d.setColor(Color.black);
-           }
-           g2d.drawLine( xstart - (ytick_length - 2), ysubpixel - 1, 
-			 xstart - 1, ysubpixel - 1 );
-	}
-	// if a tick mark should be drawn at the end, draw it
-	// since the above "if" takes care of all subtick marks before the
-	// actual numbered ticks, there may be a tick mark needed after the 
-	// last tick. ( end refers to smallest y value )
-	if( ysteps == 0 && 
-	    (pmin - ypixel) > yaxis/(2*numysteps) ) 
-	{
-           // paint gridlines for major ticks
-	   if( gridydisplay == 2 )
-           {
-             // change color for grid painting
-             g2d.setColor(gridcolor);
-	     g2d.drawLine( xstart - 1, (int)(ysubpixel + 
-              ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart + xaxis - 1, 
-	      (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));  
-             // change color for tick marks
-             g2d.setColor(Color.black);
-           }
-	   g2d.drawLine( xstart - (ytick_length - 2), (int)(ysubpixel + 
-              ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart - 1, 
-	      (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
-	}
-     }
+    for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
+    {	
+      a = ysteps * ystep;
+    
+      ypixel = (int)( (pmax - pmin) * ( a - amin) /
+        	      (ymax - ymin) + pmin);
+  //       System.out.println("YPixel " + ypixel ); 
+
+      //System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
+    
+      ysubpixel = (int)( (pmax - pmin) * ( a - amin  + ystep/2 ) /
+        	      (ymax - ymin) + pmin); 
+    
+      num = yutil.standardize(ystep * (float)ysteps + starty);
+      exp_index = num.lastIndexOf('E');
+
+      /*
+      System.out.println("Ypixel/Pmin = " + ypixel + "/" + pmin );
+      System.out.println("Ypixel/Pmax = " + ypixel + "/" + pmax );
+      System.out.println("Num = " + num );
+      */
+      // if pixel is between top and bottom of imagejpanel, draw it  
+      if( ypixel <= pmin && ypixel >= pmax )
+      {
+        if( ((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip) )
+        {
+          g2d.drawString( num.substring(0,exp_index), 
+          	    xstart - ytick_length - 
+          	    fontdata.stringWidth(num.substring(0,exp_index)),
+          	    ypixel + fontdata.getHeight()/4 );
+        }	       
+        
+        // paint gridlines for major ticks
+        if( gridydisplay == 1 || gridydisplay == 2 )
+        {
+          // change color for grid painting
+          g2d.setColor(gridcolor);
+          g2d.drawLine( xstart - 1, ypixel - 1, 
+                	xstart + xaxis - 1, ypixel - 1 );   
+          // change color for tick marks
+          g2d.setColor(Color.black);
+        }
+        g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                      xstart - 1, ypixel - 1 );   
+      }
+      // if subpixel is between top and bottom of imagejpanel, draw it
+      if( ysubpixel <= pmin && ysubpixel >= pmax )
+      {
+        // paint gridlines for minor ticks
+        if( gridydisplay == 2 )
+        {
+          // change color for grid painting
+          g2d.setColor(gridcolor);
+          g2d.drawLine( xstart - 1, ysubpixel - 1, 
+                	xstart + xaxis - 1, ysubpixel - 1 );   
+          // change color for tick marks
+          g2d.setColor(Color.black);
+        }
+        g2d.drawLine( xstart - (ytick_length - 2), ysubpixel - 1, 
+                      xstart - 1, ysubpixel - 1 );
+      }
+      // if a tick mark should be drawn at the end, draw it
+      // since the above "if" takes care of all subtick marks before the
+      // actual numbered ticks, there may be a tick mark needed after the 
+      // last tick. ( end refers to smallest y value )
+      if( ysteps == 0 && 
+          (pmin - ypixel) > yaxis/(2*numysteps) ) 
+      {
+        // paint gridlines for major ticks
+        if( gridydisplay == 2 )
+        {
+          // change color for grid painting
+          g2d.setColor(gridcolor);
+          g2d.drawLine( xstart - 1, (int)(ysubpixel + 
+           ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart + xaxis - 1, 
+           (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));  
+          // change color for tick marks
+          g2d.setColor(Color.black);
+        }
+        g2d.drawLine( xstart - (ytick_length - 2), (int)(ysubpixel + 
+           ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart - 1, 
+           (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
+      }
+    }
     
   // This will display the y label, y units, and common exponent (if not 0).
-     // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
-     // strings then no strings will be displayed.
-     String ylabel = "";
-     if( component.getAxisInformation(AxisInfo.Y_AXIS).getLabel() != 
-	 AxisInfo.NO_LABEL )
-       ylabel = ylabel + 
-	        component.getAxisInformation(AxisInfo.Y_AXIS).getLabel();
-     if( component.getAxisInformation(AxisInfo.Y_AXIS).getUnits() !=
-	 AxisInfo.NO_UNITS )
-       ylabel = ylabel + "  " + 
-                component.getAxisInformation(AxisInfo.Y_AXIS).getUnits();
-     if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
-	ylabel = ylabel + "  " + num.substring( exp_index );
-     if( ylabel != "" )
-     {
-	g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );    
-	g2d.drawString( ylabel, xstart + yaxis/2 -
-			fontdata.stringWidth(ylabel)/2, 
-			yaxis + ystart - xstart + fontdata.getHeight() );
-	g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
-     }
+    // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
+    // strings then no strings will be displayed.
+    String ylabel = "";
+    if( component.getAxisInformation(AxisInfo.Y_AXIS).getLabel() != 
+        AxisInfo.NO_LABEL )
+      ylabel = ylabel + 
+               component.getAxisInformation(AxisInfo.Y_AXIS).getLabel();
+    if( component.getAxisInformation(AxisInfo.Y_AXIS).getUnits() !=
+        AxisInfo.NO_UNITS )
+      ylabel = ylabel + "  " + 
+    	       component.getAxisInformation(AxisInfo.Y_AXIS).getUnits();
+    if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
+      ylabel = ylabel + "  " + num.substring( exp_index );
+    if( ylabel != "" )
+    {
+      g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );    
+      g2d.drawString( ylabel, xstart + yaxis/2 -
+        	      fontdata.stringWidth(ylabel)/2, 
+        	      yaxis + ystart - xstart + fontdata.getHeight() );
+      g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
+    }
   } // end of paintLinearY()
   
  /*
@@ -1001,323 +1011,322 @@ public class AxisOverlay2D extends OverlayJPanel
   */   
   private void paintLogX( Graphics2D g2d )
   {
-     if( component instanceof ILogAxisAddible )
-     {
-       ILogAxisAddible logcomponent = (ILogAxisAddible)component;
-       FontMetrics fontdata = g2d.getFontMetrics(); 
-       String num = "";
-       int TICK_LENGTH = 5;
-       int xtick_length = 0;
-       int negtick_length = 0;
-       //isTwoSided = false;
-       CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
-						   Format.ENGINEER );
-       util.setTwoSided(isTwoSided);
-       float[] values = util.subDivideLog();
-       int numxsteps = values.length;	     
-  //   System.out.println("X ticks = " + numxsteps );	     
-       int pixel = 0;
-       float A = 0; 
-       int skip = 1;
-       int counter = 0;
-       int maxcounter = 0;
-       int tempprec = 3;
-       if( xmax/xmin < 10 )
-	 tempprec = precision;
-       // Draw tick marks for a one-sided color model
-       if( !isTwoSided )
-       {
-	 A = values[0];
-	 LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
-	 double logscale = logcomponent.getLogScale();
+    if( component instanceof ILogAxisAddible )
+    {
+      ILogAxisAddible logcomponent = (ILogAxisAddible)component;
+      FontMetrics fontdata = g2d.getFontMetrics(); 
+      String num = "";
+      int TICK_LENGTH = 5;
+      int xtick_length = 0;
+      int negtick_length = 0;
+      //isTwoSided = false;
+      CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
+        					  Format.ENGINEER );
+      util.setTwoSided(isTwoSided);
+      float[] values = util.subDivideLog();
+      int numxsteps = values.length;	    
+  //  System.out.println("X ticks = " + numxsteps );	    
+      int pixel = 0;
+      float A = 0; 
+      int skip = 1;
+      int counter = 0;
+      int maxcounter = 0;
+      int tempprec = 3;
+      if( xmax/xmin < 10 )
+        tempprec = precision;
+      // Draw tick marks for a one-sided color model
+      if( !isTwoSided )
+      {
+        A = values[0];
+        LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
+        double logscale = logcomponent.getLogScale();
 
-         int division = 0;    // 0-5, divisions in the xaxis.
-         // rightmost pixel coord of last label drawn
-         int last_drawn = -xstart;
-         int last_tick = 0;    // position of last tick mark drawn  
-        
-         // find division where the first label is to be drawn
-         while( (int)logger.toSource(A, logscale) >= 
-        	(int)(xaxis/5 * (division + 1) ) )
-           division++;
-        
-         for( int steps = 0; steps < numxsteps; steps++ )
-	 {  
-	   A = values[steps];
+    	int division = 0;    // 0-5, divisions in the xaxis.
+    	// rightmost pixel coord of last label drawn
+    	int last_drawn = -xstart;
+    	int last_tick = 0;    // position of last tick mark drawn  
+       
+    	// find division where the first label is to be drawn
+    	while( (int)logger.toSource(A, logscale) >= 
+    	       (int)(xaxis/5 * (division + 1) ) )
+    	  division++;
+       
+    	for( int steps = 0; steps < numxsteps; steps++ )
+        {  
+          A = values[steps];
+    	  
+    	  pixel = xstart + (int)logger.toSource(A, logscale);
+
+          num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
+
+    	  //g2d.setColor(Color.black);
+          xtick_length = TICK_LENGTH;
+    	  // divide axis into 5, if next tick is in the next fifth, show
+    	  // the number
+          if( (pixel - xstart) >= (int)(xaxis/5 * division) )
+    	  {
+    	    // if this label does not interfer with the label before it
+            if( last_drawn < (pixel - fontdata.stringWidth(num)) )
+    	    {
+    	      g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+                yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
+    	      last_drawn = pixel + fontdata.stringWidth(num)/2;
+    	      if( A != 0 )
+                division++;
+    	      xtick_length += 3;
+            }
+    	  }
+          // make sure ticks are at least 5 pixels apart.
+    	  if( last_tick + 5 < pixel || xtick_length == TICK_LENGTH + 3 )
+    	  {
+    	    // paint gridlines for major ticks
+            if( xtick_length == TICK_LENGTH + 3 &&
+    		(gridxdisplay == 1 || gridxdisplay == 2) )
+    	    {
+    	      // change color for grid painting
+    	      g2d.setColor(gridcolor);
+    	      g2d.drawLine( pixel, ystart, 
+        		    pixel, yaxis + ystart );
+    	      // change back to black for tick marks
+    	      g2d.setColor(Color.black);
+    	    }
+    	    // paint gridlines for minor ticks
+            if( xtick_length == TICK_LENGTH && gridxdisplay == 2 )
+    	    {
+    	      // change color for grid painting
+    	      g2d.setColor(gridcolor);
+    	      g2d.drawLine( pixel, ystart, 
+        		    pixel, yaxis + ystart );
+    	      // change back to black for tick marks
+    	      g2d.setColor(Color.black);
+    	    }
+    	    // only paint tick marks
+    	    g2d.drawLine( pixel, yaxis + ystart, 
+        		  pixel, yaxis + ystart + xtick_length );  
+    	    last_tick = pixel; 
+          }
+    	  // draw xmax if no numbers are near the end of the calibration
+    	  if( steps == numxsteps - 1 )
+    	  {
+            A = xmax;
+    	    pixel = xstart + (int)logger.toSource(A, logscale);
+            num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
+            if( last_drawn < 
+    	        pixel - fontdata.stringWidth(num)/2 )
+    	    {
+    	      g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+            	yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
+    	    
+    	      // paint gridlines for major ticks
+              if( gridxdisplay == 1 || gridxdisplay == 2 )
+    	      {
+    	    	// change to grid color
+    	    	g2d.setColor(gridcolor);
+    	    	g2d.drawLine( pixel, ystart, 
+            		      pixel, yaxis + ystart );
+    	    	// change back to black for tick marks
+    	    	g2d.setColor(Color.black);
+    	      }
+    	      g2d.drawLine( pixel, yaxis + ystart, 
+            		    pixel, yaxis + ystart + TICK_LENGTH + 3 );
+    	    }
+    	  }
+    	  // debug axis divider
+    	  /*g2d.setColor(Color.red);
+    	  for( int i = 0; i <= 5; i++ )
+    	     g2d.drawLine( xstart + xaxis*i/5, yaxis + ystart, xstart + 
+    			   xaxis*i/5, yaxis + ystart + xtick_length );*/
+    	} // end of for
+      } // end of if( !isTwoSided )
+      // draw tickmarks for a two-sided color model
+      else
+      {
+        A = values[0];
+        LogScaleUtil logger = new LogScaleUtil( 0,(int)(xaxis/2),
+    					       xmin, xmax + 1);
+        double logscale = logcomponent.getLogScale();
+
+        int neg_pixel = 0;
+    	String neg_num = "";
+    	int division = 5;     // 5-10, division # in the xaxis.
+    	int neg_division = 5; // 5-0 , division # in the xaxis
+    	int last_drawn = 0;   // rightmost pixel coord of last label drawn
+    	int last_neg_drawn = xaxis;// leftmost pixel coords of last neg. label
+    	int first_drawn = 0;  // the leftmost pixel coords of first pos. label
+    	int last_tick = 0;    // last tick mark drawn
+    	int last_neg_tick = (int)xmax;// last negative tick mark drawn
+    	// find division where the first label is to be drawn
+    	while( (int)logger.toSource(A, logscale) >= 
+    	       (int)(xaxis/10 * (division + 1) ) )
+    	  division++;
+    	// find division where the first negative label is to be drawn
+    	while( (int)logger.toSource(A, logscale) >= 
+    	       (int)(xaxis/10 * (10 - (neg_division-1) ) ) )
+    	  neg_division--;
+       
+    	for( int steps = 0; steps < numxsteps; steps++ )
+        { 
+          A = values[steps];
            
-           pixel = xstart + (int)logger.toSource(A, logscale);
+     //System.out.println("here" + xmin + "/" + xmax + "/" + steps + "/" + A);
+    	  pixel = (int)(xstart + xaxis/2 + (int)logger.toSource(A,logscale) );
+          neg_pixel = (int)(xstart + xaxis/2 - 
+    		      (int)logger.toSource(A, logscale) );
+    	  num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
+    	  neg_num = Format.choiceFormat( -A, Format.SCIENTIFIC, tempprec );
+    	    
+    	  if( A == 0 )
+    	    first_drawn = pixel - fontdata.stringWidth(num)/2;    
 
-	   num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
-
-           //g2d.setColor(Color.black);
-	   xtick_length = TICK_LENGTH;
-           // divide axis into 5, if next tick is in the next fifth, show
-           // the number
-	   if( (pixel - xstart) >= (int)(xaxis/5 * division) )
-           {
-              // if this label does not interfer with the label before it
-	      if( last_drawn < (pixel - fontdata.stringWidth(num)) )
-              {
-        	 g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
-		   yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
-        	 last_drawn = pixel + fontdata.stringWidth(num)/2;
-        	 if( A != 0 )
-		    division++;
-        	 xtick_length += 3;
-	      }
-           }
-           if( last_tick + 5 < pixel )
-           {
-             // paint gridlines for major ticks
-	     if( xtick_length == TICK_LENGTH + 3 &&
-        	 (gridxdisplay == 1 || gridxdisplay == 2) )
-             {
-               // change color for grid painting
-               g2d.setColor(gridcolor);
-               g2d.drawLine( pixel, ystart, 
-			     pixel, yaxis + ystart );
-               // change back to black for tick marks
-               g2d.setColor(Color.black);
-             }
-             // paint gridlines for minor ticks
-	     if( xtick_length == TICK_LENGTH && gridxdisplay == 2 )
-             {
-               // change color for grid painting
-               g2d.setColor(gridcolor);
-               g2d.drawLine( pixel, ystart, 
-			     pixel, yaxis + ystart );
-               // change back to black for tick marks
-               g2d.setColor(Color.black);
-             }
-             // only paint tick marks
-             g2d.drawLine( pixel, yaxis + ystart, 
-			   pixel, yaxis + ystart + xtick_length );   
-	   }
-           last_tick = pixel;
-           // draw xmax if no numbers are near the end of the calibration
-           if( steps == numxsteps - 1 )
-           {
-	      A = xmax;
-              pixel = xstart + (int)logger.toSource(A, logscale);
-	      num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
-	      if( last_drawn < 
-        	  pixel - fontdata.stringWidth(num)/2 )
-              {
-        	 g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
-		   yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
-              
-        	 // paint gridlines for major ticks
-		 if( gridxdisplay == 1 || gridxdisplay == 2 )
-        	 {
-        	   // change to grid color
-        	   g2d.setColor(gridcolor);
-        	   g2d.drawLine( pixel, ystart, 
-				 pixel, yaxis + ystart );
-        	   // change back to black for tick marks
-        	   g2d.setColor(Color.black);
-        	 }
-        	 g2d.drawLine( pixel, yaxis + ystart, 
-			       pixel, yaxis + ystart + TICK_LENGTH + 3 );
-              }
-           }
-           // debug axis divider
-           /*g2d.setColor(Color.red);
-           for( int i = 0; i <= 5; i++ )
-              g2d.drawLine( xstart + xaxis*i/5, yaxis + ystart, xstart + 
-        		    xaxis*i/5, yaxis + ystart + xtick_length );*/
-         } // end of for
-       } // end of if( !isTwoSided )
-       // draw tickmarks for a two-sided color model
-       else
-       {
-	 A = values[0];
-	 LogScaleUtil logger = new LogScaleUtil( 0,(int)(xaxis/2),
-        					xmin, xmax + 1);
-	 double logscale = logcomponent.getLogScale();
-
-	 int neg_pixel = 0;
-         String neg_num = "";
-         int division = 5;     // 5-10, division # in the xaxis.
-         int neg_division = 5; // 5-0 , division # in the xaxis
-         int last_drawn = 0;   // rightmost pixel coord of last label drawn
-         int last_neg_drawn = xaxis;// leftmost pixel coords of last neg. label
-         int first_drawn = 0;  // the leftmost pixel coords of first pos. label
-         int last_tick = 0;    // last tick mark drawn
-         int last_neg_tick = (int)xmax;// last negative tick mark drawn
-         // find division where the first label is to be drawn
-         while( (int)logger.toSource(A, logscale) >= 
-        	(int)(xaxis/10 * (division + 1) ) )
-           division++;
-         // find division where the first negative label is to be drawn
-         while( (int)logger.toSource(A, logscale) >= 
-        	(int)(xaxis/10 * (10 - (neg_division-1) ) ) )
-           neg_division--;
-        
-         for( int steps = 0; steps < numxsteps; steps++ )
-	 { 
-	   A = values[steps];
-	    
-      //System.out.println("here" + xmin + "/" + xmax + "/" + steps + "/" + A);
-           pixel = (int)(xstart + xaxis/2 + (int)logger.toSource(A,logscale) );
-	   neg_pixel = (int)(xstart + xaxis/2 - 
-        	       (int)logger.toSource(A, logscale) );
-           num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
-           neg_num = Format.choiceFormat( -A, Format.SCIENTIFIC, tempprec );
-             
-           if( A == 0 )
-              first_drawn = pixel - fontdata.stringWidth(num)/2;    
-
-           //g2d.setColor(Color.black);
-           xtick_length = TICK_LENGTH;
-           negtick_length = TICK_LENGTH;
-	   // this will handle all positive labels
-           if( (pixel - xstart) >= (int)(xaxis/10 * division) )
-           {
-              // if this label does not interfer with the label before it
-	      if( last_drawn < 
-        	  pixel - fontdata.stringWidth(num)/2 ) 
-              {
-        	 g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
-		   yaxis + ystart + xtick_length + fontdata.getHeight() );
-	      
-        	 last_drawn = pixel + fontdata.stringWidth(num)/2;
-        	 division++;
-        	 xtick_length += 3;
-              }
-           }
-           // this will handle all negative labels, if a negative label
-           // interfers with a positive label, don't display the negative label
-           if( (neg_pixel - xstart) <= (int)(xaxis/10 * neg_division) )
-           {
-              if( first_drawn > ( neg_pixel + fontdata.stringWidth(neg_num)/2 )
-        	  && last_neg_drawn > (neg_pixel +
-		  fontdata.stringWidth(neg_num)/2) )
-              {
-        	 g2d.drawString( neg_num, neg_pixel -
-		   fontdata.stringWidth(neg_num)/2, 
-		   yaxis + ystart + negtick_length + fontdata.getHeight() ); 
-              
-        	 last_neg_drawn = neg_pixel - 
-        	   fontdata.stringWidth(neg_num)/2;
-        	 neg_division--;
-        	 negtick_length += 3;
-	      }
-           }
-           // this if will "weed out" tick marks close to each other
-           if( last_tick + 5 < pixel )
-           {
-             // paint gridlines for major ticks
-	     if( xtick_length == TICK_LENGTH + 3 &&
-        	 (gridxdisplay == 1 || gridxdisplay == 2) )
-             {
-               // change color for grid painting
-               g2d.setColor(gridcolor);
-               g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
-               // change color to black for tick marks
-               g2d.setColor(Color.black);
-             }
-             // paint gridlines for minor ticks
-	     if( xtick_length == TICK_LENGTH && gridxdisplay == 2 )
-             {
-               // change color for grid painting
-               g2d.setColor(gridcolor);
-               g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
-               // change color to black for tick marks
-               g2d.setColor(Color.black);
-             }
-             // only paint tick marks
-	     g2d.drawLine( pixel, yaxis + ystart, 
-			   pixel, yaxis + ystart + xtick_length ); 
-	   }
-           // this if will "weed out" neg tick marks close to each other
-           if( last_neg_tick - 5 > neg_pixel )
-           {
-             // paint gridlines for major negative ticks
-	     if( negtick_length == TICK_LENGTH + 3 &&
-        	 (gridxdisplay == 1 || gridxdisplay == 2) )
-             {
-               // change color for grid painting
-               g2d.setColor(gridcolor);
-               g2d.drawLine( neg_pixel, ystart, neg_pixel, yaxis + ystart );
-               // change color to black for tick marks
-               g2d.setColor(Color.black);
-             }
-             // paint gridlines for minor ticks
-	     if( negtick_length == TICK_LENGTH && gridxdisplay == 2 )
-             {
-               // change color for grid painting
-               g2d.setColor(gridcolor);
-               g2d.drawLine( neg_pixel, ystart, neg_pixel, yaxis + ystart );
-               // change color to black for tick marks
-               g2d.setColor(Color.black);
-             }
-             // only paint tick marks
-             g2d.drawLine( neg_pixel, yaxis + ystart, 
-			   neg_pixel, yaxis + ystart + negtick_length );
-	   }
-           last_tick = pixel;
-           last_neg_tick = neg_pixel;
-           // draw xmax if no numbers are near the end of the calibration
-           if( steps == numxsteps - 1 )
-           {
-              xtick_length = TICK_LENGTH;
-              negtick_length = TICK_LENGTH;
-	      A = xmax;
-              pixel = (int)(xstart + xaxis/2 + 
-        	      (int)logger.toSource(A,logscale) );
-	      neg_pixel = (int)(xstart + xaxis/2 - 
-        		  (int)logger.toSource(A, logscale) );
-              num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
-              neg_num = Format.choiceFormat( -A, Format.SCIENTIFIC, tempprec );
-	      if( last_drawn < 
-        	  pixel - fontdata.stringWidth(num)/2 )
-              {
-        	 g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
-		   yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
-        	 xtick_length += 3;
-              }
-              if( last_neg_drawn > (neg_pixel +
-		  fontdata.stringWidth(neg_num)/2) )
-              {
-        	 g2d.drawString( neg_num, 
-        	   neg_pixel -
-		   fontdata.stringWidth(neg_num)/2, 
-		   yaxis + ystart + negtick_length + fontdata.getHeight() ); 
-		 negtick_length += 3;
-              }
-              g2d.drawLine( pixel, yaxis + ystart, 
-			    pixel, yaxis + ystart + xtick_length );  
-              g2d.drawLine( neg_pixel, yaxis + ystart, 
-			    neg_pixel, yaxis + ystart + negtick_length );
-           }
-	   // debug axis divider
-           /*g2d.setColor(Color.red);
-           for( int i = 0; i <= 10; i++ )
-              g2d.drawLine( xstart + xaxis*i/10, yaxis + ystart, xstart + 
-        		    xaxis*i/10, yaxis + ystart + TICK_LENGTH );*/
-         } // end of for
-       } // end of else (isTwoSided)
-     
+    	  //g2d.setColor(Color.black);
+    	  xtick_length = TICK_LENGTH;
+    	  negtick_length = TICK_LENGTH;
+          // this will handle all positive labels
+    	  if( (pixel - xstart) >= (int)(xaxis/10 * division) )
+    	  {
+    	    // if this label does not interfer with the label before it
+            if( last_drawn < 
+    	        pixel - fontdata.stringWidth(num)/2 ) 
+    	    {
+    	      g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+            	yaxis + ystart + xtick_length + fontdata.getHeight() );
+            
+    	      last_drawn = pixel + fontdata.stringWidth(num)/2;
+    	      division++;
+    	      xtick_length += 3;
+    	    }
+    	  }
+    	  // this will handle all negative labels, if a negative label
+    	  // interfers with a positive label, don't display the negative label
+    	  if( (neg_pixel - xstart) <= (int)(xaxis/10 * neg_division) )
+    	  {
+    	    if( first_drawn > (neg_pixel + fontdata.stringWidth(neg_num)/2) &&
+    	        last_neg_drawn > (neg_pixel + fontdata.stringWidth(neg_num)/2) )
+    	    {
+    	      g2d.drawString( neg_num, neg_pixel -
+                fontdata.stringWidth(neg_num)/2, 
+                yaxis + ystart + negtick_length + fontdata.getHeight() ); 
+    	    
+    	      last_neg_drawn = neg_pixel - 
+    	        fontdata.stringWidth(neg_num)/2;
+    	      neg_division--;
+    	      negtick_length += 3;
+            }
+    	  }
+    	  // this if will "weed out" tick marks close to each other
+    	  if( last_tick + 5 < pixel || xtick_length == (TICK_LENGTH + 3) )
+    	  {
+    	    // paint gridlines for major ticks
+            if( xtick_length == TICK_LENGTH + 3 &&
+    		(gridxdisplay == 1 || gridxdisplay == 2) )
+    	    {
+    	      // change color for grid painting
+    	      g2d.setColor(gridcolor);
+    	      g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
+    	      // change color to black for tick marks
+    	      g2d.setColor(Color.black);
+    	    }
+    	    // paint gridlines for minor ticks
+            if( xtick_length == TICK_LENGTH && gridxdisplay == 2 )
+    	    {
+    	      // change color for grid painting
+    	      g2d.setColor(gridcolor);
+    	      g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
+    	      // change color to black for tick marks
+    	      g2d.setColor(Color.black);
+    	    }
+    	    // only paint tick marks
+            g2d.drawLine( pixel, yaxis + ystart, 
+        		  pixel, yaxis + ystart + xtick_length );
+    	    last_tick = pixel; 
+          }
+    	  // this if will "weed out" neg tick marks close to each other
+    	  if( last_neg_tick - 5 > neg_pixel ||
+	      negtick_length == (TICK_LENGTH + 3) )
+    	  {
+    	    // paint gridlines for major negative ticks
+            if( negtick_length == TICK_LENGTH + 3 &&
+    		(gridxdisplay == 1 || gridxdisplay == 2) )
+    	    {
+    	      // change color for grid painting
+    	      g2d.setColor(gridcolor);
+    	      g2d.drawLine( neg_pixel, ystart, neg_pixel, yaxis + ystart );
+    	      // change color to black for tick marks
+    	      g2d.setColor(Color.black);
+    	    }
+    	    // paint gridlines for minor ticks
+            if( negtick_length == TICK_LENGTH && gridxdisplay == 2 )
+    	    {
+    	      // change color for grid painting
+    	      g2d.setColor(gridcolor);
+    	      g2d.drawLine( neg_pixel, ystart, neg_pixel, yaxis + ystart );
+    	      // change color to black for tick marks
+    	      g2d.setColor(Color.black);
+    	    }
+    	    // only paint tick marks
+    	    g2d.drawLine( neg_pixel, yaxis + ystart, 
+        		  neg_pixel, yaxis + ystart + negtick_length );
+    	    last_neg_tick = neg_pixel;
+          }
+    	  // draw xmax if no numbers are near the end of the calibration
+    	  if( steps == numxsteps - 1 )
+    	  {
+    	    xtick_length = TICK_LENGTH;
+    	    negtick_length = TICK_LENGTH;
+            A = xmax;
+    	    pixel = (int)(xstart + xaxis/2 + 
+    	            (int)logger.toSource(A,logscale) );
+            neg_pixel = (int)(xstart + xaxis/2 - 
+    	        	(int)logger.toSource(A, logscale) );
+    	    num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
+    	    neg_num = Format.choiceFormat( -A, Format.SCIENTIFIC, tempprec );
+            if( last_drawn < pixel - fontdata.stringWidth(num)/2 )
+    	    {
+    	      g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+                yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
+    	      xtick_length += 3;
+    	    }
+    	    if( last_neg_drawn > (neg_pixel +
+                fontdata.stringWidth(neg_num)/2) )
+    	    {
+    	      g2d.drawString( neg_num, 
+    	        neg_pixel - fontdata.stringWidth(neg_num)/2, 
+                yaxis + ystart + negtick_length + fontdata.getHeight() ); 
+              negtick_length += 3;
+    	    }
+    	    g2d.drawLine( pixel, yaxis + ystart, 
+                	  pixel, yaxis + ystart + xtick_length );  
+    	    g2d.drawLine( neg_pixel, yaxis + ystart, 
+                	  neg_pixel, yaxis + ystart + negtick_length );
+    	  }
+          // debug axis divider
+    	  /*g2d.setColor(Color.red);
+    	  for( int i = 0; i <= 10; i++ )
+    	     g2d.drawLine( xstart + xaxis*i/10, yaxis + ystart, xstart + 
+    			   xaxis*i/10, yaxis + ystart + TICK_LENGTH );*/
+    	} // end of for
+      } // end of else (isTwoSided)
+    
   // This will display the x label, x units, and common exponent (if not 0).
-     // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
-     // strings then no strings will be displayed.
-       String xlabel = "";
-       if( logcomponent.getAxisInformation(AxisInfo.X_AXIS).getLabel() != 
-	   AxisInfo.NO_LABEL )
-	 xlabel = xlabel + 
-	          logcomponent.getAxisInformation(AxisInfo.X_AXIS).getLabel();
-       if( logcomponent.getAxisInformation(AxisInfo.X_AXIS).getUnits() != 
-	   AxisInfo.NO_UNITS )
-	 xlabel = xlabel + "  " + 
-	          logcomponent.getAxisInformation(AxisInfo.X_AXIS).getUnits();
-       if( xlabel != "" )
-	 g2d.drawString( xlabel, xstart + xaxis/2 -
-		  fontdata.stringWidth(xlabel)/2, 
-		  yaxis + ystart + fontdata.getHeight() * 2 + 6 );   
-     } // end if( instanceof)
-     else
-       System.out.println("Instance of ILogAxisAddible2D needed " +
-        		  "in AxisOverlay2D.java");
+    // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
+    // strings then no strings will be displayed.
+      String xlabel = "";
+      if( logcomponent.getAxisInformation(AxisInfo.X_AXIS).getLabel() != 
+          AxisInfo.NO_LABEL )
+        xlabel = xlabel + 
+        	 logcomponent.getAxisInformation(AxisInfo.X_AXIS).getLabel();
+      if( logcomponent.getAxisInformation(AxisInfo.X_AXIS).getUnits() != 
+          AxisInfo.NO_UNITS )
+        xlabel = xlabel + "  " + 
+        	 logcomponent.getAxisInformation(AxisInfo.X_AXIS).getUnits();
+      if( xlabel != "" )
+        g2d.drawString( xlabel, xstart + xaxis/2 -
+        	 fontdata.stringWidth(xlabel)/2, 
+        	 yaxis + ystart + fontdata.getHeight() * 2 + 6 );   
+    } // end if( instanceof)
+    else
+      System.out.println("Instance of ILogAxisAddible2D needed " +
+    			 "in AxisOverlay2D.java");
   }
   
  /*
@@ -1364,103 +1373,104 @@ public class AxisOverlay2D extends OverlayJPanel
   //			  ") = " + mult + "R" + rem);
         for( int ysteps = 0; ysteps < numysteps; ysteps++ )
 	{ 
-	   a = values[ysteps];  
-	   //System.out.println("Logger: " + logger.toSource(a, logscale) );
-	   ypixel = ystart + yaxis - (int)logger.toSource(a, logscale);
-	   num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
+	  a = values[ysteps];  
+	  //System.out.println("Logger: " + logger.toSource(a, logscale) );
+	  ypixel = ystart + yaxis - (int)logger.toSource(a, logscale);
+	  num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
  
-	   ytick_length = TICK_LENGTH;
-           //g2d.setColor(Color.black);
-	   if( (int)logger.toSource(a, logscale) >= (int)(yaxis/5 * division) )
-           {  
-              // if this label does not interfer with the label before it
-	      if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
-              {
-		 ytick_length += 3;
-		 g2d.drawString( num, xstart - ytick_length - 
-        	     fontdata.stringWidth(num),
-		     ypixel + fontdata.getHeight()/4 );
-        	 last_drawn = ypixel - fontdata.getHeight()/2;
-        	 if( a != 0 )
-		    division++;
-              } 	  
-           }
-           // this if is to "weed out" the nearby tick marks
-           if( last_tick - 5 > ypixel )
-           {
-             // paint gridlines for major ticks
-	     if( ytick_length == TICK_LENGTH + 3 &&
-        	 (gridydisplay == 1 || gridydisplay == 2) )
-	     {
-               // change color for grid painting
-               g2d.setColor(gridcolor);
-               g2d.drawLine( xstart, ypixel - 1, 
-			     xstart + xaxis - 1, ypixel - 1 ); 
-               // change color for tick marks
-               g2d.setColor(Color.black);
-             }
-             // paint gridlines for minor ticks
-	     if( ytick_length == TICK_LENGTH && gridydisplay == 2 )
-	     {
-               // change color for grid painting
-               g2d.setColor(gridcolor);
-	       g2d.drawLine( xstart, ypixel - 1, 
-			     xstart + xaxis - 1, ypixel - 1 ); 
-               // change color for tick marks
-               g2d.setColor(Color.black);
-             }
-             // only paint tick marks
-	     g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-			   xstart - 1, ypixel - 1 );   
-	     ytick_length = TICK_LENGTH;
-           }
-           last_tick = ypixel;
-           // draw end marker if nothing no values are near the end.
-           if( ysteps == (numysteps - 1) )
-           {
-              a = ymin;
-	      ypixel = ystart + yaxis - (int)logger.toSource(a,logscale);
-        	   
-	      num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
-              if( last_drawn > (ypixel - fontdata.getHeight()/2) ) 
-              { 	 
-        	 ytick_length += 3;    
-		 g2d.drawString( num, xstart - ytick_length - 
-        	     fontdata.stringWidth(num),
-		     ypixel + fontdata.getHeight()/4 );
-              }
-              
-              // paint gridlines for major ticks
-	      if( ytick_length == TICK_LENGTH + 3 &&
-        	  (gridydisplay == 1 || gridydisplay == 2) )
-	      {
-        	// change color for grid painting
-        	g2d.setColor(gridcolor);
-        	g2d.drawLine( xstart, ypixel - 1, 
-			      xstart + xaxis - 1, ypixel - 1 ); 
-        	// change color for tick marks
-        	g2d.setColor(Color.black);
-              }
-              // paint gridlines for minor ticks
-	      if( ytick_length == TICK_LENGTH && gridydisplay == 2 )
-	      {
-        	// change color for grid painting
-        	g2d.setColor(gridcolor);
-		g2d.drawLine( xstart, ypixel - 1, 
-			      xstart + xaxis - 1, ypixel - 1 ); 
-        	// change color for tick marks
-        	g2d.setColor(Color.black);
-              } 
-              // only paint tick marks
-              g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-			    xstart - 1, ypixel - 1 ); 
-           }
+	  ytick_length = TICK_LENGTH;
+          //g2d.setColor(Color.black);
+	  if( (int)logger.toSource(a, logscale) >= (int)(yaxis/5 * division) )
+          {  
+            // if this label does not interfer with the label before it
+	    if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
+            {
+	      ytick_length += 3;
+	      g2d.drawString( num, xstart - ytick_length - 
+         	  fontdata.stringWidth(num),
+	 	  ypixel + fontdata.getHeight()/4 );
+              last_drawn = ypixel - fontdata.getHeight()/2;
+              if( a != 0 )
+	 	division++;
+            }		
+          }
+          // this if is to "weed out" the nearby tick marks, but always
+	  // draw tickmarks for numbers.
+          if( last_tick - 5 > ypixel || ytick_length == (TICK_LENGTH + 3) )
+          {
+            // paint gridlines for major ticks
+	    if( ytick_length == TICK_LENGTH + 3 &&
+                (gridydisplay == 1 || gridydisplay == 2) )
+	    {
+              // change color for grid painting
+              g2d.setColor(gridcolor);
+              g2d.drawLine( xstart, ypixel - 1, 
+	        	    xstart + xaxis - 1, ypixel - 1 ); 
+              // change color for tick marks
+              g2d.setColor(Color.black);
+            }
+            // paint gridlines for minor ticks
+	    if( ytick_length == TICK_LENGTH && gridydisplay == 2 )
+	    {
+              // change color for grid painting
+              g2d.setColor(gridcolor);
+	      g2d.drawLine( xstart, ypixel - 1, 
+	        	    xstart + xaxis - 1, ypixel - 1 ); 
+              // change color for tick marks
+              g2d.setColor(Color.black);
+            }
+            // only paint tick marks
+	    g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+	        	  xstart - 1, ypixel - 1 );   
+	    ytick_length = TICK_LENGTH;
+            last_tick = ypixel;
+          }
+          // draw end marker if nothing no values are near the end.
+          if( ysteps == (numysteps - 1) )
+          {
+            a = ymin;
+	    ypixel = ystart + yaxis - (int)logger.toSource(a,logscale);
+         	 
+	    num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
+            if( last_drawn > (ypixel - fontdata.getHeight()/2) ) 
+            {	       
+              ytick_length += 3;    
+	      g2d.drawString( num, xstart - ytick_length - 
+         	  fontdata.stringWidth(num),
+	 	  ypixel + fontdata.getHeight()/4 );
+            }
             
-	   // debug axis divider
-           /*g2d.setColor(Color.red);
-           for( int i = 0; i <= 5; i++ )
-              g2d.drawLine( xstart - ytick_length, ystart + yaxis*i/5, 
-			    xstart - 1, ystart + yaxis*i/5 );*/
+            // paint gridlines for major ticks
+	    if( ytick_length == TICK_LENGTH + 3 &&
+         	(gridydisplay == 1 || gridydisplay == 2) )
+	    {
+              // change color for grid painting
+              g2d.setColor(gridcolor);
+              g2d.drawLine( xstart, ypixel - 1, 
+	 		    xstart + xaxis - 1, ypixel - 1 ); 
+              // change color for tick marks
+              g2d.setColor(Color.black);
+            }
+            // paint gridlines for minor ticks
+	    if( ytick_length == TICK_LENGTH && gridydisplay == 2 )
+	    {
+              // change color for grid painting
+              g2d.setColor(gridcolor);
+	      g2d.drawLine( xstart, ypixel - 1, 
+	 		    xstart + xaxis - 1, ypixel - 1 ); 
+              // change color for tick marks
+              g2d.setColor(Color.black);
+            } 
+            // only paint tick marks
+            g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+	 		  xstart - 1, ypixel - 1 ); 
+          }
+           
+	  // debug axis divider
+          /*g2d.setColor(Color.red);
+          for( int i = 0; i <= 5; i++ )
+             g2d.drawLine( xstart - ytick_length, ystart + yaxis*i/5, 
+	        	   xstart - 1, ystart + yaxis*i/5 );*/
 	}
       }
       // if two-sided color model
@@ -1485,179 +1495,178 @@ public class AxisOverlay2D extends OverlayJPanel
         // find division where the first label is to be drawn
         while( (int)logger.toSource(a, logscale) >= 
                (int)(yaxis/10 * (division + 1) ) )
-           division++;
+          division++;
         // find division where the first negative label is to be drawn
         while( (int)logger.toSource(a, logscale) >= 
                (int)(yaxis/10 * (neg_division+1) ) )
-           neg_division++;
+          neg_division++;
 
   //   System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
   //			  ") = " + mult + "R" + rem);
         for( int ysteps = 0; ysteps < numysteps; ysteps++ )
 	{  
-	   a = values[ysteps];
-	   ypixel = ystart + (int)(yaxis/2) - (int)logger.toSource(a,logscale);
-	   neg_ypixel = ystart + (int)(yaxis/2) + 
-        			 (int)logger.toSource(a,logscale);
-        	     
-           if( ysteps == 0 )
-              first_drawn = ypixel + (int)(fontdata.getHeight()/2);
-           
-	   num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
-           neg_num = Format.choiceFormat( -a, Format.SCIENTIFIC, tempprec );
- 
-	   ytick_length = TICK_LENGTH;
-           negtick_length = TICK_LENGTH;
-           //g2d.setColor(Color.black);
-	   if( (int)logger.toSource(a,logscale) >= (int)(yaxis/10 * division) )
-           {  
-              // positive number labels
-	      if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
-              {
-		 ytick_length += 3;
-		 g2d.drawString( num, 
-		     xstart - ytick_length - 
-        	     fontdata.stringWidth(num),
-		     ypixel + fontdata.getHeight()/4 );
-        	 last_drawn = ypixel - fontdata.getHeight()/2;
-        	 if( ysteps != 0 )
-		    division++;
-              }
-	   }
-           if( (int)logger.toSource(a,logscale) >= 
-               (int)(yaxis/10 * neg_division) &&
-               first_drawn < (neg_ypixel - fontdata.getHeight()/2) )
-           {  
-              // negative number labels
-	      if( last_neg_drawn < (neg_ypixel - fontdata.getHeight()/2) )
-              {
-        	 negtick_length += 3;
-		 g2d.drawString( neg_num, xstart - ytick_length - 
-        	     fontdata.stringWidth(neg_num),
-		     neg_ypixel + fontdata.getHeight()/4 + 2);
-        	 last_neg_drawn = neg_ypixel + fontdata.getHeight()/2;
-		 neg_division++;
-	      } 	  
-           }
-           
-           // since only draw middle once, a = 0 is a special case
-           if( a == 0 )
-           {   
-             // paint gridlines for major ticks
-	     if( ytick_length == TICK_LENGTH + 3 &&
-        	 (gridydisplay == 1 || gridydisplay == 2) ) 
-             {
-               // change color for grid painting
-               g2d.setColor(gridcolor); 	   
-	       g2d.drawLine( xstart, ypixel, 
-			     xstart + xaxis - 1, ypixel ); 
-               // change color for tick marks
-               g2d.setColor(Color.black);  
-             }  	   
-	     g2d.drawLine( xstart - ytick_length, ypixel, 
-			   xstart - 1, ypixel );
-	     last_tick = ypixel;
-             last_neg_tick = ypixel;
-           }
-           else // two sided, draw both negative and positive
-           {
-             if( last_tick - 5 > ypixel )
-             {
-               // paint gridlines for major ticks
-	       if( ytick_length == TICK_LENGTH + 3 &&
-        	   (gridydisplay == 1 || gridydisplay == 2) )
-               {
-        	 // change color for grid painting
-        	 g2d.setColor(gridcolor);	   
-        	 g2d.drawLine( xstart, ypixel - 1, 
-			       xstart + xaxis - 1, ypixel - 1 ); 
-        	 // change color for tick marks
-        	 g2d.setColor(Color.black);  
-               }		   
-               // paint gridlines for minor ticks
-	       if( ytick_length == TICK_LENGTH && gridydisplay == 2 )
-               {
-        	 // change color for grid painting
-        	 g2d.setColor(gridcolor);	   
-        	 g2d.drawLine( xstart, ypixel - 1, 
-			       xstart + xaxis - 1, ypixel - 1 );
-        	 // change color for tick marks
-        	 g2d.setColor(Color.black);  
-               }		    
-               // only paint tick marks
-               g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-			     xstart - 1, ypixel - 1 ); 
-	     }
-             last_tick = ypixel;
-             
-             if( last_neg_tick + 5 < neg_ypixel )
-             {
-               // paint gridlines for major negative ticks
-	       if( negtick_length == TICK_LENGTH + 3 &&
-        	   (gridydisplay == 1 || gridydisplay == 2) )
-               {
-        	 // change color for grid painting
-        	 g2d.setColor(gridcolor);	   
-        	 g2d.drawLine( xstart, neg_ypixel + 1, 
-			       xstart + xaxis - 1, neg_ypixel + 1 );
-        	 // change color for tick marks
-        	 g2d.setColor(Color.black);
-               }
-               // paint gridlines for minor ticks
-	       if( negtick_length == TICK_LENGTH && gridydisplay == 2 )
-               {
-        	 // change color for grid painting
-        	 g2d.setColor(gridcolor);	   
-        	 g2d.drawLine( xstart, neg_ypixel + 1, 
-			       xstart + xaxis - 1, neg_ypixel + 1 );
-        	 // change color for tick marks
-        	 g2d.setColor(Color.black);
-               }
-               // only paint tick marks
-               g2d.drawLine( xstart - negtick_length, neg_ypixel + 1, 
-			     xstart - 1, neg_ypixel + 1 );
-	     }
-             last_neg_tick = neg_ypixel;
-           }
+	  a = values[ysteps];
+	  ypixel = ystart + (int)(yaxis/2) - (int)logger.toSource(a,logscale);
+	  neg_ypixel = ystart + (int)(yaxis/2) + 
+                		(int)logger.toSource(a,logscale);
+                    
+          if( ysteps == 0 )
+             first_drawn = ypixel + (int)(fontdata.getHeight()/2);
           
-           // draw end marker if no values are near the end.
-           if( ysteps == (numysteps - 1) )
-           {
-              a = ymax;
-	      ypixel = ystart + (int)(yaxis/2) - 
-        	       (int)logger.toSource(a,logscale);
-	      neg_ypixel = ystart + (int)(yaxis/2) + 
-        		      (int)logger.toSource(a,logscale);
-        	   
-	      num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
-              neg_num = Format.choiceFormat( -a, Format.SCIENTIFIC, tempprec );
-	      ytick_length = TICK_LENGTH;
-              negtick_length = TICK_LENGTH;
-              if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
+	  num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
+          neg_num = Format.choiceFormat( -a, Format.SCIENTIFIC, tempprec );
+ 
+	  ytick_length = TICK_LENGTH;
+          negtick_length = TICK_LENGTH;
+          //g2d.setColor(Color.black);
+	  if( (int)logger.toSource(a,logscale) >= (int)(yaxis/10 * division) )
+          {  
+            // positive number labels
+	    if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
+            {
+	      ytick_length += 3;
+	      g2d.drawString( num, 
+	  	  xstart - ytick_length - fontdata.stringWidth(num),
+	  	  ypixel + fontdata.getHeight()/4 );
+              last_drawn = ypixel - fontdata.getHeight()/2;
+              if( ysteps != 0 )
+	  	division++;
+            }
+	  }
+          if( (int)logger.toSource(a,logscale) >= 
+              (int)(yaxis/10 * neg_division) &&
+              first_drawn < (neg_ypixel - fontdata.getHeight()/2) )
+          {  
+            // negative number labels
+	    if( last_neg_drawn < (neg_ypixel - fontdata.getHeight()/2) )
+            {
+              negtick_length += 3;
+	      g2d.drawString( neg_num, xstart - ytick_length - 
+          	  fontdata.stringWidth(neg_num),
+	  	  neg_ypixel + fontdata.getHeight()/4 + 2);
+              last_neg_drawn = neg_ypixel + fontdata.getHeight()/2;
+	      neg_division++;
+	    }		
+          }
+          
+          // since only draw middle once, a = 0 is a special case
+          if( a == 0 )
+          {   
+            // paint gridlines for major ticks
+	    if( ytick_length == TICK_LENGTH + 3 &&
+                (gridydisplay == 1 || gridydisplay == 2) ) 
+            {
+              // change color for grid painting
+              g2d.setColor(gridcolor);  	  
+	      g2d.drawLine( xstart, ypixel, 
+	        	    xstart + xaxis - 1, ypixel ); 
+              // change color for tick marks
+              g2d.setColor(Color.black);  
+            }		  
+	    g2d.drawLine( xstart - ytick_length, ypixel, 
+	        	  xstart - 1, ypixel );
+	    last_tick = ypixel;
+            last_neg_tick = ypixel;
+          }
+          else // two sided, draw both negative and positive
+          {
+            if( last_tick - 5 > ypixel || ytick_length == (TICK_LENGTH + 3) )
+            {
+              // paint gridlines for major ticks
+	      if( ytick_length == TICK_LENGTH + 3 &&
+                  (gridydisplay == 1 || gridydisplay == 2) )
               {
-        	 ytick_length += 3;
-        	 negtick_length += 3;
-		 g2d.drawString( num, xstart - ytick_length - 
-        	     fontdata.stringWidth(num),
-		     ypixel + fontdata.getHeight()/4 );
-        	     
-		 g2d.drawString( neg_num, xstart - negtick_length - 
-        	     fontdata.stringWidth(neg_num),
-		     neg_ypixel + fontdata.getHeight()/4 + 2); 
-              }    
-	      g2d.drawLine( xstart - ytick_length, ypixel, 
-			    xstart - 1, ypixel );	
-	      g2d.drawLine( xstart - negtick_length, neg_ypixel, 
-			    xstart - 1, neg_ypixel );  
-           }
-           
-           // debug axis divider 
-           /*g2d.setColor(Color.red);
-           for( int i = 0; i <= 10; i++ )
-              g2d.drawLine( xstart - ytick_length, ystart + yaxis*i/10, 
-			    xstart - 1, ystart + yaxis*i/10 ); */
+                // change color for grid painting
+                g2d.setColor(gridcolor);	  
+                g2d.drawLine( xstart, ypixel - 1, 
+	        	      xstart + xaxis - 1, ypixel - 1 ); 
+                // change color for tick marks
+                g2d.setColor(Color.black);  
+              } 		  
+              // paint gridlines for minor ticks
+	      if( ytick_length == TICK_LENGTH && gridydisplay == 2 )
+              {
+                // change color for grid painting
+                g2d.setColor(gridcolor);	  
+                g2d.drawLine( xstart, ypixel - 1, 
+	        	      xstart + xaxis - 1, ypixel - 1 );
+                // change color for tick marks
+                g2d.setColor(Color.black);  
+              } 		   
+              // only paint tick marks
+              g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+	        	    xstart - 1, ypixel - 1 ); 
+              last_tick = ypixel;
+	    }
+            
+            if( last_neg_tick + 5 < neg_ypixel || 
+	        negtick_length == (TICK_LENGTH + 3) )
+            {
+              // paint gridlines for major negative ticks
+	      if( negtick_length == TICK_LENGTH + 3 &&
+                  (gridydisplay == 1 || gridydisplay == 2) )
+              {
+                // change color for grid painting
+                g2d.setColor(gridcolor);	  
+                g2d.drawLine( xstart, neg_ypixel + 1, 
+	        	      xstart + xaxis - 1, neg_ypixel + 1 );
+                // change color for tick marks
+                g2d.setColor(Color.black);
+              }
+              // paint gridlines for minor ticks
+	      if( negtick_length == TICK_LENGTH && gridydisplay == 2 )
+              {
+                // change color for grid painting
+                g2d.setColor(gridcolor);	  
+                g2d.drawLine( xstart, neg_ypixel + 1, 
+	        	      xstart + xaxis - 1, neg_ypixel + 1 );
+                // change color for tick marks
+                g2d.setColor(Color.black);
+              }
+              // only paint tick marks
+              g2d.drawLine( xstart - negtick_length, neg_ypixel + 1, 
+	        	    xstart - 1, neg_ypixel + 1 );
+              last_neg_tick = neg_ypixel;
+	    }
+          }
+          
+          // draw end marker if no values are near the end.
+          if( ysteps == (numysteps - 1) )
+          {
+             a = ymax;
+	     ypixel = ystart + (int)(yaxis/2) - 
+                      (int)logger.toSource(a,logscale);
+	     neg_ypixel = ystart + (int)(yaxis/2) + 
+                	     (int)logger.toSource(a,logscale);
+                  
+	     num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
+             neg_num = Format.choiceFormat( -a, Format.SCIENTIFIC, tempprec );
+	     ytick_length = TICK_LENGTH;
+             negtick_length = TICK_LENGTH;
+             if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
+             {
+                ytick_length += 3;
+                negtick_length += 3;
+	        g2d.drawString( num, xstart - ytick_length - 
+                    fontdata.stringWidth(num),
+	            ypixel + fontdata.getHeight()/4 );
+                    
+	        g2d.drawString( neg_num, xstart - negtick_length - 
+                    fontdata.stringWidth(neg_num),
+	            neg_ypixel + fontdata.getHeight()/4 + 2); 
+             }    
+	     g2d.drawLine( xstart - ytick_length, ypixel, 
+	        	   xstart - 1, ypixel );       
+	     g2d.drawLine( xstart - negtick_length, neg_ypixel, 
+	        	   xstart - 1, neg_ypixel );  
+          }
+          
+          // debug axis divider 
+          /*g2d.setColor(Color.red);
+          for( int i = 0; i <= 10; i++ )
+             g2d.drawLine( xstart - ytick_length, ystart + yaxis*i/10, 
+	        	   xstart - 1, ystart + yaxis*i/10 ); */
 	}
-     
       }
   // This will display the y label, y units, and common exponent (if not 0).
      // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
