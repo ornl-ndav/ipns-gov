@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2004/09/16 18:40:15  dennis
+ * Fixed one javadoc error.
+ *
  * Revision 1.15  2004/08/04 23:06:11  dennis
  * No longer includes empty hit records in list of hit records.
  * Now controls swapping the back buffer: setAutoSwapBufferMode(false)
@@ -613,6 +616,8 @@ public float[] pickedWorldCoordinates( int x, int y )
 /* ---------------------------- getDisplayComponent ---------------------- */
 /**
  *  Get the actual GLCanvas that this panel draws into.
+ *
+ *  @return the GL_Canvas for this panel.
  */
  public Component getDisplayComponent()
  {
