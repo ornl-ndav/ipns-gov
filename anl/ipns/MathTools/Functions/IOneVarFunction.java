@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/06/17 22:18:47  dennis
+ *  Added methods for derivatives.
+ *
  *  Revision 1.1  2002/04/11 20:55:00  dennis
  *  Interface for functions of one variable that return float or double
  *  values when evaluated at single points, or at arrays of points.
@@ -53,11 +56,16 @@ import DataSetTools.util.*;
  */
 public interface IOneVarFunction extends IOneVariableFunction
 {
-  public double   getValue( double x );
-  public float[]  getValues( float x[] );
-
+  public static final double DELTA = 1.0E-7;   // step size used for evaluating
+                                               // numerical derivatives
   public float    getValue( float x );
+  public double   getValue( double x );
+
+  public float[]  getValues( float x[] );
   public double[] getValues( double x[] );
+
+  public float    get_dFdx( float  x );
+  public double   get_dFdx( double x );
 
   public String   getName(); 
   public void     setName( String name ); 

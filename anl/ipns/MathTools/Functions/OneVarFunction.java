@@ -31,12 +31,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2002/06/17 22:21:39  dennis
+ *  Added methods for derivatives.
+ *
  *  Revision 1.2  2002/04/19 16:52:17  dennis
  *  Added more javadocs.
  *
  *  Revision 1.1  2002/04/11 20:55:55  dennis
- *  Abstract base class for functions of one variable that return float or double
- *  values when evaluated at single points, or at arrays of points.
+ *  Abstract base class for functions of one variable that return 
+ *  float or double values when evaluated at single points, or at i
+ *  arrays of points.
  *
  *  Revision 1.1  2002/04/04 19:43:21  dennis
  *  Abstract base class for functions of one variable.
@@ -143,6 +147,40 @@ abstract public class OneVarFunction implements IOneVarFunction
 
 
   /**
+   *  Calculate a numerical approximation to the derivative of this function
+   *  with respect to x, using the centered difference approximation.  This
+   *  function should be overridden in derived classes for which exact 
+   *  derivative values are available.
+   *
+   *  @param  x     The value at which the derivative is approximated
+   *  
+   *  @return The centered difference approximation to the derivative at x.
+   */
+  public float get_dFdx( float  x )
+  {
+    return (float)get_dFdx( (double)x );
+  }
+
+
+  /**
+   *  Calculate a numerical approximation to the derivative of this function
+   *  with respect to x, using the centered difference approximation.  This
+   *  function should be overridden in derived classes for which exact 
+   *  derivative values are available.
+   *
+   *  @param  x     The value at which the derivative is approximated
+   *  
+   *  @return The centered difference approximation to the derivative at x.
+   */
+
+  public double get_dFdx( double x )
+  {
+    return (getValue( x + DELTA ) - getValue( x - DELTA ))/ (2*DELTA);
+  }
+
+
+
+  /**
    *  Get the name that was specified for this function.
    *
    *  @return the name of this function. 
@@ -173,6 +211,7 @@ abstract public class OneVarFunction implements IOneVarFunction
   {
     return domain;
   }
+
 
   /**
    *  Set the current domain for this function.
