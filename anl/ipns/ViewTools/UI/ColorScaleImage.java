@@ -28,6 +28,11 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2003/06/18 13:40:46  dennis
+ * (Mike Miller)
+ * - Added constructor and static variables to allow color
+ *   scale image to be displayed vertically or horizontally.
+ *
  * Revision 1.2  2002/11/27 23:13:34  pfpeterson
  * standardized header
  *
@@ -50,6 +55,8 @@ import DataSetTools.components.image.*;
 public class ColorScaleImage extends    ImageJPanel 
                              implements Serializable 
 {
+  public static final boolean HORIZONTAL = true;
+  public static final boolean VERTICAL   = false;
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -61,12 +68,34 @@ public class ColorScaleImage extends    ImageJPanel
   public ColorScaleImage( )
   { 
     super();
-
+    
     float color_scale_data[][] = new float[1][255];
     for ( int i = -127; i <= 127; i++ )
       color_scale_data[0][i+127] = i;
-
+      
     setData( color_scale_data, false );
+  }
+  
+  public ColorScaleImage( boolean orientation )
+  { 
+    super();
+    
+    if( orientation )
+    {
+      float color_scale_data[][] = new float[1][255];
+      for ( int i = -127; i <= 127; i++ )
+        color_scale_data[0][i+127] = i;
+
+      setData( color_scale_data, false );
+    }
+    else
+    {
+      float color_scale_data[][] = new float[255][1];
+      for ( int i = -127; i <= 127; i++ )
+        color_scale_data[i+127][0] = -i;
+
+      setData( color_scale_data, false );
+    }      
   }
 
 }
