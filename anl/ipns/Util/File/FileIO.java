@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/03/11 22:25:01  millermi
+ * - Changed package name and imports.
+ *
  * Revision 1.4  2004/01/24 20:55:02  bouzekc
  * Removed unused variables and imports.
  *
@@ -45,10 +48,12 @@
  *
  */
 
-package DataSetTools.util;
+package gov.anl.ipns.Util.File;
 import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
+import gov.anl.ipns.Util.SpecialStrings.ErrorString;
+import gov.anl.ipns.Util.Sys.StringUtil;
 public class FileIO{
   public static final String NO_MORE_DATA = "No More Data";
   public static boolean debug = false;
