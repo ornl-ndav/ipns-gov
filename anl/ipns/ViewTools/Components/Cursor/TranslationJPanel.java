@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/05/05 04:26:26  millermi
+ *  - Added functionality for cursor to change when moving or
+ *    stretching is allowed. This behavior is immediately visible
+ *    when using the PanViewControl.
+ *
  *  Revision 1.8  2004/03/12 01:33:23  millermi
  *  - Changed package and imports.
  *
@@ -97,8 +102,11 @@ public class TranslationJPanel extends CoordJPanel
   */
   public static final String BOUNDS_CHANGED = "Bounds Changed";
   
+  public static final String CURSOR_CHANGED = "Cursor Changed";
+  
   private BoxPanCursor box;
   private CoordBounds restore = new CoordBounds(0,0,0,0);
+  private TranslationJPanel this_panel;
   private boolean stable_bounds = true;    // true as long as bounds aren't
                                            //  stretched
   private boolean stretching    = false;   // is stretching occuring...
@@ -120,6 +128,7 @@ public class TranslationJPanel extends CoordJPanel
   {    
     super(); 
     setEventListening(false);
+    this_panel = this;
     box = new BoxPanCursor(this);
     requestFocus();
     setViewPort( new CoordBounds(0,0,0,0) ); 
@@ -339,6 +348,86 @@ public class TranslationJPanel extends CoordJPanel
     }
     stable_bounds = true;
   }
+  
+ /*
+  * Use this method to see if the cursor is on the boundary.
+  */ 
+  private boolean[] onBoundary( Point current )
+  {
+    // Array for specifying if a boundary has been entered.
+    // Format:
+    // boundary[0] - Is any boundary in activated?
+    // boundary[1] - North
+    // boundary[2] - East
+    // boundary[3] - South
+    // boundary[4] - West
+    boolean[] boundary = new boolean[5];
+    // This code will check to see if the user clicks near the boundry
+    // of the cursor. If so, the user wants to grow the cursor instead of
+    // translating it.
+    Rectangle cursor_bounds = box.region();
+    Point location = cursor_bounds.getLocation();
+    // grow contains the distance in the x & y direction that the
+    // cursor should "grow", either growing larger or smaller.
+    Point grow = new Point(location);
+    grow.x -= current.x;
+    grow.y -= current.y;
+    
+    final int SENSITIVITY = 2;
+    
+    // west side
+    if( Math.abs(grow.x) < SENSITIVITY )
+    {
+      // is the current point on the actual cursor, or just on the same
+      // line.
+      if( current.y > location.y - SENSITIVITY && 
+          current.y < (location.y + cursor_bounds.getHeight() + SENSITIVITY) )
+      {
+        boundary[4] = true;
+	boundary[0] = true;
+      }
+    }
+    // north side
+    if( Math.abs(grow.y) < SENSITIVITY )
+    {
+      // is the current point on the actual cursor, or just on the same
+      // line.
+      if( current.x > location.x - SENSITIVITY && 
+          current.x < (location.x + cursor_bounds.getWidth() + SENSITIVITY) )
+      {
+        boundary[1] = true;
+	boundary[0] = true;
+      }
+    }
+    // east side
+    if( Math.abs(current.x - (cursor_bounds.getWidth() + location.x) ) 
+  	< SENSITIVITY )
+    { 
+      // is the current point on the actual cursor, or just on the same
+      // line.
+      if( current.y > location.y - SENSITIVITY && 
+          current.y < (location.y + cursor_bounds.getHeight() + SENSITIVITY) )
+      {
+        boundary[2] = true;
+	boundary[0] = true;
+      }
+    }
+    // south side
+    if( Math.abs(current.y - (cursor_bounds.getHeight() + location.y) ) 
+  	< SENSITIVITY )
+    {
+      // is the current point on the actual cursor, or just on the same
+      // line.
+      if( current.x > location.x - SENSITIVITY && 
+          current.x < (location.x + cursor_bounds.getWidth() + SENSITIVITY) )
+      {
+        boundary[3] = true;
+	boundary[0] = true;
+      }
+    }
+    // else not on the boundary
+    return boundary;
+  }
 
  /*
   * This class handles the "dirty" work before and after translations.
@@ -363,6 +452,12 @@ public class TranslationJPanel extends CoordJPanel
       differ.x -= topcorner.x;
       differ.y -= topcorner.y;
       
+      // check to see if the mouse is on the boundary
+      boolean[] boundary_check = onBoundary(e.getPoint());
+      // if none are selected, do nothing
+      if( !boundary_check[0] )
+        return;
+      
       // This code will check to see if the user clicks near the boundry
       // of the cursor. If so, the user wants to grow the cursor instead of
       // translating it.
@@ -377,59 +472,33 @@ public class TranslationJPanel extends CoordJPanel
       
       final int SENSITIVITY = 2;
       
-      if( Math.abs(grow.x) < SENSITIVITY )
+      if( boundary_check[4] )
       {
-        // is the current point on the actual cursor, or just on the same
-	// line.
-        if( current.y > location.y - SENSITIVITY && 
-	    current.y < (location.y + cursor_bounds.getHeight() + SENSITIVITY) )
-	{
-	  west_stretch = true;
-	  stretching = true;
-	  if( east_stretch )
-	    east_stretch = false;
-        }
+	west_stretch = true;
+	stretching = true;
+	if( east_stretch )
+	  east_stretch = false;
       }
-      if( Math.abs(grow.y) < SENSITIVITY )
+      if( boundary_check[1] )
       {
-        // is the current point on the actual cursor, or just on the same
-	// line.
-        if( current.x > location.x - SENSITIVITY && 
-	    current.x < (location.x + cursor_bounds.getWidth() + SENSITIVITY) )
-	{
-          north_stretch = true;
-	  stretching = true;
-	  if( south_stretch )
-	    south_stretch = false;
-        }
+        north_stretch = true;
+	stretching = true;
+	if( south_stretch )
+	  south_stretch = false;
       }
-      if( Math.abs(current.x - (cursor_bounds.getWidth() + location.x) ) 
-          < SENSITIVITY )
+      if( boundary_check[2] )
       { 
-        // is the current point on the actual cursor, or just on the same
-	// line.
-        if( current.y > location.y - SENSITIVITY && 
-	    current.y < (location.y + cursor_bounds.getHeight() + SENSITIVITY) )
-	{
-	  east_stretch = true;
-	  stretching = true;
-	  if( west_stretch )
-	    west_stretch = false;
-	}
+        east_stretch = true;
+	stretching = true;
+	if( west_stretch )
+	  west_stretch = false;
       }
-      if( Math.abs(current.y - (cursor_bounds.getHeight() + location.y) ) 
-          < SENSITIVITY )
+      if( boundary_check[3] )
       {
-        // is the current point on the actual cursor, or just on the same
-	// line.
-        if( current.x > location.x - SENSITIVITY && 
-	    current.x < (location.x + cursor_bounds.getWidth() + SENSITIVITY) )
-	{
-	  south_stretch = true;
-	  stretching = true;
-	  if( north_stretch )
-	    north_stretch = false;
-	}
+        south_stretch = true;
+	stretching = true;
+	if( north_stretch )
+	  north_stretch = false;
       }
       
       // since stretching may "screw up" the bounds, save the bounds before
@@ -464,7 +533,7 @@ public class TranslationJPanel extends CoordJPanel
   private class SelectMouseMotionAdapter extends MouseMotionAdapter
   {
     public void mouseDragged(MouseEvent e)
-    { 
+    {
       Point current = e.getPoint(); 
       boolean translated = false;    // flag to tell if the box was translated
       
@@ -558,6 +627,77 @@ public class TranslationJPanel extends CoordJPanel
         } // end if translated
       } // end if contains point    
     } // end mouseDragged()
+    
+   /*
+    * This method is responsible for changing the cursor types when the
+    * cursor is ran across the boundary.
+    */ 
+    public void mouseMoved( MouseEvent me )
+    {
+      boolean[] on_bounds = onBoundary(me.getPoint());
+      if( !on_bounds[0] )
+      {
+        // Set the cursor to the arrow if the "panner" is the size of the
+	// control. In this situation, motion is not possible/noticeable.
+	if( this_panel.getGlobalWorldCoords().equals(
+	    this_panel.getLocalWorldCoords() ) )
+        {
+	  this_panel.setCursor( Cursor.getDefaultCursor() );
+	}
+	// If bounds are not equal, set the cursor to the move cursor.
+	else
+	  this_panel.setCursor( new Cursor(Cursor.MOVE_CURSOR) );
+        return;
+      }
+      // If on north bound, change cursor.
+      if( on_bounds[1] )
+      {
+        // If also on east bound, change to NE stretch cursor.
+        if( on_bounds[2] )
+	{
+	  this_panel.setCursor( new Cursor(Cursor.NE_RESIZE_CURSOR) );
+	}
+        // If also on west bound, change to NW stretch cursor.
+        else if( on_bounds[4] )
+	{
+	  this_panel.setCursor( new Cursor(Cursor.NW_RESIZE_CURSOR) );
+	}
+        // Else, just change to N stretch cursor.
+        else
+	{
+	  this_panel.setCursor( new Cursor(Cursor.N_RESIZE_CURSOR) );
+	}
+      }
+      // If on south bound, change cursor.
+      else if( on_bounds[3] )
+      {
+        // If also on east bound, change to SE stretch cursor.
+        if( on_bounds[2] )
+	{
+	  this_panel.setCursor( new Cursor(Cursor.SE_RESIZE_CURSOR) );
+	}
+        // If also on west bound, change to SW stretch cursor.
+        else if( on_bounds[4] )
+	{
+	  this_panel.setCursor( new Cursor(Cursor.SW_RESIZE_CURSOR) );
+	}
+        // Else, just change to S stretch cursor.
+        else
+	{
+	  this_panel.setCursor( new Cursor(Cursor.S_RESIZE_CURSOR) );
+	}
+      }
+      // If only on east bound, change cursor.
+      else if( on_bounds[2] )
+      {
+        this_panel.setCursor( new Cursor(Cursor.E_RESIZE_CURSOR) );
+      }
+      // If only on west bound, change cursor.
+      else if( on_bounds[4] )
+      {
+        this_panel.setCursor( new Cursor(Cursor.W_RESIZE_CURSOR) );
+      }
+    } // end of mouseMoved()
   } // end class
 
  /*
