@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/06/05 22:15:14  dennis
+ *   - Added getFocus() call when Selection/AnnotationOverlay checkbox
+ *     is selected. (Mike Miller)
+ *
  *  Revision 1.8  2003/05/29 14:34:32  dennis
  *  Three changes: (Mike Miller)
  *   -added SelectionOverlay and its on/off control
@@ -43,7 +47,7 @@
  *
  *  Revision 1.7  2003/05/24 17:33:25  dennis
  *  Added on/of control for Axis Overlay. (Mike Miller)
- *
+ * 
  *  Revision 1.6  2003/05/22 13:05:58  dennis
  *  Now returns menu items to place in menu bar.
  *
@@ -615,21 +619,29 @@ public class ImageViewComponent implements IViewComponent2D,
 	    // if this control turns on/off the selection overlay...
 	    else if( control.getText().equals("Selection Overlay") )
 	    { 
-	       JPanel select = (JPanel)big_picture.getComponent(
+	       SelectionOverlay select = (SelectionOverlay)
+	                       big_picture.getComponent(
 	                       big_picture.getComponentCount() - 3 ); 
                if( !control.isSelected() )
 	          select.setVisible(false);
 	       else
+	       {
 	          select.setVisible(true); 
+		  select.getFocus();
+	       }
 	    } 
 	    else if( control.getText().equals("Annotation Overlay") )
 	    { 
-	       JPanel note = (JPanel)big_picture.getComponent(
+	       AnnotationOverlay note = (AnnotationOverlay)
+	                       big_picture.getComponent(
 	                       big_picture.getComponentCount() - 4 ); 
                if( !control.isSelected() )
 	          note.setVisible(false);
 	       else
-	          note.setVisible(true); 
+	       {
+	          note.setVisible(true);
+		  note.getFocus();
+	       } 
 	    }  	            
 	 } // end if checkbox	
 	 //repaints overlays accurately	
