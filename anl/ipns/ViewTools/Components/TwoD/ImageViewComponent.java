@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2003/08/21 18:22:57  millermi
+ *  - Added capabilities for wedge selection
+ *
  *  Revision 1.23  2003/08/14 21:49:00  millermi
  *  - Replaced "for" loop to repaint transparencies with paintComponents() in
  *    private class ImageListener. This updates grid lines in a desirable way.
@@ -1143,7 +1146,8 @@ public class ImageViewComponent implements IViewComponent2D,
    }*/ 
 
   /*
-   * This class relays the message sent out by the SelectionOverlay whenever
+   * This class relays messages to listeners and repackages WCRegions into
+   * Regions whenever the SelectionOverlay sends a message that
    * a selected region is added or removed.
    */  
    private class SelectedRegionListener implements ActionListener
@@ -1175,36 +1179,26 @@ public class ImageViewComponent implements IViewComponent2D,
 	 Region selregion;
 	 
 	 if( regiontype.equals(SelectionJPanel.BOX) )
-	 {
 	   selregion = new BoxRegion( imagecolrow );
-	 }
 	 else if( regiontype.equals(SelectionJPanel.CIRCLE) )
-	 {
 	   selregion = new ElipseRegion( imagecolrow );
-	 }
 	 else if( regiontype.equals(SelectionJPanel.LINE) )
-	 {
 	   selregion = new LineRegion( imagecolrow );
-	 }
-	 else 
-	 {
+	 else if( regiontype.equals(SelectionJPanel.POINT) )
 	   selregion = new PointRegion( imagecolrow );
-	   /*
-	   // This will group all points together, without creating a
-	   // point region. When getSelectedRegions() is called, one
-	   // point region will be created with all the points.
-	   for( int i = 0; i < wcp.length; i++ )
-	     dynamicpointlist.add(wcp[i]);*/
+	 else //if( regiontype.equals(SelectionJPanel.WEDGE) )
+	 {
+	   int size = imagecolrow.length - 1;
+	   imagecolrow[size] = new Point( (int)wcp[size].x, (int)wcp[size].y );
+	   selregion = new WedgeRegion( imagecolrow );
 	 }
-	 /*if( !regiontype.equals(SelectionJPanel.POINT) )
-	   dynamicregionlist.add(selregion);*/
-	 
 	 dynamicregionlist.push(selregion);
        //System.out.println("WCP[0]: " + wcp[0].x + wcp[0].y );
        } // end if( regionadded )
        else if( ae.getActionCommand().equals(SelectionOverlay.REGION_REMOVED) )
        {
-         dynamicregionlist.pop();
+         if( dynamicregionlist.size() != 0 )
+           dynamicregionlist.pop();
        }
        else if( ae.getActionCommand().equals(
                 SelectionOverlay.ALL_REGIONS_REMOVED) )
@@ -1244,7 +1238,7 @@ public class ImageViewComponent implements IViewComponent2D,
       }
       
       IVCTester test = new IVCTester( va2D );
-      /*
+      /* instead of using ViewerSim, use IVCTester, which is specific to IVC
       //Construct an ImageViewComponent with array2D
       ImageViewComponent ivc = new ImageViewComponent(va2D);
       ivc.setColorControlEast(true);
