@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2003/07/28 22:19:20  dennis
+ *  Improved second method of estimating the standard deviations for
+ *  the parameters.
+ *
  *  Revision 1.9  2003/07/16 22:27:47  dennis
  *  Now calculates numerical derivatives with a smaller step size,
  *  but with a minumum step size of 1e-8.  Also now uses "weighted"
@@ -124,6 +128,12 @@ public class MarquardtArrayFitter extends CurveFitter
     do_fit( tolerance, max_steps );
   } 
 
+  /**
+   *  Get estimates of the standard deviations of the parameters, as
+   *  1/sqrt( A[k][k] ).
+   *
+   * @return the array of sigma values. 
+   */
   public double[] getParameterSigmas()
   {
     double p_sigmas[]  = new double[ f.numParameters() ];
@@ -135,10 +145,28 @@ public class MarquardtArrayFitter extends CurveFitter
   }
 
 
+  /**
+   *  Get estimates of the standard deviations of the parameters, by 
+   *  approximating chi sq by a quadratic polynomial through three points
+   *  and finding the change in the parameter that would cause a change
+   *  of 1 in chi sq.  (See Bevington, 2nd ed., pg 147, eqn: 8.13 )  
+   *  In this version, we calculate a sequence of approximations for
+   *  each parameter, with delta ranging over 10 orders of magnitude
+   *  and keep the value in the sequence with the smallest relative change. 
+   *  While it gives the same results as the method getParameterSigmas()
+   *  in simple cases, it is not entirely reliable.
+   *
+   * @return the array of sigma values. 
+   */
   public double[] getParameterSigmas_2()
   {
-    double p_sigmas[]  = new double[ f.numParameters() ];
+    final int MAX_STEPS = 10;        // evaluate approximation using deltas
+                                     // ranging over 10 orders of magnitudue
+    double START_DELTA = 1.0e-2;     // start with change of 1%
+    int    n_approx;
+    double approx[] = new double[ MAX_STEPS ];   // save list of approximations
 
+    double p_sigmas[]  = new double[ f.numParameters() ];
     double a_save;
     double delta;
     for ( int k = 0; k < p_sigmas.length; k++ )
@@ -146,55 +174,64 @@ public class MarquardtArrayFitter extends CurveFitter
       double a[] = f.getParameters();
       double diff = 0.0;
       int    n_steps = 0;
-      a_save = a[k];
-      while ( diff <= 0.0 && n_steps < 10 )
-      {
-        delta = 1.0e-8 * a_save;
-        if ( delta < 1.0e-8 )
-          delta = 1.0e-8;
 
+      a_save = a[k];
+
+      if ( a_save < 1.0e-8 )             // if parameter essentially 0, use
+        delta = 1.0e-8;                  // a "small" step
+      else
+        delta = START_DELTA * a_save;
+
+      n_approx = 0;
+      for ( int count = 0; count < MAX_STEPS; count++ ) 
+      {
         a[k] = a_save + delta;
         f.setParameters(a);
-        double chi_3 = getWeightedChiSqr();
+        double chi_3 = getChiSqr();
 
         a[k] = a_save - delta;
         f.setParameters(a);
-        double chi_1 = getWeightedChiSqr();
+        double chi_1 = getChiSqr();
 
         a[k] = a_save;
         f.setParameters(a);
-        double chi_2 = getWeightedChiSqr();
+        double chi_2 = getChiSqr();
 
-        diff = Math.abs(chi_1-2*chi_2+chi_3);
-        if ( diff != 0 )
-          p_sigmas[k] = Math.abs(delta) * Math.sqrt(2.0/diff);
-        else
-          p_sigmas[k] = Double.POSITIVE_INFINITY; 
+        diff = chi_1-2*chi_2+chi_3;
+        if ( diff > 0 )
+        {
+          approx[n_approx] = Math.abs(delta) * 
+                             Math.sqrt(2.0/Math.abs(diff));
+          n_approx++;
+        }
+        delta = delta / 10;
+      }
+      if ( n_approx == 0 )
+        p_sigmas[k] = Double.POSITIVE_INFINITY;    // no reasonable value
 
-        n_steps++;
+      else if ( n_approx == 1 )
+        p_sigmas[k] = approx[0];                   // only one possible value
+
+      else                                        // use one with smallest diff
+      {
+        double min_diff = Double.POSITIVE_INFINITY;
+        for ( int i = 0; i < n_approx-1; i++ )
+        {
+          diff = Math.abs( (approx[i+1]-approx[i])/approx[i] );
+          if ( diff < min_diff )
+          {
+            p_sigmas[k] = approx[i+1];
+            min_diff = diff;
+          }
+        }
       }
     }    
     return p_sigmas;
   }
- 
+
   /*
-  public double[] getParameterSigmas()
-  {
-    double p_sigmas[]  = new double[ f.numParameters() ];
-
-    double basis_vec[] = new double[ f.numParameters() ];
-    for ( int k = 0; k < p_sigmas.length; k++ )
-    {
-      for ( int i = 0; i < basis_vec.length; i++ )
-        basis_vec[i] = 0.0;
-      basis_vec[k] = 1.0/root_diag[k];
-
-      LinearAlgebra.QR_solve( Alpha, u, basis_vec );
-      p_sigmas[k] = Math.sqrt(basis_vec[k]/root_diag[k]) / root_diag[k];
-    }
-    return p_sigmas;
-  }
-  */
+   *  Carry out Marquardt's method to do the fit.
+   */
 
   private void do_fit( double tolerance, int max_steps )
   {
@@ -231,7 +268,7 @@ public class MarquardtArrayFitter extends CurveFitter
       else                                            // invalid sigma value
         weights[i] = 1.0/(sigma[i]*sigma[i]);
 
-    chisq_1 = getWeightedChiSqr();
+    chisq_1 = getChiSqr();
     while ( n_steps < max_steps && norm_da/norm_a > tolerance )
     {
                                                       // calculate vector beta
@@ -315,7 +352,7 @@ public class MarquardtArrayFitter extends CurveFitter
           a[k] = a_old[k] + da[k];
         f.setParameters(a);
         
-        chisq_2 = getWeightedChiSqr();
+        chisq_2 = getChiSqr();
         delta_chisq = Math.abs( chisq_2 - chisq_1 );
         if ( chisq_2 > chisq_1 )
         {
@@ -333,9 +370,9 @@ public class MarquardtArrayFitter extends CurveFitter
         n_steps++;
       }
       if ( debug )
-        System.out.println("n,chisq2,lamda="+ n_steps + ", " + 
-                                              chisq_2 + ", " + 
-                                              lamda );
+        System.out.println("n,chisq2,lamda=  "+ n_steps + ", " + 
+                                                chisq_2 + ", " + 
+                                                lamda );
     }
 
     System.out.println("After fit ..............................");
@@ -387,7 +424,7 @@ public class MarquardtArrayFitter extends CurveFitter
       System.out.println(names[i] + " = " + coefs[i] + 
                          " +- " + p_sigmas[i] +
                          " +- " + p_sigmas_2[i] );
-    System.out.println("Chi Sq = " + fitter.getWeightedChiSqr() );
+    System.out.println("Chi Sq = " + fitter.getChiSqr() );
 
     String file_name = "/usr/local/ARGONNE_DATA/hrcs2447.run";
     RunfileRetriever rr = new RunfileRetriever(file_name); 
@@ -459,7 +496,7 @@ public class MarquardtArrayFitter extends CurveFitter
                          " +- " + p_sigmas_2[i] );
 
     model = new FunctionModel( x_scale, sum, 3 ); 
-    System.out.println("Chi Sq = " + fitter.getWeightedChiSqr() );
+    System.out.println("Chi Sq = " + fitter.getChiSqr() );
 
     monitor_ds.addData_entry( model );
     monitor_ds.notifyIObservers( IObserver.DATA_CHANGED );
