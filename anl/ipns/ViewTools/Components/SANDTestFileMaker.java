@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/24 02:24:02  millermi
+ * - Added path separater "/" to filepath if path did not end
+ *   with "/".
+ *
  * Revision 1.1  2004/01/23 22:53:52  millermi
  * - Initial Version - This class is used to create test files
  *   for the SANDWedgeViewer. In the future it may be generalized
@@ -120,6 +124,8 @@ public class SANDTestFileMaker
   public static void main( String args[] )
   {
     String filepath = SharedData.getProperty("Data_Directory");
+    if( !filepath.endsWith("/") )
+      filepath = filepath + "/";
     String filename = "sndtest.dat";
     int rows = 200;
     int cols = 200;
