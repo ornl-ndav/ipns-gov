@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/08/10 19:29:26  millermi
+ *  - Fixed minor bug, when default font was selected, fontsize changed to 12 pt.
+ *
  *  Revision 1.10  2003/08/07 16:00:05  dennis
  *  - Made "Default" font selection for allowing user to easily
  *    return to the original font.
@@ -1035,7 +1038,11 @@ public class AnnotationOverlay extends OverlayJPanel
 	          fontindex++;
 	       }
 	       if( message.equals("Default") )
+	       {
 	         font = default_font;
+	         font = font.deriveFont( Font.PLAIN );
+	         font = font.deriveFont( (float)current_fontsize );
+	       }
 	       else
 	       {
 	         font = fonts[fontindex];
