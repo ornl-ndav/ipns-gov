@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/12 00:38:00  serumb
+ * Changed package and imports.
+ *
  * Revision 1.3  2004/01/28 21:59:20  dennis
  * Made font smaller on < and > buttons.
  *
@@ -44,9 +47,8 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
-import DataSetTools.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;

@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 00:47:20  serumb
+ *  Changed package and imports.
+ *
  *  Revision 1.3  2003/02/12 22:30:56  pfpeterson
  *  Changed deprecated method call to suggested one.
  *
@@ -41,7 +44,7 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.io.*;
 import java.awt.*;
@@ -49,8 +52,8 @@ import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import DataSetTools.util.*;
-import DataSetTools.math.*;
+import gov.anl.ipns.Util.Numeric.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
  */

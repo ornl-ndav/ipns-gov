@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/12 00:44:47  serumb
+ *  Changed package and imports.
+ *
  *  Revision 1.6  2004/02/10 05:33:04  bouzekc
  *  Now uses IsawToolkit.beep().
  *
@@ -54,14 +57,14 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.util.*;
-import DataSetTools.math.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 import java.io.*;
+import java.lang.Object.*;
 
 /**
  * A Vector3D_UI object is an editable JTextField object with a format that 
@@ -229,7 +232,7 @@ public class Vector3D_UI extends    JTextField
     if ( !ok )
     {
       show_text();
-      IsawToolkit.beep();
+      Toolkit.getDefaultToolkit().beep();
       return;
     }
 
@@ -263,7 +266,7 @@ public class Vector3D_UI extends    JTextField
     if ( ok )
       value = new Vector3D( temp );
     else
-      IsawToolkit.beep();
+      Toolkit.getDefaultToolkit().beep();
 
     show_text();
   }
