@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/05/20 03:21:45  millermi
+ *  - Removed unused imports.
+ *
  *  Revision 1.5  2004/04/29 06:10:43  millermi
  *  - Removed coordbounds parameter. It is unnecessary since
  *    world coords are used to place the annotation.
@@ -54,11 +57,9 @@
  */
 package gov.anl.ipns.ViewTools.Components.Transparency;
 
-import javax.swing.JTextField; 
 import java.awt.Point;
 
 import gov.anl.ipns.ViewTools.Components.Cursor.Line;
-import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
