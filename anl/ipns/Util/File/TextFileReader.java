@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/01/24 20:59:01  bouzekc
+ *  Removed unused variables in main().
+ *
  *  Revision 1.12  2003/02/19 23:17:58  dennis
  *  Changed read_line() to fill look_ahead "buffer" with next character
  *  in file.  This fixes a bug where eof() was not detected when reading
@@ -652,7 +655,6 @@ public class TextFileReader
    */
   public static void main( String args[] )
   {
-    String         val   = "";
     String         line  = "";
     float          f_num = 0;
     int            i_num = 0;

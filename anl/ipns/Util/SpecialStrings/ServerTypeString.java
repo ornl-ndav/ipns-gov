@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/24 20:59:01  bouzekc
+ *  Removed unused variables in main().
+ *
  *  Revision 1.4  2003/10/21 21:08:15  dennis
  *  Cleaned up javadocs.
  *
@@ -130,8 +133,7 @@ public class ServerTypeString  extends     SpecialString
    */
     public static void main( String args[] )
     {
-       ServerTypeString STS = 
-            new ServerTypeString( ServerTypeString.ISAW_FILE_SERVER);
+      new ServerTypeString( ServerTypeString.ISAW_FILE_SERVER);
       System.out.println("OK");
     }
 }
