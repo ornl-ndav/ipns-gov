@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/05/06 16:58:19  rmikk
+ *  Removed a static reference to the string list so several
+ *    instances can have different lists
+ *
  *  Revision 1.4  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -54,7 +58,7 @@ public class StringChoiceList extends    SpecialString
                               implements IStringList,
                                          Serializable
 {
-  static protected String strings[] = { "DEFAULT" };  // derived classes should
+ protected String strings[] = { "DEFAULT" };  // derived classes should
                                                       // replace this with
                                                       // their own list.
 
