@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/04/16 20:20:06  millermi
+ *  - Removed methods that were specific to DataSets.
+ *
  *  Revision 1.2  2004/03/15 23:53:50  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -58,8 +61,6 @@
  */
  
 package gov.anl.ipns.ViewTools.Components;
-
- import java.awt.event.*;
  
 /**
  * This interface is implemented by classes that can produce a virtual function 
@@ -74,112 +75,113 @@ package gov.anl.ipns.ViewTools.Components;
 
 public interface IVirtualArrayList1D extends IVirtualArray
 {
-   public static final String NO_XLABEL = "No X Label";
-   public static final String NO_YLABEL = "No Y Label";
-   public static final String NO_TITLE  = "No Title";
-   public static final String NO_XUNITS = "No X Units";
-   public static final String NO_YUNITS = "No X Units";
-  /**
-   * Returns the attributes of the data array in a AxisInfo2D wrapper.
-   * This method will take in a boolean value to determine for which axis
-   * info is being retrieved for.    true = X axis, false = Y axis.
-   */
-  
-   
-  /**
-   * Gets the x values for a line, given the index of the line. 
-   */
-   public float[] getXValues( int line_number );
-   
-   
-  /**
-   * Get the y values of a line, gived the index of the line.
-   */
-   public float[] getYValues( int line_number );
-   
-  /**
-   * Set values for one tabulated function together with it's error
-   * estimates.
-   */
-   public void setXYValues( float[] x_values, 
-                            float[] y_values, 
-                            float[] errors,
-                            int group_id,
-                            int line_num);
+ /**
+  * Gets the x values for a line, given the index of the line.
+  *
+  *  @param  graph_number Index of the graph.
+  *  @return The x values for the graph specified.
+  */
+  public float[] getXValues( int graph_number );
   
  /**
-  * Sets the attributes of the data array within a AxisInfo wrapper.
-  * This method will take in an integer to determine which axis
-  * info is being altered.
+  * Set the title of the virtual array.
   *
-  *  @param  axis Use AxisInfo.X_AXIS (0) or AxisInfo.Y_AXIS (1).
-  *  @param  min Minimum value for this axis.
-  *  @param  max Maximum value for this axis.
-  *  @param  label Label associated with the axis.
-  *  @param  units Units associated with the values for this axis.
-  *  @param  islinear Is axis linear (true) or logarithmic (false)
+  *  @param  title New title of the virtual array.
   */
-  public void setAxisInfo( int axis, float min, float max,
-                           String label, String units, boolean islinear );
+  public void setTitle( String title );
+  
+ /**
+  * Get the y values of a line, gived the index of the line.
+  *
+  *  @param  graph_number Index of the graph.
+  *  @return The y values for the graph specified.
+  */
+  public float[] getYValues( int graph_number );
+  
+ /**
+  * Set values for one tabulated function together with it's error
+  * estimates.
+  *
+  *  @param  x_values
+  *  @param  y_values
+  *  @param  errors
+  *  @param  graph_title
+  *  @param  graph_num
+  */
+  public void setXYValues( float[] x_values, 
+			   float[] y_values, 
+			   float[] errors,
+			   String graph_title,
+			   int graph_num);
  
-  /**
-   * Get vertical error values for a line in the graph..
-   * The "line_number" is the index for the selected lines.
-   * The "index" is the index for the data set. 
-   */
-   public float[] getErrorValues( int line_number );
-   public float[] getErrorVals_ofIndex( int index );
-  /**
-   * Get the Group ID number for the line label.
-   */
-   public int getGroupID( int line_number );
+/**
+ * Sets the attributes of the data array within a AxisInfo wrapper.
+ * This method will take in an integer to determine which axis
+ * info is being altered.
+ *
+ *  @param  axis Use AxisInfo.X_AXIS (0) or AxisInfo.Y_AXIS (1).
+ *  @param  min Minimum value for this axis.
+ *  @param  max Maximum value for this axis.
+ *  @param  label Label associated with the axis.
+ *  @param  units Units associated with the values for this axis.
+ *  @param  islinear Is axis linear (true) or logarithmic (false)
+ */
+ public void setAxisInfo( int axis, float min, float max,
+			  String label, String units, boolean islinear );
 
-  /**
-   *  Returns the number of points in the line.
-   */ 
-   public int getNumPoints( int line_number );
+ /**
+  * Get vertical error values for a line in the graph..
+  * The "line_number" is the index for the selected lines.
+  * The "index" is the index for the data set.
+  *
+  *  @param  graph_number Index of the graph.
+  *  @return Error values for graph specified.
+  */
+  public float[] getErrorValues( int graph_number );
+  
+ /**
+  * Set the title for the specified graph.
+  *
+  *  @param  title Title of the specified graph.
+  *  @param  graph_num Index of the graph.
+  */
+  public String setGraphTitle( String title, int graph_num );
+  
+ /**
+  * Get the title for the specified graph.
+  *
+  *  @param  graph_num Index of the graph.
+  *  @return Title for graph specified.
+  */
+  public String getGraphTitle( int graph_num );
 
-  /**
-   * Returns number of lines in the array.
-   */   
-   public int getNumlines();
+ /**
+  * Return the number of drawn graphs.
+  *
+  *  @return Number of drawn graphs
+  */   
+  public int getNumSelectedGraphs();
 
-  /**
-   *  Returns the index from the data set of the pointed at graph.
-   */
-   public int getPointedAtGraph();
+ /**
+  *  Returns the index from the data set of the pointed at graph.
+  *
+  *  @return The index of the pointed-at graph.
+  */
+  public int getPointedAtGraph();
 
-  /**
-   *  Returns the array of selected indexes.
-   */ 
-   public int[] getSelectedGraphs();
+ /**
+  *  Checks if an index from the data set is selected
+  *  and returns the boolean value.
+  *
+  *  @param  index Index of the graph.
+  *  @return True if selected, false if unselected.
+  */
+  public boolean isSelected(int index);
 
-  /**
-   *  Checks if an index from the data set is selected
-   *  and returns the boolean value.
-   */
-   public boolean isSelected(int index);
-
-  /**
-   *  Returns the number of graphs in the data set
-   */
-   public int getNumGraphs();
-
-  /**
-   *  Gets the x values for an index for a data set.
-   */
-   public float[] getXVals_ofIndex(int index);
- 
-  /**
-   *  Gets the y values for an index for a data set.
-   */
-   public float[] getYVals_ofIndex(int index);
-   
-  /**
-   *  Methods for adding and removing action listeners.
-   */
-   public void addActionListener( ActionListener listener);
-   public void removeActionListener( ActionListener listener);
-   public void removeAllActionListeners();
-   
+ /**
+  *  Returns the total number of graphs.
+  *
+  *  @return The total number of selected and unselected graphs.
+  */
+  public int getNumGraphs();  
 }
