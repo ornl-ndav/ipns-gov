@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2003/12/30 00:39:37  millermi
+ * - Added Annular selection capabilities.
+ * - Changed SelectionJPanel.CIRCLE to SelectionJPanel.ELLIPSE
+ *
  * Revision 1.6  2003/12/29 07:54:31  millermi
  * - Added editor which enables user to make a selection
  *   by entering defining characteristics.
@@ -153,9 +157,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   public static final String DATA_DIRECTORY        = "DataDirectory";
   
   private static JFrame helper = null;
-  private static final int ELLIPSE = 0;
-  private static final int WEDGE = 1;
-  private static final int DBL_WEDGE = 2;
   
   // complete viewer, includes controls and ijp
   private transient SplitPaneWithState pane;
@@ -643,6 +644,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     return controls;
   }
 
+ /*
+  *                 **************Integrate*******************
+  */
   private void integrate( Region region )
   {   
     int   ID      = 1;
@@ -651,7 +655,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     int   n_xvals = 200;
     Point center = new Point(0,0); 
     String attribute_name = "";
-    int[] attributes = new int[6];
+    int[] attributes;
     // Attributes for wedge/double wedge.
     // 0. Type of selection (Static ints at top of this file)
     // 1. X axis Center position, in world coordinates
@@ -675,20 +679,20 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[5].x = startangle, the directional vector in degrees
       * def_pts[5].y = degrees covered by arc.
       */
+      attributes = new int[5];
       center = new Point( def_pts[0] );
       end_x = def_pts[4].x - center.x;
       // build attributes list
-      attribute_name = "Wedge";
+      attribute_name = SelectionJPanel.WEDGE;
       int axisangle = Math.round((float)def_pts[5].x + (float)def_pts[5].y/2f);
       if( axisangle > 359 )
         axisangle -= 360;
       int radius = def_pts[4].x - center.x;
-      attributes[0] = WEDGE;
-      attributes[1] = center.x;
-      attributes[2] = center.y;
-      attributes[3] = radius;
-      attributes[4] = axisangle;
-      attributes[5] = def_pts[5].y;
+      attributes[0] = center.x;
+      attributes[1] = center.y;
+      attributes[2] = radius;
+      attributes[3] = axisangle;
+      attributes[4] = def_pts[5].y;
     }
     else if( region instanceof DoubleWedgeRegion )
     {
@@ -700,39 +704,59 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[5].x = startangle, the directional vector in degrees
       * def_pts[5].y = degrees covered by arc.
       */
+      attributes = new int[5];
       center = new Point( def_pts[0] );
       end_x = def_pts[4].x - center.x;
       // build attributes list
-      attribute_name = "Double Wedge";
+      attribute_name = SelectionJPanel.DOUBLE_WEDGE;
       int axisangle = Math.round((float)def_pts[5].x + (float)def_pts[5].y/2f);
       if( axisangle > 359 )
         axisangle -= 360;
       int radius = def_pts[4].x - center.x;
-      attributes[0] = DBL_WEDGE;
-      attributes[1] = center.x;
-      attributes[2] = center.y;
-      attributes[3] = radius;
-      attributes[4] = axisangle;
-      attributes[5] = def_pts[5].y;
+      attributes[0] = center.x;
+      attributes[1] = center.y;
+      attributes[2] = radius;
+      attributes[3] = axisangle;
+      attributes[4] = def_pts[5].y;
     }
     else if( region instanceof EllipseRegion )
     {
-     /* def_pts[0]   = top left corner of bounding box around arc's total circle
-      * def_pts[1]   = bottom right corner of bounding box around arc's circle
-      * def_pts[2]   = center pt of circle that arc is taken from
+     /* def_pts[0]   = top left corner of bounding box around ellipse
+      * def_pts[1]   = bottom right corner of bounding box around ellipse
+      * def_pts[2]   = center pt of ellipse
       */
+      attributes = new int[4];
       center = new Point( def_pts[2] );
       end_x = def_pts[1].x - center.x;
       // build attributes list
-      attribute_name = "Ellipse";
+      attribute_name = SelectionJPanel.ELLIPSE;
       int major_radius = def_pts[1].x - center.x;
       int minor_radius = def_pts[1].y - center.y;
-      attributes[0] = ELLIPSE;
-      attributes[1] = center.x;
-      attributes[2] = center.y;
-      attributes[3] = major_radius;
-      attributes[4] = minor_radius;
-      attributes[5] = 0;
+      attributes[0] = center.x;
+      attributes[1] = center.y;
+      attributes[2] = major_radius;
+      attributes[3] = minor_radius;
+    }
+    else if( region instanceof AnnularRegion )
+    {
+     /*
+      * def_pts[0]   = center pt of circle that arc is taken from
+      * def_pts[1]   = top left corner of bounding box of inner circle
+      * def_pts[2]   = bottom right corner of bounding box of inner circle
+      * def_pts[3]   = top left corner of bounding box of outer circle
+      * def_pts[4]   = bottom right corner of bounding box of outer circle
+      */
+      attributes = new int[4];
+      center = new Point( def_pts[0] );
+      end_x = def_pts[4].x - center.x;
+      // build attributes list
+      attribute_name = SelectionJPanel.RING;
+      int inner_radius = def_pts[2].x - center.x;
+      int outer_radius = def_pts[4].x - center.x;
+      attributes[0] = center.x;
+      attributes[1] = center.y;
+      attributes[2] = inner_radius;
+      attributes[3] = outer_radius;
     }
     // should never get to this else, if it does, we have a problem.
     else
@@ -968,7 +992,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     {
       this_editor = this;
       this_editor.setTitle("SAND Wedge Editor");
-      this_editor.setBounds(0,0,310,300);
+      this_editor.setBounds(0,0,370,300);
       this_editor.getContentPane().setLayout( new GridLayout(1,1) );
       this_editor.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
       
@@ -984,13 +1008,18 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
                                 "X Radius", "Y Radius"};
       String[] wedgelabels = {"X Center", "Y Center", "Radius", 
                               "Wedge Axis Angle", "Width of Angle"};
+      String[] ringlabels = {"X Center", "Y Center",
+                             "Inner Radius", "Outer Radius"};
       String[] cursorlabels = {"X","Y"};
       
       radiofec.setLabelWidth(14);
       radiofec.setFieldWidth(6);
-      radiofec.addRadioChoice("Ellipse",ellipselabels);
-      radiofec.addRadioChoice("Wedge",wedgelabels);
-      radiofec.addRadioChoice("Double Wedge","Wedge"); // use wedge labels
+      radiofec.addRadioChoice(SelectionJPanel.ELLIPSE,ellipselabels);
+      radiofec.addRadioChoice(SelectionJPanel.WEDGE,wedgelabels);
+      radiofec.addRadioChoice(SelectionJPanel.DOUBLE_WEDGE,
+                              SelectionJPanel.WEDGE); // use wedge labels
+      radiofec.addRadioChoice(SelectionJPanel.RING,ringlabels);
+      radiofec.setButtonText("Enter Values");
       radiofec.addActionListener( new EditorListener() );
       
       coc = new CursorOutputControl(cursorlabels);
@@ -1000,6 +1029,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       leftpane.add(radiofec);
       
       selectlist = new JComboBox();
+     /* *******************CHANGE HERE FOR ADDED FEATURES**********************
+      * Uncomment line below, and remove setEnabled(false) to allow for 
+      * editing of selections. This cannot be done until the IVC passes
+      * world coords to this viewer.
+      */
+      //selectlist.addActionListener( new EditorListener() );
+      selectlist.setEnabled(false);
+      
       buildComboBox();
       rightpane.add( selectlist );
       rightpane.add(coc);
@@ -1045,11 +1082,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	for( int reg = 0; reg < regions.length; reg++ )
         {
 	  if( regions[reg] instanceof EllipseRegion )
-	    temp = "Ellipse";
+	    temp = SelectionJPanel.ELLIPSE;
 	  else if( regions[reg] instanceof WedgeRegion )
-	    temp = "Wedge";
+	    temp = SelectionJPanel.WEDGE;
 	  else if( regions[reg] instanceof DoubleWedgeRegion )
-	    temp = "Double Wedge";
+	    temp = SelectionJPanel.DOUBLE_WEDGE;
+	  else if( regions[reg] instanceof AnnularRegion )
+	    temp = SelectionJPanel.RING;
           
 	  temp_name = (reg+1) + " - " + temp;
           selectlist.addItem(temp_name);
@@ -1074,7 +1113,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       {
         String message = ae.getActionCommand();
         
-        if( message.equals(FieldEntryControl.ENTER_PRESSED) )
+        if( message.equals(FieldEntryControl.BUTTON_PRESSED) )
         {
 	  float[] values = radiofec.getAllFloatValues();
 	  
@@ -1084,7 +1123,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[2]   = center pt of circle that arc is taken from
       **************************************************************************
       */
-	  if( radiofec.getSelected().equals("Ellipse") )
+	  if( radiofec.getSelected().equals(SelectionJPanel.ELLIPSE) )
 	  {
 	    // since ivc y values are swapped, y values for topleft and
 	    // bottomright are also swapped.
@@ -1094,7 +1133,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	    wc_pts[1] = new floatPoint2D( (values[0] + values[2]),
 	                                  (values[1] - values[3]) );
 	    wc_pts[2] = new floatPoint2D( values[0], values[1] );
-	    ivc.addSelection( new WCRegion( SelectionJPanel.CIRCLE, wc_pts ) );
+	    ivc.addSelection( new WCRegion( SelectionJPanel.ELLIPSE, wc_pts ) );
 	  }
 	  
      /* ***********************Defining Points for Wedge************************
@@ -1107,7 +1146,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[5].y = degrees covered by arc.
       **************************************************************************
       */
-	  else if( radiofec.getSelected().equals("Wedge") )
+	  else if( radiofec.getSelected().equals(SelectionJPanel.WEDGE) )
 	  {
 	    // since ivc y values are swapped, y values for topleft and
 	    // bottomright are also swapped.
@@ -1160,7 +1199,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[5].y = degrees covered by arc.
       **************************************************************************
       */
-	  else if( radiofec.getSelected().equals("Double Wedge") )
+	  else if( radiofec.getSelected().equals(SelectionJPanel.DOUBLE_WEDGE) )
 	  {
 	    // since ivc y values are swapped, y values for topleft and
 	    // bottomright are also swapped.
@@ -1204,11 +1243,80 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	                                    wc_pts ) );
 	  }
 	  
+     /* ***********************Defining Points for Ring*************************
+      * def_pts[0]   = center pt of circle that arc is taken from
+      * def_pts[1]   = top left corner of bounding box of inner circle
+      * def_pts[2]   = bottom right corner of bounding box of inner circle
+      * def_pts[3]   = top left corner of bounding box of outer circle
+      * def_pts[4]   = bottom right corner of bounding box of outer circle
+      **************************************************************************
+      */
+	  if( radiofec.getSelected().equals(SelectionJPanel.RING) )
+	  {
+	    // since ivc y values are swapped, y values for topleft and
+	    // bottomright are also swapped.
+	    floatPoint2D[] wc_pts = new floatPoint2D[5];
+	    wc_pts[0] = new floatPoint2D( values[0], values[1] );
+	    // inner topleft and bottomright
+	    wc_pts[1] = new floatPoint2D( (values[0] - values[2]),
+	                                  (values[1] + values[2]) );
+	    wc_pts[2] = new floatPoint2D( (values[0] + values[2]),
+	                                  (values[1] - values[2]) );
+	    // outer topleft and bottomright
+	    wc_pts[3] = new floatPoint2D( (values[0] - values[3]),
+	                                  (values[1] + values[3]) );
+	    wc_pts[4] = new floatPoint2D( (values[0] + values[3]),
+	                                  (values[1] - values[3]) );
+	    ivc.addSelection( new WCRegion( SelectionJPanel.RING, wc_pts ) );
+	  }
+	  
         }
         else if( message.equals("Close") )
         {
 	  this_editor.setVisible(false);
         }
+	else if( message.equals("comboBoxChanged") )
+	{
+	  int index = selectlist.getSelectedIndex();
+	  if( selectlist.getSelectedItem() != null &&
+	      !((String)selectlist.getSelectedItem()).equals("New Selection") )
+	  {
+	    Data data = data_set.getData_entry(index);
+	    
+	    if( ((String)selectlist.getSelectedItem()).indexOf(
+	                                        SelectionJPanel.ELLIPSE) >= 0 )
+	    {
+	      radiofec.setSelected(SelectionJPanel.ELLIPSE);
+	      IntListAttribute att =
+	           (IntListAttribute)data.getAttribute(SelectionJPanel.ELLIPSE);
+	      int[] attlist = att.getIntegerValue();
+	      for( int i = 0; i < attlist.length; i++ )
+	        radiofec.setValue( i-1,attlist[i] );
+	    }
+	    else if( ((String)selectlist.getSelectedItem()).indexOf(
+	                                   SelectionJPanel.DOUBLE_WEDGE) >= 0 )
+	    {
+	      radiofec.setSelected(SelectionJPanel.DOUBLE_WEDGE);
+	      IntListAttribute att = (IntListAttribute)
+	            data.getAttribute(SelectionJPanel.DOUBLE_WEDGE);
+	      int[] attlist = att.getIntegerValue();
+	      for( int i = 0; i < attlist.length; i++ )
+	        radiofec.setValue( i-1,attlist[i] );
+	    }
+	    else if( ((String)selectlist.getSelectedItem()).indexOf(
+	                                   SelectionJPanel.WEDGE) >= 0 )
+	    {
+	      radiofec.setSelected(SelectionJPanel.WEDGE);
+	      IntListAttribute att =
+	             (IntListAttribute)data.getAttribute(SelectionJPanel.WEDGE);
+	      int[] attlist = att.getIntegerValue();
+	      for( int i = 0; i < attlist.length; i++ )
+	        radiofec.setValue( i-1,attlist[i] );
+	    }
+	  }
+	  this_editor.validate();
+	  this_editor.repaint();
+	}
       }
     }
   

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.28  2003/12/30 00:39:37  millermi
+ *  - Added Annular selection capabilities.
+ *  - Changed SelectionJPanel.CIRCLE to SelectionJPanel.ELLIPSE
+ *
  *  Revision 1.27  2003/12/29 06:35:04  millermi
  *  - Added addSelectedRegion() so regions could be added
  *    through commands and not just through the GUI.
@@ -360,7 +364,7 @@ public class SelectionOverlay extends OverlayJPanel
     text.append("Click/Drag/Release Mouse w/B_Key pressed>" + 
         	"ADD BOX SELECTION\n");
     text.append("Click/Drag/Release Mouse w/C_Key pressed>" + 
-        	"ADD CIRCLE SELECTION\n");
+        	"ADD ELLIPSE SELECTION\n");
     text.append("Click/Drag/Release Mouse w/D_Key pressed>" + 
         	"ADD DOUBLE WEDGE SELECTION\n");
     text.append("Click/Drag/Release Mouse w/L_Key pressed>" + 
@@ -684,7 +688,7 @@ public class SelectionOverlay extends OverlayJPanel
 	num_reg = num_reg - 1; // do this since the region was removed.
       }
       //System.out.println("Point: " + p[0].x + "," + p[0].y );   
-      if( region.equals( SelectionJPanel.CIRCLE ) )
+      if( region.equals( SelectionJPanel.ELLIPSE ) )
       {
     	g2d.drawOval( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
       }
@@ -744,6 +748,17 @@ public class SelectionOverlay extends OverlayJPanel
     		    p[4].y - p[3].y, p[5].x, p[5].y);
     	g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
     		    p[4].y - p[3].y, p[5].x + 180, p[5].y);
+      }
+      else if( region.equals( SelectionJPanel.RING ) )
+      {
+       /* p[0]   = center pt of circle
+    	* p[1]   = top left corner of bounding box of inner circle
+    	* p[2]   = bottom right corner of bounding box of inner circle
+    	* p[3]   = top left corner of bounding box of outer circle
+    	* p[4]   = bottom right corner of bounding box of outer circle
+    	*/
+    	g2d.drawOval( p[1].x, p[1].y, p[2].x - p[1].x, p[2].y - p[1].y );
+    	g2d.drawOval( p[3].x, p[3].y, p[4].x - p[3].x, p[4].y - p[3].y );
       }
     }
   } // end of paint()
@@ -805,7 +820,7 @@ public class SelectionOverlay extends OverlayJPanel
 	  sendMessage(REGION_REMOVED);
 	}		  
       }
-      // region is specified by REGION_SELECTED>BOX >CIRCLE >POINT   
+      // region is specified by REGION_SELECTED>BOX >ELLIPSE >POINT   
       // if REGION_SELECTED is in the string, find which region 
       else if( message.indexOf( SelectionJPanel.REGION_SELECTED ) > -1 )
       {
@@ -829,10 +844,10 @@ public class SelectionOverlay extends OverlayJPanel
 	  regions.add( boxregion );
 	  //System.out.println("Drawing box region" );
 	}
-	else if( message.indexOf( SelectionJPanel.CIRCLE ) > -1 )
+	else if( message.indexOf( SelectionJPanel.ELLIPSE ) > -1 )
 	{
 	  Circle circle = ((CircleCursor)sjp.getCursor( 
-				 SelectionJPanel.CIRCLE )).region();
+				 SelectionJPanel.ELLIPSE )).region();
 	  // top-left corner
 	  Point p1 = new Point( circle.getDrawPoint() );
 	  p1.x += (int)current_bounds.getX();
@@ -850,7 +865,7 @@ public class SelectionOverlay extends OverlayJPanel
 	  tempwcp[1] = convertToWorldPoint( p2 );
 	  tempwcp[2] = convertToWorldPoint( p3 );
 					       
-	  WCRegion circleregion = new WCRegion( SelectionJPanel.CIRCLE, 
+	  WCRegion circleregion = new WCRegion( SelectionJPanel.ELLIPSE, 
 						tempwcp );
 	  regions.add( circleregion );
 	}	
@@ -930,6 +945,43 @@ public class SelectionOverlay extends OverlayJPanel
         			       (float)p_array[p_array.length - 1].y );
           }
 	  regions.add( new WCRegion(SelectionJPanel.DOUBLE_WEDGE, tempwcp) );
+	}  
+	else if( message.indexOf( SelectionJPanel.RING ) > -1 )
+	{ 
+	  // create new point, otherwise regions would be shared.
+	  Point[] p_array = ( ((AnnularCursor)
+		  sjp.get3ptCursor( SelectionJPanel.RING )).region() );
+	  // center of ring
+	  Point p1 = new Point( p_array[0] );
+	  p1.x += (int)current_bounds.getX();
+	  p1.y += (int)current_bounds.getY();
+	  
+	  // inner top-left corner
+	  Point p2 = new Point( p1 );
+	  p2.x -= p_array[1].x;
+	  p2.y -= p_array[1].x;
+	  // inner bottom-right corner
+	  Point p3 = new Point( p1 );
+	  p3.x += p_array[1].x;
+	  p3.y += p_array[1].x;
+	  
+	  // outer top-left corner
+	  Point p4 = new Point( p1 );
+	  p4.x -= p_array[1].y;
+	  p4.y -= p_array[1].y;
+	  // outer bottom-right corner
+	  Point p5 = new Point( p1 );
+	  p5.x += p_array[1].y;
+	  p5.y += p_array[1].y;
+	  
+	  floatPoint2D[] tempwcp = new floatPoint2D[5];
+	  tempwcp[0] = convertToWorldPoint( p1 );
+	  tempwcp[1] = convertToWorldPoint( p2 );
+	  tempwcp[2] = convertToWorldPoint( p3 );
+	  tempwcp[3] = convertToWorldPoint( p4 );
+	  tempwcp[4] = convertToWorldPoint( p5 );
+	  
+	  regions.add( new WCRegion(SelectionJPanel.RING, tempwcp) );
 	}
         else  // no recognized region was added
           regionadded = false;

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.49  2003/12/30 00:39:40  millermi
+ *  - Added Annular selection capabilities.
+ *  - Changed SelectionJPanel.CIRCLE to SelectionJPanel.ELLIPSE
+ *
  *  Revision 1.48  2003/12/29 06:32:58  millermi
  *  - Added method addSelection() to add selections through
  *    command as opposed to just via the GUI
@@ -1758,7 +1762,7 @@ public class ImageViewComponent implements IViewComponent2D,
         
         if( regiontype.equals(SelectionJPanel.BOX) )
           selregion = new BoxRegion( imagecolrow );
-        else if( regiontype.equals(SelectionJPanel.CIRCLE) )
+        else if( regiontype.equals(SelectionJPanel.ELLIPSE) )
           selregion = new EllipseRegion( imagecolrow );
         else if( regiontype.equals(SelectionJPanel.LINE) )
           selregion = new LineRegion( imagecolrow );
@@ -1770,12 +1774,19 @@ public class ImageViewComponent implements IViewComponent2D,
           imagecolrow[size] = new Point( (int)wcp[size].x, (int)wcp[size].y );
           selregion = new WedgeRegion( imagecolrow );
         }
-        else //if( regiontype.equals(SelectionJPanel.DOUBLE_WEDGE) )
+        else if( regiontype.equals(SelectionJPanel.DOUBLE_WEDGE) )
         {
           int size = imagecolrow.length - 1;
           imagecolrow[size] = new Point( (int)wcp[size].x, (int)wcp[size].y );
           selregion = new DoubleWedgeRegion( imagecolrow );
         }
+        else if( regiontype.equals(SelectionJPanel.RING) )
+        {
+          selregion = new AnnularRegion( imagecolrow );
+        }
+	// else its an invalid region.
+	else
+	  return;
         dynamicregionlist.push(selregion);
       //System.out.println("WCP[0]: " + wcp[0].x + wcp[0].y );
       } // end if( regionadded )
