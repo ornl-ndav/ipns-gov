@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2001/06/29 18:30:18  dennis
+ *  Added getFrameNumber() method.
+ *
  *  Revision 1.4  2001/06/28 20:30:22  dennis
  *  The Autorun buttons now toggle between run/stop.
  *  Made variables that are used by two threads
@@ -256,6 +259,18 @@ public class AnimationController extends    JPanel
       set_frame( frame_number );
     }
   }
+
+ /* ---------------------------- getFrameNumber --------------------------- */
+ /**
+  *  Get the current frame number from the controller.
+  *
+  *  @return  the current frame number
+  */
+  public int getFrameNumber()
+  {
+    return frame_number;
+  }
+
 
 /* ------------------------------------------------------------------------
  *
