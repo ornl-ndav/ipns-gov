@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/01/30 21:03:50  pfpeterson
+ *  Works with new method names in DataSetTools.math.LinearAlgebra.
+ *
  *  Revision 1.3  2002/11/27 23:14:24  pfpeterson
  *  standardized header
  *
@@ -208,7 +211,7 @@ public class MarquardtArrayFitter extends CurveFitter
       while ( chisq_increasing && n_steps < max_steps )
       {
         a = f.getParameters();
-        norm_a = Math.max( 1.0, LinearAlgebra.Norm(a) );
+        norm_a = Math.max( 1.0, LinearAlgebra.norm(a) );
         for ( int k = 0; k < n_params; k++ )
         {
           a_old[k] = a[k];
@@ -230,7 +233,7 @@ public class MarquardtArrayFitter extends CurveFitter
         for ( int k = 0; k < n_params; k++ )
           da[k] /= root_diag[k];
 
-        norm_da = LinearAlgebra.Norm(da);
+        norm_da = LinearAlgebra.norm(da);
 
         for ( int k = 0; k < n_params; k++ )
           a[k] = a_old[k] + da[k];
