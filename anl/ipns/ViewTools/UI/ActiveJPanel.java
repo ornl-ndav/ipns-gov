@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2004/02/04 18:16:50  dennis
+ * Fixed spelling error in comment.
+ *
  * Revision 1.3  2003/05/20 19:41:42  dennis
  * Added method removeAllActionListeners(). (Mike Miller)
  *
@@ -102,7 +105,7 @@ public class ActiveJPanel extends JPanel
     listeners.remove( listener );
   }
 
- /* ---------------------- removeAllActionListener ----------------------- */
+ /* ---------------------- removeAllActionListeners ----------------------- */
  /**
   * Method to remove all listeners from this ActiveJPanel.
   */ 
