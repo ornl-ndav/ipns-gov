@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.36  2004/06/16 22:11:21  serumb
+ * Repaint components after changes made to the graph.
+ *
  * Revision 1.35  2004/06/10 23:28:26  serumb
  * Add a legend control.
  *
@@ -702,7 +705,7 @@ import javax.swing.border.*;
         {
           log_scale = log_slider.getValue();
           gjp.setLogScale((float)log_scale, true);
-          paintComponents( big_picture.getGraphics(  ) );
+          fvc.paintComponents( );
         }
       }
       else if( message.equals( "BUTTON_PRESSED" ) ) {
@@ -756,7 +759,7 @@ import javax.swing.border.*;
                                  big_picture.getComponentCount() - 4 );
                legend.editLegend();
              }
-            paintComponents( big_picture.getGraphics(  ) );
+            fvc.paintComponents( );
            }
         /* 
            listens for the edit annotation button and brings up an edit 
@@ -1034,7 +1037,7 @@ import javax.swing.border.*;
               note.setTwoSided(false);
               gjp.setLogScaleX(false);
               gjp.setLogScaleY(false);
-              paintComponents( big_picture.getGraphics(  ) );
+              fvc.paintComponents(  );
             }
             else if( LogBox.getSelectedItem().equals( "X" ))
             {
@@ -1056,7 +1059,7 @@ import javax.swing.border.*;
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(false);
-              paintComponents( big_picture.getGraphics(  ) );
+              fvc.paintComponents(  );
             }  
             else if( LogBox.getSelectedItem().equals( "Y" ))
             {
@@ -1078,7 +1081,7 @@ import javax.swing.border.*;
               note.setTwoSided(false);
               gjp.setLogScaleY(true);
               gjp.setLogScaleX(false);
-              paintComponents( big_picture.getGraphics(  ) );
+              fvc.paintComponents(  );
             }  
             else if( LogBox.getSelectedItem().equals( "X and Y" ))
             {
@@ -1100,7 +1103,7 @@ import javax.swing.border.*;
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(true);
-              paintComponents( big_picture.getGraphics(  ) );
+              fvc.paintComponents( );
 
             }
           }  
@@ -1155,8 +1158,9 @@ import javax.swing.border.*;
            big_picture.getComponent(bpsize - 2).setVisible(true);
           }
         }
-       paintComponents( big_picture.getGraphics(  ) );
+       fvc.paintComponents(  );
       }  
+       fvc.paintComponents(  );
     }
   }
 
@@ -1201,19 +1205,6 @@ import javax.swing.border.*;
 */
   }  
 
-   private void paintComponents( Graphics g ) {
-    //big_picture.revalidate();
-    for( int i = big_picture.getComponentCount(  ); i > 0; i-- ) {
-      if( big_picture.getComponent( i - 1 ).isVisible(  ) ) {
-        if (g != null)
-        big_picture.getComponent( i - 1 ).update( g );
-      }
-    }
-                                                                                 
-    big_picture.getParent(  ).getParent(  ).getParent(  ).
-                              getParent(  ).repaint(  );
-   }
-   
 }
 
 
