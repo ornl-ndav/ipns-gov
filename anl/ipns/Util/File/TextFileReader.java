@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2002/03/27 22:54:29  pfpeterson
+ *  All exceptions that are caught or thrown are now IOExceptions.
+ *
  *  Revision 1.2  2001/11/21 21:14:21  dennis
  *  Added close() method
  *
@@ -208,7 +211,7 @@ public class TextFileReader
    *          of file has been reached, or a NumberFormatException, if the
    *          characters don't represent an int.
    */
-  public int read_int() throws Exception
+  public int read_int() throws IOException
   {
     try
     {
@@ -216,7 +219,7 @@ public class TextFileReader
       int val = (new Integer( s )).intValue();
       return val;
     }
-    catch ( Exception e )
+    catch ( IOException e )
     {
       throw e;
     }
@@ -235,7 +238,7 @@ public class TextFileReader
    *          of file has been reached, or a NumberFormatException, if the
    *          characters don't represent a float.
    */
-  public float read_float() throws Exception
+  public float read_float() throws IOException
   {
     try 
     {
@@ -243,7 +246,7 @@ public class TextFileReader
       float val = (new Float( s )).floatValue();
       return val;
     }
-    catch ( Exception e )
+    catch ( IOException e )
     {
       throw e;
     }
@@ -263,7 +266,7 @@ public class TextFileReader
    *          of file has been reached, or a NumberFormatException, if the
    *          characters don't represent a double.
    */
-  public double read_double() throws Exception
+  public double read_double() throws IOException
   {
     try
     {
@@ -271,7 +274,7 @@ public class TextFileReader
       double val = (new Double( s )).doubleValue();
       return val;
     }
-    catch ( Exception e )
+    catch ( IOException e )
     {
       throw e;
     }
