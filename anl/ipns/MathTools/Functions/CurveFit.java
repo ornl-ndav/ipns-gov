@@ -30,6 +30,13 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.9  2005/02/17 03:24:37  dennis
+ *  Added method to compute coefficients c0, c1, c2, ... for the
+ *  Chebyshev expansion of a sampled function f(x) on the interval
+ *  [-1,1].  f(x) ~ c0 T0(x) + c1 T1(x) + c2 T2(x) + ... where
+ *  T0, T1, T2,... are the Chebyshev polynomials of the first kind.
+ *
+ *
  *  Revision 1.8  2004/07/16 19:10:52  dennis
  *  Fixed improper comparison with Float.NaN
  *
@@ -177,6 +184,151 @@ public final class CurveFit
   }
 
 
+  /* ----------------------------- Chebyshev --------------------------- */
+  /**
+   *  Calculate the coefficients of the Chebyshev sum polynomial that 
+   *  best fits the given x and y values in the weighted least squares sense.
+   *  The array of x values must range from -1 to 1, in order.  
+   *
+   *  @param   x      list of x values of the points to fit.  There must be
+   *                  as many x values as y values.  The first x value must
+   *                  be -1, the last x value must be 1.
+   *
+   *  @param   y      list of y values of the points to fit.  There must be
+   *                  at least as many y values as x values.  If there are 
+   *                  more y values than x values, the extra y values will 
+   *                  be ignored. 
+   *                  
+   *  @param   coeff  The size of this array determines the degree of the
+   *                  polynomial to fit.  The array will be filled with the 
+   *                  coefficients ci for the ith Chebyshev polynomial. 
+   */
+   public static void Chebyshev( double  x[],
+                                 double  y[],
+                                 double  coeff[] )
+   {
+     if ( x == null || y == null || coeff == null )
+     {
+       System.out.println("ERROR: null array in CurveFit.Chebyshev");
+       return;
+     }
+
+     if ( x.length == 0 || y.length == 0 || coeff.length == 0 )
+     {
+       System.out.println("ERROR: zero length array in CurveFit.Chebyshev");
+       return;
+     }
+
+     if ( x[0] != -1 || x[x.length-1] != 1 )
+     {
+       System.out.println("ERROR: interval not [-1,1] in CurveFit.Chebyshev");
+       System.out.println(" inteval = " + x[0] + ", " + x[x.length] );
+       return;
+     }  
+
+     if ( y.length < x.length )
+     {
+       System.out.println("ERROR: fewer y's than x's in CurveFit.Chebyshev");
+       return;
+     }
+
+     for ( int degree = 0; degree < coeff.length; degree++ )
+       coeff[ degree ] = ChebyshevCoeff( x, y, degree );
+   }
+
+
+  /* -------------------------- ChebyshevCoeff --------------------------- */
+  /**
+   *  Calculate the weighted inner product of the Nth degree Chebyshev 
+   *  polynomial and the specfied sampled data for a function, f, over 
+   *  the interval [-1,1].  The inner product is computed using the
+   *  trapezoidal rule.
+   *
+   *  @param   x      list of x values in [-1,1] of the data points. There must
+   *                  be as many x values as y values.  If not, smaller of the
+   *                  two lengths is used.  The first x value MUST be -1 and
+   *                  the last x value MUST be 1.
+   *
+   *  @param   y      list of y values of the points to fit.  There should be
+   *                  as many y values as x values.  If not, smaller of the
+   *                  two lengths is used.
+   *                  
+   *  @param   n      The degree of the Chebyshev polynomial, Tn, that is used.
+   *
+   *  @return  The normalized inner product <f,Tn> defined as the integral 
+   *           from -1 to 1 of  f(x)Tn(x)/sqrt(1-x^2).  The Chebyshev 
+   *           polynomials are orthogonal with respect to this inner product, 
+   *           so this "essentially" gives the coefficient on Tn in the 
+   *           expansion of f() as a sum of Chebyshev polynomials.   The 
+   *           normalization factor is 1/PI for T0, and 2/PI
+   *           for Tn, n>0.
+   */
+   public static double ChebyshevCoeff( double  x[],
+                                        double  y[],
+                                        int     n  )
+   {
+     if ( x == null || y == null )
+     {
+        System.out.println("ERROR: null array in CurveFit.ChebyshevCoeff");
+        return Double.NaN;
+     }
+
+     int n_points = x.length;
+     if ( y.length < x.length )
+       n_points = y.length;
+
+     ChebyshevPolynomial cheb = new ChebyshevPolynomial(n);
+     
+     // Now approximate the inner product of the tabulated function, with the
+     // nth degree Chebyshev polynomial.  The integral is an improper integral
+     // so we can't use the values at the endpoints directly.  We use a 
+     // trapezoidal rule to approximate the integral, numerically.  This is
+     // straightforward, except for the first and last interval, which would
+     // require evaluating 1/sqrt(1-x^2) where x is 1 or -1.  These two 
+     // trapezoids are evaluated separately, by evaluating the improper 
+     // integral of a linear function divided by the weight function.  The
+     // x,y values are linearly interpolated over the interval to obtain 
+     // the linear function to integrate.
+     //
+                                          // use "ordinary" trapezoidal rule
+     double sum = 0;                      // over the interior intervals
+     double f0,
+            f1;
+     f0 = (y[1] * cheb.getValue(x[1])) / Math.sqrt(1-x[1]*x[1]);
+     for ( int i = 1; i < n_points-2; i++ )
+     {
+       f1 = (y[i+1] * cheb.getValue(x[i+1])) / Math.sqrt(1-x[i+1]*x[i+1]);
+       sum += (f0 + f1) / 2.0 * (x[i+1] - x[i]);
+       f0 = f1;
+     }
+                                          // add exact value for integral of
+                                          // linear interpolation polynomial
+     double x0  = -1;                     // over the first subinterval.
+     double x1  = x[1];
+     f0  = y[0] * cheb.getValue(x0);
+     f1  = y[1] * cheb.getValue(x1);
+
+     double m = (f1 - f0) / (x1 - x0);
+     double b = (f0 * x1 - x0 * f1) / (x1 - x0);
+     sum += -m * Math.sqrt( 1 - x1 * x1 ) + b * (Math.PI - Math.acos(x1)); 
+
+                                          // add exact value for integral of
+                                          // linear interpolation polynomial
+     x0  = x[n_points-2];                 // over the last subinterval.
+     x1  = 1;
+     f0  = y[n_points-2] * cheb.getValue(x0);
+     f1  = y[n_points-1] * cheb.getValue(x1);
+
+     m = (f1 - f0) / (x1 - x0);
+     b = (f0 * x1 - x0 * f1) / (x1 - x0);
+     sum += m * Math.sqrt( 1 - x0 * x0 ) + b * Math.acos(x0);   
+     
+     if ( n == 0 )
+       return sum * ( 1 / Math.PI );
+     else 
+       return sum * ( 2 / Math.PI );
+   }
+
 
   /* ---------------------------- main -------------------------------- */
   /* 
@@ -261,5 +413,21 @@ public final class CurveFit
      for ( int i = 0; i < x.length; i++ )
        chi_sq += (y[i] - val[i]) * (y[i] - val[i]) / y[i];
      System.out.println("Shifted DOWN: chi_sq = " + chi_sq );
+
+                                                       // test the Chebyshev fit
+     x = new double[ 101 ];
+     y = new double[ 101 ];
+     double coeff[] = new double[ 10 ];
+     ChebyshevPolynomial test = new ChebyshevPolynomial( 3 );
+
+     for ( int i = 0; i < x.length; i++ )
+     {
+       x[i] = -1 + 2 * i/(double)(x.length-1);
+       y[i] = test.getValue( x[i] ); 
+     }
+
+     Chebyshev( x, y, coeff );
+     for ( int i = 0; i < coeff.length; i++ )
+       System.out.println("i = " + i + " coeff = " + coeff[i] );
    }
 }
