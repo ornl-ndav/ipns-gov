@@ -32,19 +32,19 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/03/12 03:05:53  dennis
+ * Moved to package gov.anl.ipns.ViewTools.Components.ViewControls
+ *
  * Revision 1.1  2003/07/08 16:31:34  serumb
  * Added to CVS.
  *
  */
-package DataSetTools.components.View.ViewControls;
+package gov.anl.ipns.ViewTools.Components.ViewControls;
 
 import java.awt.*;
 import java.awt.event.*;
-
 import java.util.Vector;
-
 import javax.swing.*;
-
 
 /**
  * This class is to create a JPanel of ViewControls that has the capability to
