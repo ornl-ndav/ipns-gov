@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.25  2005/03/09 22:25:05  millermi
+ * - Added capability to test ImageViewComponent with the ArrayGenerator.
+ *
  * Revision 1.24  2005/01/18 23:11:00  millermi
  * - Listeners that previously listened for events from the
  *   SelectionOverlay now listen for the SELECTED_CHANGED event
@@ -168,6 +171,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
 
+import gov.anl.ipns.ViewTools.Components.TwoD.ArrayGenerator;
 import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
@@ -422,19 +426,37 @@ public class IVCTester extends JFrame implements IPreserveState,
       }
       else if( ae.getActionCommand().equals("New Data") )
       {
-        int row = 200;
-    	int col = 300;
-    	float test_array[][] = new float[row][col];
-    	for ( int i = 0; i < row; i++ )
-    	  for ( int j = 0; j < col; j++ )
-    	    test_array[i][j] = i * j;
-	IVirtualArray2D va2D = new VirtualArray2D( test_array );
-    	va2D.setAxisInfo( AxisInfo.X_AXIS, -100f, 100f, 
+        if( data instanceof ArrayGenerator )
+	{
+          int rows = data.getNumRows()/10;
+	  int cols = data.getNumColumns()/10;
+	  IVirtualArray2D temp = data;
+	  data = new ArrayGenerator(cols,rows);
+	  // Transfer all meta data over to new array.
+	  data.setAxisInfo(AxisInfo.X_AXIS, temp.getAxisInfo(AxisInfo.X_AXIS) );
+	  data.setAxisInfo(AxisInfo.Y_AXIS, temp.getAxisInfo(AxisInfo.Y_AXIS) );
+	  data.setAxisInfo(AxisInfo.Z_AXIS, temp.getAxisInfo(AxisInfo.Z_AXIS) );
+	  data.setTitle(temp.getTitle());
+	  temp = null;
+	  ivc.dataChanged(data);
+	}
+	else
+	{
+	  int row = 200;
+    	  int col = 300;
+    	  float test_array[][] = new float[row][col];
+    	  for ( int i = 0; i < row; i++ )
+    	    for ( int j = 0; j < col; j++ )
+    	      test_array[i][j] = i * j;
+	  IVirtualArray2D va2D = new VirtualArray2D( test_array );
+    	  va2D.setAxisInfo( AxisInfo.X_AXIS, -100f, 100f, 
     			    "New X","New Units", AxisInfo.LINEAR );
-    	va2D.setAxisInfo( AxisInfo.Y_AXIS, -150f, 150f,     
-     			   "New Y","New Y Units", AxisInfo.LINEAR );
-        va2D.setTitle("New IVC Test");
-	ivc.dataChanged(va2D);
+    	  va2D.setAxisInfo( AxisInfo.Y_AXIS, -150f, 150f,     
+     			    "New Y","New Y Units", AxisInfo.LINEAR );
+          va2D.setTitle("New IVC Test");
+	  ivc.dataChanged(va2D);
+        }
+	repaint();
       }
       else if( ae.getActionCommand().equals("Add Marker at Center") )
       {
@@ -454,6 +476,10 @@ public class IVCTester extends JFrame implements IPreserveState,
   {
     public void actionPerformed( ActionEvent ae )
     {
+      // Since regions are so big, this calculation becomes unavailable if
+      // the ArrayGenerator is used.
+      if( data instanceof ArrayGenerator )
+        return;
       String message = ae.getActionCommand();
       if( message.equals(ImageViewComponent.SELECTED_CHANGED) )
       {
@@ -486,48 +512,40 @@ public class IVCTester extends JFrame implements IPreserveState,
   */
   public static void main( String args[] )
   {
-    int row = 200;
-    int col = 200;
-    float test_array[][] = new float[row][col];
-    for ( int i = 0; i < row; i++ )
-      for ( int j = 0; j < col; j++ )
-        test_array[i][j] = i - j;
-    VirtualArray2D va2D = new VirtualArray2D( test_array );
-    va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
+    IVirtualArray2D va2D;
+    if( args.length > 0 && args[0].equals("virtual") )
+    {
+      int row = 3000000;
+      int col = 4000000;
+      va2D = new ArrayGenerator( row,col );
+      va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
     		        "TestX","TestUnits", AxisInfo.LINEAR );
-    va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
+      va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
     			"TestY","TestYUnits", AxisInfo.TRU_LOG );
+    }
+    else
+    {
+      int row = 200;
+      int col = 200;
+      float test_array[][] = new float[row][col];
+      for ( int i = 0; i < row; i++ )
+        for ( int j = 0; j < col; j++ )
+          test_array[i][j] = i - j;
+      va2D = new VirtualArray2D( test_array );
+    }
     va2D.setTitle("IVCTester");
     ObjectState state = new ObjectState();
     ObjectState sliderstate = new ObjectState();
     sliderstate.insert(ControlSlider.SLIDER_VALUE, new Float(20) );
     state.insert( ImageViewComponent.LOG_SCALE_SLIDER, sliderstate );
-    state.insert( ImageViewComponent.PRESERVE_ASPECT_RATIO, new Boolean(true) );
-                  
+    state.insert( ImageViewComponent.PRESERVE_ASPECT_RATIO, new Boolean(true));
+    
     IVCTester im_frame = new IVCTester( va2D );
     im_frame.setObjectState(state);
     // display IVCTester
     WindowShower shower = new WindowShower(im_frame);
     java.awt.EventQueue.invokeLater(shower);
     shower = null;
-    /*
-    // test setData() 10 times
-    for( int x = 0; x < 20; x++ )
-    {
-      for ( int i = 0; i < 500; i++ )
-        for ( int j = 0; j < 500; j++ )
-          test_array[i][j] = i*j;
-      va2D = new VirtualArray2D( test_array );
-      im_frame.setData(va2D);
-    }
-    
-    IVCTester im_frame2 = new IVCTester( test_array,
-                                             new AxisInfo( 0f, 10000f,"TestX",
-			                                    "TestUnits", true ),
-                                             new AxisInfo( 0f, 1500f,"TestY",
-			                                   "TestYUnits", true ),
-					     "ImageFrame Alternate Test" );
-    im_frame2.setData( test_array );*/
   }
 
 }
