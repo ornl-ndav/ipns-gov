@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.15  2003/06/18 14:59:38  dennis
+ *  Added convenience method to print an array of doubles.
+ *
  *  Revision 1.14  2003/06/17 13:28:09  dennis
  *  Added getTranspose( a[][] ) method, and added formatting
  *  to print( a[][] ) method.
@@ -256,6 +259,16 @@ public final class LinearAlgebra
       System.out.println("");
     }
   }
+
+  /**
+   * Prints to STDOUT any one-dimensional array of doubles
+   */
+  public static void print(double[] a){
+    for( int j=0 ; j<a.length ; j++ )
+      System.out.print( Format.real( a[j], 15, 7 ) + " ");
+    System.out.println("");
+  }
+
 
   /**
    * Converts a rectangular float array to a rectangular double array
