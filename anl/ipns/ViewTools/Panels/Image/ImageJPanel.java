@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2004/03/12 01:47:00  dennis
+ *  Moved to ViewTools.Panels.Image package
+ *
  *  Revision 1.24  2004/02/12 21:53:10  millermi
  *  - Added method getImageCoords() which returns the image bounds.
  *
@@ -108,7 +111,7 @@
  *
  */
 
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Image;
 
 import java.awt.*;
 import java.io.*;
@@ -117,9 +120,9 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.text.*;
 
-import DataSetTools.util.*;
-import DataSetTools.components.View.IPreserveState;
-import DataSetTools.components.View.ObjectState;
+import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.Util.Numeric.*;
 
 /**
  *    This class displays two dimensional arrays of floating point values as 
