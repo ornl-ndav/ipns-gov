@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/03/12 02:07:59  millermi
+ *  - Changed SharedData to SharedMessages.
+ *  _ Changed package and fixed imports.
+ *
  *  Revision 1.10  2004/02/16 05:21:37  millermi
  *  - Added methods getErrors(), setErrors(), setSquareRootErrors(),
  *    and getErrorValue() which allow an array of errors to be
@@ -73,10 +77,10 @@
  *
  */
 
-package DataSetTools.components.View;
+package gov.anl.ipns.ViewTools.Components;
 
-import DataSetTools.components.View.TwoD.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.ViewTools.Components.TwoD.*;
+import gov.anl.ipns.Util.Sys.SharedMessages;
 
 /**
  * This class puts a wrapper around a 2-D array of floats. It can be 
@@ -263,8 +267,8 @@ public class VirtualArray2D implements IVirtualArray2D
       return dataArray[row][column];
     else
     {
-      //SharedData.addmsg("Warning - cell at position (" + row + "," + column +
-      //  				") exceeds the array bounds." );
+      //SharedMessages.addmsg("Warning - cell at position (" +
+      //  	      row + "," + column + ") exceeds the array bounds." );
       return Float.NaN;
     }
   }  
@@ -282,8 +286,8 @@ public class VirtualArray2D implements IVirtualArray2D
       dataArray[row][column] = value;
     else
     {
-      SharedData.addmsg("Warning - cell at position (" + row + "," + column +
-        				 ") exceeds the array bounds." );
+      SharedMessages.addmsg("Warning - cell at position (" +
+        		 row + "," + column + ") exceeds the array bounds." );
       return;
     }
   }
@@ -314,7 +318,7 @@ public class VirtualArray2D implements IVirtualArray2D
     }	   
     if( from >= num_columns || to < 0 )
     {  
-      SharedData.addmsg("Warning - bound exceeds array in getRowValues()");
+      SharedMessages.addmsg("Warning - bound exceeds array in getRowValues()");
       return new float[0];
     }
     if( from < 0 )
@@ -335,7 +339,8 @@ public class VirtualArray2D implements IVirtualArray2D
     }
     else
     {  
-      SharedData.addmsg("Warning - invalid row selection in getRowValues()");
+      SharedMessages.addmsg("Warning - invalid row " +
+                            "selection in getRowValues()");
       return new float[0];
     }
        
@@ -355,7 +360,7 @@ public class VirtualArray2D implements IVirtualArray2D
   public void setRowValues( float[] values, int row, int start )
   {
     if( (start + values.length) > num_columns )  
-      SharedData.addmsg("Warning - bound exceeds array in setRowValues()");
+      SharedMessages.addmsg("Warning - bound exceeds array in setRowValues()");
     if( row < num_rows && row >= 0 )
     {
       int i = 0;
@@ -368,7 +373,8 @@ public class VirtualArray2D implements IVirtualArray2D
     }
     else
     {  
-      SharedData.addmsg("Warning - invalid row selection in setRowValues()");
+      SharedMessages.addmsg("Warning - invalid row " +
+                            "selection in setRowValues()");
       return;
     } 
   }	   
@@ -399,7 +405,7 @@ public class VirtualArray2D implements IVirtualArray2D
     }
     if( from >= num_rows || to < 0 )
     {  
-      SharedData.addmsg("Warning - bound exceeds array " +
+      SharedMessages.addmsg("Warning - bound exceeds array " +
         				  "in getColumnValues()");
       return new float[0];
     }
@@ -421,7 +427,7 @@ public class VirtualArray2D implements IVirtualArray2D
     }
     else
     {  
-      SharedData.addmsg("Warning - invalid row selection " +
+      SharedMessages.addmsg("Warning - invalid row selection " +
         				  "in setColumnValues()");
       return new float[0];
     }
@@ -442,7 +448,7 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     if( (start + values.length) > num_rows )
     {
-      SharedData.addmsg("Warning - bound exceeds array " +
+      SharedMessages.addmsg("Warning - bound exceeds array " +
    					    "in setColumnValues()");
     }
     if( column < num_columns && column >= 0 )
@@ -457,7 +463,7 @@ public class VirtualArray2D implements IVirtualArray2D
     }
     else
     {  
-      SharedData.addmsg("Warning - invalid row selection " +
+      SharedMessages.addmsg("Warning - invalid row selection " +
         				    "in setColumnValues()");
       return;
     }
@@ -520,7 +526,7 @@ public class VirtualArray2D implements IVirtualArray2D
     }
     if( row_start > num_rows || col_start > num_columns )
     {  
-      SharedData.addmsg("Warning - bound exceeds array " + 
+      SharedMessages.addmsg("Warning - bound exceeds array " + 
         				      "in getRegionValues()");
       return new float[0][0];
     }
@@ -543,7 +549,7 @@ public class VirtualArray2D implements IVirtualArray2D
         row_start == 0 && col_start == 0 )
     {
      /*  Unneeded warning message
-      SharedData.addmsg("Warning - You have been given a reference to the " +
+      SharedMessages.addmsg("Warning - You have been given a reference to the "+
       "array, not a copy. Altering values in this array will permanently " +
       "change these values.");
       */
@@ -576,7 +582,7 @@ public class VirtualArray2D implements IVirtualArray2D
     if( col_start + values[0].length > num_columns || 
         row_start + values.length > num_rows )
     {  
-      SharedData.addmsg("Warning - bound exceeds array " + 
+      SharedMessages.addmsg("Warning - bound exceeds array " + 
     					       "in getColumnValues()");
     }
     if( row_start < 0 )

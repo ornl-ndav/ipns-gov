@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/12 02:07:59  millermi
+ *  - Changed SharedData to SharedMessages.
+ *  _ Changed package and fixed imports.
+ *
  *  Revision 1.6  2004/02/16 05:21:38  millermi
  *  - Added methods getErrors(), setErrors(), setSquareRootErrors(),
  *    and getErrorValue() which allow an array of errors to be
@@ -58,9 +62,9 @@
  *
  */
  
-package DataSetTools.components.View;
+package gov.anl.ipns.ViewTools.Components;
 
-import DataSetTools.components.View.TwoD.*;
+import gov.anl.ipns.ViewTools.Components.TwoD.*;
 
 /**
  * This interface is implemented by classes that can produce a "logical"
