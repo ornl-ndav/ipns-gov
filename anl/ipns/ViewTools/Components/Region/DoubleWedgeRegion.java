@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/09 17:23:11  millermi
+ *  - Overload getDefiningPoints() from base class. This fixes
+ *    bug that converted angles to image coordinates.
+ *
  *  Revision 1.7  2004/02/14 03:34:56  millermi
  *  - selectedpoints no longer includes point found off the image.
  *  - added toString() method.
@@ -122,6 +126,34 @@ public class DoubleWedgeRegion extends Region
     // get rid of duplicate points.
     selectedpoints = getRegionUnion( dwedge );
     return selectedpoints;
+  }
+  
+ /**
+  * Get the world coordinate points used to define the geometric shape.
+  * This class must overload the base class method since angles must be
+  * ignored in the conversion.
+  *
+  *  @param  coordsystem The coordinate system from which the defining
+  *                      points are taken from, either WORLD or IMAGE.
+  *  @return array of points that define the region.
+  */
+  public floatPoint2D[] getDefiningPoints( int coordsystem )
+  {
+    // defining points, either in world or image.
+    floatPoint2D[] imagedp = super.getDefiningPoints(coordsystem);
+    // world coords
+    if( coordsystem == WORLD )
+      return imagedp;
+    // image coords
+    if( coordsystem == IMAGE )
+    {
+      // since angles were converted to image coords, replace them with
+      // original values.
+      imagedp[5] = definingpoints[5];
+      return imagedp;
+    }
+    // if invalid number
+    return null;
   }
   
  /**
