@@ -19,6 +19,9 @@
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log$
+ *  Revision 1.3  2004/06/17 19:19:44  dennis
+ *  Removed debug print.
+ *
  *  Revision 1.2  2004/06/17 15:27:02  dennis
  *  Added implementation of gluUnProject() to map pixel locations back to
  *  the corresponding point in 3D world coordinates.
@@ -282,13 +285,6 @@ public class BasicGLU
 
      model_view.transpose();                    // GL & GLU list matrices in 
      projection.transpose();                    // column major order
-
-     System.out.println("Model View = " + model_view );
-     System.out.println("Projection = " + projection );
-     System.out.println("viewport = " + viewport[0] + 
-                                 ", " + viewport[1] + 
-                                 ", " + viewport[2] +
-                                 ", " + viewport[3] );
 
      projection.multiply_by( model_view ); 
      projection.invert();
