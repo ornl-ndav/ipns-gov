@@ -33,6 +33,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/08/04 18:52:30  millermi
+ *  - Added enableStretch() and isStretchEnabled() to turn resizing
+ *    of the viewport on/off.
+ *  - Added code to update local_bounds when keyboard events were used
+ *    to translate the viewport.
+ *  - Added BOUNDS_MOVED and BOUNDS_RESIZED messaging Strings to
+ *    clarify the generic BOUNDS_CHANGED message. The BOUNDS_CHANGED
+ *    message is now used when the bounds are set by a method or when
+ *    neither BOUNDS_MOVED or BOUNDS_RESIZED applies.
+ *
  *  Revision 1.10  2004/05/11 00:58:04  millermi
  *  - Removed unused variables.
  *
@@ -104,7 +114,23 @@ public class TranslationJPanel extends CoordJPanel
   * to tell listeners that the viewport or local bounds have changed.
   */
   public static final String BOUNDS_CHANGED = "Bounds Changed";
+ 
+ /**
+  * "Bounds Moved" - This message String is used to tell listeners that
+  * the "viewport" or local bounds have been translated.
+  */ 
+  public static final String BOUNDS_MOVED = "Bounds Moved";
   
+ /**
+  * "Bounds Resized" - This message String is used to tell listeners that
+  * the "viewport" or local bounds have been resized.
+  */ 
+  public static final String BOUNDS_RESIZED = "Bounds Resized";
+  
+ /**
+  * "Cursor Changed" - This message String is used to tell listeners that
+  * the mouse cursor has been changed due to boundry dragging.
+  */
   public static final String CURSOR_CHANGED = "Cursor Changed";
   
   private BoxPanCursor box;
@@ -113,10 +139,12 @@ public class TranslationJPanel extends CoordJPanel
   private boolean stable_bounds = true;    // true as long as bounds aren't
                                            //  stretched
   private boolean stretching    = false;   // is stretching occuring...
+  private boolean ignore_stretch = false;  // Should stretching be allowed.
   private boolean north_stretch = false;   // What edge is being stretched.
   private boolean east_stretch  = false;   //  By the nature of stretching,
   private boolean south_stretch = false;   //  opposite sides cannot stretch
   private boolean west_stretch  = false;   //  at the same time.
+  private boolean translated = false;      // flag if the box was translated
   private Point differ = new Point(0,0);   // the x,y distance from the current
                                            // mouse point to the topleft corner
 					   // of the rectangle. This allows
@@ -151,6 +179,26 @@ public class TranslationJPanel extends CoordJPanel
   {
     super.setObjectState(state);
     send_message(BOUNDS_CHANGED);
+  }
+  
+ /**
+  * Use this method to enable/disable the stretching ability of the viewport.
+  *
+  *  @param  can_stretch True to enable stretching, false to disable.
+  */ 
+  public void enableStretch( boolean can_stretch )
+  {
+    ignore_stretch = !can_stretch;
+  }
+  
+ /**
+  * Use this method to find out if stretching is enabled.
+  *
+  *  @return True is enabled, false if disabled.
+  */
+  public boolean isStretchEnabled()
+  {
+    return !ignore_stretch;
   }
   
  /**
@@ -514,8 +562,14 @@ public class TranslationJPanel extends CoordJPanel
     
     public void mouseReleased (MouseEvent e)
     {
-      send_message(BOUNDS_CHANGED);
+      if( stretching && !ignore_stretch )
+        send_message(BOUNDS_RESIZED);
+      else if( translated )
+        send_message(BOUNDS_MOVED);
+      else
+        send_message(BOUNDS_CHANGED);
       stretching = false;
+      translated = false;
       north_stretch = false;
       east_stretch  = false;
       south_stretch = false;
@@ -535,8 +589,7 @@ public class TranslationJPanel extends CoordJPanel
   {
     public void mouseDragged(MouseEvent e)
     {
-      Point current = e.getPoint(); 
-      boolean translated = false;    // flag to tell if the box was translated
+      Point current = e.getPoint();
       
       Rectangle cursor_bounds = box.region(); // bounds of cursor
       Rectangle this_bounds = getBounds();    // bounds of entire jpanel
@@ -549,7 +602,7 @@ public class TranslationJPanel extends CoordJPanel
       {
         //System.out.println("Pixel: " + current.toString() + "  WC: " +
         //                   convertToWorldPoint(current).toString() ); 
-        if( stretching )
+        if( stretching && !ignore_stretch )
         {
           if( north_stretch )
 	    box.moveEdge( XOR_PanCursor.NORTH, grow.y );
@@ -604,7 +657,7 @@ public class TranslationJPanel extends CoordJPanel
         } // end else !stretching
 	      
         // if the translation was successful, then update the local coords.
-        if( translated || stretching)
+        if( translated || stretching )
         {
           // now update the local bounds of this transjpanel after
           // the translation.
@@ -624,8 +677,9 @@ public class TranslationJPanel extends CoordJPanel
           {
             restoreBounds(true);
           }
-	  
         } // end if translated
+	if( ignore_stretch )
+	  translated = true;
       } // end if contains point    
     } // end mouseDragged()
     
@@ -650,6 +704,9 @@ public class TranslationJPanel extends CoordJPanel
 	  this_panel.setCursor( new Cursor(Cursor.MOVE_CURSOR) );
         return;
       }
+      // If stretching should be ignored, do not change the cursor.
+      if( ignore_stretch )
+        return;
       // If on north bound, change cursor.
       if( on_bounds[1] )
       {
@@ -715,11 +772,12 @@ public class TranslationJPanel extends CoordJPanel
       Point corner2 = new Point(corner);
       corner2.x += (int)cursor_bounds.getWidth();
       corner2.y += (int)cursor_bounds.getHeight();
-      
+       
+      translated = true;
       if( code == KeyEvent.VK_UP )
       {
         if( this_bounds.contains( new Point( corner.x, corner.y - 1 ) ) )
-	  corner.y -= 1; 
+	  corner.y -= 1;
       }
       else if( code == KeyEvent.VK_DOWN )
       {  
@@ -734,10 +792,35 @@ public class TranslationJPanel extends CoordJPanel
       else if( code == KeyEvent.VK_RIGHT )
       {
         if( this_bounds.contains( new Point( corner2.x + 1, corner2.y ) ) )
-	  corner.x += 1;  
-      }	
+	  corner.x += 1;
+      }
+      else
+        translated = false;
       box.translate( corner );
-      send_message(BOUNDS_CHANGED);     
+            
+      // if the translation was successful, then update the local coords.
+      if( translated )
+      {
+        // now update the local bounds of this transjpanel after
+        // the translation.
+        Rectangle region = box.region();
+        Point p1 = region.getLocation();
+        p1.x += 1; // correct off by one error
+        p1.y += 1;
+        Point p2 = new Point(p1);
+        p2.x += region.getWidth();
+        p2.y += region.getHeight();
+        floatPoint2D wcp1 = convertToWorldPoint(p1);
+        floatPoint2D wcp2 = convertToWorldPoint(p2);
+        setLocalWorldCoords( new CoordBounds( wcp1.x, wcp1.y,
+        				      wcp2.x, wcp2.y ) );
+        // if bounds are still consistent, reset the restore bounds.
+        if( stable_bounds )
+        {
+          restoreBounds(true);
+        }
+        send_message(BOUNDS_MOVED);
+      }
     }
   }
  
