@@ -29,6 +29,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/03/12 01:14:12  serumb
+ * Changed package imports and beep.
+ *
  * Revision 1.7  2004/02/10 05:33:03  bouzekc
  * Now uses IsawToolkit.beep().
  *
@@ -43,14 +46,15 @@
  *
  */
 
-package DataSetTools.components.ui;
-import java.awt.BorderLayout;
+package gov.anl.ipns.ViewTools.UI;
+import java.awt.*;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
 import javax.swing.JOptionPane;
+import java.lang.Object.*;
 
 /**
  * A basic JFC based application.
@@ -167,7 +171,7 @@ public class JFrameMessageCHOP extends javax.swing.JFrame
 	{
 		try {
 	    	// Beep
-	    	DataSetTools.util.IsawToolkit.beep();
+	    	Toolkit.getDefaultToolkit().beep();
 	    	// Show a confirmation dialog
 	    	int reply = JOptionPane.showConfirmDialog(this,
 	    	                                          "Do you really want to exit?",
