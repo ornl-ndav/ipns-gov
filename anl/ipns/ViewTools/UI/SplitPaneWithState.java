@@ -31,6 +31,9 @@
  * Modified:
  *  
  * $Log$
+ * Revision 1.5  2002/07/15 17:00:11  dennis
+ * Constructor now sets OneTouchExpandable to true.
+ *
  * Revision 1.4  2001/05/29 22:32:57  dennis
  * Now basically working.  Calls validate() after setting divider
  * location to trigger the layout of the child components.  Also
@@ -96,6 +99,7 @@ public class SplitPaneWithState extends    JSplitPane
       super( orientation, first_component, second_component );
       my_setDividerLocation( divider_location );
       addComponentListener( new ResizeHandler() );
+      setOneTouchExpandable(true);
     }
 
 /* -------------------------- my_setDividerLocation ----------------------- */
