@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2004/11/12 21:20:05  millermi
+ *  - Changed LogScaleUtil to PseudoLogScaleUtil since pseudo-log
+ *    mapping was moved.
+ *  - Constructor now initializes logscale to that of the
+ *    IColorScaleAddible component passed it.
+ *
  *  Revision 1.25  2004/11/11 19:48:24  millermi
  *  - Modified method calls to new version of LogScaleUtil.
  *  - Added getLocalCoordBounds() and getGlobalCoordBounds() to reflect the
@@ -162,7 +168,7 @@
  import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
  import gov.anl.ipns.ViewTools.Components.AxisInfo;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
- import gov.anl.ipns.ViewTools.Components.LogScaleUtil;
+ import gov.anl.ipns.ViewTools.Components.PseudoLogScaleUtil;
  import gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D;
  import gov.anl.ipns.ViewTools.Components.Transparency.IPseudoLogAxisAddible;
  import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
@@ -279,7 +285,7 @@ public class ControlColorScale extends ViewControl
     setColorScale( colorscheme, isTwoSided ); 
     setAxisVisible(true); 
     font = component.getFont();
-    logscale = 0;
+    logscale = component.getLogScale();
     component.addActionListener( new ColorChangedListener() );
   }
   
@@ -427,7 +433,7 @@ public class ControlColorScale extends ViewControl
       {
 	axis_min = 0;
       }
-      LogScaleUtil logger = new LogScaleUtil( axis_min, axis_max );
+      PseudoLogScaleUtil logger = new PseudoLogScaleUtil( axis_min, axis_max );
       double logscale = component.getLogScale(); 
       marker = logger.toDest(marker, logscale);
       if( negate && isTwoSided )
