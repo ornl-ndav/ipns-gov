@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/03 04:36:13  millermi
+ *  - help() now uses html tool kit to display text.
+ *  - Replaced all setVisible(true) with WindowShower.
+ *
  *  Revision 1.5  2003/12/20 21:37:29  millermi
  *  - implemented kill() so editor and help windows are now
  *    disposed when the kill() is called.
@@ -58,7 +62,10 @@
 
 package DataSetTools.components.View.Transparency;
 
-import java.awt.*;
+import java.awt.Rectangle;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
@@ -66,6 +73,8 @@ import java.awt.event.ComponentEvent;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
+import javax.swing.JEditorPane;
+import javax.swing.text.html.HTMLEditorKit;
 import java.util.Vector; 
 
 import DataSetTools.components.View.ObjectState;
@@ -75,6 +84,7 @@ import DataSetTools.components.image.CoordJPanel;
 import DataSetTools.components.image.CoordBounds;
 import DataSetTools.components.image.CoordTransform;
 import DataSetTools.util.floatPoint2D;
+import DataSetTools.util.WindowShower;
 
 /**
  * This overlay is not like the Axis, Annotation, or Selection Overlays. 
@@ -140,21 +150,24 @@ public class TranslationOverlay extends OverlayJPanel
   {
     helper = new JFrame("Help for Translation Overlay");
     helper.setBounds(0,0,600,400);
-    JTextArea text = new JTextArea("Description:\n\n");
-    text.setEditable(false);
-    text.setLineWrap(true);
-    text.append("The Translation Overlay is used to pan over an image " +
-                "to view parts not directly visible on the image.\n\n");
-    text.append("Commands for Translation Overlay\n\n");
-    text.append("Use the mouse to click and drag to a " +
-                "new selected region on the image.\n\n" );
-    text.append("********************************************************\n");
     
-    JScrollPane scroll = new JScrollPane(text);
+    JEditorPane textpane = new JEditorPane();
+    textpane.setEditable(false);
+    textpane.setEditorKit( new HTMLEditorKit() );
+    String text = "<H1>Description:</H1> <P>" +
+                  "The Translation Overlay is used to pan over an image " +
+                  "to view parts not directly visible on the image.</P>" +
+                  "<H2>Commands for Translation Overlay</H2>" +
+                  "Use the mouse to click and drag to a " +
+                  "new selected region on the image.<BR>" +
+                  "********************************************************";
+    textpane.setText(text);
+    JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
  				    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    helper.setVisible(true);
+    WindowShower shower = new WindowShower(helper);
+    java.awt.EventQueue.invokeLater(shower);
   }
  
  /**

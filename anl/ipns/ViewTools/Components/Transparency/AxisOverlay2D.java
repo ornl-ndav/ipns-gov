@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2004/01/03 04:36:12  millermi
+ *  - help() now uses html tool kit to display text.
+ *  - Replaced all setVisible(true) with WindowShower.
+ *
  *  Revision 1.24  2003/12/30 03:55:31  millermi
  *  - Fixed bug that caused no log calibrations to be shown when
  *    image was very small.
@@ -141,6 +145,7 @@
 package DataSetTools.components.View.Transparency;
 
 import javax.swing.*; 
+import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -152,7 +157,7 @@ import DataSetTools.components.View.*;
 import DataSetTools.components.View.TwoD.ImageViewComponent;
 import DataSetTools.util.Format;
 import DataSetTools.util.floatPoint2D; 
-import java.lang.Math;
+import DataSetTools.util.WindowShower;
 
 /**
  * This class is used by view components to calibrate a JPanel. Besides
@@ -334,40 +339,39 @@ public class AxisOverlay2D extends OverlayJPanel
   {
     helper = new JFrame("Help for Axis Overlay");
     helper.setBounds(0,0,600,400);
-    JTextArea text = new JTextArea("Description:\n\n");
-    text.setEditable(false);
-    text.setLineWrap(true);
-
-    text.append("The Axis Overlay provides calibration for data. Most " +
-        	"viewers initially have this overlay on, however, turning " +
-    		"it off provides more room for displaying data. This " +
-    		"overlay may also be used for providing grid lines.\n\n");
-    text.append("Commands for Axes Overlay\n\n");
-    text.append("Note:\n" +
-        	"- The Axes Overlay has no commands associated with it. " +
-        	"Instead, it allows the commands of the underlying image.\n" +
-        	"- These commands will NOT work if any other overlay " +
-    		"is checked.\n\n");
-    text.append("********************************************************\n");
-    text.append("Commands for Underlying image (Without Edit button)\n");
-    text.append("********************************************************\n");
-    text.append("Click/Drag/Release MouseButton2>ZOOM IN\n");
-    text.append("Click/Drag/Release Mouse w/Shift_Key>ZOOM IN ALTERNATE\n");
-    text.append("Double Click Mouse>RESET ZOOM\n");
-    text.append("Single Click Mouse>SELECT CURRENT POINT\n\n");
-    text.append("********************************************************\n");
-    text.append("Commands for AxisEditor (Edit button under Axis Overlay)\n");
-    text.append("********************************************************\n");
-    text.append("Use drop-down box to choose GRID OPTIONS for X and/or Y " +
-        	"axis.\n");
-    text.append("Click on \"Change Grid Color\" button to CHANGE GRID COLOR" +
-        	" for both X and Y axis.\n\n");
-    
-    JScrollPane scroll = new JScrollPane(text);
+    JEditorPane textpane = new JEditorPane();
+    textpane.setEditable(false);
+    textpane.setEditorKit( new HTMLEditorKit() );
+    String text = "<H1>Description:</H1>" +
+                  "<P>The Axis Overlay provides calibration for data. Most " +
+        	  "viewers initially have this overlay on, however, turning " +
+    		  "it off provides more room for displaying data. This " +
+    		  "overlay may also be used for providing grid lines.</P>" +
+                  "<H2>Commands for Axis Overlay</H2>" +
+                  "<P>Note:<BR>" +
+        	  "- The Axis Overlay has no commands associated with it. " +
+        	  "Instead, it allows the commands of the underlying image." +
+        	  "<BR>- These commands will NOT work if any other overlay " +
+    		  "is checked.</P>" +
+                  "<H2>Commands for Underlying image <BR>" +
+		  "(Without Edit button)</H2>" +
+                  "<P>Click/Drag/Release MouseButton2>ZOOM IN<BR>" +
+                  "Click/Drag/Release Mouse w/Shift_Key>ZOOM IN ALTERNATE<BR>" +
+                  "Double Click Mouse>RESET ZOOM<BR>" +
+                  "Single Click Mouse>SELECT CURRENT POINT</P>" +
+		  "<H2>Commands for AxisEditor<BR>" +
+		  "(Edit button under Axis Overlay)</H2>" +
+                  "<P>Use drop-down box to choose GRID OPTIONS for X " +
+        	  "and/or Y axis.<BR>" +
+                  "Click on \"Change Grid Color\" button to " +
+        	  "CHANGE GRID COLOR for both X and Y axis.</P>";
+    textpane.setText(text);
+    JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
-        			    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+ 				    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    helper.setVisible(true);
+    WindowShower shower = new WindowShower(helper);
+    java.awt.EventQueue.invokeLater(shower);
   }
   
  /**
@@ -543,7 +547,8 @@ public class AxisOverlay2D extends OverlayJPanel
       editor_bounds = editor.getBounds(); 
       editor.dispose();
       editor = new AxisEditor();
-      editor.setVisible(true);
+      WindowShower shower = new WindowShower(editor);
+      java.awt.EventQueue.invokeLater(shower);
       editor.toFront();
     }
   }

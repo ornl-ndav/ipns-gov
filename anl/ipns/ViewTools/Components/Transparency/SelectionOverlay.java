@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2004/01/03 04:36:13  millermi
+ *  - help() now uses html tool kit to display text.
+ *  - Replaced all setVisible(true) with WindowShower.
+ *
  *  Revision 1.28  2003/12/30 00:39:37  millermi
  *  - Added Annular selection capabilities.
  *  - Changed SelectionJPanel.CIRCLE to SelectionJPanel.ELLIPSE
@@ -196,7 +200,8 @@
  
 package DataSetTools.components.View.Transparency;
 
-import javax.swing.*; 
+import javax.swing.*;
+import javax.swing.text.html.HTMLEditorKit; 
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -211,7 +216,8 @@ import DataSetTools.components.View.Region.WCRegion;
 import DataSetTools.components.View.Cursor.*; 
 import DataSetTools.components.View.ViewControls.ControlSlider;
 import DataSetTools.components.View.ViewControls.IViewControl;
-import DataSetTools.util.floatPoint2D;
+import DataSetTools.util.floatPoint2D; 
+import DataSetTools.util.WindowShower;
 
 /**
  * This class allows users to select a region for calculation purposes.
@@ -345,52 +351,53 @@ public class SelectionOverlay extends OverlayJPanel
   {
     helper = new JFrame("Help for Selection Overlay");
     helper.setBounds(0,0,600,400);
-    JTextArea text = new JTextArea("Description:\n\n");
-    text.setEditable(false);
-    text.setLineWrap(true);
-    text.append("The Selection Overlay is used to selection regions of " +
-        	"data for analysis. The selected region will initially be " +
-        	"outlined in white, unless otherwise specified.\n\n");
-    text.append("Commands for Selection Overlay\n\n");
-    text.append("Note:\n" +
-        	"- These commands will NOT work if the Annotation " +
-        	"Overlay checkbox IS checked or if the Selection " + 
-    		"Overlay IS NOT checked.\n" +
-    		"- Zooming on the image is only allowed if this overlay " +
-    		"is turned off.\n\n" );
-    text.append("*******************************************\n");
-    text.append("Image Commands:\n");
-    text.append("*******************************************\n");
-    text.append("Click/Drag/Release Mouse w/B_Key pressed>" + 
-        	"ADD BOX SELECTION\n");
-    text.append("Click/Drag/Release Mouse w/C_Key pressed>" + 
-        	"ADD ELLIPSE SELECTION\n");
-    text.append("Click/Drag/Release Mouse w/D_Key pressed>" + 
-        	"ADD DOUBLE WEDGE SELECTION\n");
-    text.append("Click/Drag/Release Mouse w/L_Key pressed>" + 
-        	"ADD LINE SELECTION\n");
-    text.append("Click/Drag/Release Mouse w/P_Key pressed>" + 
-        	"ADD POINT SELECTION\n");
-    text.append("Click/Drag/Release Mouse w/W_Key pressed>" + 
-        	"ADD WEDGE SELECTION\n");
-    text.append("Double Click Mouse>REMOVE LAST SELECTION\n");
-    text.append("Single Click Mouse w/A_Key>REMOVE ALL SELECTIONS\n\n");
-    text.append("*******************************************\n");
-    text.append("Selection Editor Commands (Edit button under Selection " +
-        	"Overlay Control)\n");
-    text.append("*******************************************\n");
-    text.append("Click on button corresponding to region type in editor, " +
-        	"then on image Click/Drag/Release mouse to ADD SELECTION\n");
-    text.append("Move slider to CHANGE OPACITY OF SELECTION. If highly " +
-        	"opaque, lines show bright. Low opacity makes selections " +
-    		"clear or transparent.\n");
-    text.append("Click on \"Change Color\" to CHANGE COLOR OF SELECTION.\n");
+    JEditorPane textpane = new JEditorPane();
+    textpane.setEditable(false);
+    textpane.setEditorKit( new HTMLEditorKit() );
+    String text = "<H1>Description:</H1>" +
+                  "<P>The Selection Overlay is used to selection regions of " +
+        	  "data for analysis. The selected region will initially be " +
+        	  "outlined in white, unless otherwise specified.</P>" +
+                  "<H2>Commands for Selection Overlay</H2>" +
+                  "<P>Note:<BR>" +
+        	  "- These commands will NOT work if the Annotation " +
+        	  "Overlay checkbox IS checked or if the Selection " + 
+    		  "Overlay IS NOT checked.<BR>" +
+    		  "- Zooming on the image is only allowed if this overlay " +
+    		  "is turned off.</P>"  +
+                  "<H2>Image Commands:</H2>" +
+                  "<P>Click/Drag/Release Mouse w/B_Key pressed>" + 
+        	  "ADD BOX SELECTION<BR>" +
+                  "Click/Drag/Release Mouse w/C_Key pressed>" + 
+        	  "ADD ELLIPSE SELECTION<BR>" +
+                  "Click/Drag/Release Mouse w/D_Key pressed>" + 
+        	  "ADD DOUBLE WEDGE SELECTION<BR>" +
+                  "Click/Drag/Release Mouse w/L_Key pressed>" + 
+        	  "ADD LINE SELECTION<BR>" +
+                  "Click/Drag/Release Mouse w/P_Key pressed>" + 
+        	  "ADD POINT SELECTION<BR>" +
+                  "Click/Drag/Release Mouse w/R_Key pressed>" + 
+        	  "ADD RING SELECTION<BR>" +
+                  "Click/Drag/Release Mouse w/W_Key pressed>" + 
+        	  "ADD WEDGE SELECTION<BR>" +
+                  "Double Click Mouse>REMOVE LAST SELECTION<BR>" +
+                  "Single Click Mouse w/A_Key>REMOVE ALL SELECTIONS</P>" +
+                  "<H2>Selection Editor Commands <BR>" +
+		  "(Edit button under Selection Overlay Control)</H2><P>" +
+                  "Click on button corresponding to region type in editor, " +
+        	  "then on image Click/Drag/Release mouse to ADD SELECTION" +
+                  "<BR>Move slider to CHANGE OPACITY OF SELECTION. If highly " +
+        	  "opaque, lines show bright. Low opacity makes selections " +
+    		  "clear or transparent.<BR>" +
+                  "Click on \"Change Color\" to CHANGE COLOR OF SELECTION.</P>";
     
-    JScrollPane scroll = new JScrollPane(text);
+    textpane.setText(text);
+    JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
-        			    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+ 				    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    helper.setVisible(true);
+    WindowShower shower = new WindowShower(helper);
+    java.awt.EventQueue.invokeLater(shower);
   }
   
  /**
@@ -482,7 +489,8 @@ public class SelectionOverlay extends OverlayJPanel
       editor_bounds = editor.getBounds();
       editor.dispose();
       editor = new SelectionEditor();
-      editor.setVisible(true);
+      WindowShower shower = new WindowShower(editor);
+      java.awt.EventQueue.invokeLater(shower);
       editor.toFront();
     }
   }

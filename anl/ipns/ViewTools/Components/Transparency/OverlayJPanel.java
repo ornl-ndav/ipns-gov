@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/03 04:36:13  millermi
+ *  - help() now uses html tool kit to display text.
+ *  - Replaced all setVisible(true) with WindowShower.
+ *
  *  Revision 1.6  2003/12/20 21:37:28  millermi
  *  - implemented kill() so editor and help windows are now
  *    disposed when the kill() is called.
@@ -56,11 +60,15 @@
 
 package DataSetTools.components.View.Transparency;
 
-import java.awt.*;
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JEditorPane;
+import javax.swing.text.html.HTMLEditorKit;
 
 import DataSetTools.components.View.ObjectState;
 import DataSetTools.components.View.IPreserveState;
+import DataSetTools.util.WindowShower;
 
 public abstract class OverlayJPanel extends JPanel implements IOverlay,
                                                               IPreserveState
@@ -81,13 +89,18 @@ public abstract class OverlayJPanel extends JPanel implements IOverlay,
   {
     JFrame helper = new JFrame("Help for Generic Overlay");
     helper.setBounds(0,0,600,400);
-    JTextArea text = new JTextArea("Commands for Generic Overlay\n\n");
-    helper.getContentPane().add(text);
-    text.setEditable(false);
-    text.setLineWrap(true);
-    text.append("Help information not available for this overlay.\n\n");
-    
-    helper.setVisible(true);
+    JEditorPane textpane = new JEditorPane();
+    textpane.setEditable(false);
+    textpane.setEditorKit( new HTMLEditorKit() );
+    String text = "<H1>Commands for Generic Overlay</H1>" +
+                  "Help information not available for this overlay.";
+    textpane.setText(text);
+    JScrollPane scroll = new JScrollPane(textpane);
+    scroll.setVerticalScrollBarPolicy(
+        			    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    helper.getContentPane().add(scroll);
+    WindowShower shower = new WindowShower(helper);
+    java.awt.EventQueue.invokeLater(shower);
   }
  
  /**

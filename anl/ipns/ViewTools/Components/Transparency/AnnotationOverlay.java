@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2004/01/03 04:36:12  millermi
+ *  - help() now uses html tool kit to display text.
+ *  - Replaced all setVisible(true) with WindowShower.
+ *
  *  Revision 1.23  2003/12/23 02:00:31  millermi
  *  - Adjusted interface package locations since they
  *    were moved from the TwoD directory
@@ -162,6 +166,7 @@
 package DataSetTools.components.View.Transparency;
 
 import javax.swing.*; 
+import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*; 
@@ -180,6 +185,7 @@ import DataSetTools.components.image.IndexColorMaker;
 import DataSetTools.components.ui.ColorScaleImage;
 import DataSetTools.components.image.*;
 import DataSetTools.util.floatPoint2D;
+import DataSetTools.util.WindowShower;
 
 /**
  * This class allows a user to write comments near a region on the 
@@ -309,50 +315,49 @@ public class AnnotationOverlay extends OverlayJPanel
   {
     helper = new JFrame("Help for Annotation Overlay");
     helper.setBounds(0,0,600,400);
-    JTextArea text = new JTextArea("Description:\n\n");
-    text.setEditable(false);
-    text.setLineWrap(true);
-    text.append("The Annotation Overlay is used to add on-screen notes to " +
- 		"data. Below are some basic commands necessary for creating" +
- 		" annotations.\n\n");
-    text.append("Commands for Annotation Overlay\n\n");
-    text.append("Note:\n" +
- 		"- These commands will NOT work if the Annotation " +
- 		"Overlay checkbox IS NOT checked.\n" +
- 		"- Zooming on the image is only allowed if this overlay " +
- 		"is turned off.\n\n" );
-    text.append("********************************************************\n");
-    text.append("Image Commands in conjunction with AnnotationEditor: " +
- 		"(Without clicking Edit button)\n");
-    text.append("********************************************************\n");
-    text.append("Click/Drag/Release Mouse w/Shift_Key pressed>" + 
- 		"CREATE ANNOTATION\n");
-    text.append("After annotation creation, Press Enter>ADD ANNOTATION\n");
-    text.append("Double Click Mouse>REMOVE LAST ANNOTATION\n");
-    text.append("Single Click Mouse w/A_Key>REMOVE ALL ANNOTATIONS\n\n");
-    text.append("********************************************************\n");
-    text.append("AnnotationEditor Commands (Edit Button under Annotation " +
- 		"Overlay Control)\n");
-    text.append("********************************************************\n");
-    text.append("Commands below are listed in the following way:\n");
-    text.append("(Focus>Action>Result) where Focus is where the cursor or " +
- 		"mouse must be. Focus is gained by clicking the mouse on " +
- 		"the desired area. Action is the action performed by you, " +
- 		"the user. Result is the consequence of your action.\n");
-    text.append("TextArea>Press Enter>REFRESH WINDOW\n");
-    text.append("TextArea>Hold Ctrl, Press Arrow Keys>MOVE ANNOTATION\n");
-    text.append("TextArea>Hold Shift, Press Arrow Keys>MOVE LINE ANCHOR\n");
-    text.append("TextArea>Remove All Text, Press Enter/Refresh>REMOVE "+
- 		"ANNOTATION\n");	       
-    text.append("ColorScale>Click Mouse>CHANGE TEXT AND LINE COLOR\n");
-    text.append("ColorScale>Hold Ctrl, Click Mouse>CHANGE LINE COLOR\n");
-    text.append("ColorScale>Hold Shift, Click Mouse>CHANGE TEXT COLOR\n");
     
-    JScrollPane scroll = new JScrollPane(text);
+    JEditorPane textpane = new JEditorPane();
+    textpane.setEditable(false);
+    textpane.setEditorKit( new HTMLEditorKit() );
+    String text = "<H1>Description:</H1><P>" +
+                  "The Annotation Overlay is used to add on-screen notes to " +
+ 		  "data. Below are some basic commands necessary for creating" +
+ 		  " annotations.</P>" +
+                  "<H2>Commands for Annotation Overlay</H2>" +
+                  "<P>Note:<BR>" +
+ 		  "- These commands will NOT work if the Annotation " +
+ 		  "Overlay checkbox IS NOT checked.<BR>" +
+ 		  "- Zooming on the image is only allowed if this overlay " +
+ 		  "is turned off.</P>" +
+                  "<H2>Image Commands in conjunction with AnnotationEditor: " +
+ 		  "<BR>(Without clicking Edit button)</H2>" +
+                  "<P>Click/Drag/Release Mouse w/Shift_Key pressed>" + 
+ 		  "CREATE ANNOTATION<BR>" +
+                  "After annotation creation, Press Enter>ADD ANNOTATION<BR>" +
+                  "Double Click Mouse>REMOVE LAST ANNOTATION<BR>" +
+                  "Single Click Mouse w/A_Key>REMOVE ALL ANNOTATIONS</P>" +
+                  "<H2>AnnotationEditor Commands <BR>" +
+		  "(Edit Button under Annotation Overlay Control)</H2>" +
+                  "<P>Commands below are listed in the following way:<BR>" +
+                  "(Focus>Action>Result) where Focus is where the cursor or " +
+ 		  "mouse must be. Focus is gained by clicking the mouse on " +
+ 		  "the desired area. Action is the action performed by you, " +
+ 		  "the user. Result is the consequence of your action.<BR>" +
+                  "TextArea>Press Enter>REFRESH WINDOW<BR>" +
+                  "TextArea>Hold Ctrl, Press Arrow Keys>MOVE ANNOTATION<BR>" +
+                  "TextArea>Hold Shift, Press Arrow Keys>MOVE LINE ANCHOR<BR>" +
+                  "TextArea>Remove All Text, Press Enter/Refresh>REMOVE " +
+ 		  "ANNOTATION<BR>" +	       
+                  "ColorScale>Click Mouse>CHANGE TEXT AND LINE COLOR<BR>" +
+                  "ColorScale>Hold Ctrl, Click Mouse>CHANGE LINE COLOR<BR>" +
+                  "ColorScale>Hold Shift, Click Mouse>CHANGE TEXT COLOR</P>";
+    textpane.setText(text);
+    JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
  				    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    helper.setVisible(true);
+    WindowShower shower = new WindowShower(helper);
+    java.awt.EventQueue.invokeLater(shower);
   }
    
   /**
@@ -486,7 +491,8 @@ public class AnnotationOverlay extends OverlayJPanel
       editor_bounds = editor.getBounds();
       editor.dispose();
       editor = new AnnotationEditor();
-      editor.setVisible(true);
+      WindowShower shower = new WindowShower(editor);
+      java.awt.EventQueue.invokeLater(shower);
       editor.toFront();
     }
   }
@@ -761,7 +767,8 @@ public class AnnotationOverlay extends OverlayJPanel
       place.x = place.x + (int)viewer.getLocation().getX();
       place.y = place.y + (int)viewer.getLocation().getY();
       this.setLocation(place);
-      this.setVisible(true);
+      WindowShower shower = new WindowShower(this);
+      java.awt.EventQueue.invokeLater(shower);
       text.grabFocus();		
     }
  	  
