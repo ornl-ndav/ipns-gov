@@ -30,6 +30,9 @@
  * Modified:
  *  
  * $Log$
+ * Revision 1.8  2004/03/12 00:39:52  serumb
+ * Changed package.
+ *
  * Revision 1.7  2003/10/15 23:29:18  dennis
  * Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -40,7 +43,7 @@
  * Constructor now sets OneTouchExpandable to true.
  *
  */
-package DataSetTools.components.containers;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.awt.*;
 import java.awt.event.*;

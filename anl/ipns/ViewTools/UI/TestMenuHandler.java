@@ -30,11 +30,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/12 00:41:11  serumb
+ *  Changed package.
+ *
  *  Revision 1.4  2002/11/27 23:13:34  pfpeterson
  *  standardized header
  *
  */
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import javax.swing.*;
 import java.awt.*;
