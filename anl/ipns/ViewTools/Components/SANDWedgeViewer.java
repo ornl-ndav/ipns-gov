@@ -33,6 +33,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2003/12/29 07:54:31  millermi
+ * - Added editor which enables user to make a selection
+ *   by entering defining characteristics.
+ * - ***Editing still unavailable*** This editor will
+ *   only work for creating new selections. The next
+ *   version should contain the ability to edit selections.
+ *
  * Revision 1.5  2003/12/23 02:21:36  millermi
  * - Added methods and functionality to allow enabling/disabling
  *   of selections.
@@ -70,6 +77,7 @@ import java.util.Vector;
 import java.awt.Container;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -78,8 +86,8 @@ import java.awt.event.ComponentEvent;
 import java.io.Serializable;
 import java.io.IOException;
 import java.io.EOFException;
- import javax.swing.border.TitledBorder;
- import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.border.LineBorder;
 
 import DataSetTools.components.View.TwoD.ImageViewComponent;
 import DataSetTools.components.View.OneD.FunctionViewComponent;
@@ -90,15 +98,19 @@ import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.Transparency.SelectionOverlay;
 import DataSetTools.components.View.Region.*;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
+import DataSetTools.components.View.ViewControls.CursorOutputControl;
+import DataSetTools.components.View.ViewControls.FieldEntryControl;
 import DataSetTools.components.View.ViewControls.PanViewControl;
 import DataSetTools.util.TextFileReader;
 import DataSetTools.util.RobustFileFilter;
+import DataSetTools.util.floatPoint2D;
 // these imports are for putting data into a dataset, then into DataSetData.
 import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.Data;
 import DataSetTools.dataset.FunctionTable;
 import DataSetTools.dataset.UniformXScale;
 import DataSetTools.util.FontUtil;
+import DataSetTools.dataset.IntListAttribute;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -141,6 +153,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   public static final String DATA_DIRECTORY        = "DataDirectory";
   
   private static JFrame helper = null;
+  private static final int ELLIPSE = 0;
+  private static final int WEDGE = 1;
+  private static final int DBL_WEDGE = 2;
   
   // complete viewer, includes controls and ijp
   private transient SplitPaneWithState pane;
@@ -149,7 +164,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient IVirtualArray2D data;
   private transient JMenuBar menu_bar;
   private DataSet data_set;
-  private String projectsDirectory = System.getProperty("user.home");
+  private String projectsDirectory = System.getProperty("Data_Directory");
+  private transient SANDEditor editor = new SANDEditor();
 
  /**
   * Construct a frame with no data to start with. This constructor will be
@@ -190,7 +206,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     
     init(temp);
   }
-  
+ 
+ /**
+  * This method sets the ObjectState of this viewer to a previously saved
+  * state.
+  *
+  *  @param  new_state The previously saved state that this viewer will be
+  *                    set to.
+  */ 
   public void setObjectState( ObjectState new_state )
   {
     boolean redraw = false;  // if any values are changed, repaint overlay.
@@ -224,7 +247,12 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     if( redraw )
       repaint();
   }
-  
+ 
+ /**
+  * This method returns the current ObjectState of this viewer.
+  *
+  *  @return The current ObjectState of this viewer.
+  */ 
   public ObjectState getObjectState()
   {
     ObjectState state = new ObjectState();
@@ -414,7 +442,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     buildMenubar();
     
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setBounds(0,0,500,615);
+    setBounds(0,0,550,615);
     
     data_set   = new DataSet("Value per Hit vs Distance", "Sample log-info");
 
@@ -441,7 +469,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 			     SelectionJPanel.LINE };
       ivc.disableSelection( disSelect );
       ivc.setColorControlEast(true);
-      ivc.addActionListener( new WVListener() );
+      //ivc.addActionListener( new WVListener() );
       ivc.addActionListener( new ImageListener() ); 
       fvc = new FunctionViewComponent( new DataSetData( data_set ) );   
       Box componentholder = new Box(BoxLayout.Y_AXIS);
@@ -449,7 +477,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       componentholder.add(fvc.getDisplayPanel() );
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
     	  			    componentholder,
-        			    buildControls(), .75f );
+        			    buildControls(), .68f );
       // get menu items from view component and place it in a menu
       ViewMenuItem[] menus = ivc.getSharedMenuItems();
       for( int i = 0; i < menus.length; i++ )
@@ -495,7 +523,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     else
     {
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
-                                    new JPanel(), new JPanel(), .75f );
+                                    new JPanel(), new JPanel(), .68f );
     }	   
   }
  
@@ -522,24 +550,24 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     Vector option_listeners = new Vector();
     Vector help_listeners = new Vector();
     file.add("File");
-    file_listeners.add( new ImageListener() ); // listener for file
+    file_listeners.add( new WVListener() ); // listener for file
     file.add(load_data);
       load_data.add("Load Data");
-      file_listeners.add( new ImageListener() ); // listener for load data
+      file_listeners.add( new WVListener() ); // listener for load data
     
     options.add("Options");
-    option_listeners.add( new ImageListener() ); // listener for options
+    option_listeners.add( new WVListener() ); // listener for options
     options.add(save_menu);
       save_menu.add("Save State");
-      option_listeners.add( new ImageListener() ); // listener for save state
+      option_listeners.add( new WVListener() ); // listener for save state
     options.add(load_menu);
       load_menu.add("Load State");
-      option_listeners.add( new ImageListener() ); // listener for load state
+      option_listeners.add( new WVListener() ); // listener for load state
     help.add("Help");
-    help_listeners.add( new ImageListener() );
+    help_listeners.add( new WVListener() );
     help.add( swv_help );
       swv_help.add("SAND Wedge Viewer");
-      help_listeners.add( new ImageListener() );
+      help_listeners.add( new WVListener() );
     
     menu_bar.add( MenuItemMaker.makeMenuItem(file,file_listeners) ); 
     menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
@@ -582,11 +610,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     fvc_border.setTitleFont( FontUtil.BORDER_FONT );
     fvc_controls.setBorder( fvc_border );
     JComponent[] fvc_ctrl = fvc.getPrivateControls();
-    for( int i = 0; i < fvc_ctrl.length; i++ )
+    // since 1st control is just a labeled jpanel, don't get that one.
+    for( int i = 1; i < fvc_ctrl.length; i++ )
     {
       fvc_controls.add(fvc_ctrl[i]);
     }
-    //fvc_controls.addComponentListener( new ResizedControlListener() );
     
     if( ivc_ctrl.length != 0 )
     {
@@ -596,6 +624,17 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     JPanel spacer = new JPanel();
     spacer.setPreferredSize( new Dimension(0, 10000) );
     controls.add(spacer);
+    
+    JPanel sand_controls = new JPanel(); 
+    TitledBorder sand_border = 
+    		     new TitledBorder(LineBorder.createBlackLineBorder(),
+        			      "SAND Selection Controls");
+    sand_border.setTitleFont( FontUtil.BORDER_FONT );
+    sand_controls.setBorder( sand_border );
+    JButton createbutton = new JButton("Specify Selection");
+    createbutton.addActionListener( new WVListener() );
+    sand_controls.add(createbutton);
+    controls.add(sand_controls);
     
     if( fvc_ctrl.length != 0 )
     {
@@ -610,15 +649,23 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     float start_x = 0;
     float end_x   = 0;
     int   n_xvals = 200;
-    Point center = new Point(0,0);
-   
+    Point center = new Point(0,0); 
+    String attribute_name = "";
+    int[] attributes = new int[6];
+    // Attributes for wedge/double wedge.
+    // 0. Type of selection (Static ints at top of this file)
+    // 1. X axis Center position, in world coordinates
+    // 2. Y axis Center position, in world coordinates
+    // 3. Radius of wedge, in world coordinates
+    // 4. Angle of the wedge axis, in degrees.
+    // 5. Width of wedge, in degrees.
+    // *** for Ellipse, Att. 3 is x radius, Att. 4 is y radius.***
     if( region == null )
     {
       return;
     }
     Point[] def_pts = region.getDefiningPoints();
-    if( region instanceof WedgeRegion || 
-        region instanceof DoubleWedgeRegion )
+    if( region instanceof WedgeRegion )
     {
      /* def_pts[0]   = center pt of circle that arc is taken from
       * def_pts[1]   = last mouse point/point at intersection of line and arc
@@ -630,6 +677,43 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       */
       center = new Point( def_pts[0] );
       end_x = def_pts[4].x - center.x;
+      // build attributes list
+      attribute_name = "Wedge";
+      int axisangle = Math.round((float)def_pts[5].x + (float)def_pts[5].y/2f);
+      if( axisangle > 359 )
+        axisangle -= 360;
+      int radius = def_pts[4].x - center.x;
+      attributes[0] = WEDGE;
+      attributes[1] = center.x;
+      attributes[2] = center.y;
+      attributes[3] = radius;
+      attributes[4] = axisangle;
+      attributes[5] = def_pts[5].y;
+    }
+    else if( region instanceof DoubleWedgeRegion )
+    {
+     /* def_pts[0]   = center pt of circle that arc is taken from
+      * def_pts[1]   = last mouse point/point at intersection of line and arc
+      * def_pts[2]   = reflection of p[1]
+      * def_pts[3]   = top left corner of bounding box around arc's total circle
+      * def_pts[4]   = bottom right corner of bounding box around arc's circle
+      * def_pts[5].x = startangle, the directional vector in degrees
+      * def_pts[5].y = degrees covered by arc.
+      */
+      center = new Point( def_pts[0] );
+      end_x = def_pts[4].x - center.x;
+      // build attributes list
+      attribute_name = "Double Wedge";
+      int axisangle = Math.round((float)def_pts[5].x + (float)def_pts[5].y/2f);
+      if( axisangle > 359 )
+        axisangle -= 360;
+      int radius = def_pts[4].x - center.x;
+      attributes[0] = DBL_WEDGE;
+      attributes[1] = center.x;
+      attributes[2] = center.y;
+      attributes[3] = radius;
+      attributes[4] = axisangle;
+      attributes[5] = def_pts[5].y;
     }
     else if( region instanceof EllipseRegion )
     {
@@ -639,6 +723,16 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       */
       center = new Point( def_pts[2] );
       end_x = def_pts[1].x - center.x;
+      // build attributes list
+      attribute_name = "Ellipse";
+      int major_radius = def_pts[1].x - center.x;
+      int minor_radius = def_pts[1].y - center.y;
+      attributes[0] = ELLIPSE;
+      attributes[1] = center.x;
+      attributes[2] = center.y;
+      attributes[3] = major_radius;
+      attributes[4] = minor_radius;
+      attributes[5] = 0;
     }
     // should never get to this else, if it does, we have a problem.
     else
@@ -681,15 +775,17 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       if( hit_count[bindex] != 0 )
         y_vals[bindex] = y_vals[bindex]/(float)hit_count[bindex];
     }
+    // put it into a "Data" object and then add it to the dataset
     spectrum = new FunctionTable( x_scale, y_vals, ID );
-                                                      // put it into a "Data"
-                                                      // object and then add
-    data_set.addData_entry( spectrum );               // that data object to
-                                                      // the data set
-    //data_set.setPointedAtIndex( data_set.getNum_entries() - 1 );
+    spectrum.setAttribute( new IntListAttribute( attribute_name, attributes ) );
+    
+    data_set.addData_entry( spectrum ); 
     data_set.setSelectFlag( data_set.getNum_entries() - 1, true );
   }
-  
+ 
+ /*
+  * This method only works for uniform bins.
+  */ 
   private int binarySearch(  float[] x_values, float dist )
   { 
     float start = x_values[0];
@@ -719,10 +815,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   }
   
  /*
-  * This class is required to update the axes when the divider is moved. 
-  * Without it, the image is one frame behind.
+  * This class is required to handle all messages within the SANDWedgeViewer.
   */
-  private class ImageListener implements ActionListener
+  private class WVListener implements ActionListener
   {
     public void actionPerformed( ActionEvent ae )
     {
@@ -755,13 +850,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       {
         help();
       }
+      else if( ae.getActionCommand().equals("Specify Selection") )
+      {
+        editor.setCurrentPoint( ivc.getPointedAt() );
+	editor.setVisible(true);
+      }
     }
   }
   
  /*
-  * This class listeners for selections made by the selection overlay
+  * This class listeners for all messages sent by the ImageViewComponent,
+  * including selections made by the selection overlay.
   */ 
-  private class WVListener implements ActionListener
+  private class ImageListener implements ActionListener
   {
     public void actionPerformed( ActionEvent ae )
     {
@@ -774,16 +875,25 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         // get points from the last selected region.
         integrate( selectedregions[selectedregions.length-1] );
         fvc.dataChanged(new DataSetData(data_set));
+	editor.selectionChanged();
       }
       else if( message.equals(SelectionOverlay.REGION_REMOVED) )
       {
         data_set.removeData_entry( data_set.getNum_entries() - 1 );
         fvc.dataChanged(new DataSetData(data_set));
+	editor.selectionChanged();
       }
       else if( message.equals(SelectionOverlay.ALL_REGIONS_REMOVED) )
       {
         data_set.removeAll_data_entries();
         fvc.dataChanged(new DataSetData(data_set));
+	editor.selectionChanged();
+      }
+      else if( message.equals(IViewComponent.POINTED_AT_CHANGED) )
+      {
+        editor.setCurrentPoint( ivc.getPointedAt() );
+	//System.out.println("Pointed At Changed " + 
+	//                   ivc.getPointedAt().toString() );
       }
     }
   }
@@ -840,15 +950,279 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       super.addExtension(".dat");
     } 
   }
+
+ /*
+  *
+  */
+  private class SANDEditor extends JFrame
+  {
+    private FieldEntryControl radiofec = new FieldEntryControl(5);
+    private CursorOutputControl coc;
+    private JComboBox selectlist;
+    private Box pane;
+    private Box leftpane;
+    private Box rightpane;
+    private SANDEditor this_editor;
+    
+    public SANDEditor()
+    {
+      this_editor = this;
+      this_editor.setTitle("SAND Wedge Editor");
+      this_editor.setBounds(0,0,310,300);
+      this_editor.getContentPane().setLayout( new GridLayout(1,1) );
+      this_editor.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
+      
+      pane = new Box( BoxLayout.X_AXIS );
+      leftpane = new Box( BoxLayout.Y_AXIS );
+      leftpane.setPreferredSize( new Dimension(
+                                     (int)(this_editor.getWidth()),0) );
+      rightpane = new Box( BoxLayout.Y_AXIS );
+      rightpane.setPreferredSize( new Dimension(
+                                      (int)(this_editor.getWidth()),0) );
+      
+      String[] ellipselabels = {"X Center", "Y Center",
+                                "X Radius", "Y Radius"};
+      String[] wedgelabels = {"X Center", "Y Center", "Radius", 
+                              "Wedge Axis Angle", "Width of Angle"};
+      String[] cursorlabels = {"X","Y"};
+      
+      radiofec.setLabelWidth(14);
+      radiofec.setFieldWidth(6);
+      radiofec.addRadioChoice("Ellipse",ellipselabels);
+      radiofec.addRadioChoice("Wedge",wedgelabels);
+      radiofec.addRadioChoice("Double Wedge","Wedge"); // use wedge labels
+      radiofec.addActionListener( new EditorListener() );
+      
+      coc = new CursorOutputControl(cursorlabels);
+      coc.setTitle("Current Pointed At");
+      setCurrentPoint( new floatPoint2D(0,0) );
+      
+      leftpane.add(radiofec);
+      
+      selectlist = new JComboBox();
+      buildComboBox();
+      rightpane.add( selectlist );
+      rightpane.add(coc);
+      JPanel spacer = new JPanel();
+      spacer.setPreferredSize( new Dimension( 0, 250 ) );
+      rightpane.add(spacer);
+      JButton closebutton = new JButton("Close");
+      closebutton.addActionListener(new EditorListener() );
+      rightpane.add( closebutton );
+      pane.add(leftpane);
+      pane.add(rightpane);
+      this_editor.getContentPane().add(pane);
+      
+    }
+   
+   /*
+    * This method will set the current world coord point, displayed by the
+    * x[] y[] cursor readout.
+    */ 
+    public void setCurrentPoint( floatPoint2D current_pt )
+    {
+      coc.setValue( 0, current_pt.x );
+      coc.setValue( 1, current_pt.y );
+      this_editor.repaint();
+    }
+    
+    public void selectionChanged()
+    {
+      buildComboBox();
+      rightpane.validate();
+      this_editor.repaint();
+    }
+    
+    private void buildComboBox()
+    {  
+      if( ivc != null )
+      {
+        Region[] regions = ivc.getSelectedRegions();
+        String[] sel_names = new String[regions.length + 1];
+        String temp = "";
+	String temp_name = "";
+	selectlist.removeAllItems();
+	for( int reg = 0; reg < regions.length; reg++ )
+        {
+	  if( regions[reg] instanceof EllipseRegion )
+	    temp = "Ellipse";
+	  else if( regions[reg] instanceof WedgeRegion )
+	    temp = "Wedge";
+	  else if( regions[reg] instanceof DoubleWedgeRegion )
+	    temp = "Double Wedge";
+          
+	  temp_name = (reg+1) + " - " + temp;
+          selectlist.addItem(temp_name);
+	}
+	selectlist.addItem("New Selection");
+	// set selected region to be the last region added.
+	if( regions.length > 0 )
+	  selectlist.setSelectedIndex( regions.length - 1 );
+      }
+      else
+      {
+	selectlist.addItem("New Selection");
+      }
+    }
   
+   /*
+    * This class listeners for messages send by the editor.
+    */ 
+    class EditorListener implements ActionListener
+    {
+      public void actionPerformed( ActionEvent ae )
+      {
+        String message = ae.getActionCommand();
+        
+        if( message.equals(FieldEntryControl.ENTER_PRESSED) )
+        {
+	  float[] values = radiofec.getAllFloatValues();
+	  
+     /* ***********************Defining Points for Ellipse**********************
+      * def_pts[0]   = top left corner of bounding box around arc's total circle
+      * def_pts[1]   = bottom right corner of bounding box around arc's circle
+      * def_pts[2]   = center pt of circle that arc is taken from
+      **************************************************************************
+      */
+	  if( radiofec.getSelected().equals("Ellipse") )
+	  {
+	    // since ivc y values are swapped, y values for topleft and
+	    // bottomright are also swapped.
+	    floatPoint2D[] wc_pts = new floatPoint2D[3];
+	    wc_pts[0] = new floatPoint2D( (values[0] - values[2]),
+	                                  (values[1] + values[3]) );
+	    wc_pts[1] = new floatPoint2D( (values[0] + values[2]),
+	                                  (values[1] - values[3]) );
+	    wc_pts[2] = new floatPoint2D( values[0], values[1] );
+	    ivc.addSelection( new WCRegion( SelectionJPanel.CIRCLE, wc_pts ) );
+	  }
+	  
+     /* ***********************Defining Points for Wedge************************
+      * def_pts[0]   = center pt of circle that arc is taken from
+      * def_pts[1]   = last mouse point/point at intersection of line and arc
+      * def_pts[2]   = reflection of p[1]
+      * def_pts[3]   = top left corner of bounding box around arc's total circle
+      * def_pts[4]   = bottom right corner of bounding box around arc's circle
+      * def_pts[5].x = startangle, the directional vector in degrees
+      * def_pts[5].y = degrees covered by arc.
+      **************************************************************************
+      */
+	  else if( radiofec.getSelected().equals("Wedge") )
+	  {
+	    // since ivc y values are swapped, y values for topleft and
+	    // bottomright are also swapped.
+	    floatPoint2D[] wc_pts = new floatPoint2D[6];
+	    wc_pts[0] = new floatPoint2D( values[0], values[1] );
+	    wc_pts[3] = new floatPoint2D( (values[0] - values[2]),
+	                                  (values[1] + values[2]) );
+	    wc_pts[4] = new floatPoint2D( (values[0] + values[2]),
+	                                  (values[1] - values[2]) );
+	    // use trig to find p1 (see WedgeCursor)
+	    double theta_p1 = (double)(values[3] - values[4]/2);
+	    // convert theta from degrees to radians
+	    theta_p1 = theta_p1 * Math.PI / 180;
+	    wc_pts[1] = new floatPoint2D( values[0] +
+	                                  values[2]*(float)Math.cos(theta_p1),
+					  values[1] +
+	                                  values[2]*(float)Math.sin(theta_p1));
+	    // use trig to find rp1 (see WedgeCursor)
+	    double theta_rp1 = (double)(values[3] + values[4]/2);
+	    // convert theta from degrees to radians
+	    theta_rp1 = theta_rp1 * Math.PI / 180;
+	    wc_pts[2] = new floatPoint2D( values[0] +
+	                                  values[2]*(float)Math.cos(theta_rp1),
+					  values[1] +
+	                                  values[2]*(float)Math.sin(theta_rp1));
+	    // define angles so WedgeRegion can use them.
+	    float arcangle = values[4];
+	    // make sure values are on interval [0,360)
+	    while( arcangle < 0 )
+	      arcangle = -arcangle;
+	    while( arcangle >= 360 )
+	      arcangle -= 360;
+	    
+	    float startangle = values[3] - arcangle/2;
+	    while( startangle >= 360 )
+	      startangle -= 360;
+	    while( startangle < 0 )
+	      startangle += 360;
+	    wc_pts[5] = new floatPoint2D( startangle, arcangle );
+	    ivc.addSelection( new WCRegion( SelectionJPanel.WEDGE, wc_pts ) );
+	  }
+	  
+     /* *******************Defining Points for Double Wedge*********************
+      * def_pts[0]   = center pt of circle that arc is taken from
+      * def_pts[1]   = last mouse point/point at intersection of line and arc
+      * def_pts[2]   = reflection of p[1]
+      * def_pts[3]   = top left corner of bounding box around arc's total circle
+      * def_pts[4]   = bottom right corner of bounding box around arc's circle
+      * def_pts[5].x = startangle, the directional vector in degrees
+      * def_pts[5].y = degrees covered by arc.
+      **************************************************************************
+      */
+	  else if( radiofec.getSelected().equals("Double Wedge") )
+	  {
+	    // since ivc y values are swapped, y values for topleft and
+	    // bottomright are also swapped.
+	    floatPoint2D[] wc_pts = new floatPoint2D[6];
+	    wc_pts[0] = new floatPoint2D( values[0], values[1] );
+	    wc_pts[3] = new floatPoint2D( (values[0] - values[2]),
+	                                  (values[1] + values[2]) );
+	    wc_pts[4] = new floatPoint2D( (values[0] + values[2]),
+	                                  (values[1] - values[2]) );
+	    // use trig to find p1 (see WedgeCursor)
+	    double theta_p1 = (double)(values[3] - values[4]/2);
+	    // convert theta from degrees to radians
+	    theta_p1 = theta_p1 * Math.PI / 180;
+	    wc_pts[1] = new floatPoint2D( values[0] +
+	                                  values[2]*(float)Math.cos(theta_p1),
+					  values[1] +
+	                                  values[2]*(float)Math.sin(theta_p1));
+	    // use trig to find rp1 (see WedgeCursor)
+	    double theta_rp1 = (double)(values[3] + values[4]/2);
+	    // convert theta from degrees to radians
+	    theta_rp1 = theta_rp1 * Math.PI / 180;
+	    wc_pts[2] = new floatPoint2D( values[0] +
+	                                  values[2]*(float)Math.cos(theta_rp1),
+					  values[1] +
+	                                  values[2]*(float)Math.sin(theta_rp1));
+	    // define angles so WedgeRegion can use them.
+	    float arcangle = values[4];
+	    // make sure values are on interval [0,360)
+	    while( arcangle < 0 )
+	      arcangle = -arcangle;
+	    while( arcangle > 180 )
+	      arcangle = 360 - arcangle;
+	    
+	    float startangle = values[3] - arcangle/2;
+	    while( startangle >= 360 )
+	      startangle -= 360;
+	    while( startangle < 0 )
+	      startangle += 360;
+	    wc_pts[5] = new floatPoint2D( startangle, arcangle );
+	    ivc.addSelection( new WCRegion( SelectionJPanel.DOUBLE_WEDGE,
+	                                    wc_pts ) );
+	  }
+	  
+        }
+        else if( message.equals("Close") )
+        {
+	  this_editor.setVisible(false);
+        }
+      }
+    }
+  
+  } // end of SANDEditor
   
  /*
-  * Main program. To set a consistent projectsDirectory
+  * Main program.
   */
   public static void main( String args[] )
   {
-    SANDWedgeViewer load = new SANDWedgeViewer();
-    load.setVisible(true);
+    SANDWedgeViewer wedgeviewer = new SANDWedgeViewer();
+    if( args.length > 0 )
+      wedgeviewer.loadData( args[0] );
+    wedgeviewer.setVisible(true);
   }
 
 }
