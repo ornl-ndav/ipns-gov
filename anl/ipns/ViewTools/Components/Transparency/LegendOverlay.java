@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/06/23 19:04:23  serumb
+ *  Initialized the legend label to an empty string.
+ *
  *  Revision 1.4  2004/06/23 18:58:44  serumb
  *  Added controls to change the Legend label and to hide the border.
  *
@@ -115,7 +118,7 @@ public class LegendOverlay extends OverlayJPanel
   private int x_offset = 0;
   private int y_offset = 0;
   private boolean draw_border = true;
-  private String legend_label = "Legend";
+  private String legend_label = "";
 
  /**
   * Constructor for initializing a new LegendOverlay
