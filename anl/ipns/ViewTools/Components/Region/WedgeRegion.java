@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/12/13 01:16:03  millermi
+ *  - Lines bounding wedge now use the LineRegion class
+ *    to find all points on the boundary consistently.
+ *  - Fixed bug that distorted the wedge when near the
+ *    border of the image.
+ *
  *  Revision 1.4  2003/12/12 06:11:44  millermi
  *  - Completely renovated how the points are selected.
  *    Previously slope was used to restrict points, now
@@ -122,12 +128,40 @@ public class WedgeRegion extends Region
      Point rp1 = new Point( definingpoints[2] );   // reflection of p1
      Point topleft = new Point( definingpoints[3] );
      Point bottomright = new Point( definingpoints[4] );
-     double xextent = (double)(bottomright.x - topleft.x)/2;
-     double yextent = (double)(bottomright.y - topleft.y)/2;
-     floatPoint2D fcenter = new floatPoint2D( (float)(topleft.x + xextent),
-                               (float)(topleft.y + yextent) );     
-     Vector points = new Vector();
      
+     double xextent = (double)(center.x - topleft.x);
+     double yextent = (double)(center.y - topleft.y); 
+     // since a mapping is done with the imagejpanel, the topleft or bottomright
+     // could have been mapped to the side of the image. However, at most
+     // one will be affected, so take the maximum extent of the two.
+     if( (bottomright.x - center.x) > xextent )
+     {
+       xextent = bottomright.x - center.x; 
+       topleft.x = (int)(center.x - xextent); 
+     }
+     else
+       bottomright.x = (int)(center.x + xextent);
+     if( (bottomright.y - center.y) > yextent )
+     {
+       yextent = bottomright.y - center.y;
+       topleft.y = (int)(center.y - yextent); 
+     }
+     else
+       bottomright.y = (int)(center.y + yextent);
+     
+     Vector points = new Vector();
+     // use this 2-d array to mark points that have been selected.
+     // First all points inside the wedge are selected, to maintain a
+     // consistent way of selecting regions, all boundry points are also
+     // included. To do this, LineRegions are used to find the inclusive points
+     // on each line bounding the wedge. This pointchecker acts as a board
+     // to mark which points have already been added. When a point is added,
+     // the corresponding boolean value is changed to true. If true, the point
+     // will not be added.
+     // Since some rounding has occurred, add 2 to each dimension of the array,
+     // one as a lower cushion and one for an upper cushion.
+     boolean[][] pointchecker = 
+                 new boolean[(int)(xextent*2)+2][(int)(yextent*2)+2];
      int startangle = definingpoints[5].x;
      int totalangle = definingpoints[5].y + startangle;
      int stopangle = totalangle;
@@ -203,6 +237,7 @@ public class WedgeRegion extends Region
      // the shape must be a pie with a slice removed.
      else if( rp1quad == p1quad && definingpoints[5].y > 90 )
        rp1quad += 3;
+
      //System.out.println("p1quad/rp1quad: " + p1quad + "/" + rp1quad );
      // Step through each quadrant involved in the selection.
      for( int quadcount = p1quad; quadcount <= rp1quad; quadcount++ )
@@ -261,8 +296,8 @@ public class WedgeRegion extends Region
      	   xdiff = 0;
            ydiff = 0;
            // x/y diff represent x-h/y-k respectively
-     	   xdiff = Math.abs( (double)x - fcenter.x );
-     	   ydiff = Math.abs( (double)y - fcenter.y );
+     	   xdiff = Math.abs( (double)x - center.x );
+     	   ydiff = Math.abs( (double)y - center.y );
            // Subtracting 1/(xextent*4) is to account for fractional pixels.
            // This will give a smoother, more accurate selected region.
      	   dist = Math.pow((xdiff - 1/(xextent*4)),2)/Math.pow(xextent,2) + 
@@ -273,8 +308,8 @@ public class WedgeRegion extends Region
 	   if( dist <= 1 )
      	   {
 	     int pointangle  = -Math.round( (float)Math.toDegrees(Math.atan2( 
-                                                    (double)(y - fcenter.y),
-                                                    (double)(x - fcenter.x))));
+                                                    (double)(y - center.y),
+                                                    (double)(x - center.x))));
              // put everything from 0-360
              if( pointangle < 0 )
                pointangle = 360 + pointangle;
@@ -285,18 +320,69 @@ public class WedgeRegion extends Region
 	     if( stopangle >= 360 )
 	     {
 	       if( pointangle >= startangle || pointangle <= stopangle - 360 )
+	       {
         	 points.add( new Point( x, y ) );
+		 // add one to the index as a lower cushion, prevents index=-1
+		 pointchecker[x-topleft.x+1][y-topleft.y+1] = true;
+	       }
 	     }
 	     // otherwise the angle must be between the start and stop angle.
 	     else
 	     {
 	       if( pointangle >= startangle && pointangle <= stopangle )
+	       {
         	 points.add( new Point( x, y ) );
+		 // add one to the index as a lower cushion, prevents index=-1
+		 pointchecker[x-topleft.x+1][y-topleft.y+1] = true;
+	       }
 	     }
      	   } // if( dist < 1 )
      	 } // end for x
        } // end for y
      } // for quad
+     
+     // this code uses line regions to select the points along the bounding
+     // lines of the wedge
+     
+     Point[] p1pts = {center,p1};
+     LineRegion p1line = new LineRegion( p1pts );
+     p1pts = p1line.getSelectedPoints();
+     int tempx = -1;
+     int tempy = -1;
+     for( int i = 0; i < p1pts.length; i++ )
+     {
+       tempx = p1pts[i].x-topleft.x;
+       tempy = p1pts[i].y-topleft.y;
+       if( (tempx >=0 && tempy >= 0) && 
+           (tempx <=2*xextent && tempy <= 2*yextent) )
+       {
+         // since cushion was used above, adjust these indexes to that cushion.
+         if( !( pointchecker[ tempx+1 ][ tempy+1 ] ) )
+         {
+           points.add( new Point( p1pts[i].x, p1pts[i].y ) );
+	   pointchecker[p1pts[i].x-topleft.x+1][p1pts[i].y-topleft.y+1] = true;
+         }
+       }
+     }
+     Point[] rp1pts = {center,rp1};
+     LineRegion rp1line = new LineRegion( rp1pts );
+     rp1pts = rp1line.getSelectedPoints();
+     for( int i = 0; i < rp1pts.length; i++ )
+     {
+       tempx = rp1pts[i].x-topleft.x;
+       tempy = rp1pts[i].y-topleft.y;
+       if( ( tempx >=0 && tempy >= 0 ) && 
+           (tempx <=2*xextent && tempy <= 2*yextent) )
+       {
+         // since cushion was used above, adjust these indexes to that cushion.
+         if( !( pointchecker[ tempx+1 ][ tempy+1 ] ) )
+         {
+           points.add( new Point( rp1pts[i].x, rp1pts[i].y ) );
+	   pointchecker[rp1pts[i].x-topleft.x+1][rp1pts[i].y-topleft.y+1] = 
+	      true;
+         }
+       }
+     }
      
      // put the vector of points into an array of points
      selectedpoints = new Point[points.size()];
