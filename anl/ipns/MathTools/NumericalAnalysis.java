@@ -33,6 +33,9 @@
  *  of first and second moments, etc.   
  * 
  *  $Log$
+ *  Revision 1.11  2004/03/11 23:05:45  dennis
+ *  Changed to MathTools package
+ *
  *  Revision 1.10  2003/10/14 22:26:47  dennis
  *  Fixed javadoc comments to build cleanly on jdk 1.4.2
  *
@@ -48,9 +51,9 @@
  *
  */
 
-package DataSetTools.math;
+package gov.anl.ipns.MathTools;
 
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Sys.*;
 
 /**
  *  Basic numerical analysis operations, such as integration, calculation 
