@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.61  2004/03/10 17:38:49  millermi
+ *  - Added cursor readout for the current pointed-at position
+ *    in x,y world coordinates. The control was added to the
+ *    end of the control list.
+ *
  *  Revision 1.60  2004/03/10 16:17:09  millermi
  *  - Made returnFocus() a public method.
  *  - Added getDisplayPanel().requestFocus() to end of
@@ -409,6 +414,13 @@ public class ImageViewComponent implements IViewComponent2D,
   * the ViewControl returned is that of the PanViewControl.
   */
   public static final String PAN_NAME = "Panning Tool";
+  
+ /**
+  * "Pointed At" - use this static String to verify that the title of
+  * the ViewControl returned is that of the CursorOutputControl responsible
+  * for displaying the pointed-at cursor readouts.
+  */
+  public static final String CURSOR_READOUT_NAME = "Pointed At";
   // these variables preserve the state of the ImageViewComponent
  /**
   * "Precision" - This constant String is a key for referencing the state
@@ -541,7 +553,7 @@ public class ImageViewComponent implements IViewComponent2D,
   private transient Vector transparencies = new Vector();
   private int precision;
   private Font font;
-  private transient ViewControl[] controls = new ViewControl[6];
+  private transient ViewControl[] controls = new ViewControl[7];
   private transient ViewMenuItem[] menus = new ViewMenuItem[2];
   private String colorscale;
   private boolean isTwoSided = true;
@@ -1469,20 +1481,25 @@ public class ImageViewComponent implements IViewComponent2D,
     controls[1].setTitle(COLOR_SCALE_NAME);
     
     controls[2] = new ControlCheckboxButton(true);
-    ((ControlCheckboxButton)controls[2]).setTitle(AXIS_OVERLAY_NAME);
+    controls[2].setTitle(AXIS_OVERLAY_NAME);
     controls[2].addActionListener( new ControlListener() );
    
     controls[3] = new ControlCheckboxButton();  // initially unchecked
-    ((ControlCheckboxButton)controls[3]).setTitle(SELECTION_OVERLAY_NAME);
+    controls[3].setTitle(SELECTION_OVERLAY_NAME);
     controls[3].addActionListener( new ControlListener() );
     
     controls[4] = new ControlCheckboxButton();  // initially unchecked
-    ((ControlCheckboxButton)controls[4]).setTitle(ANNOTATION_OVERLAY_NAME);
+    controls[4].setTitle(ANNOTATION_OVERLAY_NAME);
     controls[4].addActionListener( new ControlListener() );
     // panviewcontrol
     controls[5] = new PanViewControl(ijp);
-    ((PanViewControl)controls[5]).setTitle(PAN_NAME);
+    controls[5].setTitle(PAN_NAME);
     controls[5].addActionListener( new ControlListener() ); 
+    
+    String[] cursorlabels = {"X","Y"};
+    controls[6] = new CursorOutputControl(cursorlabels);
+    controls[6].setTitle(CURSOR_READOUT_NAME);
+     
   }
   
  /*
@@ -1658,6 +1675,9 @@ public class ImageViewComponent implements IViewComponent2D,
 	           (ControlColorScale)background.getComponent(4);
 	  east.setMarker( ijp.ImageValue_at_Cursor() );
 	}
+	// update cursor readout when pointed-at is changed.
+	((CursorOutputControl)controls[6]).setValue(0,getPointedAt().x);
+	((CursorOutputControl)controls[6]).setValue(1,getPointedAt().y);
 	sendMessage(POINTED_AT_CHANGED);
       }
       else if (message == CoordJPanel.ZOOM_IN)
