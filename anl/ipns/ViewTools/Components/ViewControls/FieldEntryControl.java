@@ -35,6 +35,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/02/06 20:07:38  millermi
+ *  - Each key now references a String[] of labels. Previously,
+ *    a key could reference another key.
+ *  - Added ObjectState capabilities.
+ *
  *  Revision 1.7  2004/01/08 19:37:09  millermi
  *  - Added method clearAllValues() to easily clear values in the
  *    text fields.
@@ -84,6 +89,7 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 
 import DataSetTools.util.WindowShower;
+import DataSetTools.components.View.ObjectState;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with labels and input text fields
@@ -99,14 +105,59 @@ public class FieldEntryControl extends ViewControl
   * Enter or Submit button has been pressed.
   */
   public static final String BUTTON_PRESSED = "Button Pressed";
+ // ---------------------ObjectState Keys---------------------------------
+ /**
+  * "Label Width" - This constant String is a key for referencing the state
+  * information about the width allocated for the label.
+  * The value that this key references is of type String.
+  */
+  public static final String LABEL_WIDTH = "Label Width";
+  
+ /**
+  * "Field Width" - This constant String is a key for referencing the state
+  * information about the width allocated for the textfield.
+  * The value that this key references is of type String.
+  */
+  public static final String FIELD_WIDTH = "Field Width";
+  
+ /**
+  * "Radio Choice" - This constant String is a key for referencing the state
+  * information about the various radio button choices added to the control.
+  * Each radio choice has a list of labels associated with it.
+  * The value that this key references is of type Hashtable.
+  */
+  public static final String RADIO_CHOICE = "Radio Choice";
+  
+ /**
+  * "Field Values" - This constant String is a key for referencing the state
+  * information about the text displayed in the textfield.
+  * The value that this key references a 1-D array of Strings.
+  */
+  public static final String FIELD_VALUES = "Field Values";
+  
+ /**
+  * "Button Text" - This constant String is a key for referencing the state
+  * information about the text displayed on the button at the bottom of the
+  * control. The value that this key references is of type String.
+  */
+  public static final String BUTTON_TEXT = "Button Text";
+  
+ /**
+  * "Selected Radio Choice" - This constant String is a key for referencing
+  * the state information about which radio choice is selected. This
+  * corresponds to which set of labels should be displayed. The value
+  * that this key references is of type String, matching the radio choice
+  * label.
+  */
+  public static final String SELECTED_RADIO_CHOICE = "Selected Radio Choice";
   
   private JTextField[][] text;
-  private Box all_fields = new Box( BoxLayout.Y_AXIS );
-  private Box all_radios = new Box( BoxLayout.Y_AXIS );
-  private ButtonGroup radioChoices = new ButtonGroup();
+  private transient Box all_fields = new Box( BoxLayout.Y_AXIS );
+  private transient Box all_radios = new Box( BoxLayout.Y_AXIS );
+  private transient ButtonGroup radioChoices = new ButtonGroup();
   private Hashtable radiotable = new Hashtable();
-  private boolean radio_added = false;
-  private JButton enter = new JButton("Enter");
+  private transient boolean radio_added = false;
+  private transient JButton enter = new JButton("Enter");
 
  /**
   * This constructor will be used to create a control with labels but no
@@ -277,6 +328,90 @@ public class FieldEntryControl extends ViewControl
     enter.addActionListener( new EnterListener() );
     all_fields.add(enter);
     add(all_fields);
+  } 
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault )
+  {
+    ObjectState state = super.getObjectState(isDefault);
+    state.insert( LABEL_WIDTH, new Integer(text[0][0].getColumns()) );
+    state.insert( FIELD_WIDTH, new Integer(text[0][1].getColumns()) );
+    state.insert( RADIO_CHOICE, radiotable );
+    state.insert( BUTTON_TEXT, new String(enter.getText()) );
+    state.insert( SELECTED_RADIO_CHOICE, getSelected() );
+    // only save values in the editable textfields if a project save.
+    if( !isDefault )
+      state.insert( FIELD_VALUES, getAllStringValues() );
+    return state;
+  }
+     
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    // call setObjectState of ViewControl, sets title if one exists.
+    super.setObjectState( new_state );
+    Object temp = new_state.get(RADIO_CHOICE);
+    if( temp != null )
+    {
+      // clear old hashtable
+      radiotable.clear();
+      // restore the table with the new hashtable
+      Hashtable labels = (Hashtable)temp;
+      Enumeration keys = labels.keys();
+      String tempkey = "";
+      while( keys.hasMoreElements() )
+      {
+        tempkey = (String)keys.nextElement();
+        addRadioChoice( tempkey, (String[])labels.get(tempkey) );
+      }
+    }
+    
+    temp = new_state.get(LABEL_WIDTH);
+    if( temp != null )
+    {
+      setLabelWidth( ((Integer)temp).intValue() );
+    }
+    
+    temp = new_state.get(FIELD_WIDTH);
+    if( temp != null )
+    {
+      setFieldWidth( ((Integer)temp).intValue() );
+    }
+    
+    temp = new_state.get(SELECTED_RADIO_CHOICE);
+    if( temp != null )
+    {
+      setSelected( (String)temp );
+    }
+    
+    temp = new_state.get(BUTTON_TEXT);
+    if( temp != null )
+    {
+      setButtonText( (String)temp );
+    }
+    
+    temp = new_state.get(FIELD_VALUES);
+    if( temp != null )
+    {
+      String[] values = (String[])temp;
+      // can blindly call setValue() since setValue() checks for invalid
+      // indices.
+      for( int i = 0; i < values.length; i++ )
+        setValue(i,values[i]);
+    }
   }
  
  /**
@@ -672,9 +807,18 @@ public class FieldEntryControl extends ViewControl
   */ 
   public void addRadioChoice( String radiolabel, String same_labels )
   {
-    if( radiotable.get(same_labels) != null )
+    Object labels = radiotable.get(same_labels);
+    if( labels != null )
     {
-      radiotable.put( radiolabel, same_labels );
+      // make sure labels is a String[]
+      while( !(labels instanceof String[]) )
+      {
+        labels = radiotable.get(labels);
+	// if null, something went wrong, don't add radio button.
+	if( labels == null )
+	  return;
+      }
+      radiotable.put( radiolabel, labels );
       JRadioButton rad = new JRadioButton(radiolabel);
       rad.addActionListener( new RadioListener() );
       radioChoices.add(rad);
@@ -692,6 +836,9 @@ public class FieldEntryControl extends ViewControl
   */ 
   public void removeRadioChoice( String radiolabel )
   {
+    /*
+     * since all keys should reference a String[], this should no longer
+     * need to be done.
     // if this key is the value of another key, find that key and replace
     // its value with the value of this key.
     // This check is required since addRadioChoice(String,String) is available.
@@ -724,7 +871,7 @@ public class FieldEntryControl extends ViewControl
 	  } // end if( temp is radiolabel )
 	} // end if( temp is string )
       } // end of while
-    }
+    }*/
     // make sure radiolabel is in hashtable
     if( radiotable.remove( radiolabel ) != null )
     {  
@@ -778,9 +925,13 @@ public class FieldEntryControl extends ViewControl
     {
       String radio_key = ae.getActionCommand();
       Object temp_key = radiotable.get(radio_key);
+      /*
+       * This should no longer be needed since every key now references
+       * a String[]
       // if a String, then this is a key to another array.
       while( temp_key instanceof String )
         temp_key = radiotable.get(temp_key);
+      */
       String[] labels = (String[])temp_key;
       // if true, use text.length, ignore extra labels
       if( labels.length > text.length )
@@ -842,7 +993,7 @@ public class FieldEntryControl extends ViewControl
     FieldEntryControl fec = new FieldEntryControl( menu, values );
     //FieldEntryControl fec = new FieldEntryControl( menu );
     //FieldEntryControl fec = new FieldEntryControl( 5 );
-    fec.setTitle("Field Entry");
+    /*fec.setTitle("Field Entry");
     System.out.println("Label of entry 2: " + fec.getLabel(1) );
     fec.addRadioChoice( "Even", menu2 );
     fec.addRadioChoice( "Odd" , menu3 );
@@ -853,12 +1004,28 @@ public class FieldEntryControl extends ViewControl
     fec.removeRadioChoice( "Even2" );
     fec.removeRadioChoice( "Even" );
     fec.setSelected( "Every Fifth" );
-    fec.setButtonText("Button Text Test");
+    fec.setButtonText("Button Text Test");*/
+    Hashtable testtable = new Hashtable();
+    testtable.put("Radio1", menu);
+    testtable.put("Radio2", menu2);
+    testtable.put("Radio3", menu3);
+    testtable.put("Radio4", menu4);
+    // test ObjectState
+    String[] fieldvalues = {"1.5","HI","test","2"};
+    ObjectState state = new ObjectState();
+    state.insert( LABEL_WIDTH, new Integer(10) );
+    state.insert( FIELD_WIDTH, new Integer(10) );
+    state.insert( RADIO_CHOICE, testtable );
+    state.insert( BUTTON_TEXT, "State Test" );
+    state.insert( SELECTED_RADIO_CHOICE, "Radio3" );
+    state.insert( FIELD_VALUES, fieldvalues );
+    fec.setObjectState(state);
+    fec.removeRadioChoice("Radio3");
     tester.getContentPane().add(fec);
     WindowShower shower = new WindowShower(tester);
     java.awt.EventQueue.invokeLater(shower);
     System.out.println("Selected: " + fec.getSelected() );
     fec.setLabel( 2, "Menu20" );
-    fec.clearAllValues();
+    //fec.clearAllValues();
   }
 } 
