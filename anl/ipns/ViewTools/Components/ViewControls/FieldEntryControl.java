@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/08 19:37:09  millermi
+ *  - Added method clearAllValues() to easily clear values in the
+ *    text fields.
+ *
  *  Revision 1.6  2004/01/07 17:54:33  millermi
  *  - Fixed javadoc errors
  *
@@ -529,6 +533,15 @@ public class FieldEntryControl extends ViewControl
   }
  
  /**
+  * Use this method to clear all of the values in the control.
+  */ 
+  public void clearAllValues()
+  {
+    for( int i = 0; i < text.length; i++ )
+      setValue(i,"");
+  }
+ 
+ /**
   * This method will select the radio button with the given label. This
   * will also update the textfield labels to the new selection.
   *
@@ -825,10 +838,10 @@ public class FieldEntryControl extends ViewControl
     String[] menu2 = {"Menu2","Menu4","Menu6","Menu8","Menu10"};
     String[] menu3 = {"Menu1","Menu3","Menu5","Menu7","Menu9","Menu11"};
     String[] menu4 = {"Menu5","Menu10","Menu15"};
-    //int[] values = {0,2,4,6,8};
-    //FieldEntryControl fec = new FieldEntryControl( menu, values );
+    int[] values = {0,2,4,6,8};
+    FieldEntryControl fec = new FieldEntryControl( menu, values );
     //FieldEntryControl fec = new FieldEntryControl( menu );
-    FieldEntryControl fec = new FieldEntryControl( 5 );
+    //FieldEntryControl fec = new FieldEntryControl( 5 );
     fec.setTitle("Field Entry");
     System.out.println("Label of entry 2: " + fec.getLabel(1) );
     fec.addRadioChoice( "Even", menu2 );
@@ -846,5 +859,6 @@ public class FieldEntryControl extends ViewControl
     java.awt.EventQueue.invokeLater(shower);
     System.out.println("Selected: " + fec.getSelected() );
     fec.setLabel( 2, "Menu20" );
+    fec.clearAllValues();
   }
 } 
