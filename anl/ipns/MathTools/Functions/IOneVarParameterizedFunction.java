@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/12 01:53:35  dennis
+ *  Moved to package gov.anl.ipns.MathTools.Functions;
+ *
  *  Revision 1.4  2003/06/19 22:22:16  dennis
  *  Added methods that evaluate the derivative with respect to
  *  one parameter at a list of x values.
@@ -51,10 +54,11 @@
  *
  */
 
-package DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
 
-import DataSetTools.math.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.*;
+import gov.anl.ipns.Util.Numeric.*;
+
 
 /**
  *  This interface is the interface for functions of one variable that
