@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/29 20:33:52  millermi
+ *  -Fixed java docs.
+ *  -Added ObjectState info.
+ *
  *  Revision 1.1  2003/10/27 08:47:49  millermi
  *  - Initial Version - This class was created to enable users
  *    panning options for images too large to view in the
@@ -68,16 +72,26 @@ import DataSetTools.util.floatPoint2D;
  * will outline the "local bounds" of the image.
  *
  *  @see DataSetTools.components.View.Cursor.TranslationJPanel
- *  @see DataSetTools.components.View.Cursor.PanViewControl
+ *  @see DataSetTools.components.View.ViewControls.PanViewControl
  *  @see DataSetTools.components.View.Cursor.XOR_PanCursor
  */
 public class TranslationOverlay extends OverlayJPanel
 {
+ /**
+  * "TranslationJPanel" - This constant String is a key for referencing the
+  * state information about the TranslationJPanel. Since all of the state info
+  * needed by this overlay is contained in the TranslationJPanel ObjectState, 
+  * this value is of type ObjectState, and contains the state of the overlay. 
+  */
+  public static final String TRANSLATION_JPANEL  = "TranslationJPanel";
+  
   private TranslationJPanel tjp;
   private CoordJPanel main_image;
-  private CoordBounds viewport;       // local_bounds
+  private CoordBounds viewport;       // local_bounds in pixel coords
+  //private CoordBounds local_bounds;
   private CoordBounds global_bounds; 
   private Vector Listeners = null;  
+
  /**
   * Constructor - this will only initialize the local and global bounds.
   * To actually set these values, use the setLocalBounds() and setGlobalBounds()
@@ -88,13 +102,23 @@ public class TranslationOverlay extends OverlayJPanel
     super();
     this.setLayout( new GridLayout(1,1) );
     tjp = new TranslationJPanel();
-    tjp.initializeWorldCoords( new CoordBounds(0,0,1,1) );
     setLocalBounds( new CoordBounds(0,0,1,1) );
     setGlobalBounds( new CoordBounds(0,0,1,1) );
     tjp.addActionListener( new TranslateListener() );
     Listeners = new Vector();
     add(tjp);
     tjp.requestFocus();
+    addComponentListener( new ResizedListener() );
+  }
+  
+ /**
+  * Constructor - this will call the default constructor before setting state
+  * information.
+  */
+  public TranslationOverlay(ObjectState state)
+  {
+    super();
+    setObjectState(state);
   }
   
  /**
@@ -128,7 +152,7 @@ public class TranslationOverlay extends OverlayJPanel
   *  @param  g - graphics object required by the paint method.
   */ 
   public void paint(Graphics g)
-  {
+  {/*
     floatPoint2D wctopleft  = new floatPoint2D( viewport.getX1(),
                                                 viewport.getY1() );
     floatPoint2D wcbotright = new floatPoint2D( viewport.getX2(),
@@ -139,7 +163,22 @@ public class TranslationOverlay extends OverlayJPanel
     
     g.drawRect( pixeltopleft.x, pixeltopleft.y,
                 pixelbotright.x - pixeltopleft.x,
-		pixelbotright.y - pixeltopleft.y );
+		pixelbotright.y - pixeltopleft.y );*/
+    
+    g.drawRect( (int)viewport.getX1(), (int)viewport.getY1(),
+                (int)viewport.getX2() - (int)viewport.getX1(),
+		(int)viewport.getY2() - (int)viewport.getY1() );
+    
+  }
+  
+ /**
+  * Get the viewport or local bounds viewable to the user.
+  *
+  *  @return viewport - viewable area
+  */ 
+  public CoordBounds getLocalBounds()
+  {
+    return tjp.getLocalWorldCoords().MakeCopy();
   }
   
  /**
@@ -151,20 +190,21 @@ public class TranslationOverlay extends OverlayJPanel
   */ 
   public void setLocalBounds( CoordBounds vp )
   {
-    viewport = vp.MakeCopy();
+    // commented out because viewport is no longer world coords.
+    //viewport = vp.MakeCopy();
 
     tjp.setViewPort( vp.MakeCopy() );
-    repaint();
   }
   
  /**
-  * Get the viewport or local bounds viewable to the user.
+  * Set the size of the whole image. This size is usually going to be larger
+  * than the viewport.
   *
-  *  @return viewport - viewable area
+  *  @return CoordBounds representing the total possible viewable area.
   */ 
-  public CoordBounds getLocalBounds()
+  public CoordBounds getGlobalBounds()
   {
-    return viewport.MakeCopy();
+    return global_bounds.MakeCopy();
   }
   
  /**
@@ -199,17 +239,31 @@ public class TranslationOverlay extends OverlayJPanel
   */
   public void setObjectState( ObjectState new_state )
   {
-    ;
+    boolean redraw = false;  // if any values are changed, repaint overlay.
+    Object temp = new_state.get(TRANSLATION_JPANEL);
+    if( temp != null )
+    {
+      tjp.setObjectState( (ObjectState)temp );
+      redraw = true;  
+    } 
+    
+    if( redraw )
+      repaint();
   }
  
  /**
   * This method will get the current values of the state variables for this
   * object. These variables will be wrapped in an ObjectState. Keys will be
   * put in alphabetic order.
+  *
+  *  @return state of this overlay.
   */ 
   public ObjectState getObjectState()
   {
-    return new ObjectState();
+    ObjectState state = new ObjectState();
+    state.insert( TRANSLATION_JPANEL, tjp.getObjectState() );
+    
+    return state;
   }
   
  /**
@@ -291,25 +345,51 @@ public class TranslationOverlay extends OverlayJPanel
       // clear all selections from the vector
       if( message.equals( TranslationJPanel.BOUNDS_CHANGED ) )
       {
-        Rectangle box = ((BoxPanCursor)tjp.getBoxCursor()).region();
+	Rectangle box = ((BoxPanCursor)tjp.getBoxCursor()).region();
         Point p1 = new Point( box.getLocation() );
-        //p1.x += (int)global_bounds.getX1();
-        //p1.y += (int)global_bounds.getY1();
         Point p2 = new Point( p1 );
         p2.x += (int)box.getWidth();
         p2.y += (int)box.getHeight();
 	
+       /* This code was used to maintain local world coords for the viewport,
+	* however, using this causes rounding errors, thus distorting the
+	* viewport. As a result, the pixel coordinates are stored in the
+	* viewport, the local world coords can be found in the tjp. 
         // convert from pixel to wc
         floatPoint2D wctopleft  = convertToWorldPoint(p1);
         floatPoint2D wcbotright = convertToWorldPoint(p2);
 	
-	viewport = new CoordBounds( (int)wctopleft.x, (int)wctopleft.y,
-	                            (int)wcbotright.x, (int)wcbotright.y );
+	local_bounds = new CoordBounds( (int)wctopleft.x, (int)wctopleft.y,
+	                                (int)wcbotright.x, (int)wcbotright.y );
+	*/
+	viewport = new CoordBounds( p1.x, p1.y,
+	                            p2.x, p2.y );
 	
 	repaint();           // Without this, the newly drawn regions would
 			     // not appear.
-        sendMessage(TranslationJPanel.BOUNDS_CHANGED);
+        sendMessage(message);
       }
     }  // end actionPerformed()   
-  } // end TranslateListener  
+  } // end TranslateListener 
+ 
+ /*
+  * If the component is resized, the bounds of the cursor need to be adjusted.
+  * This listener will move and resize the cursor after the component is
+  * resized. 
+  */ 
+  private class ResizedListener extends ComponentAdapter
+  {
+    public void componentResized( ComponentEvent ce )
+    {
+      Rectangle box = ((BoxPanCursor)tjp.getBoxCursor()).region();
+      Point p1 = new Point( box.getLocation() );
+      Point p2 = new Point( p1 );
+      p2.x += (int)box.getWidth();
+      p2.y += (int)box.getHeight();
+	
+      viewport = new CoordBounds( p1.x, p1.y,
+        			  p2.x, p2.y );
+    }
+  }
+
 }
