@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.18  2003/07/02 17:13:23  serumb
+ * Added a method to make a line transparent.
+ *
  * Revision 1.17  2003/06/30 21:57:25  dennis
  * Removed shift by "first_index" that was improperly added.
  * Arrays x_xopy and y_copy in paint() only contain copies of the
@@ -93,6 +96,7 @@ import DataSetTools.math.*;
 import DataSetTools.components.ThreeD.*;
 import java.lang.Object.*;
 import java.awt.geom.*;
+
 /**
  *  A GraphJPanelUdTest object maintains and draws a list of graphs.
  */ 
@@ -122,7 +126,6 @@ public class GraphJPanel extends    CoordJPanel
   public static final int TRANSPARENT  = 10;
   public static final int ERROR_AT_POINT  = 11;
   public static final int ERROR_AT_TOP    = 12;
-
 /* --------------------- Default Constructor ------------------------------ */
 
   public GraphJPanel()
@@ -242,7 +245,6 @@ public class GraphJPanel extends    CoordJPanel
 
     if ( redraw )
       repaint(); 
-
     return true;
   } 
 
@@ -343,6 +345,23 @@ public boolean setStroke(BasicStroke theStroke, int graph_num, boolean redraw)
       repaint(); 
 
     return true;
+  }
+/*------------------------------ setTransparent --------------------------------*/
+
+public boolean setTransparent(boolean transparent, int graph_num,
+                              boolean redraw)
+  {
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
+      return false;
+
+    GraphData gd = (GraphData)graphs.elementAt( graph_num );
+    gd.transparent = transparent; 
+
+    if ( redraw )
+      repaint(); 
+    
+    return true;
+    
   }
 
 
@@ -683,7 +702,6 @@ public boolean is_autoY_bounds()
       y_offset = y_offset_factor * gr_index; 
       GraphData gd = (GraphData)graphs.elementAt(gr_index);
 
-
       boolean is_histogram = false;
       if ( gd.x_vals.length == gd.y_vals.length + 1 )
         is_histogram = true;
@@ -754,8 +772,16 @@ public boolean is_autoY_bounds()
         local_transform.MapYListTo(error_bars_lower);
       }
       
-      
-      
+      if(gd.transparent) {
+         g2.setComposite((Composite)AlphaComposite.getInstance(
+                                    AlphaComposite.SRC_OVER, 0.0f));
+      }
+      else {
+         g2.setComposite((Composite)AlphaComposite.getInstance(
+                                    AlphaComposite.SRC_OVER, 1.0f));
+      }  
+         
+
       g2.setStroke(gd.Stroke);
       
       if ( x_copy.length == y_copy.length )            // Function data
@@ -793,9 +819,19 @@ public boolean is_autoY_bounds()
           g2.setColor( gd.color );
           g2.drawPolyline( x_int, y_int, n_points );
         }
-
- 
-
+        /* 
+          Sets the graphics twod back to visible to show point markers 
+          and error bars for transparent lines.
+        */
+         if(gd.transparent)
+         {
+           g2.setComposite((Composite)AlphaComposite.getInstance(
+                                      AlphaComposite.SRC_OVER, 1.0f));
+         } 
+         
+        /*
+          Draw point markers if they are selected
+        */ 
 	if (gd.marktype != 0)
 	{
 	  g2.setStroke(new BasicStroke(1));
@@ -845,8 +881,11 @@ public boolean is_autoY_bounds()
 	  		 (int)x_copy[i]+size, (int)y_copy[i]-size );      
              }    
 	  } 
-	}   
-        
+	} 
+  
+        /*
+          Draw error bars if they are selected
+        */ 
         if (gd.getErrorLocation() != 0)
         {
           Line2D.Float line1 = new Line2D.Float();
@@ -915,7 +954,19 @@ public boolean is_autoY_bounds()
           g2.setColor( gd.color );
           g2.drawPolyline( x_int, y_int, 2*y_copy.length );
         }
-
+        /* 
+          Sets the graphics twod back to visible to show point markers 
+          and error bars for transparent lines.
+        */
+         if(gd.transparent)
+         {
+           g2.setComposite((Composite)AlphaComposite.getInstance(
+                                      AlphaComposite.SRC_OVER, 1.0f));
+         } 
+        
+        /*
+          Draw point markers if they are selected
+        */ 
 	if (gd.marktype != 0)
 	{
 	  g2.setStroke(new BasicStroke(1));
@@ -967,6 +1018,9 @@ public boolean is_autoY_bounds()
 	  } 
 	}
         
+        /*
+          Draw error bars if they are selected
+        */ 
         if (gd.getErrorLocation() != 0)
         {
           //local_transform.MapYListTo(error_bars_copy);
