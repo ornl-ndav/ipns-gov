@@ -33,8 +33,8 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.45  2004/03/10 15:49:13  serumb
- *  Implemented the kill method to dispose of the control panel.
+ *  Revision 1.46  2004/03/10 19:37:28  serumb
+ *  Added commands to remove overlay controls in the kill method.
  *
  *  Revision 1.44  2004/03/09 22:20:41  millermi
  *  - Added setData() after data was cleared in dataChanged()
@@ -872,7 +872,12 @@ public class FunctionViewComponent implements IViewComponent1D,
    * To be continued.
    **/
    public void kill(){
-   mainControls.get_frame().dispose();
+     mainControls.kill();
+    
+     for( int trans = 0; trans < transparencies.size(); trans++ )
+      ((OverlayJPanel)transparencies.elementAt(trans)).kill();
+
+     mainControls.get_frame().dispose();
    };
    
   // required since implementing ActionListener
