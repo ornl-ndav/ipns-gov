@@ -1,3 +1,20 @@
+/*
+ * @(#)floatPoint2D.java  1999/01/10  Dennis Mikkelson
+ *
+ * ---------------------------------------------------------------------------
+ *  $Log$
+ *  Revision 1.2  2000/07/10 22:52:01  dennis
+ *  Standard fonts for labels and borders, etc.
+ *
+ *  Revision 1.3  2000/06/08 19:07:37  dennis
+ *  Fixed DOS text problem
+ *
+ *  Revision 1.2  2000/05/11 16:18:22  dennis
+ *  Added RCS logging
+ *
+ *
+ */
+
 package DataSetTools.util;
 
 /*
