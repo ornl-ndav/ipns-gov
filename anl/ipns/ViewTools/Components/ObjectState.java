@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/18 01:19:29  millermi
+ *  - changed System.out.println() to SharedData.addmsg() for
+ *    output pertaining to the user.
+ *
  *  Revision 1.2  2003/11/18 00:58:07  millermi
  *  - Now implements Serializable
  *  - Added capabilities for saving the state.
@@ -60,6 +64,7 @@
  import java.awt.event.ActionListener;
  
  import DataSetTools.util.SerializeUtil;
+ import DataSetTools.util.SharedData;
 
 /**
  * This class is used to preserve the state of on object. Similar to Java's
@@ -155,7 +160,7 @@ public class ObjectState implements java.io.Serializable
         if( nextstate instanceof ObjectState )
           return ((ObjectState)nextstate).get( nextkey );
         // if it gets to this point, the path was incorrect.
-        System.out.println("Invalid Path in ObjectState.java"); 	
+        SharedData.addmsg("Invalid Path in ObjectState.java"); 	
         return "Invalid Path in ObjectState.java";  
       }
     }
@@ -219,7 +224,7 @@ public class ObjectState implements java.io.Serializable
       {
         if( !SerializeUtil.writeObjectToFile( this_state, filename ) )
         {
-          System.out.println("Error saving state information in " +
+          SharedData.addmsg("Error saving state information in " +
         		     "ObjectState.java. State was not saved!!!" );
         }
       }
@@ -228,7 +233,7 @@ public class ObjectState implements java.io.Serializable
         Object temp = SerializeUtil.readObjectFromFile( filename );
         if( temp == null || !(temp instanceof ObjectState) )
         {
-          System.out.println("Error loading state information in " +
+          SharedData.addmsg("Error loading state information in " +
         		     "ObjectState.java. State was not loaded!!!" );
         }
         else
@@ -334,7 +339,7 @@ public class ObjectState implements java.io.Serializable
         if( nextstate instanceof ObjectState )
           ((ObjectState)nextstate).editTable( nextkey, field, allow_replace );
         else
-          System.out.println("Invalid Path in ObjectState.java");
+          SharedData.addmsg("Invalid Path in ObjectState.java");
         // if it gets to here, the path was invalid
         return false;  
       }
