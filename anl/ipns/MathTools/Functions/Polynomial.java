@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/06/17 22:16:32  dennis
+ *  Now uses doubles for calculation and includes calculation of derivative.
+ *
  *  Revision 1.1  2002/04/11 21:00:04  dennis
  *  Class for polynomials of one variable controlled by
  *  parameters giving the coefficients of the polynomial.
@@ -56,9 +59,11 @@ public class Polynomial extends    OneVarParameterizedFunction
    *  Construct a new polynomial function object with the specified
    *  characteristics 
    */
-   public Polynomial( float coefficients[] )
+   public Polynomial( double coefficients[] )
    {
      super( "Polynomial", coefficients, new String[coefficients.length] );
+     for ( int i = 0; i < parameter_names.length; i++ )
+       parameter_names[i] = "a"+i;
    }
 
 
@@ -76,11 +81,31 @@ public class Polynomial extends    OneVarParameterizedFunction
     {
       double sum = 0.0;  
       for ( int i = parameters.length - 1; i >= 0; i-- )
-        sum += x * sum + parameters[i];
+        sum = x * sum + parameters[i];
       return sum;   
     }
     else
       return 0; 
+  }
+
+  /**
+   *  Get the derivative of this polynomial with respect to x.
+   *
+   *  @param  x     The value at which the derivative is evaluated. 
+   *
+   *  @return  the derivative at x.
+   */
+  public double get_dFdx( double x )
+  {
+    if ( domain.contains( (float)x ) )
+    {
+      double sum = 0.0;
+      for ( int i = parameters.length - 2; i >= 0; i-- )
+        sum = x * sum + (i+1) * parameters[i+1];
+      return sum;
+    }
+    else
+      return 0;
   }
 
 
@@ -91,15 +116,45 @@ public class Polynomial extends    OneVarParameterizedFunction
   */
     public static void main(String[] args)
     {
+      OneVarParameterizedFunction polynomial; 
+
+      double coef[] = { 1, 2, 3, 4 };
+      polynomial = new Polynomial( coef );
+
+      String par_name[] = polynomial.getParameterNames();
+      double coef_2[]   = polynomial.getParameters();
+
+      System.out.println( "Polynomial: " );
+      for ( int i = 0; i < par_name.length; i++ )
+        System.out.println(par_name[i] + " = " + coef[i] );
+
+      double x;
+      for ( int i = 0; i <= 10; i++ )
+      {
+        x = i;
+        System.out.println( "x        = " + x + 
+                            ", p(x)   = " + polynomial.getValue(x) +
+                            ", p'(x)  = " + polynomial.get_dFdx(x) +
+                            ", fp'(x) = " + polynomial.get_dFdx((float)x) );
+      }
+
+      x = 3;
+      double derivs[] = polynomial.get_dFda( x );
+      System.out.println( "At " + x + 
+                          ", the derivatives relative to the coeffs are:");
+      for ( int i = 0; i < par_name.length; i++ )
+        System.out.println("deriv WRT " + par_name[i] + " = " + derivs[i]);
+
+
+      
       DataSet ds = new DataSet( "Sample Polynomials", "Initial Version" );
 
       XScale x_scale = new UniformXScale( -5, 5, 500 );
-      OneVarFunction polynomial; 
       Data polynomial_data; 
       for ( int i = 0; i < 100; i++ )
       {
-        float a = -5+i/10.0f;
-        float coefficients[] = { a*a, -2*a, 1 };
+        double a = -5+i/10.0f;
+        double coefficients[] = { a*a, -2*a, 1 };
         polynomial      = new Polynomial( coefficients );
         polynomial_data = new FunctionModel( x_scale, polynomial, i );
         ds.addData_entry( polynomial_data );
