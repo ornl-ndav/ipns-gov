@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2003/06/18 19:32:40  pfpeterson
+ *  Implemented toString(Object) which will create a string containing
+ *  the value of an object.
+ *
  *  Revision 1.17  2003/06/17 15:28:58  pfpeterson
  *  Added split method for breaking a string into a string[].
  *
@@ -84,6 +88,7 @@ package DataSetTools.util;
 
 import java.awt.*;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -92,6 +97,12 @@ import java.util.*;
 
 public class StringUtil
 {
+  /**
+   * The maximum number of elements that will be printed for an array
+   * in {@link #toString(Object) toString(Object)}.
+   */
+  private static final int MAX_ARRAY_DEPTH=100;
+
   /**
    *  Don't instantiate this class.
    */
@@ -399,6 +410,50 @@ public class StringUtil
        k = s.indexOf( wanted, k+1 );
      }
      return -1;
+  }
+
+  /**
+   * Method for turning an Object into a String that represents its
+   * value. This turns {@link java.util.Collection Collection} and
+   * Arrays into a comma delimeted list with square brackets, these
+   * are only printed up to {@link MAX_ARRAY_DEPTH MAX_ARRAY_DEPTH}
+   * values long.
+   */
+  public static String toString(Object object){
+    if(object==null){
+      return "null";
+    }else if(object instanceof String){
+      return (String)object;
+    }else if(object instanceof Collection){ // this includes Vector
+      StringBuffer result=new StringBuffer("[");
+      int count=0;
+
+      Iterator iterator=((Collection)object).iterator();
+      while(iterator.hasNext() && count<MAX_ARRAY_DEPTH){
+        result.append(toString(iterator.next()));
+        if(iterator.hasNext()) result.append(",");
+        count++;
+      }
+      if(iterator.hasNext()) result.append("...");
+      result.append("]");
+
+      return result.toString();
+    }else if(object.getClass().isArray()){
+      StringBuffer result=new StringBuffer("[");
+      int length=Array.getLength(object);
+      int max=Math.min(MAX_ARRAY_DEPTH,length);
+
+      for( int i=0 ; i<max ; i++ ){
+        result.append(toString(Array.get(object,i)));
+        if(i<length-1) result.append(",");
+      }
+      if(max<length) result.append("...");
+
+      result.append("]");
+      return result.toString();
+    }else{
+      return object.toString();
+    }
   }
 
   /**
@@ -797,6 +852,14 @@ public class StringUtil
     String tokens[] = extract_tokens( "X1, x2	total1;  ", " ,;:\t\n\r\f");
     for ( int i = 0; i < tokens.length; i++ )
       System.out.println("|"+tokens[i]+"|");
+
+    System.out.println("==================== toString(Object) tests");
+    System.out.println(toString(null));
+    Vector vector=new Vector();
+    vector.add("hi there");
+    vector.add(new int[]{1,2,3});
+    System.out.println(toString(vector));
+    System.out.println(toString(new int[]{5,76,22,0,1,2,3}));
   }
 
 }
