@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/01/19 20:56:24  millermi
+ *  - Fixed error identified by Tom Worlton in class description.
+ *    Now reads "extends this class".
+ *
  *  Revision 1.7  2004/03/12 01:49:22  millermi
  *  - Changed package and fixed imports.
  *
@@ -75,7 +79,7 @@
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  
 /**
- * Any class that implements this interface will be used to adjust
+ * Any class that extends this class will be used to adjust
  * settings on the IViewComponent.
  */
 public abstract class ViewControl extends ActiveJPanel implements IViewControl
