@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.21  2004/04/07 01:23:04  millermi
+ * - Added menu to test marker capabilities.
+ *
  * Revision 1.20  2004/04/05 03:11:21  millermi
  * - Moved WindowShower code out of constructer and into main(),
  *   causing the IVCTester not to be displayed by default.
@@ -146,9 +149,7 @@ package gov.anl.ipns.ViewTools.Components;
 
 import javax.swing.*;
 import java.util.Vector;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
@@ -158,9 +159,11 @@ import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
 import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
+import gov.anl.ipns.ViewTools.Components.Transparency.Marker;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
@@ -198,7 +201,9 @@ public class IVCTester extends JFrame implements IPreserveState,
     Vector save_menu = new Vector();
     Vector load_menu = new Vector();
     Vector new_data  = new Vector();
+    Vector add_marker = new Vector();
     Vector listeners = new Vector();
+    listeners.add( new ImageListener() );
     listeners.add( new ImageListener() );
     listeners.add( new ImageListener() );
     listeners.add( new ImageListener() );
@@ -213,6 +218,8 @@ public class IVCTester extends JFrame implements IPreserveState,
       load_menu.add("Load State");
     file.add(new_data);
       new_data.add("New Data");
+    file.add(add_marker);
+      add_marker.add("Add Marker at Center");
     
     menu_bar.add( MenuItemMaker.makeMenuItem(file,listeners) ); 
     menu_bar.add(new JMenu("Options"));
@@ -417,6 +424,13 @@ public class IVCTester extends JFrame implements IPreserveState,
      			   "New Y","New Y Units", true );
         va2D.setTitle("New IVC Test");
 	ivc.dataChanged(va2D);
+      }
+      else if( ae.getActionCommand().equals("Add Marker at Center") )
+      {
+        floatPoint2D mark_pt = new floatPoint2D( 5000f, 750f );
+        Marker center_mark = new Marker( Marker.STAR, mark_pt, Color.red,
+	                                 5f, Marker.RESIZEABLE );
+        ivc.addMarker( center_mark );
       }
     }
   }
