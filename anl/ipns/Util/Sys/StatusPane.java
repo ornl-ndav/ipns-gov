@@ -31,6 +31,11 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.4  2002/06/28 13:34:41  rmikk
+ * -Completely changed. The old file is in StatusPane_Base.
+ * - This class is just the previous StatusPane with the scroll bars and the save and clear buttons.
+ *    a) The text area is editable and NOT wrappable
+ *
  * Revision 1.3  2002/01/10 15:40:58  rmikk
  * Added the feature that if this StatusPane was not Displayable
  * the value would go to System.out
@@ -50,7 +55,7 @@ package Command;
   
 import javax.swing.*;  
 import java.beans.*;  
-  
+import java.awt.*;  
 import javax.swing.text.*;  
 import java.util.*;  
 import IsawGUI.*;  
@@ -71,38 +76,32 @@ import javax.swing.border.*;
 *  can be used to invoke a Save or a special Clear on this StatusPane.  
 */  
   
-public class StatusPane extends JTextArea implements  
+public class StatusPane extends JPanel implements  
                               PropertyChangeListener  
-  {  
-    Border border;  
-      
-    /** Constructor that creates a JTextArea with rows and cols.  There is no   
-    * Border. The JTextArea is editable and it does not wrap  
-    *@param  rows    The number of rows in the JTextArea  
-    *@param  cols    The number of columns in the JTextArea  
-    */  
-    public StatusPane( int rows, int cols)   
-         { this( rows,cols,null, true,false);  
-            }  
-      
-    /** This constructor sets more details.  
-    *@param  rows    The number of rows in the JTextArea  
-    *@param  cols    The number of columns in the JTextArea  
-    *@param border   The border to be set or null if there is no border  
-    *@param editable  True if it can be edited otherwise it is false  
-    *@param wrap       True if text wraps around  
-    */  
-    public StatusPane( int rows, int cols, Border border, boolean editable,  
-                        boolean wrap)  
-          {super( rows,cols);  
-             
-           setEditable( editable);  
-  
-           if( border != null)  
-               setBorder( border);  
-  
-            setLineWrap( wrap);  
+  {  StatusPane_Base spb = null;
+    
+    public StatusPane( int rows, int cols)  
+          {super();
+           spb= new StatusPane_Base( rows,cols,
+                    new TitledBorder( "Status" ),true, false);
+                     
+                      
+           JScrollPane X = new JScrollPane( spb);
+           setLayout( new BorderLayout());
+           add( X, BorderLayout.CENTER);
+
+           Box JP=new Box( BoxLayout.Y_AXIS);
+           JButton Save = new JButton("Save");
+           Save.addActionListener( new SaveDocToFileListener(spb.getDocument(),null));
+           JP.add( Save);
           
+           JButton Clear = new JButton("Clear");
+           Clear.addActionListener( new ClearDocListener(spb.getDocument()));
+           JP.add( Clear); 
+
+           JP.add( Box.createVerticalGlue());   
+           
+           add( JP, BorderLayout.EAST);
              
           }  
   /** Processes the properties "Display" and "Clear".  The value to Display  
@@ -113,18 +112,7 @@ public class StatusPane extends JTextArea implements
   */  
   public void propertyChange(PropertyChangeEvent evt)  
     {   
-      String PropName = evt.getPropertyName();  
-      Object Value = evt.getNewValue();  
-  
-      if( PropName.equals( "Display"))  
-         {     
-             add( Value );
-          }  
-  
-      else if( PropName.equals( "Clear"))  
-          {   
-             Clearr();
-           } 
+      spb.propertyChange( evt);
    }  
  /** This method can be used to add information to the text area. 
  * 
@@ -132,34 +120,17 @@ public class StatusPane extends JTextArea implements
  *                   be converted to a small list and each element will 
  *                   be displayed the best possible </ul> 
  */  public void add( Object Value) 
-    { 
-        String S = null;          
-
-             if( Value == null)  
-  
-                S = "null";  
-  
-             else if( ! Value.getClass().isArray( ))  
-  
-                if( !(Value instanceof Vector))  
-                   S = Value.toString();  
-  
-             if( S == null)  
-  
-                S = (new NxNodeUtils()).Showw( Value);  
-            
-             if( isDisplayable())
-                new Util().appendDoc(getDocument(), S ) ;
-             else
-                System.out.println( S );  
- 
+    { spb.add( Value);
     } 
   
+  public Document getDocument()
+    { return spb.getDocument();
+    }
        
  /** Clears the contents of the text area 
 */ 
  public void Clearr() 
-    { setText(""); 
+    { spb.Clearr(); 
     }  
   
   
