@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2001/05/29 14:57:10  dennis
+ * apply() now takes a parameter to specify
+ * whether or not to reset the local transform as well as
+ * the global transform.
+ *
  * Revision 1.1  2001/05/23 17:35:25  dennis
  * Base class for components to control a view matrix.
  *
@@ -254,8 +259,13 @@ public class ViewController extends    JPanel
 /**
  *   This method will apply the new viewing information to each of the 3D 
  *   panels it controls and then repaint each of the panels.
+ *
+ *   @param  reset_zoom   Flag indicating whether or not to reset the local
+ *                       "zoomed" transform when the new viewing information
+ *                        is applied.
+ *
  */  
-  public void apply()
+  public void apply( boolean reset_zoom )
   {
     int n_panels = panel3D.size();
     if ( n_panels <= 0 )
@@ -273,7 +283,7 @@ public class ViewController extends    JPanel
     for ( int i = 0; i < n_panels; i++ )
     {
       ThreeD_JPanel panel = (ThreeD_JPanel)panel3D.elementAt( i );
-      panel.setVirtualScreenSize( width, height );
+      panel.setVirtualScreenSize( width, height, reset_zoom );
       panel.setViewTran( tran );
       panel.repaint();
     } 
