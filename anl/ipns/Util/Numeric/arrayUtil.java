@@ -2,6 +2,10 @@
  * @(#)arrayUtil.java  1999/01/10   Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.6  2000/08/01 20:54:33  dennis
+ *  Changed return value to -1 for get_index_of() method in the case that
+ *  the x value searched for is larger than the last entry in x_vals[]
+ *
  *  Revision 1.5  2000/07/26 20:48:57  dennis
  *  added method to interpolate in tables of x,y values
  *
@@ -83,7 +87,7 @@ public class arrayUtil
        return -1;
 
      else if ( x > x_vals[ x_vals.length-1 ] )      // x to right of all values
-       return x_vals.length-1;
+       return -1;
 
                                              // do binary search to find value  
      int     first = 0;          
