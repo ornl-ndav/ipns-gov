@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/06/06 18:47:48  dennis
+ *  (Mike Miller)
+ *  - Added private class AnnotationEditor to display all annotations.
+ *  - Added method editAnnotation() to call creation of AnnotationEditor
+ *  - Added autopositioning of the arrow from the annotation.
+ *  - Tied together annotation removal via double click with new annotation
+ *    removal featured in AnnotationEditor.
+ *
  *  Revision 1.2  2003/06/05 22:08:33  dennis
  *   (Mike Miller)
  *   - Corrected resize capability
@@ -48,15 +56,19 @@
  * 
  */
 
-/* *************************************************************
- * *********Basic controls for the Annotation Overlay***********
- * *************************************************************
- * Keyboard Event    * Mouse Event       * Action              *
- ***************************************************************
- * press N (note)    * Press/Drag mouse  * add annotation      *
- * none              * Double click      * clear last note     *
- * press A (all)     * Double click      * clear all notes     *
- ***************************************************************
+/* *****************************************************************************
+ * ******************Basic controls for the Annotation Overlay******************
+ * *****************************************************************************
+ * Keyboard Event    * Mouse Event       * Action                              *
+ *******************************************************************************
+ * press N (note)    * Press/Drag mouse  * add annotation                      *
+ * none              * Double click      * clear last note                     *
+ * press A (all)     * Double click      * clear all notes                     *
+ * PRESS RETURN      * NONE              * UPDATE NOTES, CLEAR IF EMPTY STRING *
+ * NONE              * CLICK ON REFRESH  * UPDATE NOTES, CLEAR IF EMPTY STRING *
+ * NONE              * CLICK ON CLOSE    * CLOSES WINDOW                       *
+ *******************************************************************************
+ * ALL EVENTS IN UPPERCASE ARE DONE TO THE AnnotationEditor AFTER IT POPS UP.
  * Important: 
  * All keyboard events must be done prior to mouse events.
  */ 
@@ -68,6 +80,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*; 
 import java.lang.Math;
+import javax.swing.text.*;
+import javax.swing.event.*;
 
 import DataSetTools.components.View.TwoD.*;
 import DataSetTools.components.View.Cursor.*;
@@ -84,6 +98,8 @@ public class AnnotationOverlay extends OverlayJPanel
    private AnnotationOverlay this_panel;  // used for repaint by SelectListener 
    private Rectangle current_bounds;
    private Color reg_color;
+   private boolean editorOpen;
+   private AnnotationEditor editor;
    
   /**
    * Constructor creates OverlayJPanel with a transparent AnnotationJPanel that
@@ -102,7 +118,7 @@ public class AnnotationOverlay extends OverlayJPanel
       notes = new Vector();      
       this_panel = this;
       reg_color = Color.black;
-       
+      editorOpen = false; 
       this.add(overlay); 
       overlay.setOpaque(false); 
       overlay.addActionListener( new NoteListener() );  
@@ -131,6 +147,20 @@ public class AnnotationOverlay extends OverlayJPanel
    }      
 
   /**
+   *
+   */
+   public void editAnnotation()
+   {
+      if( !editorOpen )
+         editor = new AnnotationEditor( notes );
+      else
+      {
+         editor.refresh();
+	 //editor = new AnnotationEditor( notes );
+      }
+   }
+
+  /**
    * Allows toplevel components to add annotations. To use this method, be sure
    * the path to the Line class is in your import statements.
    * Path: DataSetTools/components/View/Cursor/Line.java
@@ -152,7 +182,7 @@ public class AnnotationOverlay extends OverlayJPanel
    {  
       Graphics2D g2d = (Graphics2D)g;
       current_bounds = component.getRegionInfo();  // current size of center
-
+      FontMetrics fontinfo = g2d.getFontMetrics();
       // resize center "overlay" to size of center jpanel
       overlay.setBounds( current_bounds );
       // color of all of the annotations.
@@ -165,6 +195,16 @@ public class AnnotationOverlay extends OverlayJPanel
       float xfactor = 0;
       float yfactor = 0;
       Note note;
+      Point at;
+      String snote;
+      // these variables are used to auto position the text to the arrow
+      Point p1;
+      Point p2;
+      float slope = 0;
+      int autolocatex = 0;
+      int autolocatey = 0;
+      int fontheight = fontinfo.getAscent();
+      int textwidth = 0;
       for( int comment = 0; comment < notes.size(); comment++ )
       {
          note = (Note)notes.elementAt(comment);
@@ -173,17 +213,89 @@ public class AnnotationOverlay extends OverlayJPanel
 	           
          yfactor = (float)current_bounds.getHeight()/
 	           (float)note.getScale().getHeight();
-                  
-         Point at = note.getLocation();
-	 String snote = note.getText();
+
+         at = note.getLocation();
+	 snote = note.getText();
+         textwidth = fontinfo.stringWidth(snote);
+         p1 = note.getLine().getP1();
+	 p2 = note.getLine().getP2();
+	 // negate the slope since the x scale is top-down instead of bottom-up
+	 slope = -(float)(p2.y - p1.y)/(float)(p2.x - p1.x);
+	 //System.out.println("Slope = " + slope );
 	 
+	 // Octdrent I or V
+	 if( (slope < .5) && (slope >= (-.5)) )
+	 {  // Octdrent I, between -22.5 and 22.5 degrees
+	    if( p1.x < p2.x )
+	    {
+	       //System.out.println("Octdrent I");
+	       autolocatex = 0;
+	       autolocatey = fontheight/2;
+	    }
+	    else // Octdrent V, between 157.5 and 202.5 degrees
+	    {
+	       //System.out.println("Octdrent V");
+	       autolocatex = -textwidth;
+	       autolocatey = fontheight/2;	       
+	    }
+	 }
+	 // Octdrent II or VI
+	 else if( (slope >= .5) && (slope <= 2) ) 
+	 {  // Octdrent II, between 22.5 and 67.5 degrees
+	    if( p1.x < p2.x )
+	    {
+	       //System.out.println("Octdrent II");
+	       autolocatex = 0;
+	       autolocatey = 0;
+	    }
+	    else // Octdrent VI, between 202.5 and 247.5 degrees
+	    {
+	       //System.out.println("Octdrent VI");
+	       autolocatex = -textwidth;
+	       autolocatey = fontheight;
+	    }
+	 }
+	 // Octdrent III or VII
+	 else if( (slope < -2) || (slope > 2) )
+	 {  // Octdrent III, between 67.5 and 112.5 degrees
+	    if( p1.y > p2.y )
+	    {
+	       //System.out.println("Octdrent III");
+	       autolocatex = -textwidth/2;
+	       autolocatey = 0;
+	    }
+	    else // Octdrent VII, between 247.5 and 292.5 degrees
+	    {
+	       //System.out.println("Octdrent VII");
+	       autolocatex = -textwidth/2;
+	       autolocatey = fontheight;	       
+	    }
+	 }
+	 // Octdrent IV or VIII
+	 else
+	 {  // Octdrent IV, between 112.5 and 157.5 degrees
+	    if( p1.y > p2.y )
+	    {
+	       //System.out.println("Octdrent IV");
+	       autolocatex = -textwidth;
+	       autolocatey = 0;
+	    }
+	    else // Octdrent VIII, between 292.5 and 337.5 degrees
+	    {
+	       //System.out.println("Octdrent VIII");
+	       autolocatex = 0;
+	       autolocatey = fontheight;	       
+	    }	 
+	 }	 
+	          	 
 	 g2d.drawLine( (int)(note.getLine().getP1().x * xfactor) + ox, 
 	               (int)(note.getLine().getP1().y * yfactor) + oy,
 	               (int)(note.getLine().getP2().x * xfactor) + ox, 
 		       (int)(note.getLine().getP2().y * yfactor) + oy );
 	 
-	 g2d.drawString( snote, (int)((at.x * xfactor) + ox), 
-	                        (int)((at.y * yfactor) + oy));
+	 g2d.drawString( snote, 
+	                 (int)(((at.x + autolocatex) * xfactor) + ox), 
+	                 (int)(((at.y + autolocatey) * yfactor) + oy));
 	 /*
          System.out.println("X/Y factor " + xfactor + "/" + yfactor); 
 	 System.out.println("PrePixel: (" + (at.x + ox) + "," + 
@@ -207,7 +319,12 @@ public class AnnotationOverlay extends OverlayJPanel
          {
 	    //System.out.println("Clear all selected" ); 
 	    if( notes.size() > 0 )
+	    {
 	       notes.clear(); 
+	       // if an editAnnotaton window is open, update it to the changes
+	       if( editorOpen )
+	          editor.refresh();
+	    }
 	    else
 	       System.out.println("No annotations created");          
 	 }
@@ -216,7 +333,12 @@ public class AnnotationOverlay extends OverlayJPanel
          {
 	    //System.out.println("Clear last selected" ); 
 	    if( notes.size() > 0 )
-	       notes.removeElementAt(notes.size() - 1); 
+	    {
+	       notes.removeElementAt(notes.size() - 1);
+	       // if an editAnnotaton window is open, update it to the changes 
+	       if( editorOpen )
+	          editor.refresh();
+	    }	       
 	    else
 	       System.out.println("No annotations created");	      
 	 }	 
@@ -280,12 +402,13 @@ public class AnnotationOverlay extends OverlayJPanel
          {
      	    if( e.getKeyChar() == KeyEvent.VK_ENTER )
      	    {
-       	       //JTextField text = (JTextField)e.getComponent();
      	       this_panel.addAnnotation( text.getText(), region );
-     	       frame.setVisible(false);
 	       frame.dispose();  // since a new viewer is made each time,
 	                         // dispose of the old one.
      	       this_panel.getParent().getParent().repaint();
+	       // if an editAnnotaton window is open, update it to the changes
+	       if( editorOpen )
+	          editor.refresh();	       
      	       //System.out.println("KeyTyped " + e.getKeyChar() );	    
      	    }
          }
@@ -358,6 +481,202 @@ public class AnnotationOverlay extends OverlayJPanel
       public Line getLine()
       {
          return arrow;
+      }
+   } // end of Note
+  
+  /*
+   * This viewer contains the meat and bones in editing annotations.
+   */ 
+   private class AnnotationEditor
+   {
+      private JFrame viewer;
+      private Vector textfields;
+      private AnnotationEditor this_viewer;
+      
+      public AnnotationEditor( Vector textvect )
+      {
+         textfields = textvect;
+         buildViewer();
+	 this_viewer = this;
+
+      } // end of constructor
+      
+      public void refresh()
+      {
+         viewer.dispose();
+	 buildViewer();
+      }
+      
+      private void buildViewer()
+      {
+         viewer = new JFrame("Editor");
+	 viewer.addWindowListener( new FrameListener() );
+         viewer.setBounds(0,0,200,(35 * (textfields.size() + 2)) );
+         viewer.getContentPane().setLayout( 
+	                        new GridLayout(textfields.size() + 2, 1) ); 
+	 
+	 JTextField text = new JTextField();
+	 for( int i = 0; i < textfields.size(); i++ )
+	 { 
+	    text = ((Note)textfields.elementAt(i)).getTextField();
+	    
+	    text.addKeyListener( new TextFieldListener() );
+	    viewer.getContentPane().add(text);
+	 }
+	 JButton refreshbutton = new JButton("Refresh");
+	 refreshbutton.addActionListener( new ButtonListener() );
+	 viewer.getContentPane().add( refreshbutton );
+	 
+	 JButton closebutton = new JButton("Close");
+	 closebutton.addActionListener( new ButtonListener() );
+	 viewer.getContentPane().add( closebutton );
+
+	 // following was pulled from code examples provided by Java's Tech Tips
+	 //*********************************************************************
+	 Keymap km = text.getKeymap();
+	 KeyStroke up = KeyStroke.getKeyStroke( KeyEvent.VK_UP,
+	                                        Event.CTRL_MASK );
+	 KeyStroke down = KeyStroke.getKeyStroke( KeyEvent.VK_DOWN,
+	                                          Event.CTRL_MASK );
+	 KeyStroke left = KeyStroke.getKeyStroke( KeyEvent.VK_LEFT,
+	                                          Event.CTRL_MASK );
+	 KeyStroke right = KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT,
+	                                           Event.CTRL_MASK );
+	 Action actup = new KeyAction("Ctrl-UP"); 
+	 Action actdown = new KeyAction("Ctrl-DOWN"); 
+	 Action actleft = new KeyAction("Ctrl-LEFT");
+	 Action actright = new KeyAction("Ctrl-RIGHT");
+	 
+	 km.addActionForKeyStroke( up, actup );
+	 km.addActionForKeyStroke( down, actdown );
+	 km.addActionForKeyStroke( left, actleft );
+	 km.addActionForKeyStroke( right, actright );
+         //*********************************************************************
+	 	 
+	 viewer.setVisible(true);	      
+      }
+      class ButtonListener implements ActionListener
+      {
+         public void actionPerformed( ActionEvent e )
+	 {
+	    String message = e.getActionCommand();
+	    
+	    int viewersize = viewer.getContentPane().getComponentCount();
+	    // -2 in for is to account for two buttons added to viewer
+	    for( int compid = 0; compid < viewersize - 2; compid++ )
+	    { 
+	       if( ((JTextField)viewer.getContentPane().getComponent(compid)).
+	                                            getText().equals("") )
+	       {
+	          viewer.dispose();
+	          notes.removeElementAt(compid);
+		  this_viewer.buildViewer();
+		  viewersize = viewer.getContentPane().getComponentCount();
+	       }
+	    }
+	    
+	    if( message.equals("Refresh") )
+	    {
+	       this_panel.repaint();
+	    }
+	    else if( message.equals("Close") )
+	    {	
+	       viewer.dispose();
+	    }
+	 }
+      }       
+      
+      class TextFieldListener extends KeyAdapter
+      {
+         public void keyTyped( KeyEvent e )
+         {
+	    // if enter is pressed, update the image
+     	    if( e.getKeyChar() == KeyEvent.VK_ENTER )
+     	    {
+	       int viewersize = viewer.getContentPane().getComponentCount();
+	       // -2 in for is to account for two buttons added to viewer
+	       for( int compid = 0; compid < viewersize - 2; compid++ )
+	       { 
+	          if( ((JTextField)viewer.getContentPane().
+		          getComponent(compid)).getText().equals("") )
+	          {
+	             viewer.dispose();
+	             notes.removeElementAt(compid);
+		     this_viewer.buildViewer();
+		     viewersize = viewer.getContentPane().getComponentCount();
+	          }
+	       }
+       	       this_panel.repaint();	       	    
+     	    }
+         }
+      }  // end TextFieldListener
+
+      class FrameListener extends WindowAdapter
+      {
+         public void windowOpened( WindowEvent we )
+	 {
+	    //System.out.println("windowOpened");
+	    editorOpen = true;
+	 }
+	 
+	 public void windowClosed( WindowEvent we )
+	 {
+	    //System.out.println("windowClosed");
+	    editorOpen = false;
+	 }
+
+	 public void windowClosing( WindowEvent we )
+	 {
+	    //System.out.println("windowClosing");
+	    editorOpen = false;
+	 }	 
+      }// end FrameListener
+      
+      class KeyAction extends TextAction
+      {
+         private String name;
+         public KeyAction( String tname )
+	 {
+	    super(tname);
+	    name = tname;
+	 }
+	 
+         public void actionPerformed( ActionEvent e )
+	 {
+	    int viewersize = viewer.getContentPane().getComponentCount();
+	    // -2 in for is to account for two buttons added to viewer
+	    
+	    int compid = 0;
+	    while( viewer.getContentPane().getComponent(compid) 
+	 	   != e.getSource() && compid < (viewersize - 2))
+	    {
+	       compid++; 
+	    }
+	    
+	    Note tempnote = (Note)textfields.elementAt(compid);
+	    Point tempp2 = tempnote.getLocation();
+	    if( name.equals("Ctrl-UP") )
+	    {
+	       if( tempp2.y > 0 )
+	          tempp2.y = tempp2.y - 1;
+	    }	    
+	    else if( name.equals("Ctrl-DOWN") )
+	    {
+	       if( tempp2.y < current_bounds.getHeight() )
+	          tempp2.y = tempp2.y + 1;
+            }	    
+	    else if( name.equals("Ctrl-LEFT") )
+	    {
+	       if( tempp2.x > 0 )
+	          tempp2.x = tempp2.x - 1;
+	    }
+	    else if( name.equals("Ctrl-RIGHT") )
+	    {
+	       if( tempp2.x < current_bounds.getWidth() )
+	          tempp2.x = tempp2.x + 1;
+	    }
+	    this_panel.repaint();	    
+	 }     
       }
    }
    
