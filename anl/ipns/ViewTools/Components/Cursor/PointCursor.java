@@ -36,9 +36,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/06/05 22:16:19  dennis
+ *   - Updated comments, no functional changes made. (Mike Miller)
+ *
  *  Revision 1.1  2003/05/24 17:32:20  dennis
  *  Initial version of cursor selection. (Mike Miller)
- *
  */
 
  package DataSetTools.components.View.Cursor;
@@ -50,7 +52,7 @@
  import DataSetTools.components.image.*;
 
 /** 
- *  This class implements a Rubberband Circle cursor for selecting regions.
+ *  This class implements a point cursor for selecting regions.
  *
  *  @see  XOR_Cursor
  */
@@ -70,14 +72,13 @@ public class PointCursor extends  XOR_Cursor
    }
 
   /**
-   *  This method draws a circle with two specified points, the center and
-   *  a point on the radius.
+   *  This method draws a cross (or t) at p1.
    *
-   *  @param  graphics   The graphics context that the circle will be drawn in.
+   *  @param  graphics   The graphics context that the point will be drawn in.
    *
-   *  @param  p1         Center point of the circle.
+   *  @param  p1         Point to be emphasized, cross drawn here.
    *
-   *  @param  p2         Radius point of the circle.
+   *  @param  p2         dummy value, only needed because it extends XOR_Cursor
    */
    public void draw( Graphics graphics, Point p1, Point p2 )
    {
@@ -87,11 +88,9 @@ public class PointCursor extends  XOR_Cursor
 
 
   /**
-   *  This method returns the region determined by the starting and
-   *  ending point of the circle cursor.
+   *  This method returns the point when the mouse was first clicked.
    *
-   *  @return  A circle determined by the starting and ending point of 
-   *           the circle cursor
+   *  @return  point where cross will be drawn.
    */
 
    public Point region() 
