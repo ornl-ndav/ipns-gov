@@ -31,9 +31,8 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.5  2002/05/30 23:06:54  chatterjee
- *  Printing of viewers can be done using this class. This class takes the
- *  component to be printed as a constructor.
+ *  Revision 1.6  2002/05/31 16:31:17  chatterjee
+ *  Bug
  *
 */
 
@@ -77,7 +76,7 @@ public class PrintUtilities implements Printable {
     PrinterJob printJob = PrinterJob.getPrinterJob();
     printJob.setPrintable(this);
     if (printJob.printDialog())
-      try {
+      try {//System.out.println("aft dialog pageFormat="+printJob.getDefaultPage().getOrientation()); 
         printJob.print();
       } catch(PrinterException pe) {
         System.out.println("Error printing: " + pe);
@@ -85,7 +84,9 @@ public class PrintUtilities implements Printable {
   }
 
   public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
-     if (pageIndex > 0) {
+    //System.out.println("in print pageFormat="+pageFormat.getOrientation()+","+
+    //    pageFormat.LANDSCAPE+","+pageFormat.PORTRAIT); 
+    if (pageIndex > 0) {
       return(NO_SUCH_PAGE);
     } else {
       Graphics2D g2d = (Graphics2D)g;
@@ -99,15 +100,14 @@ public class PrintUtilities implements Printable {
       yscale=(double)(pageFormat.getImageableHeight())/(R.height);
       if(yscale < xscale) 
          xscale= yscale; 
-      //g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+      g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
       g2d.scale(xscale ,xscale); 
      double w=R.width*xscale;
      double h = R.height*xscale;
      if( w > pageFormat.getImageableWidth()) w=pageFormat.getImageableWidth();
      if( h > pageFormat.getImageableHeight()) h=pageFormat.getImageableHeight();
 
-     g2d.translate(pageFormat.getImageableX()+(pageFormat.getImageableWidth()-w)/2.0,
-                 pageFormat.getImageableY() +(pageFormat.getImageableHeight()-h)/2.0);
+     //g2d.translate(pageFormat.getImageableX(),pageFormat.getImageableY() );
                    
       disableDoubleBuffering(componentToBePrinted);
       componentToBePrinted.paint(g2d);
