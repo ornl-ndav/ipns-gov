@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2003/07/07 14:10:17  bouzekc
+ *  Smarter parsing in getNumOccurrences().
+ *
  *  Revision 1.19  2003/07/07 14:05:34  bouzekc
  *  Added method to find the number of occurrences of one
  *  String within another.
@@ -783,7 +786,8 @@ public class StringUtil
 
     while( ( temp.length(  ) > 0 ) && ( index >= 0 ) ) {
       numFound++;
-      temp    = temp.substring( index + 1, temp.length(  ) );
+      temp    = temp.substring( index + occ.length(  ), 
+                                temp.length(  ) );
       index   = temp.indexOf( occ );
     }
 
