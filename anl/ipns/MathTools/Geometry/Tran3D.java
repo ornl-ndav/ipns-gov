@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2003/01/07 16:03:11  dennis
+ * Added method to calculate transpose.
+ *
  * Revision 1.5  2002/11/27 23:15:47  pfpeterson
  * standardized header
  *
@@ -277,6 +280,23 @@ public class Tran3D
     a[3][1] = 0.0F;
     a[3][2] = 0.0F;
     a[3][3] = 1.0F;
+  }
+
+
+  /*----------------------------- transpose -------------------------------*/
+  /**
+   *  Set this transform to the transpose of the current ransform.
+   */
+  public void transpose()
+  {
+    float temp;
+    for ( int row = 0; row < 4; row++ )
+      for ( int col = 0; col < row; col++ )
+      {
+        temp        = a[row][col];
+        a[row][col] = a[col][row];
+        a[col][row] = temp;
+      }
   }
 
 
