@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2002/11/26 19:28:27  dennis
+ *  Added method setPreserveAspectRatio() that forces the global and
+ *  local transforms to preserve aspect ratio.  Also, when the component
+ *  is resized, the local transform is reset with proper aspect ratio.
+ *
  *  Revision 1.13  2002/11/25 13:47:20  rmikk
  *  Eliminated the "abstract" in the class declaration.
  *  Added a method "getZoomRegion" that returns the zoom
@@ -153,6 +158,12 @@ public class CoordJPanel extends    ActiveJPanel
     CJP_handle_arrow_keys = true;
   }
 
+
+  public void setPreserveAspectRatio( boolean flag )
+  {
+    local_transform.setPreserveAspectRatio( flag );
+    global_transform.setPreserveAspectRatio( flag );
+  }
  
   public void SetHorizontalScrolling( boolean scroll )
   {
@@ -526,7 +537,6 @@ private void ZoomToPixelSubregion( float x1, float y1, float x2, float y2 )
                                               // coordinate system 
   local_transform.setSource( WC_x1, WC_y1, WC_x2, WC_y2 );
 
-
 /*
   System.out.println("WC: x1, y1, x2, y2 = " + WC_x1 + ", " + WC_y1 + ", " +
                                                WC_x2 + ", " + WC_y2 );
@@ -751,6 +761,7 @@ class CoordComponentAdapter extends ComponentAdapter
     stop_crosshair( current_point );
 
     SetTransformsToWindowSize();
+    local_transform.setSource( local_transform.getSource() );
     LocalTransformChanged();
     current_size = size;
   }
