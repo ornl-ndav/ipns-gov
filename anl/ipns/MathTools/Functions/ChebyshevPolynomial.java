@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/02/17 23:16:43  dennis
+ *  Fixed name of parameter in javadoc.
+ *
  *  Revision 1.1  2005/02/15 21:42:01  dennis
  *  Class to evaluate Chebyshev polynomials of the first kind
  *  on the interval [-1,1], using the recurrence relationship.
@@ -57,13 +60,13 @@ public class ChebyshevPolynomial extends OneVarParameterizedFunction
    *  Construct a new ChebyshevPolynomial function object with the specified
    *  degree. 
    *
-   *  @param  degree  The degree of the polynomial 
+   *  @param  degree The degree of the polynomial 
    */
-   public ChebyshevPolynomial( int n )
+   public ChebyshevPolynomial( int degree )
    {
      super( "ChebyshevPolynomial", new double[1], new String[1] );
      parameter_names[0] = "Degree"; 
-     parameters[0] = n;
+     parameters[0] = degree;
    }
 
   /**
