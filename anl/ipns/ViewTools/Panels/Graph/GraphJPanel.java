@@ -30,10 +30,14 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2003/06/20 16:19:35  serumb
+ * Added method to set errors and added functionality for drawing error bars.
+ *
  * Revision 1.13  2003/06/13 19:48:21  serumb
  * Added methods for setting mark color, getting the stroke for a line index,
  * getting a stroke type, setting the line width, and setting the mark size.
- * Also added functionality to put the point markers at the midpoints for the histogram data.
+ * Also added functionality to put the point markers at the midpoints for
+ * the histogram data.
  *
  * Revision 1.12  2003/06/09 22:34:54  serumb
  * SetStroke now takes in the line width as a parameter.
@@ -70,7 +74,7 @@ import DataSetTools.util.*;
 import DataSetTools.math.*;
 import DataSetTools.components.ThreeD.*;
 import java.lang.Object.*;
-
+import java.awt.geom.*;
 /**
  *  A GraphJPanelUdTest object maintains and draws a list of graphs.
  */ 
@@ -98,6 +102,8 @@ public class GraphJPanel extends    CoordJPanel
   public static final int LINE     = 8;
   public static final int DASHDOT  = 9;
   public static final int TRANSPARENT  = 10;
+  public static final int ERROR_AT_POINT  = 11;
+  public static final int ERROR_AT_TOP    = 12;
 
 /* --------------------- Default Constructor ------------------------------ */
 
@@ -202,6 +208,27 @@ public class GraphJPanel extends    CoordJPanel
     SetDataBounds();
   }
 
+/* ----------------------------- setErrors -------------------------------- */
+/**
+ *  gets the errorbounds for each point of a line.  
+ *
+ */
+  public boolean setErrors( float[] errors, int error_loc,
+                            int graph_num, boolean redraw )
+  {
+    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+      return false;
+ 
+    GraphData gd = (GraphData)graphs.elementAt( graph_num );
+    gd.setErrorVals(error_loc, errors);
+
+    if ( redraw )
+      repaint(); 
+
+    return true;
+  } 
+
+
 /* ----------------------------- setColor -------------------------------- */
 /**
  *  Set the color for the specified graph.  
@@ -220,9 +247,6 @@ public class GraphJPanel extends    CoordJPanel
     if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
       return false;
 
-    if ( graph_num == graphs.size() )                  // add a new graph
-      graphs.addElement( new GraphData() );
- 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
     gd.color = color; 
 
@@ -249,9 +273,6 @@ public class GraphJPanel extends    CoordJPanel
     if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
       return false;
 
-    if ( graph_num == graphs.size() )                  // add a new graph
-      graphs.addElement( new GraphData() );
- 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
     gd.markcolor = color; 
 
@@ -267,9 +288,6 @@ public boolean setStroke(BasicStroke theStroke, int graph_num, boolean redraw)
     if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
       return false;
 
-    if ( graph_num == graphs.size() )                  // add a new graph
-      graphs.addElement( new GraphData() );
- 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
     gd.Stroke = theStroke; 
 
@@ -351,9 +369,6 @@ public boolean setLineWidth(int linewidth, int graph_num, boolean redraw)
 {
     if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
       return false;
-
-    if ( graph_num == graphs.size() )                  // add a new graph
-      graphs.addElement( new GraphData() );
  
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
    	
@@ -373,9 +388,6 @@ public boolean setMarkType(int marktype, int graph_num, boolean redraw)
 {
     if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
       return false;
-
-    if ( graph_num == graphs.size() )                  // add a new graph
-      graphs.addElement( new GraphData() );
  
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
    	
@@ -394,9 +406,6 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
 {
     if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
       return false;
-
-    if ( graph_num == graphs.size() )                  // add a new graph
-      graphs.addElement( new GraphData() );
  
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
    	
@@ -622,11 +631,15 @@ public boolean is_autoY_bounds()
 
 
     int height = getHeight();
+
+
+
     for ( int gr_index = graphs.size()-1; gr_index >= 0; gr_index-- )
     {
       x_offset = x_offset_factor * gr_index; 
       y_offset = y_offset_factor * gr_index; 
       GraphData gd = (GraphData)graphs.elementAt(gr_index);
+
 
       boolean is_histogram = false;
       if ( gd.x_vals.length == gd.y_vals.length + 1 )
@@ -640,6 +653,10 @@ public boolean is_autoY_bounds()
       else
         first_index = arrayUtil.get_index_of( first_x, gd.x_vals );
 
+      if ( first_index > 0 )                     // include one extra point 
+        first_index--;                           // to include first segment
+                                                 // going off screen
+
       int last_index;
       if ( last_x <= gd.x_vals[ 0 ] )
         last_index = 0;
@@ -647,6 +664,10 @@ public boolean is_autoY_bounds()
         last_index = gd.x_vals.length-1;
       else
         last_index = arrayUtil.get_index_of( last_x, gd.x_vals );
+
+      if ( last_index < gd.x_vals.length-1 )     // include one extra point 
+        last_index++;                            // to include last segment
+                                                 // going off screen
 
       int n_points = last_index - first_index + 1;
       if ( is_histogram )
@@ -659,22 +680,42 @@ public boolean is_autoY_bounds()
       float y_copy[];
       if ( is_histogram )
       {
-        x_copy = new float[ n_points + 1 ];
-        System.arraycopy( gd.x_vals, first_index, x_copy, 0, n_points+1 );
+        x_copy = new float[ first_index + n_points + 1 ];
+        System.arraycopy( gd.x_vals, first_index, x_copy, 
+                          first_index, n_points+1 );
       }
       else
       {
-        x_copy = new float[ n_points ];
-        System.arraycopy( gd.x_vals, first_index, x_copy, 0, n_points );
+        x_copy = new float[ first_index + n_points ];
+        System.arraycopy( gd.x_vals, first_index,
+                          x_copy, first_index, n_points );
       }
-      y_copy = new float[ n_points ];
-      System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
+      y_copy = new float[ first_index + n_points ];
+      System.arraycopy( gd.y_vals, first_index , 
+                        y_copy, first_index, n_points );
 
       local_transform.MapTo( x_copy, y_copy );         // map from WC to pixels
-         	
+      
+      float error_bars_upper[] = null;
+      float error_bars_lower[] = null;
+      if ( gd.getErrorVals() != null )
+      {
+        System.out.println("Copying errors " + gr_index + ", " + n_points );
+        error_bars_upper = new float[first_index + n_points ];
+        error_bars_lower = new float[first_index + n_points ]; 
+
+        for ( int i = first_index; i < first_index + n_points; i++ )
+        {
+           error_bars_upper[i] = gd.y_vals[i] + gd.getErrorVals()[i]; 
+           error_bars_lower[i] = gd.y_vals[i] - gd.getErrorVals()[i];
+        }
+        local_transform.MapYListTo(error_bars_upper);
+        local_transform.MapYListTo(error_bars_lower);
+      }
       
       
-      g2.setStroke(new BasicStroke(2));
+      
+      g2.setStroke(gd.Stroke);
       
       if ( x_copy.length == y_copy.length )            // Function data
       { 
@@ -712,25 +753,11 @@ public boolean is_autoY_bounds()
           g2.drawPolyline( x_int, y_int, n_points );
         }
 
-	/*
-        Vector3D[] testvect = new Vector3D[n_points];
-        for (int n=0; n < n_points; n++)
-	{    
-  	  testvect[n] = new Vector3D(x_copy[n], y_copy[n], 0);
-		System.out.println(testvect[n]);
-	}
-
-        Polymarker tM = new Polymarker(testvect, Color.blue);
-
-	tM.setSize(10);
-	tM.setType(4);
-	tM.Draw(g2);
-	*/
-        	
+ 
 
 	if (gd.marktype != 0)
 	{
-	  g2.setStroke(new BasicStroke(2));
+	  g2.setStroke(new BasicStroke(1));
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
@@ -738,24 +765,24 @@ public boolean is_autoY_bounds()
           {
 	     
 	     if ( type == DOT )
-              g.drawLine( (int)x_copy[i], (int)y_copy[i], 
+              g2.drawLine( (int)x_copy[i], (int)y_copy[i], 
 	  			(int)x_copy[i], (int)y_copy[i] );      
              else if ( type == PLUS )
              {
-               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i],
+               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i],
 	  		      (int)x_copy[i]+size, (int)y_copy[i]      );      
-              g.drawLine( (int)x_copy[i],      (int)y_copy[i]-size, 
+              g2.drawLine( (int)x_copy[i],      (int)y_copy[i]-size, 
 	  			(int)x_copy[i],      (int)y_copy[i]+size );      
              }
              else if ( type == STAR )
              {
-               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i],
+               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i],
 	  			 (int)x_copy[i]+size, (int)y_copy[i]      );      
-               g.drawLine( (int)x_copy[i],      (int)y_copy[i]-size,
+               g2.drawLine( (int)x_copy[i],      (int)y_copy[i]-size,
 	  			 (int)x_copy[i],      (int)y_copy[i]+size );      
-               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
+               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
 	  			 (int)x_copy[i]+size, (int)y_copy[i]+size );      
-               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
+               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
 				 (int)x_copy[i]+size, (int)y_copy[i]-size );      
              }
              else if ( type == BOX )
@@ -771,13 +798,42 @@ public boolean is_autoY_bounds()
              }
              else   // type = CROSS
              {
-               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
+               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
 	  		 (int)x_copy[i]+size, (int)y_copy[i]+size );      
-               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
+               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
 	  		 (int)x_copy[i]+size, (int)y_copy[i]-size );      
              }    
 	  } 
 	}   
+        
+        if (gd.getErrorLocation() != 0)
+        {//local_transform.MapYListTo(error_bars_copy);
+          Line2D.Float line1 = new Line2D.Float();
+          Line2D.Float line2 = new Line2D.Float();
+          Line2D.Float line3 = new Line2D.Float();
+          int size = 1;
+          int loc = gd.getErrorLocation();
+	  g2.setStroke(new BasicStroke(2));
+	  g2.setColor( gd.errorcolor );
+          for ( int i = 0; i < n_points; i++ )
+          {
+             if ( loc == ERROR_AT_POINT )
+             {
+               line1.setLine( x_copy[i], error_bars_upper[i], 
+	  	                     x_copy[i], error_bars_lower[i]);
+               g2.draw(line1);
+               line2.setLine( x_copy[i] + size, error_bars_upper[i],
+                                     x_copy[i] - size, error_bars_upper[i]);
+               g2.draw( line2 );
+               line3.setLine( x_copy[i] + size, error_bars_lower[i],
+                                     x_copy[i] - size, error_bars_lower[i]);   
+               g2.draw( line3 );
+             }
+
+          }
+        }
+
+
 
       }
       else if ( is_histogram )  // Histogram data
@@ -828,24 +884,24 @@ public boolean is_autoY_bounds()
           {
 	     int x_midpt = (int)((x_copy[i] + x_copy[i+1])/2);
 	     if ( type == DOT )
-              g.drawLine( x_midpt, (int)y_copy[i], 
+              g2.drawLine( x_midpt, (int)y_copy[i], 
 	  			x_midpt, (int)y_copy[i] );      
              else if ( type == PLUS )
              {
-               g.drawLine( x_midpt-size, (int)y_copy[i],
+               g2.drawLine( x_midpt-size, (int)y_copy[i],
 	  		      x_midpt+size, (int)y_copy[i]      );      
-              g.drawLine( x_midpt,      (int)y_copy[i]-size, 
+              g2.drawLine( x_midpt,      (int)y_copy[i]-size, 
 	  			x_midpt,      (int)y_copy[i]+size );      
              }
              else if ( type == STAR )
              {
-               g.drawLine( x_midpt-size, (int)y_copy[i],
+               g2.drawLine( x_midpt-size, (int)y_copy[i],
 	  			 x_midpt+size, (int)y_copy[i]      );      
-               g.drawLine( x_midpt,      (int)y_copy[i]-size,
+               g2.drawLine( x_midpt,      (int)y_copy[i]-size,
 	  			 x_midpt,      (int)y_copy[i]+size );      
-               g.drawLine( x_midpt-size, (int)y_copy[i]-size,
+               g2.drawLine( x_midpt-size, (int)y_copy[i]-size,
 	  			 x_midpt+size, (int)y_copy[i]+size );      
-               g.drawLine( x_midpt-size, (int)y_copy[i]+size,
+               g2.drawLine( x_midpt-size, (int)y_copy[i]+size,
 				 x_midpt+size, (int)y_copy[i]-size );      
              }
              else if ( type == BOX )
@@ -861,14 +917,61 @@ public boolean is_autoY_bounds()
              }
              else   // type = CROSS
              {
-               g.drawLine( x_midpt-size, (int)y_copy[i]-size,
+               g2.drawLine( x_midpt-size, (int)y_copy[i]-size,
 	  		 x_midpt+size, (int)y_copy[i]+size );      
-               g.drawLine( x_midpt-size, (int)y_copy[i]+size,
+               g2.drawLine( x_midpt-size, (int)y_copy[i]+size,
 	  		 x_midpt+size, (int)y_copy[i]-size );      
              }    
 	  } 
-	}   
+	}
+        
+        if (gd.getErrorLocation() != 0)
+        {
+          //local_transform.MapYListTo(error_bars_copy);
+          Line2D.Float line1 = new Line2D.Float();
+          Line2D.Float line2 = new Line2D.Float();
+          Line2D.Float line3 = new Line2D.Float();
+          int size = 1;
+          int loc = gd.getErrorLocation();
+          int x_val = getZoom_region().x;
+          int y_val = getZoom_region().y;
+          int x_width = getZoom_region().width;
+          int y_height = getZoom_region().height;
 
+	  g2.setStroke(new BasicStroke(1));
+	  g2.setColor( gd.errorcolor );
+
+
+          for ( int i = first_index; i <  n_points + first_index; i++ )
+          {
+             float x_midpt = ((x_copy[i] + x_copy[i+1])/2);
+             if ( loc == ERROR_AT_POINT )
+             {
+               line1.setLine( x_midpt, error_bars_upper[i], 
+	  	            x_midpt, error_bars_lower[i]);
+               g2.draw(line1);
+               line2.setLine( x_midpt + size, error_bars_upper[i],
+                                     x_midpt - size, error_bars_upper[i]);
+               g2.draw( line2 );
+               line3.setLine( x_midpt + size, error_bars_lower[i],
+                                     x_midpt - size, error_bars_lower[i]);   
+               g2.draw( line3 );
+             }
+
+            else if (loc == ERROR_AT_TOP)
+             {
+               line1.setLine(x_copy[i], error_bars_upper[i] - y_copy[i], 
+	  	             x_copy[i], error_bars_lower[i] - y_copy[i]);
+               g2.draw(line1);
+               line2.setLine(x_copy[i] + size, error_bars_upper[i] - y_copy[i], 
+                             x_copy[i] - size, error_bars_upper[i] - y_copy[i]);
+               g2.draw( line2 );
+               line3.setLine(x_copy[i] + size, error_bars_lower[i] - y_copy[i],
+                             x_copy[i] - size, error_bars_lower[i] - y_copy[i]);   
+               g2.draw( line3 );
+             }
+          }   
+        }
 
       }
       else 
@@ -975,6 +1078,7 @@ private void SetDataBounds()
 
     float g1_x_vals[] = { 0, (float).2, (float).4, 1 };
     float g1_y_vals[] = { 0, (float).3, (float).2, 1 };
+    float g1_e_vals[] = { 0.1f, 0.2f, 0.3f, 0.4f };
 
     float g2_x_vals[] = { 0, 1 };
     float g2_y_vals[] = { 1, 0 };
@@ -987,6 +1091,7 @@ private void SetDataBounds()
 
     graph.setBackground(Color.white);
     graph.setData( g1_x_vals, g1_y_vals, 0, false );
+    graph.setErrors( g1_e_vals, 11, 1, true );
     graph.setColor( Color.black, 0, false );
     graph.setStroke( graph.strokeType(DASHED,0), 0, false);
     graph.setLineWidth(1,0,true);
