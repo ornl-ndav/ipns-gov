@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.69  2005/03/11 19:47:30  serumb
+ *  Added Object State and fixed eclipse warnings.
+ *
  *  Revision 1.68  2005/02/04 22:51:16  millermi
  *  - Added sendMessage(POINTED_AT_CHANGED) to dataChanged() and
  *    sendMessage(SELECTED_CHANGED) to dataChanged(iva) so
@@ -297,14 +300,49 @@ public class FunctionViewComponent implements IViewComponent1D,
   */
   
   public static final String GRAPHJPANEL        = "Graph JPanel";
+ 
+    
+ /**
+  * "AnnotationOverlay" - This constant String is a key for referencing the
+  * state information about the Annotation Overlay. Since the overlay has its
+  * own state, this value is of type ObjectState, and contains the state of
+  * the overlay.
+  **/
+    public static final String ANNOTATION_OVERLAY  = "AnnotationOverlay";
+    
+ /**
+  * "AxisOverlay2D" - This constant String is a key for referencing the state
+  * information about the Axis Overlay. Since the overlay has its own state,
+  * this value is of type ObjectState, and contains the state of the
+  * overlay.
+  */
+      public static final String AXIS_OVERLAY_2D     = "AxisOverlay2D";
+   
+ /**
+  * "LegendOverlay" - This constant String is a key for referencing the state
+  * information about the Legend Overlay. Since the overlay has its own state,
+  * this value is of type ObjectState, and contains the state of the
+  * overlay
+  */
+      public static final String LEGEND_OVERLAY      = "LegendOverlay";
+ /**
+  * "FunctionControls" - This constant String is a key for referencing the 
+  * state information about the FunctionControls. Since the control has its
+  * own state, this value is of type ObjectState, and contains the state of
+  * the controls.
+  */
+     public static final String FUNCTION_CONTROLS = "FunctionControls";  
+
+      
+
   
   private transient IVirtualArrayList1D Varray1D;  //An object containing our
                                                // array of data
-  private Point[] selectedset;  //To be returned by getSelectedSet()   
+  private transient Point[] selectedset;  //To be returned by getSelectedSet()
   private transient Vector Listeners   = null;
   private transient JPanel big_picture = new JPanel();
   private transient JPanel background = new JPanel(new BorderLayout());
-  private GraphJPanel gjp;
+  private transient GraphJPanel gjp;
   private final int MAX_GRAPHS = 20;
  
   // for component size and location adjustments
@@ -315,8 +353,8 @@ public class FunctionViewComponent implements IViewComponent1D,
   private transient Vector transparencies = new Vector(  );
   private int precision;
   private Font font;
-  private transient LinkedList controls = new LinkedList(  );
-  private int linewidth      = 1;
+ // private transient LinkedList controls = new LinkedList(  );
+ // private int linewidth      = 1;
   private FunctionControls mainControls;
   private boolean draw_pointed_at = true;
   private ControlCheckbox control_box = new ControlCheckbox(false);
@@ -402,7 +440,7 @@ public class FunctionViewComponent implements IViewComponent1D,
       
     //initialize pointed_at graph
     int pointed_at_index = Varray1D.getPointedAtGraph();
-    Draw_GJP( pointed_at_index, 0, false );
+    Draw_GJP( pointed_at_index, 0 );
     
       mainControls = new FunctionControls(varr, gjp, getDisplayPanel(),this);
       mainControls.get_frame().addWindowListener( new FrameListener() );
@@ -442,7 +480,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    
     Object temp = new_state.get(GRAPHJPANEL);
     if ( temp != null){
-      gjp = (GraphJPanel)temp;
+      gjp.setObjectState( (ObjectState)temp );
       redraw = true;
     }
 
@@ -469,7 +507,39 @@ public class FunctionViewComponent implements IViewComponent1D,
       control_box.setSelected( ((Boolean)temp).booleanValue() );
       redraw = true;
     }
+    
+    temp = new_state.get(LEGEND_OVERLAY);
+    if (temp != null)
+    {
+       ((OverlayJPanel)transparencies.elementAt(0)).setObjectState(
+						(ObjectState)temp);
+       redraw = true;
+    }
+    
+    temp = new_state.get(ANNOTATION_OVERLAY);
+    if (temp != null)
+    {
+       ((OverlayJPanel)transparencies.elementAt(1)).setObjectState(
+						(ObjectState)temp);
+       redraw = true;
+    }       
+    
+    temp = new_state.get(AXIS_OVERLAY_2D);
+    if (temp != null)
+    {
+       ((OverlayJPanel)transparencies.elementAt(2)).setObjectState(
+						(ObjectState)temp);
+       redraw = true;
+    }
+    
+    temp = new_state.get(FUNCTION_CONTROLS);
+    if (temp != null)
+    {
+       mainControls.setObjectState((ObjectState)temp);
  
+       redraw = true;
+    }       
+    
     if( redraw )
       reInit();
 
@@ -480,16 +550,23 @@ public class FunctionViewComponent implements IViewComponent1D,
   * object. These variables will be wrapped in an ObjectState. Keys will be
   * put in alphabetic order.
   */
-  public ObjectState getObjectState(boolean isDefult)
+  public ObjectState getObjectState(boolean isDefault)
   {
     ObjectState state = new ObjectState();
+    state.insert( ANNOTATION_OVERLAY,
+      ((OverlayJPanel)transparencies.elementAt(1)).getObjectState(isDefault) );
+    state.insert( AXIS_OVERLAY_2D,
+      ((OverlayJPanel)transparencies.elementAt(2)).getObjectState(isDefault) );
     state.insert( CONTROL_BOX, new Boolean( control_box.isSelected() ));
     state.insert( FONT, font);
-    state.insert( GRAPHJPANEL, gjp);
+    state.insert( FUNCTION_CONTROLS, mainControls.getObjectState(isDefault) );
+    state.insert( GRAPHJPANEL, gjp.getObjectState(isDefault) );
+    state.insert( LEGEND_OVERLAY, 
+      ((OverlayJPanel)transparencies.elementAt(0)).getObjectState(isDefault) );
     state.insert( POINTED_AT_CONTROL, new Boolean(draw_pointed_at) );
     state.insert( PRECISION, new Integer(precision) );
     
-    if(! isDefult){
+    if(! isDefault){
     }
 
     return state;
@@ -886,10 +963,12 @@ public class FunctionViewComponent implements IViewComponent1D,
    
    ViewMenuItem[] Res = new ViewMenuItem [2];
    
-   Res[0] = new ViewMenuItem(ViewMenuItem.PUT_IN_OPTIONS, new JCheckBoxMenuItem("Function Controls"));
+   Res[0] = new ViewMenuItem(ViewMenuItem.PUT_IN_OPTIONS, 
+		   new JCheckBoxMenuItem("Function Controls"));
    (Res[0]).addActionListener( new ControlListener() );
 
-   Res[1] = new ViewMenuItem (ViewMenuItem.PUT_IN_OPTIONS, new JCheckBoxMenuItem("Show Pointed At"));
+   Res[1] = new ViewMenuItem (ViewMenuItem.PUT_IN_OPTIONS, 
+		   new JCheckBoxMenuItem("Show Pointed At"));
    ((JCheckBoxMenuItem)Res[1].getItem()).setState(true);
    (Res[1]).addActionListener( new ControlListener() );
 
@@ -979,7 +1058,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     
         if( Varray1D.isSelected(i) ) {
             draw_count++;
-            Draw_GJP( i, draw_count, false );
+            Draw_GJP( i, draw_count);
         }
       }
 
@@ -989,7 +1068,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     return draw_count;
   }
 
-  private void Draw_GJP( int index, int graph_num, boolean pointed_at )
+  private void Draw_GJP( int index, int graph_num)
   {
        float x[] = Varray1D.getXValues(index);
        float y[] = Varray1D.getYValues(index);
@@ -1050,6 +1129,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     //setAxisInfo();
     int westwidth  = ( font.getSize(  ) * precision ) + 22;
     int southwidth = ( font.getSize(  ) * 3 ) + 22;
+    background.removeAll();
 
     JPanel north = new JPanel( new FlowLayout(  ) );
 
