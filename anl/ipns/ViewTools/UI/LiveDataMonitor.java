@@ -30,6 +30,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2003/03/04 20:48:29  dennis
+ *  Major usability improvements.
+ *  Listeners to the Show, Update, Auto and Record controls now
+ *  use SwingWorker() to start a separate thread for operations
+ *  that take a lot of time.
+ *  The new LiveDataManager.getDataSetName() method is used when
+ *  laying out the control panel, so that the control panel
+ *  appears quickly without having to first load the DataSets.
+ *
  *  Revision 1.24  2002/12/01 16:12:31  dennis
  *  Now verifies that viewer is not null before destroying it.
  *
@@ -66,6 +75,7 @@ import DataSetTools.dataset.*;
 import DataSetTools.viewer.*;
 import DataSetTools.retriever.*;
 import DataSetTools.util.*;
+import ExtTools.SwingWorker;
 
 /**
  *
@@ -103,6 +113,8 @@ public class LiveDataMonitor extends    JPanel
   private Vector           event_queue;          // queue for passing the action
                                                  // event from the DataManager
                                                  // to the event thread
+  private boolean  debug_LDM = false;
+
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -222,8 +234,12 @@ public class LiveDataMonitor extends    JPanel
  *
  *  @return the requested DataSet.
  */
+
   public DataSet getDataSet( int data_set_num )
   {
+    if ( debug_LDM )
+      System.out.println("LiveDataMonitor.getDataSet("+data_set_num+") called");
+
     if ( data_manager != null )
     {
       DataSet temp_ds = data_manager.getDataSet( data_set_num ); 
@@ -415,6 +431,10 @@ public class LiveDataMonitor extends    JPanel
     label_panel.setBackground( BACKGROUND );
     panel_box.add( label_panel );
 
+    if ( debug_LDM )
+      System.out.println("LiveDataMonitor.SetUpGUI, n_ds = " + 
+                          data_manager.numDataSets() );
+
     for ( int i = 0; i < data_manager.numDataSets(); i++ )
     {
       panel_box.add( panel[i] );                 // Add the panel to this
@@ -425,14 +445,11 @@ public class LiveDataMonitor extends    JPanel
       else
         data_manager.setUpdateIgnoreFlag( i, true );
 
-      if ( viewers[i] != null && viewers[i].isVisible()  )
+      if ( viewers[i] != null && !viewers[i].isVisible()  )  
       {
-        DataSet ds = data_manager.getDataSet(i);
-        if ( ds != null )
-          viewers[i].setDataSet( ds );
+        viewers[i].destroy();                  // get rid of invisible viewers
+        viewers[i] = null;  
       }
-      else 
-        viewers[i] = null;
     }
 
     border = new TitledBorder( LineBorder.createBlackLineBorder(),
@@ -465,10 +482,9 @@ public class LiveDataMonitor extends    JPanel
 
     for ( int i = 0; i < num_labels; i++ )
     {
-      DataSet ds = data_manager.getDataSet( i );
-      if ( ds != null )
+      String cur_title = data_manager.getDataSetName( i );
+      if ( cur_title != null )
       {
-        String cur_title = ds.getTitle();
         if ( !cur_title.equalsIgnoreCase( ds_label[i].getText() ) )
           ds_label[i].setText( cur_title );
       }
@@ -514,22 +530,45 @@ public class LiveDataMonitor extends    JPanel
 
     public void actionPerformed( ActionEvent e )
     {
-      if ( viewers[ my_index ] == null  ||
-          !viewers[ my_index ].isVisible() )    // make another viewer
+      if ( data_manager.isGettingDS() )           // ignore update request if
+        return;                                   // the DataManager is busy
+
+      button[my_index].setEnabled(false); 
+
+      // create a subclass of SwingWorker to update and get the DataSet 
+      final SwingWorker worker = new SwingWorker()   // ----- INLINE CLASS DEF
       {
-        DataSet ds = data_manager.getDataSet( my_index );
-        if ( ds != null )
+        public Object construct()
         {
-          viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
-          viewers[my_index].addWindowListener( 
-                                         new ViewManagerListener(my_index));
+          data_manager.UpdateDataSetNow( my_index );
+          return data_manager.getDataSet( my_index ); // could return anything
         }
-      }
 
-      data_manager.UpdateDataSetNow( my_index ); 
-      show_box[ my_index ].setSelected( true );   // update implies we show it
+        public void finished()        // when finished() is called, the DataSet
+        {                             // will have been updated in the
+                                      // ViewManager, so we can get it and
+                                      // display it if needed.
 
-      FixLabels();
+          if ( viewers[ my_index ] == null  ||      // must make another viewer
+              !viewers[ my_index ].isVisible() )    // first, to show it
+          {
+            DataSet ds = data_manager.getDataSet( my_index );
+            if ( ds != null )
+            {
+              viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+              viewers[my_index].addWindowListener(
+                                         new ViewManagerListener(my_index));
+            }
+          }
+          // else the UpdateDataSetNow() method will have notified an existing
+          // viewer that the DataSet it's showing has been updated.
+ 
+          show_box[ my_index ].setSelected( true );  // update implies show it
+          button[my_index].setEnabled(true);
+          FixLabels();
+         }
+       };
+      worker.start();
     }
   }
 
@@ -548,14 +587,32 @@ public class LiveDataMonitor extends    JPanel
 
     public void actionPerformed( ActionEvent e )
     {
-      DataSet ds = data_manager.getDataSet(my_index);
-      if ( ds != null )
-      {
-        ds = (DataSet)ds.clone();
-        observers.notifyIObservers( this, ds );
-      }
+       record[my_index].setEnabled(false);
 
-      FixLabels();
+       // create a subclass of SwingWorker to get the DataSet
+       final SwingWorker worker = new SwingWorker()   // ----- INLINE CLASS DEF
+       {
+         public Object construct()  // calling getDataSet will make sure there
+         {                          // is a DataSet in the ViewManager's local  
+                                    // list.
+           return data_manager.getDataSet( my_index );
+         }
+
+         public void finished()      // when finished() is called, we can       
+         {                           // quickly get a reference to the local   
+                                    // copy of the DataSet from the ViewManager
+           DataSet ds = data_manager.getDataSet(my_index);
+           if ( ds != null )
+           {
+             ds = (DataSet)ds.clone();
+             observers.notifyIObservers( this, ds );
+           }
+
+           record[my_index].setEnabled(true);
+           FixLabels();
+         }
+       };
+      worker.start();
     }
   }
 
@@ -575,19 +632,38 @@ public class LiveDataMonitor extends    JPanel
     public void actionPerformed( ActionEvent e )
     { 
       JCheckBox check_box = (JCheckBox)(e.getSource());
+      show_box[my_index].setEnabled(false);
 
-      if ( check_box.isSelected() )
-      {
+      if ( check_box.isSelected() )               // use thread to get and
+      {                                           // display the DataSet
+                                                  // if it's not already shown
         if ( viewers[ my_index ] == null  ||
-            !viewers[ my_index ].isVisible() )    // make another viewer
+            !viewers[ my_index ].isVisible() )    // make a new viewer
         { 
-          DataSet ds = data_manager.getDataSet( my_index );
-          if ( ds != null )
+          // create a subclass of SwingWorker to get the DataSet
+          final SwingWorker worker = new SwingWorker()   //-----INLINE CLASS DEF
           {
-           viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
-           viewers[my_index].addWindowListener( 
+            public Object construct() // calling getDataSet will make sure there
+            {                         // is a DataSet in the ViewManager's local
+                                      // list.
+              return data_manager.getDataSet( my_index );
+            }
+
+            public void finished()  // when finished() is called, we can
+            {                       // quickly get a reference to the local
+                                    // copy of the DataSet from the ViewManager
+              DataSet ds = data_manager.getDataSet(my_index);
+              if ( ds != null )
+              {
+                viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+                viewers[my_index].addWindowListener(
                                             new ViewManagerListener(my_index));
-          }
+              }
+              show_box[my_index].setEnabled(true);
+              FixLabels();
+            }
+          };
+          worker.start();
         }
       }
       else
@@ -597,6 +673,7 @@ public class LiveDataMonitor extends    JPanel
         auto_box[my_index].setSelected( false );  // Don't show it implies
                                                   // don't auto update it.
         data_manager.setUpdateIgnoreFlag( my_index, true );
+        show_box[my_index].setEnabled(true);
       }
 
       FixLabels();
@@ -625,17 +702,36 @@ public class LiveDataMonitor extends    JPanel
         if ( viewers[ my_index ] == null  ||
             !viewers[ my_index ].isVisible() )    // make another viewer
         {
-          DataSet ds = data_manager.getDataSet( my_index );
-          if ( ds != null )
+          auto_box[my_index].setEnabled(false);
+          // create a subclass of SwingWorker to get the DataSet
+          final SwingWorker worker = new SwingWorker()   //-----INLINE CLASS DEF
           {
-           viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
-           viewers[my_index].addWindowListener( 
-                                          new ViewManagerListener(my_index));
-          }
+            public Object construct() // calling getDataSet will make sure there
+            {                         // is a DataSet in the ViewManager's local
+                                      // list.
+              return data_manager.getDataSet( my_index );
+            }
+
+            public void finished()  // when finished() is called, we can
+            {                       // quickly get a reference to the local
+                                    // copy of the DataSet from the ViewManager
+              DataSet ds = data_manager.getDataSet(my_index);
+              if ( ds != null )
+              {
+                viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+                viewers[my_index].addWindowListener(
+                                            new ViewManagerListener(my_index));
+              }
+              auto_box[my_index].setEnabled(true);
+              FixLabels();
+            }
+          };
+          worker.start();
+
         }
+        data_manager.setUpdateIgnoreFlag( my_index, false );
         show_box[ my_index ].setSelected( true );   // Auto update implies 
                                                     // we also show it.
-        data_manager.setUpdateIgnoreFlag( my_index, false );
       }
       else
         data_manager.setUpdateIgnoreFlag( my_index, true );
@@ -671,6 +767,8 @@ public class LiveDataMonitor extends    JPanel
     public void run_actionPerformed( ActionEvent e )
     {
       String message = e.getActionCommand();
+      if ( debug_LDM )
+        System.out.println("DataManagerListener got message: " + message );
 
       if ( message.startsWith( LiveDataManager.DATA_CHANGED ) )
         SetUpGUI();
@@ -734,6 +832,7 @@ public class LiveDataMonitor extends    JPanel
      } 
 
      String instrument_computer = args[0];
+     instrument_computer += ";;;";
      LiveDataMonitor monitor = new LiveDataMonitor( instrument_computer );
 
      JFrame frame = new JFrame( "Live Data Monitor" );
