@@ -16,6 +16,8 @@ public class DataSetData implements IVirtualArray1D
    float minx;
    float maxx;
    float miny;
+   boolean is_x_linear = true;
+   boolean is_y_linear = true;
    
 
    public DataSetData( DataSet DS)
@@ -32,11 +34,11 @@ public class DataSetData implements IVirtualArray1D
       
       if( x_axis)
          return  new AxisInfo2D(findminX(), findmaxX(), 
-               ds.getX_label(), ds.getX_units(), true);
+               ds.getX_label(), ds.getX_units(), is_x_linear);
       else
 
          return  new AxisInfo2D(findminY(), findmaxY(), 
-               ds.getY_label(), ds.getY_units(), true);
+               ds.getY_label(), ds.getY_units(), is_y_linear);
      }
 
 
@@ -48,10 +50,11 @@ public class DataSetData implements IVirtualArray1D
        
         float [] xvals;
 
+        xvals = getXValues(0);
+	minx =  xvals[0];
+        maxx =  xvals[0];
 	for (int line=0; line < getNumlines(); line++)
         {xvals = getXValues(line);
-	 minx =  xvals[0];
-         maxx =  xvals[0];
            for (int i=1; i < getNumPoints(line); i++)
 	   {
 	      if (xvals[i] < minx)
@@ -75,11 +78,12 @@ public class DataSetData implements IVirtualArray1D
 
 	float [] yvals;
 
+	yvals = getYValues(0);
+        miny =  yvals[0];
+        maxy =  yvals[0];
 
 	for (int line=0; line < getNumlines(); line++)
 	{ yvals = getYValues(line);
-          miny =  yvals[0];
-          maxy =  yvals[0];
            for (int i=1; i < yvals.length; i++)
 	   {
 	      if (yvals[i] < miny)
@@ -123,7 +127,6 @@ public class DataSetData implements IVirtualArray1D
 
   public void setXValues( float[] values, int line_number )
     {
-
     }
 
 
@@ -217,9 +220,15 @@ public class DataSetData implements IVirtualArray1D
 
   }
 
-
-
-
+  public void set_x_linear(boolean isLinear) 
+  {
+    is_x_linear = isLinear;
+  }
+  
+  public void set_y_linear(boolean isLinear) 
+  {
+    is_y_linear = isLinear;
+  }
 
   
  /** Returns the number of x values in the line line_number
