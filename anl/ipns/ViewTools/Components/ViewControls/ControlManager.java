@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/03/20 19:53:24  millermi
+ *  - Added state method getInstance() which now makes the ControlManager
+ *    a Singleton class, only one instance can exist, unless a class
+ *    is within the ViewControls package.
+ *  - Made constructor protected, so it can only be used for testing
+ *    by ViewControls.
+ *
  *  Revision 1.2  2005/03/20 05:31:42  millermi
  *  - Changed registerControl(key,control) to registerControl(control)
  *    since ViewControls now have key contained within them.
@@ -62,17 +69,36 @@
  * key maintain a consistent value, when one is altered, all are altered.
  * This class has no graphical display, it links control values behind
  * the scenes. The viewer is responsible for displaying a list of shared
- * controls.
+ * controls. Because this class is intended to be a singleton, use
+ * getInstance() to get the control manager.
  */
  public class ControlManager
  {
    // Registry of all category keys and associated controls list.
    private Hashtable ctrl_table;
+   private static ControlManager this_manager = null;
    
   /**
-   * Constructor - initializes control registry.
-   */ 
-   public ControlManager()
+   * This method will prevent multiple instances of the ControlManager from
+   * existing. If one exists, return the reference to it. Otherwise create a
+   * new instance.
+   *
+   *  @return A single instance of the ControlManager.
+   */
+   public static ControlManager getInstance()
+   {
+     // Allow only one instance of ControlManager to exist.
+     if( this_manager == null )
+       this_manager = new ControlManager();
+     return this_manager;
+   }
+   
+  /**
+   * Constructor - initializes control registry. Used if a single instance
+   * in not necessary. Currently, its use is restricted to testing for
+   * ViewControls.
+   */
+   protected ControlManager()
    {
      ctrl_table = new Hashtable();
    }
