@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2003/08/26 03:41:48  millermi
+ *  - Added functionality to private class SelectedRegionListener to
+ *    handle double wedge selections.
+ *
  *  Revision 1.24  2003/08/21 18:22:57  millermi
  *  - Added capabilities for wedge selection
  *
@@ -1186,11 +1190,17 @@ public class ImageViewComponent implements IViewComponent2D,
 	   selregion = new LineRegion( imagecolrow );
 	 else if( regiontype.equals(SelectionJPanel.POINT) )
 	   selregion = new PointRegion( imagecolrow );
-	 else //if( regiontype.equals(SelectionJPanel.WEDGE) )
+	 else if( regiontype.equals(SelectionJPanel.WEDGE) )
 	 {
 	   int size = imagecolrow.length - 1;
 	   imagecolrow[size] = new Point( (int)wcp[size].x, (int)wcp[size].y );
 	   selregion = new WedgeRegion( imagecolrow );
+	 }
+	 else //if( regiontype.equals(SelectionJPanel.DOUBLE_WEDGE) )
+	 {
+	   int size = imagecolrow.length - 1;
+	   imagecolrow[size] = new Point( (int)wcp[size].x, (int)wcp[size].y );
+	   selregion = new DoubleWedgeRegion( imagecolrow );
 	 }
 	 dynamicregionlist.push(selregion);
        //System.out.println("WCP[0]: " + wcp[0].x + wcp[0].y );
