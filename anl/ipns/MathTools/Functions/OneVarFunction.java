@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/06/17 23:05:36  dennis
+ *  The step size for calculating numerical derivatives is now
+ *  interpreted as a fractional change, rather than as an
+ *  absolute step size.
+ *
  *  Revision 1.4  2002/11/27 23:14:24  pfpeterson
  *  standardized header
  *
@@ -177,7 +182,10 @@ abstract public class OneVarFunction implements IOneVarFunction
 
   public double get_dFdx( double x )
   {
-    return (getValue( x + DELTA ) - getValue( x - DELTA ))/ (2*DELTA);
+    double dx = Math.abs( DELTA*x );
+    if ( dx == 0 )
+      dx = DELTA;
+    return (getValue( x + dx ) - getValue( x - dx ))/ ( 2 * dx );
   }
 
 

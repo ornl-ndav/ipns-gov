@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/06/17 23:05:36  dennis
+ *  The step size for calculating numerical derivatives is now
+ *  interpreted as a fractional change, rather than as an
+ *  absolute step size.
+ *
  *  Revision 1.5  2003/06/10 22:20:24  dennis
  *  Made constructor public, so that it can be used by classes
  *  outside of its package.
@@ -171,37 +176,41 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
     if ( i < 0 || i >= numParameters() )
       return 0;
 
+    double dx = Math.abs( DELTA*x );
+    if ( dx == 0 )
+      dx = DELTA;
+
     if (parameters.length == 0)           // must be a SumFunction with it's
     {                                     // own list of parameters 
       double parameters_copy[] = getParameters();
       double old_a_val   = parameters_copy[i];
 
-      parameters_copy[i] = old_a_val + DELTA;
+      parameters_copy[i] = old_a_val + dx;
       setParameters( parameters_copy );
       double f1 = getValue( x );
 
-      parameters_copy[i] = old_a_val - DELTA;
+      parameters_copy[i] = old_a_val - dx;
       setParameters( parameters_copy );
       double f0 = getValue( x );
 
       parameters_copy[i] = old_a_val;
       setParameters( parameters_copy );
 
-      return (f1 - f0) / ( 2*DELTA );
+      return (f1 - f0) / ( 2*dx );
  
     }
     else                                  // use our local list of parameters
     {                                     // for the sake of efficiency
       double old_a_val = parameters[i];
-      parameters[i] = old_a_val + DELTA;
+      parameters[i] = old_a_val + dx;
       double f1 = getValue( x );
 
-      parameters[i] = old_a_val - DELTA;
+      parameters[i] = old_a_val - dx;
       double f0 = getValue( x );
 
       parameters[i] = old_a_val;
 
-      return (f1 - f0) / ( 2*DELTA ); 
+      return (f1 - f0) / ( 2*dx ); 
     }
   }
 
