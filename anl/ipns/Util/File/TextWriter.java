@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/11 22:31:22  millermi
+ * - Changed package, added import for SharedMessages.
+ * - Removed code that wrote out an error file since it was
+ *   dependent on SharedData.
+ *
  * Revision 1.2  2004/01/24 21:00:28  bouzekc
  * Removed unused variables and imports.
  *
@@ -38,9 +43,10 @@
  * Added to CVS.
  *
  */
-package DataSetTools.util;
+package gov.anl.ipns.Util.File;
 
 import java.io.*;
+import gov.anl.ipns.Util.Sys.SharedMessages;
 
 
 /**
@@ -59,19 +65,13 @@ public class TextWriter {
    */
   public static void writeASCII( File file2Write, String text2Write ) {
     FileWriter fw  = null;
-    String errFile = StringUtil.setFileSeparator( 
-        SharedData.getProperty( "user.dir" ) + "/writeASCII.err" );
-
     try {
       fw = new FileWriter( file2Write );
       fw.write( text2Write );
     } catch( IOException e ) {
       e.printStackTrace(  );
-      SharedData.addmsg( 
-        "Error saving file: " + file2Write.toString(  ) +
-        ".  Please see writeASCII.err file." );
-
-      TextWriter.writeStackTrace( errFile, e );
+      SharedMessages.addmsg( 
+        "Error saving file: " + file2Write.toString(  ) );
     } finally {
       if( fw != null ) {
         try {
@@ -108,7 +108,7 @@ public class TextWriter {
       pw = new PrintWriter( new FileWriter( file2Write ) );
       thrown.printStackTrace( pw );
     } catch( IOException e2 ) {
-      SharedData.addmsg( 
+      SharedMessages.addmsg( 
         "Error writing stack trace and back trace to ." +
         file2Write.toString(  ) + ".  Please see console." );
       e2.printStackTrace(  );
