@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/01/26 20:42:09  dennis
+ *  Added constructor that only requires a label.
+ *  Now beeps if an invalid vector is requested.
+ *
  *  Revision 1.1  2004/01/21 23:07:36  dennis
  *  User interface component for entering 3D vector.
  *
@@ -84,6 +88,20 @@ public class Vector3D_UI extends    JTextField
 
     show_text();
   }
+
+ /* ------------------------------ CONSTRUCTOR ---------------------------- */
+ /**
+  *  Construct a Vector3D_UI object with the specifed label and a default
+  *  vector value.  The form of the text is  <label> [ <v0>, <v1>, <v2> ].
+  *
+  *  @param  label  String to be used for the label for the vector.
+  *
+  */
+  public Vector3D_UI( String label )
+  {
+    this( label, new Vector3D( 0, 0, 0 ) );
+  }
+
 
   /* ----------------------------- setLabel ---------------------------- */
   /** 
@@ -172,6 +190,7 @@ public class Vector3D_UI extends    JTextField
     if ( index < 0 )
     {
       show_text();
+      Toolkit.getDefaultToolkit().beep();
       return;
     }
     str = str.substring( index+1 );
@@ -204,11 +223,10 @@ public class Vector3D_UI extends    JTextField
     else
      ok = false;
  
-    System.out.println("ok    = " + ok );
-    System.out.println("value = " + value );
     if ( ok )
       value = new Vector3D( temp );
-    System.out.println("value = " + value );
+    else
+      Toolkit.getDefaultToolkit().beep();
 
     show_text();
   }
