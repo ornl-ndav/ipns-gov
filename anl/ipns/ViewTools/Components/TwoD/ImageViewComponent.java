@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.63  2004/03/12 02:46:03  rmikk
+ *  Fixed some of the package names
+ *
  *  Revision 1.62  2004/03/10 23:37:28  millermi
  *  - Changed IViewComponent interface, no longer
  *    distinguish between private and shared controls/
@@ -348,7 +351,7 @@
  *
  */
  
-package DataSetTools.components.View.TwoD;
+package gov.anl.ipns.ViewTools.Components.TwoD;
 
 import javax.swing.*; 
 import javax.swing.event.*;
@@ -359,17 +362,18 @@ import java.util.Vector;
 import java.util.Stack; 
 import java.io.Serializable;
 
-import DataSetTools.util.floatPoint2D;
-import DataSetTools.util.FontUtil;
-import DataSetTools.components.image.*;
-import DataSetTools.components.View.Cursor.SelectionJPanel;
-import DataSetTools.components.View.Cursor.TranslationJPanel;
-import DataSetTools.components.View.Transparency.*;
-import DataSetTools.components.View.*;
-import DataSetTools.components.View.ViewControls.*;
-import DataSetTools.components.View.Menu.*;
-import DataSetTools.components.View.Region.*;
-import DataSetTools.components.ui.ColorScaleMenu;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.ViewTools.UI.FontUtil;
+import gov.anl.ipns.ViewTools.Panels.Image.*;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel;
+import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
+import gov.anl.ipns.ViewTools.Components.Transparency.*;
+import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Components.ViewControls.*;
+import gov.anl.ipns.ViewTools.Components.Menu.*;
+import gov.anl.ipns.ViewTools.Components.Region.*;
+import gov.anl.ipns.ViewTools.UI.ColorScaleMenu;
 
 /**
  * This class allows the user to view data in the form of an image. Meaning
