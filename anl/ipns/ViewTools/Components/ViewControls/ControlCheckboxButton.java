@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/08/07 15:54:42  dennis
+ *  - checkcolor and uncheckcolor initialized to default color
+ *    instead of black.  This fixes a minor bug that initially
+ *    displayed the title color as blue, but then changed to
+ *    black when checked/unchecked.
+ *    (Mike Miller)
+ *
  *  Revision 1.1  2003/08/06 13:52:26  dennis
  *  - Initial Version - Includes features of the ControlCheckbox with
  *    the addition of an "Edit" button. (Mike Miller)
@@ -81,8 +88,8 @@ public class ControlCheckboxButton extends ViewControl
       edit.addActionListener( new ButtonListener() );
       edit.setEnabled(false);
       this.add(pane);
-      checkcolor = Color.black;
-      uncheckcolor = Color.black; 
+      checkcolor =  ((TitledBorder)this.getBorder()).getTitleColor();
+      uncheckcolor =  ((TitledBorder)this.getBorder()).getTitleColor();
       this_panel = this;    
    }
   
@@ -122,7 +129,8 @@ public class ControlCheckboxButton extends ViewControl
    }
    
   /**
-   * Set the checkbox to be checked (true) or unchecked (false).
+   * Set the checkbox to be checked (true) or unchecked (false). If checked,
+   * the button will be enabled, if not, the button is disabled.
    * The constructor initializes the checkbox to be unchecked unless instructed
    * otherwise.
    *
