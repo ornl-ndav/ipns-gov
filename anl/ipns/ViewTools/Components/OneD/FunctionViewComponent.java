@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.48  2004/03/12 03:28:59  dennis
+ *  Moved to package gov.anl.pns.ViewTools.Components.OneD
+ *  (NOT COMPLETE!)
+ *
  *  Revision 1.47  2004/03/10 23:37:28  millermi
  *  - Changed IViewComponent interface, no longer
  *    distinguish between private and shared controls/
@@ -143,19 +147,28 @@
  * 
  *
  */
-package DataSetTools.components.View.OneD;
+package gov.anl.ipns.ViewTools.Components.OneD;
 
-import DataSetTools.components.ParametersGUI.*;
-import DataSetTools.components.View.*;  // IVirtualArray1D
-import DataSetTools.components.View.TwoD.*;
-import DataSetTools.components.View.Transparency.*;  //Axis Overlays
-import DataSetTools.components.View.ViewControls.*;
-import DataSetTools.components.View.TwoD.*;
-import DataSetTools.components.image.*;  //GraphJPanel & CoordJPanel
-import DataSetTools.dataset.*;
-import DataSetTools.math.*;
-import DataSetTools.util.*;  //floatPoint2D FloatFilter
-import DataSetTools.components.View.Menu.*;
+import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Components.TwoD.*;
+import gov.anl.ipns.ViewTools.Components.Transparency.*;
+import gov.anl.ipns.ViewTools.Components.ViewControls.*;
+import gov.anl.ipns.ViewTools.Components.Menu.*;
+import gov.anl.ipns.ViewTools.Panels.Graph.*;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.ViewTools.UI.*;
+import gov.anl.ipns.Util.Numeric.*;
+
+//import DataSetTools.components.ParametersGUI.*;
+//import DataSetTools.components.View.*;  // IVirtualArray1D
+//import DataSetTools.components.View.TwoD.*;
+//import DataSetTools.components.View.Transparency.*;  //Axis Overlays
+//import DataSetTools.components.View.ViewControls.*;
+//import DataSetTools.components.image.*;  //GraphJPanel & CoordJPanel
+//import DataSetTools.dataset.*;
+//import DataSetTools.math.*;
+//import DataSetTools.util.*;  //floatPoint2D FloatFilter
+//import DataSetTools.components.View.Menu.*;
 
 // component changes
 
@@ -945,7 +958,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     if( args == null ) {
       System.exit( 0 );
     }
-
+/*
     DataSet[] DSS = ( new IsawGUI.Util(  ) ).loadRunfile( args[0] );
 
     int k = DSS.length - 1;
@@ -994,6 +1007,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     f2.setBounds( 0, 0, 200, ( 100 * controls.length ) );
     cpain.validate(  );
     f2.show(  );  //display the frame
+*/
   }
 
   //***************************Assistance Classes******************************
