@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/11/11 19:48:47  millermi
+ *  - Now extends IZoomAddible to gain access to local and global bounds to
+ *    enable calibrations of logs while zooming.
+ *
  *  Revision 1.3  2004/04/02 20:58:33  millermi
  *  - Fixed javadoc errors
  *
@@ -72,7 +76,7 @@ package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import java.awt.Font;
 
-import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Components.AxisInfo;
 
 /**
  * This interface is implemented by view components that utilize the 
@@ -80,7 +84,7 @@ import gov.anl.ipns.ViewTools.Components.*;
  *
  *  @see gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D
  */
-public interface IAxisAddible extends IOverlayAddible
+public interface IAxisAddible extends IZoomAddible
 {
  /**
   * The integer code, either zero for x, or one for y, will determine which
