@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/12/29 20:43:13  millermi
+ *  - Added setButtonText() so button message could be personalized.
+ *  - Changed message string from ENTER_PRESSED to BUTTON_PRESSED
+ *
  *  Revision 1.2  2003/12/29 00:32:44  millermi
  *  - Added contructor that takes in an integer to define the size
  *    of the control.
@@ -73,10 +77,10 @@ import java.util.Enumeration;
 public class FieldEntryControl extends ViewControl
 {
  /**
-  * "Enter Pressed" - This static final String is a message sent out when the
-  * enter button has been pressed.
+  * "Button Pressed" - This static final String is a message sent out when the
+  * Enter or Submit button has been pressed.
   */
-  public static final String ENTER_PRESSED = "Enter Pressed";
+  public static final String BUTTON_PRESSED = "Button Pressed";
   
   private JTextField[][] text;
   private Box all_fields = new Box( BoxLayout.Y_AXIS );
@@ -84,6 +88,7 @@ public class FieldEntryControl extends ViewControl
   private ButtonGroup radioChoices = new ButtonGroup();
   private Hashtable radiotable = new Hashtable();
   private boolean radio_added = false;
+  private JButton enter = new JButton("Enter");
 
  /**
   * This constructor will be used to create a control with labels but no
@@ -118,7 +123,6 @@ public class FieldEntryControl extends ViewControl
       fieldholder.add(text[i][1]);
       all_fields.add(fieldholder);
     }
-    JButton enter = new JButton("Enter");
     enter.addActionListener( new EnterListener() );
     all_fields.add(enter);
     add(all_fields);
@@ -152,7 +156,6 @@ public class FieldEntryControl extends ViewControl
       fieldholder.add(text[i][1]);
       all_fields.add(fieldholder);
     }
-    JButton enter = new JButton("Enter");
     enter.addActionListener( new EnterListener() );
     all_fields.add(enter);
     add(all_fields);
@@ -186,7 +189,6 @@ public class FieldEntryControl extends ViewControl
       fieldholder.add(text[i][1]);
       all_fields.add(fieldholder);
     }
-    JButton enter = new JButton("Enter");
     enter.addActionListener( new EnterListener() );
     all_fields.add(enter);
     add(all_fields);
@@ -220,7 +222,6 @@ public class FieldEntryControl extends ViewControl
       fieldholder.add(text[i][1]);
       all_fields.add(fieldholder);
     }
-    JButton enter = new JButton("Enter");
     enter.addActionListener( new EnterListener() );
     all_fields.add(enter);
     add(all_fields);
@@ -255,7 +256,6 @@ public class FieldEntryControl extends ViewControl
       fieldholder.add(text[i][1]);
       all_fields.add(fieldholder);
     }
-    JButton enter = new JButton("Enter");
     enter.addActionListener( new EnterListener() );
     all_fields.add(enter);
     add(all_fields);
@@ -703,6 +703,17 @@ public class FieldEntryControl extends ViewControl
     }
   }
   
+ /**
+  * This method sets the label on the Enter or Submit button.
+  *
+  *  @param text Desired text for this button.
+  */ 
+  public void setButtonText( String text )
+  {
+    enter.setText(text);
+    all_fields.validate();
+  }
+  
  /*
   * This class listens for a radiobutton selection. Once the selection is
   * made, change the labels to the corresponding radio button.
@@ -754,9 +765,9 @@ public class FieldEntryControl extends ViewControl
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals("Enter") )
+      if( ae.getActionCommand().equals(enter.getText()) )
       {
-        send_message(ENTER_PRESSED);
+        send_message(BUTTON_PRESSED);
       }
     }
   }
@@ -788,6 +799,7 @@ public class FieldEntryControl extends ViewControl
     fec.removeRadioChoice( "Even2" );
     fec.removeRadioChoice( "Even" );
     fec.setSelected( "Every Fifth" );
+    fec.setButtonText("Button Text Test");
     tester.getContentPane().add(fec);
     tester.setVisible(true);
     System.out.println("Selected: " + fec.getSelected() );
