@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2002/12/01 16:12:31  dennis
+ *  Now verifies that viewer is not null before destroying it.
+ *
  *  Revision 1.23  2002/11/27 23:13:34  pfpeterson
  *  standardized header
  *
@@ -589,7 +592,8 @@ public class LiveDataMonitor extends    JPanel
       }
       else
       {
-        viewers[my_index].destroy();
+        if ( viewers != null && viewers[my_index]!= null )
+          viewers[my_index].destroy();
         auto_box[my_index].setSelected( false );  // Don't show it implies
                                                   // don't auto update it.
         data_manager.setUpdateIgnoreFlag( my_index, true );
