@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.63  2004/11/12 03:36:19  millermi
+ *  - Since the min/max of getAxisInformation() are no longer used
+ *    to determine the zoom region by the AxisOverlay2D, the AxisInfo
+ *    returned by getAxisInformation() now reflects global coordinates
+ *    instead of local coordinates.
+ *
  *  Revision 1.62  2004/11/05 22:01:43  millermi
  *  - Edited getAxisInformation() so getPositiveXmin() and getPositiveYmin()
  *    are called if the axis is specified as log.
@@ -519,8 +525,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     if( axis == AxisInfo.X_AXIS) {
       if(gjp.getLogScaleX() == true) {
         return new AxisInfo( 
-	    gjp.getLocalWorldCoords().getX1(),
-            gjp.getLocalWorldCoords().getX2(),
+	    gjp.getPositiveXmin(),
+            gjp.getXmax(),
             Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
             Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
             AxisInfo.TRU_LOG );
@@ -528,8 +534,8 @@ public class FunctionViewComponent implements IViewComponent1D,
       else
       {
         return new AxisInfo( 
-            gjp.getLocalWorldCoords(  ).getX1(  ),
-            gjp.getLocalWorldCoords(  ).getX2(  ),
+            gjp.getXmin(),
+            gjp.getXmax(),
             Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
             Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
             AxisInfo.LINEAR );
@@ -539,8 +545,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     // if false return y info
     if(gjp.getLogScaleY() == true) {
       return new AxisInfo(
-          gjp.getLocalWorldCoords().getY1(),
-          gjp.getLocalWorldCoords().getY2(),
+          gjp.getPositiveYmin(),
+          gjp.getYmax(),
      	  Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
      	  Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
      	  AxisInfo.TRU_LOG );
@@ -548,8 +554,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     else
     {
       return new AxisInfo( 
-     	  gjp.getLocalWorldCoords(  ).getY1(  ),
-     	  gjp.getLocalWorldCoords(  ).getY2(  ),
+     	  gjp.getYmin(),
+     	  gjp.getYmax(),
      	  Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
      	  Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
      	  AxisInfo.LINEAR );

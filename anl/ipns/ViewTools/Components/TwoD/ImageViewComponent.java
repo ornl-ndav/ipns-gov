@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.78  2004/11/12 03:36:20  millermi
+ *  - Since the min/max of getAxisInformation() are no longer used
+ *    to determine the zoom region by the AxisOverlay2D, the AxisInfo
+ *    returned by getAxisInformation() now reflects global coordinates
+ *    instead of local coordinates.
+ *
  *  Revision 1.77  2004/11/05 22:04:47  millermi
  *  - Updated java docs for getAxisInformation().
  *
@@ -1151,8 +1157,8 @@ public class ImageViewComponent implements IViewComponent2D,
     // if true, return x info
     if( axiscode == AxisInfo.X_AXIS )
     {
-      return new AxisInfo( ijp.getLocalWorldCoords().getX1(),
-        		   ijp.getLocalWorldCoords().getX2(),
+      return new AxisInfo( ijp.getGlobalWorldCoords().getX1(),
+        		   ijp.getGlobalWorldCoords().getX2(),
         		   Varray2D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
         		   Varray2D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
         		   AxisInfo.LINEAR );
@@ -1160,8 +1166,8 @@ public class ImageViewComponent implements IViewComponent2D,
     // if true, return y info
     if( axiscode == AxisInfo.Y_AXIS )
     {
-      return new AxisInfo( ijp.getLocalWorldCoords().getY1(),
-    			   ijp.getLocalWorldCoords().getY2(),
+      return new AxisInfo( ijp.getGlobalWorldCoords().getY1(),
+    			   ijp.getGlobalWorldCoords().getY2(),
     			   Varray2D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
     			   Varray2D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
     			   AxisInfo.LINEAR );
