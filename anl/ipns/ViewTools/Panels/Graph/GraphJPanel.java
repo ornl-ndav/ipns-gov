@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.28  2003/08/05 23:21:45  serumb
+ * Added methods for getting the log scale and for getting which axes
+ * are logarithmically scaled.
+ *
  * Revision 1.27  2003/07/31 15:16:56  dennis
  * Fixed off-by-one error with first_index.
  *
@@ -627,6 +631,17 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
     if ( redraw )
       repaint();
   }
+/* --------------------------- getScale  ------------------------ */
+/**
+  *  Get the value for the log scale.
+  *
+  **/
+  public float getScale()
+  {
+    
+   return log_scale;
+
+  }
   
 
 /* --------------------------- setLogScaleX  ------------------------ */
@@ -653,6 +668,31 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
   public void setLogScaleY(boolean y_log)
   {
     log_scale_y = y_log;
+  } 
+/* --------------------------- getLogScaleX  ------------------------ */
+/**
+  *  Gets the boolean value to check wether or not to scale the x
+  *  values for the graph.
+  *
+  *  @param  x_log       the boolean value to determine if the x values 
+  *                      should be scaled.
+  **/
+  public boolean getLogScaleX()
+  {
+    return log_scale_x;
+  }  
+
+/* --------------------------- getLogScaleY  ------------------------ */
+/**
+ *  Gets the boolean value to check wether or not to scale the y
+ *  values for the graph.
+ *
+ *  @param  y_log       the boolean value to determine if the y values 
+ *                      should be scaled.
+ */
+  public boolean getLogScaleY()
+  {
+    return log_scale_y;
   } 
  
 /**
