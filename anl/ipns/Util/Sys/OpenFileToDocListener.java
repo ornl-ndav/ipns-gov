@@ -31,6 +31,10 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.9  2004/03/11 23:14:01  millermi
+ * - Removed scriptFilter which checked for Isaw scripts.
+ * - Changed SharedData to SharedMessages
+ *
  * Revision 1.8  2004/03/11 22:46:18  millermi
  * - Changed package.
  *
@@ -64,7 +68,7 @@ import javax.swing.text.*;
 import java.io.*;  
 import java.awt.event.*;  
 import java.beans.*;  
-import IsawGUI.*;  
+//import IsawGUI.*;  
 import javax.swing.*;  
 import java.awt.*;  
   
@@ -133,8 +137,6 @@ public class OpenFileToDocListener
         Dimension d= new Dimension(650,300);
         fc.setPreferredSize(d);
         
-        fc.setFileFilter(new scriptFilter());
-        
         try{
             int state = fc.showOpenDialog(null);
             if( state==0 && fc.getSelectedFile()!=null ){
@@ -144,13 +146,13 @@ public class OpenFileToDocListener
                 return;
             }
         }catch(Exception e){
-            DataSetTools.util.SharedData.addmsg("Choose and input file");
+            SharedMessages.addmsg("Choose and input file");
             return;
         }
 	    
         try{  
             doc.remove( doc.getStartPosition().getOffset(), doc.getLength());  
-            Document D = (new Util()).openDoc( filename);  
+            Document D = (new DocumentIO()).openDoc( filename);  
             doc.insertString( 0, D.getText( D.getStartPosition().getOffset(),  
                                             D.getLength()), null);    
         }catch( Exception s){
