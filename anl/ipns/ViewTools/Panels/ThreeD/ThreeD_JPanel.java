@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2002/11/26 19:51:34  dennis
+ * Now preserves aspect ratio by using the setPreserveAspectRatio()
+ * method on the underlying CoordJPanel.
+ *
  * Revision 1.11  2002/10/29 23:48:06  dennis
  * Added method, pickedObject(), to get the last object that was picked.
  *
@@ -131,7 +135,19 @@ public class ThreeD_JPanel extends    CoordJPanel
     super();
 
     obj_lists = new Hashtable();
+
+    setPreserveAspectRatio( true );
     setVirtualScreenSize( 1, 1, true );
+    if ( isVisible() )          // try to preserve aspect ratio, assuming size>0
+    {
+      Dimension size = getSize();
+      if ( size.width > 0 && size.height > size.width )
+        setVirtualScreenSize( 1, size.height/(float)size.width, true );
+              
+      if ( size.height > 0 && size.width > size.height )
+        setVirtualScreenSize( size.width/(float)size.height, 1, true );
+    }
+
     setBackground( Color.black );
   }
 
