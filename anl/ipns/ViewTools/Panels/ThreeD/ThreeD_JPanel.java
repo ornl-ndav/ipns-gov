@@ -31,6 +31,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2001/05/09 21:10:28  dennis
+ * Added method pickID( x, y, pick_radius ) to get the ID of the
+ * 3D object closest to the specified pixel (x,y).
+ * Added method project( point ) to calculate the pixel coordinates
+ * of the projection of the specified 3D point.
+ * Added code to paint() to disable the cursors while repainting.
+ *
  * Revision 1.1  2001/05/08 21:06:29  dennis
  * JPanel for drawing lists of 3D objects.
  *
@@ -56,8 +63,6 @@ import DataSetTools.components.image.*;
 public class ThreeD_JPanel extends    CoordJPanel 
                            implements Serializable
 {
-  public static final int INVALID_ID = -1;
-
   private  IThreeD_Object  objects[] = null;
   private  int             index[]   = null;
   private  Tran3D          tran;
@@ -118,10 +123,21 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
   public void paint( Graphics g )
   {
-    if ( objects == null )
-      return;
+    stop_box( current_point, false );   // if the system redraws this without
+    stop_crosshair( current_point );    // our knowlege, we've got to get rid
+                                        // of the cursors, or the old position
+                                        // will be drawn rather than erased
+                                        // when the user moves the cursor (due
+                                        // to XOR drawing).
 
     super.paint(g);
+    if ( objects == null )
+    {
+      g.setColor( Color.white );
+      g.drawString( "ERROR: No 3D Objects", getWidth()/3, getHeight()/2 );
+      return;
+    }
+
     project();
 
     for ( int i = 0; i < objects.length; i++ )
@@ -241,6 +257,67 @@ public class ThreeD_JPanel extends    CoordJPanel
      index        = null;
      data_painted = true; 
    }
+ }
+
+
+/* ----------------------------- pickID ----------------------------- */
+/*
+ *
+ */
+ public int pickID( int x, int y, int pick_radius )
+ {
+   if ( objects == null || objects.length < 1 )
+     return IThreeD_Object.INVALID_PICK_ID;
+
+   float distance;
+   float min_distance = objects[0].distance_to( x, y );
+   int   min_index = 0;
+   
+   for ( int i = 1; i < objects.length; i++ )
+   {
+     distance = objects[i].distance_to( x, y );
+     if ( distance < min_distance )
+     {
+       min_distance = distance;
+       min_index    = i;
+     }     
+   }
+
+   if ( min_distance < pick_radius )
+     return objects[ min_index ].getPickID();
+   else
+     return IThreeD_Object.INVALID_PICK_ID;
+ }
+
+
+/**
+ *  Calculate the pixel coordinates of the projection of the specified 
+ *  3D point, using the current viewing matrix and window transform.  This
+ *  is useful for determining where to place the crosshair cursor, based on 
+ *  3D positions.
+ *
+ *  @param  point  The 3D point that is to be mapped to the window.
+ *
+ *  @return  The 2D pixel coordinates on the JPanel of the projection of
+ *           the specified 3D point.
+ */
+
+ public Point project( Vector3D point )
+ {
+   if ( tran3D_used == null || tran2D_used == null || point == null )
+   {
+     System.out.println("WARNING: transform null in ThreeD_JPanel.project()");
+     return null;
+   }
+
+   Vector3D proj_point = new Vector3D();
+   tran3D_used.apply_to( point, proj_point );
+   proj_point.standardize();
+
+   floatPoint2D window_point = new floatPoint2D( proj_point.get()[0],
+                                                 proj_point.get()[1] );
+   window_point = tran2D_used.MapTo( window_point );
+   return new Point( (int)window_point.x, (int)window_point.y );
  }
 
 
