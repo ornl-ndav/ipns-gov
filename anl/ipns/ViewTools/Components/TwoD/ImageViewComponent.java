@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.31  2003/10/16 16:00:08  millermi
+ *  - Changed getCurrentPoint() to getPointedAt() to
+ *    maintain method name consistency.
+ *
  *  Revision 1.30  2003/10/16 05:00:10  millermi
  *  - Fixed java docs errors.
  *
@@ -804,6 +808,22 @@ public class ImageViewComponent implements IViewComponent2D,
      //set the cursor position on ImageJPanel
      ijp.setCurrent_WC_point( fpt ); 
   }
+
+ /**
+  * This method gets the current floatPoint2D from the ImageJPanel and 
+  * converts it to a Point.
+  *
+  *  @return pt - The current pointed-at point
+  */
+  public Point getPointedAt()
+  {
+    floatPoint2D fpt = new floatPoint2D();
+    fpt = ijp.getCurrent_WC_point();
+    
+    Point pt = new Point((int)fpt.x, (int)fpt.y);
+    
+    return pt;
+  }
  
  /**
   * This method creates a selected region to be displayed over the imagejpanel
@@ -812,7 +832,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * be added to allow for appending selections. A stack could be added to
   * allow for undo and redo. 
   *
-  *  @param  rgn - array of Regions
+  *  @param  rgn - array of selected Regions
   */ 
   public void setSelectedRegions( Region[] rgn ) 
   {
@@ -973,19 +993,6 @@ public class ImageViewComponent implements IViewComponent2D,
   public JPanel getDisplayPanel()
   {
       return big_picture;   
-  }
-
- /*
-  * Gets the current point of the ImageJPanel. 
-  */
-  public Point getCurrentPoint()
-  {
-    floatPoint2D fpt = new floatPoint2D();
-    fpt = ijp.getCurrent_WC_point();
-    
-    Point pt = new Point((int)fpt.x, (int)fpt.y);
-    
-    return pt;
   }
   
  /**
