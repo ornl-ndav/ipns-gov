@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.8  2003/02/04 19:43:53  pfpeterson
+ *  Implemented isSquare(float[][]) and isRectangular(float[][]) without casting.
+ *
  *  Revision 1.7  2003/01/30 21:03:15  pfpeterson
  *  Added methods to convert between float[][] and double[][]. Added
  *  method to find the determinant of 2x2 and 3x3 matrices. Added
@@ -77,7 +80,7 @@ public final class LinearAlgebra
    * @see #getInverse(double[][])
    */
   public static float[][] getInverse(float[][] A){
-    if( A==null ) return null;
+    if( ! isSquare(A) ) return null;
     return double2float(getInverse(float2double(A)));
   }
 
@@ -247,7 +250,12 @@ public final class LinearAlgebra
    * comparing the lengths of the arrays.
    */
   static public boolean isSquare(float[][]a){
-    return isSquare(float2double(a));
+    if(a==null) return false;
+    if(isRectangular(a)){
+      return (a.length==a[0].length);
+    }else{
+      return false;
+    }
   }
 
   /**
@@ -263,13 +271,25 @@ public final class LinearAlgebra
   }
 
   /**
+   * Determines whether or not the specified matrix is rectangular by
+   * comparing the lengths of the arrays.
+   */
+  static public boolean isRectangular( float[][] a){
+    if(a==null) return false;
+    for( int i=1 ; i<a.length ; i++ ){
+      if(a[i].length!=a[0].length) return false;
+    }
+    return true;
+  }
+
+  /**
    * Determines whether or not the specified matrix is square by
    * comparing the lengths of the arrays.
    */
   static public boolean isSquare(double[][]a){
     if(a==null) return false;
     if(isRectangular(a)){
-      return (a[0].length==a[1].length);
+      return (a.length==a[0].length);
     }else{
       return false;
     }
