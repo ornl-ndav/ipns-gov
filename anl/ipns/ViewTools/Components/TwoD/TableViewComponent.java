@@ -1,0 +1,609 @@
+/*
+ * File: TableViewComponent.java
+ *
+ * Copyright (C) 2004, Mike Miller
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Primary   Mike Miller <millermi@uwstout.edu>
+ * Contact:  Student Developer, University of Wisconsin-Stout
+ *           
+ * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
+ *           Department of Mathematics, Statistics and Computer Science
+ *           University of Wisconsin-Stout
+ *           Menomonie, WI 54751, USA
+ *
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0218882, and by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ * Modified:
+ *
+ *  $Log$
+ *  Revision 1.1  2004/08/04 18:56:27  millermi
+ *  - Initial Version - View component that displays data as a table.
+ *
+ */
+ 
+package gov.anl.ipns.ViewTools.Components.TwoD;
+
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Vector;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.table.TableModel;
+import javax.swing.event.TableModelListener;
+
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.WindowShower;
+import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel;
+import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
+import gov.anl.ipns.ViewTools.Panels.Table.TableJPanel;
+import gov.anl.ipns.ViewTools.Panels.Table.TableModelMaker;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
+import gov.anl.ipns.ViewTools.Components.ViewControls.*;
+import gov.anl.ipns.ViewTools.Components.Region.*;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
+import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
+
+/**
+ * The TableViewComponent is used to display data in a table. Currently, this
+ * the tables will only display rectangular arrays, ragged arrays must be
+ * put into a rectangular array.
+ */
+public class TableViewComponent implements IViewComponent2D
+{
+ /**
+  * This messaging String is sent out to all listeners when the pointed-at
+  * cell is changed.
+  */
+  public static final String POINTED_AT_CHANGED =
+                                           TableJPanel.POINTED_AT_CHANGED;
+ 
+ /**
+  * This messaging String is sent out to all listeners when a selection
+  * has been completed (mouse dragged, then released).
+  */
+  public static final String SELECTED_CHANGED = TableJPanel.SELECTED_CHANGED;
+
+ /**
+  * "TableJPanel" - This constant String key references the ObjectState
+  * stored by the TableJPanel. The value this key references is an ObjectState.
+  * @see gov.anl.ipns.ViewTools.Panels.Table.TableJPanel
+  */
+  public static final String TABLEJPANEL = "TableJPanel";
+  
+ /**
+  * "Format Control" - This constant String key references the ObjectState
+  * stored by the FormatControl. The value this key references is an
+  * ObjectState.
+  * @see gov.anl.ipns.ViewTools.Components.ViewControls.FormatControl
+  */ 
+  public static final String FORMAT_CONTROL = "Format Control";
+  
+ /**
+  * "Panning Tool" - use this static String to verify that the title of
+  * the ViewControl returned is that of the PanViewControl.
+  */
+  public static final String PAN_NAME = "Panning Tool";
+  
+  private TableJPanel tjp;
+  private Vector Listeners;
+  private ViewControl[] controls;
+  private ViewMenuItem[] menus;
+  private IVirtualArray2D varray;
+  private ImageJPanel ijp; // For use exclusively by the PanViewControl.
+  private String colorscale; // Colorscale of the ijp.
+  private boolean setVisibleLocationCalled = false; // This is needed to ignore
+                                           // messages sent out by the tjp when
+			                   // setVisibleLocation() is called.
+  
+ /**
+  * Constructor - Data is passed in the form of an IVirtualArray2D to be display
+  * by this component in a table. To view 1D or 3D data with the
+  * TableViewComponent, define the data as an IVirtualArray2D.
+  * <BR><BR><I>
+  * Note: All IVirtualArray2D data is assumed to be rectangular. If ragged
+  * 1D data is put into an IVirtualArray2D, be sure to "rectangularize" the
+  * data. </I> 
+  *
+  *  @param  modeled_data Array of data in a TableModel.
+  */
+  public TableViewComponent( IVirtualArray2D array )
+  {
+    varray = array;
+    tjp = new TableJPanel( TableModelMaker.getModel(varray) );
+    tjp.setColumnAlignment( SwingConstants.RIGHT );
+    // Initialize the ImageJPanel so it may be used by the PanViewControl.
+    ijp = new ImageJPanel();
+    //Make ijp correspond to the data in f_array
+    ijp.setData(varray.getRegionValues( 0, varray.getNumRows()-1,
+    				        0, varray.getNumColumns()-1), true);
+    colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
+    
+    tjp.addActionListener( new TableListener() );
+    Listeners = new Vector();
+    menus = null;
+    buildControls();
+  }
+
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    boolean redraw = false;  // if any values are changed, repaint overlay.
+    Object temp = new_state.get(TABLEJPANEL);
+    if( temp != null )
+    {
+      tjp.setObjectState((ObjectState)temp);
+      redraw = true;  
+    }
+    
+    temp = new_state.get(FORMAT_CONTROL);
+    if( temp != null )
+    {
+      controls[0].setObjectState((ObjectState)temp);
+      redraw = true;  
+    }
+    
+    if( redraw )
+      ;  // create method to redraw everything?
+  }
+  
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  is_default True if default state, use static variable.
+  *  @return if true, the selective default state, else the state for with
+  *          all possible saved values.
+  */ 
+  public ObjectState getObjectState( boolean is_default )
+  {
+    ObjectState state = new ObjectState();
+    state.insert( TABLEJPANEL, tjp.getObjectState(is_default) );
+    state.insert( FORMAT_CONTROL, controls[0].getObjectState(is_default) );
+    return new ObjectState();
+  }
+  
+ /**
+  * Add a listener to this view component. A listener will be notified
+  * when a selected point or region changes on the view component.
+  *
+  *  @param  act_listener
+  */
+  public void addActionListener( ActionListener act_listener )
+  {	     
+    for ( int i = 0; i < Listeners.size(); i++ )    // don't add it if it's
+      if ( Listeners.elementAt(i).equals( act_listener ) ) // already there
+        return;
+
+    Listeners.add( act_listener ); // Otherwise add act_listener
+  }
+ 
+ /**
+  * Method to remove a listener from this component.
+  *
+  *  @param  act_listener
+  */ 
+  public void removeActionListener( ActionListener act_listener )
+  {
+    Listeners.remove( act_listener );
+  }
+ 
+ /**
+  * Method to remove all listeners from this component.
+  */ 
+  public void removeAllActionListeners()
+  {
+    Listeners.removeAllElements();
+  }
+
+ /**
+  * Retrieve the jpanel that this component constructs.
+  *
+  *  @return The JPanel containing the GUI TableViewComponent.
+  */
+  public JPanel getDisplayPanel()
+  {
+    return tjp;
+  }
+ 
+ /**
+  * Returns all of the controls needed by this view component
+  *
+  *  @return controls
+  */ 
+  public ViewControl[] getControls()
+  {    
+    return controls;
+  }
+ 
+ /**
+  * Returns all of the menu items needed by this view component
+  *
+  *  @return menus;
+  */ 
+  public ViewMenuItem[] getMenuItems()
+  {
+    return menus;
+  }
+  
+ /**
+  * This method is a notification to the view component that the selected
+  * point has changed. This assumes that fpt follows (x = column, y = row).
+  *
+  *  @param  fpt - current cell specified as a (x=column,y=row) floatPoint2D.
+  */ 
+  public void setPointedAt( floatPoint2D fpt )
+  {
+    tjp.setPointedAtCell( fpt.toPoint() );
+  }
+ 
+ /**
+  * Get the current pointed-at cell. The pointed-at cell has a highlighted
+  * border. The current cell is specified by a Point with form
+  * (x = column, y = row).
+  *
+  *  @return The current point as a Point (x = column, y = row).
+  */ 
+  public floatPoint2D getPointedAt()
+  {
+    return new floatPoint2D(tjp.getPointedAtCell());
+  }
+
+ /**
+  * Given an array of points, a selection overlay can be created.
+  *
+  *  @param  rgn - array of regions
+  */ 
+  public void setSelectedRegions( Region[] rgn )
+  {
+    tjp.setSelectedRegions(TableJPanel.convertToTableRegions(rgn));
+  }
+ 
+ /**
+  * Retrieve array of regions generated by the selection overlay. If none
+  * of the TableRegions are deselected, a list of TableRegions is returned.
+  * If a deselected TableRegion exists, a single PointRegion containing
+  * a list of selected cells will be returned in the array.
+  *
+  *  @return The selected regions, either a list of TableRegions or a single
+  *          PointRegion.
+  */
+  public Region[] getSelectedRegions()
+  {
+    // This can be more complex, if any unselected regions are included in
+    // the list, return a point list.
+    TableRegion[] table_regions = tjp.getSelectedRegions();
+    int index = 0;
+    while( index < table_regions.length && table_regions[index].isSelected() )
+      index++;
+    // If there are no unselected TableRegions, return the list of TableRegions.
+    if( index == table_regions.length )
+      return table_regions;
+    // If an unselected TableRegion is included, return a single PointRegion
+    // containing all of the selected cells.
+    else
+    {
+      Region[] single_pt_region = new Region[1];
+      single_pt_region[0] = tjp.getSelectedCells();
+      return single_pt_region;
+    }
+  }
+  
+ /**
+  * This method is invoked to notify the view component when the data
+  * has changed within the same array.
+  */ 
+  public void dataChanged()
+  {
+    tjp.repaint();
+  }
+  
+ /**
+  * This method is invoked to notify the view component when a new set of
+  * data needs to be displayed. 
+  *
+  *  @param  array - virtual array of data
+  */ 
+  public void dataChanged(IVirtualArray2D array)
+  {
+    varray = array;
+    tjp = null;
+    tjp = new TableJPanel( TableModelMaker.getModel(varray) );
+    tjp.addActionListener( new TableListener() );
+    buildControls();
+  }
+  
+ /**
+  * This method is called by the viewer to inform the view component
+  * it is no longer needed. In turn, the view component closes all windows
+  * created by it before closing.
+  */
+  public void kill()
+  {
+    ;
+  }
+  
+ // ************************ Miscellaneous Methods ***************************
+ 
+ /**
+  * 
+  */
+  public String getThumbnailColorscale()
+  {
+    return colorscale;
+  }
+  
+ /**
+  * 
+  */
+  public void setThumbnailColorscale( String color_scale )
+  {
+    colorscale = color_scale;
+    boolean isTwoSided = false;
+    if( ijp.getDataMin() < 0 )
+      isTwoSided = true;
+    ijp.setNamedColorModel( colorscale, isTwoSided, true );
+    ((PanViewControl)controls[1]).repaint();
+  }
+  
+ /*
+  * Tells all listeners about a new action.
+  *
+  *  @param  message
+  */  
+  private void sendMessage( String message )
+  {
+    for ( int i = 0; i < Listeners.size(); i++ )
+    {
+      ActionListener listener = (ActionListener)Listeners.elementAt(i);
+      listener.actionPerformed( new ActionEvent( this, 0, message ) );
+    }
+  }
+  
+  private void buildControls()
+  {
+    // If no data to display, no controls are necessary.
+    if( varray == null )
+    {
+      controls = new ViewControl[0];
+      return;
+    }
+    else
+      controls = new ViewControl[2];
+    
+    // ******* controls[0] *******
+    // Build the combo boxes with format options.
+    Vector options = new Vector();
+    Object[] alignment = {"Alignment","Left","Center","Right"};
+    Object[] predecimal = {"Predecimal Digits","Unlimited","0","1","2","3","4",
+                           "5","6","7","8","9","10"};
+    Object[] postdecimal = {"Postdecimal Digits","Unlimited","0","1","2","3",
+                            "4","5","6","7","8","9","10"};
+    options.add(alignment);
+    options.add(predecimal);
+    options.add(postdecimal);
+    controls[0] = new FormatControl(options);
+    controls[0].addActionListener( new ControlListener() );
+    controls[0].setTitle(FORMAT_CONTROL);
+    ((FormatControl)controls[0]).setToolTipText(0,"Table Text Alignment");
+    ((FormatControl)controls[0]).setToolTipText(1,"Number of digits before "+
+                                                  "decimal.");
+    ((FormatControl)controls[0]).setToolTipText(2,"Number of digits after "+
+                                                  "decimal.");
+    
+    // ******* controls[1] *******
+    controls[1] = new PanViewControl(ijp);
+    ((PanViewControl)controls[1]).setTitle(PAN_NAME);
+    ((PanViewControl)controls[1]).setGlobalBounds(
+         new CoordBounds(0,0,varray.getNumColumns()-1,varray.getNumRows()-1) );
+    ((PanViewControl)controls[1]).setLocalBounds(
+         new CoordBounds(0,0,varray.getNumColumns()-1,varray.getNumRows()-1) );
+    ((PanViewControl)controls[1]).enableStretch(false);
+    ((PanViewControl)controls[1]).addActionListener( new ControlListener() );
+  }
+  
+  private void buildMenu()
+  {
+  
+  }
+  
+  private class TableListener implements ActionListener
+  {
+    public void actionPerformed( ActionEvent ae )
+    {
+      String message = ae.getActionCommand();
+      if( message.equals(TableJPanel.SELECTED_CHANGED) )
+        sendMessage(SELECTED_CHANGED);
+      else if( message.equals(TableJPanel.POINTED_AT_CHANGED) )
+        sendMessage(POINTED_AT_CHANGED);
+      else if( message.equals(TableJPanel.VIEWPORT_CHANGED) )
+      {
+        // When the PanViewControl's viewport is moved, the setVisibleLocation()
+	// is called, causing this message to be sent. If this is the case,
+	// ignore the message.
+        if( setVisibleLocationCalled )
+	{
+	  setVisibleLocationCalled = false;
+	  return;
+	}
+        Rectangle viewport = tjp.getVisibleRectangle();
+	// This code must be added since the width and height become negative
+	// if the last row and/or column are entirely visible.
+	if( viewport.width < 0 )
+	  viewport.width = varray.getNumColumns() + viewport.width + 1;
+	if( viewport.height < 0 )
+	  viewport.height = varray.getNumRows() + viewport.height + 1;
+	
+	((PanViewControl)controls[1]).setLocalBounds(
+	                   new CoordBounds( viewport.x, viewport.y,
+			                    viewport.x+viewport.width,
+					    viewport.y+viewport.height ) );
+	((PanViewControl)controls[1]).repaint();
+      }
+    }
+  }
+  
+ /*
+  * This control listens for messages sent out by the ViewControls of
+  * this view component.
+  */ 
+  private class ControlListener implements ActionListener
+  {
+    public void actionPerformed( ActionEvent ae )
+    {
+      String message = ae.getActionCommand();
+      if( message.equals(FormatControl.FORMAT_CHANGED) )
+      {
+        FormatControl fc = (FormatControl)ae.getSource();
+        int changed_index = fc.getLastChangedIndex();
+        int select_index = fc.getLastChangedSelectedIndex();
+	
+	// Since the first index is always a label for the combo box, do nothing
+	// if this label is selected.
+	if( select_index == 0 )
+	  return;
+	// Changes to alignment occurred.
+	if( changed_index == 0 )
+	{
+	  if( select_index == 1 )
+	  {
+	    tjp.setColumnAlignment( SwingConstants.LEFT );
+	    tjp.repaint();
+	  }
+	  else if( select_index == 2 )
+	  {
+	    tjp.setColumnAlignment( SwingConstants.CENTER );
+	    tjp.repaint();
+	  }
+	  else if( select_index == 3 )
+	  {
+	    tjp.setColumnAlignment( SwingConstants.RIGHT );
+	    tjp.repaint();
+	  }
+	}
+	// Changes to predecimal digits displayed occurred.
+	else if( changed_index == 1 )
+	{
+	  // Subtract two since two entries exist in list before numbers.
+	  tjp.setNumberFormat( (select_index-2), (fc.getSelectedIndex(2)-2) );
+	}
+	// Changes to postdecimal digits displayed occurred.
+	else if( changed_index == 2 )
+	{
+	  // Subtract two since two entries exist in list before numbers.
+	  tjp.setNumberFormat( (fc.getSelectedIndex(1)-2), (select_index-2) );
+	}
+      } // end if( FormatControl )
+      else if( message.equals(PanViewControl.BOUNDS_MOVED) )
+      {
+        CoordBounds bounds = ((PanViewControl)ae.getSource()).getLocalBounds();
+	// Calling setVisibleLocation() will cause the VIEWPORT_CHANGED message
+	// to be sent out. Ignore this message if it is sent out as a result
+	// of calling this method.
+	setVisibleLocationCalled = true;
+	tjp.setVisibleLocation( new Point( (int)bounds.getX1(),
+	                                   (int)bounds.getY1()) );
+      }
+    }
+  }
+ 
+ /**
+  * Test Program - use for testing only.
+  *
+  *  @param  args Command line arguments, these are ignored.
+  */ 
+  public static void main( String args[] )
+  {
+    JFrame frame = new JFrame("TableViewComponent Test");
+    frame.setBounds(0,0,600,300);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    
+    int row = 50;
+    int col = 30;
+    float[][] values = new float[row][col];
+    for( int i = 0; i < row; i++ )
+    {
+      for( int j = 0; j < col; j++ )
+      {
+        values[i][j] = (float)(i * j)*1.1f;
+      }
+    }
+    VirtualArray2D iva = new VirtualArray2D(values);
+    TableViewComponent tvc = new TableViewComponent( iva );
+    // Make TableRegions to select/deselect cells.
+    Region[] reg = new Region[4];
+    floatPoint2D[] def_pts1 = new floatPoint2D[2];
+    def_pts1[0] = new floatPoint2D(5f,4f);
+    def_pts1[1] = new floatPoint2D(7f,11f);
+    reg[0] = new BoxRegion( def_pts1 );
+    
+    floatPoint2D[] def_pts2 = new floatPoint2D[2];
+    def_pts2[0] = new floatPoint2D(9f,2f);
+    def_pts2[1] = new floatPoint2D(15f,5f);
+    reg[1] = new BoxRegion( def_pts2 );
+    
+    floatPoint2D[] def_pts3 = new floatPoint2D[3];
+    def_pts3[0] = new floatPoint2D(0,10f);
+    def_pts3[1] = new floatPoint2D(4f,14f);
+    def_pts3[2] = new floatPoint2D(2f,12f);
+    reg[2] = new EllipseRegion( def_pts3 );
+    
+    floatPoint2D[] def_pts4 = new floatPoint2D[2];
+    def_pts4[0] = new floatPoint2D(2f,12f);
+    def_pts4[1] = new floatPoint2D(2f,12f);
+    reg[3] = new TableRegion( def_pts4, false );
+    
+    tvc.setSelectedRegions(reg);
+    tvc.setSelectedRegions( tvc.getSelectedRegions() );
+    // Set Pointed-At cell to (column=3, row=5)
+    tvc.setPointedAt(new floatPoint2D(3f,5f));
+    tvc.setThumbnailColorscale( IndexColorMaker.MULTI_SCALE );
+    frame.getContentPane().add(tvc.getDisplayPanel());
+    WindowShower shower = new WindowShower(frame);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
+    
+    JFrame ctrlframe = new JFrame("TVC Controls");
+    ctrlframe.setBounds(0,0,300,400);
+    ctrlframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    ViewControl[] my_controls = tvc.getControls();
+    ctrlframe.getContentPane().setLayout( new javax.swing.BoxLayout(
+                                       ctrlframe.getContentPane(),
+                                       javax.swing.BoxLayout.Y_AXIS) );
+    for( int i = 0; i < my_controls.length; i++ )
+      ctrlframe.getContentPane().add( my_controls[i] );
+    if( my_controls.length > 0 )
+    {
+      WindowShower shower2 = new WindowShower(ctrlframe);
+      java.awt.EventQueue.invokeLater(shower2);
+      shower2 = null;
+    }
+  }
+}
