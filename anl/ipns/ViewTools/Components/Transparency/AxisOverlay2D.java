@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2004/03/12 03:16:46  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.29  2004/02/06 23:23:43  millermi
  *  - Changed how editor bounds were stored in the ObjectState,
  *    removed check if visible.
@@ -162,7 +165,7 @@
  */ 
 // X axis has a constant position 50 for it's label
 
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import javax.swing.*; 
 import javax.swing.text.html.HTMLEditorKit;
@@ -172,12 +175,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
-import DataSetTools.components.View.*;
-import DataSetTools.components.View.TwoD.ImageViewComponent;
-import DataSetTools.util.Format;
-import DataSetTools.util.floatPoint2D; 
-import DataSetTools.util.WindowShower;
+//import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
+import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
+import gov.anl.ipns.Util.Numeric.Format;
+import gov.anl.ipns.Util.Numeric.floatPoint2D; 
+import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
  * This class is used by view components to calibrate a JPanel. Besides

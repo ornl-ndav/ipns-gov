@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2004/03/12 03:16:46  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.18  2004/01/30 22:11:12  millermi
  *  - Removed messaging Strings from interface and into respective
  *    implementing classes that actually send out the message.
@@ -118,7 +121,7 @@
  *
  */
   
- package DataSetTools.components.View.ViewControls;
+ package gov.anl.ipns.ViewTools.Components.ViewControls;
  
  import javax.swing.OverlayLayout;
  import javax.swing.JFrame;
@@ -127,18 +130,18 @@
  import java.awt.event.ActionEvent;
  import java.awt.*;
  
- import DataSetTools.components.image.IndexColorMaker;
- import DataSetTools.components.ui.ColorScaleImage;
- import DataSetTools.components.View.TwoD.ImageViewComponent;
- import DataSetTools.components.View.VirtualArray2D;
- import DataSetTools.components.View.AxisInfo;
- import DataSetTools.components.View.ObjectState;
- import DataSetTools.components.View.LogScaleUtil;
- import DataSetTools.components.View.Transparency.AxisOverlay2D;
- import DataSetTools.components.View.Transparency.ILogAxisAddible;
- import DataSetTools.components.image.CoordBounds;
- import DataSetTools.util.floatPoint2D;
- import DataSetTools.util.WindowShower;
+ import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
+ import gov.anl.ipns.ViewTools.UI.ColorScaleImage;
+ import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
+ import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
+ import gov.anl.ipns.ViewTools.Components.AxisInfo;
+ import gov.anl.ipns.ViewTools.Components.ObjectState;
+ import gov.anl.ipns.ViewTools.Components.LogScaleUtil;
+ import gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D;
+ import gov.anl.ipns.ViewTools.Components.Transparency.ILogAxisAddible;
+ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+ import gov.anl.ipns.Util.Numeric.floatPoint2D;
+ import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a color scale for use 

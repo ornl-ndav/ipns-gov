@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.18  2004/03/12 03:18:18  millermi
+ * - Changed package, fixed imports.
+ *
  * Revision 1.17  2004/03/10 23:37:27  millermi
  * - Changed IViewComponent interface, no longer
  *   distinguish between private and shared controls/
@@ -131,7 +134,7 @@
  *
  */
 
-package DataSetTools.components.View;
+package gov.anl.ipns.ViewTools.Components;
 
 import javax.swing.*;
 import java.util.Vector;
@@ -145,18 +148,16 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.Serializable;
 
-import DataSetTools.components.View.TwoD.ImageViewComponent;
-import DataSetTools.components.View.Menu.MenuItemMaker;
-import DataSetTools.components.View.Menu.ViewMenuItem;
-import DataSetTools.components.image.*;
-import DataSetTools.components.containers.SplitPaneWithState;
-import DataSetTools.components.View.Transparency.SelectionOverlay;
-import DataSetTools.components.View.Region.Region;
-import DataSetTools.components.View.ViewControls.ViewControl;
-import DataSetTools.components.View.ViewControls.ControlSlider;
-import DataSetTools.components.View.ViewControls.PanViewControl;
-import DataSetTools.util.SharedData;
-import DataSetTools.util.WindowShower;
+import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
+import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
+import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
+import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
+import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
+import gov.anl.ipns.ViewTools.Components.Region.Region;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
+import gov.anl.ipns.ViewTools.Components.ViewControls.PanViewControl;
+import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -186,7 +187,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     menu_bar = new JMenuBar();
     setJMenuBar(menu_bar);
     state = new ObjectState();
-    state.setProjectsDirectory(SharedData.getProperty("Data_Directory"));
+    state.setProjectsDirectory(System.getProperty("user.home"));
     // build File menu 
     Vector file = new Vector();
     Vector new_menu = new Vector();
