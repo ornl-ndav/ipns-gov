@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2002/07/15 16:55:11  pfpeterson
+ *  No longer sets its own default value.
+ *
  *  Revision 1.9  2002/06/19 22:43:24  dennis
  *  Added some additional checks to keep row,col values in range.
  *
@@ -105,9 +108,7 @@ public class ImageJPanel extends    CoordJPanel
 
   public ImageJPanel()
   { 
-    color_model = 
-      IndexColorMaker.getDualColorModel( IndexColorMaker.HEATED_OBJECT_SCALE_2,
-                                         NUM_POSITIVE_COLORS );
+    color_model = null;
     log_scale = new byte[LOG_TABLE_SIZE];
     setLogScale( 0 );
   
