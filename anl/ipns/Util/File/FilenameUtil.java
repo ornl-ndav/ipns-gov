@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2003/03/05 20:52:12  pfpeterson
+ *  Changed SharedData.status_pane.add(String) to SharedData.addmsg(String)
+ *
  *  Revision 1.14  2003/02/13 20:57:49  pfpeterson
  *  Deprecated fixSeparator and renamed the method to setForwardSlash.
  *
@@ -174,8 +177,7 @@ public class FilenameUtil
 	      S=System.getProperty("ISAW_HOME");
 	  }
 	  if( S == null ){
-	      SharedData.status_pane.add("ISAW_HOME is not defined in"
-					 +" Properties file");
+	      SharedData.addmsg("ISAW_HOME is not defined in Properties file");
 	      return null; // do nothing
 	  }
 	  S=S.trim();
@@ -191,8 +193,8 @@ public class FilenameUtil
 	  }else if( (new File(S+"docs"+pathSep+dirr+docFile)).exists() ){
 	      S=S+"docs/html/"+docFile;
 	  }else{
-	      SharedData.status_pane.add("CANNOT FIND DOCUMENT: "+docFile+"in "+
-                   S+" or"+S+dirr+docFile+ " or "+S+"docs"+pathSep+dirr);
+	      SharedData.addmsg("CANNOT FIND DOCUMENT: "+docFile+"in "+S+" or"
+                                +S+dirr+docFile+ " or "+S+"docs"+pathSep+dirr);
 	      return null; // file doesn't exist
 	  }
 	      
@@ -280,7 +282,8 @@ public class FilenameUtil
 
 	// either it has been found or just give the URL
 	if( S == null ){
-            SharedData.status_pane.add("File ("+helpFile+") not found. Using version at "+URLDIR);
+            SharedData.addmsg("File ("+helpFile
+                              +") not found. Using version at "+URLDIR);
 	    S = URLDIR+helpFile;
 	}else{ 
 	    S = "file:///" + S; 
