@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/04 20:48:21  dennis
+ * Added constants for HKL and QXYZ mode, for use by related classes.
+ *
  * Revision 1.2  2004/03/03 23:19:08  dennis
  * Added message string for slice mode changed.
  *
@@ -50,6 +53,16 @@ import DataSetTools.math.*;
 
 public interface ISlicePlaneSelector
 {
+  /**
+   *  Integer mode ID for selections interms of HKL
+   */
+  public static final int HKL_MODE  = 0;
+
+  /**
+   *  Integer mode ID for selections interms of Qxyz 
+   */
+  public static final int QXYZ_MODE = 1;
+
   /**
    *  Message String sent when the user selects a different slice plane
    */
