@@ -34,6 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.48  2003/12/29 06:32:58  millermi
+ *  - Added method addSelection() to add selections through
+ *    command as opposed to just via the GUI
+ *  - Loading state now makes use of the doClick() method
+ *    which was added to the ControlCheckboxButton class.
+ *    This reduces the repetative code required to manually
+ *    set events that should take place when a mouse click
+ *    occurs.
+ *
  *  Revision 1.47  2003/12/29 02:41:26  millermi
  *  - get/setPointedAt() now uses floatPoint2D to pass information
  *    about the current pointed at instead of java.awt.Point.
@@ -637,24 +646,27 @@ public class ImageViewComponent implements IViewComponent2D,
     temp = new_state.get(ANNOTATION_CONTROL);
     if( temp != null )
     {
-      ((ControlCheckboxButton)controls[4]).setSelected( 
-                                 ((Boolean)temp).booleanValue() );
+      if( ((Boolean)temp).booleanValue() != 
+          ((ControlCheckboxButton)controls[4]).isSelected() )
+        ((ControlCheckboxButton)controls[4]).doClick();
       redraw = true;  
     }  	
     
     temp = new_state.get(AXIS_CONTROL);
     if( temp != null )
     {
-      ((ControlCheckboxButton)controls[2]).setSelected( 
-                                 ((Boolean)temp).booleanValue() );
+      if( ((Boolean)temp).booleanValue() != 
+          ((ControlCheckboxButton)controls[2]).isSelected() )
+        ((ControlCheckboxButton)controls[2]).doClick();
       redraw = true;  
     }
     
     temp = new_state.get(SELECTION_CONTROL);
     if( temp != null )
     {
-      ((ControlCheckboxButton)controls[3]).setSelected( 
-                                 ((Boolean)temp).booleanValue() );
+      if( ((Boolean)temp).booleanValue() != 
+          ((ControlCheckboxButton)controls[3]).isSelected() )
+        ((ControlCheckboxButton)controls[3]).doClick();
       redraw = true;  
     }
    
@@ -719,6 +731,23 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     ((SelectionOverlay)(transparencies.elementAt(1))).enableSelection( names );
   }
+  
+ /**
+  * This method allows users to add a selection without using the GUI.
+  *
+  *  @param  world_coord_region The region to be added, with defining points
+  *                             in world coord points.
+  *  @see    DataSetTools.components.View.Transparency.SelectionOverlay
+  */
+  public void addSelection( WCRegion world_coord_region )
+  {
+    ((SelectionOverlay)
+        (transparencies.elementAt(1))).addSelectedRegion( world_coord_region );
+    // if selection control is unchecked, turn it on.
+    if( !((ControlCheckboxButton)controls[3]).isSelected() )
+      ((ControlCheckboxButton)controls[3]).doClick();
+    returnFocus();
+  } 
   
  // These method are required because this component implements 
  // IColorScaleAddible
@@ -1195,53 +1224,9 @@ public class ImageViewComponent implements IViewComponent2D,
       ((ControlColorScale)controls[1]).setVisible(true);
     else
       ((ControlColorScale)controls[1]).setVisible(false);
-      
-    ControlCheckboxButton control = (ControlCheckboxButton)controls[2];
-    // initialize axis overlay control  
-    int bpsize = big_picture.getComponentCount(); 
-    JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
-    if( !control.isSelected() )
-    {						     // axis overlay
-     ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(false);
-      back.getComponent(1).setVisible(false);	     // north
-      back.getComponent(2).setVisible(false);	     // west
-      back.getComponent(3).setVisible(false);	     // south
-      back.getComponent(4).setVisible(false);	     // east
-    }
-    else
-    {		   
-      back.getComponent(1).setVisible(true);
-      back.getComponent(2).setVisible(true);
-      back.getComponent(3).setVisible(true);
-      back.getComponent(4).setVisible(true);
-      ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(true);
-    } 
-      
-    // initialize selection overlay control
-    control = (ControlCheckboxButton)controls[3];
-    SelectionOverlay select = (SelectionOverlay)transparencies.elementAt(1); 
-    if( !control.isSelected() )
-    {
-      select.setVisible(false);
-    }
-    else
-    {
-      select.setVisible(true); 
-      select.getFocus();
-    }
     
-    // initialize annotation overlay control
-    control = (ControlCheckboxButton)controls[4];
-    AnnotationOverlay note = (AnnotationOverlay)transparencies.elementAt(0); 
-    if( !control.isSelected() )
-    {
-      note.setVisible(false);
-    }
-    else
-    {
-      note.setVisible(true);
-      note.getFocus();
-    } 
+    // give focus to the top overlay
+    returnFocus();
     
     ((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
     ((PanViewControl)controls[5]).setLocalBounds(local_bounds);
