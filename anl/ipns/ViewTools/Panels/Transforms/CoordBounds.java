@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2001/05/07 21:14:18  dennis
+ * Added a method equals() to check if two CoordBounds
+ * objects represent the same region.
+ *
  * Revision 1.6  2001/04/23 21:19:18  dennis
  * Added copyright and GPL info at the start of the file.
  * Also, modified setBounds( x_vals[], y_vals[] ) to use
@@ -106,6 +110,28 @@ public class CoordBounds implements Serializable
     this.x2 = x2;
     this.y2 = y2;
   };
+
+  /**
+   *  Check whether or not the current bounds object has exactly the same
+   *  entries as the specified bounds object.
+   *
+   *  @param  bounds  The bounds object to compare with the current bounds
+   *                  object.
+   * 
+   *  @return Returns true if the current bounds object has exactly the same
+   *  entries as the specified bounds object.
+   */
+  public boolean equals( CoordBounds bounds )
+  {
+    if ( x1 == bounds.x1 &&
+         y1 == bounds.y1 &&
+         x2 == bounds.x2 &&
+         y2 == bounds.y2  )
+      return true;
+    else
+      return false; 
+  }
+
 
   /**
    *  Set the current bounds to a rectangle, [x1,y1] x [x2,y2], for which
@@ -371,7 +397,6 @@ public class CoordBounds implements Serializable
     System.out.println( "Intersecting b3 = " + b3 );
     System.out.println( "with b4 = " + b4 );
     System.out.println( "gives " + b3.intersect( b4 ) );
-
   }
 
 }
