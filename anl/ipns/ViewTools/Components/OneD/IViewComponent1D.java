@@ -26,6 +26,11 @@ public interface IViewComponent1D
    public void setPointedAt( Point pt );
   
   /**
+   *  Returns the point in World coords that is being pointed at.
+   */ 
+   public Point getPointedAt( );
+  
+  /**
    * Given an array of points, a selection overlay can be created.
    */ 
    public void setSelectedSet( Point[] pts );
