@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/12/20 05:42:25  millermi
+ *  - Now corrects the topleft/bottomright defining points if
+ *    they were scaled incorrectly by the image.
+ *
  *  Revision 1.2  2003/12/18 22:38:00  millermi
  *  - Tweaked how x/yextent are calculated. Now must have a different
  *    of more than one to be reset.
@@ -102,20 +106,30 @@ public class EllipseRegion extends Region
      // since a mapping is done with the imagejpanel, the topleft or bottomright
      // could have been mapped to the side of the image. However, at most
      // one will be affected, so take the maximum extent of the two.
+     // Correct the defining points if selection made near border of image.
      if( (bottomright.x - pcenter.x)-1 > xextent )
      {
        xextent = bottomright.x - pcenter.x; 
        topleft.x = (int)(pcenter.x - xextent); 
+       definingpoints[3].x = topleft.x;
      }
      else
+     {
        bottomright.x = (int)(pcenter.x + xextent);
+       definingpoints[4].x = bottomright.x;
+     }
      if( (bottomright.y - pcenter.y)-1 > yextent )
      {
        yextent = bottomright.y - pcenter.y;
-       topleft.y = (int)(pcenter.y - yextent); 
+       topleft.y = (int)(pcenter.y - yextent);
+       definingpoints[3].y = topleft.y;
      }
      else
+     {
        bottomright.y = (int)(pcenter.y + yextent);
+       definingpoints[4].y = bottomright.y;
+     }
+     
      floatPoint2D center = new floatPoint2D( (float)(topleft.x + xextent),
                                (float)(topleft.y + yextent) );
      

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/12/20 05:42:25  millermi
+ *  - Now corrects the topleft/bottomright defining points if
+ *    they were scaled incorrectly by the image.
+ *
  *  Revision 1.8  2003/12/20 04:15:59  millermi
  *  - Included an off-by-one on the pointangle so that
  *    border points are always included. This eleviates
@@ -148,20 +152,29 @@ public class WedgeRegion extends Region
      // since a mapping is done with the imagejpanel, the topleft or bottomright
      // could have been mapped to the side of the image. However, at most
      // one will be affected, so take the maximum extent of the two.
+     // Correct the defining points if selection made near border of image.
      if( (bottomright.x - center.x)-1 > xextent )
      {
        xextent = bottomright.x - center.x; 
-       topleft.x = (int)(center.x - xextent); 
+       topleft.x = (int)(center.x - xextent);
+       definingpoints[3].x = topleft.x;
      }
      else
+     {
        bottomright.x = (int)(center.x + xextent);
+       definingpoints[4].x = bottomright.x;
+     }
      if( (bottomright.y - center.y)-1 > yextent )
      {
        yextent = bottomright.y - center.y;
-       topleft.y = (int)(center.y - yextent); 
+       topleft.y = (int)(center.y - yextent);
+       definingpoints[3].y = topleft.y;
      }
      else
+     {
        bottomright.y = (int)(center.y + yextent);
+       definingpoints[4].y = bottomright.y;
+     }
      
      Vector points = new Vector();
      // use this 2-d array to mark points that have been selected.
