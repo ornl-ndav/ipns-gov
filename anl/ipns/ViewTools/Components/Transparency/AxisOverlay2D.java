@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/06/18 13:35:25  dennis
+ *  (Mike Miller)
+ *  - Added method setDisplayAxes() to turn on/off x and/or y axes.
+ *
  *  Revision 1.6  2003/06/17 13:22:14  dennis
  *  - Updated help menu. No functional changes made. (Mike Miller)
  *
@@ -71,6 +75,10 @@ import java.lang.Math;
 
 public class AxisOverlay2D extends OverlayJPanel 
 {
+   public static final int NO_AXES = 0;
+   public static final int X_AXIS = 1;
+   public static final int Y_AXIS = 2;
+   public static final int DUAL_AXES = 3;
    // these variables simulate the interval of values of the data
    private float xmin;
    private float xmax;
@@ -79,6 +87,7 @@ public class AxisOverlay2D extends OverlayJPanel
    private IAxisAddible2D component;
    private int precision;
    private Font f;
+   private int axesdrawn;
    
    public AxisOverlay2D(IAxisAddible2D iaa)
    {
@@ -89,7 +98,8 @@ public class AxisOverlay2D extends OverlayJPanel
       xmin = 0;
       xmax = 1;
       ymin = 0;
-      ymax = 1;       
+      ymax = 1;
+      axesdrawn = DUAL_AXES;       
    }
 
   /**
@@ -118,10 +128,24 @@ public class AxisOverlay2D extends OverlayJPanel
       helper.setVisible(true);
    }
    
+  /**
+   * Sets the significant digits to be displayed.
+   *
+   *  @param digits
+   */ 
    public void setPrecision( int digits )
    {
       precision = digits;
-   }  
+   } 
+   
+  /**
+   * Specify which axes should be drawn. Options are NO_AXES, X_AXIS, Y_AXIS,
+   * or DUAL_AXES.
+   */ 
+   public void setDisplayAxes( int drawthis )
+   {
+      axesdrawn = drawthis;
+   }
   
   /*
    * This method creates tick marks and numbers for this transparency.
@@ -158,22 +182,22 @@ public class AxisOverlay2D extends OverlayJPanel
          g2d.drawString( component.getTitle(), xstart + xaxis/2 -
                       fontdata.stringWidth(component.getTitle())/2, 
      	              ystart/2 + (fontdata.getHeight())/2 );
-          
-      // info for putting tick marks and numbers on transparency       	      
+
+      // info for putting tick marks and numbers on transparency   
       String num = "";
       int xtick_length = 5;
-     /*
-      * Draw the x axis with horizontal numbers and adjusting ticks
-      */
+      /*
+       * Draw the x axis with horizontal numbers and adjusting ticks
+       */
       //xmin = -83;
       //xmax = 139;
       CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
-                                                  Format.ENGINEER );
+        					  Format.ENGINEER );
       float[] values = util.subDivide();
       float step = values[0];
       float start = values[1];    // the power of the step
-      int numxsteps = (int)values[2];         
-//      System.out.println("X ticks = " + numxsteps );	 
+      int numxsteps = (int)values[2];	      
+   //   System.out.println("X ticks = " + numxsteps );        
       int pixel = 0;
       int subpixel = 0;
       /* xaxis represents Pmax - Pmin
@@ -181,107 +205,112 @@ public class AxisOverlay2D extends OverlayJPanel
       float Pmax = start + xaxis;
       float Amin = xmin;
       */
-      float A = 0;	
+      float A = 0;   
       int exp_index = 0;
       //boolean drawn = false;
-      int prepix = (int)( 
-     		 (float)xaxis*(start - xmin)/
-     		 (xmax-xmin) + xstart); 
+      int prepix = (int)( (float)xaxis*(start - xmin)/
+        		  (xmax-xmin) + xstart); 
       int skip = 0;
-      for( int steps = 0; steps < numxsteps; steps++ )
-      {  
-         A = (float)steps*step + start;		 
-     	 pixel = (int)( 
-     		 (float)xaxis*(A - xmin)/
-     		 (xmax-xmin) + xstart);    	 
-//     	 System.out.println("Pixel " + pixel );
-//	 System.out.println("Xmin/Xmax " + xstart + "/" + (xstart + xaxis) ); 	 
-       	 subpixel = (int)( 
-     		 ( (float)xaxis*(A - xmin - step/2 ) )/
-     		 (xmax-xmin) + xstart);      
+      if( axesdrawn == X_AXIS || axesdrawn == DUAL_AXES )
+      {    	 
+         for( int steps = 0; steps < numxsteps; steps++ )
+         {  
+            A = (float)steps*step + start;		 
+     	    pixel = (int)( 
+     		    (float)xaxis*(A - xmin)/
+     		    (xmax-xmin) + xstart);    	 
+            //System.out.println("Pixel " + pixel );
+   	  //System.out.println("Xmin/Xmax " + xstart + "/" + (xstart + xaxis) );
+            subpixel = (int)( 
+     		    ( (float)xaxis*(A - xmin - step/2 ) )/
+     		    (xmax-xmin) + xstart);      
  
-	 num = util.standardize( (step * (float)steps + start) );
-	 exp_index = num.indexOf('E');	 
+	    num = util.standardize( (step * (float)steps + start) );
+	    exp_index = num.indexOf('E');	 
 	 
 	 
-	 if( (prepix + 2 + fontdata.stringWidth(num.substring(0,exp_index))/2) >
-	     (pixel - fontdata.stringWidth(num.substring(0,exp_index))/2) )
-	 {
-	    skip++;
-	 }
+	    if( (prepix + 2 + 
+	         fontdata.stringWidth(num.substring(0,exp_index))/2) >
+	     	(pixel - fontdata.stringWidth(num.substring(0,exp_index))/2) )
+	    {
+	       skip++;
+	    }
 	 
-	 if( steps%skip == 0 )
-	 {
-	    g2d.drawString( num.substring(0,exp_index), 
+	    if( steps%skip == 0 )
+	    {
+	       g2d.drawString( num.substring(0,exp_index), 
 	            pixel - fontdata.stringWidth(num.substring(0,exp_index))/2, 
      	            yaxis + ystart + xtick_length + fontdata.getHeight() );
-	 }	      
+	    }	      
 
-         //System.out.println("Subpixel/XStart " + subpixel + "/" + xstart );
-     	 if( subpixel > xstart && subpixel < (xstart + xaxis) )
-     	 {
-     	    g2d.drawLine( subpixel, yaxis + ystart, 
-     		       subpixel, yaxis + ystart + xtick_length-2 );
-     	 }
+            //System.out.println("Subpixel/XStart " + subpixel + "/" + xstart );
+     	    if( subpixel > xstart && subpixel < (xstart + xaxis) )
+     	    {
+     	       g2d.drawLine( subpixel, yaxis + ystart, 
+     		             subpixel, yaxis + ystart + xtick_length-2 );
+     	    }
 
-         g2d.drawLine( pixel, yaxis + ystart, 
-     		       pixel, yaxis + ystart + xtick_length );  
-	 
-     	 if( steps == (numxsteps - 1) && 
-     	     ( xaxis + xstart - pixel) > xaxis/(2*numxsteps) )
-     	 { 
-	    g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
-     		          pixel + (pixel - subpixel), 
-     		          yaxis + ystart + xtick_length-2 );
-	    steps++;
-	    A = (float)steps*step + start;		 
-     	    pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart); 
-	    if( steps%skip == 0 && pixel <= (xstart + xaxis) )
-	    {
-	       num = util.standardize( (step * (float)steps + start) );
-	       exp_index = num.indexOf('E');
+            g2d.drawLine( pixel, yaxis + ystart, 
+     		          pixel, yaxis + ystart + xtick_length );  
+	    //System.out.println("Y Position: " + (yaxis + ystart + 
+	    //                                     xtick_length) );
+     	    if( steps == (numxsteps - 1) && 
+     	        ( xaxis + xstart - pixel) > xaxis/(2*numxsteps) )
+     	    { 
+	       g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
+     		             pixel + (pixel - subpixel), 
+     		             yaxis + ystart + xtick_length-2 );
+	       steps++;
+	       A = (float)steps*step + start;		 
+     	       pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart); 
+	       if( steps%skip == 0 && pixel <= (xstart + xaxis) )
+	       {
+	          num = util.standardize( (step * (float)steps + start) );
+	          exp_index = num.indexOf('E');
 	       
-	       g2d.drawString( num.substring(0,exp_index), pixel - 
+	          g2d.drawString( num.substring(0,exp_index), pixel - 
 		       fontdata.stringWidth(num.substring(0,exp_index))/2, 
      	               yaxis + ystart + xtick_length + fontdata.getHeight() );
-	       g2d.drawLine( pixel, yaxis + ystart, 
+	          g2d.drawLine( pixel, yaxis + ystart, 
      		       pixel, yaxis + ystart + xtick_length );
-	    }
+	       }
 	         	    
-	 }	
-      }
+	    }	
+         } // end of for
      /*
       * This will display the x label, x units, and common exponent (if not 0).
       */
-      String xlabel = "";
-      if( component.getAxisInfo(true).getLabel() != IVirtualArray2D.NO_XLABEL )
-         xlabel = xlabel + component.getAxisInfo(true).getLabel();
-      if( component.getAxisInfo(true).getUnits() != IVirtualArray2D.NO_XUNITS )
-         xlabel = xlabel + "  " + component.getAxisInfo(true).getUnits();
-      if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
-         xlabel = xlabel + "  " + num.substring( exp_index );
-      if( xlabel != "" )
-         g2d.drawString( xlabel, xstart + xaxis/2 -
+         String xlabel = "";
+         if( component.getAxisInfo(true).getLabel() != 
+	     IVirtualArray2D.NO_XLABEL )
+            xlabel = xlabel + component.getAxisInfo(true).getLabel();
+         if( component.getAxisInfo(true).getUnits() != 
+	     IVirtualArray2D.NO_XUNITS )
+            xlabel = xlabel + "  " + component.getAxisInfo(true).getUnits();
+         if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
+            xlabel = xlabel + "  " + num.substring( exp_index );
+         if( xlabel != "" )
+            g2d.drawString( xlabel, xstart + xaxis/2 -
                       fontdata.stringWidth(xlabel)/2, 
      	              yaxis + ystart + fontdata.getHeight() * 2 + 6 );
+      } // end of if ( display x axis )
       
      /*
       * Draw y axis with horizontal numbers and adjusting ticks.
       * Given ysteps in world coordinates, put ticks on y axis starting
       * from top and moving down to the origin
-      */
-
+      */ 
       CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
-                                                   Format.ENGINEER );
+        					   Format.ENGINEER );
       values = yutil.subDivide();
       float ystep = values[0];
       float starty = values[1];
       int numysteps = (int)values[2];
-//      System.out.println("Y Start/Step = " + starty + "/" + ystep);
-      int ytick_length = 5;     // the length of the tickmark is 5 pixels
-      int ypixel = 0;           // where to place major ticks
-      int ysubpixel = 0;        // where to place minor ticks
-     		    
+   //   System.out.println("Y Start/Step = " + starty + "/" + ystep);
+      int ytick_length = 5;	// the length of the tickmark is 5 pixels
+      int ypixel = 0;		// where to place major ticks
+      int ysubpixel = 0;	// where to place minor ticks
+     	     	 
       float pmin = ystart + yaxis;
       float pmax = ystart;
       float a = 0;
@@ -290,83 +319,89 @@ public class AxisOverlay2D extends OverlayJPanel
       // yskip is the space between calibrations: 1 = every #, 2 = every other
       
       int yskip = 1;
-      while( (yaxis*yskip/numysteps) < fontdata.getHeight() && yskip < numysteps)
+      while( (yaxis*yskip/numysteps) < 
+             fontdata.getHeight() && yskip < numysteps)
          yskip++;
       int mult = (int)(numysteps/yskip);
       int rem = numysteps%yskip;
-//      System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
-//                         ") = " + mult + "R" + rem);
-      for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
+   //   System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
+   //                      ") = " + mult + "R" + rem);
+      if( axesdrawn == Y_AXIS || axesdrawn == DUAL_AXES )
       {   
-     	 a = ysteps * ystep;
+         for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
+         {   
+     	    a = ysteps * ystep;
      	 
-     	 ypixel = (int)( (pmax - pmin) * ( a - amin) /
-     			 (ymax - ymin) + pmin);
-//     	 System.out.println("YPixel " + ypixel ); 
+     	    ypixel = (int)( (pmax - pmin) * ( a - amin) /
+     			    (ymax - ymin) + pmin);
+   //     	 System.out.println("YPixel " + ypixel ); 
 	 
-	 //System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
+	    //System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
      	 
-     	 ysubpixel = (int)( (pmax - pmin) * ( a - amin  + ystep/2 ) /
-     			 (ymax - ymin) + pmin); 
+     	    ysubpixel = (int)( (pmax - pmin) * ( a - amin  + ystep/2 ) /
+     			    (ymax - ymin) + pmin); 
      
-	 num = yutil.standardize(ystep * (float)ysteps + starty);
-	 exp_index = num.indexOf('E');
+	    num = yutil.standardize(ystep * (float)ysteps + starty);
+	    exp_index = num.indexOf('E');
 	 
-         /*
-         System.out.println("Ypixel/Pmin = " + ypixel + "/" + pmin );
-	 System.out.println("Ypixel/Pmax = " + ypixel + "/" + pmax );
-	 System.out.println("Num = " + num );
-         */
-	 // if pixel is between top and bottom of imagejpanel, draw it 		     	       
-     	 if( ypixel <= pmin && ypixel >= pmax )
-     	 {
-	    if( ((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip) )
-	    {
-	       g2d.drawString( num.substring(0,exp_index), 
+            /*
+            System.out.println("Ypixel/Pmin = " + ypixel + "/" + pmin );
+	    System.out.println("Ypixel/Pmax = " + ypixel + "/" + pmax );
+	    System.out.println("Num = " + num );
+            */
+	    // if pixel is between top and bottom of imagejpanel, draw it  
+     	    if( ypixel <= pmin && ypixel >= pmax )
+     	    {
+	       if( ((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip) )
+	       {
+	          g2d.drawString( num.substring(0,exp_index), 
 	                    xstart - ytick_length - 
 		            fontdata.stringWidth(num.substring(0,exp_index)),
 	                    ypixel + fontdata.getHeight()/4 );
-	    }	      
+	       }	      
 
-     	    g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-     	                  xstart - 1, ypixel - 1 );   
-     	 }
-	 // if subpixel is between top and bottom of imagejpanel, draw it 		     	       
-     	 if( ysubpixel <= pmin && ysubpixel >= pmax )
-     	 {
-     	    g2d.drawLine( xstart - (ytick_length - 2), ysubpixel - 1, 
-     			  xstart - 1, ysubpixel - 1 );
-     	 }
-	 // if a tick mark should be drawn at the end, draw it
-	 // since the above "if" takes care of all subtick marks before the
-	 // actual numbered ticks, there may be a tick mark needed after the 
-	 // last tick. 
-     	 if( ysteps == 0 && 
-     	     (pmin - ypixel) > yaxis/(2*numysteps) ) 
-     	 {
-     	    g2d.drawLine( xstart - (ytick_length - 2), 
-     	          (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ), 
+     	       g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+     	                     xstart - 1, ypixel - 1 );   
+     	    }
+	    // if subpixel is between top and bottom of imagejpanel, draw it
+     	    if( ysubpixel <= pmin && ysubpixel >= pmax )
+     	    {
+     	       g2d.drawLine( xstart - (ytick_length - 2), ysubpixel - 1, 
+     			     xstart - 1, ysubpixel - 1 );
+     	    }
+	    // if a tick mark should be drawn at the end, draw it
+	    // since the above "if" takes care of all subtick marks before the
+	    // actual numbered ticks, there may be a tick mark needed after the 
+	    // last tick. 
+     	    if( ysteps == 0 && 
+     	        (pmin - ypixel) > yaxis/(2*numysteps) ) 
+     	    {
+     	       g2d.drawLine( xstart - (ytick_length - 2), 
+     	          (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
 		  xstart - 1, 
-     		  (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin)))); 		
-     	 }
-      }
+     		  (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
+     	    }
+         }
      /*
       * This will display the y label, y units, and common exponent (if not 0).
       */
-      String ylabel = "";
-      if( component.getAxisInfo(false).getLabel() != IVirtualArray2D.NO_YLABEL )
-         ylabel = ylabel + component.getAxisInfo(false).getLabel();
-      if( component.getAxisInfo(false).getUnits() != IVirtualArray2D.NO_YUNITS )
-         ylabel = ylabel + "  " + component.getAxisInfo(false).getUnits();
-      if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
-         ylabel = ylabel + "  " + num.substring( exp_index );
-      if( ylabel != "" )
-      {
-         g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );	 
-         g2d.drawString( ylabel, xstart + yaxis/2 -
-                      fontdata.stringWidth(ylabel)/2, 
-     	              yaxis + ystart - xstart + fontdata.getHeight() );
-         g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
-      }	
+         String ylabel = "";
+         if( component.getAxisInfo(false).getLabel() != 
+	     IVirtualArray2D.NO_YLABEL )
+            ylabel = ylabel + component.getAxisInfo(false).getLabel();
+         if( component.getAxisInfo(false).getUnits() != 
+	     IVirtualArray2D.NO_YUNITS )
+            ylabel = ylabel + "  " + component.getAxisInfo(false).getUnits();
+         if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
+            ylabel = ylabel + "  " + num.substring( exp_index );
+         if( ylabel != "" )
+         {
+            g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );	 
+            g2d.drawString( ylabel, xstart + yaxis/2 -
+                            fontdata.stringWidth(ylabel)/2, 
+     	                    yaxis + ystart - xstart + fontdata.getHeight() );
+            g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
+         }	
+      } // end of if (display y axis)
    } // end of paint()
 }
