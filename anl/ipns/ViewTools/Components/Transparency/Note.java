@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/04/02 20:58:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.3  2004/03/12 02:16:58  serumb
  *  Added package and imports.
  *
@@ -59,7 +62,7 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
  * annotation, its location to be displayed, and the bounds it was
  * created in. This class is primarily used by the AnnotationOverlay.
  *
- *  @see DataSetTools.components.View.Transparency.AnnotationOverlay
+ *  @see gov.anl.ipns.ViewTools.Components.Transparency.AnnotationOverlay
  */
 public class Note implements java.io.Serializable
 {

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/04/02 20:58:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.2  2004/03/12 02:08:29  serumb
  *  Changed package.
  *
@@ -58,7 +61,7 @@ import java.awt.Font;
  * which respond to zooming and display text. An example is the
  * ImageViewComponent which uses the Annotation Overlay.
  *
- *  @see DataSetTools.components.View.Transparency.AnnotationOverlay
+ *  @see gov.anl.ipns.ViewTools.Components.Transparency.AnnotationOverlay
  */
 public interface IZoomTextAddible extends IZoomAddible
 {    

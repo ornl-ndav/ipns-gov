@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/04/02 20:59:46  millermi
+ * - Fixed javadoc errors
+ *
  * Revision 1.4  2004/03/19 21:30:06  millermi
  * - Changed controls parameter to int instead of boolean.
  * - Added CTRL_ALL and CTRL_NONE to Display as constants for
@@ -114,7 +117,7 @@ abstract public class Display extends JFrame implements IPreserveState,
   *  @param  iva Two-dimensional virtual array.
   *  @param  view_code Code for which view component is to be used to
   *                    display the data.
-  *  @param  include_ctrls If true, controls to manipulate image will be added.
+  *  @param  ctrl_option If true, controls to manipulate image will be added.
   */
   protected Display( IVirtualArray iva, int view_code, int ctrl_option )
   {

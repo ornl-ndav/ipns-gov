@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/04/02 20:58:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.2  2004/03/12 02:23:21  serumb
  *  Changed package and imports.
  *
@@ -75,7 +78,7 @@ import gov.anl.ipns.ViewTools.Components.*;
  * This interface is implemented by view components that utilize the 
  * AxisOverlay2D for displaying axis calibrations.
  *
- *  @see DataSetTools.components.View.Transparency.AxisOverlay2D
+ *  @see gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D
  */
 public interface IAxisAddible extends IOverlayAddible
 {

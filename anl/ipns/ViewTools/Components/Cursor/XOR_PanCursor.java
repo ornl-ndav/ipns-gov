@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/04/02 20:58:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.3  2004/03/12 01:33:24  millermi
  *  - Changed package and imports.
  *
@@ -61,7 +64,7 @@ import javax.swing.JPanel;
  * This class is an abstract base class for cursors that translate but do
  * not change size. 
  *
- * @see  DataSetTools.components.View.Cursor.BoxPanCursor 
+ * @see  gov.anl.ipns.ViewTools.Components.Cursor.BoxPanCursor 
  */
 
 

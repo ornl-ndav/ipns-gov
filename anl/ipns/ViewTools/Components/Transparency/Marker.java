@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/04/02 20:58:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.1  2004/03/26 21:28:59  millermi
  *  - Initial Check in - Allows users to programmatically
  *    place markers at points of interest.
@@ -50,7 +53,7 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
  * This class is a datastructure for grouping together all of the information
  * necessary for making a marker.
  *
- *  @see DataSetTools.components.View.Transparency.MarkerOverlay
+ *  @see gov.anl.ipns.ViewTools.Components.Transparency.MarkerOverlay
  */
 public class Marker implements java.io.Serializable
 {

@@ -33,6 +33,9 @@
  *   Prentice Hall, 1997 )
  *
  *  $Log$
+ *  Revision 1.5  2004/04/02 20:58:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.4  2004/03/12 01:33:23  millermi
  *  - Changed package and imports.
  *
@@ -61,8 +64,8 @@ import javax.swing.JPanel;
  * This class is an abstract base class for cursors that require three points
  * for specification. Examples would be WedgeCursor and DoubleWedgeCursor.
  *
- * @see DataSetTools.components.View.Cursor.WedgeCursor 
- * @see DataSetTools.components.View.Cursor.DoubleWedgeCursor
+ * @see gov.anl.ipns.ViewTools.Components.Cursor.WedgeCursor 
+ * @see gov.anl.ipns.ViewTools.Components.Cursor.DoubleWedgeCursor
  */
 abstract public class XOR_Cursor3pt implements Serializable
 {

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.37  2004/04/02 20:58:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.36  2004/03/15 23:53:53  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -650,7 +653,7 @@ public class SelectionOverlay extends OverlayJPanel
   *
   *  @param  select_names List of selection names defined by
   *                       SelectionJPanel class.
-  *  @see DataSetTools.components.View.Cursor.SelectionJPanel
+  *  @see gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel
   */ 
   public void disableSelection( String[] select_names )
   {
@@ -670,7 +673,7 @@ public class SelectionOverlay extends OverlayJPanel
   *
   *  @param  select_names List of selection names defined by
   *                       SelectionJPanel class.
-  *  @see DataSetTools.components.View.Cursor.SelectionJPanel
+  *  @see gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel
   */ 
   public void enableSelection( String[] select_names )
   {

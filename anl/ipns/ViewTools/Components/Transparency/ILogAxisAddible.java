@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/04/02 20:58:33  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.2  2004/03/12 02:26:31  serumb
  *  Changed package and imports.
  *
@@ -61,7 +64,7 @@ package gov.anl.ipns.ViewTools.Components.Transparency;
  * This interface is implemented by components that utilize the 
  * the AxisOverlay with logarithmic calibrations. 
  *
- *  @see DataSetTools.components.View.Transparency.AxisOverlay2D
+ *  @see gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D
  */
 public interface ILogAxisAddible extends IAxisAddible
 {

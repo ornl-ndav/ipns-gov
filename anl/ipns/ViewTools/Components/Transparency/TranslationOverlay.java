@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/04/02 20:58:34  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.9  2004/03/15 23:53:53  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -104,9 +107,9 @@ import gov.anl.ipns.Util.Sys.WindowShower;
  * Instead it's primary purpose is for panning an image. This overlay
  * will outline the "local bounds" of the image.
  *
- *  @see DataSetTools.components.View.Cursor.TranslationJPanel
- *  @see DataSetTools.components.View.ViewControls.PanViewControl
- *  @see DataSetTools.components.View.Cursor.XOR_PanCursor
+ *  @see gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel
+ *  @see gov.anl.ipns.ViewTools.Components.ViewControls.PanViewControl
+ *  @see gov.anl.ipns.ViewTools.Components.Cursor.XOR_PanCursor
  */
 public class TranslationOverlay extends OverlayJPanel
 {

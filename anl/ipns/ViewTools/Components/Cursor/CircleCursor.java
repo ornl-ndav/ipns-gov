@@ -36,6 +36,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/04/02 20:58:32  millermi
+ *  - Fixed javadoc errors
+ *
  *  Revision 1.3  2004/03/12 01:33:22  millermi
  *  - Changed package and imports.
  *
@@ -61,8 +64,8 @@
  *  however, the cursor itself will always be circular. EllipseRegions were
  *  used to generalize because scaling does not always yield a circular region.
  *
- *  @see  DataSetTools.components.image.XOR_Cursor
- *  @see  DataSetTools.components.View.Region.EllipseRegion
+ *  @see  gov.anl.ipns.ViewTools.Panels.Cursors.XOR_Cursor
+ *  @see  gov.anl.ipns.ViewTools.Components.Region.EllipseRegion
  */
 public class CircleCursor extends  XOR_Cursor 
                           implements Serializable

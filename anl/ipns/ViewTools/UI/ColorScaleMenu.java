@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2004/04/02 20:59:46  millermi
+ * - Fixed javadoc errors
+ *
  * Revision 1.4  2004/03/15 23:53:58  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -65,7 +68,7 @@ public class ColorScaleMenu extends    JMenu
   *  @param  listener  The action listener that will be added to each 
   *                    menu item. 
   *
-  *  @see DataSetTools.components.image.IndexColorMaker
+  *  @see gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker
   *                    
   */
   public ColorScaleMenu( ActionListener listener )
