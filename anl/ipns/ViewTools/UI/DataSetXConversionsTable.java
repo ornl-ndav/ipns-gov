@@ -31,6 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2002/05/29 22:49:39  dennis
+ * Now includes XAxisInformationOperators when generating the table and
+ * gets the column labels at the time the table is regenerated, rather
+ * than once when the viewer is constructed.  This allows changing the
+ * labels dynamically.
+ *
  * Revision 1.6  2002/03/13 16:21:43  dennis
  * Converted to new abstract Data class.
  *
@@ -69,6 +75,7 @@ import DataSetTools.dataset.*;
 import DataSetTools.operator.*;
 import DataSetTools.operator.DataSet.*;
 import DataSetTools.operator.DataSet.Conversion.XAxis.*;
+import DataSetTools.operator.DataSet.Information.XAxis.*;
 import DataSetTools.retriever.*;
 import DataSetTools.util.*;
 
@@ -92,7 +99,7 @@ public class DataSetXConversionsTable  implements Serializable
   private TableModel dataModel   = null;
 
   private Vector     conv_ops    = null;     // List of X-Axis conversion ops
-  private Vector     labels      = null;     // The labels for the table values
+  private Vector     info_ops    = null;     // List of X-Axis information ops
 
   private float      x           = 1000;     // The x, y and index value used
   private float      y           = 100;      // to calculate a number for the
@@ -122,22 +129,18 @@ public class DataSetXConversionsTable  implements Serializable
       return;
     }
                                            // fill out the list of operators 
-    labels   = new Vector();               // and labels for the table
-    labels.addElement( ds.getX_units() );
-    labels.addElement( ds.getY_units() );
     conv_ops = new Vector();
+    info_ops = new Vector();
     int n_ops         = ds.getNum_operators();
     DataSetOperator op; 
     for ( int i = 0; i < n_ops; i++ )
     {
       op = ds.getOperator(i);
       if ( op.getCategory() == DataSetOperator.X_AXIS_CONVERSION )
-      {
         conv_ops.addElement( op );
-        labels.addElement( ((XAxisConversionOp)op).new_X_label() );
-      }
+      else if ( op.getCategory() == DataSetOperator.X_AXIS_INFORMATION )
+        info_ops.addElement( op );
     }
- 
   }
  
   /* -------------------------- showConversions ---------------------------- */
@@ -255,10 +258,13 @@ public class DataSetXConversionTableModel extends    AbstractTableModel
    */
   public int getRowCount() 
   { 
+    int size = 2;
     if ( conv_ops != null )
-      return 2+conv_ops.size();
-    else
-      return 2;
+      size += conv_ops.size();
+    if ( info_ops != null )
+      size += info_ops.size();
+      
+    return size;
   }
 
   /* --------------------------- getValueAt --------------------------- */
@@ -267,32 +273,49 @@ public class DataSetXConversionTableModel extends    AbstractTableModel
    */
   public Object getValueAt(int row, int col)
   { 
-    if ( ds == null || conv_ops == null )
+    if ( ds == null )
       return "NaN";
 
-    if ( row < 0 || row > conv_ops.size() + 1 )
+    if ( row < 0 || row > conv_ops.size() + info_ops.size() + 1 )
       return "NaN"; 
 
-    if ( col == 0 )
-      return labels.elementAt(row);
-
-    if ( !x_specified )
+    if ( col >= 1 && !x_specified )
       return "NaN";
 
-    float value = 0;
-    if ( row == 0 )                                 // show current x
-      value = x; 
-    else if ( row == 1 )                            // show current y
-      value = y;
-    else                                            // do a conversion
-    {
-      XAxisConversionOp op = (XAxisConversionOp)conv_ops.elementAt(row-2);
+    NumberFormat f = NumberFormat.getInstance();
+    int offset = 2 + conv_ops.size();
 
-      value = op.convert_X_Value( x, index );
+    if ( row == 0 )                                   // show x info
+    {
+      if ( col == 0 )
+        return ds.getX_units();
+      else
+        return f.format( x );
+    }
+    else if ( row == 1 )                              // show y info 
+    {
+      if ( col == 0 )
+        return ds.getY_units();
+      else
+        return f.format( y );
+    }
+    else if ( row < offset )                          // get numeric value from 
+    {                                                 // x,y or conversion op
+      XAxisConversionOp op = (XAxisConversionOp)conv_ops.elementAt(row-2);
+      if ( col == 0 )
+        return op.new_X_label();
+      else
+        return f.format( op.convert_X_Value(x, index ) );
+    }
+    else                                              // get string value from
+    {                                                 // information op 
+      XAxisInformationOp op =(XAxisInformationOp)info_ops.elementAt(row-offset);
+      if ( col == 0 )
+        return op.XInfo_label( x, index );
+      else
+        return op.X_Info( x, index );
     }
 
-    NumberFormat f = NumberFormat.getInstance();
-    return f.format( value );
   }
 }
 
