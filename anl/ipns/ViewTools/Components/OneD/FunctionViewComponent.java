@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.41  2004/03/09 17:28:37  serumb
+ *  Fixed the problem that had to do with drawing selected graphs.
+ *
  *  Revision 1.40  2004/02/27 20:24:41  serumb
  *  Removed unecessary print statments.
  *
@@ -215,7 +218,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   private Vector Listeners   = null;
   private JPanel big_picture = new JPanel();
   private GraphJPanel gjp;
-  private final int MAX_GRAPHS = 16;
+  private final int MAX_GRAPHS = 20;
  
   // for component size and location adjustments
   //private ComponentAltered comp_listener;
@@ -621,11 +624,13 @@ public class FunctionViewComponent implements IViewComponent1D,
    */
   public void dataChanged(  ) {
 
-       if(draw_pointed_at) {
+       if(draw_pointed_at) 
        DrawPointedAtGraph();
+
+       DrawSelectedGraphs(); 
        paintComponents(big_picture.getGraphics());
        sendMessage("Reset Zoom");
-       }
+       
     }
   
 /**
@@ -633,18 +638,14 @@ public class FunctionViewComponent implements IViewComponent1D,
    */
   public void dataChanged( IVirtualArray1D pin_varray )  // pin == "passed in"
    {
+    if (Varray1D != pin_varray){
     Varray1D = pin_varray;
-    //get the complete array from pin_varray
-    //gjp.clearData();
-
-    DrawSelectedGraphs();
-    if(draw_pointed_at)
-      DrawPointedAtGraph();
                               // rebuild controls for the new data IN THE 
                               // SAME FRAME, so that the frame doesn't move.
     mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel(),
                                         this, mainControls.get_frame() );
-    paintComponents( big_picture.getGraphics() );
+    } 
+    dataChanged();
     //      System.out.println("Value of first element: " + x_array[0] +
     //							y_array[0] );
     //System.out.println( "Thank you for notifying us" );
@@ -820,7 +821,8 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     int num_graphs = Varray1D.getNumGraphs();
 
-      for(int i=0; i < num_graphs && i < MAX_GRAPHS; i++) {
+      for(int i=0; i < num_graphs && 
+                  Varray1D.getNumlines() < MAX_GRAPHS; i++) {
     
         if( Varray1D.isSelected(i) ) {
             draw_count++;
@@ -830,8 +832,8 @@ public class FunctionViewComponent implements IViewComponent1D,
         
        }
 
-    if( DrawPointedAtGraph() )
-      draw_count++;
+   // if( DrawPointedAtGraph() )
+   //   draw_count++;
     
     return draw_count;
   }
@@ -862,10 +864,12 @@ public class FunctionViewComponent implements IViewComponent1D,
   public void actionPerformed( ActionEvent e ) {
     //get POINTED_AT_CHANGED or SELECTED_CHANGED message from e 
     String message = e.getActionCommand(  );
-
     //Send message to tester 
     if( message.equals(POINTED_AT_CHANGED) ) {
       sendMessage( POINTED_AT_CHANGED );
+    }
+    else if( message.equals(SELECTED_CHANGED) ) {
+       sendMessage (SELECTED_CHANGED);
     }
   }
 
