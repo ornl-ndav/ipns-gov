@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/05/11 01:01:50  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.3  2004/04/21 02:32:26  millermi
  *  - Added index validation to getXvalues() and getYvalues().
  *
@@ -104,7 +107,6 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
       float xmax = 1;
       float ymin = 0;
       float ymax = 1;
-      boolean selected_exist = false;
       DataArray1D temp_array;
       for( int i = 0; i < graph_data.size(); i++ )
       {
@@ -132,7 +134,6 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
     	    xmax = Float.NEGATIVE_INFINITY;
     	    ymin = Float.POSITIVE_INFINITY;
     	    ymax = Float.NEGATIVE_INFINITY;
-	    selected_exist = true;
 	    float[] xtemp = temp_array.getXArray();
 	    float[] ytemp = temp_array.getYArray();
 	    for( int index = 0; index < ytemp.length; index++ )

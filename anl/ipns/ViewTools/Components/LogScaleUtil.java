@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/05/11 00:51:56  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.6  2004/03/12 00:27:17  millermi
  *  - Changed package.
  *
@@ -207,8 +210,6 @@ public class LogScaleUtil
     s = Math.exp(20 * s / 100.0) + 0.1; // map [0,100] exponentially to get 
                                         // scale change that appears more linear
 
-    double scale = (source_max - source_min) / Math.log(s);
-    
     return (float)( ( Math.exp( (double)(source - source_min) * Math.log(s)/
                     (source_max - source_min) ) - 1 ) *
                     ( dest_max - dest_min)/(s-1) ) + dest_min;

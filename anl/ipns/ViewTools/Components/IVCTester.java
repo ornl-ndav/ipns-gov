@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.22  2004/05/11 00:50:07  millermi
+ * - Removed unused variables.
+ *
  * Revision 1.21  2004/04/07 01:23:04  millermi
  * - Added menu to test marker capabilities.
  *
@@ -179,7 +182,6 @@ public class IVCTester extends JFrame implements IPreserveState,
   private transient ImageViewComponent ivc;
   private transient IVirtualArray2D data;
   private transient JMenuBar menu_bar;
-  private transient boolean helpAdded = false;
   private ObjectState state;
   private boolean aspect = false;
 
@@ -344,7 +346,6 @@ public class IVCTester extends JFrame implements IPreserveState,
       ivc.addActionListener( new ImageListener() );
       Box controls = new Box(BoxLayout.Y_AXIS);
       ViewControl[] ctrl = ivc.getControls();
-      Dimension preferred_size;
       for( int i = 0; i < ctrl.length; i++ )
       {
     	controls.add(ctrl[i]);

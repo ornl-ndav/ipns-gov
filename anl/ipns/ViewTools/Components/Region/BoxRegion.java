@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/05/11 01:04:13  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.6  2004/03/15 23:53:51  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -111,8 +114,6 @@ public class BoxRegion extends Region
     Point topleft = floorImagePoint(world_to_image.MapTo(definingpoints[0]));
     Point bottomright = floorImagePoint(
                            world_to_image.MapTo(definingpoints[1]) );
-    int w = bottomright.x - topleft.x + 1;
-    int h = bottomright.y - topleft.y + 1;
     
     Vector pts = new Vector();
     CoordBounds imagebounds = world_to_image.getDestination();

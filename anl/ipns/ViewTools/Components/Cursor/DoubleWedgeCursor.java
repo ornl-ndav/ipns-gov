@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/05/11 00:56:15  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.4  2004/03/12 01:33:22  millermi
  *  - Changed package and imports.
  *
@@ -114,7 +117,6 @@ public class DoubleWedgeCursor extends  XOR_Cursor3pt
         p2.y += 1;
       float slope = (float)(p2.y - p1.y)/(float)(p2.x - p1.x);
       float perpendicular_slope = -1/slope;
-      float perp_y_intercept = p3.y - (perpendicular_slope * p3.x);
       // int is the intersection point of the two lines.
       float intx = ( p3.y - p1.y - perpendicular_slope * p3.x + slope * p1.x )/
                   ( slope - perpendicular_slope );

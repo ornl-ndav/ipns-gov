@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2004/05/11 00:53:10  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.13  2004/03/17 20:26:50  dennis
  *  Fixed @see tag that was broken when view components, math and
  *  util were moved to gov package.
@@ -514,7 +517,6 @@ public class VirtualArray2D implements IVirtualArray2D
   public float[][] getRegionValues( int row_start, int row_stop, 
 				    int col_start, int col_stop )
   {
-    boolean isAll = false;
     if( row_start > row_stop )
     {
       // swap them

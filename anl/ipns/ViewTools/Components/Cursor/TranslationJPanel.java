@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/05/11 00:58:04  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.9  2004/05/05 04:26:26  millermi
  *  - Added functionality for cursor to change when moving or
  *    stretching is allowed. This behavior is immediately visible
@@ -469,8 +472,6 @@ public class TranslationJPanel extends CoordJPanel
       Point grow = new Point(location);
       grow.x -= current.x;
       grow.y -= current.y;
-      
-      final int SENSITIVITY = 2;
       
       if( boundary_check[4] )
       {

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/05/11 01:08:08  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.8  2004/03/24 03:05:31  millermi
  *  - convertFloatPoint() now converts image row/column values to
  *    world coord values corresponding to the center of the pixel.
@@ -176,7 +179,6 @@ public abstract class Region implements java.io.Serializable
       floatPoint2D wcpt2 = world_to_image.MapFrom(new floatPoint2D(1,1));
       float x_offset = (wcpt2.x - wcpt1.x)/2f;
       float y_offset = (wcpt2.y - wcpt1.y)/2f;
-      CoordBounds world_bounds = world_to_image.getSource();
       // Since offset takes care of increasing vs decreasing bounds, only
       // need to use one case.
       // This will adjust the bounds by half a pixel in world coordinates
