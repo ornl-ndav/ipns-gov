@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/06/23 15:49:02  dennis
+ *  Increased number of decimal places displayed in toString()
+ *  method.
+ *
  *  Revision 1.11  2003/02/05 21:19:38  dennis
  *  Added constructor to construct a DetectorPosition object from a
  *  Vector3D object.
@@ -212,14 +216,14 @@ public class DetectorPosition extends    Position3D
      float cyl_coords[] = getCylindricalCoords();
 
      NumberFormat f = NumberFormat.getInstance();
-     f.setMaximumFractionDigits( 2 );
+     f.setMaximumFractionDigits( 3 );
      String scat_ang = f.format( getScatteringAngle() * 180.0/Math.PI );
 
-     f.setMaximumFractionDigits( 3 );
+     f.setMaximumFractionDigits( 4 );
      String r     = f.format( cyl_coords[0] );
-     f.setMaximumFractionDigits( 2 );
-     String cyl_angle = f.format( cyl_coords[1] * 180.0/Math.PI );
      f.setMaximumFractionDigits( 3 );
+     String cyl_angle = f.format( cyl_coords[1] * 180.0/Math.PI );
+     f.setMaximumFractionDigits( 4 );
      String z     = f.format( cyl_coords[2] );
      String string = "2" + FontUtil.THETA + "=" + scat_ang +
                      ":r="  + r +
