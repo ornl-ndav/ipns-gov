@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2003/11/21 15:33:33  rmikk
+ * Notified all listeners when a new data set is set
+ *
  * Revision 1.8  2003/11/21 14:52:15  rmikk
  * Add GPL
  * Added the setDataSet method
@@ -81,6 +84,7 @@ public class DataSetData implements IVirtualArray1D
        this.ds = ds;
        selectedInd = ds.getSelectedIndices();
        minx=maxx=miny=maxy= Float.NaN;
+       notifyAllListeners("DataChanged");
     }
     
    public AxisInfo2D  getAxisInfo( boolean x_axis)
@@ -341,7 +345,7 @@ public class DataSetData implements IVirtualArray1D
     }
     private void notifyAllListeners( String evtCommand){
        ActionEvent evt = new ActionEvent(this,
-               ActionEvent.ACTION_PERFORMED, "Data Changed");
+               ActionEvent.ACTION_PERFORMED, evtCommand);
 
        for( int i=0; i< ActListeners.size(); i++)
           ((ActionListener)ActListeners.elementAt(i)).
