@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2001/06/07 16:47:16  dennis
+ *  Now sets up the control pane initially, even if there are no
+ *  DataSets available yet from the LiveDataManager.
+ *
  *  Revision 1.11  2001/06/06 21:26:22  dennis
  *  Now listens for an ActionEvent from the LiveDataManager to
  *  find out if the run number has been changed.
@@ -140,7 +144,6 @@ public class LiveDataMonitor extends    JPanel
     { setLayout( new GridLayout( 1, 1 ) );
       JLabel error_label = new JLabel( data_source_name + "  HAS NO DATA SETS");
       add( error_label );
-      return;
     }
 
     SetUpGUI();
