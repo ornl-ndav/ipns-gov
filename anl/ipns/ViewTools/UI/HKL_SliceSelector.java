@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/01/26 20:50:49  dennis
+ * Added constructor that takes a specified initial plane.
+ * Simplified default constructor.
+ *
  * Revision 1.2  2004/01/26 18:16:49  dennis
  * Removed local copy of slice plane.  Now constructs the
  * slice plane from the values specified in the GUI
@@ -71,7 +75,7 @@ public class HKL_SliceSelector extends     ActiveJPanel
 
   private Vector3D_UI  origin_selector;
   private JComboBox    hkl_selector;
-  int mode;
+  int mode = -1;
 
 
   /* ------------------------- default constructor ---------------------- */
@@ -80,23 +84,37 @@ public class HKL_SliceSelector extends     ActiveJPanel
    */
   public HKL_SliceSelector()
   {
-    SlicePlane3D plane = new SlicePlane3D();      // build default slice plane
     setLayout( new GridLayout( 2, 1 ) );
+
+    origin_selector = new Vector3D_UI( "Center " );
 
     hkl_selector = new JComboBox();
     hkl_selector.setFont( FontUtil.LABEL_FONT );
     hkl_selector.addItem( H_STRING );
     hkl_selector.addItem( K_STRING );
     hkl_selector.addItem( L_STRING );
-    add( hkl_selector ); 
 
-    origin_selector = new Vector3D_UI( "Center (HKL) ", plane.getOrigin() );
-    add( origin_selector ); 
+    add( origin_selector );
+    add( hkl_selector ); 
 
     origin_selector.addActionListener( new CenterListener() );
     hkl_selector.addActionListener( new HKL_ModeListener() );
-    mode = -1;
-    setMode( hkl_selector.getSelectedIndex() ); 
+
+    setPlane( new SlicePlane3D() );
+  }
+
+
+  /* ---------------- constructor with specified plane ------------------- */
+  /**
+   *  Construct the CenterNormalPointSliceSelector with the specified
+   *  slice plane.
+   *
+   *  @param plane  The plane to initially display in this selector.
+   */
+  public HKL_SliceSelector( SlicePlane3D plane )
+  {
+    this();
+    setPlane( plane );
   }
 
 
@@ -153,6 +171,7 @@ public class HKL_SliceSelector extends     ActiveJPanel
     SlicePlane3D plane = new SlicePlane3D();
     plane.setOrigin( origin_selector.getVector() ); 
 
+    mode = hkl_selector.getSelectedIndex();
     if ( mode == H_CONSTANT )
       plane.setU_and_V( new Vector3D( 0, 1, 0 ), new Vector3D( 0, 0, 1 ) );
 
