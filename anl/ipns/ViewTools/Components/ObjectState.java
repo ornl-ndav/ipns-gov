@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/11/18 17:29:47  millermi
+ *  - Fixed bug found by Chris Bouzek that prevented ObjectState
+ *    from saving to the current directory set by the user.
+ *
  *  Revision 1.3  2003/11/18 01:19:29  millermi
  *  - changed System.out.println() to SharedData.addmsg() for
  *    output pertaining to the user.
@@ -216,7 +220,7 @@ public class ObjectState implements java.io.Serializable
     
     if( result == JFileChooser.APPROVE_OPTION )
     {
-      String filename = fc.getSelectedFile().getName();
+      String filename = fc.getSelectedFile().toString();
       //StateFileFilter sff = new StateFileFilter();
       filename = sff.appendExtension(filename);
       //File file = new File(filename);
