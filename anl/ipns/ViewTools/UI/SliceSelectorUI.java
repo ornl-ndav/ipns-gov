@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/03/12 01:09:14  serumb
+ * Changed package and imports.
+ *
  * Revision 1.7  2004/03/04 20:49:09  dennis
  * Removed local constants for HKL and QXYZ modes.
  *
@@ -62,10 +65,10 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
-import DataSetTools.util.*;
-import DataSetTools.math.*;
+//import gov.anl.ipns.Util.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
