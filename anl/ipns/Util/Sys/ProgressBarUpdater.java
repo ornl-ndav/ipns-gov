@@ -30,6 +30,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.2  2004/05/21 21:57:08  dennis
+ * Fixed name of parameter in javadoc comment.
+ *
  * Revision 1.1  2004/04/21 19:16:27  bouzekc
  * Added to CVS.
  *
@@ -77,7 +80,7 @@ public class ProgressBarUpdater implements Runnable {
    * creates this ProgressBarUpdater MUST also call  EventQueue.invokeLater(
    * pBarUpdater ).
    *
-   * @param window The JProgressBar to be updated later.
+   * @param  progressBar  The JProgressBar to be updated later.
    */
   public ProgressBarUpdater( JProgressBar progressBar ) {
     this(  );
