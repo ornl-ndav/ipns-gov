@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2001/10/17 18:32:33  dennis
+ *  Added methods to check if a list of integers has distinct values in increasing
+ *  order and to remove duplicates and put a list in increasing order.
+ *
  *  Revision 1.13  2001/10/05 16:58:13  dennis
  *  Added methods to get the min and max step size in an array and to
  *  determine whether or not the values are evenly spaced.
@@ -391,6 +395,89 @@ public static void q_sort( int list[], int start, int end )
 
    q_sort( list, start, j-1 );
    q_sort( list, j+1, end );
+}
+
+
+/**
+ *  Determine whether or not an array of integers contains a strictly 
+ *  increasing sequence of distinct integer values.
+ *
+ *  @param  list  The array of integers to check.
+ *
+ *  @return  True if the list is empty, or if the list contains an increasing
+ *           sequence of distinct integers.  Return false of if there are 
+ *           duplicate values, or if the list is not in increasing order.
+ */
+public static boolean increasing( int list[] )
+{
+  if ( list == null || list.length <= 0 )
+    return true;
+
+  boolean is_increasing = true;
+  for ( int i = 0; i < list.length - 1; i++ )
+    if ( list[i] >= list[i+1] )
+      is_increasing = false;
+   
+  return is_increasing;
+}
+
+
+/**
+ *  Make a list of the distinct integers occurring in an array and place them
+ *  in increasing order.
+ *
+ *  @param  list  The array of integers to use to build the increasing list.
+ *
+ *  @return  A new empty array if the list is null or empty.  If the list is
+ *           non-empty, the new array will be non-empty and will contain all of
+ *           the distinct integer values, sorted in increasing order.
+ */
+public static int[] make_increasing( int list[] )
+{
+  if ( list == null || list.length <= 0 )
+    return new int[0];
+
+  if (increasing( list ))
+  {
+    int new_list[] = new int[ list.length ];
+    System.arraycopy( list, 0, new_list, 0, list.length );
+    return new_list;
+  }
+                                             // put in order 
+  boolean in_order = true;
+  for ( int i = 0; i < list.length - 1; i++ )
+    if ( list[i] > list[i+1] )
+      in_order = false;
+
+  int temp[];                   
+  if ( in_order )
+    temp = list;
+  else
+  { 
+    temp = new int[list.length];
+    System.arraycopy( list, 0, temp, 0, list.length );
+    sort( temp );
+  }
+                                            // filter out duplicates 
+  int temp2[] = new int[temp.length];
+  temp2[0]    = temp[0];
+  int n_used = 1;
+  for ( int i = 1; i < temp.length; i++ )
+  if ( temp[i] != temp2[n_used-1] )
+  {
+    temp2[n_used] = temp[i];
+    n_used++;
+  }
+                                            // return distinct values 
+  if ( n_used == temp2.length )
+    return temp2;
+  else
+  {
+    int temp3[] = new int[ n_used ];
+    System.arraycopy( temp2, 0, temp3, 0, n_used );
+    return temp3;
+  }
+
 }
 
 
