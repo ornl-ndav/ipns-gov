@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2003/02/13 20:58:11  pfpeterson
+ *  Deprecated fixSeparator and renamed the method to setFileSeparator.
+ *
  *  Revision 1.15  2003/02/06 16:20:46  pfpeterson
  *  Fixed small bug in getBoolean(StringBuffer) which did not remove
  *  the parsed portion of the StringBuffer.
@@ -101,8 +104,25 @@ public class StringUtil
    *
    *  @return  A string containing the file name with all separators replaced 
    *           by system dependent separtator.
+   *
+   *  @deprecated  replaced by {@link #setFileSeparator(String)}
    */
   public static String fixSeparator( String file_name )
+  {
+    return setFileSeparator(file_name);
+  }
+
+  /**
+   *  Replace all occurrences of the possible file separators "/",
+   *  "\", "\\" with the file separator needed for the local system.
+   *
+   *  @param  file_name  A file name string possibly containing improper
+   *                     separators.
+   *
+   *  @return  A string containing the file name with all separators replaced 
+   *           by system dependent separtator.
+   */
+  public static String setFileSeparator( String file_name )
   {
       String separator=File.separator;
       String result;
