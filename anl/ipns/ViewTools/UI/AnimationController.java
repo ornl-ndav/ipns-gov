@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2001/06/28 20:30:22  dennis
+ *  The Autorun buttons now toggle between run/stop.
+ *  Made variables that are used by two threads
+ *  "volatile".
+ *
  *  Revision 1.3  2001/06/06 21:27:45  dennis
  *  Removed redundant size check for the list of listeners.
  *
@@ -73,14 +78,15 @@ public class AnimationController extends    JPanel
   private static final String  STEP_FORWARD  = ">";
   private static final String  RUN_FORWARD   = ">>";
 
-  private TextValueUI    text_box;
-  private Vector         listeners = null;
-  private TitledBorder   border;
-  private int            frame_number = 0;
-  private String         run_state    = STOP;
-  private int            step_time_ms = 100;
-  private Thread         run_thread   = null;
-  private float[]        frame_values = null;
+  private TextValueUI      text_box;
+  private Vector           listeners = null;
+  private TitledBorder     border;
+  private Thread           run_thread   = null;
+                                                    // these are used by
+  private volatile int     frame_number = 0;        // different Threads
+  private volatile int     step_time_ms = 100;
+  private volatile float[] frame_values = null;
+  private volatile String  run_state    = STOP;
 
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
@@ -234,7 +240,8 @@ public class AnimationController extends    JPanel
   *        the controller is being activated either by the user, or if it is
   *        running forward or backward.
   *
-  *  @param  time_ms  The time between steps, in milliseconds.
+  *  @param  values  Array giving numeric values to be associated with
+  *                  each frame.
   */
 
   public void setFrame_values( float values[] )
@@ -342,6 +349,8 @@ private class ButtonListener implements ActionListener
         run_thread = new AutoRun();
         run_thread.start();
       } 
+      else
+        run_state = STOP;
     }
   }
 }
