@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.27  2003/03/10 06:08:43  dennis
+ *  Now disposes of the old PartialDS_Selectors and resets the
+ *  partial DataSet command to get the full DataSet, when the
+ *  run changes.
+ *
  *  Revision 1.26  2003/03/07 22:59:50  dennis
  *  destroy() method now shutsdown the LiveDataManager thread,
  *  closes any viewers launched from the LiveDataMonitor and
@@ -109,6 +114,7 @@ public class LiveDataMonitor extends    JPanel
   public static final Color  FOREGROUND  = Color.black;
   public static final Color  ALERT_COLOR = Color.red;
   private String           data_source_name = "";
+  private String           current_data_name = "";
   private String           current_status   
                                    = RemoteDataRetriever.NOT_CONNECTED_STRING;
   private LiveDataManager  data_manager = null;
@@ -291,6 +297,18 @@ public class LiveDataMonitor extends    JPanel
     int num_ds     = data_manager.numDataSets();
     int old_length = viewers.length;
 
+    if ( num_ds > 0 && num_ds < selector.length  )  // get rid of old selectors
+    {
+      for ( int i = num_ds; i < selector.length; i ++ )
+      {
+        if ( selector[i] != null )
+        {
+          selector[i].dispose();
+          selector[i] = null;
+        }
+      }
+    }
+   
     if ( num_ds > old_length )
     {                                                         // get more space
       PartialDS_Selector new_selector[] = new PartialDS_Selector[ num_ds ];
@@ -310,8 +328,8 @@ public class LiveDataMonitor extends    JPanel
         new_show_box[i]    = show_box[i];
         new_auto_box[i]    = auto_box[i];
         new_partial_box[i] = partial_box[i];
-        new_selector[i]    = selector[i];
-        new_command[i]     = command[i];
+        new_selector[i] = selector[i];
+        new_command[i]  = command[i];
         new_button[i]   = button[i];
         new_record[i]   = record[i];
         new_ds_label[i] = ds_label[i];
@@ -367,8 +385,8 @@ public class LiveDataMonitor extends    JPanel
         partial_box[i].addActionListener( partial_box_listener );
 
         selector[i] = null;
-        command[i]  = data_manager.getDefaultCommand(i);
-
+        command[i]  = null;                     // command is set to meaningful 
+                                                // default in SetUpGUI()
         button[i] = new JButton("Update");
         button[i].setFont( FontUtil.BORDER_FONT );
         button[i].setBackground( BACKGROUND );
@@ -475,7 +493,8 @@ public class LiveDataMonitor extends    JPanel
       System.out.println("LiveDataMonitor.SetUpGUI, n_ds = " + 
                           data_manager.numDataSets() );
 
-    for ( int i = 0; i < data_manager.numDataSets(); i++ )
+    int    n_ds = data_manager.numDataSets();
+    for ( int i = 0; i < n_ds; i++ )
     {
       panel_box.add( panel[i] );                 // Add the panel to this
                                                  // LiveDataMonitor
@@ -491,6 +510,21 @@ public class LiveDataMonitor extends    JPanel
         viewers[i] = null;  
       }
     }
+
+    String new_data_name = data_manager.getDataSetName(0);
+    if ( !current_data_name.equals( new_data_name ) )
+      for ( int i = 0; i < n_ds; i++ )
+      { 
+        command[i]  = data_manager.getDefaultCommand(i);      // reset command
+        data_manager.setNextUpdateCommand( command[i] );
+
+        if ( selector[i] != null )                            // old selectors
+        {                                                     // are invalid
+          selector[i].dispose();                              // so get rid of
+          selector[i] = null;                                 // them;
+        }
+      }
+    current_data_name = new_data_name;
 
     border = new TitledBorder( LineBorder.createBlackLineBorder(),
                                "Auto Update Interval( 0 - 10 Min )" );
@@ -558,11 +592,11 @@ public class LiveDataMonitor extends    JPanel
         if ( reason.equals( PartialDS_Selector.APPLY ) )
         {
           command[my_index] = ((PartialDS_Selector)pdss).getCommand();
+          data_manager.setNextUpdateCommand( command[my_index] ); 
+   //     data_manager.UpdateDataSetNow( command[my_index] ); //####firebutton?
         }
         else if ( reason.equals( PartialDS_Selector.EXIT ) )
         {
-          System.out.println("EXIT");
-          partial_box[my_index].setSelected(false);
           ((PartialDS_Selector)pdss).dispose();
           selector[my_index] = null;
         }
@@ -614,9 +648,13 @@ public class LiveDataMonitor extends    JPanel
           if ( partial_box[my_index].isSelected() )
             data_manager.UpdateDataSetNow( command[my_index] );
           else
+          {
+            data_manager.setNextUpdateCommand( 
+                                data_manager.getDefaultCommand( my_index ) );
             data_manager.UpdateDataSetNow( my_index );
+          }
 
-          return data_manager.getDataSet( my_index ); // could return anything
+          return null;                               // could return anything
         }
 
         public void finished()        // when finished() is called, the DataSet
@@ -670,19 +708,17 @@ public class LiveDataMonitor extends    JPanel
          public Object construct()  // calling getDataSet will make sure there
          {                          // is a DataSet in the ViewManager's local  
                                     // list.
-           return data_manager.getDataSet( my_index );
-         }
-
-         public void finished()      // when finished() is called, we can       
-         {                           // quickly get a reference to the local   
-                                    // copy of the DataSet from the ViewManager
-           DataSet ds = data_manager.getDataSet(my_index);
+           DataSet ds = data_manager.getDataSet( my_index );
            if ( ds != null )
            {
              ds = (DataSet)ds.clone();
              observers.notifyIObservers( this, ds );
            }
+           return null;
+         }
 
+         public void finished()  
+         {      
            record[my_index].setEnabled(true);
            FixLabels();
          }
@@ -834,13 +870,19 @@ public class LiveDataMonitor extends    JPanel
 
       if ( check_box.isSelected() )
       {
+        data_manager.setNextUpdateCommand( command[my_index] );
         selector[my_index] = new PartialDS_Selector( command[my_index] );
         selector[my_index].addIObserver( new PartialDSListener( my_index ) ); 
       }
       else
       {
-        selector[my_index].dispose();  
-        selector[my_index] = null;
+        if ( selector[my_index] != null )    // not already closed using 'EXIT'
+        {
+          selector[my_index].dispose();  
+          selector[my_index] = null;
+        }
+        data_manager.setNextUpdateCommand(
+                                data_manager.getDefaultCommand( my_index ) );
       }
 
       FixLabels();
