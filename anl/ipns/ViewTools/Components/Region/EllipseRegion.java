@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/05/20 17:02:26  millermi
+ *  - Made method getRegionBounds() public so it may be used by
+ *    outside classes.
+ *
  *  Revision 1.8  2004/03/15 23:53:51  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -225,7 +229,7 @@ public class EllipseRegion extends Region
   *
   *  @return The bounds of the EllipseRegion.
   */
-  protected CoordBounds getRegionBounds()
+  public CoordBounds getRegionBounds()
   {
     return new CoordBounds( world_to_image.MapTo(definingpoints[0]).x,
                             world_to_image.MapTo(definingpoints[0]).y, 

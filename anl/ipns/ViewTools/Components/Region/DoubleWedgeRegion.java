@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2004/05/20 17:02:25  millermi
+ *  - Made method getRegionBounds() public so it may be used by
+ *    outside classes.
+ *
  *  Revision 1.11  2004/05/11 01:06:44  millermi
  *  - Removed unused variables
  *
@@ -256,7 +260,7 @@ public class DoubleWedgeRegion extends Region
   *
   *  @return The bounds of the DoubleWedgeRegion.
   */
-  protected CoordBounds getRegionBounds()
+  public CoordBounds getRegionBounds()
   {
     return new CoordBounds( world_to_image.MapTo(definingpoints[3]).x,
                             world_to_image.MapTo(definingpoints[3]).y, 

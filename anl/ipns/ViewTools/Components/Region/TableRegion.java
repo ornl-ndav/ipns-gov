@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/05/20 17:02:27  millermi
+ *  - Made method getRegionBounds() public so it may be used by
+ *    outside classes.
+ *
  *  Revision 1.2  2004/05/11 01:25:31  millermi
  *  - Changed javadoc comments.
  *  - Removed unused variables.
@@ -146,7 +150,7 @@ public class TableRegion extends Region
   *
   *  @return The bounds of the TableRegion.
   */
-  protected CoordBounds getRegionBounds()
+  public CoordBounds getRegionBounds()
   {
     return new CoordBounds( definingpoints[0].x,
                             definingpoints[0].y, 

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/05/20 17:02:25  millermi
+ *  - Made method getRegionBounds() public so it may be used by
+ *    outside classes.
+ *
  *  Revision 1.5  2004/03/15 23:53:51  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -225,7 +229,7 @@ public class AnnularRegion extends Region
   *
   *  @return The bounds of the AnnularRegion.
   */
-  protected CoordBounds getRegionBounds()
+  public CoordBounds getRegionBounds()
   {
     return new CoordBounds( world_to_image.MapTo(definingpoints[3]).x,
                             world_to_image.MapTo(definingpoints[3]).y, 

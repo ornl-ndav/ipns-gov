@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/05/20 17:02:26  millermi
+ *  - Made method getRegionBounds() public so it may be used by
+ *    outside classes.
+ *
  *  Revision 1.9  2004/05/11 01:08:08  millermi
  *  - Removed unused variables.
  *
@@ -282,12 +286,11 @@ public abstract class Region implements java.io.Serializable
   protected abstract Point[] initializeSelectedPoints();
   
  /**
-  * This method is used by the getRegionUnion() method to calculate the
-  * selected points.
+  * This method is defines a rectangular bounds that the region is contained in.
   *
-  *  @return Bounds containing the region.
+  *  @return Rectangular bounds containing the region.
   */
-  protected abstract CoordBounds getRegionBounds();
+  public abstract CoordBounds getRegionBounds();
   
  /**
   * Since image row/column values are integers, the mapping from world to

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/05/20 17:02:25  millermi
+ *  - Made method getRegionBounds() public so it may be used by
+ *    outside classes.
+ *
  *  Revision 1.7  2004/05/11 01:04:13  millermi
  *  - Removed unused variables.
  *
@@ -151,7 +155,7 @@ public class BoxRegion extends Region
   *
   *  @return The bounds of the BoxRegion.
   */
-  protected CoordBounds getRegionBounds()
+  public CoordBounds getRegionBounds()
   {
     return new CoordBounds( world_to_image.MapTo(definingpoints[0]).x,
                             world_to_image.MapTo(definingpoints[0]).y, 

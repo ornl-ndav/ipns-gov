@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/05/20 17:02:26  millermi
+ *  - Made method getRegionBounds() public so it may be used by
+ *    outside classes.
+ *
  *  Revision 1.7  2004/03/15 23:53:52  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -151,7 +155,7 @@ public class PointRegion extends Region
   *
   *  @return The bounds of the PointRegion.
   */
-  protected CoordBounds getRegionBounds()
+  public CoordBounds getRegionBounds()
   {
     float xmin = world_to_image.MapTo(definingpoints[0]).x;
     float xmax = world_to_image.MapTo(definingpoints[0]).x;
