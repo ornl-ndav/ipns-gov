@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2002/07/22 21:22:04  dennis
+ *  Added methods setFrameValue() and setFrameNumber().
+ *
  *  Revision 1.11  2002/02/18 16:28:11  dennis
  *  Added separate control to select the frame by specifying
  *  the frame number.
@@ -268,6 +271,18 @@ public class AnimationController extends    ActiveJPanel
   }
 
 
+ /* ---------------------------- setFrameNumber --------------------------- */
+ /**
+  *  Set the controller to the specified frame number.
+  *
+  *  @param  the new frame number to use.
+  */
+  public void setFrameNumber( int frame )
+  {
+    set_frame(frame);
+  }
+
+
  /* ---------------------------- getFrameValue --------------------------- */
  /**
   *  Get the current frame value from the controller.
@@ -290,6 +305,30 @@ public class AnimationController extends    ActiveJPanel
     } 
     else
       return frame_values[ frame_number ];
+  }
+
+
+ /* ---------------------------- setFrameValue --------------------------- */
+ /**
+  *  Set the controller to the specified frame value.
+  *
+  *  @param  value  the new frame value to use.
+  */
+  public void setFrameValue( float value )
+  {
+    if ( frame_values == null )          // no values assigned, just use the
+      set_frame( (int)value );           // value as the frame number;
+
+    else                                 // find the frame number with the
+    {                                    // closest value
+      int min_index = 0;
+      for ( int i = 0; i < frame_values.length; i++ )
+        if ( Math.abs( value - frame_values[i] )   <
+             Math.abs( value - frame_values[min_index] ) )
+          min_index = i;
+
+      set_frame( min_index );
+    }
   }
 
 
@@ -400,19 +439,7 @@ private class ValueListener implements ActionListener
     String action = e.getActionCommand();
     float value = value_box.getValue();
 
-    if ( frame_values == null )          // no values assigned, just use the
-      set_frame( (int)value );           // value as the frame number;
-
-    else                                 // find the frame number with the
-    {                                    // closest value
-      int min_index = 0;      
-      for ( int i = 0; i < frame_values.length; i++ )
-        if ( Math.abs( value - frame_values[i] )   <
-             Math.abs( value - frame_values[min_index] ) )
-          min_index = i;
-
-      set_frame( min_index );
-    }
+    setFrameValue( value );
   }
 }
 
