@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/03/14 19:25:20  serumb
+ *  Added call to get the combobox instead of using the public variable.
+ *
  *  Revision 1.10  2005/03/14 18:20:57  serumb
  *  Fixed eclipse warning.
  *
@@ -640,7 +643,7 @@ public BasicStroke strokeType(int key, int graph_num)
           String message = e.getActionCommand();
           if( message.equals("Change Label") )
           {
-            graphs[selectedLineBox.cbox.getSelectedIndex()] = 
+            graphs[selectedLineBox.getCBox().getSelectedIndex()] = 
                                                 labelField.getText();
             this_panel.repaint();
 	    
@@ -666,7 +669,7 @@ public BasicStroke strokeType(int key, int graph_num)
           String message = e.getActionCommand();
           if( message.equals("COMBOBOX_CHANGED") )
           {
-             labelField.setText(graphs[selectedLineBox.cbox.getSelectedIndex()]);        
+             labelField.setText(graphs[selectedLineBox.getCBox().getSelectedIndex()]);        
           }  
         }
         else if( e.getSource() instanceof ControlCheckbox )
