@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2004/06/16 21:29:08  dennis
+ * Added constructor to construct the transformation matrix from a
+ * one dimensional array of values.
+ *
  * Revision 1.12  2004/05/06 20:53:49  dennis
  * The setOrientation() method now recalculates the up vector to force
  * it to be orthogonal to the base and normal directions.  The vectors
@@ -119,6 +123,27 @@ public class Tran3D
   public Tran3D( float matrix[][] )
   {
     set( matrix );
+  }
+
+  /*---------------------------- constructor -------------------------- */
+  /**
+   *  Construct this transformation using the specified list of 16 values.
+   *
+   *  @param array  the array of 16 values to be used for this transform
+   *                in row major order.
+   */
+  public Tran3D( float array[] )
+  {
+    if ( array == null || array.length < 16 )
+      return;
+
+    int index = 0;
+    for ( int row = 0; row < 4; row++ )
+      for ( int col = 0; col < 4; col++ )
+      {
+        a[row][col] = array[index];
+        index++;
+      }
   }
 
   /* ----------------------------- equals ------------------------------- */
