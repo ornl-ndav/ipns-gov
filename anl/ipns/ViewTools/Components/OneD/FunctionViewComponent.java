@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2003/07/30 20:58:44  serumb
+ *  Implement LogAxisAddible2D.
+ *
  *  Revision 1.15  2003/07/25 14:48:36  dennis
  *  Now implements IZoomTextAddible. (Needed to work with new heirarchy
  *  of interfaces for overlays.)
@@ -59,6 +62,7 @@ package DataSetTools.components.View.OneD;
 
 import DataSetTools.components.ParametersGUI.*;
 import DataSetTools.components.View.*;  // IVirtualArray1D
+import DataSetTools.components.View.TwoD.*;
 import DataSetTools.components.View.Transparency.*;  //Axis Overlays
 import DataSetTools.components.View.ViewControls.*;
 import DataSetTools.components.View.TwoD.*;
@@ -96,12 +100,13 @@ import java.beans.*;
 public class FunctionViewComponent implements IFunctionComponent1D,
                                               ActionListener, 
                                               IZoomTextAddible, 
-                                              IAxisAddible2D 
+                                              IAxisAddible2D,
+                                              ILogAxisAddible2D 
 {
   private IVirtualArray1D Varray1D;  //An object containing our array of data
   private Point[] selectedset;  //To be returned by getSelectedSet()   
   private Vector Listeners   = null;
-  private JPanel big_picture = new JPanel(  );
+  private JPanel big_picture = new JPanel();
   private GraphJPanel gjp;
   private final int MAX_GRAPHS = 16;
  
@@ -118,6 +123,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   private int line_index     = 0;
   private FunctionControls mainControls;
   private boolean draw_pointed_at = false;
+  private boolean isLinear = true;
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
    * to be viewed in a border layout.
@@ -131,11 +137,11 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    
   //  buildViewControls();
 
-    //Make gjp correspond to the data in f_array
+/*    //Make gjp correspond to the data in f_array
     int num_lines = varr.getNumlines(  );
     boolean bool  = false;
-/*    for( int i = 0; i < num_lines; i++ ) {
-       gjp.setData( varr.getXValues( i ), varr.getYValues( i ), i, bool );
+    for( int i = 1; i < num_lines+1; i++ ) {
+       gjp.setData( varr.getXValues( i-1 ), varr.getYValues( i-1 ), i, bool );
 
       if( i >= ( num_lines - 2 ) ) {
         bool = true;
@@ -144,11 +150,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       gjp.setErrors( varr.getErrorValues( i-1 ), 0, i, true );
 
     }
-*/
 
-    DrawSelectedGraphs();
-    if(draw_pointed_at)
-      DrawPointedAtGraph();
+*/
 
     gjp.setBackground( Color.white );
 
@@ -176,17 +179,17 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     regioninfo      = new Rectangle( gjp.getBounds(  ) );
     local_bounds    = gjp.getLocalWorldCoords(  ).MakeCopy(  );
     global_bounds   = gjp.getGlobalWorldCoords(  ).MakeCopy(  );
+//7 dd
+    setAxisInfo();
 
-    AxisInfo2D xinfo = varr.getAxisInfo( AxisInfo2D.XAXIS );
-    AxisInfo2D yinfo = varr.getAxisInfo( AxisInfo2D.YAXIS );
-
-    gjp.initializeWorldCoords( 
-      new CoordBounds( 
-        xinfo.getMin(  ), yinfo.getMax(  ),
-        xinfo.getMax(  ), yinfo.getMin(  ) ) );
     Listeners = new Vector(  );
+
     buildViewComponent( gjp );  // initializes big_picture to jpanel containing
-                                // the background and transparencies 		       
+                                // the background and transparencies
+    DrawSelectedGraphs();
+    if(draw_pointed_at)
+      DrawPointedAtGraph();
+
     mainControls = new FunctionControls(varr, gjp, getDisplayPanel());
    // buildViewControls( gjp );
   }
@@ -201,6 +204,15 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    *  @return If isX = true, return info about x axis.
    *          If isX = false, return info about y axis.
    */
+  public void setAxisInfo() {
+    AxisInfo2D xinfo = getAxisInfo( AxisInfo2D.XAXIS );
+    AxisInfo2D yinfo = getAxisInfo( AxisInfo2D.YAXIS );
+
+    gjp.initializeWorldCoords( 
+      new CoordBounds( 
+        xinfo.getMin(  ), yinfo.getMax(  ),
+        xinfo.getMax(  ), yinfo.getMin(  ) ) );
+  } 
   public AxisInfo2D getAxisInfo( boolean isX ) {
     // if true, return x info
     if( isX) {
@@ -219,8 +231,9 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getLabel(  ),
       Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getUnits(  ),
       Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getIsLinear(  ) );
-  }
+    }
 
+   
   /**
    * This method returns a rectangle containing the location and size
    * of the grapgjpanel.
@@ -293,7 +306,11 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   public GraphJPanel getGraphJPanel(  ) {
     return gjp;
   }
-
+  
+  public double getLogScale()
+  {
+    return mainControls.getLogScale();
+  }
   /**
    * This method adjusts the crosshairs on the graphjpanel.
    * setPointedAt is called from the viewer when another component
@@ -347,13 +364,14 @@ public class FunctionViewComponent implements IFunctionComponent1D,
        DrawSelectedGraphs();
        mainControls = new FunctionControls(Varray1D, gjp, getDisplayPanel());
     }*/
+    //if(getDisplayPanel().getGraphics() != null)
+    //  paintComponents(getDisplayPanel().getGraphics());
   }
   /**
    * To be continued...
    */
   public void dataChanged( IVirtualArray1D pin_varray )  // pin == "passed in"
    {
-  //System.out.println( "Now in void dataChanged(VirtualArray1D pin_varray)" );
     Varray1D = pin_varray;
     //get the complete 2D array of floats from pin_varray
     gjp.clearData();
@@ -393,6 +411,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     System.out.println( "addActionListener( ActionListener act_listener )" );
 
     for( int i = 0; i < Listeners.size(  ); i++ )  // don't add it if it's
+
      {
       if( Listeners.elementAt( i ).equals( act_listener ) ) {  // already there
 
@@ -491,6 +510,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     return pt;
   }
 
+
   /*
    * Tells all listeners about a new action.
    *
@@ -505,13 +525,13 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   }
 
   private void paintComponents( Graphics g ) {
-    //big_picture.revalidate();
+   // big_picture.revalidate();
+
     for( int i = big_picture.getComponentCount(  ); i > 0; i-- ) {
-      if( big_picture.getComponent( i - 1 ).isVisible(  ) ) {
+      if( big_picture.getComponent( i - 1 ).isVisible(  )) { 
         big_picture.getComponent( i - 1 ).update( g );
       }
     }
-
     big_picture.getParent(  ).getParent(  ).getParent(  ).getParent(  ).
                               repaint(  );
   }
@@ -566,7 +586,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
        gjp.setColor( Color.black, graph_num, false );
        gjp.setData( x, y, graph_num, false );     
        gjp.setErrors( Varray1D.getErrorVals_ofIndex( index ), 0, 
-                                              graph_num, true );
+                                              graph_num, true);
        if(!draw_pointed_at)
          gjp.setTransparent(true, 0, true);    
 
@@ -588,7 +608,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   }
 
   /*
-   * This method takes in an imagejpanel and puts it into a borderlayout.
+   * This method takes in an graphjpanel and puts it into a borderlayout.
    * Overlays are added to allow for calibration, selection, and annotation.
    */
   private void buildViewComponent( GraphJPanel panel ) {
@@ -612,7 +632,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     JPanel west = new JPanel( new FlowLayout(  ) );
 
     west.setPreferredSize( new Dimension( westwidth, 0 ) );
-
     //Construct the background JPanel
     background.add( panel, "Center" );
     background.add( north, "North" );
@@ -621,7 +640,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     background.add( east, "East" );
 
     AnnotationOverlay top = new AnnotationOverlay( this );
-
     top.setVisible( false );  // initialize this overlay to off.
 
     AxisOverlay2D bottom = new AxisOverlay2D( this );
@@ -637,7 +655,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     for( int trans = 0; trans < transparencies.size(  ); trans++ ) {
       master.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
     }
-
     master.add( background );
 
     big_picture = master;
@@ -719,11 +736,11 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     //~ Methods ****************************************************************
 
     public void componentResized( ComponentEvent e ) {
-      //System.out.println("Component Resized");
+     // System.out.println("Component Resized");
       Component center = e.getComponent(  );
-
+     
       regioninfo = new Rectangle( center.getLocation(  ), center.getSize(  ) );
-
+      paintComponents(big_picture.getGraphics()); 
       /*
          System.out.println("Location = " + center.getLocation() );
          System.out.println("Size = " + center.getSize() );
@@ -808,8 +825,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
           dataChanged();
         }
         
-      }
-          
+      }    
     }
   }
  
