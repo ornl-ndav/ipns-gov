@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.41  2004/11/05 22:02:44  millermi
+ * - Revised method for generating log cursor readouts.
+ * - Removed getLogScale().
+ *
  * Revision 1.40  2004/10/06 20:32:50  serumb
  * Removed the log scale slider control because it is not used with
  * the true log scale.
@@ -401,15 +405,9 @@ import javax.swing.border.*;
     annotation_checkbox.setTitle( "Annotation Overlay" );
     legend_checkbox.setTitle( "Legend Overlay" );
    
-   
-    x_range = new TextRangeUI("X Range", 
-                      Varray1D.getAxisInfo(AxisInfo.X_AXIS ).getMin(),
-                      Varray1D.getAxisInfo(AxisInfo.X_AXIS ).getMax());
-    y_range = new TextRangeUI("Y Range",Varray1D.getAxisInfo(
-                      AxisInfo.Y_AXIS ).getMin(), Varray1D.getAxisInfo(
-                      AxisInfo.Y_AXIS ).getMax()); 
-
-   String the_string[] = {"X ","Y "};
+    x_range = new TextRangeUI("X Range", gjp.getXmin(), gjp.getXmax());
+    y_range = new TextRangeUI("Y Range", gjp.getYmin(), gjp.getYmax()); 
+    String the_string[] = {"X ","Y "};
     cursor = new CursorOutputControl(the_string);
 
     GridLayout G_lout = new GridLayout( 1, 1 );
@@ -488,17 +486,12 @@ import javax.swing.border.*;
     ShiftBox.addActionListener( new ControlListener(  ) );
     ShiftFactor.addActionListener( new ControlListener(  ) );
     LogBox.addActionListener( new ControlListener(  ) );
-    x_range.addActionListener( new x_rangeListener(  ) );
-    y_range.addActionListener( new y_rangeListener(  ) );
+    x_range.addActionListener( new RangeListener(  ) );
+    y_range.addActionListener( new RangeListener(  ) );
     gjp.addActionListener( new ImageListener(  ) );
     fvc.addActionListener( new ImageListener(  ) ); 
   }
   
-  public double getLogScale()
-  {
-    return log_scale;
-  }
-
   public ViewControlsPanel get_panel() {
     return main_panel;
   }
@@ -524,73 +517,37 @@ import javax.swing.border.*;
   public void kill() {
   }
 
-  private class x_rangeListener implements ActionListener {
+  private class RangeListener implements ActionListener {
 
     public void actionPerformed( ActionEvent ae ) {
           // System.out.println("Entered: " + x_range.getText() );
           // System.out.println("Min = " + x_range.getMin() );
           // System.out.println("Max = " + x_range.getMax() );
+      LogScaleUtil loggery = new LogScaleUtil(gjp.getPositiveYmin(),
+                                              gjp.getYmax(),
+                                              gjp.getPositiveYmin(),
+					      gjp.getYmax());
+      LogScaleUtil loggerx = new LogScaleUtil(gjp.getPositiveXmin(),
+        			              gjp.getXmax(), 
+				              gjp.getPositiveXmin(),
+					      gjp.getXmax());
 
-   LogScaleUtil loggery = new LogScaleUtil(gjp.getYmin(), gjp.getYmax(),
-                                    gjp.getYmin(), gjp.getYmax());
-             LogScaleUtil loggerx = new LogScaleUtil(gjp.getXmin(), gjp.getXmax(),
-                                        gjp.getXmin(), gjp.getXmax());
+      if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
 
-           if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-
-             gjp.setZoom_region(loggerx.toDest(x_range.getMin(),
-                             gjp.getScale()),
-                             loggery.toDest(y_range.getMax(),gjp.getScale()),
-                             loggerx.toDest(x_range.getMax(),gjp.getScale()),
-                             loggery.toDest(y_range.getMin(),gjp.getScale()));
-           }
-           else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) { 
-             gjp.setZoom_region(loggerx.toDest(x_range.getMin(),
-                                gjp.getScale()), 
-                                y_range.getMax(),
-                                loggerx.toDest(x_range.getMax(),
-                                gjp.getScale()),
-                                y_range.getMin());
-           }
-           else
-           gjp.setZoom_region(x_range.getMin(),y_range.getMax(),
-                             x_range.getMax(), y_range.getMin());
-
-     }
-  }
-
-  private class y_rangeListener implements ActionListener {
-
-    public void actionPerformed( ActionEvent ae ) {
-         //  System.out.println("Entered: " +y_range.getText() );
-         //  System.out.println("Min = " + y_range.getMin() );
-         //  System.out.println("Max = " + y_range.getMax() );
-
-   LogScaleUtil loggery = new LogScaleUtil(gjp.getYmin(), gjp.getYmax(),
-                                    gjp.getYmin(), gjp.getYmax());
-             LogScaleUtil loggerx = new LogScaleUtil(gjp.getXmin(), gjp.getXmax(),
-                                        gjp.getXmin(), gjp.getXmax());
-
-
-
-           if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-
-             gjp.setZoom_region(loggerx.toDest(x_range.getMin(),
-                             gjp.getScale()),
-                             loggery.toDest(y_range.getMax(),gjp.getScale()),
-                             loggerx.toDest(x_range.getMax(),gjp.getScale()),
-                             loggery.toDest(y_range.getMin(),gjp.getScale()));
-           }
-           else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) { 
-             gjp.setZoom_region(x_range.getMin(),
-                             loggery.toDest(y_range.getMax(),gjp.getScale()),
-                             x_range.getMax(),
-                             loggery.toDest(y_range.getMin(),gjp.getScale()));
-           }
-           else
-           gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
-                               x_range.getMax(), y_range.getMin());
-
+        gjp.setZoom_region( loggerx.toSource(x_range.getMin()),
+        		    loggery.toSource(y_range.getMax()),
+        		    loggerx.toSource(x_range.getMax()),
+        		    loggery.toSource(y_range.getMin()) );
+      }
+      else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) { 
+        gjp.setZoom_region( loggerx.toSource(x_range.getMin()), 
+        		    y_range.getMax(),
+        		    loggerx.toSource(x_range.getMax()),
+        		    y_range.getMin() );
+      }
+      else
+      gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
+        		  x_range.getMax(), y_range.getMin() );
     }
   }
  
@@ -602,99 +559,44 @@ import javax.swing.border.*;
       String message = ae.getActionCommand(  );
      
        float xmin,xmax,ymin,ymax;
-       xmin = gjp.getXmin();
+       xmin = gjp.getPositiveXmin();
        xmax = gjp.getXmax();
-       ymin = gjp.getYmin();
+       ymin = gjp.getPositiveYmin();
        ymax = gjp.getYmax();
 
-         LogScaleUtil loggery = new LogScaleUtil(ymin,ymax,ymin,ymax);
-             LogScaleUtil loggerx = new LogScaleUtil(xmin,xmax,xmin,xmax);      
+       LogScaleUtil loggery = new LogScaleUtil(ymin,ymax,ymin,ymax);
+       LogScaleUtil loggerx = new LogScaleUtil(xmin,xmax,xmin,xmax); 
 
-
-
-      if( message.equals("Reset Zoom")  ) {
-          if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getX1());
-             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getX2());
-             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getY2());
-             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getY1());
-           }
-           else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
-             x_range.setMin(gjp.getLocalWorldCoords().getX1());
-             x_range.setMax(gjp.getLocalWorldCoords().getX2());
-             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getY2());
-             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getY1());
-           }
-           else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
-             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getX1());
-             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getX2());
-             y_range.setMin(gjp.getLocalWorldCoords().getY2());
-             y_range.setMax(gjp.getLocalWorldCoords().getY1());
-           }
-           else {
-             x_range.setMin(gjp.getLocalWorldCoords().getX1());
-             x_range.setMax(gjp.getLocalWorldCoords().getX2());
-             y_range.setMin(gjp.getLocalWorldCoords().getY2());
-             y_range.setMax(gjp.getLocalWorldCoords().getY1());
-           }
+      if( message.equals("Reset Zoom") || message.equals("Zoom In") ) {
+        if(gjp.getLogScaleX() == true) {
+          x_range.setMin(gjp.getPositiveXmin());
+          x_range.setMax(gjp.getXmax());
+        }
+        else {
+          x_range.setMin(gjp.getXmin());
+          x_range.setMax(gjp.getXmax());
+        }
+        if(gjp.getLogScaleY() == true) {
+          y_range.setMin(gjp.getPositiveYmin());
+          y_range.setMax(gjp.getYmax());
+        }
+        else {
+          y_range.setMin(gjp.getYmin());
+          y_range.setMax(gjp.getYmax());
+        }
       }
-      else if(message.equals("Zoom In")) {
-           if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getX1());
-             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getX2());
-             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getY2());
-             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getY1());
-           }
-           else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
-             x_range.setMin(gjp.getLocalWorldCoords().getX1()); 
-             x_range.setMax(gjp.getLocalWorldCoords().getX2()); 
-             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getY2());
-             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getY1());
-           }
-           else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
-             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getX1());
-             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale())
-                                              .getX2());
-             y_range.setMin(gjp.getLocalWorldCoords().getY2()); 
-             y_range.setMax(gjp.getLocalWorldCoords().getY1());
-           }
-           else {
-             x_range.setMin(gjp.getLocalWorldCoords().getX1()); 
-             x_range.setMax(gjp.getLocalWorldCoords().getX2()); 
-             y_range.setMin(gjp.getLocalWorldCoords().getY2()); 
-             y_range.setMax(gjp.getLocalWorldCoords().getY1());
-           }
-      }
-
-
-      else if(message.equals("Cursor Moved")){ 
-
+      else if(message.equals("Cursor Moved")){
          if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-             cursor.setValue(0,loggerx.truLogCoord(gjp.getCurrent_WC_point().x));
-             cursor.setValue(1,loggery.truLogCoord(gjp.getCurrent_WC_point().y));
+             cursor.setValue(0,loggerx.toDest(gjp.getCurrent_WC_point().x));
+             cursor.setValue(1,loggery.toDest(gjp.getCurrent_WC_point().y));
 
            }
            else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
              cursor.setValue(0,gjp.getCurrent_WC_point().x);
-             cursor.setValue(1,loggery.truLogCoord(gjp.getCurrent_WC_point().y));
+             cursor.setValue(1,loggery.toDest(gjp.getCurrent_WC_point().y));
            }
            else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
-             cursor.setValue(0,loggerx.truLogCoord(gjp.getCurrent_WC_point().x));
+             cursor.setValue(0,loggerx.toDest(gjp.getCurrent_WC_point().x));
              cursor.setValue(1,gjp.getCurrent_WC_point().y);
            }
            else {
@@ -702,14 +604,11 @@ import javax.swing.border.*;
              cursor.setValue(1,gjp.getCurrent_WC_point().y);
 
            } 
-         
-         
       }
     }
  }
   private class ControlListener implements ActionListener {
     //~ Methods ****************************************************************
-                                                                                                   
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
 
@@ -1129,6 +1028,15 @@ import javax.swing.border.*;
               fvc.paintComponents( );
 
             }
+	    
+	    // Reset range of x and y since log and linear may require different
+	    // ranges (log sets min to least positive number in negative)
+            AxisInfo xinfo = fvc.getAxisInformation(AxisInfo.X_AXIS);
+            AxisInfo yinfo = fvc.getAxisInformation(AxisInfo.Y_AXIS);
+	    x_range.setMin(xinfo.getMin());
+	    x_range.setMax(xinfo.getMax());
+	    y_range.setMin(yinfo.getMax());
+	    y_range.setMax(yinfo.getMin());
           }  
       } 
         /* 
