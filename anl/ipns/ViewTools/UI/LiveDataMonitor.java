@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2002/04/10 16:02:55  dennis
+ *  Removed automatic request for update after requesting that a DataSet be
+ *  shown.
+ *
  *  Revision 1.19  2001/08/14 19:19:29  dennis
  *  Displays status messages in label, not on command line.
  *
@@ -646,7 +650,6 @@ public class LiveDataMonitor extends    JPanel
                                             new ViewManagerListener(my_index));
           }
         }
-        data_manager.UpdateDataSetNow( my_index );
       }
       else
       {
