@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/07/02 19:15:49  serumb
+ *  Added controls for help and close to the editor.
+ *
  *  Revision 1.5  2004/06/23 19:04:23  serumb
  *  Initialized the legend label to an empty string.
  *
@@ -102,16 +105,15 @@ public class LegendOverlay extends OverlayJPanel
   */
   public static final String EDITOR_BOUNDS  = "Editor Bounds";    
 
-  private static JFrame helper = null;
   
-
+  private static JFrame helper = null;
   private transient ILegendAddible component;
   private Font f;
   private boolean legend_drawn;
   private transient LegendOverlay this_panel;
   private transient LegendEditor editor;
   private transient Rectangle current_bounds;
-  private Rectangle editor_bounds = new Rectangle(0,0,500,140);
+  private Rectangle editor_bounds = new Rectangle(0,0,500,180);
   private String[] graphs;
   private int[] selectedGraphs;
   private GraphData[] lineInfo;
@@ -216,6 +218,54 @@ public class LegendOverlay extends OverlayJPanel
      }    
     return state;
   }
+
+ /**
+  * Contains/Displays control information about this overlay.
+  */
+  public static void help()
+  {
+    helper = new JFrame("Help for Annotation Overlay");
+    helper.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+    helper.setBounds(0,0,600,400);
+
+    JEditorPane textpane = new JEditorPane();
+    textpane.setEditable(false);
+    textpane.setEditorKit( new HTMLEditorKit() );
+    String text = "<H1>Description:</H1><P>" +
+                  "The Legend Overlay is used to add an on-screen legend to " +
+                  "a selected set of graphs. Below are some basic commands " +
+                  " necessary for creating the legend.</P>" +
+                  "<H2>Commands for Legend Overlay</H2>" +
+                  "<P>Note:<BR>" +
+                  "- These commands will NOT work if the Legend " +
+                  "Overlay checkbox IS NOT checked.<BR>" +
+                  "<H2>LegendEditor Commands <BR>" +
+                  "(Edit Button under Annotation Overlay Control)</H2>" +
+                  "<P>Commands below are listed in the following way:<BR>" +
+                  "(Focus>Action>Result) Focus is where the cursor or " +
+                  "mouse must be. Focus is gained by clicking the mouse on " +
+                  "the desired area. Action is the action performed by you, " +
+                  "the user. Result is the consequence of your action.<BR>" +
+                  "TextArea>Hold Ctrl, Press Arrow Keys>MOVE LEGEND<BR>" +
+                  "Border Checkbox>Click Mouse>ADD/REMOVE BORDER<BR>" +
+                  "Graph Combobox>Click Mouse and Highlight Graph>SELECTS" +
+                  "THE GRAPH LABEL YOU WANT TO CHANGE<BR>" +
+                  "Change Label Button>Click Mouse>CHANGES THE GRAPH LABEL" +
+                  "ON THE LEGEND TO THE TEXT IN THE GRAPH TEXT AREA<BR>" +
+                  "Change Legend Label Button>Click Mouse>CHANGES THE LEGEND" +  
+                  "LABEL ON THE BORDER TO THE TEXT IN THE" + 
+                  "LEGEND LABEL TEXT AREA<BR>" +
+                  "Close Button>Single Mouse Click>CLOSE EDITOR</P>";
+    textpane.setText(text);
+    JScrollPane scroll = new JScrollPane(textpane);
+    scroll.setVerticalScrollBarPolicy(
+                                    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    helper.getContentPane().add(scroll);
+    WindowShower shower = new WindowShower(helper);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
+  }
+
 
  /**
   * This method displays the LegendEditor.
@@ -437,7 +487,7 @@ public class LegendOverlay extends OverlayJPanel
     {
       super("Legend Editor");
       this_editor = this;
-      this.getContentPane().setLayout( new GridLayout(1,3) );
+      this.getContentPane().setLayout( new GridLayout(1,4) );
       this.setBounds(editor_bounds);
       this.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
       
@@ -454,7 +504,16 @@ public class LegendOverlay extends OverlayJPanel
 
       border_check.setText("Display Border");
       border_check.addActionListener( new ControlListener() );
-      
+     
+      JButton help = new JButton("Help");
+      help.addActionListener( new ControlListener() );
+      JButton closebutton = new JButton("Close");
+      closebutton.addActionListener( new ControlListener() );
+      // For layout reasons, put both of them into this JPanel.
+      JPanel close_and_help = new JPanel( new GridLayout(1,2) );
+      close_and_help.add(closebutton);
+      close_and_help.add(help);
+ 
       // this jpanel groups all other miscellaneous options into one row.
       JPanel labelPanel = new JPanel( new GridLayout() );
       vertical.add(titleField);
@@ -468,6 +527,7 @@ public class LegendOverlay extends OverlayJPanel
       vertical.add(topBox);
       vertical.add(middle);
       vertical.add(bottomBox);
+      vertical.add(close_and_help);
       labelPanel.add(vertical);
 
       // These commands will create key events for moving the Legend
@@ -521,6 +581,10 @@ public class LegendOverlay extends OverlayJPanel
 	    editor_bounds = this_editor.getBounds(); 
             this_editor.dispose();
             this_panel.repaint();
+          }
+          else if( message.equals("Help") )
+          {
+            help();
           }
         }
         else if( e.getSource() instanceof LabelCombobox )
