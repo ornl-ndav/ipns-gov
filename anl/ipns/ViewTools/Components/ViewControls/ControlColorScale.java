@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2003/10/24 02:49:54  millermi
+ *  - Added vertical preferred size to the basic color scale.
+ *
  *  Revision 1.9  2003/10/16 05:00:14  millermi
  *  - Fixed java docs errors.
  *
@@ -185,7 +188,8 @@ public class ControlColorScale extends ViewControl
       csi.setEventListening(false);
       this.add(csi);
       colorscheme = colorscale; 
-      setColorScale( colorscale, isTwoSided );   
+      setColorScale( colorscale, isTwoSided ); 
+      setPreferredSize( new Dimension(0,35) );  
    }
   
   /**
