@@ -33,8 +33,9 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.26  2003/10/21 00:13:17  serumb
- *  Changed getCurrentPoint method to getPointedAt.
+ *  Revision 1.27  2003/10/21 00:43:13  serumb
+ *  Changed return types of methods getShared/PrivateMenuItems from
+ *  JMenuItem to JViewMenuItem.
  *
  *  Revision 1.24  2003/08/08 21:08:08  serumb
  *  Now un-checks the Function Controls box when Function Controls window
@@ -90,6 +91,7 @@ import DataSetTools.components.image.*;  //GraphJPanel & CoordJPanel
 import DataSetTools.dataset.*;
 import DataSetTools.math.*;
 import DataSetTools.util.*;  //floatPoint2D FloatFilter
+import DataSetTools.components.View.Menu.*;
 
 // component changes
 
@@ -503,18 +505,18 @@ public class FunctionViewComponent implements IViewComponent1D,
     // return new JComponent[0];
   }
 
-  public JMenuItem[] getSharedMenuItems(  ) {
-    //System.out.println( "Entering: JMenuItems[] getSharedMenuItems()" );
+  public ViewMenuItem[] getSharedMenuItems(  ) {
+    //System.out.println( "Entering: ViewMenuItem[] getSharedMenuItems()" );
    // System.out.println( "" );
 
-    return new JMenuItem[0];
+    return new ViewMenuItem[0];
   }
 
-  public JMenuItem[] getPrivateMenuItems(  ) {
-    //System.out.println( "Entering: JMenuItems[] getPrivateMenuItems()" );
+  public ViewMenuItem[] getPrivateMenuItems(  ) {
+    //System.out.println( "Entering: ViewMenuItem[] getPrivateMenuItems()" );
     //System.out.println( "" );
 
-    return new JMenuItem[0];
+    return new ViewMenuItem[0];
   }
 
   /**
