@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/03/03 16:49:16  pfpeterson
+ *  Changed SharedData.status_pane.add(String) to SharedData.addmsg(String)
+ *
  *  Revision 1.5  2002/11/27 23:14:07  pfpeterson
  *  standardized header
  *
@@ -230,7 +233,7 @@ public class xml_utils
  */
   public static boolean setError( String Message)
    {
-    DataSetTools.util.SharedData.status_pane.add(Message);
+    DataSetTools.util.SharedData.addmsg(Message);
     return false;
    }
 
@@ -399,14 +402,12 @@ public static boolean AttribXMLread( InputStream stream, Attribute A )
     while(!done)
      {
       if( !xml_utils.skipAttributes( stream ) )
-       {DataSetTools.util.SharedData.status_pane.add(
-        xml_utils.getErrorMessage());
+       {DataSetTools.util.SharedData.addmsg(xml_utils.getErrorMessage());
         return false;
         }
       String v= xml_utils.getValue( stream);
       if( v== null)
-        {DataSetTools.util.SharedData.status_pane.add(
-                xml_utils.getErrorMessage());
+        {DataSetTools.util.SharedData.addmsg(xml_utils.getErrorMessage());
          return false;
         }
       if( key.equals( "name"))
@@ -434,15 +435,13 @@ public static boolean AttribXMLread( InputStream stream, Attribute A )
           //                                      way to do this
           }
        catch( Exception s)
-          { DataSetTools.util.SharedData.status_pane.add(
-              "Error"+s.getMessage()); 
+          { DataSetTools.util.SharedData.addmsg("Error"+s.getMessage()); 
              return false;
            
            }
        key=  xml_utils.getTag( stream );
        if( key == null)
-         {DataSetTools.util.SharedData.status_pane.add(
-                    xml_utils.getErrorMessage());
+         {DataSetTools.util.SharedData.addmsg(xml_utils.getErrorMessage());
           return false;
           }
        if( key.trim().equals("/"+dt))
@@ -451,8 +450,7 @@ public static boolean AttribXMLread( InputStream stream, Attribute A )
          if(fd.equals("nv"))
            return true;
          else
-          {DataSetTools.util.SharedData.status_pane.add(
-              "Did not Set both field ");
+          {DataSetTools.util.SharedData.addmsg("Did not Set both field ");
            return false;
           }
        }
