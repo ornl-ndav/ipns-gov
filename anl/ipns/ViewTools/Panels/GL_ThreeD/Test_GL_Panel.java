@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/06/17 15:33:30  dennis
+ * Added 8 "corner" cubes at known locations for testing 3D point
+ * location.
+ *
  * Revision 1.4  2004/06/15 16:47:28  dennis
  * Commented out tests using GLU quadrics, since these crash
  * with the Mesa GLU.
@@ -62,12 +66,13 @@ public class Test_GL_Panel
 {
   public static void main( String args[] )
   {  
-    int pick_id = 111000;
+    int pick_id = 110000;
 
     JFrame frame = new JFrame("JOGL/ISAW Demo");
     frame.setSize(500, 500);
     
     ThreeD_GL_Panel panel = new ThreeD_GL_Panel();
+
     GL_Shape obj_0 = new Cube( 0, 0, 0, 0.1f );
     GL_Shape obj_1 = new Cube( 0, 0, 0, .8f );
     GL_Shape obj_2 = new Cube( 1, 0, 0, .8f );
@@ -87,6 +92,11 @@ public class Test_GL_Panel
     float blue[]  = {0.4f, 0.4f, 0.9f};
     float white[] = {1,1,1};
     float gray[]  = {0.4f, 0.4f, 0.4f};
+
+    obj_0.setColor(red);
+    obj_1.setColor(green);
+    obj_2.setColor(blue);
+    obj_3.setColor(gray);
 
     GL_Shape obj = null;
 /*
@@ -220,6 +230,8 @@ public class Test_GL_Panel
     AltAzController controller = new AltAzController();
     controller.setDistance(100);
     controller.setDistanceRange(1,500);
+    controller.setPerspective( true );
+
     ViewControlListener c_listener = new ViewControlListener(panel);
     controller.addActionListener( c_listener );
     Vector3D cop = controller.getCOP();
@@ -277,6 +289,22 @@ public class Test_GL_Panel
     text.setColor( blue );
     text.setAlignment( StrokeText.HORIZ_CENTER, StrokeText.VERT_HALF );
     panel2.setObject("z axis", text );
+
+    for ( int row = -5; row <= 5; row += 10 )
+      for ( int col = -5; col <= 5; col += 10 )
+        for ( int page = -5; page <= 5; page += 10 )
+        {
+          obj_0 = new Cube( row, col, page, 1 );
+          obj_0.setPickID( pick_id++ ); 
+          if ( row == -5 )
+            obj_0.setColor( red );
+          else if ( col == -5 )
+            obj_0.setColor( green );
+          else if ( page == -5 )
+            obj_0.setColor( blue );
+           obj_0.setTransparency(1);
+          panel2.setObject( "Corner Cube " + pick_id, obj_0 );
+        }
 
     c_listener = new ViewControlListener(panel2);
     panel2.setCOP(cop);
