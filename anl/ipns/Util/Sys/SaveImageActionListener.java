@@ -32,6 +32,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/03/10 21:06:32  millermi
+ * - Added JPEGFileFilter class to automatically save
+ *   images as JPEGs.
+ * - Added static method getActiveMenuItem() which returns
+ *   a menu item with a listener that will cause the image
+ *   to be saved as a JPEG.
+ *
  * Revision 1.1  2003/11/25 20:08:54  rmikk
  * Initial Checkin for a class that can be added to the File
  *   menu to viewers to save the component as an image
@@ -47,19 +54,18 @@ import DataSetTools.util.*;
 import java.io.*;
 public class SaveImageActionListener implements ActionListener{
 
- JMenu jm;
- Component comp;
-
+ private Component comp;
+ 
  public SaveImageActionListener(  Component comp)
-    {  
-     this.comp= comp;
-    }
+ {  
+   this.comp = comp;
+ }
   
-
-  public static void setUpMenuItem(JMenuBar jmb, Component comp )
-    {
-     setUpMenuItem(jmb.getMenu( DataSetTools.viewer.DataSetViewer.FILE_MENU_ID ),comp);
-    }
+ public static void setUpMenuItem(JMenuBar jmb, Component comp )
+ {
+   setUpMenuItem( jmb.getMenu( DataSetTools.viewer.DataSetViewer.FILE_MENU_ID ),
+                  comp);
+ }
 
   /**
    * This class sets up the menubar on a component with the "print" menuitem
@@ -73,58 +79,74 @@ public class SaveImageActionListener implements ActionListener{
      jmi.addActionListener(new SaveImageActionListener( comp));
 
     }
-
-   public void actionPerformed( ActionEvent evt){
-       
-        JFileChooser jfc=(new JFileChooser());
-        if( jfc.showSaveDialog(null) != JFileChooser.APPROVE_OPTION)
-           return;
-        File file =jfc.getSelectedFile();
-        if( file == null)
-           return;
-        int i = file.getName().lastIndexOf('.');
-        if( i<= 0){
-           SharedData.addmsg("the Filename must have an extension for type of save");
-           return; 
-        }
-        String extension = file.getName().substring( i+1).toLowerCase();
-        if( extension == null){ 
-           SharedData.addmsg("Save FileName must have an extension");
-           return; 
-        }
-        if( extension.length() <2){
-           SharedData.addmsg("Save FileName must have an extension with more than 1 character");
-           return; 
-        }
-
-        Rectangle R = comp.getBounds();
-        BufferedImage bimg= new BufferedImage(R.width, R.height,BufferedImage.TYPE_INT_RGB ); 
-
-  
    
-        Graphics2D gr = bimg.createGraphics();
-  
-        comp.paint( gr);
-
-        try{
-           FileOutputStream fout =new FileOutputStream( file);
-           if( !javax.imageio.ImageIO.write( bimg, extension ,(OutputStream)fout )){
-              SharedData.addmsg( " no appropriate writer is found");
-              return; 
-           }
-           fout.close();
-        }catch( Exception ss){
-           SharedData.addmsg( "Image Save Error:"+ss.toString());
-        }
-    
-
-      
+  /**
+   * This method will return a JMenuItem with the provided text name. The
+   * menu item will have a save listener added to it. If clicked on,
+   * this menu item will save as an image the component passed in.
+   *
+   *  @param  menu_text Display text on the JMenuItem
+   *  @param  comp Component to be saved.
+   *  @return menu item with listener to initiate image saving routine.
+   */
+   public static JMenuItem getActiveMenuItem( String menu_text, Component comp )
+   {
+     JMenuItem jmi = new JMenuItem(menu_text);
+     jmi.addActionListener( new SaveImageActionListener(comp) );
+     return jmi;
    }
 
+   public void actionPerformed( ActionEvent evt)
+   {
+     JFileChooser jfc= new JFileChooser();
+     jfc.setFileFilter( new JPEGFileFilter() );
+     // make sure approve button was pressed.
+     if( jfc.showSaveDialog(null) != JFileChooser.APPROVE_OPTION)
+       return;
+     File file = jfc.getSelectedFile();
+     // make sure file was selected
+     if( file == null)
+       return;
+     // add .jpg to filename if it was not already added.
+     String filename = new JPEGFileFilter().appendExtension(file.toString());
+     Rectangle R = comp.getBounds();
+     BufferedImage bimg= new BufferedImage(R.width, R.height,
+                                           BufferedImage.TYPE_INT_RGB ); 
+     
+     Graphics2D gr = bimg.createGraphics();
+  
+     comp.paint( gr);
 
-
-
-
-
+     try{
+       FileOutputStream fout = new FileOutputStream( new File(filename) );
+       if( !javax.imageio.ImageIO.write( bimg, "jpg",
+        			  (OutputStream)fout ) )
+       {
+         SharedData.addmsg( " no appropriate writer is found");
+         return; 
+       }
+       fout.close();
+     }
+     catch( Exception ss){
+       SharedData.addmsg( "Image Save Error:"+ss.toString());
+     }
+   }
+ 
+ /*
+  * File filter for .jpg files, file format for images.
+  */ 
+  private class JPEGFileFilter extends RobustFileFilter
+  {
+   /*
+    *  Default constructor.  Calls the super constructor,
+    *  sets the description, and sets the file extensions.
+    */
+    public JPEGFileFilter()
+    {
+      super();
+      super.setDescription("JPEG (*.jpg)");
+      super.addExtension(".jpg");
+    } 
+  }
 }
 
