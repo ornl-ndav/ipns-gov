@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/11 07:39:45  bouzekc
+ *  Added a getStrings() method that returns a Vector representation of the
+ *  internal String array.
+ *
  *  Revision 1.5  2003/05/06 16:58:19  rmikk
  *  Removed a static reference to the string list so several
  *    instances can have different lists
@@ -46,6 +50,7 @@
 package DataSetTools.util;
 
 import java.io.*;
+import java.util.Vector;
 
 /**
  * A StringChoiceList is the base class for a class that holds a list of 
@@ -150,5 +155,18 @@ public class StringChoiceList extends    SpecialString
        return strings[ position ];
   }
 
-
+  /**
+   * Accessor method for the internal Strings.
+   * 
+   * @return A Vector representation of the internal String array.
+   */
+  public Vector getStrings(  ) {
+    Vector vStrings = new Vector( strings.length );
+    
+    for( int i = 0; i < strings.length; i++ ) {
+      vStrings.addElement( strings[i] );
+    }
+    
+    return vStrings;
+  }
 }
