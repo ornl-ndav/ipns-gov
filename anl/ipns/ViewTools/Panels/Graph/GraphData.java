@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2003/10/21 00:49:23  serumb
+ * Fixed javadoc error.
+ *
  * Revision 1.14  2003/08/28 23:04:57  dennis
  * Default graph now is line joining (0,0) with (1,0.001)
  *
@@ -92,7 +95,7 @@ public class GraphData implements Serializable
 /**
   *  Sets the location and the error values from the values passed in.
   *
-  *  @param errorloc    the integer constant for the location of the 
+  *  @param error_loc    the integer constant for the location of the 
   *                     errors. 
   *
   *  @param error_vals  the array of error values.
