@@ -33,14 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/04/21 02:39:12  millermi
+ * - Removed log message left behind from copy of 2D example.
+ *
  * Revision 1.1  2004/04/21 02:37:43  millermi
  * - Initial Version - Example of how the Display1D class to display
  *   functions.
- *
- * Revision 1.1  2004/03/20 01:39:10  millermi
- * - Initial version - Designed to show introductory users how
- *   to use the Display2D class using java.
- *
  */
 // this line is optional, but should reflect the path where the file is found.
 package gov.anl.ipns.ViewTools.Examples;
