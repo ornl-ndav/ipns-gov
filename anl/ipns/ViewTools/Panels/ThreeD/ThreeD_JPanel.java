@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2003/03/27 22:10:40  dennis
+ * Added methods getObjects() and getAllObjects() to get references
+ * to the list of objects displayed in a ThreeD_JPanel.
+ *
  * Revision 1.13  2002/11/27 23:12:53  pfpeterson
  * standardized header
  *
@@ -318,6 +322,59 @@ public class ThreeD_JPanel extends    CoordJPanel
 
    obj_lists.put( name, obj );
    obj_lists_valid = false; 
+ }
+
+
+/* ----------------------------- getObjects ----------------------------- */
+/**
+ *  Get a named list of ThreeD objects from the list of objects to be
+ *  handled by this panel.  If the named set of objects is not in the list,
+ *  this returns null.
+ *
+ *  @param  name  String identifer the array of objects being requested from
+ *                this panel.
+ *
+ *  @return  Array of ThreeD objects or null if the named objects don't
+ *           exit.
+ */
+ public IThreeD_Object[] getObjects( String name )
+ {                                                // ignore degenerate cases
+   if ( name == null )
+     return null;
+
+   IThreeD_Object objects[] = (IThreeD_Object[])obj_lists.get(name);
+   if ( objects == null || objects.length == 0 )
+     return objects; 
+                                                  // if there is a valid list
+                                                  // return a copy of it
+   IThreeD_Object result[] = new IThreeD_Object[ objects.length ];
+   System.arraycopy( objects, 0, result, 0, objects.length );
+   return result;
+ }
+
+
+/* ----------------------------- getAllObjects ----------------------------- */
+/**
+ *  Get list of all of the ThreeD objects handled by this panel.  
+ *
+ *  @return  Array of ThreeD objects or null if no objects have been added
+ *           to the panel. 
+ */
+ public IThreeD_Object[] getAllObjects()
+ {
+   IThreeD_Object result[] = null;
+
+   if ( !obj_lists_valid )
+     build_object_list();
+
+   if ( obj_lists_valid && all_objects != null )
+   {
+     result = new IThreeD_Object[ all_objects.length ];
+     System.arraycopy( all_objects, 0, result, 0, result.length );
+     return result;
+   }
+   else
+     return null;   
  }
 
 
