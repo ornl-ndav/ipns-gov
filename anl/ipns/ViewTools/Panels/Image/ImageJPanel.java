@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2002/06/19 22:43:24  dennis
+ *  Added some additional checks to keep row,col values in range.
+ *
  *  Revision 1.8  2001/08/08 14:24:58  dennis
  *  Now extends ActiveJPanel and sends action events to any
  *  ActionListeners when the cursor is moved, or when the
@@ -358,10 +361,10 @@ protected void LocalTransformChanged()
     CoordBounds    bounds         = local_transform.getSource();
 
     bounds = world_to_image.MapTo( bounds );
-    int start_row = (int)(bounds.getY1());
-    int end_row   = (int)(bounds.getY2());
-    int start_col = (int)(bounds.getX1());
-    int end_col   = (int)(bounds.getX2());
+    int start_row = Math.max( (int)(bounds.getY1() ), 0 );
+    int end_row   = Math.min( (int)(bounds.getY2() ), data.length-1 );
+    int start_col = Math.max( (int)(bounds.getX1() ), 0 );
+    int end_col   = Math.min( (int)(bounds.getX2() ), data[0].length-1 );
 
     CoordBounds new_bounds = new CoordBounds( start_col+.001f, start_row+0.001f,
                                               end_col+0.999f, end_row+0.999f );
