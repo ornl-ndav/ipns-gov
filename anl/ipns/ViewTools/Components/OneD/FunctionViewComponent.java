@@ -33,6 +33,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.62  2004/11/05 22:01:43  millermi
+ *  - Edited getAxisInformation() so getPositiveXmin() and getPositiveYmin()
+ *    are called if the axis is specified as log.
+ *  - Removed GaphJPanel().
+ *  - Now implements ITruLogAxisAddible instead of ILogAxisAddible.
+ *  - Removed getLogScale(), added getPositiveMin() to reflect change from
+ *    ILogAxisAddible to ITruLogAxisAddible interface.
+ *
  *  Revision 1.61  2004/09/29 20:41:42  serumb
  *  Removed unnecessary call to request focus.
  *
@@ -223,9 +231,8 @@ import javax.swing.*;
  */
 public class FunctionViewComponent implements IViewComponent1D,
                                               ActionListener, 
-                                              IZoomTextAddible, 
-                                              IAxisAddible,
-                                              ILogAxisAddible,
+                                              IZoomTextAddible,
+                                              ITruLogAxisAddible,
                                               IPreserveState,
                                               Serializable,
                                               ILegendAddible 
@@ -467,61 +474,34 @@ public class FunctionViewComponent implements IViewComponent1D,
   /**
    * This method initializes the world coords.
    */
-  public void setAxisInfo() {
-
-    float xmin,xmax,ymin,ymax;
-       xmin = gjp.getXmin();
-       xmax = gjp.getXmax();
-       ymin = gjp.getYmin();
-       ymax = gjp.getYmax();
-
+  public void setAxisInfo() {/*
   if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true ) 
   {
-      gjp.setLocalWorldCoords(new CoordBounds(
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                          xmin,xmax,ymin,ymax )
-                                         .getX1(  ) ,
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                          xmin,xmax,ymin,ymax )
-                                          .getY1(  ) , 
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                          xmin,xmax,ymin,ymax )
-                                          .getX2(  ) ,
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                          xmin,xmax,ymin,ymax )
-                                          .getY2(  ) ));
+      gjp.setLocalWorldCoords( gjp.getLocalLogWorldCoords() );
   }
   else if (gjp.getLogScaleX() == true && gjp.getLogScaleY() == false)
   {
-      gjp.setLocalWorldCoords(new CoordBounds(
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                          xmin,xmax,ymin,ymax )
-                                         .getX1(  ) ,
-      ymin,
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                          xmin,xmax,ymin,ymax )
-                                          .getX2(  ) ,
-      ymax));
+      gjp.setLocalWorldCoords( new CoordBounds(
+                               gjp.getLocalLogWorldCoords().getX1(),
+                               gjp.getLocalWorldCoords().getY1(),
+			       gjp.getLocalLogWorldCoords().getX2(),
+                               gjp.getLocalWorldCoords().getY2() ) );
   }                                    
-  else if (gjp.getLogScaleX() == true && gjp.getLogScaleY() == false)
+  else if (gjp.getLogScaleX() == false && gjp.getLogScaleY() == true)
   {
-      gjp.setLocalWorldCoords(new CoordBounds(
-      xmin,
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                          xmin,xmax,ymin,ymax )
-                                          .getY1(  ) , 
-      xmax,
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                          xmin,xmax,ymin,ymax )
-                                          .getY2(  ) ));
+      gjp.setLocalWorldCoords( new CoordBounds(
+                               gjp.getLocalWorldCoords().getX1(),
+                               gjp.getLocalLogWorldCoords().getY1(),
+			       gjp.getLocalWorldCoords().getX2(),
+                               gjp.getLocalLogWorldCoords().getY2() ) );
   }
   else
-  {
+  {*/
     gjp.initializeWorldCoords( 
         new CoordBounds( 
-          xmin, ymin,
-          xmax, ymax) );
-  }
+          gjp.getXmin(), gjp.getYmin(),
+          gjp.getXmax(), gjp.getYmax() ) );
+  //}
  
    // AxisInfo xinfo = getAxisInformation( AxisInfo.X_AXIS );
    // AxisInfo yinfo = getAxisInformation( AxisInfo.Y_AXIS );
@@ -529,60 +509,50 @@ public class FunctionViewComponent implements IViewComponent1D,
   }
  
   public AxisInfo getAxisInformation( int axis ) {
-    // if true, return x info
-    float xmin,xmax,ymin,ymax;
+    /*float xmin,xmax,ymin,ymax;
        xmin = gjp.getXmin();
        xmax = gjp.getXmax();
        ymin = gjp.getYmin();
-       ymax = gjp.getYmax();
-     
+       ymax = gjp.getYmax();*/
 
+    // if true, return x info
     if( axis == AxisInfo.X_AXIS) {
-      if(gjp.getLogScaleX() == true) { 
+      if(gjp.getLogScaleX() == true) {
         return new AxisInfo( 
-        gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                              xmin,xmax,ymin,ymax )
-                                              .getX1(  ),
-        gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                              xmin,xmax,ymin,ymax)
-                                              .getX2(  ),
-        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
-        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
-        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getScale(  ) );
+	    gjp.getLocalWorldCoords().getX1(),
+            gjp.getLocalWorldCoords().getX2(),
+            Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
+            Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
+            AxisInfo.TRU_LOG );
       }
       else
       {
-
-      return new AxisInfo( 
-        gjp.getLocalWorldCoords(  ).getX1(  ),
-        gjp.getLocalWorldCoords(  ).getX2(  ),
-        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
-        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
-        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getScale(  ) );
+        return new AxisInfo( 
+            gjp.getLocalWorldCoords(  ).getX1(  ),
+            gjp.getLocalWorldCoords(  ).getX2(  ),
+            Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
+            Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
+            AxisInfo.LINEAR );
        }
     }
 
     // if false return y info
     if(gjp.getLogScaleY() == true) {
-      return new AxisInfo( 
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                             xmin,xmax,ymin,ymax )
-                                              .getY1(  ),
-      gjp.getLocalLogWorldCoords(gjp.getScale(),
-                                              xmin,xmax,ymin,ymax )
-                                              .getY2(  ),
-      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
-      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
-      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getScale(  ) );
+      return new AxisInfo(
+          gjp.getLocalWorldCoords().getY1(),
+          gjp.getLocalWorldCoords().getY2(),
+     	  Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
+     	  Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
+     	  AxisInfo.TRU_LOG );
     }
     else
     {
       return new AxisInfo( 
-        gjp.getLocalWorldCoords(  ).getY1(  ),
-        gjp.getLocalWorldCoords(  ).getY2(  ),
-        Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
-        Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
-        Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getScale(  ) );
+     	  gjp.getLocalWorldCoords(  ).getY1(  ),
+     	  gjp.getLocalWorldCoords(  ).getY2(  ),
+     	  Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
+     	  Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
+     	  AxisInfo.LINEAR );
     }
   }
 
@@ -684,18 +654,41 @@ public class FunctionViewComponent implements IViewComponent1D,
   public IVirtualArrayList1D getArray(  ) {
     return Varray1D;
   }
+  
+ /**
+  * This method will get the minimum positive value for the x and y axis.
+  * The value returned will be greater than zero if a valid axis is passed..
+  *
+  *  @param  axis The axis to get the positive minimum. Use the static ints
+  *               provided by the ITruLogAxisAddible interface.
+  *  @return The smallest positive float value for the specified axis.
+  */ 
+  public float getPositiveMin( int axis )
+  {
+    // If x axis, return smallest positive x.
+    if( axis == ITruLogAxisAddible.X_AXIS )
+      return gjp.getPositiveXmin();
+    // If y axis, return smallest positive y.
+    if( axis == ITruLogAxisAddible.Y_AXIS )
+      return gjp.getPositiveYmin();
+    // Invalid axis, return zero.
+    return 0;
+  }
 
-  /**
-   * This method will return the graph JPanel. 
-   */
-  public GraphJPanel GaphJPanel(  ) {
-    return gjp;
+ /**
+  * This method will get the scale factor used, if any, to alter the size of
+  * the bounds. A scale factor of 1.05 will increase the bounds by 5% while
+  * a scale factor of .8 will decrease the bounds by 20%.
+  */
+  public float getBoundScaleFactor( int axis )
+  {
+    // If y axis, return smallest positive y.
+    if( axis == ITruLogAxisAddible.Y_AXIS )
+      return gjp.getScaleFactor();
+    // Invalid axis, return zero.
+    return 1f;
   }
   
-  public double getLogScale()
-  {
-    return mainControls.getLogScale();
-  }
   /**
    * This method adjusts the crosshairs on the graphjpanel.
    * setPointedAt is called from the viewer when another component
