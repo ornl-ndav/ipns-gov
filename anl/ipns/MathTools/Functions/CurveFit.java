@@ -30,6 +30,12 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.5  2003/07/22 22:14:40  dennis
+ *  Added option to use "statistical weighting" by 1/sqrt(|y[i]|)
+ *  in the method to fit a polynomial.
+ *  Added convenience method to efficiently evaluate a polynomial,
+ *  defined by an array of coefficients, at a list of x values.
+ *
  *  Revision 1.4  2002/11/27 23:15:47  pfpeterson
  *  standardized header
  *
@@ -69,11 +75,19 @@ public final class CurveFit
    *                  coefficients must be no more than the number of data
    *                  points, ( x[i], y[i] ).
    *
+   *  @param  stat_w  If true, this will do a weighted least squares
+   *                  approximation, where the weights are 
+   *                  Wi=1/sqrt(|y[i]|) if
+   *                  yi is not zero, and is 1 if yi is zero.
+   *
    *  @return  The total residual error, if the parameters are correct.  If
    *           the parameters don't properly specify points (x,y) or the 
    *           number of coeffients requested is improper, this returns NaN.
    */
-   public static double Polynomial( double x[], double y[], double coeff[] )
+   public static double Polynomial( double  x[],
+                                    double  y[], 
+                                    double  coeff[],
+                                    boolean stat_w   )
    {
      if ( x == null || y == null || coeff == null )
      {
@@ -96,6 +110,15 @@ public final class CurveFit
                                             // least squares fitting problem
      double A[][] = new double[ n_points ][ coeff.length ];
      double b[]   = new double[ n_points ];
+     double w[]   = new double[ n_points ];
+
+     for ( int i = 0; i < n_points; i++ )
+     {
+       if ( stat_w && y[i] != 0 )
+         w[i] = 1/Math.sqrt(Math.abs(y[i]));
+       else
+         w[i] = 1;  
+     }
 
      for ( int row = 0; row < n_points; row++ )
      {
@@ -103,7 +126,10 @@ public final class CurveFit
        for ( int col = 1; col < coeff.length; col++ )
          A[row][col] = x[row] * A[row][col-1];
 
-       b[row] = y[row];
+       for ( int col = 0; col < coeff.length; col++ )
+         A[row][col] *= w[row];
+
+       b[row] = y[row] * w[row];
      }
 
      double error = LinearAlgebra.solve( A, b );
@@ -116,18 +142,114 @@ public final class CurveFit
      return error;
    }
 
+
+  /**
+   *  Convenience method for evaluating a polynomial, specified by it's
+   *  array of coefficients, at a list of x values.
+   *
+   *  @ param  x     Array of x values where the polynomial is to be evaluated.
+   *  @ param  y     Array in which the values will be stored; this must have
+   *                 at least as many entries as x.
+   *  @ param  coef  The list of coefficents A0, A1, A2, ... etc.
+   */
+  static public void eval( double x[], double y[], double coef[] )
+  {
+     double sum;
+     int    n = coef.length - 1;
+
+     for ( int i = 0; i < x.length; i++ )
+     {
+       sum = 0;
+       for ( int k = n; k >= 0; k-- )    // Horner's rule
+         sum = sum * x[i] + coef[k];
+       y[i] = sum;
+     }
+  }
+
+
+
   /* ---------------------------- main -------------------------------- */
-  /* main program for test purposes only
-  */
+  /* 
+   * main program for test purposes only
+   *
+   */
    static public void main( String[] args )
    {
-     double x[] = { 1,  2,  3,  4 };
-     double y[] = { 6, 17, 34, 57 };
+     final double DELTA = 1e-5;
+                                                      // some sample data
+     double x[] = { 1,  2,  3,  4,  5,  6 };
+     double y[] = { 2,  1, 10, 15, 26, 35 };
      double coef[] = new double[3];
-
-     System.out.println("Result =" + Polynomial( x, y, coef ) );
-     System.out.println("Coefficients are:");
+     double val[] = new double[ x.length ];
+                                                      // test UNWEIGHTED fit
+                                                      // option
+     System.out.println("Result =" + Polynomial( x, y, coef, false ) );
+     System.out.println("Unweighted Coefficients are:");
      for ( int i = 0; i < coef.length; i++ )
       System.out.println( "" + coef[i] );
+                                                       // show the values
+     System.out.println("Unweighted approximation is" );
+     eval( x, val, coef ); 
+     for ( int i = 0; i < x.length; i++ )
+       System.out.println("x = " + x[i] + " y = " + y[i] + " val = " + val[i] );
+                                                      
+                                                       // calculate chisq with
+                                                       // these and with nearby
+     double chi_sq = 0;                                // values 
+     for ( int i = 0; i < x.length; i++ )
+       chi_sq += (y[i] - val[i]) * (y[i] - val[i]);
+     System.out.println("Optimal: chi_sq      = " + chi_sq );
+
+     for ( int i = 0; i < coef.length; i++ )
+       coef[i] += DELTA;
+     eval( x, val, coef ); 
+     chi_sq = 0;
+     for ( int i = 0; i < x.length; i++ )
+       chi_sq += (y[i] - val[i]) * (y[i] - val[i]);
+     System.out.println("Shifted UP: chi_sq   = " + chi_sq );
+
+     for ( int i = 0; i < coef.length; i++ )
+       coef[i] -= 2*DELTA;
+     eval( x, val, coef ); 
+     chi_sq = 0;
+     for ( int i = 0; i < x.length; i++ )
+       chi_sq += (y[i] - val[i]) * (y[i] - val[i]);
+     System.out.println("Shifted DOWN: chi_sq = " + chi_sq );
+
+                                                      // test WEIGHTED fit
+                                                      // option
+     System.out.println("Result =" + Polynomial( x, y, coef, true ) );
+     System.out.println("Weighted Coefficients are:");
+     for ( int i = 0; i < coef.length; i++ )
+      System.out.println( "" + coef[i] ); 
+
+                                                       // show the values
+     System.out.println("Weighted approximation is" );
+     eval( x, val, coef ); 
+     for ( int i = 0; i < x.length; i++ )
+       System.out.println("x = " + x[i] + " y = " + y[i] + " val = " + val[i] );
+
+                                                       // calculate chisq with
+                                                       // these and with nearby
+     chi_sq = 0;                                       // values
+     for ( int i = 0; i < x.length; i++ )
+       chi_sq += (y[i] - val[i]) * (y[i] - val[i]) / y[i];
+     System.out.println("Optimal: chi_sq      = " + chi_sq );
+
+     for ( int i = 0; i < coef.length; i++ )
+       coef[i] += DELTA;
+     eval( x, val, coef ); 
+     chi_sq = 0;
+     for ( int i = 0; i < x.length; i++ )
+       chi_sq += (y[i] - val[i]) * (y[i] - val[i]) / y[i];
+     System.out.println("Shifted UP: chi_sq   = " + chi_sq );
+
+     for ( int i = 0; i < coef.length; i++ )
+       coef[i] -= 2*DELTA;
+     eval( x, val, coef ); 
+     chi_sq = 0;
+     for ( int i = 0; i < x.length; i++ )
+       chi_sq += (y[i] - val[i]) * (y[i] - val[i]) / y[i];
+     System.out.println("Shifted DOWN: chi_sq = " + chi_sq );
    }
 }
