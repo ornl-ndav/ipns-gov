@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/04/02 15:15:12  dennis
+ * Added constructor to make double precision Vector3D_d from
+ * single precision Vector3D
+ *
  * Revision 1.4  2004/03/19 17:24:27  dennis
  * Removed unused variables
  *
@@ -78,6 +82,19 @@ public class Vector3D_d
   public Vector3D_d( Vector3D_d vector )
   {
     set( vector );
+  }
+
+
+  /*------------- copy constructor from single precision version -----------*/
+  /**
+   *  Construct a copy of the given single precision vector.
+   *
+   *  @param  vector  the single precision vector to copy. 
+   */
+  public Vector3D_d( Vector3D vector )
+  {
+    for ( int i = 0; i < 4; i++ )
+      v[i] = vector.get()[i];
   }
 
 
