@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.33  2004/01/08 20:45:23  serumb
+ *  Fixed the y-axis decreasing on start-up problem.
+ *
  *  Revision 1.32  2004/01/06 17:17:54  serumb
  *  The Function View Component now maintains graph data
  *   after a new line is selected.
@@ -253,8 +256,8 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     gjp.initializeWorldCoords( 
       new CoordBounds( 
-        xinfo.getMin(  ), yinfo.getMax(  ),
-        xinfo.getMax(  ), yinfo.getMin(  ) ) );
+        xinfo.getMin(  ), yinfo.getMin(  ),
+        xinfo.getMax(  ), yinfo.getMax(  ) ) );
   }
  
   public AxisInfo getAxisInformation( int axis ) {
@@ -288,8 +291,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     }
     else
     return new AxisInfo( 
-      gjp.getLocalWorldCoords(  ).getY1(  ),
       gjp.getLocalWorldCoords(  ).getY2(  ),
+      gjp.getLocalWorldCoords(  ).getY1(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
@@ -298,7 +301,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    
   /**
    * This method returns a rectangle containing the location and size
-   * of the grapgjpanel.
+   * of the graphjpanel.
    *
    *  @return The region info about the graphjpanel
    */
@@ -692,7 +695,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     AxisOverlay2D bottom = new AxisOverlay2D( this );
 
     transparencies.add( top );
-    transparencies.add( bottom );  // add the transparency the the vector
+    transparencies.add( bottom );  // add the transparency to the vector
 
     JPanel master         = new JPanel(  );
     OverlayLayout overlay = new OverlayLayout( master );
