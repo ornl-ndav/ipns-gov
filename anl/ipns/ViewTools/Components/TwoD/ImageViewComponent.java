@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/05/22 13:05:58  dennis
+ *  Now returns menu items to place in menu bar.
+ *
  *  Revision 1.5  2003/05/20 19:46:16  dennis
  *  Now creates a brightness control slider. (Mike Miller)
  *
@@ -65,6 +68,8 @@ import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import DataSetTools.components.View.Transparency.*;
 import DataSetTools.components.View.*;  // IVirtualArray2D
 import DataSetTools.components.View.ViewControls.*;
+import DataSetTools.components.View.Menu.*;
+import DataSetTools.components.ui.ColorScaleMenu;
 
 // component changes
 import java.applet.Applet;
@@ -93,11 +98,14 @@ public class ImageViewComponent implements IViewComponent2D,
    private Vector transparencies = new Vector();
    private int precision;
    private Font font;
-   private LinkedList controls = new LinkedList();
+   private ViewControl[] controls = new ViewControl[1];
+   private ViewMenuItem[] menus = new ViewMenuItem[1];
    
   /**
    * Constructor that takes in a virtual array and creates an imagejpanel
    * to be viewed in a border layout.
+   *
+   *  @param  ivirtualarray
    */
    public ImageViewComponent( IVirtualArray2D varr )  
    {
@@ -123,7 +131,8 @@ public class ImageViewComponent implements IViewComponent2D,
       Listeners = new Vector();
       buildViewComponent(ijp); // initializes big_picture to jpanel containing
                                // the background and transparencies 		       
-      buildViewControls(ijp);   
+      buildViewControls(); 
+      buildViewMenuItems();  
    }  
    
   // getAxisInfo(), getRegionInfo(), getTitle(), getPrecision(), getFont() 
@@ -278,16 +287,12 @@ public class ImageViewComponent implements IViewComponent2D,
    *  @param act_listener
    */
    public void addActionListener( ActionListener act_listener )
-   {     
-      System.out.print("Entering: void ");
-      System.out.println("addActionListener( ActionListener act_listener )");
-      
+   {          
       for ( int i = 0; i < Listeners.size(); i++ )    // don't add it if it's
         if ( Listeners.elementAt(i).equals( act_listener ) ) // already there
           return;
 
       Listeners.add( act_listener ); //Otherwise add act_listener
-      System.out.println("");
    }
   
   /**
@@ -307,37 +312,41 @@ public class ImageViewComponent implements IViewComponent2D,
    {
       Listeners.removeAllElements();
    }
-   
+  
+  /**
+   * Returns all of the controls needed by this view component
+   *
+   *  @return controls
+   */ 
    public JComponent[] getSharedControls()
-   {  
-      JComponent[] jcontrols = new JComponent[controls.size()];
-      for( int i = 0; i < controls.size(); i++ )
-         jcontrols[i] = (JComponent)controls.get(i);   
-      return jcontrols;
+   {    
+      return controls;
    }
    
    public JComponent[] getPrivateControls()
    {
       System.out.println("Entering: JComponent[] getPrivateControls()");
-      System.out.println("");
+      System.out.println("***Currently unimplemented***");
       
       return new JComponent[0];
    }
-   
-   public JMenuItem[] getSharedMenuItems()
+  
+  /**
+   * Returns all of the menu items needed by this view component
+   *
+   *  @return menus;
+   */ 
+   public ViewMenuItem[] getSharedMenuItems()
    {
-      System.out.println("Entering: JMenuItems[] getSharedMenuItems()");
-      System.out.println("");
-      
-      return new JMenuItem[0];
+      return menus;
    }
    
-   public JMenuItem[] getPrivateMenuItems()
+   public ViewMenuItem[] getPrivateMenuItems()
    {
       System.out.println("Entering: JMenuItems[] getPrivateMenuItems()");
-      System.out.println("");
+      System.out.println("***Currently unimplemented***");
       
-      return new JMenuItem[0];
+      return new ViewMenuItem[0];
    }
    
   /**
@@ -438,16 +447,26 @@ public class ImageViewComponent implements IViewComponent2D,
   /*
    * This method constructs the controls required by the ImageViewComponent
    */
-   private void buildViewControls( ImageJPanel iJpanel )
+   private void buildViewControls()
    {
-      ControlSlider intensity_slider = new ControlSlider();
-      ControlSlider slider2 = new ControlSlider();
-      intensity_slider.setTitle("Intensity Slider");
-      slider2.setTitle("Not Attached");
-      slider2.showTicks(false);
-      intensity_slider.addActionListener( new SliderListener() );
-      controls.add(intensity_slider);
-      controls.add(slider2);
+      controls[0] = new ControlSlider();
+      controls[0].setTitle("Intensity Slider");
+      controls[0].addActionListener( new SliderListener() );
+      
+      // must increment size of array before adding this test control
+      //controls[1] = new ControlSlider();
+      //controls[1].setTitle("Not Attached");
+      //controls[1].showTicks(false);
+   }
+   
+  /*
+   * This method constructs the menu items required by the ImageViewComponent
+   */   
+   private void buildViewMenuItems()
+   {
+      menus[0] = new ViewMenuItem("Options", 
+                                  new ColorScaleMenu( new ColorListener() ));
+      menus[0].addActionListener( new MenuListener() );
    }
    
   //***************************Assistance Classes******************************
@@ -520,6 +539,33 @@ public class ImageViewComponent implements IViewComponent2D,
          } 
       }
    } 
+
+  /*
+   * This class relays the message sent out by the ColorScaleMenu
+   */  
+   private class ColorListener implements ActionListener
+   {
+      public void actionPerformed( ActionEvent ae )
+      {
+         ijp.setNamedColorModel(ae.getActionCommand(), true);
+         sendMessage( ae.getActionCommand() );
+	 //System.out.println("ViewComponent Color Scheme = " + 
+	 //                  ae.getActionCommand() );
+      }
+   }
+
+  /*
+   * This class relays the message sent out by the ViewMenuItem
+   */  
+   private class MenuListener implements ActionListener
+   {
+      public void actionPerformed( ActionEvent ae )
+      {
+         sendMessage( ae.getActionCommand() );
+	 //System.out.println("VCPath = " + 
+	 //                  ae.getActionCommand() );
+      }
+   }   
       
   /*
    * MAIN - Basic main program to test an ImageViewComponent object
@@ -554,24 +600,8 @@ public class ImageViewComponent implements IViewComponent2D,
 
         //Construct an ImageViewComponent with array2D
 	ImageViewComponent ivc = new ImageViewComponent(va2D);
-
-        //A tester frame to throw the bottom and top JPanel into **********
-        JFrame f = new JFrame("ISAW ImageViewComponent");  
-	f.setBounds(0,0,500,500);
-	Container c = f.getContentPane();
-	c.add(ivc.getDisplayPanel());
-	  
-	f.show(); //display the frame
-	
-	JFrame f2 = new JFrame("ISAW ImageViewControls");
-	Container cpain = f2.getContentPane();
-	cpain.setLayout( new BoxLayout(cpain,BoxLayout.Y_AXIS));  
-	
-	JComponent[] controls = ivc.getSharedControls();
-	for( int i = 0; i < controls.length; i++ )
-	   cpain.add(controls[i]);
-	f2.setBounds(0,0,200,(100 * controls.length));
-	cpain.validate();  
-	f2.show(); //display the frame
+   
+      ViewerSim viewer = new ViewerSim(ivc);
+      viewer.show();	
    }
 }
