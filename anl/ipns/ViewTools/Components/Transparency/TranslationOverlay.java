@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2004/05/20 03:24:11  millermi
+ *  - Removed unused private methods and imports.
+ *
  *  Revision 1.11  2004/04/05 02:38:34  millermi
  *  - Removed unused variable.
  *
@@ -98,7 +101,6 @@ import java.util.Vector;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Cursor.BoxPanCursor;
 import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
-import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
@@ -348,28 +350,7 @@ public class TranslationOverlay extends OverlayJPanel
       listener.actionPerformed( new ActionEvent( this, 0, message ) );
     }
   }
-
- /*
-  * Converts from world coordinates to a pixel point.
-  * ***Note*** This transform is in opposite order of the CoordJPanel.
-  */
-  private Point convertToPixelPoint( floatPoint2D fp )
-  {
-    CoordTransform pixel_global = tjp.getGlobal_transform();
-    floatPoint2D fp2d = pixel_global.MapTo( fp );
-    return new Point( (int)fp2d.x, (int)fp2d.y );
-  }
- 
- /*
-  * Converts from pixel coordinates to world coordinates.
-  * ***Note*** This transform is in opposite order of the CoordJPanel.
-  */
-  private floatPoint2D convertToWorldPoint( Point p )
-  {
-    CoordTransform pixel_global = tjp.getGlobal_transform();
-    return pixel_global.MapFrom( new floatPoint2D((float)p.x, (float)p.y) );
-  }
-
+  
  /*
   * TranslateListener listens for messages being passed from the
   * TranslationJPanel.
