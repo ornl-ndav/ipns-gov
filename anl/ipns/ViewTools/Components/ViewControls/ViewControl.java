@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/05/24 17:36:10  dennis
+ *  Changed comments to maintain consistency between ViewControl and
+ *  IViewControl action event strings.
+ *  Changed constructor so it no longer initializes titled border
+ *  to "No Title" when no title is passed.  (Mike Miller)
+ *
  *  Revision 1.1  2003/05/20 19:44:46  dennis
  *  Initial version of standardized controls for viewers. (Mike Miller)
  *
@@ -59,8 +65,8 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
    * **********************************************
    *  Sender                  Message
    * **********************************************
-   *  ControlSlider           IS_CHANGING
-   *                          IS_CHANGED
+   *  ControlSlider           SLIDER_CHANGED
+   *  ControlCheckbox         CHECKBOX_CHANGED
    * **********************************************
    * Method data:
    */
@@ -68,8 +74,6 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
    
    public ViewControl(String con_title)
    {
-      if( con_title.equals("") )
-         con_title = "No Title";
       this.setTitle(con_title);      
    }
       
