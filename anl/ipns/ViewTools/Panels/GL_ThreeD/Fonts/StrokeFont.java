@@ -30,6 +30,9 @@
  * Modified: 
  *
  * $Log$
+ * Revision 1.3  2004/07/28 19:59:38  dennis
+ * Fixed javadoc error.
+ *
  * Revision 1.2  2004/06/18 19:44:44  dennis
  * Moved to Fonts package.
  *
@@ -72,7 +75,7 @@ abstract public class StrokeFont
   /**
    *  Get the width of a character in font coordinates.
    *
-   *  @param str  The character whose width is to be calcuated.
+   *  @param ch  The character whose width is to be calcuated.
    */
   public float CharWidth( char ch )
   {
