@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/03/09 22:32:54  millermi
+ *  - Added methods getControlValue() and setControlValue(Object) for
+ *    use by ControlManager.
+ *  - Added generic messaging String VALUE_CHANGED for use by
+ *    ControlManager.
+ *
  *  Revision 1.7  2004/03/12 01:49:22  millermi
  *  - Changed package and fixed imports.
  *
@@ -80,6 +86,7 @@ public interface IViewControl extends IPreserveState
   public static final String COMBOBOX_CHANGED  = "COMBOBOX_CHANGED";
   // Used by ButtonControl.java
   public static final String BUTTON_PRESSED  = "BUTTON_PRESSED";
+  public static final String VALUE_CHANGED   = "VALUE_CHANGED";
  
  /**
   * This method will get the current values of the state variables for this
@@ -131,4 +138,19 @@ public interface IViewControl extends IPreserveState
   *  @param  title Title of this control.
   */ 
   public void setTitle(String title);
+  
+ /**
+  * Set value associated with this control.
+  *
+  *  @param  value Setable value for this control.
+  */
+  public void setControlValue(Object value);
+  
+ /**
+  * Get value associated with this control that will change and need to be
+  * updated.
+  *
+  *  @return Value for this control.
+  */
+  public Object getControlValue();
 }
