@@ -33,9 +33,8 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.42  2004/03/09 20:08:48  serumb
- *  Changed the Data Changed method so when a graph is removed
- *  the graph data is cleared.
+ *  Revision 1.43  2004/03/09 20:56:38  serumb
+ *  Initilized the pointed at graph to zero.
  *
  *  Revision 1.41  2004/03/09 17:28:37  serumb
  *  Fixed the problem that had to do with drawing selected graphs.
@@ -253,8 +252,8 @@ public class FunctionViewComponent implements IViewComponent1D,
    
 
     //initialize the pointed at graph to 0
-       float x1[] = {0,.000001f};
-       float y1[] = {0.000001f};
+       float x1[] = {0};
+       float y1[] = {0};
        gjp.setData( x1, y1, 0, false );     
      
 
