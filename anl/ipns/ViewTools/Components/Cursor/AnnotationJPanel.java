@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/06/06 14:37:38  dennis
+ *  Temporarily commented out call to setFocusable() so that
+ *  it will compile under jdk 1.3.1.  The call to setFocusable()
+ *  should be re-enabled when we start using jdk 1.4.x.
+ *
  *  Revision 1.1  2003/06/05 22:12:50  dennis
  *   - Initial Version, used by AnnotationOverlay to create arrow
  *     to the note. (Mike Miller)
@@ -84,7 +89,7 @@ public class AnnotationJPanel extends ActiveJPanel
       addMouseMotionListener( new SelectMouseMotionAdapter() );
       addKeyListener( new SelectKeyAdapter() );
       
-      setFocusable(true);
+      //setFocusable(true);
    }
 
   /* ------------------------ set_cursor ------------------------------ */

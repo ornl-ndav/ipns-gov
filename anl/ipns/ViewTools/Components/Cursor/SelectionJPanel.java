@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/06/06 14:37:38  dennis
+ *  Temporarily commented out call to setFocusable() so that
+ *  it will compile under jdk 1.3.1.  The call to setFocusable()
+ *  should be re-enabled when we start using jdk 1.4.x.
+ *
  *  Revision 1.3  2003/06/05 22:13:57  dennis
  *   - Fixed keyboard listener problems by adding setFocusable()
  *     in Constructor.  (Mike Miller)
@@ -110,7 +115,7 @@ public class SelectionJPanel extends ActiveJPanel
       circle = new CircleCursor(this);
       point = new PointCursor(this);
       
-      setFocusable(true);
+      //setFocusable(true);
       
       addMouseListener( new SelectMouseAdapter() );
       addMouseMotionListener( new SelectMouseMotionAdapter() );
