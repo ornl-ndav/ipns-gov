@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/07/03 16:14:47  serumb
+ *  Updated the zoom control to fit to the y values on the zoom region.
+ *
  *  Revision 1.10  2003/07/02 17:21:22  serumb
  *  Added a control for line shift change, added code comments,
  *  and moved the controls variables to buildViewControls().
@@ -1026,8 +1029,11 @@ public class FunctionViewComponent implements IFunctionComponent1D,
         {
           Float Xstart;
           Float Xend;
+          float Y_max = 0;
+          float Y_min = 0;
           String start_string;
           String end_string;
+          GraphData gd;
 
           start_string   = start_field.getText(  );
           end_string     = end_field.getText(  );
@@ -1058,11 +1064,29 @@ public class FunctionViewComponent implements IFunctionComponent1D,
                       AxisInfo2D.XAXIS ).getMin())
              Xstart = new Float(Varray1D.getAxisInfo( AxisInfo2D.XAXIS )
                       .getMin());
+
+         //set ymin to the y max of the graph
+          Y_min =  Varray1D.getAxisInfo(AxisInfo2D.YAXIS).getMax();
         
-          gjp.setZoom_region(Xstart.floatValue(), 
-                         Varray1D.getAxisInfo(AxisInfo2D.YAXIS).getMax(),
-                         Xend.floatValue(),
-                         Varray1D.getAxisInfo(AxisInfo2D.YAXIS).getMin()); 
+          // for loop to get Y_min and Y_max 
+          for(int index = 0; index < gjp.graphs.size(); index ++)
+          {
+            gd = ( GraphData )gjp.graphs.elementAt( index );
+              for(int index2 = 0; index2 < gd.get_y_vals().length; index2++)
+              {
+                if(gd.get_x_vals()[index2] > Xstart.floatValue() && 
+                   gd.get_x_vals()[index2] < Xend.floatValue())
+                {
+                  if( Y_max < gd.get_y_vals()[index2] )
+                    Y_max = gd.get_y_vals()[index2];
+                  if( Y_min > gd.get_y_vals()[index2] )
+                    Y_min = gd.get_y_vals()[index2]; 
+                }
+              }
+          }  
+                  
+          gjp.setZoom_region(Xstart.floatValue(), Y_max,
+                             Xend.floatValue(),Y_min); 
         }
       } else if( message.equals( "comboBoxChanged" ) ) {
         // System.out.println("action" + LineBox.getSelectedItem());
