@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2002/10/29 23:45:11  dennis
+ * Added method position() to get the average position of the
+ * vertices for the object.
+ *
  * Revision 1.3  2002/10/29 22:12:48  dennis
  * Improved error checking in constructor.  Now allows construction
  * with an initially empty list of vertices.
@@ -88,6 +92,30 @@ abstract public class ThreeD_Object implements IThreeD_Object
     }
   }
 
+  /**
+   *  Get the vector that is at the average position of the vertices 
+   *  of this object.
+   *
+   *  @return  The average of the vertices for this object.  If there are
+   *           no vertices, this returns null.
+   */
+  public Vector3D position()
+  {
+    if ( vertices == null || vertices.length <= 0 )
+      return null;
+
+    Vector3D average = new Vector3D( vertices[0] );
+    if ( vertices.length == 1 )
+      return average;
+    else
+    {
+      for ( int i = 1; i < vertices.length; i++ )
+        average.add( vertices[i] );
+
+      average.multiply( 1.0f/vertices.length );
+      return average;
+    }
+  }
 
   /**
    *  Set the color of this object.

@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2002/10/29 23:46:49  dennis
+ * Added method position() to get the average position of the
+ * vertices for the object.
+ *
  * Revision 1.2  2001/05/23 17:31:43  dennis
  * Added clipping using front clipping plane between COP and VRP
  *
@@ -62,6 +66,17 @@ public static final int INVALID_PICK_ID = -1;
    *  @param  color  Specifies the color to be used when drawing this object.
    */
   public void setColor( Color color );
+
+
+  /**
+   *  Get the vector that is at the average position of the vertices
+   *  of this object.
+   *
+   *  @return  The average of the vertices for this object.  If there are
+   *           no vertices, this returns null.
+   */
+  public Vector3D position();
+
 
   /**
    *  Project this object onto pixel coordinates using the given
