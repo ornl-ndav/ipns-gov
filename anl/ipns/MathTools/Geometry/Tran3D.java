@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/03/11 23:06:13  dennis
+ * Changed to MathTools.Geometry package
+ *
  * Revision 1.8  2004/01/28 21:58:00  dennis
  * Made set() method, and constructor more flexible, so that the
  * transformation can be initialized from either a 3x3 or 4x4
@@ -49,9 +52,10 @@
  *
  */
 
-package DataSetTools.math;
+package gov.anl.ipns.MathTools.Geometry;
 
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Sys.*;
+import gov.anl.ipns.MathTools.*;
 
 /**
  *  This class represents basic transformations of Vector3D objects, such
