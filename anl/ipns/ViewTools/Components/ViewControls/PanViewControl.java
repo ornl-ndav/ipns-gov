@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/18 01:00:54  millermi
+ *  - Changed CoordJPanel ObjectState key strings to keep consistent
+ *    with changes made to the CoordJPanel.
+ *
  *  Revision 1.2  2003/10/29 20:34:55  millermi
  *  -Added colorscale and logscale capabilities for the instances
  *   of ImageJPanels
@@ -93,6 +97,9 @@ public class PanViewControl extends ViewControl implements IPreserveState
   
   private CoordJPanel panel;           // replica of actual image
   private TranslationOverlay overlay;  // where the region outline is drawn.
+  // local bounds of the panel must be the same as global bounds, thus
+  // the local bounds must be saved separately.
+  private CoordBounds local_bounds = new CoordBounds();
   
  /**
   * Constructor for creating a thumbnail of the CoordJPanel passed in.
@@ -143,7 +150,7 @@ public class PanViewControl extends ViewControl implements IPreserveState
     {
       overlay.setObjectState( (ObjectState)temp );
       panel.setGlobalWorldCoords( overlay.getGlobalBounds() );
-      panel.setLocalWorldCoords( overlay.getLocalBounds() );
+      local_bounds = overlay.getLocalBounds();
       redraw = true;  
     }
     
@@ -152,7 +159,7 @@ public class PanViewControl extends ViewControl implements IPreserveState
     {
       panel.setObjectState( (ObjectState)temp );
       overlay.setGlobalBounds( panel.getGlobalWorldCoords() );
-      overlay.setLocalBounds( panel.getLocalWorldCoords() );
+      overlay.setLocalBounds( local_bounds );
       redraw = true;  
     } 
     
@@ -184,7 +191,7 @@ public class PanViewControl extends ViewControl implements IPreserveState
   */ 
   public CoordBounds getLocalBounds()
   {
-    return panel.getLocalWorldCoords();
+    return local_bounds;
   }  
   
  /**
@@ -195,8 +202,9 @@ public class PanViewControl extends ViewControl implements IPreserveState
   */ 
   public void setLocalBounds( CoordBounds lb )
   {
-    panel.setLocalWorldCoords( lb.MakeCopy() );
-    overlay.setLocalBounds( lb.MakeCopy() );
+    local_bounds = lb.MakeCopy();
+    overlay.setLocalBounds( local_bounds );
+    repaint();
   }  
   
  /**
@@ -212,13 +220,14 @@ public class PanViewControl extends ViewControl implements IPreserveState
   
  /**
   * Set the global bounds of the thumbnail. These bounds represent the entire 
-  * possible area viewable by the user. 
+  * possible area viewable by the user. If the global bounds are changed, the
+  * local bounds are reinitialized to the global bounds.
   *
   *  @param  gb Bounds of the viewable region.
   */ 
   public void setGlobalBounds( CoordBounds gb )
   {
-    panel.setGlobalWorldCoords( gb.MakeCopy() );
+    panel.initializeWorldCoords( gb.MakeCopy() );
     overlay.setGlobalBounds( gb.MakeCopy() );
   }
  
@@ -266,9 +275,9 @@ public class PanViewControl extends ViewControl implements IPreserveState
     //test.setLocalWorldCoords( new CoordBounds(50,50,100,100) );
     ObjectState teststate = new ObjectState();
     ObjectState superteststate = new ObjectState();
-    teststate.insert( CoordJPanel.GLOBAL_TRANSFORM,
+    teststate.insert( CoordJPanel.GLOBAL_BOUNDS,
                       new CoordTransform( globaltf ) );
-    teststate.insert( CoordJPanel.LOCAL_TRANSFORM,
+    teststate.insert( CoordJPanel.LOCAL_BOUNDS,
                       new CoordTransform( localtf ) );
     //test.setObjectState( teststate );
     superteststate.insert( PanViewControl.THUMBNAIL, teststate );
@@ -290,8 +299,7 @@ public class PanViewControl extends ViewControl implements IPreserveState
       String message = ae.getActionCommand(); 
       if( message.equals( TranslationJPanel.BOUNDS_CHANGED ) )
       {
-        //local_bounds = overlay.getLocalBounds();
-	panel.setLocalWorldCoords( overlay.getLocalBounds() );
+        local_bounds = overlay.getLocalBounds();
       }
       send_message(message);
     }
