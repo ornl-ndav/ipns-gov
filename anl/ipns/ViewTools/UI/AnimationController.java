@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2001/07/02 20:46:59  dennis
+ *  Added getFrameValue() method.
+ *
  *  Revision 1.5  2001/06/29 18:30:18  dennis
  *  Added getFrameNumber() method.
  *
@@ -269,6 +272,31 @@ public class AnimationController extends    JPanel
   public int getFrameNumber()
   {
     return frame_number;
+  }
+
+
+ /* ---------------------------- getFrameValue --------------------------- */
+ /**
+  *  Get the current frame value from the controller.
+  *
+  *  @return  the current frame value 
+  */
+  public float getFrameValue()
+  {
+    if ( frame_values        == null  || 
+         frame_values.length == 0     || 
+         frame_number >= frame_values.length   )
+    {
+      System.out.println("WARNING: no valid frame value in getFrameValue()" );
+      if ( frame_values == null )
+        System.out.println("frame_values == null");
+      else
+        System.out.println("frame_values.length = " + frame_values.length );
+      System.out.println("frame_number = " + frame_number );
+      return Float.NaN;
+    } 
+    else
+      return frame_values[ frame_number ];
   }
 
 
