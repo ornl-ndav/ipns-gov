@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2004/01/19 23:38:43  millermi
+ * - Fixed bug that caused file to be read into the array incorrectly.
+ *   Now the first element is read into array[NUM_ROWS-1][0].
+ * - Now checks if data exceeds array bounds, this prevents
+ *   ARRAY_OUT_OF_BOUNDS exception.
+ *
  * Revision 1.14  2004/01/09 21:08:17  dennis
  * Added cacluation of error estimates.
  *
@@ -131,12 +137,12 @@ import javax.swing.border.TitledBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.text.html.HTMLEditorKit;
 
+import DataSetTools.components.image.*;
+import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.TwoD.ImageViewComponent;
 import DataSetTools.components.View.OneD.FunctionViewComponent;
 import DataSetTools.components.View.Menu.MenuItemMaker;
 import DataSetTools.components.View.Menu.ViewMenuItem;
-import DataSetTools.components.image.*;
-import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.Transparency.SelectionOverlay;
 import DataSetTools.components.View.Region.*;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
@@ -150,14 +156,13 @@ import DataSetTools.util.SharedData;
 import DataSetTools.util.WindowShower;
 import DataSetTools.util.Format;
 import DataSetTools.util.IObserver;
+import DataSetTools.util.FontUtil;
 import DataSetTools.viewer.IViewManager;
 import DataSetTools.viewer.ViewManager;
-// these imports are for putting data into a dataset, then into DataSetData.
 import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.Data;
 import DataSetTools.dataset.FunctionTable;
 import DataSetTools.dataset.UniformXScale;
-import DataSetTools.util.FontUtil;
 import DataSetTools.dataset.Float1DAttribute;
 
 /**
@@ -190,15 +195,15 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   * the state was saved. The value this key references is of type
   * Dimension.
   */
-  public static final String VIEWER_SIZE           = "ViewerSize"; 
+  public static final String VIEWER_SIZE           = "Viewer Size"; 
   
  /**
-  * "DataDirectory" - This constant String is a key for referencing
+  * "Data Directory" - This constant String is a key for referencing
   * the state information about the location of the data files being
   * loaded by this viewer. The value this key references is of type
   * String.
   */
-  public static final String DATA_DIRECTORY        = "DataDirectory";
+  public static final String DATA_DIRECTORY        = "Data Directory";
   
   private static JFrame helper = null;
   
@@ -212,8 +217,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient DataSet data_set;
   private String projectsDirectory = SharedData.getProperty("Data_Directory");
   private transient SANDEditor editor = new SANDEditor();
-  private transient CoordTransform world_image_tran = new CoordTransform();
-  private ViewManager oldview;
+  private transient CoordTransform image_to_world_tran = new CoordTransform();
+  private transient ViewManager oldview;
 
  /**
   * Construct a frame with no data to start with. This constructor will be
@@ -356,8 +361,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   {
     int NUM_ROWS = 200;
     int NUM_COLS = 200;
-    float[][] array     = new float[NUM_COLS][NUM_ROWS];
-    float[][] err_array = new float[NUM_COLS][NUM_ROWS];
+    float[][] array     = new float[NUM_ROWS][NUM_COLS];
+    float[][] err_array = new float[NUM_ROWS][NUM_COLS];
     float qxmin = 0;
     float qymin = 0;
     float qxmax = 0;
@@ -365,44 +370,49 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     // try to open the file
     try
     {
-      int row = 0;
+      int row = NUM_ROWS - 1;
       int col = 0;
       // file arranged in 4 columns: Qx, Qy, Value, Error
       // Since we only care about the min and max of Qx, Qy, only the first
-      // and last values in those columns are saved. The Value column is all
-      // stored in the array, the Error column is ignored.
+      // and last values in those columns are saved. The Value and Error columns
+      // are each stored in a separate 2-D array.
       TextFileReader reader = new TextFileReader( filename );
       // read in first line, this will set the Qx/Qy min and read in
       // the first value.
       StringTokenizer datarow = new StringTokenizer(reader.read_line());
       qxmin = (new Float( datarow.nextToken() )).floatValue();
       qymin = (new Float( datarow.nextToken() )).floatValue();
-      array[col][row]     = (new Float( datarow.nextToken() )).floatValue();
-      err_array[col][row] = (new Float( datarow.nextToken() )).floatValue();
+      array[row][col]     = (new Float( datarow.nextToken() )).floatValue();
+      err_array[row][col] = (new Float( datarow.nextToken() )).floatValue();
     
-      col++;  // increment row since first element was read in.
+      row--;  // decrement row since first element was read in.
       // let the exception EOF end the loop.
       while( true )
       {
 	// now read in the data one row at a time, each row contains a
 	// Qx, Qy, Value, and Error value. Store the Values in the array
-	// by column instead of row.
+	// by column instead of row, starting at lower left-hand corner of
+	// array, and ending in upper right-hand corner.
         datarow = new StringTokenizer(reader.read_line());
         qxmax = (new Float( datarow.nextToken() )).floatValue();
         qymax = (new Float( datarow.nextToken() )).floatValue();
-        array[col][row] = (new Float( datarow.nextToken() )).floatValue();
-        err_array[col][row] = (new Float( datarow.nextToken() )).floatValue();
+        array[row][col] = (new Float( datarow.nextToken() )).floatValue();
+        err_array[row][col] = (new Float( datarow.nextToken() )).floatValue();
 	//System.out.println("Row/Col: (" + row + "," + col + ")" );
 	
 	// increment column if at last row, reset row to start.
 	// this will cause the numbers to be read in by column
-	if( col == NUM_COLS - 1 )
+	if( row == 0 )
         {
-          col = 0;
-	  row++;
+          row = NUM_ROWS - 1;
+	  col++;
         }
+	// increment rows so data is read in by column
         else
-          col++;
+          row--;
+	// if file is larger than 200x200, artificially throw the EOF exception
+        if( col == NUM_COLS )
+	  throw new IOException("End of file");
       } // end while
     }
     // either end of file or no file found
@@ -411,11 +421,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       // done reading file
       if( e1.getMessage().equals("End of file") )
       {
-	// set the source of the world_image transform
+	// set the source of the image_to_world transform
         // y min/max are swapped since IVC swaps them.
-        world_image_tran.setDestination( qxmin, qymax, qxmax, qymin );
-	world_image_tran.setSource( 0.001f, 0.001f, array[0].length-0.001f,
-				    array.length-0.001f );
+        image_to_world_tran.setDestination( qxmin, qymax, qxmax, qymin );
+	image_to_world_tran.setSource( 0.001f, 0.001f, array[0].length-0.001f,
+				       array.length-0.001f );
         VirtualArray2D va2D = new VirtualArray2D( array );
         va2D.setAxisInfo( AxisInfo.X_AXIS, qxmin, qxmax, 
     		            "Qx","(Inverse Angstroms)", true );
@@ -517,12 +527,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       AxisInfo xinfo = iva.getAxisInfo( AxisInfo.X_AXIS );
       AxisInfo yinfo = iva.getAxisInfo( AxisInfo.Y_AXIS );
       // y min/max are swapped since IVC swaps them.
-      world_image_tran.setDestination( new CoordBounds( xinfo.getMin(),
-						        yinfo.getMax(),      
-						        xinfo.getMax(),
-						        yinfo.getMin() ) );
-      world_image_tran.setSource( 0.001f, 0.001f, iva.getNumColumns()-0.001f,
-				    iva.getNumRows()-0.001f );
+      image_to_world_tran.setDestination( new CoordBounds( xinfo.getMin(),
+						           yinfo.getMax(),      
+						           xinfo.getMax(),
+						           yinfo.getMin() ) );
+      image_to_world_tran.setSource( 0.001f, 0.001f,
+                                     iva.getNumColumns()-0.001f,
+				     iva.getNumRows()-0.001f );
     }
     data = new VirtualArray2D(1,1);
     buildMenubar();
@@ -673,7 +684,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     if( data == null )
     {
       JMenu option_menu = menu_bar.getMenu(1);
-      //option_menu.getItem(0).setEnabled(false);
+      option_menu.getItem(0).setEnabled(false);
       option_menu.getItem(1).setEnabled(false);
       option_menu.getItem(2).setEnabled(false);
     }
@@ -790,8 +801,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       if( axisangle >= 360 )
         axisangle -= 360;
       // tranform from image to world coords
-      floatPoint2D wc_center = world_image_tran.MapTo(center);
-      float radius = world_image_tran.MapXTo(def_pts[4].x) - wc_center.x;
+      floatPoint2D wc_center = image_to_world_tran.MapTo(center);
+      float radius = image_to_world_tran.MapXTo(def_pts[4].x) - wc_center.x;
       // keep radius positive.
       radius = Math.abs(radius);
       // round number to 5 digits.
@@ -821,8 +832,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       if( axisangle >= 360 )
         axisangle -= 360;
       // tranform from image to world coords
-      floatPoint2D wc_center = world_image_tran.MapTo(center);
-      float radius = world_image_tran.MapXTo(def_pts[4].x) - wc_center.x;
+      floatPoint2D wc_center = image_to_world_tran.MapTo(center);
+      float radius = image_to_world_tran.MapXTo(def_pts[4].x) - wc_center.x;
       // keep radius positive.
       radius = Math.abs(radius);
       // round number to 5 digits.
@@ -845,9 +856,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       // build attributes list
       attribute_name = SelectionJPanel.ELLIPSE;
       // tranform from image to world coords
-      floatPoint2D wc_center = world_image_tran.MapTo(center);
-      float major_radius = world_image_tran.MapXTo(def_pts[1].x) - wc_center.x;
-      float minor_radius = world_image_tran.MapYTo(def_pts[1].y) - wc_center.y;
+      floatPoint2D wc_center = image_to_world_tran.MapTo(center);
+      float major_radius = image_to_world_tran.MapXTo(def_pts[1].x) - 
+                           wc_center.x;
+      float minor_radius = image_to_world_tran.MapYTo(def_pts[1].y) - 
+                           wc_center.y;
       // keep radii positive.
       major_radius = Math.abs(major_radius);
       minor_radius = Math.abs(minor_radius);
@@ -876,9 +889,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       // build attributes list
       attribute_name = SelectionJPanel.RING;
       // tranform from image to world coords
-      floatPoint2D wc_center = world_image_tran.MapTo(center);
-      float inner_radius = world_image_tran.MapXTo(def_pts[2].x) - wc_center.x;
-      float outer_radius = world_image_tran.MapYTo(def_pts[4].x) - wc_center.x;
+      floatPoint2D wc_center = image_to_world_tran.MapTo(center);
+      float inner_radius = image_to_world_tran.MapXTo(def_pts[2].x) -
+                           wc_center.x;
+      float outer_radius = image_to_world_tran.MapYTo(def_pts[4].x) -
+                           wc_center.x;
       // keep radii positive.
       inner_radius = Math.abs(inner_radius);
       outer_radius = Math.abs(outer_radius);
@@ -954,8 +969,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
    
     
     start_point = new floatPoint2D( center.x, center.y );
-    start_point = world_image_tran.MapTo( start_point ); 
-    end_point   = world_image_tran.MapTo( end_point ); 
+    start_point = image_to_world_tran.MapTo( start_point ); 
+    end_point   = image_to_world_tran.MapTo( end_point ); 
 
     float new_start_x = start_point.magnitude(); 
     float new_end_x   = end_point.magnitude(); 
@@ -1104,7 +1119,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         //fvc.dataChanged(new DataSetData(data_set));
 	if( oldview != null )
 	{
-	  oldview.setDataSet( data_set );
+	  //oldview.setDataSet( data_set );
 	  oldview.update(data_set, IObserver.DATA_CHANGED);
 	}
 	editor.selectionChanged();
@@ -1115,7 +1130,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         //fvc.dataChanged(new DataSetData(data_set));
 	if( oldview != null )
 	{
-	  oldview.setDataSet( data_set );
+	  //oldview.setDataSet( data_set );
 	  oldview.update(data_set, IObserver.DATA_CHANGED);
 	}
 	editor.selectionChanged();
