@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2004/02/27 23:58:23  millermi
+ * - Added "New Data" to File menu to test if data is updated
+ *   when new data is passed into the ImageViewComponent
+ *   via the dataChanged(new_array) method.
+ *
  * Revision 1.15  2004/02/19 23:24:55  millermi
  * - Added preserveAspectRatio() to ImageViewComponent,
  *   the image dimensions are now similar to that of the selected
@@ -127,6 +132,7 @@ import java.util.Vector;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -179,7 +185,9 @@ public class IVCTester extends JFrame implements IPreserveState,
     Vector new_menu = new Vector();
     Vector save_menu = new Vector();
     Vector load_menu = new Vector();
+    Vector new_data  = new Vector();
     Vector listeners = new Vector();
+    listeners.add( new ImageListener() );
     listeners.add( new ImageListener() );
     listeners.add( new ImageListener() );
     listeners.add( new ImageListener() );
@@ -191,6 +199,8 @@ public class IVCTester extends JFrame implements IPreserveState,
       save_menu.add("Save State");
     file.add(load_menu);
       load_menu.add("Load State");
+    file.add(new_data);
+      new_data.add("New Data");
     
     menu_bar.add( MenuItemMaker.makeMenuItem(file,listeners) ); 
     menu_bar.add(new JMenu("Options"));
@@ -335,8 +345,11 @@ public class IVCTester extends JFrame implements IPreserveState,
       spacer.setPreferredSize( new Dimension(0, 10000) );
       controls.add(spacer);
       //controls.addComponentListener( new ResizedPaneListener() );
+      JPanel image_holder = new JPanel();
+      image_holder.setLayout( new GridLayout(1,1) );
+      image_holder.add( ivc.getDisplayPanel() );
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
-    				    ivc.getDisplayPanel(),
+    				    image_holder,
     				    controls, .75f );
       // get menu items from view component and place it in a menu
       ViewMenuItem[] menus = ivc.getSharedMenuItems();
@@ -385,6 +398,22 @@ public class IVCTester extends JFrame implements IPreserveState,
 	state.openFileChooser(false);
 	setObjectState(state);
       }
+      else if( ae.getActionCommand().equals("New Data") )
+      {
+        int row = 200;
+    	int col = 300;
+    	float test_array[][] = new float[row][col];
+    	for ( int i = 0; i < row; i++ )
+    	  for ( int j = 0; j < col; j++ )
+    	    test_array[i][j] = i * j;
+	IVirtualArray2D va2D = new VirtualArray2D( test_array );
+    	va2D.setAxisInfo( AxisInfo.X_AXIS, -100f, 100f, 
+    			    "New X","New Units", true );
+    	va2D.setAxisInfo( AxisInfo.Y_AXIS, -150f, 150f,     
+     			   "New Y","New Y Units", true );
+        va2D.setTitle("New IVC Test");
+	ivc.dataChanged(va2D);
+      }
     }
   }
   
@@ -426,7 +455,7 @@ public class IVCTester extends JFrame implements IPreserveState,
   public static void main( String args[] )
   {
     int row = 200;
-    int col = 300;
+    int col = 200;
     float test_array[][] = new float[row][col];
     for ( int i = 0; i < row; i++ )
       for ( int j = 0; j < col; j++ )
