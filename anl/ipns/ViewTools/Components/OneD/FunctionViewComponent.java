@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2003/08/06 16:26:13  serumb
+ *  Function controls will not close when pointed at changes.
+ *
  *  Revision 1.18  2003/08/05 23:24:31  serumb
  *  Now check for linear and log axes.
  *
@@ -378,8 +381,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       gjp.setErrors( Varray1D.getErrorValues( i ), 0, i, true );
     }
 */
-       gjp.clearData();
-       mainControls.close_frame();
        DrawSelectedGraphs();
        if(draw_pointed_at)
        DrawPointedAtGraph();
