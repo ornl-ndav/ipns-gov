@@ -30,6 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/07/16 14:24:02  dennis
+ * The Draw() method now calls gl.glEnable( GL.GL_NORMALIZE ) to
+ * have OpenGL change all normals to unit length after scaling and
+ * other transformations.  This fixes a problem where the color of
+ * the text would change when moving to different viewpoints.
+ *
  * Revision 1.2  2004/07/15 19:27:26  dennis
  * Added axis label and methods to individually change the character size,
  * axis position, tick mark direction, text alignment, etc.  Also added
@@ -413,19 +419,8 @@ public class Axis extends GL_Shape
    */
   protected void Draw( GLDrawable drawable )
   {
-    if ( tick_labels != null )
-      for ( int i = 0; i < tick_labels.length; i++ )
-      {
-        if ( tick_labels[i] != null )
-          tick_labels[i].Draw( drawable ); // NOTE: Draw() method can only have
-      }                                    //       methods callable inside of
-                                           //       glNewList() and glEndList(),
-                                           //       so we must call Draw() here,
-                                           //       NOT Render()
-    if ( axis_label != null )
-      axis_label.Draw( drawable );
-
     GL gl = drawable.getGL();
+    gl.glEnable( GL.GL_NORMALIZE );
     if ( p1 != null && p2 != null )
     {
       float pt[];
@@ -439,6 +434,19 @@ public class Axis extends GL_Shape
         }
       gl.glEnd();
     }
+
+    if ( tick_labels != null )
+      for ( int i = 0; i < tick_labels.length; i++ )
+      {
+        if ( tick_labels[i] != null )
+          tick_labels[i].Draw( drawable ); // NOTE: Draw() method can only have
+      }                                    //       methods callable inside of
+                                           //       glNewList() and glEndList(),
+                                           //       so we must call Draw() here,
+                                           //       NOT Render()
+    if ( axis_label != null )
+      axis_label.Draw( drawable );
+    gl.glDisable( GL.GL_NORMALIZE );
   }
 
 
@@ -502,6 +510,8 @@ public class Axis extends GL_Shape
       text_position.add( tick_end );
 
       StrokeText text = new StrokeText( ""+div_points[i], font );
+      float yellow[] = { 0.7f, 0.7f, 0 };
+      text.setColor( yellow );
       text.setPosition( text_position );
       text.setHeight( char_height );
       if ( alignment == TOP )
