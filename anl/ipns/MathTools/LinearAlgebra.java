@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.21  2004/03/06 21:57:45  dennis
+ *  Fixed error in calculation of inverse matrix sizes > 3x3.
+ *
  *  Revision 1.20  2003/10/15 23:59:02  dennis
  *  Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -105,6 +108,7 @@
 package DataSetTools.math;
 
 import DataSetTools.util.*;
+import java.util.*;
 import Jama.*;
 
 /**
@@ -185,6 +189,7 @@ public final class LinearAlgebra
 
     int size=A.length;
     double[][] invA=new double[size][size];
+
     double detA=Double.NaN;
 
                                      // check for small matrices
@@ -219,26 +224,30 @@ public final class LinearAlgebra
         return invA;
       }
     }
- 
-    // put the identity matrix in temp[][]
-    for ( int i = 0; i < size; i++ )
-      invA[i][i] = 1;
 
     double u[][] = QR_factorization( A );
 
-    double result;                       // now calculate the inverse by 
-    for ( int i = 0; i < size; i++ )     // solving the equations Ax = invA[i]
-    {
-      result = QR_solve( A, u, invA[i] );
+    double b[] = new double[size];
+    double result;                      // now calculate the inverse by 
+    for ( int i = 0; i < size; i++ )    // solving the equations Ax = b where b
+    {                                   // is given the columns of the identity
+      for ( int k = 0; k < size; k++ )
+        b[k] = 0;
+      b[i] = 1;
+ 
+      result = QR_solve( A, u, b );
       if ( Double.isNaN( result ) )
         return null;
+
+      for ( int k = 0; k < size; k++ )
+        invA[k][i] = b[k]; 
     }
 
     return invA;
   }
 
   /**
-   * Determines a square matrix A[][] with it's inverse, if
+   * Replaces a square matrix A[][] with it's inverse, if
    * possible.
    *
    * @param A the square matrix to invert.
@@ -947,12 +956,36 @@ public final class LinearAlgebra
      System.out.println("" + matrix[1][0] + "  " + matrix[1][1] );
      System.out.println();
 
-     ElapsedTime timer = new ElapsedTime();
+     Random rand = new Random();
      double  mat[][] = new double[3][3];
      for ( int i = 0; i < 3; i++ )
-       mat[i][i] = i+2;
+       for ( int j = 0; j < 3; j++ )
+         mat[i][j] = rand.nextDouble();
+
+     System.out.println("\n 3x3 matrix is : " );
+     LinearAlgebra.print(mat);
+
+     mat = getInverse(mat);
+     System.out.println("\n 3x3 inverse matrix is : " );
+     LinearAlgebra.print(mat);
+
+
+     int N = 4;
+     double  matN[][] = new double[N][N];
+     for ( int i = 0; i < N; i++ )
+       for ( int j = 0; j < N; j++ )
+         matN[i][j] = rand.nextDouble();
+
+     System.out.println("\n N = " + N );
+     System.out.println("NxN matrix is : " );
+     LinearAlgebra.print(matN);
+
+     matN = getInverse(matN);
+     System.out.println("\n NxN inverse matrix is : " );
+     LinearAlgebra.print(matN);
 
      int n_calcs = 1000000;
+     ElapsedTime timer = new ElapsedTime();
      timer.reset(); 
      for ( int i = 0; i < n_calcs; i++ )
         mat = getInverse(mat);
