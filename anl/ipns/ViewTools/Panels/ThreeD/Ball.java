@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2003/07/14 13:47:28  dennis
+ * Now uses 8 vertices of a cube centered around the specified center,
+ * so the average position of the vertices matches the specified center.
+ *
  * Revision 1.2  2002/11/27 23:12:52  pfpeterson
  * standardized header
  *
@@ -75,13 +79,17 @@ public class Ball  extends     ThreeD_Object
                                     // of the ball, based on three adjacent
                                     // points.
     float coords[] = center.get();
-    vertices = new Vector3D[4];
-    vertices[0] = new Vector3D( center );
-    vertices[1] = new Vector3D( coords[0]+radius, coords[1], coords[2] );
-    vertices[2] = new Vector3D( coords[0], coords[1]+radius, coords[2] );
-    vertices[3] = new Vector3D( coords[0], coords[1], coords[2]+radius );
-    x = new float[4]; 
-    y = new float[4]; 
+    vertices = new Vector3D[8];
+    vertices[0] = new Vector3D( coords[0]+radius/2, coords[1]+radius/2, coords[2]-radius/2 );
+    vertices[1] = new Vector3D( coords[0]-radius/2, coords[1]+radius/2, coords[2]-radius/2 );
+    vertices[2] = new Vector3D( coords[0]-radius/2, coords[1]-radius/2, coords[2]-radius/2 );
+    vertices[3] = new Vector3D( coords[0]+radius/2, coords[1]-radius/2, coords[2]-radius/2 );
+    vertices[4] = new Vector3D( coords[0]+radius/2, coords[1]+radius/2, coords[2]+radius/2 );
+    vertices[5] = new Vector3D( coords[0]-radius/2, coords[1]+radius/2, coords[2]+radius/2 );
+    vertices[6] = new Vector3D( coords[0]-radius/2, coords[1]-radius/2, coords[2]+radius/2 );
+    vertices[7] = new Vector3D( coords[0]+radius/2, coords[1]-radius/2, coords[2]+radius/2 );
+    x = new float[8]; 
+    y = new float[8]; 
   }
 
   /**
