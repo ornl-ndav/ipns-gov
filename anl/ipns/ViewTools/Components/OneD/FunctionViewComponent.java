@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.57  2004/07/02 19:24:36  serumb
+ *  Moved the Function Controls and Pointed At Checkboxes to the options menu.
+ *
  *  Revision 1.56  2004/06/17 16:45:17  serumb
  *  Repainted the components after zoom.
  *
@@ -808,17 +811,17 @@ public class FunctionViewComponent implements IViewComponent1D,
   }
 
   public ViewControl[] getControls(  ) {
-   // if no 
+ /*  // if no 
    if( Varray1D.getNumGraphs(  ) < 1 )
      return new ViewControl[0];
     //System.out.println("");
    ViewControl[] Res = new ViewControl [2];
-   /*
+   /
    JPanel test_p = new JPanel();
    JLabel test_l = new JLabel("Graph View");
    test_p.add(test_l);
    Res[0] = test_p;
-   */
+   /
    Res[0] = control_box;
    ((ControlCheckbox)Res[0]).setText("Function Controls");
    ((ControlCheckbox)Res[0]).addActionListener( new ControlListener() );
@@ -830,14 +833,27 @@ public class FunctionViewComponent implements IViewComponent1D,
    // Res[0]   =  mainControls.get_panel().getPanel();
 
     return Res;
-
-    // return new JComponent[0];
+*/
+     return new ViewControl[0];
   }
 
   public ViewMenuItem[] getMenuItems(  ) {
-    //System.out.println( "" );
+   
+   if( Varray1D.getNumGraphs(  ) < 1 )
+     return new ViewMenuItem[0];
+   
+   ViewMenuItem[] Res = new ViewMenuItem [2];
+   
+   Res[0] = new ViewMenuItem(new JCheckBoxMenuItem("Function Controls"));
+   (Res[0]).addActionListener( new ControlListener() );
 
-    return new ViewMenuItem[0];
+   Res[1] = new ViewMenuItem (new JCheckBoxMenuItem("Show Pointed At"));
+   ((JCheckBoxMenuItem)Res[1].getItem()).setState(true);
+   (Res[1]).addActionListener( new ControlListener() );
+
+   return Res;
+
+    //return new ViewMenuItem[0];
   }
 
   /**
@@ -1137,8 +1153,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
 
-     // System.out.println( "action command: " + message );
-     // System.out.println( "action event: " + ae );
+      //System.out.println( "action command: " + message );
+      //System.out.println( "action event: " + ae );
       if( message.equals( ControlCheckbox.CHECKBOX_CHANGED ) ) {
         ControlCheckbox control = ( ControlCheckbox )ae.getSource(  );
         
@@ -1163,7 +1179,30 @@ public class FunctionViewComponent implements IViewComponent1D,
            
         }
         
-      }    
+      }
+      else if( message.equals(".Function Controls"))
+      {  
+         JMenuItem theItem = ((ViewMenuItem)ae.getSource()).getItem();
+         if (((JCheckBoxMenuItem)theItem).getState())
+           mainControls.display_controls();
+         else{
+            mainControls.close_frame();
+            control_box.setSelected(false);
+         }  
+      }  
+      else if( message.equals(".Show Pointed At"))
+      {
+         JMenuItem theItem = ((ViewMenuItem)ae.getSource()).getItem();
+         if (((JCheckBoxMenuItem)theItem).getState()){
+           draw_pointed_at = true;
+           gjp.setTransparent(false, 0, true);
+         }
+         else{
+         gjp.setTransparent(true, 0, true);
+            draw_pointed_at = false;
+         }
+         paintComponents(big_picture.getGraphics());  
+      }  
     }
   }
     private class FrameListener extends WindowAdapter  {
