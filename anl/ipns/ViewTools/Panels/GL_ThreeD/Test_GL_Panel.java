@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/07/14 16:42:20  dennis
+ * Added test of Polymarker() shape.
+ *
  * Revision 1.6  2004/06/18 19:57:10  dennis
  * Imports newly created subpackages
  *
@@ -312,6 +315,30 @@ public class Test_GL_Panel
            obj_0.setTransparency(1);
           panel2.setObject( "Corner Cube " + pick_id, obj_0 );
         }
+
+    Vector3D marks[] = { new Vector3D( -1, -1, 0 ), 
+                         new Vector3D( -1,  1, 0 ),
+                         new Vector3D(  1, -1, 0 ),
+                         new Vector3D(  1,  1, 0 )  };
+
+    Vector3D shift = new Vector3D( 0, 0, 1 );                        
+    Polymarker marker;
+    for ( int type = Polymarker.DOT; type <= Polymarker.CROSS; type++ )
+    {
+      for ( int i = 0; i < marks.length; i++ )
+        marks[i].add( shift );
+
+      if ( type == Polymarker.DOT )
+        marker = new Polymarker( marks, type, 4 );
+      else
+        marker = new Polymarker( marks, type, 0.25f );
+      if ( type % 2 == 1 )
+        marker.setColor( red );
+      else
+        marker.setColor( green );
+
+      panel2.setObject( ("Markers " + type ), marker ); 
+    }
 
     c_listener = new ViewControlListener(panel2);
     panel2.setCOP(cop);
