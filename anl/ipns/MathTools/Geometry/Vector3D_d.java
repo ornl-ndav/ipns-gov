@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/07/23 13:04:42  dennis
+ * Added method getCopy() to  get a copy of the array of values defining
+ * this vector.  (The get() method gets a reference to the array.)
+ *
  * Revision 1.6  2004/07/14 16:24:38  dennis
  * Added convenience method, distance(v), to calculate the distance from
  * the current vector to the specified vector, v.
@@ -245,7 +249,7 @@ public class Vector3D_d
 
   /*------------------------------- get ---------------------------------*/
   /**
-   *  Set a reference to the 4 dimensional array containing the x, y, z, h
+   *  Get a reference to the 4 dimensional array containing the x, y, z, h
    *  coordinates for this vector.
    *
    *  return reference to the 4D array containing the coordinates for this
@@ -254,6 +258,25 @@ public class Vector3D_d
   public double[] get()
   {
     return v;
+  }
+
+
+  /*---------------------------- getCopy ---------------------------------*/
+  /**
+   *  Get a copy of the 4 dimensional array containing the x, y, z, h
+   *  coordinates for this vector.
+   *
+   *  return a copy of the 4D array containing the coordinates for this
+   *         vector.
+   */
+  public double[] getCopy()
+  {
+    double copy[] = new double[4];
+    copy[0] = v[0];
+    copy[1] = v[1];
+    copy[2] = v[2];
+    copy[3] = v[3];
+    return copy;
   }
 
 
