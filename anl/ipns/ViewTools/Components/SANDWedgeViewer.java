@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2004/01/20 00:59:59  millermi
+ * - Since Save is not yet implemented, added information in
+ *   the help menu to help users find the save option.
+ *
  * Revision 1.15  2004/01/19 23:38:43  millermi
  * - Fixed bug that caused file to be read into the array incorrectly.
  *   Now the first element is read into array[NUM_ROWS-1][0].
@@ -333,13 +337,21 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         	" SWV features the ability to make four selections: Wedge, " +
     		"Double Wedge, Annular, and Ellipse. Once a " +
     		"selection is made on the image, the graph will display " +
-		"the intensity values per hit as a function of distance a " +
+		"the intensity values per hit as a function of distance " +
 		"in Q. Selections can be made in two ways: <BR>" +
 		"1. Graphically using the SelectionOverlay<BR>" +
 		"2. Entering defining information by pressing the Manual " +
 		"Selection button.</P>" + 
 		"<H2>Commands for SWV</H2>" +
-                "<P>Note:<BR>" +
+                "<P> <I>ATTENTION: Selections must be made before using the " +
+		"Table View or saving results to file. </I><BR><BR> " +
+		"SAVE RESULTS TO FILE: To save the Q , Intensity, and " +
+		"Error to file, Go to the SWV's Options Menu. Click on " +
+		"\"View Results\", the \"Intensity vs Q\" window will " +
+		"appear. Click on View>Table Generator. Select and add X " +
+		"values, Y values, and Error values. To view the table, " +
+		"press Make a Table, to save, press Save to File<BR>" +
+		"<BR>Note:<BR>" +
         	"Detailed commands can be found under the Overlay help " +
         	"menu.</P>";
     textpane.setText(text);
