@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/07/05 19:48:40  dennis
+ *  - Now implements ILogAxisAddible2D
+ *  - Added methods getDataMin() and getDataMax().
+ *  (Mike Miller)
+ *
  *  Revision 1.1  2003/06/18 13:38:33  dennis
  *  (Mike Miller)
  *  - Initial version of interface that extends IAxisAddible2D to also
@@ -49,7 +54,7 @@ import java.awt.event.ActionListener;
  * This interface is implemented by view components that utilize the 
  * ControlColorScale with calibrations. 
  */
-public interface IColorScaleAddible extends IAxisAddible2D
+public interface IColorScaleAddible extends ILogAxisAddible2D
 {
   /**
    * This method returns the color scale of the center image. 
@@ -63,9 +68,14 @@ public interface IColorScaleAddible extends IAxisAddible2D
    public void addActionListener( ActionListener a );
    
   /**
-   * This method will get the current log scale value for the imagejpanel.
-   */ 
-   public double getLogScale();
+   * This method will get the current data minimum from the component.
+   */    
+   public float getDataMin();
+   
+  /**
+   * This method will get the current data maximum from the component.
+   */    
+   public float getDataMax();
 }
 
 
