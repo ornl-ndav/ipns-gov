@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/08/04 18:53:19  millermi
+ *  - Added enableStretch() and isStretchEnabled() to turn resizing
+ *    of the viewport on/off.
+ *  - Now listens for new String messages sent by TranslationJPanel.
+ *
  *  Revision 1.12  2004/05/20 03:24:11  millermi
  *  - Removed unused private methods and imports.
  *
@@ -188,6 +193,26 @@ public class TranslationOverlay extends OverlayJPanel
     WindowShower shower = new WindowShower(helper);
     java.awt.EventQueue.invokeLater(shower);
     shower = null;
+  }
+  
+ /**
+  * Use this method to enable/disable the stretching ability of the viewport.
+  *
+  *  @param  can_stretch True to enable stretching, false to disable.
+  */ 
+  public void enableStretch( boolean can_stretch )
+  {
+    tjp.enableStretch(can_stretch);
+  }
+  
+ /**
+  * Use this method to find out if stretching is enabled.
+  *
+  *  @return True is enabled, false if disabled.
+  */
+  public boolean isStretchEnabled()
+  {
+    return tjp.isStretchEnabled();
   }
  
  /**
@@ -361,7 +386,9 @@ public class TranslationOverlay extends OverlayJPanel
     {
       String message = ae.getActionCommand(); 
       // clear all selections from the vector
-      if( message.equals( TranslationJPanel.BOUNDS_CHANGED ) )
+      if( message.equals(TranslationJPanel.BOUNDS_CHANGED) ||
+          message.equals(TranslationJPanel.BOUNDS_MOVED) ||
+	  message.equals(TranslationJPanel.BOUNDS_RESIZED) )
       {
 	Rectangle box = ((BoxPanCursor)tjp.getBoxCursor()).region();
         Point p1 = new Point( box.getLocation() );
