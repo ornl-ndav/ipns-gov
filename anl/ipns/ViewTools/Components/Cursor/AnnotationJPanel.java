@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/08/14 17:08:32  millermi
+ *  - Use "Shift" instead of "N" to draw lines. This prevents problems that
+ *    happen if the user releases the mouse button before the key.
+ *
  *  Revision 1.3  2003/08/11 23:48:07  millermi
  *  - Changed remove all from double click with A down, to single click
  *    with A down
@@ -73,7 +77,7 @@ public class AnnotationJPanel extends ActiveJPanel
 
    private LineCursor cursor;
    private boolean isAdown;        // true if A is pressed
-   private boolean isNdown;        // true if N is pressed
+   private boolean isShiftdown;        // true if N is pressed
    private boolean doing_line;     // true if line started
    
   /**
@@ -83,7 +87,7 @@ public class AnnotationJPanel extends ActiveJPanel
    public AnnotationJPanel()
    { 
       isAdown = false;
-      isNdown = false;
+      isShiftdown = false;
       
       doing_line = false;
       
@@ -160,8 +164,8 @@ public class AnnotationJPanel extends ActiveJPanel
 
 	 if( code == KeyEvent.VK_A )
 	    isAdown = true; 
-	 if( code == KeyEvent.VK_N )
-	    isNdown = true;	 
+	 if( e.isShiftDown() )
+	    isShiftdown = true;	 
       }
       
       public void keyReleased( KeyEvent ke )
@@ -172,8 +176,8 @@ public class AnnotationJPanel extends ActiveJPanel
 
 	 if( code == KeyEvent.VK_A )
 	    isAdown = false; 
-	 if( code == KeyEvent.VK_N )
-	    isNdown = false;    
+	 //if( ke.isShiftDown() )
+	    isShiftdown = false;    
       }
    }
   
@@ -198,7 +202,7 @@ public class AnnotationJPanel extends ActiveJPanel
 
 	 if( isAdown )
 	    send_message(RESET_NOTE);
-         if( isNdown )
+         if( isShiftdown )
 	    set_cursor( e.getPoint() );	       
       }
 
