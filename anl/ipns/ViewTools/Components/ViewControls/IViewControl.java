@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/12 01:49:22  millermi
+ *  - Changed package and fixed imports.
+ *
  *  Revision 1.6  2004/01/30 22:11:12  millermi
  *  - Removed messaging Strings from interface and into respective
  *    implementing classes that actually send out the message.
@@ -60,12 +63,12 @@
  *
  */
  
- package DataSetTools.components.View.ViewControls;
+ package gov.anl.ipns.ViewTools.Components.ViewControls;
 
  import java.awt.event.ActionListener;
  
- import DataSetTools.components.View.ObjectState;
- import DataSetTools.components.View.IPreserveState;
+ import gov.anl.ipns.ViewTools.Components.ObjectState;
+ import gov.anl.ipns.ViewTools.Components.IPreserveState;
  
 /**
  * Any class that implements this interface will be used to adjust
