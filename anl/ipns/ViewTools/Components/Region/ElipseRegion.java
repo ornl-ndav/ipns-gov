@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/26 01:57:44  millermi
+ *  - Improved selection process.
+ *
  *  Revision 1.2  2003/10/22 20:26:09  millermi
  *  - Fixed java doc errors.
  *
@@ -48,7 +51,8 @@ package DataSetTools.components.View.Region;
 
 import java.awt.Point;
 import java.util.Vector;
- 
+
+import DataSetTools.util.floatPoint2D;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
 
 /**
@@ -87,26 +91,54 @@ public class ElipseRegion extends Region
      Point bottomright = new Point( definingpoints[1] );
      double xextent = (double)(bottomright.x - topleft.x)/2;
      double yextent = (double)(bottomright.y - topleft.y)/2;
-     Point center = new Point( (int)(topleft.x + Math.round(xextent)),
-                               (int)(topleft.y + Math.round(yextent)) );
-     
-     //square the extents for comparison later
-     xextent = Math.pow(xextent,2);
-     yextent = Math.pow(yextent,2);
+     floatPoint2D center = new floatPoint2D( (float)(topleft.x + xextent),
+                               (float)(topleft.y + yextent) );
      
      Vector points = new Vector();
      
-     // using formula for elipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
-     // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
-     for( int y = topleft.y; y <= bottomright.y; y++ )
-       for( int x = topleft.x; x <= bottomright.x; x++ )
+     // if only one pixel is selected by the circle, for low resolution.
+     if( xextent == 0 && yextent == 0 )
+       points.add( new Point( (int)(center.x + .5), (int)(center.y + .5) ) );
+     // if one pixel in x, and more than one in y is selected
+     else if( xextent == 0 )
+     {
+       for( int y = topleft.y; y <= bottomright.y; y++ ) 
+         points.add( new Point( topleft.x, y ) );
+     }
+     // if one pixel in y, and more than one in x is selected
+     else if( yextent == 0 )
+     {
+       for( int x = topleft.x; x <= bottomright.x; x++ ) 
+         points.add( new Point( x, topleft.y ) );
+       
+     }
+     // large region, more than one pixel in both x and y
+     else
+     {
+       double dist = 0;
+       double xdiff = 0;
+       double ydiff = 0;
+       // using formula for elipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
+       // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
+       for( int y = topleft.y; y <= bottomright.y; y++ )
        {
-         double dist = Math.pow((x - center.x),2)/xextent + 
-	               Math.pow((y - center.y),2)/yextent;
-	 //System.out.println("(" + x + "," + y + ")..." + dist ); 
-	 if( dist <= 1 )
-	   points.add( new Point( x, y ) ); 
-       } 
+         for( int x = topleft.x; x <= bottomright.x; x++ )
+         {
+           xdiff = 0;
+	   ydiff = 0;
+	   // x/y diff represent x-h/y-k respectively
+           xdiff = Math.abs( (double)x - center.x );
+           ydiff = Math.abs( (double)y - center.y );
+	   // Subtracting 1/(xextent*4) is to account for fractional pixels.
+	   // This will give a smoother, more accurate selected region.
+           dist = Math.pow((xdiff - 1/(xextent*4)),2)/Math.pow(xextent,2) + 
+	          Math.pow((ydiff - 1/(yextent*4)),2)/Math.pow(yextent,2);
+	   //System.out.println("(" + x + "," + y + ")..." + dist ); 
+	   if( dist <= 1 )
+	     points.add( new Point( x, y ) ); 
+         } 
+       }
+     }
      selectedpoints = new Point[points.size()];
      for( int i = 0; i < points.size(); i++ )
          selectedpoints[i] = (Point)points.elementAt(i);
