@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/08/18 20:53:19  millermi
+ *  - Added JButton controls to simulate a keyboard event, making the
+ *    selection process more user friendly.
+ *  - Added getControls() so outside classes can access the new controls.
+ *
  *  Revision 1.5  2003/08/07 17:55:56  millermi
  *  - Replaced elipse selection framework with line selection capabilities.
  *
@@ -255,6 +260,23 @@ public class SelectionJPanel extends ActiveJPanel
       else //( cursor.equals(POINT) )
          return point;
    }
+   
+   public JButton[] getControls()
+   {
+     JButton[] controls = new JButton[5];
+     controls[0] = new JButton("Box");
+     controls[0].addActionListener( new ButtonListener() );
+     controls[1] = new JButton("Circle");
+     controls[1].addActionListener( new ButtonListener() );
+     controls[2] = new JButton("Line");
+     controls[2].addActionListener( new ButtonListener() );
+     controls[3] = new JButton("Point");
+     controls[3].addActionListener( new ButtonListener() );
+     controls[4] = new JButton("Clear All");
+     controls[4].addActionListener( new ButtonListener() );
+     
+     return controls;
+   }
 
   /*
    * Tells the SelectMouseAdapter is any keys are pressed.
@@ -296,6 +318,34 @@ public class SelectionJPanel extends ActiveJPanel
 	    isPdown = false;              
       }
    }
+   
+   private class ButtonListener implements ActionListener
+   {
+     public void actionPerformed( ActionEvent ae )
+     {
+       String message = ae.getActionCommand();
+       if( message.equals("Box") )
+       {
+         isBdown = true;
+       }
+       else if( message.equals("Circle") )
+       {
+         isCdown = true;
+       }
+       else if( message.equals("Line") )
+       {
+         isLdown = true;
+       }
+       else if( message.equals("Point") )
+       {
+         isPdown = true;
+       }
+       else if( message.equals("Clear All") )
+       {
+         send_message(RESET_SELECTED);
+       }
+     }
+   }
 
   /*
    * This class used flags set by the SelectKeyAdapter class to determine
@@ -332,21 +382,25 @@ public class SelectionJPanel extends ActiveJPanel
          if( doing_box )
 	 {
 	    stop_cursor( box, e.getPoint() );
+	    isBdown = false;
 	    send_message(REGION_SELECTED + ">" + BOX);
          }
-	 if( doing_circle )
+	 else if( doing_circle )
 	 {
 	    stop_cursor( circle, e.getPoint() );
+	    isCdown = false;
 	    send_message(REGION_SELECTED + ">" + CIRCLE);
          }
-	 if( doing_line )
+	 else if( doing_line )
 	 {
 	    stop_cursor( line, e.getPoint() );
+	    isLdown = false;
 	    send_message(REGION_SELECTED + ">" + LINE);
          }
-	 if( doing_point )
+	 else if( doing_point )
 	 {
 	    stop_cursor( point, e.getPoint() ); 
+	    isPdown = false;
 	    send_message(REGION_SELECTED + ">" + POINT); 
 	 }    
       }
