@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.12  2003/04/30 19:57:53  pfpeterson
+ *  Fixed a javadoc tag.
+ *
  *  Revision 1.11  2003/04/09 16:47:51  pfpeterson
  *  Created a debug flag and moved a print statement to depend on it.
  *
@@ -444,7 +447,7 @@ public final class LinearAlgebra
    *
    *  @param  b      The right hand side of the linear equations Ax = b
    *
-   *  @ return  The return value represents the residual error in the least
+   *  @return   The return value represents the residual error in the least
    *            squares approximation if u has more rows than columns.  If
    *            u is square, the return value is 0.  If u has more columns
    *            than rows, or if the system is singular, this function fails 
