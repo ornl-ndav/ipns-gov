@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/01/27 20:39:28  dennis
+ * Added method setPlane().
+ * Now sets a PreferredSize on the hkl_selector to help keep
+ * the layout ok.
+ *
  * Revision 1.3  2004/01/26 21:15:25  dennis
  * Now has four tabbed panes for selecting slice plane.
  * Added beep if plane is improperly specified.
@@ -43,7 +48,6 @@
  * Panel with a tabbed pane, providing different ways
  * of specifying a plane.  Currently only supports
  * one way, using an HKL_SliceSelector.(not complete)
- *
  */
 
 package DataSetTools.components.ui;
@@ -52,7 +56,6 @@ import DataSetTools.math.*;
 import DataSetTools.util.*;
 import java.awt.*;
 import java.awt.event.*;
-//import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -68,7 +71,8 @@ import java.io.*;
  */
 
 public class SlicePlane3D_UI extends    ActiveJPanel
-                             implements Serializable 
+                             implements ISlicePlaneSelector,
+                                        Serializable 
 {
   private SlicePlane3D old_slice_plane;
   private JTabbedPane  tabbed_pane;
@@ -77,6 +81,7 @@ public class SlicePlane3D_UI extends    ActiveJPanel
   private CenterNormalSliceSelector      center_normal_selector;
   private CenterNormalPointSliceSelector center_normal_point_selector;
 
+
   /*-------------------------- default constructor ----------------------- */
   /**
    *  Construct a SlicePlane3D_UI with default values.
@@ -84,6 +89,7 @@ public class SlicePlane3D_UI extends    ActiveJPanel
   public SlicePlane3D_UI( String title )
   {
     hkl_selector = new HKL_SliceSelector();
+    hkl_selector.setPreferredSize( new Dimension( 180, 30 ) );
     hkl_selector.addActionListener( new PaneListener() );
     SlicePlane3D slice_plane = hkl_selector.getPlane();
 
@@ -118,6 +124,22 @@ public class SlicePlane3D_UI extends    ActiveJPanel
     old_slice_plane = getPlane();
   }
 
+
+  /* ---------------------------- setPlane ----------------------------- */
+  /**
+   *  Set the plane whose parameters are to be displayed by this plane selector.
+   *
+   *  @param new_plane  The plane to display in this selector.
+   */
+  public void setPlane( SlicePlane3D new_plane )
+  {
+    center_normal_selector.setPlane( new_plane );
+    three_point_selector.setPlane( new_plane );
+    center_normal_point_selector.setPlane( new_plane );  
+    hkl_selector.setPlane( new_plane ); 
+  }
+
+
   /* ---------------------------- getPlane ------------------------------ */
   /**
    *  Get the currently selected plane, or null if no plane is properly
@@ -132,6 +154,7 @@ public class SlicePlane3D_UI extends    ActiveJPanel
     return selector.getPlane();
   }
 
+
   /* ----------------------------- toString ------------------------------ */
   /**
    *  Return a string form of this plane.
@@ -145,11 +168,13 @@ public class SlicePlane3D_UI extends    ActiveJPanel
       return "NO PLANE SELECTED";
   }
 
+
   /* -----------------------------------------------------------------------
    *
    *  PRIVATE CLASSES
    *
    */
+
   /* ------------------------ TabListener ------------------------------ */
   /*
    *  Listen for change to a new selected pane.  Update the values from the
@@ -164,6 +189,7 @@ public class SlicePlane3D_UI extends    ActiveJPanel
       selector.setPlane( old_slice_plane ); 
     }
   }
+
 
   /* -------------------------- PaneListener --------------------------- */
   /*
@@ -193,6 +219,7 @@ public class SlicePlane3D_UI extends    ActiveJPanel
   }
 
 
+  /* ------------------------------- main ----------------------------- */
   /**
    *  Main program providing basic functionality test.
    */
