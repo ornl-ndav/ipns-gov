@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2004/03/02 22:12:52  dennis
+ *  Now only calls update if the PanViewControl "isShowing()".  This
+ *  fixes a problem where the PanViewControl would "flash" on the
+ *  screen when it state was changed, even though it was on a tabbed
+ *  pane that was currently hidden behind another tabbed pane.
+ *
  *  Revision 1.11  2004/02/06 20:26:09  millermi
  *  - Added ObjectState key and methods.
  *
@@ -289,7 +295,7 @@ public class PanViewControl extends ViewControl
       {
         panel.setImage(panel_image);
 	// have to use update so Overlay is always displayed over the image.
-	if( getGraphics() != null )
+	if( getGraphics() != null && isShowing() )
 	  update( getGraphics() );
         //super.repaint();
       }
