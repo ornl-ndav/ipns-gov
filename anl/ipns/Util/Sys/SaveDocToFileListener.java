@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2002/08/19 17:07:04  pfpeterson
+ * Reformated file to make it easier to read.
+ *
  * Revision 1.3  2002/01/25 19:41:33  pfpeterson
  * Use the script filter to show only iss files. Also remembers the last item and
  * defaults to the Script_Path directory.
@@ -53,62 +56,69 @@ import java.io.*;
  import javax.swing.*;
 import java.awt.*;
 
-/** Pops up a file dialog so the filename can be selected.  Then saves the contents
- * of the PlainDocument doc to this file. Other features include 
+/**
+ * Pops up a file dialog so the filename can be selected.  Then saves
+ * the contents of the PlainDocument doc to this file. Other features
+ * include
  * <UL><LI>to notify listeners of a new filename 
  * <LI> also listen for a new "current filename"
  * <LI>The current filename appears in the pop up file dialog box.
  * <LI> As a PropertyChange Listener, this class only listens for the
  * property with the name "filename".  The New Value is the new
  * filename.</UL>
-
-*/
-public class SaveDocToFileListener  implements ActionListener , PropertyChangeListener
-  { PropertyChangeListener  FilenameListener;
+ */
+public class SaveDocToFileListener
+                              implements ActionListener, PropertyChangeListener{
+    PropertyChangeListener  FilenameListener;
     String FilenamePropertyName;
     String filename;
     Document doc;
-
-    /** Constructor that sets the document that will be saved when triggered by an event
-    *
-    *@param   doc the file whose contents will be saved
-    *@param   filename  sets the filename and directory in the pop up file dialog box
-    *
-    */
-    public SaveDocToFileListener( Document doc,String filename)
-      {this( doc, filename, null, null);
-       }
-
-    /**  Constructor that sets the document that will be saved when triggered by an
-     *event. It also <ul><li> adds one PropertyChangeListener
-     *<li> Allows a different property name to be sent when notifying the listener
-     *   about the changed filename
-     *</ul>
-     *@param  doc the file whose contents will be saved
-     *@param  filename  sets the filename and directory in the pop up file dialog box
-     *@param FilenameListener <ul>Listener for a new filename that saved a doc or null
-     *           if none </ul>
-     *@param FilenamePropertyName  <ul>The property name sent to Listener when notifying
-     *                   about the new filename</ul>
+    
+    /**
+     * Constructor that sets the document that will be saved when
+     * triggered by an event
+     *
+     * @param doc the file whose contents will be saved
+     * @param filename sets the filename and directory in the pop up
+     * file dialog box
+     */
+    public SaveDocToFileListener( Document doc,String filename){
+        this( doc, filename, null, null);
+    }
+    
+    /**
+     * Constructor that sets the document that will be saved when
+     * triggered by an event. It also
+     * <ul><li> adds one PropertyChangeListener
+     * <li> Allows a different property name to be sent when notifying
+     * the listener about the changed filename </ul>
+     *
+     * @param doc the file whose contents will be saved
+     * @param filename sets the filename and directory in the pop up
+     * file dialog box
+     * @param FilenameListener <ul>Listener for a new filename that
+     * saved a doc or null if none </ul>
+     * @param FilenamePropertyName <ul>The property name sent to
+     * Listener when notifying about the new filename</ul>
     */
     public SaveDocToFileListener( Document doc, String filename,
-                           PropertyChangeListener FilenameListener,
-                                    String FilenamePropertyName )
-      { this.doc = doc;
+                                  PropertyChangeListener FilenameListener,
+                                  String FilenamePropertyName ){
+        this.doc = doc;
         this. FilenameListener= FilenameListener;
-      
+        
         this.FilenamePropertyName = FilenamePropertyName;
         this.filename = filename;
         if( FilenameListener != null)
-           if( FilenamePropertyName == null)
-             FilenamePropertyName = "filename";
+            if( FilenamePropertyName == null)
+                FilenamePropertyName = "filename";
       }
-
-     /** Stores the doc to the file selected and notifies any listeners of the
-      *  filename that was used to store the file
+    
+    /**
+     * Stores the doc to the file selected and notifies any listeners
+     * of the filename that was used to store the file
      */
-     public void actionPerformed( ActionEvent evt)
-      {
+    public void actionPerformed( ActionEvent evt){
         final JFileChooser fc=new JFileChooser() ;
 	if( filename != null ){
 	    fc.setCurrentDirectory(new File(filename));
@@ -128,10 +138,10 @@ public class SaveDocToFileListener  implements ActionListener , PropertyChangeLi
 		return;
 	    }
 	}catch(Exception e){
-	    DataSetTools.util.SharedData.status_pane.add("Choose and input file");
+	    DataSetTools.util.SharedData.addmsg("Choose and input file");
 	    return;
 	}
-
+        
 	/* int state  ;
 	   state = fc.showSaveDialog( null ) ;
 	   if( state != JFileChooser.APPROVE_OPTION )
@@ -139,51 +149,53 @@ public class SaveDocToFileListener  implements ActionListener , PropertyChangeLi
 	   
 	   File SelectedFile = fc.getSelectedFile() ;
 	   filename  = SelectedFile.toString() ; */
-      
-
-	 (new Util()).saveDoc( doc , filename );
-         if( FilenameListener != null)
+        
+        
+        (new Util()).saveDoc( doc , filename );
+        if( FilenameListener != null)
             FilenameListener.propertyChange(
-                   new PropertyChangeEvent(this, FilenamePropertyName ,
-                                filename, filename));  
-       }
- 
-    /** This method is invoked when a PropertyChange event is triggered and an
-    *   instance of this class was added as a listener. The filename that appears
-    *   when the pop up file dialog box appears is set by this method if the
-    *   Property Name was "filename".
-    *@param  evt  the Property Change event
-    */
-    public void propertyChange( PropertyChangeEvent evt)
-      { //System.out.println( "Savedoc prop chang="+evt.getPropertyName());
-         if( evt.getPropertyName().equals("filename"))
-          { filename = (String)evt.getNewValue();
-           }
-
-
-
-      }
-
-    /** Sets the name of the file or path that was selected or to start from
-    *@param   the currently selected file
-    */
-     public void setFileName( String Filename)
-       {filename= Filename;
-        }
-
-     /** Returns the last selected filename. 
+                            new PropertyChangeEvent(this, FilenamePropertyName ,
+                                                    filename, filename));  
+    }
+    
+    /**
+     * This method is invoked when a PropertyChange event is triggered
+     * and an instance of this class was added as a listener. The
+     * filename that appears when the pop up file dialog box appears
+     * is set by this method if the Property Name was "filename".
+     *
+     * @param  evt  the Property Change event
      */
-     public String getFileName()
-       { return filename;
-       }
-
-     /** This method is used to add a Listener who will be notified when a file
-     *  is saved.
-     *@param  listener  The Object listening for a saved filename
-     */
-     public void addPropertyChangeListener( PropertyChangeListener listener)
-       { FilenameListener = listener;
-         FilenamePropertyName ="filename";
+    public void propertyChange( PropertyChangeEvent evt){
+        //System.out.println( "Savedoc prop chang="+evt.getPropertyName());
+        if( evt.getPropertyName().equals("filename")){
+            filename = (String)evt.getNewValue();
         }
-   }
+    }
 
+    /**
+     * Sets the name of the file or path that was selected or to start
+     * from
+     * @param the currently selected file
+     */
+    public void setFileName( String Filename){
+        filename= Filename;
+    }
+
+    /**
+     * Returns the last selected filename. 
+     */
+    public String getFileName(){
+        return filename;
+    }
+    
+    /**
+     * This method is used to add a Listener who will be notified when
+     * a file is saved.
+     * @param listener The Object listening for a saved filename
+     */
+    public void addPropertyChangeListener( PropertyChangeListener listener){
+        FilenameListener = listener;
+        FilenamePropertyName ="filename";
+    }
+}

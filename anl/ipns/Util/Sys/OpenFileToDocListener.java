@@ -31,6 +31,9 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.5  2002/08/19 17:07:02  pfpeterson
+ * Reformated file to make it easier to read.
+ *
  * Revision 1.4  2002/06/28 13:31:50  rmikk
  * Eliminated commented out code
  *
@@ -56,7 +59,8 @@ import IsawGUI.*;
 import javax.swing.*;  
 import java.awt.*;  
   
-/** Pops up a file dialog so the filename can be selected.  Then saves
+/**
+ * Pops up a file dialog so the filename can be selected.  Then saves
  * the contents of the PlainDocument doc to this file. There are
  * features to notify listeners of a new filename and to also listen
  * for a new "current filename".  The current filename appears in the
@@ -64,138 +68,140 @@ import java.awt.*;
  * only listens for the property with the name "filename".  The New
  * Value is the new filename.
  */  
-public class OpenFileToDocListener  implements ActionListener , PropertyChangeListener  
-  { PropertyChangeListener  FilenameListener;  
+public class OpenFileToDocListener 
+                              implements ActionListener, PropertyChangeListener{
+    PropertyChangeListener  FilenameListener;  
     String FilenamePropertyName;  
     String filename;  
     Document doc;  
+    
+    /**
+     * Constructor that sets the document that will receive the
+     * contents of a file when triggered.
+     *   
+     * @param doc the file whose contents are to be saved
+     * @param filename <ul>the filename and directory that initially
+     * shows in the pop up file dialog box</ul>
+     */  
+    public OpenFileToDocListener( Document doc,String filename){
+        this( doc, filename, null, null);  
+    }  
   
-    /** Constructor that sets the document that will receive the
-    *  contents of a file when triggered.
-    *@param   doc the file whose contents are to be saved  
-    *@param filename <ul>the filename and directory that initially
-    *shows in the pop up file dialog box</ul>
-    *   
-    */  
-    public OpenFileToDocListener( Document doc,String filename)  
-      {this( doc, filename, null, null);  
-       }  
-  
-    /** Constructor that sets the document that will receive the contents of a file  
-    *  when triggered. This form also supports other Objects that need to know  
-    *  the last used filename     
-    *@param   doc the file whose contents are to be saved  
-    *@param filename  <ul>the filename and directory that initially shows in the pop up  
-    *                 file dialog box</ul>  
-    *@param FilenameListener <ul> The Object that wants to be notified when a new  
-    *           filename has been used <ul>  
-    *@param FilenamePropertyName <UL> The property name sent to the listener to notify  
-    *                   the listener that a new file was used </ul>  
-    *   
-    */    
+    /**
+     * Constructor that sets the document that will receive the
+     * contents of a file when triggered. This form also supports
+     * other Objects that need to know the last used filename
+     *
+     * @param doc the file whose contents are to be saved
+     * @param filename <ul>the filename and directory that initially
+     * shows in the pop up file dialog box</ul>
+     * @param FilenameListener <ul> The Object that wants to be
+     * notified when a new filename has been used <ul>
+     * @param FilenamePropertyName <UL> The property name sent to the
+     * listener to notify the listener that a new file was used </ul>
+     */    
     public OpenFileToDocListener( Document doc, String filename,   
-                           PropertyChangeListener FilenameListener,  
-                                    String FilenamePropertyName )  
-      { this.doc = doc;  
+                                  PropertyChangeListener FilenameListener,  
+                                  String FilenamePropertyName ){
+        this.doc = doc;  
         this. FilenameListener= FilenameListener;  
-          
+        
         this.FilenamePropertyName = FilenamePropertyName;  
         this.filename = filename;  
         if( FilenameListener != null)  
-           if( FilenamePropertyName == null)  
-              FilenamePropertyName = "filename";  
-      }  
-  
-     /** Saves the contents of the file selected to the document and notifies any  the   
-      *listeners of filename used  
+            if( FilenamePropertyName == null)  
+                FilenamePropertyName = "filename";  
+    }  
+    
+    /**
+     * Saves the contents of the file selected to the document and
+     * notifies any the listeners of filename used
      */  
-     public void actionPerformed( ActionEvent evt)
-       {  
-	 final JFileChooser fc=new JFileChooser() ;  
-	 if( filename != null)   
-	     fc.setCurrentDirectory(new File(filename));
-	 Dimension d= new Dimension(650,300);
-	 fc.setPreferredSize(d);
-
-	 fc.setFileFilter(new scriptFilter());
-	 
-	 try{
-	     int state = fc.showOpenDialog(null);
-	     if( state==0 && fc.getSelectedFile()!=null ){
-		 File f = fc.getSelectedFile();
-		 filename=f.toString();
-	     }else{
-		 return;
-	     }
-	 }catch(Exception e){
-	     DataSetTools.util.SharedData.status_pane.add("Choose and input file");
-	     return;
-	 }
-
+    public void actionPerformed( ActionEvent evt){
+        final JFileChooser fc=new JFileChooser() ;  
+        if( filename != null)   
+            fc.setCurrentDirectory(new File(filename));
+        Dimension d= new Dimension(650,300);
+        fc.setPreferredSize(d);
+        
+        fc.setFileFilter(new scriptFilter());
+        
+        try{
+            int state = fc.showOpenDialog(null);
+            if( state==0 && fc.getSelectedFile()!=null ){
+                File f = fc.getSelectedFile();
+                filename=f.toString();
+            }else{
+                return;
+            }
+        }catch(Exception e){
+            DataSetTools.util.SharedData.addmsg("Choose and input file");
+            return;
+        }
 	    
-	 try{  
-	     doc.remove( doc.getStartPosition().getOffset(), doc.getLength());  
-	     Document D = (new Util()).openDoc( filename);  
-	     doc.insertString( 0, D.getText( D.getStartPosition().getOffset(),  
-					     D.getLength()), null);    
-	     
-	 }  
-	 catch( Exception s){}  
-	 if( FilenameListener != null)  
-	     FilenameListener.propertyChange(new PropertyChangeEvent(this,   
-								     FilenamePropertyName,
-								     filename, filename));
-         //System.out.println("OpenFile"+FilenamePropertyName);   
-     }  
+        try{  
+            doc.remove( doc.getStartPosition().getOffset(), doc.getLength());  
+            Document D = (new Util()).openDoc( filename);  
+            doc.insertString( 0, D.getText( D.getStartPosition().getOffset(),  
+                                            D.getLength()), null);    
+        }catch( Exception s){
+            // let it drop on the floor
+        }
+        if( FilenameListener != null)  
+            FilenameListener.propertyChange(new 
+               PropertyChangeEvent(this, FilenamePropertyName, 
+                                   filename, filename));
+        //System.out.println("OpenFile"+FilenamePropertyName);   
+    }  
   
-    /** This method is triggered when another Object fires a property change event when  
-    *  an instance of this class has been added as a listener.  
-    *  
-    * The only property name listened to is "filename".  The filename will be changed.  
-    */  
-    public void propertyChange( PropertyChangeEvent evt)  
-      {   
-        if( evt.getPropertyName().equals("filename"))  
-           filename = (String)evt.getNewValue();  
-      }  
-  
-    /** Allows for changing( there is only one) a listener for the notification of   
-    *   a new filename.  
-    */  
-    public void addPropertyChangeListener( PropertyChangeListener listener)  
-      {  
-          FilenameListener = listener;  
-          FilenamePropertyName="filename";  
-      }  
-  
-  
-       
-  
-    /** Sets the name of the file or path that was selected or to start from  
-    *@param   the currently selected file  
-    */  
-     public void setFileName( String Filename)  
-       {filename= Filename;  
-        }  
-  
-     /** Returns the last selected filename.    
+    /**
+     * This method is triggered when another Object fires a property
+     * change event when an instance of this class has been added as a
+     * listener.
+     *  
+     * The only property name listened to is "filename".  The filename
+     * will be changed.
      */  
-     public String getFileName()  
-       { return filename;  
-       }  
+    public void propertyChange( PropertyChangeEvent evt){
+        if( evt.getPropertyName().equals("filename"))  
+            filename = (String)evt.getNewValue();  
+    }  
   
-    public static void main( String args[])  
-     { JFrame F = new JFrame("open test");  
-       F.setSize(400,400);  
-       F.getContentPane().setLayout( new BorderLayout());  
-       JTextArea SS= new JTextArea( 10, 20);  
-       F.getContentPane().add( SS, BorderLayout.CENTER);  
-       JButton B = new JButton( "Open");  
-       B.addActionListener( new OpenFileToDocListener( SS.getDocument(), null));  
-       F.getContentPane().add( B, BorderLayout.NORTH);  
-       F.show(); F.validate();  
-          
+    /**
+     * Allows for changing( there is only one) a listener for the
+     * notification of a new filename.
+     */  
+    public void addPropertyChangeListener( PropertyChangeListener listener){
+        FilenameListener = listener;  
+        FilenamePropertyName="filename";  
+    }  
   
-     }  
-   }  
+    /**
+     * Sets the name of the file or path that was selected or to start
+     * from
+     * @param   the currently selected file  
+     */  
+    public void setFileName( String Filename){
+        filename= Filename;  
+    }  
+    
+    /**
+     * Returns the last selected filename.    
+     */  
+    public String getFileName(){
+        return filename;  
+    }  
+  
+    public static void main( String args[]){
+        JFrame F = new JFrame("open test");  
+        F.setSize(400,400);  
+        F.getContentPane().setLayout( new BorderLayout());  
+        JTextArea SS= new JTextArea( 10, 20);  
+        F.getContentPane().add( SS, BorderLayout.CENTER);  
+        JButton B = new JButton( "Open");  
+        B.addActionListener( new OpenFileToDocListener(SS.getDocument(),null));
+        F.getContentPane().add( B, BorderLayout.NORTH);  
+        F.show(); F.validate();  
+    }  
+}  
 

@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2002/08/19 17:06:56  pfpeterson
+ * Reformated file to make it easier to read.
+ *
  * Revision 1.1  2001/12/21 17:48:00  dennis
  * An ActionListener that Clears the contents of the
  * associated document
@@ -43,28 +46,27 @@ import javax.swing.text.*;
 
 /** Clears the contents of a document when triggered
 */
-public class ClearDocListener implements ActionListener
-  {
-      Document Doc;
-      /** Sets the Document that will be cleared when triggered by and
-      * ActionEvent
-      *@param  Doc  sets up the Document that is affected by the clear
-      */
-      public ClearDocListener( Document Doc)
-        {
-          this.Doc = Doc;
-         }
-
-      /** The event that triggers a Clear operation invokes this method
-      *   which erases any text from the document
-      */
-      public void actionPerformed( ActionEvent evt)
-        {
-          try{
+public class ClearDocListener implements ActionListener{
+    Document Doc;
+    /**
+     * Sets the Document that will be cleared when triggered by and
+     * ActionEvent
+     *
+     * @param  Doc  sets up the Document that is affected by the clear
+     */
+    public ClearDocListener( Document Doc){
+        this.Doc = Doc;
+    }
+    
+    /**
+     * The event that triggers a Clear operation invokes this method
+     * which erases any text from the document
+     */
+    public void actionPerformed( ActionEvent evt){
+        try{
             Doc.remove( Doc.getStartPosition().getOffset(), Doc.getLength());
-             }
-           catch( Exception s){}
-
-         }
-
-  }
+        }catch( Exception s){
+            // let it drop on the floor
+        }
+    }
+}
