@@ -30,6 +30,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2003/11/21 00:39:12  millermi
+ *  - Added method getThumbnail() to get a replica of the
+ *    image displayed by the ImageJPanel
+ *  - *** makeImage() should be made more generic so the image
+ *    can be set to more than just the current zoomed in region.
+ *    Once this is done, the getThumbnail() should be editted
+ *    to make use of this generality. ***
+ *
  *  Revision 1.19  2003/11/18 00:56:19  millermi
  *  - ObjectState for IndexColorModel now saved as a string name,
  *    since IndexColorModel isn't serializable.
@@ -356,6 +364,28 @@ public class ImageJPanel extends    CoordJPanel
       makeImage();
     }
   }
+  
+ /**
+  *  Get a thumbnail of the entire image shown by this ImageJPanel.
+  *
+  *  @param  width The desired width of the thumbnail.
+  *  @param  height The desired height of the thumbnail.
+  *  @return A thumbnail of the Image.
+  */ 
+  public Image getThumbnail(int width, int height)
+  {
+    CoordTransform temp = new CoordTransform(local_transform);
+    local_transform = new CoordTransform(global_transform);
+    makeImage();
+    Image thumbnail;
+    if( width == 0 || height == 0 )
+      thumbnail = image.getScaledInstance( 100, 100, Image.SCALE_DEFAULT );
+    else
+      thumbnail = image.getScaledInstance( width, height, Image.SCALE_DEFAULT );
+    local_transform = new CoordTransform(temp);
+    makeImage();
+    return thumbnail;
+  } 
 
 
 /* --------------------------- getNumDataRows ----------------------------- */
