@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/08/07 15:57:43  dennis
+ *  - Added copy() method to make a copy of an AxisInfo2D object.
+ *    (Mike Miller)
+ *
  *  Revision 1.2  2003/05/16 15:02:41  dennis
  *  Added acknowledgement of NSF funding.
  *
@@ -80,7 +84,7 @@ public class AxisInfo2D
       axisunits = units;
       islinear = bool_lin;
    }
-
+   
   /**
    * Returns the minimum value of the axis.
    *
@@ -131,4 +135,13 @@ public class AxisInfo2D
    {
       return islinear;
    } 
+   
+  /**
+   * This method returns a copy of the AxisInfo2D object.
+   */
+   public AxisInfo2D copy()
+   {
+     return new AxisInfo2D( axismin, axismax, new String(axislabel), 
+                            new String(axisunits), islinear );
+   }
 }
