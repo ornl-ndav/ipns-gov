@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2001/08/10 14:54:46  dennis
+ *  Added methods to find the nth occurence of a string and to find
+ *  arguments for commands of the form "-<letter><argument>" on a
+ *  command line.
+ *
  *  Revision 1.2  2001/04/25 22:24:45  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -55,6 +60,7 @@ public class StringUtil
   private StringUtil() {}
 
 
+  /* ---------------------------- fixSeparator --------------------------- */
   /**
    *  Replace all occurrences of the possible file separators "/" "\" "\\"
    *  with the file separator needed for the local system.
@@ -76,7 +82,7 @@ public class StringUtil
     return result;
   }
 
-
+  /* ------------------------------ replace ------------------------------ */
   /**
    *  Replace all occurrences of a specified string by another string
    *
@@ -113,6 +119,112 @@ public class StringUtil
     return result;
   }
 
+  /* ----------------------------- getCommand ------------------------- */
+  /**
+   *  Find the argument following a specified occurence of a command in a
+   *  string.  Eg. If the string is
+   *  "-D   /home/dennis/ -Llog.txt -D/usr/data/"
+   *  the, calling this method with num = 2, and command = "-D" will return
+   *  "/usr/data/".
+   *
+   *  @param  n        The number of the occurence of the command, 1, 2, etc.
+   *  @param  command  The command to look for
+   *  @param  s        The string containing commands and arguments
+   *                   with space between successive command-argument pairs.
+   *
+   *  @return The string associated with the nth occurence of the given command.
+   */
+  public static String getCommand( int num, String command, String s )
+  {
+    boolean found = false;
+
+    int position = nth_index_of( num, command, s );
+    if ( position < 0 )
+      return "";
+
+    int start = position + command.length();
+
+    while ( start < s.length() && Character.isWhitespace( s.charAt(start) ) )
+      start++;
+
+    if ( start >= s.length() )
+      return "";
+
+    int end = start;
+    while ( end < s.length() && !Character.isWhitespace( s.charAt(end) ) )
+      end++;
+
+    if ( end < s.length() )
+      return s.substring( start, end ).trim();
+    else
+      return s.substring( start ).trim();
+  }
+
+  /* ----------------------------- getCommand ------------------------- */
+  /**
+   *  Find the argument following a specified occurence of a command in a
+   *  list of argument strings.  The list of argument strings is concatenated
+   *  and the resulting string is passed to the version of getCommand that
+   *  takes a single string.
+   *
+   *  @param  n        The number of the occurence of the command, 1, 2, etc.
+   *  @param  command  The command to look for
+   *  @param  args     The array of strings containing commands and arguments
+   *                   with space between successive command-argument pairs.
+   *
+   *  @return The string associated with the nth occurence of the given command.
+   */
+  public static String getCommand( int n, String command, String args[] )
+  {
+    if ( args == null || args.length == 0 )
+      return "";
+    
+    String s = args[0];
+    for ( int i = 1; i < args.length; i++ )
+      s += " " + args[i];
+
+    return getCommand( n, command, s );
+  }
+
+
+  /* ----------------------------- nth_index_of ------------------------- */
+  /**
+   *  Find the "nth" occurence of a string in another string.  This will return
+   *  -1 if the specified occurence does not exist.
+   *
+   *  @param  n        The number of the occurence of the wanted string that
+   *                   is being searched for
+   *  @param  wanted   The string to search for
+   *  @param  s        The string to search in
+   *
+   *  @return The index of the first character of the "nth" occurence of the 
+   *          wanted string in the specified string s, if there is an "nth"
+   *          occurence, -1 otherwise.
+   */
+
+  public static int nth_index_of( int n, String wanted, String s )
+  {
+    if( n <= 0 )
+      return -1;
+
+    if( n > s.length() - wanted.length() )
+      return -1;
+
+    int count = 0;
+    int k = s.indexOf(wanted);
+    while ( k >= 0 )
+    {
+      count++;
+      if( count == n )
+        return k;
+
+       k = s.indexOf( wanted, k+1 );
+     }
+     return -1;
+  }
+
+
+
 
 /* ---------------------------------------------------------------------------
  *
@@ -121,6 +233,43 @@ public class StringUtil
  */
   public static void main(String[] args)
   {
+    String s       = "-D   /home/dennis/ -Llog.txt -D/usr/data/";
+    String command = "-D";
+    int    n       = 2;
+    System.out.println("In string " + s + " with command " + command + " " + n);
+    System.out.println( getCommand( n, command, s ) );
+
+    n       = 1;
+    System.out.println("In string " + s + " with command " + command + " " + n);
+    System.out.println( getCommand( n, command, s ) );
+
+    command = "-L";
+    System.out.println("In string " + s + " with command " + command + " " + n);
+    System.out.println( getCommand( n, command, s ) );
+
+    n = 0;
+    System.out.println("In string " + s + " with command " + command + " " + n);
+    System.out.println( getCommand( n, command, s ) );
+
+    n = -1;
+    System.out.println("In string " + s + " with command " + command + " " + n);
+    System.out.println( getCommand( n, command, s ) );
+
+    n = 2;
+    System.out.println("In string " + s + " with command " + command + " " + n);
+    System.out.println( getCommand( n, command, s ) );
+
+    n = 300;
+    System.out.println("In string " + s + " with command " + command + " " + n);
+    System.out.println( getCommand( n, command, s ) );
+
+    command = "-D";
+    n = 2;
+    System.out.println(" with command " + command + " " + n);
+    System.out.println("On command line, found");
+    System.out.println( getCommand( n, command, args ) );
+
+
     int [] ilist;
     String in_str;
 
