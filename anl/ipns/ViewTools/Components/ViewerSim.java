@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/08 23:55:08  rmikk
+ *  Added Save and Print image utilities to the File menu item
+ *  Eliminate the EXIT_ON_CLOSE settings for the JFrames
+ *
  *  Revision 1.6  2003/12/18 22:42:12  millermi
  *  - This file was involved in generalizing AxisInfo2D to
  *    AxisInfo. This change was made so that the AxisInfo
@@ -106,14 +110,18 @@ public class ViewerSim
    {
       JFrame window = new JFrame("Test Viewer");
       window.setBounds(0,0,500,500);
-      window.getContentPane().add( ivc.getDisplayPanel() );
-      
+      JPanel DispPanel = ivc.getDisplayPanel();
+      window.getContentPane().add( DispPanel );
+      JMenuBar menu_bar = new JMenuBar();
+      window.setJMenuBar(menu_bar);       
+ 
+      JMenu fileMenu    = new JMenu("File");
+      DataSetTools.viewer.SaveImageActionListener.setUpMenuItem(fileMenu,DispPanel);
+      DataSetTools.viewer.PrintComponentActionListener.setUpMenuItem(fileMenu,DispPanel);
+     
       if( menus.length > 0 )
       {
-         JMenuBar menu_bar = new JMenuBar();
-         window.setJMenuBar(menu_bar);       
- 
-         JMenu fileMenu    = new JMenu("File");      // Menus for the menu bar 
+               // Menus for the menu bar 
          JMenu editMenu    = new JMenu("Edit");
          JMenu viewMenu    = new JMenu("View");
          JMenu optionsMenu = new JMenu("Options");
@@ -138,7 +146,7 @@ public class ViewerSim
                optionsMenu.add( menus[i].getItem() );           
          }      
       }
-      window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
       window.setVisible(true);
  
       if( controls.length > 0 )
@@ -153,7 +161,7 @@ public class ViewerSim
 	 int x = (int)( main.getX() + main.getWidth() );
 	 int y = (int)( main.getY() );
          f2.setBounds(x, y, 200, y + (60 * controls.length)); 
-	 f2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	 f2.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
          f2.setVisible(true); //display the frame      
       }
    }
