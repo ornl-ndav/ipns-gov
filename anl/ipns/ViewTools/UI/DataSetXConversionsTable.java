@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2002/07/31 16:01:48  dennis
+ * Now displays info from operators that implement one of the
+ * interfaces: IDataBlockInfo or IDataPointInfo
+ *
  * Revision 1.8  2002/07/12 18:33:38  dennis
  * Now sets TableHeader to null so that A,B doesn't appear on
  * ContourView.
@@ -102,8 +106,8 @@ public class DataSetXConversionsTable  implements Serializable
   private JTable     table       = null; 
   private TableModel dataModel   = null;
 
-  private Vector     conv_ops    = null;     // List of X-Axis conversion ops
-  private Vector     info_ops    = null;     // List of X-Axis information ops
+  private Vector     data_info_ops = null;   // List of Data information ops
+  private Vector     x_info_ops    = null;   // List of X-Axis information ops
 
   private float      x           = 1000;     // The x, y and index value used
   private float      y           = 100;      // to calculate a number for the
@@ -134,17 +138,17 @@ public class DataSetXConversionsTable  implements Serializable
       return;
     }
                                            // fill out the list of operators 
-    conv_ops = new Vector();
-    info_ops = new Vector();
+    data_info_ops = new Vector();
+    x_info_ops = new Vector();
     int n_ops         = ds.getNum_operators();
     DataSetOperator op; 
     for ( int i = 0; i < n_ops; i++ )
     {
       op = ds.getOperator(i);
-      if ( op.getCategory() == DataSetOperator.X_AXIS_CONVERSION )
-        conv_ops.addElement( op );
-      else if ( op.getCategory() == DataSetOperator.X_AXIS_INFORMATION )
-        info_ops.addElement( op );
+      if ( op instanceof IDataBlockInfo )
+        data_info_ops.addElement( op );
+      else if ( op instanceof IDataPointInfo )
+        x_info_ops.addElement( op );
     }
   }
  
@@ -264,10 +268,10 @@ public class DataSetXConversionTableModel extends    AbstractTableModel
   public int getRowCount() 
   { 
     int size = 2;
-    if ( conv_ops != null )
-      size += conv_ops.size();
-    if ( info_ops != null )
-      size += info_ops.size();
+    if ( data_info_ops != null )
+      size += data_info_ops.size();
+    if ( x_info_ops != null )
+      size += x_info_ops.size();
       
     return size;
   }
@@ -281,14 +285,14 @@ public class DataSetXConversionTableModel extends    AbstractTableModel
     if ( ds == null )
       return "NaN";
 
-    if ( row < 0 || row > conv_ops.size() + info_ops.size() + 1 )
+    if ( row < 0 || row > data_info_ops.size() + x_info_ops.size() + 1 )
       return "NaN"; 
 
     if ( col >= 1 && !x_specified )
       return "NaN";
 
     NumberFormat f = NumberFormat.getInstance();
-    int offset = 2 + conv_ops.size();
+    int offset = 2 + data_info_ops.size();
 
     if ( row == 0 )                                   // show x info
     {
@@ -304,21 +308,21 @@ public class DataSetXConversionTableModel extends    AbstractTableModel
       else
         return f.format( y );
     }
-    else if ( row < offset )                          // get numeric value from 
-    {                                                 // x,y or conversion op
-      XAxisConversionOp op = (XAxisConversionOp)conv_ops.elementAt(row-2);
+    else if ( row < offset )                          // get String values from 
+    {                                                 // IDataBlockInfo op 
+      IDataBlockInfo op = (IDataBlockInfo)data_info_ops.elementAt(row-2);
       if ( col == 0 )
-        return op.new_X_label();
+        return op.DataInfoLabel( index );
       else
-        return f.format( op.convert_X_Value(x, index ) );
+        return op.DataInfo( index );
     }
-    else                                              // get string value from
-    {                                                 // information op 
-      XAxisInformationOp op =(XAxisInformationOp)info_ops.elementAt(row-offset);
+    else                                              // get String values from
+    {                                                 // IDataPointInfo op 
+      IDataPointInfo op =(IDataPointInfo)x_info_ops.elementAt(row-offset);
       if ( col == 0 )
-        return op.XInfo_label( x, index );
+        return op.PointInfoLabel( x, index );
       else
-        return op.X_Info( x, index );
+        return op.PointInfo( x, index );
     }
 
   }
