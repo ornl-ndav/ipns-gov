@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2003/06/03 16:52:39  dennis
+ * Added method to set value from an array of floats.
+ *
  * Revision 1.6  2003/04/14 18:54:21  dennis
  * Added method .average(v[]) to set the current vector to the average
  * of a list of vectors.
@@ -193,6 +196,37 @@ public class Vector3D
      v[1] = vector.v[1];
      v[2] = vector.v[2];
      v[3] = vector.v[3];
+  }
+
+
+  /*------------------------------- set ---------------------------------*/
+  /**
+   *  Set the value for this vector using values from the array.  If more
+   *  than three values are given, the extra values are ignored.  If less
+   *  than three values are given, the unspecified values will be set to 
+   *  zero.
+   *
+   *  @param arr  Array containing values to use for the x,y,z components
+   *              of this vector. 
+   */
+  public void set( float arr[] )
+  {
+     if ( arr == null || arr.length == 0 )
+     {
+       v[0] = 0;
+       v[1] = 0;
+       v[2] = 0;
+       v[3] = 1;
+     }
+     else
+     {
+       int max = Math.min( arr.length, 3 );
+       for ( int i = 0; i < max; i++ )
+         v[i] = arr[i];
+       for ( int i = max; i < 3; i++ )
+         v[i] = 0;
+       v[3] = 1;
+     }
   }
 
 
