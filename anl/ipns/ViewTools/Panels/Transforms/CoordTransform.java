@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/06/19 15:03:32  serumb
+ *  Added methods MapXListTo, MapYListTo, MapXListFrom, and MapYListFrom.
+ *
  *  Revision 1.8  2002/11/27 23:13:18  pfpeterson
  *  standardized header
  *
@@ -153,6 +156,52 @@ public class CoordTransform implements Serializable
   public void MapFrom( float x[], float y[] )
   {
     transformXList( x, to, from );
+    transformYList( y, to, from );
+  }
+
+  /**
+   *  Transform a list of x values from the current source region to the
+   *  current destination region.
+   *
+   *  @param  x   Array of x values to transform.
+   */
+  public void MapXListTo( float x[] )
+  {
+    transformXList( x, from, to );
+  }
+
+  /**
+   *  Transform a list of x values from the current destination region 
+   *  back to the current source region.
+   *
+   *  @param  x   Array of x values to transform.
+   * 
+   */
+  public void MapXListFrom( float x[] )
+  {
+    transformXList( x, to, from );
+  }
+
+  /**
+   *  Transform a list of y values from the current source region to the
+   *  current destination region.
+   *
+   *  @param  y   Array of y values to transform.
+   */
+  public void MapYListTo( float y[] )
+  {
+    transformYList( y, from, to );
+  }
+
+  /**
+   *  Transform a list of y values from the current destination region 
+   *  back to the current source region.
+   *
+   *  @param  y   Array of y values to transform.
+   * 
+   */
+  public void MapYListFrom( float y[] )
+  {
     transformYList( y, to, from );
   }
 
