@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/02/02 23:48:56  dennis
+ *  Number of decimal places displayed is no longer
+ *  fixed.
+ *
  *  Revision 1.4  2004/01/30 19:26:18  dennis
  *  Fix parse error when there was no trailing space after last number.
  *  Added extra spaces in output text to improve legibility.
@@ -176,12 +180,19 @@ public class Vector3D_UI extends    JTextField
    */
   private void show_text()
   {
+/*
     NumberFormat f = NumberFormat.getInstance();
     f.setGroupingUsed( false );
     setText( label     + " " +
              START     + " " + f.format( value.get()[0]) + 
              SEPARATOR + " " + f.format( value.get()[1]) + 
              SEPARATOR + " " + f.format( value.get()[2]) + 
+             " " + END );
+*/
+    setText( label     + " " +
+             START     + " " + value.get()[0] + 
+             SEPARATOR + " " + value.get()[1] + 
+             SEPARATOR + " " + value.get()[2] + 
              " " + END );
   }
 
