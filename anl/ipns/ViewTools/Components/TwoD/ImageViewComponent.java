@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/05/20 19:46:16  dennis
+ *  Now creates a brightness control slider. (Mike Miller)
+ *
  *  Revision 1.4  2003/05/16 15:25:12  dennis
  *  Implemented dataChanged() method.
  *  Added grid lines to test image to aid in testing.
@@ -44,13 +47,11 @@
  *
  */
  
-/*
- * Integrate the font and precision into affecting the size of the west panel
- * in the buildViewComponent()
- */ 
 package DataSetTools.components.View.TwoD;
 
 import javax.swing.*; 
+import javax.swing.event.*;
+import java.io.Serializable;
 import java.awt.*;
 import java.lang.*;
 import java.awt.event.*;
@@ -63,6 +64,7 @@ import DataSetTools.math.*;
 import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import DataSetTools.components.View.Transparency.*;
 import DataSetTools.components.View.*;  // IVirtualArray2D
+import DataSetTools.components.View.ViewControls.*;
 
 // component changes
 import java.applet.Applet;
@@ -91,6 +93,7 @@ public class ImageViewComponent implements IViewComponent2D,
    private Vector transparencies = new Vector();
    private int precision;
    private Font font;
+   private LinkedList controls = new LinkedList();
    
   /**
    * Constructor that takes in a virtual array and creates an imagejpanel
@@ -119,7 +122,8 @@ public class ImageViewComponent implements IViewComponent2D,
 						  yinfo.getMin() ) ); 
       Listeners = new Vector();
       buildViewComponent(ijp); // initializes big_picture to jpanel containing
-                               // the background and transparencies    
+                               // the background and transparencies 		       
+      buildViewControls(ijp);   
    }  
    
   // getAxisInfo(), getRegionInfo(), getTitle(), getPrecision(), getFont() 
@@ -162,6 +166,8 @@ public class ImageViewComponent implements IViewComponent2D,
   /**
    * This method will return the title given to the image as specified by
    * the Virtual Array
+   *
+   *  @return title stored in Virtual Array
    */
    public String getTitle()
    {
@@ -170,8 +176,10 @@ public class ImageViewComponent implements IViewComponent2D,
    
   /**
    * This method will return the precision specified by the user. Precision
-   * will be assumed to be 4 if not specified. The axis overlays will call
+   * will be assumed to be 4 if not specified. The overlays will call
    * this method to determine the precision.
+   *
+   *  @return precision of displayed values
    */
    public int getPrecision() 
    {
@@ -181,6 +189,8 @@ public class ImageViewComponent implements IViewComponent2D,
   /**
    * This method will return the font used on by the overlays. The axis overlay
    * will call this to determine what font to use.
+   *
+   *  @return font of displayed values
    */
    public Font getFont()
    {
@@ -287,12 +297,7 @@ public class ImageViewComponent implements IViewComponent2D,
    */ 
    public void removeActionListener( ActionListener act_listener )
    {
-      System.out.print("Entering: void ");
-      System.out.println("removeActionListener( ActionListener act_listener )");
-    
       Listeners.remove( act_listener );
-	  
-      System.out.println("");
    }
   
   /**
@@ -300,19 +305,15 @@ public class ImageViewComponent implements IViewComponent2D,
    */ 
    public void removeAllActionListeners()
    {
-      System.out.println("Entering: void removeAllActionListeners()");
-
       Listeners.removeAllElements();
-
-      System.out.println("");
    }
    
    public JComponent[] getSharedControls()
-   {
-      System.out.println("Entering: JComponent[] getSharedControls()");
-      System.out.println("");
-      
-      return new JComponent[0];
+   {  
+      JComponent[] jcontrols = new JComponent[controls.size()];
+      for( int i = 0; i < controls.size(); i++ )
+         jcontrols[i] = (JComponent)controls.get(i);   
+      return jcontrols;
    }
    
    public JComponent[] getPrivateControls()
@@ -351,7 +352,7 @@ public class ImageViewComponent implements IViewComponent2D,
 
   /*
    *  Gets the current point
-   *
+   */
    public Point getCurrentPoint()
    {
      floatPoint2D fpt = new floatPoint2D();
@@ -360,7 +361,7 @@ public class ImageViewComponent implements IViewComponent2D,
      Point pt = new Point((int)fpt.x, (int)fpt.y);
      
      return pt;
-   }*/
+   }
    
   /*
    * Tells all listeners about a new action.
@@ -396,14 +397,6 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    private void buildViewComponent( ImageJPanel panel )
    {   
-      /*       
-      FontRenderContext g2dfrc = (FontRenderContext) (               
-                  ( (Graphics2D)panel.getGraphics() ).getFontRenderContext() );
-      Rectangle2D maxchar = font.getMaxCharBounds( 
-	   ((Graphics2D)panel.getGraphics()).getFontRenderContext() ); 
-      int westwidth = (int)(precision * maxchar.getWidth() + 
-                      maxchar.getHeight() + 10);
-      */
       int westwidth = font.getSize() * precision + 22;
       int southwidth = font.getSize() * 3 + 9;
       // this will be the background for the master panel
@@ -416,15 +409,6 @@ public class ImageViewComponent implements IViewComponent2D,
       JPanel south = new JPanel(new FlowLayout());
       south.setPreferredSize(new Dimension( 0, southwidth ) );
       JPanel west = new JPanel(new FlowLayout());
-      //west.setVisible(false);
-      //WestSizer west_listener = new WestSizer();   
-      //west.addComponentListener( west_listener );
-      //west.setVisible(true);
-
-      /*
-      System.out.println("FontRender " + 
-               ((Graphics2D)big_picture.getGraphics()) );*/
-      //west.setPreferredSize(new Dimension( 70, 0 ) );
       west.setPreferredSize(new Dimension( westwidth, 0 ) );
       
       //Construct the background JPanel
@@ -449,6 +433,21 @@ public class ImageViewComponent implements IViewComponent2D,
       master.add(background);
 
       big_picture = master;
+   }
+   
+  /*
+   * This method constructs the controls required by the ImageViewComponent
+   */
+   private void buildViewControls( ImageJPanel iJpanel )
+   {
+      ControlSlider intensity_slider = new ControlSlider();
+      ControlSlider slider2 = new ControlSlider();
+      intensity_slider.setTitle("Intensity Slider");
+      slider2.setTitle("Not Attached");
+      slider2.showTicks(false);
+      intensity_slider.addActionListener( new SliderListener() );
+      controls.add(intensity_slider);
+      controls.add(slider2);
    }
    
   //***************************Assistance Classes******************************
@@ -505,24 +504,26 @@ public class ImageViewComponent implements IViewComponent2D,
    }
    
   /*
-   * WestSizer monitors if the west panel of the background panel 
-   * (border layout)has been displayed. If so, get it's graphics context
-   * to be used by the fontmetrics to determine to width of the west panel.
-   *
-   private class WestSizer extends ComponentAdapter
-   {
-      public void componentShown( ComponentEvent e )
+   * SliderListener moniters activities of a ControlSlider, which is a 
+   * control of the ImageViewComponent.
+   */
+   private class SliderListener implements ActionListener
+   { 
+      public void actionPerformed( ActionEvent ae )
       {
-         System.out.println("In componentShown()");
-	 Component west = e.getComponent();
-	 System.out.println("Graphics: " + west.getGraphics() );
+         ControlSlider control = (ControlSlider)ae.getSource();
+         String message = ae.getActionCommand();
+                              // set image log scale when slider stops moving
+         if ( message == IViewControl.IS_CHANGED )
+         {
+	    ijp.changeLogScale( control.getValue(), true );
+         } 
       }
+   } 
       
-   }*/
-      
-   /*
-    * MAIN - Basic main program to test an ImageViewComponent object
-    */
+  /*
+   * MAIN - Basic main program to test an ImageViewComponent object
+   */
    public static void main( String args[] ) 
    {
         int col = 250;
@@ -557,9 +558,20 @@ public class ImageViewComponent implements IViewComponent2D,
         //A tester frame to throw the bottom and top JPanel into **********
         JFrame f = new JFrame("ISAW ImageViewComponent");  
 	f.setBounds(0,0,500,500);
-	final Container c = f.getContentPane();
+	Container c = f.getContentPane();
 	c.add(ivc.getDisplayPanel());
 	  
 	f.show(); //display the frame
+	
+	JFrame f2 = new JFrame("ISAW ImageViewControls");
+	Container cpain = f2.getContentPane();
+	cpain.setLayout( new BoxLayout(cpain,BoxLayout.Y_AXIS));  
+	
+	JComponent[] controls = ivc.getSharedControls();
+	for( int i = 0; i < controls.length; i++ )
+	   cpain.add(controls[i]);
+	f2.setBounds(0,0,200,(100 * controls.length));
+	cpain.validate();  
+	f2.show(); //display the frame
    }
 }
