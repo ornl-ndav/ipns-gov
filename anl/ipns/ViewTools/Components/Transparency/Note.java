@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/11/18 01:03:29  millermi
+ *  - Now implement serializable to allow saving of state.
+ *
  *  Revision 1.1  2003/10/17 23:00:25  millermi
  *  - Removed this private class from the AnnotationOverlay
  *    and made it a separate public class.
@@ -55,7 +58,7 @@ import DataSetTools.util.floatPoint2D;
  *
  *  @see DataSetTools.components.View.Transparency.AnnotationOverlay
  */
-public class Note
+public class Note implements java.io.Serializable
 {
    private JTextField textfield; // actual note being drawn
    private Line arrow;  	 // location to draw this note (p1, p2)

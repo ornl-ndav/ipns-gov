@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/18 01:03:29  millermi
+ *  - Now implement serializable to allow saving of state.
+ *
  *  Revision 1.2  2003/10/16 05:00:04  millermi
  *  - Fixed java docs errors.
  *
@@ -51,7 +54,7 @@
  * This class is a datastructure containing two points that are 
  * used to create a line.
  */   
-public class Line
+public class Line implements java.io.Serializable
 {
    private Point p1;
    private Point p2;

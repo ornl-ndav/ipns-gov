@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/18 01:03:29  millermi
+ *  - Now implement serializable to allow saving of state.
+ *
  *  Revision 1.2  2003/10/22 20:26:09  millermi
  *  - Fixed java doc errors.
  *
@@ -55,7 +58,7 @@ import java.awt.Point;
  * subclasses of this class can return all of the points inside the selected
  * region. 
  */ 
-public abstract class Region
+public abstract class Region implements java.io.Serializable
 {
    protected Point[] definingpoints;
    protected Point[] selectedpoints;

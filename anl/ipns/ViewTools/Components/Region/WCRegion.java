@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/18 01:03:29  millermi
+ *  - Now implement serializable to allow saving of state.
+ *
  *  Revision 1.2  2003/08/08 15:56:55  millermi
  *  - Changed filename at top from Region.java to WCRegion.java
  *  - Added method getWorldCoordPoints() for quicker access of data
@@ -63,7 +66,7 @@ import DataSetTools.util.floatPoint2D;
  * the Selection Overlay to the view component. The Region class in the Region
  * directory is used to pass region info from the view component to the viewer. 
  */ 
-public class WCRegion
+public class WCRegion implements java.io.Serializable
 {
    private String region;
    private floatPoint2D[] wcp;
