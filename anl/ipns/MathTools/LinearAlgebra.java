@@ -35,6 +35,13 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.13  2003/05/20 22:35:04  dennis
+ *  Fixed bug with calculation of residual errors in the QR_solve,
+ *  BestFitMatrix() and related methods.  Added method BestFitMatrix2() based
+ *  on Jama package, for testing purposes.  BestFitMatrix2() is slower than
+ *  our original BestFitMatrix() method and does NOT return residual
+ *  errors, so BestFitMatrix() method should generally be used.
+ *
  *  Revision 1.12  2003/04/30 19:57:53  pfpeterson
  *  Fixed a javadoc tag.
  *
@@ -51,7 +58,8 @@
  *  in inverse method.
  *
  *  Revision 1.8  2003/02/04 19:43:53  pfpeterson
- *  Implemented isSquare(float[][]) and isRectangular(float[][]) without casting.
+ *  Implemented isSquare(float[][]) and isRectangular(float[][]) without 
+ *  casting.
  *
  *  Revision 1.7  2003/01/30 21:03:15  pfpeterson
  *  Added methods to convert between float[][] and double[][]. Added
@@ -75,6 +83,7 @@
 package DataSetTools.math;
 
 import DataSetTools.util.*;
+import Jama.*;
 
 /**
  *  Basic linear algebra operations such as dot product, solution of
@@ -477,7 +486,7 @@ public final class LinearAlgebra
 
     double error = 0.0;
     for ( int i = A[0].length; i < A.length; i++ )
-      error = b[i]*b[i];
+      error += b[i]*b[i];
 
     return Math.sqrt( error );
   }
@@ -586,7 +595,7 @@ public final class LinearAlgebra
    *                 q vectors.  Specifically, r must be of size k x n.
    *                  
    *  @return On completion, the best fit matrix will have been entered in
-   *  paramter M and the return value will be the square root of the sum of 
+   *  parameter M and the return value will be the square root of the sum of 
    *  the squares of the residual errors. NOTE: The values stored in M, q and
    *  r will be altered, so if the calling code needs their original values,
    *  it is responsible for saving copies of the original data.
@@ -622,6 +631,26 @@ public final class LinearAlgebra
 
     return Math.sqrt(residual);
   } 
+
+ /**
+  *  Calculation of BestFitMatrix using the QRDecomposition from the Jama
+  *  package.  This is slower for small matrices and does not return the
+  *  residual errors. 
+  */
+  public static double BestFitMatrix2(double M[][], double q[][], double r[][])
+  {
+    QRDecomposition qr_d = new QRDecomposition( new Matrix(q) );   
+
+    Matrix b_mat = new Matrix(r);
+    b_mat = qr_d.solve( b_mat );
+
+    for ( int row = 0; row < M.length; row++ )
+    for ( int col = 0; col < M[0].length; col++ ) 
+        M[row][col] = b_mat.getArray()[col][row];
+
+    return 0;
+  }
+
 
   /* ---------------------- HouseholderTransform --------------------------- */
   /**
