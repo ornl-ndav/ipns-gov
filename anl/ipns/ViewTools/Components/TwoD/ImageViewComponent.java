@@ -34,10 +34,9 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.16  2003/07/10 13:38:30  dennis
- *  - Commented out unnecessary import statement
- *  - Made One-sided color models available
- *  (Mike Miller)
+ *  Revision 1.17  2003/07/25 14:37:55  dennis
+ *  - Now also implements IZoomTextAddible so that selection and annotation
+ *  overlays may be added. (Mike Miller)
  *
  *  Revision 1.15  2003/07/05 19:47:34  dennis
  *  - Added methods getDataMin() and getDataMax().
@@ -131,7 +130,8 @@ import java.awt.geom.*;
  */
 public class ImageViewComponent implements IViewComponent2D, 
                                            ActionListener,
-					   IColorScaleAddible
+           /*for IAxisAddible2D*/          IColorScaleAddible,
+           /*for Selection/Annotation*/    IZoomTextAddible
 {
    private IVirtualArray2D Varray2D;  //An object containing our array of data
    private Point[] selectedset; //To be returned by getSelectedSet()   
