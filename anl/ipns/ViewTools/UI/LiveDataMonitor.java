@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2002/04/18 22:00:57  dennis
+ *  Fixed name problem that prevented compiling with jdk1.3.1_03
+ *  (Though it did compile with 1.4.0)
+ *
  *  Revision 1.21  2002/04/18 21:34:24  dennis
  *  If the LiveDataManager Thread sends a message to this LiveDataMonitor,
  *  the request is put into a queue and run by the Swing Event handling
@@ -731,9 +735,9 @@ public class LiveDataMonitor extends    JPanel
           if ( event_queue.size() <= 0 )               // in the Swing event 
             return;                                    // handling thread.
                                                          
-          ActionEvent e = (ActionEvent)event_queue.elementAt(0);
+          ActionEvent event = (ActionEvent)event_queue.elementAt(0);
           event_queue.removeElementAt(0);
-          run_actionPerformed( e );
+          run_actionPerformed( event );
         }
       };
       SwingUtilities.invokeLater( actionRunnable );
