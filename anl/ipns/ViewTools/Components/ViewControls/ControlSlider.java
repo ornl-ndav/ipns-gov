@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/05/24 17:36:54  dennis
+ *  Removed unnecessary import statement. (Mike Miller)
+ *
  *  Revision 1.2  2003/05/22 12:57:51  dennis
  *  Now prints value in main test program. Increased precision. (Mike Miller)
  *
@@ -50,7 +53,6 @@
  import java.io.Serializable;
  import java.awt.event.*;
  import java.awt.*;
- import java.awt.geom.Point2D;
  
  import DataSetTools.viewer.ViewerState;
  import DataSetTools.util.*;
@@ -262,7 +264,7 @@ public class ControlSlider extends ViewControl
          {
             value = slider.getValue()/(float)Math.pow(10.0, power);
 	    //System.out.println("In stateChanged(), Value = " + value);
-	    ((ViewControl)slider.getParent()).send_message(IS_CHANGED);
+	    ((ViewControl)slider.getParent()).send_message(SLIDER_CHANGED);
          } 
       }
    }
