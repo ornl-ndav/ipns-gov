@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2003/07/02 17:09:58  serumb
+ * Added a boolean variable to keep track of a lines transparency.
+ *
  * Revision 1.9  2003/06/20 16:19:04  serumb
  * Added methods and variables to set and get error values.
  *
@@ -68,7 +71,7 @@ public class GraphData implements Serializable
   private float[] error_bars = null;
   private int errors = 0;
   public Color  errorcolor = Color.blue;
-
+  public boolean transparent = false;
   // public methods
 
   public boolean setErrorVals(int error_loc, float[] error_vals)
