@@ -1,4 +1,3 @@
-
 /*
  * File:  FinishWindowListener.java 
  *             
@@ -34,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/07/28 16:07:32  dennis
+ * Added java docs.
+ *
  * Revision 1.1  2004/03/23 14:46:24  rmikk
  * Initial Checkin.  This window listener calls the finish method of an
  * IFinish Window.  This method should call the protected finalize method
@@ -43,17 +45,20 @@ package gov.anl.ipns.Util.Sys;
 import java.awt.*;
 import java.awt.event.*;
 
-public class FinishWindowListener  extends WindowAdapter{
+/**
+ *  This class calls the finalize on Window to dispose of input methods and
+ *  context and removes the weak reference which formally pointed to this
+ *  window from the parents owned window list.  This will actually dispose
+ *  of a window.
+ */
 
-
-
-
+public class FinishWindowListener extends WindowAdapter{
 
    public void windowClosed(WindowEvent e){
       Object src = e.getSource();
       if( src instanceof Window)
         if( src instanceof IFinish)
            ((IFinish)src).finish();
-
    }
+
 }
