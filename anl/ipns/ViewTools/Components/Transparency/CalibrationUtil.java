@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/12 02:49:42  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.6  2003/10/16 05:00:08  millermi
  *  - Fixed java docs errors.
  *
@@ -53,9 +56,10 @@
  *
  */
 
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Numeric.Format;
+import gov.anl.ipns.Util.Sys.SharedMessages;
 
 /**
  * This class bundles calibration functions together. Pass in an interval,
@@ -95,8 +99,8 @@ public class CalibrationUtil
       }
       if( xmax == xmin )
       {
-         SharedData.addmsg("ERROR -- endpoints of interval " + 
-     			    "are equal. Interval has been adjusted.");
+         SharedMessages.addmsg("ERROR in CalibrationUtil -- endpoints of "+
+	                 "interval are equal. Interval has been adjusted.");
          xmax = xmax + 1;
       }
       
