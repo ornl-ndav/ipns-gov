@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/08 17:53:52  millermi
+ *  - Changed values in main() to test new implementation.
+ *
  *  Revision 1.4  2004/01/07 21:35:05  millermi
  *  - Added javadoc comments.
  *  - Removed restriction that destination interval be positive.
@@ -207,12 +210,15 @@ public class LogScaleUtil
                     (source_max - source_min) ) - 1 ) *
                     ( dest_max - dest_min)/(s-1) ) + dest_min;
   }
-   
+ 
+ /*
+  * For Test purposes only...
+  */  
   public static void main( String argv[] )
   {
-    float smin   = -10;
+    float smin   = -210;
     float smax = 210f;
-    float dmin   = -.01f;
+    float dmin   = -.11f;
     float dmax   = .1200f;
     //float dmin   = 1f;
     //float dest   = 1000f;
@@ -226,12 +232,12 @@ public class LogScaleUtil
     for( int i = (int)(dmin*1000); i < dmax*1000; i++ )
       if( i%10 == 0 )
         System.out.println("Dest/Source: " + (float)i/1000 + "/" + 
-	                    testutil.toSource((float)i/1000, 0) );
+	                    testutil.toSource((float)i/1000, .3) );
     System.out.println("");
     for( int j = (int)(smin); j < smax; j++ )
       if( j%10 == 0 )
         System.out.println("Source/Dest: " + j + "/" + 
-                        testutil.toDest((float)j, 0) );
+                        testutil.toDest((float)j, .3) );
     
     //System.out.println("Extreme tests: " + testutil.toSource(1f) );
   }
