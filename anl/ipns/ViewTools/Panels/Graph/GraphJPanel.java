@@ -30,8 +30,17 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.17  2003/06/30 21:57:25  dennis
+ * Removed shift by "first_index" that was improperly added.
+ * Arrays x_xopy and y_copy in paint() only contain copies of the
+ * data in the current zoom region.  They are indexed starting a
+ * index 0 and should not have been made larger and indexed starting
+ * at "first_index".
+ *
  * Revision 1.16  2003/06/25 21:44:29  serumb
- * Added setErrorColor method, cleaned up strokeType method, and changed the paint method so it only draws point marks and error bars on the visible portion of the graph.
+ * Added setErrorColor method, cleaned up strokeType method, and changed the 
+ * paint method so it only draws point marks and error bars on the visible 
+ * portion of the graph.
  *
  * Revision 1.15  2003/06/23 20:16:58  dennis
  * Fixed "off by one" error on check for valid GraphData index in
@@ -714,19 +723,17 @@ public boolean is_autoY_bounds()
       float y_copy[];
       if ( is_histogram )
       {
-        x_copy = new float[ first_index + n_points + 1 ];
+        x_copy = new float[ n_points + 1 ];
         System.arraycopy( gd.x_vals, first_index, x_copy, 
-                          first_index, n_points+1 );
+                          0, n_points+1 );
       }
       else
       {
-        x_copy = new float[ first_index + n_points ];
-        System.arraycopy( gd.x_vals, first_index,
-                          x_copy, first_index, n_points );
+        x_copy = new float[ n_points ];
+        System.arraycopy( gd.x_vals, first_index, x_copy, 0, n_points );
       }
-      y_copy = new float[ first_index + n_points ];
-      System.arraycopy( gd.y_vals, first_index , 
-                        y_copy, first_index, n_points );
+      y_copy = new float[ n_points ];
+      System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
 
       local_transform.MapTo( x_copy, y_copy );         // map from WC to pixels
       
@@ -735,10 +742,10 @@ public boolean is_autoY_bounds()
       if ( gd.getErrorVals() != null )
       {
         //System.out.println("Copying errors " + gr_index + ", " + n_points );
-        error_bars_upper = new float[first_index + n_points ];
-        error_bars_lower = new float[first_index + n_points ]; 
+        error_bars_upper = new float[ n_points ];
+        error_bars_lower = new float[ n_points ]; 
 
-        for ( int i = first_index; i < first_index + n_points; i++ )
+        for ( int i = 0; i < n_points; i++ )
         {
            error_bars_upper[i] = gd.y_vals[i] + gd.getErrorVals()[i]; 
            error_bars_lower[i] = gd.y_vals[i] - gd.getErrorVals()[i];
@@ -795,7 +802,7 @@ public boolean is_autoY_bounds()
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = first_index; i < first_index + n_points; i++ )
+          for ( int i = 0; i < n_points; i++ )
           {
 	     
 	     if ( type == DOT )
@@ -849,7 +856,7 @@ public boolean is_autoY_bounds()
           int loc = gd.getErrorLocation();
 	  g2.setStroke(new BasicStroke(1));
 	  g2.setColor( gd.errorcolor );
-          for ( int i = first_index; i < first_index + n_points; i++ )
+          for ( int i = 0; i < n_points; i++ )
           {
              if ( loc == ERROR_AT_POINT )
              {
@@ -915,7 +922,7 @@ public boolean is_autoY_bounds()
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = first_index; i < first_index + n_points; i++ )
+          for ( int i = 0; i < n_points; i++ )
           {
 	     int x_midpt = (int)((x_copy[i] + x_copy[i+1])/2);
 	     if ( type == DOT )
@@ -977,7 +984,7 @@ public boolean is_autoY_bounds()
 	  g2.setColor( gd.errorcolor );
 
 
-          for ( int i = first_index; i <  n_points + first_index; i++ )
+          for ( int i =0 ; i <  n_points; i++ )
           {
              float x_midpt = ((x_copy[i] + x_copy[i+1])/2);
              if ( loc == ERROR_AT_POINT )
