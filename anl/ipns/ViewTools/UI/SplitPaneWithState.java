@@ -1,20 +1,21 @@
-package DataSetTools.components.containers;
-
 /**
- * $Id$ 
+ * @(#)SplitPaneWithState.java 
+ *
+ * Programmer: Dennis Mikkelson
  *  
  * $Log$
+ * Revision 1.3  2001/01/29 21:33:36  dennis
+ * Now uses CVS version numbers.
+ *
  * Revision 1.2  2000/07/10 22:04:44  dennis
  * Not done...partly modified for JDK 1.2.2
  *
  * Revision 1.3  2000/06/12 20:12:10  dennis
  * internal class now implements Serializable
  *
- * Revision 1.2  2000/05/02 15:35:09  dennis
- * *** empty log message ***
- *
  *
  */
+package DataSetTools.components.containers;
 
 import java.awt.*;
 import java.awt.event.*;
