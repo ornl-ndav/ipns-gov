@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/04/07 20:41:47  millermi
+ *  - Constructed parallel arrays for String and int code. Also
+ *    added methods to easily convert from one to the other.
+ *
  *  Revision 1.3  2004/04/07 01:19:51  millermi
  *  - Added get/set methods.
  *  - Added toString()
@@ -118,6 +122,18 @@ public class Marker implements java.io.Serializable
   public static final int HDASH  = 6;
   
  /**
+  * 7 - This is the marker code for drawing a negative sloped dash centered at
+  * a specified point.
+  */
+  public static final int NDASH  = 7;
+  
+ /**
+  * 8 - This is the marker code for drawing a positive sloped dash centered at
+  * a specified point.
+  */
+  public static final int PDASH  = 8;
+  
+ /**
   * 10 - This is the marker code for drawing a vertical line spanning the
   * vertical extents of the image and passing through the specified point.
   * The size specified in the draw() has no affect on this marker.
@@ -153,6 +169,34 @@ public class Marker implements java.io.Serializable
   private CoordTransform pixel_to_world = new CoordTransform();
   private boolean transform_set = false;
   private int size = -1;  // this will be the radius in pixel coords.
+  // string_list and int_list are parallel arrays,
+  // THEY MUST BE KEPT SYNCHORNIZED.
+  private static String[] string_list = { "Plus(+)",
+                                   	  "X(x)",
+				   	  "Star(*)",
+				   	  "Box([])",
+                                   	  "Circle(o)",
+				   	  "Vertical Dash(|)",
+				   	  "Horizontal Dash(-)",
+				   	  "Negative Slope Dash(\\)",
+				   	  "Positive Slope Dash(/)",
+				   	  "Vertical Line(|)",
+				   	  "Horizontal Line(-)",
+				   	  "Negative Slope Diagonal Line(\\)",
+				   	  "Positive Slope Diagonal Line(/)" };
+  private static int[] int_list = { PLUS,
+                           	    X,
+			   	    STAR,
+			   	    BOX,
+			   	    CIRCLE,
+			   	    VDASH,
+			   	    HDASH,
+			   	    NDASH,
+			   	    PDASH,
+			   	    VLINE,
+			   	    HLINE,
+			   	    NLINE,
+			   	    PLINE };
  
  /**
   * Constructor for marker class, instance for multiple similar markers.
@@ -295,12 +339,9 @@ public class Marker implements java.io.Serializable
   public void setMarkerType( int type )
   {
     // make sure type is a valid choice.
-    if( type >= 0 && type < 14 )
+    if( isValidCode(type) )
     {
-      if( !( type > 6 && type < 10 ) )
-      {
-        markertype = type;
-      }
+      markertype = type;
     }
   }
   
@@ -325,6 +366,68 @@ public class Marker implements java.io.Serializable
   {
     if( behave_on_zoom >= 0 && behave_on_zoom < 2 )
       markerscaling = behave_on_zoom;
+  }
+  
+ /**
+  * This method is used to quickly convert a marker type int code to its
+  * corresponding String representation. Null is returned if 
+  *
+  *  @param  code The marker type int code, specified by static variables
+  *               in this class.
+  *  @return The String representation of the specified code, null if not found.
+  */
+  public static String intCodeToString( int code )
+  {
+    // check to make sure it is a valid code
+    if( !isValidCode(code) )
+      return null;
+    int index = 0;
+    while( index < int_list.length && int_list[index] != code )
+      index++;
+    return string_list[index];
+  }
+  
+ /**
+  * This method is used to quickly convert a marker type String returned
+  * by toString() or intCodeToString() to its int code specified by static
+  * variables in this class. If string_rep is not found, -1 will be returned.
+  *
+  *  @param  string_rep The marker type String, specific to this class.
+  *  @return The int code for the marker, -1 if not found.
+  */
+  public static int stringToIntCode( String string_rep )
+  {
+    int index = 0;
+    while(index < string_list.length && !string_list[index].equals(string_rep))
+      index++;
+    // if not found, return -1
+    if( index == string_list.length )
+      return -1;
+    return int_list[index];
+  }
+  
+ /**
+  * Give the list of possible marker types, represented by Strings.
+  * This list is synchronized with the array of marker type int codes,
+  * so the index from the string type array can be used to get the int code.
+  *
+  *  @return The array of marker types expressed as Strings.
+  */
+  public static String[] getStringArray()
+  {
+    return string_list;
+  }
+  
+ /**
+  * Give the list of possible marker types, represented by int codes.
+  * This list is synchronized with the array of marker type Strings,
+  * so the index from the int code array can be used to get the String.
+  *
+  *  @return The array of marker types expressed as an int.
+  */
+  public static int[] getIntCodeArray()
+  {
+    return int_list;
   }
   
  /**
@@ -456,6 +559,28 @@ public class Marker implements java.io.Serializable
 	              pix_locale.x + size, pix_locale.y );
       }
     }
+    else if( markertype == NDASH )
+    {
+      Point pix_locale = new Point();
+      for( int i = 0; i < locations.length; i++ )
+      {
+        pix_locale = (pixel_to_world.MapFrom(locations[i])).toPoint();
+	// draw negative sloping dash
+        g2d.drawLine( pix_locale.x - size, pix_locale.y - size,
+	              pix_locale.x + size, pix_locale.y + size);
+      }
+    }
+    else if( markertype == PDASH )
+    {
+      Point pix_locale = new Point();
+      for( int i = 0; i < locations.length; i++ )
+      {
+        pix_locale = (pixel_to_world.MapFrom(locations[i])).toPoint();
+	// draw positive sloping dash
+        g2d.drawLine( pix_locale.x - size, pix_locale.y + size,
+	              pix_locale.x + size, pix_locale.y - size);
+      }
+    }
     else if( markertype == VLINE )
     {
       Point pix_locale = new Point();
@@ -547,34 +672,27 @@ public class Marker implements java.io.Serializable
   }
   
  /**
+  * Display the name of the marker.
   *
+  *  @return The String name of the marker.
   */
   public String toString()
+  {    
+    return intCodeToString(markertype);
+  }
+  
+  private static boolean isValidCode( int type )
   {
-    // assume it is a plus
-    String type = "Plus(+)";
-    if( markertype == X )
-      type = "X(x)";
-    else if( markertype == STAR )
-      type = "Star(*)";
-    else if( markertype == BOX )
-      type = "Box([])";
-    else if( markertype == CIRCLE )
-      type = "Circle(o)";
-    else if( markertype == VDASH )
-      type = "Vertical Dash(|)";
-    else if( markertype == HDASH )
-      type = "Horizontal Dash(-)";
-    else if( markertype == VLINE )
-      type = "Vertical Line(|)";
-    else if( markertype == HLINE )
-      type = "Horizontal Line(-)";
-    else if( markertype == NLINE )
-      type = "Negative Slope Diagonal Line(\\)";
-    else if( markertype == PLINE )
-      type = "Positive Slope Diagonal Line(/)";
-    
-    return type;
+    // make sure type is a valid choice.
+    if( type >= 0 && type < 14 )
+    {
+      // there is no 9th marker
+      if( type != 9 )
+      {
+        return true;
+      }
+    }
+    return false;
   }
 } // end of Marker
 
