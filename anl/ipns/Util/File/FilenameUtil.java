@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/02/14 22:41:11  pfpeterson
+ *  Added method to locate files in the docs subdirectory of ISAW: docDir().
+ *
  *  Revision 1.4  2001/12/18 23:06:43  pfpeterson
  *  Fixed a windows bug. A local file should be listed as 'file:///' not 'file://'. It works under linux as well.
  *
@@ -117,6 +120,44 @@ public class FilenameUtil
 
     return null;
   }
+
+    /**
+     * Produces the appropriate directory for a given document
+     *
+     * @param docFile The name of the document to be used
+     *
+     * @return A string containing a link to either the local document
+     *         or a null string indicating failure.
+     */
+    public static String docDir( String docFile ){
+	String S=System.getProperty("Docs_Directory");
+	  if( S == null ){
+	      S=System.getProperty("ISAW_HOME");
+	  }
+	  if( S == null ){
+	      SharedData.status_pane.add("ISAW_HOME is not defined in"
+					 +" Properties file");
+	      return null; // do nothing
+	  }
+	  S=S.trim();
+	  S=DataSetTools.util.StringUtil.fixSeparator(S);
+	  if( S.charAt( S.length()-1 ) != '/' ){
+	      S=S+"/";
+	  }
+	  if( (new File(S+docFile)).exists() ){
+	      S=S+docFile;
+	  }else if( (new File(S+"html/"+docFile)).exists() ){
+	      S=S+"html/"+docFile;
+	  }else if( (new File(S+"docs/html/"+docFile)).exists() ){
+	      S=S+"docs/html/"+docFile;
+	  }else{
+	      SharedData.status_pane.add("CANNOT FIND DOCUMENT: "+docFile);
+	      return null; // file doesn't exist
+	  }
+	      
+	  S="file:///"+S;
+	  return S;
+    }
 
     /**
      * Produces the appropriate directory for a given help
