@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2001/07/13 22:04:47  dennis
+ *  The text box displaying the frame value now will also display
+ *  the frame number.
+ *
  *  Revision 1.6  2001/07/02 20:46:59  dennis
  *  Added getFrameValue() method.
  *
@@ -85,6 +89,7 @@ public class AnimationController extends    JPanel
   private static final String  RUN_FORWARD   = ">>";
 
   private TextValueUI      text_box;
+  private String           my_label  = "";
   private Vector           listeners = null;
   private TitledBorder     border;
   private Thread           run_thread   = null;
@@ -115,7 +120,7 @@ public class AnimationController extends    JPanel
 
      setLayout( new GridLayout( 2, 1 ) );
 
-     text_box = new TextValueUI("", frame_number);
+     text_box = new TextValueUI( my_label, frame_number );
      text_box.setHorizontalAlignment( JTextField.CENTER );
      text_box.addActionListener( new TextListener() );
      add(text_box);     
@@ -175,7 +180,11 @@ public class AnimationController extends    JPanel
 
   public void setTextLabel( String label )
   {
-    text_box.setLabel( label );
+    my_label = label;
+    if ( frame_values == null )
+      text_box.setLabel( my_label );
+    else
+      text_box.setLabel( "" + frame_number + " " + my_label );
   }
 
 
@@ -348,6 +357,7 @@ synchronized private void set_frame( int number )
       number = 0;
     }
 
+    text_box.setLabel( "" + number + " " + my_label );
     text_box.setValue( frame_values[ number ] );   // use the frame_value for
                                                    // the given frame number
   }
