@@ -25,10 +25,18 @@
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
  *
- * This work was supported by the Intense Pulsed Neutron Source Division
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0218882, and by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ * Modified:
+ *
+ *  $Log$
+ *  Revision 1.3  2003/05/16 14:56:12  dennis
+ *  Added calibration intervals on the X-Axis when resizing. (Mike Miller)
+ *
  */
  
 //******************************Mental Reminders*******************************
@@ -36,6 +44,7 @@
 // ImageJPanel currently draws over the overlay.
 // X axis has a constant position 50 for it's label
 //*****************************************************************************
+// 4/26/03 -Added calibration intervals on x-axis when resizing
 
 package DataSetTools.components.View.Transparency;
 
@@ -110,7 +119,7 @@ public class AxisOverlay2D extends OverlayJPanel
       if( component.getTitle() != IVirtualArray2D.NO_TITLE )
          g2d.drawString( component.getTitle(), xstart + xaxis/2 -
                       fontdata.stringWidth(component.getTitle())/2, 
-     	              ystart - fontdata.getHeight() );
+     	              ystart/2 + (fontdata.getHeight())/2 );
           
       // info for putting tick marks and numbers on transparency       	      
       String num = "";
@@ -125,7 +134,7 @@ public class AxisOverlay2D extends OverlayJPanel
       float[] values = util.subDivide();
       float step = values[0];
       float start = values[1];    // the power of the step
-      int numxsteps = (int)values[2];    
+      int numxsteps = (int)values[2];         
       	 
       int pixel = 0;
       int subpixel = 0;
@@ -136,7 +145,11 @@ public class AxisOverlay2D extends OverlayJPanel
       */
       float A = 0;	
       int exp_index = 0;
-      
+      //boolean drawn = false;
+      int prepix = (int)( 
+     		 (float)xaxis*(start - xmin)/
+     		 (xmax-xmin) + xstart); 
+      int skip = 0;
       for( int steps = 0; steps < numxsteps; steps++ )
       {  
          A = (float)steps*step + start;		 
@@ -152,9 +165,19 @@ public class AxisOverlay2D extends OverlayJPanel
 	 num = util.standardize( (step * (float)steps + start) );
 	 exp_index = num.indexOf('E');	 
 	 
-	 g2d.drawString( num.substring(0,exp_index), 
+	 
+	 if( (prepix + 2 + fontdata.stringWidth(num.substring(0,exp_index))/2) >
+	     (pixel - fontdata.stringWidth(num.substring(0,exp_index))/2) )
+	 {
+	    skip++;
+	 }
+	 
+	 if( steps%skip == 0 )
+	 {
+	    g2d.drawString( num.substring(0,exp_index), 
 	            pixel - fontdata.stringWidth(num.substring(0,exp_index))/2, 
-     	            yaxis + ystart + xtick_length + fontdata.getHeight() );	      
+     	            yaxis + ystart + xtick_length + fontdata.getHeight() );
+	 }	      
 
          //System.out.println("Subpixel/XStart " + subpixel + "/" + xstart );
      	 if( subpixel > xstart && subpixel < (xstart + xaxis) )
@@ -171,7 +194,7 @@ public class AxisOverlay2D extends OverlayJPanel
      			     yaxis + ystart + xtick_length-2 );
      	 }
      	 g2d.drawLine( pixel, yaxis + ystart, 
-     		       pixel, yaxis + ystart + xtick_length );  		    
+     		       pixel, yaxis + ystart + xtick_length );  	
       }
      /*
       * This will display the x label, x units, and common exponent (if not 0).
@@ -186,10 +209,12 @@ public class AxisOverlay2D extends OverlayJPanel
       if( xlabel != "" )
          g2d.drawString( xlabel, xstart + xaxis/2 -
                       fontdata.stringWidth(xlabel)/2, 
-     	              yaxis + ystart + 50 - fontdata.getHeight()/2 );
+     	              yaxis + ystart + fontdata.getHeight() * 2 + 6 );
       
      /*
-      * Draw y axis with horizontal numbers and adjusting ticks
+      * Draw y axis with horizontal numbers and adjusting ticks.
+      * Given ysteps in world coordinates, put ticks on y axis starting
+      * from top and moving down to the origin
       */
       CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
                                                    Format.ENGINEER );
@@ -198,19 +223,24 @@ public class AxisOverlay2D extends OverlayJPanel
       float starty = values[1];    // the power of the interval
       int numysteps = (int)values[2];
 
-      //System.out.println("NumYSteps = " + numysteps);
-      int ytick_length = 5;
-      // draw ticks for the y-axis, starting from origin, 
-      // and backtracking up
-      int ypixel = 0;
-      int ysubpixel = 0;
+      int ytick_length = 5;     // the length of the tickmark is 5 pixels
+      int ypixel = 0;           // where to place "calibrated" ticks (with #s)
+      int ysubpixel = 0;        // where to place "half" ticks (w/o #'s)
      		    
       float pmin = ystart + yaxis;
       float pmax = ystart;
       float a = 0;
       float amin = ymin - starty;
-      // given ysteps in world coordinates, put ticks on y axis starting
-      // from top and moving down to the origin
+      
+      // yskip is the space between calibrations: 1 = every #, 2 = every other
+      
+      int yskip = 1;
+      while( (yaxis*yskip/numysteps) < fontdata.getHeight() )
+         yskip++;
+      int mult = (int)(numysteps/yskip);
+      int rem = numysteps%yskip;
+      //System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
+      //                   ") = " + mult + "R" + rem);
       for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
       {   
      	 a = ysteps * ystep;
@@ -235,10 +265,13 @@ public class AxisOverlay2D extends OverlayJPanel
 	 // if pixel is between top and bottom of imagejpanel, draw it 		     	       
      	 if( ypixel <= pmin && ypixel >= pmax )
      	 {
-	    g2d.drawString( num.substring(0,exp_index), 
+	    if( ((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip) )
+	    {
+	       g2d.drawString( num.substring(0,exp_index), 
 	                    xstart - ytick_length - 
 		            fontdata.stringWidth(num.substring(0,exp_index)),
-	                    ypixel + fontdata.getHeight()/4 );	      
+	                    ypixel + fontdata.getHeight()/4 );
+	    }	      
 
      	    g2d.drawLine( xstart - ytick_length, ypixel - 1, 
      	                  xstart - 1, ypixel - 1 );   
