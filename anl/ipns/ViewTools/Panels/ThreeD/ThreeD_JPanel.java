@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2001/07/12 16:29:22  dennis
+ * build_object_list() is no only called during painting, if
+ * items have been added to or removed from the list.
+ *
  * Revision 1.7  2001/07/12 14:43:39  dennis
  * Added clear() method to remove all objects.
  * Private method build_object_list no longer calls repaint()
@@ -97,7 +101,9 @@ public class ThreeD_JPanel extends    CoordJPanel
   private  Tran3D          tran3D_used  = null;
   private  CoordTransform  tran2D_used  = null;
 
-  private  volatile boolean data_painted = false;
+  private  volatile boolean data_painted    = false;
+  private  volatile boolean obj_lists_valid = false;
+
   private  float            clip_factor  = 0.9f;   // relative location of the
                                                    // front clipping plane as 
                                                    // fraction of distance from
@@ -168,6 +174,7 @@ public class ThreeD_JPanel extends    CoordJPanel
                                                // user moves the cursor (due
                                                // to XOR drawing).
     super.paint(g);
+    build_object_list();
     if ( all_objects == null )
     {
       g.setColor( Color.white );
@@ -176,7 +183,6 @@ public class ThreeD_JPanel extends    CoordJPanel
     }
 
     project();
-
     for ( int i = 0; i < all_objects.length; i++ )
       all_objects[ index[i] ].Draw(g);
   }
@@ -321,8 +327,7 @@ public class ThreeD_JPanel extends    CoordJPanel
      return;
 
    obj_lists.put( name, obj );
-
-   build_object_list();
+   obj_lists_valid = false; 
  }
 
 
@@ -341,7 +346,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  public void removeObjects( String name )
  {
    obj_lists.remove( name );
-   build_object_list();
+   obj_lists_valid = false; 
  }
 
 
@@ -356,7 +361,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  public void removeObjects()
  {
    obj_lists.clear();
-   build_object_list();
+   obj_lists_valid = false; 
  }
 
 
@@ -446,6 +451,9 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
  private void build_object_list()
  {
+   if ( obj_lists_valid )                   // no need to rebuild
+     return;
+
    if ( obj_lists.isEmpty() )               // no more objects, so clean up
    {
      index = null;
@@ -480,6 +488,7 @@ public class ThreeD_JPanel extends    CoordJPanel
 
    data_painted = false;
 
+   obj_lists_valid = true;
    tran3D_used = null;                     // data will have to be projected
                                            // and depth sorted again. 
  }
