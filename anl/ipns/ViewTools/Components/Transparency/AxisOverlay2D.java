@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2003/07/25 14:42:57  dennis
+ *  - Added if statement to ensure component is of type LogAxisAddible2D
+ *    in paintLogX() and paintLogY(). (Mike Miller)
+ *
  *  Revision 1.9  2003/07/05 19:44:21  dennis
  *  - Implemented private methods paintLogX() and paintLogY()
  *    (Mike Miller)
@@ -159,11 +163,6 @@ public class AxisOverlay2D extends OverlayJPanel
       
       helper.setVisible(true);
    }
-   
-//   public void setLogScale( float num )
-//   {
-//     logscale = num;
-//   }
    
   /**
    * Sets the significant digits to be displayed.
@@ -499,50 +498,52 @@ public class AxisOverlay2D extends OverlayJPanel
    */   
    private void paintLogX( Graphics2D g2d )
    {
-      ILogAxisAddible2D logcomponent = (ILogAxisAddible2D)component;
-      FontMetrics fontdata = g2d.getFontMetrics(); 
-      String num = "";
-      int TICK_LENGTH = 5;
-      int xtick_length = 0;
-      int negtick_length = 0;
-      //isTwoSided = false;
-      CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
-        					  Format.ENGINEER );
-      util.setTwoSided(isTwoSided);
-      float[] values = util.subDivideLog();
-      int numxsteps = values.length;	      
-   //   System.out.println("X ticks = " + numxsteps );        
-      int pixel = 0;
-      /* xaxis represents Pmax - Pmin
-      float Pmin = start;
-      float Pmax = start + xaxis;
-      float Amin = xmin;
-      */
-      float A = 0; 
-      int skip = 1;
-      int counter = 0;
-      int maxcounter = 0;
-      int tempprec = 3;
-      if( xmax/xmin < 10 )
-         tempprec = precision;
-      // Draw tick marks for a one-sided color model
-      if( !isTwoSided )
+      if( component instanceof ILogAxisAddible2D )
       {
-         A = values[0];
-         LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
-         double logscale = logcomponent.getLogScale();
+        ILogAxisAddible2D logcomponent = (ILogAxisAddible2D)component;
+        FontMetrics fontdata = g2d.getFontMetrics(); 
+        String num = "";
+        int TICK_LENGTH = 5;
+        int xtick_length = 0;
+        int negtick_length = 0;
+        //isTwoSided = false;
+        CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
+          					    Format.ENGINEER );
+        util.setTwoSided(isTwoSided);
+        float[] values = util.subDivideLog();
+        int numxsteps = values.length;	      
+   //   System.out.println("X ticks = " + numxsteps );        
+        int pixel = 0;
+        /* xaxis represents Pmax - Pmin
+        float Pmin = start;
+        float Pmax = start + xaxis;
+        float Amin = xmin;
+        */
+        float A = 0; 
+        int skip = 1;
+        int counter = 0;
+        int maxcounter = 0;
+        int tempprec = 3;
+        if( xmax/xmin < 10 )
+          tempprec = precision;
+        // Draw tick marks for a one-sided color model
+        if( !isTwoSided )
+        {
+          A = values[0];
+          LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
+          double logscale = logcomponent.getLogScale();
 
-	 int division = 0;    // 0-5, divisions in the xaxis.
-	 // rightmost pixel coord of last label drawn
-	 int last_drawn = -xstart;  
+	  int division = 0;    // 0-5, divisions in the xaxis.
+	  // rightmost pixel coord of last label drawn
+	  int last_drawn = -xstart;  
 	 
-	 // find division where the first label is to be drawn
-	 while( (int)logger.toSource(A, logscale) >= 
-	        (int)(xaxis/5 * (division + 1) ) )
+	  // find division where the first label is to be drawn
+	  while( (int)logger.toSource(A, logscale) >= 
+	         (int)(xaxis/5 * (division + 1) ) )
 	    division++;
 	 
-	 for( int steps = 0; steps < numxsteps; steps++ )
-         {  
+	  for( int steps = 0; steps < numxsteps; steps++ )
+          {  
             A = values[steps];
 	    
 	    pixel = xstart + (int)logger.toSource(A, logscale);
@@ -588,35 +589,35 @@ public class AxisOverlay2D extends OverlayJPanel
 	    for( int i = 0; i <= 5; i++ )
 	       g2d.drawLine( xstart + xaxis*i/5, yaxis + ystart, xstart + 
 			     xaxis*i/5, yaxis + ystart + xtick_length );*/
-	 } // end of for
-      } // end of if( !isTwoSided )
-      // draw tickmarks for a two-sided color model
-      else
-      {
-         A = values[0];
-         LogScaleUtil logger = new LogScaleUtil( 0,(int)(xaxis/2),
+	  } // end of for
+        } // end of if( !isTwoSided )
+        // draw tickmarks for a two-sided color model
+        else
+        {
+          A = values[0];
+          LogScaleUtil logger = new LogScaleUtil( 0,(int)(xaxis/2),
 	                                         xmin, xmax + 1);
-         double logscale = logcomponent.getLogScale();
+          double logscale = logcomponent.getLogScale();
 
-         int neg_pixel = 0;
-	 String neg_num = "";
-	 int division = 5;     // 5-10, division # in the xaxis.
-	 int neg_division = 5; // 5-0 , division # in the xaxis
-	 int last_drawn = 0;   // rightmost pixel coord of last label drawn
-	 int last_neg_drawn = xaxis;// leftmost pixel coords of last neg. label
-	 int first_drawn = 0; // the leftmost pixel coords of first pos. label
+          int neg_pixel = 0;
+	  String neg_num = "";
+	  int division = 5;     // 5-10, division # in the xaxis.
+	  int neg_division = 5; // 5-0 , division # in the xaxis
+	  int last_drawn = 0;   // rightmost pixel coord of last label drawn
+	  int last_neg_drawn = xaxis;// leftmost pixel coords of last neg. label
+	  int first_drawn = 0; // the leftmost pixel coords of first pos. label
 	 
-	 // find division where the first label is to be drawn
-	 while( (int)logger.toSource(A, logscale) >= 
-	        (int)(xaxis/10 * (division + 1) ) )
+	  // find division where the first label is to be drawn
+	  while( (int)logger.toSource(A, logscale) >= 
+	         (int)(xaxis/10 * (division + 1) ) )
 	    division++;
-	 // find division where the first negative label is to be drawn
-	 while( (int)logger.toSource(A, logscale) >= 
-	        (int)(xaxis/10 * (10 - (neg_division-1) ) ) )
+	  // find division where the first negative label is to be drawn
+	  while( (int)logger.toSource(A, logscale) >= 
+	         (int)(xaxis/10 * (10 - (neg_division-1) ) ) )
 	    neg_division--;
 	 
-	 for( int steps = 0; steps < numxsteps; steps++ )
-         { 
+	  for( int steps = 0; steps < numxsteps; steps++ )
+          { 
             A = values[steps];
              
        //System.out.println("here" + xmin + "/" + xmax + "/" + steps + "/" + A);
@@ -627,8 +628,7 @@ public class AxisOverlay2D extends OverlayJPanel
 	    neg_num = Format.choiceFormat( -A, Format.SCIENTIFIC, tempprec );
 	      
 	    if( A == 0 )
-	       first_drawn = pixel - 
-	               fontdata.stringWidth(num)/2;    
+	       first_drawn = pixel - fontdata.stringWidth(num)/2;    
 
 	    //g2d.setColor(Color.black);
 	    xtick_length = TICK_LENGTH;
@@ -711,22 +711,25 @@ public class AxisOverlay2D extends OverlayJPanel
 	    for( int i = 0; i <= 10; i++ )
 	       g2d.drawLine( xstart + xaxis*i/10, yaxis + ystart, xstart + 
 			     xaxis*i/10, yaxis + ystart + TICK_LENGTH );*/
-	 } // end of for
-      } // end of else (isTwoSided)
+	  } // end of for
+        } // end of else (isTwoSided)
       
    // This will display the x label, x units, and common exponent (if not 0).
       
-      String xlabel = "";
-      if( !logcomponent.getAxisInfo(true).getLabel().equals( 
-          IVirtualArray2D.NO_XLABEL) )
-         xlabel = xlabel + logcomponent.getAxisInfo(true).getLabel();
-      if( !logcomponent.getAxisInfo(true).getUnits().equals( 
-          IVirtualArray2D.NO_XUNITS) )
-         xlabel = xlabel + "  " + logcomponent.getAxisInfo(true).getUnits();
-      if( xlabel != "" )
-         g2d.drawString( xlabel, xstart + xaxis/2 -
+        String xlabel = "";
+        if( !logcomponent.getAxisInfo(true).getLabel().equals( 
+            IVirtualArray2D.NO_XLABEL) )
+          xlabel = xlabel + logcomponent.getAxisInfo(true).getLabel();
+        if( !logcomponent.getAxisInfo(true).getUnits().equals( 
+            IVirtualArray2D.NO_XUNITS) )
+          xlabel = xlabel + "  " + logcomponent.getAxisInfo(true).getUnits();
+        if( xlabel != "" )
+          g2d.drawString( xlabel, xstart + xaxis/2 -
         	   fontdata.stringWidth(xlabel)/2, 
         	   yaxis + ystart + fontdata.getHeight() * 2 + 6 );   
+      } // end if( instanceof)
+      else
+        System.out.println("Not instance of ILogAxisAddible2D");
    }
    
   /*
@@ -734,28 +737,30 @@ public class AxisOverlay2D extends OverlayJPanel
    */    
    private void paintLogY( Graphics2D g2d )
    {
-      ILogAxisAddible2D logcomponent = (ILogAxisAddible2D)component;
-      FontMetrics fontdata = g2d.getFontMetrics();   
-      String num = "";
-      int TICK_LENGTH = 5;
-      //isTwoSided = false;
-      CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
-        					   Format.ENGINEER );
-      yutil.setTwoSided(isTwoSided);
-      float[] values = yutil.subDivideLog();
-      int numysteps = values.length;
+     if( component instanceof ILogAxisAddible2D )
+     {
+       ILogAxisAddible2D logcomponent = (ILogAxisAddible2D)component;
+       FontMetrics fontdata = g2d.getFontMetrics();   
+       String num = "";
+       int TICK_LENGTH = 5;
+       //isTwoSided = false;
+       CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
+         					    Format.ENGINEER );
+       yutil.setTwoSided(isTwoSided);
+       float[] values = yutil.subDivideLog();
+       int numysteps = values.length;
       
-      //   System.out.println("Y Start/Step = " + starty + "/" + ystep);
-      int ytick_length = 5;	// the length of the tickmark is 5 pixels
-      int ypixel = 0;		// where to place major ticks
-      int tempprec = 3;
-      if( xmax/xmin < 10 )
+       //   System.out.println("Y Start/Step = " + starty + "/" + ystep);
+       int ytick_length = 5;	// the length of the tickmark is 5 pixels
+       int ypixel = 0;		// where to place major ticks
+       int tempprec = 3;
+       if( xmax/xmin < 10 )
          tempprec = precision;
       	     	 
-      float a = 0;
-      // Draw tick marks for a one-sided color model
-      if( !isTwoSided )
-      {
+       float a = 0;
+       // Draw tick marks for a one-sided color model
+       if( !isTwoSided )
+       {
          a = values[0];
          LogScaleUtil logger = new LogScaleUtil( 0, yaxis, ymax, ymin + 1);
          double logscale = logcomponent.getLogScale();
@@ -818,10 +823,10 @@ public class AxisOverlay2D extends OverlayJPanel
 	       g2d.drawLine( xstart - ytick_length, ystart + yaxis*i/5, 
                              xstart - 1, ystart + yaxis*i/5 );*/
          }
-      }
-      // if two-sided color model
-      else
-      {
+       }
+       // if two-sided color model
+       else
+       {
          a = values[0];
          LogScaleUtil logger = new LogScaleUtil( 0,(int)(yaxis/2),
 	                                         ymax,ymin + 1);
@@ -944,23 +949,26 @@ public class AxisOverlay2D extends OverlayJPanel
                              xstart - 1, ystart + yaxis*i/10 ); */
          }
       
-      }
+       }
    // This will display the y label, y units, and common exponent (if not 0).
       
-      String ylabel = "";
-      if( !logcomponent.getAxisInfo(false).getLabel().equals( 
-          IVirtualArray2D.NO_YLABEL) )
+       String ylabel = "";
+       if( !logcomponent.getAxisInfo(false).getLabel().equals( 
+           IVirtualArray2D.NO_YLABEL) )
          ylabel = ylabel + logcomponent.getAxisInfo(false).getLabel();
-      if( !logcomponent.getAxisInfo(false).getUnits().equals(
-          IVirtualArray2D.NO_YUNITS) )
+       if( !logcomponent.getAxisInfo(false).getUnits().equals(
+           IVirtualArray2D.NO_YUNITS) )
          ylabel = ylabel + "  " + logcomponent.getAxisInfo(false).getUnits();
-      if( ylabel != "" )
-      {
+       if( ylabel != "" )
+       {
          g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );    
          g2d.drawString( ylabel, xstart + yaxis/2 -
         		 fontdata.stringWidth(ylabel)/2, 
         		 yaxis + ystart - xstart + fontdata.getHeight() );
          g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
-      }
+       }
+     } // end if( instanceof)
+     else
+       System.out.println("Not instance of ILogAxisAddible2D");
    }
 }
