@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/02/02 23:52:19  dennis
+ * Added setMode() method to allow switching between HKL
+ * and Qxyz plane selections.
+ *
  * Revision 1.3  2004/01/28 21:59:38  dennis
  * Removed debug print.
  *
@@ -66,25 +70,34 @@ public class SliceSelectorUI extends    ActiveJPanel
                              implements ISlicePlaneSelector,
                                         Serializable 
 {
+  private static final String HKL_TITLE  = "Slice in HKL Space";
+  private static final String QXYZ_TITLE = "Slice in Qxyz Space";
+
+  public  static final int  HKL_MODE  = SlicePlane3D_UI.HKL_MODE;
+  public  static final int  QXYZ_MODE = SlicePlane3D_UI.QXYZ_MODE;
+
   private SlicePlane3D_UI plane_selector;
   private SliceImageUI    image_selector;
   private SliceStepperUI  stepper;
 
 
-  /*-------------------------- default constructor ----------------------- */
+  /*-------------------------- constructor ----------------------- */
   /**
-   *  Construct a SliceSelectorUI with default values.
+   *  Construct a SliceSelectorUI in either HKL or QXYZ mode, as specified.
+   *
+   *  @param  mode  Integer code should be one of HKL_MODE or QXYZ_MODE, or
+   *                HKL_MODE will be used by default.
    */
-  public SliceSelectorUI( String title )
+  public SliceSelectorUI( int mode )
   {
-    plane_selector = new SlicePlane3D_UI( "Slice Plane" );
-    image_selector = new SliceImageUI( "Slice Image" );
+    if ( mode != HKL_MODE && mode != QXYZ_MODE )
+      mode = HKL_MODE;
+
+    plane_selector = new SlicePlane3D_UI( mode );
+    image_selector = new SliceImageUI( "Select Plane Size" );
     stepper        = new SliceStepperUI( "Step In/Out" );
 
-    TitledBorder border =
-                 new TitledBorder(LineBorder.createBlackLineBorder(), title );
-    border.setTitleFont( FontUtil.BORDER_FONT );
-    setBorder( border );
+    setMode( mode );
 
     Box box = new Box( BoxLayout.Y_AXIS );
     box.add( plane_selector );
@@ -99,6 +112,32 @@ public class SliceSelectorUI extends    ActiveJPanel
     image_selector.addActionListener( value_listener );
 
     stepper.addActionListener( new StepListener() );
+  }
+
+
+  /* ----------------------------- setMode ----------------------------- */
+  /**
+   *  Set the display mode for this slice selector to either hkl or Qxzy
+   *  mode.
+   *
+   *  @param  mode  Integer code must be one of HKL_MODE or QXYZ_MODE, other
+   *                values will be ignored.
+   */
+  public void setMode( int mode )
+  {
+    if ( mode != HKL_MODE && mode != QXYZ_MODE )
+      return;
+
+    plane_selector.setMode( mode );
+
+    String title = HKL_TITLE;
+    if ( mode == QXYZ_MODE )
+      title = QXYZ_TITLE;
+
+    TitledBorder border =
+                 new TitledBorder(LineBorder.createBlackLineBorder(), title );
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    setBorder( border );
   }
 
 
@@ -289,7 +328,8 @@ public class SliceSelectorUI extends    ActiveJPanel
     JFrame  f = new JFrame("Test for SliceSelectorUI");
     f.setBounds( 0, 0, 210, 350 ); 
 
-    final SliceSelectorUI test = new SliceSelectorUI("HKL Slice");
+    // final SliceSelectorUI test = new SliceSelectorUI( HKL_MODE );
+    final SliceSelectorUI test = new SliceSelectorUI( QXYZ_MODE );
 
     test.addActionListener( new ActionListener()
     {
