@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.6  2003/01/08 17:12:01  dennis
+ *  Added method invert() to calculate the inverse of a matrix.
+ *
  *  Revision 1.5  2002/11/27 23:15:47  pfpeterson
  *  standardized header
  *
@@ -48,8 +51,8 @@ package DataSetTools.math;
 import DataSetTools.util.*;
 
 /**
- *  Basic linear algebra operations such as dot product, and solution of
- *  system of linear equations.
+ *  Basic linear algebra operations such as dot product, solution of
+ *  system of linear equations and matrix inversion.
  */
 public final class LinearAlgebra 
 {
@@ -101,6 +104,56 @@ public final class LinearAlgebra
                                           // that reduced A to upper triangular
                                           // form to the right hand side, b. 
     return QR_solve( A, u, b );
+  }
+
+
+  /* ----------------------------- invert ------------------------------ */
+  /**
+   *  Replace a square matrix A[][] by it's inverse, if possible.
+   *
+   *  @param A  the square matrix to invert.
+   *
+   *  @return  Returns true and the parameter A is changed to the inverse
+   *           of the original matrix A, if the calculation succeeds.  If
+   *           The matrix is not square, this returns false and the matrix
+   *           A is not altered.  If the calculation of the inverse fails,
+   *           this returns false and the values in matrix A will have been
+   *           altered.
+   */
+  public static boolean invert( double A[][] )
+  {
+    if ( A == null )                     // make sure we have something
+      return false;
+
+    int size = A.length;
+    for ( int i = 0; i < size; i++ )     // make sure all of the rows are there
+    {                                    // and have the right length
+      if ( A[i] == null )
+        return false;
+      if ( A[i].length != size )
+        return false;
+    }
+   
+                                         // put the identity matrix in temp[][]`
+    double temp[][] = new double[size][size];
+    for ( int i = 0; i < size; i++ )
+      temp[i][i] = 1;
+
+    double u[][] = QR_factorization( A );
+
+    double result;                       // now calculate the inverse by 
+    for ( int i = 0; i < size; i++ )     // solving the equations Ax = temp[i]
+    {
+      result = QR_solve( A, u, temp[i] );
+      if ( Double.isNaN( result ) )
+        return false;
+    }
+                                         // copy the inverse into A
+    for ( int i = 0; i < size; i++ )
+      for ( int j = 0; j < size; j++ )
+        A[i][j] = temp[j][i];
+
+    return true;
   }
 
 

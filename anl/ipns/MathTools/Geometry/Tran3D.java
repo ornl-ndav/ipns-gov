@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2003/01/08 17:12:01  dennis
+ * Added method invert() to calculate the inverse of a matrix.
+ *
  * Revision 1.6  2003/01/07 16:03:11  dennis
  * Added method to calculate transpose.
  *
@@ -298,6 +301,35 @@ public class Tran3D
         a[col][row] = temp;
       }
   }
+
+
+  /*--------------------------- invert ---------------------------------- */
+  /**
+   *  Replace this transformation with it's inverse, if possible.
+   *
+   *  @return  If this transformation was non-singular, it is replaced by
+   *           by it's inverse and true is returned.  Otherwise, false is
+   *           returned and this transformation is not altered.
+   */
+  public boolean invert()
+  {
+    double temp[][] = new double[4][4];
+    for ( int row = 0; row < 4; row++ )
+      for ( int col = 0; col < 4; col++ )
+        temp[row][col] = a[row][col];
+
+    if ( LinearAlgebra.invert( temp ) )
+    {
+      for ( int row = 0; row < 4; row++ )
+        for ( int col = 0; col < 4; col++ )
+          a[row][col] = (float)temp[row][col];
+
+      return true;
+    }
+    else
+      return false;
+  }
+
 
 
   /*------------------------- setOrientation -----------------------------*/
@@ -653,6 +685,21 @@ public class Tran3D
                           new Vector3D( 0, 1, 0 ),
                           true );
     System.out.println( "View matrix is : \n" + tran_1 );
+
+    System.out.println( "Testing inverse..." );
+    tran_1 = tof_calc.makeEulerRotation( 20, 30, 40 );
+    tran_2 = tof_calc.makeEulerRotationInverse( 20, 30, 40 );
+
+    System.out.println("tran 1 = ");
+    System.out.println("" + tran_1 );
+
+    System.out.println("inverse = ");
+    System.out.println("" + tran_2 );
+
+    tran_1.invert();
+    System.out.println("calculated inverse = ");
+    System.out.println("" + tran_1 );
+
   }
 
 }
