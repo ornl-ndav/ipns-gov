@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/06/02 15:17:52  dennis
+ * Added tests of the java font files containing the Hershey font data.
+ *
  * Revision 1.2  2004/06/01 03:48:30  dennis
  * Now includes test of StrokeText class.  Also now just adds
  * individual graphical objects, not lists of objects.  This was
@@ -43,6 +46,8 @@
  */
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
+
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.*;
 import java.awt.event.*;
 import javax.swing.*;
 import gov.anl.ipns.MathTools.Geometry.*;
@@ -233,8 +238,24 @@ public class Test_GL_Panel
     obj_3.setColor( red );
     panel2.setObject("Cube_in_panel_2", obj_3 );
 
-    StrokeFont font = new FileStrokeFont( "/home/dennis/FONT_DATA/romans.txf");
+//  StrokeFont font = new FileStrokeFont( "/home/dennis/FONT_DATA/romans.txf");
 //  StrokeFont font = new FileStrokeFont( "/home/dennis/FONT_DATA/gothgrt.txf");
+//  StrokeFont font = new ItalianTriplex();
+//  StrokeFont font = new CyrilicComplex();
+//  StrokeFont font = new GothicBritishTriplex();
+//  StrokeFont font = new GothicGermanTriplex();
+//  StrokeFont font = new GothicItalianTriplex();
+//  StrokeFont font = new GreekComplex();
+//  StrokeFont font = new GreekSimplex();
+//  StrokeFont font = new ItalicComplex();
+//  StrokeFont font = new ItalicTriplex();
+//  StrokeFont font = new RomanComplex();
+//  StrokeFont font = new RomanDuplex();
+    StrokeFont font = new RomanSimplex();
+//  StrokeFont font = new RomanTriplex();
+//  StrokeFont font = new ScriptComplex();
+//  StrokeFont font = new ScriptSimplex();
+  
     StrokeText text;
     text = new StrokeText( "Text in x, y plane, +x direction", font );
     text.setColor( red );
