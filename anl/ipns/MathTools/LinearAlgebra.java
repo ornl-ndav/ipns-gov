@@ -35,6 +35,14 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.7  2003/01/30 21:03:15  pfpeterson
+ *  Added methods to convert between float[][] and double[][]. Added
+ *  method to find the determinant of 2x2 and 3x3 matrices. Added
+ *  methods to confirm a matrix is rectangular or square. Added method
+ *  to multiply two matrices together. Renamed some methods. Added more
+ *  sanity checks before finding inverse including a simple transpose
+ *  if the determinant is one.
+ *
  *  Revision 1.6  2003/01/08 17:12:01  dennis
  *  Added method invert() to calculate the inverse of a matrix.
  *
@@ -60,6 +68,281 @@ public final class LinearAlgebra
    * Don't let anyone instantiate this class.
    */
   private LinearAlgebra() {}
+
+  /**
+   * Determines a square matrix A[][] with it's inverse, if
+   * possible. Actually casts into a double and calls the other
+   * version.
+   *
+   * @see #getInverse(double[][])
+   */
+  public static float[][] getInverse(float[][] A){
+    if( A==null ) return null;
+    return double2float(getInverse(float2double(A)));
+  }
+
+  /**
+   * Determines a square matrix A[][] with it's inverse, if
+   * possible.
+   *
+   * @param A the square matrix to invert.
+   *
+   * @return If successful returns the inverse matrix. If A is not
+   * invertible or something goes wrong this returns null.
+   */
+  public static double[][] getInverse(double[][] A){
+    if( A==null ) return null;
+
+    if( ! isSquare(A) ) return null;
+
+    int size=A.length;
+    double[][] invA=new double[size][size];
+    double detA=Double.NaN;
+
+    // check for rotation matrices
+    if(size==2 || size==3){          // only know how to do determinants 
+      detA=determinant(A);           // for 2x2 and 3x3 matrices
+      if(detA==0.){ // this is not invertable
+        return null;
+      }else if(detA==1.){ // this is a rotation matrix
+        for( int i=0 ; i<size ; i++ ){
+          for( int j=0 ; j<size ; j++ ){
+            invA[i][j]=A[j][i];
+          }
+        }
+      }
+    }
+
+    if(size==3){
+      if( ! Double.isNaN(detA) ){
+        invA[0][0]=(A[1][1]*A[2][2]-A[2][1]*A[1][2])/detA;
+        invA[0][1]=(A[2][1]*A[0][2]-A[0][1]*A[2][2])/detA;
+        invA[0][2]=(A[0][1]*A[1][2]-A[1][1]*A[0][2])/detA;
+        invA[1][0]=(A[2][0]*A[1][2]-A[1][0]*A[2][2])/detA;
+        invA[1][1]=(A[0][0]*A[2][2]-A[2][0]*A[0][2])/detA;
+        invA[1][2]=(A[1][0]*A[0][2]-A[0][0]*A[1][2])/detA;
+        invA[2][0]=(A[1][0]*A[2][1]-A[2][0]*A[1][1])/detA;
+        invA[2][1]=(A[2][0]*A[0][1]-A[2][1]*A[0][0])/detA;
+        invA[2][2]=(A[0][0]*A[1][1]-A[1][0]*A[0][1])/detA;
+
+        return invA;
+      }
+    }
+    
+    // put the identity matrix in temp[][]
+    for ( int i = 0; i < size; i++ )
+      invA[i][i] = 1;
+
+    double u[][] = QR_factorization( A );
+
+    double result;                       // now calculate the inverse by 
+    for ( int i = 0; i < size; i++ )     // solving the equations Ax = invA[i]
+    {
+      result = QR_solve( A, u, invA[i] );
+      if ( Double.isNaN( result ) )
+        return null;
+    }
+
+    return invA;
+  }
+
+  /**
+   * Determines a square matrix A[][] with it's inverse, if
+   * possible.
+   *
+   * @param A the square matrix to invert.
+   *
+   * @return Returns true and the parameter A is changed to the
+   * inverse of the original matrix A, if the calculation succeeds.
+   * If The matrix is not square, this returns false and the matrix A
+   * is not altered.  If the calculation of the inverse fails, this
+   * returns false and the values in matrix A will have been altered.
+   */
+  public static boolean invert(double A[][]){
+    double[][] invA=getInverse(A);
+    if( invA==null ) return false; // something went wrong
+    int size=A.length;
+    for( int i=0 ; i<size ; i++ ){
+      for( int j=0 ; j<size ; j++ ){
+        A[i][j]=invA[i][j];
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Prints to STDOUT any nXm matrix of doubles
+   */
+  public static void print(double[][] a){
+    int ay=a[0].length;
+
+    for( int i=0 ; i<a.length ; i++ ){
+      for( int j=0 ; j<a[i].length ; j++ ){
+        System.out.print(a[i][j]+" ");
+      }
+      System.out.println("");
+    }
+  }
+
+  /**
+   * Converts a rectangular float array to a rectangular double array
+   */
+  public static double[] float2double(float[] f){
+    double[] d=new double[f.length];
+
+    for( int i=0 ; i<f.length ; i++ ){
+      d[i]=(double)f[i];
+    }
+    return d;
+  }
+
+  /**
+   * Converts a double array to a float array
+   */
+  public static float[] double2float(double[] d){
+    float[] f=new float[d.length];
+
+    for( int i=0 ; i<d.length ; i++ ){
+      f[i]=(float)d[i];
+    }
+    return f;
+  }
+
+  /**
+   * Converts a rectangular float array to a rectangular double array
+   */
+  public static double[][] float2double(float[][] f){
+    if( f==null ) return null; // make sure it isn't null
+    for( int i=1; i<f.length ; i++ ){ // make sure matrix is rectangular
+      if( f[i].length!=f[0].length) return null;
+    }
+
+    double[][] d=new double[f.length][f[0].length];
+
+    for( int i=0 ; i< f.length ; i++ ){
+      for( int j=0 ; j< f[0].length ; j++ ){
+        d[i][j]=(double)f[i][j];
+      }
+    }
+    return d;
+  }
+
+  /**
+   * Converts a rectangular double array to a rectangular float array
+   */
+  public static float[][] double2float(double[][] d){
+    if(!isRectangular(d)) return null;
+    float[][] f=new float[d.length][d[0].length];
+
+    for( int i=0 ; i< d.length ; i++ ){
+      for( int j=0 ; j< d[0].length ; j++ ){
+        f[i][j]=(float)d[i][j];
+      }
+    }
+    return f;
+  }
+
+  /**
+   * Determines whether or not the specified matrix is square by
+   * comparing the lengths of the arrays.
+   */
+  static public boolean isSquare(float[][]a){
+    return isSquare(float2double(a));
+  }
+
+  /**
+   * Determines whether or not the specified matrix is rectangular by
+   * comparing the lengths of the arrays.
+   */
+  static public boolean isRectangular( double[][] a){
+    if(a==null) return false;
+    for( int i=1 ; i<a.length ; i++ ){
+      if(a[i].length!=a[0].length) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Determines whether or not the specified matrix is square by
+   * comparing the lengths of the arrays.
+   */
+  static public boolean isSquare(double[][]a){
+    if(a==null) return false;
+    if(isRectangular(a)){
+      return (a[0].length==a[1].length);
+    }else{
+      return false;
+    }
+  }
+
+  /**
+   * Find the determinant of a 3x3 or 2x2 matrix
+   */
+  static public double determinant( double[][] A){
+    if(A==null) return Double.NaN;
+    if(!isSquare(A)) return Double.NaN;
+
+    double det=0.;
+    if(A.length==2){
+      det=det+(A[0][0]*A[1][1]-A[0][1]*A[1][0]);
+    }else if(A.length==3){
+      det=det+A[0][0]*(A[1][1]*A[2][2]-A[2][1]*A[1][2]);
+      det=det-A[0][1]*(A[1][0]*A[2][2]-A[2][0]*A[1][2]);
+      det=det+A[0][2]*(A[1][0]*A[2][1]-A[2][0]*A[1][1]);
+    }else{
+      return Double.NaN;
+    }
+    return det;
+  }
+
+  /**
+   * Multiply two matrices together
+   */
+  public static double[][] mult (double[][] a, double[][] b){
+    if(!(isRectangular(a)&&isRectangular(b)))
+      return null;
+
+    int ax=a.length;
+    int ay=a[0].length;
+    int bx=b.length;
+    int by=b[0].length;
+
+    // check that this is possible
+    if(ay!=bx)
+      throw new ArrayIndexOutOfBoundsException("Matrices cannot be multiplied "
+                                               +"due to dimensionality");
+
+    // create the return matrix
+    double[][] c=new double[ax][by];
+
+    // do the math
+    int i,j,k;
+    for( i=0 ; i< ax ; i++ ){
+      for( j=0 ; j<by ; j++ ){
+        c[i][j]=0.;
+        for( k=0 ; k<ay ; k++ ){
+          c[i][j]=c[i][j]+a[i][k]*b[k][j];
+        }
+      }
+    }
+
+    return c;
+  }
+
+  /**
+   * Multiply two matrices together
+   */
+  public static float[][] mult(float[][] a, float[][] b){
+    if( a==null || b==null ) return null;
+    double[][] da=float2double(a);
+    double[][] db=float2double(b);
+
+    if(!(isRectangular(da)&&isRectangular(db))){
+      return null;
+    }else{
+      return double2float(mult(da,db));
+    }
+  }
 
   /* ------------------------------- solve -------------------------------- */
   /**
@@ -105,57 +388,6 @@ public final class LinearAlgebra
                                           // form to the right hand side, b. 
     return QR_solve( A, u, b );
   }
-
-
-  /* ----------------------------- invert ------------------------------ */
-  /**
-   *  Replace a square matrix A[][] by it's inverse, if possible.
-   *
-   *  @param A  the square matrix to invert.
-   *
-   *  @return  Returns true and the parameter A is changed to the inverse
-   *           of the original matrix A, if the calculation succeeds.  If
-   *           The matrix is not square, this returns false and the matrix
-   *           A is not altered.  If the calculation of the inverse fails,
-   *           this returns false and the values in matrix A will have been
-   *           altered.
-   */
-  public static boolean invert( double A[][] )
-  {
-    if ( A == null )                     // make sure we have something
-      return false;
-
-    int size = A.length;
-    for ( int i = 0; i < size; i++ )     // make sure all of the rows are there
-    {                                    // and have the right length
-      if ( A[i] == null )
-        return false;
-      if ( A[i].length != size )
-        return false;
-    }
-   
-                                         // put the identity matrix in temp[][]`
-    double temp[][] = new double[size][size];
-    for ( int i = 0; i < size; i++ )
-      temp[i][i] = 1;
-
-    double u[][] = QR_factorization( A );
-
-    double result;                       // now calculate the inverse by 
-    for ( int i = 0; i < size; i++ )     // solving the equations Ax = temp[i]
-    {
-      result = QR_solve( A, u, temp[i] );
-      if ( Double.isNaN( result ) )
-        return false;
-    }
-                                         // copy the inverse into A
-    for ( int i = 0; i < size; i++ )
-      for ( int j = 0; j < size; j++ )
-        A[i][j] = temp[j][i];
-
-    return true;
-  }
-
 
   /* ------------------------------- QR_solve ----------------------------- */
   /**
@@ -270,7 +502,7 @@ public final class LinearAlgebra
       for ( row = col+1; row < n_rows_A; row++ )
         U[col][row] = A[row][col];
 
-      Normalize( U[col] );
+      normalize( U[col] );
 
       // Now multiply A by the Housholder transform corresponding to U[col].  
       // The effect of the Householder transform on any vector V is 
@@ -333,7 +565,7 @@ public final class LinearAlgebra
    *           of entries, the shorter length is used.  If either u or v has
    *           length 0, this returns NaN. 
    */
-   public static double DotProduct( double u[], double v[] )
+   public static double dotProduct( double u[], double v[] )
    {
       if ( u == null || v == null || u.length == 0 || v.length == 0 )
         return Double.NaN;
@@ -359,7 +591,7 @@ public final class LinearAlgebra
    *               the zero vector, it is not changed.
    */
  
-  public static void Normalize( double v[] )
+  public static void normalize( double v[] )
   {
     double norm = 0.0;
 
@@ -386,7 +618,7 @@ public final class LinearAlgebra
    *           of the specified vector.
    */
 
-  public static double Norm( double v[] )
+  public static double norm( double v[] )
   {
     double norm = 0.0;
 
@@ -408,7 +640,7 @@ public final class LinearAlgebra
      v[1] = 4;
      v[2] = 8;
 
-     Normalize(v);
+     normalize(v);
      for ( int i = 0; i < v.length; i++ )
        System.out.println( " v[" + i + "] = " + v[i] );
 
@@ -465,5 +697,4 @@ public final class LinearAlgebra
       System.out.println("returned value = " + result );
     } 
    }
-
 }
