@@ -37,6 +37,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/12/12 06:08:28  millermi
+ *  - Reworked how arc was calculated.
+ *  - Now progressing from start to stop of angle is always
+ *    counterclockwise. This simplifies the work necessary
+ *    for calculated the points selected by the region.
+ *
  *  Revision 1.3  2003/12/11 17:11:23  millermi
  *  - Minor change so line is not redrawn while cursor stretches.
  *
@@ -97,10 +103,7 @@ public class WedgeCursor extends  XOR_Cursor3pt
   public void draw( Graphics graphics, Point p1, Point p2, Point p3 )
   {
     // if second and third points are the same, draw only the line
-    if( p2.x == p3.x && p2.y == p3.y )
-      ;//graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
-      //graphics.drawLine( p2.x, p2.y, p3.x, p3.y );
-    else
+    if( !( p2.x == p3.x && p2.y == p3.y ) )
     { 
       // draw line from "if" again to make it disappear using XOR
       //graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
@@ -143,7 +146,8 @@ public class WedgeCursor extends  XOR_Cursor3pt
       if( stopangle < 0 )
         stopangle = 360 + stopangle;
       if( initangle < 0 )
-        initangle = 360 + initangle;
+        initangle = 360 + initangle;      
+      
       // make sure startangle is always less than stop angle
       if( startangle > stopangle )
       { // swap them and their corresponding points
@@ -154,16 +158,24 @@ public class WedgeCursor extends  XOR_Cursor3pt
       }
       else
         swap = false;
-      // the number of degrees the arc will span
-      int arcangle = initangle - startangle;
-      // since they are symmetric, they should be the same, however,
-      // problem exists if startangle is in first quadrant and stopangle is
-      // in the fourth quadrant and the arcangle < 180, this corrects that.
-      if( arcangle > stopangle - initangle )
-        arcangle = stopangle - initangle;
-      // need to double arcangle, since it goes from start to init or init
-      // to stop, which is only half the arc.
-      arcangle = 2 * arcangle;
+      
+      int arcangle = stopangle - startangle;
+      // if initangle isn't between start and stop, then the angle includes
+      // the point where the unit circle goes from 359 to 0. Swap the start
+      // and stop angle so that the arcangle is always positive and the
+      // drawing always occurs in a counterclockwise direction.
+      // The initangle+1 and initangle-1 are adjustments to compensate for
+      // rounding.
+      if( !( initangle+1 > startangle && initangle-1 < stopangle) )
+      {
+        int invertStop = 360 - stopangle;
+	arcangle = startangle + invertStop;
+	
+        int temp = startangle;
+	startangle = stopangle;
+	stopangle = temp;
+	swap = !swap;
+      }
       // create rectangle with p1 at its center that bounds the arc's circle
       // find radius of arc
       double xsquared = Math.pow( (double)(p1.x - p3.x), 2 );
@@ -175,7 +187,6 @@ public class WedgeCursor extends  XOR_Cursor3pt
      //System.out.println("Start/Stop angle: " + startangle + "/" + stopangle );
       //System.out.println("StartPt: (" + topleft.x + "," + topleft.y +")" );
       
-      //graphics.drawRect(topleft.x,topleft.y,(int)(2*radius),(int)(2*radius) );
       graphics.drawArc(topleft.x,topleft.y,(int)(2*radius),(int)(2*radius),
                        startangle,arcangle);
       // put angles in point for passing to overlay.
@@ -198,7 +209,7 @@ public class WedgeCursor extends  XOR_Cursor3pt
   *  p[5].y = degrees covered by arc.
   *
   *  p[0-2] are used for drawing lines
-  *  p[3-4] are needed in case wedge is from an elipse
+  *  p[3-4] are needed in case wedge is from an ellipse
   *  p[5] is needed to determine which area was selected, wedge or all but wedge
   *
   *  @return  array of Points used to define a wedge
