@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/08/14 18:51:35  bouzekc
+ *  Now extends Serializable.
+ *
  *  Revision 1.2  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -43,12 +46,14 @@
  
 package DataSetTools.util;
 
+import java.io.Serializable;
+
 /**
  * Internal class to do all of the formatting checks and pass out
  * PropertChange events to listeners. Should only be used from within
  * the package.
  */
-public interface StringFilterer {
+public interface StringFilterer extends Serializable{
     public boolean isOkay(int offs, String inString, String curString);
     public String modifyString(int offs, String inString, String curString);
 }
