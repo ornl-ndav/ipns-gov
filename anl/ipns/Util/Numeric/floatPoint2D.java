@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/07/07 23:01:13  dennis
+ *  Added method: distance(pt) to calculate the distance from the current
+ *  floatPoint2D object to a specified floatPoint2D object.
+ *
  *  Revision 1.9  2004/03/11 23:00:11  rmikk
  *  Added the correct package name to all java files
  *
@@ -118,6 +122,7 @@ public class floatPoint2D implements java.io.Serializable {
         this.y = p.y;
     }	
 
+
     /**
      * Changes the point to have the specificed location.
      * @param       x  the <i>x</i> coordinate of the new location.
@@ -139,6 +144,24 @@ public class floatPoint2D implements java.io.Serializable {
     {
       return (float)Math.sqrt( x*x + y*y ); 
     }
+
+  
+    /**
+     *  Calculate the distance from the current point
+     *  to the specified point.
+     *
+     *  @param  point2  The point whose distance from
+     *                  the current point is calculated
+     *  @return The euclidean distance from the current point
+     *          to point2.
+     */
+    public float distance( floatPoint2D point2 )
+    {
+      float diffx = point2.x - x;
+      float diffy = point2.y - y;
+      return (float)Math.sqrt( diffx*diffx + diffy*diffy );
+    }
+
 
     /**
      * Returns a representation of this point as a string.
