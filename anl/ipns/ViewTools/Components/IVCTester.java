@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2003/08/14 17:06:33  millermi
+ * - Controls now contained in a Box instead of a JPanel.
+ * - Added spacer JPanel to bottom of the Box, glue did not work well.
+ *
  * Revision 1.1  2003/08/11 23:47:22  millermi
  * - Initial Version - adds additional features to the ImageFrame2.java
  *   class for thorough testing of the ImageViewComponent.
@@ -61,6 +65,8 @@
 package DataSetTools.components.View;
 
 import javax.swing.*;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -83,6 +89,7 @@ public class IVCTester extends JFrame
   private ImageViewComponent ivc;
   private IVirtualArray2D data;
   private JMenuBar menu_bar;
+  private boolean helpAdded = false;
 
  /**
   * Construct a frame with the specified image and title
@@ -97,6 +104,7 @@ public class IVCTester extends JFrame
     setJMenuBar(menu_bar);   
     menu_bar.add(new JMenu("File")); 
     menu_bar.add(new JMenu("Options"));
+    menu_bar.add(new JMenu("Help"));
     
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setBounds(0,0,700,500);
@@ -130,6 +138,7 @@ public class IVCTester extends JFrame
     setJMenuBar(menu_bar);   
     menu_bar.add(new JMenu("File")); 
     menu_bar.add(new JMenu("Options"));
+    menu_bar.add(new JMenu("Help"));
     
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setBounds(0,0,700,500);
@@ -153,7 +162,7 @@ public class IVCTester extends JFrame
         values.getNumColumns() == data.getNumColumns() )
     {  
       data = values;
-      ivc.dataChanged(data);
+      ivc.dataChanged();
     }  
     // if different sized array, remove everything and build again.
     else
@@ -187,25 +196,49 @@ public class IVCTester extends JFrame
     ivc = new ImageViewComponent( data );
     ivc.setColorControlSouth(true);
     ivc.addActionListener( new ImageListener() );
-    JPanel controls = new JPanel();
-    controls.setLayout( new BoxLayout( controls, BoxLayout.Y_AXIS) );
+    Box controls = new Box(BoxLayout.Y_AXIS);
     JComponent[] ctrl = ivc.getSharedControls();
     for( int i = 0; i < ctrl.length; i++ )
       controls.add(ctrl[i]);
+    //controls.add( Box.createVerticalGlue() );
+    
+    JPanel spacer = new JPanel();
+    // the value 60 is an arbitrary value for the average component height
+    spacer.setPreferredSize(new Dimension(0,(this.getHeight() - 
+                                             (ctrl.length*60) ) ) );
+    controls.add(spacer);
+    
     pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
                                   ivc.getDisplayPanel(),
 			          controls, .75f );
     
     // get menu items from view component and place it in a menu
     ViewMenuItem[] menus = ivc.getSharedMenuItems();
-    
     for( int i = 0; i < menus.length; i++ )
-    {
-       if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(
-    		menus[i].getPath().toLowerCase()) )
-    	  menu_bar.getMenu(0).add( menus[i].getItem() ); 
-       else // put in options menu
-    	  menu_bar.getMenu(1).add( menus[i].getItem() );	   
+    {/*
+      if( menus[i].getItem() instanceof HelpMenu )
+      {
+        if( helpAdded )
+	{
+	  Component[] submenus = menus[i].getItem().getMenuComponents();
+	  for( int j = 0; j < menus[i].getItem().getMenuComponentCount(); j++ )
+	    menu_bar.getMenu(2).add( submenus[j] );
+	}
+	else
+	{
+	  menu_bar.add(menus[i].getItem());
+	  helpAdded = true;
+	}
+      }
+      else*/ if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(
+    	  menus[i].getPath().toLowerCase()) )
+    	menu_bar.getMenu(0).add( menus[i].getItem() ); 
+      else if( ViewMenuItem.PUT_IN_OPTIONS.toLowerCase().equals(
+    	       menus[i].getPath().toLowerCase()) )
+    	menu_bar.getMenu(1).add( menus[i].getItem() );	   
+      else if( ViewMenuItem.PUT_IN_HELP.toLowerCase().equals(
+    	       menus[i].getPath().toLowerCase()) )
+        menu_bar.getMenu(2).add( menus[i].getItem() );
     }	   
   }
   
@@ -241,11 +274,11 @@ public class IVCTester extends JFrame
 	  int row = selectedpoints[j].y;
 	  int col = selectedpoints[j].x;
 	  
-	  data.setDataValue( row, col, data.getDataValue(row,col) + 100f );
+	  data.setDataValue( row, col, data.getDataValue(row,col) * 2f );
           //System.out.println("(" + selectedpoints[j].x + "," + 
           //      	     selectedpoints[j].y + ")" );
         }
-        ivc.dataChanged();
+        ivc.dataChanged(data);
       }
     }
   }
