@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2004/02/06 23:23:43  millermi
+ *  - Changed how editor bounds were stored in the ObjectState,
+ *    removed check if visible.
+ *
  *  Revision 1.28  2004/01/29 08:16:27  millermi
  *  - Updated the getObjectState() to include parameter for specifying
  *    default state.
@@ -467,8 +471,7 @@ public class AxisOverlay2D extends OverlayJPanel
     if( temp != null )
     {
       editor_bounds = (Rectangle)temp;
-      if( editor.isVisible() )
-	editor.setBounds( editor_bounds );  
+      editor.setBounds( editor_bounds );  
     }
     
     if( redraw )

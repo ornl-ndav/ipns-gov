@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.33  2004/02/06 23:23:43  millermi
+ *  - Changed how editor bounds were stored in the ObjectState,
+ *    removed check if visible.
+ *
  *  Revision 1.32  2004/01/30 22:16:13  millermi
  *  - Changed references of messaging Strings from the IViewControl
  *    to the respective control that sent the message.
@@ -447,8 +451,7 @@ public class SelectionOverlay extends OverlayJPanel
     if( temp != null )
     {
       editor_bounds = (Rectangle)temp;
-      if( editor.isVisible() )
-    	editor.setBounds( editor_bounds );  
+      editor.setBounds( editor_bounds );  
     }
     
     if( redraw )
