@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/02/15 21:42:57  dennis
+ *  Fixed name in print statement at start of test program.
+ *
  *  Revision 1.4  2004/03/12 02:12:58  dennis
  *  Moved to package gov.anl.ipns.MathTools.Functions;
  *
@@ -171,7 +174,7 @@ public class Exponential extends OneVarParameterizedFunction
   */
     public static void main(String[] args)
     {
-      System.out.println("With standard normal distribution");
+      System.out.println("Evaluating Exponential function");
 
       Exponential f = new Exponential( 100, -0.1f );
 

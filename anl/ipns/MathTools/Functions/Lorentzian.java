@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/02/15 21:42:57  dennis
+ *  Fixed name in print statement at start of test program.
+ *
  *  Revision 1.4  2004/03/15 23:53:49  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -130,7 +133,7 @@ public class Lorentzian extends    OneVarParameterizedFunction
   */
     public static void main(String[] args)
     {
-      System.out.println("With standard normal distribution");
+      System.out.println("Evaluating Lorentzian function");
 
       Lorentzian peak = new Lorentzian( 0, 1, 1 );
 
