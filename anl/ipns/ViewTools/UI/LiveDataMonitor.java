@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2001/06/06 21:26:22  dennis
+ *  Now listens for an ActionEvent from the LiveDataManager to
+ *  find out if the run number has been changed.
+ *
  *  Revision 1.10  2001/05/23 17:39:44  dennis
  *  Changed component colors and fonts to improve printed screen dumps.
  *
@@ -129,6 +133,7 @@ public class LiveDataMonitor extends    JPanel
     this.data_source_name = data_source_name;
 
     data_manager = new LiveDataManager( data_source_name );
+    data_manager.addActionListener( new DataManagerListener() );
     int num_ds   = data_manager.numDataSets();
 
     if ( num_ds == 0 )
@@ -231,6 +236,9 @@ public class LiveDataMonitor extends    JPanel
 
     int num_ds   = data_manager.numDataSets();
 
+    ViewManager  old_viewers[]  = viewers;
+    JCheckBox    old_show_box[] = show_box;
+
                                         // make lists to save references to the
                                         // viewers and "Show" checkboxes
     viewers  = new ViewManager[ num_ds ];
@@ -239,13 +247,16 @@ public class LiveDataMonitor extends    JPanel
     ds_label = new JLabel[ num_ds ];
                                                   // Clear the panel and set up
                                                   // a new layout using a box.
+    setVisible( false );
     removeAll();                                  
     setLayout( new GridLayout( 1, 1 ) );
     Box panel_box = new Box( BoxLayout.Y_AXIS );
     add( panel_box );
                                                             // Set up the update
                                                             // time control
-    JSlider time_slider = new JSlider( JSlider.HORIZONTAL, 0, 600, 60 );
+    JSlider time_slider = new JSlider( JSlider.HORIZONTAL, 0, 600, 
+                                       (int)data_manager.getUpdateInterval() );
+
     time_slider.setMinimumSize( new Dimension(50, 20) );
     time_slider.setPaintTicks( true );
     time_slider.setMajorTickSpacing( 60 );
@@ -301,21 +312,24 @@ public class LiveDataMonitor extends    JPanel
       show_box[i] = new JCheckBox( "Show" );
 //      show_box[i].setFont( FontUtil.LABEL_FONT );
       show_box[i].setFont( FontUtil.BORDER_FONT );
-      show_box[i].setSelected( false );
+      if ( i < old_show_box.length )
+        show_box[i].setSelected( old_show_box[i].isSelected() );
+      else
+        show_box[i].setSelected( false );
       show_box[i].setBackground( BACKGROUND );
       ShowCheckboxListener show_box_listener = new ShowCheckboxListener( i );
       show_box[i].addActionListener( show_box_listener );
 
-
-      viewers[i] = null;                            // by default, don't show
-      data_manager.setUpdateIgnoreFlag( i, true );  // or update any of the 
-                                                    // DataSets
+      if ( i < old_viewers.length )
+        viewers[i] = old_viewers[i];
+      else
+        viewers[i] = null;                           // by default, don't show
 
       auto_box[i] = new JCheckBox( "Auto" );
 //      auto_box[i].setFont( FontUtil.LABEL_FONT );
       auto_box[i].setFont( FontUtil.BORDER_FONT );
       auto_box[i].setBackground( BACKGROUND );
-      auto_box[i].setSelected( false );
+      auto_box[i].setSelected( !data_manager.getUpdateIgnoreFlag( i ) );
       AutoCheckboxListener auto_box_listener = new AutoCheckboxListener( i );
       auto_box[i].addActionListener( auto_box_listener ); 
 
@@ -335,8 +349,12 @@ public class LiveDataMonitor extends    JPanel
     time_slider.setBorder( border );
 
     panel_box.add( time_slider );
+    validate(); 
+    setVisible( true );
   }
 
+
+ /* ------------------------------ FixLabels ------------------------------ */
  /**
   *  Check if any of the DataSet titles have changed and adjust the labels if
   *  they have.
@@ -348,7 +366,9 @@ public class LiveDataMonitor extends    JPanel
       DataSet ds = data_manager.getDataSet( i );
       String cur_title = ds.getTitle();
       if ( !cur_title.equalsIgnoreCase( ds_label[i].getText() ) )
+      {
         ds_label[i].setText( cur_title );
+      }
     } 
   }
 
@@ -389,7 +409,6 @@ public class LiveDataMonitor extends    JPanel
 
     public void actionPerformed( ActionEvent e )
     {
-      System.out.println("UpdateButtonListener called...");
       if ( viewers[ my_index ] == null  ||
           !viewers[ my_index ].isVisible() )    // make another viewer
       {
@@ -419,7 +438,6 @@ public class LiveDataMonitor extends    JPanel
 
     public void actionPerformed( ActionEvent e )
     { 
-      System.out.println("ShowCheckboxListener called...");
       JCheckBox check_box = (JCheckBox)(e.getSource());
 
       if ( check_box.isSelected() )
@@ -459,7 +477,6 @@ public class LiveDataMonitor extends    JPanel
 
     public void actionPerformed( ActionEvent e )
     {
-      System.out.println("AutoCheckboxListener called...");
       JCheckBox check_box = (JCheckBox)(e.getSource());
 
       if ( check_box.isSelected() )
@@ -478,6 +495,19 @@ public class LiveDataMonitor extends    JPanel
         data_manager.setUpdateIgnoreFlag( my_index, true );
 
       FixLabels();
+    }
+  }
+
+
+  /* ----------------------- DataManagerListener ---------------------- */
+
+  private class DataManagerListener implements ActionListener,
+                                               Serializable
+  {
+    public void actionPerformed( ActionEvent e )
+    {
+      System.out.println("DataManagerListener called...");
+      SetUpGUI();
     }
   }
 
