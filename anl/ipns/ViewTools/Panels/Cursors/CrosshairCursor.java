@@ -1,7 +1,7 @@
 /*
  * @(#) CrosshairCursor.java
  *
- * Copyright (C) 1999, Dennis Mikkelson
+ * Copyright (C) 1999,2001, Dennis Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2001/06/01 20:47:14  dennis
+ * Modified to work with XOR_Cursor, instead of the Rubberband class.
+ *
  * Revision 1.4  2001/04/23 21:15:04  dennis
  * Added copyright and GPL info at the start of the file.
  *
@@ -49,48 +52,55 @@ package DataSetTools.components.image;
 
 import javax.swing.*;
 import java.io.*;
-import java.awt.Graphics;
-import java.awt.Rectangle;
+import java.awt.*;
 
 /** 
- * A Rubberband that draws a crosshair cursor.
+ * A full screen crosshair cursor.
  *
- * @see     Rubberband
+ * @see  XOR_Cursor 
  */
-public class CrosshairCursor extends    Rubberband
+public class CrosshairCursor extends    XOR_Cursor 
                              implements Serializable
 {
 
-    public CrosshairCursor(JPanel component) {
-        super(component);
-    }
+/**
+ *  Construct a new BoxCursor to be used on a JPanel.
+ *
+ *  @param panel The JPanel for this cursor.
+ *
+ */
+  public CrosshairCursor( JPanel panel ) 
+  {
+    super( panel );
+  }
 
-    public void drawLast(Graphics graphics) {
-        Rectangle rect = component.getVisibleRect();
-        int min_x = rect.x;
-        int max_x = rect.x + rect.width;
-        int min_y = rect.y;
-        int max_y = rect.y + rect.height;
-                                                    // only draw in region 
-        if ( last.x >= min_x && last.x <= max_x )
-          graphics.drawLine(last.x, min_y, last.x, max_y);
 
-        if ( last.y >= min_y && last.y <= max_y )
-          graphics.drawLine( min_x, last.y, max_x, last.y);
-    }
+/**
+ *  This method draws a crosshair across the full panel, intersecting at a
+ *  specified point.
+ *
+ *  @param  graphics   The graphics context that the crosshair will be drawn in.
+ *
+ *  @param  p1         This parameter is not used.
+ *
+ *  @param  p2         This specifies the coordinates at which the crosshair
+ *                     cursor should be drawn.
+ */
 
-    public void drawNext(Graphics graphics) {
-        Rectangle rect = component.getVisibleRect();
-        int min_x = rect.x;
-        int max_x = rect.x + rect.width;
-        int min_y = rect.y;
-        int max_y = rect.y + rect.height;
-                                                    // only draw in region
-        if ( stretched.x >= min_x && stretched.x <= max_x )
-          graphics.drawLine( stretched.x, min_y, stretched.x, max_y );
+  public void draw( Graphics graphics, Point p1, Point p2 )
+  {
+    Rectangle rect = panel.getVisibleRect();
+    int min_x = rect.x;
+    int max_x = rect.x + rect.width;
+    int min_y = rect.y;
+    int max_y = rect.y + rect.height;
 
-        if ( stretched.y >= min_y && stretched.y <= max_y )
-          graphics.drawLine( min_x, stretched.y, max_x, stretched.y );
-    }
+                                                        // only draw in region
+    if ( p2.x >= min_x && p2.x <= max_x )
+      graphics.drawLine( p2.x, min_y, p2.x, max_y);
+
+    if ( p2.y >= min_y && p2.y <= max_y )
+       graphics.drawLine( min_x, p2.y, max_x, p2.y);
+  }
 
 }

@@ -1,7 +1,7 @@
 /*
  * File:  CoordJPanel.java
  *
- * Copyright (C) 1999, Dennis Mikkelson
+ * Copyright (C) 1999-2001, Dennis Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2001/06/01 20:47:12  dennis
+ *  Modified to work with XOR_Cursor, instead of the Rubberband class.
+ *
  *  Revision 1.8  2001/05/29 15:12:25  dennis
  *  Now uses initializeWorldCoords to reset both the local and
  *  global transforms.
@@ -84,10 +87,10 @@ abstract public class CoordJPanel extends    JPanel
   protected boolean         h_scroll = false;
   protected boolean         v_scroll = false;
 
-  protected boolean         CJP_handle_arrow_keys;
-  private   Rubberband      rb_box;
-  private   Rubberband      crosshair_cursor;
-  protected CoordTransform  global_transform;
+  protected boolean               CJP_handle_arrow_keys;
+  private   BoxCursor             rb_box;
+  private   CrosshairCursor       crosshair_cursor;
+  protected CoordTransform        global_transform;
   protected CoordTransform  local_transform;
   protected Point           current_point = new Point(0,0);
   protected CoordJPanel     this_panel;
@@ -108,7 +111,7 @@ abstract public class CoordJPanel extends    JPanel
     CoordComponentAdapter component_adapter = new CoordComponentAdapter();
     addComponentListener( component_adapter );
 
-    rb_box           = new RubberbandRectangle( this );
+    rb_box           = new BoxCursor( this );
     crosshair_cursor = new CrosshairCursor( this );
 
     global_transform = new CoordTransform();
@@ -233,11 +236,11 @@ public void set_crosshair( Point current )
   stop_box( current, false );
   current_point = current;
   if ( doing_crosshair )
-    crosshair_cursor.stretch( current );
+    crosshair_cursor.redraw( current );
   else
   {
-    crosshair_cursor.anchor( current );
-    crosshair_cursor.stretch( current );
+    crosshair_cursor.start( current );
+    crosshair_cursor.redraw( current );
     doing_crosshair = true;
   }
 }
@@ -259,11 +262,11 @@ public void set_box( Point current )
   stop_crosshair( current );
   current_point = current;
   if ( doing_box )
-    rb_box.stretch( current );
+    rb_box.redraw( current );
   else
   {
-    rb_box.anchor( current );
-    rb_box.stretch( current );
+    rb_box.start( current );
+    rb_box.redraw( current );
     doing_box = true;
   }
 }
@@ -285,8 +288,8 @@ public void stop_crosshair( Point current )
   if ( doing_crosshair )
   {
     current_point = current;
-    crosshair_cursor.stretch( current );
-    crosshair_cursor.end( current );
+    crosshair_cursor.redraw( current );
+    crosshair_cursor.stop( current );
     doing_crosshair = false;
   }
 }
@@ -308,18 +311,20 @@ public void stop_box( Point current, boolean do_zoom )
   if ( doing_box )
   {
     current_point = current;
-    rb_box.stretch( current );
-    rb_box.end( current );
+    rb_box.redraw( current );
+    rb_box.stop( current );
     doing_box = false;
+
+    Rectangle r = rb_box.region();
                                                // process zoom if requested
     if ( do_zoom )
-      if ( rb_box.bounds().width  > 0  &&
-           rb_box.bounds().height > 0   )
+      if ( r.width  > 0  &&
+           r.height > 0   )
       {
-         int x1 = rb_box.bounds().x;
-         int y1 = rb_box.bounds().y;
-         int x2 = x1 + rb_box.bounds().width;
-         int y2 = y1 + rb_box.bounds().height;
+         int x1 = r.x;
+         int y1 = r.y;
+         int x2 = x1 + r.width;
+         int y2 = y1 + r.height;
 
          ZoomToPixelSubregion( x1, y1, x2, y2 );
          LocalTransformChanged();
