@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/03/03 23:17:52  dennis
+ * Added methods to get/set the values in the display and
+ * slice mode selection boxes.  The methods also allow the
+ * selection boxes to be disabled, if choices are not appropriate.
+ *
  * Revision 1.5  2004/02/03 23:43:38  dennis
  * Added HKLorQ_SelectorUI controls.  Still need to add listeners and
  * methods to work with these controls.
@@ -86,6 +91,8 @@ public class SliceSelectorUI extends    ActiveJPanel
   private SliceImageUI      image_selector;
   private SliceStepperUI    stepper;
 
+  private boolean           send_messages;
+
 
   /*-------------------------- constructor ----------------------- */
   /**
@@ -105,7 +112,8 @@ public class SliceSelectorUI extends    ActiveJPanel
     image_selector = new SliceImageUI( "Select Plane Size" );
     stepper        = new SliceStepperUI( "Step In/Out" );
 
-    setMode( mode );
+    setDisplayMode( mode, true );
+    setSliceMode( mode, true );
 
     Box box = new Box( BoxLayout.Y_AXIS );
     box.add( display_mode );
@@ -120,23 +128,65 @@ public class SliceSelectorUI extends    ActiveJPanel
     ValueListener value_listener = new ValueListener();
     plane_selector.addActionListener( value_listener );
     image_selector.addActionListener( value_listener );
+    display_mode.addActionListener( value_listener );
+    slice_mode.addActionListener( value_listener );
 
     stepper.addActionListener( new StepListener() );
   }
 
 
-  /* ----------------------------- setMode ----------------------------- */
+  /* --------------------------- setDisplayMode --------------------------- */
   /**
-   *  Set the display mode for this slice selector to either hkl or Qxzy
+   *  Set the display mode choice either hkl or Qxzy mode, enabling or 
+   *  disabling the control based on the enable flag.
+   *
+   *  @param  mode   Integer code must be one of HKL_MODE or QXYZ_MODE, other
+   *                 values will be ignored.
+   *
+   *  @param  enable If true, the user will be able to change the mode,
+   *                 if false, the specified mode will be set but the
+   *                 control will be disabled.
+   */
+  public void setDisplayMode( int mode, boolean enable )
+  {
+    if ( mode != HKL_MODE && mode != QXYZ_MODE )
+      return;
+
+    display_mode.setMode( mode );
+    display_mode.setEnabled( enable );
+  }
+
+
+  /* ---------------------------- getDisplayMode ------------------------- */
+  /**
+   *  Get the currently specified slice display mode, HKL_MODE or QXYZ_MODE.
+   *
+   *  @return the current mode.
+   */
+  public int getDisplayMode()
+  {
+    return display_mode.getMode();
+  }
+
+
+  /* --------------------------- setSliceMode --------------------------- */
+  /**
+   *  Set the mode used for specifying a slice to either hkl or Qxzy
    *  mode.
    *
    *  @param  mode  Integer code must be one of HKL_MODE or QXYZ_MODE, other
    *                values will be ignored.
+   *
+   *  @param  enable If true, the user will be able to change the mode,
+   *                 if false, the specified mode will be set but the
+   *                 control will be disabled.
    */
-  public void setMode( int mode )
+  public void setSliceMode( int mode, boolean enable )
   {
     if ( mode != HKL_MODE && mode != QXYZ_MODE )
       return;
+
+    send_messages = false;
 
     plane_selector.setMode( mode );
 
@@ -148,6 +198,23 @@ public class SliceSelectorUI extends    ActiveJPanel
                  new TitledBorder(LineBorder.createBlackLineBorder(), title );
     border.setTitleFont( FontUtil.BORDER_FONT );
     setBorder( border );
+
+    slice_mode.setMode( mode );
+    slice_mode.setEnabled( enable );
+
+    send_messages = true;
+  }
+
+
+  /* ---------------------------- getSliceMode --------------------------- */
+  /**
+   *  Get the currently specified slice selection mode, HKL_MODE or QXYZ_MODE.
+   *
+   *  @return the current mode.
+   */
+  public int getSliceMode()
+  {
+    return slice_mode.getMode();
   }
 
 
@@ -300,7 +367,15 @@ public class SliceSelectorUI extends    ActiveJPanel
   {
     public void actionPerformed( ActionEvent e )
     {
-      send_message( ISlicePlaneSelector.PLANE_CHANGED );
+      if ( e.getSource() == slice_mode )
+      {
+        setSliceMode( slice_mode.getMode(), slice_mode.isEnabled() );
+        if ( send_messages )
+          send_message( ISlicePlaneSelector.SLICE_MODE_CHANGED );
+      }
+      else
+        if ( send_messages )
+          send_message( ISlicePlaneSelector.PLANE_CHANGED );
     }
   }
 
@@ -324,7 +399,8 @@ public class SliceSelectorUI extends    ActiveJPanel
       plane.setOrigin( origin );
       plane_selector.setPlane( plane );
 
-      send_message( ISlicePlaneSelector.PLANE_CHANGED );
+      if ( send_messages )
+        send_message( ISlicePlaneSelector.PLANE_CHANGED );
     }
   }
 
