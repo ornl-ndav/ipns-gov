@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.48  2005/03/11 19:45:42  serumb
+ * Added get and set Object State methods and changed the call to
+ * set stroke to use an integer key.
+ *
  * Revision 1.47  2005/02/04 22:52:54  millermi
  * - ImageListener now listens for
  *   FunctionViewComponent.POINTED_AT_CHANGED to update range values
@@ -197,6 +201,7 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
 
 //import DataSetTools.components.ParametersGUI.*;
 //import DataSetTools.components.ui.*;
+import java.io.Serializable;
 import gov.anl.ipns.ViewTools.UI.*; 
 import gov.anl.ipns.ViewTools.Panels.Transforms.*; 
 import gov.anl.ipns.ViewTools.Components.*;  // IVirtualArrayList1D
@@ -216,83 +221,99 @@ import javax.swing.border.*;
  * This class creates the controls and adds them to the control panel.
  */
 
-  public class FunctionControls
+  public class FunctionControls  implements Serializable,
+                                            IPreserveState
   {
 
-  private IVirtualArrayList1D Varray1D;
-  private FunctionViewComponent fvc;
-  private GraphJPanel gjp;
-  private JPanel big_picture = new JPanel();
+  /**
+   * "X Range" - This constant String is a key for referencing the State
+   * information about the x range for the graph to be displayed.
+   */
+   public static final String X_RANGE = "X Range";
 
-  private JPanel panel1      = new JPanel(  );
-  private JPanel panel2      = new JPanel(  );
-  private JPanel panel3      = new JPanel(  );
-  private JPanel RboxPanel   = new JPanel(  );
-  private JPanel TFP         = new JPanel(  );
-  private JPanel controlpanel= new JPanel(  );
-  private JPanel label_panel = new JPanel(  );
-  private JPanel z_panel     = new JPanel(  );
-  private String label1      = "Line Selected";
-  private String label2      = "Line Style";
-  private String label3      = "Line Width";
-  private String label4      = "Point Marker";
-  private String label5      = "Point Marker Size";
-  private String label6      = "Error Bars";
-  private String label7      = "Shift";
-  private String label8      = "Logarithmic Axis";
-  private JComboBox LineBox  = new JComboBox(  );
-  private JComboBox LineStyleBox = new JComboBox(  );
-  private JComboBox LineWidthBox = new JComboBox(  );
-  private JComboBox PointMarkerBox = new JComboBox(  );
-  private JComboBox PointMarkerSizeBox = new JComboBox(  );
-  private JComboBox ErrorBarBox = new JComboBox(  );
-  private JComboBox ShiftBox = new JComboBox(  );
-  private JComboBox ShiftFactor = new JComboBox(  );
-  private JComboBox LogBox = new JComboBox(  );
-  private String[] lines;
-  private int[]  SelGraphDSIndx;
-  private String[] line_type;
-  private String[] line_width;
-  private String[] mark_types;
-  private String[] mark_size;
-  private String[] bar_types;
-  private String[] shift_types;
-  private String[] log_placements;
-  private ButtonControl LineColor;
-  private ButtonControl MarkColor;
-  private ButtonControl ErrorColor;
-  private int line_index     = 1;
-  private int linewidth      = 1;
-  private Box leftBox        = new Box( 1 );
-  private Box rightBox       = new Box( 1 );
-  private Box control_box    = new Box( 0 );
-  private LabelCombobox labelbox1;
-  private LabelCombobox labelbox2;
-  private LabelCombobox labelbox3;
-  private LabelCombobox labelbox4;
-  private LabelCombobox labelbox5;
-  private LabelCombobox labelbox6;
-  private LabelCombobox labelbox7;
-  private LabelCombobox labelbox8;
-  private LabelCombobox labelbox9;
-  private JLabel control_label;
-  private Font label_font;
+  /**
+   * "Y Range" - This constant String is a key for referencing the State
+   * information about the y range for the graph to be displayed.
+   */
+   public static final String Y_RANGE = "Y Range";
+   
+
+	  
+  private transient IVirtualArrayList1D Varray1D;
+  private transient FunctionViewComponent fvc;
+  private transient GraphJPanel gjp;
+  private transient JPanel big_picture = new JPanel();
+
+  private transient JPanel panel1      = new JPanel(  );
+  private transient JPanel panel2      = new JPanel(  );
+  private transient JPanel panel3      = new JPanel(  );
+  private transient JPanel RboxPanel   = new JPanel(  );
+  private transient JPanel TFP         = new JPanel(  );
+  private transient JPanel controlpanel= new JPanel(  );
+  private transient JPanel label_panel = new JPanel(  );
+  private transient JPanel z_panel     = new JPanel(  );
+  private transient String label1      = "Line Selected";
+  private transient String label2      = "Line Style";
+  private transient String label3      = "Line Width";
+  private transient String label4      = "Point Marker";
+  private transient String label5      = "Point Marker Size";
+  private transient String label6      = "Error Bars";
+  private transient String label7      = "Shift";
+  private transient String label8      = "Logarithmic Axis";
+  private transient JComboBox LineBox  = new JComboBox(  );
+  private transient JComboBox LineStyleBox = new JComboBox(  );
+  private transient JComboBox LineWidthBox = new JComboBox(  );
+  private transient JComboBox PointMarkerBox = new JComboBox(  );
+  private transient JComboBox PointMarkerSizeBox = new JComboBox(  );
+  private transient JComboBox ErrorBarBox = new JComboBox(  );
+  private transient JComboBox ShiftBox = new JComboBox(  );
+  private transient JComboBox ShiftFactor = new JComboBox(  );
+  private transient JComboBox LogBox = new JComboBox(  );
+  private transient String[] lines;
+  private transient int[]  SelGraphDSIndx;
+  private transient String[] line_type;
+  private transient String[] line_width;
+  private transient String[] mark_types;
+  private transient String[] mark_size;
+  private transient String[] bar_types;
+  private transient String[] shift_types;
+  private transient String[] log_placements;
+  private transient ButtonControl LineColor;
+  private transient ButtonControl MarkColor;
+  private transient ButtonControl ErrorColor;
+  private transient int line_index     = 1;
+  private transient int linewidth      = 1;
+  private transient Box leftBox        = new Box( 1 );
+  private transient Box rightBox       = new Box( 1 );
+  private transient Box control_box    = new Box( 0 );
+  private transient LabelCombobox labelbox1;
+  private transient LabelCombobox labelbox2;
+  private transient LabelCombobox labelbox3;
+  private transient LabelCombobox labelbox4;
+  private transient LabelCombobox labelbox5;
+  private transient LabelCombobox labelbox6;
+  private transient LabelCombobox labelbox7;
+  private transient LabelCombobox labelbox8;
+  private transient LabelCombobox labelbox9;
+  private transient JLabel control_label;
+  private transient Font label_font;
   private TextRangeUI x_range; 
   private TextRangeUI y_range;
-  private TitledBorder border;
+  private transient TitledBorder border;
  
-  private Box vert_box = new Box(1);
-  private ControlCheckboxButton axis_checkbox = new ControlCheckboxButton(true);
-  private ControlCheckboxButton annotation_checkbox = 
+  private transient Box vert_box = new Box(1);
+  private transient ControlCheckboxButton axis_checkbox = 
+	            new ControlCheckboxButton(true);
+  private transient ControlCheckboxButton annotation_checkbox = 
                                     new ControlCheckboxButton(  );
-  private ControlCheckboxButton legend_checkbox = 
+  private transient ControlCheckboxButton legend_checkbox = 
                                     new ControlCheckboxButton(  );
-  private double log_scale = 10;
-  private float shift_factor = 1;
-  private ViewControlsPanel main_panel;
-  private JFrame the_frame;
+  private transient double log_scale = 10;
+  private transient float shift_factor = 1;
+  private transient ViewControlsPanel main_panel;
+  private transient JFrame the_frame;
 
-  private CursorOutputControl cursor;
+  private transient CursorOutputControl cursor;
 
   public static final int FRAME_WIDTH  = 480; 
   public static final int FRAME_HEIGHT = 350; 
@@ -331,7 +352,53 @@ import javax.swing.border.*;
           new JFrame( "ISAW Function View Controls" ) );
   }
 
+   // setState() and getState() are required by IPreserveState interface
+  /**
+   * This method will set the current state variables of the object to state
+   * variables wrapped in the ObjectState passed in.
+   *
+   *  @param  new_state
+   */
+   public void setObjectState( ObjectState new_state )
+   {
+      boolean redraw = false;  // if any values change redraw.
+      Object temp = new_state.get(X_RANGE);
+      if ( temp != null)
+      {
+        x_range = (TextRangeUI)temp;
+        redraw = true;
+      }
 
+      temp = new_state.get(Y_RANGE);
+      if ( temp != null)
+      {
+        y_range = (TextRangeUI)temp;
+        redraw = true;
+      }
+
+      if (redraw)      
+        gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
+		                 x_range.getMax(), y_range.getMin() );		
+   }   
+
+  /**
+   * This method will get the current values of the state variables for this
+   * object. These variables will be wrapped in an ObjectState. Keys will be
+   * put in alphabetic order.
+   */
+   public ObjectState getObjectState(boolean isDefault)
+   {
+     ObjectState state = new ObjectState();
+     state.insert( X_RANGE, (TextRangeUI)x_range);
+     state.insert( Y_RANGE, (TextRangeUI)y_range);
+
+     if(! isDefault){
+     }
+
+     return state;
+    }     
+					       
+   
   public void buildControls() {
     label_panel.setLayout( new FlowLayout( 1 ) );
     label_font      = new Font( "Times", Font.PLAIN, 16 );
@@ -743,24 +810,24 @@ import javax.swing.border.*;
             sets the line style combo box to the style of the line selected.
           */
           if( 
-            gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( GraphJPanel.DOTTED, line_index ) ) ) {
+            gjp.getStroke( line_index ) == ( 
+                GraphJPanel.DOTTED) ) {
             LineStyleBox.setSelectedIndex( 2 );
           } else if( 
-           gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( GraphJPanel.LINE, line_index ) ) ) {
+           gjp.getStroke( line_index ) == ( 
+                GraphJPanel.LINE) ) {
             LineStyleBox.setSelectedIndex( 0 );
           } else if( 
-            gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( GraphJPanel.DASHED, line_index ) ) ) {
+            gjp.getStroke( line_index )==( 
+                GraphJPanel.DASHED) ) {
             LineStyleBox.setSelectedIndex( 1 );
           } else if( 
-            gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( GraphJPanel.DASHDOT, line_index ) ) ) {
+            gjp.getStroke( line_index ) == ( 
+                GraphJPanel.DASHDOT) ) {
             LineStyleBox.setSelectedIndex( 3 );
           } else if( 
-            gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( GraphJPanel.TRANSPARENT, line_index ) ) ) {
+            gjp.getStroke( line_index ) == ( 
+                GraphJPanel.TRANSPARENT) ) {
             LineStyleBox.setSelectedIndex( 4 );
           }
           
@@ -837,31 +904,31 @@ import javax.swing.border.*;
           if( LineStyleBox.getSelectedItem(  ).equals( "Solid" ) ) {
             gjp.setTransparent(false, line_index, false);
             gjp.setStroke( 
-              gjp.strokeType( GraphJPanel.LINE, line_index ), line_index, true );
+              GraphJPanel.LINE, line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dashed" ) ) {
             gjp.setTransparent(false, line_index, false);
             gjp.setStroke( 
-              gjp.strokeType( GraphJPanel.DASHED, line_index ), line_index, true );
+              GraphJPanel.DASHED, line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dotted" ) ) {
             gjp.setTransparent(false, line_index, false);
             gjp.setStroke( 
-              gjp.strokeType( GraphJPanel.DOTTED, line_index ), line_index, true );
+              GraphJPanel.DOTTED, line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dash Dot Dot" ) ) {
              gjp.setTransparent(false, line_index, false);
              gjp.setStroke( 
-              gjp.strokeType( GraphJPanel.DASHDOT, line_index ), line_index, true );  
+              GraphJPanel.DASHDOT, line_index, true );  
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Transparent" ) ) {
              gjp.setTransparent(true, line_index, true);
              gjp.setStroke( 
-              gjp.strokeType( GraphJPanel.TRANSPARENT, line_index ), line_index, true );
+              GraphJPanel.TRANSPARENT, line_index, true );
           }
 
         /*
@@ -874,22 +941,22 @@ import javax.swing.border.*;
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Solid" ) ) {
             gjp.setStroke( 
-              gjp.strokeType( GraphJPanel.LINE, line_index ), line_index, true );
+              GraphJPanel.LINE, line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dashed" ) ) {
             gjp.setStroke( 
-              gjp.strokeType( GraphJPanel.DASHED, line_index ), line_index, true );
+              GraphJPanel.DASHED, line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dotted" ) ) {
             gjp.setStroke( 
-              gjp.strokeType( GraphJPanel.DOTTED, line_index ), line_index, true );
+              GraphJPanel.DOTTED, line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dash Dot Dot" ) ) {
             gjp.setStroke( 
-              gjp.strokeType( GraphJPanel.DASHDOT, line_index ), line_index, true );
+              GraphJPanel.DASHDOT, line_index, true );
           }
         /* 
           Listens for a point marker change and sets the appropriate
