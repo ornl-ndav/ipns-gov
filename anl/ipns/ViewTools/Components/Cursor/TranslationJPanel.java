@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/11/21 00:12:24  millermi
+ *  - Fixed bug that did not restrict stretching to only the
+ *    cursor region.
+ *  - Reduced sensitivity to +/- 2 pixels.
+ *
  *  Revision 1.3  2003/11/18 01:02:01  millermi
  *  - Fixed bug that assumed global bounds x1 < x2 and y1 < y2,
  *    which may not always be true.
@@ -287,42 +292,68 @@ public class TranslationJPanel extends CoordJPanel
       // translating it.
       Point current = e.getPoint(); 
       Rectangle cursor_bounds = box.region();
-      Point grow = cursor_bounds.getLocation();
-      Point grow_p2 = new Point(grow);
+      Point location = cursor_bounds.getLocation();
+      // grow contains the distance in the x & y direction that the
+      // cursor should "grow", either growing larger or smaller.
+      Point grow = new Point(location);
       grow.x -= current.x;
       grow.y -= current.y;
       
-      final int SENSITIVITY = 4;
+      final int SENSITIVITY = 2;
       
       if( Math.abs(grow.x) < SENSITIVITY )
       {
-	west_stretch = true;
-	stretching = true;
-	if( east_stretch )
-	  east_stretch = false;
+        // is the current point on the actual cursor, or just on the same
+	// line.
+        if( current.y > location.y - SENSITIVITY && 
+	    current.y < (location.y + cursor_bounds.getHeight() + SENSITIVITY) )
+	{
+	  west_stretch = true;
+	  stretching = true;
+	  if( east_stretch )
+	    east_stretch = false;
+        }
       }
       if( Math.abs(grow.y) < SENSITIVITY )
       {
-        north_stretch = true;
-	stretching = true;
-	if( south_stretch )
-	  south_stretch = false;
+        // is the current point on the actual cursor, or just on the same
+	// line.
+        if( current.x > location.x - SENSITIVITY && 
+	    current.x < (location.x + cursor_bounds.getWidth() + SENSITIVITY) )
+	{
+          north_stretch = true;
+	  stretching = true;
+	  if( south_stretch )
+	    south_stretch = false;
+        }
       }
-      if( Math.abs(current.x - (cursor_bounds.getWidth() + grow_p2.x) ) 
+      if( Math.abs(current.x - (cursor_bounds.getWidth() + location.x) ) 
           < SENSITIVITY )
       { 
-	east_stretch = true;
-	stretching = true;
-	if( west_stretch )
-	  west_stretch = false;
+        // is the current point on the actual cursor, or just on the same
+	// line.
+        if( current.y > location.y - SENSITIVITY && 
+	    current.y < (location.y + cursor_bounds.getHeight() + SENSITIVITY) )
+	{
+	  east_stretch = true;
+	  stretching = true;
+	  if( west_stretch )
+	    west_stretch = false;
+	}
       }
-      if( Math.abs(current.y - (cursor_bounds.getHeight() + grow_p2.y) ) 
+      if( Math.abs(current.y - (cursor_bounds.getHeight() + location.y) ) 
           < SENSITIVITY )
       {
-	south_stretch = true;
-	stretching = true;
-	if( north_stretch )
-	  north_stretch = false;
+        // is the current point on the actual cursor, or just on the same
+	// line.
+        if( current.x > location.x - SENSITIVITY && 
+	    current.x < (location.x + cursor_bounds.getWidth() + SENSITIVITY) )
+	{
+	  south_stretch = true;
+	  stretching = true;
+	  if( north_stretch )
+	    north_stretch = false;
+	}
       }
       
       // since stretching may "screw up" the bounds, save the bounds before
@@ -364,7 +395,7 @@ public class TranslationJPanel extends CoordJPanel
       Rectangle cursor_bounds = box.region(); // bounds of cursor
       Rectangle this_bounds = getBounds();    // bounds of entire jpanel
       Point grow = cursor_bounds.getLocation();
-      Point grow_p2 = new Point(grow);
+      Point location = new Point(grow);
       grow.x -= current.x;
       grow.y -= current.y;
       
@@ -378,10 +409,10 @@ public class TranslationJPanel extends CoordJPanel
 	    box.moveEdge( XOR_PanCursor.NORTH, grow.y );
           if( east_stretch )
             box.moveEdge( XOR_PanCursor.EAST, (int)( current.x -
-	                  cursor_bounds.getWidth() - grow_p2.x ) );
+	                  cursor_bounds.getWidth() - location.x ) );
           if( south_stretch )
             box.moveEdge( XOR_PanCursor.SOUTH, (int)( current.y -
-	                  cursor_bounds.getHeight() - grow_p2.y ) );
+	                  cursor_bounds.getHeight() - location.y ) );
           if( west_stretch )
             box.moveEdge( XOR_PanCursor.WEST, grow.x );
         }
