@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2004/08/06 18:50:30  millermi
+ *  - Now checks for new COLORSCALE_CHANGED message sent out by any
+ *    IColorScaleAddible objects.
+ *
  *  Revision 1.21  2004/03/19 18:04:37  millermi
  *  - Replaced labels and units in getAxisInformation() from ""
  *    to AxisInfo static variables.
@@ -701,12 +705,12 @@ public class ControlColorScale extends ViewControl
   {
     public void actionPerformed( ActionEvent e )
     {
-      String message = e.getActionCommand();
-      if( message.equals( component.getColorScale() ) )
-        setColorScale( message, isTwoSided );
+      String message = e.getActionCommand(); 
+      IColorScaleAddible temp = (IColorScaleAddible)e.getSource();
+      if( message.equals( IColorScaleAddible.COLORSCALE_CHANGED ) )
+        setColorScale( temp.getColorScale(), isTwoSided );
       else if ( message.equals(ControlSlider.SLIDER_CHANGED) )
-      { 
-        IColorScaleAddible temp = (IColorScaleAddible)e.getSource();
+      {
         logscale = temp.getLogScale();
       }
     }
