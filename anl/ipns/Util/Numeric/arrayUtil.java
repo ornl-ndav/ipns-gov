@@ -2,6 +2,9 @@
  * @(#)arrayUtil.java  1999/01/10   Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.4  2000/07/21 14:24:26  dennis
+ *  Added binary search of a portion of an array of integers
+ *
  *  Revision 1.3  2000/07/10 22:55:37  dennis
  *  July 10, 2000 version... many changes
  *
@@ -59,7 +62,7 @@ public class arrayUtil
 
   /**
    *  Find a value in an array of floats that is IN INCREASING ORDER, by using
-   *  a binary search.
+   *  a binary search.  
    *
    *  @param  x       The value to find
    *  @parma  x_vals  The array of x values IN INCREASING ORDER.
@@ -101,6 +104,67 @@ public class arrayUtil
     else
       return last;                        // first & last have crossed
    }
+
+
+  /**
+   *  Find a value in an array of ints that is IN INCREASING ORDER, by using
+   *  a binary search.
+   *
+   *  @param  x       The value to find
+   *  @parma  x_vals  The array of x values IN INCREASING ORDER.
+   *  @param  first   The first position to be considered in the search.
+   *  @param  last    The last position to be considered in the search.
+   *
+   *  @return  The index at which x was found in the array, or -1 if x was
+   *           not found.
+   */
+
+   public static int get_index_of( int  x, 
+                                   int  x_vals[], 
+                                   int  first, 
+                                   int  last )
+   {
+     if ( x_vals == null || x_vals.length <= 0 )
+       return -1;
+
+     if ( x < x_vals[0] )                           // x to left of all values
+       return -1;
+
+     else if ( x > x_vals[ last ] )                 // x to right of all values
+       return -1;
+
+     if ( first > last )
+       return -1;
+
+                                             // do binary search to find value
+     if ( first < 0 )
+       first = 0;
+
+     if ( last > x_vals.length - 1 )
+       last = x_vals.length - 1;
+
+     int     mid   = 0;
+     boolean found = false;
+
+     while ( !found && first <= last )
+     {
+       mid   = (first + last) / 2;
+       if ( x == x_vals[mid] )
+         found = true;
+       else if ( x < x_vals[mid] )
+         last = mid - 1;
+       else if ( x > x_vals[mid] )
+         first = mid + 1;
+     }
+
+    if ( found )                          // if exact value is in list, return
+      return mid;                         // the position where it occurred.
+    else
+      return -1;                          // first & last have crossed, so
+                                          // not in list
+   }
+
+
 
 
   /**
