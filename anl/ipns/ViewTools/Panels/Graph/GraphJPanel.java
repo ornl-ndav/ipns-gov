@@ -30,6 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2003/06/23 20:16:58  dennis
+ * Fixed "off by one" error on check for valid GraphData index in
+ * methods setErrors(), setColor(), setMarkColor(), setStroke(),
+ * getStroke(), setLineWidth(), setMarkType(), setMarkSize().
+ * Clearing graph vector now done with .clear() method.
+ *
  * Revision 1.14  2003/06/20 16:19:35  serumb
  * Added method to set errors and added functionality for drawing error bars.
  *
@@ -143,6 +149,7 @@ public class GraphJPanel extends    CoordJPanel
     setData( x_vals, y_vals, 0, true );
   }
 
+
 /* ------------------------------- setData -------------------------------- */
 /**
  *  Set the data for the specified graph to the specified x and y values.  The
@@ -192,21 +199,20 @@ public class GraphJPanel extends    CoordJPanel
     return true;
   }
 
+
 /* ----------------------------- clearData ------------------------------- */
 /**
  *  Remove all graphs and create a default simple graph consisting of a line
  *  joining (0,0) with (1,1).
  */
-
   public void clearData()
   {
-    for ( int i = graphs.size()-1; i >= 0; i-- )
-      graphs.removeElementAt( i );
-
+    graphs.clear();
     graphs.addElement( new GraphData() );    
     set_auto_data_bound();
     SetDataBounds();
   }
+
 
 /* ----------------------------- setErrors -------------------------------- */
 /**
@@ -216,7 +222,7 @@ public class GraphJPanel extends    CoordJPanel
   public boolean setErrors( float[] errors, int error_loc,
                             int graph_num, boolean redraw )
   {
-    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
       return false;
  
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
@@ -244,7 +250,7 @@ public class GraphJPanel extends    CoordJPanel
  */
   public boolean setColor( Color color, int graph_num, boolean redraw )
   {
-    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
       return false;
 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
@@ -255,6 +261,8 @@ public class GraphJPanel extends    CoordJPanel
 
     return true;
   }
+
+
 /* ----------------------------- setMarkColor -------------------------------- */
 /**
  *  Set the color for the specified graph.  
@@ -270,7 +278,7 @@ public class GraphJPanel extends    CoordJPanel
  */
   public boolean setMarkColor( Color color, int graph_num, boolean redraw )
   {
-    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
       return false;
 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
@@ -281,11 +289,13 @@ public class GraphJPanel extends    CoordJPanel
 
     return true;
   }
+
+
 /*------------------------------ setStroke --------------------------------*/
 
 public boolean setStroke(BasicStroke theStroke, int graph_num, boolean redraw)
   {
-    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
       return false;
 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
@@ -296,47 +306,38 @@ public boolean setStroke(BasicStroke theStroke, int graph_num, boolean redraw)
 
     return true;
   }
+
+
 /*------------------------------ getStroke --------------------------------*/
 
 public BasicStroke getStroke(int graph_num)
   { 
-    BasicStroke aStroke = new BasicStroke();
-
-
-    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
-       return aStroke;
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
+       return new BasicStroke();
 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
-    aStroke = gd.Stroke;
-     
-    return aStroke;
+    return gd.Stroke;
   }
-
 
 
 /*------------------------------ StrokeType --------------------------------*/
 
 public BasicStroke strokeType(int key, int graph_num)
 {
-
- 
   GraphData gd = (GraphData)graphs.elementAt( graph_num );
-    
-
     
   float dash1[] = {10.0f};
   float[] dash2 = {6.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f};
   float dots1[] = {0,6,0,6};
 
-
   BasicStroke dashed = new BasicStroke(gd.linewidth, 
-                                         BasicStroke.CAP_SQUARE, 
-                                         BasicStroke.JOIN_MITER, 
-                                         10.0f, dash1, 0.0f);
+                                       BasicStroke.CAP_SQUARE, 
+                                       BasicStroke.JOIN_MITER, 
+                                       10.0f, dash1, 0.0f);
 
   BasicStroke transparent = new BasicStroke(0,BasicStroke.CAP_SQUARE, 
-                                         BasicStroke.JOIN_MITER, 
-                                         10.0f, dash1, 0.0f);
+                                            BasicStroke.JOIN_MITER, 
+                                            10.0f, dash1, 0.0f);
   BasicStroke stroke = new BasicStroke(gd.linewidth);
   BasicStroke dotted = new BasicStroke(gd.linewidth, BasicStroke.CAP_ROUND,
 				       BasicStroke.JOIN_ROUND, 
@@ -347,10 +348,8 @@ public BasicStroke strokeType(int key, int graph_num)
 
     if (key == DASHED)
 	  return dashed;
-       
     else if (key == DOTTED)
 	  return dotted;
-       
     else if (key == LINE)
 	  return stroke;
     else if (key ==DASHDOT)
@@ -358,65 +357,63 @@ public BasicStroke strokeType(int key, int graph_num)
     else if (key == TRANSPARENT)
 	  return transparent;	
     else 
-    {   System.out.println("ERROR: no Stroke of this type, default is returned");
-	return stroke;
+    {
+      System.out.println("ERROR: no Stroke of this type, default is returned");
+      return stroke;
     }
-
 }
+
+
 /*-------------------------- setLineWidth ---------------------------------*/
 
 public boolean setLineWidth(int linewidth, int graph_num, boolean redraw)
 {
-    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
       return false;
  
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
-   	
     gd.linewidth = linewidth; 
- 
-	
+
     if ( redraw )
       repaint(); 
 
     return true;
  }
 
-	
+
 /*-------------------------- setMarkType ---------------------------------*/
 
 public boolean setMarkType(int marktype, int graph_num, boolean redraw)
 {
-    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
       return false;
  
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
-   	
     gd.marktype = marktype; 
- 
 	
     if ( redraw )
       repaint(); 
 
     return true;
  }
+
 
 /*-------------------------- setMarkSize ---------------------------------*/
 
 public boolean setMarkSize(int size, int graph_num, boolean redraw)
 {
-    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
       return false;
  
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
-   	
     gd.marksize = size; 
- 
 	
     if ( redraw )
       repaint(); 
 
     return true;
  }
+
 
 /* --------------------------- setMultiPlotOffsets ------------------------ */
 /**
@@ -1069,7 +1066,6 @@ private void SetDataBounds()
   /* Basic main program for testing purposes only. */
   public static void main(String[] args)
   {
-
     JFrame f = new JFrame("Test for ImageJPanel");
     f.setBounds(0,0,500,500);
     GraphJPanel graph = new GraphJPanel();
