@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2001/08/16 02:34:16  dennis
+ *  getCenterofMass() now checks for and ignores null positions in the
+ *  points[] array.
+ *
  *  Revision 1.6  2001/07/25 18:05:30  dennis
  *  Added check for sum of weights == 0 to getCenterOfMass()
  *  method.
@@ -224,13 +228,14 @@ public class Position3D implements Serializable
     float sum_w = 0;
     float coords[] = null;
     for ( int i = 0; i < n_points; i++ )
-    {
-      coords = points[i].getCartesianCoords();
-      sum_x += coords[0] * weights[i];
-      sum_y += coords[1] * weights[i];
-      sum_z += coords[2] * weights[i]; 
-      sum_w += weights[i]; 
-    }
+      if ( points[i] != null )
+      {
+        coords = points[i].getCartesianCoords();
+        sum_x += coords[0] * weights[i];
+        sum_y += coords[1] * weights[i];
+        sum_z += coords[2] * weights[i]; 
+        sum_w += weights[i]; 
+      }
 
     if ( sum_w == 0 )
     {
