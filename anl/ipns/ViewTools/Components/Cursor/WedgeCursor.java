@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/12/12 20:04:40  millermi
+ *  - Fixed bug that caused entire circle to be drawn.
+ *
  *  Revision 1.4  2003/12/12 06:08:28  millermi
  *  - Reworked how arc was calculated.
  *  - Now progressing from start to stop of angle is always
@@ -165,8 +168,8 @@ public class WedgeCursor extends  XOR_Cursor3pt
       // and stop angle so that the arcangle is always positive and the
       // drawing always occurs in a counterclockwise direction.
       // The initangle+1 and initangle-1 are adjustments to compensate for
-      // rounding.
-      if( !( initangle+1 > startangle && initangle-1 < stopangle) )
+      // rounding.  
+      if( !( initangle+1 >= startangle && initangle-1 <= stopangle) )
       {
         int invertStop = 360 - stopangle;
 	arcangle = startangle + invertStop;
