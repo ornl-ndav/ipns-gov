@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2003/12/20 20:08:20  millermi
+ *  - Now uses getValueAxisInfo() to get data min/max.
+ *
  *  Revision 1.12  2003/12/18 22:42:13  millermi
  *  - This file was involved in generalizing AxisInfo2D to
  *    AxisInfo. This change was made so that the AxisInfo
@@ -129,8 +132,7 @@ public class ControlColorScale extends ViewControl
   private String colorscheme;
   private boolean isBasic = true; // basic vs calibrated color scales
   private Font font;
-  private float interval_min;
-  private float interval_max;
+  private AxisInfo value_info;
   private double logscale;
   private boolean isTwoSided;
   private boolean orientate = true;
@@ -159,10 +161,9 @@ public class ControlColorScale extends ViewControl
   {  
     super("");
     component = icsa; 
-    interval_min = component.getDataMin();
-    interval_max = component.getDataMax();
+    value_info = component.getValueAxisInfo();
     isBasic = false; 
-    if( interval_min < 0 )
+    if( value_info.getMin() < 0 )
       isTwoSided = true;
     else
       isTwoSided = false;
@@ -316,13 +317,14 @@ public class ControlColorScale extends ViewControl
   * This method also tells the axis overlay to display the data in log form.
   *
   *  @param  axiscode
-  *  @return X or Y axisinfo of the component
+  *  @return value axisinfo of the component, always in log form.
   *	     If this is a basic color scale, a dumby value is returned.
   */
   public AxisInfo getAxisInformation(int axiscode)
   {
     if( !isBasic )
-      return new AxisInfo( interval_min, interval_max, "", "", false );
+      return new AxisInfo( value_info.getMin(),
+                           value_info.getMax(), "", "", false );
     else
     {
       System.out.println("getAxisInfo() is not available with the " +
