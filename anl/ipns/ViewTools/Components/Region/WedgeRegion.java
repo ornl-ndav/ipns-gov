@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2003/12/20 04:15:59  millermi
+ *  - Included an off-by-one on the pointangle so that
+ *    border points are always included. This eleviates
+ *    "holes" in the wedge.
+ *
  *  Revision 1.7  2003/12/18 22:38:00  millermi
  *  - Tweaked how x/yextent are calculated. Now must have a different
  *    of more than one to be reset.
@@ -329,9 +334,11 @@ public class WedgeRegion extends Region
      	    //System.out.println("Point/Stop: " + pointangle + "/" + stopangle);
 	     // if stopangle >= 360, the angle goes from 4th to 1st quadrant,
 	     // thus start - 360, and 0 - stop becomes the interval.
+	     // Add/Subtract 1 to pointangle to include border points.
 	     if( stopangle >= 360 )
 	     {
-	       if( pointangle >= startangle || pointangle <= stopangle - 360 )
+	       if( pointangle + 1 >= startangle || 
+	           pointangle - 1 <= stopangle - 360 )
 	       {
         	 points.add( new Point( x, y ) );
 		 // add one to the index as a lower cushion, prevents index=-1
@@ -341,7 +348,7 @@ public class WedgeRegion extends Region
 	     // otherwise the angle must be between the start and stop angle.
 	     else
 	     {
-	       if( pointangle >= startangle && pointangle <= stopangle )
+	       if( pointangle + 1 >= startangle && pointangle - 1 <= stopangle )
 	       {
         	 points.add( new Point( x, y ) );
 		 // add one to the index as a lower cushion, prevents index=-1
