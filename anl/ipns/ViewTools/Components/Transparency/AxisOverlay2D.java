@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2004/01/07 21:56:37  millermi
+ *  - Fixed log interval calculation, now that the destination
+ *    interval can be negative, minor changes were made.
+ *
  *  Revision 1.25  2004/01/03 04:36:12  millermi
  *  - help() now uses html tool kit to display text.
  *  - Replaced all setVisible(true) with WindowShower.
@@ -1148,7 +1152,7 @@ public class AxisOverlay2D extends OverlayJPanel
       {
         A = values[0];
         LogScaleUtil logger = new LogScaleUtil( 0,(int)(xaxis/2),
-    					       xmin, xmax + 1);
+    					       0, xmax + 1);
         double logscale = logcomponent.getLogScale();
 
         int neg_pixel = 0;
@@ -1483,7 +1487,7 @@ public class AxisOverlay2D extends OverlayJPanel
       {
 	a = values[0];
 	LogScaleUtil logger = new LogScaleUtil( 0,(int)(yaxis/2),
-        					ymax,ymin + 1);
+        					0,ymin + 1);
 	double logscale = logcomponent.getLogScale();
 	int negtick_length = 0;
 	int neg_ypixel = 0;
