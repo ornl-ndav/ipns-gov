@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/29 20:34:55  millermi
+ *  -Added colorscale and logscale capabilities for the instances
+ *   of ImageJPanels
+ *  -Added ObjectState info
+ *
  *  Revision 1.1  2003/10/27 08:47:48  millermi
  *  - Initial Version - This class was created to enable users
  *    panning options for images too large to view in the
@@ -56,7 +61,10 @@
  import DataSetTools.components.image.CoordJPanel;
  import DataSetTools.components.image.BoxCursor;
  import DataSetTools.components.image.CoordBounds;
+ import DataSetTools.components.image.CoordTransform;
  import DataSetTools.components.image.ImageJPanel;
+ import DataSetTools.components.View.IPreserveState;
+ import DataSetTools.components.View.ObjectState;
  import DataSetTools.components.View.Cursor.TranslationJPanel;
  import DataSetTools.components.View.Transparency.TranslationOverlay;
  import DataSetTools.util.floatPoint2D;
@@ -65,11 +73,26 @@
  * This view control is used to "pan" an image. Adding a PanViewControl
  * will cause a thumbnail of the image to appear in the control panel.
  */
-public class PanViewControl extends ViewControl
+public class PanViewControl extends ViewControl implements IPreserveState
 {
+ /**
+  * "Translation Overlay" - This constant String is a key for referencing the
+  * state information about the TranslationOverlay. Because the overlay has 
+  * its own state info, this value is of type ObjectState,
+  * and contains the state of the overlay. 
+  */
+  public static final String TRANSLATION_OVERLAY  = "Translation Overlay";
+  
+ /**
+  * "Thumbnail" - This constant String is a key for referencing the
+  * state information about the CoordJPanel "shadowing" the true image.
+  * Because the CoordJPanel has  its own state info, this value is of type
+  * ObjectState, and contains the state info about the bounds of the control. 
+  */
+  public static final String THUMBNAIL = "Thumbnail";
+  
   private CoordJPanel panel;           // replica of actual image
   private TranslationOverlay overlay;  // where the region outline is drawn.
-  private CoordBounds local_bounds;    // the view port or viewable area
   
  /**
   * Constructor for creating a thumbnail of the CoordJPanel passed in.
@@ -81,8 +104,8 @@ public class PanViewControl extends ViewControl
     super("");
     panel = cjp;
     overlay = new TranslationOverlay();
-    overlay.setGlobalBounds( cjp.getGlobalWorldCoords() );
     overlay.addActionListener( new OverlayListener() );
+    setGlobalBounds( cjp.getGlobalWorldCoords() );
     setLocalBounds( cjp.getLocalWorldCoords() );
     panel.setEventListening(false);
     
@@ -92,17 +115,76 @@ public class PanViewControl extends ViewControl
     add(overlay);
     add(panel);
     addMouseListener( new PanMouseAdapter() );
+  } 
+    
+ /**
+  * Constructor for creating a thumbnail of the CoordJPanel using state info.
+  *
+  *  @param  cjp The CoordJPanel that will be thumbnailed.
+  *  @param  state The objectstate of this control.
+  */
+  public PanViewControl(CoordJPanel cjp, ObjectState state)
+  {
+    this(cjp);
+    setObjectState(state);
+  }
+  
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    boolean redraw = false;  // if any values are changed, repaint overlay.
+    Object temp = new_state.get(TRANSLATION_OVERLAY);
+    if( temp != null )
+    {
+      overlay.setObjectState( (ObjectState)temp );
+      panel.setGlobalWorldCoords( overlay.getGlobalBounds() );
+      panel.setLocalWorldCoords( overlay.getLocalBounds() );
+      redraw = true;  
+    }
+    
+    temp = new_state.get(THUMBNAIL);
+    if( temp != null )
+    {
+      panel.setObjectState( (ObjectState)temp );
+      overlay.setGlobalBounds( panel.getGlobalWorldCoords() );
+      overlay.setLocalBounds( panel.getLocalWorldCoords() );
+      redraw = true;  
+    } 
+    
+    if( redraw )
+      repaint();
+  }
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState. Keys will be
+  * put in alphabetic order.
+  *
+  *  @return state of this control.
+  */ 
+  public ObjectState getObjectState()
+  {
+    ObjectState state = new ObjectState();
+    state.insert( TRANSLATION_OVERLAY, overlay.getObjectState() );
+    state.insert( THUMBNAIL, panel.getObjectState() );
+    
+    return state;
   }
   
  /**
   * Get the local bounds of the thumbnail. These bounds represent the area
   * viewable by the user and are shown graphically by the cursor. 
   *
-  *  @return local_bounds Bounds of the viewable region.
+  *  @return Bounds of the viewable region.
   */ 
   public CoordBounds getLocalBounds()
   {
-    return local_bounds.MakeCopy();
+    return panel.getLocalWorldCoords();
   }  
   
  /**
@@ -113,9 +195,20 @@ public class PanViewControl extends ViewControl
   */ 
   public void setLocalBounds( CoordBounds lb )
   {
-    local_bounds = lb.MakeCopy();
-    overlay.setLocalBounds(local_bounds);
+    panel.setLocalWorldCoords( lb.MakeCopy() );
+    overlay.setLocalBounds( lb.MakeCopy() );
   }  
+  
+ /**
+  * Get the global bounds of the thumbnail. These bounds represent the entire 
+  * possible area viewable by the user. 
+  *
+  *  @return Bounds of the viewable region.
+  */ 
+  public CoordBounds getGlobalBounds()
+  {
+    return panel.getGlobalWorldCoords();
+  } 
   
  /**
   * Set the global bounds of the thumbnail. These bounds represent the entire 
@@ -141,6 +234,20 @@ public class PanViewControl extends ViewControl
     if( panel instanceof ImageJPanel )
       ((ImageJPanel)panel).changeLogScale( s, true );
   }
+ 
+ /**
+  * Since some of the classes that extend the CoordJPanel are affected by a
+  * a colorscale, this method is used to inform those classes when the
+  * colorscale has changed.
+  *
+  *  @param  colorscale The colorscale of the image.
+  *  @param  isTwoSided Is the colorscale two-sided? Yes = true.
+  */ 
+  public void setImageColorScale( String colorscale, boolean isTwoSided )
+  {
+    if( panel instanceof ImageJPanel )
+      ((ImageJPanel)panel).setNamedColorModel(colorscale, isTwoSided, true);
+  }
 
  /**
   * Test program...
@@ -151,12 +258,25 @@ public class PanViewControl extends ViewControl
     f.setBounds(0,0,200,200);
     f.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     CoordJPanel test = new CoordJPanel();
-    test.setGlobalWorldCoords( new CoordBounds(0,0,200,200) );
+    CoordTransform globaltf = new CoordTransform( new CoordBounds(0,0,200,200),
+                                                  new CoordBounds(0,0,1,1) );
+    CoordTransform localtf = new CoordTransform( new CoordBounds(10,50,100,100),
+                                                 new CoordBounds(0,0,1,1) );
+    //test.setGlobalWorldCoords( new CoordBounds(0,0,200,200) );
     //test.setLocalWorldCoords( new CoordBounds(50,50,100,100) );
+    ObjectState teststate = new ObjectState();
+    ObjectState superteststate = new ObjectState();
+    teststate.insert( CoordJPanel.GLOBAL_TRANSFORM,
+                      new CoordTransform( globaltf ) );
+    teststate.insert( CoordJPanel.LOCAL_TRANSFORM,
+                      new CoordTransform( localtf ) );
+    //test.setObjectState( teststate );
+    superteststate.insert( PanViewControl.THUMBNAIL, teststate );
     PanViewControl pvc = new PanViewControl( test );
+    pvc.setObjectState(superteststate);
     f.getContentPane().add(pvc);
     f.setVisible(true);
-    pvc.setLocalBounds( new CoordBounds(0,0,50,50) );
+    //pvc.setLocalBounds( new CoordBounds(0,0,50,50) );
   }
 
  /*
@@ -170,7 +290,8 @@ public class PanViewControl extends ViewControl
       String message = ae.getActionCommand(); 
       if( message.equals( TranslationJPanel.BOUNDS_CHANGED ) )
       {
-        local_bounds = overlay.getLocalBounds();
+        //local_bounds = overlay.getLocalBounds();
+	panel.setLocalWorldCoords( overlay.getLocalBounds() );
       }
       send_message(message);
     }
