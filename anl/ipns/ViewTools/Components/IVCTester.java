@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2004/02/06 22:15:30  millermi
+ * - Changed test for ObjectState.
+ *
  * Revision 1.12  2004/01/29 08:16:25  millermi
  * - Updated the getObjectState() to include parameter for specifying
  *   default state.
@@ -127,6 +130,7 @@ import DataSetTools.components.image.*;
 import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.Transparency.SelectionOverlay;
 import DataSetTools.components.View.Region.Region;
+import DataSetTools.components.View.ViewControls.ControlSlider;
 import DataSetTools.components.View.ViewControls.PanViewControl;
 import DataSetTools.util.SharedData;
 
@@ -423,9 +427,13 @@ public class IVCTester extends JFrame implements IPreserveState,
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
     			"TestY","TestYUnits", false );
     va2D.setTitle("ImageFrame Test");
+    ObjectState state = new ObjectState();
+    ObjectState sliderstate = new ObjectState();
+    sliderstate.insert(ControlSlider.SLIDER_VALUE, new Float(50) );
+    state.insert( ImageViewComponent.LOG_SCALE_SLIDER, sliderstate );
+                  
     IVCTester im_frame = new IVCTester( va2D );
-    im_frame.getObjectState(IPreserveState.PROJECT).reset( 
-                        ImageViewComponent.LOG_SCALE, new Double(.5) );
+    im_frame.setObjectState(state);
     /*
     // test setData() 10 times
     for( int x = 0; x < 20; x++ )
