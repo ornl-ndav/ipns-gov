@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2003/06/25 21:44:29  serumb
+ * Added setErrorColor method, cleaned up strokeType method, and changed the paint method so it only draws point marks and error bars on the visible portion of the graph.
+ *
  * Revision 1.15  2003/06/23 20:16:58  dennis
  * Fixed "off by one" error on check for valid GraphData index in
  * methods setErrors(), setColor(), setMarkColor(), setStroke(),
@@ -234,6 +237,32 @@ public class GraphJPanel extends    CoordJPanel
     return true;
   } 
 
+/* ----------------------------- setErrorColor -------------------------------- */
+/**
+ *  Set the error color for the specified graph.  
+ *
+ *  @param  graph_num  the index of the graph whose color is set.
+ *                     The index must be at least zero and less than the
+ *                     number of graphs currently held in this GraphJPanel.  
+ *                     If the graph_num is not valid, this method has no 
+ *                     effect and returns false.
+ *  @param  redraw     if this is true, redraw all the graphs
+ *
+ *  @return            true if the graph_num is valid, false otherwise.
+ */
+  public boolean setErrorColor( Color color, int graph_num, boolean redraw )
+  {
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
+      return false;
+
+    GraphData gd = (GraphData)graphs.elementAt( graph_num );
+    gd.errorcolor = color; 
+
+    if ( redraw )
+      repaint(); 
+
+    return true;
+  }
 
 /* ----------------------------- setColor -------------------------------- */
 /**
@@ -324,42 +353,50 @@ public BasicStroke getStroke(int graph_num)
 
 public BasicStroke strokeType(int key, int graph_num)
 {
-  GraphData gd = (GraphData)graphs.elementAt( graph_num );
-    
-  float dash1[] = {10.0f};
-  float[] dash2 = {6.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f};
-  float dots1[] = {0,6,0,6};
+    if (graph_num < 0 || graph_num >= graphs.size() )    // no such graph
+       return new BasicStroke();
 
-  BasicStroke dashed = new BasicStroke(gd.linewidth, 
-                                       BasicStroke.CAP_SQUARE, 
-                                       BasicStroke.JOIN_MITER, 
-                                       10.0f, dash1, 0.0f);
-
-  BasicStroke transparent = new BasicStroke(0,BasicStroke.CAP_SQUARE, 
-                                            BasicStroke.JOIN_MITER, 
-                                            10.0f, dash1, 0.0f);
-  BasicStroke stroke = new BasicStroke(gd.linewidth);
-  BasicStroke dotted = new BasicStroke(gd.linewidth, BasicStroke.CAP_ROUND,
-				       BasicStroke.JOIN_ROUND, 
-				       0, dots1, 0);
-
-  BasicStroke dashdot = new BasicStroke(gd.linewidth, BasicStroke.CAP_BUTT,
-				BasicStroke.JOIN_MITER, 10.0f, dash2, 0.0f);
+    GraphData gd = (GraphData)graphs.elementAt( graph_num );
 
     if (key == DASHED)
-	  return dashed;
+    {   
+       float dash1[] = {10.0f};
+       BasicStroke dashed = new BasicStroke(gd.linewidth, 
+                                       BasicStroke.CAP_SQUARE, 
+                                       BasicStroke.JOIN_BEVEL, 
+                                       10.0f, dash1, 0.0f);
+       return dashed;
+    }
     else if (key == DOTTED)
-	  return dotted;
+    { 
+       float dots1[] = {0,6,0,6};
+       BasicStroke dotted = new BasicStroke(gd.linewidth, BasicStroke.CAP_ROUND,
+				            BasicStroke.JOIN_BEVEL,
+				            0, dots1, 0);
+       return dotted;
+    }
     else if (key == LINE)
-	  return stroke;
+    {
+       BasicStroke stroke = new BasicStroke(gd.linewidth);
+       return stroke;
+    }
     else if (key ==DASHDOT)
-	  return dashdot;
+    {
+       float[] dash2 = {6.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f};
+       BasicStroke dashdot = new BasicStroke(gd.linewidth, BasicStroke.CAP_BUTT,
+				BasicStroke.JOIN_BEVEL, 10.0f, dash2, 0.0f);
+       return dashdot;
+    }
     else if (key == TRANSPARENT)
-	  return transparent;	
+    {
+       //float clear[] = {0.0f, 1000.0f};
+       BasicStroke transparent = new BasicStroke(0.0f);
+       return transparent;
+    }   	
     else 
     {
-      System.out.println("ERROR: no Stroke of this type, default is returned");
-      return stroke;
+       System.out.println("ERROR: no Stroke of this type, default is returned");
+       return new BasicStroke();
     }
 }
 
@@ -697,7 +734,7 @@ public boolean is_autoY_bounds()
       float error_bars_lower[] = null;
       if ( gd.getErrorVals() != null )
       {
-        System.out.println("Copying errors " + gr_index + ", " + n_points );
+        //System.out.println("Copying errors " + gr_index + ", " + n_points );
         error_bars_upper = new float[first_index + n_points ];
         error_bars_lower = new float[first_index + n_points ]; 
 
@@ -716,7 +753,7 @@ public boolean is_autoY_bounds()
       
       if ( x_copy.length == y_copy.length )            // Function data
       { 
-
+        
         if ( remove_hidden_lines )
         {
           int x_int[] = new int[ n_points + 2 ];
@@ -758,7 +795,7 @@ public boolean is_autoY_bounds()
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = 0; i < n_points; i++ )
+          for ( int i = first_index; i < first_index + n_points; i++ )
           {
 	     
 	     if ( type == DOT )
@@ -804,15 +841,15 @@ public boolean is_autoY_bounds()
 	}   
         
         if (gd.getErrorLocation() != 0)
-        {//local_transform.MapYListTo(error_bars_copy);
+        {
           Line2D.Float line1 = new Line2D.Float();
           Line2D.Float line2 = new Line2D.Float();
           Line2D.Float line3 = new Line2D.Float();
           int size = 1;
           int loc = gd.getErrorLocation();
-	  g2.setStroke(new BasicStroke(2));
+	  g2.setStroke(new BasicStroke(1));
 	  g2.setColor( gd.errorcolor );
-          for ( int i = 0; i < n_points; i++ )
+          for ( int i = first_index; i < first_index + n_points; i++ )
           {
              if ( loc == ERROR_AT_POINT )
              {
@@ -834,8 +871,8 @@ public boolean is_autoY_bounds()
 
       }
       else if ( is_histogram )  // Histogram data
-      {
-	g2.setStroke(gd.Stroke);
+      { 
+	
         if ( remove_hidden_lines )
         {
           int x_int[] = new int[ 2*y_copy.length + 2 ];
@@ -867,17 +904,18 @@ public boolean is_autoY_bounds()
             x_int[i] = (int)( x_copy[(i+1)/2] ) + x_offset;
             y_int[i] = (int)( y_copy[i/2] ) - y_offset;
           }
+          //System.out.println("the stroke width:" + gd.Stroke.getLineWidth());
           g2.setColor( gd.color );
           g2.drawPolyline( x_int, y_int, 2*y_copy.length );
         }
 
 	if (gd.marktype != 0)
 	{
-	  g2.setStroke(new BasicStroke(2));
+	  g2.setStroke(new BasicStroke(1));
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = 0; i < n_points; i++ )
+          for ( int i = first_index; i < first_index + n_points; i++ )
           {
 	     int x_midpt = (int)((x_copy[i] + x_copy[i+1])/2);
 	     if ( type == DOT )
@@ -1089,7 +1127,7 @@ private void SetDataBounds()
     graph.setData( g1_x_vals, g1_y_vals, 0, false );
     graph.setErrors( g1_e_vals, 11, 1, true );
     graph.setColor( Color.black, 0, false );
-    graph.setStroke( graph.strokeType(DASHED,0), 0, false);
+    graph.setStroke( graph.strokeType(TRANSPARENT,0), 0, false);
     graph.setLineWidth(1,0,true);
     graph.setMarkColor(Color.green,0,false);
     graph.setMarkType(BOX, 0, false);
