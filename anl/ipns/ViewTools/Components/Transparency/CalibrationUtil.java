@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/08/01 21:52:18  serumb
+ *  Commented out print line.
+ *
  *  Revision 1.4  2003/07/05 19:45:57  dennis
  *  - Added method subDivideLog() to provide geometric steps for
  *    logarithmically dividing an axis. (Mike Miller)
@@ -246,7 +249,7 @@ public class CalibrationUtil
 	 if( diff*10 > 1 )
 	   diff = diff + .001f;
        } 
-       System.out.println("diff/diffpower =" + diff + "/" + diffpower );
+       //System.out.println("diff/diffpower =" + diff + "/" + diffpower );
             
        // find degree of xmin
        float start_min = Math.abs(xmin);
@@ -577,4 +580,4 @@ public class CalibrationUtil
 }
    
    
-   
+  
