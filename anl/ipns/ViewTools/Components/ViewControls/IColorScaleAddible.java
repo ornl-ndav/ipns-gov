@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/17 20:26:51  dennis
+ *  Fixed @see tag that was broken when view components, math and
+ *  util were moved to gov package.
+ *
  *  Revision 1.2  2004/03/12 02:33:05  rmikk
  *  Fixed Package names
  *
@@ -82,7 +86,7 @@ public interface IColorScaleAddible extends ILogAxisAddible
    * Possible scales are listed in file IndexColorMaker.java.
    *
    *  @return IndexColorScale string code
-   *  @see DataSetTools.components.image.IndexColorMaker
+   *  @see gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker
    */
    public String getColorScale();
    

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2004/03/17 20:26:51  dennis
+ *  Fixed @see tag that was broken when view components, math and
+ *  util were moved to gov package.
+ *
  *  Revision 1.19  2004/03/12 03:16:46  millermi
  *  - Changed package, fixed imports.
  *
@@ -178,7 +182,7 @@ public class ControlColorScale extends ViewControl
   * that this key references is of type String. These String constants may be
   * found in IndexColorMaker.java.
   *
-  * @see DataSetTools.components.image.IndexColorMaker
+  * @see gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker
   */
   public static final String COLOR_SCALE  = "Color Scale";
  
@@ -263,7 +267,7 @@ public class ControlColorScale extends ViewControl
   *
   *  @param  colorscale Colorscale for this control
   *  @param  doublesided Is data double-sided?
-  *  @see DataSetTools.components.image.IndexColorMaker
+  *  @see    gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker
   */ 
   public ControlColorScale( String colorscale, boolean doublesided )
   {  
@@ -391,7 +395,7 @@ public class ControlColorScale extends ViewControl
       if( marker < 0 )
       {
         marker = -marker;
-	negate = true;
+	      negate = true;
       }
       // range will be 0 - axis_max for two-sided data, if marker < 0, negate
       // it since calibrations are always symmetric.

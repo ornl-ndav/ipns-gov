@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/03/17 20:26:50  dennis
+ *  Fixed @see tag that was broken when view components, math and
+ *  util were moved to gov package.
+ *
  *  Revision 1.12  2004/03/15 23:53:50  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -180,8 +184,8 @@ public class VirtualArray2D implements IVirtualArray2D
   *
   *  @param  axiscode The integer code for this axis.
   *  @return If true, AxisInfo object with X axis info is returned.
-  *	     If false, AxisInfo object with Y axis info is returned.
-  *  @see    DataSetTools.components.View.AxisInfo
+  *	         If false, AxisInfo object with Y axis info is returned.
+  *  @see   gov.anl.ipns.ViewTools.Components.AxisInfo
   */
   public AxisInfo getAxisInfo( int axiscode )
   {

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/17 20:26:50  dennis
+ *  Fixed @see tag that was broken when view components, math and
+ *  util were moved to gov package.
+ *
  *  Revision 1.8  2004/03/15 23:53:50  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -87,7 +91,7 @@ package gov.anl.ipns.ViewTools.Components;
  * start at zero and go to M-1 and the column numbers
  * start at zero and go to N-1. 
  *
- *  @see DataSetTools.components.View.AxisInfo
+ *  @see gov.anl.ipns.ViewTools.Components.AxisInfo
  */
 
 public interface IVirtualArray2D extends IVirtualArray

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.66  2004/03/17 20:26:50  dennis
+ *  Fixed @see tag that was broken when view components, math and
+ *  util were moved to gov package.
+ *
  *  Revision 1.65  2004/03/15 23:53:53  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -460,7 +464,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * that this key references is of type String. These string constants may be
   * found in IndexColorMaker.java.
   *
-  * @see DataSetTools.components.image.IndexColorMaker
+  * @see gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker
   */
   public static final String COLOR_SCALE	 = "Color Scale";
  
@@ -874,7 +878,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * list. Names are defined by static Strings in the SelectionJPanel class.
   *
   *  @param  names List of selection names defined by SelectionJPanel class.
-  *  @see DataSetTools.components.View.Cursor.SelectionJPanel
+  *  @see gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel
   */
   public void disableSelection(String[] names)
   {
@@ -886,7 +890,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * list. Names are defined by static Strings in the SelectionJPanel class.
   *
   *  @param  names List of selection names defined by SelectionJPanel class.
-  *  @see DataSetTools.components.View.Cursor.SelectionJPanel
+  *  @see gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel
   */
   public void enableSelection(String[] names)
   {
@@ -1071,7 +1075,7 @@ public class ImageViewComponent implements IViewComponent2D,
   *
   *  @param  world_coord_region The array of regions to be added, with defining
   *                             points in world coord points.
-  *  @see    DataSetTools.components.View.Transparency.SelectionOverlay
+  *  @see    gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay
   */
   public void addSelectedRegion( Region world_coord_region )
   {

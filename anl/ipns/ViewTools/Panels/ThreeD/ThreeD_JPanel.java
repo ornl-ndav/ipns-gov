@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.19  2004/03/17 20:26:51  dennis
+ * Fixed @see tag that was broken when view components, math and
+ * util were moved to gov package.
+ *
  * Revision 1.18  2004/03/15 23:53:55  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -342,7 +346,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  *                     the observers coordinate system and projects them
  *                     onto the 3D viewing screen.
  *
- *  @see DataSetTools.math.Tran3D
+ *  @see gov.anl.ipns.MathTools.Geometry.Tran3D
  */
   public void setViewTran( Tran3D view_tran )
   {

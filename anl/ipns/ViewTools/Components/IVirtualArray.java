@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/17 20:26:50  dennis
+ *  Fixed @see tag that was broken when view components, math and
+ *  util were moved to gov package.
+ *
  *  Revision 1.3  2004/03/12 00:05:00  rmikk
  *  Fixed Package Names
  *
@@ -97,7 +101,7 @@ public interface IVirtualArray
   *
   *  @param  axis The integer code for the axis, starting at 0.
   *  @return The axis info for the axis specified.
-  *  @see    DataSetTools.components.View.AxisInfo
+  *  @see    gov.anl.ipns.ViewTools.Components.AxisInfo
   */
   public AxisInfo getAxisInfo( int axis );
 }

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/17 20:26:50  dennis
+ *  Fixed @see tag that was broken when view components, math and
+ *  util were moved to gov package.
+ *
  *  Revision 1.4  2004/03/12 00:05:22  rmikk
  *  Fixed Package Names
  *
@@ -71,7 +75,7 @@ package gov.anl.ipns.ViewTools.Components;
  * label, and units. This simple class has no set methods, 
  * all info must be set by the constructor.
  *
- *  @see DataSetTools.components.View.IVirtualArray
+ *  @see gov.anl.ipns.ViewTools.Components.IVirtualArray
  */
 public class AxisInfo
 {  

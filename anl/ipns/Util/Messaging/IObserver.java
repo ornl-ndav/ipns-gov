@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/17 20:27:33  dennis
+ *  Fixed @see tag that was broken when view components, math and
+ *  util were moved to gov package.
+ *
  *  Revision 1.8  2004/03/11 22:53:03  rmikk
  *  Changed the package name
  *
@@ -53,8 +57,8 @@ package gov.anl.ipns.Util.Messaging;
  * is done by calling the observer's update method.  ( See Java Design, by 
  * Peter Coad & Mark Mayfield, Prentice Hall, 1999, pp 233-249 )  
  *
- * @see DataSetTools.util.IObservable
- * @see DataSetTools.util.IObserverList
+ * @see gov.anl.ipns.Util.Messaging.IObservable
+ * @see gov.anl.ipns.Util.Messaging.IObserverList
  *
  */
 
