@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.53  2004/04/21 02:33:45  millermi
+ *  - Removed call to setAxisInfo() in buildViewComponent().
+ *
  *  Revision 1.52  2004/04/20 05:35:24  millermi
  *  - The construction of the big_picture was taken out of
  *    buildViewComponent and put into the constructor, so it is done
@@ -271,12 +274,12 @@ public class FunctionViewComponent implements IViewComponent1D,
     font        = FontUtil.LABEL_FONT2;
     gjp         = new GraphJPanel(  );
    
-
+/*
     //initialize the pointed at graph to 0
        float x1[] = {0};
        float y1[] = {0};
        gjp.setData( x1, y1, 0, false );     
-     
+*/     
 
     //initialize GraphJPanel with the virtual array
     int num_lines = varr.getNumSelectedGraphs(  );
@@ -314,32 +317,42 @@ public class FunctionViewComponent implements IViewComponent1D,
     global_bounds   = gjp.getGlobalWorldCoords(  ).MakeCopy(  );
 
     Listeners = new Vector(  );
-    // create transparencies
-    AnnotationOverlay top = new AnnotationOverlay( this );
-    top.setVisible( false );  // initialize this overlay to off.
+    
+    if( varr.getNumGraphs(  ) > 0 )
+    {
+      buildViewComponent();  // initializes big_picture to jpanel containing
+     				  // the background and transparencies
+      // create transparencies
+      AnnotationOverlay top = new AnnotationOverlay( this );
+      top.setVisible( false );  // initialize this overlay to off.
 
-    AxisOverlay2D bottom = new AxisOverlay2D( this );
+      AxisOverlay2D bottom = new AxisOverlay2D( this );
 
-    transparencies.add( top );
-    transparencies.add( bottom );  // add the transparency to the vector
+      transparencies.add( top );
+      transparencies.add( bottom );  // add the transparency to the vector
 
-    OverlayLayout overlay = new OverlayLayout( big_picture );
+      OverlayLayout overlay = new OverlayLayout( big_picture );
 
-    big_picture.setLayout( overlay );
+      big_picture.setLayout( overlay );
 
-    for( int trans = 0; trans < transparencies.size(  ); trans++ ) {
-      big_picture.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
+      for( int trans = 0; trans < transparencies.size(  ); trans++ ) {
+     	big_picture.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
+      }
+      big_picture.add( background );
+      
+      DrawSelectedGraphs();
+      if(draw_pointed_at)
+      DrawPointedAtGraph();
+      
+      mainControls = new FunctionControls(varr, gjp, getDisplayPanel(),this);
+      mainControls.get_frame().addWindowListener( new FrameListener() );
     }
-    big_picture.add( background );
-
-    buildViewComponent();  // initializes big_picture to jpanel containing
-                                // the background and transparencies
-    DrawSelectedGraphs();
-    if(draw_pointed_at)
-    DrawPointedAtGraph();
-
-    mainControls = new FunctionControls(varr, gjp, getDisplayPanel(),this);
-    mainControls.get_frame().addWindowListener( new FrameListener() );
+    else
+    {
+      JPanel no_graph = new JPanel();
+      no_graph.add( new JLabel("No Graphs to Display") );
+      big_picture.add( no_graph );
+    }
   }
 
   /**
@@ -752,6 +765,9 @@ public class FunctionViewComponent implements IViewComponent1D,
   }
 
   public ViewControl[] getControls(  ) {
+   // if no 
+   if( Varray1D.getNumGraphs(  ) < 1 )
+     return new ViewControl[0];
     //System.out.println("");
    ViewControl[] Res = new ViewControl [2];
    /*
@@ -883,12 +899,18 @@ public class FunctionViewComponent implements IViewComponent1D,
    * To be continued.
    **/
    public void kill(){
-     mainControls.kill();
-    
+     // only call methods on mainControls if they have been constructed.
+     if( mainControls != null )
+     {
+       mainControls.kill();
+       mainControls.get_frame().dispose();
+     }
+     // only call kill on transparencies if they have been initialized.
+     if( transparencies == null )
+       return;
      for( int trans = 0; trans < transparencies.size(); trans++ )
       ((OverlayJPanel)transparencies.elementAt(trans)).kill();
 
-     mainControls.get_frame().dispose();
    };
    
   // required since implementing ActionListener
@@ -912,8 +934,14 @@ public class FunctionViewComponent implements IViewComponent1D,
    * This method takes in an graphjpanel and puts it into a borderlayout.
    * Overlays are added to allow for calibration, selection, and annotation.
    */
-  private void buildViewComponent() {
-    setAxisInfo();
+  private void buildViewComponent() {/*
+    if( gjp.getXmin() == gjp.getXmax() || gjp.getYmin() == gjp.getYmax() )
+    {
+      JPanel no_graph = new JPanel();
+      no_graph.add( new JLabel("No Graphs to Display") );
+      background.add( no_graph, "Center" );
+    }*/
+    //setAxisInfo();
     int westwidth  = ( font.getSize(  ) * precision ) + 22;
     int southwidth = ( font.getSize(  ) * 3 ) + 22;
 
