@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/07/14 16:35:34  dennis
+ * Updated java docs to clarify restrictions on what OpenGL calls can be
+ * used in the Draw() method that is implemented in derived classes.
+ * Specifically, since a "display list" will already have been created
+ * when the derived classes Draw() method is called, the Draw() method
+ * must only call GL functions that can be used in a "display list".
+ *
  * Revision 1.1  2004/06/18 19:21:26  dennis
  * Moved to Shapes package.
  *
@@ -237,7 +244,10 @@ abstract public class GL_Shape implements IThreeD_GL_Object
 
   /* ----------------------------- Render ---------------------------- */
   /**
-   *  Draw this object using the specified drawable.
+   *  If this shape has not been Rendered previously, this will create a new 
+   *  display list, call the Draw() method, end the list and call the list
+   *  to do the drawing, otherwise it will just call the existing display
+   *  list.
    *
    *  @param  drawable  The drawable into which the object is to be drawn.
    */
@@ -328,8 +338,10 @@ abstract public class GL_Shape implements IThreeD_GL_Object
  
   /* ---------------------------- Draw --------------------------- */
   /**
-   *  The draw method is implemented in derived classes to actually draw 
-   *  the object.  
+   *  The Draw method MUST only use OpenGL calls that can be placed in
+   *  a display list, since Draw is called by Render to create the list
+   *  the first time that Render() is called and subsequently, Render() will
+   *  just call the display list.
    */
   abstract protected void Draw( GLDrawable drawable );
 
