@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/05/16 15:25:12  dennis
+ *  Implemented dataChanged() method.
+ *  Added grid lines to test image to aid in testing.
+ *
  *  Revision 1.3  2003/05/16 14:59:11  dennis
  *  Calculates space needed for labels, and adjusts space as the component
  *  is resized.  (Mike Miller)
@@ -224,9 +228,8 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    public void dataChanged()  
    {
-      System.out.println("Entering: void dataChanged()");
-      System.out.println("Thank you for notifying us");
-      System.out.println("");
+      float[][] f_array = Varray2D.getRegionValues( 0, 1000000, 0, 1000000 );
+      ijp.setData(f_array, true);
    }
   
   /**
@@ -527,8 +530,10 @@ public class ImageViewComponent implements IViewComponent2D,
 	
         //Make a sample 2D array
 	VirtualArray2D va2D = new VirtualArray2D(row, col); 
-        va2D.setAxisInfoVA(AxisInfo2D.XAXIS, .001f, .1f, "TestX","TestUnits", true);
-	va2D.setAxisInfoVA(AxisInfo2D.YAXIS, -1f, 0f, "TestY","TestYUnits", true);
+        va2D.setAxisInfoVA( AxisInfo2D.XAXIS, .001f, .1f, 
+                           "TestX","TestUnits", true );
+	va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, -1f, 
+                            "TestY","TestYUnits", true );
 	va2D.setTitle("Main Test");
 	//Fill the 2D array with the function x*y
 	float ftemp;
@@ -537,14 +542,19 @@ public class ImageViewComponent implements IViewComponent2D,
 	    for(int j = 0; j < col; j++)
 	    {
 		ftemp = i*j;
-	        va2D.setDataValue(i, j, ftemp); //put float into va2D
+                if ( i % 25 == 0 )
+	          va2D.setDataValue(i, j, i*col); //put float into va2D
+                else if ( j % 25 == 0 )
+	          va2D.setDataValue(i, j, j*row); //put float into va2D
+                else
+	          va2D.setDataValue(i, j, ftemp); //put float into va2D
 	    }
 	}
 
         //Construct an ImageViewComponent with array2D
 	ImageViewComponent ivc = new ImageViewComponent(va2D);
 
-        //A tester frame to throw the bottom and top JPanel into *******************************
+        //A tester frame to throw the bottom and top JPanel into **********
         JFrame f = new JFrame("ISAW ImageViewComponent");  
 	f.setBounds(0,0,500,500);
 	final Container c = f.getContentPane();
