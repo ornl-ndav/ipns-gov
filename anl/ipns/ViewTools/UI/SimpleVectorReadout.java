@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/08/11 20:07:18  dennis
+ *  The default vector passed in to the constructor is now used for the
+ *  initial vector value for the vector readout.
+ *
  *  Revision 1.4  2004/08/10 01:40:04  dennis
  *  Added default value and button to reset the control to the
  *  default value.
@@ -146,6 +150,7 @@ public class SimpleVectorReadout extends    ActiveJPanel
     this(title);
     select_button.setText( select_title );
     default_vector = new Vector3D( default_value ); 
+    setVector( default_vector );
 
     control_panel.setLayout( new GridLayout(1,3) );
     reset_button = new JButton("Reset");
