@@ -1,7 +1,7 @@
 /*
  * File: ImageViewComponent.java
  *
- * Copyright (C) 2003-2004, Mike Miller
+ * Copyright (C) 2003-2005, Mike Miller
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.84  2005/03/09 22:29:47  millermi
+ *  - Moved much of the constructor information to dataChanged(va2D).
+ *  - Added call to buildViewComponent() in dataChanged() if either
+ *    calibrated colorscale is displayed.
+ *  - Removed big_picture.update(g) from paintComponents(g) thus no longer
+ *    requiring a Graphics object to be passed into paintComponents().
+ *  - Now written with ImageJPanel2, which allows for any size 2D array.
+ *
  *  Revision 1.83  2005/02/03 22:09:38  millermi
  *  - Added sendMessage(COLORSCALE_CHANGED) when slider moves. This
  *    will update any calibrated controlcolorscales. Removing
@@ -686,7 +694,7 @@ public class ImageViewComponent implements IViewComponent2D,
   private transient Vector Listeners = null;   
   private transient JPanel big_picture = new JPanel();  
   private transient JPanel background = new JPanel(new BorderLayout());  
-  private transient ImageJPanel ijp;
+  private transient ImageJPanel2 ijp;
   private transient Rectangle regioninfo;
   private transient Vector transparencies = new Vector();
   private int precision;
@@ -715,74 +723,19 @@ public class ImageViewComponent implements IViewComponent2D,
   public ImageViewComponent( IVirtualArray2D varr )  
   {
     font = FontUtil.LABEL_FONT2;
-    ijp = new ImageJPanel();
+    ijp = new ImageJPanel2();
     colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
     setPrecision(4);
+    null_data = true;
     if( varr == null )
     {
-      null_data = true;
       Varray2D = new VirtualArray2D(1,1);
       big_picture.add( new JLabel("No data to display as image.") );
       controls = new ViewControl[0];
       menus = new ViewMenuItem[0];
-      return;
     }
-    Varray2D = varr; // Get reference to varr
-    //Make ijp correspond to the data in f_array
-    ijp.setData(varr.getRegionValues(0, varr.getNumRows()-1,
-                                     0, varr.getNumColumns()-1), true); 
-    ImageListener ijp_listener = new ImageListener();
-    ijp.addActionListener( ijp_listener );
-		
-    ComponentAltered comp_listener = new ComponentAltered();   
-    ijp.addComponentListener( comp_listener );
-    
-    regioninfo = new Rectangle( ijp.getBounds() );
-    
-    AxisInfo xinfo = varr.getAxisInfo(AxisInfo.X_AXIS);
-    AxisInfo yinfo = varr.getAxisInfo(AxisInfo.Y_AXIS);
-    
-    ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
-						yinfo.getMax(),      
-						xinfo.getMax(),
-						yinfo.getMin() ) ); 
-    
-    // two-sided model
-    if( ijp.getDataMin() < 0 )
-       isTwoSided = true;
-    // one-sided model
     else
-       isTwoSided = false;
-    ijp.setNamedColorModel(colorscale, isTwoSided, false); 
-    
-    //create transparencies
-    AnnotationOverlay top = new AnnotationOverlay(this);
-    top.setVisible(false);	// initialize this overlay to off.
-    SelectionOverlay nextup = new SelectionOverlay(this);
-    nextup.setVisible(false);	// initialize this overlay to off.
-    nextup.setRegionColor(Color.magenta);
-    nextup.addActionListener( new SelectedRegionListener() );
-    AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
-    MarkerOverlay marker_overlay = new MarkerOverlay(this);
-    
-    // add the transparencies to the transparencies vector
-    transparencies.clear();
-    transparencies.add(top);
-    transparencies.add(nextup);
-    transparencies.add(bottom_overlay);
-    transparencies.add(marker_overlay); 
-    
-    OverlayLayout overlay = new OverlayLayout(big_picture);
-    big_picture.setLayout(overlay);
-    for( int trans = 0; trans < transparencies.size(); trans++ )
-      big_picture.add((OverlayJPanel)transparencies.elementAt(trans));
-    big_picture.add(background);
-    
-    Listeners = new Vector();
-    buildViewComponent();    // initializes big_picture to jpanel containing
-			     // the background and transparencies
-    buildViewControls(); 
-    buildViewMenuItems(); 
+      dataChanged(varr);
   } 
   
  /**
@@ -1140,7 +1093,7 @@ public class ImageViewComponent implements IViewComponent2D,
     						    isTwoSided );	 
     ((PanViewControl)controls[7]).repaint();
     sendMessage(COLORSCALE_CHANGED);
-    paintComponents( big_picture.getGraphics() );
+    paintComponents();
   }
   
  /**
@@ -1423,15 +1376,17 @@ public class ImageViewComponent implements IViewComponent2D,
     // If the original data passed in was null, do nothing.
     if( null_data )
       return;
-    float[][] f_array = Varray2D.getRegionValues( 0, Varray2D.getNumRows()-1, 
-        				        0, Varray2D.getNumColumns()-1 );
-    ijp.setData(f_array, true);
-    
-    // this is required since the PanViewControl holds its own bounds.
+    ijp.setData(Varray2D, true);
+    // Since data bounds could have changed, if either calibrated color scale
+    // was displayed, redraw them by rebuilding the view component.
+    if( addColorControlEast || addColorControlSouth )
+      buildViewComponent();
+    // This is required since the PanViewControl holds its own bounds.
     ((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
     ((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
+    ((PanViewControl)controls[7]).validate();  // Need this to resize control.
     ((PanViewControl)controls[7]).repaint();
-    paintComponents( big_picture.getGraphics() );
+    paintComponents();
   }
  
  /**
@@ -1457,25 +1412,8 @@ public class ImageViewComponent implements IViewComponent2D,
     // compare references, if not the same, reinitialize the virtual array.
     if( pin_Varray != Varray2D )
     {
-      // let Varray2D reference pin_Varray if it is a VirtualArray2D
-      if( pin_Varray instanceof VirtualArray2D )
-        Varray2D = pin_Varray;
-      // otherwise convert the IVirtualArray2D object to a VirtualArray2D
-      else
-      {
-        //get the complete 2D array of floats from pin_Varray
-        float[][] f_array = pin_Varray.getRegionValues( 0,
-	                        pin_Varray.getNumRows()-1, 0,
-				pin_Varray.getNumColumns()-1 );
-        Varray2D = new VirtualArray2D(f_array);
-        Varray2D.setAxisInfo( AxisInfo.X_AXIS,
-    			      pin_Varray.getAxisInfo( AxisInfo.X_AXIS ) );
-        Varray2D.setAxisInfo( AxisInfo.Y_AXIS,
-    			      pin_Varray.getAxisInfo( AxisInfo.Y_AXIS ) );
-        Varray2D.setTitle( pin_Varray.getTitle() );
-      }
-      
-      // If the initial data passed in was null, initialize variables that
+      Varray2D = pin_Varray;
+      // If IVC was initialized with null data, initialize variables that
       // would have been initialized in the constructor, had the data been
       // valid.
       if( null_data )
@@ -1537,7 +1475,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	// Redraw the new image.
 	big_picture.validate();
 	big_picture.repaint();
-	//paintComponents(big_picture.getGraphics());
+	//paintComponents();
       }
       else
       {
@@ -1647,7 +1585,6 @@ public class ImageViewComponent implements IViewComponent2D,
     if( null_data )
       return;
     
-    ((ControlColorScale)controls[1]).setVisible(false);
     addColorControlEast = isOn;
     // if calibrated colorscale is requested, turn off control colorscale
     if( addColorControlEast )
@@ -1672,7 +1609,6 @@ public class ImageViewComponent implements IViewComponent2D,
     if( null_data )
       return;
   
-    ((ControlColorScale)controls[1]).setVisible(false);
     addColorControlSouth = isOn;
     // if calibrated colorscale is requested, turn off control colorscale
     if( addColorControlSouth )
@@ -1774,12 +1710,9 @@ public class ImageViewComponent implements IViewComponent2D,
  /*
   * This method repaints the ImageViewComponent correctly
   */ 
-  private void paintComponents( Graphics g )
-  {/*
-    if( g != null )
-    {
-      big_picture.update(g);
-    }*/
+  private void paintComponents()
+  {
+    // Get the top-most parent and call it's repaint().
     Component temppainter = big_picture;
     while( temppainter.getParent() != null )
       temppainter = temppainter.getParent();
@@ -2091,7 +2024,7 @@ public class ImageViewComponent implements IViewComponent2D,
     // reset the center bounds and update the overlays.
     regioninfo = new Rectangle( ijp.getLocation(), ijp.getSize() );
     // this is needed to properly draw the axes.
-    paintComponents( big_picture.getGraphics() );
+    paintComponents();
   }
   
  //***************************Assistance Classes******************************
@@ -2153,19 +2086,19 @@ public class ImageViewComponent implements IViewComponent2D,
       }
       else if (message == CoordJPanel.ZOOM_IN)
       {
-	ImageJPanel center = (ImageJPanel)ae.getSource();
+	ImageJPanel2 center = (ImageJPanel2)ae.getSource();
 	((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
 	((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
         buildAspectImage();
-	paintComponents( big_picture.getGraphics() );
+	paintComponents();
       }
       else if (message == CoordJPanel.RESET_ZOOM)
       {
-	ImageJPanel center = (ImageJPanel)ae.getSource();
+	ImageJPanel2 center = (ImageJPanel2)ae.getSource();
 	((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
 	((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
         buildAspectImage();
-	paintComponents( big_picture.getGraphics() );
+	paintComponents();
       }	 
     } 
   }
@@ -2318,7 +2251,7 @@ public class ImageViewComponent implements IViewComponent2D,
       }
       //repaints overlays accurately
       returnFocus();
-      paintComponents( big_picture.getGraphics() ); 
+      paintComponents(); 
     }
   } 
 
@@ -2392,7 +2325,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	return;
       }
       background.validate();
-      paintComponents( big_picture.getGraphics() );
+      paintComponents();
     }
   }
 
