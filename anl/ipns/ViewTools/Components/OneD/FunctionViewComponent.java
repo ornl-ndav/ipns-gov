@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.54  2004/06/10 23:27:09  serumb
+ *  Now implements ILegendAddible.
+ *
  *  Revision 1.53  2004/04/21 02:33:45  millermi
  *  - Removed call to setAxisInfo() in buildViewComponent().
  *
@@ -198,7 +201,8 @@ public class FunctionViewComponent implements IViewComponent1D,
                                               IAxisAddible,
                                               ILogAxisAddible,
                                               IPreserveState,
-                                              Serializable 
+                                              Serializable,
+                                              ILegendAddible 
 {
  /**
   * "Precision" - This constant String is a key for referencing the state
@@ -328,6 +332,9 @@ public class FunctionViewComponent implements IViewComponent1D,
 
       AxisOverlay2D bottom = new AxisOverlay2D( this );
 
+      LegendOverlay leg_overlay = new LegendOverlay( this );
+   
+      transparencies.add( leg_overlay ); 
       transparencies.add( top );
       transparencies.add( bottom );  // add the transparency to the vector
 
@@ -603,6 +610,37 @@ public class FunctionViewComponent implements IViewComponent1D,
   public Font getFont(  ) {
     return font;
   }
+
+ // methods required by legend interface
+
+  /**
+   *  This method will return the graphic for the legend.
+   *
+   *  @return graphic to be displayed
+   */
+   public GraphData getGraphData(int graph){
+          GraphData data;
+          data = ( GraphData )gjp.graphs.elementAt( graph );
+   return data; //test 
+   }
+
+  /**
+   *  This method will return the text for the legend.
+   *
+   *  @return text to be displayed
+   */
+   public String getText(int graph){
+   return Varray1D.getGraphTitle( graph );
+   }
+
+  /**
+   *  This method will return the selected graphs for the legend.
+   *
+   *  @return the selected graphs
+   */
+   public int[] getSelectedGraphs(){
+   return Varray1D.getSelectedIndexes();
+   }
 
   /**
    * This method will return the local coordinate bounds of the center
