@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/12/20 21:37:28  millermi
+ *  - implemented kill() so editor and help windows are now
+ *    disposed when the kill() is called.
+ *
  *  Revision 1.5  2003/10/02 23:10:18  millermi
  *  - Added java docs to constructor.
  *
@@ -110,5 +114,12 @@ public abstract class OverlayJPanel extends JPanel implements IOverlay,
   * put in alphabetic order.
   */ 
   public abstract ObjectState getObjectState();
+     
+ /**
+  * This method is called by to inform the overlay that it is no
+  * longer needed. In turn, the overlay closes all windows created
+  * by it before closing.
+  */ 
+  public abstract void kill();
   
 }

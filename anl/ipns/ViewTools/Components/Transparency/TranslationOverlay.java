@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/12/20 21:37:29  millermi
+ *  - implemented kill() so editor and help windows are now
+ *    disposed when the kill() is called.
+ *
  *  Revision 1.4  2003/11/25 00:59:51  millermi
  *  - Removed private data member global_bounds, now uses call to
  *    TranslationJPanel's global bounds.
@@ -91,6 +95,8 @@ public class TranslationOverlay extends OverlayJPanel
   * this value is of type ObjectState, and contains the state of the overlay. 
   */
   public static final String TRANSLATION_JPANEL  = "TranslationJPanel";
+    
+  private static JFrame helper = null;
   
   private TranslationJPanel tjp;
   private CoordJPanel main_image;
@@ -132,7 +138,7 @@ public class TranslationOverlay extends OverlayJPanel
   */ 
   public static void help()
   {
-    JFrame helper = new JFrame("Help for Translation Overlay");
+    helper = new JFrame("Help for Translation Overlay");
     helper.setBounds(0,0,600,400);
     JTextArea text = new JTextArea("Description:\n\n");
     text.setEditable(false);
@@ -283,6 +289,17 @@ public class TranslationOverlay extends OverlayJPanel
   public void removeAllActionListeners()
   {
     Listeners.removeAllElements();
+  }
+     
+ /**
+  * This method is called by to inform the overlay that it is no
+  * longer needed. In turn, the overlay closes all windows created
+  * by it before closing.
+  */ 
+  public void kill()
+  {
+    if( helper != null )
+      helper.dispose();
   }
   
  /*

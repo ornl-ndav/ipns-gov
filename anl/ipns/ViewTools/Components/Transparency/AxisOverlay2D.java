@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2003/12/20 21:37:29  millermi
+ *  - implemented kill() so editor and help windows are now
+ *    disposed when the kill() is called.
+ *
  *  Revision 1.21  2003/12/18 22:35:28  millermi
  *  - Moved LINEAR and LOG strings to AxisInfo class.
  *  - Changed string compare of NO_LABEL and NO_UNITS from
@@ -252,6 +256,8 @@ public class AxisOverlay2D extends OverlayJPanel
   * the dimensions for the editor.
   */
   public static final String EDITOR_BOUNDS  = "Editor Bounds";
+    
+  private static JFrame helper = null;
   
   // these variables simulate the interval of values of the data
   private transient float xmin;
@@ -318,7 +324,7 @@ public class AxisOverlay2D extends OverlayJPanel
   */
   public static void help()
   {
-    JFrame helper = new JFrame("Help for Axes Overlay");
+    helper = new JFrame("Help for Axis Overlay");
     helper.setBounds(0,0,600,400);
     JTextArea text = new JTextArea("Description:\n\n");
     text.setEditable(false);
@@ -614,6 +620,18 @@ public class AxisOverlay2D extends OverlayJPanel
     }
     */
     return pixel_pt;
+  }
+     
+ /**
+  * This method is called by to inform the overlay that it is no
+  * longer needed. In turn, the overlay closes all windows created
+  * by it before closing.
+  */ 
+  public void kill()
+  {
+    editor.dispose();
+    if( helper != null )
+      helper.dispose();
   }
  
  /**

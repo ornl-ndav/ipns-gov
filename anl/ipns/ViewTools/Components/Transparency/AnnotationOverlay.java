@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2003/12/20 21:37:29  millermi
+ *  - implemented kill() so editor and help windows are now
+ *    disposed when the kill() is called.
+ *
  *  Revision 1.21  2003/11/21 02:52:34  millermi
  *  - Improved the repainting of the overlay.
  *  - Editor bounds are now saved before dispose() is called.
@@ -226,6 +230,7 @@ public class AnnotationOverlay extends OverlayJPanel
   */
   public static final String EDITOR_BOUNDS  = "Editor Bounds";
   
+  private static JFrame helper = null;
   // panel overlaying the center jpanel
   private transient AnnotationJPanel overlay;
   private transient IZoomTextAddible component;	 // component being passed
@@ -299,7 +304,7 @@ public class AnnotationOverlay extends OverlayJPanel
   */
   public static void help()
   {
-    JFrame helper = new JFrame("Help for Annotation Overlay");
+    helper = new JFrame("Help for Annotation Overlay");
     helper.setBounds(0,0,600,400);
     JTextArea text = new JTextArea("Description:\n\n");
     text.setEditable(false);
@@ -500,6 +505,18 @@ public class AnnotationOverlay extends OverlayJPanel
     floatPoint2D p12d = convertToWorldPoint( placement.getP1() );
     floatPoint2D p22d = convertToWorldPoint( placement.getP2() );
     notes.add( new Note( a_note, placement, now, p12d, p22d ) );
+  }
+     
+ /**
+  * This method is called by to inform the overlay that it is no
+  * longer needed. In turn, the overlay closes all windows created
+  * by it before closing.
+  */ 
+  public void kill()
+  {
+    editor.dispose();
+    if( helper != null )
+      helper.dispose();
   }
 
  /**
