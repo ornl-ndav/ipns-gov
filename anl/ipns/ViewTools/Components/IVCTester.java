@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2003/11/21 01:26:35  millermi
+ * - Commented test code out that was missed in last checkin.
+ *
  * Revision 1.5  2003/11/21 00:31:31  millermi
  * - Minor improvements, working to get PanViewControl updated
  *   when divider is resized.
@@ -262,7 +265,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     //                                         (ctrl.length*60) ) ) );
     spacer.setPreferredSize( new Dimension(0, 10000) );
     controls.add(spacer);
-    controls.addComponentListener( new ResizedPaneListener() );
+    //controls.addComponentListener( new ResizedPaneListener() );
     pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
                                   ivc.getDisplayPanel(),
 			          controls, .75f );
