@@ -31,6 +31,10 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.7  2003/07/08 22:05:18  rmikk
+ * Status Pane now moves to where last characters
+ *    are printed
+ *
  * Revision 1.6  2002/11/27 23:12:10  pfpeterson
  * standardized header
  *
@@ -68,6 +72,7 @@ import IsawGUI.*;
 import java.lang.*;  
 import NexIO.*;  
 import javax.swing.border.*;  
+import javax.swing.event.*;
   
 /** The Status Pane is a plug in module that can report messages from  
 * a variety of sources in an application via the PropertyChange events   
@@ -84,13 +89,13 @@ import javax.swing.border.*;
   
 public class StatusPane extends JPanel implements PropertyChangeListener{
     StatusPane_Base spb = null;
-    
+    JScrollPane  X;
     public StatusPane( int rows, int cols){
         super();
         spb= new StatusPane_Base( rows,cols,
                                   new TitledBorder( "Status" ),true, false);
-        
-        JScrollPane X = new JScrollPane( spb);
+        X = new JScrollPane( spb);
+        spb.getDocument().addDocumentListener( new DocListener( X , spb) );
         setLayout( new BorderLayout());
         add( X, BorderLayout.CENTER);
         
@@ -144,4 +149,44 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
     public void Clearr(){
         spb.Clearr(); 
     }
-}  
+
+    
+} 
+
+class DocListener implements DocumentListener{
+
+
+       JScrollPane Scroll;
+       JTextArea jtext; 
+       public DocListener( JScrollPane X, JTextArea jtext){
+          Scroll = X;
+          this.jtext = jtext;
+       }
+
+       public void insertUpdate(DocumentEvent e){
+          try{
+             
+             if( jtext == null)
+               return;
+             if( jtext.getRows() < 2)
+                return;
+
+             int offset = e.getOffset();
+             int line= jtext.getLineOfOffset( offset);
+             if( line < 2)
+                return;
+ 
+             int RowHeight = jtext.getBounds().height/jtext.getRows();
+                  
+             Scroll.getViewport().setViewPosition( new Point( 0, (line -1)*RowHeight) );
+             }
+           catch( Exception ss){}
+       }
+
+       public void removeUpdate(DocumentEvent e){
+       }
+
+       public void changedUpdate(DocumentEvent e){
+       }
+
+    } 
