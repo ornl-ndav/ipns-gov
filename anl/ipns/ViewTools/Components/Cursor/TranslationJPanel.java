@@ -33,6 +33,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/12/15 20:49:54  millermi
+ *  - changed setViewPort() parameters from ints to floats.
+ *  - Now swaps bounds if passed in local bounds are not
+ *    consistent with global bounds. Ex: interval 0-1 vs 1-0.
+ *  - These two additions fix the initialization bug
+ *    found by Dennis Mikkelson.
+ *
  *  Revision 1.6  2003/11/25 23:31:27  millermi
  *  - convert...() methods now use global_transform directly
  *    instead of accessing it through a method.
@@ -144,8 +151,8 @@ public class TranslationJPanel extends CoordJPanel
   */ 
   public void setViewPort( CoordBounds viewport )
   {
-    setViewPort( new Point( (int)viewport.getX1(),(int)viewport.getY1()), 
-                 new Point( (int)viewport.getX2(),(int)viewport.getY2() ) ); 
+    setViewPort( new floatPoint2D( viewport.getX1(),viewport.getY1()), 
+                 new floatPoint2D( viewport.getX2(),viewport.getY2() ) ); 
   }
   
  /**
@@ -156,7 +163,7 @@ public class TranslationJPanel extends CoordJPanel
   *  @param  vp1 Top-left corner of the viewable area.
   *  @param  vp2 Bottom-right corner of the viewable area.
   */ 
-  public void setViewPort( Point vp1, Point vp2 )
+  public void setViewPort( floatPoint2D vp1, floatPoint2D vp2 )
   {
     // Check to make sure new local bounds are within the global bounds.
     // Since it is possible for x1 > x2 and/or y1 > y2, must check this.
@@ -164,9 +171,29 @@ public class TranslationJPanel extends CoordJPanel
     boolean reverse_x = false;
     boolean reverse_y = false;
     if( global.getX1() > global.getX2() )
+    {
       reverse_x = true;
+      // swap bounds so it is consistent with global bounds
+      if( vp1.x < vp2.x )
+      {
+        float temp = 0;
+	temp = vp1.x;
+	vp1.x = vp2.x;
+	vp2.x = temp;
+      }
+    }
     if( global.getY1() > global.getY2() )
+    {
       reverse_y = true;
+      // swap bounds so it is consistent with global bounds
+      if( vp1.y < vp2.y )
+      {
+        float temp = 0;
+	temp = vp1.y;
+	vp1.y = vp2.y;
+	vp2.y = temp;
+      }
+    }
     
     // if local bounds are larger than new global bounds, clip local bounds
     // x range is x2 to x1
@@ -200,9 +227,8 @@ public class TranslationJPanel extends CoordJPanel
       if( global.getY1() > vp1.y )
         vp1.y = (int)global.getY1();
       if( global.getY2() < vp2.y )
-        vp2.y = (int)global.getY2();
+        vp2.y = (int)global.getY2(); 
     }
-    
     setLocalWorldCoords( new CoordBounds( vp1.x, vp1.y, vp2.x, vp2.y ) );
     // bounds are assumed to be stable when set here. Set the restore value.
     restoreBounds(true);
