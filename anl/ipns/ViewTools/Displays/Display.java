@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/04/29 06:20:25  millermi
+ * - Added window listener to listen when the display window
+ *   is closed. Upon closing, the kill() method is called on
+ *   the ViewComponent to close any of its remaining windows.
+ *
  * Revision 1.5  2004/04/02 20:59:46  millermi
  * - Fixed javadoc errors
  *
@@ -69,6 +74,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.io.Serializable;
@@ -127,6 +134,7 @@ abstract public class Display extends JFrame implements IPreserveState,
       System.out.println("Error in Display - Virtual Array is null");
       System.exit(-1);
     }
+    addWindowListener( new ClosingListener() );
     this_viewer = this;
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     current_view = view_code;
@@ -328,6 +336,20 @@ abstract public class Display extends JFrame implements IPreserveState,
     return ivc_controls;
   }
   
+ /**
+  * Tells all listeners about a new action.
+  *
+  *  @param  message
+  */  
+  protected void sendMessage( String message )
+  {
+    for ( int i = 0; i < Listeners.size(); i++ )
+    {
+      ActionListener listener = (ActionListener)Listeners.elementAt(i);
+      listener.actionPerformed( new ActionEvent( this, 0, message ) );
+    }
+  }
+  
  /*
   * This class is required to handle all messages within the Display.
   */
@@ -380,17 +402,15 @@ abstract public class Display extends JFrame implements IPreserveState,
     }
   }
   
- /**
-  * Tells all listeners about a new action.
-  *
-  *  @param  message
-  */  
-  protected void sendMessage( String message )
+ /*
+  * This class will make sure all other windows are closed when the
+  * display pane is closed.
+  */
+  private class ClosingListener extends WindowAdapter
   {
-    for ( int i = 0; i < Listeners.size(); i++ )
+    public void windowClosing( WindowEvent we )
     {
-      ActionListener listener = (ActionListener)Listeners.elementAt(i);
-      listener.actionPerformed( new ActionEvent( this, 0, message ) );
+      ivc.kill();
     }
   }
 }
