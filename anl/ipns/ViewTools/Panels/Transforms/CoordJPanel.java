@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2003/06/18 13:39:43  dennis
+ *  (Mike Miller)
+ *  - Removed isListening from CoordComponentAdapter private class.
+ *
  *  Revision 1.19  2003/06/13 14:42:26  dennis
  *  - Added isListening to mouseEntered() method. (Mike Miller)
  *
@@ -977,23 +981,20 @@ class CoordComponentAdapter extends ComponentAdapter
 
   public void componentResized( ComponentEvent c )
   {
-    if ( isListening)
-    {
-      Dimension size = getSize();
-      if ( size.width == 0 || size.height == 0 )
-        return;
+    Dimension size = getSize();
+    if ( size.width == 0 || size.height == 0 )
+      return;
 
-      if ( size.equals( current_size ) )       // no need to change it!
-        return;
+    if ( size.equals( current_size ) )       // no need to change it!
+      return;
 
-      stop_box( current_point, false );
-      stop_crosshair( current_point );
+    stop_box( current_point, false );
+    stop_crosshair( current_point );
 
-      SetTransformsToWindowSize();
-      local_transform.setSource( local_transform.getSource() );
-      LocalTransformChanged();
-      current_size = size;
-    }
+    SetTransformsToWindowSize();
+    local_transform.setSource( local_transform.getSource() );
+    LocalTransformChanged();
+    current_size = size;
   }
 }
 
