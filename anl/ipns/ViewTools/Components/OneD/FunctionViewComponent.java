@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.67  2005/02/04 18:49:33  serumb
+ *  Fixed zoom/pointed at problem when a selected line is cleared.
+ *
  *  Revision 1.66  2005/02/01 03:14:20  millermi
  *  - Fixed pointed_at messages resetting zoom.
  *
@@ -763,8 +766,11 @@ public class FunctionViewComponent implements IViewComponent1D,
     if (Varray1D != pin_varray){
       if (Varray1D.getNumSelectedGraphs() > pin_varray.getNumSelectedGraphs()){
         gjp.clearData();
-        float[] reset = {0,0.0001f};
-        gjp.setData(reset,reset, 0, false);
+      /*  float[] reset = {0,0.0001f};
+        gjp.setData(reset,reset, 0, false);*/
+	float[] x_vals = pin_varray.getXValues(0);
+	float[] y_vals = pin_varray.getYValues(0);
+	        gjp.setData(x_vals,y_vals, 0, false);
       }
       Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
