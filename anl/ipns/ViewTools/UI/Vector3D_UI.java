@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/03/30 01:11:40  dennis
+ *  Removed unused variable.
+ *
  *  Revision 1.8  2004/03/15 23:53:59  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -88,7 +91,6 @@ public class Vector3D_UI extends    JTextField
 
   private Vector3D value;
   private String   label;
-  private String   temp_string;
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
