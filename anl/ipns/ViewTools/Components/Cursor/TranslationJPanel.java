@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/11/25 00:50:53  millermi
+ *  - setViewPort() now clips the local bounds if they exceed
+ *    the global bounds.
+ *
  *  Revision 1.4  2003/11/21 00:12:24  millermi
  *  - Fixed bug that did not restrict stretching to only the
  *    cursor region.
@@ -137,6 +141,50 @@ public class TranslationJPanel extends CoordJPanel
   */ 
   public void setViewPort( Point vp1, Point vp2 )
   {
+    // Check to make sure new local bounds are within the global bounds.
+    // Since it is possible for x1 > x2 and/or y1 > y2, must check this.
+    CoordBounds global = getGlobalWorldCoords();
+    boolean reverse_x = false;
+    boolean reverse_y = false;
+    if( global.getX1() > global.getX2() )
+      reverse_x = true;
+    if( global.getY1() > global.getY2() )
+      reverse_y = true;
+    
+    // if local bounds are larger than new global bounds, clip local bounds
+    // x range is x2 to x1
+    if( reverse_x )
+    {
+      if( global.getX1() < vp1.x )
+        vp1.x = (int)global.getX1();
+      if( global.getX2() > vp2.x )
+        vp2.x = (int)global.getX2();
+    }
+    // x range is x1 to x2
+    else
+    {
+      if( global.getX1() > vp1.x )
+        vp1.x = (int)global.getX1();
+      if( global.getX2() < vp2.x )
+        vp2.x = (int)global.getX2();
+    
+    }
+    // y range is y2 to y1
+    if( reverse_y )
+    {
+      if( global.getY1() < vp1.y )
+        vp1.y = (int)global.getY1();
+      if( global.getY2() > vp2.y )
+        vp2.y = (int)global.getY2();
+    }
+    // y range is y1 to y2
+    else
+    {
+      if( global.getY1() > vp1.y )
+        vp1.y = (int)global.getY1();
+      if( global.getY2() < vp2.y )
+        vp2.y = (int)global.getY2();
+    }
     
     setLocalWorldCoords( new CoordBounds( vp1.x, vp1.y, vp2.x, vp2.y ) );
     // bounds are assumed to be stable when set here. Set the restore value.
