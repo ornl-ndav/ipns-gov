@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2001/07/25 16:56:42  dennis
+ * Now maintains a list of action listeners and has a method
+ * addActionListener()
+ *
  * Revision 1.3  2001/07/02 22:40:18  dennis
  * Method addControlledPanel() now first checks to see if the
  * panel is already in the vector of controlled panels.
@@ -67,10 +71,13 @@ import DataSetTools.components.image.*;
 public class ViewController extends    JPanel
                             implements Serializable
 {
+  public static final String VIEW_CHANGED = "View Changed";
+
+  private Vector   listeners  = null;
+
   private float    height,
                    width;
-
-  private float view_angle = -1;
+  private float    view_angle = -1;
 
   private Vector3D vrp,
                    cop,
@@ -86,6 +93,8 @@ public class ViewController extends    JPanel
  */
   public ViewController()
   { 
+    listeners = new Vector();
+
     height  = 1;
     width   = 1;
     vrp     = new Vector3D( 0, 0, 0 );
@@ -101,13 +110,10 @@ public class ViewController extends    JPanel
  */
   public ViewController( Vector3D cop, Vector3D vrp, Vector3D vuv )
   {
-    height = 1;
-    width  = 1;
+    this();
     this.vrp = new Vector3D( vrp );
     this.cop = new Vector3D( cop );
     this.vuv = new Vector3D( vuv );
-
-    panel3D = new Vector();
   }
 
 
@@ -189,7 +195,7 @@ public class ViewController extends    JPanel
     return new Vector3D( vrp );
   }
 
-/* -------------------------------- setVUV ------------------------------- */
+/* -------------------------------- getVUV ------------------------------- */
 /**
  *   Get the direction that is "up" from the observer's point of view
  *   (i.e. the View Up Vector ) for this view.
@@ -282,12 +288,7 @@ public class ViewController extends    JPanel
     Tran3D tran = new Tran3D();
     tran.setViewMatrix( cop, vrp, vuv, true );
     set_screen_size_from_view_angle();
-/*    
-    System.out.println("cop = " + cop );
-    System.out.println("vrp = " + vrp );
-    System.out.println("vuv = " + vuv );
-    System.out.println("screen size = " + width + ", " + height );
-*/
+
     for ( int i = 0; i < n_panels; i++ )
     {
       ThreeD_JPanel panel = (ThreeD_JPanel)panel3D.elementAt( i );
@@ -295,7 +296,35 @@ public class ViewController extends    JPanel
       panel.setViewTran( tran );
       panel.repaint();
     } 
+                                                    // send action event to
+    for ( int i = 0; i < listeners.size(); i++ )    // all of the listeners
+    {
+      ActionListener listener = (ActionListener)listeners.elementAt(i);
+      listener.actionPerformed( new ActionEvent( this, 0, VIEW_CHANGED ) );
+    }
   }
+
+
+ /* ------------------------ addActionListener -------------------------- */
+ /**
+  *  Add an ActionListener for this ViewController.  Whenever the apply 
+  *  method is invoked to repaint the controlled panels, the action listeners
+  *  will be notified.
+  *
+  *  @param listener  An ActionListener whose ActionPerformed() method is
+  *                   to be called when the ViewController values are 
+  *                   apllied to redraw the ThreeD_JPanels.
+  */
+
+  public void addActionListener( ActionListener listener )
+  {
+    for ( int i = 0; i < listeners.size(); i++ )       // don't add it if it's
+      if ( listeners.elementAt(i).equals( listener ) ) // already there
+        return;
+
+    listeners.add( listener );
+  }
+
 
 /* -------------------------------------------------------------------------
  *
