@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2003/08/08 21:05:21  serumb
+ * Added get_frame() method.
+ *
  * Revision 1.8  2003/08/08 18:29:49  serumb
  * Updates x and y range values when message is recieved.
  *
@@ -377,6 +380,10 @@ import javax.swing.event.*;
 
   public ViewControlsPanel get_panel() {
     return main_panel;
+  }
+  
+  public JFrame get_frame() {
+    return the_frame;
   }
 
   public void display_controls() {
