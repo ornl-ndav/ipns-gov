@@ -1,7 +1,7 @@
 /*
  * File:  SlicePlane3D.java
  *
- * Copyright (C) 2003, Dennis Mikkelson
+ * Copyright (C) 2004, Dennis Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/03 23:15:22  dennis
+ * Added "convenience" constructor to construct a slice plane
+ * given specific u,v,n local coordinate vectors.
+ *
  * Revision 1.3  2004/01/26 20:41:00  dennis
  * The setOrigin() method now checks for the error of passing in
  * a null vector and returns a boolean value indicating whether
@@ -75,7 +79,7 @@ public class SlicePlane3D
 
   /*--------------------------- copy constructor -----------------------*/
   /**
-   *  Construct the x,y plane, using the values from the specified plane.
+   *  Construct a new SlicePlane3D, using the values from the specified plane.
    *
    *  @param old_plane  The plane whose values are to be used in 
    *                    constructing this new plane.
@@ -85,6 +89,35 @@ public class SlicePlane3D
     origin = new Vector3D( old_plane.origin );
     u      = new Vector3D( old_plane.u      );
     v      = new Vector3D( old_plane.v      );
+  }
+
+
+  /*-------------------- constructor from origin, u, v ---------------------*/
+  /**
+   *  Construct a new SlicePlane3D, using the specified origin, and local
+   *  basis vectors u and v IF POSSIBLE.  The default constructor is used,
+   *  after which the origin and u and v values are set.  If u and v are
+   *  invalid, the default values u = (1,0,0) and v = (0,1,0). Vector v will be
+   *  adjusted to be orthogonal to u, if it is not already.
+   *
+   *  @param  origin  The vector to use as the origin for this 
+   *                  slice plane.
+   *  @param  u       non-zero vector that specifies the direction of the
+   *                  first coordinate axis on the plane. 
+   *  @param  v       non-zero vector that will be used to determine the 
+   *                  direction of the second coordinate axis on the plane,
+   *                  adjusted so that v is perpendicular to u.
+   */
+  public SlicePlane3D( Vector3D origin, Vector3D u, Vector3D v )
+  {
+    this();
+    setOrigin( origin );
+
+    if ( !setU_and_V( u, v ) )
+    {
+      u = new Vector3D( 1, 0, 0 );
+      v = new Vector3D( 0, 1, 0 );
+    }
   }
 
   
