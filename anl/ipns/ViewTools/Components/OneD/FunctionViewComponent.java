@@ -1,7 +1,7 @@
 /*
  * File FunctionViewComponent.java
  *
- * 
+ * Copyright (C) 2003 Brent Serum
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2003/10/31 18:13:19  dennis
+ *  Now when the selected data is changed, the
+ *  view controls are rebuilt in the same frame,
+ *  so the control frame does not move around.
+ *
  *  Revision 1.28  2003/10/21 22:01:49  serumb
  *  Implements all methods from IViewComponent.
  *
@@ -405,15 +410,14 @@ public class FunctionViewComponent implements IViewComponent1D,
     Varray1D = pin_varray;
     //get the complete 2D array of floats from pin_varray
     gjp.clearData();
-    mainControls.close_frame();
-    control_box.setSelected(false);
+
     DrawSelectedGraphs();
     if(draw_pointed_at)
-      DrawPointedAtGraph();  
+      DrawPointedAtGraph();
+                              // rebuild controls for the new data IN THE 
+                              // SAME FRAME, so that the frame doesn't move.
     mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel(),
-                                        this);
-    mainControls.display_controls();
-    control_box.setSelected(true);
+                                        this, mainControls.get_frame() );
 
     //      System.out.println("Value of first element: " + x_array[0] +
     //							y_array[0] );
