@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/08/11 23:22:48  millermi
+ *  - Added removeMarker(Marker) so markers can be removed
+ *    by reference.
+ *
  *  Revision 1.6  2004/05/11 01:38:44  millermi
  *  - Removed unused variables.
  *
@@ -262,9 +266,27 @@ public class MarkerOverlay extends OverlayJPanel
   public void addMarker( Marker marker )
   {
     if( marker != null )
+    {
       markers.add(marker);
-    repaint();
-    editor.updateMarkerList();
+      repaint();
+      editor.updateMarkerList();
+    }
+  }
+  
+ /**
+  * Remove the given marker from the list of markers. If the marker is not in
+  * the list, nothing will be done.
+  *
+  *  @param  marker The marker to be removed.
+  */
+  public void removeMarker( Marker marker )
+  {
+    if( marker != null )
+    {
+      markers.remove(marker);
+      repaint();
+      editor.updateMarkerList();
+    }
   }
  
  /**
