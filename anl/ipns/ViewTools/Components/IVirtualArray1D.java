@@ -121,6 +121,17 @@ public interface IVirtualArray1D
    */
    public void setYValues( float[] values, int line_num);
    
+  /**
+   * Get vertical error values for a line in the graph..
+   */
+   public float[] getErrorValues( int line_number );
+
+  /**
+   * Get the Group ID number for the line label.
+   */
+   public int getGroupID( int line_number );
+
+   
 
    //**/get axisinfo 2d
    public AxisInfo2D  getAxisInfo( boolean x_axis);
