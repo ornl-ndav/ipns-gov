@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/04/19 12:47:53  rmikk
+ * Error conditions now report line number where error occurred
+ * reading numbers in Exponential notation is improved
+ * Tabs are now considered as white space, not an end of line indicator
+ *
  * Revision 1.6  2004/03/11 23:42:23  millermi
  * - Removed DataSetTools.util reference from Format class.
  *
@@ -170,6 +175,7 @@ public class FileIO{
   public static Object Read( FileInputStream f, Vector V, String Format, int MaxLines,
          Vector EndConditions){
      Vector Copy = new Vector(); //Contains the copy of the Return values
+     int lineNum=0;
      for( int i=0; i < V.size() ; i++)
         Copy.addElement( new Vector() );
      int omitLast = 0;
@@ -181,6 +187,7 @@ public class FileIO{
      while( !done){
         Vector LastLine = new Vector();         //For comparison using end conditions
         omitLast = 0;
+        lineNum++;
         for( int i = 0; i< V.size(); i++){
          
           Object S ;
@@ -194,7 +201,7 @@ public class FileIO{
           }
           if( S instanceof ErrorString)
              if( S.toString() != FileIO.NO_MORE_DATA)
-                return S;
+                return S+" at line "+lineNum+" entry "+i;
              else {
                 done = true; 
                 omitLast = 1;
@@ -688,13 +695,19 @@ class Nulll{
                  ( (cc=='.') && !decimal && !E_found) || 
                  (("Ee".indexOf(cc)>=0) && !E_found) ){
              S +=cc;
-             if( "+-".indexOf(cc) >=0 )
+             if( !E_found )
                leadingSign = false;
              if( cc== '.')
-                decimal = false;
-             if("Ee".indexOf(cc)>=0)
+                if( E_found)
+                   return new ErrorString("Improper Numeric Format");
+                else
+                   decimal = true;
+             if("Ee".indexOf(cc)>=0){
                E_found = true;
-             
+               leadingSign = true;
+             }
+             if( Character.isDigit(cc))
+                 leadingSign=false;
              c = fin.read();
              if( c == -1)
                if( S.trim().length() < 1)
@@ -1011,7 +1024,7 @@ class Nulll{
      *    An FOps that handles the the new line, / , format specifier
      */
     class newLineOp implements FOps{
-    
+        boolean readReturn = false;
         public newLineOp(){
         }
         public Object write( Object O, int line){
@@ -1019,12 +1032,13 @@ class Nulll{
         }
 
        public boolean hasReadReturn(){
-           return false;
+           return readReturn;
        }
        public Object read(FileInputStream fin )throws IOException{
           int c = fin.read();
-          while( (c != -1)&& ( ((char)c) != '\n') )
+          while( (c != -1)&& ( (((char)c) >=32))||(((char)c)=='\t') )
              c = fin.read();
+          readReturn = true;
           if( c == -1)
             return new ErrorString( FileIO.NO_MORE_DATA);
           return null;
