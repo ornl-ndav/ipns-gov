@@ -30,8 +30,8 @@
  * Modified:
  *
  * $Log$
- * Revision 1.19  2003/07/02 19:53:38  serumb
- * Fixed problem with error bar location while zooming.
+ * Revision 1.20  2003/07/02 21:47:12  serumb
+ * Updated java docs comments.
  *
  * Revision 1.17  2003/06/30 21:57:25  dennis
  * Removed shift by "first_index" that was improperly added.
@@ -231,9 +231,23 @@ public class GraphJPanel extends    CoordJPanel
 
 
 /* ----------------------------- setErrors -------------------------------- */
+/*  gets the errorbounds for each point of a line. */
 /**
- *  gets the errorbounds for each point of a line.  
+ *  Set the errors for the specified graph.  
  *
+ *  @param  errors     the array of error values
+ *
+ *  @param  error_loc  the integer constant that tells where the error bars
+ *                     ar to be drawn.
+ *
+ *  @param  graph_num  the index of the graph.
+ *                     The index must be at least zero and less than the
+ *                     number of graphs currently held in this GraphJPanel.  
+ *                     If the graph_num is not valid, this method has no 
+ *                     effect and returns false.
+ *  @param  redraw     if this is true, redraw all the graphs
+ *
+ *  @return            true if the graph_num is valid, false otherwise.
  */
   public boolean setErrors( float[] errors, int error_loc,
                             int graph_num, boolean redraw )
@@ -310,7 +324,7 @@ public class GraphJPanel extends    CoordJPanel
 
 /* ----------------------------- setMarkColor -------------------------------- */
 /**
- *  Set the color for the specified graph.  
+ *  Set the mark color for the specified graph.  
  *
  *  @param  color      the color of the error bars
  *
@@ -339,7 +353,20 @@ public class GraphJPanel extends    CoordJPanel
 
 
 /*------------------------------ setStroke --------------------------------*/
-
+/**
+ *  Set the Stroke for the particular line in the graph.  
+ *
+ *  @param  theStroke  the basic stroke type for a graph
+ *
+ *  @param  graph_num  the index of the graph.
+ *                     The index must be at least zero and less than the
+ *                     number of graphs currently held in this GraphJPanel.  
+ *                     If the graph_num is not valid, this method has no 
+ *                     effect and returns false.
+ *  @param  redraw     if this is true, redraw all the graphs
+ *
+ *  @return            true if the graph_num is valid, false otherwise.
+ */
 public boolean setStroke(BasicStroke theStroke, int graph_num, boolean redraw)
   {
     if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
@@ -354,6 +381,20 @@ public boolean setStroke(BasicStroke theStroke, int graph_num, boolean redraw)
     return true;
   }
 /*------------------------------ setTransparent --------------------------------*/
+/**
+ *  Set the transparent variable to make a line in a graph transparent.  
+ *
+ *  @param  transparent the boolean value to tell if the line is transparent.
+ *
+ *  @param  graph_num   the index of the graph.
+ *                      The index must be at least zero and less than the
+ *                      number of graphs currently held in this GraphJPanel.  
+ *                      If the graph_num is not valid, this method has no 
+ *                      effect and returns false.
+ *  @param  redraw      if this is true, redraw all the graphs
+ *
+ *  @return             true if the graph_num is valid, false otherwise.
+ */
 
 public boolean setTransparent(boolean transparent, int graph_num,
                               boolean redraw)
@@ -373,6 +414,16 @@ public boolean setTransparent(boolean transparent, int graph_num,
 
 
 /*------------------------------ getStroke --------------------------------*/
+/**
+ *  Get the stroke for a graph.  
+ *
+ *  @param  graph_num  the index of the graph.
+ *                     The index must be at least zero and less than the
+ *                     number of graphs currently held in this GraphJPanel.  
+ *                     If the graph_num is not valid, the defult is returned.
+ *
+ *  @return            the Stroke type.
+ */
 
 public BasicStroke getStroke(int graph_num)
   { 
@@ -385,6 +436,19 @@ public BasicStroke getStroke(int graph_num)
 
 
 /*------------------------------ StrokeType --------------------------------*/
+/**
+ *  Makes the different stroke types to be returned 
+ *
+ *  @param  key         the integer constant for the stroke types.
+ *
+ *  @param  graph_num   the index of the graph.
+ *                      The index must be at least zero and less than the
+ *                      number of graphs currently held in this GraphJPanel.  
+ *                      If the graph_num is not valid, this method has no 
+ *                      effect and returns false.
+ *
+ *  @return             the stroke type for the particular key.
+ */
 
 public BasicStroke strokeType(int key, int graph_num)
 {
@@ -437,6 +501,20 @@ public BasicStroke strokeType(int key, int graph_num)
 
 
 /*-------------------------- setLineWidth ---------------------------------*/
+/**
+ *  Set the line width for the graph.  
+ *
+ *  @param  lineWidth   the integer value for the line width
+ *
+ *  @param  graph_num   the index of the graph.
+ *                      The index must be at least zero and less than the
+ *                      number of graphs currently held in this GraphJPanel.  
+ *                      If the graph_num is not valid, this method has no 
+ *                      effect and returns false.
+ *  @param  redraw      if this is true, redraw all the graphs
+ *
+ *  @return             true if the graph_num is valid, false otherwise.
+ */
 
 public boolean setLineWidth(int linewidth, int graph_num, boolean redraw)
 {
@@ -454,6 +532,20 @@ public boolean setLineWidth(int linewidth, int graph_num, boolean redraw)
 
 
 /*-------------------------- setMarkType ---------------------------------*/
+/**
+ *  Set the mark type for the points on the graph.  
+ *
+ *  @param  marktype    the integer constant for the mark type.
+ *
+ *  @param  graph_num   the index of the graph.
+ *                      The index must be at least zero and less than the
+ *                      number of graphs currently held in this GraphJPanel.  
+ *                      If the graph_num is not valid, this method has no 
+ *                      effect and returns false.
+ *  @param  redraw      if this is true, redraw all the graphs
+ *
+ *  @return             true if the graph_num is valid, false otherwise.
+ */
 
 public boolean setMarkType(int marktype, int graph_num, boolean redraw)
 {
@@ -471,7 +563,20 @@ public boolean setMarkType(int marktype, int graph_num, boolean redraw)
 
 
 /*-------------------------- setMarkSize ---------------------------------*/
-
+/**
+ *  Set the mark size for the graph.
+ *
+ *  @param  size        the integer value for the mark size.
+ *
+ *  @param  graph_num   the index of the graph.
+ *                      The index must be at least zero and less than the
+ *                      number of graphs currently held in this GraphJPanel.  
+ *                      If the graph_num is not valid, this method has no 
+ *                      effect and returns false.
+ *  @param  redraw      if this is true, redraw all the graphs
+ *
+ *  @return             true if the graph_num is valid, false otherwise.
+ */
 public boolean setMarkSize(int size, int graph_num, boolean redraw)
 {
     if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
