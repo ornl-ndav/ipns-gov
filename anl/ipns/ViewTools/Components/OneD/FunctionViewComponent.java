@@ -33,8 +33,8 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.25  2003/10/20 23:57:45  serumb
- *  Now implements IViewComponent.
+ *  Revision 1.26  2003/10/21 00:13:17  serumb
+ *  Changed getCurrentPoint method to getPointedAt.
  *
  *  Revision 1.24  2003/08/08 21:08:08  serumb
  *  Now un-checks the Function Controls box when Function Controls window
@@ -529,7 +529,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   /*
    *  Gets the current point
    */
-  public Point getCurrentPoint(  ) {
+  public Point getPointedAt(  ) {
     floatPoint2D fpt = new floatPoint2D(  );
 
     fpt = gjp.getCurrent_WC_point(  );
