@@ -32,8 +32,8 @@
  * Modified:
  *
  * $Log$
- * Revision 1.1  2003/07/08 16:32:28  serumb
- * Added to CVS.
+ * Revision 1.2  2003/07/10 21:46:42  serumb
+ * Added controls for zooming on the y axis.
  *
  */
 package DataSetTools.components.View.ViewControls;
@@ -54,7 +54,6 @@ import DataSetTools.math.*;
 import DataSetTools.util.*;  //floatPoint2D FloatFilter
                                                                                                                                                
 // component changes
-                                                                                                                                               
                                                                                                                                                
 import java.applet.Applet;
                                                                                                                                                
@@ -135,6 +134,8 @@ import javax.swing.event.*;
   private Box z_box          = new Box( 0 );
   private Box t_box          = new Box( 0 );
   private Box t1_box         = new Box( 0 );
+  private Box t2_box         = new Box( 0 );
+  private Box t3_box         = new Box( 0 );
   private Box T_Box          = new Box( 1 );
   private Box control_box    = new Box( 0 );
   private LabelCombobox labelbox1;
@@ -146,15 +147,20 @@ import javax.swing.event.*;
   private LabelCombobox labelbox7;
   private JLabel z_begin;
   private JLabel z_end;
+  private JLabel yz_begin;
+  private JLabel yz_end;
   private JLabel control_label;
   private Font label_font;
   private StringEntry start_field;
   private StringEntry end_field;
+  private StringEntry y_start_field;
+  private StringEntry y_end_field;
   private ControlCheckbox axis_checkbox = new ControlCheckbox( true );
   private ControlCheckbox annotation_checkbox = new ControlCheckbox(  );
 
   private ViewControlsPanel main_panel;
-
+  private JFrame the_frame = new JFrame( "ISAW Function View Controls" );
+  
   public FunctionControls(IVirtualArray1D varr, GraphJPanel graph_j_panel,
                           JPanel display_panel) {
     main_panel = new ViewControlsPanel();
@@ -172,18 +178,13 @@ import javax.swing.event.*;
     control_label   = new JLabel( "Controls" );
     control_label.setFont( label_font );
     label_panel.add( control_label );
-                                                                                   
-    Data d;
+    
     int group_id;
-    int[] selected_indices = new int[Varray1D.getNumlines(  )];
-                                                                                   
-    selected_indices   = ( ( DataSetData )Varray1D ).ds.getSelectedIndices(  );
-                                                                                   
+    
     lines = new String[Varray1D.getNumlines(  )];
-                                                                                   
+                                                                                
     for( int i = 0; i < Varray1D.getNumlines(  ); i++ ) {
-      d   = ( ( DataSetData )Varray1D ).ds.getData_entry( selected_indices[i] );
-      group_id   = d.getGroup_ID(  );
+      group_id   = Varray1D.getGroupID( i );
       lines[i]   = "Group ID:" + group_id;
     }
                                                                                    
@@ -226,10 +227,9 @@ import javax.swing.event.*;
     mark_size[4]   = "5";
     labelbox5      = new LabelCombobox( label5, mark_size );
                                                                                    
-    bar_types      = new String[4];
+    bar_types      = new String[3];
     bar_types[1]   = "At Points";
     bar_types[2]   = "At Top";
-    bar_types[3]   = "In Window";
     bar_types[0]   = "None";
     labelbox6      = new LabelCombobox( label6, bar_types );
                                                                                    
@@ -288,12 +288,18 @@ import javax.swing.event.*;
     FloatFilter my_filter = new FloatFilter(  );
                                                                                    
     ZoomButton    = new ButtonControl( "Zoom" );
-    z_begin       = new JLabel( "X_Start:" );
-    z_end         = new JLabel( "X_End:  " );
+    z_begin       = new JLabel( "X Start:" );
+    z_end         = new JLabel( "X End:  " );
     start_field   = new StringEntry( 8 );
     end_field     = new StringEntry( 8 );
     start_field.setStringFilter( my_filter );
     end_field.setStringFilter( my_filter );
+    yz_begin       = new JLabel( "Y Min:  " );
+    yz_end         = new JLabel( "Y Max:  " );
+    y_start_field   = new StringEntry( 8 );
+    y_end_field     = new StringEntry( 8 );
+    y_start_field.setStringFilter( my_filter );
+    y_end_field.setStringFilter( my_filter );
                                                                                    
                                                                                    
     ZBP.setLayout( G_lout );
@@ -303,8 +309,15 @@ import javax.swing.event.*;
     t_box.add( start_field );
     t1_box.add( z_end );
     t1_box.add( end_field );
+    t2_box.add( yz_begin );
+    t2_box.add( y_start_field );
+    t3_box.add( yz_end );
+    t3_box.add( y_end_field );
+   
     T_Box.add( t_box );
     T_Box.add( t1_box );
+    T_Box.add( t2_box );
+    T_Box.add( t3_box );
     TFP.setLayout( G_lout );
     TFP.add( z_box );
     TFP.add( T_Box );
@@ -344,7 +357,20 @@ import javax.swing.event.*;
   }
   public ViewControlsPanel get_panel() {
     return main_panel;
-  } 
+  }
+
+  public void display_controls() {
+
+    the_frame.setBounds( 600, 0, 580, 330 );
+    the_frame.getContentPane().add( (JComponent)main_panel.getPanel() );
+
+    the_frame.setVisible( true  );  //display the frame
+  }
+  public void close_frame() {
+    the_frame.setVisible( false );
+  }
+
+ 
   private class ControlListener implements ActionListener {
     //~ Methods ****************************************************************
                                                                                                    
@@ -404,21 +430,35 @@ import javax.swing.event.*;
         {
           Float Xstart;
           Float Xend;
+          Float Ystart = new Float(0f);
+          Float Yend = new Float(0f);
           float Y_max = 0;
           float Y_min = 0;
+          int Y_max_index = 0;
+          int Y_min_index = 0;
+          int Y_max_graph = 0;
+          int Y_min_graph = 0;
           String start_string;
           String end_string;
+          String y_start_string;
+	  String y_end_string;
           GraphData gd;
 
           start_string   = start_field.getText(  );
           end_string     = end_field.getText(  );
+          y_start_string   = y_start_field.getText(  );
+          y_end_string     = y_end_field.getText(  );
          
           if(start_string.equals("") || end_string.equals(""))
             return;
           
           Xstart = Float.valueOf(start_string);
           Xend = Float.valueOf(end_string);
- 
+          if(!(y_start_string.equals("") || y_end_string.equals(""))) {
+            Ystart = Float.valueOf(y_start_string);
+            Yend = Float.valueOf(y_end_string);
+          }
+
           if( Xstart.floatValue() == Xend.floatValue())
              return;
 
@@ -429,7 +469,14 @@ import javax.swing.event.*;
              Xstart = Xend;
              Xend = temp;
           }
-          
+          if( Ystart.floatValue() > Yend.floatValue() ) //swap
+          {
+             Float temp;
+             temp = Ystart;
+             Ystart = Yend;
+             Yend = temp;
+          }
+         /* sets bounds on x range for zoom 
           if(Xend.floatValue() > Varray1D.getAxisInfo(
                  AxisInfo2D.XAXIS ).getMax())
              Xend = new Float(Varray1D.getAxisInfo( AxisInfo2D.XAXIS )
@@ -439,7 +486,7 @@ import javax.swing.event.*;
                       AxisInfo2D.XAXIS ).getMin())
              Xstart = new Float(Varray1D.getAxisInfo( AxisInfo2D.XAXIS )
                       .getMin());
-
+          */   
          //set ymin to the y max of the graph
           Y_min =  Varray1D.getAxisInfo(AxisInfo2D.YAXIS).getMax();
         
@@ -452,16 +499,28 @@ import javax.swing.event.*;
                 if(gd.get_x_vals()[index2] > Xstart.floatValue() && 
                    gd.get_x_vals()[index2] < Xend.floatValue())
                 {
-                  if( Y_max < gd.get_y_vals()[index2] )
+                  if( Y_max < gd.get_y_vals()[index2] ){
+                    Y_max_index = index2;
+                    Y_max_graph = index;
                     Y_max = gd.get_y_vals()[index2];
-                  if( Y_min > gd.get_y_vals()[index2] )
+                  }
+                  if( Y_min > gd.get_y_vals()[index2] ) {
+                    Y_min_index = index2;
+                    Y_min_graph = index;
                     Y_min = gd.get_y_vals()[index2]; 
+                  }
                 }
               }
           }  
+          if(y_start_string.equals("") && y_end_string.equals("")) {
+              Ystart = new Float( Y_min );
+              Yend =new Float( Y_max );
+          }
+          else if(y_start_string.equals("") || y_end_string.equals("")) 
+            return; 
                   
-          gjp.setZoom_region(Xstart.floatValue(), Y_max,
-                             Xend.floatValue(),Y_min); 
+          gjp.setZoom_region(Xstart.floatValue(), Yend.floatValue(),
+                             Xend.floatValue(),Ystart.floatValue()); 
         }
       } else if( message.equals( "comboBoxChanged" ) ) {
         // System.out.println("action" + LineBox.getSelectedItem());
@@ -671,22 +730,16 @@ import javax.swing.event.*;
           //System.out.println("zoom region:"+ gjp.getZoom_region());
           //CoordBounds data_bound = getGlobalWorldCoords();
           //data_bound.getBounds()
-          Data d;
-          int[] selected_indices = new int[Varray1D.getNumlines(  )];
-
-          selected_indices   = ( ( DataSetData )Varray1D )
-                               .ds.getSelectedIndices(  );
-
-          d = ( ( DataSetData )Varray1D ).ds.getData_entry( 
-              selected_indices[line_index] );
 
           if( ErrorBarBox.getSelectedItem(  ).equals( "None" ) ) {
-            gjp.setErrors( d.getErrors(  ), 0, line_index, true );
+            gjp.setErrors( Varray1D.getErrorValues( line_index  ), 0, 
+                           line_index, true );
           } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Points" ) ) {
-            gjp.setErrors( 
-              d.getErrors(  ), gjp.ERROR_AT_POINT, line_index, true );
+            gjp.setErrors( Varray1D.getErrorValues( line_index  ), 
+                           gjp.ERROR_AT_POINT, line_index, true );
           } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Top" ) ) {
-            gjp.setErrors( d.getErrors(  ), gjp.ERROR_AT_TOP, line_index, true );
+            gjp.setErrors( Varray1D.getErrorValues( line_index  ),
+                           gjp.ERROR_AT_TOP, line_index, true );
           }
 
         /* 
@@ -752,7 +805,7 @@ import javax.swing.event.*;
            back.getComponent(4).setVisible(true);
            big_picture.getComponent(bpsize - 2).setVisible(true);
          }
-       }
+        }
       paintComponents( big_picture.getGraphics(  ) );
       }
     }
@@ -797,14 +850,14 @@ import javax.swing.event.*;
     
     FunctionControls fcontrols = new FunctionControls(Varray1D, graph_panel,
                                                       main_panel);                   
-    
-    f.setBounds( 0, 0, 580, 330 );
+    fcontrols.display_controls();
+   // f.setBounds( 0, 0, 580, 330 );
                                                                                    
-    Container c = f.getContentPane(  );
+   // Container c = f.getContentPane(  );
                                                                                    
-    c.add( ((JComponent)fcontrols.get_panel(  ).getPanel()) );
+   // c.add( ((JComponent)fcontrols.get_panel(  ).getPanel()) );
                                                                                   
-    f.show(  );  //display the frame
+   // f.show(  );  //display the frame
   }  
    private void paintComponents( Graphics g ) {
     //big_picture.revalidate();
