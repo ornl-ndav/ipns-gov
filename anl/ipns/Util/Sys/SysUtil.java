@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2002/10/25 22:16:10  pfpeterson
+ *  Added print statements for finding executables if
+ *  SharedData.DEBUG is true.
+ *
  *  Revision 1.2  2002/10/08 16:32:14  pfpeterson
  *  Improved the getExecInPath method to actually check the path
  *  (if available). Since how java gets the path is kinda goofy,
@@ -225,6 +229,7 @@ public class SysUtil{
         // first try the path (it returns null if not found)
         result=getExecInPath(command);
         if( result!=null && ! result.equals(command) )return result;
+        if(SharedData.DEBUG) System.out.println("Trying next to operator");
 
         // get the class name and repair it
         String myClassName=klass.getClass().getName();
@@ -239,6 +244,8 @@ public class SysUtil{
         if(urlStr!=null){
             urlStr=FilenameUtil.fixSeparator(urlStr);
             urlStr=URLDecoder.decode(urlStr);
+            if(SharedData.DEBUG)
+                System.out.println("File should be at: "+urlStr);
             int from=urlStr.indexOf("/");
             int to=urlStr.lastIndexOf("/");
             if(from<to && from>=0){
@@ -252,6 +259,8 @@ public class SysUtil{
         }
 
         // if it gets here it has failed
+        if(SharedData.DEBUG)
+            System.out.println("Did not find command: "+command);
         return null;
     }
 
@@ -274,14 +283,20 @@ public class SysUtil{
         // see if the path is listed in lowercase
         path=System.getProperty("path");
         // and try uppercase
-        if(path==null)
+        if(path==null){
+            if(SharedData.DEBUG) System.out.println("path not defined");
             path=System.getProperty("PATH");
+        }
         // if we are in linux here is a guess of the path
         if(path==null){
+            if(SharedData.DEBUG) System.out.println("PATH not defined");
             path=System.getProperty("ISAW_HOME");
-            if(isOSokay(LINUX_ONLY))
+            if(isOSokay(LINUX_ONLY)){
+                if(SharedData.DEBUG)
+                    System.out.println("Adding default linux path");
                 path=path+sep+System.getProperty("user.home")+"/bin"+sep
                     +"/usr/local/bin"+sep+"/usr/bin";
+            }
         }
 
         // search through the path for the executable
@@ -302,8 +317,11 @@ public class SysUtil{
         }
 
         if(found){ // return the fully qualified version (if possible)
+            if(SharedData.DEBUG) System.out.println("Found exec: "+com);
             return com;
         }else{     // otherwise return what was sent here and hope for the best
+            if(SharedData.DEBUG)
+                System.out.println("Could not find exec: "+command);
             return command;
         }
     }
