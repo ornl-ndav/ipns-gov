@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.36  2004/01/30 18:12:27  serumb
+ *  Initilized the GraphJPanel with the Virtual Array and
+ *  added object state data.
+ *
  *  Revision 1.35  2004/01/09 20:33:31  serumb
  *  Utilize getLocalLogWorldCoords to correct log
  *  transformations.
@@ -158,8 +162,48 @@ public class FunctionViewComponent implements IViewComponent1D,
                                               ActionListener, 
                                               IZoomTextAddible, 
                                               IAxisAddible,
-                                              ILogAxisAddible 
+                                              ILogAxisAddible,
+                                              IPreserveState,
+                                              Serializable 
 {
+ /**
+  * "Precision" - This constant String is a key for referencing the state
+  *  information about the precision this view component will have. Precision
+  *  affects the significant digits displayed on the Axis Overlay, among other
+  *  things. The value that this key references is a primative integer, with
+  *  value > 0.
+  */
+  public static final String PRECISION           = "Precision";
+
+ /**
+  * "Font" - This constant String is a key for referencing the state information
+  *  about the font used by this view component. This font will also be
+  *  passed on to overlays, such as the Axis, Annotation, and Selection.
+  *  The value that this key references is of type Font.
+  */
+  public static final String FONT                = "Font";
+
+ /**
+  * "Pointed At Control" - This constant String is a key for referencing the 
+  *  state information about wether or not to display the pointer at graph.
+  */
+
+  public static final String POINTED_AT_CONTROL  = "Pointed At Control";
+
+ /**
+  *  "Control Box" - This constant String is a key for referencing the state
+  *   Information about wether or not to display the function controls box.
+  */
+
+  public static final String CONTROL_BOX         = "Control Box";
+
+ /**
+  * "Graph JPanel" - This constant String is a key for refferencing the
+  * state information about the graph jpanel.
+  */
+  
+  public static final String GRAPHJPANEL        = "Graph JPanel";
+  
   private IVirtualArray1D Varray1D;  //An object containing our array of data
   private Point[] selectedset;  //To be returned by getSelectedSet()   
   private Vector Listeners   = null;
@@ -177,15 +221,15 @@ public class FunctionViewComponent implements IViewComponent1D,
   private Font font;
   private LinkedList controls = new LinkedList(  );
   private int linewidth      = 1;
-  private int line_index     = 0;
   private FunctionControls mainControls;
   private boolean draw_pointed_at = true;
-  private boolean isLinear = true;
   private ControlCheckbox control_box = new ControlCheckbox(false);
 
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
    * to be viewed in a border layout.
+   *
+   *  @param varr The IVirtual array containing data for producing the graph.
    */
   public FunctionViewComponent( IVirtualArray1D varr ) {
 
@@ -196,24 +240,22 @@ public class FunctionViewComponent implements IViewComponent1D,
    
   //  buildViewControls();
 
-/*    //Make gjp correspond to the data in f_array
+    //initialize the pointed at graph to 0
+       float x1[] = {0};
+       float y1[] = {0};
+       gjp.setData( x1, y1, 0, false );     
+     
+
+    //initialize GraphJPanel with the virtual array
     int num_lines = varr.getNumlines(  );
-    boolean bool  = false;
     for( int i = 1; i < num_lines+1; i++ ) {
-       gjp.setData( varr.getXValues( i-1 ), varr.getYValues( i-1 ), i, bool );
-
-      if( i >= ( num_lines - 2 ) ) {
-        bool = true;
-      }
-
-      gjp.setErrors( varr.getErrorValues( i-1 ), 0, i, true );
-
+       float x[] = Varray1D.getXVals_ofIndex(i-1);
+       float y[] = Varray1D.getYVals_ofIndex(i-1);
+       gjp.setData( x, y, i, false );     
+       gjp.setErrors( varr.getErrorValues( i-1 ), 0, i, true );
     }
-
-*/
-
     gjp.setBackground( Color.white );
-    // set initial line styles
+/*    // set initial line styles
     if( varr.getNumlines(  ) > 1 ) {
       gjp.setColor( Color.blue, 2, true );
       gjp.setStroke( gjp.strokeType( gjp.LINE, 2 ), 2, true );
@@ -225,7 +267,7 @@ public class FunctionViewComponent implements IViewComponent1D,
       gjp.setStroke( gjp.strokeType( gjp.LINE, 3 ), 3, true );
       gjp.setLineWidth( linewidth, 3, false );
     }
-
+*/
     ImageListener gjp_listener = new ImageListener(  );
 
     gjp.addActionListener( gjp_listener );
@@ -245,12 +287,94 @@ public class FunctionViewComponent implements IViewComponent1D,
                                 // the background and transparencies
     DrawSelectedGraphs();
     if(draw_pointed_at)
-      DrawPointedAtGraph();
+    DrawPointedAtGraph();
 
     mainControls = new FunctionControls(varr, gjp, getDisplayPanel(),this);
     mainControls.get_frame().addWindowListener( new FrameListener() );
    // buildViewControls( gjp );
   }
+
+  /**
+   * Constructor that takes in a virtual array and creates an graphjpanel
+   * to be viewed in a border layout.
+   *
+   *  @param varr  The IVirtual array containing data for producing the graph.
+   *  @param state The state of a previous Function View Component.
+   */
+  public FunctionViewComponent( IVirtualArray1D varr, ObjectState state ) {
+
+    this(varr);
+    setObjectState(state);
+
+  }
+
+ // setState() and getState() are required by IPreserveState interface   
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    boolean redraw = false;  // if any values change redraw.
+   
+    Object temp = new_state.get(GRAPHJPANEL);
+    if ( temp != null){
+      gjp = (GraphJPanel)temp;
+      redraw = true;
+    }
+
+    temp = new_state.get(PRECISION);
+    if ( temp != null){
+      precision = ((Integer)temp).intValue();
+      redraw = true;
+    }
+    
+    temp = new_state.get(FONT);
+    if( temp != null ){
+      font = (Font)temp;
+      redraw = true;
+    }
+
+    temp = new_state.get(POINTED_AT_CONTROL);
+    if( temp != null ){
+      draw_pointed_at = ((Boolean)temp).booleanValue();
+      redraw = true;
+    }
+
+    temp = new_state.get(CONTROL_BOX);
+    if( temp != null ){
+      control_box.setSelected( ((Boolean)temp).booleanValue() );
+      redraw = true;
+    }
+ 
+    if( redraw )
+      reInit();
+
+  } 
+
+  /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState. Keys will be
+  * put in alphabetic order.
+  */
+  public ObjectState getObjectState(boolean isDefult)
+  {
+    ObjectState state = new ObjectState();
+    state.insert( CONTROL_BOX, new Boolean( control_box.isSelected() ));
+    state.insert( FONT, font);
+    state.insert( GRAPHJPANEL, gjp);
+    state.insert( POINTED_AT_CONTROL, new Boolean(draw_pointed_at) );
+    state.insert( PRECISION, new Integer(precision) );
+    
+    if(! isDefult){
+    }
+
+    return state;
+  } 
+
+
   // getAxisInfo(), getRegionInfo(), getTitle(), getPrecision(), getFont() 
   // all required since this component implements IAxisAddible2D
 
@@ -622,6 +746,13 @@ public class FunctionViewComponent implements IViewComponent1D,
     }
     return false;
   }
+  private void reInit(){
+    mainControls = new FunctionControls(Varray1D, gjp, getDisplayPanel(),
+                                        this, mainControls.get_frame() );
+    buildViewComponent(gjp);
+  }  
+    
+    
 
   private int DrawSelectedGraphs() {
     int draw_count = 0;
