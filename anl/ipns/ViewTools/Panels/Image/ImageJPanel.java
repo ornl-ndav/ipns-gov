@@ -30,6 +30,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2003/07/10 13:37:05  dennis
+ *  - Added some functionality to main() for testing purposes
+ *  - Added isTwoSided as private data member to be used by the makeImage()
+ *  - Now supports either one-sided or two sided color scales.
+ *    (The pix array in makeImage() is now filled using zero_index in
+ *     place of ZERO_COLOR_INDEX.  If the color model is two-sided,
+ *     zero_index = ZERO_COLOR_INDEX, else zero_index = 0.)
+ *  (Mike Miller)
+ *
  *  Revision 1.15  2003/07/05 19:15:37  dennis
  *  Added methods to get min and max of data.  Added parameter to the
  *  setNamedColorMode() method to control whether the color scale is
@@ -104,6 +113,7 @@ public class ImageJPanel extends    CoordJPanel
 
   private IndexColorModel color_model;
   private byte[]          log_scale;
+  private boolean         isTwoSided = true;
 
 /**
  *  Construct an ImageJPanel with default values for the color scale, log
@@ -171,9 +181,10 @@ public class ImageJPanel extends    CoordJPanel
  *  @see IndexColorMaker
  */
   public void setNamedColorModel( String   color_scale_name,
-                                  boolean  isTwoSided,
+                                  boolean  twosided,
                                   boolean  rebuild_image   )
   {
+    isTwoSided = twosided;
     if( isTwoSided )
       color_model = IndexColorMaker.getDualColorModel( color_scale_name,
                                                        NUM_POSITIVE_COLORS );
@@ -240,7 +251,6 @@ public class ImageJPanel extends    CoordJPanel
       }
     if ( min_data == max_data )    // avoid division by 0 when scaling data
       max_data = min_data + 1;
-
     if ( rebuild_image )
     {
       makeImage();
@@ -557,15 +567,18 @@ protected void LocalTransformChanged()
       scale_factor = (LOG_TABLE_SIZE - 1) / max_abs;
     else
       scale_factor = 0;
-
+    byte zero_index = 0;
+    if( isTwoSided )
+      zero_index = ZERO_COLOR_INDEX;
     for (int y = start_row; y <= end_row; y++)
       for (int x = start_col; x <= end_col; x++)
       {
         temp = data[y][x] * scale_factor;
         if ( temp >= 0 )
-          pix[index++] = (byte)(ZERO_COLOR_INDEX + log_scale[(int)temp]);
+          pix[index++] = (byte)(zero_index + log_scale[(int)temp]);
         else
-          pix[index++] = (byte)(ZERO_COLOR_INDEX - log_scale[(int)(-temp)]);
+          pix[index++] = (byte)(zero_index - log_scale[(int)(-temp)]);
+        //System.out.println("Pix " + pix[index - 1] + " " + (index - 1) );
       }
 
     image = createImage(new MemoryImageSource(w, h, color_model, pix, 0, w));
@@ -755,14 +768,17 @@ class ImageKeyAdapter extends KeyAdapter
         else if ( j % 50 == 0 )
           test_array[i][j] = 20 * j;
         else
-          test_array[i][j] = i + j;
+          test_array[i][j] = i * j;
       }
  
     JFrame f = new JFrame("Test for ImageJPanel");
     f.setBounds(0,0,500,500);
+    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     ImageJPanel panel = new ImageJPanel();
     panel.setData( test_array, true );
-
+    panel.setNamedColorModel( IndexColorMaker.HEATED_OBJECT_SCALE_2, 
+                              true,
+                              true );
     f.getContentPane().add(panel);
     f.setVisible(true);
   }
