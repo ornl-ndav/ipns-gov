@@ -35,6 +35,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/06/19 22:20:02  dennis
+ *  Now uses the methods that evaluate the function and derivatives
+ *  at a list of x values, so that the evaluation can be done more
+ *  efficiently.
+ *
  *  Revision 1.5  2003/06/19 20:51:32  dennis
  *  Pulled evaluation of f(x) out one level to make it
  *  more efficient for functions where evaluating f(x) is
@@ -74,6 +79,26 @@ public class MarquardtArrayFitter extends CurveFitter
   double root_diag[];
 
   /**
+   *  Construct the curve fitter to fit the specified function to the
+   *  specified data.
+   *
+   *  @param function   The function whose parameters will be adjusted to
+   *                    match the data. NOTE: If the function evaluation is
+   *                    "expensive", it may be helpful to override the methods
+   *                    getValues(double x[]) and get_dFdai(double x[], int i)
+   *                    and implement them as efficiently as possible, since
+   *                    these are the methods that the fitter uses to evaluate
+   *                    the function and the derivatives relative to its
+   *                    parameters.
+   *  @param x          The list of x values
+   *  @param y          The list of y values
+   *  @param sigma      The list of standard deviations for the data points.
+   *                    The data points are weighted by 1/(sigma*sigma).
+   *  @param tolerance  When (norm_da/norm_a) < tolerance, the iteration will
+   *                    stop.
+   *  @param max_steps  When the number of iterations hits max_steps, the 
+   *                    interation will stop. 
+   *
    */
   public MarquardtArrayFitter( IOneVarParameterizedFunction function, 
                                double x[],
@@ -166,13 +191,15 @@ public class MarquardtArrayFitter extends CurveFitter
     boolean chisq_increasing;
     double  norm_da = tolerance + 1;
     double  norm_a  = 1;
-
+    double  w_diff_i;                                // weighted difference at
+                                                     // at the ith data point
     int    n_params  = f.numParameters();
     int    n_points  = x.length;
     double a[]       = new double[n_params];          // current param values
     double a_old[]   = new double[n_params];          // old param values
     double da[]      = new double[n_params];          // change to param values
-    double derivs[];                                  // dFda( xi )
+    double derivs[][];                                // dFda( xi )
+    double vals[];
     double beta[]    = new double[n_params];
     double A[][]     = new double[n_params][n_params];
     Alpha            = new double[n_params][n_params];
@@ -198,16 +225,21 @@ public class MarquardtArrayFitter extends CurveFitter
           A[k][j] = 0;
       }       
 
-      double w_diff_i;
+      vals = f.getValues( x );             // function values at all "x" points
+
+      derivs = new double[n_params][];
+      for ( int k = 0; k < n_params; k++ )
+        derivs[k] = f.get_dFdai(x,k);      // get derivatives at all "x" points
+                                           // with respect to kth parameter
+
       for ( int i = 0; i < n_points; i++ )            // sum over points x[i]
       {
-        derivs = f.get_dFda( x[i] );
-        w_diff_i = weights[i] * ( y[i] - f.getValue(x[i]) );
+        w_diff_i = weights[i] * ( y[i] - vals[i] );
         for ( int k = 0; k < n_params; k++ )          // for each row k
         {
-          beta[k] += w_diff_i * derivs[k];
+          beta[k] += w_diff_i * derivs[k][i];
           for ( int j = 0; j < n_params; j++ )
-            A[k][j] += weights[i] * derivs[k] * derivs[j]; 
+            A[k][j] += weights[i] * derivs[k][i] * derivs[j][i]; 
         }
       }
 
