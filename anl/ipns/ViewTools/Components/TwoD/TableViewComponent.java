@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/08/13 02:59:46  millermi
+ *  - Fixed javadocs.
+ *
  *  Revision 1.2  2004/08/06 18:51:24  millermi
  *  - Added colorscale menu item.
  *  - Added THUMBNAIL_COLOR_SCALE ObjectState key to save the colorscale
@@ -143,7 +146,7 @@ public class TableViewComponent implements IViewComponent2D
   * 1D data is put into an IVirtualArray2D, be sure to "rectangularize" the
   * data. </I> 
   *
-  *  @param  modeled_data Array of data in a TableModel.
+  *  @param  array Array of data wrapped in an IVirtualArray2D.
   */
   public TableViewComponent( IVirtualArray2D array )
   {
