@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.32  2003/10/16 15:18:11  serumb
+ * Fixed java doc errors.
+ *
  * Revision 1.31  2003/09/19 16:59:50  serumb
  * Fixed null pointer exception.
  *
@@ -593,7 +596,7 @@ public BasicStroke strokeType(int key, int graph_num)
 /**
  *  Set the line width for the graph.  
  *
- *  @param  lineWidth   the integer value for the line width
+ *  @param  linewidth   the integer value for the line width
  *
  *  @param  graph_num   the index of the graph.
  *                      The index must be at least zero and less than the
@@ -738,8 +741,8 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
   *  Gets the boolean value to check wether or not to scale the x
   *  values for the graph.
   *
-  *  @param  x_log       the boolean value to determine if the x values 
-  *                      should be scaled.
+  *  @return  log_scale_x    the boolean value to determine if the x values 
+  *                          should be scaled.
   **/
   public boolean getLogScaleX()
   {
@@ -751,8 +754,8 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
  *  Gets the boolean value to check wether or not to scale the y
  *  values for the graph.
  *
- *  @param  y_log       the boolean value to determine if the y values 
- *                      should be scaled.
+ *  @return  log_scale_y  the boolean value to determine if the y values 
+ *                        should be scaled.
  */
   public boolean getLogScaleY()
   {
@@ -856,8 +859,8 @@ public float getY_value( float x_value, int graph_number )
  *  Specify a range of x values to use for the graph.  By default, the x
  *  range is automatically adjusted to the x range of the data.
  *
- *  @param  x_min  the smallest x value to be drawn
- *  @parma  x_max  the largest x value to be drawn
+ *  @param  x_min  The smallest x value to be drawn.
+ *  @param  x_max  Yhe largest x value to be drawn.
  */
 public void setX_bounds( float x_min, float x_max )
 {
@@ -902,8 +905,8 @@ public boolean is_autoX_bounds()
  *  Specify a range of y values to use for the graph.  By default, the y
  *  range is automatically adjusted to the y range of the data.
  *
- *  @param  y_min  the smallest y value to be drawn
- *  @parma  y_max  the largest y value to be drawn
+ *  @param  y_min  The smallest y value to be drawn.
+ *  @param  y_max  The largest y value to be drawn.
  */
 public void setY_bounds( float y_min, float y_max )
 {
