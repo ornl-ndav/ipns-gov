@@ -33,6 +33,14 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2004/01/08 20:14:46  millermi
+ * - Made viewing selection info available.
+ * - Selection defining points stored in attributes now
+ *   converted to world coords.
+ * - Expanded bounds of the SAND Editor.
+ * - Known bug: Graphs corresponding to selections no longer
+ *   disappear when the selection is removed.
+ *
  * Revision 1.10  2004/01/07 06:47:39  millermi
  * - New float Region parameters have been updated.
  *
@@ -125,6 +133,7 @@ import DataSetTools.util.RobustFileFilter;
 import DataSetTools.util.floatPoint2D;
 import DataSetTools.util.SharedData;
 import DataSetTools.util.WindowShower;
+import DataSetTools.util.Format;
 // these imports are for putting data into a dataset, then into DataSetData.
 import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.Data;
@@ -295,11 +304,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     textpane.setEditorKit( new HTMLEditorKit() );
     String text = "<H1>Description:</H1> <P>" + 
                 "The SAND Wedge Viewer (SWV) in an interactive analysis tool." +
-        	" SWV features the ability to make three selections: Wedge, " +
-    		"Double Wedge, and Ellipse. Although other selections are " +
-    		"available, they have no affect in this viewer. Once a " +
+        	" SWV features the ability to make four selections: Wedge, " +
+    		"Double Wedge, Annular, and Ellipse. Once a " +
     		"selection is made on the image, the graph will display " +
-		"the values per hit as a function of distance.</P>" + 
+		"the intensity values per hit as a function of distance a " +
+		"in Q. Selections can be made in two ways: <BR>" +
+		"1. Graphically using the SelectionOverlay<BR>" +
+		"2. Entering defining information by pressing the Manual " +
+		"Selection button.</P>" + 
 		"<H2>Commands for SWV</H2>" +
                 "<P>Note:<BR>" +
         	"Detailed commands can be found under the Overlay help " +
@@ -311,6 +323,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     helper.getContentPane().add(scroll);
     WindowShower shower = new WindowShower(helper);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
  
  /**
@@ -741,10 +754,15 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       float axisangle = def_pts[5].x + def_pts[5].y/2f;
       if( axisangle >= 360 )
         axisangle -= 360;
-      float radius = def_pts[4].x - center.x;
-      attributes[0] = center.x;
-      attributes[1] = center.y;
-      attributes[2] = radius;
+      // tranform from image to world coords
+      floatPoint2D wc_center = world_image_tran.MapTo(center);
+      float radius = world_image_tran.MapXTo(def_pts[4].x) - wc_center.x;
+      // keep radius positive.
+      radius = Math.abs(radius);
+      // round number to 5 digits.
+      attributes[0] = (float)Format.round((double)wc_center.x, 5);
+      attributes[1] = (float)Format.round((double)wc_center.y, 5);
+      attributes[2] = (float)Format.round((double)radius, 5);
       attributes[3] = axisangle;
       attributes[4] = def_pts[5].y;
       end_point = new floatPoint2D( def_pts[1].x, def_pts[1].y );
@@ -765,12 +783,17 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       // build attributes list
       attribute_name = SelectionJPanel.DOUBLE_WEDGE;
       float axisangle = def_pts[5].x + def_pts[5].y/2f;
-      if( axisangle > 359 )
+      if( axisangle >= 360 )
         axisangle -= 360;
-      float radius = def_pts[4].x - center.x;
-      attributes[0] = center.x;
-      attributes[1] = center.y;
-      attributes[2] = radius;
+      // tranform from image to world coords
+      floatPoint2D wc_center = world_image_tran.MapTo(center);
+      float radius = world_image_tran.MapXTo(def_pts[4].x) - wc_center.x;
+      // keep radius positive.
+      radius = Math.abs(radius);
+      // round number to 5 digits.
+      attributes[0] = (float)Format.round((double)wc_center.x, 5);
+      attributes[1] = (float)Format.round((double)wc_center.y, 5);
+      attributes[2] = (float)Format.round((double)radius, 5);
       attributes[3] = axisangle;
       attributes[4] = def_pts[5].y;
       end_point = new floatPoint2D( def_pts[1].x, def_pts[1].y );
@@ -786,12 +809,18 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       end_x = def_pts[1].x - center.x;
       // build attributes list
       attribute_name = SelectionJPanel.ELLIPSE;
-      float major_radius = def_pts[1].x - center.x;
-      float minor_radius = def_pts[1].y - center.y;
-      attributes[0] = center.x;
-      attributes[1] = center.y;
-      attributes[2] = major_radius;
-      attributes[3] = minor_radius;
+      // tranform from image to world coords
+      floatPoint2D wc_center = world_image_tran.MapTo(center);
+      float major_radius = world_image_tran.MapXTo(def_pts[1].x) - wc_center.x;
+      float minor_radius = world_image_tran.MapYTo(def_pts[1].y) - wc_center.y;
+      // keep radii positive.
+      major_radius = Math.abs(major_radius);
+      minor_radius = Math.abs(minor_radius);
+      // round number to 5 digits.
+      attributes[0] = (float)Format.round((double)wc_center.x, 5);
+      attributes[1] = (float)Format.round((double)wc_center.y, 5);
+      attributes[2] = (float)Format.round((double)major_radius, 5);
+      attributes[3] = (float)Format.round((double)minor_radius, 5);
                                       // The following end_point calculation
                                       // may need to be changed ###############
       end_point = new floatPoint2D( center.x + major_radius, center.y );
@@ -810,17 +839,23 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       end_x = def_pts[4].x - center.x;
       // build attributes list
       attribute_name = SelectionJPanel.RING;
-      float inner_radius = def_pts[2].x - center.x;
-      float outer_radius = def_pts[4].x - center.x;
-      attributes[0] = center.x;
-      attributes[1] = center.y;
-      attributes[2] = inner_radius;
-      attributes[3] = outer_radius;
+      // tranform from image to world coords
+      floatPoint2D wc_center = world_image_tran.MapTo(center);
+      float inner_radius = world_image_tran.MapXTo(def_pts[2].x) - wc_center.x;
+      float outer_radius = world_image_tran.MapYTo(def_pts[4].y) - wc_center.y;
+      // keep radii positive.
+      inner_radius = Math.abs(inner_radius);
+      outer_radius = Math.abs(outer_radius);
+      // round number to 5 digits.
+      attributes[0] = (float)Format.round((double)wc_center.x, 5);
+      attributes[1] = (float)Format.round((double)wc_center.y, 5);
+      attributes[2] = (float)Format.round((double)inner_radius, 5);
+      attributes[3] = (float)Format.round((double)outer_radius, 5);
                                       // The following end_point calculation
                                       // needs to be changed ###############
       end_point = new floatPoint2D( center.x + outer_radius, center.y );
     }
-    // should never get to this else, if it does, we have a problem.
+    // should never get to this else, we have an invalid Region.
     else
     {
       return;
@@ -978,6 +1013,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         editor.setCurrentPoint( ivc.getPointedAt() );
 	WindowShower shower = new WindowShower(editor);
         java.awt.EventQueue.invokeLater(shower);
+	shower = null;
       }
     }
   }
@@ -1083,17 +1119,18 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     {
       this_editor = this;
       this_editor.setTitle("SAND Wedge Editor");
-      this_editor.setBounds(0,0,370,300);
+      this_editor.setBounds(0,0,430,300);
       this_editor.getContentPane().setLayout( new GridLayout(1,1) );
       this_editor.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
       
       pane = new Box( BoxLayout.X_AXIS );
       leftpane = new Box( BoxLayout.Y_AXIS );
+      // give left pane 5/8 of the window.
       leftpane.setPreferredSize( new Dimension(
-                                     (int)(this_editor.getWidth()),0) );
+                                     (int)(5*this_editor.getWidth()/8),0) );
       rightpane = new Box( BoxLayout.Y_AXIS );
       rightpane.setPreferredSize( new Dimension(
-                                      (int)(this_editor.getWidth()),0) );
+                                      (int)(3*this_editor.getWidth()/8),0) );
       
       String[] ellipselabels = {"X Center", "Y Center",
                                 "X Radius", "Y Radius"};
@@ -1103,8 +1140,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
                              "Inner Radius", "Outer Radius"};
       String[] cursorlabels = {"X","Y"};
       
-      radiofec.setLabelWidth(14);
-      radiofec.setFieldWidth(6);
+      radiofec.setLabelWidth(10);
+      radiofec.setFieldWidth(10);
       radiofec.addRadioChoice(SelectionJPanel.ELLIPSE,ellipselabels);
       radiofec.addRadioChoice(SelectionJPanel.WEDGE,wedgelabels);
       radiofec.addRadioChoice(SelectionJPanel.DOUBLE_WEDGE,
@@ -1125,8 +1162,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * editing of selections. This cannot be done until the IVC passes
       * world coords to this viewer.
       */
-      //selectlist.addActionListener( new EditorListener() );
-      selectlist.setEnabled(false);
+      selectlist.addActionListener( new EditorListener() );
+      //selectlist.setEnabled(false);
       
       buildComboBox();
       rightpane.add( selectlist );
@@ -1159,6 +1196,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     */ 
     protected void selectionChanged()
     {
+      radiofec.clearAllValues();
       buildComboBox();
       rightpane.validate();
       this_editor.repaint();
@@ -1399,7 +1437,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	           (Float1DAttribute)data.getAttribute(SelectionJPanel.ELLIPSE);
 	      float[] attlist = att.getFloatValue();
 	      for( int i = 0; i < attlist.length; i++ )
-	        radiofec.setValue( i-1,attlist[i] );
+	        radiofec.setValue( i,attlist[i] );
 	    }
 	    else if( ((String)selectlist.getSelectedItem()).indexOf(
 	                                   SelectionJPanel.DOUBLE_WEDGE) >= 0 )
@@ -1409,7 +1447,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	            data.getAttribute(SelectionJPanel.DOUBLE_WEDGE);
 	      float[] attlist = att.getFloatValue();
 	      for( int i = 0; i < attlist.length; i++ )
-	        radiofec.setValue( i-1,attlist[i] );
+	        radiofec.setValue( i,attlist[i] );
 	    }
 	    else if( ((String)selectlist.getSelectedItem()).indexOf(
 	                                   SelectionJPanel.WEDGE) >= 0 )
@@ -1419,7 +1457,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	             (Float1DAttribute)data.getAttribute(SelectionJPanel.WEDGE);
 	      float[] attlist = att.getFloatValue();
 	      for( int i = 0; i < attlist.length; i++ )
-	        radiofec.setValue( i-1,attlist[i] );
+	        radiofec.setValue( i,attlist[i] );
 	    }
 	    else if( ((String)selectlist.getSelectedItem()).indexOf(
 	                                   SelectionJPanel.RING) >= 0 )
@@ -1429,7 +1467,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	             (Float1DAttribute)data.getAttribute(SelectionJPanel.RING);
 	      float[] attlist = att.getFloatValue();
 	      for( int i = 0; i < attlist.length; i++ )
-	        radiofec.setValue( i-1,attlist[i] );
+	        radiofec.setValue( i,attlist[i] );
 	    }
 	  }
 	  this_editor.validate();
@@ -1450,6 +1488,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       wedgeviewer.loadData( args[0] );
     WindowShower shower = new WindowShower(wedgeviewer);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
 
 }
