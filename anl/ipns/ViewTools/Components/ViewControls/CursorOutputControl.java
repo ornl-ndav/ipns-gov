@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/02/06 18:02:10  millermi
+ *  - Added valid interval to setValue() javadocs.
+ *  - setValue() now checks if index is valid, does nothing
+ *    if the index is invalid.
+ *
  *  Revision 1.5  2004/01/05 18:14:06  millermi
  *  - Replaced show()/setVisible(true) with WindowShower.
  *  - Removed excess imports.
@@ -124,11 +129,14 @@ public class CursorOutputControl extends ViewControl
   * This function sets the value to be displayed in the text area.
   *
   * @param index The int which represents the text area for the value to
-  *		  be displayed in.
+  *		 be displayed in, on interval [0,num_textareas - 1].
   * @param value The floating point value to be dispyaled.
   */
   public void setValue(int index, float value)
   {
+    // prevent index out of bounds exception.
+    if( index >= TextField.length )
+      return;
     TextField[index][0].setValue(value);
   }
 
@@ -136,12 +144,18 @@ public class CursorOutputControl extends ViewControl
   * This function sets the value to be displayed in the text area for a
   * 2-D group of textfields.
   *
-  * @param row The row number of this textfield
-  * @param col The column number of this textfield
+  * @param row The row number of this textfield, on interval [0,#rows-1]
+  * @param col The column number of this textfield, on interval [0,#cols-1]
   * @param value The floating point value to be dispyaled.
   */
   public void setValue(int row, int col, float value)
   {
+    // prevent index out of bounds exception.
+    if( row >= TextField.length )
+      return;
+    if( col >= TextField[0].length )
+      return;
+    
     TextField[row][col].setValue(value);
   }
   
@@ -160,8 +174,10 @@ public class CursorOutputControl extends ViewControl
 	menu[i][j] = "Menu" + Integer.toString(i) + Integer.toString(j);
     CursorOutputControl coc = new CursorOutputControl( menu );
     coc.setTitle("Border");
+    coc.setValue( 0,2,.1f);
     tester.getContentPane().add(coc);
     WindowShower shower = new WindowShower(tester);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
 } 
