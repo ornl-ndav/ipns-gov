@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.40  2003/11/21 02:51:08  millermi
+ *  - improved efficiency of paintComponents() and other aspects
+ *    that repaint the IVC.
+ *
  *  Revision 1.39  2003/11/21 00:48:14  millermi
  *  - Changed how the IVC updated the PanViewControl,
  *    now uses method refreshData().
@@ -1090,11 +1094,13 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     if( g != null )
     {
+      big_picture.update(g);
+      /*
       for( int i = big_picture.getComponentCount(); i > 0; i-- )
       {
 	if( big_picture.getComponent( i - 1 ).isVisible() )
           big_picture.getComponent( i - 1 ).update(g);
-      }
+      }*/
     }
     Component temppainter = big_picture;
     while( temppainter.getParent() != null )
@@ -1271,14 +1277,6 @@ public class ImageViewComponent implements IViewComponent2D,
     controls[4] = new ControlCheckboxButton();  // initially unchecked
     ((ControlCheckboxButton)controls[4]).setTitle("Annotation Overlay");
     controls[4].addActionListener( new ControlListener() );
-    /*
-    ImageJPanel ijp_copy = new ImageJPanel();
-    ijp_copy.setGlobalWorldCoords( global_bounds );
-    ijp_copy.setLocalWorldCoords( local_bounds );
-    //Make ijp correspond to the data in f_array
-    ijp_copy.setData( Varray2D.getRegionValues(0, MAXDATASIZE, 0, MAXDATASIZE),
-   		      true);
-    controls[5] = new PanViewControl(ijp_copy); */
     controls[5] = new PanViewControl(ijp);
     //((PanViewControl)controls[5]).setLocalBounds( ijp.getLocalWorldCoords() );
     controls[5].addActionListener( new ControlListener() );     
@@ -1570,8 +1568,6 @@ public class ImageViewComponent implements IViewComponent2D,
         buildViewComponent();
         ((ControlCheckboxButton)controls[2]).setSelected(true);
         ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
-        big_picture.setVisible(false);
-        big_picture.setVisible(true);
       }
       else if( message.equals("Right of Image (calibrated)") )
       {
@@ -1582,8 +1578,6 @@ public class ImageViewComponent implements IViewComponent2D,
         buildViewComponent();
         ((ControlCheckboxButton)controls[2]).setSelected(true);
         ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
-        big_picture.setVisible(false);
-        big_picture.setVisible(true);
       }
       else if( message.equals("None") )
       {
@@ -1594,10 +1588,8 @@ public class ImageViewComponent implements IViewComponent2D,
         buildViewComponent();
         ((ControlCheckboxButton)controls[2]).setSelected(true);
         ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
-        big_picture.setVisible(false);
-        big_picture.setVisible(true);
       }
-      // else its a color scale choice.
+      // else change color scale.
       else
       {
 	colorscale = message;
@@ -1607,7 +1599,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	((PanViewControl)controls[5]).refreshData();
       }
       sendMessage( message );
-      paintComponents( big_picture.getGraphics() ); 
+      background.validate();
+      paintComponents( big_picture.getGraphics() );
     }
   }
 
