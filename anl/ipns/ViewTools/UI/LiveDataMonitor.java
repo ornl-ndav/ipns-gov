@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2001/08/14 19:19:29  dennis
+ *  Displays status messages in label, not on command line.
+ *
  *  Revision 1.18  2001/08/14 15:16:28  dennis
  *  Temporarily displays status messages on console.
  *
@@ -141,11 +144,15 @@ public class LiveDataMonitor extends    JPanel
                                         Serializable 
         
 {
-  public static final Color  BACKGROUND = Color.white;
-  public static final Color  FOREGROUND = Color.black;
+  public static final Color  BACKGROUND  = Color.white;
+  public static final Color  FOREGROUND  = Color.black;
+  public static final Color  ALERT_COLOR = Color.red;
   private String           data_source_name = "";
+  private String           current_status   
+                                   = RemoteDataRetriever.NOT_CONNECTED_STRING;
   private LiveDataManager  data_manager = null;
   private JLabel           status_label = new JLabel();
+  private JLabel           source_label = new JLabel();
   private ViewManager      viewers[]    = new ViewManager[0];
   private JCheckBox        show_box[]   = new JCheckBox[0];
   private JCheckBox        auto_box[]   = new JCheckBox[0];
@@ -171,15 +178,6 @@ public class LiveDataMonitor extends    JPanel
 
     data_manager = new LiveDataManager( data_source_name );
     data_manager.addActionListener( new DataManagerListener() );
-    int num_ds   = data_manager.numDataSets();
-
-    if ( num_ds <= 0 )
-    { 
-      setLayout( new GridLayout( 1, 1 ) );
-      status_label.setText( data_source_name + "  HAS NO DATA SETS");
-      add( status_label );
-    }
-
     observers = new IObserverList();
 
     SetUpGUI();
@@ -254,7 +252,7 @@ public class LiveDataMonitor extends    JPanel
     if ( data_manager != null )
       return data_manager.numDataSets();
     else
-      return LiveDataManager.NO_DATA_MANAGER; 
+      return 0; 
   }
 
 /**
@@ -404,18 +402,16 @@ public class LiveDataMonitor extends    JPanel
   private String ErrorMessage()
   {
     if ( data_manager == null )
-      return " --> " + LiveDataManager.NO_DATA_MANAGER;
+      return "ERROR: No DataManager!!!";
 
     int code = data_manager.numDataSets();
 
     if ( code >= 0 )
-      return " --> has " + code + " DataSets";       
+      return "" + code + " DataSets";       
  
-    if ( code == data_manager.NO_CONNECTION )
-      return " --> Not Connected";
-    
-    return " --> " + RemoteDataRetriever.error_message( code );
+    return  RemoteDataRetriever.error_message( code );
   }
+
 
   /* ------------------------------ SetUpGUI ------------------------------- */
 
@@ -447,21 +443,31 @@ public class LiveDataMonitor extends    JPanel
 
     JPanel label_panel  = new JPanel();
     label_panel.setLayout( new GridLayout( 1, 1 ) );
-    status_label.setText( data_source_name.toUpperCase() + ErrorMessage() );
+
+    source_label.setText( data_source_name.toUpperCase() );
+    source_label.setFont( FontUtil.BORDER_FONT );
+    source_label.setBackground( BACKGROUND );
+    source_label.setForeground( FOREGROUND );
+    source_label.setHorizontalAlignment( SwingConstants.CENTER );
+    source_label.setHorizontalTextPosition( SwingConstants.CENTER );
+    source_label.setVerticalAlignment( SwingConstants.CENTER );
+    source_label.setVerticalTextPosition( SwingConstants.CENTER );
+
+    status_label.setText( ErrorMessage() );
     status_label.setFont( FontUtil.BORDER_FONT );
-    status_label.setMinimumSize( new Dimension(50, 10) );
-    status_label.setPreferredSize( new Dimension(50, 10) );
+    status_label.setBackground( BACKGROUND );
+    status_label.setForeground( FOREGROUND );
     status_label.setHorizontalAlignment( SwingConstants.CENTER );
     status_label.setHorizontalTextPosition( SwingConstants.CENTER );
     status_label.setVerticalAlignment( SwingConstants.CENTER );
     status_label.setVerticalTextPosition( SwingConstants.CENTER );
-    status_label.setBackground( BACKGROUND );
-    status_label.setForeground( FOREGROUND );
+
     TitledBorder border = new TitledBorder( LineBorder.createBlackLineBorder(),
                                             "Data Source:" );
     border.setTitleFont( FontUtil.BORDER_FONT );
     border.setTitleColor( FOREGROUND );
     label_panel.setBorder( border );
+    label_panel.add( source_label );
     label_panel.add( status_label );
     label_panel.setBackground( BACKGROUND );
     panel_box.add( label_panel );
@@ -709,7 +715,21 @@ public class LiveDataMonitor extends    JPanel
         SetUpGUI();
 
       else
-        System.out.println( message );
+      { 
+        if ( message.startsWith( RemoteDataRetriever.DAS_OFFLINE_STRING )  ||
+             message.startsWith( RemoteDataRetriever.DATA_OLD_STRING )    )
+        { 
+          status_label.setForeground( ALERT_COLOR );
+          status_label.setText( message ); 
+        }
+        else
+        {
+          status_label.setForeground( FOREGROUND );
+          status_label.setText( message ); 
+        }
+
+        current_status = message;
+      }
     }
   }
 
