@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.65  2005/01/11 15:34:09  dennis
+ *  Commented out debug print.
+ *
  *  Revision 1.64  2005/01/10 16:16:00  dennis
  *  Added check for existence of GraphData object before using it.
  *
@@ -1164,14 +1167,15 @@ public class FunctionViewComponent implements IViewComponent1D,
       }
     }
   }
+
   private class ControlListener implements ActionListener {
     //~ Methods ****************************************************************
 
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
 
-      System.out.println( "action command: " + message );
-      System.out.println( "action event: " + ae );
+//    System.out.println( "action command: " + message );
+//    System.out.println( "action event: " + ae );
       if( message.equals( ControlCheckbox.CHECKBOX_CHANGED ) ) {
         ControlCheckbox control = ( ControlCheckbox )ae.getSource(  );
         
