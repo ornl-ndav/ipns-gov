@@ -2,6 +2,9 @@
  * @(#)arrayUtil.java  1999/01/10   Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.5  2000/07/26 20:48:57  dennis
+ *  added method to interpolate in tables of x,y values
+ *
  *  Revision 1.4  2000/07/21 14:24:26  dennis
  *  Added binary search of a portion of an array of integers
  *
@@ -163,6 +166,48 @@ public class arrayUtil
       return -1;                          // first & last have crossed, so
                                           // not in list
    }
+
+
+/**
+ *  Obtain an approximate value for y(x) by interpolating using tables of 
+ *  values for x and y.  If the x_value is outside of the interval of x values
+ *  in the table, this returns the first or last y value.  The table of 
+ *  x values must be in order and should all be distinct.
+ *
+ *  @param  x_value      the x value for which the corresponding y value is to
+ *                       be interpolated
+ *  @param  x[]          array of x values
+ *  @param  y[]          array of corresponding y values.  There must be
+ *                       at least as many y values as x values.  
+ *
+ *  @return interpolated y value at the specified x value
+ */
+public static float interpolate( float x_value, float x[], float y[] )
+{
+  if ( x_value < x[0] )
+    return y[0];
+
+  if ( x_value > x[x.length-1] )
+    if ( x.length <= y.length )
+      return y[ x.length - 1 ];
+    else
+      return y[ y.length - 1 ];         // take the closest value we have
+
+  int index = arrayUtil.get_index_of( x_value, x );
+
+  if ( x_value == x[index] )            // if exact value is in list, return
+    return y[index];                    // the corresponding y value.
+
+  float x1 = x[index];                  // x_value between two listed x_vals
+  float x2 = x[index + 1];
+
+  if ( x1 == x2 )                       // duplicate x values 
+    return y[index];  
+
+  float y1 = y[index];                  // otherwise, interpolate
+  float y2 = y[index+1];
+  return y1 + ( x_value - x1 )*( y2 - y1 ) / ( x2 - x1 );
+}
 
 
 
