@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.49  2005/03/14 19:23:37  serumb
+ * Added calls for getting the button controls and the combobox controls.
+ *
  * Revision 1.48  2005/03/11 19:45:42  serumb
  * Added get and set Object State methods and changed the call to
  * set stroke to use an integer key.
@@ -489,9 +492,9 @@ import javax.swing.border.*;
    
     LineColor   = new ButtonControl( "Line Color" );
     MarkColor   = new ButtonControl( "Point Marker Color" );
-    MarkColor.button.setForeground( Color.red );
+    MarkColor.getButton().setForeground( Color.red );
     ErrorColor  = new ButtonControl( "Error Bar Color" );
-    ErrorColor.button.setForeground( Color.blue );
+    ErrorColor.getButton().setForeground( Color.blue );
     axis_checkbox.setTitle( "Axis Overlay" );
     annotation_checkbox.setTitle( "Annotation Overlay" );
     legend_checkbox.setTitle( "Legend Overlay" );
@@ -506,33 +509,33 @@ import javax.swing.border.*;
     panel1.setLayout( G_lout );
     panel2.setLayout( G_lout );
     panel3.setLayout( G_lout );
-    panel1.add( LineColor.button );
-    panel2.add( MarkColor.button );
-    panel3.add( ErrorColor.button );
+    panel1.add( LineColor.getButton() );
+    panel2.add( MarkColor.getButton() );
+    panel3.add( ErrorColor.getButton() );
                                                                                    
     // the left box is the left side of the control panel
-    leftBox.add( labelbox1.theBox );
-    leftBox.add( labelbox2.theBox );
-    leftBox.add( labelbox3.theBox );
+    leftBox.add( labelbox1.getBox() );
+    leftBox.add( labelbox2.getBox() );
+    leftBox.add( labelbox3.getBox() );
     leftBox.add( panel1 );
-    leftBox.add( labelbox4.theBox );
-    leftBox.add( labelbox5.theBox );
+    leftBox.add( labelbox4.getBox() );
+    leftBox.add( labelbox5.getBox() );
     leftBox.add( panel2 );
-    leftBox.add( labelbox6.theBox );
+    leftBox.add( labelbox6.getBox() );
     leftBox.add( panel3 );
-    leftBox.add( labelbox7.theBox );
-    leftBox.add( labelbox9.theBox );
+    leftBox.add( labelbox7.getBox() );
+    leftBox.add( labelbox9.getBox() );
         
                                                                                  
-    LineBox              = labelbox1.cbox;
-    LineStyleBox         = labelbox2.cbox;
-    LineWidthBox         = labelbox3.cbox;
-    PointMarkerBox       = labelbox4.cbox;
-    PointMarkerSizeBox   = labelbox5.cbox;
-    ErrorBarBox          = labelbox6.cbox;
-    ShiftBox             = labelbox7.cbox;
-    ShiftFactor          = labelbox9.cbox;
-    LogBox               = labelbox8.cbox;
+    LineBox              = labelbox1.getCBox();
+    LineStyleBox         = labelbox2.getCBox();
+    LineWidthBox         = labelbox3.getCBox();
+    PointMarkerBox       = labelbox4.getCBox();
+    PointMarkerSizeBox   = labelbox5.getCBox();
+    ErrorBarBox          = labelbox6.getCBox();
+    ShiftBox             = labelbox7.getCBox();
+    ShiftFactor          = labelbox9.getCBox();
+    LogBox               = labelbox8.getCBox();
     
    
     control_box.add(leftBox);
@@ -739,7 +742,7 @@ import javax.swing.border.*;
           Color c = JColorChooser.showDialog( null, "color chart", Color.black );
 
           if( c != null ) {
-            LineColor.button.setForeground( c );
+            LineColor.getButton().setForeground( c );
             gjp.setColor( c, line_index, true );
           }
         }
@@ -748,7 +751,7 @@ import javax.swing.border.*;
           Color m = JColorChooser.showDialog( null, "color chart", Color.black );
 
           if( m != null ) {
-            MarkColor.button.setForeground( m );
+            MarkColor.getButton().setForeground( m );
             gjp.setMarkColor( m, line_index, true );
           }
         }
@@ -756,7 +759,7 @@ import javax.swing.border.*;
           Color e = JColorChooser.showDialog( null, "color chart", Color.black );
 
           if( e != null ) {
-            ErrorColor.button.setForeground( e );
+            ErrorColor.getButton().setForeground( e );
             gjp.setErrorColor( e, line_index, true );
           }
         }
@@ -893,9 +896,9 @@ import javax.swing.border.*;
             ErrorBarBox.setSelectedIndex( 3 );
           }
 
-            MarkColor.button.setForeground( gjp.getMarkColor(line_index) );
-            LineColor.button.setForeground( gjp.getColor(line_index) );
-            ErrorColor.button.setForeground( gjp.getErrorColor(line_index) );
+            MarkColor.getButton().setForeground( gjp.getMarkColor(line_index) );
+            LineColor.getButton().setForeground( gjp.getColor(line_index) );
+            ErrorColor.getButton().setForeground( gjp.getErrorColor(line_index) );
           
         /*
           Sets the appropriate line style
