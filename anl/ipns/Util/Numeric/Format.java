@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/07/05 19:36:03  dennis
+ *  - Fixed bug in choiceFormat() which did not take into account (-) or (.).
+ *  - Fixed bug in setE() which did not account for numbers represented with
+ *    exponents. (Mike Miller)
+ *  - Merged with previous CVS version. (dennis)
+ *
  *  Revision 1.11  2003/06/02 22:07:33  bouzekc
  *  Added a method to format an int by padding with zeroes
  *  (rather than spaces).
@@ -101,9 +107,9 @@ public class Format
    *  values.
    *
    *  @param  num          The number to format
-   *  @param  field_width  The total number of spaces to be used for the number.  
-   *                       If the formatted number does not occupy all of the
-   *                       spaces, leading blanks will be prepended.
+   *  @param  field_width  The total number of spaces to be used for the 
+   *                       number.  If the formatted number does not occupy 
+   *                       all of the spaces, leading blanks will be prepended.
    *                       If more spaces are needed, they will be used.
    *
    *  @return A string containing the formatted number with at least the
@@ -130,6 +136,16 @@ public class Format
                                       int sig_digits )
    {
       num = round(num,sig_digits); 
+
+      // if number has a decimal or is negative, increase field width by one.
+
+      String snum = Double.toString(num);
+
+      if( snum.indexOf("-") >= 0 )
+        sig_digits = sig_digits + 1;
+
+      if( snum.indexOf(".") >= 0 )
+        sig_digits = sig_digits + 1;
       
       if( form == AUTO )
       {
@@ -211,6 +227,17 @@ public class Format
   /**
    *  Format a real number into a string number with a specified exponent. 
    *
+   *  NOTE: If num cannot be expressed by at_exp with the significant
+   *        digits specified (sig_dig), an additional exponent will be added
+   *        to the returned string. When using this method, use lastIndexOf("E")
+   *        instead of indexOf("E") from the String class to find the
+   *        at_exp exponent. If another exponent exists, this was the exponent
+   *        required to fit num into the significant digits specified.
+   *
+   *  Example: .000012345 written as a power of E3 with 4 significant digits
+   *           would be represented: 1.235E-8E3 where 1.235E-8 is num and E3 is
+   *           the power it is to be expressed as.
+   *
    *  @param  num           The number to format
    *  @param  at_exp        The exponent the number will be converted to.
    *  @param  sig_dig       Significant digits to round the number.
@@ -270,34 +297,48 @@ public class Format
       snum = Double.toString(num);
       if(sign == -1)
          snum = "-" + snum;
-      // String must be at least as long as the number of significant digits.
-      // The "+2" takes into account negative sign and decimal.
-      while( snum.length() < sig_dig + 2 )
-         snum = snum + "0";
-      int predecimal = 1 + (numex - at_exp);
-      if( predecimal > sig_dig )
-      {
-         SharedData.addmsg("WARNING -- Specified significant digits not " + 
-     			   "sufficient. Number exceeds significant digits.");
-         sig_dig = predecimal;
-      }
 
-      if( predecimal - sig_dig != 0 )
-      {  // take into account the negative sign
-         if( sign < 0 )
-            sig_dig++;
-         snum = snum.substring(0, sig_dig + 1);
+      // if number is too big/small to be expressed with at_exp
+      String extra_exp = "";
+      int index = snum.indexOf("E");
+      if( index != -1 )
+      {
+         extra_exp = snum.substring( index );
+         snum = snum.substring(0, index);
       }
       else
-      {  // take into account the negative sign
-         if( sign < 0 )
+      {
+        // String must be at least as long as the number of significant digits.
+        // The "+2" takes into account negative sign and decimal.
+        while( snum.length() < sig_dig + 2 )
+          snum = snum + "0";
+        int predecimal = 1 + (numex - at_exp);
+        if( predecimal > sig_dig )
+        {/*
+          SharedData.addmsg("WARNING -- Specified significant digits not " +
+                            "sufficient. Number exceeds significant digits.");
+          */
+          sig_dig = predecimal;
+        }
+
+        if( predecimal - sig_dig != 0 )
+        {  // take into account the negative sign
+          if( sign < 0 )
             sig_dig++;
-         snum = snum.substring(0, sig_dig);         
+          snum = snum.substring(0, sig_dig + 1);
+        }
+        else
+        {  // take into account the negative sign
+          if( sign < 0 )
+            sig_dig++;
+          snum = snum.substring(0, sig_dig);
+        }
       }
-      snum = snum + "E" + Integer.toString(at_exp);
+      snum = snum + extra_exp + "E" + Integer.toString(at_exp);
     }
     return snum;
    }
+
 
   /**
    *  Format a real number into a string.
@@ -331,9 +372,9 @@ public class Format
    *  Format a real number into a string with no grouping symbol.
    *
    *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   
-   *                       If the formatted number does not occupy all of the
-   *                       spaces, leading blanks will be prepended.
+   *  @param field_width   The total number of spaces to be used for the 
+   *                       number.  If the formatted number does not occupy 
+   *                       all of the spaces, leading blanks will be prepended.
    *                       If more spaces are needed, they will be used.
    *  @param num_digits    The number of digits to use after the decimal point.
    *
@@ -378,9 +419,9 @@ public class Format
    *  values. 
    *
    *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   
-   *                       If the formatted number does not occupy all of the
-   *                       spaces, leading blanks will be prepended.
+   *  @param field_width   The total number of spaces to be used for the 
+   *                       number.  If the formatted number does not occupy 
+   *                       all of the spaces, leading blanks will be prepended.
    *                       If more spaces are needed, they will be used.
    *
    *  @return  A string containing the formatted number with at least the
@@ -400,11 +441,11 @@ public class Format
    *  with fifteen digits after the decimal, appropriate for double precision
    *  values.
    *
-   *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   
-   *                       If the formatted number does not occupy all of the
-   *                       spaces, leading blanks will be prepended.
-   *                       If more spaces are needed, they will be used.
+   *  @param num          The number to format
+   *  @param field_width  The total number of spaces to be used for the number. 
+   *                      If the formatted number does not occupy all of the
+   *                      spaces, leading blanks will be prepended.
+   *                      If more spaces are needed, they will be used.
    *
    *  @return  A string containing the formatted number with at least the
    *           specified number of characters.
@@ -422,13 +463,13 @@ public class Format
   /**
    *  Format an integer into a string.
    *
-   *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   
-   *                       If the formatted number does not occupy all of the
-   *                       spaces, leading blanks will be prepended.
-   *                       If more spaces are needed, they will be used.
-   *  @param use_grouping  Flag indicating whether or not a grouping symbol is
-   *                       used between groups of three digits.
+   *  @param num          The number to format
+   *  @param field_width  The total number of spaces to be used for the number.
+   *                      If the formatted number does not occupy all of the
+   *                      spaces, leading blanks will be prepended.
+   *                      If more spaces are needed, they will be used.
+   *  @param use_grouping Flag indicating whether or not a grouping symbol is
+   *                      used between groups of three digits.
    *
    *  @return  A string containing the formatted number with at least the 
    *           specified number of characters.  
@@ -444,11 +485,11 @@ public class Format
   /** 
    *  Format an integer into a string with no grouping symbols
    *  
-   *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   
-   *                       If the formatted number does not occupy all of the
-   *                       spaces, leading blanks will be prepended.
-   *                       If more spaces are needed, they will be used.
+   *  @param num          The number to format
+   *  @param field_width  The total number of spaces to be used for the number. 
+   *                      If the formatted number does not occupy all of the
+   *                      spaces, leading blanks will be prepended.
+   *                      If more spaces are needed, they will be used.
    *  
    *  @return  A string containing the formatted number with at least the
    *           specified number of characters.
@@ -464,11 +505,11 @@ public class Format
    *  Format an integer into a string, padded with zeroes,
    *  with no grouping symbols
    *  
-   *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   
-   *                       If the formatted number does not occupy all of the
-   *                       spaces, leading blanks will be prepended.
-   *                       If more spaces are needed, they will be used.
+   *  @param num          The number to format
+   *  @param field_width  The total number of spaces to be used for the number. 
+   *                      If the formatted number does not occupy all of the
+   *                      spaces, leading blanks will be prepended.
+   *                      If more spaces are needed, they will be used.
    *  
    *  @return  A string containing the formatted number with at least the
    *           specified number of characters.
