@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2003/09/24 01:33:39  millermi
+ *  - Added static variables to be used as keys by ObjectState
+ *  - Added methods setObjectState() and getObjectState() to adjust to
+ *    changes made in OverlayJPanel.
+ *  - Added componentResized() listener to set editor bounds
+ *    when the editor is resized.
+ *
  *  Revision 1.14  2003/08/14 21:47:30  millermi
  *  - AnnotationEditor now extends JFrame, makes use of repaint instead of
  *    always rebuilding the editor.
@@ -151,6 +158,7 @@ import javax.swing.text.Keymap;
 import javax.swing.event.*;
 import java.awt.image.IndexColorModel;
 
+import DataSetTools.components.View.ObjectState;
 import DataSetTools.components.View.TwoD.IZoomTextAddible;
 import DataSetTools.components.View.Cursor.AnnotationJPanel;
 import DataSetTools.components.View.Cursor.LineCursor;
@@ -164,8 +172,16 @@ import DataSetTools.util.floatPoint2D;
  * This class allows a user to write comments near a region on the 
  * IZoomTextAddible component. 
  */
-public class AnnotationOverlay extends OverlayJPanel 
+public class AnnotationOverlay extends OverlayJPanel
 {
+  // these public variables are used to preserve the annotation state
+  public static final String NOTES        = "Notes";
+  public static final String LINE_COLOR   = "Line Color";
+  public static final String TEXT_COLOR   = "Text Color";
+  public static final String FONT         = "Font";
+  public static final String DEFAULT_FONT = "Default Font";
+  public static final String EDITOR_BOUNDS  = "Editor Bounds";
+  
   private AnnotationJPanel overlay;	 // panel overlaying the center jpanel
   private IZoomTextAddible component;	 // component being passed
   private Vector notes; 		 // all annotations
@@ -174,9 +190,11 @@ public class AnnotationOverlay extends OverlayJPanel
   private Color line_color;		 // annotation arrow color
   private Color text_color;		 // annotation text color
   private AnnotationEditor editor;
+  // if ADD_COMPONENTS changes in the editor, the 5 should be incremented in
+  // the statement below.
+  private Rectangle editor_bounds = new Rectangle(0,0,200,(35 * 5) );
   private Font font;
   private Font default_font;
-  private boolean first = true;
   private CoordTransform pixel_local;
   
  /**
@@ -267,6 +285,80 @@ public class AnnotationOverlay extends OverlayJPanel
     helper.getContentPane().add(scroll);
     helper.setVisible(true);
   }
+   
+  /**
+   * This method will set the current state variables of the object to state
+   * variables wrapped in the ObjectState passed in.
+   *
+   *  @param new_state
+   */
+   public void setObjectState( ObjectState new_state )
+   { 
+     boolean redraw = false;  // if any values are changed, repaint overlay.
+     Object temp = new_state.get(NOTES);
+     if( temp != null )
+     {
+       notes = ((Vector)temp);
+       redraw = true;  
+     }
+     
+     temp = new_state.get(LINE_COLOR);
+     if( temp != null )
+     {
+       line_color = (Color)temp;
+       redraw = true;  
+     } 
+     
+     temp = new_state.get(TEXT_COLOR);
+     if( temp != null )
+     {
+       text_color = (Color)temp;
+       redraw = true;  
+     }   
+     
+     temp = new_state.get(FONT);
+     if( temp != null )
+     {
+       font = ((Font)temp); 
+       redraw = true;  
+     }  
+     
+     temp = new_state.get(DEFAULT_FONT);
+     if( temp != null )
+     {
+       default_font = ((Font)temp); 
+       redraw = true;  
+     }  
+     
+     temp = new_state.get(EDITOR_BOUNDS);
+     if( temp != null )
+     {
+       editor_bounds = (Rectangle)temp;
+       if( editor.isVisible() )
+         editor.setBounds( editor_bounds );  
+     }
+     
+     if( redraw )
+       this_panel.repaint(); 
+   }
+  
+  /**
+   * This method will get the current values of the state variables for this
+   * object. These variables will be wrapped in an ObjectState. Keys will be
+   * put in alphabetic order.
+   */ 
+   public ObjectState getObjectState()
+   {
+     ObjectState state = new ObjectState();
+     state.insert( NOTES, notes );
+     state.insert( LINE_COLOR, line_color );
+     state.insert( TEXT_COLOR, text_color );
+     state.insert( FONT, font );
+     state.insert( DEFAULT_FONT, default_font );
+     state.insert( EDITOR_BOUNDS, editor_bounds );
+     
+     return state;
+   }
   
  /**
   * This method sets the text color of all annotations. Initially set to black.
@@ -736,15 +828,20 @@ public class AnnotationOverlay extends OverlayJPanel
     private Font[] fonts;
    
    /*
-    * constructs a new annotation editor. The buildViewer() will make this
-    * instance visible.
+    * constructs a new annotation editor.
     */ 
     public AnnotationEditor()
     {
       super("Annotation Editor");
       this_viewer = this;
       current_fontsize = font.getSize();
-      this.setBounds(0,0,200,(35 * (notes.size() + ADD_COMPONENTS)) );
+      int height = 35 * (ADD_COMPONENTS + notes.size() );
+      if( editor_bounds.getHeight() > height )
+        height = (int)editor_bounds.getHeight();
+      this.setBounds( (int)editor_bounds.getX(), (int)editor_bounds.getY(), 
+                      (int)editor_bounds.getWidth(), height );
+      this.addComponentListener( new EditorListener() );
+      this.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
       this.getContentPane().setLayout( 
         	     new GridLayout(notes.size() + ADD_COMPONENTS, 1) );
       
@@ -864,7 +961,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	  this_panel.repaint();
         }
         else if( message.equals("Close") )
-        {   
+        {  
           this_viewer.setVisible(false);
           this_panel.repaint();
         }
@@ -1068,6 +1165,14 @@ public class AnnotationOverlay extends OverlayJPanel
  	  this_panel.repaint();
  	}
       }
-    } // end ComboBoxListener	      
+    } // end ComboBoxListener
+     
+    class EditorListener extends ComponentAdapter
+    {
+      public void componentResized( ComponentEvent we )
+      {
+    	editor_bounds = editor.getBounds();
+      }
+    }	     
   }
 }

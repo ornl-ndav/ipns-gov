@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2003/09/24 01:32:40  millermi
+ *  - Added static variables to be used as keys by ObjectState
+ *  - Added methods setObjectState() and getObjectState() to adjust to
+ *    changes made in OverlayJPanel.
+ *  - Added componentResized() listener to set editor bounds
+ *    when the editor is resized.
+ *
  *  Revision 1.13  2003/08/14 21:46:32  millermi
  *  - Added toFront() to AxisEditor to display it over the viewer.
  *  - Added grid color changing abilities to AxisEditor
@@ -91,6 +98,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import DataSetTools.components.View.*;
@@ -100,7 +109,12 @@ import DataSetTools.components.View.TwoD.ImageViewComponent;
 import DataSetTools.util.Format; 
 import java.lang.Math;
 
-public class AxisOverlay2D extends OverlayJPanel 
+/**
+ * This class is used by view components to calibrate a JPanel. Besides
+ * calibration, axis labels and graph title are set here. To add grid lines,
+ * make a call to editGridLines() to view the AxisEditor.
+ */
+public class AxisOverlay2D extends OverlayJPanel
 {
    public static final int NO_AXES = 0;
    public static final int X_AXIS = 1;
@@ -108,6 +122,18 @@ public class AxisOverlay2D extends OverlayJPanel
    public static final int DUAL_AXES = 3;
    public static final boolean LINEAR = true;
    public static final boolean LOG    = false;
+   // these public variables are for preserving axis state information
+   public static final String PRECISION      = "Precision";
+   public static final String FONT           = "Font";
+   public static final String AXES_DISPLAYED = "Axes Displayed";
+   public static final String DRAW_LINEAR_X  = "Draw Linear X";
+   public static final String DRAW_LINEAR_Y  = "Draw Linear Y";
+   public static final String TWO_SIDED      = "Two Sided";
+   public static final String GRID_DISPLAY_X = "Grid Display X";
+   public static final String GRID_DISPLAY_Y = "Grid Display Y";
+   public static final String GRID_COLOR     = "Grid Color";
+   public static final String EDITOR_BOUNDS  = "Editor Bounds";
+   
    // these variables simulate the interval of values of the data
    private float xmin;
    private float xmax;
@@ -130,6 +156,7 @@ public class AxisOverlay2D extends OverlayJPanel
    private AxisOverlay2D this_panel;
    private AxisEditor editor;
    private Color gridcolor = Color.black;
+   private Rectangle editor_bounds = new Rectangle(0,0,400,110);
    
   /**
    * Default constructor
@@ -217,6 +244,112 @@ public class AxisOverlay2D extends OverlayJPanel
    }
    
   /**
+   * This method will set the current state variables of the object to state
+   * variables wrapped in the ObjectState passed in.
+   *
+   *  @param new_state
+   */
+   public void setObjectState( ObjectState new_state )
+   {
+     boolean redraw = false;  // if any values are changed, repaint overlay.
+     Object temp = new_state.get(PRECISION);
+     if( temp != null )
+     {
+       precision = ((Integer)temp).intValue();
+       redraw = true;  
+     }
+     
+     temp = new_state.get(FONT);
+     if( temp != null )
+     {
+       f = (Font)temp;
+       redraw = true;  
+     }  
+     
+     temp = new_state.get(AXES_DISPLAYED);
+     if( temp != null )
+     {
+       axesdrawn = ((Integer)temp).intValue(); 
+       redraw = true;  
+     }  
+     
+     temp = new_state.get(DRAW_LINEAR_X);
+     if( temp != null )
+     {
+       drawXLinear = ((Boolean)temp).booleanValue(); 
+       redraw = true;  
+     } 
+     
+     temp = new_state.get(DRAW_LINEAR_Y); 
+     if( temp != null )
+     {
+       drawYLinear = ((Boolean)temp).booleanValue();
+       redraw = true;  
+     }  
+     
+     temp = new_state.get(TWO_SIDED);
+     if( temp != null )
+     {
+       isTwoSided = ((Boolean)temp).booleanValue();
+       redraw = true;  
+     }  
+     
+     temp = new_state.get(GRID_DISPLAY_X);
+     if( temp != null )
+     {
+       gridxdisplay = ((Integer)temp).intValue(); 
+       redraw = true;  
+     } 
+     
+     temp = new_state.get(GRID_DISPLAY_Y);
+     if( temp != null )
+     {
+       gridydisplay = ((Integer)temp).intValue();
+       redraw = true;  
+     }  
+     
+     temp = new_state.get(GRID_COLOR);
+     if( temp != null )
+     {
+       gridcolor = (Color)temp;
+       redraw = true;  
+     }  
+     
+     temp = new_state.get(EDITOR_BOUNDS);
+     if( temp != null )
+     {
+       editor_bounds = (Rectangle)temp;
+       if( editor.isVisible() )
+         editor.setBounds( editor_bounds );  
+     }
+     
+     if( redraw )
+       this_panel.repaint();
+   }
+  
+  /**
+   * This method will get the current values of the state variables for this
+   * object. These variables will be wrapped in an ObjectState. Keys will be
+   * put in alphabetic order.
+   */ 
+   public ObjectState getObjectState()
+   {
+     ObjectState state = new ObjectState();
+     state.insert( AXES_DISPLAYED, new Integer(axesdrawn) );
+     state.insert( DRAW_LINEAR_X, new Boolean(drawXLinear) );
+     state.insert( DRAW_LINEAR_Y, new Boolean(drawYLinear) );
+     state.insert( FONT, f );
+     state.insert( GRID_COLOR, gridcolor );
+     state.insert( GRID_DISPLAY_X, new Integer(gridxdisplay) );
+     state.insert( GRID_DISPLAY_Y, new Integer(gridydisplay) );
+     state.insert( PRECISION, new Integer(precision) );
+     state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+     state.insert( EDITOR_BOUNDS, editor_bounds );
+     
+     return state;
+   }
+  
+  /**
    * Sets the significant digits to be displayed.
    *
    *  @param digits
@@ -249,7 +382,7 @@ public class AxisOverlay2D extends OverlayJPanel
    */ 
    public void setXAxisLinearOrLog( boolean isXLinear )
    {
-      drawXLinear = isXLinear;
+     drawXLinear = isXLinear;
    }   
    
   /**
@@ -259,7 +392,7 @@ public class AxisOverlay2D extends OverlayJPanel
    */ 
    public void setYAxisLinearOrLog( boolean isYLinear )
    {
-      drawYLinear = isYLinear;
+     drawYLinear = isYLinear;
    }   
   
   /**
@@ -1345,7 +1478,8 @@ public class AxisOverlay2D extends OverlayJPanel
        super("Axis Editor");
        this_editor = this;
        this.getContentPane().setLayout( new GridLayout(2,0) );
-       this.setBounds(0,0,400,110);
+       this.setBounds(editor_bounds);
+       this.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
        String[] xlist = {"X Axis (none)","Major Grid","Major/Minor Grid"};
        String[] ylist = {"Y Axis (none)","Major Grid","Major/Minor Grid"};
        xbox = new JComboBox(xlist);
@@ -1375,6 +1509,7 @@ public class AxisOverlay2D extends OverlayJPanel
        //miscoptions.add(
        this.getContentPane().add( gridoptions );
        this.getContentPane().add( miscoptions );
+       this_editor.addComponentListener( new EditorListener() );
      }
      
      class ControlListener implements ActionListener
@@ -1404,7 +1539,7 @@ public class AxisOverlay2D extends OverlayJPanel
 	     }
 	   }
 	   else if( message.equals("Close") )
-	   {  
+	   {
 	     this_editor.dispose();
 	     this_panel.repaint();
 	   }
@@ -1412,5 +1547,13 @@ public class AxisOverlay2D extends OverlayJPanel
 	 }
        }
      }
+     
+     class EditorListener extends ComponentAdapter
+     {
+       public void componentResized( ComponentEvent we )
+       {
+     	 editor_bounds = editor.getBounds();
+       }
+     }	     
    }
 }
