@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2003/12/18 22:54:37  millermi
+ *  - 3 defining points are now passed to the EllipseRegion.
+ *    The new point, the center is used in case the selection
+ *    is made at the edge of the image.
+ *
  *  Revision 1.22  2003/11/21 02:59:55  millermi
  *  - Now saves editor bounds before dispose() is called on
  *    the editor.
@@ -716,15 +721,22 @@ public class SelectionOverlay extends OverlayJPanel
 	{
 	  Circle circle = ((CircleCursor)sjp.getCursor( 
 				 SelectionJPanel.CIRCLE )).region();
+	  // top-left corner
 	  Point p1 = new Point( circle.getDrawPoint() );
 	  p1.x += (int)current_bounds.getX();
 	  p1.y += (int)current_bounds.getY();
+	  // bottom-right corner
 	  Point p2 = new Point( circle.getCenter() );
 	  p2.x += circle.getRadius() + (int)current_bounds.getX();
 	  p2.y += circle.getRadius() + (int)current_bounds.getY();
-	  floatPoint2D[] tempwcp = new floatPoint2D[2];
+	  // center of circle
+	  Point p3 = new Point( circle.getCenter() );
+	  p3.x += (int)current_bounds.getX();
+	  p3.y += (int)current_bounds.getY();
+	  floatPoint2D[] tempwcp = new floatPoint2D[3];
 	  tempwcp[0] = convertToWorldPoint( p1 );
 	  tempwcp[1] = convertToWorldPoint( p2 );
+	  tempwcp[2] = convertToWorldPoint( p3 );
 					       
 	  WCRegion circleregion = new WCRegion( SelectionJPanel.CIRCLE, 
 						tempwcp );
