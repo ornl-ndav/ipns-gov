@@ -32,6 +32,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2003/07/31 18:51:20  serumb
+ * Changed the log scale listener so it only acts if the
+ * logarithmic axies are set.
+ *
  * Revision 1.4  2003/07/30 20:54:24  serumb
  * Added control slider for the log scale, and a combobox to set
  * axies logarithmic.
@@ -438,9 +442,12 @@ import javax.swing.event.*;
          and sets the object to the appropriate color.
      */  
       if ( message.equals("SLIDER_CHANGED") ) {
-        log_scale = log_slider.getValue();
-        gjp.setLogScale((float)log_scale, true);
-        paintComponents( big_picture.getGraphics(  ) );
+        if (LogBox.getSelectedIndex() != 0 )
+        {
+          log_scale = log_slider.getValue();
+          gjp.setLogScale((float)log_scale, true);
+          paintComponents( big_picture.getGraphics(  ) );
+        }
       }
       else if( message.equals( "BUTTON_PRESSED" ) ) {
         if( ae.getSource(  ) == LineColor ) {
