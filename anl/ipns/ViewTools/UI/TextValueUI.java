@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.7  2004/01/26 20:44:56  dennis
+ * Now beeps if user enters invalid values.
+ *
  * Revision 1.6  2004/01/21 23:05:50  dennis
  * Minor adjustment to display format to improve legibility.
  *
@@ -231,12 +234,19 @@ public class TextValueUI extends    JTextField
 
     i = str.indexOf( start_char );      // find the start_char and discard the
     if ( i < 0 )                        // preliminary part of the string
+    {
+      Toolkit.getDefaultToolkit().beep();
       return Float.NaN;
+    }
+
     str = str.substring(i+1);
     
     i = str.indexOf( end_char );        // find the end_char and discard the
     if ( i < 0 )                        // remaining part of the string
+    {
+      Toolkit.getDefaultToolkit().beep();
       return Float.NaN;
+    }
     str = str.substring(0,i);
 
     try                                 // extract the float value between
@@ -245,6 +255,7 @@ public class TextValueUI extends    JTextField
     }
     catch (Exception e ) 
     { 
+      Toolkit.getDefaultToolkit().beep();
       System.out.println("Exception in TextValueUI.findNumber");
       System.out.println("Exception is: " + e );
     }
