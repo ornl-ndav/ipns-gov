@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/10/29 20:30:11  millermi
+ *  - Fixed java docs.
+ *
  *  Revision 1.2  2003/10/22 20:26:09  millermi
  *  - Fixed java doc errors.
  *
@@ -60,7 +63,7 @@ public class PointRegion extends Region
   /**
    * Constructor takes in an array of Points, each defining a point region.
    *
-   *  @param  df - defining point regions
+   *  @param  dp - defining point regions
    */ 
    public PointRegion( Point[] dp )
    {
