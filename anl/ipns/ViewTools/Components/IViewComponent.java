@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 01:50:19  rmikk
+ *  Fixed package names
+ *
  *  Revision 1.3  2004/03/10 23:37:27  millermi
  *  - Changed IViewComponent interface, no longer
  *    distinguish between private and shared controls/
@@ -52,15 +55,15 @@
  *
  */
  
-package DataSetTools.components.View;
+package gov.anl.ipns.ViewTools.Components;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import java.awt.Point;
 import java.awt.event.ActionListener;
 
-import DataSetTools.components.View.Menu.ViewMenuItem;
-import DataSetTools.components.View.ViewControls.ViewControl;
+import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
+import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 
 /**
  * Any class that implements this interface will interpret and display
