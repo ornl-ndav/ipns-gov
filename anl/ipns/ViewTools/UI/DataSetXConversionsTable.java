@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2002/07/12 18:33:38  dennis
+ * Now sets TableHeader to null so that A,B doesn't appear on
+ * ContourView.
+ *
  * Revision 1.7  2002/05/29 22:49:39  dennis
  * Now includes XAxisInformationOperators when generating the table and
  * gets the column labels at the time the table is regenerated, rather
@@ -120,6 +124,7 @@ public class DataSetXConversionsTable  implements Serializable
     this.ds = ds;
     dataModel = new DataSetXConversionTableModel();
     table = new JTable(dataModel);
+    table.setTableHeader(null);                // disable table header
     table.setFont( FontUtil.LABEL_FONT );
 
     if ( ds == null )
