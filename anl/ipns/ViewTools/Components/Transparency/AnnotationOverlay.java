@@ -34,12 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2003/08/14 17:11:01  millermi
+ *  - Edited help() for more description and for new annotation commands.
+ *
  *  Revision 1.12  2003/08/11 23:49:17  millermi
  *  - Changed help docs from "Double Click" for REMOVE ALL ANNOTATIONS to
  *    "Single Click"
  *
  *  Revision 1.11  2003/08/10 19:29:26  millermi
- *  - Fixed minor bug, when default font was selected, fontsize changed to 12 pt.
+ *  - Fixed minor bug, when default font was selected, fontsize changed to 12 pt
  *
  *  Revision 1.10  2003/08/07 16:00:05  dennis
  *  - Made "Default" font selection for allowing user to easily
@@ -137,12 +140,15 @@ import java.awt.event.*;
 import java.util.*; 
 import java.lang.Math;
 import java.lang.Integer;
-import javax.swing.text.*;
+import javax.swing.text.TextAction;
+import javax.swing.text.Keymap;
 import javax.swing.event.*;
 import java.awt.image.IndexColorModel;
 
-import DataSetTools.components.View.TwoD.*;
-import DataSetTools.components.View.Cursor.*;
+import DataSetTools.components.View.TwoD.IZoomTextAddible;
+import DataSetTools.components.View.Cursor.AnnotationJPanel;
+import DataSetTools.components.View.Cursor.LineCursor;
+import DataSetTools.components.View.Cursor.Line;
 import DataSetTools.components.image.IndexColorMaker;
 import DataSetTools.components.ui.ColorScaleImage;
 import DataSetTools.components.image.*;
@@ -211,22 +217,36 @@ public class AnnotationOverlay extends OverlayJPanel
    {
       JFrame helper = new JFrame("Help for Annotation Overlay");
       helper.setBounds(0,0,600,400);
-      JTextArea text = new JTextArea("Commands for Annotation Overlay\n\n");
-      helper.getContentPane().add(text);
+      JTextArea text = new JTextArea("Discription:\n\n");
       text.setEditable(false);
       text.setLineWrap(true);
+      text.append("The Annotation Overlay is used to add on-screen notes to " +
+                  "data. Below are some basic commands necessary for creating" +
+                  " annotations.\n\n");
+      text.append("Commands for Annotation Overlay\n\n");
       text.append("Note:\n" +
                   "- These commands will NOT work if the Annotation " +
                   "Overlay checkbox IS NOT checked.\n" +
-		  "- Zooming on the image is only allowed if this annotation " +
+		  "- Zooming on the image is only allowed if this overlay " +
 		  "is turned off.\n\n" );
-      text.append("Image Commands in conjunction with AnnotationEditor:\n");
-      text.append("Click/Drag/Release Mouse w/N_Key pressed>" + 
+      text.append("********************************************************\n");
+      text.append("Image Commands in conjunction with AnnotationEditor: " +
+                  "(Without clicking Edit button)\n");
+      text.append("********************************************************\n");
+      text.append("Click/Drag/Release Mouse w/Shift_Key pressed>" + 
                   "CREATE ANNOTATION\n");
       text.append("After annotation creation, Press Enter>ADD ANNOTATION\n");
       text.append("Double Click Mouse>REMOVE LAST ANNOTATION\n");
       text.append("Single Click Mouse w/A_Key>REMOVE ALL ANNOTATIONS\n\n");
-      text.append("AnnotationEditor Commands (Focus>Action>Result)\n");
+      text.append("********************************************************\n");
+      text.append("AnnotationEditor Commands (Edit Button under Annotation " +
+                  "Overlay Control)\n");
+      text.append("********************************************************\n");
+      text.append("Commands below are listed in the following way:\n");
+      text.append("(Focus>Action>Result) where Focus is where the cursor or " +
+                  "mouse must be. Focus is gained by clicking the mouse on " +
+		  "the desired area. Action is the action performed by you, " +
+		  "the user. Result is the consequence of your action.\n");
       text.append("TextArea>Press Enter>REFRESH WINDOW\n");
       text.append("TextArea>Hold Ctrl, Press Arrow Keys>MOVE ANNOTATION\n");
       text.append("TextArea>Hold Shift, Press Arrow Keys>MOVE LINE ANCHOR\n");
@@ -236,6 +256,10 @@ public class AnnotationOverlay extends OverlayJPanel
       text.append("ColorScale>Hold Ctrl, Click Mouse>CHANGE LINE COLOR\n");
       text.append("ColorScale>Hold Shift, Click Mouse>CHANGE TEXT COLOR\n");
       
+      JScrollPane scroll = new JScrollPane(text);
+      scroll.setVerticalScrollBarPolicy(
+                                      JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+      helper.getContentPane().add(scroll);
       helper.setVisible(true);
    }
    
