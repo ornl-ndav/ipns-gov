@@ -1,7 +1,7 @@
 /* 
  * file: ObjectState.java
  *
- * Copyright (C) 2003, Mike Miller
+ * Copyright (C) 2003-2004, Mike Miller
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/29 08:08:21  millermi
+ *  - Added method silentFileChooser() to allow programmer to
+ *    set read/write file without JFileChooser popping up.
+ *
  *  Revision 1.6  2003/12/19 01:37:14  millermi
  *  - Overloaded toString(), now uses the Hashtable.toString()
  *
@@ -206,6 +210,38 @@ public class ObjectState implements java.io.Serializable
   }
   
  /**
+  * This method is an alternative way to read/write files, without the GUI.
+  * Using this method allows the programmer to read/write a file without
+  * the user knowing. This is handy when loading default state information.
+  *
+  *  @param  filename The filename where to read/write file, Includes full path.
+  *  @param  isSave true if saving state, false if loading state
+  *  @return true if save/load was successful,
+  *          false if unsuccessful
+  */
+  public boolean silentFileChooser( String filename, boolean isSave )
+  {
+    filename = new StateFileFilter().appendExtension(filename);
+    if( isSave )
+    {
+      return SerializeUtil.writeObjectToFile( this_state, filename );   
+    }
+    else
+    {
+      Object temp = SerializeUtil.readObjectFromFile( filename );
+      if( temp == null || !(temp instanceof ObjectState) )
+      {
+        return false;
+      }
+      else
+      { 	
+        this_state.table = ((ObjectState)temp).table;
+        return true;
+      } 
+    }
+  }
+  
+ /**
   * This method will pop-up a JFileChooser to allow ObjectState to be loaded
   * or saved. 
   *
@@ -236,7 +272,6 @@ public class ObjectState implements java.io.Serializable
     if( result == JFileChooser.APPROVE_OPTION )
     {
       String filename = fc.getSelectedFile().toString();
-      //StateFileFilter sff = new StateFileFilter();
       filename = sff.appendExtension(filename);
       //File file = new File(filename);
       if( title.equals("Save State") )
