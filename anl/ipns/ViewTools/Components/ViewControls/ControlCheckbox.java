@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/30 06:38:10  millermi
+ *  - Added specific ObjectState information.
+ *
  *  Revision 1.4  2004/01/05 18:14:07  millermi
  *  - Replaced show()/setVisible(true) with WindowShower.
  *  - Removed excess imports.
@@ -60,6 +63,7 @@
  import java.awt.Color;
  
  import DataSetTools.util.WindowShower;
+ import DataSetTools.components.View.ObjectState;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a generic checkbox for use 
@@ -68,6 +72,37 @@
  */ 
 public class ControlCheckbox extends ViewControl
 {
+ /**
+  * "Selected" - This constant String is a key for referencing the state
+  * information about whether or not the checkbox is checked.
+  * The value that this key references is a primative boolean.
+  * If the value is true, the checkbox will be checked.
+  */
+  public static final String SELECTED = "Selected";
+ 
+ /**
+  * "Control Text" - This constant String is a key for referencing the state
+  * information about the text label on the button of this view control.
+  * The value that this key references is of type String.
+  */
+  public static final String CONTROL_TEXT = "Control Text";
+ 
+ /**
+  * "Selected Color" - This constant String is a key for referencing the state
+  * information about the color of the label on the button of this view control
+  * when the checkbox is checked. The value that this key references is of
+  * type Color.
+  */
+  public static final String SELECTED_COLOR = "Selected Color";
+ 
+ /**
+  * "Unselected Color" - This constant String is a key for referencing the state
+  * information about the color of the label on the button of this view control
+  * when the checkbox is NOT checked. The value that this key references is of
+  * type Color.
+  */
+  public static final String UNSELECTED_COLOR = "Unselected Color";
+  
   private JCheckBox cbox;
   private Color checkcolor;
   private Color uncheckcolor;
@@ -110,7 +145,61 @@ public class ControlCheckbox extends ViewControl
   {
      this();
      this.setSelected(isChecked);
-  }   
+  } 
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault )
+  {
+    ObjectState state = super.getObjectState(isDefault);
+    state.insert( SELECTED, new Boolean(isSelected()) );
+    state.insert( CONTROL_TEXT, new String(getText()) );
+    state.insert( SELECTED_COLOR, checkcolor );
+    state.insert( UNSELECTED_COLOR, uncheckcolor );
+    return state;
+  }
+     
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    super.setObjectState( new_state );
+    
+    Object temp = new_state.get(SELECTED);
+    if( temp != null )
+    {
+      setSelected(((Boolean)temp).booleanValue()); 
+    }
+    
+    temp = new_state.get(CONTROL_TEXT);
+    if( temp != null )
+    {
+      setText((String)temp); 
+    }
+    
+    temp = new_state.get(SELECTED_COLOR);
+    if( temp != null )
+    {
+      setTextCheckedColor((Color)temp); 
+    }
+    
+    temp = new_state.get(UNSELECTED_COLOR);
+    if( temp != null )
+    {
+      setTextUnCheckedColor((Color)temp); 
+    }
+  }  
   
  /**
   * isSelected() tells when the checkbox is checked, true when checked.
@@ -131,11 +220,13 @@ public class ControlCheckbox extends ViewControl
   */
   public void setSelected(boolean isChecked)
   {
-    cbox.setSelected(isChecked);
-    if( cbox.isSelected() )
-      cbox.setForeground( checkcolor );
-    else
-      cbox.setForeground( uncheckcolor );	 
+    // use doClick() so action event is sent out and text colors are changed.
+    // if currently not selected, but wants it to be selected.
+    if( !isSelected() && isChecked )
+      doClick();
+    // if currently selected, but wants it unselected.
+    else if( isSelected() && !isChecked )
+      doClick();	 
   }
 
  /**
@@ -204,13 +295,11 @@ public class ControlCheckbox extends ViewControl
   { 
     public void actionPerformed( ActionEvent ae )
     {
-      ((ViewControl)cbox.getParent()).send_message(CHECKBOX_CHANGED);
       if( cbox.isSelected() )
         cbox.setForeground( checkcolor );
       else
         cbox.setForeground( uncheckcolor );
-      //System.out.println("Currently selected? " + 
-      //		 ((ControlCheckbox)cbox.getParent()).isSelected() );
+      ((ViewControl)cbox.getParent()).send_message(CHECKBOX_CHANGED);
     }
   } 
   
@@ -223,6 +312,7 @@ public class ControlCheckbox extends ViewControl
     ControlCheckbox check2 = new ControlCheckbox(true);
     JFrame frame = new JFrame();
     frame.getContentPane().setLayout( new GridLayout(2,1) );
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setTitle("ControlCheckbox Test");
     frame.setBounds(0,0,135,120);
     frame.getContentPane().add(check);
@@ -234,5 +324,10 @@ public class ControlCheckbox extends ViewControl
     check2.doClick();
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
+    ObjectState state = new ObjectState();
+    state.insert( ControlCheckbox.SELECTED, new Boolean(true) );
+    System.out.println("Prestate");
+    check.setObjectState( state );
   }
 }

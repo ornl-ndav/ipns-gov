@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2004/01/30 06:38:10  millermi
+ *  - Added specific ObjectState information.
+ *
  *  Revision 1.16  2004/01/07 22:33:29  millermi
  *  - Removed AxisOverlay2D.getPixelPoint(). Calculation of
  *    cursor value now done within the ControlColorScale's
@@ -125,6 +128,7 @@
  import DataSetTools.components.View.TwoD.ImageViewComponent;
  import DataSetTools.components.View.VirtualArray2D;
  import DataSetTools.components.View.AxisInfo;
+ import DataSetTools.components.View.ObjectState;
  import DataSetTools.components.View.LogScaleUtil;
  import DataSetTools.components.View.Transparency.AxisOverlay2D;
  import DataSetTools.components.View.Transparency.ILogAxisAddible;
@@ -139,20 +143,69 @@
 public class ControlColorScale extends ViewControl
                                          implements ILogAxisAddible 
 {
+ /**
+  * "true" - Use this value to specify a horizontal (x-axis) calibrated
+  * colorscale. This variable has no relevance when used with the basic
+  * colorscale.
+  */
   public static final boolean HORIZONTAL = true;
+  
+ /**
+  * "false" - Use this value to specify a vertical (y-axis) calibrated
+  * colorscale. This variable has no relevance when used with the basic
+  * colorscale.
+  */
   public static final boolean VERTICAL   = false;
+ //--------------------------------ObjectState Keys----------------------------
+ /**
+  * "Orientation" - This constant String is a key for referencing the state
+  * information about the orientation of the colorscale. Static boolean
+  * values HORIZONTAL and VERTICAL are used to set the orientation.
+  * The value that this key references is a primative boolean.
+  */
+  public static final String ORIENTATION  = "Orientation";
+ 
+ /**
+  * "Color Scale" - This constant String is a key for referencing the state
+  * information about the color scale used for the control. The value
+  * that this key references is of type String. These String constants may be
+  * found in IndexColorMaker.java.
+  *
+  * @see DataSetTools.components.image.IndexColorMaker
+  */
+  public static final String COLOR_SCALE  = "Color Scale";
+ 
+ /**
+  * "Two Sided" - This constant String is a key for referencing the state
+  * information about one or two-sided data. The value that this key references
+  * is of type boolean. Values are true if two-sided, false if one-sided.
+  */
+  public static final String TWO_SIDED    = "Two Sided";
+ 
+ /**
+  * "Log Scale" - This constant String is a key for referencing the state
+  * information about the intensity or log scale value. This value comes from
+  * the intensity slider and is of type float. Values are on the range [0,1].
+  */
+  public static final String LOG_SCALE    = "Log Scale";
+ 
+ /**
+  * "Marker" - This constant String is a key for referencing the state
+  * information about the current pointed-at value position on the colorscale.
+  */
+  public static final String MARKER  	  = "Marker";
   
   private IColorScaleAddible component;
   private AxisOverlay2D axis;
   private JPanel background;
   private ColorScaleImage csi;
-  private String colorscheme;
+  private String colorscheme = IndexColorMaker.HEATED_OBJECT_SCALE_2;
   private boolean isBasic = true; // basic vs calibrated color scales
   private Font font;
   private AxisInfo value_info;
   private double logscale;
   private boolean isTwoSided;
-  private boolean orientate = true;
+  private boolean orientate = HORIZONTAL;
   
  /* Possible color schemes as designated by 
   * DataSetTools/components/image/IndexColorMaker.java
@@ -203,6 +256,7 @@ public class ControlColorScale extends ViewControl
   *
   *  @param  colorscale Colorscale for this control
   *  @param  doublesided Is data double-sided?
+  *  @see DataSetTools.components.image.IndexColorMaker
   */ 
   public ControlColorScale( String colorscale, boolean doublesided )
   {  
@@ -222,9 +276,102 @@ public class ControlColorScale extends ViewControl
   }
  
  /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault )
+  {
+    ObjectState state = super.getObjectState(isDefault);
+    state.insert( COLOR_SCALE, new String(colorscheme) );
+    state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+    if( !isBasic )
+    {
+      state.insert( ORIENTATION, new Boolean(orientate) );
+      state.insert( LOG_SCALE, new Double(logscale) );
+      // only save marker for project saves.
+      if( !isDefault )
+        state.insert( MARKER, new Float(getMarker()) );
+    }
+    return state;
+  }
+     
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    super.setObjectState( new_state );
+    boolean redraw = false;
+    Object temp = new_state.get(COLOR_SCALE);
+    if( temp != null )
+    {
+      setColorScale((String)temp,isTwoSided); 
+      redraw = true;  
+    } 
+    
+    temp = new_state.get(TWO_SIDED); 
+    if( temp != null )
+    {
+      setTwoSided( ((Boolean)temp).booleanValue() );
+      redraw = true;  
+    } 	
+    // only do these if calibrated colorscale
+    if( !isBasic )
+    {
+      temp = new_state.get(ORIENTATION);
+      if( temp != null )
+      {
+        setOrientation(((Boolean)temp).booleanValue()); 
+        redraw = true;  
+      } 
+    
+      temp = new_state.get(LOG_SCALE);
+      if( temp != null )
+      {
+        setLogScale( ((Double)temp).doubleValue() ); 
+        redraw = true;  
+      }  
+    
+      temp = new_state.get(MARKER);
+      if( temp != null )
+      {
+        setMarker(((Float)temp).floatValue()); 
+        redraw = true;  
+      } 
+    }
+    if( redraw )
+      repaint();
+  } 
+ 
+ /**
+  * This method allows the calibrated colorscale to always appear
+  * one- or two-sided, depending on the parameter. By setting this,
+  * the one/two-sided setting becomes independent of the data.
+  *
+  *  @param  is_two_sided If true, data always displayed 2-sided.
+  *                       If false, data always displayed 1-sided.
+  */ 
+  public void setTwoSided( boolean is_two_sided )
+  {
+    if( is_two_sided != isTwoSided )
+    {
+      isTwoSided = is_two_sided;
+      setColorScale( colorscheme, isTwoSided );
+    }
+  }
+ 
+ /**
   * This method allows calibrated color scales to trace the current point.
   *
-  *  @param  marker - value that needs marking.
+  *  @param  marker - world coordinate value that needs marking.
   */ 
   public void setMarker( float marker )
   {
@@ -322,10 +469,9 @@ public class ControlColorScale extends ViewControl
   }	
   
  /**
-  * This method sets the orientation of the ColorScaleImage to either
-  * horizontal or vertical.
+  * This method sets the turns the axes on and off.
   *
-  *  @param  showAxis Either HORIZONTAL or VERTICAL
+  *  @param  showAxis Either on (true) or off (false)
   */
   public void setAxisVisible( boolean showAxis)
   {
@@ -498,21 +644,40 @@ public class ControlColorScale extends ViewControl
       }
     }
     csi.setEventListening(false);
+    setColorScale(colorscheme,isTwoSided);
     
-    background = new JPanel( new BorderLayout() );
+    // if previously created, remove all of its components
+    if( background != null )
+      background.removeAll();
+    // otherwise make a new one
+    else
+      background = new JPanel( new BorderLayout() );
     background.add( csi, "Center" );
     background.add( north, "North" ); 
     background.add( east, "East" ); 
     background.add( south, "South" );
     background.add( west, "West" );
     
-    axis = new AxisOverlay2D( this );
+    // if previously created, remove all of its components
+    if( axis != null )
+      axis.removeAll();
+    // otherwise make a new one
+    else
+      axis = new AxisOverlay2D( this );
     axis.setTwoSided( isTwoSided ); 
     // if true, horizontal alignment
     if( orientation )
       axis.setDisplayAxes(AxisOverlay2D.X_AXIS); 
     else
       axis.setDisplayAxes(AxisOverlay2D.Y_AXIS); 
+  }
+  
+  private float getMarker()
+  {
+    floatPoint2D current = csi.getCurrent_WC_point();
+    if( current.x != 0 )
+      return current.x;
+    return current.y;
   }
   
   private class ColorChangedListener implements ActionListener
@@ -575,5 +740,13 @@ public class ControlColorScale extends ViewControl
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
     shower = null;
+    // test state
+    ObjectState state = new ObjectState();
+    state.insert( COLOR_SCALE, new String(IndexColorMaker.MULTI_SCALE) );
+    state.insert( TWO_SIDED, new Boolean(true) );
+    state.insert( ORIENTATION, new Boolean(VERTICAL) );
+    state.insert( LOG_SCALE, new Double(.5) );
+    state.insert( MARKER, new Float(0) );
+    color.setObjectState(state);
   }
 }
