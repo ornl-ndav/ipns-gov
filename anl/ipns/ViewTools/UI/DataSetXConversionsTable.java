@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2003/07/08 15:20:07  dennis
+ * Added some debug prints and boolean debug flag.
+ *
  * Revision 1.10  2002/11/27 23:13:34  pfpeterson
  * standardized header
  *
@@ -99,6 +102,8 @@ public class DataSetXConversionsTable  implements Serializable
 
   private boolean    x_specified = false;    // Show NaN until a value is given
 
+  private transient boolean debug_flag = false;  // set true to include some
+                                                 // debug prints 
 
   /* --------------------------- CONSTRUCTOR ------------------------------ */
   /**
@@ -200,6 +205,20 @@ public class DataSetXConversionsTable  implements Serializable
       {                                                  // given index and 
         Data d = ds.getData_entry( index );              // x value.  
         y = d.getY_value( x, IData.SMOOTH_LINEAR );
+        if ( debug_flag )
+        {
+          XScale scale = d.getX_scale();
+          System.out.println("N Ys = " + d.getY_values().length );
+          System.out.println("x = " + x );
+          System.out.println("y = " + y );
+          System.out.println("XScale = " + scale );
+          int i = scale.getI(x);
+          System.out.println("i = " + i );
+          if ( i < d.getY_values().length )
+            System.out.println("y[i] = " + d.getY_values()[i]);
+          else
+            System.out.println("i past end of list");
+        }
       }
       this.index = index;
     }
