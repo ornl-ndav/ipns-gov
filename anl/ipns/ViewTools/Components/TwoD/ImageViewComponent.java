@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.55  2004/02/06 23:46:07  millermi
+ *  - Updated ObjectState and reInit() so shared values
+ *    maintain consistency.
+ *  - KNOWN BUG: If default state is saved with AxisOverlay
+ *    control unchecked, the border does not disappear like it is
+ *    supposed to.
+ *
  *  Revision 1.54  2004/02/03 21:44:48  millermi
  *  - Updated javadocs
  *
@@ -364,18 +371,11 @@ public class ImageViewComponent implements IViewComponent2D,
   public static final String COLOR_SCALE	 = "Color Scale";
  
  /**
-  * "Two Sided" - This constant String is a key for referencing the state
-  * information about one or two-sided data. The value that this key references
-  * is of type boolean. Values are true if two-sided, false if one-sided.
+  * "Log Scale Slider" - This constant String is a key for referencing the state
+  * information about the intensity or log scale slider. The value this
+  * key references is of type ObjectState.
   */
-  public static final String TWO_SIDED  	 = "Two Sided";
- 
- /**
-  * "Log Scale" - This constant String is a key for referencing the state
-  * information about the intensity or log scale value. This value comes from
-  * the intensity slider and is of type float. Values are on the range [0,1].
-  */
-  public static final String LOG_SCALE  	 = "Log Scale";
+  public static final String LOG_SCALE_SLIDER  	 = "Log Scale Slider";
  
  /**
   * "Color Control" - This constant String is a key for referencing the state
@@ -403,25 +403,22 @@ public class ImageViewComponent implements IViewComponent2D,
  
  /**
   * "Annotation Control" - This constant String is a key for referencing the
-  * state information about the annotation on/off control. Of type boolean,
-  * if true, the Annotation Overlay control will be turned on, thus turning
-  * on the Annotation Overlay itself.
+  * state information about the control that operates the annotation overlay.
+  * The value this key references is of type ObjectState.
   */
   public static final String ANNOTATION_CONTROL  = "Annotation Control";
 
  /**
   * "Axis Control" - This constant String is a key for referencing the state
-  * information about the axis on/off control. Of type boolean, if true, the
-  * Axis Overlay control will be turned on, thus turning on the Axis Overlay
-  * itself.
+  * information about the control that operates the axis overlay. The value this
+  * key references is of type ObjectState.
   */
   public static final String AXIS_CONTROL	 = "Axis Control";
 
  /**
   * "Selection Control" - This constant String is a key for referencing the
-  * state information about the selection on/off control. Of type boolean,
-  * if true, the Selection Overlay control will be turned on, thus turning
-  * on the Selection Overlay itself.
+  * state information about the control that operates the selection overlay.
+  * The value this key references is of type ObjectState.
   */
   public static final String SELECTION_CONTROL   = "Selection Control";
 
@@ -604,13 +601,6 @@ public class ImageViewComponent implements IViewComponent2D,
       redraw = true;  
     } 
     
-    temp = new_state.get(TWO_SIDED); 
-    if( temp != null )
-    {
-      isTwoSided = ((Boolean)temp).booleanValue();
-      redraw = true;  
-    } 	
-    
     temp = new_state.get(COLOR_CONTROL);
     if( temp != null )
     {
@@ -632,10 +622,13 @@ public class ImageViewComponent implements IViewComponent2D,
       redraw = true;  
     }  
     
-    temp = new_state.get(LOG_SCALE);
+    temp = new_state.get(LOG_SCALE_SLIDER);
     if( temp != null )
     {
-      logscale = ((Double)temp).doubleValue(); 
+      ((ControlSlider)controls[0]).setObjectState( (ObjectState)temp );
+      // by doing this, the value in the slider will be used to set all
+      // other values. This will keep the logscale values consistent.
+      logscale = ((ControlSlider)controls[0]).getValue(); 
       redraw = true;  
     } 
     
@@ -673,27 +666,21 @@ public class ImageViewComponent implements IViewComponent2D,
     temp = new_state.get(ANNOTATION_CONTROL);
     if( temp != null )
     {
-      if( ((Boolean)temp).booleanValue() != 
-          ((ControlCheckboxButton)controls[4]).isSelected() )
-        ((ControlCheckboxButton)controls[4]).doClick();
+      ((ControlCheckboxButton)controls[4]).setObjectState((ObjectState)temp);
       redraw = true;  
     }  	
     
     temp = new_state.get(AXIS_CONTROL);
     if( temp != null )
     {
-      if( ((Boolean)temp).booleanValue() != 
-          ((ControlCheckboxButton)controls[2]).isSelected() )
-        ((ControlCheckboxButton)controls[2]).doClick();
+      ((ControlCheckboxButton)controls[2]).setObjectState((ObjectState)temp);
       redraw = true;  
     }
     
     temp = new_state.get(SELECTION_CONTROL);
     if( temp != null )
     {
-      if( ((Boolean)temp).booleanValue() != 
-          ((ControlCheckboxButton)controls[3]).isSelected() )
-        ((ControlCheckboxButton)controls[3]).doClick();
+      ((ControlCheckboxButton)controls[3]).setObjectState((ObjectState)temp);
       redraw = true;  
     }
    
@@ -713,12 +700,12 @@ public class ImageViewComponent implements IViewComponent2D,
   public ObjectState getObjectState( boolean isDefault )
   {
     ObjectState state = new ObjectState();
-    state.insert( ANNOTATION_CONTROL, new Boolean( 
-                         ((ControlCheckboxButton)controls[4]).isSelected() ) );
+    state.insert( ANNOTATION_CONTROL,
+              ((ControlCheckboxButton)controls[4]).getObjectState(isDefault) );
     state.insert( ANNOTATION_OVERLAY, 
       ((OverlayJPanel)transparencies.elementAt(0)).getObjectState(isDefault) );
-    state.insert( AXIS_CONTROL, new Boolean( 
-                         ((ControlCheckboxButton)controls[2]).isSelected() ) );
+    state.insert( AXIS_CONTROL, 
+              ((ControlCheckboxButton)controls[2]).getObjectState(isDefault) );
     state.insert( AXIS_OVERLAY_2D,  
       ((OverlayJPanel)transparencies.elementAt(2)).getObjectState(isDefault) );
     state.insert( COLOR_CONTROL, new Boolean(addColorControl) );
@@ -727,10 +714,11 @@ public class ImageViewComponent implements IViewComponent2D,
     state.insert( COLOR_SCALE, new String(colorscale) );
     state.insert( FONT, font );
     state.insert( IMAGEJPANEL, ijp.getObjectState(isDefault) );
-    state.insert( LOG_SCALE, new Double(logscale) );
+    state.insert( LOG_SCALE_SLIDER, 
+      ((ControlSlider)controls[0]).getObjectState(isDefault) );
     state.insert( PRECISION, new Integer(precision) );
-    state.insert( SELECTION_CONTROL, new Boolean( 
-                         ((ControlCheckboxButton)controls[3]).isSelected() ) );
+    state.insert( SELECTION_CONTROL,
+              ((ControlCheckboxButton)controls[3]).getObjectState(isDefault) );
     state.insert( SELECTION_OVERLAY,  
       ((OverlayJPanel)transparencies.elementAt(1)).getObjectState(isDefault) );
     
@@ -738,7 +726,6 @@ public class ImageViewComponent implements IViewComponent2D,
     if( !isDefault )
     {
       state.insert( SELECTED_REGIONS, selectedregions );
-      state.insert( TWO_SIDED, new Boolean(isTwoSided) );
     }
     
     return state;
@@ -850,15 +837,8 @@ public class ImageViewComponent implements IViewComponent2D,
     			   AxisInfo.LINEAR );
     }
     // else return z info
-    /*return new AxisInfo( ijp.getDataMin(),
+    return new AxisInfo( ijp.getDataMin(),
         		 ijp.getDataMax(),
-        		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getLabel(),
-        		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getUnits(),
-        		 AxisInfo.LINEAR );*/
-    return new AxisInfo( 1,
-        		 10, 
-			 //ijp.getDataMin(),
-        		 //ijp.getDataMax(),
         		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getLabel(),
         		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getUnits(),
         		 AxisInfo.LINEAR );
@@ -1088,51 +1068,7 @@ public class ImageViewComponent implements IViewComponent2D,
     dataChanged();   // call other dataChanged() method to reset the ijp and 
                      // redraw the display.
   }
-  /*
- 
- /**
-  * This method will be called to notify this component of a change in data.
-  *
-  public void dataChanged()  
-  {
-     float[][] f_array = Varray2D.getRegionValues( 0, MAXDATASIZE, 
-						   0, MAXDATASIZE );
-     ijp.setData(f_array, true);
-     ((PanViewControl)controls[5]).repaint();
-     paintComponents( big_picture.getGraphics() );
-  }
- 
- /**
-  * This method will be called to notify this component of a change in data 
-  * and an entirely new VirtualArray is used.
-  *
-  *  @param  pin_Varray - passed in array
-  * 
-  public void dataChanged( IVirtualArray2D pin_Varray ) // pin == "passed in"
-  {
-    //get the complete 2D array of floats from pin_Varray
-    float[][] f_array = pin_Varray.getRegionValues( 0, MAXDATASIZE, 
-        					    0, MAXDATASIZE );
-    if( pin_Varray.getNumRows() == Varray2D.getNumRows() &&
-        pin_Varray.getNumColumns() == Varray2D.getNumColumns() )
-    {
-      Varray2D.setRegionValues(f_array,0,0);
-      Varray2D.setAxisInfo( AxisInfo.X_AXIS,
-    			      pin_Varray.getAxisInfo( AxisInfo.X_AXIS ) );
-      Varray2D.setAxisInfo( AxisInfo.Y_AXIS,
-    			      pin_Varray.getAxisInfo( AxisInfo.Y_AXIS ) );
-      Varray2D.setTitle( pin_Varray.getTitle() );
-    }
-    else
-    {
-      Varray2D = new VirtualArray2D( f_array );
-    }
-    ijp.setData(Varray2D.getRegionValues( 0, MAXDATASIZE, 
-        				  0, MAXDATASIZE ), true);
-    ((PanViewControl)controls[5]).repaint();
-    paintComponents( big_picture.getGraphics() );  
-  }
-  */
+  
  /**
   * Method to add a listener to this component.
   *
@@ -1227,7 +1163,9 @@ public class ImageViewComponent implements IViewComponent2D,
   
  /**
   * This method allows the user to place a VERTICAL color control in the
-  * east panel of the view component.
+  * east panel of the view component. If this method is called, it is assumed
+  * that the simple color scale in the controls is no longer wanted, so
+  * that color scale will disappear.
   *
   *  @param isOn - true if calibrated color scale appears to the right
   *                of the image.
@@ -1236,12 +1174,20 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     ((ControlColorScale)controls[1]).setVisible(false);
     addColorControlEast = isOn;
+    // if calibrated colorscale is requested, turn off control colorscale
+    if( addColorControlEast )
+    {
+      addColorControl = false;
+      ((ControlColorScale)controls[1]).setVisible(false);
+    }
     buildViewComponent();
   }
   
  /**
   * This method allows the user to place a HORIZONTAL color control in the
-  * south panel of the view component.
+  * south panel of the view component. If this method is called, it is assumed
+  * that the simple color scale in the controls is no longer wanted, so
+  * that color scale will disappear.
   *
   *  @param isOn - true if calibrated color scale appears below the image.
   */   
@@ -1249,6 +1195,12 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     ((ControlColorScale)controls[1]).setVisible(false);
     addColorControlSouth = isOn;
+    // if calibrated colorscale is requested, turn off control colorscale
+    if( addColorControlSouth )
+    {
+      addColorControl = false;
+      ((ControlColorScale)controls[1]).setVisible(false);
+    }
     buildViewComponent();
   }
  
@@ -1323,14 +1275,20 @@ public class ImageViewComponent implements IViewComponent2D,
     ijp.setNamedColorModel(colorscale, isTwoSided, false); 
     local_bounds = ijp.getLocalWorldCoords().MakeCopy();
     global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
-  
+    
+    // make sure logscale and two-sided are consistent
+    ((AxisOverlay2D)transparencies.elementAt(2)).setTwoSided(isTwoSided);
+    ijp.changeLogScale(logscale,true);
+    // since flags have already been set, this will put the color scales
+    // where they need to be.
     buildViewComponent();    // builds the background jpanel containing
 			     // the image and possibly a calibrated color scale
-    ((ControlSlider)controls[0]).setValue((float)logscale);
     // this control is an uncalibrated colorscale
-    ((ControlColorScale)controls[1]).setColorScale( colorscale, isTwoSided );
     if( addColorControl )
+    {
+      ((ControlColorScale)controls[1]).setColorScale( colorscale, isTwoSided );
       ((ControlColorScale)controls[1]).setVisible(true);
+    }
     else
       ((ControlColorScale)controls[1]).setVisible(false);
     
@@ -1362,6 +1320,8 @@ public class ImageViewComponent implements IViewComponent2D,
     {
       east = new ControlColorScale( this, ControlColorScale.VERTICAL );
       east.setPreferredSize( new Dimension( 90, 0 ) );
+      //((ControlColorScale)east).setTwoSided(isTwoSided);
+      //((ControlColorScale)east).setLogScale(logscale);
       ((ControlColorScale)east).setTitle(title);
     }
     else
@@ -1378,6 +1338,8 @@ public class ImageViewComponent implements IViewComponent2D,
       ControlColorScale ccs = new ControlColorScale(
 				    this,ControlColorScale.HORIZONTAL);
       ccs.setTitle(title);
+      //ccs.setTwoSided(isTwoSided);
+      //ccs.setLogScale(logscale);
       south.add( ccs, "Center" );
       south.setPreferredSize( new Dimension( 0, southwidth + 75) );
     }
@@ -1408,8 +1370,7 @@ public class ImageViewComponent implements IViewComponent2D,
     // must be incremented in the private data members.
     controls[0] = new ControlSlider();
     controls[0].setTitle("Intensity Slider");
-    ((ControlSlider)controls[0]).setValue((float)logscale);
-    //logscale = ((ControlSlider)controls[0]).getValue();		  
+    ((ControlSlider)controls[0]).setValue((float)logscale);		  
     controls[0].addActionListener( new ControlListener() );
                
     controls[1] = new ControlColorScale(colorscale, isTwoSided );
@@ -1426,8 +1387,8 @@ public class ImageViewComponent implements IViewComponent2D,
     controls[4] = new ControlCheckboxButton();  // initially unchecked
     ((ControlCheckboxButton)controls[4]).setTitle("Annotation Overlay");
     controls[4].addActionListener( new ControlListener() );
+    // panviewcontrol
     controls[5] = new PanViewControl(ijp);
-    //((PanViewControl)controls[5]).setLocalBounds( ijp.getLocalWorldCoords() );
     controls[5].addActionListener( new ControlListener() );     
   }
   
@@ -1573,7 +1534,7 @@ public class ImageViewComponent implements IViewComponent2D,
             JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
             if( !control.isSelected() )
             {						     // axis overlay
-             ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(false);
+              ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(false);
               back.getComponent(1).setVisible(false);	     // north
               back.getComponent(2).setVisible(false);	     // west
               back.getComponent(3).setVisible(false);	     // south
