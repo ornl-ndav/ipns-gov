@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.43  2004/11/12 03:34:03  millermi
+ * - Reversed min/max for y-scale to reflect changed to
+ *   fvc.getAxisInformation().
+ *
  * Revision 1.42  2004/11/11 19:49:37  millermi
  * - Changed LogScaleUtil functions to match reimplementation.
  *
@@ -1038,8 +1042,8 @@ import javax.swing.border.*;
             AxisInfo yinfo = fvc.getAxisInformation(AxisInfo.Y_AXIS);
 	    x_range.setMin(xinfo.getMin());
 	    x_range.setMax(xinfo.getMax());
-	    y_range.setMin(yinfo.getMax());
-	    y_range.setMax(yinfo.getMin());
+	    y_range.setMin(yinfo.getMin());
+	    y_range.setMax(yinfo.getMax());
           }  
       } 
         /* 
