@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.32  2004/05/11 01:32:52  millermi
+ *  - Removed unused imports and variables.
+ *
  *  Revision 1.31  2004/04/29 06:12:24  millermi
  *  - Revised the AnnotationEditor. New features include turning
  *    the anchor line on/off, a new color selection process,
@@ -207,8 +210,6 @@ import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Cursor.AnnotationJPanel;
 import gov.anl.ipns.ViewTools.Components.Cursor.LineCursor;
 import gov.anl.ipns.ViewTools.Components.Cursor.Line;
-import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
-import gov.anl.ipns.ViewTools.UI.ColorScaleImage;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
@@ -974,7 +975,6 @@ public class AnnotationOverlay extends OverlayJPanel
     protected void updateNoteList()
     {
       int selected_index = 0;
-      boolean constructor_call = true;
       // Store the selected index so that the new combo box can be set with
       // that index.
       if( note_list != null )
