@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/08/05 08:59:36  millermi
+ *  - Added method getValueAt() to get value in original TableModel.
+ *  - Number Formatter now formats Strings containing numeric values.
+ *  - Added ObjectState keys ALIGNMENT and NUMBER_FORMAT to save
+ *    the corresponding values.
+ *
  *  Revision 1.5  2004/08/04 18:57:31  millermi
  *  - Restructured column labeling, now makes use of Java's column features.
  *  - Added ability for row_labels column to automatically adjust to the size
@@ -249,9 +255,25 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   */
   public static final String COLUMN_MOBILITY = "Column Mobility";
   
-  private final float SHIFT_DIVISOR = 2f; // 1/SHIFT_DIVISOR controls when
-                                          // the table is shifted to the next
-					  // row and/or column.
+ /**
+  * "Alignment" - This String key is used to preserve state information
+  * controlling the alignment of all table entries in the TableJPanel.
+  * @see #setColumnAlignment(int alignment)
+  */
+  public static final String ALIGNMENT = "Alignment";
+  
+ /**
+  * "Number Format" - This String key is used to preserve state information
+  * controlling how numerical data is displayed in the table. The value this
+  * key references is a Point with (x = predecimal digits, y = postdecimal
+  * digits).
+  * @see #setNumberFormat(int predecimal_digits,int postdecimal_digits)
+  */
+  public static final String NUMBER_FORMAT = "Number Format";
+  
+  private final float SHIFT_DIVISOR = 2f; // (SHIFT_DIVISOR-1)/SHIFT_DIVISOR
+                                          // controls when the table is shifted
+                                          // to the next row and/or column.
   private Point anchor = new Point(); // The beginning of the initial selection.
   private Point extend = null; // The variable end of the initial selection.
   private Point ctrl_anchor = null; // The beginning of an additional selection.
@@ -280,6 +302,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   private boolean move_column_called; // was moveColumn() called to move column
   private int pre_digits; // Number of digits before decimal, used in formatting
   private int post_digits; // Number of digits after decimal, used in formatting
+  private int col_alignment;
   
  /**
   * Default Constructor
@@ -351,6 +374,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     max_row_label = "";
     disable_auto_position = false;
     move_column_called = false;
+    setColumnAlignment(SwingConstants.RIGHT); // Initialize to right alignment.
     setNumberFormat(-1,-1); // Set the initial setting no formatting.
     // Add copy and paste ability.
     new ExcelAdapter( table );
@@ -450,6 +474,20 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       redraw = true;  
     }
     
+    temp = new_state.get(ALIGNMENT);
+    if( temp != null )
+    {
+      setColumnAlignment( ((Integer)temp).intValue() );
+      redraw = true;  
+    }
+    
+    temp = new_state.get(NUMBER_FORMAT);
+    if( temp != null )
+    {
+      setNumberFormat( ((Point)temp).x, ((Point)temp).y );
+      redraw = true;  
+    }
+    
     if( redraw )
     {
       validate();
@@ -475,6 +513,8 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     state.insert( LABEL_BACKGROUND, label_color );
     state.insert( COLUMN_MOBILITY,
                   new Boolean( getEnableMoveColumn() ) );
+    state.insert( ALIGNMENT, new Integer(col_alignment) );
+    state.insert( NUMBER_FORMAT, new Point(pre_digits,post_digits) );
     
     // Only do the following if this is a project save, not a setting save.
     if( !is_default )
@@ -642,17 +682,27 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
                              table.getColumnClass(i) );
       renderer.setHorizontalAlignment( alignment );
     }
+    col_alignment = alignment;
   }
   
  /**
   * Set the format of how numbers are displayed in the table. If either
   * predecimal_digits or postdecimal_digits is negative, formatting of that
-  * portion of the number is left unchanged. 
+  * portion of the number is left unchanged. Formatting does not alter data,
+  * it only alters the appearance of the data.
   *
   *  @param  predecimal_digits The number of digits to appear "before" the
-  *                            decimal. This includes the ones,tens,hundreds,...
+  *                            decimal. This is primarily used for nicely
+  *                            displaying data in LEFT alignment. Numbers will
+  *                            not be visually clipped if they exceed the
+  *                            specified number of predecimal digits. However,
+  *                            spaces will be prepended to the number if
+  *                            the number of digits is below the specified
+  *                            number of predecimal digits. Predecimal digits
+  *                            include the ones, tens, hundreds, ... place.
   *  @param  postdecimal_digits The number of digits to appear "after" the
-  *                            decimal. This includes the tenths,hundredths,...
+  *                            decimal. This includes the tenths,hundredths,
+  *                            thousandths, ... place.
   */
   public void setNumberFormat( int predecimal_digits, int postdecimal_digits )
   {
@@ -875,6 +925,26 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   public int getColumnCount()
   {
     return table.getColumnCount();
+  }
+  
+ /**
+  * Get the value in the cell located at the row and column specified.
+  *
+  *  @param  row The row where the cell is located.
+  *  @param  column The column where the cell is located.
+  *  @return The value located in the specified cell.
+  */
+  public Object getValueAt( int row, int column )
+  {
+    // If one of the two is not true, return null.
+    if( !(isValidRow(row) && isValidColumn(column)) )
+      return null;
+    
+    // Since the TableModelFormatter adjusted the getValueAt() method,
+    // use the getUnformattedValueAt() to get the values from the original
+    // TableModel.
+    return
+      ((TableModelFormatter)table.getModel()).getUnformattedValueAt(row,column);
   }
   
  /**
@@ -2065,7 +2135,12 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       ; // Stub
     }
   }
-  
+ 
+ /*
+  * This class wraps around the TableModel in table and modifies the
+  * getValueAt() method to account for formatting changes. This does not
+  * modify the data, only modifies how the data is displayed.
+  */ 
   private class TableModelFormatter implements TableModel
   {
     TableModel model;
@@ -2080,14 +2155,27 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       // Make sure value is not null.
       if( value == null )
         return new String("");
-      
-      // If both values are negative, the format should be left unchanged.
-      if( pre_digits < 0 && post_digits < 0 )
-        return value;
 	 
-      if( value instanceof Number )
+      if( value instanceof Number ||
+          value instanceof String )
       {
-        int field_width = 0;
+        if( value instanceof String )
+        {
+	  // If a number, convert value to a Double.
+          try
+	  {
+	    double temp = Double.parseDouble( (String)value );
+	    value = new Double(temp);
+	  }
+	  // If not a number, return the original value.
+	  catch( NumberFormatException nfe ) { return value; }
+        }
+      
+        // If both values are negative, the format should be left unchanged.
+        if( pre_digits < 0 && post_digits < 0 )
+          return value;
+        
+	int field_width = 0;
 	String s_num = value.toString();
 	int decimal_index = s_num.indexOf(".");
 	int negative_index = s_num.indexOf("-");
@@ -2134,27 +2222,18 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 	    field_width++;
 	}
 	
-	if( value instanceof Integer )
-	{
-	  
-	}
 	return Format.real( ((Number)value).doubleValue(), field_width, 
 	                    temp_post_digits );
-        
-      }
-      else if( value instanceof String )
-      {
-      
       }
       // If not a number or a String representation of a number, return the
       // original value.
       return value;
     }
-    /*
+    
     public Object getUnformattedValueAt( int row, int column )
     {
       return model.getValueAt(row,column);
-    }*/
+    }
     
     public Class getColumnClass(int i){ return new String().getClass(); }
     
@@ -2198,6 +2277,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     
     int row = 100;
     int col = 150;
+    
     float[][] values = new float[row][col];
     Object[] row_lab_list = new Object[row];
     Object[] col_lab_list = new Object[col];
@@ -2273,6 +2353,8 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     // Test the ObjectState by saving the initial settings, then changing
     // all of the defaults.
     ObjectState state = testable.getObjectState(IPreserveState.PROJECT);
+    // Test to make sure these settings are not saved after setObjectState()
+    // is called.
     testable.unselectAll();
     testable.setLabelBackground(Color.green);
     testable.setRowLabels(row_lab_list);
@@ -2281,6 +2363,8 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     testable.displayColumnLabels(true);
     testable.displayRowLabels(false);
     testable.enableMoveColumn(false);
+    testable.setNumberFormat(2,2);
+    testable.setColumnAlignment(SwingConstants.CENTER);
     testable.setObjectState(state);
     /*
     System.out.println("Table Size: [rows = "+testable.getRowCount()+", "+
@@ -2290,7 +2374,6 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     testable.moveColumn(2,-4);  // Test error checking.
     testable.moveColumn(26,20); // Test error checking.
     */
-    testable.setColumnAlignment( SwingConstants.RIGHT );
     frame.getContentPane().add(testable);
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
