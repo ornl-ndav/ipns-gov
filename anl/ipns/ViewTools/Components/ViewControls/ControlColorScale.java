@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/07/05 19:51:49  dennis
+ *  - Now implements ILogAxisAddible2D, which includes adding
+ *    method getLogScale().
+ *  - Added capability for one- or two-sided color models. Currently,
+ *    only two-sided color models are allowed. Alter line 128 to enable
+ *    this feature.
+ *  (Mike Miller)
+ *
  *  Revision 1.4  2003/06/18 22:15:33  dennis
  *  (Mike Miller)
  *  - Fixed calibration update on zoom. Previously, the interval
@@ -69,7 +77,7 @@
  import DataSetTools.components.ui.ColorScaleImage;
  import DataSetTools.components.View.TwoD.ImageViewComponent;
  import DataSetTools.components.View.TwoD.IColorScaleAddible;
- import DataSetTools.components.View.TwoD.IAxisAddible2D;
+ import DataSetTools.components.View.TwoD.ILogAxisAddible2D;
  import DataSetTools.components.View.VirtualArray2D;
  import DataSetTools.components.View.AxisInfo2D;
  import DataSetTools.components.View.Transparency.AxisOverlay2D;
@@ -80,7 +88,7 @@
  * by ViewComponents. No messages are sent by this control.
  */ 
 public class ControlColorScale extends ViewControl
-                                         implements IAxisAddible2D 
+                                         implements ILogAxisAddible2D 
 {
    public static final boolean HORIZONTAL = true;
    public static final boolean VERTICAL   = false;
@@ -94,6 +102,8 @@ public class ControlColorScale extends ViewControl
    private Font font;
    private float interval_min;
    private float interval_max;
+   private double logscale;
+   private boolean isTwoSided;
    
   /* Possible color schemes as designated by 
    * DataSetTools/components/image/IndexColorMaker.java
@@ -119,17 +129,23 @@ public class ControlColorScale extends ViewControl
    {  
       super("");
       component = icsa; 
-      isBasic = false;     
+      interval_min = component.getDataMin();
+      interval_max = component.getDataMax();
+      isBasic = false; 
+      if( interval_min < 0 )
+         isTwoSided = true;
+      else
+         isTwoSided = true; //********change this to false when working********
       setOrientation(orientation); 
-      this.setLayout( new OverlayLayout(this) );
+      this.setLayout( new OverlayLayout(this) );  
       this.add( axis );
-      this.add(background);
+      this.add(background); 
       colorscheme = component.getColorScale(); 
-      csi.setNamedColorModel( colorscheme, true ); 
+      // initialize to a two-sided model
+      setColorScale( colorscheme, isTwoSided ); 
       setAxisVisible(true); 
       font = component.getFont();
-      interval_min = component.getAxisInfo(orientation).getMin();
-      interval_max = component.getAxisInfo(orientation).getMax();
+      logscale = 0;
       component.addActionListener( new ColorChangedListener() );
    }
    
@@ -139,16 +155,20 @@ public class ControlColorScale extends ViewControl
    *
    *  @param  colorscale
    */ 
-   public ControlColorScale( String colorscale )
+   public ControlColorScale( String colorscale, boolean doublesided )
    {  
       super("");
       this.setLayout( new GridLayout(1,1) );
       isBasic = true;
-      csi = new ColorScaleImage();
+      isTwoSided = doublesided;
+      if( isTwoSided )
+        csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL_DUAL);
+      else
+        csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL_SINGLE);
       csi.setEventListening(false);
       this.add(csi);
       colorscheme = colorscale; 
-      csi.setNamedColorModel( colorscale, true );   
+      setColorScale( colorscale, isTwoSided );   
    }
   
   /**
@@ -157,10 +177,11 @@ public class ControlColorScale extends ViewControl
    *
    *  @param  colorscale
    */
-   public void setColorScale( String colorscale )
+   public void setColorScale( String colorscale, boolean doublesided )
    {
       colorscheme = colorscale;
-      csi.setNamedColorModel( colorscale, true );
+      isTwoSided = doublesided;
+      csi.setNamedColorModel( colorscale, isTwoSided, true );
    } 
    
   /**
@@ -184,8 +205,19 @@ public class ControlColorScale extends ViewControl
    */
    public void setLogScale( double value )
    {
-      csi.changeLogScale( value, true );
-   } 
+      logscale = value;
+   }
+   
+  /**
+   * This method will get the current log scale value for the slider this
+   * control is listening to.
+   *
+   *  @return logscale
+   */ 
+   public double getLogScale()
+   {
+      return logscale;
+   }     
    
   /**
    * This method sets the orientation of the ColorScaleImage to either
@@ -228,6 +260,7 @@ public class ControlColorScale extends ViewControl
   /**
    * The boolean, either true for x, or false for y, will determine which axis
    * to get information for. The information is wrapped in an AxisInfo2D object.
+   * This method also tells the axis overlay to display the data in log form.
    *
    *  @param  isX
    *  @return X or Y axisinfo of the component
@@ -236,7 +269,7 @@ public class ControlColorScale extends ViewControl
    public AxisInfo2D getAxisInfo(boolean isX)
    {
       if( !isBasic )
-         return new AxisInfo2D( interval_min, interval_max, "", "", true );
+         return new AxisInfo2D( interval_min, interval_max, "", "", false );
       else
       {
          System.out.println("getAxisInfo() is not available with the " +
@@ -244,7 +277,7 @@ public class ControlColorScale extends ViewControl
 			    "public ControlColorScale( " +
 			    "IColorScaleAddible icsa, boolean orientation ) " +
 			    "to enable this method." );
-         return new AxisInfo2D( 0,1,"","",true );
+         return new AxisInfo2D( 0,1,"","",false );
       }
    }
    
@@ -352,12 +385,7 @@ public class ControlColorScale extends ViewControl
          return new CoordBounds( 0,0,1,1 );
       }
    }
-/*   
-   public void paint( Graphics g )
-   {
-      
-   }
-*/   
+   
   /**
    * This private method sets the orientation of the ColorScaleImage to either
    * horizontal or vertical and adjusts the structure accordingly.
@@ -366,8 +394,6 @@ public class ControlColorScale extends ViewControl
    */
    private void setOrientation( boolean orientation)
    {
-      axis = new AxisOverlay2D( this );
-       
       JPanel north = new JPanel();
       JPanel east = new JPanel(); 
       JPanel south = new JPanel(); 
@@ -376,22 +402,26 @@ public class ControlColorScale extends ViewControl
       // if true, horizontal alignment
       if( orientation )
       {
-         axis.setDisplayAxes(AxisOverlay2D.X_AXIS); 
          north.setPreferredSize(new Dimension( 0, 0 ) );
-         east.setPreferredSize(new Dimension( 20, 0 ) ); 
+         east.setPreferredSize(new Dimension( 25, 0 ) ); 
          south.setPreferredSize(new Dimension( 0, 35 ) );
-         west.setPreferredSize(new Dimension( 20, 0 ) ); 
-         csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL);
+         west.setPreferredSize(new Dimension( 25, 0 ) );
+	 if( isTwoSided ) 
+            csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL_DUAL);
+         else
+            csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL_SINGLE);	 
       }
       // else vertical alignment
       else
       { 
-         axis.setDisplayAxes(AxisOverlay2D.Y_AXIS); 
          north.setPreferredSize(new Dimension( 0, 10 ) );
          east.setPreferredSize(new Dimension( 0, 0 ) ); 
          south.setPreferredSize(new Dimension( 0, 10 ) );
          west.setPreferredSize(new Dimension( 60, 0 ) ); 
-         csi = new ColorScaleImage(ColorScaleImage.VERTICAL);
+	 if( isTwoSided ) 
+           csi = new ColorScaleImage(ColorScaleImage.VERTICAL_DUAL);
+         else
+           csi = new ColorScaleImage(ColorScaleImage.VERTICAL_SINGLE);
       }
       csi.setEventListening(false);
       
@@ -401,6 +431,14 @@ public class ControlColorScale extends ViewControl
       background.add( east, "East" ); 
       background.add( south, "South" );
       background.add( west, "West" );
+      
+      axis = new AxisOverlay2D( this );
+      axis.setTwoSided( isTwoSided ); 
+      // if true, horizontal alignment
+      if( orientation )
+         axis.setDisplayAxes(AxisOverlay2D.X_AXIS); 
+      else
+         axis.setDisplayAxes(AxisOverlay2D.Y_AXIS); 
    }
    
    private class ColorChangedListener implements ActionListener
@@ -409,11 +447,11 @@ public class ControlColorScale extends ViewControl
       {
          String message = e.getActionCommand();
 	 if( message.equals( component.getColorScale() ) )
-	    setColorScale( message );
+	    setColorScale( message, isTwoSided );
          else if ( message == IViewControl.SLIDER_CHANGED )
          { 
 	    IColorScaleAddible temp = (IColorScaleAddible)e.getSource();
-	    setLogScale( temp.getLogScale() );
+	    logscale = temp.getLogScale();
          }
       }
    }   
@@ -451,7 +489,7 @@ public class ControlColorScale extends ViewControl
       ControlColorScale color = 
                   new ControlColorScale(ivc, ControlColorScale.HORIZONTAL);
       /*ControlColorScale color = 
-                  new ControlColorScale(IndexColorMaker.GRAY_SCALE);*/ 
+                  new ControlColorScale(IndexColorMaker.GRAY_SCALE, true);*/ 
       
       JFrame frame = new JFrame();
       frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
