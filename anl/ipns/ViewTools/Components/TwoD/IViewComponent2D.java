@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/12 02:20:55  rmikk
+ *  Fixed Package Names
+ *
  *  Revision 1.8  2003/12/29 02:41:26  millermi
  *  - get/setPointedAt() now uses floatPoint2D to pass information
  *    about the current pointed at instead of java.awt.Point.
@@ -64,13 +67,13 @@
  *
  */
  
-package DataSetTools.components.View.TwoD;
+package gov.anl.ipns.ViewTools.Components.TwoD;
 
-import DataSetTools.util.floatPoint2D;
-import DataSetTools.components.View.Menu.ViewMenuItem;
-import DataSetTools.components.View.Region.Region; 
-import DataSetTools.components.View.IViewComponent;
-import DataSetTools.components.View.IVirtualArray2D;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
+import gov.anl.ipns.ViewTools.Components.Region.Region; 
+import gov.anl.ipns.ViewTools.Components.IViewComponent;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 
 /**
  * Any class that implements this interface will interpret and display
