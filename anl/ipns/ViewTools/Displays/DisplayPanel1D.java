@@ -40,7 +40,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
     private String title = "", xLabel = "", xUnits = "", yLabel = "",
             yUnits = "";
 
-    private Float minX=null, maxX=null, minY=null, maxY=null;
+    protected Float minX=null, maxX=null, minY=null, maxY=null;
 
     private float xValues[] = new float[1];
 
