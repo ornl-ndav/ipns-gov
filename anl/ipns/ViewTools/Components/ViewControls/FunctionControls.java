@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.35  2004/06/10 23:28:26  serumb
+ * Add a legend control.
+ *
  * Revision 1.34  2004/05/20 16:33:53  serumb
  * Removed unused variables.
  *
@@ -234,6 +237,8 @@ import javax.swing.border.*;
   private ControlCheckboxButton axis_checkbox = new ControlCheckboxButton(true);
   private ControlCheckboxButton annotation_checkbox = 
                                     new ControlCheckboxButton(  );
+  private ControlCheckboxButton legend_checkbox = 
+                                    new ControlCheckboxButton(  );
   private ControlSlider log_slider;
   private double log_scale = 10;
   private ViewControlsPanel main_panel;
@@ -367,6 +372,7 @@ import javax.swing.border.*;
     ErrorColor.button.setForeground( Color.blue );
     axis_checkbox.setTitle( "Axis Overlay" );
     annotation_checkbox.setTitle( "Annotation Overlay" );
+    legend_checkbox.setTitle( "Legend Overlay" );
    
    
     x_range = new TextRangeUI("X Range", 
@@ -425,6 +431,7 @@ import javax.swing.border.*;
     
     rightBox.add( axis_checkbox );
     rightBox.add( annotation_checkbox );
+    rightBox.add( legend_checkbox );
     rightBox.add( TFP );
     rightBox.add( cursor );
     rightBox.add( labelbox7 );
@@ -450,6 +457,7 @@ import javax.swing.border.*;
     ErrorColor.addActionListener( new ControlListener(  ) );
     axis_checkbox.addActionListener( new ControlListener(  ) );
     annotation_checkbox.addActionListener( new ControlListener(  ) );
+    legend_checkbox.addActionListener( new ControlListener(  ) );
     ShiftBox.addActionListener( new ControlListener(  ) );
     LogBox.addActionListener( new ControlListener(  ) );
     log_slider.addActionListener( new ControlListener( ) );
@@ -740,6 +748,13 @@ import javax.swing.border.*;
                                  big_picture.getComponent(
                                  big_picture.getComponentCount() - 3 );
                note.editAnnotation();
+             }
+             else if( ccb.getTitle().equals("Legend Overlay") )
+             {
+               LegendOverlay legend = (LegendOverlay)
+                                 big_picture.getComponent(
+                                 big_picture.getComponentCount() - 4 );
+               legend.editLegend();
              }
             paintComponents( big_picture.getGraphics(  ) );
            }
@@ -1109,6 +1124,19 @@ import javax.swing.border.*;
             note.getFocus(  );
           }
         }
+      
+        else if( control.getTitle(  ).equals( "Legend Overlay" ) ) {
+          LegendOverlay legend = ( LegendOverlay )big_picture.getComponent
+                  ( big_picture.getComponentCount(  ) - 4 );
+
+          if( !control.isSelected(  ) ) {
+            legend.setVisible( false );
+          } else {
+            legend.setVisible( true );
+            legend.getFocus(  );
+          }
+        }
+      
         else if(control.getTitle().equals( "Axis Overlay" ) ) {
           JPanel back = (JPanel)big_picture.getComponent( bpsize - 1);
           if( !control.isSelected() ) {
@@ -1118,17 +1146,17 @@ import javax.swing.border.*;
             back.getComponent(2).setVisible(false);
             back.getComponent(3).setVisible(false);
             back.getComponent(4).setVisible(false);
-         }
-         else {
+          }
+          else {
            back.getComponent(1).setVisible(true);
            back.getComponent(2).setVisible(true);
            back.getComponent(3).setVisible(true);
            back.getComponent(4).setVisible(true);
            big_picture.getComponent(bpsize - 2).setVisible(true);
-         }
+          }
         }
-      paintComponents( big_picture.getGraphics(  ) );
-      }
+       paintComponents( big_picture.getGraphics(  ) );
+      }  
     }
   }
 
