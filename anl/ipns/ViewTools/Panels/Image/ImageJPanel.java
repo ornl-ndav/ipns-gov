@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2003/02/25 22:28:12  dennis
+ *  Added java docs.  Set data method now rejects ragged arrays, or
+ *  degenerate or empty arrays.
+ *
  *  Revision 1.12  2002/11/27 23:13:18  pfpeterson
  *  standardized header
  *
@@ -55,6 +59,25 @@ import java.text.*;
 
 import DataSetTools.util.*;
 
+/**
+ *    This class displays two dimensional arrays of floating point values as 
+ *  pseudo-color images.  The pseudo-color scale may be specified to be 
+ *  any of the named color scales from the IndexColorMaker class.  The
+ *  range of values in the array is calculated and scaled logarithmically
+ *  before being mapped to the pseudo-color scale.  IF the array contains
+ *  negative values, one of the "dual" color models from the IndexColorMaker
+ *  should be used.  The shape of the log function used for the scaling
+ *  can be adjusted to control the apparent brightness of the image. 
+ *    A "world coordinate" system can be applied to the image to map between
+ *  row and column indices and "world coordinate" (x,y) values.  In addition
+ *  cursor position information and zoom in/out is provided by methods from
+ *  the base class, CoordJPanel.  Alternatively, methods to convert between
+ *  image row and column values and pixel or world coordinate values are
+ *  also provided.
+ *
+ *  @see CoordJPanel 
+ *  @see IndexColorMaker
+ */
 
 public class ImageJPanel extends    CoordJPanel 
                          implements Serializable
@@ -72,6 +95,12 @@ public class ImageJPanel extends    CoordJPanel
   private IndexColorModel color_model;
   private byte[]          log_scale;
 
+/**
+ *  Construct an ImageJPanel with default values for the color scale, log
+ *  scaling factor and array of values.  Most applications using this class
+ *  will at least have to use the setData() method to provide the actual
+ *  values to be displayed.
+ */
   public ImageJPanel()
   { 
     color_model =
@@ -89,18 +118,47 @@ public class ImageJPanel extends    CoordJPanel
   }
 
 /* ------------------------- changeLogScale -------------------------- */
-
+/**
+ *  Change the control parameter for the logarithmic scaling applied to
+ *  the image values.  If the image has negative values, the logarithmic
+ *  scaling is applied to the absolute value of the values.
+ *
+ *  @param   s             The control parameter, s, clamped to the range
+ *                         [0,100].  If s is 0, the scale is essentially 
+ *                         linear.  If s is 100, the relative intensity of 
+ *                         small values is greatly increased so the image 
+ *                         is lightened.
+ *  @param   rebuild_image Flag to determine whether the displayed image is
+ *                         rebuilt with the new log scale factor, or if
+ *                         rebuilding the displayed image should be delayed
+ *                         since other changes will also be made before
+ *                         rebuilding the image.  A value of "true" will
+ *                         cause the image to be rebuilt immediately.
+ */
   public void changeLogScale( double s, boolean rebuild_image )
   {                                       
     setLogScale( s );
     if ( rebuild_image )
-    {
       makeImage();
-    }
   }
 
-/* ----------------------------- setColorModel --------------------------- */
-
+/* -------------------------- setNamedColorModel --------------------------- */
+/**
+ *  Change the color model to used for the image.  If the data has negative
+ *  values, one of the "Dual" color models should be used.
+ *
+ *  @param   color_scale_name  Name of the new color scale to use for the
+ *                             image.  Supported color scales are listed in
+ *                             the IndexColorMaker class.
+ *  @param   rebuild_image     Flag to determine whether the displayed image is
+ *                             rebuilt with the new log scale factor, or if
+ *                             rebuilding the displayed image should be delayed
+ *                             since other changes will also be made before 
+ *                             rebuilding the image.  A value of "true" will
+ *                             cause the image to be rebuilt immediately.
+ * 
+ *  @see IndexColorMaker
+ */
   public void setNamedColorModel( String   color_scale_name,
                                   boolean  rebuild_image   )
   {
@@ -113,40 +171,52 @@ public class ImageJPanel extends    CoordJPanel
   }
 
 /* ------------------------------- setData -------------------------------- */
+/**
+ *  Change the array of floats that is displayed by this ImageJPanel.
+ *
+ *  @param   new_data      Rectangular array of floats to display as
+ *                         an image.  NOTE: if a ragged array is passed
+ *                         in for new_data, the data will be ignored.
+ *
+ *  @param   rebuild_image Flag to determine whether the displayed image is
+ *                         rebuilt with the new log scale factor, or if
+ *                         rebuilding the displayed image should be delayed
+ *                         since other changes will also be made before 
+ *                         rebuilding the image.  A value of "true" will
+ *                         cause the image to be rebuilt immediately.
+ */
 
   public void setData( float new_data[][], boolean rebuild_image  )
   {
     int h = new_data.length;
 
-    data = new_data;  //###### Technically, since we may have "ragged" arrays,
-                      //       we should allocate a new rectangular array and
-                      //       fill it out as is done in the commented out 
-                      //       code below.  However, since our ISAW app only 
-                      //       passes in rectangular arrays, we will omit this
-                      //       copy step for now. 
-/*  #########
-    int max_row_length = -1;
-
-    for (int i = 0; i < new_data.length; i++ )
+    if ( new_data == null || new_data.length <= 0 )       // nothing to do
     {
-      if ( new_data[i].length > max_row_length )
-        max_row_length = new_data[i].length;
-    }  
-   
-    if ( max_row_length <= 0 )
-    {
-      System.out.println("ERROR: max row length <= 0 in ImageView.setData");
+      System.out.println("ERROR: empty new_data array in ImageJPanel.setData");
       return;
     }
-    data  = new float[h][max_row_length];
-*/
+                                                         // check row 0
+    if ( new_data[0] == null || new_data[0].length == 0 )
+    {
+      System.out.println("ERROR: row 0 empty in ImageJPanel.setData" );
+      return;
+    }
+                                                         // check later rows
+    for ( int row = 1; row < new_data.length; row++ )
+      if ( new_data[row] == null || new_data[row].length != new_data[0].length )
+      {
+        System.out.println("ERROR: row " + row + 
+                           " invalid in ImageJPanel.setData." );
+        return;
+      }
+
+    data = new_data;
 
     max_data = Float.NEGATIVE_INFINITY;
     min_data = Float.POSITIVE_INFINITY;
     for ( int row = 0; row < h; row++ )
       for ( int col = 0; col < new_data[row].length; col++ )
       {
-//######        data[row][col] = new_data[row][col];
         if ( data[row][col] > max_data )
           max_data = data[row][col]; 
         if ( data[row][col] < min_data )
@@ -177,7 +247,7 @@ public class ImageJPanel extends    CoordJPanel
   }
 
 
-/* --------------------------- getNumDataColumnss ------------------------ */
+/* --------------------------- getNumDataColumns ------------------------ */
 /**
  *  Get the number of columns in the data for this image panel.
  *
@@ -194,13 +264,19 @@ public class ImageJPanel extends    CoordJPanel
 
 
 /* -------------------------------- update ------------------------------- */
-
+/**
+ *  Update method that just calls paint.
+ */
   public void update( Graphics g )
   {
     paint(g);
   }
 
 /* --------------------------------- paint ------------------------------- */
+/**
+ *  This method is invoked by swing to draw the image.  Applications must not
+ *  call this directly.
+ */
   public void paint( Graphics g )
   {
     stop_box( current_point, false );   // if the system redraws this without
@@ -221,7 +297,14 @@ public class ImageJPanel extends    CoordJPanel
   }
 
 /* -------------------------- ImageRow_of_PixelRow ----------------------- */
-
+/**
+ *  Get the row number in the data array of the specified pixel row.
+ *
+ *  @param  pix_row    Pixel "row" value, i.e. pixel y coordinate.
+ *
+ *  @return  the row number in the data array cooresponding to the specified
+ *           pixel row.
+ */
   public int ImageRow_of_PixelRow( int pix_row )
   {
     float WC_y = local_transform.MapYFrom( pix_row );
@@ -230,7 +313,15 @@ public class ImageJPanel extends    CoordJPanel
   }
 
 /* -------------------------- ImageRow_of_WC_y ----------------------- */
-
+/**
+ *  Get the row number in the data array corresponding to the specified
+ *  world coordinate y value. 
+ *
+ *  @param  y  The world coordinate y value 
+ *
+ *  @return  the row number in the data array cooresponding to the specified
+ *           pixel world coordinate y.
+ */
   public int ImageRow_of_WC_y( float y )
   {
     CoordTransform world_to_image = getWorldToImageTransform();
@@ -244,7 +335,14 @@ public class ImageJPanel extends    CoordJPanel
   }
 
 /* -------------------------- ImageCol_of_PixelCol ----------------------- */
-
+/**
+ *  Get the column number in the data array of the specified pixel col.
+ *
+ *  @param  pix_col    Pixel "col" value, i.e. pixel x coordinate.
+ *
+ *  @return  the column number in the data array cooresponding to the specified
+ *           pixel column.
+ */
   public int ImageCol_of_PixelCol( int pix_col )
   {
     float WC_x = local_transform.MapXFrom( pix_col );
@@ -253,7 +351,15 @@ public class ImageJPanel extends    CoordJPanel
   }
 
 /* -------------------------- ImageCol_of_WC_x ----------------------- */
-
+/**
+ *  Get the column number in the data array corresponding to the specified
+ *  world coordinate x value.
+ *
+ *  @param  x  The world coordinate x value
+ *
+ *  @return  the column number in the data array cooresponding to the specified
+ *           pixel world coordinate x.
+ */
   public int ImageCol_of_WC_x( float x )
   {
     CoordTransform world_to_image = getWorldToImageTransform();
@@ -269,7 +375,14 @@ public class ImageJPanel extends    CoordJPanel
 
 
 /* -------------------------- ImageValue_at_Pixel ----------------------- */
-
+/**
+ *  Get the data value from the data array that cooresponds to the specified
+ *  pixel position.
+ *
+ *  @param  pixel_pt   The 2D coordinates of the pixel
+ *
+ *  @return The data value drawn at that pixel location
+ */
   public float ImageValue_at_Pixel( Point pixel_pt )
   {
     int row = ImageRow_of_PixelRow( pixel_pt.y );
@@ -280,11 +393,50 @@ public class ImageJPanel extends    CoordJPanel
 
 
 /* -------------------------- ImageValue_at_Cursor ----------------------- */
-
+/**
+ *  Get the data value from the data array at the current cursor position
+ *
+ *  @return The data value drawn at the current cursor location
+ */
   public float ImageValue_at_Cursor( )
   {
     return ImageValue_at_Pixel( getCurrent_pixel_point() );
   }
+
+
+/* ---------------------------- getPreferredSize ------------------------- */
+/**
+ *  Get the preferred size of this component based on the number of rows
+ *  and columns and on whether or not scrolling has been requested.
+ *
+ *  @see CoordJPanel
+ *
+ *  @return  (0,0) is returned if scrolling has not been requested.  If
+ *           vertical scrolling has been requested, the actual number of 
+ *           rows in the data array will be used instead of 0.  If horizontal
+ *           scrolling has been requested, the actual number of columns in
+ *           in the data array will be used instead of 0.
+ */
+public Dimension getPreferredSize()
+{
+    if ( preferred_size != null )     // if someone has specified a preferred
+      return preferred_size;          // size, just use it.
+
+    int rows, cols;                   // otherwise calculate the preferred
+                                      // width based on the data dimensions
+                                      // if scrolling is to be used.
+    if ( v_scroll )
+      rows = data.length;
+    else
+      rows = 0;
+
+    if ( h_scroll )
+      cols = data[0].length;
+    else
+      cols = 0;
+
+    return new Dimension( cols, rows );
+}
 
 
 /* ---------------------- LocalTransformChanged -------------------------- */
@@ -418,28 +570,6 @@ protected void LocalTransformChanged()
     }
   }
 
-/* ---------------------------- getPreferredSize ------------------------- */
-
-public Dimension getPreferredSize()
-{
-    if ( preferred_size != null )     // if someone has specified a preferred
-      return preferred_size;          // size, just use it.
-
-    int rows, cols;                   // otherwise calculate the preferred
-                                      // width based on the data dimensions
-                                      // if scrolling is to be used. 
-    if ( v_scroll )
-      rows = data.length;
-    else
-      rows = 0;
-
-    if ( h_scroll )
-      cols = data[0].length;
-    else
-      cols = 0;
-
-    return new Dimension( cols, rows );
-}
 
 /* ----------------------------- setLogScale -------------------------- */
 
@@ -461,21 +591,11 @@ public Dimension getPreferredSize()
   }
 
 
-/* -------------------------------------------------------------------------
+/*-----------------------------------------------------------------------
  *
- * MAIN
+ *  INTERNAL CLASSES
  *
  */
-    /* Basic main program for testing purposes only. */
-    public static void main(String[] args)
-    {
-        JFrame f = new JFrame("Test for ImageJPanel");
-        f.setBounds(0,0,500,500);
-        ImageJPanel panel = new ImageJPanel();
-        f.getContentPane().add(panel);
-        f.setVisible(true);
-    }
-
 
 class ImageKeyAdapter extends KeyAdapter
 {
@@ -573,8 +693,22 @@ class ImageKeyAdapter extends KeyAdapter
                                  false );
       this_panel.dispatchEvent( mouse_e );
     }
-
   }
 }
 
+
+/* -------------------------------------------------------------------------
+ *
+ * MAIN
+ *
+ */
+ /* Basic main program for testing purposes only. */
+  public static void main(String[] args)
+  {
+    JFrame f = new JFrame("Test for ImageJPanel");
+    f.setBounds(0,0,500,500);
+    ImageJPanel panel = new ImageJPanel();
+    f.getContentPane().add(panel);
+    f.setVisible(true);
+  }
 }
