@@ -34,6 +34,10 @@
  *  of first and second moments, etc.   
  * 
  *  $Log$
+ *  Revision 1.8  2002/10/08 15:41:28  dennis
+ *  Added BisectionMethod() for solving f(x)=0 on interval where f()
+ *  changes sign.
+ *
  *  Revision 1.7  2002/09/25 22:16:22  pfpeterson
  *  Added a method to integrate function-table data using trapezoid method.
  *
@@ -703,6 +707,63 @@ public final class NumericalAnalysis
     }
 
     return true;
+  }
+
+  /**
+    * Solve f(x)=0 in an interval [a, b] on which the function f() changes
+    * sign, using the bisection method.
+    *
+    * @param   f         Function specifying the equation being solved.
+    * @param   a         The left hand endpoint of the interval on which the
+    *                    equation is solved.
+    * @param   b         The right hand endpoint of the interval on which the
+    *                    equation is solved.
+    * @param   n_steps   The number of steps used for the bisction method. 
+    *                    Since the interval is divided in two equal length
+    *                    pieces at each step, the solution is known to within
+    *                    (b-a)/2**n after n steps.
+    *
+    * @return  Returns a solution to f(x) = 0 IF there is a change of sign 
+    *          on the interval and returns Double.NaN if there is no change
+    *          of sign.
+    */
+
+  public static double BisectionMethod( IOneVariableFunction f, 
+                                        double               a, 
+                                        double               b, 
+                                        int                  max_tries )
+  {
+    double midpoint;
+    int    n_tries;
+                                        // we can't find the zero if the
+                                        // function doesn't change sign
+    double f_a = f.getValue(a);
+    double f_b = f.getValue(b);
+    if ( f_a * f_b >= 0 )  
+      return Double.NaN;
+
+    n_tries = 0;                        // set initial conditions for the loop
+    midpoint = ( a + b ) / 2.0;
+    double f_mid = f.getValue(midpoint);
+
+    while ( n_tries < max_tries && f_mid != 0.0 )
+    {
+      if ( f_a * f_mid > 0 )            // same sign at a and at midpoint
+      {                                 // so change to the right half interval
+         a = midpoint;
+         f_a = f.getValue(a);
+      }
+      else
+        b = midpoint;                 // else change to the left half interval 
+
+      midpoint = ( a + b ) / 2.0;       // recalculate midpoint for the new
+      f_mid = f.getValue(midpoint);     // interval
+
+      n_tries++;
+    }
+
+    return midpoint;                    // the midpoint should approximate
+                                        // the solution to f(x) = 0;
   }
 
 }
