@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/04/19 16:52:17  dennis
+ *  Added more javadocs.
+ *
  *  Revision 1.1  2002/04/11 20:55:55  dennis
  *  Abstract base class for functions of one variable that return float or double
  *  values when evaluated at single points, or at arrays of points.
@@ -58,7 +61,13 @@ abstract public class OneVarFunction implements IOneVarFunction
   protected String         name;
 
 
-  OneVarFunction( String name ) 
+  /**
+   *  Construct a OneVarFunction object with the specified name and with
+   *  the whole Real line as it's domain.
+   *
+   *  String  name  The name to use for this function. 
+   */
+  public OneVarFunction( String name ) 
   {
     domain = new ClosedInterval( -Float.MAX_VALUE, Float.MAX_VALUE );
     if ( name != null )
@@ -68,12 +77,26 @@ abstract public class OneVarFunction implements IOneVarFunction
   }
   
 
-  abstract public double   getValue( double x );
+  /**
+   *  Evaluate this function at the specified point, as a double.  This
+   *  method MUST be implemented in concrete derived classes. 
+   *
+   *  @param   x   The value at which the function is evaluated.
+   *
+   *  @return  the value of this function at the given x value. 
+   */
+  abstract public double getValue( double x );
 
 
   /**
-   *  NOTE: For efficiency, derived classes should override this default
-   *        implementation.   
+   *  Evaluate this function at the specified point, as a float.  The
+   *  default implementation provided here just calls the "double" version
+   *  of getValue(). NOTE: For efficiency, derived classes should override 
+   *  this default implementation.   
+   *
+   *  @param   x   The value at which the function is evaluated.
+   *
+   *  @return  the value of this function at the given x value.
    */
   public float getValue( float x )
   {
@@ -82,8 +105,14 @@ abstract public class OneVarFunction implements IOneVarFunction
 
 
   /**
-   *  NOTE: For efficiency, derived classes should override this default
-   *        implementation.  
+   *  Evaluate this function at the specified list of points, as floats.  The
+   *  default implementation provided here just calls the "float" version
+   *  of getValue(). NOTE: For efficiency, derived classes should override 
+   *  this default implementation.         
+   *
+   *  @param   x   The list of values at which the function is evaluated.
+   *
+   *  @return  Array of values of this function at the given x values.
    */
   public float[] getValues( float x[] )
   {
@@ -95,8 +124,14 @@ abstract public class OneVarFunction implements IOneVarFunction
 
 
   /**
-   *  NOTE: For efficiency, derived classes should override this default
-   *        implementation.  
+   *  Evaluate this function at the specified list of points, as doubles.  The
+   *  default implementation provided here just calls the "double" version
+   *  of getValue(). NOTE: For efficiency, derived classes should override 
+   *  this default implementation.
+   *
+   *  @param   x   The list of values at which the function is evaluated.
+   *
+   *  @return  Array of values of this function at the given x values.
    */
   public double[] getValues( double x[] )
   {
@@ -107,12 +142,21 @@ abstract public class OneVarFunction implements IOneVarFunction
   }
 
 
+  /**
+   *  Get the name that was specified for this function.
+   *
+   *  @return the name of this function. 
+   */
   public String getName()
   {
     return name;
   }
 
-
+  /**
+   *  Set the name that to use for this function.
+   *
+   *  @param the new name to use for this function.
+   */
   public void setName( String name)
   {
     if ( name != null )
@@ -120,11 +164,21 @@ abstract public class OneVarFunction implements IOneVarFunction
   }
 
 
+  /**
+   *  Get the current domain for this function.
+   *
+   *  @return the closed interval that specifies the domain for this function.
+   */
   public ClosedInterval getDomain()
   {
     return domain;
   }
 
+  /**
+   *  Set the current domain for this function.
+   *
+   *  @param the closed interval that specifies the domain for this function.
+   */
   public void setDomain( ClosedInterval interval )
   {
     if ( domain != null )
@@ -132,6 +186,13 @@ abstract public class OneVarFunction implements IOneVarFunction
   }
 
 
+  /**
+   *  Get a string form of this function.  In this case it just returns the
+   *  name of the function.
+   *
+   *  @return A string containing the name of this function followed by a
+   *          new line character.
+   */
   public String toString()
   {
     String state = name + "\n";

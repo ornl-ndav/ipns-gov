@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/04/19 16:52:21  dennis
+ *  Added more javadocs.
+ *
  *  Revision 1.1  2002/04/11 20:57:27  dennis
  *  Abstract base class for functions of one variable that are controlled
  *  by an array of parameters and that return float or double
@@ -39,7 +42,6 @@
  *  Revision 1.1  2002/04/04 19:44:52  dennis
  *  Abstract base class for functions of one variable that are controlled
  *  by a list of parameters.
- *
  */
 
 package DataSetTools.functions;
@@ -60,7 +62,18 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
   protected float  parameters[];
   protected String parameter_names[];
 
-
+  /**
+   *  Construct a function with the specified name and parameters.
+   *
+   *  @param  name             The name to use for this function
+   *  @param  parameters       Array of parameter values for this function.
+   *                           The length of this array determines the number
+   *                           of parameters for this function.
+   *                           If no parameters are used, this can be null.
+   *  @param  parameter_names  Array of names of parameters for this function.
+   *                           If no names, or not enough names are specified,
+   *                           default names P0, P1, P2, etc. will be generated.
+   */
   OneVarParameterizedFunction( String name, 
                                float  parameters[], 
                                String parameter_names[] )
@@ -88,19 +101,34 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
         parameter_names[i] = "P"+i; 
   }
   
-
+  /**
+   *  Get the number of parameters that this function has.
+   *
+   *  @return the number of parameters for this function.
+   */
   public int numParameters() 
   {
     return parameters.length;
   }
 
 
+  /**
+   *  Get a reference to the list of parameters for this function.
+   *
+   *  @return  Reference to the parameters of this function.
+   */
   public float[] getParameters()
   {
     return parameters;
   }
 
 
+  /**
+   *  Set the new values for the list of parameters for this function.
+   *
+   *  @param  parameters  Array containing values to copy into the list of
+   *                      parameter values for this function.
+   */
   public void setParameters( float parameters[] )
   {
     if ( parameters != null )
@@ -112,12 +140,24 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
   }
 
   
+  /**
+   *  Get a reference to the list of parameter names for this function.
+   *
+   *  @return  Reference to the parameter names for this function.
+   */
   public String[] getParameterNames()
   {
     return parameter_names;
   }
 
 
+  /**
+   *  Get a string showing the function name and list of parameter names
+   *  and parameter values for this function.
+   *
+   *  @return  A multi-line string containg the name and parameter information
+   *           for this function. 
+   */
   public String toString()
   {
     String state = super.toString();
