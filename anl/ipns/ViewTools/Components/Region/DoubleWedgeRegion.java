@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2004/12/05 05:32:34  millermi
+ *  - Fixed Eclipse warnings.
+ *
  *  Revision 1.13  2004/05/20 20:48:26  millermi
  *  - Constructor now initializes world and image bounds to
  *    the bounds of the defining points.
@@ -203,9 +206,6 @@ public class DoubleWedgeRegion extends Region
     * fashion. Quad II & III have positive slope while Quad I & IV have neg.
     */
     // convert world coord defining points to image values.
-    floatPoint2D center = world_to_image.MapTo(definingpoints[0]);
-    floatPoint2D topleft = world_to_image.MapTo(definingpoints[3]);
-    //System.out.println(bottomright + " " + topleft );
     // use 2 wedgeregions to construct the doublewedge
     WedgeRegion wedge1 = new WedgeRegion(definingpoints);
     wedge1.setWorldBounds(world_to_image.getSource());
