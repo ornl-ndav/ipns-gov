@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/08/14 17:11:57  millermi
+ *  - Added SelectionEditor class
+ *  - Now capable of changing the selection color and also the opacity
+ *    of the selections.
+ *  - Edited help() to provide more description.
+ *
  *  Revision 1.10  2003/08/11 23:45:23  millermi
  *  - grouped multiple sendMessage() statements into one statement
  *    after all if statements.
@@ -117,14 +123,17 @@ package DataSetTools.components.View.Transparency;
 
 import javax.swing.*; 
 import java.awt.*;
-import java.awt.event.*;
-import java.util.*; 
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.util.Vector; 
 import java.lang.Math;
 
 import DataSetTools.components.image.*;
 import DataSetTools.components.View.Region.WCRegion;
-import DataSetTools.components.View.TwoD.*;
+import DataSetTools.components.View.TwoD.IZoomAddible;
 import DataSetTools.components.View.Cursor.*; 
+import DataSetTools.components.View.ViewControls.ControlSlider;
+import DataSetTools.components.View.ViewControls.IViewControl;
 import DataSetTools.util.floatPoint2D;
 
 /**
@@ -145,7 +154,10 @@ public class SelectionOverlay extends OverlayJPanel
    private Color reg_color;
    private Rectangle current_bounds;
    private CoordTransform pixel_local;  
-   private Vector Listeners = null;   
+   private Vector Listeners = null;  
+   private float opacity = 1.0f;          // value [0,1] where 0 is clear, 
+                                          // and 1 is solid.
+   private SelectionEditor editor;
   
   /**
    * Constructor creates an OverlayJPanel with a SeletionJPanel that shadows the
@@ -157,9 +169,9 @@ public class SelectionOverlay extends OverlayJPanel
    {
       super();
       this.setLayout( new GridLayout(1,1) );
-      
+      editor = new SelectionEditor();
+      //editor.setVisible(false);
       sjp = new SelectionJPanel();
-      sjp.setOpaque(false);
       component = iza;
       regions = new Vector();       
       this_panel = this;
@@ -190,17 +202,22 @@ public class SelectionOverlay extends OverlayJPanel
    {
       JFrame helper = new JFrame("Help for Selection Overlay");
       helper.setBounds(0,0,600,400);
-      JTextArea text = new JTextArea("Commands for Selection Overlay\n\n");
-      helper.getContentPane().add(text);
+      JTextArea text = new JTextArea("Discription:\n\n");
       text.setEditable(false);
       text.setLineWrap(true);
+      text.append("The Selection Overlay is used to selection regions of " +
+                  "data for analysis. The selected region will initially be " +
+                  "outlined in white, unless otherwise specified.\n\n");
+      text.append("Commands for Selection Overlay\n\n");
       text.append("Note:\n" +
                   "- These commands will NOT work if the Annotation " +
                   "Overlay checkbox IS checked or if the Selection " + 
 		  "Overlay IS NOT checked.\n" +
 		  "- Zooming on the image is only allowed if this overlay " +
 		  "is turned off.\n\n" );
+      text.append("*******************************************\n");
       text.append("Image Commands:\n");
+      text.append("*******************************************\n");
       text.append("Click/Drag/Release Mouse w/B_Key pressed>" + 
                   "ADD BOX SELECTION\n");
       text.append("Click/Drag/Release Mouse w/C_Key pressed>" + 
@@ -209,8 +226,42 @@ public class SelectionOverlay extends OverlayJPanel
                   "ADD POINT SELECTION\n");
       text.append("Double Click Mouse>REMOVE LAST SELECTION\n");
       text.append("Single Click Mouse w/A_Key>REMOVE ALL SELECTIONS\n\n");
+      text.append("*******************************************\n");
+      text.append("Selection Editor Commands (Edit button under Selection " +
+                  "Overlay Control)\n");
+      text.append("*******************************************\n");
+      text.append("Click on \"Change Color\" to CHANGE COLOR OF SELECTION.\n");
+      text.append("Move slider to CHANGE OPACITY OF SELECTION. If highly " +
+                  "opaque, lines show bright. Low opacity makes selections " +
+		  "clear or transparent.\n\n");
       
+      JScrollPane scroll = new JScrollPane(text);
+      scroll.setVerticalScrollBarPolicy(
+                                      JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+      helper.getContentPane().add(scroll);
       helper.setVisible(true);
+   }
+   
+   public void setOpacity( float value )
+   {
+     if( value > 1 )
+       opacity = 1.0f;
+     else if( value < 0 )
+       opacity = 0;
+     else
+       opacity = value;
+   }
+   
+   public void editSelection()
+   {
+     if( editor.isVisible() )
+       editor.requestFocus();
+     else
+     {
+       editor.dispose();
+       editor = new SelectionEditor();
+       editor.setVisible(true);
+     }
    }
    
   /**
@@ -279,6 +330,11 @@ public class SelectionOverlay extends OverlayJPanel
    public void paint(Graphics g) 
    { 
       Graphics2D g2d = (Graphics2D)g; 
+      // testing...
+      AlphaComposite ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER,
+                                                      opacity );
+      g2d.setComposite(ac);
+      // end of testing...
       current_bounds = component.getRegionInfo();  // current size of center
       sjp.setBounds( current_bounds );
       // this limits the paint window to the size of the background image.
@@ -471,4 +527,63 @@ public class SelectionOverlay extends OverlayJPanel
 	                        // not appear.
       }  // end actionPerformed()   
    } // end SelectListener
+   
+   private class SelectionEditor extends JFrame
+   {
+     private Box pane;
+     private SelectionEditor this_editor;
+     
+     public SelectionEditor()
+     {
+       super("SelectionEditor");
+       this.setBounds(0,0,200,125);
+       this_editor = this;
+       pane = new Box( BoxLayout.Y_AXIS	);
+       JButton colorbutton = new JButton("Change Color");
+       colorbutton.setAlignmentX( Component.CENTER_ALIGNMENT );
+       colorbutton.addActionListener( new ControlListener() );
+       pane.add(colorbutton);
+       
+       ControlSlider opacityscale = new ControlSlider();
+       opacityscale.setValue(opacity*100f);
+       opacityscale.setTitle("Selection Opacity Scale");
+       opacityscale.addActionListener( new ControlListener() );
+       pane.add(opacityscale);
+	 
+       JButton closebutton = new JButton("Close");
+       closebutton.setAlignmentX( Component.CENTER_ALIGNMENT );
+       closebutton.addActionListener( new ControlListener() );
+       pane.add( closebutton );
+       
+       this.getContentPane().add(pane);
+     }
+     
+     class ControlListener implements ActionListener
+     {
+       public void actionPerformed( ActionEvent ae )
+       {
+         Color temp;
+	 String message = ae.getActionCommand();
+         if( message.equals("Change Color") )
+	 {
+	   temp = JColorChooser.showDialog(pane, "Selection Color", reg_color);
+	   if( temp != null )
+	   {
+	     reg_color = temp;
+	     this_panel.repaint();
+	   }
+         }
+	 else if( message.equals( IViewControl.SLIDER_CHANGED ) )
+	 {
+	   opacity = ((ControlSlider)ae.getSource()).getValue() / 100f;
+	   this_panel.repaint();
+	 }
+	 else if( message.equals("Close") )
+	 {   
+	   this_editor.dispose();
+	   this_panel.repaint();
+	 }
+       }
+     }
+   }
 }
