@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/02/06 20:26:09  millermi
+ *  - Added ObjectState key and methods.
+ *
  *  Revision 1.10  2004/01/05 18:14:06  millermi
  *  - Replaced show()/setVisible(true) with WindowShower.
  *  - Removed excess imports.
@@ -104,6 +107,7 @@
  import DataSetTools.components.image.CoordBounds;
  import DataSetTools.components.image.CoordTransform;
  import DataSetTools.components.image.ImageJPanel;
+ import DataSetTools.components.View.ObjectState;
  import DataSetTools.components.View.Cursor.TranslationJPanel;
  import DataSetTools.components.View.Transparency.TranslationOverlay;
  import DataSetTools.util.floatPoint2D;
@@ -114,7 +118,15 @@
  * will cause a thumbnail of the image to appear in the control panel.
  */
 public class PanViewControl extends ViewControl
-{  
+{
+ // ---------------------ObjectState Keys---------------------------------
+ /**
+  * "Overlay" - This constant String is a key for referencing the state
+  * information about the width allocated for the label.
+  * The value that this key references is of type String.
+  */
+  public static final String OVERLAY = "Overlay";
+  
   private ThumbnailJPanel panel;       // thumbnail of actual CoordJPanel
   private Image panel_image;
   private CoordJPanel actual_cjp;      // reference to actual CoordJPanel
@@ -145,7 +157,40 @@ public class PanViewControl extends ViewControl
     addMouseListener( new PanMouseAdapter() );
     // this listener will preserve the aspect ratio of the control
     addComponentListener( new MaintainAspectRatio() );
-  } 
+  }
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault )
+  {
+    ObjectState state = super.getObjectState(isDefault);
+    state.insert( OVERLAY, overlay.getObjectState(isDefault) );
+    return state;
+  }
+     
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    // call setObjectState of ViewControl, sets title if one exists.
+    super.setObjectState( new_state );
+    Object temp = new_state.get(OVERLAY);
+    if( temp != null )
+    {
+      overlay.setObjectState(new_state);
+    }
+  }
   
  /**
   * Get the local bounds of the thumbnail. These bounds represent the area
@@ -223,6 +268,7 @@ public class PanViewControl extends ViewControl
     f.getContentPane().add(pvc);
     WindowShower shower = new WindowShower(f);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
   
  /*
