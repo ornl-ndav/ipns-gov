@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/01/29 23:50:25  millermi
+ *  - Added toString() (Dennis)
+ *  - Removed all references to AxisInfo2D
+ *
  *  Revision 1.2  2003/12/20 19:15:59  millermi
  *  - Corrected java docs statements.
  *
@@ -189,13 +193,28 @@ public class AxisInfo
   } 
   
  /**
-  * This method returns a copy of the AxisInfo2D object.
+  * This method returns a copy of the AxisInfo object.
   *
-  *  @return copy of the AxisInfo2D object.
+  *  @return copy of the AxisInfo object.
   */
   public AxisInfo copy()
   {
     return new AxisInfo( axismin, axismax, new String(axislabel), 
 			 new String(axisunits), islinear );
   }
+
+ /**
+  *  Get a String containg the basic axis information.
+  *
+  *  @return a String form of the axis info.
+  */
+  public String toString()
+  {
+     return "Label  = " + axislabel + "\n" +
+            "Units  = " + axisunits + "\n" +
+            "Min    = " + axismin   + "\n" +
+            "Max    = " + axismax   + "\n" +
+            "Linear = " + islinear;
+  }
+  
 }
