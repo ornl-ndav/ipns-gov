@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2003/05/28 20:51:40  pfpeterson
+ *  Changed System.getProperty to SharedData.getProperty
+ *
  *  Revision 1.16  2003/03/11 16:14:14  pfpeterson
  *  fixCase(String) now tries both all upper and all lower after not
  *  finding the specified file. Also shortened names for imported
@@ -188,10 +191,10 @@ public class FilenameUtil
      *         or a null string indicating failure.
      */
     public static String docDir( String docFile ){
-	String S=System.getProperty("Docs_Directory");
+	String S=SharedData.getProperty("Docs_Directory");
         char pathSep = File.separatorChar;
 	  if( S == null ){
-	      S=System.getProperty("ISAW_HOME");
+	      S=SharedData.getProperty("ISAW_HOME");
 	  }
 	  if( S == null ){
 	      SharedData.addmsg("ISAW_HOME is not defined in Properties file");
@@ -233,7 +236,7 @@ public class FilenameUtil
 
 
 	// start the string as being the value of helpdirectory
-	String S = System.getProperty("Help_Directory");
+	String S = SharedData.getProperty("Help_Directory");
         if(S!=null){
             S=S.trim();
         }
@@ -255,7 +258,7 @@ public class FilenameUtil
 
 	// if helpFile is not in help_file then try in $HOME
 	if( S == null ){
-	    S=System.getProperty("user.dir").trim();
+	    S=SharedData.getProperty("user.dir").trim();
 	    if( S.length()>0 ){
 		if( "\\/".indexOf(S.charAt(S.length()-1)) < 0 ){
 		    S=S+File.separator;
@@ -276,7 +279,7 @@ public class FilenameUtil
 	if( S != null ){
 	    S = S + helpFile;
         }else{
-	    String CP = System.getProperty("java.class.path").replace( '\\','/');
+	    String CP = SharedData.getProperty("java.class.path").replace( '\\','/');
 	    int s, t ;
             for( s = 0; (s < CP.length()) && (S == null); s++){
 		t = CP.indexOf( File.pathSeparator, s+1);

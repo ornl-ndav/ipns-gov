@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/05/28 20:51:40  pfpeterson
+ *  Changed System.getProperty to SharedData.getProperty
+ *
  *  Revision 1.6  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -271,7 +274,7 @@ public class SysUtil{
         String urlStr=url.toString();
         // come up with where blind should be
         if(urlStr!=null){
-            urlStr=FilenameUtil.fixSeparator(urlStr);
+            urlStr=FilenameUtil.setForwardSlash(urlStr);
             urlStr=URLDecoder.decode(urlStr);
             int from=urlStr.indexOf("/");
             int to=urlStr.lastIndexOf("/")+1;
@@ -304,27 +307,27 @@ public class SysUtil{
     public static String getExecInPath(String command){
         String  com   = null;
         String  path  = null;
-        String  sep   = System.getProperty("path.separator");
+        String  sep   = SharedData.getProperty("path.separator");
         boolean found = false;
 
         // make sure that a command was given
         if(command==null) return null;
 
         // see if the path is listed in lowercase
-        path=System.getProperty("path");
+        path=SharedData.getProperty("path");
         // and try uppercase
         if(path==null){
             if(SharedData.DEBUG) System.out.println("path not defined");
-            path=System.getProperty("PATH");
+            path=SharedData.getProperty("PATH");
         }
         // if we are in linux here is a guess of the path
         if(path==null){
             if(SharedData.DEBUG) System.out.println("PATH not defined");
-            path=System.getProperty("ISAW_HOME");
+            path=SharedData.getProperty("ISAW_HOME");
             if(isOSokay(LINUX_ONLY)){
                 if(SharedData.DEBUG)
                     System.out.println("Adding default linux path");
-                path=path+sep+System.getProperty("user.home")+"/bin"+sep
+                path=path+sep+SharedData.getProperty("user.home")+"/bin"+sep
                     +"/usr/local/bin"+sep+"/usr/bin";
             }
         }
@@ -332,7 +335,7 @@ public class SysUtil{
         // search through the path for the executable
         int index=path.indexOf(sep);
         while(index>0){
-            com=FilenameUtil.fixSeparator(path.substring(0,index)+"/"+command);
+            com=FilenameUtil.setForwardSlash(path.substring(0,index)+"/"+command);
             path=path.substring(index+1);
             index=path.indexOf(sep);
             if(fileExists(com)){
@@ -342,7 +345,7 @@ public class SysUtil{
         }
         // one last time for the remainder of the path after the last seperator
         if(! found){
-            com=FilenameUtil.fixSeparator(path+"/"+command);
+            com=FilenameUtil.setForwardSlash(path+"/"+command);
             if(fileExists(com)) found=true;
         }
 
@@ -370,7 +373,7 @@ public class SysUtil{
     public static boolean isOSokay(int accepted){
         if(accepted==ALL_OS) return true;
 
-        String os=System.getProperty("os.name");
+        String os=SharedData.getProperty("os.name");
 
         // nothing there must be bad
         if(os==null) return false;
