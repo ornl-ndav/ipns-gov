@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/18 19:58:51  dennis
+ * Now imports Fonts package since StrokeFont.java moved
+ * to Fonts directory.
+ *
  * Revision 1.1  2004/06/18 19:21:29  dennis
  * Moved to Shapes package.
  *
@@ -45,6 +49,7 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.*;
 import net.java.games.jogl.*;
 
 /**
