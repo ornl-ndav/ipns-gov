@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.35  2004/03/12 03:14:15  serumb
+ *  Change package and imports.
+ *
  *  Revision 1.34  2004/02/14 03:37:23  millermi
  *  - Replaced all WCRegion code with Region class.
  *  - if regions are in setObjectState(), REGION_ADDED message
@@ -221,7 +224,7 @@
  * All keyboard events must be done prior to mouse events.
  */ 
  
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import javax.swing.*;
 import javax.swing.text.html.HTMLEditorKit; 
@@ -233,13 +236,15 @@ import java.awt.event.ComponentEvent;
 import java.util.Vector; 
 import java.lang.Math;
 
-import DataSetTools.components.image.*;
-import DataSetTools.components.View.ObjectState;
-import DataSetTools.components.View.Region.*;
-import DataSetTools.components.View.Cursor.*; 
-import DataSetTools.components.View.ViewControls.ControlSlider;
-import DataSetTools.util.floatPoint2D; 
-import DataSetTools.util.WindowShower;
+import gov.anl.ipns.ViewTools.Panels.Image.*;
+import gov.anl.ipns.ViewTools.Panels.Cursors.*;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.Region.*;
+import gov.anl.ipns.ViewTools.Components.Cursor.*; 
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
+import gov.anl.ipns.Util.Numeric.floatPoint2D; 
+import gov.anl.ipns.Util.Sys.WindowShower;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 
 /**
  * This class allows users to select a region for calculation purposes.
