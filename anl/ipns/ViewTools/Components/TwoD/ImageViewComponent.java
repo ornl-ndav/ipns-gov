@@ -34,6 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.59  2004/03/09 16:30:36  millermi
+ *  - Added title to PanViewControl
+ *  - Made all titles of controls static Strings to allow easy
+ *    comparison when a list of ViewControls is gotten.
+ *  - In buildAspectImage(), use paintComponents() to update
+ *    overlays instead of just repaint on each overlay. This
+ *    should fix a bug where the axes were not being updated
+ *    properly.
+ *
  *  Revision 1.58  2004/02/27 23:57:02  millermi
  *  - Replaced variable MAXDATASIZE with getNumRows() or
  *    getNumColumns() so future problems are not encountered
@@ -356,7 +365,45 @@ public class ImageViewComponent implements IViewComponent2D,
            /*for Selection/Annotation*/    IZoomTextAddible,
 	                                   IPreserveState,
 					   Serializable
-{  
+{ 
+  // these variables are static names for the controls of the ImageViewComp.
+  // Use these to determine which control you are dealing with.
+ /**
+  * "Intensity Slider" - use this static String to verify that the title of
+  * the ViewControl returned is the intensity slider.
+  */
+  public static final String INTENSITY_SLIDER_NAME = "Intensity Slider";
+  
+ /**
+  * "Color Scale" - use this static String to verify that the title of
+  * the ViewControl returned is the color scale from the control panel.
+  * This color scale is not the calibrated color scale bordering the image.
+  */
+  public static final String COLOR_SCALE_NAME = "Color Scale";
+  
+ /**
+  * "Axis Overlay" - use this static String to verify that the title of
+  * the ViewControl returned is that of the axis overlay control.
+  */
+  public static final String AXIS_OVERLAY_NAME = "Axis Overlay";
+  
+ /**
+  * "Selection Overlay" - use this static String to verify that the title of
+  * the ViewControl returned is that of the selection overlay control.
+  */
+  public static final String SELECTION_OVERLAY_NAME = "Selection Overlay";
+  
+ /**
+  * "Annotation Overlay" - use this static String to verify that the title of
+  * the ViewControl returned is that of the annotation overlay control.
+  */
+  public static final String ANNOTATION_OVERLAY_NAME = "Annotation Overlay";
+  
+ /**
+  * "Panning Tool" - use this static String to verify that the title of
+  * the ViewControl returned is that of the PanViewControl.
+  */
+  public static final String PAN_NAME = "Panning Tool";
   // these variables preserve the state of the ImageViewComponent
  /**
   * "Precision" - This constant String is a key for referencing the state
@@ -1407,27 +1454,28 @@ public class ImageViewComponent implements IViewComponent2D,
     // Note: If controls are added here, the size of the array controls[]
     // must be incremented in the private data members.
     controls[0] = new ControlSlider();
-    controls[0].setTitle("Intensity Slider");
+    controls[0].setTitle(INTENSITY_SLIDER_NAME);
     ((ControlSlider)controls[0]).setValue((float)logscale);		  
     controls[0].addActionListener( new ControlListener() );
                
     controls[1] = new ControlColorScale(colorscale, isTwoSided );
-    controls[1].setTitle("Color Scale");
+    controls[1].setTitle(COLOR_SCALE_NAME);
     
     controls[2] = new ControlCheckboxButton(true);
-    ((ControlCheckboxButton)controls[2]).setTitle("Axis Overlay");
+    ((ControlCheckboxButton)controls[2]).setTitle(AXIS_OVERLAY_NAME);
     controls[2].addActionListener( new ControlListener() );
    
     controls[3] = new ControlCheckboxButton();  // initially unchecked
-    ((ControlCheckboxButton)controls[3]).setTitle("Selection Overlay");
+    ((ControlCheckboxButton)controls[3]).setTitle(SELECTION_OVERLAY_NAME);
     controls[3].addActionListener( new ControlListener() );
     
     controls[4] = new ControlCheckboxButton();  // initially unchecked
-    ((ControlCheckboxButton)controls[4]).setTitle("Annotation Overlay");
+    ((ControlCheckboxButton)controls[4]).setTitle(ANNOTATION_OVERLAY_NAME);
     controls[4].addActionListener( new ControlListener() );
     // panviewcontrol
     controls[5] = new PanViewControl(ijp);
-    controls[5].addActionListener( new ControlListener() );     
+    ((PanViewControl)controls[5]).setTitle(PAN_NAME);
+    controls[5].addActionListener( new ControlListener() ); 
   }
   
  /*
@@ -1553,8 +1601,8 @@ public class ImageViewComponent implements IViewComponent2D,
     background.validate();
     // reset the center bounds and update the overlays.
     regioninfo = new Rectangle( ijp.getLocation(), ijp.getSize() );
-    for( int trans = 0; trans < transparencies.size(); trans++ )
-      ((OverlayJPanel)transparencies.elementAt(trans)).repaint();
+    // this is needed to properly draw the axes.
+    paintComponents( big_picture.getGraphics() );
   }
   
  //***************************Assistance Classes******************************
@@ -1655,7 +1703,7 @@ public class ImageViewComponent implements IViewComponent2D,
           ControlCheckboxButton control = 
                 		      (ControlCheckboxButton)ae.getSource();
           // if this control turns on/off the axis overlay...
-          if( control.getTitle().equals("Axis Overlay") )
+          if( control.getTitle().equals(AXIS_OVERLAY_NAME) )
           {	
             JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
             if( !control.isSelected() )
@@ -1677,7 +1725,7 @@ public class ImageViewComponent implements IViewComponent2D,
               ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(true);
             }
           }// end of if( axis overlay control ) 
-          else if( control.getTitle().equals("Annotation Overlay") )
+          else if( control.getTitle().equals(ANNOTATION_OVERLAY_NAME) )
           {
             AnnotationOverlay note = (AnnotationOverlay)
                 	             transparencies.elementAt(0); 
@@ -1691,7 +1739,7 @@ public class ImageViewComponent implements IViewComponent2D,
               note.getFocus();
             }		  
           }
-          else if( control.getTitle().equals("Selection Overlay") )
+          else if( control.getTitle().equals(SELECTION_OVERLAY_NAME) )
           {
             // if this control turns on/off the selection overlay...
             SelectionOverlay select = (SelectionOverlay)
@@ -1713,19 +1761,19 @@ public class ImageViewComponent implements IViewComponent2D,
         if( ae.getSource() instanceof ControlCheckboxButton )
         {
           ControlCheckboxButton ccb = (ControlCheckboxButton)ae.getSource();
-          if( ccb.getTitle().equals("Axis Overlay") )
+          if( ccb.getTitle().equals(AXIS_OVERLAY_NAME) )
           {
             AxisOverlay2D axis = (AxisOverlay2D)transparencies.elementAt(2);
             axis.editGridLines();
           }
-          else if( ccb.getTitle().equals("Annotation Overlay") )
+          else if( ccb.getTitle().equals(ANNOTATION_OVERLAY_NAME) )
           {
             AnnotationOverlay note = (AnnotationOverlay)
 	                             transparencies.elementAt(0); 
             note.editAnnotation();
             note.getFocus();
           }
-          else if( ccb.getTitle().equals("Selection Overlay") )
+          else if( ccb.getTitle().equals(SELECTION_OVERLAY_NAME) )
           {
             SelectionOverlay select = (SelectionOverlay)
 			              transparencies.elementAt(1); 
