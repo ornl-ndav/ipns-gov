@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/05/20 03:33:37  millermi
+ * - Removed unused variables.
+ *
  * Revision 1.7  2004/05/11 01:55:30  millermi
  * - Updated the class description in the javadocs.
  *
@@ -245,11 +248,8 @@ abstract public class Display extends JFrame implements IPreserveState,
   private void buildMenubar()
   { 
     Vector file              = new Vector();
-    Vector save_results_menu = new Vector();
-    Vector view_man  	     = new Vector();
     Vector save_menu 	     = new Vector();
     Vector open_menu 	     = new Vector();
-    Vector load_data         = new Vector();
     Vector print             = new Vector();
     Vector save_image        = new Vector();
     Vector exit              = new Vector();
