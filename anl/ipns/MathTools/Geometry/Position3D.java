@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2003/02/05 21:06:43  dennis
+ *  Added constructor to make a Position3D object from a Vector3D object.
+ *
  *  Revision 1.12  2002/12/05 20:41:34  pfpeterson
  *  Added method to determine distance between two Position3D.
  *
@@ -111,6 +114,18 @@ public class Position3D implements Serializable,
     azimuth_angle = position.azimuth_angle;
     polar_angle   = position.polar_angle;
   }
+
+  /**
+   *  Construct a Position3D object from a Vector3D object.
+   */
+  public Position3D( Vector3D vector )
+  {
+    if ( vector == null )                                 // nothing to do
+      return;
+
+    float coords[] = vector.get();
+    setCartesianCoords( coords[0], coords[1], coords[2] );
+  } 
 
   /**
    *  Specify the position as a triple of values, (x, y, z) in Cartesian
