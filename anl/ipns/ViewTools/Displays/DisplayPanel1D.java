@@ -69,7 +69,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
         dP1DPrecision = 4;
         axisPane = new AxisOverlay2D(this);
         axisPane.setLayout(null);
-        axisPane.setOpaque(true);
+//        axisPane.setOpaque(true);
         axisPane.add(this);
         _container.add(axisPane);
         addActionListener(this);

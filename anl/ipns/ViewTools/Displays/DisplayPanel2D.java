@@ -65,7 +65,7 @@ public class DisplayPanel2D extends ImageJPanel implements IColorScaleAddible,
         dP2DPrecision = 4;
 
         axisPane = new AxisOverlay2D(this);
-        axisPane.setOpaque(true);
+//        axisPane.setOpaque(true);
         axisPane.setLayout(null);
         axisPane.add(this);
         _container.add(axisPane);
