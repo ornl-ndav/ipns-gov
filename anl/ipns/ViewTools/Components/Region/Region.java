@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/01/18 22:59:47  millermi
+ *  - Added getWorldBounds() and getImageBounds()
+ *
  *  Revision 1.11  2004/07/02 16:40:52  millermi
  *  - Added comments and println message to getRegionUnion() notifying
  *    them that TableRegions may not work with this method.
@@ -162,6 +165,22 @@ public abstract class Region implements java.io.Serializable
   {
     world_to_image.setDestination(ib);
     //image_coords_set = true;
+  }
+  
+ /**
+  * Get the world coordinate bounds for the region.
+  */ 
+  public CoordBounds getWorldBounds()
+  {
+    return world_to_image.getSource();
+  }
+  
+ /**
+  * Get the image coordinate bounds for the region.
+  */ 
+  public CoordBounds getImageBounds()
+  {
+    return world_to_image.getDestination();
   }
   
  /**
@@ -376,8 +395,8 @@ public abstract class Region implements java.io.Serializable
     // set image bounds
     image_to_array.setSource( new CoordBounds(rowmin,colmin,rowmax,colmax) );
     // build table to keep track of selected points
-    int rows = Math.round(rowmax - rowmin) + 1;
-    int columns = Math.round(colmax - colmin) + 1;
+    int rows = Math.abs(Math.round(rowmax - rowmin)) + 1;
+    int columns = Math.abs(Math.round(colmax - colmin)) + 1;
     // set array bounds
     image_to_array.setDestination( new CoordBounds(0,0,
                                                    (float)(rows-1),
