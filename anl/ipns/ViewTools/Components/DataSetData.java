@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2004/01/06 23:30:28  serumb
+ * Added documentation.
+ *
  * Revision 1.12  2003/12/18 22:42:12  millermi
  * - This file was involved in generalizing AxisInfo2D to
  *   AxisInfo. This change was made so that the AxisInfo
@@ -59,7 +62,12 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.util.*;
 
-
+/**
+ * This class is used to take information from a data set,
+ * and allow the information to be stored as a virtual array1D
+ * so that the information is able to be viewed through the 
+ * function view component.
+ */ 
 public class DataSetData implements IVirtualArray1D
   {
      private DataSet ds;
@@ -74,7 +82,10 @@ public class DataSetData implements IVirtualArray1D
    boolean is_x_linear = true;
    boolean is_y_linear = true;
    
-
+  /**
+   * Constructor that takes in a data set and sets the selected 
+   * indexes.
+   */
    public DataSetData( DataSet DS)
      {
        ds = DS;
@@ -86,8 +97,8 @@ public class DataSetData implements IVirtualArray1D
 
    /**
      *  Change the DataSet being viewed to the specified DataSet.  Derived
-     *  classes should override this and take what additional steps are needed
-     *  to change the specific viewer to the deal with the new DataSet.
+     *  classes should override this and take what additional steps are 
+     *  needed to change the specific viewer to the deal with the new DataSet.
      *
      *  @param  ds  The new DataSet to be viewed
      */
@@ -99,6 +110,9 @@ public class DataSetData implements IVirtualArray1D
        notifyAllListeners("DataChanged");
     }
     
+  /**
+   * Gets the information to set up the Axis.
+   */ 
    public AxisInfo getAxisInfo( int axis)
      {
       
@@ -112,7 +126,9 @@ public class DataSetData implements IVirtualArray1D
      }
 
 
-   
+  /**
+   * Functions to find the min and max, x and y values for the graph.
+   */
    private float findminX()
      { 
        if( !Float.isNaN(minx))
@@ -190,7 +206,13 @@ public class DataSetData implements IVirtualArray1D
      {
          
      }
-
+ /**
+  *  Gets the x values of a selected line given the selected index.
+  *
+  *  @param line_number    The index of the selected graph.
+  *
+  *  @return x             The array of x values.
+  */ 
   public float[] getXValues( int line_number )
     {     
       if( line_number < 0)
@@ -204,6 +226,9 @@ public class DataSetData implements IVirtualArray1D
 
     }
 
+ /**
+  * this method is required by the interface.
+  */
   public void setXYValues( float[] x_values, 
                            float[] y_values,
                            float[] errors,
@@ -214,8 +239,13 @@ public class DataSetData implements IVirtualArray1D
     }
 
 
-
-
+ /**
+   *  Gets the y values of a selected line given the selected index.
+   *
+   *  @param line_number  The index of the selected graph.
+   *
+   *  @return y           The array of y values.
+   */
   public float[] getYValues( int line_number )
     {
       if( line_number < 0)
@@ -227,7 +257,9 @@ public class DataSetData implements IVirtualArray1D
       return y;
     }
 
-
+ /**
+  * gets the x values of a graph in the data set given the index.
+  */
   public float[] getXVals_ofIndex(int index)
   {
      if( index < 0)
@@ -236,6 +268,10 @@ public class DataSetData implements IVirtualArray1D
         return null;
      return ds.getData_entry(index).getX_values();
   }
+ 
+ /**
+  * gets the y values of a graph in the data set given the index.
+  */
   public float[] getYVals_ofIndex(int index)
   {
      if( index < 0)
@@ -245,7 +281,10 @@ public class DataSetData implements IVirtualArray1D
      return ds.getData_entry(index).getY_values();
   }
     
-
+ /**
+  * gets the error values of a graph that is selected given
+  * the selected index.
+  */ 
   public float [] getErrorValues( int line_number )
   {
      if( line_number < 0)
@@ -255,6 +294,9 @@ public class DataSetData implements IVirtualArray1D
      return ds.getData_entry( selectedInd[line_number]).getErrors( );
   }
   
+ /**
+  *  gets the error values of a graph from the data set given the index.
+  */
   public float[] getErrorVals_ofIndex(int index)
   {
      if( index < 0)
@@ -264,6 +306,9 @@ public class DataSetData implements IVirtualArray1D
      return ds.getData_entry( index ).getErrors( );
   }
 
+ /**
+  * gets the id of the selected graph given the selected index.
+  */
   public int getGroupID( int line_number )
   {
      if( line_number < 0)
@@ -273,29 +318,44 @@ public class DataSetData implements IVirtualArray1D
      return ds.getData_entry( selectedInd[line_number]).getGroup_ID( );
   }
 
+ /**
+  * gets the index of the pointed at graph from the data set.
+  */
   public int getPointedAtGraph()
   {
      return ds.getPointedAtIndex();
   }
 
+ /**
+  * returns an array of indexes for the selected graphs.
+  */
   public int[] getSelectedGraphs()
   {
      return selectedInd;
   }
 
+ /**
+  * checks to see if a graph with a given index in the data set is selected.
+  */
   public boolean isSelected(int index) 
   {
      return ds.isSelected(index);
   }
   
+ /** 
+  * returns the number of graphs in the data set.
+  */
   public int getNumGraphs()
   {
      return ds.getNum_entries();
   }
 
+ /**
+  * this method is required by the interface.
+  */
   public void setAllValues( float value )
   { 
-
+    System.out.println("DataSetData.setAllValues() is just a stub");
   }
 
   public void set_x_linear(boolean isLinear) 
@@ -320,7 +380,10 @@ public class DataSetData implements IVirtualArray1D
     return ds.getData_entry( selectedInd[ line_number]).getX_scale().getNum_x();
 
   }
-
+  
+ /**
+  * gets the number of selected graphs.
+  */
   public int getNumlines()
     { 
       if( selectedInd == null)
@@ -328,7 +391,9 @@ public class DataSetData implements IVirtualArray1D
       return selectedInd.length;
     }
 
-   
+  /**
+   * Methods for adding, removing, and notifing actionlisteners.
+   */ 
    Vector ActListeners = new Vector();
    public void addActionListener( ActionListener listener)
     {

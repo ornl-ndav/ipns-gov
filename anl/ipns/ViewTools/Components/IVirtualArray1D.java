@@ -1,7 +1,7 @@
 /*
  * File: IVirtualArray1D.java
  *
- * 
+ *  Copyright (C) 2003, Brent Serum
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/06 23:30:44  serumb
+ *  Added documentation.
+ *
  *  Revision 1.5  2003/12/18 22:42:12  millermi
  *  - This file was involved in generalizing AxisInfo2D to
  *    AxisInfo. This change was made so that the AxisInfo
@@ -81,31 +84,14 @@ public interface IVirtualArray1D
    */
    public void setTitle( String title );
   
-  /*
-   ***************************************************************************
-   * The following methods must include implementation to prevent
-   * the user from exceeding the initial array size determined
-   * at creation of the array. If an M x N array is specified,
-   * the parameters must not exceed (M-1,N-1). 
-   ***************************************************************************
-   */
-   
   /**
-   * Get values for a portion or all of a row.
-   * The "from" and "to" values must be direct array reference, i.e.
-   * because the array positions start at zero, not one, this must be
-   * accounted for. If the array passed in exceeds the bounds of the array, 
-   * get values for array elements and ignore extra values.
+   * Gets the x values for a line, given the index of the line. 
    */
    public float[] getXValues( int line_number );
    
    
   /**
-   * Get values for a portion or all of a column.
-   * The "from" and "to" values must be direct array reference, i.e.
-   * because the array positions start at zero, not one, this must be
-   * accounted for. If the array passed in exceeds the bounds of the array, 
-   * get values for array elements and ignore extra values.
+   * Get the y values of a line, gived the index of the line.
    */
    public float[] getYValues( int line_number );
    
@@ -121,6 +107,8 @@ public interface IVirtualArray1D
    
   /**
    * Get vertical error values for a line in the graph..
+   * The "line_number" is the index for the selected lines.
+   * The "index" is the index for the data set. 
    */
    public float[] getErrorValues( int line_number );
    public float[] getErrorVals_ofIndex( int index );
@@ -138,6 +126,9 @@ public interface IVirtualArray1D
    */
    public void setAllValues( float value );
 
+  /**
+   *  Returns the number of points in the line.
+   */ 
    public int getNumPoints( int line_number );
 
   /**
@@ -145,14 +136,40 @@ public interface IVirtualArray1D
    */   
    public int getNumlines();
 
+  /**
+   *  Returns the index from the data set of the pointed at graph.
+   */
    public int getPointedAtGraph();
+
+  /**
+   *  Returns the array of selected indexes.
+   */ 
    public int[] getSelectedGraphs();
+
+  /**
+   *  Checks if an index from the data set is selected
+   *  and returns the boolean value.
+   */
    public boolean isSelected(int index);
+
+  /**
+   *  Returns the number of graphs in the data set
+   */
    public int getNumGraphs();
 
+  /**
+   *  Gets the x values for an index for a data set.
+   */
    public float[] getXVals_ofIndex(int index);
+ 
+  /**
+   *  Gets the y values for an index for a data set.
+   */
    public float[] getYVals_ofIndex(int index);
    
+  /**
+   *  Methods for adding and removing action listeners.
+   */
    public void addActionListener( ActionListener listener);
    public void removeActionListener( ActionListener listener);
    public void removeAllActionListeners();
