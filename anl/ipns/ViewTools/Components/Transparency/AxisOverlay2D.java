@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.40  2004/08/17 03:59:12  ffr
+ *  Bugfix: Calling super.paint in paint() method to make sure that any lightweight descendents are shown.
+ *
  *  Revision 1.39  2004/07/29 16:44:29  robertsonj
  *  added javadocs
  *
@@ -707,6 +710,7 @@ public class AxisOverlay2D extends OverlayJPanel
     	//paintLogY( g2d );
       }
     }
+    super.paint(g);
   } // end of paint()
   
  /* ***********************Private Methods************************** */
