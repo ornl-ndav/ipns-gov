@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.32  2003/10/17 16:09:36  millermi
+ *  - getObjectState() now returns a copy of the colorscale string.
+ *
  *  Revision 1.31  2003/10/16 16:00:08  millermi
  *  - Changed getCurrentPoint() to getPointedAt() to
  *    maintain method name consistency.
@@ -234,13 +237,6 @@ public class ImageViewComponent implements IViewComponent2D,
   * that this key references is an array of Regions.
   */
   public static final String SELECTED_REGIONS	 = "Selected Regions";
- 
- /**
-  * "Listeners" - This constant String is a key for referencing the state
-  * information about the action listeners listening to this components. The
-  * value that this key references is a Vector of action listeners. 
-  */
-  public static final String LISTENERS  	 = "Listeners";
  
  /**
   * "Precision" - This constant String is a key for referencing the state
@@ -485,14 +481,7 @@ public class ImageViewComponent implements IViewComponent2D,
     {
       selectedregions = (Region[])temp;
       redraw = true;  
-    } 
-   
-    temp = new_state.get(LISTENERS);
-    if( temp != null )
-    {
-      Listeners = ((Vector)temp);; 
-      redraw = true;  
-    }  
+    }
     
     temp = new_state.get(FONT);
     if( temp != null )
@@ -595,7 +584,7 @@ public class ImageViewComponent implements IViewComponent2D,
       ((ControlCheckboxButton)controls[2]).setSelected( 
                                  ((Boolean)temp).booleanValue() );
       redraw = true;  
-    }  	
+    }
     
     temp = new_state.get(SELECTION_CONTROL);
     if( temp != null )
@@ -603,9 +592,7 @@ public class ImageViewComponent implements IViewComponent2D,
       ((ControlCheckboxButton)controls[3]).setSelected( 
                                  ((Boolean)temp).booleanValue() );
       redraw = true;  
-    }    
-  
-
+    }
    
     if( redraw )
       reInit();
@@ -630,10 +617,9 @@ public class ImageViewComponent implements IViewComponent2D,
     state.insert( COLOR_CONTROL, new Boolean(addColorControl) );
     state.insert( COLOR_CONTROL_EAST, new Boolean(addColorControlEast) );
     state.insert( COLOR_CONTROL_SOUTH, new Boolean(addColorControlSouth) );
-    state.insert( COLOR_SCALE, colorscale );
+    state.insert( COLOR_SCALE, new String(colorscale) );
     state.insert( FONT, font );
     //state.insert( IMAGEJPANEL, ijp.getState() );
-    state.insert( LISTENERS, Listeners );
     state.insert( LOG_SCALE, new Double(logscale) );
     state.insert( PRECISION, new Integer(precision) );
     state.insert( SELECTED_REGIONS, selectedregions );
