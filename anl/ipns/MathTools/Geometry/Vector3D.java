@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/03/11 22:52:55  dennis
+ * Changed to gov.anl.ipns.MathTools.Geometry package
+ *
  * Revision 1.8  2003/10/16 00:01:25  dennis
  * Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -54,7 +57,7 @@
  *
  */
 
-package DataSetTools.math;
+package  gov.anl.ipns.MathTools.Geometry;
 
 /**
  *  This class represents a 3D vector using 4D homogeneous coordinates for

@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2004/03/11 22:52:54  dennis
+ *  Changed to gov.anl.ipns.MathTools.Geometry package
+ *
  *  Revision 1.13  2003/02/05 21:06:43  dennis
  *  Added constructor to make a Position3D object from a Vector3D object.
  *
@@ -53,11 +56,12 @@
  *  Implements IXmlIO interface
  *
  */
-package  DataSetTools.math;
+package  gov.anl.ipns.MathTools.Geometry;
 
 import java.io.*;
 import java.text.*;
-import DataSetTools.dataset.*;
+import  gov.anl.ipns.Util.File.*;
+
 /**
  * Position3D represents a position in 3D space in cartesian, cylindrical
  * and spherical coordinate systems.  Methods are provided to get & set the

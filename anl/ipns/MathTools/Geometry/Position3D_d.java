@@ -30,17 +30,21 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/11 22:52:55  dennis
+ *  Changed to gov.anl.ipns.MathTools.Geometry package
+ *
  *  Revision 1.1  2003/07/14 22:22:59  dennis
  *  Double precision version, ported from original
  *  single precision version.
  *
  *
  */
-package  DataSetTools.math;
+package  gov.anl.ipns.MathTools.Geometry;
 
 import java.io.*;
 import java.text.*;
-import DataSetTools.dataset.*;
+import  gov.anl.ipns.Util.File.*;
+
 /**
  * Position3D_d represents a double precision position in 3D space in 
  * cartesian, cylindrical and spherical coordinate systems.  Methods are 
@@ -101,6 +105,7 @@ public class Position3D_d implements Serializable,
   /**
    *  Construct a Position3D_d object from a Vector3D_d object.
    */
+
   public Position3D_d( Vector3D_d vector )
   {
     if ( vector == null )                                 // nothing to do
@@ -109,6 +114,7 @@ public class Position3D_d implements Serializable,
     double coords[] = vector.get();
     setCartesianCoords( coords[0], coords[1], coords[2] );
   } 
+
 
   /**
    *  Specify the position as a triple of values, (x, y, z) in Cartesian
