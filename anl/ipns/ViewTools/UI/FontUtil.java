@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/10/31 23:12:35  dennis
+ *  Added definition of smaller mono-spaced font, MONO_FONT0
+ *
  *  Revision 1.5  2002/07/09 16:14:36  dennis
  *  Added all Greek letters.
  *
@@ -133,6 +136,7 @@ public class FontUtil
   static public final Font LABEL_FONT2  = new Font("SansSerif", Font.PLAIN, 12);
   static public final Font BORDER_FONT  = new Font("SansSerif", Font.BOLD,   9);
   static public final Font BORDER_FONT2 = new Font("SansSerif", Font.BOLD,  11);
+  static public final Font MONO_FONT0   = new Font("Monospaced", Font.PLAIN,10);
   static public final Font MONO_FONT    = new Font("Monospaced", Font.PLAIN,12);
   static public final Font MONO_FONT2   = new Font("Monospaced", Font.PLAIN,14);
 
