@@ -33,6 +33,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/03/19 21:30:06  millermi
+ * - Changed controls parameter to int instead of boolean.
+ * - Added CTRL_ALL and CTRL_NONE to Display as constants for
+ *   control parameter.
+ * - Moved Options menu from Display to Display2D.
+ * - Added method loadProps() to load the properties file.
+ *
  * Revision 1.4  2004/03/15 23:53:54  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -109,6 +116,9 @@ public class Display2D extends Display
   public static final int TABLE = 1;
   // many of the variables are protected in the Display base class
   private static JFrame helper = null;
+  private final String PROP_FILE = System.getProperty("user.home") + 
+    		                   System.getProperty("file.separator") +
+		                   "Display2DProps.isv";
   private boolean os_region_added = false;
   
  /**
@@ -119,21 +129,13 @@ public class Display2D extends Display
   *                    display the data.
   *  @param  include_ctrls If true, controls to manipulate image will be added.
   */
-  public Display2D( IVirtualArray2D iva, int view_code, boolean include_ctrls )
+  public Display2D( IVirtualArray2D iva, int view_code, int include_ctrls )
   {
     super(iva,view_code,include_ctrls);
     setTitle("Display2D");
     addToMenubar();
     buildPane();
-    
-    // if Display2DProps.isv exists, load it into the ObjectState automatically.
-    // This code will load user settings.
-    String props = System.getProperty("user.home") + 
-    		    System.getProperty("file.separator") +
-    		    "Display2DProps.isv";
-    ObjectState temp = getObjectState(IPreserveState.DEFAULT);
-    temp.silentFileChooser(props,false);
-    setObjectState(temp);
+    loadProps(PROP_FILE);
   }
  
  /**
@@ -160,10 +162,9 @@ public class Display2D extends Display
             os_region_added = true;
         }
       }
-    /* ###################################################################
-     * Uncomment this when IViewComponent interface extends IPreserveState
+      // set the object state of the view component.
       if( ivc != null )
-        ivc.setObjectState( (ObjectState)temp );*/
+        ivc.setObjectState( (ObjectState)temp );
       redraw = true;  
     } 
     
@@ -190,9 +191,8 @@ public class Display2D extends Display
   public ObjectState getObjectState( boolean isDefault )
   {
     ObjectState state = new ObjectState();
-    /* ###################################################################
-     * Uncomment this when IViewComponent interface extends IPreserveState
-    state.insert( VIEW_COMPONENT, ivc.getObjectState(isDefault) );*/
+    if( ivc != null )
+      state.insert( VIEW_COMPONENT, ivc.getObjectState(isDefault) );
     state.insert( VIEWER_SIZE, getSize() );
     return state;
   }
@@ -313,7 +313,7 @@ public class Display2D extends Display
     //componentholder.add( ivc.getDisplayPanel() );
     Box view_comp_controls = buildControlPanel();
     // if user wants controls, and controls exist, display them in a splitpane.
-    if( add_controls && view_comp_controls != null )
+    if( add_controls == CTRL_ALL && view_comp_controls != null )
     {
       setBounds(0,0,700,485);
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
@@ -337,9 +337,20 @@ public class Display2D extends Display
   */ 
   private void addToMenubar()
   {
+    Vector options           = new Vector();
+    Vector save_default      = new Vector();
     Vector help              = new Vector();
     Vector display_help      = new Vector();
+    Vector option_listeners  = new Vector();
     Vector help_listeners    = new Vector();
+    
+    
+    // build options menu
+    options.add("Options");
+    option_listeners.add( new Menu2DListener() ); // listener for options
+    options.add(save_default);
+      save_default.add("Save User Settings");
+      option_listeners.add( new Menu2DListener() ); // listener for user prefs.
     
     // build help menu
     help.add("Help");
@@ -347,12 +358,16 @@ public class Display2D extends Display
     help.add( display_help );
       display_help.add("Using Display2D");
       help_listeners.add( new Menu2DListener() );  // listener for D2D helper
+    menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
     
     // Add keyboard shortcuts
+    JMenu option_menu = menu_bar.getMenu(1);
     KeyStroke binding = 
-                  KeyStroke.getKeyStroke(KeyEvent.VK_H,InputEvent.ALT_MASK);
+               KeyStroke.getKeyStroke(KeyEvent.VK_U,InputEvent.ALT_MASK);
+    option_menu.getItem(0).setAccelerator(binding); // Save User Settings
     JMenu help_menu = menu_bar.getMenu(2);
+    binding = KeyStroke.getKeyStroke(KeyEvent.VK_H,InputEvent.ALT_MASK);
     help_menu.getItem(0).setAccelerator(binding);   // Help Menu
   }
   
@@ -374,7 +389,12 @@ public class Display2D extends Display
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals("Using Display2D") )
+      if( ae.getActionCommand().equals("Save User Settings") )
+      {
+	getObjectState(IPreserveState.DEFAULT).silentFileChooser( PROP_FILE,
+	                                                          true );
+      }
+      else if( ae.getActionCommand().equals("Using Display2D") )
       {
         help();
       }
@@ -431,7 +451,7 @@ public class Display2D extends Display
     va2D.setTitle("Display2D Test");
     // Make instance of a Display2D frame, giving the array, the initial
     // view type, and whether or not to add controls.
-    Display2D display = new Display2D(va2D,Display2D.IMAGE,true);
+    Display2D display = new Display2D(va2D,Display2D.IMAGE,Display2D.CTRL_ALL);
     
     // Class that "correctly" draws the display.
     WindowShower shower = new WindowShower(display);

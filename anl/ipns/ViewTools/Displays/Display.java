@@ -33,6 +33,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/19 21:30:06  millermi
+ * - Changed controls parameter to int instead of boolean.
+ * - Added CTRL_ALL and CTRL_NONE to Display as constants for
+ *   control parameter.
+ * - Moved Options menu from Display to Display2D.
+ * - Added method loadProps() to load the properties file.
+ *
  * Revision 1.3  2004/03/15 23:53:54  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -81,7 +88,16 @@ import gov.anl.ipns.Util.Sys.SaveImageActionListener;
  */
 abstract public class Display extends JFrame implements IPreserveState,
                                                        Serializable
-{  
+{ 
+ /**
+  * 0 - This static int tells the Display class to display no controls.
+  */
+  public static final int CTRL_NONE = 0;
+  
+ /**
+  * 1 - This static int tells the Display class to display all of the controls.
+  */
+  public static final int CTRL_ALL  = 1; 
   // complete viewer, includes controls and ijp
   protected transient Container pane;
   protected transient IViewComponent ivc;
@@ -90,7 +106,7 @@ abstract public class Display extends JFrame implements IPreserveState,
   protected transient Display this_viewer;
   protected Vector Listeners = new Vector();
   protected int current_view = 0;
-  protected boolean add_controls = true;
+  protected int add_controls = CTRL_NONE;
   
  /**
   * Construct a frame with the specified image and title
@@ -100,7 +116,7 @@ abstract public class Display extends JFrame implements IPreserveState,
   *                    display the data.
   *  @param  include_ctrls If true, controls to manipulate image will be added.
   */
-  protected Display( IVirtualArray iva, int view_code, boolean include_ctrls )
+  protected Display( IVirtualArray iva, int view_code, int ctrl_option )
   {
     // make sure data is not null
     if( iva == null )
@@ -111,17 +127,9 @@ abstract public class Display extends JFrame implements IPreserveState,
     this_viewer = this;
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     current_view = view_code;
-    add_controls = include_ctrls;
+    add_controls = ctrl_option;
     data = iva;    
     buildMenubar();
-    // if DisplayProps.isv exists, load it into the ObjectState automatically.
-    // This code will load user settings.
-    String props = System.getProperty("user.home") + 
-    		    System.getProperty("file.separator") +
-    		    "DisplayProps.isv";
-    ObjectState temp = getObjectState(IPreserveState.DEFAULT);
-    temp.silentFileChooser(props,false);
-    setObjectState(temp);
   }
  
  /**
@@ -196,6 +204,22 @@ abstract public class Display extends JFrame implements IPreserveState,
     }
   }
  
+ /**
+  * This method will load the user preferences that were saved in the specified
+  * filename. This method assumes the file is in the user's home directory.
+  *
+  *  @param  filename The properties filename with path, 
+                      ex: /home/user1/DisplayProps.isv
+  */ 
+  protected void loadProps( String filename )
+  {
+    // if file exists, load it into the ObjectState automatically.
+    // This code will load user settings.
+    ObjectState temp = getObjectState(IPreserveState.DEFAULT);
+    temp.silentFileChooser(filename,false);
+    setObjectState(temp);
+  }
+ 
  /*
   * This private method will (re)build the menubar. This is necessary since
   * the ImageViewComponent could add menu items to the Menubar.
@@ -205,24 +229,21 @@ abstract public class Display extends JFrame implements IPreserveState,
   private void buildMenubar()
   { 
     Vector file              = new Vector();
-    Vector options           = new Vector();
     Vector save_results_menu = new Vector();
     Vector view_man  	     = new Vector();
     Vector save_menu 	     = new Vector();
-    Vector load_menu 	     = new Vector();
-    Vector save_default      = new Vector();
+    Vector open_menu 	     = new Vector();
     Vector load_data         = new Vector();
     Vector print             = new Vector();
     Vector save_image        = new Vector();
     Vector exit              = new Vector();
     Vector file_listeners    = new Vector();
-    Vector option_listeners  = new Vector();
     
     // build file menu
     file.add("File");
     file_listeners.add( new MenuListener() ); // listener for file
-    file.add(load_menu);
-      load_menu.add("Open Project");
+    file.add(open_menu);
+      open_menu.add("Open Project");
       file_listeners.add( new MenuListener() ); // listener for load project
     file.add(save_menu);
       save_menu.add("Save Project");
@@ -235,20 +256,12 @@ abstract public class Display extends JFrame implements IPreserveState,
       file_listeners.add( new MenuListener() ); // listener saving IVC as jpg
     file.add(exit);
       exit.add("Exit");
-      file_listeners.add( new MenuListener() ); // listener for exiting SWViewer
-    
-    // build options menu
-    options.add("Options");
-    option_listeners.add( new MenuListener() ); // listener for options
-    options.add(save_default);
-      save_default.add("Save User Settings");
-      option_listeners.add( new MenuListener() ); // listener for saving results
+      file_listeners.add( new MenuListener() ); // listener for exiting Display
            
     // add menus to the menu bar.
     setJMenuBar(null);
     menu_bar = new JMenuBar();
     menu_bar.add( MenuItemMaker.makeMenuItem(file,file_listeners) ); 
-    menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
     
     setJMenuBar(menu_bar);
     /*  old implementation by attempting to us setMnemonics()
@@ -277,9 +290,6 @@ abstract public class Display extends JFrame implements IPreserveState,
     file_menu.getItem(3).setAccelerator(binding);   // Make JPEG Image
     binding = KeyStroke.getKeyStroke(KeyEvent.VK_X,InputEvent.ALT_MASK);
     file_menu.getItem(4).setAccelerator(binding);   // Exit
-    JMenu option_menu = menu_bar.getMenu(1);
-    binding = KeyStroke.getKeyStroke(KeyEvent.VK_U,InputEvent.ALT_MASK);
-    option_menu.getItem(0).setAccelerator(binding); // Save User Settings
   }
   
  /**
@@ -322,14 +332,7 @@ abstract public class Display extends JFrame implements IPreserveState,
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals("Save User Settings") )
-      {
-        String props = System.getProperty("user.home") + 
-	                System.getProperty("file.separator") +
-			"DisplayProps.isv";
-	getObjectState(IPreserveState.DEFAULT).silentFileChooser(props,true);
-      }
-      else if( ae.getActionCommand().equals("Save Project") )
+      if( ae.getActionCommand().equals("Save Project") )
       {
 	getObjectState(IPreserveState.PROJECT).openFileChooser(true);
       }
