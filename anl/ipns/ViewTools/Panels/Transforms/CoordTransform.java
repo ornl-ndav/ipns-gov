@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2001/06/28 20:31:25  dennis
+ *  Added toString() method.
+ *
  *  Revision 1.5  2001/05/07 21:12:04  dennis
  *  Added a copy constructor and a method equals() to check if
  *  two CoordTransform objects represent the same transformation.
@@ -193,6 +196,20 @@ public class CoordTransform implements Serializable
   {
     return( to );
   }
+
+  /**
+   *  Get a string form for this CoordTransform object.
+   *
+   *  @return A string containing the source and destination regions
+   *          for this transform.
+   */
+  public String toString() 
+  {
+    return "Source Region: " + from + "\n" +
+           "Dest   Region: " + to;
+  }
+
+
 
 /* -----------------------------------------------------------------------
  *
