@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2003/10/16 05:00:05  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.16  2003/10/02 04:39:21  millermi
  *  - Added java docs to public static variables.
  *  - Added constructor for setting ObjectState.
@@ -130,25 +133,6 @@
  *  annotation editing or annotation deletion. (Mike Miller)
  * 
  */
-
-/* *****************************************************************************
- * ******************Basic controls for the Annotation Overlay******************
- * *****************************************************************************
- * Keyboard Event    * Mouse Event       * Action                              *
- *******************************************************************************
- * press N (note)    * Press/Drag mouse  * add annotation                      *
- * none              * Double click      * clear last note                     *
- * press A (all)     * Double click      * clear all notes                     *
- * PRESS RETURN      * NONE              * UPDATE NOTES, CLEAR IF EMPTY STRING *
- * NONE              * CLICK ON REFRESH  * UPDATE NOTES, CLEAR IF EMPTY STRING *
- * NONE              * CLICK ON CLOSE    * CLOSES WINDOW                       *
- *******************************************************************************
- * ALL EVENTS IN UPPERCASE ARE DONE TO THE AnnotationEditor AFTER IT POPS UP.
- * Important: 
- * All keyboard events must be done prior to mouse events.
- * More event documentation can be found in the help() method.
- */ 
-
 package DataSetTools.components.View.Transparency;
 
 import javax.swing.*; 
@@ -420,9 +404,9 @@ public class AnnotationOverlay extends OverlayJPanel
   *
   *  @param  color
   */
-  public void setTextColor( Color c )
+  public void setTextColor( Color color )
   {
-    text_color = c;
+    text_color = color;
     this_panel.repaint();
   }
 
@@ -431,9 +415,9 @@ public class AnnotationOverlay extends OverlayJPanel
   *
   *  @param  color
   */
-  public void setLineColor( Color c )
+  public void setLineColor( Color color )
   {
-    line_color = c;
+    line_color = color;
     this_panel.repaint();
   }
 
@@ -498,7 +482,7 @@ public class AnnotationOverlay extends OverlayJPanel
  /**
   * Overrides paint method. This method will paint the annotations.
   *
-  *  @param  graphic
+  *  @param  g - graphics object
   */
   public void paint(Graphics g) 
   {  

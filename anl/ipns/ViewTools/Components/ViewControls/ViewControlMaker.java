@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/10/16 05:00:15  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.2  2003/08/06 13:53:16  dennis
  *  - Added functionality for JComboBox.(Mike Miller)
  *
@@ -85,7 +88,7 @@ public class ViewControlMaker extends ViewControl
   /**
    * Change component to a new JComponent.
    *
-   *  @param  component
+   *  @param  c - component
    */ 
    public void changeComponent(JComponent c)
    {

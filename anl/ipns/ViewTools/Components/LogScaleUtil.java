@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/10/16 05:00:03  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.2  2003/08/07 15:55:22  dennis
  *  - Added "normal" log methods toSource() and toDest()
  *    (Mike Miller)
@@ -63,8 +66,10 @@ public class LogScaleUtil
  /**
   * Constructor - construct intervals 0-limax, and map it to interval 0-lomax.
   * // destination interval is always positive.
-  *  @param  sourcemax
-  *  @param  destinationmax
+  *  @param  smin - the source minimum
+  *  @param  smax - the source maximum
+  *  @param  dmin - the destination minimum
+  *  @param  dmax - the destination maximum
   */ 
   public LogScaleUtil( float smin, float smax, float dmin, float dmax )
   { 
@@ -114,7 +119,7 @@ public class LogScaleUtil
   * This method converts num to a source value within the interval.
   *
   *  @param  num
-  *  @param  s
+  *  @param  s - logscale value
   *  @return source value;
   */ 
   public float toSource( float num, double s )
@@ -160,7 +165,7 @@ public class LogScaleUtil
   * This method finds the destination value. 
   * 
   *  @param  source
-  *  @param  s
+  *  @param  s - logscale value
   *  @return destination value - the first table value that the source value
   *                              maps to.
   */ 

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2003/10/16 05:00:07  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.15  2003/10/02 04:25:44  millermi
  *  - Added java docs to public static variables
  *  - Added ObjectState constructor.
@@ -283,6 +286,9 @@ public class AxisOverlay2D extends OverlayJPanel
   
  /**
   * Constructor for creating a new AxisOverlay2D with previous state settings.
+  *
+  *  @param  iaa - IAxisAddible2D object
+  *  @param  state - previously saved state
   */ 
   public AxisOverlay2D(IAxisAddible2D iaa, ObjectState state)
   {
@@ -337,7 +343,7 @@ public class AxisOverlay2D extends OverlayJPanel
   * This method will set the current state variables of the object to state
   * variables wrapped in the ObjectState passed in.
   *
-  *  @param new_state
+  *  @param  new_state
   */
   public void setObjectState( ObjectState new_state )
   {
@@ -460,6 +466,12 @@ public class AxisOverlay2D extends OverlayJPanel
      axesdrawn = display_scheme;
   }
   
+ /**
+  * Specify whether the data is one-sided or two-sided. This will affect how
+  * logarithmic calibrations are done.
+  *
+  *  @param  doublesided - true if two-sided
+  */ 
   public void setTwoSided( boolean doublesided )
   {
      isTwoSided = doublesided;
@@ -468,7 +480,7 @@ public class AxisOverlay2D extends OverlayJPanel
  /**
   * Specify x axis as linear or logarithmic. Options are LINEAR or LOG.
   *
-  *  @param  display_scheme
+  *  @param  isXLinear
   */ 
   public void setXAxisLinearOrLog( boolean isXLinear )
   {
@@ -478,7 +490,7 @@ public class AxisOverlay2D extends OverlayJPanel
  /**
   * Specify y axis as linear or logarithmic. Options are LINEAR or LOG.
   *
-  *  @param  display_scheme
+  *  @param  isYLinear
   */ 
   public void setYAxisLinearOrLog( boolean isYLinear )
   {
@@ -509,9 +521,9 @@ public class AxisOverlay2D extends OverlayJPanel
   *
   *  @param  color
   */
-  public void setGridColor( Color c )
+  public void setGridColor( Color color )
   {
-     gridcolor = c;
+     gridcolor = color;
      this_panel.repaint();
   }
  
@@ -519,7 +531,7 @@ public class AxisOverlay2D extends OverlayJPanel
   * This method creates tick marks and numbers for this transparency.
   * These graphics will overlay onto a jpanel.
   *
-  *  @param  graphic
+  *  @param  g - graphics object
   */  
   public void paint(Graphics g) 
   {  

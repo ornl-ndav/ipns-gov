@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2003/10/16 05:00:10  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.29  2003/10/02 03:32:26  millermi
  *  - Added string values to java docs for public static strings.
  *
@@ -468,7 +471,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * This method will set the current state variables of the object to state
   * variables wrapped in the ObjectState passed in.
   *
-  *  @param new_state
+  *  @param  new_state
   */
   public void setObjectState( ObjectState new_state )
   {
@@ -653,6 +656,8 @@ public class ImageViewComponent implements IViewComponent2D,
  
  /**
   * This method will get the current data minimum from the imagejpanel.
+  *
+  *  @return minimum data value
   */
   public float getDataMin()
   {
@@ -661,6 +666,8 @@ public class ImageViewComponent implements IViewComponent2D,
   
  /**
   * This method will get the current data maximum from the imagejpanel.
+  *
+  *  @return maximum data value
   */ 
   public float getDataMax()
   {
@@ -748,6 +755,8 @@ public class ImageViewComponent implements IViewComponent2D,
  /**
   * This method will return the local coordinate bounds of the center
   * jpanel. To be implemented, the center may have to be a coordjpanel.
+  *
+  *  @return local coordinate bounds of ImageJPanel
   */
   public CoordBounds getLocalCoordBounds()
   {
@@ -758,6 +767,8 @@ public class ImageViewComponent implements IViewComponent2D,
  /**
   * This method will return the global coordinate bounds of the center
   * jpanel. To be implemented, the center may have to be a coordjpanel.
+  *
+  *  @return global coordinate bounds of ImageJPanel
   */
   public CoordBounds getGlobalCoordBounds()
   {
@@ -767,6 +778,8 @@ public class ImageViewComponent implements IViewComponent2D,
   
  /**
   * This method will get the current log scale value for the imagejpanel.
+  *
+  *  @return logscale value from the intensity slider
   */ 
   public double getLogScale()
   {
@@ -799,7 +812,7 @@ public class ImageViewComponent implements IViewComponent2D,
   * be added to allow for appending selections. A stack could be added to
   * allow for undo and redo. 
   *
-  *  @param  pts
+  *  @param  rgn - array of Regions
   */ 
   public void setSelectedRegions( Region[] rgn ) 
   {
@@ -823,7 +836,7 @@ public class ImageViewComponent implements IViewComponent2D,
  /**
   * Get geometric regions created using the selection overlay.
   *
-  *  @return selectedset
+  *  @return selectedregions
   */ 
   public Region[] getSelectedRegions() //keep the same (for now)
   {
@@ -857,7 +870,10 @@ public class ImageViewComponent implements IViewComponent2D,
   }
  
  /**
-  * To be continued...
+  * This method will be called to notify this component of a change in data 
+  * and an entirely new VirtualArray is used.
+  *
+  *  @param  pin_Varray - passed in array
   */ 
   public void dataChanged( IVirtualArray2D pin_Varray ) // pin == "passed in"
   {
@@ -886,7 +902,7 @@ public class ImageViewComponent implements IViewComponent2D,
  /**
   * Method to add a listener to this component.
   *
-  *  @param act_listener
+  *  @param  act_listener
   */
   public void addActionListener( ActionListener act_listener )
   {	     
@@ -900,7 +916,7 @@ public class ImageViewComponent implements IViewComponent2D,
  /**
   * Method to remove a listener from this component.
   *
-  *  @param act_listener
+  *  @param  act_listener
   */ 
   public void removeActionListener( ActionListener act_listener )
   {
@@ -960,7 +976,7 @@ public class ImageViewComponent implements IViewComponent2D,
   }
 
  /*
-  *  Gets the current point
+  * Gets the current point of the ImageJPanel. 
   */
   public Point getCurrentPoint()
   {
@@ -975,6 +991,9 @@ public class ImageViewComponent implements IViewComponent2D,
  /**
   * This method allows the user to place a VERTICAL color control in the
   * east panel of the view component.
+  *
+  *  @param isOn - true if calibrated color scale appears to the right
+  *                of the image.
   */
   public void setColorControlEast( boolean isOn )
   {
@@ -986,6 +1005,8 @@ public class ImageViewComponent implements IViewComponent2D,
  /**
   * This method allows the user to place a HORIZONTAL color control in the
   * south panel of the view component.
+  *
+  *  @param isOn - true if calibrated color scale appears below the image.
   */   
   public void setColorControlSouth( boolean isOn )
   {
@@ -996,14 +1017,16 @@ public class ImageViewComponent implements IViewComponent2D,
  
  // required since implementing ActionListener
  /**
-  * To be continued...
+  * This method sends out a message if the pointed-at point is changed.
+  *
+  *  @param  e - action event
   */ 
   public void actionPerformed( ActionEvent e )
   {
     //get POINTED_AT_CHANGED or SELECTED_CHANGED message from e 
     String message = e.getActionCommand();     
     
-    //Send message to tester 
+    //Send message to listeners 
     if ( message.equals(POINTED_AT_CHANGED) )
 	sendMessage(POINTED_AT_CHANGED);
   }

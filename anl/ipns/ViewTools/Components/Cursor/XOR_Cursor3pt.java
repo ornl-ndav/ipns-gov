@@ -33,6 +33,9 @@
  *   Prentice Hall, 1997 )
  *
  *  $Log$
+ *  Revision 1.2  2003/10/16 05:00:05  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.1  2003/08/21 18:20:44  millermi
  *  - Initial Version, similar to XOR_Cursor.java, except this cursor
  *    handles regions specified by 3 points.
@@ -51,10 +54,9 @@ import javax.swing.JPanel;
  * This class is an abstract base class for cursors that require three points
  * for specification. Examples would be WedgeCursor and DoubleWedgeCursor.
  *
- * @see    WedgeCursor 
+ * @see DataSetTools.components.View.Cursor.WedgeCursor 
+ * @see DataSetTools.components.View.Cursor.DoubleWedgeCursor
  */
-
-
 abstract public class XOR_Cursor3pt implements Serializable
 {
     protected JPanel    panel;
@@ -88,12 +90,11 @@ abstract public class XOR_Cursor3pt implements Serializable
  *  @param  p2         The second point for this cursor action, the midpoint
  *                     of the cursor.
  *
- *  @param  p2         The third point for this cursor action, the final 
+ *  @param  p3         The third point for this cursor action, the final 
  *                     point of the cursor.
  *
  */
  abstract public void draw( Graphics graphics, Point p1, Point p2, Point p3 );
-
 
 /**
  *  Construct a new XOR_Cursor3pt to be used on a JPanel.
@@ -105,7 +106,6 @@ abstract public class XOR_Cursor3pt implements Serializable
   {
     this.panel = panel;
   }
-
 
 /**
  *  Start the XOR_Cursor3pt action at the specified point.
@@ -135,7 +135,7 @@ abstract public class XOR_Cursor3pt implements Serializable
 /**
  * Store the value of the second point used to define the cursor region.
  *
- *  @param  second point
+ *  @param  p second point
  *  @return successful or not
  */
  public boolean midpoint( Point p )

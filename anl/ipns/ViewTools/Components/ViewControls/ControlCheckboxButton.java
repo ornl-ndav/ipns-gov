@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/10/16 05:00:13  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.2  2003/08/07 15:54:42  dennis
  *  - checkcolor and uncheckcolor initialized to default color
  *    instead of black.  This fixes a minor bug that initially
@@ -167,8 +170,6 @@ public class ControlCheckboxButton extends ViewControl
    * This method gets the text on the button. getText() differs from 
    * getTitle() in that the getTitle() returns the border text, while the 
    * getText() is the text on the button.
-   *
-   *  @param  text
    */
    public String getText()
    {
@@ -179,7 +180,7 @@ public class ControlCheckboxButton extends ViewControl
    * This method sets the color of the titled border text of the control to the 
    * color specified when the checkbox is checked.
    *
-   *  @param  color
+   *  @param  checked - color of text when checkbox is checked
    */
    public void setTextCheckedColor( Color checked )
    {
@@ -192,7 +193,7 @@ public class ControlCheckboxButton extends ViewControl
    * This method sets the color of the titled border text of the control to the 
    * color specified when the checkbox is unchecked.
    *
-   *  @param  color
+   *  @param  unchecked - color of text when unchecked
    */
    public void setTextUnCheckedColor( Color unchecked )
    {

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/16 05:00:04  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.1  2003/05/24 17:32:19  dennis
  *  Initial version of cursor selection. (Mike Miller)
  *
@@ -47,7 +50,6 @@
  *  This class identifies a circular region by a center and radius.
  *  It is analogous to a rectangle.
  */
-
 public class Circle 
 {
    private int xcenter;
@@ -59,7 +61,7 @@ public class Circle
    * 
    *  @param  x
    *  @param  y
-   *  @param  radius
+   *  @param  r - radius
    *
    */
    public Circle( int x, int y, float r ) 
@@ -72,8 +74,8 @@ public class Circle
   /**
    *  Construct a new Circle centered at a point with radius r.
    * 
-   *  @param  point
-   *  @param  radius
+   *  @param  p - center point
+   *  @param  r - radius
    *
    */
    public Circle( Point p, float r ) 
@@ -120,7 +122,7 @@ public class Circle
   /**
    * Check to see if this circle contains a point.
    *
-   *  @param  point
+   *  @param  p - point being checked
    *  @return true if point is in the circle ( including boundary )
    */
    public boolean contains( Point p)
@@ -144,9 +146,9 @@ public class Circle
    }
 
   /**
-   * Change size of circle be adjusting the radius.
+   * Change size of circle by adjusting the radius.
    *
-   *  @param  radius
+   *  @param  r - new radius
    */
    public void reSize( float r )
    {
@@ -157,7 +159,7 @@ public class Circle
    * Recenter circle at point specified. This method acts to translate or
    * move the circle to the specified point.
    *
-   *  @param  point
+   *  @param  p - new center point
    */
    public void reCenter( Point p )
    {

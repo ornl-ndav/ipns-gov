@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2003/10/16 05:00:04  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.9  2003/09/02 20:49:07  millermi
  *  - Allows for changing selection type, as long as selection
  *    was not started.
@@ -169,7 +172,7 @@ public class SelectionJPanel extends ActiveJPanel
    *  region.
    *
    *  @param cursor  The type of cursor that was selected. 
-   *  @param pt  The point where the rubber band region should be drawn
+   *  @param current  The point where the rubber band region should be drawn
    */
    public void set_cursor( XOR_Cursor cursor, Point current )
    {
@@ -228,7 +231,7 @@ public class SelectionJPanel extends ActiveJPanel
    *  region.
    *
    *  @param  cursor  The type of 3 pt cursor that was selected. 
-   *  @param  pt  The point where the rubber band region should be drawn
+   *  @param  current  The point where the rubber band region should be drawn
    */
    public void set_cursor( XOR_Cursor3pt cursor, Point current )
    {

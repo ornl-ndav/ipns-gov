@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/10/16 05:00:08  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.5  2003/08/01 21:52:18  serumb
  *  Commented out print line.
  *
@@ -75,8 +78,8 @@ public class CalibrationUtil
    *
    *  @param  interval_min
    *  @param  interval_max
-   *  @param  significant_digits
-   *  @param  format
+   *  @param  signif_dig
+   *  @param  formattee
    */ 
    public CalibrationUtil( float interval_min, float interval_max, 
                            int signif_dig, String formattee )

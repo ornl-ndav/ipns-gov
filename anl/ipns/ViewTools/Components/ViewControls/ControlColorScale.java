@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/10/16 05:00:14  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.8  2003/09/19 03:42:20  millermi
  *  - Added/fixed java docs.
  *
@@ -135,7 +138,7 @@ public class ControlColorScale extends ViewControl
   /**
    * Constructor used for calibrated color scale.
    *
-   *  @param  colorscaleaddible component
+   *  @param  icsa - IColorScaleAddible component
    *  @param  orientation
    */ 
    public ControlColorScale( IColorScaleAddible icsa, boolean orientation )

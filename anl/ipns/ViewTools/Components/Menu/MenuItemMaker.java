@@ -32,6 +32,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2003/10/16 05:00:05  millermi
+ * - Fixed java docs errors.
+ *
  * Revision 1.3  2003/09/11 06:26:33  millermi
  * - Added static methods for ColorScaleMenu and OverlayMenu.
  * - Added functionality for multiple listeners.
@@ -107,7 +110,7 @@ public class MenuItemMaker
   * This method replaces the class ColorScaleMenu, a commonly used menu
   * for choosing color scales of an image.
   *
-  *  @return a JMenu containing colorscale options
+  *  @return al action listener for JMenu containing colorscale options
   */
   public static JMenu getColorScaleMenu(ActionListener al)
   { 
@@ -133,7 +136,7 @@ public class MenuItemMaker
   * This method provides a list of overlays, commonly used for help menu by view
   * components.
   *
-  *  @return a JMenu containing list of overlays
+  *  @return al action listener for JMenu containing list of overlays
   */
   public static JMenu getOverlayMenu(ActionListener al)
   { 
@@ -157,7 +160,7 @@ public class MenuItemMaker
   * JMenu itself, no listener is required for the param. vector.
   *
   *  @param  names The names of the menu items.
-  *  @param  listener The ActionListener which listens to "clicks" on the menu.
+  *  @param  listeners The ActionListener which listens to "clicks" on the menu.
   *  @return array of JMenuItems with names.size() elements.
   */
   public static JMenuItem[] makeMultiMenuItems( Vector names,
@@ -195,8 +198,7 @@ public class MenuItemMaker
  /**
   * This method uses recursion to create a JMenuItem heirarchy.
   *
-  * @param names The names of the JMenuItem elements.
-  * @param  listener The ActionListener which listens to "clicks" on the menu.
+  * @param  names The names of the JMenuItem elements.
   */
   private static JMenuItem getMenuItem( Object names )
   {

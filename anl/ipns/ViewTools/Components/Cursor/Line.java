@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/16 05:00:04  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.1  2003/06/05 22:10:09  dennis
  *   - Initial Version, data structure used by LineCursor (Mike Miller)
  *
@@ -56,8 +59,8 @@ public class Line
   /**
    * Constructor saves the two points.
    *
-   *  @param  p1
-   *  @param  p2
+   *  @param  point1
+   *  @param  point2
    */ 
    public Line( Point point1, Point point2 )
    {
@@ -76,7 +79,7 @@ public class Line
    }
   
   /**
-   * Get the last point of the line
+   * Get the last point of the line.
    *
    *  @return p2
    */ 

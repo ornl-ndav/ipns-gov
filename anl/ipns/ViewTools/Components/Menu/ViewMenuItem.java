@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/10/16 05:00:05  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.2  2003/08/14 17:13:25  millermi
  *  - Added comments and public variable PUT_IN_HELP for help menu.
  *
@@ -72,7 +75,7 @@ public class ViewMenuItem
    * This can be used when a view component has a menu item, but doesn't care
    * where it is placed. 
    *
-   *  @param  item
+   *  @param  mitem - JMenuItem
    */ 
    public ViewMenuItem( JMenuItem mitem )
    {
@@ -87,7 +90,7 @@ public class ViewMenuItem
    * view component wants to recommend the placement of a menu item. 
    *
    *  @param  path
-   *  @param  item
+   *  @param  mitem - JMenuItem
    */ 
    public ViewMenuItem(String path, JMenuItem mitem)
    {
@@ -141,7 +144,7 @@ public class ViewMenuItem
   /**
    * Method to add a listener to this component.
    *
-   *  @param act_listener
+   *  @param  act_listener
    */
    public void addActionListener( ActionListener act_listener )
    {          
@@ -155,7 +158,7 @@ public class ViewMenuItem
   /**
    * Method to remove a listener from this component.
    *
-   *  @param act_listener
+   *  @param  act_listener
    */ 
    public void removeActionListener( ActionListener act_listener )
    {

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/10/16 05:00:03  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.3  2003/08/07 15:57:04  dennis
  *  - Added method and implementation of setAxisInfoVA() with
  *    alternate parameters.  Since getAxisInfoVA() returns an
@@ -157,7 +160,7 @@ public class VirtualArray2D implements IVirtualArray2D
    * info is being altered.          true = X axis, false = Y axis.
    *
    *  @param  isX
-   *  @param  axisinfo
+   *  @param  info - axis info
    */
    public void setAxisInfoVA( boolean isX, AxisInfo2D info )
    {
@@ -430,7 +433,7 @@ public class VirtualArray2D implements IVirtualArray2D
    *  @param  row_start  first row of the region
    *  @param  row_stop   last row of the region
    *  @param  col_start  first column of the region
-   *  @param  row_stop   last column of the region
+   *  @param  col_stop   last column of the region
    *  @return If a portion of the array is specified, a 2-D array copy of 
    *          this portion will be returned. 
    *          If all of the array is specified, a reference to the actual array

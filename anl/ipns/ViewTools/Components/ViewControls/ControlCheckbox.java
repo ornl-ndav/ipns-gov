@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/16 05:00:12  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.1  2003/05/24 17:37:56  dennis
  *  Initial Version of view control using a checkbox. (Mike Miller)
  *
@@ -143,8 +146,6 @@ public class ControlCheckbox extends ViewControl
    * getTitle() in that the getTitle() returns the border text, while the 
    * getText() is the text following the checkbox. Both methods can be used
    * to identify the checkbox.
-   *
-   *  @param  text
    */
    public String getText()
    {
@@ -155,7 +156,7 @@ public class ControlCheckbox extends ViewControl
    * This method sets the text of the checkbox to the color specified when
    * the checkbox is checked.
    *
-   *  @param  color
+   *  @param  checked - color of text when checkbox is checked
    */
    public void setTextCheckedColor( Color checked )
    {
@@ -168,7 +169,7 @@ public class ControlCheckbox extends ViewControl
    * This method sets the text of the checkbox to the color specified when
    * the checkbox is unchecked.
    *
-   *  @param  color
+   *  @param  unchecked - color of text when unchecked
    */
    public void setTextUnCheckedColor( Color unchecked )
    {

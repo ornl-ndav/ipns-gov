@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/10/16 05:00:03  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.4  2003/08/11 23:46:13  millermi
  *  - Adding test for selected regions.
  *
@@ -64,7 +67,12 @@
  import DataSetTools.components.View.Menu.*;
  import DataSetTools.components.View.Region.Region;
  import DataSetTools.components.View.Transparency.SelectionOverlay;
- 
+
+/**
+ * This class is a mock viewer to test basic functionality of any 
+ * IViewComponent2D components. One big difference between this tester
+ * and the newer IVCTester is that the controls are in a separate panel.
+ */ 
 public class ViewerSim
 { 
    private IViewComponent2D ivc;
@@ -75,7 +83,7 @@ public class ViewerSim
    * Constructor reads in an IViewComponent2D and gets the controls and menu
    * from that component.
    *
-   *  @param  component
+   *  @param  comp - IViewComponent2D component
    */
    public ViewerSim( IViewComponent2D comp )
    {

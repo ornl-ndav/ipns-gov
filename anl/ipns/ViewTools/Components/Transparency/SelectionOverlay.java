@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2003/10/16 05:00:09  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.18  2003/10/02 23:04:42  millermi
  *  - Added java docs to all public static variables.
  *  - Added constructor to take in ObjectState information.
@@ -418,7 +421,7 @@ public class SelectionOverlay extends OverlayJPanel
   * This method sets the opaqueness of the selection. Values will fall in the
   * interval [0,1], with 1 being opaque, and 0 being transparent. 
   *
-  *  @param  value [0,1]
+  *  @param  value - on interval [0,1]
   */ 
   public void setOpacity( float value )
   {
@@ -498,9 +501,9 @@ public class SelectionOverlay extends OverlayJPanel
   *
   *  @param  color
   */
-  public void setRegionColor( Color c )
+  public void setRegionColor( Color color )
   {
-    reg_color = c;
+    reg_color = color;
     this_panel.repaint();
   }
   
@@ -516,7 +519,7 @@ public class SelectionOverlay extends OverlayJPanel
  /**
   * Overrides paint method. This method will paint the selected regions.
   *
-  *  @param  graphic
+  *  @param  g - graphics object
   */
   public void paint(Graphics g) 
   { 

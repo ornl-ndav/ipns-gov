@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/10/16 05:00:04  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.4  2003/08/14 17:08:32  millermi
  *  - Use "Shift" instead of "N" to draw lines. This prevents problems that
  *    happen if the user releases the mouse button before the key.
@@ -108,7 +111,7 @@ public class AnnotationJPanel extends ActiveJPanel
    *  band line was previously started, this will specify a new location 
    *  for the ending point of the line.
    *
-   *  @param pt  The point where the rubber band line should be drawn
+   *  @param  current  The point where the rubber band line should be drawn
    */
    public void set_cursor( Point current )
    {

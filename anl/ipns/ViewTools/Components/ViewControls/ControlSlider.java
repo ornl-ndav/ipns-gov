@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/10/16 05:00:14  millermi
+ *  - Fixed java docs errors.
+ *
  *  Revision 1.4  2003/09/19 02:41:54  millermi
  *  - Bug Fix - Edited setValue() so it works for more than one
  *    precision setting.
@@ -102,7 +105,7 @@ public class ControlSlider extends ViewControl
   * Same functionality as default constructor, only this constructor allows
   * for title specification.
   *
-  *  @param  title of slider
+  *  @param  title - title of slider
   */ 
   public ControlSlider(String title)
   {
@@ -124,7 +127,7 @@ public class ControlSlider extends ViewControl
   * This method sets the slider "knob" to the specified value.
   * If an invalid value is entered, nothing is done.
   *
-  *  @param  position of "knob"
+  *  @param  new_val - position of "knob"
   */
   public void setValue(float new_val)
   {
@@ -151,7 +154,7 @@ public class ControlSlider extends ViewControl
   *	     at endpoints. 
   *    Ex: range (1,1001) with prec = 2 yields range (0,1000) w/ interval 100 
   *
-  *  @param  Significant digits
+  *  @param  prec - Significant digits
   */
   public void setPrecision(int prec)
   {
@@ -162,8 +165,8 @@ public class ControlSlider extends ViewControl
   * Sets range of slider to specified range. The increment between the
   * minimun and maximum is determined by the setPrecision method.
   *
-  *  @param  range minimum
-  *	     range maximum
+  *  @param  xmin - range minimum
+  *	     xmax - range maximum
   */	
   public void setRange( float xmin, float xmax )
   {  
@@ -220,7 +223,7 @@ public class ControlSlider extends ViewControl
   * Set the spacing for the "long" tickmarks.
   * See JSlider.setMajorTickSpacing() in java docs for futher info.
   *
-  *  @param  major tick spacing 
+  *  @param  spacing - major tick spacing 
   */ 
   public void setMajorTickSpace(int spacing)
   {
@@ -231,7 +234,7 @@ public class ControlSlider extends ViewControl
   * Set the spacing for the "short" tickmarks.
   * See JSlider.setMinorTickSpacing() in java docs for futher info.
   *
-  *  @param  minor tick spacing 
+  *  @param  spacing - minor tick spacing 
   */   
   public void setMinorTickSpace(int spacing)
   {
