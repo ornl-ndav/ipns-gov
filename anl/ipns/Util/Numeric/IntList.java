@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/24 20:52:36  bouzekc
+ *  Removed unused imports.
+ *
  *  Revision 1.6  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -43,9 +46,6 @@
 package DataSetTools.util;
 
 import java.util.*;
-import java.io.*;
-import java.lang.Math;
-import DataSetTools.util.*;
 
 /**
  *  Utilities to switch between a string represntation and array representation

@@ -30,14 +30,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/24 20:54:24  bouzekc
+ *  Removed unused imports.
+ *
  *  Revision 1.4  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
  */
 
 package DataSetTools.util;
-
-import java.io.*;
 
 /**
  * The IObservable interface provides an interface that "observable" objects

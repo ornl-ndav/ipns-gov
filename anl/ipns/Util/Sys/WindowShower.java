@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/24 20:57:51  bouzekc
+ * Removed unused imports.
+ *
  * Revision 1.1  2003/12/11 18:18:37  dennis
  * Initial version of "helper" class to make it easier to use a separate
  * thread to actually display a JFrame or window.  This is needed to avoid
@@ -42,7 +45,6 @@
 
 package DataSetTools.util;
 
-import javax.swing.*;
 import java.awt.*;
 
   /**
