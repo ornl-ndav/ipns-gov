@@ -28,6 +28,13 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.11  2005/03/09 06:39:20  millermi
+ * - Added if statement to check for Float.NaN in findNumber(). Using
+ *   Java's NumberFormat.format(Float.NaN) creates a String that
+ *   cannot be parsed by Float.valueOf(str).floatValue(). This causes
+ *   an exception to be thrown if value == Float.NaN and getValue()
+ *   is called.
+ *
  * Revision 1.10  2004/03/15 23:53:59  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -257,7 +264,16 @@ public class TextValueUI extends    JTextField
       return Float.NaN;
     }
     str = str.substring(0,i);
-
+    
+    // Since Float.NaN cannot be parsed after the operation f.format(Float.NaN),
+    // the try statement below fails. This "if" will return Float.NaN
+    // if that was the original value entered.
+    NumberFormat f = NumberFormat.getInstance();
+    if( str.indexOf(f.format(Float.NaN)) >= 0 )
+    {
+      return Float.NaN;
+    }
+    
     try                                 // extract the float value between
     {                                   // start_char and end_char, if possible
       val = Float.valueOf(str).floatValue();
