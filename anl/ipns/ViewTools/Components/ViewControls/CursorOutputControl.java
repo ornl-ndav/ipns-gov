@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/12/29 00:38:52  millermi
+ *  - Removed setBorderTitle() since it was redundant.
+ *
  *  Revision 1.3  2003/10/18 07:15:16  millermi
  *  - Added functionality for 2-D arrays of Strings for
  *    rows and columns of TextFields.
@@ -81,12 +84,6 @@ public class CursorOutputControl extends ViewControl
        vert_box.add(TextField[i][0]);
      }
      add(vert_box);
-     /*
-     String[][] newarray = new String[name.length][1];
-     for( int i = 0; i < name.length; i++ )
-       newarray[i][0] = name[i];
-     this( newarray );
-     */
    }  
    
   /**
@@ -117,16 +114,6 @@ public class CursorOutputControl extends ViewControl
        vert_box.add(tempcol);
      }
      add(vert_box);
-   }
-   
-  /**
-   * This function sets the border title.
-   *
-   * @param title The string which holds the title of the border.
-   */
-   public void setBorderTitle(String  title)
-   {
-     setTitle(title);
    }
 
   /**
@@ -168,7 +155,7 @@ public class CursorOutputControl extends ViewControl
        for( int j = 0; j < 4; j++ )
          menu[i][j] = "Menu" + Integer.toString(i) + Integer.toString(j);
      CursorOutputControl coc = new CursorOutputControl( menu );
-     coc.setBorderTitle("Border");
+     coc.setTitle("Border");
      tester.getContentPane().add(coc);
      tester.setVisible(true);
    }
