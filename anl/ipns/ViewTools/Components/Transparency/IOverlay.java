@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 01:49:31  serumb
+ *  Changed package.
+ *
  *  Revision 1.3  2003/06/09 22:34:31  dennis
  *  - Added methods help() and getFocus()  (Mike Miller)
  *
@@ -42,7 +45,7 @@
  *
  */
 
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import java.awt.*;
 

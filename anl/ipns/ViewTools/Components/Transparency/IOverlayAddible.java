@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/12 01:47:47  serumb
+ *  Changed package.
+ *
  *  Revision 1.1  2003/12/23 01:55:51  millermi
  *  - Moved from TwoD directory to a more logical directory. Now
  *    in the same directory as the class that it provides
@@ -46,7 +49,7 @@
  *
  */
  
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import java.awt.Rectangle;
 
