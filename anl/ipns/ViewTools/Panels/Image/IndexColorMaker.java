@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2004/03/11 23:50:45  rmikk
+ *  Fixed Package names
+ *
  *  Revision 1.13  2002/11/27 23:13:18  pfpeterson
  *  standardized header
  *
@@ -41,7 +44,7 @@
  *
  */
 
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Image;
 
 import java.awt.*;
 import java.awt.image.*;

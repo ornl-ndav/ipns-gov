@@ -32,6 +32,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2004/03/11 23:52:51  rmikk
+ * Fixed Package names
+ *
  * Revision 1.4  2003/10/16 05:00:05  millermi
  * - Fixed java docs errors.
  *
@@ -49,7 +52,7 @@
  *
  */
 
-package DataSetTools.components.View.Menu;
+package gov.anl.ipns.ViewTools.Components.Menu;
 
 import java.util.Vector;
 import java.awt.event.ActionListener;
@@ -59,7 +62,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JMenuBar;
 import javax.swing.JFrame;
 
-import DataSetTools.components.image.IndexColorMaker;
+import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 
 /**
  * This class provides an easy way to build menu items with submenus. Using
