@@ -33,12 +33,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/06/05 22:13:57  dennis
+ *   - Fixed keyboard listener problems by adding setFocusable()
+ *     in Constructor.  (Mike Miller)
+ *
  *  Revision 1.2  2003/05/29 14:13:22  dennis
  *  Made three changes (Mike Miller)
  *    -extends ActiveJPanel not CoordJPanel
  *    -added messages for actionListeners
  *    -added double click feature to remove last/all selected
- *
+ * 
  *  Revision 1.1  2003/05/24 17:32:20  dennis
  *  Initial version of cursor selection. (Mike Miller)
  *
@@ -57,7 +61,9 @@ import DataSetTools.components.ui.*;
 import DataSetTools.components.image.*;
 
 /**
- *
+ * This class allows for the drawing of rubber band box/circle/point cursors.
+ * It is used by the SelectionOverlay to select regions of the underlying 
+ * JPanel.
  */
 public class SelectionJPanel extends ActiveJPanel
 {
@@ -82,6 +88,11 @@ public class SelectionJPanel extends ActiveJPanel
    private boolean doing_point;   // true if point selection started
    private boolean doing_elipse;  // true if elipse selection started
    
+  /**
+   * Constructor adds listeners to this SelectionJPanel. All boolean values
+   * are set to false. This JPanel is also contructed to receive keyboard
+   * events.
+   */ 
    public SelectionJPanel()
    { 
       isAdown = false;
@@ -94,30 +105,28 @@ public class SelectionJPanel extends ActiveJPanel
       doing_circle = false;
       doing_point = false;
       doing_elipse = false;
-      
-  //*********Testing - Remove after KeyListeners are fixed*******************//
-      doing_circle = true;
-  //*************************************************************************//
-      
+   
       box = new BoxCursor(this);
       circle = new CircleCursor(this);
       point = new PointCursor(this);
+      
+      setFocusable(true);
       
       addMouseListener( new SelectMouseAdapter() );
       addMouseMotionListener( new SelectMouseMotionAdapter() );
       addKeyListener( new SelectKeyAdapter() );
    }
 
-  /* ------------------------ set_box ------------------------------ */
+  /* ------------------------ set_cursor ------------------------------ */
   /**
-   *  Move the rubber band box cursor to the specified pixel 
-   *  point and notify any action listeners that the CURSOR_MOVED.  If the
-   *  rubber band box was not previously started, this will specifiy the
-   *  initial point for the box.  If the rebber band box was previously
-   *  started, this will specify a new location for the other corner of
-   *  the box.
+   *  Move the rubber band cursor to the specified pixel point. If the
+   *  rubber band region was not previously started, this will specifiy the
+   *  initial point for that region.  If the rubber band region was previously
+   *  started, this will specify a new location for the ending point of the
+   *  region.
    *
-   *  @param pt  The point where the rubber band box should be drawn
+   *  @param cursor  The type of cursor that was selected. 
+   *  @param pt  The point where the rubber band region should be drawn
    */
    public void set_cursor( XOR_Cursor cursor, Point current )
    {
@@ -158,15 +167,12 @@ public class SelectionJPanel extends ActiveJPanel
 
   /* -------------------------- stop_cursor ---------------------------- */
   /**
-   *  Stop the ruber band box cursor and set the current position to the
-   *  specifed pixel coordinate point.  If do_zoom is true, change the
-   *  transform to map the selected region to the full panel and
-   *  notify listeners of the zoom-in request.
+   *  Stop the rubber band cursor and set the current position to the
+   *  specifed pixel coordinate point. 
    *
+   *  @param  cursor   the type of cursor being used.
    *  @param  current  the point to record as the current point,
    *                   in pixel coordinates
-   *  @param  do_zoom  flag specifying whether or not to zoom in 
-   *                   on the selected region
    */
    public void stop_cursor( XOR_Cursor cursor, Point current )
    {
@@ -199,6 +205,13 @@ public class SelectionJPanel extends ActiveJPanel
       }      
    }
    
+  /**
+   * Since there are 3 types of cursors, this method gived us
+   * which cursor was used.
+   *
+   *  @param  cursor - string label
+   *  @return cursor - actual XOR_Cursor corresponding to the string label.
+   */ 
    public XOR_Cursor getCursor( String cursor )
    {
    
@@ -212,11 +225,14 @@ public class SelectionJPanel extends ActiveJPanel
          return point;
    }
 
+  /*
+   * Tells the SelectMouseAdapter is any keys are pressed.
+   */
    private class SelectKeyAdapter extends KeyAdapter
    {
       public void keyPressed( KeyEvent e )
       {
-         System.out.println("here in keypressed");
+         //System.out.println("here in keypressed");
          int code = e.getKeyCode();
 
 	 if( code == KeyEvent.VK_A )
@@ -238,7 +254,7 @@ public class SelectionJPanel extends ActiveJPanel
          int code = ke.getKeyCode();
 
 	 if( code == KeyEvent.VK_A )
-	    isBdown = false;	 
+	    isAdown = false;	 
 	 if( code == KeyEvent.VK_B )
 	    isBdown = false;
 	 if( code == KeyEvent.VK_C )
@@ -250,6 +266,10 @@ public class SelectionJPanel extends ActiveJPanel
       }
    }
 
+  /*
+   * This class used flags set by the SelectKeyAdapter class to determine
+   * an action.
+   */
    private class SelectMouseAdapter extends MouseAdapter
    {
       public void mouseClicked (MouseEvent e)
@@ -265,7 +285,7 @@ public class SelectionJPanel extends ActiveJPanel
 
       public void mousePressed (MouseEvent e)
       {
-         System.out.println("here in mousepressed");
+         //System.out.println("here in mousepressed");
 
          if( isBdown || isCdown || isEdown )
 	 {
@@ -284,7 +304,7 @@ public class SelectionJPanel extends ActiveJPanel
 
       public void mouseReleased(MouseEvent e)
       {
-         System.out.println("here in mousereleased");
+         //System.out.println("here in mousereleased");
 
          if( doing_box )
 	 {
@@ -309,6 +329,9 @@ public class SelectionJPanel extends ActiveJPanel
       }
    } 
    
+  /*
+   * Redraw the specified cursor, giving the rubber band stretch effect.
+   */ 
    class SelectMouseMotionAdapter extends MouseMotionAdapter
    {
       public void mouseDragged(MouseEvent e)
