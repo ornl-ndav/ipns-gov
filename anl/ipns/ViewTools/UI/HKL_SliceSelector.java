@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/05/03 17:55:01  dennis
+ * Now uses labels "Constant Qx", etc. for combo box when specifying
+ * plane in (Qx,Qy,Qz) rather the hkl space.
+ *
  * Revision 1.7  2004/03/12 01:01:01  serumb
  * Changed package and imports.
  *
@@ -123,7 +127,7 @@ public class HKL_SliceSelector extends     ActiveJPanel
     hkl_selector = new JComboBox( hkl_strings );
     hkl_selector.setFont( FontUtil.LABEL_FONT );
 
-    qxyz_selector = new JComboBox( hkl_strings );
+    qxyz_selector = new JComboBox( qxyz_strings );
     qxyz_selector.setFont( FontUtil.LABEL_FONT );
 
     add( origin_selector );
