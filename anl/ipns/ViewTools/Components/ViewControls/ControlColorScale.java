@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2004/11/05 22:06:52  millermi
+ *  - Now implements IPseudoLogAxisAddible instead of ILogAxisAddible.
+ *
  *  Revision 1.23  2004/09/15 21:55:47  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -156,7 +159,7 @@
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.LogScaleUtil;
  import gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D;
- import gov.anl.ipns.ViewTools.Components.Transparency.ILogAxisAddible;
+ import gov.anl.ipns.ViewTools.Components.Transparency.IPseudoLogAxisAddible;
  import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
  import gov.anl.ipns.Util.Numeric.floatPoint2D;
  import gov.anl.ipns.Util.Sys.WindowShower;
@@ -166,7 +169,7 @@
  * by ViewComponents. No messages are sent by this control.
  */ 
 public class ControlColorScale extends ViewControl
-                                         implements ILogAxisAddible 
+                                         implements IPseudoLogAxisAddible 
 {
  /**
   * "true" - Use this value to specify a horizontal (x-axis) calibrated
