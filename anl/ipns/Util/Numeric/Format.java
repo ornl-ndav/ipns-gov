@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/07/17 16:53:17  pfpeterson
+ *  Changed the MinimumFractionDigits to be equal to the
+ *  MaximumFractionDigits.
+ *
  *  Revision 1.4  2002/07/16 22:42:16  dennis
  *  Added methods to format values using scientific notation.
  *
@@ -87,10 +91,7 @@ public class Format
                              int      num_digits, 
                              boolean  use_grouping )
   {
-    if(num_digits>0)
-        f.setMinimumFractionDigits( 1 );
-    else
-        f.setMinimumFractionDigits( 0 );
+    f.setMinimumFractionDigits( num_digits );
     f.setMaximumFractionDigits( num_digits );
     f.setGroupingUsed( use_grouping );
 
