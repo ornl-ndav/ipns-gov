@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/09/15 21:58:29  millermi
+ * - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *   Adding a second log required the boolean parameter to be changed
+ *   to an int. These changes may affect any ObjectState saved configurations
+ *   made prior to this version.
+ *
  * Revision 1.2  2004/04/21 02:39:12  millermi
  * - Removed log message left behind from copy of 2D example.
  *
@@ -99,10 +105,10 @@ public class Display1DExample
     // Give meaningful range, labels, units, and linear or log display method.
     AxisInfo info = va1D.getAxisInfo( AxisInfo.X_AXIS );
     va1D.setAxisInfo( AxisInfo.X_AXIS, info.getMin(), info.getMax(), 
-    		        "Angle","Radians", true );
+    		        "Angle","Radians", AxisInfo.LINEAR );
     info = va1D.getAxisInfo( AxisInfo.Y_AXIS );
     va1D.setAxisInfo( AxisInfo.Y_AXIS, info.getMin(), info.getMax(), 
-    			"Length","Unit Length", true );
+    			"Length","Unit Length", AxisInfo.LINEAR );
     va1D.setTitle("Sine and Cosine Function");
     // Make instance of a Display1D frame, giving the array, the initial
     // view type, and whether or not to add controls.

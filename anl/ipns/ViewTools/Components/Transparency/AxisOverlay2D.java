@@ -35,6 +35,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.42  2004/09/15 21:55:46  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.41  2004/08/18 21:03:55  millermi
  *  - paint() calls paintLogX() and paintLogY() when log axes are
  *    specified. This was done because current implementations of
@@ -285,20 +291,22 @@ public class AxisOverlay2D extends OverlayJPanel
   public static final String AXES_DISPLAYED = "Axes Displayed";
     
  /**
-  * "Draw Linear X" - This constant String is a key for referencing the state
-  * information about the x axis and whether it is log or linear. 
-  * The value that this key references is a primative boolean. The boolean
-  * values are specified by public variables LINEAR and LOG.
+  * "X Scale" - This constant String is a key for referencing the state
+  * information about the x axis and whether it is log or linear.
+  * The value that this key references is an Integer. The
+  * values are specified by public variables LINEAR, TRU_LOG, or PSEUDO_LOG,
+  * all found in the AxisInfo class.
   */
-  public static final String DRAW_LINEAR_X  = "Draw Linear X";
+  public static final String X_SCALE  = "X Scale";
     
  /**
-  * "Draw Linear Y" - This constant String is a key for referencing the state
-  * information about the y axis and whether it is log or linear. 
-  * The value that this key references is a primative boolean. The boolean
-  * values are specified by public variables LINEAR and LOG.
+  * "Y Scale" - This constant String is a key for referencing the state
+  * information about the y axis and whether it is log or linear.
+  * The value that this key references is an Integer. The
+  * values are specified by public variables LINEAR, TRU_LOG, or PSEUDO_LOG,
+  * all found in the AxisInfo class.
   */
-  public static final String DRAW_LINEAR_Y  = "Draw Linear Y";
+  public static final String Y_SCALE  = "Y Scale";
     
  /**
   * "Two Sided" - This constant String is a key for referencing the state
@@ -355,8 +363,8 @@ public class AxisOverlay2D extends OverlayJPanel
   private int precision;
   private Font f;
   private int axesdrawn;
-  private boolean drawXLinear;
-  private boolean drawYLinear;
+  private int x_scale;
+  private int y_scale;
   private boolean isTwoSided = true;
   private int gridxdisplay = 0;  // 0 = none, 1 = major, 2 = major/minor
   private int gridydisplay = 0;
@@ -382,10 +390,8 @@ public class AxisOverlay2D extends OverlayJPanel
     ymin = component.getAxisInformation(AxisInfo.Y_AXIS).getMax(); 
     setPrecision( iaa.getPrecision() );
     setDisplayAxes( DUAL_AXES );
-    setXAxisLinearOrLog( 
-          component.getAxisInformation(AxisInfo.X_AXIS).getIsLinear() );
-    setYAxisLinearOrLog( 
-          component.getAxisInformation(AxisInfo.Y_AXIS).getIsLinear() );
+    setXScale( component.getAxisInformation(AxisInfo.X_AXIS).getScale() );
+    setYScale( component.getAxisInformation(AxisInfo.Y_AXIS).getScale() );
     editor = new AxisEditor();
     this_panel = this;
   }
@@ -475,17 +481,17 @@ public class AxisOverlay2D extends OverlayJPanel
       redraw = true;  
     }  
     
-    temp = new_state.get(DRAW_LINEAR_X);
+    temp = new_state.get(X_SCALE);
     if( temp != null )
     {
-      drawXLinear = ((Boolean)temp).booleanValue(); 
+      x_scale = ((Integer)temp).intValue(); 
       redraw = true;  
     } 
     
-    temp = new_state.get(DRAW_LINEAR_Y); 
+    temp = new_state.get(Y_SCALE); 
     if( temp != null )
     {
-      drawYLinear = ((Boolean)temp).booleanValue();
+      y_scale = ((Integer)temp).intValue();
       redraw = true;  
     }  
     
@@ -541,8 +547,8 @@ public class AxisOverlay2D extends OverlayJPanel
   {
     ObjectState state = new ObjectState();
     state.insert( AXES_DISPLAYED, new Integer(axesdrawn) );
-    state.insert( DRAW_LINEAR_X, new Boolean(drawXLinear) );
-    state.insert( DRAW_LINEAR_Y, new Boolean(drawYLinear) );
+    state.insert( X_SCALE, new Integer(x_scale) );
+    state.insert( Y_SCALE, new Integer(y_scale) );
     state.insert( FONT, f );
     state.insert( GRID_COLOR, gridcolor );
     state.insert( GRID_DISPLAY_X, new Integer(gridxdisplay) );
@@ -592,23 +598,27 @@ public class AxisOverlay2D extends OverlayJPanel
   }
   
  /**
-  * Specify x axis as linear or logarithmic. Options are LINEAR or LOG.
+  * Specify x axis as linear or logarithmic. Options are LINEAR, TRU_LOG, or
+  * PSEUDO_LOG. Use the AxisInfo public variables to define the scale.
   *
-  *  @param  isXLinear
+  *  @param  xscale
+  *  @see gov.anl.ipns.ViewTools.Components.AxisInfo
   */ 
-  public void setXAxisLinearOrLog( boolean isXLinear )
+  public void setXScale( int xscale )
   {
-    drawXLinear = isXLinear;
+    x_scale = xscale;
   }   
   
  /**
-  * Specify y axis as linear or logarithmic. Options are LINEAR or LOG.
+  * Specify y axis as linear or logarithmic. Options are LINEAR, TRU_LOG, or
+  * PSEUDO_LOG. Use the AxisInfo public variables to define the scale.
   *
-  *  @param  isYLinear
+  *  @param  yscale
+  *  @see gov.anl.ipns.ViewTools.Components.AxisInfo
   */ 
-  public void setYAxisLinearOrLog( boolean isYLinear )
+  public void setYScale( int yscale )
   {
-    drawYLinear = isYLinear;
+    y_scale = yscale;
   }   
  
  /**
@@ -692,22 +702,28 @@ public class AxisOverlay2D extends OverlayJPanel
 
     if( axesdrawn == X_AXIS || axesdrawn == DUAL_AXES )
     {
-      if( drawXLinear )
+      if( x_scale == AxisInfo.LINEAR )
     	paintLinearX( g2d );
-      else
+      else if( x_scale == AxisInfo.TRU_LOG )
+      {
+    	paintTruLogX(g2d);
+      }
+      else if( x_scale == AxisInfo.PSEUDO_LOG )
       {
     	paintLogX( g2d );
-    	//paintTruLogX(g2d);
       }
     }
     if( axesdrawn == Y_AXIS || axesdrawn == DUAL_AXES )
     {
-      if( drawYLinear )
+      if( y_scale == AxisInfo.LINEAR )
     	paintLinearY( g2d );
-      else
+      else if( y_scale == AxisInfo.TRU_LOG )
+      {
+    	paintTruLogY(g2d);
+      }
+      else if( y_scale == AxisInfo.PSEUDO_LOG )
       {
     	paintLogY( g2d );
-      	//paintTruLogY(g2d);
       }
     }
     super.paint(g);

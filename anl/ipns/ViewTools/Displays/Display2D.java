@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/09/15 21:58:29  millermi
+ * - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *   Adding a second log required the boolean parameter to be changed
+ *   to an int. These changes may affect any ObjectState saved configurations
+ *   made prior to this version.
+ *
  * Revision 1.8  2004/08/17 01:22:05  millermi
  * - Added colorscale reset to ViewCompListener. This fixed bug
  *   that incorrectly saved the colorscale.
@@ -668,10 +674,11 @@ public class Display2D extends Display
     IVirtualArray2D va2D = new VirtualArray2D( test_array );
     // Give meaningful range, labels, units, and linear or log display method.
     va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
-    		        "TestX","TestUnits", true );
+    		        "TestX","TestUnits", AxisInfo.LINEAR );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
-    			"TestY","TestYUnits", true );
-    va2D.setAxisInfo( AxisInfo.Z_AXIS, 0f, 1f, "Z", "Units", false );
+    			"TestY","TestYUnits", AxisInfo.LINEAR );
+    va2D.setAxisInfo( AxisInfo.Z_AXIS, 0f, 1f, "Z", "Units",
+                      AxisInfo.PSEUDO_LOG );
     va2D.setTitle("Display2D Test");
     // Make instance of a Display2D frame, giving the array, the initial
     // view type, and whether or not to add controls.

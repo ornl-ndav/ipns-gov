@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/09/15 21:55:45  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.7  2004/06/11 17:54:01  dennis
  *  Changed from dos to unix text format.
  *
@@ -118,22 +124,30 @@ public class AxisInfo
   public static final String NO_UNITS = "Default Units";
   
  /**
-  * true - This constant primative boolean selects linear display mode
+  * 0 - This constant int selects linear display mode
   * for the axis specified.
   */
-  public static final boolean LINEAR = true;
+  public static final int LINEAR = 0;
   
  /**
-  * false - This constant primative boolean selects logarithmic display mode
-  * for the axis specified.
+  * 1 - This constant in selects tru-logarythmic display mode
+  * for the axis specified. Tru-log scaling follows the rules of traditional
+  * logarythmic scaling.
   */
-  public static final boolean LOG    = false;
+  public static final int TRU_LOG    = 1;
+  
+ /**
+  * 2 - This constant in selects pseudo-logarithmic display mode
+  * for the axis specified. Pseudo-log maps a linear region to a logarythmic
+  * scale where the lowest linear value is mapped to one on the log scale.
+  */
+  public static final int PSEUDO_LOG    = 2;
    
   private float axismin;
   private float axismax; 
   private String axislabel;
   private String axisunits;  
-  private boolean islinear;
+  private int scale;
   
  /**
   * Default Constructor: initializes axis information
@@ -144,7 +158,7 @@ public class AxisInfo
     axismax = 1f;
     axislabel = NO_LABEL;
     axisunits = NO_UNITS;
-    islinear = LINEAR;
+    scale = LINEAR;
   }
   
  /**
@@ -154,16 +168,16 @@ public class AxisInfo
   *  @param  max
   *  @param  label
   *  @param  units
-  *  @param  bool_lin
+  *  @param  scale
   */
   public AxisInfo( float min, float max, String label, 
-		   String units, boolean bool_lin )
+		   String units, int scale )
   {	 
     axismin = min;
     axismax = max;
     axislabel = label;
     axisunits = units;
-    islinear = bool_lin;
+    this.scale = scale;
   }
   
  /**
@@ -207,14 +221,14 @@ public class AxisInfo
   }
   
  /**
-  * Returns boolean answer to question "Is Linear?". This value
-  * will be true if the calibration for the axis is linear. 
+  * Returns scale type of the axis. This value will be either LINEAR,
+  * TRU_LOG, or PSEUDO_LOG.
   *
-  *  @return true if linear, false if logarithmic
+  *  @return Scale type, use static ints to determine type.
   */
-  public boolean getIsLinear()
+  public int getScale()
   {
-    return islinear;
+    return scale;
   } 
   
  /**
@@ -225,7 +239,7 @@ public class AxisInfo
   public AxisInfo copy()
   {
     return new AxisInfo( axismin, axismax, new String(axislabel), 
-			 new String(axisunits), islinear );
+			 new String(axisunits), scale );
   }
 
  /**
@@ -239,7 +253,7 @@ public class AxisInfo
             "Units  = " + axisunits + "\n" +
             "Min    = " + axismin   + "\n" +
             "Max    = " + axismax   + "\n" +
-            "Linear = " + islinear;
+            "Scale  = " + scale;
   }
   
 }

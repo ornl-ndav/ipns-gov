@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/09/15 21:55:44  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.9  2004/03/17 20:26:50  dennis
  *  Fixed @see tag that was broken when view components, math and
  *  util were moved to gov package.
@@ -106,10 +112,10 @@ public interface IVirtualArray2D extends IVirtualArray
   *  @param  max Maximum value for this axis.
   *  @param  label Label associated with the axis.
   *  @param  units Units associated with the values for this axis.
-  *  @param  islinear Is axis linear (true) or logarithmic (false)
+  *  @param  scale Is axis LINEAR, TRU_LOG, PSEUDO_LOG?
   */
   public void setAxisInfo( int axis, float min, float max,
-			   String label, String units, boolean islinear ); 
+			   String label, String units, int scale ); 
   
  /**
   * Sets the attributes of the data array within a AxisInfo wrapper.

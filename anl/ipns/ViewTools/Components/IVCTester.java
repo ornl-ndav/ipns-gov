@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.23  2004/09/15 21:55:44  millermi
+ * - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *   Adding a second log required the boolean parameter to be changed
+ *   to an int. These changes may affect any ObjectState saved configurations
+ *   made prior to this version.
+ *
  * Revision 1.22  2004/05/11 00:50:07  millermi
  * - Removed unused variables.
  *
@@ -420,9 +426,9 @@ public class IVCTester extends JFrame implements IPreserveState,
     	    test_array[i][j] = i * j;
 	IVirtualArray2D va2D = new VirtualArray2D( test_array );
     	va2D.setAxisInfo( AxisInfo.X_AXIS, -100f, 100f, 
-    			    "New X","New Units", true );
+    			    "New X","New Units", AxisInfo.LINEAR );
     	va2D.setAxisInfo( AxisInfo.Y_AXIS, -150f, 150f,     
-     			   "New Y","New Y Units", true );
+     			   "New Y","New Y Units", AxisInfo.LINEAR );
         va2D.setTitle("New IVC Test");
 	ivc.dataChanged(va2D);
       }
@@ -481,9 +487,9 @@ public class IVCTester extends JFrame implements IPreserveState,
         test_array[i][j] = i - j;
     VirtualArray2D va2D = new VirtualArray2D( test_array );
     va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
-    		        "TestX","TestUnits", true );
+    		        "TestX","TestUnits", AxisInfo.LINEAR );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
-    			"TestY","TestYUnits", false );
+    			"TestY","TestYUnits", AxisInfo.TRU_LOG );
     va2D.setTitle("IVCTester");
     ObjectState state = new ObjectState();
     ObjectState sliderstate = new ObjectState();

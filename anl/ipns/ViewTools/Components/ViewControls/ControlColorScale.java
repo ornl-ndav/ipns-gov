@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2004/09/15 21:55:47  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.22  2004/08/06 18:50:30  millermi
  *  - Now checks for new COLORSCALE_CHANGED message sent out by any
  *    IColorScaleAddible objects.
@@ -538,7 +544,7 @@ public class ControlColorScale extends ViewControl
       return new AxisInfo( value_info.getMin(),
                            value_info.getMax(), 
 			   AxisInfo.NO_LABEL, 
-			   AxisInfo.NO_UNITS, false );
+			   AxisInfo.NO_UNITS, AxisInfo.PSEUDO_LOG );
     else
     {
       System.out.println("getAxisInfo() is not available with the " +
@@ -546,7 +552,8 @@ public class ControlColorScale extends ViewControl
         		 "public ControlColorScale( " +
         		 "IColorScaleAddible icsa, boolean orientation ) " +
         		 "to enable this method." );
-      return new AxisInfo( 0,1,AxisInfo.NO_LABEL,AxisInfo.NO_UNITS,false );
+      return new AxisInfo( 0,1,AxisInfo.NO_LABEL,AxisInfo.NO_UNITS,
+                           AxisInfo.PSEUDO_LOG );
     }
   }
   
@@ -726,9 +733,9 @@ public class ControlColorScale extends ViewControl
     //Make a sample 2D array
     VirtualArray2D va2D = new VirtualArray2D(row, col); 
     va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, .0001f, 
- 			 "TestX","TestUnits", true );
+ 			 "TestX","TestUnits", AxisInfo.LINEAR );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, .001f, 
- 			  "TestY","TestYUnits", true );
+ 			  "TestY","TestYUnits", AxisInfo.LINEAR );
     va2D.setTitle("Main Test");
     //Fill the 2D array with the function x*y
     float ftemp;

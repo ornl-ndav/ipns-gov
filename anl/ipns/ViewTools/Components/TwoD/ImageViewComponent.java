@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.76  2004/09/15 21:55:48  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.75  2004/08/13 02:50:00  millermi
  *  - Now implements IMarkerAddible interface, requiring the methods
  *    removeMarker() and removeAllMarkers() to be added.
@@ -2443,9 +2449,9 @@ public class ImageViewComponent implements IViewComponent2D,
     //Make a sample 2D array
     VirtualArray2D va2D = new VirtualArray2D(row, col); 
     va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
-        	       "TestX","TestUnits", true );
+        	       "TestX","TestUnits", AxisInfo.LINEAR );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
-        		"TestY","TestYUnits", false );
+        		"TestY","TestYUnits", AxisInfo.TRU_LOG );
     va2D.setTitle("Main Test");
     //Fill the 2D array with the function x*y
     for(int i = 0; i < row; i++)

@@ -31,6 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.39  2004/09/15 21:55:47  millermi
+ * - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *   Adding a second log required the boolean parameter to be changed
+ *   to an int. These changes may affect any ObjectState saved configurations
+ *   made prior to this version.
+ *
  * Revision 1.38  2004/07/28 19:38:35  robertsonj
  * Changed the curser readouts to read the correct log coordinates depending
  * on which scale is chosen to be logerithmic
@@ -1052,16 +1058,16 @@ import javax.swing.border.*;
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMax(),
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
-                        true);
+                        AxisInfo.LINEAR);
               Varray1D.setAxisInfo(AxisInfo.Y_AXIS,
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMin(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMax(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
-                        true);
+                        AxisInfo.LINEAR);
 
-              note.setXAxisLinearOrLog( true );
-              note.setYAxisLinearOrLog( true );
+              note.setXScale( AxisInfo.LINEAR );
+              note.setYScale( AxisInfo.LINEAR );
               note.setTwoSided(false);
               gjp.setLogScaleX(false);
               gjp.setLogScaleY(false);
@@ -1074,16 +1080,16 @@ import javax.swing.border.*;
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMax(),
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
-                        false);
+                        AxisInfo.TRU_LOG);
               Varray1D.setAxisInfo(AxisInfo.Y_AXIS,
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMin(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMax(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
-                        true);
+                        AxisInfo.LINEAR);
 
-              note.setXAxisLinearOrLog( false );
-              note.setYAxisLinearOrLog( true );
+              note.setXScale( AxisInfo.TRU_LOG );
+              note.setYScale( AxisInfo.LINEAR );
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(false);
@@ -1096,16 +1102,16 @@ import javax.swing.border.*;
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMax(),
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
-                        true);
+                        AxisInfo.LINEAR);
               Varray1D.setAxisInfo(AxisInfo.Y_AXIS,
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMin(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMax(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
-                        false);
+                        AxisInfo.LINEAR);
 
-              note.setYAxisLinearOrLog( false );
-              note.setXAxisLinearOrLog( true );
+              note.setYScale( AxisInfo.TRU_LOG );
+              note.setXScale( AxisInfo.LINEAR );
               note.setTwoSided(false);
               gjp.setLogScaleY(true);
               gjp.setLogScaleX(false);
@@ -1118,16 +1124,16 @@ import javax.swing.border.*;
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMax(),
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
-                        false);
+                        AxisInfo.TRU_LOG);
               Varray1D.setAxisInfo(AxisInfo.Y_AXIS,
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMin(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMax(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
-                        false);
+                        AxisInfo.TRU_LOG);
 
-              note.setXAxisLinearOrLog( false );
-              note.setYAxisLinearOrLog( false );
+              note.setXScale( AxisInfo.TRU_LOG );
+              note.setYScale( AxisInfo.TRU_LOG );
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(true);

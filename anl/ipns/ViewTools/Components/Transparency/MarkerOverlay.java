@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/09/15 21:55:47  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.7  2004/08/11 23:22:48  millermi
  *  - Added removeMarker(Marker) so markers can be removed
  *    by reference.
@@ -739,9 +745,9 @@ public class MarkerOverlay extends OverlayJPanel
         test_array[i][j] = i - j;
     VirtualArray2D va2D = new VirtualArray2D( test_array );
     va2D.setAxisInfo( AxisInfo.X_AXIS, -100f, 100f, 
-    		        "TestX","TestUnits", true );
+    		        "TestX","TestUnits", AxisInfo.LINEAR );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, -200f, 200f, 
-    			"TestY","TestYUnits", true );
+    			"TestY","TestYUnits", AxisInfo.LINEAR );
     va2D.setTitle("MarkerOverlay Test");
     ImageViewComponent ivc = new ImageViewComponent(va2D);
     //ivc.addActionListener( new IVCListener() );

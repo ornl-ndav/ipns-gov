@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/09/15 21:55:45  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.6  2004/07/06 19:43:14  serumb
  *  Added a check for a valid index in the get errors method.
  *
@@ -278,15 +284,15 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
   *  @param  max Maximum value for this axis.
   *  @param  label Label associated with the axis.
   *  @param  units Units associated with the values for this axis.
-  *  @param  islinear Is axis linear (true) or logarithmic (false)
+  *  @param  scale Is axis LINEAR, TRU_LOG, PSEUDO_LOG?
   */
   public void setAxisInfo( int axis, float min, float max,
-			   String label, String units, boolean islinear )
+			   String label, String units, int scale )
   {
     if(axis == AxisInfo.X_AXIS)
-      xinfo = new AxisInfo(min,max,label,units, islinear);
+      xinfo = new AxisInfo(min,max,label,units, scale);
     else if(axis == AxisInfo.Y_AXIS)
-      yinfo = new AxisInfo(min,max,label,units, islinear);
+      yinfo = new AxisInfo(min,max,label,units, scale);
   }
  
  /**

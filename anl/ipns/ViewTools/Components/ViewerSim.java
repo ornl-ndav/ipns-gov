@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/09/15 21:55:44  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.9  2004/03/12 03:36:47  millermi
  *  - Changed package, fixed imports.
  *
@@ -208,9 +214,9 @@ public class ViewerSim
       //Make a sample 2D array
       VirtualArray2D va2D = new VirtualArray2D(row, col); 
       va2D.setAxisInfo( AxisInfo.X_AXIS, .001f, .1f, 
-                           "TestX","TestUnits", true );
+                           "TestX","TestUnits", AxisInfo.LINEAR );
       va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, -1f, 
-                            "TestY","TestYUnits", true );
+                            "TestY","TestYUnits", AxisInfo.LINEAR );
       va2D.setTitle("Main Test");
       //Fill the 2D array with the function x*y
       float ftemp;

@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/09/15 21:55:45  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.4  2004/06/10 23:23:20  serumb
  *  Added method to get selected indexes.
  *
@@ -127,10 +133,10 @@ public interface IVirtualArrayList1D extends IVirtualArray
  *  @param  max Maximum value for this axis.
  *  @param  label Label associated with the axis.
  *  @param  units Units associated with the values for this axis.
- *  @param  islinear Is axis linear (true) or logarithmic (false)
+ *  @param  scale Is axis LINEAR, TRU_LOG, PSEUDO_LOG?
  */
  public void setAxisInfo( int axis, float min, float max,
-			  String label, String units, boolean islinear );
+			  String label, String units, int scale );
 
  /**
   * Get vertical error values for a line in the graph..

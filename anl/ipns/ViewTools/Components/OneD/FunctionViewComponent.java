@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.60  2004/09/15 21:55:46  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.59  2004/09/13 22:30:46  serumb
  *  Added path to the view menu items, so the Display1DExample
  *  puts them in the options menu.
@@ -539,7 +545,7 @@ public class FunctionViewComponent implements IViewComponent1D,
                                               .getX2(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
-        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getIsLinear(  ) );
+        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getScale(  ) );
       }
       else
       {
@@ -549,7 +555,7 @@ public class FunctionViewComponent implements IViewComponent1D,
         gjp.getLocalWorldCoords(  ).getX2(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
-        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getIsLinear(  ) );
+        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getScale(  ) );
        }
     }
 
@@ -564,7 +570,7 @@ public class FunctionViewComponent implements IViewComponent1D,
                                               .getY2(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
-      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
+      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getScale(  ) );
     }
     else
     {
@@ -573,7 +579,7 @@ public class FunctionViewComponent implements IViewComponent1D,
         gjp.getLocalWorldCoords(  ).getY2(  ),
         Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
         Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
-        Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
+        Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getScale(  ) );
     }
   }
 

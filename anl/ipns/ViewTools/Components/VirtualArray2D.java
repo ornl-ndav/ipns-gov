@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2004/09/15 21:55:44  millermi
+ *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
+ *    Adding a second log required the boolean parameter to be changed
+ *    to an int. These changes may affect any ObjectState saved configurations
+ *    made prior to this version.
+ *
  *  Revision 1.14  2004/05/11 00:53:10  millermi
  *  - Removed unused variables.
  *
@@ -133,9 +139,12 @@ public class VirtualArray2D implements IVirtualArray2D
       
     num_rows = rows;
     num_columns = columns;
-    rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
-    colinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
-    datainfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
+    rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL,
+                           AxisInfo.NO_UNITS, AxisInfo.LINEAR);
+    colinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL,
+                           AxisInfo.NO_UNITS, AxisInfo.LINEAR);
+    datainfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL,
+                            AxisInfo.NO_UNITS, AxisInfo.LINEAR);
     title = NO_TITLE;
   }
 
@@ -152,9 +161,12 @@ public class VirtualArray2D implements IVirtualArray2D
     num_rows = array2d.length;
     errors_set = false;
     use_sqrt = false;
-    rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
-    colinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
-    datainfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
+    rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL,
+                           AxisInfo.NO_UNITS, AxisInfo.LINEAR);
+    colinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL,
+                           AxisInfo.NO_UNITS, AxisInfo.LINEAR);
+    datainfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL,
+                            AxisInfo.NO_UNITS, AxisInfo.LINEAR);
     title = NO_TITLE;
   }
 
@@ -209,17 +221,17 @@ public class VirtualArray2D implements IVirtualArray2D
   *  @param  max
   *  @param  label
   *  @param  units
-  *  @param  islinear
+  *  @param  scale
   */
   public void setAxisInfo( int axiscode, float min, float max,
-			   String label, String units, boolean islinear)
+			   String label, String units, int scale)
   {
     if(axiscode == AxisInfo.X_AXIS)
-      rowinfo = new AxisInfo(min,max,label,units, islinear);
+      rowinfo = new AxisInfo(min,max,label,units, scale);
     else if(axiscode == AxisInfo.Y_AXIS)
-      colinfo = new AxisInfo(min,max,label,units, islinear);
+      colinfo = new AxisInfo(min,max,label,units, scale);
     else
-      datainfo = new AxisInfo(min,max,label,units, islinear);
+      datainfo = new AxisInfo(min,max,label,units, scale);
   } 
   
  /**
