@@ -2,6 +2,12 @@
  * @(#) ImageJPanel.java  1.0    1998/07/29   Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.4  2000/10/03 21:48:27  dennis
+ *  Modified to work with "Dual" color scales for both positive and negative
+ *  values.
+ *  Modified paint() routine to verify that the all data has been initialized.
+ *  This was needed on the Mac to avoid null pointer problems.
+ *
  *  Revision 1.3  2000/07/10 22:17:00  dennis
  *  minor format change to documentation
  *
@@ -38,8 +44,10 @@ import DataSetTools.util.*;
 public class ImageJPanel extends    CoordJPanel 
                          implements Serializable
 {
-  private final int       LOG_TABLE_SIZE    = 60000;
-  private final int       NUM_PSEUDO_COLORS = 128;
+  private final int       LOG_TABLE_SIZE      = 60000;
+  private final int       NUM_POSITIVE_COLORS = 127; 
+  private final int       NUM_PSEUDO_COLORS   = 2 * NUM_POSITIVE_COLORS + 1;
+  private final byte      ZERO_COLOR_INDEX    = (byte)NUM_POSITIVE_COLORS; 
   private Image           image;
   private Image           rescaled_image = null;
   private float           data[][] = { {0,1}, {2,3} };
@@ -52,8 +60,8 @@ public class ImageJPanel extends    CoordJPanel
   public ImageJPanel()
   { 
     color_model = 
-       IndexColorMaker.getColorModel( IndexColorMaker.HEATED_OBJECT_SCALE_2,
-                                      128 );
+      IndexColorMaker.getDualColorModel( IndexColorMaker.HEATED_OBJECT_SCALE_2,
+                                         NUM_POSITIVE_COLORS );
     log_scale = new byte[LOG_TABLE_SIZE];
     setLogScale( 0 );
   
@@ -77,10 +85,11 @@ public class ImageJPanel extends    CoordJPanel
 
 /* ----------------------------- setColorModel --------------------------- */
 
-  public void setColorModel( IndexColorModel new_color_model, 
-                             boolean         rebuild_image   )
+  public void setNamedColorModel( String   color_scale_name,
+                                  boolean  rebuild_image   )
   {
-    color_model = new_color_model;
+    color_model = IndexColorMaker.getDualColorModel( color_scale_name,
+                                                     NUM_POSITIVE_COLORS );
     if ( rebuild_image )
     {
       makeImage();
@@ -152,9 +161,15 @@ public class ImageJPanel extends    CoordJPanel
                                         // will be drawn rather than erased 
                                         // when the user moves the cursor (due
                                         // to XOR drawing). 
-    prepareImage( rescaled_image, this );
-    if ( rescaled_image != null )
+
+    if ( rescaled_image == null )       // the component might not have been
+      makeImage();                      // visible when makeImage was called
+
+    if ( rescaled_image != null )       // the component must still not be 
+    {                                   // visible
+      prepareImage( rescaled_image, this );
       g.drawImage( rescaled_image, 0, 0, this ); 
+    }
   }
 
 /* -------------------------- ImageRow_of_PixelRow ----------------------- */
@@ -288,14 +303,28 @@ protected void LocalTransformChanged()
 */
     byte pix[] = new byte[h*w];
     int index = 0;
-    scale_factor = (LOG_TABLE_SIZE - 1) / (max_data - min_data);
-    shift        = - min_data * scale_factor;
+
+    float max_abs = 0;
+    if ( Math.abs( max_data ) > Math.abs( min_data ) )
+      max_abs = Math.abs( max_data );
+    else
+      max_abs = Math.abs( min_data );
+
+    if ( max_abs > 0 )
+      scale_factor = (LOG_TABLE_SIZE - 1) / max_abs;
+    else
+      scale_factor = 0;
+
     for (int y = start_row; y <= end_row; y++)
       for (int x = start_col; x <= end_col; x++)
       {
-        temp = data[y][x] * scale_factor + shift;
-        pix[index++] = log_scale[(int)temp];
+        temp = data[y][x] * scale_factor;
+        if ( temp >= 0 )
+          pix[index++] = (byte)(ZERO_COLOR_INDEX + log_scale[(int)temp]);
+        else
+          pix[index++] = (byte)(ZERO_COLOR_INDEX - log_scale[(int)(-temp)]);
       }
+
     image = createImage(new MemoryImageSource(w, h, color_model, pix, 0, w));
 
     stop_box( current_point, false );
@@ -373,7 +402,7 @@ public Dimension getPreferredSize()
     s = Math.exp(20 * s / 100.0) + 0.1; // map [0,100] exponentially to get 
                                         // scale change that appears more linear
 
-    double scale = NUM_PSEUDO_COLORS / Math.log(s);
+    double scale = NUM_POSITIVE_COLORS / Math.log(s);
 
     for ( int i = 0; i < LOG_TABLE_SIZE; i++ )
       log_scale[i] = (byte)
