@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2003/01/27 14:57:17  rmikk
+ *  Change methods docdir and helpdir to use system dependent
+ *      slashes so they work in the browser control
+ *
  *  Revision 1.12  2002/12/11 16:59:06  pfpeterson
  *  Updated javadocs of fixSeparator(String)
  *
@@ -145,6 +149,7 @@ public class FilenameUtil
      */
     public static String docDir( String docFile ){
 	String S=System.getProperty("Docs_Directory");
+        char pathSep = java.io.File.separatorChar;
 	  if( S == null ){
 	      S=System.getProperty("ISAW_HOME");
 	  }
@@ -155,17 +160,19 @@ public class FilenameUtil
 	  }
 	  S=S.trim();
 	  S=DataSetTools.util.StringUtil.fixSeparator(S);
-	  if( S.charAt( S.length()-1 ) != '/' ){
-	      S=S+"/";
+	  if( S.charAt( S.length()-1 ) != pathSep ){
+	      S=S+pathSep;
 	  }
+          String dirr="html"+pathSep;
 	  if( (new File(S+docFile)).exists() ){
 	      S=S+docFile;
-	  }else if( (new File(S+"html/"+docFile)).exists() ){
-	      S=S+"html/"+docFile;
-	  }else if( (new File(S+"docs/html/"+docFile)).exists() ){
+	  }else if( (new File(S+dirr+docFile)).exists() ){
+	      S=S+"html"+pathSep+docFile;
+	  }else if( (new File(S+"docs"+pathSep+dirr+docFile)).exists() ){
 	      S=S+"docs/html/"+docFile;
 	  }else{
-	      SharedData.status_pane.add("CANNOT FIND DOCUMENT: "+docFile);
+	      SharedData.status_pane.add("CANNOT FIND DOCUMENT: "+docFile+"in "+
+                   S+" or"+S+dirr+docFile+ " or "+S+"docs"+pathSep+dirr);
 	      return null; // file doesn't exist
 	  }
 	      
@@ -237,8 +244,8 @@ public class FilenameUtil
 		if( t < 0){ t = CP.length(); }
 		S = CP.substring(s,t) .trim();
 		if( S.length() > 0 ){
-		    if ( S.charAt( S.length() -1) != '/'){ 
-			S = S + "/";
+		    if ( S.charAt( S.length() -1) != java.io.File.separatorChar){ 
+			S = S + java.io.File.separator;
 		    }
 		}
 		if(new File(S+"IsawHelp"+java.io.File.separator+helpFile).exists()){
