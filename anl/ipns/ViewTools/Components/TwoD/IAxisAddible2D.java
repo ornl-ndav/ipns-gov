@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/07/25 14:36:21  dennis
+ *  - Removed methods getLocalCoordBounds() and getGlobalCoordBounds()
+ *    since these methods are not required by the AxisOverlay2D.
+ *  - Moved method getRegionInfo() to IOverlayAddible
+ *  - This interface now implements IOverlayAddible (Mike Miller)
+ *
  *  Revision 1.3  2003/06/13 14:44:54  dennis
  *  - Added methods getLocalCoordBounds() and getGlobalCoordBounds() to
  *    allow selection and annotation overlays to adjust when a zoom occurs.
@@ -57,19 +63,13 @@ import DataSetTools.components.image.CoordBounds;
  * This interface is implemented by view components that utilize the 
  * AxisOverlay2D for displaying axis calibrations.
  */
-public interface IAxisAddible2D
+public interface IAxisAddible2D extends IOverlayAddible
 {
   /**
    * The boolean, either true for x, or false for y, will determine which axis
    * to get information for. The information is wrapped in an AxisInfo2D object.
    */
    public AxisInfo2D getAxisInfo(boolean isX);
-   
-  /**
-   * This method will return a rectangle with pixel coordinates corresponding
-   * to the desired region.
-   */ 
-   public Rectangle getRegionInfo();
    
   /**
    * This method will return the title given to the image as specified by
@@ -89,18 +89,6 @@ public interface IAxisAddible2D
    * will call this to determine what font to use.
    */
    public Font getFont();
-   
-  /**
-   * This method will return the local coordinate bounds of the center
-   * jpanel. To be implemented, the center may have to be a coordjpanel.
-   */
-   public CoordBounds getLocalCoordBounds();
-      
-  /**
-   * This method will return the global coordinate bounds of the center
-   * jpanel. To be implemented, the center may have to be a coordjpanel.
-   */
-   public CoordBounds getGlobalCoordBounds();
 }
 
 
