@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/12/23 18:39:22  millermi
+ *  - Improved how region was calculated.
+ *
  *  Revision 1.4  2003/12/20 05:42:26  millermi
  *  - Now corrects the topleft/bottomright defining points if
  *    they were scaled incorrectly by the image.
@@ -124,28 +127,31 @@ public class DoubleWedgeRegion extends Region
      // could have been mapped to the side of the image. However, at most
      // one will be affected, so take the maximum extent of the two.
      // Correct the defining points if selection made near border of image.
-     if( (bottomright.x - center.x) > xextent )
+     if( (bottomright.x - center.x) - 1 > xextent )
      {
        xextent = bottomright.x - center.x; 
        topleft.x = (int)(center.x - xextent); 
        definingpoints[3].x = topleft.x;
      }
-     else
+     else if( (bottomright.x - center.x) + 1 < xextent )
      {
        bottomright.x = (int)(center.x + xextent);
        definingpoints[4].x = bottomright.x;
      }
-     if( (bottomright.y - center.y)-1 > yextent )
+     
+     if( (bottomright.y - center.y) - 1 > yextent )
      {
        yextent = bottomright.y - center.y;
        topleft.y = (int)(center.y - yextent);
        definingpoints[3].y = topleft.y;
      }
-     else
+     else if( (bottomright.y - center.y) + 1 < yextent )
      {
        bottomright.y = (int)(center.y + yextent);
        definingpoints[4].y = bottomright.y;
      }
+     
+     //System.out.println(bottomright.toString() + " " + topleft.toString() );
      
      WedgeRegion wedge1 = new WedgeRegion(definingpoints);
      Point[] selected_pts_wedge1 = wedge1.getSelectedPoints();
@@ -156,12 +162,40 @@ public class DoubleWedgeRegion extends Region
      defpt2[2] = new Point( 2*center.x - rp1.x, 2*center.y - rp1.y );
      defpt2[3] = new Point( definingpoints[3] );
      defpt2[4] = new Point( definingpoints[4] );
+     
+     // since defpt2[1] & defpt2[2] are calculated, it is possible for them
+     // to fall outside of the bounds. This will make sure they don't.
+     // bound defpt2[1].x
+     if( defpt2[1].x > bottomright.x )
+       defpt2[1].x = bottomright.x;
+     else if( defpt2[1].x < topleft.x )
+       defpt2[1].x = topleft.x;
+     
+     // bound defpt2[1].y
+     if( defpt2[1].y > bottomright.y )
+       defpt2[1].y = bottomright.y;
+     else if( defpt2[1].y < topleft.y )
+       defpt2[1].y = topleft.y;
+     
+     // bound defpt2[2].x
+     if( defpt2[2].x > bottomright.x )
+       defpt2[2].x = bottomright.x;
+     else if( defpt2[2].x < topleft.x )
+       defpt2[2].x = topleft.x;
+     
+     // bound defpt2[2].y
+     if( defpt2[2].y > bottomright.y )
+       defpt2[2].y = bottomright.y;
+     else if( defpt2[2].y < topleft.y )
+       defpt2[2].y = topleft.y;
+     
      if( (definingpoints[5].x + 180) >= 360 )
        defpt2[5] = new Point( definingpoints[5].x - 180, definingpoints[5].y );
      else
        defpt2[5] = new Point( definingpoints[5].x + 180, definingpoints[5].y );
      
      WedgeRegion wedge2 = new WedgeRegion(defpt2);
+     //wedge1.pointchecker[center.x-topleft.x][center.y-topleft.y] = true;
      wedge2.pointchecker = wedge1.pointchecker;
      Point[] selected_pts_wedge2 = wedge2.getSelectedPoints();
      int total_num_pts = selected_pts_wedge1.length +
