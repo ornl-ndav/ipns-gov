@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/08/18 05:28:26  millermi
+ *  - Removed private method setSelectedCells(Point,Point,boolean)
+ *    and replaced all calls to this method with calls to
+ *    addSelectedRegion(TableRegion).
+ *  - Row Labels column now reduces size to largest label.
+ *  - Spacer JPanel in upper-left corner now has line border to
+ *    blend with the row_labels table.
+ *
  *  Revision 1.8  2004/08/17 20:57:47  millermi
  *  - Added help() to provide help window for users.
  *  - Added functionality for selecting entire rows/columns using
@@ -117,6 +125,7 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Point;
 import java.util.Vector;
+import javax.swing.BorderFactory;
 import javax.swing.JScrollPane;
 import javax.swing.JEditorPane;
 import javax.swing.JScrollBar;
@@ -132,7 +141,9 @@ import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.text.html.HTMLEditorKit;
@@ -427,10 +438,18 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     // Add listener to make row selections when a double-click occurs on
     // the row_labels table.
     row_labels.addMouseListener(new ColumnRowSelectListener());
+    
     // Initialize the label lists to contain "Column #" or "Row #".
+    Object[] column_label_array = new Object[columns];
+    for( int col_num = 0; col_num < columns; col_num++ )
+      column_label_array[col_num] = new Integer(col_num);
+    setColumnLabels(column_label_array);
+    
     row_label_list = new Vector();
+    Object[] row_label_array = new Object[rows];
     for( int row_num = 0; row_num < rows; row_num++ )
-      row_label_list.add("Row "+row_num);
+      row_label_array[row_num] = new Integer(row_num);
+    setRowLabels(row_label_array);
     row_label_container = new JPanel( new BorderLayout() );
     row_label_container.add( row_labels, BorderLayout.CENTER );
     add( row_label_container, BorderLayout.WEST );
@@ -1075,24 +1094,13 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   */
   public void selectAll()
   {
-    // Remove all previous selections.
-    unselectAll();
-    
-    // Mark all of the grid entries to selected.
-    for( int row = 0; row < selected.length; row++ )
-      for( int col = 0; col < selected[0].length; col++ )
-        selected[row][col] = true;
-    
-    // Add a new TableRegion to the selections list that covers the whole table.
-    // Note that the (x,y) point is actually (column,row).
     floatPoint2D[] def_pts = new floatPoint2D[2];
     def_pts[0] = new floatPoint2D(0,0);
     def_pts[1] = new floatPoint2D( (float)(selected[0].length-1),
                                    (float)(selected.length-1) );
-    selections.add( new TableRegion(def_pts, true) );
-    // Update the table.
-    table.repaint();
-    send_message( SELECTED_CHANGED );
+    TableRegion[] new_region = new TableRegion[1];
+    new_region[0] = new TableRegion(def_pts, true);
+    setSelectedRegions( new_region );
   }
   
  /**
@@ -1625,19 +1633,6 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     if( !ignore_notify )
       send_message( SELECTED_CHANGED );
   }
-  
- /*
-  * Specify a rectangular region using two pixel point values. Convenience
-  * method for converting pixel to row/column and then selecting cells.
-  */ 
-  private void setSelectedCells( Point pt1, Point pt2, boolean isSelected )
-  {
-    Point temp_pt1 = convertPixelToColumnRow(pt1);
-    Point temp_pt2 = convertPixelToColumnRow(pt2);
-    
-    setSelectedCells( temp_pt1.y, temp_pt2.y, 
-                      temp_pt1.x, temp_pt2.x, isSelected );
-  }
  
  /*
   * Method to check of row is valid.
@@ -1737,9 +1732,15 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     {
       FontMetrics fontmet = graphics.getFontMetrics();
       int max_length = fontmet.stringWidth(max_row_label);
-      if( row_labels.getColumnModel().getColumn(0).getWidth() < max_length )
+      TableColumn row_column = row_labels.getColumnModel().getColumn(0);
+      if( row_column.getWidth() < max_length )
       {
-    	row_labels.getColumnModel().getColumn(0).setMinWidth(max_length + 10);
+    	row_column.setMinWidth(max_length + 10);
+      }
+      else if( row_column.getWidth() > max_length )
+      {
+    	row_column.setMinWidth(max_length + 10);
+    	row_column.setPreferredWidth(max_length+10);
       }
     }
   }
@@ -1821,11 +1822,12 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   {
     public void mousePressed( MouseEvent me )
     {
-      // A selection has been started
-      active_selection = new CoordBounds();
       // if the point is not on any cell, ignore the mouse event
       if( !isPointOnCell(me.getPoint()) )
         return;
+      
+      // A selection has been started
+      active_selection = new CoordBounds();
       
       // If ctrl is down, we are adding/removing from initial selected cells.
       if( me.isControlDown() )
@@ -1838,7 +1840,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 	active_selection.setBounds( focus.x, focus.y, focus.x, focus.y );
 	send_message(POINTED_AT_CHANGED);
       }
-      // If shift is down, select everything between current point and
+      // If only shift is down, select everything between current point and
       // the anchor or first point.
       else if( me.isShiftDown() )
       {
@@ -1852,6 +1854,16 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 	}
 	else
 	{
+	  // If shift is misused, remove all selections and start new selection
+	  // at the given point. Misuse occurs when a selection already exists
+	  // and only the shift modifier is used to add a selection.
+	  if( getSelectedCells().getDefiningPoints(Region.WORLD).length > 1 )
+	  {
+	    setSelectedRegions(null);
+	    anchor = me.getPoint();
+	    focus = convertPixelToColumnRow( new Point( anchor ) );
+	    active_selection.setBounds( focus.x, focus.y, focus.x, focus.y );
+	  }
 	  // Get new ending value of rectangular region of selected cells.
 	  extend = me.getPoint();
 	  // Set the cell that should have focus.
@@ -1908,23 +1920,39 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
         // If more than once cell, toggle all cells in additional region.
 	if( ctrl_extend != null )
 	{
-	  setSelectedCells( ctrl_anchor, ctrl_extend,
-	                    !selected[rc_ctrl_anchor.y][rc_ctrl_anchor.x] );
+	  floatPoint2D[] def_pts = new floatPoint2D[2];
+          def_pts[0] = new floatPoint2D(convertPixelToColumnRow(ctrl_anchor));
+          def_pts[1] = new floatPoint2D(convertPixelToColumnRow(ctrl_extend));
+          addSelectedRegion( new TableRegion( def_pts,
+	                     !selected[rc_ctrl_anchor.y][rc_ctrl_anchor.x] ) );
 	}
 	// Else, selection is only one cell. Toggle that cell.
 	else
-	  setSelectedCells( ctrl_anchor, ctrl_anchor,
-	                    !selected[rc_ctrl_anchor.y][rc_ctrl_anchor.x] );
+	{
+	  floatPoint2D[] def_pts = new floatPoint2D[2];
+          def_pts[0] = new floatPoint2D(convertPixelToColumnRow(ctrl_anchor));
+          def_pts[1] = new floatPoint2D(convertPixelToColumnRow(ctrl_anchor));
+          addSelectedRegion( new TableRegion( def_pts,
+	                     !selected[rc_ctrl_anchor.y][rc_ctrl_anchor.x] ) );
+        }
       }
       // If an initial selection was made, select the cells in the new region.
       else if( anchor != null )
       {
         if( extend != null )
 	{
-	  setSelectedCells(anchor,extend,true);
+	  floatPoint2D[] def_pts = new floatPoint2D[2];
+          def_pts[0] = new floatPoint2D(convertPixelToColumnRow(anchor));
+          def_pts[1] = new floatPoint2D(convertPixelToColumnRow(extend));
+          addSelectedRegion( new TableRegion( def_pts, true ) );
 	}
 	else
-	  setSelectedCells(anchor,anchor,true);
+	{
+	  floatPoint2D[] def_pts = new floatPoint2D[2];
+          def_pts[0] = new floatPoint2D(convertPixelToColumnRow(anchor));
+          def_pts[1] = new floatPoint2D(convertPixelToColumnRow(anchor));
+          addSelectedRegion( new TableRegion( def_pts, true ) );
+	}
       }
       table.repaint();
     }
@@ -1964,12 +1992,35 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       
       // Remove the label panels so they can be rebuilt.
       remove( row_label_container );
-           
+      
       // ********* Build the left row label panel. *********
+      
+      // The actual labels containing the number of cells equal to the
+      // number of entirely visible rows.
+      row_labels = new JTable(num_rows,1);
+      // This will prevent users from editing the row_labels table.
+      row_labels.setModel( new RowLabelTableModel(num_rows,1) );
+      // Add listener to make row selections when a double-click occurs on
+      // the row_labels table.
+      row_labels.addMouseListener(new ColumnRowSelectListener());
+      // Make sure there are rows to render.
+      if( num_rows > 0 )
+        row_labels.setDefaultRenderer( row_labels.getColumnClass(0),
+                                       new IgnoreFocusRenderer() );
+      DefaultTableCellRenderer renderer =
+       (DefaultTableCellRenderer)row_labels.getDefaultRenderer(
+                             row_labels.getColumnClass(0) );
+      renderer.setHorizontalAlignment( SwingConstants.CENTER );
+      row_labels.setBackground(label_color);
+      row_labels.setCellSelectionEnabled(false);
+      
       // This spacer will account for the space taken up by the column headers,
       // enabling the correct rows to be aligned with the correct labels.
       JPanel up_row_spacer = new JPanel();
       up_row_spacer.setBackground(label_color);
+      // This will blend the panel with the row_labels table.
+      up_row_spacer.setBorder(
+                  BorderFactory.createLineBorder( row_labels.getGridColor() ) );
       if( table.getTableHeader() != null )
         up_row_spacer.setPreferredSize( new Dimension( 0,
                   table.getTableHeader().getHeight() + cell_spacing.height ) );
@@ -1980,18 +2031,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       low_row_spacer.setBackground(label_color);
       low_row_spacer.setPreferredSize( new Dimension( 0,
                                                       remainder_height ) );
-      // The actual labels containing the number of cells equal to the
-      // number of entirely visible rows.
-      row_labels = new JTable(num_rows,1);
-      // Add listener to make row selections when a double-click occurs on
-      // the row_labels table.
-      row_labels.addMouseListener(new ColumnRowSelectListener());
-      // Make sure there are rows to render.
-      if( num_rows > 0 )
-        row_labels.setDefaultRenderer( row_labels.getColumnClass(0),
-                                       new IgnoreFocusRenderer() );
-      row_labels.setBackground(label_color);
-      row_labels.setCellSelectionEnabled(false);
+      
       row_label_container.removeAll();
       row_label_container.add( up_row_spacer, BorderLayout.NORTH );
       row_label_container.add( row_labels, BorderLayout.CENTER );
@@ -2272,6 +2312,24 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     public void columnSelectionChanged( ListSelectionEvent lse )
     {
       ; // Stub
+    }
+  }
+  
+ /*
+  * The sole purpose of this class is to prevent users from editing the
+  * row_labels table.
+  */
+  private class RowLabelTableModel extends DefaultTableModel
+  {
+    protected RowLabelTableModel(int row_count, int column_count)
+    {
+      super(row_count, column_count);
+      
+    }
+    
+    public boolean isCellEditable( int row, int column )
+    {
+      return false;
     }
   }
  
