@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2005/02/11 23:42:42  millermi
+ * - Made removal of menu items more robust. See code for
+ *   removeComponentMenuItems() for more details.
+ *
  * Revision 1.11  2004/12/05 05:51:24  millermi
  * - Fixed Eclipse warnings.
  *
@@ -245,17 +249,47 @@ abstract public class Display extends JFrame implements IPreserveState,
       if( ViewMenuItem.PUT_IN_FILE.equalsIgnoreCase(
           menus[i].getPath()) )
       {
-        menu_bar.getMenu(0).remove( menus[i].getItem() ); 
+        menu_bar.getMenu(0).remove( menus[i].getItem() );
+	/*
+	 * Remove the following lines when FunctionViewComponent no longer
+	 * creates a new menu item each time getMenuItems() is called.
+	 */
+        JMenu file = menu_bar.getMenu(0);
+	JMenuItem remove_me = menus[i].getItem();
+	for( int j = 0; j < file.getItemCount(); j++ )
+	  if( remove_me.getText().equals(file.getItem(j).getText()) )
+	    file.remove(j);
+        /* ***** End of remove code ***** */
       }
       else if( ViewMenuItem.PUT_IN_OPTIONS.equalsIgnoreCase(
                menus[i].getPath()) )
       {
-        menu_bar.getMenu(1).remove( menus[i].getItem() );  	 
+        menu_bar.getMenu(1).remove( menus[i].getItem() );
+	/*
+	 * Remove the following lines when FunctionViewComponent no longer
+	 * creates a new menu item each time getMenuItems() is called.
+	 */
+        JMenu option = menu_bar.getMenu(1);
+	JMenuItem remove_me = menus[i].getItem();
+	for( int j = 0; j < option.getItemCount(); j++ )
+	  if( remove_me.getText().equals(option.getItem(j).getText()) )
+	    option.remove(j);
+        /* ***** End of remove code ***** */	 
       }
       else if( ViewMenuItem.PUT_IN_HELP.equalsIgnoreCase(
                menus[i].getPath()) )
       {
         menu_bar.getMenu(2).remove( menus[i].getItem() );
+	/*
+	 * Remove the following lines when FunctionViewComponent no longer
+	 * creates a new menu item each time getMenuItems() is called.
+	 */
+        JMenu help = menu_bar.getMenu(0);
+	JMenuItem remove_me = menus[i].getItem();
+	for( int j = 0; j < help.getItemCount(); j++ )
+	  if( remove_me.getText().equals(help.getItem(j).getText()) )
+	    help.remove(j);
+        /* ***** End of remove code ***** */
       }
     }
   }
