@@ -29,19 +29,24 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2003/12/15 23:56:33  bouzekc
+ * Removed unused imports.
+ *
  * Revision 1.4  2002/11/27 23:13:34  pfpeterson
  * standardized header
  *
  */
 
 package DataSetTools.components.ui;
-import java.awt.*;
-import java.awt.event.*;
-import java.text.*;
-import java.text.DateFormat;// for now
-import java.util.*; // for now
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 
 /**
  * A basic JFC based application.
