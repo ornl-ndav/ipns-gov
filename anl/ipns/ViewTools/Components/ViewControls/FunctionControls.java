@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.21  2004/01/09 20:32:56  serumb
+ * Utilize getLocalLogWorldCoords to correct log
+ * transformations.
+ *
  * Revision 1.20  2004/01/06 23:11:15  serumb
  * Put in the correct bounds for all log scale util.
  *
@@ -472,25 +476,25 @@ import javax.swing.border.*;
           // System.out.println("Min = " + x_range.getMin() );
           // System.out.println("Max = " + x_range.getMax() );
              CoordBounds b = gjp.getLocalWorldCoords();
-             CoordBounds b_log = gjp.getLocalLogWorldCoords(log_scale);
 
-             LogScaleUtil loggery = new LogScaleUtil(b.getY1(), b.getY2(),
-                                    b_log.getY1(), b_log.getY2());
-             LogScaleUtil loggerx = new LogScaleUtil(b.getX1(), b.getX2(),
-                                        b_log.getX1(), b_log.getX2());
+   LogScaleUtil loggery = new LogScaleUtil(gjp.getYmin(), gjp.getYmax(),
+                                    gjp.getYmin(), gjp.getYmax());
+             LogScaleUtil loggerx = new LogScaleUtil(gjp.getXmin(), gjp.getXmax(),
+                                        gjp.getXmin(), gjp.getXmax());
+
            if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
 
-             gjp.setZoom_region(loggerx.toSource(x_range.getMin(),
+             gjp.setZoom_region(loggerx.toDest(x_range.getMin(),
                              gjp.getScale()),
-                             loggery.toSource(y_range.getMax(),gjp.getScale()),
-                             loggerx.toSource(x_range.getMax(),gjp.getScale()),
-                             loggery.toSource(y_range.getMin(),gjp.getScale()));
+                             loggery.toDest(y_range.getMax(),gjp.getScale()),
+                             loggerx.toDest(x_range.getMax(),gjp.getScale()),
+                             loggery.toDest(y_range.getMin(),gjp.getScale()));
            }
            else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) { 
-             gjp.setZoom_region(loggerx.toSource(x_range.getMin(),
+             gjp.setZoom_region(loggerx.toDest(x_range.getMin(),
                                 gjp.getScale()), 
                                 y_range.getMax(),
-                                loggerx.toSource(x_range.getMax(),
+                                loggerx.toDest(x_range.getMax(),
                                 gjp.getScale()),
                                 y_range.getMin());
            }
@@ -508,25 +512,28 @@ import javax.swing.border.*;
          //  System.out.println("Min = " + y_range.getMin() );
          //  System.out.println("Max = " + y_range.getMax() );
              CoordBounds b = gjp.getLocalWorldCoords();
-             CoordBounds b_log = gjp.getLocalLogWorldCoords(log_scale);
+            
 
-             LogScaleUtil loggery = new LogScaleUtil(b.getY1(), b.getY2(),
-                                    b_log.getY1(), b_log.getY2());
-             LogScaleUtil loggerx = new LogScaleUtil(b.getX1(), b.getX2(),
-                                    b_log.getX1(), b_log.getX2());
+   LogScaleUtil loggery = new LogScaleUtil(gjp.getYmin(), gjp.getYmax(),
+                                    gjp.getYmin(), gjp.getYmax());
+             LogScaleUtil loggerx = new LogScaleUtil(gjp.getXmin(), gjp.getXmax(),
+                                        gjp.getXmin(), gjp.getXmax());
+
+
+
            if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
 
-             gjp.setZoom_region(loggerx.toSource(x_range.getMin(),
+             gjp.setZoom_region(loggerx.toDest(x_range.getMin(),
                              gjp.getScale()),
-                             loggery.toSource(y_range.getMax(),gjp.getScale()),
-                             loggerx.toSource(x_range.getMax(),gjp.getScale()),
-                             loggery.toSource(y_range.getMin(),gjp.getScale()));
+                             loggery.toDest(y_range.getMax(),gjp.getScale()),
+                             loggerx.toDest(x_range.getMax(),gjp.getScale()),
+                             loggery.toDest(y_range.getMin(),gjp.getScale()));
            }
            else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) { 
              gjp.setZoom_region(x_range.getMin(),
-                             loggery.toSource(y_range.getMax(),gjp.getScale()),
+                             loggery.toDest(y_range.getMax(),gjp.getScale()),
                              x_range.getMax(),
-                             loggery.toSource(y_range.getMin(),gjp.getScale()));
+                             loggery.toDest(y_range.getMin(),gjp.getScale()));
            }
            else
            gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
@@ -541,29 +548,53 @@ import javax.swing.border.*;
                                                                                              
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
-      CoordBounds b_log = gjp.getLocalLogWorldCoords(log_scale);
+     
       CoordBounds b = gjp.getLocalWorldCoords();
-      LogScaleUtil loggery = new LogScaleUtil(b.getY1(), b.getY2(),
-                                              b_log.getY1(), b_log.getY2());
-      LogScaleUtil loggerx = new LogScaleUtil(b.getX1(), b.getX2(),
-                                              b_log.getX1(), b_log.getX2());
-      
+
+
+       float xmin,xmax,ymin,ymax;
+       xmin = gjp.getXmin();
+       xmax = gjp.getXmax();
+       ymin = gjp.getYmin();
+       ymax = gjp.getYmax();
+
+         LogScaleUtil loggery = new LogScaleUtil(ymin,ymax,ymin,ymax);
+             LogScaleUtil loggerx = new LogScaleUtil(xmin,xmax,xmin,xmax);      
+
+
+
       if( message.equals("Reset Zoom")  ) {
           if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getX1());
-             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getX2());
-             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getY2());
-             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getY1());
+             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getX1());
+             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getX2());
+             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getY2());
+             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getY1());
            }
            else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
              x_range.setMin(gjp.getLocalWorldCoords().getX1());
              x_range.setMax(gjp.getLocalWorldCoords().getX2());
-             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getY2());
-             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getY1());
+             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getY2());
+             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getY1());
            }
            else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
-             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getX1());
-             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getX2());
+             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getX1());
+             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getX2());
              y_range.setMin(gjp.getLocalWorldCoords().getY2());
              y_range.setMax(gjp.getLocalWorldCoords().getY1());
            }
@@ -576,20 +607,36 @@ import javax.swing.border.*;
       }
       else if(message.equals("Zoom In")) {
            if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getX1());
-             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getX2());
-             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getY2());
-             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getY1());
+             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getX1());
+             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getX2());
+             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getY2());
+             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getY1());
            }
            else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
              x_range.setMin(gjp.getLocalWorldCoords().getX1()); 
              x_range.setMax(gjp.getLocalWorldCoords().getX2()); 
-             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getY2());
-             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getY1());
+             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getY2());
+             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getY1());
            }
            else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
-             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getX1());
-             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getX2());
+             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getX1());
+             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getX2());
              y_range.setMin(gjp.getLocalWorldCoords().getY2()); 
              y_range.setMax(gjp.getLocalWorldCoords().getY1());
            }

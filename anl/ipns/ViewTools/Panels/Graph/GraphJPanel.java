@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.37  2004/01/09 20:32:13  serumb
+ * Utilize getLocalLogWorldCoords to correct log
+ * transformations.
+ *
  * Revision 1.36  2004/01/06 22:49:11  serumb
  * Put in the correct bounds for the log scale util.
  *
@@ -985,17 +989,19 @@ public boolean is_autoY_bounds()
 
    // CoordBounds bounds = getGlobalWorldCoords();    // temporarily don't clip
     CoordBounds bounds = getLocalWorldCoords();
-    CoordBounds log_bounds = getLocalLogWorldCoords(log_scale);
+   
 
     float first_x = bounds.getX1();
     float last_x  = bounds.getX2();
     //bounds = getLocalWorldCoords();   
     if ( log_scale_x)
     {
-      //float min = getXmin();
-      //float max = getXmax();
-      LogScaleUtil logger = new LogScaleUtil(bounds.getX1(),bounds.getX2(),
-                            log_bounds.getX1(), log_bounds.getX2());
+      float min = getXmin();
+      float max = getXmax();
+
+      LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
+
+
       first_x = logger.toDest(first_x, log_scale);
       last_x = logger.toDest(last_x, log_scale);
     }
@@ -1061,10 +1067,13 @@ public boolean is_autoY_bounds()
       
       if( log_scale_x )
       {
-        //float min = getXmin();
-        //float max = getXmax();
-        LogScaleUtil logger = new LogScaleUtil(bounds.getX1(),bounds.getX2(),
-                            log_bounds.getX1(), log_bounds.getX2());
+        float min = getXmin();
+        float max = getXmax();
+
+
+        LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
+
+
         if( is_histogram ){
           for(int i = 0; i <= n_points; i++) {
             x_copy[i] = logger.toSource(x_copy[i], log_scale);
@@ -1076,10 +1085,11 @@ public boolean is_autoY_bounds()
       }
       if( log_scale_y )
       {
-        //float min = getYmin();
-        //float max = getYmax();
-        LogScaleUtil logger = new LogScaleUtil(bounds.getY1(),bounds.getY2(),
-                            log_bounds.getY1(), log_bounds.getY2());
+        float min = getYmin();
+        float max = getYmax();
+
+        LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
+
         for(int i = 0; i < n_points; i++)
           y_copy[i] = logger.toSource(y_copy[i], log_scale);
       }
@@ -1516,7 +1526,7 @@ private void SetDataBounds()
    float miny;
 /* ------------------------------getYmin--------------------------------*/
 
-private float getYmin()
+public float getYmin()
 {
     GraphData gd = (GraphData)graphs.elementAt(0);
     float [] yvals = gd.y_vals;
@@ -1539,7 +1549,7 @@ private float getYmin()
 }
 
 /*------------------------------- getYmax -----------------------------------*/
-private float getYmax()
+public float getYmax()
 {
   getYmin();
   return maxy;
@@ -1548,7 +1558,7 @@ private float getYmax()
 
 /* ------------------------------getXmin--------------------------------*/
                                                                                     
-private float getXmin()
+public float getXmin()
 {
     GraphData gd = (GraphData)graphs.elementAt(0);
     float [] xvals = gd.x_vals;
@@ -1572,7 +1582,7 @@ private float getXmin()
 }
                                                                                     
 /*------------------------------- getXmax -----------------------------------*/
-private float getXmax()
+public float getXmax()
 {
   getXmin();
   return maxx;

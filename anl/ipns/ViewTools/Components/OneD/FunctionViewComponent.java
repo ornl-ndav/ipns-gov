@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.35  2004/01/09 20:33:31  serumb
+ *  Utilize getLocalLogWorldCoords to correct log
+ *  transformations.
+ *
  *  Revision 1.34  2004/01/08 22:53:49  serumb
  *  Undo bad Y axis fix.
  *
@@ -265,11 +269,21 @@ public class FunctionViewComponent implements IViewComponent1D,
  
   public AxisInfo getAxisInformation( int axis ) {
     // if true, return x info
+    float xmin,xmax,ymin,ymax;
+       xmin = gjp.getXmin();
+       xmax = gjp.getXmax();
+       ymin = gjp.getYmin();
+       ymax = gjp.getYmax();
+
     if( axis == AxisInfo.X_AXIS) {
       if(gjp.getLogScaleX() == true) {
         return new AxisInfo( 
-        gjp.getLocalLogWorldCoords(gjp.getScale() ).getX1(  ),
-        gjp.getLocalLogWorldCoords(gjp.getScale() ).getX2(  ),
+        gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax )
+                                              .getX1(  ),
+        gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax)
+                                              .getX2(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getIsLinear(  ) );
@@ -286,8 +300,12 @@ public class FunctionViewComponent implements IViewComponent1D,
     // if false return y info
     if(gjp.getLogScaleY() == true) {
       return new AxisInfo( 
-      gjp.getLocalLogWorldCoords(gjp.getScale() ).getY1(  ),
-      gjp.getLocalLogWorldCoords(gjp.getScale() ).getY2(  ),
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                             xmin,xmax,ymin,ymax )
+                                              .getY1(  ),
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                              xmin,xmax,ymin,ymax )
+                                              .getY2(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
