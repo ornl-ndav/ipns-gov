@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.49  2005/01/24 22:38:38  millermi
+ * - Added positive check for log x axis values in paint().
+ *
  * Revision 1.48  2004/12/05 05:58:20  millermi
  * - Fixed Eclipse warnings.
  *
@@ -1097,8 +1100,12 @@ public boolean is_autoY_bounds()
             x_copy[i] = logger.toDest(x_copy[i]);
           }
         }else
-          for(int i = 0; i < n_points; i++) {
-            x_copy[i] = logger.toDest(x_copy[i]);
+          for(int i = 0; i < n_points; i++)
+	  {
+	    if( x_copy[i] > 0 )
+              x_copy[i] = logger.toDest(x_copy[i]);
+	    else
+	      x_copy[i] = logger.toDest(getPositiveXmin());
           }
       }
   
