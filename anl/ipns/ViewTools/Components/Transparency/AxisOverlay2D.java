@@ -87,14 +87,14 @@ public class AxisOverlay2D extends OverlayJPanel
            
       g2d.setFont(f);
       FontMetrics fontdata = g2d.getFontMetrics();
-      System.out.println("Precision = " + precision);
+      // System.out.println("Precision = " + precision);
       
       xmin = component.getAxisInfo(true).getMin();
       xmax = component.getAxisInfo(true).getMax();
       // ymin & ymax swapped to adjust for axis standard
       ymax = component.getAxisInfo(false).getMin();
       ymin = component.getAxisInfo(false).getMax();
-      System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
+      // System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
       // get the dimension of the center panel (imagejpanel)
       // all of these values are returned as floats, losing precision!!!
       int xaxis = (int)( component.getRegionInfo().getWidth() );
@@ -103,8 +103,8 @@ public class AxisOverlay2D extends OverlayJPanel
       int xstart = (int)( component.getRegionInfo().getLocation().getX() );
       int ystart = (int)( component.getRegionInfo().getLocation().getY() );
            
-      System.out.println("X,Y axis = " + xaxis + ", " + yaxis );
-      System.out.println("X,Y start = " +  xstart + ", " + ystart );  
+      // System.out.println("X,Y axis = " + xaxis + ", " + yaxis );
+      // System.out.println("X,Y start = " +  xstart + ", " + ystart );  
       
       // draw title on the overlay if one exists
       if( component.getTitle() != IVirtualArray2D.NO_TITLE )
@@ -227,16 +227,18 @@ public class AxisOverlay2D extends OverlayJPanel
 	 num = yutil.standardize(ystep * (float)ysteps + starty);
 	 exp_index = num.indexOf('E');
 	 
-	 System.out.println("Ypixel/Pmin = " + ypixel + "/" + pmin );
+         /*
+         System.out.println("Ypixel/Pmin = " + ypixel + "/" + pmin );
 	 System.out.println("Ypixel/Pmax = " + ypixel + "/" + pmax );
 	 System.out.println("Num = " + num );
+         */
 	 // if pixel is between top and bottom of imagejpanel, draw it 		     	       
      	 if( ypixel <= pmin && ypixel >= pmax )
      	 {
 	    g2d.drawString( num.substring(0,exp_index), 
-	           xstart - ytick_length - 
-		      fontdata.stringWidth(num.substring(0,exp_index)),
-	           ypixel + fontdata.getHeight()/4 );	      
+	                    xstart - ytick_length - 
+		            fontdata.stringWidth(num.substring(0,exp_index)),
+	                    ypixel + fontdata.getHeight()/4 );	      
 
      	    g2d.drawLine( xstart - ytick_length, ypixel - 1, 
      	                  xstart - 1, ypixel - 1 );   
