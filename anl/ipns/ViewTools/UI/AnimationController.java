@@ -1,5 +1,5 @@
 /*
- * @(#)AnimationController.java
+ * File: AnimationController.java
  *
  * Copyright (C) 2001, Dennis Mikkelson
  *
@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2001/08/14 19:20:15  dennis
+ *  Fixed documentation format error.
+ *
  *  Revision 1.9  2001/07/26 19:56:57  dennis
  *  Now extends ActiveJPanel instead of JPanel, so that it doesn't
  *  have to maintain the list of listeners itself.
