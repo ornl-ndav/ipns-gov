@@ -33,6 +33,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2003/12/20 11:11:52  millermi
+ * - Introduced DataSet concept. Coordinated the
+ *   ImageViewComponent with the FunctionViewComponent.
+ *   THE VIEWER IS NOW FUNCTIONABLE!!!
+ * - Known bug: PanViewControl causes layout issues because
+ *   it calculated preferredSize on the fly.
+ *
  * Revision 1.2  2003/12/20 03:55:43  millermi
  * - Fixed javadocs error.
  *
@@ -51,6 +58,7 @@ package DataSetTools.components.View;
 import javax.swing.*;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.awt.Container;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -61,6 +69,8 @@ import java.awt.event.ComponentEvent;
 import java.io.Serializable;
 import java.io.IOException;
 import java.io.EOFException;
+ import javax.swing.border.TitledBorder;
+ import javax.swing.border.LineBorder;
 
 import DataSetTools.components.View.TwoD.ImageViewComponent;
 import DataSetTools.components.View.OneD.FunctionViewComponent;
@@ -69,10 +79,16 @@ import DataSetTools.components.View.Menu.ViewMenuItem;
 import DataSetTools.components.image.*;
 import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.Transparency.SelectionOverlay;
-import DataSetTools.components.View.Region.Region;
+import DataSetTools.components.View.Region.*;
 import DataSetTools.components.View.ViewControls.PanViewControl;
 import DataSetTools.util.TextFileReader;
 import DataSetTools.util.RobustFileFilter;
+// these imports are for putting data into a dataset, then into DataSetData.
+import DataSetTools.dataset.DataSet;
+import DataSetTools.dataset.Data;
+import DataSetTools.dataset.FunctionTable;
+import DataSetTools.dataset.UniformXScale;
+ import DataSetTools.util.FontUtil;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -120,7 +136,12 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient FunctionViewComponent fvc;
   private transient IVirtualArray2D data;
   private transient JMenuBar menu_bar;
+  private DataSet data_set;
   private String projectsDirectory = System.getProperty("user.home");
+  // since box,line,point selections are not needed, don't do anything when
+  // these selections are made. When selections are removed, there is no way
+  // to know what kind of selection was removed, so this keeps track.
+  private boolean[] validSelections = new boolean[99];
 
  /**
   * Construct a frame with no data to start with. This constructor will be
@@ -343,7 +364,15 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     buildMenubar();
     
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setBounds(0,0,700,700);
+    setBounds(0,0,500,615);
+    
+    data_set   = new DataSet("Value per Hit vs Distance", "Sample log-info");
+
+    data_set.setX_units("(Units)" );
+    data_set.setX_label("Distance" );
+
+    data_set.setY_units("(Units)" );
+    data_set.setY_label("Value per Hit" );
     
     setData(iva);
   }
@@ -356,29 +385,16 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     if( data != null )
     {
       ivc = new ImageViewComponent( data );
-      //fvc = new FunctionViewComponent( new VirtualArray1D( {0} ) );
+      fvc = new FunctionViewComponent( new DataSetData( new DataSet() ) );
       ivc.setColorControlEast(true);
       ivc.addActionListener( new WVListener() );
-      ivc.addActionListener( new ImageListener() );
-      Box controls = new Box(BoxLayout.Y_AXIS);
-      JComponent[] ctrl = ivc.getSharedControls();
-      Dimension preferred_size;
-      for( int i = 0; i < ctrl.length; i++ )
-      {
-        controls.add(ctrl[i]);
-      }
-      JPanel spacer = new JPanel();
-      spacer.setPreferredSize( new Dimension(0, 10000) );
-      controls.add(spacer);
-    
+      ivc.addActionListener( new ImageListener() );    
       Box componentholder = new Box(BoxLayout.Y_AXIS);
-      JPanel fvcspacer = new JPanel();
-      fvcspacer.setPreferredSize( new Dimension(0, 270) );
       componentholder.add( ivc.getDisplayPanel() );
-      componentholder.add(fvcspacer);
+      componentholder.add(fvc.getDisplayPanel() );
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
-                                    componentholder,
-	  		            controls, .75f );
+    	  			    componentholder,
+        			    buildControls(), .75f );
       // get menu items from view component and place it in a menu
       ViewMenuItem[] menus = ivc.getSharedMenuItems();
       for( int i = 0; i < menus.length; i++ )
@@ -397,6 +413,27 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     	         menus[i].getPath().toLowerCase()) )
         {
 	  menu_bar.getMenu(2).add( menus[i].getItem() );
+        }
+      }
+      
+      // get menu items from function view component and place it in a menu
+      ViewMenuItem[] fmenus = fvc.getSharedMenuItems();
+      for( int i = 0; i < fmenus.length; i++ )
+      {
+        if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(
+    	    fmenus[i].getPath().toLowerCase()) )
+    	{
+	  menu_bar.getMenu(0).add( fmenus[i].getItem() ); 
+        }
+	else if( ViewMenuItem.PUT_IN_OPTIONS.toLowerCase().equals(
+    	         fmenus[i].getPath().toLowerCase()) )
+    	{
+	  menu_bar.getMenu(1).add( fmenus[i].getItem() );	   
+        }
+	else if( ViewMenuItem.PUT_IN_HELP.toLowerCase().equals(
+    	         fmenus[i].getPath().toLowerCase()) )
+        {
+	  menu_bar.getMenu(2).add( fmenus[i].getItem() );
         }
       }
     }
@@ -456,6 +493,172 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   }
   
  /*
+  * build controls for both view components.
+  */ 
+  private Box buildControls()
+  {
+    Box controls = new Box(BoxLayout.Y_AXIS);
+    
+    Box ivc_controls = new Box(BoxLayout.Y_AXIS);
+    TitledBorder ivc_border = 
+    		     new TitledBorder(LineBorder.createBlackLineBorder(),
+        			      "Image Controls");
+    ivc_border.setTitleFont( FontUtil.BORDER_FONT ); 
+    ivc_controls.setBorder( ivc_border );
+    JComponent[] ivc_ctrl = ivc.getSharedControls();
+    for( int i = 0; i < ivc_ctrl.length; i++ )
+    {
+      ivc_controls.add(ivc_ctrl[i]);
+    }
+    ivc_controls.addComponentListener( new ResizedControlListener() );
+    
+    Box fvc_controls = new Box(BoxLayout.Y_AXIS); 
+    TitledBorder fvc_border = 
+    		     new TitledBorder(LineBorder.createBlackLineBorder(),
+        			      "Graph Controls");
+    fvc_border.setTitleFont( FontUtil.BORDER_FONT );
+    fvc_controls.setBorder( fvc_border );
+    JComponent[] fvc_ctrl = fvc.getPrivateControls();
+    for( int i = 0; i < fvc_ctrl.length; i++ )
+    {
+      fvc_controls.add(fvc_ctrl[i]);
+    }
+    //fvc_controls.addComponentListener( new ResizedControlListener() );
+    
+    if( ivc_ctrl.length != 0 )
+    {
+      controls.add(ivc_controls);
+    }
+    
+    JPanel spacer = new JPanel();
+    spacer.setPreferredSize( new Dimension(0, 10000) );
+    controls.add(spacer);
+    
+    if( fvc_ctrl.length != 0 )
+    {
+      controls.add(fvc_controls);
+    }
+    return controls;
+  }
+
+  private void integrate( Region region )
+  {   
+    int   ID      = 1;
+    float start_x = 0;
+    float end_x   = 0;
+    int   n_xvals = 200;
+    Point center = new Point(0,0);
+   
+    Point[] def_pts = region.getDefiningPoints();
+    if( region instanceof WedgeRegion || 
+        region instanceof DoubleWedgeRegion )
+    {
+     /* def_pts[0]   = center pt of circle that arc is taken from
+      * def_pts[1]   = last mouse point/point at intersection of line and arc
+      * def_pts[2]   = reflection of p[1]
+      * def_pts[3]   = top left corner of bounding box around arc's total circle
+      * def_pts[4]   = bottom right corner of bounding box around arc's circle
+      * def_pts[5].x = startangle, the directional vector in degrees
+      * def_pts[5].y = degrees covered by arc.
+      */
+      center = new Point( def_pts[0] );
+      end_x = def_pts[4].x - center.x;
+    }
+    else if( region instanceof EllipseRegion )
+    {
+     /* def_pts[0]   = top left corner of bounding box around arc's total circle
+      * def_pts[1]   = bottom right corner of bounding box around arc's circle
+      * def_pts[2]   = center pt of circle that arc is taken from
+      */
+      center = new Point( def_pts[2] );
+      end_x = def_pts[1].x - center.x;
+    }
+    // these shouldn't be used for this viewer.
+    // Code in the WVListener will prevent these from ever being true.
+    else if( region instanceof LineRegion )
+    {
+      return;
+    }
+    else if( region instanceof BoxRegion )
+    {
+      return;
+    }
+    else if( region instanceof PointRegion )
+    {
+      return;
+    }
+
+    Data          spectrum;     // data block that will hold a "spectrum"
+    UniformXScale x_scale;      // "time channels" for the spectrum
+
+    // build list of time channels
+    x_scale = new UniformXScale( start_x, end_x, n_xvals );
+
+    int hit_count[] = new int[n_xvals];
+    float y_vals[] = new float[n_xvals];
+    float x_vals[] = x_scale.getXs();
+    Point[] selected_pts = region.getSelectedPoints();
+    // this loop will...
+    float x = 0;
+    float y = 0;
+    float dist = 0;
+    int index = 0;
+    for ( int i = 0; i < selected_pts.length; i++ )
+    {
+      x = Math.abs( selected_pts[i].x - center.x );
+      x = x*x;  // square x
+      y = Math.abs( selected_pts[i].y - center.y );
+      y = y*y;  // square y
+      dist = (float)Math.sqrt( x + y );
+      index = binarySearch( x_vals, dist );
+      y_vals[index] += data.getDataValue( selected_pts[i].y,
+                                          selected_pts[i].x );
+      hit_count[index]++;
+    }
+    
+    for( int bindex = 0; bindex < n_xvals; bindex++ )
+    {
+      if( hit_count[bindex] != 0 )
+        y_vals[bindex] = y_vals[bindex]/(float)hit_count[bindex];
+    }
+    spectrum = new FunctionTable( x_scale, y_vals, ID );
+                                                      // put it into a "Data"
+                                                      // object and then add
+    data_set.addData_entry( spectrum );               // that data object to
+                                                      // the data set
+    //data_set.setPointedAtIndex( data_set.getNum_entries() - 1 );
+    data_set.setSelectFlag( data_set.getNum_entries() - 1, true );
+  }
+  
+  private int binarySearch(  float[] x_values, float dist )
+  { 
+    float start = x_values[0];
+    float end = x_values[x_values.length - 1];
+    int bin_low = 0;
+    int bin_high = x_values.length - 1;
+    int bin = Math.round( (float)(bin_high-bin_low)/2f );
+    float half_increment = (x_values[1] - start)/2f;
+    while( !( dist <= (x_values[bin] + half_increment) &&
+              dist >= (x_values[bin] - half_increment) ) &&
+	    !( bin == bin_low || bin == bin_high ) )
+    {
+      //System.out.println("Dist/X_val/bin: " + dist + "/" + x_values[bin] +
+      //                   "/" + bin );
+      if( dist < (x_values[bin] - half_increment) )
+      {
+        bin_high = bin;
+	bin = bin_low + Math.round((float)(bin_high-bin_low)/2f);
+      }
+      else
+      {
+        bin_low = bin;
+	bin = bin_low + Math.round((float)(bin_high-bin_low)/2f);
+      }
+    }
+    return bin;
+  }
+  
+ /*
   * This class is required to update the axes when the divider is moved. 
   * Without it, the image is one frame behind.
   */
@@ -499,25 +702,74 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     public void actionPerformed( ActionEvent ae )
     {
       String message = ae.getActionCommand();
+      // get all of the selections, we only care about the last one.
+      Region[] selectedregions = ivc.getSelectedRegions();
+        
       if( message.equals(SelectionOverlay.REGION_ADDED) )
       {
-  	Region[] selectedregions = ivc.getSelectedRegions();
-        Point[] selectedpoints = 
-	          selectedregions[selectedregions.length-1].getSelectedPoints();
-        //System.out.println("NumSelectedPoints: " + selectedpoints.length);
-        for( int j = 0; j < selectedpoints.length; j++ )
+        Region last_region = selectedregions[selectedregions.length-1];
+        if( last_region instanceof WedgeRegion ||
+            last_region instanceof DoubleWedgeRegion ||
+            last_region instanceof EllipseRegion )
         {
-	  int row = selectedpoints[j].y;
-	  int col = selectedpoints[j].x;
-	  
-	  //data.setDataValue( row, col, data.getDataValue(row,col) * 2f );
-          //System.out.println("(" + selectedpoints[j].x + "," + 
-          //      	     selectedpoints[j].y + ")" );
+          // get points from the last selected region.
+          integrate( last_region );
+          fvc.dataChanged(new DataSetData(data_set));
+	  validSelections[selectedregions.length-1] = true;
         }
-        //ivc.dataChanged(data);
+      }
+      else if( message.equals(SelectionOverlay.REGION_REMOVED) )
+      {
+        if( validSelections[selectedregions.length] )
+	{
+          data_set.removeData_entry( data_set.getNum_entries() - 1 );
+          fvc.dataChanged(new DataSetData(data_set));
+	  validSelections[selectedregions.length] = false;
+	}
+      }
+      else if( message.equals(SelectionOverlay.ALL_REGIONS_REMOVED) )
+      {
+        data_set.removeAll_data_entries();
+        fvc.dataChanged(new DataSetData(data_set));
       }
     }
   }
+  
+ /*
+  * This class is needed to reajust the size of the PanViewControl. Since
+  * the PanViewControl needs to resize itself once the width is known,
+  * the initial bounding box restricts the size of the control.
+  */
+  private class ResizedControlListener extends ComponentAdapter
+  {
+    public void componentResized( ComponentEvent e )
+    {
+      Box control_box = (Box)e.getComponent();
+      int height = 0;
+      int width = control_box.getWidth();
+      Component[] controls = control_box.getComponents();
+      for( int ctrl = 0; ctrl < controls.length; ctrl++ )
+      {
+        height += ((JComponent)controls[ctrl]).getHeight() + 4;
+      }
+      if( control_box.getHeight() < height )
+      {
+        control_box.setSize( new Dimension( width, height ) );
+        /*        
+	Component temp2 = ((Container)
+	    pane.getRightComponent()).getComponent(2);
+	((Container)pane.getRightComponent()).remove(2);
+
+        Component temp1 = ((Container)
+	    pane.getRightComponent()).getComponent(1);
+	((Container)pane.getRightComponent()).remove(1);
+	
+	((Container)pane.getRightComponent()).add(temp1,1);
+	((Container)pane.getRightComponent()).add(temp2,2);
+	*/                                                      
+      }
+    }  
+  } 
  
  /*
   * File filter for .dat files being loaded for data analysis.
