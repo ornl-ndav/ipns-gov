@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/12 02:23:21  serumb
+ *  Changed package and imports.
+ *
  *  Revision 1.1  2003/12/23 01:55:51  millermi
  *  - Moved from TwoD directory to a more logical directory. Now
  *    in the same directory as the class that it provides
@@ -62,11 +65,11 @@
  *
  */
  
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import java.awt.Font;
 
-import DataSetTools.components.View.AxisInfo;
+import gov.anl.ipns.ViewTools.Components.*;
 
 /**
  * This interface is implemented by view components that utilize the 
