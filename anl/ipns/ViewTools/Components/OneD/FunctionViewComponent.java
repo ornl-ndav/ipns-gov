@@ -33,12 +33,8 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.38  2004/01/30 22:29:23  millermi
- *  - Added new messaging String paths when listened for by action
- *    listeners.
- *
- *  Revision 1.37  2004/01/30 19:10:49  serumb
- *  Fixed index out of bounds exception.
+ *  Revision 1.39  2004/02/20 19:11:57  serumb
+ *  Fixed the way the axes info was being set.
  *
  *  Revision 1.36  2004/01/30 18:12:27  serumb
  *  Initilized the GraphJPanel with the Virtual Array and
@@ -245,7 +241,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     font        = FontUtil.LABEL_FONT2;
     gjp         = new GraphJPanel(  );
    
-  //  buildViewControls();
 
     //initialize the pointed at graph to 0
        float x1[] = {0};
@@ -260,6 +255,7 @@ public class FunctionViewComponent implements IViewComponent1D,
        float y[] = Varray1D.getYVals_ofIndex(i-1);
        gjp.setData( x, y, i, false );     
     }
+
     gjp.setBackground( Color.white );
 /*    // set initial line styles
     if( varr.getNumlines(  ) > 1 ) {
@@ -274,6 +270,7 @@ public class FunctionViewComponent implements IViewComponent1D,
       gjp.setLineWidth( linewidth, 3, false );
     }
 */
+    setAxisInfo();
     ImageListener gjp_listener = new ImageListener(  );
 
     gjp.addActionListener( gjp_listener );
@@ -285,7 +282,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     regioninfo      = new Rectangle( gjp.getBounds(  ) );
     local_bounds    = gjp.getLocalWorldCoords(  ).MakeCopy(  );
     global_bounds   = gjp.getGlobalWorldCoords(  ).MakeCopy(  );
-    setAxisInfo();
 
     Listeners = new Vector(  );
 
@@ -297,7 +293,6 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     mainControls = new FunctionControls(varr, gjp, getDisplayPanel(),this);
     mainControls.get_frame().addWindowListener( new FrameListener() );
-   // buildViewControls( gjp );
   }
 
   /**
@@ -388,13 +383,63 @@ public class FunctionViewComponent implements IViewComponent1D,
    * This method initializes the world coords.
    */
   public void setAxisInfo() {
+
+    float xmin,xmax,ymin,ymax;
+       xmin = gjp.getXmin();
+       xmax = gjp.getXmax();
+       ymin = gjp.getYmin();
+       ymax = gjp.getYmax();
+
+  if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true ) 
+  {
+      gjp.setLocalWorldCoords(new CoordBounds(
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                          xmin,xmax,ymin,ymax )
+                                         .getX1(  ) ,
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                          xmin,xmax,ymin,ymax )
+                                          .getY1(  ) , 
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                          xmin,xmax,ymin,ymax )
+                                          .getX2(  ) ,
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                          xmin,xmax,ymin,ymax )
+                                          .getY2(  ) ));
+  }
+  else if (gjp.getLogScaleX() == true && gjp.getLogScaleY() == false)
+  {
+      gjp.setLocalWorldCoords(new CoordBounds(
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                          xmin,xmax,ymin,ymax )
+                                         .getX1(  ) ,
+      ymin,
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                          xmin,xmax,ymin,ymax )
+                                          .getX2(  ) ,
+      ymax));
+  }                                    
+  else if (gjp.getLogScaleX() == true && gjp.getLogScaleY() == false)
+  {
+      gjp.setLocalWorldCoords(new CoordBounds(
+      xmin,
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                          xmin,xmax,ymin,ymax )
+                                          .getY1(  ) , 
+      xmax,
+      gjp.getLocalLogWorldCoords(gjp.getScale(),
+                                          xmin,xmax,ymin,ymax )
+                                          .getY2(  ) ));
+  }
+  else
+  gjp.initializeWorldCoords( 
+      new CoordBounds( 
+        xmin, ymin,
+        xmax, ymax) );
+ 
+ 
     AxisInfo xinfo = getAxisInformation( AxisInfo.X_AXIS );
     AxisInfo yinfo = getAxisInformation( AxisInfo.Y_AXIS );
 
-    gjp.initializeWorldCoords( 
-      new CoordBounds( 
-        xinfo.getMin(  ), yinfo.getMin(  ),
-        xinfo.getMax(  ), yinfo.getMax(  ) ) );
   }
  
   public AxisInfo getAxisInformation( int axis ) {
@@ -404,9 +449,11 @@ public class FunctionViewComponent implements IViewComponent1D,
        xmax = gjp.getXmax();
        ymin = gjp.getYmin();
        ymax = gjp.getYmax();
+ //System.out.println("xmin"+xmin+"xmax"+xmax);
+   
 
     if( axis == AxisInfo.X_AXIS) {
-      if(gjp.getLogScaleX() == true) {
+      if(gjp.getLogScaleX() == true) { 
         return new AxisInfo( 
         gjp.getLocalLogWorldCoords(gjp.getScale(),
                                               xmin,xmax,ymin,ymax )
@@ -419,12 +466,21 @@ public class FunctionViewComponent implements IViewComponent1D,
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getIsLinear(  ) );
       }
       else
+      {
+/*        System.out.println("local" + "min" +gjp.getLocalWorldCoords(  )
+                              .getX1(  ) + "max" + 
+        gjp.getLocalWorldCoords(  ).getX2(  ));
+      gjp.setLocalWorldCoords(new CoordBounds(
+         xmin, ymax,
+         xmax, ymin) );
+*/
       return new AxisInfo( 
         gjp.getLocalWorldCoords(  ).getX1(  ),
         gjp.getLocalWorldCoords(  ).getX2(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
         Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getIsLinear(  ) );
+       }
     }
 
     // if false return y info
@@ -441,13 +497,15 @@ public class FunctionViewComponent implements IViewComponent1D,
       Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
     }
     else
-    return new AxisInfo( 
-      gjp.getLocalWorldCoords(  ).getY1(  ),
-      gjp.getLocalWorldCoords(  ).getY2(  ),
-      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
-      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
-      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
+    {
+      return new AxisInfo( 
+        gjp.getLocalWorldCoords(  ).getY1(  ),
+        gjp.getLocalWorldCoords(  ).getY2(  ),
+        Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
+        Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
+        Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
     }
+  }
 
    
   /**
@@ -868,14 +926,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     big_picture = master;
   }
 
-  /*
-   * This method constructs the controls required by the FunctionViewComponent
-   * it builds the controls to be added to the split pane.
-   */
-/*  private void buildViewControls( ) {
-
-    }
-*/
   /*
    * MAIN - Basic main program to test a FunctionViewComponent object
    */
