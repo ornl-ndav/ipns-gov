@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/07/29 16:44:40  robertsonj
+ *  added javadocs
+ *
  *  Revision 1.9  2004/07/28 19:33:59  robertsonj
  *  added functionality to find the greatest lower bound and the least upper
  *  bound from the number 1*10^x, 2*10^x, 5*10^x, 1.2*10^x and 1.5*10^x
@@ -237,6 +240,278 @@ public class CalibrationUtil
    *
    *  @return array of steps for the interval
    */
+  public float[] subDivideLog()
+	{
+	  float[] values = new float[0];
+	  //***********************************************************************
+	  // if xmin is within one power of xmax, use specific log scaling.
+	  // positive xmin is within one power if xmax/10 < xmin, while
+	  // negative xmin is within one power if xmax*10 < xmin.
+	  if( (xmin >= xmax/10 && xmin > 0) ||
+		  (xmin >= xmax*10 && xmin < 0) )
+	  { 
+		float diff = Math.abs(xmax - xmin);
+		int diffpower = 0;
+		while( diff >= 10 )
+		{ 
+		  diff = diff / 10f;
+		  diffpower++;
+	  // this is to try to correct rounding errors
+	  if( diff/10 < 10 )
+		diff = diff + .1f;
+		}
+		while ( diff < 1.0 )
+		{
+		  diff = diff * 10.0f;
+		  diffpower--;
+	  // this is to try to correct rounding errors
+	  if( diff*10 > 1 )
+		diff = diff + .001f;
+		} 
+		//System.out.println("diff/diffpower =" + diff + "/" + diffpower );
+            
+		// find degree of xmin
+		float start_min = Math.abs(xmin);
+		int xmin_power = 0;
+		while( start_min >= 10 )
+		{
+		  start_min = start_min / 10f;
+		  xmin_power++;
+		}
+		while ( start_min < 1.0 )
+		{
+		  start_min = start_min * 10.0f;
+		  xmin_power--;
+		}
+            
+		// find degree of xmax
+		float end_max = Math.abs(xmax);
+		int xmax_power = 0;
+		while( end_max >= 10 )
+		{
+		  end_max = end_max / 10f;
+		  xmax_power++;
+		}
+		while ( end_max < 1.0 )
+		{
+		  end_max = end_max * 10.0f;
+		  xmax_power--;
+		}
+
+		// put temp just "above" xmin
+		if( xmin > 0 )
+		  start_min = (float)Math.round( .4 + (double)(start_min *
+							Math.pow(10,Math.abs(diffpower) ) ) );
+		else
+		  start_min = -(float)Math.round( -.4 + (double)(start_min *
+						  Math.pow(10,Math.abs(diffpower)) ) );
+		start_min = start_min * (float)Math.pow(10, (double)(xmin_power - 
+							   Math.abs(diffpower)) );
+
+		// put temp just "below" xmin
+		if( xmax > 0 )
+		  end_max = (float)Math.round( -.4 + (double)(end_max *
+							Math.pow(10,Math.abs(diffpower) ) ) );
+		else
+		  end_max = -(float)Math.round( .4 + (double)(end_max *
+						  Math.pow(10,Math.abs(diffpower)) ) );
+		end_max = end_max * (float)Math.pow(10, (double)(xmax_power - 
+							   Math.abs(diffpower)) );
+
+		// if diff between [1,2], use approximate geometric steps of 2
+		if ( diff <= 2.0 )
+		{ 
+		  // this is to prevent the last two steps from repeating.
+		  if( end_max != ( start_min + ( 1.0f * 
+					   (float)Math.pow( 10, (double)(diffpower) ) ) ) )
+		  {
+		values = new float[6];
+			values[5] = end_max;
+		  }
+	  else
+		values = new float[5];
+	 
+	  values[0] = start_min;
+		  values[1] = start_min + ( 0.1f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[2] = start_min + ( 0.2f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[3] = start_min + ( 0.5f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[4] = start_min + ( 1.0f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		}
+		// if diff between [2,5], use approximate geometric steps of 1.25
+		else if ( diff <= 5.0 )
+		{
+		  // this is to prevent the last two steps from repeating.
+		  if( end_max != ( start_min + ( 2f * 
+					   (float)Math.pow( 10, (double)(diffpower) ) ) ) )
+		  {
+		values = new float[6];
+			values[5] = end_max;
+		  }
+	  else
+		values = new float[5];
+	 
+		  values[0] = start_min;
+		  values[1] = start_min + ( 1f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[2] = start_min + ( 1.25f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[3] = start_min + ( 1.5f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[4] = start_min + ( 2f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		}
+		// if diff between [5,10], use approximate geometric steps of 1.5
+		else
+		{ 
+		  // this is to prevent the last two steps from repeating.
+		  if( end_max != ( start_min + ( 5f * 
+					   (float)Math.pow( 10, (double)(diffpower) ) ) ) )
+		  {
+		values = new float[7];
+			values[6] = end_max;
+		  }
+	  else
+		values = new float[6];
+	   
+		  values[0] = start_min;
+		  values[1] = start_min + ( 1f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[2] = start_min + ( 1.5f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[3] = start_min + ( 2f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[4] = start_min + ( 3f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		  values[5] = start_min + ( 5f * 
+					  (float)Math.pow( 10, (double)(diffpower) ) );
+		}  
+       
+		// this will round off the values to "nice" numbers
+		for( int i = 0; i < values.length; i++ )
+		  values[i] = (float)Format.round( (double)values[i], 
+									  Math.abs(diffpower) + 3 );  
+	  } // end if xmin > xmax/10
+	  // else, use ...,.1,.2,.5,1,2,5,10,20,50,... scaling method.
+	  else
+	  {
+		boolean zeroflag = false;
+		if( xmin < 0 )
+		{
+		  // if not two sided, everything negative goes to zero.
+		  if( isTwoSided )
+	  {
+		if( xmax < -xmin )
+		  xmax = -xmin; 
+		  }
+	  xmin = 0;
+	  // if two sided, make interval symmetric
+		}
+		if( xmin == 0 )
+		{
+		  zeroflag = true;
+		  if( xmax > 1000000 )
+			xmin = 1;
+		  else
+			xmin = xmax / 10000000;
+		}
+            
+		// find degree of xmax
+		float end_max = Math.abs(xmax);
+		int xmax_power = 0;
+		while( end_max >= 10 )
+		{
+		  end_max = end_max / 10f;
+		  xmax_power++;
+		}
+		while ( end_max < 1.0 )
+		{
+		  end_max = end_max * 10.0f;
+		  xmax_power--;
+		}
+       
+		// find degree of xmin
+		float start_min = Math.abs(xmin);
+		int xmin_power = 0;
+		while( start_min >= 10 )
+		{
+		  start_min = start_min / 10f;
+		  xmin_power++;
+		}
+		while ( start_min < 1.0 )
+		{
+		  start_min = start_min * 10.0f;
+		  xmin_power--;
+		}
+       
+		int step_index = 0;
+		float[] steps = {1f,2f,5f};
+		int step_power = xmin_power;
+       
+		start_min = start_min - .00001f; // try to eleviate rounding errors
+		// set the value of the first step
+		if( start_min <= 1 )	 // start value is 1
+		  step_index = 0;
+		else if( start_min <= 2 ) // start value is 2
+		  step_index = 1;
+		else if( start_min <= 5 ) // start value is 5
+		  step_index = 2;
+		else			 // start value is 10
+		{
+		  step_index = 0;
+		  step_power++;
+		}
+
+		int maxcounter = 0;
+		// find maximum ending value
+		while( maxcounter < 3 && xmax >= (steps[maxcounter] * 
+		   Math.pow(10,(double)xmax_power )))
+		  maxcounter = maxcounter + 1; 
+
+		// number of steps this interval is divided into.
+		int numsteps = (int)(3 * (xmax_power - step_power) + 
+					 maxcounter - step_index);
+
+		int value_step = 0;
+		// is zero was originally part of the interval, include it.
+		if( zeroflag )
+		{ 
+		  numsteps = numsteps + step_index;
+	  step_index = 0;
+		  values = new float[++numsteps];
+		  values[0] = 0;
+		  value_step++;
+		}
+		else
+		  values = new float[numsteps];
+
+		// fill in the array with the steps.
+		for( int step = step_index; 
+			 step < (3 * (xmax_power - step_power) + maxcounter); step++ )
+		{
+		   values[value_step]= steps[step%3] * (float)Math.pow( 10, 
+					  (double)( Math.floor(step/3) + step_power) );
+		   value_step++; 
+		}
+	  } // end else (inteval greater than one degree)
+  
+	  return values;
+      
+	}
+
+  
+	/**
+	  * This method is used to find the Least Upperbound of a number.  This leastupper bound is 
+	  * considered to be a "nice" logrithmic number.  It uses one of five sets of numbers to find
+	  * the bound.  These sets are:
+	  * 1*10^x, 2*10^x, 5*10^x, 1.2*10^x, 1.5*10^x
+	  *
+	  *  @return  the least upper bound.
+	  */
+  
   public float leastUpperBound(){
 	//find the least upperbound from the values 1*10^x, 2*10^x or 5*10^x
 	if(xmin <=0){
@@ -286,7 +561,14 @@ public class CalibrationUtil
 
 			return lub;
   }
-  
+  /**
+	* This method is used to find the Greatest Lower Bound of a number.  This leastupper bound is 
+	* considered to be a "nice" logrithmic number.  It uses one of five sets of numbers to find
+	* the bound.  These sets are:
+	* 1*10^x, 2*10^x, 5*10^x, 1.2*10^x, 1.5*10^x
+	*
+	*  @return  the Greates Lower bound.
+	*/
  public float greatestLowerBound(){
 	if(xmin < 1)
 		xmin = 1;
@@ -341,6 +623,13 @@ public class CalibrationUtil
 		
 	    return glb;
   }
+  /**
+	* This method find the psuedo power difference between two numbers by finding how many times
+	* the lowernumber can be multiplied by ten befor it gets larger than the larger number.
+	*  @param glb
+	*  @param lub
+	*  @return  the power difference.
+	*/
   public int powerdiff(float glb, float lub){
   	int powerdiff = 0;
   	if(glb != 0){
@@ -351,279 +640,27 @@ public class CalibrationUtil
   	}
   	return powerdiff;
   }
+  
+  /**
+	* This method finds a starting point, step interval, and number of steps between a start value
+	* and an end value
+	* @param glb
+	* @param lub
+	*
+	*  @return  float array of the values above.
+	*/
   public float[] subDivideLogLarge(float glb, float lub){
   	float[] values = new float[3];
   	values[2] = (float)powerdiff(glb, lub);
   	values[0] = glb;
-  	values[1] = xmin;
+  	values[1] = glb;
   	
   	
   	return values;
   }
 
   
-   public float[] subDivideLog()
-   {
-     float[] values = new float[0];
-     //***********************************************************************
-     // if xmin is within one power of xmax, use specific log scaling.
-     // positive xmin is within one power if xmax/10 < xmin, while
-     // negative xmin is within one power if xmax*10 < xmin.
-     if( (xmin >= xmax/10 && xmin > 0) ||
-     	 (xmin >= xmax*10 && xmin < 0) )
-     { 
-       float diff = Math.abs(xmax - xmin);
-       int diffpower = 0;
-       while( diff >= 10 )
-       { 
-     	 diff = diff / 10f;
-         diffpower++;
-	 // this is to try to correct rounding errors
-	 if( diff/10 < 10 )
-	   diff = diff + .1f;
-       }
-       while ( diff < 1.0 )
-       {
-         diff = diff * 10.0f;
-         diffpower--;
-	 // this is to try to correct rounding errors
-	 if( diff*10 > 1 )
-	   diff = diff + .001f;
-       } 
-       //System.out.println("diff/diffpower =" + diff + "/" + diffpower );
-            
-       // find degree of xmin
-       float start_min = Math.abs(xmin);
-       int xmin_power = 0;
-       while( start_min >= 10 )
-       {
-     	 start_min = start_min / 10f;
-         xmin_power++;
-       }
-       while ( start_min < 1.0 )
-       {
-         start_min = start_min * 10.0f;
-         xmin_power--;
-       }
-            
-       // find degree of xmax
-       float end_max = Math.abs(xmax);
-       int xmax_power = 0;
-       while( end_max >= 10 )
-       {
-     	 end_max = end_max / 10f;
-         xmax_power++;
-       }
-       while ( end_max < 1.0 )
-       {
-         end_max = end_max * 10.0f;
-         xmax_power--;
-       }
-
-       // put temp just "above" xmin
-       if( xmin > 0 )
-     	 start_min = (float)Math.round( .4 + (double)(start_min *
-        			       Math.pow(10,Math.abs(diffpower) ) ) );
-       else
-     	 start_min = -(float)Math.round( -.4 + (double)(start_min *
-        				 Math.pow(10,Math.abs(diffpower)) ) );
-       start_min = start_min * (float)Math.pow(10, (double)(xmin_power - 
-        					  Math.abs(diffpower)) );
-
-       // put temp just "below" xmin
-       if( xmax > 0 )
-     	 end_max = (float)Math.round( -.4 + (double)(end_max *
-        			       Math.pow(10,Math.abs(diffpower) ) ) );
-       else
-     	 end_max = -(float)Math.round( .4 + (double)(end_max *
-        				 Math.pow(10,Math.abs(diffpower)) ) );
-       end_max = end_max * (float)Math.pow(10, (double)(xmax_power - 
-        					  Math.abs(diffpower)) );
-
-       // if diff between [1,2], use approximate geometric steps of 2
-       if ( diff <= 2.0 )
-       { 
-         // this is to prevent the last two steps from repeating.
-         if( end_max != ( start_min + ( 1.0f * 
-        	          (float)Math.pow( 10, (double)(diffpower) ) ) ) )
-     	 {
-	   values = new float[6];
-     	   values[5] = end_max;
-         }
-	 else
-	   values = new float[5];
-	 
-	 values[0] = start_min;
-     	 values[1] = start_min + ( 0.1f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[2] = start_min + ( 0.2f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[3] = start_min + ( 0.5f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[4] = start_min + ( 1.0f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-       }
-       // if diff between [2,5], use approximate geometric steps of 1.25
-       else if ( diff <= 5.0 )
-       {
-         // this is to prevent the last two steps from repeating.
-         if( end_max != ( start_min + ( 2f * 
-        	          (float)Math.pow( 10, (double)(diffpower) ) ) ) )
-     	 {
-	   values = new float[6];
-     	   values[5] = end_max;
-         }
-	 else
-	   values = new float[5];
-	 
-         values[0] = start_min;
-     	 values[1] = start_min + ( 1f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[2] = start_min + ( 1.25f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[3] = start_min + ( 1.5f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[4] = start_min + ( 2f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-       }
-       // if diff between [5,10], use approximate geometric steps of 1.5
-       else
-       { 
-         // this is to prevent the last two steps from repeating.
-         if( end_max != ( start_min + ( 5f * 
-        	          (float)Math.pow( 10, (double)(diffpower) ) ) ) )
-     	 {
-	   values = new float[7];
-     	   values[6] = end_max;
-         }
-	 else
-	   values = new float[6];
-	   
-         values[0] = start_min;
-     	 values[1] = start_min + ( 1f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[2] = start_min + ( 1.5f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[3] = start_min + ( 2f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[4] = start_min + ( 3f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-     	 values[5] = start_min + ( 5f * 
-        			 (float)Math.pow( 10, (double)(diffpower) ) );
-       }  
-       
-       // this will round off the values to "nice" numbers
-       for( int i = 0; i < values.length; i++ )
-         values[i] = (float)Format.round( (double)values[i], 
-	                                 Math.abs(diffpower) + 3 );  
-     } // end if xmin > xmax/10
-     // else, use ...,.1,.2,.5,1,2,5,10,20,50,... scaling method.
-     else
-     {
-       boolean zeroflag = false;
-       if( xmin < 0 )
-       {
-         // if not two sided, everything negative goes to zero.
-     	 if( isTwoSided )
-	 {
-	   if( xmax < -xmin )
-	     xmax = -xmin; 
-         }
-	 xmin = 0;
-	 // if two sided, make interval symmetric
-       }
-       if( xmin == 0 )
-       {
-         zeroflag = true;
-     	 if( xmax > 1000000 )
-     	   xmin = 1;
-     	 else
-     	   xmin = xmax / 10000000;
-       }
-            
-       // find degree of xmax
-       float end_max = Math.abs(xmax);
-       int xmax_power = 0;
-       while( end_max >= 10 )
-       {
-     	 end_max = end_max / 10f;
-         xmax_power++;
-       }
-       while ( end_max < 1.0 )
-       {
-         end_max = end_max * 10.0f;
-         xmax_power--;
-       }
-       
-       // find degree of xmin
-       float start_min = Math.abs(xmin);
-       int xmin_power = 0;
-       while( start_min >= 10 )
-       {
-     	 start_min = start_min / 10f;
-         xmin_power++;
-       }
-       while ( start_min < 1.0 )
-       {
-         start_min = start_min * 10.0f;
-         xmin_power--;
-       }
-       
-       int step_index = 0;
-       float[] steps = {1f,2f,5f};
-       int step_power = xmin_power;
-       
-       start_min = start_min - .00001f; // try to eleviate rounding errors
-       // set the value of the first step
-       if( start_min <= 1 )	 // start value is 1
-         step_index = 0;
-       else if( start_min <= 2 ) // start value is 2
-         step_index = 1;
-       else if( start_min <= 5 ) // start value is 5
-         step_index = 2;
-       else			 // start value is 10
-       {
-         step_index = 0;
-         step_power++;
-       }
-
-       int maxcounter = 0;
-       // find maximum ending value
-       while( maxcounter < 3 && xmax >= (steps[maxcounter] * 
-	      Math.pow(10,(double)xmax_power )))
-         maxcounter = maxcounter + 1; 
-
-       // number of steps this interval is divided into.
-       int numsteps = (int)(3 * (xmax_power - step_power) + 
-        		    maxcounter - step_index);
-
-       int value_step = 0;
-       // is zero was originally part of the interval, include it.
-       if( zeroflag )
-       { 
-         numsteps = numsteps + step_index;
-	 step_index = 0;
-         values = new float[++numsteps];
-         values[0] = 0;
-         value_step++;
-       }
-       else
-         values = new float[numsteps];
-
-       // fill in the array with the steps.
-       for( int step = step_index; 
-            step < (3 * (xmax_power - step_power) + maxcounter); step++ )
-       {
-          values[value_step]= steps[step%3] * (float)Math.pow( 10, 
-        		     (double)( Math.floor(step/3) + step_power) );
-          value_step++; 
-       }
-     } // end else (inteval greater than one degree)
-  
-     return values;
-      
-   }
-   public float maxError(int axis){
+     public float maxError(int axis){
    	return ((float)Math.pow((xmax/xmin),(1/(float)axis)));
    }
    public float getError(float value, int axis){

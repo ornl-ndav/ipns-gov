@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.39  2004/07/29 16:44:29  robertsonj
+ *  added javadocs
+ *
  *  Revision 1.38  2004/07/29 14:47:40  robertsonj
  *  fixed the major/minor tick marks for small orders of magnatude
  *
@@ -1441,6 +1444,11 @@ public class AxisOverlay2D extends OverlayJPanel
   
   
   //paint the x axis so the tics and numbers align with the tru log scale that has been implemented.
+  /**
+   * This method paints X axis' on the overlay.  These axis' use "nice" log numbers.
+   *
+   *  @param  Graphics2D
+   */
   private void paintTruLogX(Graphics2D g2d){
 	if( component instanceof ILogAxisAddible )
 	{
@@ -1448,6 +1456,7 @@ public class AxisOverlay2D extends OverlayJPanel
 		String num = "";
 		ILogAxisAddible logcomponent = (ILogAxisAddible)component;
 		FontMetrics fontdata = g2d.getFontMetrics(); 
+		
 		float axisdist = xaxis - xstart;
 		LogScaleUtil loggerx = new LogScaleUtil(xmin, xmax, xmin, xmax);
 		CalibrationUtil util = new CalibrationUtil((xmin),(xmax), precision, 
@@ -1469,7 +1478,6 @@ public class AxisOverlay2D extends OverlayJPanel
 		int numminorsteps = 0;
 		int minortickpainter = 0;
 		float minortick = 0;
-		
 		float[] values = new float[3];
 		boolean isLarge = false;
 		
@@ -1490,14 +1498,14 @@ public class AxisOverlay2D extends OverlayJPanel
 
 		
 		for(int steps = 0; steps < numsteps; steps++){
+			//find which technique to use for the next major tickmark and label
 			if(isLarge == false){
 				percentnum = step * steps + start;
 
 			}else{
 				percentnum = step * (float)Math.pow(10, steps);
 			}
-			//check if the first glb is applicable for the start of the axis or not
-			//check to see if the first number is applicable for the graph.
+
 			
 			//paint minor tickmarks
 			if(steps == 0){
@@ -1506,7 +1514,8 @@ public class AxisOverlay2D extends OverlayJPanel
 				numminorsteps = 9;
 			}
 			marker = percentnum;
-			if(powerdiff > 100){
+			if(powerdiff > 100){ //paint minortick marks only if you have more than 2 orders of magnitude
+								 //between the min value and the max value
 				for(int minorsteps = 0; minorsteps < numminorsteps; minorsteps++){
 					minortickcounter = minortickcounter + marker;
 
@@ -1516,6 +1525,7 @@ public class AxisOverlay2D extends OverlayJPanel
 					minortickpainter = (int)(minortick + xstart);
 
 					if(minortickpainter >= xstart && minortickpainter <= (xstart + xaxis)){
+						//paint the minor tickmarks if they will actually fall on the graph
 						g2d.drawLine( minortickpainter, yaxis + ystart, 
 							minortickpainter, yaxis + ystart + 3 );
 					}
@@ -1532,10 +1542,11 @@ public class AxisOverlay2D extends OverlayJPanel
 												   //for the axis corrdinate system.
 			paintpixel = (int)(percentnum + xstart);
 			if(paintpixel >= xstart && paintpixel <= (xstart + xaxis)){
+				//paint the number and tick if they will fall onto the graph
 				g2d.drawString(stepnum, paintpixel - (fontdata.stringWidth(stepnum)/2),yaxis + ystart + 25);
 				g2d.drawLine(paintpixel,yaxis+ystart, paintpixel, yaxis + ystart + 5);
 			}
-			stepnum = "";
+			stepnum = "";  //reset string so it can take a new number
 			
 		}
 		
@@ -1649,7 +1660,16 @@ public class AxisOverlay2D extends OverlayJPanel
 				
 		
 	}
-
+/*----------------------------------------------paintTruLogY(Graphics2D)------------------------------
+ * This function paints Logrithmic axis on the overlay for the y axis using logscale util
+ * and Calibration util to find nice numbers to paint.
+ */
+ /**
+  * This method paints y axis' on the the overlay.
+  *
+  *  @param  Graphics2D
+  */
+ 
   private void paintTruLogY(Graphics2D g2d){
   	
 	FontMetrics fontdata = g2d.getFontMetrics();
@@ -1676,12 +1696,10 @@ public class AxisOverlay2D extends OverlayJPanel
 
 
 	
-	//System.out.println("powerdiff = " + powerdiff);
-
-	
 	
 if(powerdiff <=2)
-{
+{ //paint y axis using linear numbers that are scaled logrithmically if they don't have enough
+  //orders of maggnitude between them.
 	float[] values = yUtil.subDivide();
 	float start = values[1];
 	float step = values[0];
@@ -1693,23 +1711,23 @@ if(powerdiff <=2)
 
 		stepnum = stepnum + percentnum;
 
-		percentnum = loggery.truLogScale(percentnum);
-		//percentnum = percentnum; - ymin;
-		percent = percentnum/(ymax - ymin);
+		percentnum = loggery.truLogScale(percentnum); //scale the number logrithmically
+		percent = percentnum/(ymax - ymin); //find the percent of the graph where this number will fall
 		percent = 1 - percent;
-		pixel = percent * (yaxis);
+		pixel = percent * (yaxis); //find where the point will fall on the graphics coordinate system
 		paintpixel = ystart  + (int)pixel;
 		if(paintpixel >= ystart && paintpixel <= yaxis){
+			//paint the pixel if it will fall onto the graph
 		g2d.drawString(stepnum, xstart - fontdata.stringWidth(stepnum) - 15, paintpixel + (fontdata.getHeight()/4) );
 		g2d.drawLine(xstart - 3, paintpixel, xstart, paintpixel);
 		}
-		stepnum = "";	
+		stepnum = "";	//reset the string to take the next number on the scale
 		
 			
 		
 		
 	}
-}else{
+}else{ //if there are more than 2 orders of magnitude between the min and the max
 	float[] largevalues = yUtil.subDivideLogLarge(glb, lub);
 	float start = largevalues[1];
 	float step = largevalues[0];
@@ -1722,17 +1740,20 @@ if(powerdiff <=2)
 		percentnum =  step*(float)(Math.pow(10,steps));
 			
 		    minortickcounter = 0;
+		    //find the next number to be placed on the axis.
 			minorstep =	start* (float)Math.pow(10, steps);
 
 			for(int minorsteps = 0; minorsteps < 10; minorsteps++){
+				//paint minor tick marks
 			minortickcounter = (int)(minortickcounter + minorstep);
-
+			//find where the tick mark will fall on the axis coordinate system.
 			minortick = loggery.truLogScale(minortickcounter);
 			minortick = minortick/(ymax - ymin);
 			minortick = 1 - minortick;
 			minortick = minortick * yaxis;
 			paintminortick = ystart + (int)minortick;
 		if(paintminortick >= ystart && paintminortick <= yaxis){
+			//draw on axis if it actually will fit on the axis.
 			g2d.drawLine(xstart - 3, paintminortick, xstart, paintminortick); 
 			}
 		  }
@@ -1745,12 +1766,13 @@ if(powerdiff <=2)
 			pixel = percent * (yaxis);
 			paintpixel = ystart + (int)pixel;
 			if(paintpixel >= ystart && paintpixel <= yaxis){
+				//paint the tick and the label only if they will fall onto the graph
 			g2d.drawString(stepnum, xstart - fontdata.stringWidth(stepnum) - 15, paintpixel + (fontdata.getHeight()/4)) ;
 			g2d.drawLine(xstart - 5, paintpixel, xstart, paintpixel);
 			}
 		
 			
-		stepnum = "";	
+		stepnum = "";	//reset the string to take only the next number.
 	}
 }
 	
