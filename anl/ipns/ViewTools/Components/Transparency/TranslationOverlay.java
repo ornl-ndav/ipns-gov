@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/04/05 02:38:34  millermi
+ *  - Removed unused variable.
+ *
  *  Revision 1.10  2004/04/02 20:58:34  millermi
  *  - Fixed javadoc errors
  *
@@ -124,7 +127,6 @@ public class TranslationOverlay extends OverlayJPanel
   private static JFrame helper = null;
   
   private TranslationJPanel tjp;
-  private CoordJPanel main_image;
   private CoordBounds viewport;       // local_bounds in pixel coords
   private Vector Listeners = null;  
 
