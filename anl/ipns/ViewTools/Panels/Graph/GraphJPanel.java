@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.43  2004/08/17 03:50:46  ffr
+ * Bugfix: Test the first point of each graph against the minimum and maximum in getXmin and getYmin
+ *
  * Revision 1.42  2004/07/28 19:35:28  robertsonj
  * Used the TruLogScale function to map the original set of numbers 
  * logarithmically
@@ -1562,7 +1565,7 @@ public float getYmin()
         {
           gd = (GraphData)graphs.elementAt(line);
           yvals = gd.y_vals;
-           for (int i=1; i < yvals.length; i++)
+           for (int i=0; i < yvals.length; i++)
            {
               if (yvals[i] < miny)
                 miny = yvals[i];
@@ -1597,7 +1600,7 @@ public float getXmin()
         {
           gd = (GraphData)graphs.elementAt(line);
           xvals = gd.x_vals;
-           for (int i=1; i < xvals.length; i++)
+           for (int i=0; i < xvals.length; i++)
            {
               if (xvals[i] < minx)
                 minx = xvals[i];
