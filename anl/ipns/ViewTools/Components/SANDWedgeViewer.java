@@ -33,6 +33,14 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.20  2004/01/29 08:23:06  millermi
+ * - Updated the getObjectState() to include parameter for specifying
+ *   default state.
+ * - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *   use by getObjectState()
+ * - Added ability to save user preferences. See Help|SANDWedgeViewer
+ *   for more details.
+ *
  * Revision 1.19  2004/01/24 03:06:37  millermi
  * - Minor change to help()
  *
@@ -320,14 +328,18 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   }
  
  /**
-  * This method returns the current ObjectState of this viewer.
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
   *
-  *  @return The current ObjectState of this viewer.
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
   */ 
-  public ObjectState getObjectState()
+  public ObjectState getObjectState( boolean isDefault )
   {
     ObjectState state = new ObjectState();
-    state.insert( IMAGE_VIEW_COMPONENT, ivc.getObjectState() );
+    state.insert( IMAGE_VIEW_COMPONENT, ivc.getObjectState(isDefault) );
     state.insert( VIEWER_SIZE, getSize() );
     state.insert( DATA_DIRECTORY, new String(projectsDirectory) );
     
@@ -355,7 +367,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 		"2. Entering defining information by pressing the Manual " +
 		"Selection button.</P>" + 
 		"<H2>Commands for SWV</H2>" +
-                "<P> <I>ATTENTION: Selections must be made before using the " +
+                "<P> SAVING USER PREFERENCES: Click on <B>File|Save User " +
+		"Settings</B>. Your preferences will automatically be saved " +
+		"in SandProps.isv in your home directory. <I>This option " +
+		"will not save project specific information, such as " +
+		"selections or annotations. Use <B>Options|Save Project " +
+		"Settings</B> to save project specific details.</I><BR><BR>" +
+		"<I>ATTENTION: Selections must be made before using the " +
 		"viewing or saving results to file. </I><BR><BR> " +
 		"VIEW RESULTS: The Results window will automatically appear " +
 		"after a selection has been made. <B>Options|Hide Results " +
@@ -629,13 +647,21 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	  menu_bar.getMenu(2).add( menus[i].getItem() );
         }
       }
+      // if SandProps.isv exists, load it into the ObjectState automatically.
+      // This code will save user settings.
+      String props = System.getProperty("user.home") + 
+        	      System.getProperty("file.separator") +
+        	      "SandProps.isv";
+      ObjectState temp = getObjectState(IPreserveState.DEFAULT);
+      temp.silentFileChooser(props,false);
+      setObjectState(temp);
     }
     // no data, build an empty split pane.
     else
     {
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
                                     new JPanel(), new JPanel(), .75f );
-    }	   
+    }   
   }
  
  /*
@@ -650,18 +676,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     menu_bar = new JMenuBar();
     setJMenuBar(menu_bar);
     
-    Vector file      = new Vector();
-    Vector options   = new Vector();
-    Vector help      = new Vector();
+    Vector file              = new Vector();
+    Vector options           = new Vector();
+    Vector help              = new Vector();
     Vector save_results_menu = new Vector();
-    Vector view_man  = new Vector();
-    Vector save_menu = new Vector();
-    Vector load_menu = new Vector();
-    Vector load_data = new Vector();
-    Vector swv_help  = new Vector();
-    Vector file_listeners = new Vector();
-    Vector option_listeners = new Vector();
-    Vector help_listeners = new Vector();
+    Vector view_man  	     = new Vector();
+    Vector save_menu 	     = new Vector();
+    Vector load_menu 	     = new Vector();
+    Vector save_default      = new Vector();
+    Vector load_data         = new Vector();
+    Vector swv_help          = new Vector();
+    Vector file_listeners    = new Vector();
+    Vector option_listeners  = new Vector();
+    Vector help_listeners    = new Vector();
     file.add("File");
     file_listeners.add( new WVListener() ); // listener for file
     file.add(load_data);
@@ -670,6 +697,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     file.add(save_results_menu);
       save_results_menu.add("Save Results");
       file_listeners.add( new WVListener() ); // listener for saving results
+    file.add(save_default);
+      save_default.add("Save User Settings");
+      file_listeners.add( new WVListener() ); // listener for saving results
     
     options.add("Options");
     option_listeners.add( new WVListener() ); // listener for options
@@ -677,11 +707,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       view_man.add("Hide Results Window");
       option_listeners.add( new WVListener() ); // listener for view results
     options.add(save_menu);
-      save_menu.add("Save State");
-      option_listeners.add( new WVListener() ); // listener for save state
+      save_menu.add("Save Project Settings");
+      option_listeners.add( new WVListener() ); // listener for save project
     options.add(load_menu);
-      load_menu.add("Load State");
-      option_listeners.add( new WVListener() ); // listener for load state
+      load_menu.add("Load Project Settings");
+      option_listeners.add( new WVListener() ); // listener for load project
     help.add("Help");
     help_listeners.add( new WVListener() );
     help.add( swv_help );
@@ -695,10 +725,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     // do not load state unless data is available.
     if( data == null )
     {
+      JMenu file_menu = menu_bar.getMenu(0);
+      file_menu.getItem(1).setEnabled(false);   // disable Save Results
+      file_menu.getItem(2).setEnabled(false);   // disable Save User Settings
       JMenu option_menu = menu_bar.getMenu(1);
-      option_menu.getItem(0).setEnabled(false);
-      option_menu.getItem(1).setEnabled(false);
-      option_menu.getItem(2).setEnabled(false);
+      option_menu.getItem(0).setEnabled(false); // disable Hide Results Window
+      option_menu.getItem(1).setEnabled(false); // disable Save Project Settings
+      option_menu.getItem(2).setEnabled(false); // disable Load Project Settings
     }
     // if ViewManager not visible, disable "Hide Results Window" button
     if( oldview == null || !oldview.isVisible() )
@@ -1130,11 +1163,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	else
 	  oldview.toFront();
       }
-      else if( ae.getActionCommand().equals("Save State") )
+      // Save user preferences, this is a selective save.
+      else if( ae.getActionCommand().equals("Save User Settings") )
       {
-	getObjectState().openFileChooser(true);
+        String props = System.getProperty("user.home") + 
+	                System.getProperty("file.separator") +
+			"SandProps.isv";
+	getObjectState(IPreserveState.DEFAULT).silentFileChooser(props,true);
       }
-      else if( ae.getActionCommand().equals("Load State") )
+      else if( ae.getActionCommand().equals("Save Project Settings") )
+      {
+	getObjectState(IPreserveState.PROJECT).openFileChooser(true);
+      }
+      else if( ae.getActionCommand().equals("Load Project Settings") )
       {
         ObjectState state = new ObjectState();
 	if( state.openFileChooser(false) )
@@ -1214,6 +1255,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         editor.setCurrentPoint( ivc.getPointedAt() );
 	//System.out.println("Pointed At Changed " + 
 	//                   ivc.getPointedAt().toString() );
+      }
+      if( data_set.getNum_entries() > 0 )
+      {
+        menu_bar.getMenu(0).getItem(1).setEnabled(true);
+      }
+      else
+      {
+        menu_bar.getMenu(0).getItem(1).setEnabled(false);
       }
     }
   }
