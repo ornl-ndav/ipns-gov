@@ -35,6 +35,10 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.14  2003/06/17 13:28:09  dennis
+ *  Added getTranspose( a[][] ) method, and added formatting
+ *  to print( a[][] ) method.
+ *
  *  Revision 1.13  2003/05/20 22:35:04  dennis
  *  Fixed bug with calculation of residual errors in the QR_solve,
  *  BestFitMatrix() and related methods.  Added method BestFitMatrix2() based
@@ -96,6 +100,44 @@ public final class LinearAlgebra
    * Don't let anyone instantiate this class.
    */
   private LinearAlgebra() {}
+
+
+  /**
+   *  Return a new matrix that is the transpose of the specified matrix
+   *
+   */
+  public static float[][] getTranspose( float A[][] )
+  {
+    if ( !isRectangular(A) )
+      return null;
+   
+    float A_transp[][] = new float[ A[0].length ][ A.length ];
+    for ( int row = 0; row < A.length; row++ )
+      for ( int col = 0; col < A[0].length; col++ )
+        A_transp[col][row] = A[row][col];
+
+    return A_transp; 
+  }
+
+
+  /**
+   *  Return a new matrix that is the transpose of the specified matrix
+   *
+   */
+  public static double[][] getTranspose( double A[][] )
+  {
+    if ( !isRectangular(A) )
+      return null;
+   
+    double A_transp[][] = new double[ A[0].length ][ A.length ];
+    for ( int row = 0; row < A.length; row++ )
+      for ( int col = 0; col < A[0].length; col++ )
+        A_transp[col][row] = A[row][col];
+
+    return A_transp;
+  }
+
+
 
   /**
    * Determines a square matrix A[][] with it's inverse, if
@@ -209,7 +251,7 @@ public final class LinearAlgebra
 
     for( int i=0 ; i<a.length ; i++ ){
       for( int j=0 ; j<a[i].length ; j++ ){
-        System.out.print(a[i][j]+" ");
+        System.out.print( Format.real( a[i][j], 15, 7 ) + " ");
       }
       System.out.println("");
     }
