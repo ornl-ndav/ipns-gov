@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/06/18 22:49:49  bouzekc
+ *  Added javadoc commments.
+ *
  *  Revision 1.2  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -58,11 +61,27 @@ public class StringFilter implements StringFilterer {
         this.automod=automicallymodifystring;
     }
 
+    /**
+     *  This method is designed to test whether or not a given String
+     *  would be accepted by this StringFilter.
+     *
+     *  @param  offs                 The offset of the entry point in the
+     *                               existing String curString.
+     *
+     *  @param  inString             The String you want to insert.
+     *
+     *  @param  curString            The String which currently exists.
+     */
     public boolean isOkay(int offs, String inString, String curString){
         if(automod) this.modifyString(offs,inString,curString);
         return true;
     }
-
+    
+    /**
+     *  This particular instantiation of this method only returns inString,
+     *  although child class implementations may take this farther.
+     *
+     */
     public String modifyString(int offs, String inString, String curString){
         return inString;
     }
