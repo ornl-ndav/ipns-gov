@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.46  2004/11/12 17:24:27  millermi
+ *  - Fixed bug introduced by using local coords to track zooming
+ *    instead of axis min/max from getAxisInformation().
+ *
  *  Revision 1.45  2004/11/12 03:37:36  millermi
  *  - getAxisInformation() is no longer used to determine the min and
  *    max of the axis. The getLocalCoordBounds() now controls axis
@@ -1197,8 +1201,8 @@ public class AxisOverlay2D extends OverlayJPanel
     {
       A = values[0];
 
-      LogScaleUtil logger = new LogScaleUtil( xmin+1, xmax+1, 1, xaxis );
-
+      PseudoLogScaleUtil logger = new PseudoLogScaleUtil( xmin, xmax,
+                                                          1, xaxis );
       double logscale = logcomponent.getLogScale();
       int division = 0;    // 0-5, divisions in the xaxis.
       // rightmost pixel coord of last label drawn
@@ -1209,13 +1213,10 @@ public class AxisOverlay2D extends OverlayJPanel
       while( (int)logger.toDest(A, logscale) >= 
              (int)(xaxis/5 * (division + 1) ) ){
         division++;}
-     
-     
 
       for( int steps = 0; steps < numxsteps; steps++ )
-      { // 
+      {
     	A = values[steps];
-    
 
         pixel = xstart + (int)logger.toDest(A, logscale);
 
@@ -1318,7 +1319,8 @@ public class AxisOverlay2D extends OverlayJPanel
     else
     {
       A = values[0];
-      LogScaleUtil logger = new LogScaleUtil( 0, xmax+1, 0, (int)(xaxis/2) );
+      PseudoLogScaleUtil logger = new PseudoLogScaleUtil( 0, xmax,
+                                                          0, (int)(xaxis/2) );
       double logscale = logcomponent.getLogScale();
 
       int neg_pixel = 0;
@@ -1528,7 +1530,8 @@ public class AxisOverlay2D extends OverlayJPanel
     if( !isTwoSided )
     {
       a = values[0];
-      LogScaleUtil logger = new LogScaleUtil( ymax, ymin + 1, 0, yaxis);
+      PseudoLogScaleUtil logger = new PseudoLogScaleUtil( ymin, ymax,
+                                                          0, yaxis);
       double logscale = logcomponent.getLogScale();
       int division = 0;    // 0-5, divisions in the yaxis.
       // top pixel coord of last label drawn
@@ -1655,7 +1658,8 @@ public class AxisOverlay2D extends OverlayJPanel
     else
     {
       a = values[0];
-      LogScaleUtil logger = new LogScaleUtil( 0, ymin+1, 0, (int)(yaxis/2) );
+      PseudoLogScaleUtil logger = new PseudoLogScaleUtil( 0, ymax,
+                                                          0, (int)(yaxis/2) );
       double logscale = logcomponent.getLogScale();
       int negtick_length = 0;
       int neg_ypixel = 0;
@@ -1878,9 +1882,28 @@ public class AxisOverlay2D extends OverlayJPanel
     CoordBounds global_bounds = log_comp.getGlobalCoordBounds();
     // Make sure x1 < x2
     if( local_bounds.getX1() > local_bounds.getX2() )
-      local_bounds.invertBounds();
+    {
+      local_bounds = new CoordBounds( local_bounds.getX2(),
+                                      local_bounds.getY1(),
+				      local_bounds.getX1(),
+				      local_bounds.getY2() );
+    }
     if( global_bounds.getX1() > global_bounds.getX2() )
-      global_bounds.invertBounds();
+    {
+      global_bounds = new CoordBounds( global_bounds.getX2(),
+                                       global_bounds.getY1(),
+				       global_bounds.getX1(),
+				       global_bounds.getY2() );
+    }
+    // If interval is not all positive, do nothing.
+    if( global_bounds.getX1() <= 0 || local_bounds.getX1() <= 0 )
+    {
+      System.out.println("Error - Use of Tru-log calibrations requires an "+
+                         "all-positive interval. Please revise x-axis world "+
+			 "coordinates as an all-positive interval. ("+
+			 "AxisOverlay2D)");
+      return;
+    }
     
     // If bounds are scaled, unscale them.
     float scale_factor = 
@@ -1953,6 +1976,8 @@ public class AxisOverlay2D extends OverlayJPanel
       {
     	num = step * steps + start;
     	//find where the point will fall on the graphics coordinate system
+	// Since num is on the source interval, convert it to the dest interval
+	// so it may be mapped to pixels.
     	pixel = (int)local_to_pixel.MapXTo(loggerx.toDest(num));
     	string_num = Format.choiceFormat( num, Format.SCIENTIFIC, precision );
     	//paint the pixel if it will fall onto the graph
@@ -1982,6 +2007,8 @@ public class AxisOverlay2D extends OverlayJPanel
         {
           minor_tick += (int)(major_tick);
           //find where the tick mark will fall on the axis coordinate system.
+	  // Since minor_tick is on the source interval, convert it to the dest
+	  // interval so it may be mapped to pixels.
           pixel = (int)local_to_pixel.MapXTo(loggerx.toDest(minor_tick));
           //System.out.println("Minor Tick/Pixel: "+minor_tick+"/"+pixel);
           //. If tick marks are not in the viewable range, do not draw them.
@@ -2035,6 +2062,16 @@ public class AxisOverlay2D extends OverlayJPanel
       local_bounds.invertBounds();
     if( global_bounds.getY1() > global_bounds.getY2() )
       global_bounds.invertBounds();
+    
+    // If interval is not all positive, do nothing.
+    if( global_bounds.getY1() <= 0 || local_bounds.getY1() <= 0 )
+    {
+      System.out.println("Error - Use of Tru-log calibrations requires an "+
+                         "all-positive interval. Please revise y-axis world "+
+			 "coordinates as an all-positive interval. ("+
+			 "AxisOverlay2D)");
+      return;
+    }
     
     // If bounds are scaled, unscale them.
     float scale_factor = 
@@ -2092,7 +2129,8 @@ public class AxisOverlay2D extends OverlayJPanel
         num = start + step*steps;
 	
 	// Find where the point will fall on the graphics coordinate system.
-	// Since num is on the log interval, convert it to the linear interval.
+	// Since num is on the source interval, convert it to the dest interval
+	// so it may be mapped to pixels.
 	pixel = ystart + yaxis-1 - (int)( local_to_pixel.MapYTo(
 	                                     loggery.toDest(num)) );
 	string_num = Format.choiceFormat( num, Format.SCIENTIFIC, precision );
@@ -2200,7 +2238,10 @@ public class AxisOverlay2D extends OverlayJPanel
       this.getContentPane().add( miscoptions );
       this_editor.addComponentListener( new EditorListener() );
     }
-    
+   
+   /*
+    * Listener for GUI components of the editor.
+    */ 
     class ControlListener implements ActionListener
     {
       public void actionPerformed( ActionEvent e )
@@ -2238,6 +2279,10 @@ public class AxisOverlay2D extends OverlayJPanel
       }
     }
     
+   /*
+    * This will allow the editor bounds to be saved correctly if the 
+    * getObjectState() method is called.
+    */ 
     class EditorListener extends ComponentAdapter
     {
       public void componentResized( ComponentEvent we )
