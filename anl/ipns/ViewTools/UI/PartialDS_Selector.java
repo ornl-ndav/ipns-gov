@@ -30,6 +30,10 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.2  2003/03/07 00:13:22  dennis
+ *  Now uses the GetDataCommand constructor to make the test command
+ *  in the main program.
+ *
  *  Revision 1.1  2003/03/06 22:05:49  dennis
  *  GUI for specifiying a list of group IDs, time-of-flight
  *  range, rebin factor and attribute mode for a command to
@@ -322,13 +326,15 @@ public class PartialDS_Selector
     int    rebin     = 1;
     int    attr_mode = Attribute.FULL_ATTRIBUTES;
 
-    GetDataCommand command = 
-                          RemoteDataRetriever.getDataSet( "SOME DataSet",
-                                                           ds_num,
-                                                           ids,
-                                                           min_x, max_x,
-                                                           rebin,
-                                                           attr_mode );
+    GetDataCommand command = new GetDataCommand( CommandObject.GET_DS,
+                                                 "John Doe",
+                                                 "Bad Password",
+                                                 "Some File Name",
+                                                  ds_num,
+                                                  ids,
+                                                  min_x, max_x,
+                                                  rebin,
+                                                  attr_mode );
     PartialDS_Selector pdss = new PartialDS_Selector( command );
   }
 
