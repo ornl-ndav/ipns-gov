@@ -1,7 +1,7 @@
 /*
  * File:  SANDWedgeViewer.java
  *
- * Copyright (C) 2003, Mike Miller
+ * Copyright (C) 2003-2004, Mike Miller
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,15 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.18  2004/01/24 02:55:26  millermi
+ * - Added File|Save Results menu item. This allows the
+ *   results from the SWV to be neatly written out to file.
+ * - Results window is now has toFront() called on it when
+ *   a new selection is added.
+ * - Moved field labels out of SANDEditor and into whole
+ *   class. This allows them to be used when writing out
+ *   the file.
+ *
  * Revision 1.17  2004/01/23 22:59:12  millermi
  * - Results window now automatically popped up when a selection
  *   is made. The menu item previously used to show the results
@@ -224,10 +233,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient JMenuBar menu_bar;
   private transient DataSet data_set;
   private String projectsDirectory = SharedData.getProperty("Data_Directory");
-  private transient SANDEditor editor = new SANDEditor();
+  private transient SANDEditor editor;
   private transient CoordTransform image_to_world_tran = new CoordTransform();
   private transient ViewManager oldview;
   private transient SANDWedgeViewer this_viewer;
+  private String[] ellipselabels;
+  private String[] wedgelabels;
+  private String[] ringlabels;
 
  /**
   * Construct a frame with no data to start with. This constructor will be
@@ -341,15 +353,21 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 		"Selection button.</P>" + 
 		"<H2>Commands for SWV</H2>" +
                 "<P> <I>ATTENTION: Selections must be made before using the " +
-		"Table View or saving results to file. </I><BR><BR> " +
-		"SAVE RESULTS TO FILE: To save the Q , Intensity, and " +
-		"Error to file, Go to the \"Intensity vs Q\" window. " +
-		"Click on View>Table Generator. Select and add X " +
-		"values, Y values, and Error values. To view the table, " +
-		"press Make a Table, to save, press Save to File<BR>" +
+		"viewing or saving results to file. </I><BR><BR> " +
+		"VIEW RESULTS: The Results window will automatically appear " +
+		"after a selection has been made. <B>Options|Hide Results " +
+		"Window</B> will hide the window. If the window is not " +
+		"visible, <B>Options|Show Results Window</B> will cause the " +
+		"results window to appear.<BR>"+
+		"SAVE RESULTS TO FILE: Go to <B>File|Save Results</B> " +
+		"in the SWV. The new file has 3 columns: Q, Intensity, " +
+		"and Error Bounds. Information about the region is listed " +
+		"at the top of the file, precluded by a pound symbol(#). " +
+		"<I>If multiple selections are made, only the last " +
+		"selection can be written to file.</I><BR>" +
 		"<BR>Note:<BR>" +
-        	"Detailed commands can be found under the Overlay help " +
-        	"menu.</P>";
+        	"Detailed commands for each overlay can be found under " +
+		"<B>Help|Overlays</B> after a data file has been loaded.</P>";
     textpane.setText(text);
     JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
@@ -529,6 +547,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   {
     this_viewer = this;
     setTitle("SAND Wedge Viewer");
+    ellipselabels = new String[]{"X Center", "Y Center",
+                                 "X Radius", "Y Radius"};
+    wedgelabels = new String[]{"X Center", "Y Center", "Radius",
+                   "Wedge Axis Angle", "Interior Angle"};
+    ringlabels = new String[]{"X Center", "Y Center",
+                             "Inner Radius", "Outer Radius"};
+    editor = new SANDEditor();
     if( iva != null )
     {
       AxisInfo xinfo = iva.getAxisInfo( AxisInfo.X_AXIS );
@@ -625,6 +650,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     Vector file      = new Vector();
     Vector options   = new Vector();
     Vector help      = new Vector();
+    Vector save_results_menu = new Vector();
     Vector view_man  = new Vector();
     Vector save_menu = new Vector();
     Vector load_menu = new Vector();
@@ -638,6 +664,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     file.add(load_data);
       load_data.add("Load Data");
       file_listeners.add( new WVListener() ); // listener for load data
+    file.add(save_results_menu);
+      save_results_menu.add("Save Results");
+      file_listeners.add( new WVListener() ); // listener for saving results
     
     options.add("Options");
     option_listeners.add( new WVListener() ); // listener for options
@@ -1025,6 +1054,64 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
           loadData(filename);
         }
       } // end else if load data
+      else if( ae.getActionCommand().equals("Save Results") )
+      {
+        JFileChooser fc = new JFileChooser(projectsDirectory);
+        fc.setFileFilter( new DataFileFilter() );
+        int result = fc.showDialog(new JFrame(),"Save Results");
+     
+        if( result == JFileChooser.APPROVE_OPTION )
+        {
+          String filename = fc.getSelectedFile().toString();
+	  filename = new DataFileFilter().appendExtension(filename);
+	  projectsDirectory = fc.getCurrentDirectory().toString();
+	  String[] descriptors;  // labels displayed in the SANDEditor.
+          Data tempdata = data_set.getData_entry(data_set.getNum_entries() - 1);
+          Float1DAttribute fat;
+	  // figure out which type of region was selected.
+	  if( tempdata.getAttribute(SelectionJPanel.WEDGE) != null )
+	  {
+	    fat = (Float1DAttribute)
+                       tempdata.getAttribute(SelectionJPanel.WEDGE);
+	    descriptors = wedgelabels;
+	  }
+	  else if( tempdata.getAttribute(SelectionJPanel.DOUBLE_WEDGE) != null )
+	  {
+	    fat = (Float1DAttribute)
+                       tempdata.getAttribute(SelectionJPanel.DOUBLE_WEDGE);
+	    descriptors = wedgelabels;
+	  }
+	  else if( tempdata.getAttribute(SelectionJPanel.ELLIPSE) != null )
+	  {
+	    fat = (Float1DAttribute)
+                       tempdata.getAttribute(SelectionJPanel.ELLIPSE);
+	    descriptors = ellipselabels;
+	  }
+	  else  // ring selection
+	  {
+	    fat = (Float1DAttribute)
+                       tempdata.getAttribute(SelectionJPanel.RING);
+	    descriptors = ringlabels;
+	  }
+	  
+	  float[] vals = fat.getFloatValue();
+	  String at_name = fat.getName();
+	  // This portion will put the data attributes at the top of the
+	  // file, each line preceeded with a pound (#) symbol.
+	  StringBuffer header = new StringBuffer("# Selection Type: ");
+	  header.append(at_name).append('\n');
+	  // make sure there are the same number of values as descriptors.
+	  int length = vals.length;
+	  if( length > descriptors.length )
+	    length = descriptors.length;
+	  for( int i = 0; i < length; i++ )
+	  {
+	    header.append("# ").append(descriptors[i]);
+	    header.append(": ").append(vals[i]).append('\n');
+	  }
+	  SANDFileWriter.makeFile(filename,header.toString(),tempdata);
+        }
+      } // end else if load data
       else if( ae.getActionCommand().equals("Hide Results Window") )
       {
         oldview.setVisible(false);
@@ -1037,6 +1124,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
           java.awt.EventQueue.invokeLater(shower);
           shower = null;
 	}
+	else
+	  oldview.toFront();
       }
       else if( ae.getActionCommand().equals("Save State") )
       {
@@ -1094,6 +1183,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
             java.awt.EventQueue.invokeLater(shower);
             shower = null;
 	  }
+	  else
+	    oldview.toFront();
 	}
 	editor.selectionChanged();
       }
@@ -1232,13 +1323,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       rightpane = new Box( BoxLayout.Y_AXIS );
       rightpane.setPreferredSize( new Dimension(
                                       (int)(3*this_editor.getWidth()/8),0) );
-      
-      String[] ellipselabels = {"X Center", "Y Center",
-                                "X Radius", "Y Radius"};
-      String[] wedgelabels = {"X Center", "Y Center", "Radius", 
-                              "Wedge Axis Angle", "Interior Angle"};
-      String[] ringlabels = {"X Center", "Y Center",
-                             "Inner Radius", "Outer Radius"};
       String[] cursorlabels = {"X","Y"};
       
       radiofec.setLabelWidth(10);
