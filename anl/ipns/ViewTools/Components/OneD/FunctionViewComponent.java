@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.68  2005/02/04 22:51:16  millermi
+ *  - Added sendMessage(POINTED_AT_CHANGED) to dataChanged() and
+ *    sendMessage(SELECTED_CHANGED) to dataChanged(iva) so
+ *    FunctionControls can be updated when dataChanged() is called.
+ *
  *  Revision 1.67  2005/02/04 18:49:33  serumb
  *  Fixed zoom/pointed at problem when a selected line is cleared.
  *
@@ -756,6 +761,7 @@ public class FunctionViewComponent implements IViewComponent1D,
        if(draw_pointed_at) 
        DrawPointedAtGraph();
        paintComponents(big_picture.getGraphics());
+       sendMessage(POINTED_AT_CHANGED);
     }
   
   /**
@@ -791,6 +797,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     //							y_array[0] );
     //System.out.println( "Thank you for notifying us" );
     //System.out.println( "" );
+    sendMessage(SELECTED_CHANGED);
   }
 
   /**
