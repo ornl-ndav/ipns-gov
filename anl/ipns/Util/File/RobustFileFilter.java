@@ -30,6 +30,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.2  2003/07/10 16:50:20  bouzekc
+ * Now accepts all extensions in the internal extension list,
+ * not just the first one.
+ *
  * Revision 1.1  2003/06/13 21:56:56  bouzekc
  * Added to CVS.
  *
@@ -150,7 +154,7 @@ public abstract class RobustFileFilter extends
 
     for(int i = 0; i < extensions.size(); i++)
     {
-      ext = (String)(extensions.elementAt(0));
+      ext = (String)(extensions.elementAt(i));
       //does it end with the extension?
       if(temp.endsWith(ext))
         return true;
