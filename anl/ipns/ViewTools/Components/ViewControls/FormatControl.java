@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/03/20 05:37:00  millermi
+ *  - Modified main() to reflect parameter changes to
+ *    ControlManager.makeManagerTestWindow().
+ *
  *  Revision 1.4  2005/03/09 22:36:09  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -517,17 +521,15 @@ public class FormatControl extends ViewControl
       ViewControl[] controls = new ViewControl[3];
       controls[0] = new FormatControl(list);
       controls[0].setTitle("Format1");
+      controls[0].setSharedKey("Format");
       controls[1] = new FormatControl(list);
       controls[1].setTitle("Format2");
+      controls[1].setSharedKey("Format");
       controls[2] = new FormatControl(list);
       controls[2].setTitle("Format3");
+      controls[2].setSharedKey("Format");
       
-      String[] keys = new String[3];
-      keys[0] = "Format";
-      keys[1] = "Format";
-      keys[2] = "Format";
-      
-      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      JFrame frame = ControlManager.makeManagerTestWindow( controls );
       frame.setBounds(0,0,300,300);
       WindowShower shower = new WindowShower(frame);
       java.awt.EventQueue.invokeLater(shower);

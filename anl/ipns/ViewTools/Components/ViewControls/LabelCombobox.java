@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2005/03/20 05:37:00  millermi
+ *  - Modified main() to reflect parameter changes to
+ *    ControlManager.makeManagerTestWindow().
+ *
  *  Revision 1.5  2005/03/14 19:21:44  serumb
  *  Changed public variables to private and added methods to get them.
  *
@@ -187,15 +191,13 @@ public class LabelCombobox extends ViewControl
 	
         ViewControl[] controls = new ViewControl[3];
         controls[0] = new LabelCombobox("Combobox1",alist);
+	controls[0].setSharedKey("Combobox");
         controls[1] = new LabelCombobox("Combobox2",blist);
+	controls[1].setSharedKey("Combobox");
         controls[2] = new LabelCombobox("Combobox3",clist);
+	controls[2].setSharedKey("Combobox");
       
-        String[] keys = new String[3];
-        keys[0] = "Combobox";
-        keys[1] = "Combobox";
-        keys[2] = "Combobox";
-      
-        JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+        JFrame frame = ControlManager.makeManagerTestWindow( controls );
         WindowShower shower = new WindowShower(frame);
         java.awt.EventQueue.invokeLater(shower);
         shower = null;

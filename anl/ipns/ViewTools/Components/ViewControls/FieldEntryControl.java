@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/03/20 05:36:59  millermi
+ *  - Modified main() to reflect parameter changes to
+ *    ControlManager.makeManagerTestWindow().
+ *
  *  Revision 1.14  2005/03/11 20:34:48  millermi
  *  - set/getControlValue() now includes radio button selection as
  *    first entry of String[].
@@ -1052,23 +1056,21 @@ public class FieldEntryControl extends ViewControl
       controls[0].addRadioChoice("A",namelist1);
       controls[0].addRadioChoice("B",namelist2);
       controls[0].addRadioChoice("C",namelist3);
+      controls[0].setSharedKey("FieldEntry");
       controls[1] = new FieldEntryControl(3);
       controls[1].setTitle("FieldEntry2");
       controls[1].addRadioChoice("A",namelist1);
       controls[1].addRadioChoice("B",namelist2);
       controls[1].addRadioChoice("C",namelist3);
+      controls[1].setSharedKey("FieldEntry");
       controls[2] = new FieldEntryControl(3);
       controls[2].setTitle("FieldEntry3");
       controls[2].addRadioChoice("C",namelist3);
       controls[2].addRadioChoice("D",namelist4);
       controls[2].addRadioChoice("E",namelist5);
+      controls[2].setSharedKey("FieldEntry");
       
-      String[] keys = new String[3];
-      keys[0] = "FieldEntry";
-      keys[1] = "FieldEntry";
-      keys[2] = "FieldEntry";
-      
-      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      JFrame frame = ControlManager.makeManagerTestWindow( controls );
       frame.setBounds(0,0,300,300);
       WindowShower shower = new WindowShower(frame);
       java.awt.EventQueue.invokeLater(shower);

@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/03/20 05:36:59  millermi
+ *  - Modified main() to reflect parameter changes to
+ *    ControlManager.makeManagerTestWindow().
+ *
  *  Revision 1.8  2005/03/09 22:36:05  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -272,17 +276,15 @@ public class CursorOutputControl extends ViewControl
       final ViewControl[] controls = new ViewControl[num_controls];
       controls[0] = new CursorOutputControl(menu);
       controls[0].setTitle("Cursor1");
+      controls[0].setSharedKey("CursorOutput");
       controls[1] = new CursorOutputControl(menu);
       controls[1].setTitle("Cursor2");
+      controls[1].setSharedKey("CursorOutput");
       controls[2] = new CursorOutputControl(menu);
       controls[2].setTitle("Cursor3");
+      controls[2].setSharedKey("CursorOutput");
       
-      String[] keys = new String[num_controls];
-      keys[0] = "CursorOutput";
-      keys[1] = "CursorOutput";
-      keys[2] = "CursorOutput";
-      
-      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      JFrame frame = ControlManager.makeManagerTestWindow( controls );
       frame.addMouseMotionListener( new MouseMotionAdapter(){
           public void mouseDragged( MouseEvent me )
 	  {

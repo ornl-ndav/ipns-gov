@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2005/03/20 05:37:00  millermi
+ *  - Modified main() to reflect parameter changes to
+ *    ControlManager.makeManagerTestWindow().
+ *
  *  Revision 1.18  2005/03/09 22:37:55  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -382,55 +386,6 @@ public class PanViewControl extends ViewControl
   {
     refreshData();
   }
-
- /**
-  *  Test program...If "cm" is passed as an argument, the
-  *  ControlManager will link controls.
-  */
-  public static void main(String[] args)
-  {
-    // If cm is passed in, test with control manager.
-    if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
-    {
-      ImageJPanel2 test = new ImageJPanel2();
-      ArrayGenerator test_array = new ArrayGenerator(1000,1000);
-      test.setData(test_array, true);
-      ViewControl[] controls = new ViewControl[3];
-      controls[0] = new PanViewControl( test );
-      controls[0].setTitle("Pan1");
-      controls[1] = new PanViewControl( test );
-      controls[1].setTitle("Pan2");
-      controls[2] = new PanViewControl( test );
-      controls[2].setTitle("Pan3");
-      
-      String[] keys = new String[3];
-      keys[0] = "Pan";
-      keys[1] = "Pan";
-      keys[2] = "Pan";
-      
-      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
-      frame.setBounds(0,0,450,500);
-      
-      WindowShower shower = new WindowShower(frame);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
-      return;
-    }
-    
-    JFrame f = new JFrame("Test for PanViewControl");
-    f.setBounds(0,0,200,200);
-    f.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-    ImageJPanel2 test = new ImageJPanel2();
-    ArrayGenerator test_array = new ArrayGenerator(1000,1000);
-    
-    test.setData(test_array, true);
-
-    PanViewControl pvc = new PanViewControl( test );
-    f.getContentPane().add(pvc);
-    WindowShower shower = new WindowShower(f);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
-  }
   
  /*
   * Call this method to repaint the thumbnail whenever the actual image changes.
@@ -577,5 +532,52 @@ public class PanViewControl extends ViewControl
     {
       image = i;
     }
+  }
+
+ /**
+  *  Test program...If "cm" is passed as an argument, the
+  *  ControlManager will link controls.
+  */
+  public static void main(String[] args)
+  {
+    // If cm is passed in, test with control manager.
+    if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
+    {
+      ImageJPanel2 test = new ImageJPanel2();
+      ArrayGenerator test_array = new ArrayGenerator(1000,1000);
+      test.setData(test_array, true);
+      ViewControl[] controls = new ViewControl[3];
+      controls[0] = new PanViewControl( test );
+      controls[0].setTitle("Pan1");
+      controls[0].setSharedKey("Pan");
+      controls[1] = new PanViewControl( test );
+      controls[1].setTitle("Pan2");
+      controls[1].setSharedKey("Pan");
+      controls[2] = new PanViewControl( test );
+      controls[2].setTitle("Pan3");
+      controls[2].setSharedKey("Pan");
+      
+      JFrame frame = ControlManager.makeManagerTestWindow( controls );
+      frame.setBounds(0,0,450,500);
+      
+      WindowShower shower = new WindowShower(frame);
+      java.awt.EventQueue.invokeLater(shower);
+      shower = null;
+      return;
+    }
+    
+    JFrame f = new JFrame("Test for PanViewControl");
+    f.setBounds(0,0,200,200);
+    f.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+    ImageJPanel2 test = new ImageJPanel2();
+    ArrayGenerator test_array = new ArrayGenerator(1000,1000);
+    
+    test.setData(test_array, true);
+
+    PanViewControl pvc = new PanViewControl( test );
+    f.getContentPane().add(pvc);
+    WindowShower shower = new WindowShower(f);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
 }

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/03/20 05:37:02  millermi
+ *  - Modified main() to reflect parameter changes to
+ *    ControlManager.makeManagerTestWindow().
+ *
  *  Revision 1.7  2005/03/09 22:36:10  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -211,20 +215,18 @@ public class ViewControlMaker extends ViewControl
       ViewControl[] controls = new ViewControl[4];
       controls[0] = new ViewControlMaker(cbox1);
       controls[0].setTitle("Combobox1");
+      controls[0].setSharedKey("Combobox");
       controls[1] = new ViewControlMaker(cbox2);
       controls[1].setTitle("Combobox2");
+      controls[1].setSharedKey("Combobox");
       controls[2] = new ViewControlMaker(new JButton("Button1"));
       controls[2].setTitle("Button1");
+      controls[2].setSharedKey("Button");
       controls[3] = new ViewControlMaker(new JButton("Button2"));
       controls[3].setTitle("Button2");
-      
-      String[] keys = new String[controls.length];
-      keys[0] = "Combobox";
-      keys[1] = "Combobox";
-      keys[2] = "Button";
-      keys[3] = "Button";
+      controls[3].setSharedKey("Button");
     
-      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      JFrame frame = ControlManager.makeManagerTestWindow( controls );
       WindowShower shower = new WindowShower(frame);
       java.awt.EventQueue.invokeLater(shower);
       shower = null;

@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2005/03/20 05:36:58  millermi
+ *  - Modified main() to reflect parameter changes to
+ *    ControlManager.makeManagerTestWindow().
+ *
  *  Revision 1.6  2005/03/14 19:20:16  serumb
  *  Changed public variable button to private and added a method to get
  *  the button.
@@ -153,8 +157,11 @@ public class ButtonControl extends ViewControl
     {
       ViewControl[] controls = new ViewControl[3];
       controls[0] = new ButtonControl("Button1");
+      controls[0].setSharedKey("Button");
       controls[1] = new ButtonControl("Button2");
+      controls[1].setSharedKey("Button");
       controls[2] = new ButtonControl("Button3");
+      controls[2].setSharedKey("Button");
       
       controls[2].addActionListener( new ActionListener()
           {
@@ -165,12 +172,7 @@ public class ButtonControl extends ViewControl
 	    }
 	  } );
       
-      String[] keys = new String[3];
-      keys[0] = "Button";
-      keys[1] = "Button";
-      keys[2] = "Button";
-      
-      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      JFrame frame = ControlManager.makeManagerTestWindow( controls );
       WindowShower shower = new WindowShower(frame);
       java.awt.EventQueue.invokeLater(shower);
       shower = null;

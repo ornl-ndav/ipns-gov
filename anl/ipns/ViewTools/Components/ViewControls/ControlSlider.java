@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2005/03/20 05:36:59  millermi
+ *  - Modified main() to reflect parameter changes to
+ *    ControlManager.makeManagerTestWindow().
+ *
  *  Revision 1.13  2005/03/09 22:36:04  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -552,15 +556,13 @@ public class ControlSlider extends ViewControl
     {
       ViewControl[] controls = new ViewControl[3];
       controls[0] = new ControlSlider("Slider1");
+      controls[0].setSharedKey("Slider");
       controls[1] = new ControlSlider("Slider2");
+      controls[1].setSharedKey("Slider");
       controls[2] = new ControlSlider("Slider3");
+      controls[2].setSharedKey("Slider");
       
-      String[] keys = new String[3];
-      keys[0] = "Slider";
-      keys[1] = "Slider";
-      keys[2] = "Slider";
-      
-      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      JFrame frame = ControlManager.makeManagerTestWindow( controls );
       WindowShower shower = new WindowShower(frame);
       java.awt.EventQueue.invokeLater(shower);
       shower = null;

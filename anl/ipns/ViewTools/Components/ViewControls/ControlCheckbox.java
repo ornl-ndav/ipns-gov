@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/03/20 05:36:58  millermi
+ *  - Modified main() to reflect parameter changes to
+ *    ControlManager.makeManagerTestWindow().
+ *
  *  Revision 1.8  2005/03/09 22:36:03  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -367,15 +371,13 @@ public class ControlCheckbox extends ViewControl
     {
       ViewControl[] controls = new ViewControl[3];
       controls[0] = new ControlCheckbox("Checkbox1");
+      controls[0].setSharedKey("Checkbox");
       controls[1] = new ControlCheckbox("Checkbox2");
+      controls[1].setSharedKey("Checkbox");
       controls[2] = new ControlCheckbox("Checkbox3");
+      controls[2].setSharedKey("Checkbox");
       
-      String[] keys = new String[3];
-      keys[0] = "Checkbox";
-      keys[1] = "Checkbox";
-      keys[2] = "Checkbox";
-      
-      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      JFrame frame = ControlManager.makeManagerTestWindow( controls );
       WindowShower shower = new WindowShower(frame);
       java.awt.EventQueue.invokeLater(shower);
       shower = null;
