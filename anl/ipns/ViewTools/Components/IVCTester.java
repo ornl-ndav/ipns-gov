@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2003/12/20 03:35:41  millermi
+ * - changed comments and code on how Float.NaN is checked.
+ *
  * Revision 1.9  2003/12/18 22:42:12  millermi
  * - This file was involved in generalizing AxisInfo2D to
  *   AxisInfo. This change was made so that the AxisInfo
@@ -356,7 +359,7 @@ public class IVCTester extends JFrame implements IPreserveState,
 	  int row = selectedpoints[j].y;
 	  int col = selectedpoints[j].x;
 	  
-	  if( Float.compare(data.getDataValue(row,col), Float.NaN) != 0 )
+	  if( !Float.isNaN(data.getDataValue(row,col)) )
 	  {
 	    data.setDataValue( row, col, data.getDataValue(row,col) * 2f );
           }

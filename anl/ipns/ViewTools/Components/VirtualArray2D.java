@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2003/12/20 03:35:41  millermi
+ *  - changed comments and code on how Float.NaN is checked.
+ *
  *  Revision 1.7  2003/12/18 22:34:33  millermi
  *  - get/setAxisInfoVA() changed to get/setAxisInfo() with first parameter
  *    int instead of boolean to make more general.
@@ -207,8 +210,8 @@ public class VirtualArray2D implements IVirtualArray2D
  /**
   * Get value for a single array element. If row or column exceeds the array,
   * Float.NaN is returned. Use a statement similar to:
-  * " Float.compare(data.getDataValue(row,col), Float.NaN) != 0 " to make sure
-  * that the value returned is not Float.NaN.
+  * " Float.isNaN( data.getDataValue(row,col) ) " to check if
+  * the value returned is Float.NaN.
   *
   *  @param  row     row number of element
   *  @param  column  column number of element
