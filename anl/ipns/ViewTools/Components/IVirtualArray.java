@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/12/18 22:30:55  millermi
+ *  - Added getAxisInfo() method.
+ *  - Moved NO_X/YUNITS and NO_X/YLABEL to AxisInfo
+ *
  *  Revision 1.1  2003/10/22 20:07:52  millermi
  *  - Initial Version - Top level interface that factors out
  *    common methods from all IVirtualArrayxD's.
@@ -47,36 +51,12 @@
  * functionality is grouped here to make polymorphism possible. 
  */
 public interface IVirtualArray
-{
- /**
-  * "No X Label" - This String is used to specify that no label was assigned
-  * to the x axis. 
-  */
-  public static final String NO_XLABEL = "No X Label";
-  
- /**
-  * "No Y Label" - This String is used to specify that no label was assigned
-  * to the y axis. 
-  */
-  public static final String NO_YLABEL = "No Y Label";
-  
+{  
  /**
   * "No Title" - This String is used to specify that no title was assigned
   * to the data. 
   */
   public static final String NO_TITLE  = "No Title";
-  
- /**
-  * "No X Units" - This String is used to specify that no units were assigned
-  * to the x values. 
-  */
-  public static final String NO_XUNITS = "No X Units";
-  
- /**
-  * "No Y Units" - This String is used to specify that no units were assigned
-  * to the y values.  
-  */
-  public static final String NO_YUNITS = "No Y Units"; 
      
  /**
   * This method will return the title assigned to the data. 
@@ -108,4 +88,13 @@ public interface IVirtualArray
   *          not a Dimension.
   */
   public int getDimension();
+  
+ /**
+  * Get detailed information about this axis.
+  *
+  *  @param  axis The integer code for the axis, starting at 0.
+  *  @return The axis info for the axis specified.
+  *  @see    DataSetTools.components.View.AxisInfo
+  */
+  public AxisInfo getAxisInfo( int axis );
 }
