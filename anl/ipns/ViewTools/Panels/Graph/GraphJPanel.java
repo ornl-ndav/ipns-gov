@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.44  2004/10/07 02:23:34  serumb
+ * Made changes so Y_Log_scale works with negative numbers
+ *
  * Revision 1.43  2004/08/17 03:50:46  ffr
  * Bugfix: Test the first point of each graph against the minimum and maximum in getXmin and getYmin
  *
@@ -1104,15 +1107,36 @@ public boolean is_autoY_bounds()
             x_copy[i] = logger.truLogScale(x_copy[i]);
           }
       }
-
+  
       if( log_scale_y )
       {
+      	float tempmin = Float.MAX_VALUE;
         float min = getYmin();
         float max = getYmax();
+        if(min <= 0){
+        	
+        	for(int i = 0; i < n_points; i++){
+        		if(gd.y_vals[i] <= tempmin){
+        			tempmin = gd.y_vals[i];
+        			
+        		}
+        		for(int j = 0; j < n_points; j++){
+        			if(gd.y_vals[j] <= 0){
+        				gd.y_vals[j] = tempmin;
+        			}
+        		}
+        	}
+        }
+        System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
+        
 
         LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
+        min = getYmin();
+        max = getYmax();
+        
 
         for(int i = 0; i < n_points; i++)
+        	
           y_copy[i] = logger.truLogScale(y_copy[i]);
       }
   
