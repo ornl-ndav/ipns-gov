@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2002/10/04 20:17:35  dennis
+ * Fixed typo in javadoc comment.
+ *
  * Revision 1.3  2001/06/29 18:33:19  dennis
  * Added setOrientation() method to create a matrix that
  * moves and object from the origin to a specified point
@@ -477,7 +480,7 @@ public class Tran3D
 
   /*-------------------------- apply_to -------------------------------*/
   /**
-   *  Multiply the transformation times vector each vector in the array v1, 
+   *  Multiply the transformation times each vector in the array v1, 
    *  placing the result in the corresponding vector in the array v2.
    *
    *  @param  v1    The array of vectors being transformed 
