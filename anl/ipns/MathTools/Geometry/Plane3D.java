@@ -22,14 +22,17 @@
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
  *
- * This work was supported by the Intense Pulsed Neutron Source Division
- * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0218882.
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/19 17:00:00  dennis
+ * Minor improvement in javadocs.
+ *
  * Revision 1.1  2003/05/15 19:18:21  dennis
  *  This class represents a Plane in 3D by a unit normal vector and the
  * distance of the plane from the orign.  Methods are provided to set
@@ -59,7 +62,8 @@ public class Plane3D
 
   /*------------------------- default constructor ----------------------*/
   /**
-   *  Construct the x,y plane by default. 
+   *  Construct the x,y plane, containing the origin with normal in the 
+   *  direction of the positive z axis, by default. 
    */
   public Plane3D()
   {
@@ -105,7 +109,7 @@ public class Plane3D
 
   /*------------------------------- set ---------------------------------*/
   /**
-   *  Set the to be the plane determined by the specified three points.
+   *  Set this to be the plane determined by the specified three points.
    *  The three points must not be coincident, or collinear.  The normal
    *  vector is set to a unit vector in the direction of the crossproduct:
    *  (pt1-origin)X(pt2-origin).  The distance of the plane from the origin
