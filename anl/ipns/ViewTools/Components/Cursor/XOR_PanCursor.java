@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/29 20:35:46  millermi
+ *  -Added moveEdge() and public variables for use by this method. moveEdge()
+ *   allows for stretching bounds.
+ *
  *  Revision 1.1  2003/10/27 08:47:48  millermi
  *  - Initial Version - This class was created to enable users
  *    panning options for images too large to view in the
@@ -60,13 +64,18 @@ import javax.swing.JPanel;
 
 abstract public class XOR_PanCursor implements Serializable
 {
-    protected JPanel    panel;
-    protected Point     first_pt     = new Point(0,0); 
-    protected Point     last_pt      = new Point(0,0); 
+  public static final int NORTH = 0;
+  public static final int EAST  = 1;
+  public static final int SOUTH = 2;
+  public static final int WEST  = 3;
+  
+  protected JPanel    panel;
+  protected Point     first_pt     = new Point(0,0); 
+  protected Point     last_pt	   = new Point(0,0); 
 
-    private   Color     color        = Color.gray;
+  private   Color     color	   = Color.gray;
 
-    private   boolean   firstStretch = true;
+  private   boolean   firstStretch = true;
 
 
 /**
@@ -148,6 +157,49 @@ abstract public class XOR_PanCursor implements Serializable
 
     draw( graphics, first_pt, last_pt );
     return true;
+  }
+  
+  public boolean moveEdge( int edge, int amount )
+  {
+    Point old_first = new Point(first_pt);
+    Point old_last  = new Point(last_pt);
+    final int SENSITIVITY = 4;
+  
+    if( edge == NORTH )
+    {
+      if( (first_pt.y - amount) < last_pt.y - SENSITIVITY )
+        first_pt.y -= amount;
+    }
+    else if( edge == EAST )
+    {
+      if( last_pt.x + amount > first_pt.x + SENSITIVITY )
+        last_pt.x += amount;
+    }
+    else if( edge == SOUTH )
+    {
+      if( last_pt.y + amount > first_pt.y + SENSITIVITY )
+        last_pt.y += amount;
+    }
+    else if( edge == WEST )
+    {
+      if( first_pt.x - amount < last_pt.x - SENSITIVITY )
+        first_pt.x -= amount; 
+    }
+          
+    Graphics graphics = panel.getGraphics();
+    if ( graphics == null )
+      return false;
+
+    graphics.setXORMode( color );
+    
+    if(firstStretch == true) 
+      firstStretch = false;
+    else                     
+      draw( graphics, old_first, old_last );
+
+    draw( graphics, first_pt, last_pt );
+    return true;
+  
   }
 
 }
