@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2002/03/13 16:21:43  dennis
+ * Converted to new abstract Data class.
+ *
  * Revision 1.5  2002/02/22 20:34:49  pfpeterson
  * Operator Reorganization.
  *
@@ -200,7 +203,7 @@ public class DataSetXConversionsTable  implements Serializable
       else                                               // y value from the
       {                                                  // given index and 
         Data d = ds.getData_entry( index );              // x value.  
-        y = d.getY_value( x );
+        y = d.getY_value( x, IData.SMOOTH_LINEAR );
       }
       this.index = index;
     }
