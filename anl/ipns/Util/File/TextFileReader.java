@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2001/11/21 21:14:21  dennis
+ *  Added close() method
+ *
  *  Revision 1.1  2001/11/09 18:50:39  dennis
  *  Utility to simplify reading numerical and string values from an
  *  ordinary ASCII file.
@@ -73,7 +76,7 @@ public class TextFileReader
     {
       file_stream = new FileInputStream( file_name );
       in = new BufferedReader( new InputStreamReader( file_stream ) );
-      in.mark(2);
+      in.mark( BUFFER_SIZE );
     }
     catch ( IOException e )
     {
@@ -97,7 +100,7 @@ public class TextFileReader
   {
     try
     {
-      in.mark(BUFFER_SIZE);
+      in.mark( BUFFER_SIZE );
       String s = in.readLine();
       if ( s == null )
         throw new IOException( EOF );
@@ -346,6 +349,26 @@ public class TextFileReader
     }
   }
 
+
+  /* ----------------------------- close ------------------------------ */
+  /**
+   *  Close the file.
+   *
+   *  @throws IOException if something goes wrong when trying to close the
+   *          BufferedReader.
+   */
+  public void close() throws IOException
+  {
+    try
+    {
+      in.close();
+    }
+    catch ( IOException e )
+    {
+      throw e;
+    }
+  }
+
  
   /* --------------------------  main  ---------------------------------- */
   /*
@@ -392,12 +415,14 @@ public class TextFileReader
       f.unread();
       ch = f.read_char();
       System.out.println("char value again is " + ch );
+
+//      f.close();
     }
     catch ( Exception e )
     {
       System.out.println("EXCEPTION: " + e );
     }
- 
+
 
     try 
     {
