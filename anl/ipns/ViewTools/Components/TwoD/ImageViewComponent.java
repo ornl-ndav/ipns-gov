@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.27  2003/09/11 06:28:30  millermi
+ *  - Changed menu to coincide with changed to MenuItemMaker.
+ *  - Overlay help menu now created using getOverlayMenu().
+ *
  *  Revision 1.26  2003/08/29 23:12:09  millermi
  *  - dataChanged() now sets the title and AxisInfo if the array
  *    is of the same size.
@@ -765,20 +769,6 @@ public class ImageViewComponent implements IViewComponent2D,
       background.add(west, "West");
       background.add(south, "South");
       background.add(east, "East" ); 
-      	  
-      // create master panel and
-      //  add background and transparency to the master layout
-      /*
-      JPanel master = new JPanel();
-      OverlayLayout overlay = new OverlayLayout(master);
-      master.setLayout(overlay);
-      for( int trans = 0; trans < transparencies.size(); trans++ )
-         master.add((OverlayJPanel)transparencies.elementAt(trans)); 
-      master.add(background);
-
-      big_picture = master;
-      */ 
-      //big_picture.add(background);
    }
    
   /*
@@ -817,9 +807,12 @@ public class ImageViewComponent implements IViewComponent2D,
      Vector colorscale = new Vector();
      Vector position = new Vector();
      Vector choices = new Vector();
+     Vector cs_listener = new Vector(); 
      colorscale.add("Color Scale");
+     cs_listener.add( new ColorListener() );
      colorscale.add(choices);
-       choices.add("Scales");
+      choices.add("Scales");
+       cs_listener.add( new ColorListener() );
        choices.add(IndexColorMaker.HEATED_OBJECT_SCALE);
        choices.add(IndexColorMaker.HEATED_OBJECT_SCALE_2);
        choices.add(IndexColorMaker.GRAY_SCALE);
@@ -830,27 +823,18 @@ public class ImageViewComponent implements IViewComponent2D,
        choices.add(IndexColorMaker.MULTI_SCALE);
        choices.add(IndexColorMaker.SPECTRUM_SCALE);
      colorscale.add(position);
-       position.add("Display Position");
+      position.add("Display Position");
+       cs_listener.add( new ColorListener() );
        position.add("Control Panel");
        position.add("Below Image (calibrated)");
        position.add("Right of Image (calibrated)");
        position.add("None");
      
-     JMenuItem scalemenu = MenuItemMaker.makeMenuItem( colorscale,
-     						      new ColorListener() );
+     JMenuItem scalemenu = MenuItemMaker.makeMenuItem( colorscale,cs_listener );
      menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, scalemenu ); 
-     				
-     //menus[0].addActionListener( new MenuListener() );
-     
-     Vector overlayhelp = new Vector();
-     overlayhelp.add("Overlays");
-       overlayhelp.add("Annotation");
-       overlayhelp.add("Axis");
-       overlayhelp.add("Selection");
-     JMenuItem helpmenu = MenuItemMaker.makeMenuItem( overlayhelp,
-     						      new HelpListener() );
+
+     JMenuItem helpmenu = MenuItemMaker.getOverlayMenu( new HelpListener() );
      menus[1] = new ViewMenuItem(ViewMenuItem.PUT_IN_HELP, helpmenu );
-     //menus[1].addActionListener( new MenuListener() );
    }
    
   //***************************Assistance Classes******************************
