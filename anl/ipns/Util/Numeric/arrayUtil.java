@@ -31,6 +31,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2001/05/07 21:44:02  dennis
+ *  Replaced Bubble Sort of list of integer by Quicksort.
+ *  The version of Quicksort implemented uses the middle
+ *  element of the list as the key to split the list.  This
+ *  form of Quicksort works efficiently on sorted lists as well as
+ *  on most lists.
+ *
  *  Revision 1.10  2001/04/25 22:24:48  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -142,7 +149,7 @@ public class arrayUtil
          found = true;
        else if ( x < x_vals[mid] )
          last = mid - 1;
-       else if ( x > x_vals[mid] )
+       else
          first = mid + 1;
      }
 
@@ -200,7 +207,7 @@ public class arrayUtil
          found = true;
        else if ( x < x_vals[mid] )
          last = mid - 1;
-       else if ( x > x_vals[mid] )
+       else 
          first = mid + 1;
      }
 
@@ -279,15 +286,61 @@ public static void SortOnX( floatPoint2D points[] )
  */
 public static void sort( int values[] )
 {
-  int temp;
-  for ( int pass = 1; pass < values.length; pass++ )
-    for ( int k = 0; k < values.length - pass; k++ )
-      if ( values[k] > values[k+1] )
-      {
-        temp        = values[k];
-        values[k]   = values[k+1];
-        values[k+1] = temp;
-      }
+  q_sort( values, 0, values.length-1 );
+}
+
+/**
+ *  Interchange two integers in an array of integers, used by q_sort_ints.
+ * 
+ *  @param  list  the array holding the elements to interchange.
+ *  @param  i     the index of the first element to interchange.
+ *  @param  j     the index of the second element to interchange.
+ */
+public static void swap( int list[], int i, int j )
+{
+   int temp = list[i];
+   list[i]  = list[j];
+   list[j]  = temp;
+}
+
+
+/**
+ *  Do a "quick" sort of a portion of an array of integers.  This 
+ *  implementation of the quick sort algorithm uses the middle element 
+ *  of a sub-list as the key to split the sub-list.  While the worst 
+ *  case behavior is still O(n**2), it should only occur in rare cases.  
+ *  The standard quick sort is O(n**2) for ordered lists, which is a very
+ *  common occurence.
+ *
+ *  @param  list    the array holding the list to sort.
+ *  @param  start   the index of the start of the list to sort in the array.
+ *  @param  end     the index of the end of the list to sort in the array.
+ */
+public static void q_sort( int list[], int start, int end )
+{
+   int i = start;
+   int j = end;
+   int key;
+
+   if ( i >= j )                      // at most one element, so we're
+     return;                          // done with this sublist
+
+   swap( list, start, (i+j)/2 );
+
+   key = list[ start ];
+   while ( i < j )
+   {
+     while ( list[i] <= key && i < end )
+       i++;
+     while ( list[j] > key )
+       j--;
+     if ( i < j )
+       swap( list, i, j );
+   }
+   swap( list, start, j );
+
+   q_sort( list, start, j-1 );
+   q_sort( list, j+1, end );
 }
 
 
