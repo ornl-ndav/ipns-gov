@@ -30,9 +30,17 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.17  2003/06/09 22:38:06  dennis
- *  - Added setEventListening() method to turn off keyboard/mouse events.
- *    Mouse events will still set the current point. (Mike Miller)
+ *  Revision 1.18  2003/06/10 00:02:02  dennis
+ *  Merged changes from version 1.16 with Mike Miller's changes
+ *  that were made on top of version 1.15.
+ *
+ *   *  Revision 1.17  2003/06/09 22:38:06  dennis
+ *   *  - Added setEventListening() method to turn off keyboard/mouse events.
+ *   *    Mouse events will still set the current point. (Mike Miller)
+ *
+ *  Revision 1.16  2003/04/18 15:19:50  dennis
+ *  Added setVerticalScrolling() method.
+ *  Added javadocs.
  *
  *  Revision 1.15  2002/11/27 23:13:18  pfpeterson
  *  standardized header
@@ -65,6 +73,13 @@ import javax.swing.*;
 import DataSetTools.util.*;
 import DataSetTools.components.ui.*;
 
+/**
+ *  This class is a base class for panels that have a "world" coordinate
+ *  system, cursors and zooming.  These capabilities are implemented here
+ *  for the ImageJPanel and GraphJPanel classes in particular.  Both a
+ *  full size crosshair cursor for pointing and a rubberband box for zooming
+ *  are provided.
+ */
 public class CoordJPanel extends    ActiveJPanel 
                                   implements Serializable
 {
@@ -76,7 +91,7 @@ public class CoordJPanel extends    ActiveJPanel
   private boolean doing_crosshair = false;    // flags used by several device
   private boolean doing_box       = false;    // adapter classes to control
                                               // zooming/crosshair cursors
-  
+
   protected boolean         h_scroll = false;
   protected boolean         v_scroll = false;
 
@@ -91,6 +106,8 @@ public class CoordJPanel extends    ActiveJPanel
   
   protected Dimension       preferred_size = null;
 
+
+  /* --------------------------- constructor -------------------------- */
   public CoordJPanel()
   { 
     CoordMouseAdapter mouse_adapter = new CoordMouseAdapter();
@@ -122,35 +139,109 @@ public class CoordJPanel extends    ActiveJPanel
     stop_box( current_point, false );
     CJP_handle_arrow_keys = true;
   }
-  
-  // mouse events will still set the current point
+
+
+  /* ------------------------- setEventListening -------------------- */
+  /**
+   *  Set flag to control whether or not this component responds to events
+   *
+   *  @param dolisten If true, process mouse events 
+   */
   public void setEventListening( boolean dolisten )
   {
      isListening = dolisten;
   }
 
+
+  /* ---------------------- setPreserveAspectRatio ---------------------- */
+  /**
+   *  Set flag that controls whether the aspect ratio of the coordinate
+   *  system should be preserved when the region is zoomed or resized.
+   *
+   *  @param flag  If true, the aspect ratio will be preserved.
+   */
   public void setPreserveAspectRatio( boolean flag )
   {
     local_transform.setPreserveAspectRatio( flag );
     global_transform.setPreserveAspectRatio( flag );
   }
  
-  public void SetHorizontalScrolling( boolean scroll )
+
+  /* ---------------------- setHorizontalScrolling ---------------------- */
+  /**
+   *  Set flag that controls whether the preferred horizontal size will
+   *  be set to the total number of pixels needed in the horizontal direction
+   *  for the actual image or graph.  If this is done and the panel is in
+   *  JScrollPane with automatic scroll bars, setting this flag true will cause
+   *  the scroll bars to be used if needed.  This should ONLY be set true if 
+   *  the panel IS in a JScrollPane with an automatic horizontal scroll bar.
+   *
+   *  @param scroll  If true, the preferred size will be set, which will 
+   *                 require scrolling if the image or graph has a large 
+   *                 width.
+   */
+  public void setHorizontalScrolling( boolean scroll )
   {
     h_scroll = scroll;
     invalidate();
   }
 
+
+  /* ----------------------- setVerticalScrolling ----------------------- */
+  /**
+   *  Set flag that controls whether the preferred vertical size will
+   *  be set to the total number of pixels needed in the vertical direction
+   *  for the actual image or graph.  If this is done and the panel is in
+   *  JScrollPane with automatic scroll bars, setting this flag true will cause
+   *  the scroll bars to be used if needed.  This should ONLY be set true if
+   *  the panel IS in a JScrollPane with an automatic vertical scroll bar.
+   *
+   *  @param scroll  If true, the preferred size will be set, which will 
+   *                 require scrolling if the image or graph has a large
+   *                 height.
+   */
+  public void setVerticalScrolling( boolean scroll )
+  {
+    v_scroll = scroll;
+    invalidate();
+  }
+
+
+  /* ------------------------- getZoom_region -------------------------- */
+  /**
+   *  Get a rectangular subregion selected by user.
+   *
+   *  @return a reference to the subregion (pixel Rectangle) of the panel 
+   *  that was selected by the rubber band box cursor.
+   */
   public Rectangle getZoom_region()
   {
     return zoom_region;
   }
 
+
+  /* ---------------------- getCurrent_pixel_point ----------------------- */
+  /**
+   *  Get the point, in pixel coordinates that is pointed at by the user.
+   *
+   *  @return   a new point, with the coordinates of the pixel that
+   *  is pointed at by the crosshair cursor or corner of the rubber band
+   *  box.
+   */
   public Point getCurrent_pixel_point()
   {
     return new Point( current_point );
   }
 
+
+  /* ------------------------ getCurrent_WC_point ----------------------- */
+  /**
+   *  Get the point, in world coordinates that is pointed at by the user.
+   *
+   *  @return   a new point, with the world coordinates of the poing that
+   *  is pointed at by the crosshair cursor or corner of the rubber band
+   *  box.
+   */
   public floatPoint2D getCurrent_WC_point()
   {
     SetTransformsToWindowSize();
@@ -158,11 +249,22 @@ public class CoordJPanel extends    ActiveJPanel
                              local_transform.MapYFrom( current_point.y ) );
   }
 
+
+  /* ---------------------- setCurrent_pixel_point ----------------------- */
+  /**
+   *  Set the coordinates of the point, in pixel coordinates where the cursor 
+   *  should start.
+   */
   public void setCurrent_pixel_point( Point p )
   {
     current_point = new Point(p);
   }
 
+  /* ------------------------ setCurrent_WC_point ----------------------- */
+  /**
+   *  Set the coordinates of the point, in world coordinates where the cursor 
+   *  should start.
+   */
   public void setCurrent_WC_point( floatPoint2D WC_point )
   {
     SetTransformsToWindowSize();
@@ -170,12 +272,28 @@ public class CoordJPanel extends    ActiveJPanel
     current_point.y = (int)( 0.5 + local_transform.MapYTo( WC_point.y ) );
   }
 
+
+  /* ------------------------ getLocal_transform ----------------------- */
+  /**
+   *  Get a reference to the transformation between the current zoomed in
+   *  region of the panel, and the pixel coordinates of the region.
+   *
+   *  @return the local transform for the zoom region.
+   */
   public CoordTransform getLocal_transform()
   {
     SetTransformsToWindowSize();
     return local_transform;
   }
 
+
+  /* ------------------------ getGlobal_transform ----------------------- */
+  /**
+   *  Get a reference to the transformation between the full coordinate 
+   *  system covering the full panel, and the pixel coordinates of the panel.
+   *
+   *  @return the global transform for the panel.
+   */
   public CoordTransform getGlobal_transform()
   {
     SetTransformsToWindowSize();
@@ -183,6 +301,15 @@ public class CoordJPanel extends    ActiveJPanel
   }
 
 
+  /* ---------------------- initializeWorldCoords ----------------------- */
+  /**
+   *  Set the world coordinate system for the panel to be the rectangle
+   *  specified by the bounds parameter, b.  Both the local and global
+   *  transforms are map from the specified region.
+   *
+   *  @param b The bounds that determine the world coordinate system for 
+   *           the panel.
+   */
   public void initializeWorldCoords( CoordBounds b )
   {
     SetTransformsToWindowSize();
@@ -190,12 +317,30 @@ public class CoordJPanel extends    ActiveJPanel
     local_transform.setSource( b );
   }
 
+
+  /* ----------------------- setGlobalWorldCoords ------------------------ */
+  /**
+   *  Set the world coordinate system for the global transform for the
+   *  panel to be the rectangle specified by the bounds parameter, b.  
+   *
+   *  @param b The bounds that determine the world coordinate system for 
+   *           the panel.
+   */
   public void setGlobalWorldCoords( CoordBounds b )
   {
     SetTransformsToWindowSize();
     global_transform.setSource( b );
   }
 
+
+  /* ----------------------- getGlobalWorldCoords ------------------------ */
+  /**
+   *  Get the region that defines the world coordinate system for the 
+   *  full panel. 
+   *
+   *  @return A reference to the region in world coordinates that is mapped
+   *          to the full panel by the global transform.
+   */
   public CoordBounds getGlobalWorldCoords( )
   {
     SetTransformsToWindowSize();
@@ -203,6 +348,16 @@ public class CoordJPanel extends    ActiveJPanel
   }
 
 
+  /* ----------------------- setLocalWorldCoords ------------------------ */
+  /**
+   *  Set the world coordinate system for the local transform for the
+   *  panel to be the rectangle specified by the bounds parameter, b.  
+   *  The specified bounds are restricted to a subregion of the  
+   *  world coordinate region for the global transform.
+   *
+   *  @param b The bounds that determine the world coordinate system for
+   *           the zoomed subregion of the panel.
+   */
   public void setLocalWorldCoords( CoordBounds b )
   {
     SetTransformsToWindowSize();
@@ -213,6 +368,14 @@ public class CoordJPanel extends    ActiveJPanel
   }
  
 
+  /* ----------------------- getLocalWorldCoords ------------------------ */
+  /**
+   *  Get the region that defines the world coordinate system for the
+   *  zoomed region of the panel.
+   *
+   *  @return A reference to the region in world coordinates that is 
+   *          currently mapped to the full panel by the local transform.
+   */
   public CoordBounds getLocalWorldCoords( )
   {
     SetTransformsToWindowSize();
@@ -220,147 +383,214 @@ public class CoordJPanel extends    ActiveJPanel
   }
 
 
-/* ------------------------------ showState ------------------------------ */
-
-public void showState( String str )
-{
-  System.out.println( "-------------------------------------------" );
-  System.out.println( str );
-  System.out.println( "-------------------------------------------" );
-  showBounds();
-  showCurrentPoint();
-}
-
-/* ------------------------ set_crosshair_WC ------------------------------ */
-
-public void set_crosshair_WC( floatPoint2D pt )
-{
- setCurrent_WC_point( pt );
- set_crosshair( current_point );
-}
-
-/* ------------------------ set_crosshair ------------------------------ */
-
-public void set_crosshair( Point current )
-{
-  stop_box( current, false );
-  current_point = current;
-  if ( doing_crosshair )
-    crosshair_cursor.redraw( current );
-  else
+  /* ---------------------------- showState ------------------------------ */
+  /**
+   *  Print the current global and local coordinate bounds and the current
+   *  point selected by the user.
+   */
+  public void showState( String str )
   {
-    crosshair_cursor.start( current );
-    crosshair_cursor.redraw( current );
-    doing_crosshair = true;
+    System.out.println( "-------------------------------------------" );
+    System.out.println( str );
+    System.out.println( "-------------------------------------------" );
+    showBounds();
+    showCurrentPoint();
   }
+
+  /* ----------------------- set_crosshair_WC --------------------------- */
+  /**
+   *  Draw the full size crosshair cursor at the specified world coordinate
+   *  point and notify any action listeners that the CURSOR_MOVED.
+   *
+   *  @param pt  The point where the crosshair should be drawn
+   */
+  public void set_crosshair_WC( floatPoint2D pt )
+  {
+   setCurrent_WC_point( pt );
+   set_crosshair( current_point );
+  }
+
+  /* ------------------------ set_crosshair ------------------------------ */
+  /**
+   *  Draw the full size crosshair cursor at the specified pixel point
+   *  point and notify any action listeners that the CURSOR_MOVED.
+   *
+   *  @param current  The point where the crosshair should be drawn
+   */
+  public void set_crosshair( Point current )
+  {
+    stop_box( current, false );
+    current_point = current;
+    if ( doing_crosshair )
+      crosshair_cursor.redraw( current );
+    else
+    {
+      crosshair_cursor.start( current );
+      crosshair_cursor.redraw( current );
+      doing_crosshair = true;
+    }
    
-  send_message( CURSOR_MOVED );
-}
-
-
-/* ------------------------ set_box_WC ------------------------------ */
-
-public void set_box_WC( floatPoint2D pt )
-{
- setCurrent_WC_point( pt );
- set_box( current_point );
-}
-
-
-/* ------------------------ set_box ------------------------------ */
-
-public void set_box( Point current )
-{
-  stop_crosshair( current );
-  current_point = current;
-  if ( doing_box )
-    rb_box.redraw( current );
-  else
-  {
-    rb_box.start( current );
-    rb_box.redraw( current );
-    doing_box = true;
+    send_message( CURSOR_MOVED );
   }
+
+
+  /* ------------------------ set_box_WC ------------------------------ */
+  /**
+   *  Move the rubber band box cursor to the specified world coordinate
+   *  point and notify any action listeners that the CURSOR_MOVED.  If the
+   *  rubber band box was not previously started, this will specifiy the
+   *  initial point for the box.  If the rebber band box was previously
+   *  started, this will specify a new location for the other corner of
+   *  the box.
+   *
+   *  @param pt  The point where the rubber band box should be drawn
+   */
+  public void set_box_WC( floatPoint2D pt )
+  {
+   setCurrent_WC_point( pt );
+   set_box( current_point );
+  }
+
+
+  /* ------------------------ set_box ------------------------------ */
+  /**
+   *  Move the rubber band box cursor to the specified pixel 
+   *  point and notify any action listeners that the CURSOR_MOVED.  If the
+   *  rubber band box was not previously started, this will specifiy the
+   *  initial point for the box.  If the rebber band box was previously
+   *  started, this will specify a new location for the other corner of
+   *  the box.
+   *
+   *  @param pt  The point where the rubber band box should be drawn
+   */
+  public void set_box( Point current )
+  {
+    stop_crosshair( current );
+    current_point = current;
+    if ( doing_box )
+      rb_box.redraw( current );
+    else
+    {
+      rb_box.start( current );
+      rb_box.redraw( current );
+      doing_box = true;
+    }
   
-  send_message( CURSOR_MOVED );
-}
-
-
-/* -------------------------- stop_crosshair_WC ---------------------------- */
-
-public void stop_crosshair_WC( floatPoint2D pt )
-{
- setCurrent_WC_point( pt );
- stop_crosshair( current_point );
-}
-
-
-/* -------------------------- stop_crosshair ---------------------------- */
-
-public void stop_crosshair( Point current )
-{
-  if ( doing_crosshair )
-  {
-    current_point = current;
-    crosshair_cursor.redraw( current );
-    crosshair_cursor.stop( current );
-    doing_crosshair = false;
+    send_message( CURSOR_MOVED );
   }
-}
 
 
-/* -------------------------- stop_box_WC ---------------------------- */
-
-public void stop_box_WC( floatPoint2D pt, boolean do_zoom )
-{
- setCurrent_WC_point( pt );
- stop_box( current_point, do_zoom );
-}
-
-
-/* -------------------------- stop_box ---------------------------- */
-
-public void stop_box( Point current, boolean do_zoom )
-{
-  if ( doing_box )
+  /* ---------------------- stop_crosshair_WC -------------------------- */
+  /**
+   *  Stop the crosshair cursor and set the current position to the
+   *  specifed world coordinate point.
+   *
+   *  @param  pt  The point to record as the current point, 
+   *              in world coordinates
+   */
+  public void stop_crosshair_WC( floatPoint2D pt )
   {
-    current_point = current;
-    rb_box.redraw( current );
-    rb_box.stop( current );
-    doing_box = false;
+   setCurrent_WC_point( pt );
+   stop_crosshair( current_point );
+  }
 
-    zoom_region = rb_box.region();
+
+  /* ------------------------ stop_crosshair -------------------------- */
+  /**
+   *  Stop the crosshair cursor and set the current position to the
+   *  specifed pixel coordinate point.
+   *
+   *  @param  pt  The point to record as the current point, 
+   *              in pixel coordinates
+   */
+  public void stop_crosshair( Point current )
+  {
+    if ( doing_crosshair )
+    {
+      current_point = current;
+      crosshair_cursor.redraw( current );
+      crosshair_cursor.stop( current );
+      doing_crosshair = false;
+    }
+  }
+
+
+  /* ------------------------- stop_box_WC ---------------------------- */
+  /**
+   *  Stop the ruber band box cursor and set the current position to the
+   *  specifed world coordinate point.  If do_zoom is true, change the
+   *  transform to map the selected region to the full panel and
+   *  notify listeners of the zoom-in request.
+   *
+   *  @param  pt       the point to record as the current point, 
+   *                   in world coordinates
+   *  @param  do_zoom  flag specifying whether or not to zoom in 
+   *                   on the selected region
+   */
+  public void stop_box_WC( floatPoint2D pt, boolean do_zoom )
+  {
+    setCurrent_WC_point( pt );
+    stop_box( current_point, do_zoom );
+  }
+
+
+  /* -------------------------- stop_box ---------------------------- */
+  /**
+   *  Stop the ruber band box cursor and set the current position to the
+   *  specifed pixel coordinate point.  If do_zoom is true, change the
+   *  transform to map the selected region to the full panel and
+   *  notify listeners of the zoom-in request.
+   *
+   *  @param  current  the point to record as the current point,
+   *                   in pixel coordinates
+   *  @param  do_zoom  flag specifying whether or not to zoom in 
+   *                   on the selected region
+   */
+  public void stop_box( Point current, boolean do_zoom )
+  {
+    if ( doing_box )
+    {
+      current_point = current;
+      rb_box.redraw( current );
+      rb_box.stop( current );
+      doing_box = false;
+
+      zoom_region = rb_box.region();
                                                // process zoom if requested
-    if ( do_zoom )
-      if ( zoom_region.width  > 0  &&
-           zoom_region.height > 0   )
-      {
-         int x1 = zoom_region.x;
-         int y1 = zoom_region.y;
-         int x2 = x1 + zoom_region.width;
-         int y2 = y1 + zoom_region.height;
+      if ( do_zoom )
+        if ( zoom_region.width  > 0  &&
+             zoom_region.height > 0   )
+        {
+           int x1 = zoom_region.x;
+           int y1 = zoom_region.y;
+           int x2 = x1 + zoom_region.width;
+           int y2 = y1 + zoom_region.height;
 
-         ZoomToPixelSubregion( x1, y1, x2, y2 );
-         LocalTransformChanged();
-      }
+           ZoomToPixelSubregion( x1, y1, x2, y2 );
+           LocalTransformChanged();
+        }
+    }
   }
-}
 
 
-/* -------------------------- isDoingCrosshair ------------------------- */
+  /* -------------------------- isDoingCrosshair ------------------------- */
+  /**
+   *  @return  true if the crosshair cursor is currently active
+   */
+  public boolean isDoingCrosshair()
+  {
+    return doing_crosshair;
+  }
 
-public boolean isDoingCrosshair()
-{
-  return doing_crosshair;
-}
 
-
-/* -------------------------- isDoingBox ------------------------- */
-
-public boolean isDoingBox()
-{
-  return doing_box;
-}
+  /* -------------------------- isDoingBox ------------------------- */
+  /**
+   *  @return  true if the rubber band box cursor is currently active
+   */
+  public boolean isDoingBox()
+  {
+    return doing_box;
+  }
 
 
 /* --------------------------------------------------------------------------
@@ -571,7 +801,7 @@ class CoordMouseAdapter extends MouseAdapter
 {
   public void mouseClicked (MouseEvent e)
   {
-    if( isListening )
+    if ( isListening )
     {
       SetTransformsToWindowSize();
       current_point = e.getPoint();
@@ -580,31 +810,31 @@ class CoordMouseAdapter extends MouseAdapter
       stop_crosshair( current_point );
 
       if ( e.getClickCount() == 2 )    // reset zoom region to whole array
-        resetZoom(); 
+        resetZoom();
     }
-    else 
-      current_point = e.getPoint();   
+    else
+      current_point = e.getPoint();
   }
 
   public void mousePressed (MouseEvent e)
   {
-    if( isListening )
+    if ( isListening )
     {
       SetTransformsToWindowSize();
 
       if ( (e.getModifiers() & InputEvent.BUTTON2_MASK) != 0  ||
-    	    e.isShiftDown()					  )
+            e.isShiftDown()                                         )
         set_box( e.getPoint() ); 
       else  
-        set_crosshair( e.getPoint() );    
+        set_crosshair( e.getPoint() );
     }
     else
-       current_point = e.getPoint();
+      current_point = e.getPoint();
   }
 
   public void mouseReleased(MouseEvent e)
   {
-    if( isListening )
+    if ( isListening )
     {
       SetTransformsToWindowSize();
       current_point = e.getPoint();
@@ -612,24 +842,24 @@ class CoordMouseAdapter extends MouseAdapter
       stop_box( e.getPoint(), true );
     }
     else
-      current_point = e.getPoint();  
+      current_point = e.getPoint();
   }
 
   public void mouseEntered (MouseEvent e)
   {
-    requestFocus();		 // so we can also move cursor with arrow
-        		         // keys
+    requestFocus();                // so we can also move cursor with arrow
+                                   // keys
     Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
     //###### setCursor( cursor );
   }
-}
+};
 
 
 class CoordMouseMotionAdapter extends MouseMotionAdapter
 {
   public void mouseDragged(MouseEvent e)
   {
-    if( isListening )
+    if ( isListening )
     {
       SetTransformsToWindowSize();
       current_point = e.getPoint();
@@ -650,19 +880,19 @@ class CoordKeyAdapter extends KeyAdapter
 {
   public void keyPressed( KeyEvent e )
   {
-    if( isListening )
+    if ( isListening )
     {
       int code = e.getKeyCode();
 
       boolean  is_arrow_key;
       is_arrow_key = ( code == KeyEvent.VK_LEFT || code == KeyEvent.VK_RIGHT ||
-    	               code == KeyEvent.VK_UP   || code == KeyEvent.VK_DOWN   );
+                       code == KeyEvent.VK_UP   || code == KeyEvent.VK_DOWN   );
 
       Point increment = new Point(0,0);
-    					       // only process arrow keys 
-    					       // and <ENTER>, <BACKSPACE> 
+                                                 // only process arrow keys 
+                                                 // and <ENTER>, <BACKSPACE> 
       if ( !is_arrow_key && 
-    	   code != KeyEvent.VK_ENTER && code != KeyEvent.VK_BACK_SPACE   ) 
+         code != KeyEvent.VK_ENTER && code != KeyEvent.VK_BACK_SPACE   ) 
         return;
 
       if ( is_arrow_key && !CJP_handle_arrow_keys )
@@ -683,9 +913,9 @@ class CoordKeyAdapter extends KeyAdapter
       current_point.x += increment.x;
       current_point.y += increment.y;
 
-      int id = 0; 			    // synthesize a mouse event and
-      int modifiers = 0;  		    // send it to this CoordJPanel
-      int clickcount = 0; 		    // to trigger the proper response
+      int id = 0;                             // synthesize a mouse event and
+      int modifiers = 0;                      // send it to this CoordJPanel
+      int clickcount = 0;                     // to trigger the proper response
 
       if ( code == KeyEvent.VK_ENTER )
         id = MouseEvent.MOUSE_RELEASED;
@@ -701,26 +931,26 @@ class CoordKeyAdapter extends KeyAdapter
         if ( !doing_box && !doing_crosshair )
           id = MouseEvent.MOUSE_PRESSED;
         else
-    	  id = MouseEvent.MOUSE_DRAGGED;
-       
+          id = MouseEvent.MOUSE_DRAGGED;
+         
         if ( e.isShiftDown() )
           modifiers  = InputEvent.BUTTON2_MASK;
         else
-    	  modifiers  = MouseEvent.BUTTON1_MASK;
+          modifiers  = MouseEvent.BUTTON1_MASK;
       }
 
       MouseEvent mouse_e = new MouseEvent( this_panel, 
                                            id, 
-                                           e.getWhen(),  
+                                           e.getWhen(), 
                                            modifiers, 
                                            current_point.x, 
-                                           current_point.y,  
-                                           clickcount, 
+                                           current_point.y, 
+                                           clickcount,
                                            false ); 
       this_panel.dispatchEvent( mouse_e );
       if ( id == MouseEvent.MOUSE_PRESSED )      // Also send dragged event
       {
-        mouse_e = new MouseEvent( this_panel, 
+        mouse_e = new MouseEvent( this_panel,
                                   MouseEvent.MOUSE_DRAGGED,
                                   e.getWhen()+1,
                                   modifiers,
@@ -741,7 +971,7 @@ class CoordComponentAdapter extends ComponentAdapter
 
   public void componentResized( ComponentEvent c )
   {
-    if( isListening )
+    if ( isListening)
     {
       Dimension size = getSize();
       if ( size.width == 0 || size.height == 0 )
