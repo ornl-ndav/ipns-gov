@@ -4,6 +4,11 @@
  *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.8  2001/03/02 17:01:25  dennis
+ *  Added tests for data_manager == null in methods to get info from
+ *  the data_manager.
+ *  Added rudimentary destroy() method.  THIS IS NOT COMPLETE.
+ *
  *  Revision 1.7  2001/02/22 23:19:12  dennis
  *  Now includes separate check box that determines whether
  *  or not the DataSet is automatically updated.
@@ -113,7 +118,10 @@ public class LiveDataMonitor extends    JPanel
  */
   public int numDataSets()
   {
-    return data_manager.numDataSets();
+    if ( data_manager != null )
+      return data_manager.numDataSets();
+    else
+      return 0;
   }
 
 /**
@@ -124,7 +132,10 @@ public class LiveDataMonitor extends    JPanel
 
   public int getType( int data_set_num )
   {
-    return data_manager.getType( data_set_num );
+    if ( data_manager != null )
+      return data_manager.getType( data_set_num );
+    else
+      return Retriever.INVALID_DATA_SET;
   }
 
 
@@ -139,15 +150,41 @@ public class LiveDataMonitor extends    JPanel
  */
   public DataSet getDataSet( int data_set_num )
   {
-    return data_manager.getDataSet( data_set_num );
+    if ( data_manager != null )
+      return data_manager.getDataSet( data_set_num );
+    else
+      return (DataSet)(DataSet.EMPTY_DATA_SET.clone());
   }
 
+
+/**
+ *
+ */
+  public void destroy()
+  {
+    // SHOULD FIRST SHUTDOWN THE data_manager... NOT YET IMPLEMENTED
+
+    removeAll();                    // get rid of all of the components
+    ResetPrivateData();
+  }
 
  /* ------------------------------------------------------------------------
   *
   *  PRIVATE METHODS 
   *
   */
+
+  /* ----------------------- ResetPrivateData --------------------------- */
+
+  private void ResetPrivateData()
+  {
+    data_source_name = "";
+    data_manager = null;
+    viewers  = new ViewManager[0];
+    show_box = new JCheckBox[0];
+    auto_box = new JCheckBox[0];
+    ds_label = new JLabel[0];
+  }
 
   /* ------------------------------ SetUpGUI ------------------------------- */
 
@@ -239,7 +276,7 @@ public class LiveDataMonitor extends    JPanel
     }
 
     border = new TitledBorder( LineBorder.createBlackLineBorder(),
-                               "Update Time Interval( 0 - 10 Min )" );
+                               "Auto Update Interval( 0 - 10 Min )" );
     border.setTitleFont( FontUtil.BORDER_FONT );
     time_slider.setBorder( border );
 
