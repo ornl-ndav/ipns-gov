@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/07/29 13:32:59  rmikk
+ *  Fixed an off by one error
+ *  All paths are now valid
+ *
  *  Revision 1.6  2004/03/11 23:45:40  rmikk
  *  Fixed Package names
  *
@@ -227,7 +231,7 @@ public class ViewMenuItem
     String menu = path;
     // get everything before first delimiter.
     if( dot_index > 0 )
-      menu = path.substring(0,dot_index - 1);
+      menu = path.substring(0,dot_index);
     
     if( PUT_IN_FILE.equalsIgnoreCase(menu))
       return true; 
@@ -239,7 +243,7 @@ public class ViewMenuItem
       return true; 
     else if( PUT_IN_HELP.equalsIgnoreCase(menu) )
       return true; 
-    return false;
+    return true;
   }
  
  /*
