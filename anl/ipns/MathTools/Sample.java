@@ -1,8 +1,14 @@
 /*
- * @(#)Sample.java      0.1 2000/08/01  Dennis Mikkelson
+ * @(#)Sample.java
+ *
+ *  Programmer:  Dennis Mikkelson
  *
  *  Histogram and function resampling and rebinning operations
  *  some of which were originally in tof_calc.java
+ *
+ *  $Log$
+ *  Revision 1.4  2001/01/29 21:05:49  dennis
+ *  Now uses CVS revision numbers.
  *
  */
 

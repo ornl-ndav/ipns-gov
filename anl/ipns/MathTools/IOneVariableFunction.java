@@ -1,8 +1,12 @@
 /*
- * @(#) IOneVariableFunction.java   1.0  2000/03/07  Dennis Mikkelson
+ * @(#) IOneVariableFunction.java   
  *
- * ---------------------------------------------------------------------------
+ *  Programmer: Dennis Mikkelson
+ *
  *  $Log$
+ *  Revision 1.3  2001/01/29 21:05:35  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.2  2000/07/28 14:00:23  dennis
  *  Format changes only
  *

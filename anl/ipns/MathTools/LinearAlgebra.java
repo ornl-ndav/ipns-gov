@@ -1,10 +1,15 @@
 /*
- * @(#)LinearAlgebra.java        1.00 2000/11/14  Dennis Mikkelson
+ * @(#)LinearAlgebra.java
+ *
+ *  Programmer:  Dennis Mikkelson
  *
  *  Basic linear algebra operations such as QR factorization and solution of
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.2  2001/01/29 21:05:42  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.1  2000/11/17 23:51:52  dennis
  *  Basic linear algebra functions, QR factorization and linear
  *  system solution.

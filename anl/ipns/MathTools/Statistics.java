@@ -1,20 +1,25 @@
 /*
- * @(#)Statistics.java        1.00 2000/03/10  Dennis Mikkelson
+ * @(#)Statistics.java    
  *
- *  Basic statistics operations
+ *  Programmer:  Dennis Mikkelson
  * 
- * ---------------------------------------------------------------------------
  *  $Log$
+ *  Revision 1.2  2001/01/29 21:05:52  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.1  2000/07/10 22:26:14  dennis
  *  July 10, 2000 version... many changes
  *
  *  Revision 1.2  2000/05/11 16:08:13  dennis
  *  Added RCS logging
- *
- *
  */
 
 package DataSetTools.math;
+
+/**
+ *  Class that provides basic statistics operations as static methods. 
+ *  Currently just provides a least squares fit for a line.
+ */
 
 public final class Statistics 
 {

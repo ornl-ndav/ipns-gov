@@ -1,11 +1,15 @@
 /*
- * @(#)NumericalAnalysis.java        1.00 99/07/25  Dennis Mikkelson
+ * @(#)NumericalAnalysis.java
+ *
+ *  Programmer: Dennis Mikkelson
  *
  *  Basic numerical analysis operations, such as integration, calculation 
  *  of first and second moments, etc.   
  * 
- * ---------------------------------------------------------------------------
  *  $Log$
+ *  Revision 1.5  2001/01/29 21:05:44  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.4  2000/08/02 20:12:35  dennis
  *  Added routines to use trapezoidal rule to numerically integrate
  *  a function, and calculate moments of functions given by tablulated

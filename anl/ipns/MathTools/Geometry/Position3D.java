@@ -1,8 +1,12 @@
 /*
- * @(#) Position3D.java     1.0  98/08/05  Dennis Mikkelson
+ * @(#) Position3D.java
  *
- * ---------------------------------------------------------------------------
+ *  Programmer: Dennis Mikkelson
+ *
  *  $Log$
+ *  Revision 1.4  2001/01/29 21:05:47  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.3  2000/07/18 18:15:49  dennis
  *  Added toString() method
  *

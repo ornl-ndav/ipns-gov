@@ -1,14 +1,17 @@
 /*
- * @(#)XminuxCtoNtimesF.java  0.1 2000/03/10  Dennis Mikkelson
+ * @(#)XminuxCtoNtimesF.java 
  *
- * ---------------------------------------------------------------------------
+ *  Programmer: Dennis Mikkelson
+ *
  *  $Log$
+ *  Revision 1.2  2001/01/29 21:05:55  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.1  2000/07/10 22:26:16  dennis
  *  July 10, 2000 version... many changes
  *
  *  Revision 1.2  2000/05/11 16:08:13  dennis
  *  Added RCS logging
- *
  *
  */
 

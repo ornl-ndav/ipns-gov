@@ -1,10 +1,15 @@
 /*
- * @(#)CurveFit.java        1.00 2000/11/17  Dennis Mikkelson
+ * @(#)CurveFit.java
+ *
+ *  Programmer:  Dennis Mikkelson
  *
  *  Basic curve fitting operations such as least squares fitting of a 
  *  polynomial of arbitrary degree.
  * 
  *  $Log$
+ *  Revision 1.2  2001/01/29 21:05:20  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.1  2000/11/17 23:52:37  dennis
  *  Least squares fit of polynomial
  *

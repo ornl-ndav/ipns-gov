@@ -1,20 +1,17 @@
 /*
- * @(#) DetectorPosition.java     1.0  99/06/10  Dennis Mikkelson
+ * @(#) DetectorPosition.java 
  *
- * ---------------------------------------------------------------------------
+ *  Programmer: Dennis Mikkelson
+ *
  *  $Log$
+ *  Revision 1.4  2001/01/29 21:05:32  dennis
+ *  Now uses CVS revision numbers.
+ *
  *  Revision 1.3  2000/07/18 18:15:49  dennis
  *  Added toString() method
  *
  *  Revision 1.2  2000/07/10 22:25:12  dennis
  *  July 10, 2000 version... many changes
- *
- *  Revision 1.4  2000/06/12 14:51:08  dennis
- *  *** empty log message ***
- *
- *  Revision 1.3  2000/05/11 16:08:13  dennis
- *  Added RCS logging
- *
  *
  */
 package  DataSetTools.math;
