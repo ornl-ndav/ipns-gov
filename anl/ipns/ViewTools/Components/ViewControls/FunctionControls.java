@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.26  2004/03/11 23:35:41  serumb
+ * Removed String entry objects.
+ *
  * Revision 1.25  2004/03/10 19:34:22  serumb
  * Added kill method.
  *
@@ -225,10 +228,6 @@ import javax.swing.border.*;
   private JLabel yz_end;
   private JLabel control_label;
   private Font label_font;
-  private StringEntry start_field;
-  private StringEntry end_field;
-  private StringEntry y_start_field;
-  private StringEntry y_end_field;
   private TextRangeUI x_range; 
   private TextRangeUI y_range;
   private TitledBorder border;
