@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/12 02:00:35  rmikk
+ *  Fixed package Names
+ *
  *  Revision 1.6  2004/02/15 21:42:01  millermi
  *  - Revised javadocs. Commented out world/image_coords_set
  *    variables since they are not being used.
@@ -68,14 +71,14 @@
  *    ViewComponent.
  *
  */ 
-package DataSetTools.components.View.Region;
+package gov.anl.ipns.ViewTools.Components.Region;
 
 import java.awt.Point;
 import java.util.Vector;
 
-import DataSetTools.util.floatPoint2D;
-import DataSetTools.components.image.CoordBounds;
-import DataSetTools.components.image.CoordTransform;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
 /**
  * This class is a base class for all regions in the Region package. A Region is
