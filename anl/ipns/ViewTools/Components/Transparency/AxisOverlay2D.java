@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/07/05 19:44:21  dennis
+ *  - Implemented private methods paintLogX() and paintLogY()
+ *    (Mike Miller)
+ *
  *  Revision 1.8  2003/06/18 22:14:28  dennis
  *  (Mike Miller)
  *  - Restructured the paint method to allow linear or log axis display.
@@ -57,14 +61,8 @@
  *  Revision 1.3  2003/05/16 14:56:12  dennis
  *  Added calibration intervals on the X-Axis when resizing. (Mike Miller)
  *
- */
- 
-//******************************Mental Reminders*******************************
-// Y axis doesn't display end ranges
-// ImageJPanel currently draws over the overlay.
+ */ 
 // X axis has a constant position 50 for it's label
-//*****************************************************************************
-// 4/26/03 -Added calibration intervals on x-axis when resizing
 
 package DataSetTools.components.View.Transparency;
 
@@ -95,26 +93,45 @@ public class AxisOverlay2D extends OverlayJPanel
    private int yaxis = 0;
    private int xstart = 0;
    private int ystart = 0;
+   //private ILogAxisAddible2D component;
    private IAxisAddible2D component;
    private int precision;
    private Font f;
    private int axesdrawn;
    private boolean drawXLinear;
    private boolean drawYLinear;
+   private boolean isTwoSided = true;
    
-   public AxisOverlay2D(IAxisAddible2D iaa)
+   public AxisOverlay2D()
    {
       super();
-      component = iaa; 
-      precision = iaa.getPrecision();
-      f = iaa.getFont();
+      f = new Font("Default", Font.PLAIN, 12);
       xmin = 0;
       xmax = 1;
       ymin = 0;
       ymax = 1;
+      VirtualArray2D va = new VirtualArray2D( 1, 1 );
+      va.setDataValue(0,0,0);
+      component = new ImageViewComponent( va );
+      precision = 4;
       axesdrawn = DUAL_AXES;
-      drawXLinear = component.getAxisInfo(true).getIsLinear();
-      drawYLinear = component.getAxisInfo(false).getIsLinear();       
+      drawXLinear = true;
+      drawYLinear = true;
+   }
+   
+   public AxisOverlay2D(IAxisAddible2D iaa)
+   {
+      super();
+      component = iaa;
+      f = iaa.getFont();
+      xmin = component.getAxisInfo(true).getMin();
+      xmax = component.getAxisInfo(true).getMax();
+      ymax = component.getAxisInfo(false).getMin();
+      ymin = component.getAxisInfo(false).getMax(); 
+      setPrecision( iaa.getPrecision() );
+      setDisplayAxes( DUAL_AXES );
+      setXAxisLinearOrLog( component.getAxisInfo(true).getIsLinear() );
+      setYAxisLinearOrLog( component.getAxisInfo(false).getIsLinear() );
    }
 
   /**
@@ -143,6 +160,11 @@ public class AxisOverlay2D extends OverlayJPanel
       helper.setVisible(true);
    }
    
+//   public void setLogScale( float num )
+//   {
+//     logscale = num;
+//   }
+   
   /**
    * Sets the significant digits to be displayed.
    *
@@ -162,6 +184,11 @@ public class AxisOverlay2D extends OverlayJPanel
    public void setDisplayAxes( int display_scheme )
    {
       axesdrawn = display_scheme;
+   }
+   
+   public void setTwoSided( boolean doublesided )
+   {
+      isTwoSided = doublesided;
    }
    
   /**
@@ -192,8 +219,7 @@ public class AxisOverlay2D extends OverlayJPanel
    */  
    public void paint(Graphics g) 
    {  
-      Graphics2D g2d = (Graphics2D)g; 
-           
+      Graphics2D g2d = (Graphics2D)g;
       g2d.setFont(f);
       FontMetrics fontdata = g2d.getFontMetrics();
       // System.out.println("Precision = " + precision);
@@ -204,9 +230,8 @@ public class AxisOverlay2D extends OverlayJPanel
       // ymin & ymax swapped to adjust for axis standard
       ymax = component.getAxisInfo(false).getMin();
       ymin = component.getAxisInfo(false).getMax();
-      
+        
       // get the dimension of the center panel (imagejpanel)
-      // all of these values are returned as floats, losing precision!!!
       xaxis = (int)( component.getRegionInfo().getWidth() );
       yaxis = (int)( component.getRegionInfo().getHeight() );
       // x and y coordinate for upper left hand corner of component
@@ -285,7 +310,7 @@ public class AxisOverlay2D extends OverlayJPanel
      	     	 (xmax-xmin) + xstart);      
  
          num = util.standardize( (step * (float)steps + start) );
-         exp_index = num.indexOf('E');        
+         exp_index = num.lastIndexOf('E');        
 
 
          if( (prepix + 2 + 
@@ -325,7 +350,7 @@ public class AxisOverlay2D extends OverlayJPanel
             if( steps%skip == 0 && pixel <= (xstart + xaxis) )
             {
                num = util.standardize( (step * (float)steps + start) );
-               exp_index = num.indexOf('E');
+               exp_index = num.lastIndexOf('E');
             
                g2d.drawString( num.substring(0,exp_index), pixel - 
 	     	    fontdata.stringWidth(num.substring(0,exp_index))/2, 
@@ -340,11 +365,11 @@ public class AxisOverlay2D extends OverlayJPanel
    // This will display the x label, x units, and common exponent (if not 0).
       
       String xlabel = "";
-      if( component.getAxisInfo(true).getLabel() != 
-          IVirtualArray2D.NO_XLABEL )
+      if( !component.getAxisInfo(true).getLabel().equals( 
+          IVirtualArray2D.NO_XLABEL) )
          xlabel = xlabel + component.getAxisInfo(true).getLabel();
-      if( component.getAxisInfo(true).getUnits() != 
-          IVirtualArray2D.NO_XUNITS )
+      if( !component.getAxisInfo(true).getUnits().equals( 
+          IVirtualArray2D.NO_XUNITS) )
          xlabel = xlabel + "  " + component.getAxisInfo(true).getUnits();
       if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
          xlabel = xlabel + "  " + num.substring( exp_index );
@@ -407,7 +432,7 @@ public class AxisOverlay2D extends OverlayJPanel
      	     		 (ymax - ymin) + pmin); 
      
          num = yutil.standardize(ystep * (float)ysteps + starty);
-         exp_index = num.indexOf('E');
+         exp_index = num.lastIndexOf('E');
 
          /*
          System.out.println("Ypixel/Pmin = " + ypixel + "/" + pmin );
@@ -451,11 +476,11 @@ public class AxisOverlay2D extends OverlayJPanel
    // This will display the y label, y units, and common exponent (if not 0).
       
       String ylabel = "";
-      if( component.getAxisInfo(false).getLabel() != 
-          IVirtualArray2D.NO_YLABEL )
+      if( !component.getAxisInfo(false).getLabel().equals( 
+          IVirtualArray2D.NO_YLABEL) )
          ylabel = ylabel + component.getAxisInfo(false).getLabel();
-      if( component.getAxisInfo(false).getUnits() != 
-          IVirtualArray2D.NO_YUNITS )
+      if( !component.getAxisInfo(false).getUnits().equals(
+          IVirtualArray2D.NO_YUNITS) )
          ylabel = ylabel + "  " + component.getAxisInfo(false).getUnits();
       if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
          ylabel = ylabel + "  " + num.substring( exp_index );
@@ -474,7 +499,234 @@ public class AxisOverlay2D extends OverlayJPanel
    */   
    private void paintLogX( Graphics2D g2d )
    {
-   
+      ILogAxisAddible2D logcomponent = (ILogAxisAddible2D)component;
+      FontMetrics fontdata = g2d.getFontMetrics(); 
+      String num = "";
+      int TICK_LENGTH = 5;
+      int xtick_length = 0;
+      int negtick_length = 0;
+      //isTwoSided = false;
+      CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
+        					  Format.ENGINEER );
+      util.setTwoSided(isTwoSided);
+      float[] values = util.subDivideLog();
+      int numxsteps = values.length;	      
+   //   System.out.println("X ticks = " + numxsteps );        
+      int pixel = 0;
+      /* xaxis represents Pmax - Pmin
+      float Pmin = start;
+      float Pmax = start + xaxis;
+      float Amin = xmin;
+      */
+      float A = 0; 
+      int skip = 1;
+      int counter = 0;
+      int maxcounter = 0;
+      int tempprec = 3;
+      if( xmax/xmin < 10 )
+         tempprec = precision;
+      // Draw tick marks for a one-sided color model
+      if( !isTwoSided )
+      {
+         A = values[0];
+         LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
+         double logscale = logcomponent.getLogScale();
+
+	 int division = 0;    // 0-5, divisions in the xaxis.
+	 // rightmost pixel coord of last label drawn
+	 int last_drawn = -xstart;  
+	 
+	 // find division where the first label is to be drawn
+	 while( (int)logger.toSource(A, logscale) >= 
+	        (int)(xaxis/5 * (division + 1) ) )
+	    division++;
+	 
+	 for( int steps = 0; steps < numxsteps; steps++ )
+         {  
+            A = values[steps];
+	    
+	    pixel = xstart + (int)logger.toSource(A, logscale);
+
+            num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
+ 
+	    //g2d.setColor(Color.black);
+            xtick_length = TICK_LENGTH;
+            if( (pixel - xstart) >= (int)(xaxis/5 * division) )
+	    {
+	       // if this label does not interfer with the label before it
+               if( last_drawn < (pixel - fontdata.stringWidth(num)) )
+	       {
+	          g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+        	    yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
+	          last_drawn = pixel + fontdata.stringWidth(num)/2;
+		  if( A != 0 )
+                     division++;
+		  xtick_length += 3;
+               }
+	    }
+	    g2d.drawLine( pixel, yaxis + ystart, 
+     	     	          pixel, yaxis + ystart + xtick_length );   
+            
+	    // draw xmax if no numbers are near the end of the calibration
+	    if( steps == numxsteps - 1 )
+	    {
+               A = xmax;
+	       pixel = xstart + (int)logger.toSource(A, logscale);
+               num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
+               if( last_drawn < 
+	    	   pixel - fontdata.stringWidth(num)/2 )
+	       {
+	          g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+        	    yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
+	       
+	          g2d.drawLine( pixel, yaxis + ystart, 
+     	     	                pixel, yaxis + ystart + TICK_LENGTH + 3 );
+	       }
+	    }
+	    // debug axis divider
+	    /*g2d.setColor(Color.red);
+	    for( int i = 0; i <= 5; i++ )
+	       g2d.drawLine( xstart + xaxis*i/5, yaxis + ystart, xstart + 
+			     xaxis*i/5, yaxis + ystart + xtick_length );*/
+	 } // end of for
+      } // end of if( !isTwoSided )
+      // draw tickmarks for a two-sided color model
+      else
+      {
+         A = values[0];
+         LogScaleUtil logger = new LogScaleUtil( 0,(int)(xaxis/2),
+	                                         xmin, xmax + 1);
+         double logscale = logcomponent.getLogScale();
+
+         int neg_pixel = 0;
+	 String neg_num = "";
+	 int division = 5;     // 5-10, division # in the xaxis.
+	 int neg_division = 5; // 5-0 , division # in the xaxis
+	 int last_drawn = 0;   // rightmost pixel coord of last label drawn
+	 int last_neg_drawn = xaxis;// leftmost pixel coords of last neg. label
+	 int first_drawn = 0; // the leftmost pixel coords of first pos. label
+	 
+	 // find division where the first label is to be drawn
+	 while( (int)logger.toSource(A, logscale) >= 
+	        (int)(xaxis/10 * (division + 1) ) )
+	    division++;
+	 // find division where the first negative label is to be drawn
+	 while( (int)logger.toSource(A, logscale) >= 
+	        (int)(xaxis/10 * (10 - (neg_division-1) ) ) )
+	    neg_division--;
+	 
+	 for( int steps = 0; steps < numxsteps; steps++ )
+         { 
+            A = values[steps];
+             
+       //System.out.println("here" + xmin + "/" + xmax + "/" + steps + "/" + A);
+	    pixel = (int)(xstart + xaxis/2 + (int)logger.toSource(A,logscale) );
+            neg_pixel = (int)(xstart + xaxis/2 - 
+	                (int)logger.toSource(A, logscale) );
+	    num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
+	    neg_num = Format.choiceFormat( -A, Format.SCIENTIFIC, tempprec );
+	      
+	    if( A == 0 )
+	       first_drawn = pixel - 
+	               fontdata.stringWidth(num)/2;    
+
+	    //g2d.setColor(Color.black);
+	    xtick_length = TICK_LENGTH;
+	    negtick_length = TICK_LENGTH;
+            // this will handle all positive labels
+	    if( (pixel - xstart) >= (int)(xaxis/10 * division) )
+	    {
+	       // if this label does not interfer with the label before it
+               if( last_drawn < 
+	           pixel - fontdata.stringWidth(num)/2 ) 
+	       {
+	          g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+        	    yaxis + ystart + xtick_length + fontdata.getHeight() );
+               
+	          last_drawn = pixel + fontdata.stringWidth(num)/2;
+	          division++;
+		  xtick_length += 3;
+	       }
+	    }
+	    // this will handle all negative labels, if a negative label
+	    // interfers with a positive label, don't display the negative label
+	    //xtick_length = 6;
+	    if( (neg_pixel - xstart) <= (int)(xaxis/10 * neg_division) )
+	    {
+	       if( first_drawn > ( neg_pixel + fontdata.stringWidth(neg_num)/2 )
+		   && last_neg_drawn > (neg_pixel +
+        	   fontdata.stringWidth(neg_num)/2) )
+	       {
+	          g2d.drawString( neg_num, neg_pixel -
+        	    fontdata.stringWidth(neg_num)/2, 
+        	    yaxis + ystart + negtick_length + fontdata.getHeight() ); 
+	       
+	          last_neg_drawn = neg_pixel - 
+	            fontdata.stringWidth(neg_num)/2;
+	          neg_division--;
+		  negtick_length += 3;
+               }
+	    }
+            g2d.drawLine( pixel, yaxis + ystart, 
+     	     	          pixel, yaxis + ystart + xtick_length ); 
+            
+	    g2d.drawLine( neg_pixel, yaxis + ystart, 
+     	     	          neg_pixel, yaxis + ystart + negtick_length );
+         
+	    // draw xmax if no numbers are near the end of the calibration
+	    if( steps == numxsteps - 1 )
+	    {
+	       xtick_length = TICK_LENGTH;
+	       negtick_length = TICK_LENGTH;
+               A = xmax;
+	       pixel = (int)(xstart + xaxis/2 + 
+	               (int)logger.toSource(A,logscale) );
+               neg_pixel = (int)(xstart + xaxis/2 - 
+	                   (int)logger.toSource(A, logscale) );
+	       num = Format.choiceFormat( A, Format.SCIENTIFIC, tempprec );
+	       neg_num = Format.choiceFormat( -A, Format.SCIENTIFIC, tempprec );
+               if( last_drawn < 
+	    	   pixel - fontdata.stringWidth(num)/2 )
+	       {
+	          g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+        	    yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
+	          xtick_length += 3;
+	       }
+	       if( last_neg_drawn > (neg_pixel +
+        	   fontdata.stringWidth(neg_num)/2) )
+	       {
+	          g2d.drawString( neg_num, 
+		    neg_pixel -
+        	    fontdata.stringWidth(neg_num)/2, 
+        	    yaxis + ystart + negtick_length + fontdata.getHeight() ); 
+                  negtick_length += 3;
+	       }
+	       g2d.drawLine( pixel, yaxis + ystart, 
+     	     	             pixel, yaxis + ystart + xtick_length );  
+	       g2d.drawLine( neg_pixel, yaxis + ystart, 
+     	     	             neg_pixel, yaxis + ystart + negtick_length );
+	    }
+            // debug axis divider
+	    /*g2d.setColor(Color.red);
+	    for( int i = 0; i <= 10; i++ )
+	       g2d.drawLine( xstart + xaxis*i/10, yaxis + ystart, xstart + 
+			     xaxis*i/10, yaxis + ystart + TICK_LENGTH );*/
+	 } // end of for
+      } // end of else (isTwoSided)
+      
+   // This will display the x label, x units, and common exponent (if not 0).
+      
+      String xlabel = "";
+      if( !logcomponent.getAxisInfo(true).getLabel().equals( 
+          IVirtualArray2D.NO_XLABEL) )
+         xlabel = xlabel + logcomponent.getAxisInfo(true).getLabel();
+      if( !logcomponent.getAxisInfo(true).getUnits().equals( 
+          IVirtualArray2D.NO_XUNITS) )
+         xlabel = xlabel + "  " + logcomponent.getAxisInfo(true).getUnits();
+      if( xlabel != "" )
+         g2d.drawString( xlabel, xstart + xaxis/2 -
+        	   fontdata.stringWidth(xlabel)/2, 
+        	   yaxis + ystart + fontdata.getHeight() * 2 + 6 );   
    }
    
   /*
@@ -482,6 +734,233 @@ public class AxisOverlay2D extends OverlayJPanel
    */    
    private void paintLogY( Graphics2D g2d )
    {
-   
+      ILogAxisAddible2D logcomponent = (ILogAxisAddible2D)component;
+      FontMetrics fontdata = g2d.getFontMetrics();   
+      String num = "";
+      int TICK_LENGTH = 5;
+      //isTwoSided = false;
+      CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
+        					   Format.ENGINEER );
+      yutil.setTwoSided(isTwoSided);
+      float[] values = yutil.subDivideLog();
+      int numysteps = values.length;
+      
+      //   System.out.println("Y Start/Step = " + starty + "/" + ystep);
+      int ytick_length = 5;	// the length of the tickmark is 5 pixels
+      int ypixel = 0;		// where to place major ticks
+      int tempprec = 3;
+      if( xmax/xmin < 10 )
+         tempprec = precision;
+      	     	 
+      float a = 0;
+      // Draw tick marks for a one-sided color model
+      if( !isTwoSided )
+      {
+         a = values[0];
+         LogScaleUtil logger = new LogScaleUtil( 0, yaxis, ymax, ymin + 1);
+         double logscale = logcomponent.getLogScale();
+	 int division = 0;    // 0-5, divisions in the yaxis.
+	 // top pixel coord of last label drawn
+	 int last_drawn = yaxis + ystart + fontdata.getHeight(); 
+	 // find division where the first label is to be drawn
+	 while( (int)logger.toSource(a, logscale) >= 
+	        (int)(yaxis/5 * (division + 1) ) )
+	    division++;
+   //   System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
+   //                      ") = " + mult + "R" + rem);
+	 for( int ysteps = 0; ysteps < numysteps; ysteps++ )
+         { 
+            a = values[ysteps];  
+            //System.out.println("Logger: " + logger.toSource(a, logscale) );
+            ypixel = ystart + yaxis - (int)logger.toSource(a, logscale);
+            num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
+  
+            ytick_length = TICK_LENGTH;
+	    //g2d.setColor(Color.black);
+            if( (int)logger.toSource(a, logscale) >= (int)(yaxis/5 * division) )
+	    {  
+	       // if this label does not interfer with the label before it
+               if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
+	       {
+                  ytick_length += 3;
+                  g2d.drawString( num, xstart - ytick_length - 
+	     	      fontdata.stringWidth(num),
+        	      ypixel + fontdata.getHeight()/4 );
+	          last_drawn = ypixel - fontdata.getHeight()/2;
+		  if( a != 0 )
+                     division++;
+	       }	   
+	    }
+            g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                          xstart - 1, ypixel - 1 );   
+            ytick_length = TICK_LENGTH;
+	    // draw end marker if nothing no values are near the end.
+	    if( ysteps == (numysteps - 1) )
+	    {
+	       a = ymin;
+               ypixel = ystart + yaxis - (int)logger.toSource(a,logscale);
+	       	    
+               num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
+	       if( last_drawn > (ypixel - fontdata.getHeight()/2) ) 
+	       {	  
+	    	  ytick_length += 3;  	
+                  g2d.drawString( num, xstart - ytick_length - 
+	     	      fontdata.stringWidth(num),
+        	      ypixel + fontdata.getHeight()/4 );
+	       }
+               g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                             xstart - 1, ypixel - 1 ); 
+	    }
+	     
+            // debug axis divider
+	    /*g2d.setColor(Color.red);
+	    for( int i = 0; i <= 5; i++ )
+	       g2d.drawLine( xstart - ytick_length, ystart + yaxis*i/5, 
+                             xstart - 1, ystart + yaxis*i/5 );*/
+         }
+      }
+      // if two-sided color model
+      else
+      {
+         a = values[0];
+         LogScaleUtil logger = new LogScaleUtil( 0,(int)(yaxis/2),
+	                                         ymax,ymin + 1);
+         double logscale = logcomponent.getLogScale();
+         int negtick_length = 0;
+         int neg_ypixel = 0;
+	 String neg_num = "";
+	 int division = 0;     // 0-5,  division # in the xaxis.
+	 int neg_division = 0; // 0-5, division # in the xaxis
+	 // top pixel coord of last label drawn
+	 int last_drawn = yaxis/2 + ystart + fontdata.getHeight();
+	 //bottommost pixel coords of last neg label
+	 int last_neg_drawn = yaxis/2 + ystart - fontdata.getHeight();
+	 int first_drawn = 0;  //the bottommost pixel coords of first pos label
+	 
+	 // find division where the first label is to be drawn
+	 while( (int)logger.toSource(a, logscale) >= 
+	        (int)(yaxis/10 * (division + 1) ) )
+	    division++;
+	 // find division where the first negative label is to be drawn
+	 while( (int)logger.toSource(a, logscale) >= 
+	        (int)(yaxis/10 * (neg_division+1) ) )
+	    neg_division++;
+
+   //   System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
+   //                      ") = " + mult + "R" + rem);
+	 for( int ysteps = 0; ysteps < numysteps; ysteps++ )
+         {  
+            a = values[ysteps];
+            ypixel = ystart + (int)(yaxis/2) - (int)logger.toSource(a,logscale);
+            neg_ypixel = ystart + (int)(yaxis/2) + 
+	                          (int)logger.toSource(a,logscale);
+	    	      
+	    if( ysteps == 0 )
+	       first_drawn = ypixel + (int)(fontdata.getHeight()/2);
+	    
+            num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
+	    neg_num = Format.choiceFormat( -a, Format.SCIENTIFIC, tempprec );
+  
+            ytick_length = TICK_LENGTH;
+	    negtick_length = TICK_LENGTH;
+	    //g2d.setColor(Color.black);
+            if( (int)logger.toSource(a,logscale) >= (int)(yaxis/10 * division) )
+	    {  
+	       // positive number labels
+               if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
+	       {
+                  ytick_length += 3;
+                  g2d.drawString( num, 
+        	      xstart - ytick_length - 
+	     	      fontdata.stringWidth(num),
+        	      ypixel + fontdata.getHeight()/4 );
+	          last_drawn = ypixel - fontdata.getHeight()/2;
+		  if( ysteps != 0 )
+                     division++;
+	       }
+            }
+	    if( (int)logger.toSource(a,logscale) >= 
+	        (int)(yaxis/10 * neg_division) &&
+	        first_drawn < (neg_ypixel - fontdata.getHeight()/2) )
+	    {  
+	       // negative number labels
+               if( last_neg_drawn < (neg_ypixel - fontdata.getHeight()/2) ) 
+	       {
+		  negtick_length += 3;
+                  g2d.drawString( neg_num, xstart - ytick_length - 
+	     	      fontdata.stringWidth(neg_num),
+        	      neg_ypixel + fontdata.getHeight()/4 + 2);
+	          last_neg_drawn = neg_ypixel + fontdata.getHeight()/2;
+                  neg_division++;
+               }	   
+	    }
+	    
+	    if( a == 0 )	    	    
+               g2d.drawLine( xstart - ytick_length, ypixel, 
+                             xstart - 1, ypixel ); 		    	    
+            else
+	    {
+	       g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                             xstart - 1, ypixel - 1 ); 	    
+               g2d.drawLine( xstart - negtick_length, neg_ypixel + 1, 
+                             xstart - 1, neg_ypixel + 1 );   
+            }
+	    
+	    // draw end marker if nothing no values are near the end.
+	    if( ysteps == (numysteps - 1) )
+	    {
+	       a = ymin;
+               ypixel = ystart + (int)(yaxis/2) - 
+	        	(int)logger.toSource(a,logscale);
+               neg_ypixel = ystart + (int)(yaxis/2) + 
+	        	       (int)logger.toSource(a,logscale);
+	       	    
+               num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
+	       neg_num = Format.choiceFormat( -a, Format.SCIENTIFIC, tempprec );
+               ytick_length = TICK_LENGTH;
+	       negtick_length = TICK_LENGTH;
+	       if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
+	       {
+	          ytick_length += 3;
+		  negtick_length += 3;
+                  g2d.drawString( num, xstart - ytick_length - 
+	     	      fontdata.stringWidth(num),
+        	      ypixel + fontdata.getHeight()/4 );
+		      
+                  g2d.drawString( neg_num, xstart - negtick_length - 
+	     	      fontdata.stringWidth(neg_num),
+        	      neg_ypixel + fontdata.getHeight()/4 + 2);	
+	       }    
+               g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                	     xstart - 1, ypixel - 1 );  	 
+               g2d.drawLine( xstart - negtick_length, neg_ypixel + 1, 
+                             xstart - 1, neg_ypixel + 1);  
+	    }
+	    
+	    // debug axis divider 
+	    /*g2d.setColor(Color.red);
+	    for( int i = 0; i <= 10; i++ )
+	       g2d.drawLine( xstart - ytick_length, ystart + yaxis*i/10, 
+                             xstart - 1, ystart + yaxis*i/10 ); */
+         }
+      
+      }
+   // This will display the y label, y units, and common exponent (if not 0).
+      
+      String ylabel = "";
+      if( !logcomponent.getAxisInfo(false).getLabel().equals( 
+          IVirtualArray2D.NO_YLABEL) )
+         ylabel = ylabel + logcomponent.getAxisInfo(false).getLabel();
+      if( !logcomponent.getAxisInfo(false).getUnits().equals(
+          IVirtualArray2D.NO_YUNITS) )
+         ylabel = ylabel + "  " + logcomponent.getAxisInfo(false).getUnits();
+      if( ylabel != "" )
+      {
+         g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );    
+         g2d.drawString( ylabel, xstart + yaxis/2 -
+        		 fontdata.stringWidth(ylabel)/2, 
+        		 yaxis + ystart - xstart + fontdata.getHeight() );
+         g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
+      }
    }
 }
