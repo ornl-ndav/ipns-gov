@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2002/08/12 20:23:59  pfpeterson
+ *  Returned the fixSeparator method to its original purpose. Last
+ *  version caused a bug that made runfiles not load under windows.
+ *
  *  Revision 1.8  2002/08/12 18:51:47  pfpeterson
  *  fixSeparator now points at FilenameUtil.fixSeparator. Also, updated
  *  the documentation to reflect what fixSeparator actually does.
@@ -86,19 +90,24 @@ public class StringUtil
 
   /* ---------------------------- fixSeparator --------------------------- */
   /**
-   *  Method whichs calls its equivalent:
-   *  FilenameUtil.fixSeparator(file_name). See that method for
-   *  documentation.
+   *  Replace all occurrences of the possible file separators "/", "\", "\\" with the file separator needed for the local system.
    *
    *  @param  file_name  A file name string possibly containing improper
    *                     separators.
    *
    *  @return  A string containing the file name with all separators replaced 
-   *           by the appropriate separtator.
+   *           by system dependent separtator.
    */
   public static String fixSeparator( String file_name )
   {
-      return FilenameUtil.fixSeparator(file_name);
+      String separator=File.separator;
+      String result;
+      
+      result = replace( file_name, "\\\\", separator);
+      result = replace( result,    "\\",   separator);
+      result = replace( result,    "/",    separator);
+
+      return result;
   }
 
   /* ------------------------------ replace ------------------------------ */
