@@ -36,6 +36,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/06/19 22:51:13  dennis
+ *  Added methods getParameterSigmas() and getParameterSigmas_2()
+ *  that estimate errors in the fitting parameters (in two ways).
+ *  Also, now scales rows and columns of the matrix "Alpha" by the
+ *  square root of the diagonal elements to keep the diagonal
+ *  elements at the same magnitude.
+ *
  *  Revision 1.1  2002/06/17 22:26:04  dennis
  *  The Marquardt algorithm for curve fitting.
  *
@@ -54,6 +61,7 @@ public class MarquardtArrayFitter extends CurveFitter
 {
   double Alpha[][];
   double u[][];
+  double root_diag[];
 
   /**
    */
@@ -68,22 +76,75 @@ public class MarquardtArrayFitter extends CurveFitter
     do_fit( tolerance, max_steps );
   } 
 
-
   public double[] getParameterSigmas()
   {
     double p_sigmas[]  = new double[ f.numParameters() ];
+
+    for ( int k = 0; k < p_sigmas.length; k++ )
+      p_sigmas[k] = 1.0 / root_diag[k];
+
+    return p_sigmas;
+  }
+
+
+  public double[] getParameterSigmas_2()
+  {
+    double p_sigmas[]  = new double[ f.numParameters() ];
+
+    double a_save;
+    double delta;
+    for ( int k = 0; k < p_sigmas.length; k++ )
+    {
+      double a[] = f.getParameters();
+      double diff = 0.0;
+      int    n_steps = 0;
+      a_save = a[k];
+      while ( diff <= 0.0 && n_steps < 10 )
+      {
+        delta = 0.0001 * a_save;
+
+        a[k] = a_save + delta;
+        f.setParameters(a);
+        double chi_3 = getChiSqr();
+
+        a[k] = a_save - delta;
+        f.setParameters(a);
+        double chi_1 = getChiSqr();
+
+        a[k] = a_save;
+        f.setParameters(a);
+        double chi_2 = getChiSqr();
+
+        diff = Math.abs(chi_1-2*chi_2+chi_3);
+        if ( diff != 0 )
+          p_sigmas[k] = delta * Math.sqrt(2.0/diff);
+        else
+          p_sigmas[k] = Double.POSITIVE_INFINITY; 
+
+        n_steps++;
+      }
+    }    
+    return p_sigmas;
+  }
+ 
+  /*
+  public double[] getParameterSigmas()
+  {
+    double p_sigmas[]  = new double[ f.numParameters() ];
+
     double basis_vec[] = new double[ f.numParameters() ];
-    
     for ( int k = 0; k < p_sigmas.length; k++ )
     {
       for ( int i = 0; i < basis_vec.length; i++ )
         basis_vec[i] = 0.0;
-      basis_vec[k] = 1.0;
+      basis_vec[k] = 1.0/root_diag[k];
+
       LinearAlgebra.QR_solve( Alpha, u, basis_vec );
-      p_sigmas[k] = basis_vec[k];
+      p_sigmas[k] = Math.sqrt(basis_vec[k]/root_diag[k]) / root_diag[k];
     }
     return p_sigmas;
   }
+  */
 
   private void do_fit( double tolerance, int max_steps )
   {
@@ -104,7 +165,8 @@ public class MarquardtArrayFitter extends CurveFitter
     double derivs[];                                  // dFda( xi )
     double beta[]    = new double[n_params];
     double A[][]     = new double[n_params][n_params];
-    Alpha = new double[n_params][n_params];
+    Alpha            = new double[n_params][n_params];
+    root_diag        = new double[n_params];
 
     ClosedInterval domain = f.getDomain();
     float x_min = domain.getStart_x();
@@ -137,26 +199,34 @@ public class MarquardtArrayFitter extends CurveFitter
         }
       }
 
+      for ( int k = 0; k < n_params; k++ )
+        root_diag[k] = Math.sqrt( A[k][k] );
+
       chisq_increasing = true;
       while ( chisq_increasing && n_steps < max_steps )
       {
-        for ( int k = 0; k < n_params; k++ )
-          for ( int j = 0; j < n_params; j++ )
-            Alpha[k][j] = A[k][j];
-
-        for ( int k = 0; k < n_params; k++ )
-          Alpha[k][k] *= (1 + lamda);
-
         a = f.getParameters();
         norm_a = Math.max( 1.0, LinearAlgebra.Norm(a) );
         for ( int k = 0; k < n_params; k++ )
         {
           a_old[k] = a[k];
-          da[k]    = beta[k];
+          da[k]    = beta[k]/root_diag[k];
         }
+
+        for ( int k = 0; k < n_params; k++ )
+        {
+          for ( int j = 0; j < n_params; j++ )
+            Alpha[k][j] = A[k][j] / (root_diag[k] * root_diag[j]);
+        }
+
+        for ( int k = 0; k < n_params; k++ )
+          Alpha[k][k] *= (1 + lamda);
 
         u = LinearAlgebra.QR_factorization( Alpha ); 
         LinearAlgebra.QR_solve( Alpha, u, da );
+
+        for ( int k = 0; k < n_params; k++ )
+          da[k] /= root_diag[k];
 
         norm_da = LinearAlgebra.Norm(da);
 
@@ -183,7 +253,16 @@ public class MarquardtArrayFitter extends CurveFitter
 //        System.out.println( n_steps + ", " + chisq_2 + ", " + lamda);
       }
     }
+    System.out.println("After fit ..............................");
     System.out.println("n_steps = " + n_steps );
+    System.out.println("lamda = " + lamda );
+    System.out.println("A[k][k],    Alpha[k][k],   u[k][k] =");
+    for ( int k = 0; k < n_params; k++ )
+      System.out.println(""+A[k][k]+", " + Alpha[k][k] +", " + u[k][k] );
+    System.out.println("root_diag = " );
+    for ( int k = 0; k < n_params; k++ )
+      System.out.print(" "+root_diag[k]);
+    System.out.println();
   }
 
 
@@ -197,12 +276,13 @@ public class MarquardtArrayFitter extends CurveFitter
 
     for ( int i = 0; i < x.length; i++ )
     {
-      x[i] = i;
+      x[i] =   i;
       y[i] =   6.0*x[i]*x[i]*x[i] + 
                5.0*x[i]*x[i] + 
                4.0*x[i] + 
-               1000.0 
-              + 500*ran.nextGaussian();
+               1000.0   +
+              + 999*ran.nextGaussian();
+
       sigma[i] = Math.sqrt(y[i]); 
     }
 
@@ -211,14 +291,17 @@ public class MarquardtArrayFitter extends CurveFitter
 
     ElapsedTime timer = new ElapsedTime();
     MarquardtArrayFitter fitter = 
-         new MarquardtArrayFitter( f, x, y, sigma, 1.0e-20, 500 );
+         new MarquardtArrayFitter( f, x, y, sigma, 1.0e-20, 1000 );
     System.out.println("Time to fit = " + timer.elapsed() );
 
     double p_sigmas[] = fitter.getParameterSigmas();
+    double p_sigmas_2[] = fitter.getParameterSigmas_2();
     String names[] = f.getParameterNames();
            coefs   = f.getParameters();
     for ( int i = 0; i < f.numParameters(); i++ )
-      System.out.println(names[i] + " = " + coefs[i] + " +- " + p_sigmas[i] ); 
+      System.out.println(names[i] + " = " + coefs[i] + 
+                         " +- " + p_sigmas[i] +
+                         " +- " + p_sigmas_2[i] );
     System.out.println("Chi Sq = " + fitter.getChiSqr() );
 
     String file_name = "/home/dennis/ARGONNE_DATA/hrcs2447.run";
@@ -245,9 +328,9 @@ public class MarquardtArrayFitter extends CurveFitter
    
     FunctionModel model;
     XScale x_scale = m1.getX_scale();
-    Gaussian g1 = new Gaussian( 2725, 32000, 100 );
-    Gaussian g2 = new Gaussian( 2750,   100, 70 );
-//    Lorentzian l1 = new Lorentzian( 2750, 100, 70 );    
+    Gaussian g1 = new Gaussian( 2725, 32000, 13 );
+    Gaussian g2 = new Gaussian( 2746,   100, 30 );
+//    Lorentzian l1 = new Lorentzian( 2750, 2000, 70 );    
     Lorentzian l1 = new Lorentzian( 2746, 3391, 30 );    
 //    Lorentzian l1 = new Lorentzian( 2725, 1000, 100 );    
 
@@ -266,24 +349,31 @@ public class MarquardtArrayFitter extends CurveFitter
     SumFunction sum = new SumFunction( funs );
     interval = new ClosedInterval( 2500, 2900 );
     sum.setDomain( interval );
+
 /*
     fitter = new MarquardtArrayFitter( g1, x, y, sigma, 1.0e-20, 500 );
     p_sigmas = fitter.getParameterSigmas();
+    p_sigmas_2 = fitter.getParameterSigmas_2();
     coefs = g1.getParameters();
     names = g1.getParameterNames();
     for ( int i = 0; i < g1.numParameters(); i++ )
-      System.out.println(names[i] + " = " + coefs[i] + " +- " + p_sigmas[i] );
+      System.out.println(names[i] + " = " + coefs[i] + 
+                         " +- " + p_sigmas[i] +
+                         " +- " + p_sigmas_2[i] );
     model = new FunctionModel( x_scale, g1, 3 ); 
 */
 
     fitter = new MarquardtArrayFitter( sum, x, y, sigma, 1.0e-20, 500 );
     p_sigmas = fitter.getParameterSigmas();
+    p_sigmas_2 = fitter.getParameterSigmas_2();
     coefs = sum.getParameters();
     names = sum.getParameterNames();
     for ( int i = 0; i < sum.numParameters(); i++ )
-      System.out.println(names[i] + " = " + coefs[i] + " +- " + p_sigmas[i] );
-    model = new FunctionModel( x_scale, sum, 3 ); 
+      System.out.println(names[i] + " = " + coefs[i] + 
+                         " +- " + p_sigmas[i] +
+                         " +- " + p_sigmas_2[i] );
 
+    model = new FunctionModel( x_scale, sum, 3 ); 
     System.out.println("Chi Sq = " + fitter.getChiSqr() );
 
     monitor_ds.addData_entry( model );
@@ -307,15 +397,16 @@ public class MarquardtArrayFitter extends CurveFitter
     g1.setDomain( new ClosedInterval(3700, 4220 ));
     fitter = new MarquardtArrayFitter( g1, x, y, sigma, 1.0e-20, 500 );
     p_sigmas = fitter.getParameterSigmas();
+    p_sigmas_2 = fitter.getParameterSigmas_2();
     coefs = g1.getParameters();
     names = g1.getParameterNames();
     for ( int i = 0; i < g1.numParameters(); i++ )
-      System.out.println(names[i] + " = " + coefs[i] + " +- " + p_sigmas[i] );
+      System.out.println(names[i] + " = " + coefs[i] + 
+                         " +- " + p_sigmas[i] +
+                         " +- " + p_sigmas_2[i] );
     model = new FunctionModel( x_scale, g1, 3 );
     monitor_ds.addData_entry( model );
     monitor_ds.notifyIObservers( IObserver.DATA_CHANGED );
-    
-
   }
 
 }
