@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/08/06 13:56:45  dennis
+ *  - Added sjp.setOpaque(false) to constructor. Fixes bug when
+ *    Axis Overlay is turned off and Selection Overlay is on.
+ *
  *  Revision 1.5  2003/07/25 14:39:34  dennis
  *  - Constructor now takes component of type IZoomAddible instead of
  *    IAxisAddible2D
@@ -128,6 +132,7 @@ public class SelectionOverlay extends OverlayJPanel
       this.setLayout( new GridLayout(1,1) );
       
       sjp = new SelectionJPanel();
+      sjp.setOpaque(false);
       component = iza;
       regions = new Vector();       
       this_panel = this;
