@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.55  2004/06/16 22:09:10  serumb
+ *  Repainted the transparencies after the components are rebuilt.
+ *
  *  Revision 1.54  2004/06/10 23:27:09  serumb
  *  Now implements ILegendAddible.
  *
@@ -337,7 +340,6 @@ public class FunctionViewComponent implements IViewComponent1D,
       transparencies.add( leg_overlay ); 
       transparencies.add( top );
       transparencies.add( bottom );  // add the transparency to the vector
-
       OverlayLayout overlay = new OverlayLayout( big_picture );
 
       big_picture.setLayout( overlay );
@@ -744,6 +746,13 @@ public class FunctionViewComponent implements IViewComponent1D,
                                         this, mainControls.get_frame() );
     } 
     dataChanged();
+    transparencies.set(0 ,  new LegendOverlay(this));
+    big_picture.removeAll();
+      for( int trans = 0; trans < transparencies.size(  ); trans++ ) {
+     	big_picture.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
+      }
+      big_picture.add( background );
+    
     //      System.out.println("Value of first element: " + x_array[0] +
     //							y_array[0] );
     //System.out.println( "Thank you for notifying us" );
@@ -856,7 +865,11 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     return pt;
   }
-
+ 
+ public void paintComponents()
+ {
+   paintComponents(big_picture.getGraphics()); 
+ } 
 
   /*
    * Tells all listeners about a new action.
@@ -880,6 +893,10 @@ public class FunctionViewComponent implements IViewComponent1D,
     while( temppainter.getParent() != null )
       temppainter = temppainter.getParent();
     temppainter.repaint();
+        for( int next = 0; next < transparencies.size(  ); next++ ) {
+          ( ( OverlayJPanel )transparencies.elementAt( next ) ).repaint(  );
+          ( ( OverlayJPanel )transparencies.elementAt( next ) ).getFocus(  );
+        }
   }
 
   private boolean DrawPointedAtGraph() {
