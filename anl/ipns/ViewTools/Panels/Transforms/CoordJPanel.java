@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2001/08/08 14:24:58  dennis
+ *  Now extends ActiveJPanel and sends action events to any
+ *  ActionListeners when the cursor is moved, or when the
+ *  panel is "zoomed".
+ *
  *  Revision 1.10  2001/07/10 19:10:01  dennis
  *  Added more detailed debugging prints (currently commentd out).
  *
@@ -79,10 +84,16 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import DataSetTools.util.*;
+import DataSetTools.components.ui.*;
 
-abstract public class CoordJPanel extends    JPanel 
+abstract public class CoordJPanel extends    ActiveJPanel 
                                   implements Serializable
 {
+  public static final String ZOOM_IN      = "Zoom In";
+  public static final String RESET_ZOOM   = "Reset Zoom";
+  public static final String CURSOR_MOVED = "Cursor Moved";
+
+
   private boolean doing_crosshair = false;    // flags used by several device
   private boolean doing_box       = false;    // adapter classes to control
                                               // zooming/crosshair cursors
@@ -246,6 +257,7 @@ public void set_crosshair( Point current )
     crosshair_cursor.redraw( current );
     doing_crosshair = true;
   }
+  send_message( CURSOR_MOVED );
 }
 
 
@@ -272,6 +284,7 @@ public void set_box( Point current )
     rb_box.redraw( current );
     doing_box = true;
   }
+  send_message( CURSOR_MOVED );
 }
 
 
@@ -376,6 +389,7 @@ protected void LocalTransformChanged()
 
 private void resetZoom()
 {
+  send_message( RESET_ZOOM );
   SetTransformsToWindowSize();
   local_transform.setSource( global_transform.getSource() );
   LocalTransformChanged();
@@ -436,6 +450,7 @@ private void ZoomToPixelSubregion( float x1, float y1, float x2, float y2 )
   System.out.println("Size =           " + getSize() );
   System.out.println();
 */
+  send_message( ZOOM_IN );
 
   int SNAP_REGION = 10;
 
@@ -706,7 +721,6 @@ class CoordComponentAdapter extends ComponentAdapter
     current_size = size;
   }
 }
-
 
 
 }

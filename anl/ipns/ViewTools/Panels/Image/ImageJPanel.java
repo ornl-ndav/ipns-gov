@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2001/08/08 14:24:58  dennis
+ *  Now extends ActiveJPanel and sends action events to any
+ *  ActionListeners when the cursor is moved, or when the
+ *  panel is "zoomed".
+ *
  *  Revision 1.7  2001/04/23 21:15:13  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -182,6 +187,38 @@ public class ImageJPanel extends    CoordJPanel
       makeImage();
     }
   }
+
+
+/* --------------------------- getNumDataRows ----------------------------- */
+/**
+ *  Get the number of rows in the data for this image panel.
+ *
+ *  @return  The number of rows.
+ */
+  public int getNumDataRows()
+  {
+    if ( data != null )
+      return data.length;
+
+    return 0;
+  }
+
+
+/* --------------------------- getNumDataColumnss ------------------------ */
+/**
+ *  Get the number of columns in the data for this image panel.
+ *
+ *  @return  The number of columns.
+ */
+  public int getNumDataColumns()
+  {
+    if ( data != null )
+      if ( data[0] != null )
+        return data[0].length;
+
+    return 0;
+  }
+
 
 /* -------------------------------- update ------------------------------- */
 
