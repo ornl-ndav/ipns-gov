@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/06/13 14:44:54  dennis
+ *  - Added methods getLocalCoordBounds() and getGlobalCoordBounds() to
+ *    allow selection and annotation overlays to adjust when a zoom occurs.
+ *    (Mike Miller)
+ *
  *  Revision 1.2  2003/05/16 14:59:53  dennis
  *  Added acknowlegement of NSF funding.
  *
@@ -44,7 +49,9 @@ package DataSetTools.components.View.TwoD;
 import java.awt.*;
 import java.awt.Rectangle.*;
 import java.lang.*;
-import DataSetTools.components.View.*;
+
+import DataSetTools.components.View.AxisInfo2D;
+import DataSetTools.components.image.CoordBounds;
 
 /**
  * This interface is implemented by view components that utilize the 
@@ -82,6 +89,18 @@ public interface IAxisAddible2D
    * will call this to determine what font to use.
    */
    public Font getFont();
+   
+  /**
+   * This method will return the local coordinate bounds of the center
+   * jpanel. To be implemented, the center may have to be a coordjpanel.
+   */
+   public CoordBounds getLocalCoordBounds();
+      
+  /**
+   * This method will return the global coordinate bounds of the center
+   * jpanel. To be implemented, the center may have to be a coordjpanel.
+   */
+   public CoordBounds getGlobalCoordBounds();
 }
 
 
