@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.31  2004/03/15 23:52:01  dennis
+ * Cleaned up imports and changed references to static fields to
+ * be interms of the class.
+ *
  * Revision 1.30  2004/03/12 22:57:52  serumb
  * Now uses IVirtualArrayList1D in place of IVirtualArray1D.
  *
@@ -142,27 +146,13 @@ import gov.anl.ipns.ViewTools.Components.*;  // IVirtualArrayList1D
 import gov.anl.ipns.ViewTools.Components.OneD.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;  //Axis Overlays
 import gov.anl.ipns.ViewTools.Panels.Graph.*;//GraphJPanel
-//import DataSetTools.dataset.*;
-//import DataSetTools.math.*;
-import gov.anl.ipns.Util.Numeric.floatPoint2D;  //floatPoint2D FloatFilter
                                                                                                                                                
 // component changes
-import java.applet.Applet;
 import java.awt.*;
-import java.awt.Rectangle;
-import java.awt.color.ColorSpace;
 import java.awt.event.*;
 
 // Component location and resizing within the big_picture
-import java.awt.event.ComponentAdapter.*;
-import java.awt.font.FontRenderContext;
-import java.awt.geom.*;
-import java.io.Serializable;
-import java.lang.*;
-import java.lang.Object.*;
-import java.util.*;
 import javax.swing.*;
-import javax.swing.event.*;
 import javax.swing.border.*;  
 
 /*
@@ -718,7 +708,7 @@ import javax.swing.border.*;
       }
       else if( message.equals( "BUTTON_PRESSED" ) ) {
         if( ae.getSource(  ) == LineColor ) {
-          Color c = choosecolors.showDialog( null, "color chart", Color.black );
+          Color c = JColorChooser.showDialog( null, "color chart", Color.black );
 
           if( c != null ) {
             LineColor.button.setForeground( c );
@@ -727,7 +717,7 @@ import javax.swing.border.*;
         }
 
         if( ae.getSource(  ) == MarkColor ) {
-          Color m = choosecolors.showDialog( null, "color chart", Color.black );
+          Color m = JColorChooser.showDialog( null, "color chart", Color.black );
 
           if( m != null ) {
             MarkColor.button.setForeground( m );
@@ -735,7 +725,7 @@ import javax.swing.border.*;
           }
         }
         if( ae.getSource(  ) == ErrorColor ) {
-          Color e = choosecolors.showDialog( null, "color chart", Color.black );
+          Color e = JColorChooser.showDialog( null, "color chart", Color.black );
 
           if( e != null ) {
             ErrorColor.button.setForeground( e );
@@ -786,23 +776,23 @@ import javax.swing.border.*;
           */
           if( 
             gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( gjp.DOTTED, line_index ) ) ) {
+                gjp.strokeType( GraphJPanel.DOTTED, line_index ) ) ) {
             LineStyleBox.setSelectedIndex( 2 );
           } else if( 
            gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( gjp.LINE, line_index ) ) ) {
+                gjp.strokeType( GraphJPanel.LINE, line_index ) ) ) {
             LineStyleBox.setSelectedIndex( 0 );
           } else if( 
             gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( gjp.DASHED, line_index ) ) ) {
+                gjp.strokeType( GraphJPanel.DASHED, line_index ) ) ) {
             LineStyleBox.setSelectedIndex( 1 );
           } else if( 
             gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( gjp.DASHDOT, line_index ) ) ) {
+                gjp.strokeType( GraphJPanel.DASHDOT, line_index ) ) ) {
             LineStyleBox.setSelectedIndex( 3 );
           } else if( 
             gjp.getStroke( line_index ).equals( 
-                gjp.strokeType( gjp.TRANSPARENT, line_index ) ) ) {
+                gjp.strokeType( GraphJPanel.TRANSPARENT, line_index ) ) ) {
             LineStyleBox.setSelectedIndex( 4 );
           }
           
@@ -879,31 +869,31 @@ import javax.swing.border.*;
           if( LineStyleBox.getSelectedItem(  ).equals( "Solid" ) ) {
             gjp.setTransparent(false, line_index, false);
             gjp.setStroke( 
-              gjp.strokeType( gjp.LINE, line_index ), line_index, true );
+              gjp.strokeType( GraphJPanel.LINE, line_index ), line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dashed" ) ) {
             gjp.setTransparent(false, line_index, false);
             gjp.setStroke( 
-              gjp.strokeType( gjp.DASHED, line_index ), line_index, true );
+              gjp.strokeType( GraphJPanel.DASHED, line_index ), line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dotted" ) ) {
             gjp.setTransparent(false, line_index, false);
             gjp.setStroke( 
-              gjp.strokeType( gjp.DOTTED, line_index ), line_index, true );
+              gjp.strokeType( GraphJPanel.DOTTED, line_index ), line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dash Dot Dot" ) ) {
              gjp.setTransparent(false, line_index, false);
              gjp.setStroke( 
-              gjp.strokeType( gjp.DASHDOT, line_index ), line_index, true );  
+              gjp.strokeType( GraphJPanel.DASHDOT, line_index ), line_index, true );  
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Transparent" ) ) {
              gjp.setTransparent(true, line_index, true);
              gjp.setStroke( 
-              gjp.strokeType( gjp.TRANSPARENT, line_index ), line_index, true );
+              gjp.strokeType( GraphJPanel.TRANSPARENT, line_index ), line_index, true );
           }
 
         /*
@@ -916,22 +906,22 @@ import javax.swing.border.*;
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Solid" ) ) {
             gjp.setStroke( 
-              gjp.strokeType( gjp.LINE, line_index ), line_index, true );
+              gjp.strokeType( GraphJPanel.LINE, line_index ), line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dashed" ) ) {
             gjp.setStroke( 
-              gjp.strokeType( gjp.DASHED, line_index ), line_index, true );
+              gjp.strokeType( GraphJPanel.DASHED, line_index ), line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dotted" ) ) {
             gjp.setStroke( 
-              gjp.strokeType( gjp.DOTTED, line_index ), line_index, true );
+              gjp.strokeType( GraphJPanel.DOTTED, line_index ), line_index, true );
           }
 
           if( LineStyleBox.getSelectedItem(  ).equals( "Dash Dot Dot" ) ) {
             gjp.setStroke( 
-              gjp.strokeType( gjp.DASHDOT, line_index ), line_index, true );
+              gjp.strokeType( GraphJPanel.DASHDOT, line_index ), line_index, true );
           }
         /* 
           Listens for a point marker change and sets the appropriate
@@ -940,15 +930,15 @@ import javax.swing.border.*;
 
         } else if( ae.getSource(  ) == PointMarkerBox ) {
           if( PointMarkerBox.getSelectedItem(  ).equals( "DOT" ) ) {
-            gjp.setMarkType( gjp.DOT, line_index, true );
+            gjp.setMarkType( GraphJPanel.DOT, line_index, true );
           } else if( PointMarkerBox.getSelectedItem(  ).equals( "PLUS" ) ) {
-            gjp.setMarkType( gjp.PLUS, line_index, true );
+            gjp.setMarkType( GraphJPanel.PLUS, line_index, true );
           } else if( PointMarkerBox.getSelectedItem(  ).equals( "STAR" ) ) {
-            gjp.setMarkType( gjp.STAR, line_index, true );
+            gjp.setMarkType( GraphJPanel.STAR, line_index, true );
           } else if( PointMarkerBox.getSelectedItem(  ).equals( "BOX" ) ) {
-            gjp.setMarkType( gjp.BOX, line_index, true );
+            gjp.setMarkType( GraphJPanel.BOX, line_index, true );
           } else if( PointMarkerBox.getSelectedItem(  ).equals( "CROSS" ) ) {
-            gjp.setMarkType( gjp.CROSS, line_index, true );
+            gjp.setMarkType( GraphJPanel.CROSS, line_index, true );
           } else if( 
             PointMarkerBox.getSelectedItem(  ).equals( "NO POINT MARKS" ) ) {
             gjp.setMarkType( 0, line_index, true );
@@ -984,10 +974,10 @@ import javax.swing.border.*;
                            line_index, true );
           } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Points" ) ) {
             gjp.setErrors( Varray1D.getErrorValues( line_index - 1  ), 
-                           gjp.ERROR_AT_POINT, line_index, true );
+                           GraphJPanel.ERROR_AT_POINT, line_index, true );
           } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Top" ) ) {
             gjp.setErrors( Varray1D.getErrorValues( line_index - 1 ),
-                           gjp.ERROR_AT_TOP, line_index, true );
+                           GraphJPanel.ERROR_AT_TOP, line_index, true );
           }
 
         /* 
