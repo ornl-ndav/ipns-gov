@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/01/28 21:59:20  dennis
+ * Made font smaller on < and > buttons.
+ *
  * Revision 1.2  2004/01/27 20:36:06  dennis
  * Changing step size no longer sends message.
  * Changed getStepSize() to getStep() which returns the last
@@ -46,7 +49,6 @@ package DataSetTools.components.ui;
 import DataSetTools.util.*;
 import java.awt.*;
 import java.awt.event.*;
-//import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -76,6 +78,8 @@ public class SliceStepperUI extends    ActiveJPanel
     JButton backward_button = new JButton( "<" );
     JButton forward_button = new JButton( ">" );
     JPanel  button_panel = new JPanel();
+    forward_button.setFont( FontUtil.LABEL_FONT );
+    backward_button.setFont( FontUtil.LABEL_FONT );
     button_panel.setLayout( new GridLayout( 1, 2 ) );
     button_panel.add( backward_button );
     button_panel.add( forward_button );
