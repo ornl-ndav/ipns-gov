@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/12 01:52:11  dennis
+ *  Moved to package MathTools.Functions
+ *
  *  Revision 1.5  2003/07/16 22:29:49  dennis
  *  Changed DELTA for evaluating numerical derivatives from
  *  1e-5 to 1e-8, since now using double precision for
@@ -54,10 +57,10 @@
  *
  */
 
-package DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
 
-import DataSetTools.math.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.*;
+import gov.anl.ipns.Util.Numeric.*;
 
 /**
  *  This interface is the interface for Named functions of one variable that
