@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/12 17:21:14  hammonds
+ *  Moved from DataSetTools.viewer to gov.anl.ipns.Util.Sys
+ *
  *  Revision 1.4  2004/03/10 16:22:52  millermi
  *  - Added static method getActiveMenuItem() that takes in
  *    a String text and a component, and returns a JMenuItem.
@@ -48,11 +51,12 @@
  *
 */
 
-package DataSetTools.viewer;
+package gov.anl.ipns.Util.Sys;
 import java.awt.event.*;
 import java.awt.*;
 import javax.swing.*;
-import IsawGUI.*;
+/*import IsawGUI.*;*/
+
 
 /**
   * This class instantiates the PrintUtilities class and calls its print

@@ -32,6 +32,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/12 17:21:13  hammonds
+ * Moved from DataSetTools.viewer to gov.anl.ipns.Util.Sys
+ *
  * Revision 1.2  2004/03/10 21:06:32  millermi
  * - Added JPEGFileFilter class to automatically save
  *   images as JPEGs.
@@ -44,14 +47,16 @@
  *   menu to viewers to save the component as an image
  *
  */
-package DataSetTools.viewer;
+package gov.anl.ipns.Util.Sys;
 
+import gov.anl.ipns.Util.File.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.awt.image.*;
 import java.awt.*;
-import DataSetTools.util.*;
+/*import DataSetTools.util.*;*/
 import java.io.*;
+
 public class SaveImageActionListener implements ActionListener{
 
  private Component comp;
