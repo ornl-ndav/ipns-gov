@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2001/06/08 22:40:36  dennis
+ *  Made this implement IObservable, and added "record" button to
+ *  send a DataSet to any observers.
+ *
  *  Revision 1.13  2001/06/08 22:00:22  dennis
  *  Now keeps and reuses the old buttons, labels and viewers when
  *  the runs change.
@@ -117,7 +121,9 @@ import DataSetTools.util.*;
  */
 
 public class LiveDataMonitor extends    JPanel
-                             implements Serializable 
+                             implements IObservable,
+                                        Serializable 
+        
 {
   public static final Color  BACKGROUND = Color.white;
   public static final Color  FOREGROUND = Color.black;
@@ -126,9 +132,11 @@ public class LiveDataMonitor extends    JPanel
   private ViewManager      viewers[]  = new ViewManager[0];
   private JCheckBox        show_box[] = new JCheckBox[0];
   private JCheckBox        auto_box[] = new JCheckBox[0];
-  private JButton          button  [] = new JButton[0];
+  private JButton          button[]   = new JButton[0];
+  private JButton          record[]   = new JButton[0];
   private JLabel           ds_label[] = new JLabel[0];
   private JPanel           panel[]    = new JPanel[0];
+  private IObserverList    observers;
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -154,8 +162,66 @@ public class LiveDataMonitor extends    JPanel
       add( error_label );
     }
 
+    observers = new IObserverList();
+
     SetUpGUI();
   }
+
+
+  /**
+   *  Add the specified object to the list of observers to notify when this
+   *  observable object changes.
+   *
+   *  @param  iobs   The observer object that is to be notified.
+   *
+   */
+   public void addIObserver( IObserver iobs )
+   {
+     observers.addIObserver( iobs );
+   }
+
+
+  /**
+   *  Remove the specified object from the list of observers to notify when
+   *  this observable object changes.
+   *
+   *  @param  iobs   The observer object that should no longer be notified.
+   *
+   */
+   public void deleteIObserver( IObserver iobs )
+   {
+     observers.deleteIObserver( iobs );
+   }
+
+
+  /**
+   *  Remove all objects from the list of observers to notify when this
+   *  observable object changes.
+   */
+   public void deleteIObservers( )
+   {
+     observers.deleteIObservers();
+   }
+
+
+  /**
+   *  Notify all observers in the list ( by calling their update(,) method )
+   *  that the observed object has changed.
+   *
+   * @param  reason        Object indicating the nature of the change in the
+   *                       observable object, or specifying the action that the
+   *                       observer should take.  This is passed as the second
+   *                       parameter to the update(,) method of the observers
+   *                       and will typically be a String.
+   */
+   public void notifyIObservers( Object reason )
+   {
+     observers.notifyIObservers( this, reason );
+   }
+
+
+
+
 
 
 /**
@@ -200,9 +266,13 @@ public class LiveDataMonitor extends    JPanel
   public DataSet getDataSet( int data_set_num )
   {
     if ( data_manager != null )
-      return data_manager.getDataSet( data_set_num );
-    else
-      return (DataSet)(DataSet.EMPTY_DATA_SET.clone());
+    {
+      DataSet temp_ds = data_manager.getDataSet( data_set_num ); 
+      if ( temp_ds != null )
+        return (DataSet)(temp_ds.clone());
+    }
+
+    return null;
   }
 
 
@@ -234,6 +304,7 @@ public class LiveDataMonitor extends    JPanel
       JCheckBox   new_show_box[] = new JCheckBox[ num_ds ];
       JCheckBox   new_auto_box[] = new JCheckBox[ num_ds ];
       JButton     new_button[]   = new JButton[ num_ds ];
+      JButton     new_record[]   = new JButton[ num_ds ];
       JLabel      new_ds_label[] = new JLabel[ num_ds ];
       JPanel      new_panel[]    = new JPanel[ num_ds ];
 
@@ -243,6 +314,7 @@ public class LiveDataMonitor extends    JPanel
         new_show_box[i] = show_box[i];
         new_auto_box[i] = auto_box[i];
         new_button[i]   = button[i];
+        new_record[i]   = record[i];
         new_ds_label[i] = ds_label[i];
         new_panel[i]    = panel[i];
       }
@@ -251,6 +323,7 @@ public class LiveDataMonitor extends    JPanel
       show_box = new_show_box;
       auto_box = new_auto_box;
       button   = new_button;
+      record   = new_record;
       ds_label = new_ds_label;
       panel    = new_panel;
                                                              // construct new
@@ -288,6 +361,12 @@ public class LiveDataMonitor extends    JPanel
         UpdateButtonListener button_listener = new UpdateButtonListener( i );
         button[i].addActionListener( button_listener );
 
+        record[i] = new JButton("Record");
+        record[i].setFont( FontUtil.BORDER_FONT );
+        record[i].setBackground( BACKGROUND );
+        RecordButtonListener record_listener = new RecordButtonListener( i );
+        record[i].addActionListener( record_listener );
+
         ds_label[i]  = new JLabel( "DATA SET" );
         ds_label[i].setFont( FontUtil.BORDER_FONT );
         ds_label[i].setForeground( FOREGROUND );
@@ -296,6 +375,7 @@ public class LiveDataMonitor extends    JPanel
         panel[i].add( show_box[i] );             // DataSet to the current panel
         panel[i].add( auto_box[i] );
         panel[i].add( button[i] );
+        panel[i].add( record[i] );
       }
     }
   }
@@ -455,6 +535,32 @@ public class LiveDataMonitor extends    JPanel
   }
 
 
+  /* ----------------------- RecordButtonListener ------------------------- */
+
+  private class RecordButtonListener implements ActionListener,
+                                                Serializable
+  {
+    int     my_index;
+
+    public RecordButtonListener( int index )
+    {
+      my_index = index;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      DataSet ds = data_manager.getDataSet(my_index);
+      if ( ds != null )
+      {
+        ds = (DataSet)ds.clone();
+        observers.notifyIObservers( this, ds );
+      }
+
+      FixLabels();
+    }
+  }
+
+
   /* ----------------------- ShowCheckboxListener ---------------------- */
 
   private class ShowCheckboxListener implements ActionListener,
@@ -561,7 +667,7 @@ public class LiveDataMonitor extends    JPanel
      LiveDataMonitor monitor = new LiveDataMonitor( instrument_computer );
 
      JFrame frame = new JFrame( "Live Data Monitor" );
-     frame.setBounds( 20, 20, 350, 350 );
+     frame.setBounds( 20, 20, 450, 350 );
      frame.getContentPane().add( monitor );
  
      frame.setVisible( true );
