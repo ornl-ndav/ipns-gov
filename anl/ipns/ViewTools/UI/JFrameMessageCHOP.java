@@ -29,6 +29,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/02/10 05:33:03  bouzekc
+ * Now uses IsawToolkit.beep().
+ *
  * Revision 1.6  2004/01/22 02:05:38  bouzekc
  * Removed unused variables.
  *
@@ -42,8 +45,6 @@
 
 package DataSetTools.components.ui;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.Date;
@@ -166,7 +167,7 @@ public class JFrameMessageCHOP extends javax.swing.JFrame
 	{
 		try {
 	    	// Beep
-	    	Toolkit.getDefaultToolkit().beep();
+	    	DataSetTools.util.IsawToolkit.beep();
 	    	// Show a confirmation dialog
 	    	int reply = JOptionPane.showConfirmDialog(this,
 	    	                                          "Do you really want to exit?",

@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/02/10 05:33:04  bouzekc
+ *  Now uses IsawToolkit.beep().
+ *
  *  Revision 1.5  2004/02/02 23:48:56  dennis
  *  Number of decimal places displayed is no longer
  *  fixed.
@@ -54,7 +57,6 @@
 package DataSetTools.components.ui;
 
 import java.awt.*;
-import java.text.*;
 import java.awt.event.*;
 import javax.swing.*;
 import DataSetTools.util.*;
@@ -227,7 +229,7 @@ public class Vector3D_UI extends    JTextField
     if ( !ok )
     {
       show_text();
-      Toolkit.getDefaultToolkit().beep();
+      IsawToolkit.beep();
       return;
     }
 
@@ -261,7 +263,7 @@ public class Vector3D_UI extends    JTextField
     if ( ok )
       value = new Vector3D( temp );
     else
-      Toolkit.getDefaultToolkit().beep();
+      IsawToolkit.beep();
 
     show_text();
   }

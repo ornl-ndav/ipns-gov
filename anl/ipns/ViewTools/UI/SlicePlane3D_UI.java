@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/02/10 05:33:03  bouzekc
+ * Now uses IsawToolkit.beep().
+ *
  * Revision 1.5  2004/02/02 23:52:19  dennis
  * Added setMode() method to allow switching between HKL
  * and Qxyz plane selections.
@@ -266,7 +269,7 @@ public class SlicePlane3D_UI extends    ActiveJPanel
 
       if ( new_plane == null )              // invalid, so just restore old one
       {                                        
-        Toolkit.getDefaultToolkit().beep();
+        IsawToolkit.beep();
         selector.setPlane( old_slice_plane );
         return;
       }

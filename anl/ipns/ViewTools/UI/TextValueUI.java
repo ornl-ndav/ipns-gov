@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.8  2004/02/10 05:33:04  bouzekc
+ * Now uses IsawToolkit.beep().
+ *
  * Revision 1.7  2004/01/26 20:44:56  dennis
  * Now beeps if user enters invalid values.
  *
@@ -235,7 +238,7 @@ public class TextValueUI extends    JTextField
     i = str.indexOf( start_char );      // find the start_char and discard the
     if ( i < 0 )                        // preliminary part of the string
     {
-      Toolkit.getDefaultToolkit().beep();
+      IsawToolkit.beep();
       return Float.NaN;
     }
 
@@ -244,7 +247,7 @@ public class TextValueUI extends    JTextField
     i = str.indexOf( end_char );        // find the end_char and discard the
     if ( i < 0 )                        // remaining part of the string
     {
-      Toolkit.getDefaultToolkit().beep();
+      IsawToolkit.beep();
       return Float.NaN;
     }
     str = str.substring(0,i);
@@ -255,7 +258,7 @@ public class TextValueUI extends    JTextField
     }
     catch (Exception e ) 
     { 
-      Toolkit.getDefaultToolkit().beep();
+      IsawToolkit.beep();
       System.out.println("Exception in TextValueUI.findNumber");
       System.out.println("Exception is: " + e );
     }
