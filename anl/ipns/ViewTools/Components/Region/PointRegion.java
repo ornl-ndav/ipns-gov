@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/05/20 20:48:27  millermi
+ *  - Constructor now initializes world and image bounds to
+ *    the bounds of the defining points.
+ *
  *  Revision 1.8  2004/05/20 17:02:26  millermi
  *  - Made method getRegionBounds() public so it may be used by
  *    outside classes.
@@ -92,6 +96,25 @@ public class PointRegion extends Region
   public PointRegion( floatPoint2D[] dp )
   {
     super(dp);
+    
+    // Give the image and world bounds meaningful values.
+    float xmin = definingpoints[0].x;
+    float xmax = definingpoints[0].x;
+    float ymin = definingpoints[0].y;
+    float ymax = definingpoints[0].y;
+    for( int i = 1; i < definingpoints.length; i++ )
+    {
+      if( definingpoints[i].x < xmin )
+        xmin = definingpoints[i].x;
+      if( definingpoints[i].x > xmax )
+        xmax = definingpoints[i].x;
+      if( definingpoints[i].y < ymin )
+        ymin = definingpoints[i].y;
+      if( definingpoints[i].y > ymax )
+        ymax = definingpoints[i].y;
+    }
+    setWorldBounds( new CoordBounds( xmin, ymin, xmax, ymax ) );
+    setImageBounds( new CoordBounds( xmin, ymin, xmax, ymax ) );
   }
   
  /**

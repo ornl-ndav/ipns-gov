@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/05/20 20:48:26  millermi
+ *  - Constructor now initializes world and image bounds to
+ *    the bounds of the defining points.
+ *
  *  Revision 1.12  2004/05/20 17:02:25  millermi
  *  - Made method getRegionBounds() public so it may be used by
  *    outside classes.
@@ -124,6 +128,16 @@ public class DoubleWedgeRegion extends Region
   public DoubleWedgeRegion( floatPoint2D[] dp )
   {
     super(dp);
+    
+    // Give the image and world bounds meaningful values.
+    setWorldBounds( new CoordBounds( definingpoints[3].x,
+                                     definingpoints[3].y, 
+                                     definingpoints[4].x,
+			             definingpoints[4].y ) );
+    setImageBounds( new CoordBounds( definingpoints[3].x,
+                                     definingpoints[3].y, 
+                                     definingpoints[4].x,
+			             definingpoints[4].y ) );
   }
   
  /**

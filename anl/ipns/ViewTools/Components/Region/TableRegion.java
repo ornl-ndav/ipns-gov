@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/05/20 20:48:27  millermi
+ *  - Constructor now initializes world and image bounds to
+ *    the bounds of the defining points.
+ *
  *  Revision 1.3  2004/05/20 17:02:27  millermi
  *  - Made method getRegionBounds() public so it may be used by
  *    outside classes.
@@ -72,6 +76,16 @@ public class TableRegion extends Region
   {
     super(dp);
     selected = isSelected;
+    
+    // Give the image and world bounds meaningful values.
+    setWorldBounds( new CoordBounds( definingpoints[0].x,
+                                     definingpoints[0].y, 
+                                     definingpoints[1].x,
+			             definingpoints[1].y ) );
+    setImageBounds( new CoordBounds( definingpoints[0].x,
+                                     definingpoints[0].y, 
+                                     definingpoints[1].x,
+			             definingpoints[1].y ) );
   }
   
  /**
