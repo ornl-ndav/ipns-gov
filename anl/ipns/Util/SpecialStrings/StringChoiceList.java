@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2001/11/12 21:53:13  dennis
+ *  Added Construtor that takes a list of strings. (Ruth)
+ *
  *  Revision 1.1  2001/11/12 21:32:59  dennis
  *    Base class for classes that hold a list of string choices.  One string
  *    is designated as the current choice and is returned by toString().
@@ -57,7 +60,7 @@ public class StringChoiceList extends    SpecialString
                                                       // replace this with
                                                       // their own list.
 
-  /* ---------------------------- Constructor --------------------------- */
+  /* ---------------------------- Default Constructor -------------------- */
   /**
    *  Make a StringChoiceList object with a default choice.
    */
@@ -66,11 +69,17 @@ public class StringChoiceList extends    SpecialString
     super( "" );
   }
 
-   public StringChoiceList( String[]  list)
-    {super("");
-     strings = list;
-
-     }
+  /* -------------------------- Constructor ----------------------------- */
+  /**
+   *  Make a StringChoiceList from a specified list of strings.
+   *
+   *  @param list  The list of strings to use for this choice list.
+   */
+  public StringChoiceList( String[]  list)
+  {
+    super("");
+    strings = list;
+  }
  
   
   /* ---------------------------- setString ----------------------------- */
