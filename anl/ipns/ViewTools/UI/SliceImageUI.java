@@ -30,10 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/27 20:40:47  dennis
+ * Added method to set the slice width, height, thickness, etc.
+ * Improved format of String returned by toString().
+ *
  * Revision 1.1  2004/01/26 23:53:39  dennis
  * Initial version of user interface for specifying the size
  * and resolution of a rectangular slab in 3D.
- *
  */
 
 package DataSetTools.components.ui;
@@ -41,7 +44,6 @@ package DataSetTools.components.ui;
 import DataSetTools.util.*;
 import java.awt.*;
 import java.awt.event.*;
-//import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -61,6 +63,7 @@ public class SliceImageUI extends    ActiveJPanel
   private TextValueUI  width_ui;
   private TextValueUI  height_ui;
   private TextValueUI  thickness_ui;
+
 
   /*-------------------------- default constructor ----------------------- */
   /**
@@ -91,6 +94,24 @@ public class SliceImageUI extends    ActiveJPanel
     thickness_ui.addActionListener( value_listener );
   }
 
+
+  /* ------------------------- setStepSize --------------------------- */
+  /**
+   *  Set the current step size, MUST be positive.
+   *
+   *  @param new_step  The new step size to use, MUST be positive.
+   */
+  public void setStepSize( float new_step )
+  {
+    if ( new_step <= 0 )
+    {
+      System.out.println("ERROR: new_step <= 0, ignored in setStepSize()" );
+      return;
+    }
+    step_ui.setValue( new_step );
+  }
+
+
   /* ------------------------- getStepSize --------------------------- */
   /**
    *  Get the currently selected step size.
@@ -100,6 +121,23 @@ public class SliceImageUI extends    ActiveJPanel
   public float getStepSize()
   {
     return step_ui.getValue();
+  }
+
+
+  /* --------------------------- setSliceWidth --------------------------- */
+  /**
+   *  Set the current width, MUST be positive.
+   *
+   *  @param  new_width  The new width to use, MUST be positive.
+   */
+  public void setSliceWidth( float new_width )
+  {
+    if ( new_width <= 0 )
+    {
+      System.out.println("ERROR: new_width <= 0, ignored in setSliceWidth()" );
+      return;
+    }
+    width_ui.setValue( new_width );
   }
 
 
@@ -115,6 +153,23 @@ public class SliceImageUI extends    ActiveJPanel
   }
 
 
+  /* -------------------------- setSliceHeight --------------------------- */
+  /**
+   *  Set the current height, MUST be positive.
+   *
+   *  @param  new_height  The new height to use, MUST be positive.
+   */
+  public void setSliceHeight( float new_height )
+  {
+    if ( new_height <= 0 )
+    {
+      System.out.println("ERROR: new_height <= 0, ignored in setSliceHeight()");
+      return;
+    }
+    height_ui.setValue( new_height );
+  }
+
+
   /* -------------------------- getSliceHeight --------------------------- */
   /**
    *  Get the currently selected height.
@@ -124,6 +179,24 @@ public class SliceImageUI extends    ActiveJPanel
   public float getSliceHeight()
   {
     return height_ui.getValue();
+  }
+
+
+  /* ------------------------- setSliceThickness ------------------------- */
+  /**
+   *  Set the current thickness, MUST be positive.
+   *
+   *  @param  new_thickness  The new thickness to use, MUST be positive.
+   */
+  public void setSliceThickness( float new_thickness )
+  {
+    if ( new_thickness <= 0 )
+    {
+      System.out.println("ERROR: new_thickness <= 0, " + 
+                         "ignored in setSliceThickness()");
+      return;
+    }
+    thickness_ui.setValue( new_thickness );
   }
 
 
@@ -145,17 +218,19 @@ public class SliceImageUI extends    ActiveJPanel
    */
   public String toString()
   {
-    return step_ui.getLabel()      + ": " + step_ui.getValue() +
-           width_ui.getLabel()     + ": " + width_ui.getValue() +
-           height_ui.getLabel()    + ": " + height_ui.getValue() +
+    return step_ui.getLabel()      + ": " + step_ui.getValue() + "  " +
+           width_ui.getLabel()     + ": " + width_ui.getValue() + "  " +
+           height_ui.getLabel()    + ": " + height_ui.getValue() + "  " +
            thickness_ui.getLabel() + ": " + thickness_ui.getValue();
   }
+
 
   /* -----------------------------------------------------------------------
    *
    *  PRIVATE CLASSES
    *
    */
+
   /* ------------------------ ValueListener ------------------------------ */
   /*
    *  Listen for a new value.
@@ -168,6 +243,7 @@ public class SliceImageUI extends    ActiveJPanel
       send_message( VALUE_CHANGED );
     }
   }
+
 
   /* ------------------------------ main --------------------------------- */
   /**
