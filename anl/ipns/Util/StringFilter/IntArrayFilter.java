@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/04/18 15:25:24  pfpeterson
+ *  Now allows a minus sign, but not two adjacent.
+ *
  *  Revision 1.2  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -51,6 +54,7 @@ package DataSetTools.util;
 public class IntArrayFilter implements StringFilterer {
     private static Character COLON =new Character((new String(":")).charAt(0));
     private static Character COMMA =new Character((new String(",")).charAt(0));
+    private static Character MINUS =new Character((new String("-")).charAt(0));
     
     private boolean automod;
 
@@ -66,6 +70,17 @@ public class IntArrayFilter implements StringFilterer {
         char[] source=inString.toCharArray();
         for( int i=0 ; i< source.length ; i++ ){
             if (Character.isDigit(source[i])) {
+              // do nothing
+            }else if(MINUS.compareTo(new Character(source[i]))==0){
+              int mi=curString.indexOf(MINUS.toString());
+              while(mi>=0){
+                if(offs+i==mi || offs+i==mi+1){
+                  return false;
+                }else{
+                  // do nothing
+                }
+                mi=curString.indexOf(MINUS.toString(),mi+1);
+              }
             }else if(COLON.compareTo(new Character(source[i]))==0){
                 if(offs+i<=0) return false;
                 if(curString.length()>0){
