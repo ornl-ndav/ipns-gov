@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2003/12/20 22:18:49  millermi
+ * - Orphaned windows are now disposed when setData() is called.
+ * - Added simple help() for new users. More detail needed.
+ *
  * Revision 1.3  2003/12/20 11:11:52  millermi
  * - Introduced DataSet concept. Coordinated the
  *   ImageViewComponent with the FunctionViewComponent.
@@ -129,6 +133,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   * String.
   */
   public static final String DATA_DIRECTORY        = "DataDirectory";
+  
+  private static JFrame helper = null;
   
   // complete viewer, includes controls and ijp
   private transient SplitPaneWithState pane;
@@ -227,6 +233,35 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     
     return state;
   }
+
+ /**
+  * Contains/Displays control information about this viewer.
+  */
+  public static void help()
+  {
+    helper = new JFrame("Introduction to the SAND Wedge Viewer");
+    helper.setBounds(0,0,600,400);
+    JTextArea text = new JTextArea("Description:\n\n");
+    text.setEditable(false);
+    text.setLineWrap(true);
+
+    text.append("The SAND Wedge Viewer (SWV) in an interactive analysis tool." +
+        	" SWV features the ability to make three selections: Wedge, " +
+    		"Double Wedge, and Ellipse. Although other selections are " +
+    		"available, they have no affect in this viewer. Once a " +
+    		"selection is made on the image, the graph will display " +
+		"the values per hit as a function of distance.\n\n");
+    text.append("Commands for SWV\n\n");
+    text.append("Note:\n" +
+        	"Detailed commands can be found under the Overlay help " +
+        	"menu.\n\n");
+    
+    JScrollPane scroll = new JScrollPane(text);
+    scroll.setVerticalScrollBarPolicy(
+        			    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    helper.getContentPane().add(scroll);
+    helper.setVisible(true);
+  }
   
   public void loadData( String filename )
   {
@@ -287,6 +322,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     		            "Qx","X Units", true );
         va2D.setAxisInfo( AxisInfo.Y_AXIS, qymin, qymax, 
     			    "Qy","Y Units", true );
+        // since datamin/max are gotten from the image,
+	// the min/max are dummy values.
+	va2D.setAxisInfo( AxisInfo.Z_AXIS, 0, 1, 
+    			    "Qz","Z Units", true );
         va2D.setTitle("SAND Wedge Viewer");
 	setData( va2D );
       }
@@ -313,13 +352,22 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */ 
   public void setData( IVirtualArray2D values )
   {
+    // since data is changing, kill all windows created by ivc and fvc.
+    // If they are null, no windows were made.
+    if( ivc != null )
+      ivc.kill();
+    if( fvc != null )
+      fvc.kill();
+    
     // if new array is same size as old array
     if( values != null && data != null &&
         ( values.getNumRows() == data.getNumRows() &&
           values.getNumColumns() == data.getNumColumns() ) )
     {  
       data = values;
+      ivc.setSelectedRegions(null);
       ivc.dataChanged(data);
+      integrate(null);
     }  
     // if different sized array, remove everything and build again.
     else
@@ -385,7 +433,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     if( data != null )
     {
       ivc = new ImageViewComponent( data );
-      fvc = new FunctionViewComponent( new DataSetData( new DataSet() ) );
+      fvc = new FunctionViewComponent( new DataSetData( data_set ) );
       ivc.setColorControlEast(true);
       ivc.addActionListener( new WVListener() );
       ivc.addActionListener( new ImageListener() );    
@@ -456,31 +504,39 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     menu_bar = new JMenuBar();
     setJMenuBar(menu_bar);
     
-    Vector file = new Vector();
-    Vector options = new Vector();
-    Vector new_menu = new Vector();
+    Vector file      = new Vector();
+    Vector options   = new Vector();
+    Vector help      = new Vector();
     Vector save_menu = new Vector();
     Vector load_menu = new Vector();
     Vector load_data = new Vector();
+    Vector swv_help  = new Vector();
     Vector file_listeners = new Vector();
     Vector option_listeners = new Vector();
-    file_listeners.add( new ImageListener() );
-    file_listeners.add( new ImageListener() );
+    Vector help_listeners = new Vector();
     file.add("File");
+    file_listeners.add( new ImageListener() ); // listener for file
     file.add(load_data);
       load_data.add("Load Data");
+      file_listeners.add( new ImageListener() ); // listener for load data
     
-    option_listeners.add( new ImageListener() );
-    option_listeners.add( new ImageListener() );
-    option_listeners.add( new ImageListener() );
     options.add("Options");
+    option_listeners.add( new ImageListener() ); // listener for options
     options.add(save_menu);
       save_menu.add("Save State");
+      option_listeners.add( new ImageListener() ); // listener for save state
     options.add(load_menu);
       load_menu.add("Load State");
+      option_listeners.add( new ImageListener() ); // listener for load state
+    help.add("Help");
+    help_listeners.add( new ImageListener() );
+    help.add( swv_help );
+      swv_help.add("SAND Wedge Viewer");
+      help_listeners.add( new ImageListener() );
     
     menu_bar.add( MenuItemMaker.makeMenuItem(file,file_listeners) ); 
     menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
+    menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
     // since the IVC and FVC are not created unless data is available,
     // do not load state unless data is available.
     if( data == null )
@@ -489,7 +545,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       option_menu.getItem(0).setEnabled(false);
       option_menu.getItem(1).setEnabled(false);
     }
-    menu_bar.add(new JMenu("Help"));
+    //menu_bar.add(new JMenu("Help"));
   }
   
  /*
@@ -549,6 +605,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     int   n_xvals = 200;
     Point center = new Point(0,0);
    
+    if( region == null )
+    {
+      return;
+    }
     Point[] def_pts = region.getDefiningPoints();
     if( region instanceof WedgeRegion || 
         region instanceof DoubleWedgeRegion )
@@ -690,6 +750,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         //state = ivc.getObjectState();
 	if( state.openFileChooser(false) )
 	  setObjectState(state);
+      }
+      else if( ae.getActionCommand().equals("SAND Wedge Viewer") )
+      {
+        help();
       }
     }
   }
