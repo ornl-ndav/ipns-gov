@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2003/07/02 22:31:49  serumb
+ * Fixed ImageView display problem.
+ *
  * Revision 1.10  2003/07/02 17:09:58  serumb
  * Added a boolean variable to keep track of a lines transparency.
  *
@@ -68,10 +71,11 @@ public class GraphData implements Serializable
   public Color  markcolor = Color.red;
   public int    marksize  = 1;
   public BasicStroke Stroke = new BasicStroke(1);
+  public boolean transparent = false;
+  public Color  errorcolor = Color.blue;
+
   private float[] error_bars = null;
   private int errors = 0;
-  public Color  errorcolor = Color.blue;
-  public boolean transparent = false;
   // public methods
 
   public boolean setErrorVals(int error_loc, float[] error_vals)
