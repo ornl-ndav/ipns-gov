@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/12 02:42:41  serumb
+ *  Changed package and imports.
+ *
  *  Revision 1.8  2004/01/29 08:16:27  millermi
  *  - Updated the getObjectState() to include parameter for specifying
  *    default state.
@@ -64,7 +67,7 @@
  *
  */
 
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import javax.swing.JPanel;
 import javax.swing.JFrame;
@@ -72,9 +75,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JEditorPane;
 import javax.swing.text.html.HTMLEditorKit;
 
-import DataSetTools.components.View.ObjectState;
-import DataSetTools.components.View.IPreserveState;
-import DataSetTools.util.WindowShower;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.IPreserveState;
+import gov.anl.ipns.Util.Sys.WindowShower;
 
 public abstract class OverlayJPanel extends JPanel implements IOverlay,
                                                               IPreserveState
