@@ -30,12 +30,20 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/03 02:12:22  millermi
+ *  - Added Constructor that takes in a java.awt.Point and converts
+ *    it to a floatPoint2D.
+ *  - Added method toPoint() which returns a java.awt.Point form
+ *    of this floatPoint2D
+ *
  *  Revision 1.6  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
  */
 
 package DataSetTools.util;
+
+import java.awt.Point;
 
 /*
  *   Adapted from Sun's integer Point class in java.awt
@@ -66,11 +74,21 @@ public class floatPoint2D implements java.io.Serializable {
 
     /**
      * Constructs and initializes a point with the same location as
-     * the specified Point object.
+     * the specified floatPoint2D object.
      * @param       p a point.
      */
     public floatPoint2D( floatPoint2D p ) {
 	this(p.x, p.y);
+    }
+
+    /**
+     * Constructs and initializes a point with the same location as
+     * the specified Point object. This will convert integer Point.x and
+     * Point.y to float values.
+     * @param       p a point.
+     */
+    public floatPoint2D( Point p ) {
+	this((float)p.x, (float)p.y);
     }
 
     /**
@@ -108,5 +126,14 @@ public class floatPoint2D implements java.io.Serializable {
      */
     public String toString() {
 	return "[x=" + x + ",y=" + y + "]";
+    }	
+
+    /**
+     * Converts a floatPoint2D to a java.awt.Point.
+     *
+     * @return Integer form of this floatPoint2D
+     */
+    public Point toPoint() {
+	return new Point( Math.round(x), Math.round(y) );
     }
 }
