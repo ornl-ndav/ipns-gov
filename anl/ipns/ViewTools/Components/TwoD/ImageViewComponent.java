@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.67  2004/03/30 03:25:03  millermi
+ *  - Added a minimum height and width to the preserveAspectImage().
+ *    This will prevent the image from "disappearing" after continuous
+ *    zooming.
+ *  - KNOWN BUG: PanViewControl zoom window no longer matches the
+ *    ImageJPanel zoomed region.
+ *
  *  Revision 1.66  2004/03/17 20:26:50  dennis
  *  Fixed @see tag that was broken when view components, math and
  *  util were moved to gov package.
@@ -1585,11 +1592,17 @@ public class ImageViewComponent implements IViewComponent2D,
       {
         center_height = max_height;
         center_width  = Math.round(((float)center_height)/ratio);
+	// without a minimum restriction, the image will disappear.
+	if( center_width < 10 )
+	  center_width = 10;
       }
       else
       {
         center_width  = max_width;
         center_height = Math.round(((float)center_width)*ratio);
+	// without a minimum restriction, the image will disappear.
+	if( center_height < 10 )
+	  center_height = 10;
       }
       // make sure component dimensions are below maximum range
       if( center_width > max_width )
