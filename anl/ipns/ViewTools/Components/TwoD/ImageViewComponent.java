@@ -34,6 +34,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2003/08/11 23:42:48  millermi
+ *  - Changed getSelectedSet() to getSelectedRegions() which now
+ *    returns an array of Regions.
+ *  - Changed setSelectedSet() to setSelectedRegions() which now
+ *    takes parameter of type Region.
+ *  - Added MAXDATASIZE so it is no longer a hardcoded value.
+ *  - Added select.getFocus() if annotation overlay gets unchecked while the
+ *    selection overlay is visible. This ensures key events for the
+ *    selection overlay are listened to.
+ *
  *  Revision 1.20  2003/08/08 00:19:22  millermi
  *  - Moved initialization of local_bounds and global_bounds
  *  after ijp.initializeWorldCoords() in constructor. Fixes
@@ -141,11 +151,13 @@ import java.awt.font.FontRenderContext;
 
 import DataSetTools.util.*; 
 import DataSetTools.math.*;
-import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
+import DataSetTools.components.image.*;
+import DataSetTools.components.View.Cursor.SelectionJPanel;
 import DataSetTools.components.View.Transparency.*;
-import DataSetTools.components.View.*;  // IVirtualArray2D
+import DataSetTools.components.View.*;
 import DataSetTools.components.View.ViewControls.*;
 import DataSetTools.components.View.Menu.*;
+import DataSetTools.components.View.Region.*;
 import DataSetTools.components.ui.ColorScaleMenu;
 
 // Component location and resizing within the big_picture
@@ -163,9 +175,12 @@ public class ImageViewComponent implements IViewComponent2D,
            /*for Selection/Annotation*/    IZoomTextAddible
 {
    public static final String COMPONENT_RESIZED = "COMPONENT_RESIZED";
-   
+   // this variable controls the size of the virtual array to be analyzed.
+   private static final int MAXDATASIZE = 1000000000;
    private IVirtualArray2D Varray2D;  //An object containing our array of data
-   private Point[] selectedset; //To be returned by getSelectedSet()   
+   private Stack dynamicregionlist = new Stack(); // dynamic list of regions.
+   //private Vector dynamicpointlist = new Vector(); // dynamic list of wcps.
+   private Region[] selectedregions = new Region[0];   
    private Vector Listeners = null;   
    private JPanel big_picture = new JPanel();    
    private ImageJPanel ijp;
@@ -182,8 +197,11 @@ public class ImageViewComponent implements IViewComponent2D,
    private String colorscale;
    private boolean isTwoSided = true;
    private double logscale = 0;
-   private boolean addColorControlEast = false;
+   private boolean addColorControlEast = false;   // add calibrated color scale
    private boolean addColorControlSouth = false;
+   private int pointregionindex = -1; // if point region exists, add point to
+                                      // to that region instead of adding a new
+				      // point region to the dynamicregionlist
    
   /**
    * Constructor that takes in a virtual array and creates an imagejpanel
@@ -198,7 +216,7 @@ public class ImageViewComponent implements IViewComponent2D,
       font = FontUtil.LABEL_FONT2;
       ijp = new ImageJPanel();
       //Make ijp correspond to the data in f_array
-      ijp.setData(varr.getRegionValues(0, 1000000, 0, 1000000), true); 
+      ijp.setData(varr.getRegionValues(0, MAXDATASIZE, 0, MAXDATASIZE), true); 
       ImageListener ijp_listener = new ImageListener();
       ijp.addActionListener( ijp_listener );
                   
@@ -233,6 +251,7 @@ public class ImageViewComponent implements IViewComponent2D,
       SelectionOverlay nextup = new SelectionOverlay(this);
       nextup.setVisible(false);   // initialize this overlay to off.
       nextup.setRegionColor(Color.magenta);
+      nextup.addActionListener( new SelectedRegionListener() );
       AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
       
       // add the transparencies to the transparencies vector
@@ -242,6 +261,7 @@ public class ImageViewComponent implements IViewComponent2D,
       transparencies.add(bottom_overlay); 
       
       Listeners = new Vector();
+      //soregion = null;
       buildViewComponent();    // initializes big_picture to jpanel containing
                                // the background and transparencies
       buildViewControls(); 
@@ -403,15 +423,55 @@ public class ImageViewComponent implements IViewComponent2D,
   
   /**
    * This method creates a selected region to be displayed over the imagejpanel
-   * by an overlay.
+   * by the selection overlay. Currently, this will replace any previously
+   * selected regions. To prevent this, add..., remove..., and clear... could
+   * be added to allow for appending selections. A stack could be added to
+   * allow for undo and redo. 
    *
    *  @param  pts
    */ 
-   public void setSelectedSet( Point[] pts ) 
+   public void setSelectedRegions( Region[] rgn ) 
    {
-      // implement after selection overlay has been created
-      System.out.println("Entering: void setSelectedSet( Point[] coords )");
-      System.out.println("");
+     selectedregions = rgn;
+     dynamicregionlist.clear();
+     //dynamicpointlist.clear();
+     for( int i = 0; i < selectedregions.length; i++ )
+     {/*
+       // if multiple points, this combines them.
+       if( selectedregions[i] instanceof PointRegion )
+       {
+	 for( int i = 0; i < selectedregions.length; i++ )
+	   dynamicpointlist.add(selectedregions[i]);         
+       }
+       else
+         dynamicregionlist.add( selectedregions[i] );*/
+       dynamicregionlist.push( selectedregions[i] );
+     }
+   }
+  
+  /**
+   * Get geometric regions created using the selection overlay.
+   *
+   *  @return selectedset
+   */ 
+   public Region[] getSelectedRegions() //keep the same (for now)
+   {
+     /*
+     // Since the points are grouped together, if any exist, put them all
+     // in a pointregion. Because no point regions are in the dynamicregionlist,
+     // the PointRegion must be added now.
+     if( dynamicpointlist.size() > 0 )
+     {
+       floatPoint2D[] fplist = new floatPoint2D[dynamicpointlist.size()];
+       for( int i = 0; i < dynamicpointlist.size(); i++ )
+         fplist[((floatPoint2D)dynamicpointlist.elementAt(i))];
+       PointRegion allpoints = new PointRegion(fplist);
+       dynamicregionlist.add(allpoints);
+     }*/
+     selectedregions = new Region[dynamicregionlist.size()];
+     for( int i = 0; i < dynamicregionlist.size(); i++ )
+       selectedregions[i] = ((Region)dynamicregionlist.elementAt(i));
+     return selectedregions;
    }
   
   /**
@@ -419,8 +479,10 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    public void dataChanged()  
    {
-      float[][] f_array = Varray2D.getRegionValues( 0, 1000000, 0, 1000000 );
+      float[][] f_array = Varray2D.getRegionValues( 0, MAXDATASIZE, 
+                                                    0, MAXDATASIZE );
       ijp.setData(f_array, true);
+      paintComponents( big_picture.getGraphics() );
    }
   
   /**
@@ -429,21 +491,11 @@ public class ImageViewComponent implements IViewComponent2D,
    public void dataChanged( IVirtualArray2D pin_Varray ) // pin == "passed in"
    {
       //get the complete 2D array of floats from pin_Varray
-      float[][] f_array = pin_Varray.getRegionValues( 0, 1000000, 
-                                                      0, 1000000 );
+      float[][] f_array = pin_Varray.getRegionValues( 0, MAXDATASIZE, 
+                                                      0, MAXDATASIZE );
 
-      ijp.setData(f_array, true);  
-   }
-  
-  /**
-   * Get selected set specified by setSelectedSet. The selection overlay
-   * will need to use this method.
-   *
-   *  @return selectedset
-   */ 
-   public Point[] getSelectedSet() //keep the same (for now)
-   {
-      return selectedset;
+      ijp.setData(f_array, true);
+      paintComponents( big_picture.getGraphics() );  
    }
    
   /**
@@ -824,8 +876,15 @@ public class ImageViewComponent implements IViewComponent2D,
 	                       big_picture.getComponent(
 	                       big_picture.getComponentCount() - 4 ); 
                 if( !control.isSelected() )
+		{
 	          note.setVisible(false);
-	        else
+	          SelectionOverlay select = (SelectionOverlay)
+	                       big_picture.getComponent(
+	                       big_picture.getComponentCount() - 3 ); 
+		  if(select.isVisible() )
+		    select.getFocus();
+	        }
+		else
 	        {
 	          note.setVisible(true);
 		  note.getFocus();
@@ -842,8 +901,15 @@ public class ImageViewComponent implements IViewComponent2D,
 	                       big_picture.getComponent(
 	                       big_picture.getComponentCount() - 3 ); 
                 if( !control.isSelected() )
+		{
 	          select.setVisible(false);
-	        else
+	          AnnotationOverlay note = (AnnotationOverlay)
+	                       big_picture.getComponent(
+	                       big_picture.getComponentCount() - 4 ); 
+	          if( note.isVisible() )
+		    note.getFocus();
+		}
+		else
 	        {
 	          select.setVisible(true); 
 		  select.getFocus();
@@ -946,7 +1012,7 @@ public class ImageViewComponent implements IViewComponent2D,
    } 
 
   /*
-   * This class relays the message sent out by the ViewMenuItem
+   * This class relays the message sent out by the ViewMenuItem.
    */  
    private class MenuListener implements ActionListener
    {
@@ -956,6 +1022,77 @@ public class ImageViewComponent implements IViewComponent2D,
 	 //System.out.println("VCPath = " + 
 	 //                  ae.getActionCommand() );
       }
+   }   
+
+  /*
+   * This class relays the message sent out by the SelectionOverlay whenever
+   * a selected region is added or removed.
+   */  
+   private class SelectedRegionListener implements ActionListener
+   {
+     public void actionPerformed( ActionEvent ae )
+     {
+       // must set the selected region here
+       Vector regions = 
+          ((SelectionOverlay)transparencies.elementAt(1)).getSelectedRegions();
+       
+       // if region was added, add the defining points of the last region.
+       if( ae.getActionCommand().equals( SelectionOverlay.REGION_ADDED ) )
+       {
+         WCRegion lastregion = (WCRegion)regions.lastElement();
+	 String regiontype = lastregion.getRegionType();
+         floatPoint2D[] wcp = lastregion.getWorldCoordPoints();
+	 Point[] imagecolrow = new Point[wcp.length];
+	 for( int i = 0; i < imagecolrow.length; i++ )
+	 {
+	   imagecolrow[i] = new Point( ijp.ImageCol_of_WC_x( wcp[i].x ),
+	                               ijp.ImageRow_of_WC_y( wcp[i].y ) );
+	   /*System.out.println("ImageCoords: " + 
+	                    ijp.ImageCol_of_WC_x( wcp[i].x ) + "/" +
+	                    ijp.ImageRow_of_WC_y( wcp[i].y ) );
+	   System.out.println("WorldCoords: " + 
+	                    wcp[i].x + "/" +
+	                    wcp[i].y );*/
+	 }
+	 Region selregion;
+	 
+	 if( regiontype.equals(SelectionJPanel.BOX) )
+	 {
+	   selregion = new BoxRegion( imagecolrow );
+	 }
+	 else if( regiontype.equals(SelectionJPanel.CIRCLE) )
+	 {
+	   selregion = new ElipseRegion( imagecolrow );
+	 }
+	 else if( regiontype.equals(SelectionJPanel.LINE) )
+	 {
+	   selregion = new LineRegion( imagecolrow );
+	 }
+	 else 
+	 {
+	   selregion = new PointRegion( imagecolrow );
+	   /*
+	   // This will group all points together, without creating a
+	   // point region. When getSelectedRegions() is called, one
+	   // point region will be created with all the points.
+	   for( int i = 0; i < wcp.length; i++ )
+	     dynamicpointlist.add(wcp[i]);*/
+	 }
+	 /*if( !regiontype.equals(SelectionJPanel.POINT) )
+	   dynamicregionlist.add(selregion);*/
+	 
+	 dynamicregionlist.push(selregion);
+       //System.out.println("WCP[0]: " + wcp[0].x + wcp[0].y );
+       } // end if( regionadded )
+       else if( ae.getActionCommand().equals(SelectionOverlay.REGION_REMOVED) )
+       {
+         dynamicregionlist.pop();
+       }
+       else if( ae.getActionCommand().equals(
+                SelectionOverlay.ALL_REGIONS_REMOVED) )
+         dynamicregionlist.clear();
+       sendMessage( ae.getActionCommand() );
+     }
    }   
       
   /*
