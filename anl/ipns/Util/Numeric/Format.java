@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2003/05/22 17:53:31  dennis
+ *  Fixed method setE().  Previously, zeros were not consistently
+ *  returned with the correct precision and in certain circumstances,
+ *  negative numbers displayed a decimal without any trailing digits.
+ *  (Mike Miller)
+ *
  *  Revision 1.9  2003/04/11 14:23:31  dennis
  *  Added methods to format numbers for display as axis labels.(Mike Miller)
  *  doubleEng() uses engineering units (powers are multiples of 3).
@@ -208,14 +214,32 @@ public class Format
    */   
    static public String setE( double num, int at_exp, int sig_dig )
    {
+    String snum = "";
+    if( num == 0 )
+    {
+      snum = "0";
+      if( sig_dig > 1 )
+      {
+         snum = snum + ".";
+	 for( int num_zeros = 0; num_zeros < (sig_dig - 1); num_zeros++ )
+	    snum = snum + "0";
+	 snum = snum + "E" + Integer.toString(at_exp);
+      }   
+    }
+    else
+    {
       int numex = 0;
+      int sign = 1;
+      if( num < 0 )
+         sign = -1;
+      num = Math.abs(num);
       // figure out the degree of num
-      while ( Math.abs(num) >= 10.0 )
+      while ( num >= 10.0 )
       { 
 	 num = num / 10.0;
 	 numex = numex + 1;
       }
-      while ( Math.abs(num) < 1.0 && num != 0 )
+      while ( num < 1.0 && num != 0 )
       {
 	 num = num * 10.0;
 	 numex = numex - 1;
@@ -237,7 +261,9 @@ public class Format
 	 }   
       }
       num = round(num, sig_dig);
-      String snum = Double.toString(num);
+      snum = Double.toString(num);
+      if(sign == -1)
+         snum = "-" + snum;
       // String must be at least as long as the number of significant digits.
       // The "+2" takes into account negative sign and decimal.
       while( snum.length() < sig_dig + 2 )
@@ -249,15 +275,22 @@ public class Format
      			   "sufficient. Number exceeds significant digits.");
          sig_dig = predecimal;
       }
-      // take into account the negative sign
-      if( num < 0 )
-         sig_dig++;
+
       if( predecimal - sig_dig != 0 )
+      {  // take into account the negative sign
+         if( sign < 0 )
+            sig_dig++;
          snum = snum.substring(0, sig_dig + 1);
+      }
       else
-         snum = snum.substring(0, sig_dig);      
+      {  // take into account the negative sign
+         if( sign < 0 )
+            sig_dig++;
+         snum = snum.substring(0, sig_dig);         
+      }
       snum = snum + "E" + Integer.toString(at_exp);
-      return snum;
+    }
+    return snum;
    }
 
   /**
@@ -520,6 +553,10 @@ public class Format
                         Format.setE( 1234567800, 8, 5 ) );
     System.out.println("setE: 1234567800 = "+ 
                         Format.setE( 1234567800, 6, 6 ) );
+    System.out.println("setE: 0 = "+ 
+                        Format.setE( 0, -3, 4 ) );
+    System.out.println("setE: -100050 = "+ 
+                        Format.setE( -100050, 2, 4 ) );  
   }
 
 }
