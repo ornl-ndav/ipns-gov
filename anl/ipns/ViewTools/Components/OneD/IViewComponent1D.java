@@ -71,15 +71,5 @@ public interface IViewComponent1D
    */   
    public JComponent[] getPrivateControls();
 
-  /**
-   * To be continued...
-   */   
-   public JMenuItem[] getSharedMenuItems();
-   
-  /**
-   * To be continued...
-   */
-   public JMenuItem[] getPrivateMenuItems();
-   
 }
 
