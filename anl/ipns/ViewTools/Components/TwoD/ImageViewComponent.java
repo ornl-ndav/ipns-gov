@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.77  2004/11/05 22:04:47  millermi
+ *  - Updated java docs for getAxisInformation().
+ *
  *  Revision 1.76  2004/09/15 21:55:48  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -451,7 +454,7 @@ import gov.anl.ipns.ViewTools.Components.Region.*;
  * the AxisInfo class of each axis. 
  */
 public class ImageViewComponent implements IViewComponent2D, 
-           /*for IAxisAddible2D*/          IColorScaleAddible,
+           /*for Axis/Colorscale*/         IColorScaleAddible,
            /*for Selection/Annotation*/    IZoomTextAddible,
 	                                   IMarkerAddible,
 	                                   IPreserveState,
@@ -1134,8 +1137,6 @@ public class ImageViewComponent implements IViewComponent2D,
   * This method returns the info about the specified axis. Currently, axes
   * for the image can only be viewed in linear form. If log axes are required,
   * FunctionViewComponent does this and may provide code to implement this.
-  * The getAxisInfo() method will need to call getLocalLogWorldCoords() in
-  * CoordJPanel.java if the log axes are needed.
   * 
   *  @param  axiscode Use AxisInfo integer codes.
   *  @return If axiscode = AxisInfo.X_AXIS, return info about x axis.
