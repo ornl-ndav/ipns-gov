@@ -35,6 +35,11 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.24  2004/04/20 18:22:43  dennis
+ *  Added some validity checks to BestFitMatrix.  Now does most
+ *  calculations in a try...catch block.
+ *  Minor improvements to javadocs for BestFitMatrix.
+ *
  *  Revision 1.23  2004/03/17 19:01:12  dennis
  *  Removed unused variables.
  *
@@ -700,6 +705,12 @@ public final class LinearAlgebra
    *  the orientation matrix for SCD data proccessing. Specifically, M will
    *  be calculated to be the matrix that best fits the equations  Mqi=ri
    *  for vectors qi, ri, i=0,...,k-1, where k is the number of data vectors.
+   *  This version uses the QR factorization method from this package and 
+   *  returns the residual errors.  The BestFitMatrix2() is based on the
+   *  Jama package from NIST.  It is included for testing purposes.
+   *  BestFitMatrix2() is slower than BestFitMatrix() method and does NOT 
+   *  return residual errors, so BestFitMatrix() method should generally
+   *  be used.
    *
    *  @param  M      The n X m matrix that maps vector q[i][*] to 
    *                 vector r[i][*].  The components of M are set by this
@@ -716,46 +727,89 @@ public final class LinearAlgebra
    *                  
    *  @return On completion, the best fit matrix will have been entered in
    *  parameter M and the return value will be the square root of the sum of 
-   *  the squares of the residual errors. NOTE: The values stored in M, q and
-   *  r will be altered, so if the calling code needs their original values,
-   *  it is responsible for saving copies of the original data.
+   *  the squares of the residual errors.  If an error is encountered, error
+   *  information will be printed to the console and the return value will
+   *  be set to Double.NaN.  The state of the parameters is indeterminate
+   *  if an error is encountered.  NOTE: The values stored in M, q and
+   *  r will be altered during the calculation, so if the calling code needs 
+   *  their original values, it is responsible for saving copies of the 
+   *  original data.
    */
   public static double BestFitMatrix(double M[][], double q[][], double r[][])
   {
-    double residual = 0;                  // sum of squares of residual errors
-    double error    = 0;                  // residual error from one row of M.
+    if ( M == null || q == null || r == null )
+    {
+      System.out.println("ERROR: Null parameter in BestFitMatrix");
+      return Double.NaN;
+    }
+
+    if ( M.length <= 0 )
+    {
+      System.out.println("ERROR: Parameter M has 0 rows in BestFitMatrix");
+      return Double.NaN;
+    }
+
     int k = q.length;
     int n = M.length;
     int m = M[0].length;
     double b[] = new double[k];           // Temporary storage for right hand
-                                          // side of least squares problem
-                                          // NOTE: The entries in q form the
-    double Q[][] = QR_factorization( q ); // coefficient matrix for the least
-                                          // squares fitting. After this, we've
-                                          // factored the original q matrix to
-                                          // Q*q, with the altered "q" matrix
-                                          // being the factor R. 
-    if(DEBUG) System.out.println("Done with QR_fact");                 
+                                          // side of least squares problems
+
+    double residual = 0;                  // sum of squares of residual errors
+    double error    = 0;                  // residual error from one row of M.
+    double Q[][]    = null;
+    int    row      = 0;
+    try 
+    {
+      // NOTE: The entries in q form the coefficient matrix for the least
+      // squares fitting.  After the call to QR_factorization, we will have
+      // factored the original q matrix to  Q*q, with the altered "q" matrix
+      // being the factor R. 
+
+      Q = QR_factorization( q );
                                           // Now solve for the best fit entries
                                           // in each row of matrix M
-    for ( int row = 0; row < n; row++ )  
-    {
-      for ( int i = 0; i < k; i++ )
-        b[i] = r[i][row];
+      for ( row = 0; row < n; row++ )  
+      {
+        for ( int i = 0; i < k; i++ )
+          b[i] = r[i][row];
 
-      error = QR_solve( q, Q, b );
-      residual += error * error;
-      for ( int col = 0; col < m; col++ )   // copy result to row of solution M
-        M[row][col] = b[col];
+        error = QR_solve( q, Q, b );
+        if ( error == Double.NaN )
+        {
+          System.out.println("Singular matrix, in LinearAlgebra.BestFitMatrix");
+          return Double.NaN;
+        }
+
+        residual += error * error;
+        for ( int col = 0; col < m; col++ )  // copy result to row of solution M
+          M[row][col] = b[col];
+      }
+    }
+    catch ( Exception e )    // dump info to figure out which parameter was bad
+    {
+      System.out.println("Exception in BestFitMatrix " + e );
+      e.printStackTrace();
+      System.out.println("Row = " + row );
+      System.out.println("M size = " + M.length + " by " + M[0].length );
+      System.out.println("r size = " + r.length + " by " + r[0].length );
+      System.out.println("q size = " + q.length + " by " + q[0].length );
+      System.out.println("b length = " + b.length );
+      System.out.println("Q size = " + Q.length + " by " + Q[0].length );
+      return Double.NaN;
     }
 
     return Math.sqrt(residual);
   } 
 
+
+ /* -------------------------- BestFitMatrix 2---------------------------- */
  /**
-  *  Calculation of BestFitMatrix using the QRDecomposition from the Jama
-  *  package.  This is slower for small matrices and does not return the
-  *  residual errors. 
+  *  Calculation of best fit matrix using the QRDecomposition from the Jama
+  *  package, included for testing purposes.  This is slower for small
+  *  matrices and does not return the residual errors so BestFitMatrix() 
+  *  should generally be used.  This method has the same signature as 
+  *  BestFitMatrix. 
   */
   public static double BestFitMatrix2(double M[][], double q[][], double r[][])
   {
