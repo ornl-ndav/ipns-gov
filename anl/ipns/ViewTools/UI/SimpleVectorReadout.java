@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/08/10 01:40:04  dennis
+ *  Added default value and button to reset the control to the
+ *  default value.
+ *
  *  Revision 1.3  2004/03/15 23:53:59  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -55,6 +59,8 @@ import gov.anl.ipns.Util.Numeric.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
+ *  Class to display a vector with its magnitude.  This was built to be used
+ *  with the Reciprocal Lattice Plane Viewer.  
  */
 
 public class SimpleVectorReadout extends    ActiveJPanel 
@@ -64,10 +70,17 @@ public class SimpleVectorReadout extends    ActiveJPanel
   private JLabel    vec_value;
   private JLabel    mag_value;
   private Vector3D  vector = null;
+  private Vector3D  default_vector = null;
   private JButton   select_button; 
+  private JButton   reset_button; 
+  private String    units = "Q";             // units to display
+  private JPanel    control_panel;
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
+  *  Construct a vector readout control with the specified title.
+  * 
+  *  @param  title  The title to put on the border around the control.
   */
   public SimpleVectorReadout( String title )
   { 
@@ -83,15 +96,15 @@ public class SimpleVectorReadout extends    ActiveJPanel
      JPanel panel1 = new JPanel();
      panel1.setLayout( new GridLayout(1,1) );
 
-     JPanel control_panel = new JPanel();
+     control_panel = new JPanel();
      control_panel.setLayout( new GridLayout(1,2) );
      select_button = new JButton("Select");
      setBackground( Color.white );
      panel1.setBackground( Color.white );
      control_panel.setBackground( Color.white );
 
-     vec_value = new JLabel( " Q : 1.000, 2.000, -3.000" );
-     mag_value = new JLabel( "|Q|: 4.00" );
+     vec_value = new JLabel( " " + units + " : 1.000, 2.000, -3.000" );
+     mag_value = new JLabel( "|" + units + "|: 4.00" );
 
      vec_value.setForeground( Color.black );
      mag_value.setForeground( Color.black );
@@ -116,9 +129,40 @@ public class SimpleVectorReadout extends    ActiveJPanel
      select_button.addActionListener( new ButtonListener() );
   }
 
+ /* ------------------------------ CONSTRUCTOR ---------------------------- */
+ /** 
+  *  Construct a vector readout control with a "Reset" button that allows
+  *  the user to reset the control to the specified default value, in 
+  *  additon to a "Select" button.
+  *
+  *  @param  title          The title to put on the border around the control.
+  *  @param  select_title   The title to put on the select button.
+  *  @param  default_value  The value that the control is reset to. 
+  */
+  public SimpleVectorReadout( String   title, 
+                              String   select_title,
+                              Vector3D default_value )
+  {
+    this(title);
+    select_button.setText( select_title );
+    default_vector = new Vector3D( default_value ); 
+
+    control_panel.setLayout( new GridLayout(1,3) );
+    reset_button = new JButton("Reset");
+    reset_button.setFont( FontUtil.LABEL_FONT );
+    reset_button.addActionListener( new ButtonListener() );
+    control_panel.add( reset_button );
+  }
+
+
 
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
- /**
+ /** 
+  *  Construct a vector readout control with a select button that sends
+  *  an action event to any listeners.
+  *
+  *  @param  title          The title to put on the border around the control.
+  *  @param  select_title   The title to put on the select button.
   */
   public SimpleVectorReadout( String title, String select_title )
   {
@@ -127,31 +171,49 @@ public class SimpleVectorReadout extends    ActiveJPanel
   }
 
 
+/* --------------------------- setVector ------------------------------- */
+/**
+ *  Set a new value for the vector.
+ *
+ *  @param Set a new value for the vector.  If the new value is null, and
+ *         no default value has been specified, this will set the value
+ *         to null.  If a default vector has been specified, then that
+ *         default value will be used if the new value is null.
+ */
  public void setVector( Vector3D vec )
  {
-   if ( vec == null )
+   if ( vec == null && default_vector == null )
    {
       vector = null;
-      vec_value.setText(" Q : undefined" );
-      mag_value.setText("|Q|: undefined" );
+      vec_value.setText(" " + units + " : undefined" );
+      mag_value.setText("|" + units + "|: undefined" );
+      return;
    }
-   else
-   {
-      vector = new Vector3D( vec );
+   
+   if ( vec == null )      
+     vec = default_vector;
 
-      float coords[] = vector.get();
-      String result = new String( Format.real( coords[0], 6, 3 ) );
-      result += "," + Format.real( coords[1], 6, 3 );
-      result += "," + Format.real( coords[2], 6, 3 );
+   vector = new Vector3D( vec );
 
-      vec_value.setText(" Q : " + result );
+   float coords[] = vector.get();
+   String result = new String( Format.real( coords[0], 6, 3 ) );
+   result += "," + Format.real( coords[1], 6, 3 );
+   result += "," + Format.real( coords[2], 6, 3 );
 
-      result = Format.real( vec.length(), 6, 3 );
-      mag_value.setText("|Q|: " + result );
-   }
+   vec_value.setText(" " + units + " : " + result );
+
+   result = Format.real( vec.length(), 6, 3 );
+   mag_value.setText("|" + units + "|: " + result );
  }
 
 
+ /* --------------------------- getVector ----------------------------- */
+ /**
+  *  Get the current value of the vector from this readout control.
+  *
+  *  @return  The current value of the vector, or null if no vector
+  *           has been specified.
+  */
  public Vector3D getVector()
  {
    if ( vector == null )
@@ -161,11 +223,31 @@ public class SimpleVectorReadout extends    ActiveJPanel
  }
 
 
+ /* --------------------------- getDefault ----------------------------- */
+ /**
+  *  Get the default value, if any, for the vector in this readout control.
+  *
+  *  @return  The default value of the vector, or null if no default 
+  *           has been specified.
+  */
+ public Vector3D getDefault()
+ {
+   return new Vector3D( default_vector );
+ }
+
+
+ /* --------------------------- getTitle ----------------------------- */
+ /**
+  *  Get the title from this readout control
+  *
+  *  @return  The title String.
+  */
  public String getTitle()
  {
    return title;
  }
 
+ 
 /* -------------------------------------------------------------------------
  *
  *  INTERNAL CLASSES
@@ -180,6 +262,9 @@ private class ButtonListener implements ActionListener
 {
   public void actionPerformed( ActionEvent e )
   {
+    if ( e.getSource() == reset_button )
+      setVector( default_vector );
+
     String command = e.getActionCommand();
     send_message( command );
   }
