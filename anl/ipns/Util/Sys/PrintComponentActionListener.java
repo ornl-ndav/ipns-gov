@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2005/02/02 21:50:18  dennis
+ *  Cleaned up formatting.
+ *
  *  Revision 1.6  2004/03/12 17:54:03  rmikk
  *  Fixed package names.
  *  Fixed JMenuBar "File" Jmenu search algorithm
@@ -69,60 +72,66 @@ import javax.swing.*;
   */
 
 public class PrintComponentActionListener  implements ActionListener
-{JMenu jm;
- Component comp;
+{
+  JMenu jm;
+  Component comp;
 
-public PrintComponentActionListener(  Component comp)
-  {   this.comp= comp;
+  public PrintComponentActionListener( Component comp )
+  {   
+    this.comp= comp;
   }
-public void actionPerformed( ActionEvent evt)
-  {PrintUtilities printHelper = new PrintUtilities(comp);
-//new ViewManager( ds, IViewManager.IMAGE ));
-printHelper.print();
-}
-public static void setUpMenuItem(JMenuBar jmb, Component comp )
-{if( jmb == null)
-     return;
+
+  public void actionPerformed( ActionEvent evt )
+  {
+    PrintUtilities printHelper = new PrintUtilities(comp);
+    //new ViewManager( ds, IViewManager.IMAGE ));
+    printHelper.print();
+  }
+
+  public static void setUpMenuItem( JMenuBar jmb, Component comp )
+  {
+    if( jmb == null)
+      return;
     
-   for( int i=0; i< jmb.getMenuCount();i++){
-      JMenu jm = jmb.getMenu(i);
-      if( jm.getText().equals("File")){
-         setUpMenuItem( jm, comp);
-         return;
-        }
-      }
-    JMenu jm = new JMenu("File");
-    jmb.add(jm);
-    setUpMenuItem( jm, comp);
-}
+     for( int i=0; i< jmb.getMenuCount();i++){
+        JMenu jm = jmb.getMenu(i);
+        if( jm.getText().equals("File")){
+           setUpMenuItem( jm, comp);
+           return;
+         }
+     }
+     JMenu jm = new JMenu("File");
+     jmb.add(jm);
+     setUpMenuItem( jm, comp);
+  }
 
-/**
-  * This class sets up the menubar on a component with the "print" menuitem
-  */
-public static void setUpMenuItem(JMenu jm, Component comp )
-  {JMenuItem jmi= new JMenuItem("Print");
-  int nitems= jm.getItemCount();
-  if( nitems < 0) nitems= 0;
-  jm.add(jmi, nitems );
-  jmi.addActionListener(new PrintComponentActionListener( comp));
-
-   }
+  /**
+   * This class sets up the menubar on a component with the "print" menuitem
+   */
+  public static void setUpMenuItem( JMenu jm, Component comp )
+  {
+    JMenuItem jmi= new JMenuItem("Print");
+    int nitems= jm.getItemCount();
+    if( nitems < 0) 
+      nitems= 0;
+    jm.add(jmi, nitems );
+    jmi.addActionListener(new PrintComponentActionListener( comp));
+  }
    
-/**
- * This method will return a JMenuItem with the provided text name. The
- * menu item will have a print listener added to it. If clicked on,
- * this menu item will print out the component passed in.
- *
- *  @param  menu_text Display text on the JMenuItem
- *  @param  comp Component to be printed.
- *  @return menu item with listener to initiate printing routine.
- */
- public static JMenuItem getActiveMenuItem( String menu_text, Component comp )
- {
-   JMenuItem jmi = new JMenuItem(menu_text);
-   jmi.addActionListener( new PrintComponentActionListener(comp) );
-   return jmi;
- }
-
+  /**
+   * This method will return a JMenuItem with the provided text name. The
+   * menu item will have a print listener added to it. If clicked on,
+   * this menu item will print out the component passed in.
+   *
+   *  @param  menu_text Display text on the JMenuItem
+   *  @param  comp Component to be printed.
+   *  @return menu item with listener to initiate printing routine.
+   */
+  public static JMenuItem getActiveMenuItem( String menu_text, Component comp )
+  {
+    JMenuItem jmi = new JMenuItem(menu_text);
+    jmi.addActionListener( new PrintComponentActionListener(comp) );
+    return jmi;
+  }
 
 }
