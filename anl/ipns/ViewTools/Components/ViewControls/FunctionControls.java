@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2003/10/21 20:20:01  serumb
+ * Now uses the CursorOutputControl.
+ *
  * Revision 1.11  2003/09/11 21:21:48  serumb
  * Added control to show the cursor readings.
  *
@@ -75,13 +78,9 @@ import DataSetTools.components.View.*;  // IVirtualArray1D
 import DataSetTools.components.View.OneD.*;
 import DataSetTools.components.View.Transparency.*;  //Axis Overlays
 import DataSetTools.components.View.ViewControls.*;
-                                                                                                                                               
 import DataSetTools.components.image.*;//GraphJPanel & ImageJPanel & CoordJPanel
-                                                                                                                                               
 import DataSetTools.dataset.*;
-                                                                                                                                               
 import DataSetTools.math.*;
-                                                                                                                                               
 import DataSetTools.util.*;  //floatPoint2D FloatFilter
                                                                                                                                                
 // component changes
@@ -133,7 +132,6 @@ import javax.swing.border.*;
   private JPanel controlpanel= new JPanel(  );
   private JPanel label_panel = new JPanel(  );
   private JPanel z_panel     = new JPanel(  );
-  private JPanel cursor_panel= new JPanel(  );
   private String label1      = "Line Selected";
   private String label2      = "Line Style";
   private String label3      = "Line Width";
@@ -195,12 +193,9 @@ import javax.swing.border.*;
   private StringEntry y_end_field;
   private TextRangeUI x_range; 
   private TextRangeUI y_range;
-  private TextValueUI x_loc;
-  private TextValueUI y_loc;
   private TitledBorder border;
  
   private Box vert_box = new Box(1);
-  private Box vert2_box = new Box(1);
   private ControlCheckboxButton axis_checkbox = new ControlCheckboxButton(true);
   private ControlCheckboxButton annotation_checkbox = 
                                     new ControlCheckboxButton(  );
@@ -208,6 +203,8 @@ import javax.swing.border.*;
   private double log_scale = 10;
   private ViewControlsPanel main_panel;
   private JFrame the_frame = new JFrame( "ISAW Function View Controls" );
+
+ private CursorOutputControl cursor;
   
   public FunctionControls(IVirtualArray1D varr, GraphJPanel graph_j_panel,
                          JPanel display_panel, FunctionViewComponent FVC) {
@@ -312,10 +309,8 @@ import javax.swing.border.*;
                       AxisInfo2D.YAXIS ).getMin(), Varray1D.getAxisInfo(
                       AxisInfo2D.YAXIS ).getMax()); 
 
-    x_loc = new TextValueUI("X Location", Float.NaN);
-   
-    y_loc = new TextValueUI("Y Location", Float.NaN);
-
+   String the_string[] = {"X LocationY","Y Location"};
+    cursor = new CursorOutputControl(the_string);
     log_slider = new ControlSlider();
     log_slider.setTitle("Log Scale Slider");
     log_slider.setValue(10.0f);
@@ -349,17 +344,10 @@ import javax.swing.border.*;
     ShiftBox             = labelbox7.cbox;
     LogBox               = labelbox8.cbox;
    
-    //x_loc.setEnabled(false);
-    //y_loc.setEnabled(false);
-    x_loc.setEditable(false);
-    y_loc.setEditable(false);
-
     control_box.add(leftBox);
     vert_box.add( x_range );
     vert_box.add( y_range );
-    vert2_box.add( x_loc );
-    vert2_box.add( y_loc );
-    
+
     border = new TitledBorder(LineBorder.createBlackLineBorder(),"Scale");
     border.setTitleFont( FontUtil.BORDER_FONT );
 
@@ -367,17 +355,11 @@ import javax.swing.border.*;
     TFP.setBorder( border );
     TFP.add( vert_box );
     
-    border = new TitledBorder(LineBorder.createBlackLineBorder(),"Cursor");
-    border.setTitleFont( FontUtil.BORDER_FONT );
-
-    cursor_panel.setLayout( G_lout );
-    cursor_panel.setBorder( border );
-    cursor_panel.add( vert2_box );
     
     rightBox.add( axis_checkbox );
     rightBox.add( annotation_checkbox );
     rightBox.add( TFP );
-    rightBox.add( cursor_panel );
+    rightBox.add( cursor );
     rightBox.add( labelbox7 );
     rightBox.add( labelbox8 );
     rightBox.add( log_slider );
@@ -565,24 +547,24 @@ import javax.swing.border.*;
       }
       else if(message.equals("Cursor Moved")){ 
          if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-             x_loc.setValue(loggerx.toDest(gjp.getCurrent_WC_point().x,
+             cursor.setValue(0,loggerx.toDest(gjp.getCurrent_WC_point().x,
                                                                 log_scale));
-             y_loc.setValue(loggery.toDest(gjp.getCurrent_WC_point().y,
+             cursor.setValue(1,loggery.toDest(gjp.getCurrent_WC_point().y,
                                                                 log_scale));
            }
            else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
-             x_loc.setValue(gjp.getCurrent_WC_point().x);
-             y_loc.setValue(loggery.toDest(gjp.getCurrent_WC_point().y,
+             cursor.setValue(0,gjp.getCurrent_WC_point().x);
+             cursor.setValue(1,loggery.toDest(gjp.getCurrent_WC_point().y,
                                                                 log_scale));
            }
            else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
-             x_loc.setValue(loggerx.toDest(gjp.getCurrent_WC_point().x,
+             cursor.setValue(0,loggerx.toDest(gjp.getCurrent_WC_point().x,
                                                                 log_scale));
-             y_loc.setValue(gjp.getCurrent_WC_point().y);
+             cursor.setValue(1,gjp.getCurrent_WC_point().y);
            }
            else {
-             x_loc.setValue(gjp.getCurrent_WC_point().x);
-             y_loc.setValue(gjp.getCurrent_WC_point().y);
+             cursor.setValue(0,gjp.getCurrent_WC_point().x);
+             cursor.setValue(1,gjp.getCurrent_WC_point().y);
            } 
       }
     }
