@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/10/09 13:54:56  rmikk
+ *  Checked for null String case
+ *
  *  Revision 1.3  2004/08/19 12:19:43  rmikk
  *  Added routines openLog, closeLog and LOGaddmsg to handle global logging
  *
@@ -134,7 +137,10 @@ public class SharedMessages implements java.io.Serializable
    if( i<0)
       return buff;
    addmsg( buff.substring(0,i));
-   return sendmsg( buff.substring(i+1));
+   String S = buff.substring(i+1);
+   if( S == null)
+      S ="";
+   return sendmsg( S );
       
    
  }
