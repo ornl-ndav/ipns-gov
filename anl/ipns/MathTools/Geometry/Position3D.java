@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2002/07/08 15:43:03  pfpeterson
+ *  Explicitly defined equals() method.
+ *
  *  Revision 1.8  2002/06/14 21:24:51  rmikk
  *  Implements IXmlIO interface
  *
@@ -394,6 +397,15 @@ public class Position3D implements Serializable,
     { return xml_utils.setError( "Err="+s.getMessage());
     }
   }
+
+    public boolean equals(Object obj){
+        if(!(obj instanceof Position3D))return false;
+
+        if(this.sph_radius    != ((Position3D)obj).sph_radius)return false;
+        if(this.azimuth_angle != ((Position3D)obj).azimuth_angle)return false;
+        if(this.polar_angle   != ((Position3D)obj).polar_angle)return false;
+        return true;
+    }
 
   /**
    *  Some basic tests of the Position3D object.
