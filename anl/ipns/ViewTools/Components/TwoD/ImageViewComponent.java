@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.64  2004/03/12 15:13:57  millermi
+ *  - Shifted controls to put CursorReadout third and to
+ *    keep PanViewControl last.
+ *  - Added check in buildAspectImage() to make sure background
+ *    panel has at least 5 children.
+ *
  *  Revision 1.63  2004/03/12 02:46:03  rmikk
  *  Fixed some of the package names
  *
@@ -757,21 +763,21 @@ public class ImageViewComponent implements IViewComponent2D,
     temp = new_state.get(ANNOTATION_CONTROL);
     if( temp != null )
     {
-      ((ControlCheckboxButton)controls[4]).setObjectState((ObjectState)temp);
+      ((ControlCheckboxButton)controls[5]).setObjectState((ObjectState)temp);
       redraw = true;  
     }  	
     
     temp = new_state.get(AXIS_CONTROL);
     if( temp != null )
     {
-      ((ControlCheckboxButton)controls[2]).setObjectState((ObjectState)temp);
+      ((ControlCheckboxButton)controls[3]).setObjectState((ObjectState)temp);
       redraw = true;  
     }
     
     temp = new_state.get(SELECTION_CONTROL);
     if( temp != null )
     {
-      ((ControlCheckboxButton)controls[3]).setObjectState((ObjectState)temp);
+      ((ControlCheckboxButton)controls[4]).setObjectState((ObjectState)temp);
       redraw = true;  
     }
     
@@ -799,11 +805,11 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     ObjectState state = new ObjectState();
     state.insert( ANNOTATION_CONTROL,
-              ((ControlCheckboxButton)controls[4]).getObjectState(isDefault) );
+              ((ControlCheckboxButton)controls[5]).getObjectState(isDefault) );
     state.insert( ANNOTATION_OVERLAY, 
       ((OverlayJPanel)transparencies.elementAt(0)).getObjectState(isDefault) );
     state.insert( AXIS_CONTROL, 
-              ((ControlCheckboxButton)controls[2]).getObjectState(isDefault) );
+              ((ControlCheckboxButton)controls[3]).getObjectState(isDefault) );
     state.insert( AXIS_OVERLAY_2D,  
       ((OverlayJPanel)transparencies.elementAt(2)).getObjectState(isDefault) );
     state.insert( COLOR_CONTROL, new Boolean(addColorControl) );
@@ -816,7 +822,7 @@ public class ImageViewComponent implements IViewComponent2D,
       ((ControlSlider)controls[0]).getObjectState(isDefault) );
     state.insert( PRECISION, new Integer(precision) );
     state.insert( SELECTION_CONTROL,
-              ((ControlCheckboxButton)controls[3]).getObjectState(isDefault) );
+              ((ControlCheckboxButton)controls[4]).getObjectState(isDefault) );
     state.insert( SELECTION_OVERLAY,  
       ((OverlayJPanel)transparencies.elementAt(1)).getObjectState(isDefault) );
     state.insert( PRESERVE_ASPECT_RATIO, new Boolean(preserve_ratio) );
@@ -1075,8 +1081,8 @@ public class ImageViewComponent implements IViewComponent2D,
     ((SelectionOverlay)
         (transparencies.elementAt(1))).addRegions( reg );
     // if selection control is unchecked, turn it on.
-    if( !((ControlCheckboxButton)controls[3]).isSelected() )
-      ((ControlCheckboxButton)controls[3]).doClick();
+    if( !((ControlCheckboxButton)controls[4]).isSelected() )
+      ((ControlCheckboxButton)controls[4]).doClick();
     returnFocus();
     sendMessage(SELECTED_CHANGED);
   }
@@ -1099,8 +1105,8 @@ public class ImageViewComponent implements IViewComponent2D,
       ((SelectionOverlay)
           (transparencies.elementAt(1))).addRegions( rgn );
       // if selection control is unchecked, turn it on.
-      if( !((ControlCheckboxButton)controls[3]).isSelected() )
-        ((ControlCheckboxButton)controls[3]).doClick();
+      if( !((ControlCheckboxButton)controls[4]).isSelected() )
+        ((ControlCheckboxButton)controls[4]).doClick();
       returnFocus();
       sendMessage(SELECTED_CHANGED);
     }
@@ -1140,9 +1146,9 @@ public class ImageViewComponent implements IViewComponent2D,
     local_bounds = ijp.getLocalWorldCoords().MakeCopy();
     global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
     // this is required since the PanViewControl holds its own bounds.
-    ((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
-    ((PanViewControl)controls[5]).setLocalBounds(local_bounds);
-    ((PanViewControl)controls[5]).repaint();
+    ((PanViewControl)controls[6]).setGlobalBounds(global_bounds);
+    ((PanViewControl)controls[6]).setLocalBounds(local_bounds);
+    ((PanViewControl)controls[6]).repaint();
     paintComponents( big_picture.getGraphics() );
   }
  
@@ -1383,9 +1389,9 @@ public class ImageViewComponent implements IViewComponent2D,
     // give focus to the top overlay
     returnFocus();
     
-    ((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
-    ((PanViewControl)controls[5]).setLocalBounds(local_bounds);
-    ((PanViewControl)controls[5]).repaint();
+    ((PanViewControl)controls[6]).setGlobalBounds(global_bounds);
+    ((PanViewControl)controls[6]).setLocalBounds(local_bounds);
+    ((PanViewControl)controls[6]).repaint();
   } 
   
  /*
@@ -1464,34 +1470,38 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     // Note: If controls are added here, the size of the array controls[]
     // must be incremented in the private data members.
+    // IT IS RECOMMENDED THAT THE PANVIEWCONTROL REMAIN THE LAST CONTROL,
+    // Adding a spacer panel to "crunch" controls may result in the
+    // PanViewControl getting drawn over any latter controls.
+    
+    // Control that adjusts the image intensity
     controls[0] = new ControlSlider();
     controls[0].setTitle(INTENSITY_SLIDER_NAME);
     ((ControlSlider)controls[0]).setValue((float)logscale);		  
     controls[0].addActionListener( new ControlListener() );
-               
+    // Control that displays uncalibrated color scale
     controls[1] = new ControlColorScale(colorscale, isTwoSided );
     controls[1].setTitle(COLOR_SCALE_NAME);
-    
-    controls[2] = new ControlCheckboxButton(true);
-    controls[2].setTitle(AXIS_OVERLAY_NAME);
-    controls[2].addActionListener( new ControlListener() );
-   
-    controls[3] = new ControlCheckboxButton();  // initially unchecked
-    controls[3].setTitle(SELECTION_OVERLAY_NAME);
-    controls[3].addActionListener( new ControlListener() );
-    
-    controls[4] = new ControlCheckboxButton();  // initially unchecked
-    controls[4].setTitle(ANNOTATION_OVERLAY_NAME);
-    controls[4].addActionListener( new ControlListener() );
-    // panviewcontrol
-    controls[5] = new PanViewControl(ijp);
-    controls[5].setTitle(PAN_NAME);
-    controls[5].addActionListener( new ControlListener() ); 
-    
+    // Control that displays current pointed-at.
     String[] cursorlabels = {"X","Y"};
-    controls[6] = new CursorOutputControl(cursorlabels);
-    controls[6].setTitle(CURSOR_READOUT_NAME);
-     
+    controls[2] = new CursorOutputControl(cursorlabels);
+    controls[2].setTitle(CURSOR_READOUT_NAME);
+    // Control that turns axis overlay on/off
+    controls[3] = new ControlCheckboxButton(true);
+    controls[3].setTitle(AXIS_OVERLAY_NAME);
+    controls[3].addActionListener( new ControlListener() );
+    // Control that turns selection overlay on/off
+    controls[4] = new ControlCheckboxButton();  // initially unchecked
+    controls[4].setTitle(SELECTION_OVERLAY_NAME);
+    controls[4].addActionListener( new ControlListener() );
+    // Control that turns annotation overlay on/off
+    controls[5] = new ControlCheckboxButton();  // initially unchecked
+    controls[5].setTitle(ANNOTATION_OVERLAY_NAME);
+    controls[5].addActionListener( new ControlListener() );
+    // Control that displays a thumbnail of the image
+    controls[6] = new PanViewControl(ijp);
+    controls[6].setTitle(PAN_NAME);
+    controls[6].addActionListener( new ControlListener() );
   }
   
  /*
@@ -1539,11 +1549,16 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   private void buildAspectImage()
   {
+    // Make sure background panel has been initialized. It should have at least
+    // five components: a center, north, south, east, and west.
+    if( background.getComponentCount() < 5 )
+      return;
     // temporary dimension values, don't want to change originals.
     int n_h = north_height;
     int e_w = east_width;
     int s_h = south_height;
     int w_w = west_width;
+    // Only do if preserve_ratio flag was set to true
     if( preserve_ratio )
     {
       // the actual desired size of the center panel.
@@ -1668,8 +1683,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	  east.setMarker( ijp.ImageValue_at_Cursor() );
 	}
 	// update cursor readout when pointed-at is changed.
-	((CursorOutputControl)controls[6]).setValue(0,getPointedAt().x);
-	((CursorOutputControl)controls[6]).setValue(1,getPointedAt().y);
+	((CursorOutputControl)controls[2]).setValue(0,getPointedAt().x);
+	((CursorOutputControl)controls[2]).setValue(1,getPointedAt().y);
 	sendMessage(POINTED_AT_CHANGED);
       }
       else if (message == CoordJPanel.ZOOM_IN)
@@ -1677,8 +1692,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	ImageJPanel center = (ImageJPanel)ae.getSource();
 	local_bounds = center.getLocalWorldCoords().MakeCopy();
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
-	((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
-	((PanViewControl)controls[5]).setLocalBounds(local_bounds);
+	((PanViewControl)controls[6]).setGlobalBounds(global_bounds);
+	((PanViewControl)controls[6]).setLocalBounds(local_bounds);
         buildAspectImage();
 	paintComponents( big_picture.getGraphics() );
       }
@@ -1687,8 +1702,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	ImageJPanel center = (ImageJPanel)ae.getSource();
 	local_bounds = center.getLocalWorldCoords().MakeCopy();
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
-	((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
-	((PanViewControl)controls[5]).setLocalBounds(local_bounds);
+	((PanViewControl)controls[6]).setGlobalBounds(global_bounds);
+	((PanViewControl)controls[6]).setLocalBounds(local_bounds);
         buildAspectImage();
 	paintComponents( big_picture.getGraphics() );
       }	 
@@ -1711,7 +1726,7 @@ public class ImageViewComponent implements IViewComponent2D,
         logscale = control.getValue();
         ijp.changeLogScale( logscale, true );
         ((ControlColorScale)controls[1]).setLogScale( logscale );
-	((PanViewControl)controls[5]).repaint();
+	((PanViewControl)controls[6]).repaint();
       } 
       else if ( message == ControlCheckboxButton.CHECKBOX_CHANGED )
       { 
@@ -1842,7 +1857,7 @@ public class ImageViewComponent implements IViewComponent2D,
         buildViewComponent();
         
         // this control turns on/off the axis overlay...
-        ControlCheckboxButton control = (ControlCheckboxButton)controls[2];
+        ControlCheckboxButton control = (ControlCheckboxButton)controls[3];
 	int bpsize = big_picture.getComponentCount();
         JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
 	if( !control.isSelected() )
@@ -1861,7 +1876,7 @@ public class ImageViewComponent implements IViewComponent2D,
         addColorControlSouth = true;
 	addColorControl = false;
         buildViewComponent();
-        ((ControlCheckboxButton)controls[2]).setSelected(true);
+        ((ControlCheckboxButton)controls[3]).setSelected(true);
         ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
       }
       else if( message.equals("Right of Image (calibrated)") )
@@ -1871,7 +1886,7 @@ public class ImageViewComponent implements IViewComponent2D,
         addColorControlSouth = false;
 	addColorControl = false;
         buildViewComponent();
-        ((ControlCheckboxButton)controls[2]).setSelected(true);
+        ((ControlCheckboxButton)controls[3]).setSelected(true);
         ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
       }
       else if( message.equals("None") )
@@ -1881,7 +1896,7 @@ public class ImageViewComponent implements IViewComponent2D,
         addColorControlSouth = false;
 	addColorControl = false;
         buildViewComponent();
-        ((ControlCheckboxButton)controls[2]).setSelected(true);
+        ((ControlCheckboxButton)controls[3]).setSelected(true);
         ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
       }
       // else change color scale.
@@ -1891,7 +1906,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	ijp.setNamedColorModel( colorscale, isTwoSided, true );
 	((ControlColorScale)controls[1]).setColorScale( colorscale, 
 							isTwoSided );        
-	((PanViewControl)controls[5]).repaint();
+	((PanViewControl)controls[6]).repaint();
       }
       sendMessage( message );
       background.validate();
