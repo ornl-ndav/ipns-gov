@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/02/06 17:15:06  millermi
+ *  - Added getNumSteps(), getStepSize(), getMajorTickSpace(),
+ *    getMinorTickSpace() for convenience.
+ *  - Updated get/setObjectState().
+ *
  *  Revision 1.8  2004/02/03 21:44:48  millermi
  *  - Updated javadocs
  *
@@ -106,16 +111,39 @@ public class ControlSlider extends ViewControl
  /**
   * "Range" - This constant String is a key for referencing the state
   * information about the minimum and maximum values returned by this slider.
-  * The value that this key references is of type Point, but the values
-  * are floats multiplied by 10^x to become whole numbers.
+  * The value that this key references is of type floatPoint2D.
   */
   public static final String RANGE = "Range";
+ 
+ /**
+  * "Major Tick" - This constant String is a key for referencing the state
+  * information about the spacing of major tickmarks on the slider.
+  * The value that this key references is a primative float.
+  */
+  public static final String MAJOR_TICK = "Major Tick";
+ 
+ /**
+  * "Minor Tick" - This constant String is a key for referencing the state
+  * information about the spacing of minor (shorter) tickmarks on the slider.
+  * The value that this key references is a primative float.
+  */
+  public static final String MINOR_TICK = "Minor Tick";
+ 
+ /**
+  * "Step" - This constant String is a key for referencing the state
+  * information about the size per division or number of divisions the slider
+  * will be divided into. If this value expresses number of divisions,
+  * the value that this key references is a primative int. If this value
+  * expresses the actual size of the division (as a percent),
+  * the value that this key references is a primative float.
+  */
+  public static final String STEP = "Step";
   
   private JSlider slide;
-  private float value;
   private int num_steps;
-  private int power;
   private floatPoint2D range;
+  private floatPoint2D spacing;         // this contains major (x) and minor (y)
+                                        // tick spacing.
   private ControlSlider this_slider;
   private CoordTransform float_to_int;  // this transform will be used to
                                         // convert the float range to a
@@ -161,17 +189,17 @@ public class ControlSlider extends ViewControl
     this.setLayout( new GridLayout(1,1) );
     slide = new JSlider();
     float_to_int = new CoordTransform();
+    spacing = new floatPoint2D(0f,0f);
     this.add(slide);
     this_slider = this;
     setRange(min, max);
-    value = min;
     // prevent step_size from being zero.
     if( numsteps == 0 )
       numsteps = 1;
     setStep(numsteps);
     
     slide.addChangeListener( new SlideListener() );
-    setValue(value);
+    setValue(min);
   }
  
  /**
@@ -197,12 +225,12 @@ public class ControlSlider extends ViewControl
   */ 
   public ObjectState getObjectState( boolean isDefault )
   {
-    ObjectState state = super.getObjectState(isDefault);/*
-    state.insert( SELECTED, new Boolean(isSelected()) );
-    state.insert( BUTTON_TEXT, new String(getText()) );
-    state.insert( BUTTON_FONT, getButtonFont() );
-    state.insert( SELECTED_COLOR, checkcolor );
-    state.insert( UNSELECTED_COLOR, uncheckcolor );*/
+    ObjectState state = super.getObjectState(isDefault);
+    state.insert( RANGE, new floatPoint2D(range) );
+    state.insert( STEP, new Integer(getNumSteps()) );
+    state.insert( SLIDER_VALUE, new Float(getValue()) );
+    state.insert( MAJOR_TICK, new Float(getMajorTickSpace()) );
+    state.insert( MINOR_TICK, new Float(getMinorTickSpace()) );
     return state;
   }
      
@@ -214,43 +242,48 @@ public class ControlSlider extends ViewControl
   */
   public void setObjectState( ObjectState new_state )
   {
+    // call setObjectState of ViewControl, sets title if one exists.
     super.setObjectState( new_state );
-    /*
-    Object temp = new_state.get(SELECTED);
+    // range must be set first.
+    Object temp = new_state.get(RANGE);
     if( temp != null )
     {
-      setSelected(((Boolean)temp).booleanValue()); 
+      floatPoint2D fpt = (floatPoint2D)temp;
+      setRange(fpt.x,fpt.y); 
+    }
+    // step must be set second.
+    temp = new_state.get(STEP);
+    if( temp != null )
+    {
+      if( temp instanceof Integer )
+        setStep(((Integer)temp).intValue());
+      else if( temp instanceof Float )
+        setStep(((Float)temp).floatValue()); 
     }
     
-    temp = new_state.get(BUTTON_TEXT);
+    temp = new_state.get(SLIDER_VALUE);
     if( temp != null )
     {
-      setText((String)temp); 
+      setValue(((Float)temp).floatValue()); 
     }
     
-    temp = new_state.get(BUTTON_FONT);
+    temp = new_state.get(MAJOR_TICK);
     if( temp != null )
     {
-      setButtonFont((Font)temp); 
+      setMajorTickSpace(((Float)temp).floatValue()); 
     }
     
-    temp = new_state.get(SELECTED_COLOR);
+    temp = new_state.get(MINOR_TICK);
     if( temp != null )
     {
-      setTextCheckedColor((Color)temp); 
+      setMinorTickSpace(((Float)temp).floatValue()); 
     }
-    
-    temp = new_state.get(UNSELECTED_COLOR);
-    if( temp != null )
-    {
-      setTextUnCheckedColor((Color)temp); 
-    }*/
   }
   
  /**
   * getValue() returns the value associated with the slider "knob" position.
   *
-  *  @return value
+  *  @return value on interval [range min, range max]
   */  
   public float getValue()
   {   
@@ -322,6 +355,27 @@ public class ControlSlider extends ViewControl
   }
   
  /**
+  * This method returns the number of steps this slider is divided into.
+  *
+  *  @return number of steps
+  */
+  public int getNumSteps()
+  {
+    return num_steps;
+  }
+  
+ /**
+  * This method returns the size of the steps. The value returned is
+  * a percent on the interval (0,1].
+  *
+  *  @return step size between (0,1]
+  */
+  public float getStepSize()
+  {
+    return 1f/(float)num_steps;
+  }
+  
+ /**
   * Sets range of slider to specified range. The increment between the
   * minimun and maximum is determined by the setPrecision method.
   *
@@ -339,35 +393,65 @@ public class ControlSlider extends ViewControl
   * interval that the major ticks should be spaced. 
   * Ex. spacing = .2f would result in 5 major ticks since .2 => 1/5 
   *
-  *  @param  spacing - major tick spacing 
+  *  @param  m_spacing - major tick spacing 
   */ 
-  public void setMajorTickSpace(float spacing)
+  public void setMajorTickSpace(float m_spacing)
   {
     // make sure spacing is on interval [0,1]
-    if( spacing < 0 || spacing > 1 )
-      spacing = 0;
+    if( m_spacing < 0 || m_spacing > 1 )
+      m_spacing = 0;
+    // store the major spacing in spacing.x
+    spacing.x = m_spacing;
     // get number of steps from integer range bounds, take percent of that. 
-    int step_size = Math.round(float_to_int.getDestination().getX2() * spacing);
+    int step_size = Math.round( float_to_int.getDestination().getX2() * 
+                                m_spacing );
     slide.setMajorTickSpacing(step_size);
     showTicks(true);
   }
 
  /**
   * Set the spacing for the "short" tickmarks.Enter a percentage of the
+  * interval that the minor ticks should be spaced. 
+  * Ex. spacing = .1f would result in 10 minor ticks since .1 => 1/10 
+  *
+  *  @param  m_spacing - minor tick spacing 
+  */   
+  public void setMinorTickSpace(float m_spacing)
+  {
+    // make sure spacing is on interval [0,1]
+    if( m_spacing < 0 || m_spacing > 1 )
+      m_spacing = 0;
+    // store the minor spacing in spacing.y
+    spacing.y = m_spacing;
+    // get number of steps from integer range bounds, take percent of that. 
+    int step_size = Math.round( float_to_int.getDestination().getX2() * 
+                                m_spacing );
+    slide.setMinorTickSpacing(step_size);
+    showTicks(true);
+  }
+
+ /**
+  * Get the spacing for the "long" tickmarks. Returns a percentage of the
   * interval that the major ticks should be spaced. 
   * Ex. spacing = .2f would result in 5 major ticks since .2 => 1/5 
   *
-  *  @param  spacing - minor tick spacing 
+  *  @return  spacing - major tick spacing as a percent between [0,1]
   */   
-  public void setMinorTickSpace(float spacing)
+  public float getMajorTickSpace()
   {
-    // make sure spacing is on interval [0,1]
-    if( spacing < 0 || spacing > 1 )
-      spacing = 0;
-    // get number of steps from integer range bounds, take percent of that. 
-    int step_size = Math.round(float_to_int.getDestination().getX2() * spacing);
-    slide.setMinorTickSpacing(step_size);
-    showTicks(true);
+    return spacing.x;
+  }
+
+ /**
+  * Get the spacing for the "short" tickmarks. Returns a percentage of the
+  * interval that the minor ticks should be spaced. 
+  * Ex. spacing = .1f would result in 10 minor ticks since .1 => 1/10 
+  *
+  *  @return  spacing - minor tick spacing as a percent between [0,1]
+  */   
+  public float getMinorTickSpace()
+  {
+    return spacing.y;
   }
 
  /**
@@ -428,17 +512,22 @@ public class ControlSlider extends ViewControl
     frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     slide.setTitle("mySlide");
     //slide.setStep(.001f);
-    slide.setRange(2.3f,20.5f);
+    //slide.setRange(2.3f,20.5f);
     slide.setMajorTickSpace(.25f);
     slide.setMinorTickSpace(.05f);
+    ObjectState state = new ObjectState();
+    state.insert( ControlSlider.SLIDER_VALUE, new Float(11.4) );
+    state.insert( ControlSlider.RANGE, new floatPoint2D(2.3f,20.5f) );
+    state.insert( ControlSlider.MAJOR_TICK, new Float(.25f) );
+    state.insert( ControlSlider.MINOR_TICK, new Float(.05f) );
+    // test both options of step
+    state.insert( ControlSlider.STEP, new Float(.001f) );  // step size
+    // state.insert( ControlSlider.STEP, new Integer(100) );  // num of steps
+    slide.setObjectState( state );
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
     shower = null;
-    /*
-    slide.setValue(13.29f);
-    System.out.println("Value: " + slide.getValue());
-    // invalid value
-    slide.setValue(103.29f);
-    System.out.println("Value: 103.29");*/
+    System.out.println("Major: " + slide.getMajorTickSpace() );
+    System.out.println("Minor: " + slide.getMinorTickSpace() );
   }
 }
