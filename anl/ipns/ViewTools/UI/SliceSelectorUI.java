@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/02/03 23:43:38  dennis
+ * Added HKLorQ_SelectorUI controls.  Still need to add listeners and
+ * methods to work with these controls.
+ *
  * Revision 1.4  2004/02/02 23:52:19  dennis
  * Added setMode() method to allow switching between HKL
  * and Qxyz plane selections.
@@ -76,9 +80,11 @@ public class SliceSelectorUI extends    ActiveJPanel
   public  static final int  HKL_MODE  = SlicePlane3D_UI.HKL_MODE;
   public  static final int  QXYZ_MODE = SlicePlane3D_UI.QXYZ_MODE;
 
-  private SlicePlane3D_UI plane_selector;
-  private SliceImageUI    image_selector;
-  private SliceStepperUI  stepper;
+  private HKLorQ_SelectorUI display_mode;
+  private HKLorQ_SelectorUI slice_mode;
+  private SlicePlane3D_UI   plane_selector;
+  private SliceImageUI      image_selector;
+  private SliceStepperUI    stepper;
 
 
   /*-------------------------- constructor ----------------------- */
@@ -93,6 +99,8 @@ public class SliceSelectorUI extends    ActiveJPanel
     if ( mode != HKL_MODE && mode != QXYZ_MODE )
       mode = HKL_MODE;
 
+    display_mode   = new HKLorQ_SelectorUI( "Display in " );
+    slice_mode     = new HKLorQ_SelectorUI( "Select  in " );
     plane_selector = new SlicePlane3D_UI( mode );
     image_selector = new SliceImageUI( "Select Plane Size" );
     stepper        = new SliceStepperUI( "Step In/Out" );
@@ -100,6 +108,8 @@ public class SliceSelectorUI extends    ActiveJPanel
     setMode( mode );
 
     Box box = new Box( BoxLayout.Y_AXIS );
+    box.add( display_mode );
+    box.add( slice_mode );
     box.add( plane_selector );
     box.add( image_selector );
     box.add( stepper );
