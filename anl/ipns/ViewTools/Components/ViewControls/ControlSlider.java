@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/05/22 12:57:51  dennis
+ *  Now prints value in main test program. Increased precision. (Mike Miller)
+ *
  *  Revision 1.1  2003/05/20 19:44:46  dennis
  *  Initial version of standardized controls for viewers. (Mike Miller)
  *
@@ -78,7 +81,7 @@ public class ControlSlider extends ViewControl
       this.add(slide);
       value = 0;
       range = new Point(0,1000);
-      range_precision = 3;
+      range_precision = 4;
       power = 1;
       
       slide.addChangeListener( new SlideListener() );
@@ -204,7 +207,8 @@ public class ControlSlider extends ViewControl
       }
       power = pow;
       slide.setMinimum(range.x);
-      slide.setMaximum(range.y);     
+      slide.setMaximum(range.y); 
+      slide.setValue(range.x);    
    }
   
   /**
@@ -274,15 +278,15 @@ public class ControlSlider extends ViewControl
       frame.getContentPane().add(slide);
       slide.setTitle("mySlide");
       slide.setPrecision(3);
-      slide.setRange(-2.3f,-20.5f);
+      slide.setRange(2.3f,20.5f);
       slide.setMajorTickSpace(3);
       slide.setMinorTickSpace(1);
       frame.show();
       
-      slide.setValue(-13.29f);
+      slide.setValue(13.29f);
       System.out.println("Value: " + slide.getValue());
       // invalid value
       slide.setValue(103.29f);
-      System.out.println("Value: " + slide.getValue());
+      System.out.println("Value: 103.29");
    }
 }
