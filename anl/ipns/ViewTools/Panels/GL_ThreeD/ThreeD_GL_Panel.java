@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2004/07/23 13:06:21  dennis
+ * Commented out explicit request for double buffer.
+ *
  * Revision 1.10  2004/07/16 14:54:14  dennis
  * Now uses HitRecords to keep track of OpenGL selection information.
  * Stubs for methods pickedPoint() and pickID() to get 3D coordinates
@@ -159,10 +162,11 @@ public class ThreeD_GL_Panel implements Serializable
     try
     {
       GLCapabilities capabilities = new GLCapabilities();
-      capabilities.setDoubleBuffered( true );
+//      capabilities.setDoubleBuffered( true );
+//      capabilities.setStereo( true );
       System.out.println("capabilites = " + capabilities );
       canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
-//    canvas.setAutoSwapBufferMode(false);
+//      canvas.setAutoSwapBufferMode(false);
       canvas.addGLEventListener(new Renderer());
     }
     catch (Exception e)
