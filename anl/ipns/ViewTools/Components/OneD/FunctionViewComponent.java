@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2003/08/08 16:08:09  serumb
+ *  Check to see if "Show Pointed At" is checked then change axes as
+ *  scale changes.
+ *
  *  Revision 1.19  2003/08/06 16:26:13  serumb
  *  Function controls will not close when pointed at changes.
  *
@@ -381,9 +385,12 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       gjp.setErrors( Varray1D.getErrorValues( i ), 0, i, true );
     }
 */
+       if (draw_pointed_at) {
        DrawSelectedGraphs();
        if(draw_pointed_at)
        DrawPointedAtGraph();
+       paintComponents(big_picture.getGraphics());
+       }
 /*    else{
        mainControls.close_frame();
        DrawSelectedGraphs();
