@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/03/03 23:19:08  dennis
+ * Added message string for slice mode changed.
+ *
  * Revision 1.1  2004/01/24 23:28:58  dennis
  * Interface for objects that specify a plane as a
  * SlicePlane3D object.
@@ -51,6 +54,13 @@ public interface ISlicePlaneSelector
    *  Message String sent when the user selects a different slice plane
    */
   public static final String PLANE_CHANGED = "Plane Changed";  
+
+
+  /**
+   *  Message String sent when the user selects a different slice mode
+   */
+  public static final String SLICE_MODE_CHANGED = "Slice Mode Changed";
+
                                                                 
   /**
    *  Set the plane whose parameters are to be displayed by this plane selector.
