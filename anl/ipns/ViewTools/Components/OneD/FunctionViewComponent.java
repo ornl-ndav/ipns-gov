@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.28  2003/10/21 22:01:49  serumb
+ *  Implements all methods from IViewComponent.
+ *
  *  Revision 1.27  2003/10/21 00:43:13  serumb
  *  Changed return types of methods getShared/PrivateMenuItems from
  *  JMenuItem to JViewMenuItem.
@@ -619,6 +622,11 @@ public class FunctionViewComponent implements IViewComponent1D,
          gjp.setTransparent(true, 0, true);    
 
   }
+   
+  /**
+   * To be continued.
+   **/
+   public void kill(){};
    
   // required since implementing ActionListener
 
