@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2003/07/10 21:51:01  serumb
+ *  Added control to split pane for showing the function controls
+ *  and took out all all references to data sets.
+ *
  *  Revision 1.12  2003/07/08 16:34:48  serumb
  *  Took out the controls and moved them to DataSetTools/
  *  components/View/ViewControls/FunctionControls.java.
@@ -118,11 +122,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    */
   public FunctionViewComponent( IVirtualArray1D varr ) {
 
-    Data d;
-    int[] selected_indices = new int[varr.getNumlines(  )];
- 
-    selected_indices   = ( ( DataSetData )varr ).ds.getSelectedIndices(  );
-    
     Varray1D    = varr;  // Get reference to varr
     precision   = 4;
     font        = FontUtil.LABEL_FONT2;
@@ -135,14 +134,13 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     boolean bool  = false;
 
     for( int i = 0; i < num_lines; i++ ) {
-       d   = ( ( DataSetData )Varray1D ).ds.getData_entry( selected_indices[i] );
        gjp.setData( varr.getXValues( i ), varr.getYValues( i ), i, bool );
 
       if( i >= ( num_lines - 2 ) ) {
         bool = true;
       }
 
-      gjp.setErrors( d.getErrors(  ), 0, i, true );
+      gjp.setErrors( varr.getErrorValues( i ), 0, i, true );
 
     }
 
@@ -184,7 +182,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     buildViewComponent( gjp );  // initializes big_picture to jpanel containing
                                 // the background and transparencies 		       
     mainControls = new FunctionControls(varr, gjp, getDisplayPanel());
-
    // buildViewControls( gjp );
   }
 
@@ -415,16 +412,24 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   }
 
   public JComponent[] getPrivateControls(  ) {
-    //System.out.println("Entering: JComponent[] getPrivateControls()");
-    //System.out.println("");
-    JComponent[] Res = new JComponent[1];
+    System.out.println("Entering: JComponent[] getPrivateControls()");
+    System.out.println("");
+   JPanel[] Res = new JPanel[2];
 
+   JPanel test_p = new JPanel();
+   JLabel test_l = new JLabel("Graph View");
+   test_p.add(test_l);
+   Res[0] = test_p;
+
+   Res[1] = new ControlCheckbox(false);
+   ((ControlCheckbox)Res[1]).setText("Function Controls");
+   ((ControlCheckbox)Res[1]).addActionListener( new ControlListener() );
    
-    Res[0]   = ( JComponent ) mainControls.get_panel(). getPanel();
+   // Res[0]   =  mainControls.get_panel().getPanel();
 
     return Res;
 
-   //  return new JComponent[0];
+    // return new JComponent[0];
   }
 
   public JMenuItem[] getSharedMenuItems(  ) {
@@ -596,7 +601,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
         int c = System.in.read(  );
       } catch( Exception sss ) {}
     }
-
     FunctionViewComponent fvc = new FunctionViewComponent( ArrayHandler );
 
     //A tester frame to throw the bottom and top JPanel into **********
@@ -695,16 +699,29 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     }
   }
 */
-/*  private class ControlListener implements ActionListener {
+  private class ControlListener implements ActionListener {
     //~ Methods ****************************************************************
 
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
 
-      System.out.println( "action command: " + message );
-      System.out.println( "action event: " + ae );
+     // System.out.println( "action command: " + message );
+     // System.out.println( "action event: " + ae );
+      if( message.equals( "CHECKBOX_CHANGED" ) ) {
+        ControlCheckbox control = ( ControlCheckbox )ae.getSource(  );
+        
+        if( control.getText(  ).equals( "Function Controls" ) ) {
+          if( control.isSelected(  ) ) {
+            mainControls.display_controls();
+          } else {
+            mainControls.close_frame();
+          }
+          
+        }
+      }
+          
     }
   }
-*/     
+ 
 }
 
