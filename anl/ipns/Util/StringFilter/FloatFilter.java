@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/05 04:29:29  bouzekc
+ *  Fixed bug where a floating point number String with an exponent
+ *  less than -3 was considered invalid.  Added javadocs to isOKay.  Added
+ *  code comments to isOkay.
+ *
  *  Revision 1.2  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -63,26 +68,53 @@ public class FloatFilter implements StringFilterer {
         this.automod=automicallymodifystring;
     }
 
+    /**
+     * This method is designed to test whether or not a given String
+     * would be accepted by this StringFilter.
+     * 
+     * @param  offs                 The offset of the entry point in the
+     *                              existing String curString.
+     * @param  inString             The String you want to insert.
+     * @param  curString            The String which currently exists.
+     *
+     * @return true if it would be OK to insert inString into curString based
+     * on the rules of this filter.
+     */
     public boolean isOkay(int offs, String inString, String curString){
+        //if our automod is turned on, change the string to insert to 
+        //uppercase.
         if(automod) this.modifyString(offs,inString, curString);
+
+        //convert the insert String to a character array
         char[] source = inString.toCharArray();
-        String stuff=MINUS.toString();
+
+        //look through our insert String at each character to see if it is 
+        //valid
         for( int i=0 ; i < source.length ; i++ ){
             if(Character.isDigit(source[i])){
-                // do nothing
-            }else if(DEC.compareTo(new Character(source[i]))==0){
+                // do nothing            
+            }else if(DEC.equals(new Character(source[i]))){
+                //i.e. the current character is a decimal point
                 if(curString.indexOf(DEC.toString())>=0){
+                  //We have one decimal point in the String already, so we
+                  //can't insert another
                     return false;
                 }else{
+                    //look for an exponent character.  Maybe that is where the
+                    //decimal point goes
                     int index=curString.indexOf(E.toString());
                     if(index>=0){
+                        //found an exponent at index
                         if(offs+i>index){
+                            //we can't insert the decimal point after the
+                            //exponent symbol
                             return false;
                         }else{
-                            // do nothing
+                            //do nothing-we can insert the decimal point
+                            //before the "E"
                         }
                     }else{
-                        // do nothing
+                        //do nothing-no exponent, so insert the decimal
                     }
                 }
                 /* }else if(PLUS.compareTo(new Character(source[i]))==0){
@@ -101,55 +133,104 @@ public class FloatFilter implements StringFilterer {
                    return false;
                    }
                    }*/
-            }else if(MINUS.compareTo(new Character(source[i]))==0){
+            }else if(MINUS.equals(new Character(source[i]))){
+                //the current character is a minus symbol
                 int mi=curString.indexOf(MINUS.toString());
                 int ei=curString.indexOf(E.toString());
-                if(ei>=0){ // allow two minuses
+
+                //if there is an exponent sign, we need to allow for two
+                //minuses
+                if(ei>=0){
                     if(offs+i==0){
+                        //insert is at index 0 of the current String, and the
+                        //first character in the insert String is a minus: i.e.
+                        //we are trying to make the number negative
                         if(offs+i==mi){
+                            //we can't re-negate the String number this way
                             return false;
                         }else{
-                            // do nothing
+                            //do nothing-negate the number
                         }
                     }else if(offs+i==ei+1){
+                        //we are trying to insert a minus on the exponent
+                        //number
                         if(mi==0){
+                            //number is negative already, so try to determine
+                            //if the exponent is negated already
                             mi=curString.indexOf(MINUS.toString(),mi+1);
                         }
                         if(offs+i==mi){
+                            //we can't re-negate the exponent this way
                             return false;
                         }else{
-                            
+                            //do nothing-fine to negate the exponent
                         }
                     }else{
+                        //can't insert the minus sign in some non-standard
+                        //location
                         return false;
                     }
-                }else{     // allow only one minus
-                    if(offs+i==0 && mi<0){
-                        // do nothing
+                }else{     
+                    //no exponent in the current String, but check to see if the 
+                    //INSERT String has an exponent
+                    int ei2=inString.indexOf(E.toString());
+                    if(ei2<0){
+                        if(offs+i==0 && mi<0){
+                            //do nothing-we are inserting a minus at the beginning 
+                            //into a "positive" number String
+                        }else{
+                            //we can't re-negate the number
+                            return false;
+                        }    
                     }else{
-                        return false;
+                        //exponent in insert string
+                        int mi2=inString.indexOf(MINUS.toString());
+                        if(mi2==0 || (mi2==(ei2+1))){
+                            //do nothing.  The insert string is fine.
+                        }else{
+                            return false;
+                        }
                     }
                 }
-                // do nothing
             }else if(E.compareTo(new Character(source[i]))==0){
+                //trying to insert an exponent
                 if(curString.indexOf(E.toString())>=0){
+                    //can't insert an exponent twice
                     return false;
                 }else if( offs==0 && i==0 ){
+                    //can't insert an exponent at position zero of the current
+                    //String
                     return false;
                 }else{
                     if(offs+i<=curString.indexOf(DEC.toString())){
+                        //can't insert an exponent in between an integer and a
+                        //decimal point
                         return false;
                     }else{
-                        // do nothing
+                        //do nothing-we have exhausted all special cases, so
+                        //consider it a good insert
                     }
                 }
             }else{
+                //no idea what we are trying to insert here.  It is not OK, so
+                //return false
                 return false;
             }
         }
         
+        //made it through.  Call the insert good.
         return true;
     }
+
+    /**
+     * Utility to return the inString turned into upper case.
+     *
+     * @param offs Unused.
+     * @param inString The String to change to uppercase.
+     * @param curString Unused.
+     *
+     * @return inString changed to uppercase.
+     */
     public String modifyString(int offs, String inString, String curString){
         return inString.toUpperCase();
     }
