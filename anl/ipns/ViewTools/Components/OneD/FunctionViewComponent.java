@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2003/07/17 20:38:54  serumb
+ *  Implemented the dataChanged methods, and added methods for
+ *  drawing the graphs.
+ *
  *  Revision 1.13  2003/07/10 21:51:01  serumb
  *  Added control to split pane for showing the function controls
  *  and took out all all references to data sets.
@@ -103,7 +107,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   private Vector Listeners   = null;
   private JPanel big_picture = new JPanel(  );
   private GraphJPanel gjp;
-
+  private final int MAX_GRAPHS = 16;
+ 
   // for component size and location adjustments
   //private ComponentAltered comp_listener;
   private Rectangle regioninfo;
@@ -116,6 +121,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   private int linewidth      = 1;
   private int line_index     = 0;
   private FunctionControls mainControls;
+  private boolean draw_pointed_at = false;
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
    * to be viewed in a border layout.
@@ -132,31 +138,35 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     //Make gjp correspond to the data in f_array
     int num_lines = varr.getNumlines(  );
     boolean bool  = false;
-
-    for( int i = 0; i < num_lines; i++ ) {
+/*    for( int i = 0; i < num_lines; i++ ) {
        gjp.setData( varr.getXValues( i ), varr.getYValues( i ), i, bool );
 
       if( i >= ( num_lines - 2 ) ) {
         bool = true;
       }
 
-      gjp.setErrors( varr.getErrorValues( i ), 0, i, true );
+      gjp.setErrors( varr.getErrorValues( i-1 ), 0, i, true );
 
     }
+*/
+
+    DrawSelectedGraphs();
+    if(draw_pointed_at)
+      DrawPointedAtGraph();
 
     gjp.setBackground( Color.white );
 
     // set initial line styles
     if( varr.getNumlines(  ) > 1 ) {
-      gjp.setColor( Color.blue, 1, true );
-      gjp.setStroke( gjp.strokeType( gjp.LINE, 1 ), 1, true );
-      gjp.setLineWidth( linewidth, 1, false );
+      gjp.setColor( Color.blue, 2, true );
+      gjp.setStroke( gjp.strokeType( gjp.LINE, 2 ), 2, true );
+      gjp.setLineWidth( linewidth, 2, false );
     }
 
     if( varr.getNumlines(  ) > 2 ) {
-      gjp.setColor( Color.green, 2, false );
-      gjp.setStroke( gjp.strokeType( gjp.LINE, 2 ), 2, true );
-      gjp.setLineWidth( linewidth, 0, false );
+      gjp.setColor( Color.green, 3, false );
+      gjp.setStroke( gjp.strokeType( gjp.LINE, 3 ), 3, true );
+      gjp.setLineWidth( linewidth, 3, false );
     }
 
     ImageListener gjp_listener = new ImageListener(  );
@@ -325,29 +335,42 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    * This method will be called to notify this component of a change in data.
    */
   public void dataChanged(  ) {
-    float[] x_array = Varray1D.getXValues( line_index );
-    float[] y_array = Varray1D.getYValues( line_index );
+/*    for(int i = 0; i < Varray1D.getNumlines(); i++)
+    {
+      float[] x_array = Varray1D.getXValues( i );
+      float[] y_array = Varray1D.getYValues( i );
 
-    gjp.setData( x_array, y_array, line_index, true );
+      gjp.setData( x_array, y_array, i, true );
+      gjp.setErrors( Varray1D.getErrorValues( i ), 0, i, true );
+    }
+*/
+    if(draw_pointed_at)
+       DrawPointedAtGraph();
+/*    else{
+       mainControls.close_frame();
+       DrawSelectedGraphs();
+       mainControls = new FunctionControls(Varray1D, gjp, getDisplayPanel());
+    }*/
   }
-
   /**
    * To be continued...
    */
   public void dataChanged( IVirtualArray1D pin_varray )  // pin == "passed in"
    {
-    System.out.println( "Now in void dataChanged(VirtualArray1D pin_varray)" );
-
+  //System.out.println( "Now in void dataChanged(VirtualArray1D pin_varray)" );
+    Varray1D = pin_varray;
     //get the complete 2D array of floats from pin_varray
-    float[] x_array = Varray1D.getXValues( line_index );
-    float[] y_array = Varray1D.getYValues( line_index );
-
-    gjp.setData( x_array, y_array, line_index, true );
+    gjp.clearData();
+    mainControls.close_frame();
+    DrawSelectedGraphs();
+    if(draw_pointed_at)
+      DrawPointedAtGraph();  
+    mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel());
 
     //      System.out.println("Value of first element: " + x_array[0] +
     //							y_array[0] );
-    System.out.println( "Thank you for notifying us" );
-    System.out.println( "" );
+    //System.out.println( "Thank you for notifying us" );
+    //System.out.println( "" );
   }
 
   /**
@@ -414,7 +437,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   public JComponent[] getPrivateControls(  ) {
     System.out.println("Entering: JComponent[] getPrivateControls()");
     System.out.println("");
-   JPanel[] Res = new JPanel[2];
+   JPanel[] Res = new JPanel[3];
 
    JPanel test_p = new JPanel();
    JLabel test_l = new JLabel("Graph View");
@@ -424,6 +447,10 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    Res[1] = new ControlCheckbox(false);
    ((ControlCheckbox)Res[1]).setText("Function Controls");
    ((ControlCheckbox)Res[1]).addActionListener( new ControlListener() );
+    
+   Res[2] = new ControlCheckbox(false);
+   ((ControlCheckbox)Res[2]).setText("Show Pointed At");
+   ((ControlCheckbox)Res[2]).addActionListener( new ControlListener() );
    
    // Res[0]   =  mainControls.get_panel().getPanel();
 
@@ -493,6 +520,62 @@ public class FunctionViewComponent implements IFunctionComponent1D,
                               repaint(  );
   }
 
+  private boolean DrawPointedAtGraph() {
+    int pointed_at_line = Varray1D.getPointedAtGraph();
+    
+    if(pointed_at_line >= 0) {
+      Draw_GJP(pointed_at_line, 0, false);
+      return true;
+    }
+    return false;
+  }
+
+  private int DrawSelectedGraphs() {
+    int num_drawn = 0;
+    int draw_count = 0;
+    gjp.clearData();
+    
+    int pointed_at_line = Varray1D.getPointedAtGraph(); 
+   
+    int num_graphs = Varray1D.getNumGraphs();
+    boolean at_max = false;
+   // int i = num_graphs - 1;
+    for(int i=0; i < num_graphs; i++) {
+   // while( !at_max && i >= 0 ) {
+      if( Varray1D.isSelected(i) ) {
+        draw_count++;
+       // if( i == pointed_at_line )
+       //   Draw_GJP( i, draw_count, true );
+       // else
+          Draw_GJP( i, draw_count, false );
+
+        num_drawn++;
+      }
+      //i--;
+      if ( draw_count >= MAX_GRAPHS )
+        at_max = true;
+    }
+    if( DrawPointedAtGraph() )
+      num_drawn++;
+    
+    return num_drawn;
+  }
+
+  private void Draw_GJP( int index, int graph_num, boolean pointed_at )
+  {
+       if(index == 0 && pointed_at == true)
+         return; 
+       float x[] = Varray1D.getXVals_ofIndex(index);
+       float y[] = Varray1D.getYVals_ofIndex(index);
+       gjp.setColor( Color.black, graph_num, false );
+       gjp.setData( x, y, graph_num, false );     
+       gjp.setErrors( Varray1D.getErrorVals_ofIndex( index ), 0, 
+                                              graph_num, true );
+       if(!draw_pointed_at)
+         gjp.setTransparent(true, 0, true);    
+
+  }
+   
   // required since implementing ActionListener
 
   /**
@@ -718,6 +801,17 @@ public class FunctionViewComponent implements IFunctionComponent1D,
           }
           
         }
+        else if( control.getText(  ).equals( "Show Pointed At" ) ) {
+          if( control.isSelected(  ) ) {
+            draw_pointed_at = true;
+          gjp.setTransparent(false, 0, true);
+          } else {
+              gjp.setTransparent(true, 0, true);
+            draw_pointed_at = false;
+          }
+          dataChanged();
+        }
+        
       }
           
     }
