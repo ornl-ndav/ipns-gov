@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2001/07/10 19:10:01  dennis
+ *  Added more detailed debugging prints (currently commentd out).
+ *
  *  Revision 1.9  2001/06/01 20:47:12  dennis
  *  Modified to work with XOR_Cursor, instead of the Rubberband class.
  *
@@ -420,6 +423,20 @@ public void SetTransformsToWindowSize()
  
 private void ZoomToPixelSubregion( float x1, float y1, float x2, float y2 )
 {
+/*
+  System.out.println("ZoomToPixelSubregion called----------------------");
+  System.out.println("local_transform = " );
+  System.out.println( local_transform.toString() );
+  System.out.println("global_transform = " );
+  System.out.println( global_transform.toString() );
+  System.out.println("x1, y1, x2, y2 = " + x1 + ", " + y1 + ", " +
+                                           x2 + ", " + y2 );
+  System.out.println();
+  System.out.println("Preferred size = " + getPreferredSize() );
+  System.out.println("Size =           " + getSize() );
+  System.out.println();
+*/
+
   int SNAP_REGION = 10;
 
   float WC_x1,
@@ -459,6 +476,19 @@ private void ZoomToPixelSubregion( float x1, float y1, float x2, float y2 )
                                               // preserve the "right side up"
                                               // coordinate system 
   local_transform.setSource( WC_x1, WC_y1, WC_x2, WC_y2 );
+
+
+/*
+  System.out.println("WC: x1, y1, x2, y2 = " + WC_x1 + ", " + WC_y1 + ", " +
+                                               WC_x2 + ", " + WC_y2 );
+  System.out.println("local_transform = " );
+  System.out.println( local_transform.toString() );
+  System.out.println("global_transform = " );
+  System.out.println( global_transform.toString() );
+  System.out.println("END OF ZoomToPixelRegion ---------------------");
+  System.out.println();
+*/
+
 }
 
 /* --------------------------- my_setPreferredSize ------------------------ */
