@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/07/25 14:44:14  dennis
+ *  - Removed method implementation of getLocalCoordBounds() and
+ *    getGlobalCoordBounds() since implementation of ILogAxisAddible2D
+ *    no longer requires implementing these two methods.
+ *    (Mike Miller)
+ *
  *  Revision 1.6  2003/07/10 13:39:35  dennis
  *  - Made One-sided color models available
  *  (Mike Miller)
@@ -344,51 +350,7 @@ public class ControlColorScale extends ViewControl
    public String getTitle()
    {
       return "";
-   }   
-   
-  /**
-   * This method will return the local coordinate bounds of the center
-   * jpanel. To be implemented, the center may have to be a coordjpanel.
-   *
-   *  @return local bounds of the component
-   *          If a basic color scale, dumby value returned.
-   */
-   public CoordBounds getLocalCoordBounds()
-   {
-      if( !isBasic )
-         return component.getLocalCoordBounds();
-      else
-      {
-         System.out.println("getLocalCoordBounds() is not available with " +
-	                    "the constructor chosen. Use constructor: " +
-			    "public ControlColorScale( " +
-			    "IColorScaleAddible icsa, boolean orientation ) " +
-			    "to enable this method." );
-         return new CoordBounds( 0,0,1,1 );
-      }
-   }
-      
-  /**
-   * This method will return the global coordinate bounds of the center
-   * jpanel. To be implemented, the center may have to be a coordjpanel.
-   *
-   *  @return global bounds of the component
-   *          If a basic color scale, dumby value returned.
-   */
-   public CoordBounds getGlobalCoordBounds()
-   {
-      if( !isBasic )
-         return component.getGlobalCoordBounds();
-      else
-      {
-         System.out.println("getGlobalCoordBounds() is not available with " +
-	                    "the constructor chosen. Use constructor: " +
-			    "public ControlColorScale( " +
-			    "IColorScaleAddible icsa, boolean orientation ) " +
-			    "to enable this method." );
-         return new CoordBounds( 0,0,1,1 );
-      }
-   }
+   } 
    
   /**
    * This private method sets the orientation of the ColorScaleImage to either
