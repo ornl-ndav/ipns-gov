@@ -31,13 +31,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/12 00:28:38  serumb
+ *  Changed package and imports.
+ *
  *  Revision 1.1  2003/06/03 16:51:38  dennis
  *  Initial version of GUI for reciprocal lattice normal vectors
  *  including corresponding d-spacing and least square errors.
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.io.*;
 import java.awt.*;
@@ -45,8 +48,8 @@ import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import DataSetTools.util.*;
-import DataSetTools.math.*;
+import gov.anl.ipns.Util.Numeric.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
  */
