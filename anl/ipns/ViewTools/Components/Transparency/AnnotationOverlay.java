@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2004/03/15 23:53:52  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.29  2004/03/12 02:52:11  serumb
  *  Change package and imports.
  *
@@ -189,12 +193,9 @@ import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*; 
-import java.lang.Math;
 import java.lang.Integer;
 import javax.swing.text.TextAction;
 import javax.swing.text.Keymap;
-import javax.swing.event.*;
-import java.awt.image.IndexColorModel;
 
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Cursor.AnnotationJPanel;

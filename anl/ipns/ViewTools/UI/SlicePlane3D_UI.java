@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/03/15 23:53:59  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.8  2004/03/12 01:02:30  serumb
  * Changed package and imports.
  *
@@ -77,7 +81,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 import java.io.*;
-import java.lang.Object.*;
 
 /**
  *  This class provides a user interface for specifying a plane in 3D 

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2004/03/15 23:53:50  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.11  2004/03/12 02:07:59  millermi
  *  - Changed SharedData to SharedMessages.
  *  _ Changed package and fixed imports.
@@ -79,7 +83,6 @@
 
 package gov.anl.ipns.ViewTools.Components;
 
-import gov.anl.ipns.ViewTools.Components.TwoD.*;
 import gov.anl.ipns.Util.Sys.SharedMessages;
 
 /**

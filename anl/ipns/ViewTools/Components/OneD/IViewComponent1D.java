@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/15 23:53:51  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.6  2004/03/12 02:17:07  rmikk
  *  Fixed package names
  *
@@ -43,11 +47,9 @@
  
 package gov.anl.ipns.ViewTools.Components.OneD;
 
-import javax.swing.*;
 import java.awt.*;
-import java.lang.*;
-import java.awt.event.*;
 import gov.anl.ipns.ViewTools.Components.IViewComponent;
+
 /**
  * Any class that implements this interface will interpret and display
  * data in a usable form. Examples include images, tables, and graphs.

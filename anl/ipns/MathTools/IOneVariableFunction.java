@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/15 23:53:48  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.7  2004/03/11 23:16:59  dennis
  *  Fixed error in package name
  *
@@ -41,8 +45,6 @@
  *
  */
 package  gov.anl.ipns.MathTools;
-
-import java.io.*;
 
 /**
  * IOneVariableFunction specifies the interface that an object must have

@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.32  2004/03/15 23:53:56  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.31  2004/03/12 16:16:13  millermi
  *  - CURSOR_MOVED message now sent only when mouse is moved
  *    over the panel.
@@ -120,7 +124,6 @@ package gov.anl.ipns.ViewTools.Panels.Transforms;
 
 import java.io.*;
 import java.awt.*;
-import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
 

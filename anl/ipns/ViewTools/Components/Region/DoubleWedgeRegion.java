@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/03/15 23:53:51  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.9  2004/03/12 02:08:03  rmikk
  *  Fixed package names
  *
@@ -75,11 +79,9 @@
 package gov.anl.ipns.ViewTools.Components.Region;
 
 import java.awt.Point;
-import java.util.Vector;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
-import gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel;
 
 /**
  * This class is a specific region designated by three points.

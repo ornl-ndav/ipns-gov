@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/15 23:53:50  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.6  2004/03/12 01:33:21  millermi
  *  - Changed package and imports.
  *
@@ -61,9 +65,7 @@
 
 package gov.anl.ipns.ViewTools.Components.Cursor;
 
-import java.io.*;
 import java.awt.*;
-import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
 

@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/15 23:53:48  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.3  2004/03/11 23:29:48  dennis
  * Moved to MathTools package
  *
@@ -49,8 +53,6 @@
 package gov.anl.ipns.MathTools;
 
 import  gov.anl.ipns.Util.Numeric.*;
-
-import java.io.*;
 
 /**
  *  This class provides basic calculations for direct and reciprocal lattices.

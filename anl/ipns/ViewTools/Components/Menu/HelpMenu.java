@@ -32,6 +32,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2004/03/15 23:53:50  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.3  2004/03/11 23:55:16  rmikk
  * Fixed Package Names
  *
@@ -47,7 +51,6 @@
 package gov.anl.ipns.ViewTools.Components.Menu;
 
 import java.io.*;
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 

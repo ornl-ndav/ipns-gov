@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/03/15 23:53:58  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.4  2004/03/12 01:00:00  serumb
  * Changed package and imports.
  *
@@ -52,9 +56,6 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-//import gov.anl.ipns.Util.*;
-import gov.anl.ipns.MathTools.Geometry.*;
-
 
 /**
  *  This class allows the user to select whether Q or HKL units should be

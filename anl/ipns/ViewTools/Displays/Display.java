@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/15 23:53:54  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.2  2004/03/13 07:42:05  millermi
  * - Removed unused imports.
  * - Finished factoring out Display from Display2D.
@@ -63,11 +67,9 @@ import javax.swing.border.LineBorder;
 
 import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
 import gov.anl.ipns.ViewTools.Components.*;
-import gov.anl.ipns.ViewTools.Components.TwoD.*;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
-import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.UI.FontUtil;
 import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
 import gov.anl.ipns.Util.Sys.SaveImageActionListener;

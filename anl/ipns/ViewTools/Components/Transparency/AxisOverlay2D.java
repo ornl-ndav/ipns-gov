@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.31  2004/03/15 23:53:52  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.30  2004/03/12 03:16:46  millermi
  *  - Changed package, fixed imports.
  *
@@ -177,9 +181,7 @@ import java.awt.event.ComponentEvent;
 
 //import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import gov.anl.ipns.ViewTools.Components.*;
-import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.Util.Numeric.Format;
-import gov.anl.ipns.Util.Numeric.floatPoint2D; 
 import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**

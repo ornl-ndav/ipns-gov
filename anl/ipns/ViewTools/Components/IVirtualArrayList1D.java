@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/15 23:53:50  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.1  2004/03/12 22:54:39  serumb
  *  Added file to replace IVirtualArray1D.
  *
@@ -55,9 +59,8 @@
  
 package gov.anl.ipns.ViewTools.Components;
 
-//import DataSetTools.components.View.OneD.*;
- import javax.swing.*;
  import java.awt.event.*;
+ 
 /**
  * This interface is implemented by classes that can produce a virtual function 
  * list containing a 3Darray of floats and is used to pass data to viewers and 

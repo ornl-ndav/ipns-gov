@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/15 23:53:59  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.7  2004/03/12 00:44:47  serumb
  *  Changed package and imports.
  *
@@ -64,7 +68,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 import java.io.*;
-import java.lang.Object.*;
 
 /**
  * A Vector3D_UI object is an editable JTextField object with a format that 

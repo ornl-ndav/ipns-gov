@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2004/03/15 23:53:56  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.12  2004/03/12 00:42:59  millermi
  * - Changed package and fixed imports.
  *
@@ -51,7 +55,6 @@
 package gov.anl.ipns.ViewTools.Panels.Transforms;
 
 import java.io.*;
-import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Numeric.ClosedInterval;
 
 /**

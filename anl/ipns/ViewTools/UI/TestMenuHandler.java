@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/15 23:53:59  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.5  2004/03/12 00:41:11  serumb
  *  Changed package.
  *
@@ -39,11 +43,8 @@
  */
 package gov.anl.ipns.ViewTools.UI;
 
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-
 
 /* ------------------------- TestMenuHandler ------------------------------ */
 /**

@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2004/03/15 23:53:55  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.9  2004/03/12 01:31:11  dennis
  * Moved to ViewTools.Panels.ThreeD package
  *
@@ -45,7 +49,6 @@ package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
 import java.io.*;
-import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;

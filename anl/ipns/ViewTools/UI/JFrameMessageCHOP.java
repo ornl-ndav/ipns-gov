@@ -29,6 +29,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/03/15 23:53:59  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.8  2004/03/12 01:14:12  serumb
  * Changed package imports and beep.
  *
@@ -54,7 +58,6 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import javax.swing.JOptionPane;
-import java.lang.Object.*;
 
 /**
  * A basic JFC based application.

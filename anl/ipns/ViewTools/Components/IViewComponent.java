@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/15 23:53:50  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.4  2004/03/12 01:50:19  rmikk
  *  Fixed package names
  *
@@ -57,9 +61,7 @@
  
 package gov.anl.ipns.ViewTools.Components;
 
-import javax.swing.JComponent;
 import javax.swing.JPanel;
-import java.awt.Point;
 import java.awt.event.ActionListener;
 
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;

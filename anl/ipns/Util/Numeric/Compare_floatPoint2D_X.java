@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/15 23:53:49  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.7  2004/03/11 23:00:11  rmikk
  *  Added the correct package name to all java files
  *
@@ -41,8 +45,6 @@
  *
  */
 package gov.anl.ipns.Util.Numeric;
-
-import java.util.*;
 
 /**
  *  This class implements the Comparator interface for objects of type

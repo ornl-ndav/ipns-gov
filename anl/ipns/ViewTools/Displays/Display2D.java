@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/15 23:53:54  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.3  2004/03/13 07:42:06  millermi
  * - Removed unused imports.
  * - Finished factoring out Display from Display2D.
@@ -56,7 +60,6 @@ package gov.anl.ipns.ViewTools.Displays;
 
 import javax.swing.*;
 import java.util.Vector;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

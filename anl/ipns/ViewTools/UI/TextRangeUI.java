@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/03/15 23:53:59  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.10  2004/03/11 22:26:22  serumb
  *  Changed package imports and beep.
  *
@@ -57,7 +61,6 @@ import java.text.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.io.*;
-import java.lang.Object.*;
 
 /**
  * A TextRangeUI object is an editable JTextField object with a format that 

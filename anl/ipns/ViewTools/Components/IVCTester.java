@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.19  2004/03/15 23:53:49  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.18  2004/03/12 03:18:18  millermi
  * - Changed package, fixed imports.
  *
@@ -138,14 +142,11 @@ package gov.anl.ipns.ViewTools.Components;
 
 import javax.swing.*;
 import java.util.Vector;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.io.Serializable;
 
 import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
@@ -156,7 +157,6 @@ import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
-import gov.anl.ipns.ViewTools.Components.ViewControls.PanViewControl;
 import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**

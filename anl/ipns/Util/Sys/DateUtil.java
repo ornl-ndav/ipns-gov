@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/15 23:53:49  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.3  2004/03/11 22:13:15  millermi
  *  - Changed package names and replaced SharedData with
  *    SharedMessages class.
@@ -40,7 +44,6 @@
  */ 
 package gov.anl.ipns.Util.Sys;
 
-import java.io.*;
 import java.util.*;
 
 /**

@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.18  2004/03/15 23:53:54  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.17  2004/03/12 01:32:03  rmikk
  * Fixed package names
  *
@@ -76,7 +80,6 @@ package gov.anl.ipns.ViewTools.Panels.Graph;
 
 import java.io.*;
 import java.awt.*;
-import javax.swing.*;
 
 public class GraphData implements Serializable 
 {

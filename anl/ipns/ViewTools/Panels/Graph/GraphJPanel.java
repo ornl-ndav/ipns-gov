@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.40  2004/03/15 23:53:55  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.39  2004/03/12 01:43:05  rmikk
  * Fixed Package Names
  *
@@ -145,16 +149,11 @@ package gov.anl.ipns.ViewTools.Panels.Graph;
 import java.awt.*;
 import java.io.*;
 import java.util.*;
-import java.awt.image.*;
-import java.awt.event.*;
 import javax.swing.*;
 import gov.anl.ipns.Util.Numeric.*;
-import gov.anl.ipns.MathTools.*;
-import gov.anl.ipns.ViewTools.Panels.ThreeD.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 
-import java.lang.Object.*;
 import java.awt.geom.*;
 
 /**

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/03/15 23:53:53  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.9  2004/03/12 02:20:55  rmikk
  *  Fixed Package Names
  *
@@ -70,7 +74,6 @@
 package gov.anl.ipns.ViewTools.Components.TwoD;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
-import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.Region.Region; 
 import gov.anl.ipns.ViewTools.Components.IViewComponent;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;

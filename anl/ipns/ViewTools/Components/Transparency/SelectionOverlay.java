@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.36  2004/03/15 23:53:53  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.35  2004/03/12 03:14:15  serumb
  *  Change package and imports.
  *
@@ -236,7 +240,6 @@ import java.awt.event.ComponentEvent;
 import java.util.Vector; 
 import java.lang.Math;
 
-import gov.anl.ipns.ViewTools.Panels.Image.*;
 import gov.anl.ipns.ViewTools.Panels.Cursors.*;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Region.*;

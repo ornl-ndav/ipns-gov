@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/15 23:53:52  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.4  2004/03/12 02:12:18  rmikk
  *  Fixed package names
  *
@@ -57,7 +61,7 @@
  *    and any components that use the Selection Overlay. (Mike Miller)
  *
  */ 
-package DataSetTools.components.View.Region;
+package gov.anl.ipns.ViewTools.Components.Region;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 

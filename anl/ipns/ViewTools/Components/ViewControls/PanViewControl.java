@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2004/03/15 23:53:54  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.13  2004/03/12 03:05:12  millermi
  *  - Changed package, fixed imports.
  *
@@ -104,20 +108,15 @@
  import java.awt.event.MouseAdapter;
  import java.awt.event.MouseEvent;
  import java.awt.Dimension;
- import java.awt.Rectangle;
- import java.awt.Point;
  import java.awt.Graphics;
  import javax.swing.JFrame;
  import javax.swing.JPanel;
  import javax.swing.OverlayLayout;
  
  import gov.anl.ipns.ViewTools.Panels.Transforms.*;
- import gov.anl.ipns.ViewTools.Panels.Cursors.BoxCursor;
  import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
- import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
  import gov.anl.ipns.ViewTools.Components.Transparency.TranslationOverlay;
- import gov.anl.ipns.Util.Numeric.floatPoint2D;
  import gov.anl.ipns.Util.Sys.WindowShower;
  
 /**

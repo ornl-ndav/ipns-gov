@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.50  2004/03/15 23:53:51  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.49  2004/03/12 22:56:31  serumb
  *  Now uses IVirtualArrayList1D in place of IVirtualArray1D.
  *
@@ -153,7 +157,6 @@
 package gov.anl.ipns.ViewTools.Components.OneD;
 
 import gov.anl.ipns.ViewTools.Components.*;
-import gov.anl.ipns.ViewTools.Components.TwoD.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 import gov.anl.ipns.ViewTools.Components.Menu.*;
@@ -162,37 +165,16 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 import gov.anl.ipns.ViewTools.UI.*;
 import gov.anl.ipns.Util.Numeric.*;
 
-//import DataSetTools.components.ParametersGUI.*;
-//import DataSetTools.components.View.*;  // IVirtualArrayList1D
-//import DataSetTools.components.View.TwoD.*;
-//import DataSetTools.components.View.Transparency.*;  //Axis Overlays
-//import DataSetTools.components.View.ViewControls.*;
-//import DataSetTools.components.image.*;  //GraphJPanel & CoordJPanel
-//import DataSetTools.dataset.*;
-//import DataSetTools.math.*;
-//import DataSetTools.util.*;  //floatPoint2D FloatFilter
-//import DataSetTools.components.View.Menu.*;
-
 // component changes
 
-import java.applet.Applet;
 import java.awt.*;
 import java.awt.Rectangle;
-import java.awt.color.ColorSpace;
 import java.awt.event.*;
 
 // Component location and resizing within the big_picture
-import java.awt.event.ComponentAdapter.*;
-import java.awt.font.FontRenderContext;
-import java.awt.geom.*;
 import java.io.Serializable;
-import java.lang.*;
-import java.lang.Object.*;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.*;
 
 /**
  * This class allows the user to view data in the form of an image. Meaning

@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/15 23:53:58  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.2  2004/03/12 00:00:13  serumb
  * Changed package and imports.
  *
@@ -46,9 +50,7 @@ package gov.anl.ipns.ViewTools.UI;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
 import gov.anl.ipns.MathTools.Geometry.*;
-import gov.anl.ipns.Util.Sys.*;
 
 /**
  *  This class selects a plane by specifying three points on the plane.

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/15 23:53:53  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.8  2004/03/12 03:03:06  rmikk
  *  Fixed package names
  *
@@ -80,7 +84,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import javax.swing.JFrame;
-import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.JEditorPane;
 import javax.swing.text.html.HTMLEditorKit;

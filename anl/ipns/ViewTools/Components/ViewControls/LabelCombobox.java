@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/15 23:53:54  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.2  2004/03/12 02:24:53  millermi
  *  - Changed package, fixed imports.
  *
@@ -38,10 +42,8 @@
 package gov.anl.ipns.ViewTools.Components.ViewControls;
  
  import javax.swing.*;
- import javax.swing.event.*;
  import java.awt.event.*;
  import java.awt.*;
- import java.lang.Object.*;
  
  //import DataSetTools.viewer.ViewerState;
  //import DataSetTools.util.*;

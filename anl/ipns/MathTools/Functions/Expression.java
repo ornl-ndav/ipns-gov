@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/15 23:53:48  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.4  2004/03/12 02:11:17  dennis
  *  Moved to package gov.anl.ipns.MathTools.Functions
  *
@@ -48,7 +52,6 @@
 
 package gov.anl.ipns.MathTools.Functions;
 
-import gov.anl.ipns.Util.Numeric.*;
 import gov.anl.ipns.MathTools.Functions.FunctionTools.*;
 import gov.anl.ipns.Util.Sys.*;
 

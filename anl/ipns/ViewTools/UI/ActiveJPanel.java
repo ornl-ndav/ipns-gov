@@ -28,6 +28,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.6  2004/03/15 23:53:56  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.5  2004/03/11 22:33:22  serumb
  * Changed package.
  *
@@ -48,7 +52,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.border.*;
 import java.io.*;
 //import DataSetTools.dataset.*;
 //import DataSetTools.util.*;

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.65  2004/03/15 23:53:53  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.64  2004/03/12 15:13:57  millermi
  *  - Shifted controls to put CursorReadout third and to
  *    keep PanViewControl last.
@@ -360,26 +364,21 @@
 package gov.anl.ipns.ViewTools.Components.TwoD;
 
 import javax.swing.*; 
-import javax.swing.event.*;
 import java.io.Serializable;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector; 
-import java.util.Stack; 
-import java.io.Serializable;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.UI.FontUtil;
 import gov.anl.ipns.ViewTools.Panels.Image.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
-import gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel;
 import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 import gov.anl.ipns.ViewTools.Components.Menu.*;
 import gov.anl.ipns.ViewTools.Components.Region.*;
-import gov.anl.ipns.ViewTools.UI.ColorScaleMenu;
 
 /**
  * This class allows the user to view data in the form of an image. Meaning

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/15 23:53:51  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.7  2004/03/12 02:09:06  rmikk
  *  Fixed package names
  *
@@ -83,7 +87,6 @@ import java.util.Vector;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
-import gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel;
 
 /**
  * This class is a specific region designated by two points which bound the

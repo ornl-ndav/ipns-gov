@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/15 23:53:53  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.4  2004/03/12 01:49:31  serumb
  *  Changed package.
  *
@@ -46,8 +50,6 @@
  */
 
 package gov.anl.ipns.ViewTools.Components.Transparency;
-
-import java.awt.*;
 
 /**
  * This interface lays out methods to be implemented by all view component

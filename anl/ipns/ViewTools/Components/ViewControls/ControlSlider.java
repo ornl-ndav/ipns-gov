@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/03/15 23:53:54  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.10  2004/03/12 02:24:53  millermi
  *  - Changed package, fixed imports.
  *
@@ -82,7 +86,6 @@
  import javax.swing.event.ChangeListener;
  import java.io.Serializable;
  import java.awt.GridLayout;
- import java.awt.Point;
  
  import gov.anl.ipns.Util.Numeric.floatPoint2D;
  import gov.anl.ipns.Util.Sys.WindowShower;

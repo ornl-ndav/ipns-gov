@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2004/03/15 23:53:55  dennis
+ *  Removed unused imports, after factoring out the View components,
+ *  Math and other utils.
+ *
  *  Revision 1.25  2004/03/12 01:47:00  dennis
  *  Moved to ViewTools.Panels.Image package
  *
@@ -118,7 +122,6 @@ import java.io.*;
 import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.text.*;
 
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;

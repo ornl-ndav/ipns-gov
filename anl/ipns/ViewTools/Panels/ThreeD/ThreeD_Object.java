@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/03/15 23:53:55  dennis
+ * Removed unused imports, after factoring out the View components,
+ * Math and other utils.
+ *
  * Revision 1.8  2004/03/12 01:10:58  dennis
  * Moved to ViewTools.Panels.ThreeD package
  *
@@ -55,10 +59,8 @@
 package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
-import java.io.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 import gov.anl.ipns.MathTools.Geometry.*;
-
 
 /**
  *  Abstract base class for basic 3D objects such as Polygons, Polylines and
