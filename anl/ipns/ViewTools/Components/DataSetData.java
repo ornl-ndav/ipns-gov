@@ -11,7 +11,7 @@ public class DataSetData implements IVirtualArray1D
   
  
    
-    int[]  selectedInd ;
+   int[]  selectedInd ;
    float maxy;
    float minx;
    float maxx;
@@ -25,7 +25,7 @@ public class DataSetData implements IVirtualArray1D
        selectedInd = ds.getSelectedIndices();
        minx=maxx=miny=maxy= Float.NaN;
   
-      }
+     }
 
    public AxisInfo2D  getAxisInfo( boolean x_axis)
      {
@@ -77,7 +77,7 @@ public class DataSetData implements IVirtualArray1D
 
 
 	for (int line=0; line < getNumlines(); line++)
-        { yvals = getYValues(line);
+	{ yvals = getYValues(line);
           miny =  yvals[0];
           maxy =  yvals[0];
            for (int i=1; i < yvals.length; i++)
@@ -143,21 +143,75 @@ public class DataSetData implements IVirtualArray1D
 
 
 
-  public void setYValues( float[] values, int line_number )
+  public void  setYValues( float[] values, int line_number )
     {
 
     }
+  
+  public float[] getXVals_ofIndex(int index)
+  {
+     if( index < 0)
+        return null;
+     if( index >= getNumGraphs())
+        return null;
+     return ds.getData_entry(index).getX_values();
+  }
+  public float[] getYVals_ofIndex(int index)
+  {
+     if( index < 0)
+        return null;
+     if( index >= getNumGraphs())
+        return null;
+     return ds.getData_entry(index).getY_values();
+  }
+    
 
   public float [] getErrorValues( int line_number )
   {
+     if( line_number < 0)
+        return null;
+     if( line_number >= getNumlines())
+        return null;
      return ds.getData_entry( selectedInd[line_number]).getErrors( );
+  }
+  
+  public float[] getErrorVals_ofIndex(int index)
+  {
+     if( index < 0)
+        return null;
+     if( index >= getNumGraphs())
+        return null;
+     return ds.getData_entry( index ).getErrors( );
   }
 
   public int getGroupID( int line_number )
   {
+     if( line_number < 0)
+        return 0;
+     if( line_number >= getNumlines())
+        return 0;
      return ds.getData_entry( selectedInd[line_number]).getGroup_ID( );
   }
 
+  public int getPointedAtGraph()
+  {
+     return ds.getPointedAtIndex();
+  }
+
+  public int[] getSelectedGraphs()
+  {
+     return selectedInd;
+  }
+
+  public boolean isSelected(int index) 
+  {
+     return ds.isSelected(index);
+  }
+  
+  public int getNumGraphs()
+  {
+     return ds.getNum_entries();
+  }
   public void setAllValues( float value )
   { 
 
