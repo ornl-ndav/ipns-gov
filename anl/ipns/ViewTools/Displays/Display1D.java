@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/04/21 02:39:53  millermi
+ * - main() now has two functions.
+ *
  * Revision 1.1  2004/04/20 05:32:19  millermi
  * - Initial Version - Allow users to view data as a graph. Be aware
  *   that some functionality with the FunctionViewComponent still
@@ -370,25 +373,40 @@ public class Display1D extends Display
   {
     // build my 2-D data
     int num_x_vals = 360;
-    float test_x[] = new float[num_x_vals];
-    float test_y[] = new float[num_x_vals];
-    float test_err[] = new float[num_x_vals];
+    float sin_x[] = new float[num_x_vals];
+    float sin_y[] = new float[num_x_vals];
+    float sin_err[] = new float[num_x_vals];
+    float cos_x[] = new float[num_x_vals];
+    float cos_y[] = new float[num_x_vals];
+    float cos_err[] = new float[num_x_vals];
     for ( int i = 0; i < num_x_vals; i++ )
     {
-      test_x[i] = ((float)i)*(float)Math.PI/180f;
-      test_y[i] = (float)Math.sin((double)test_x[i]);
-      test_err[i] = ((float)i)*.001f;
+      // contruct sine function
+      sin_x[i] = ((float)i)*(float)Math.PI/180f;
+      sin_y[i] = (float)Math.sin((double)sin_x[i]);
+      sin_err[i] = ((float)i)*.001f;
+      // construct cosine function
+      cos_x[i] = ((float)i)*(float)Math.PI/180f;
+      cos_y[i] = (float)Math.cos((double)cos_x[i]);
+      cos_err[i] = sin_err[i];
     }
-    DataArray1D da1D = new DataArray1D( test_x, test_y, test_err,
-                                        "Sine Function", true, true );
+    DataArray1D sine_graph = new DataArray1D( sin_x, sin_y, sin_err );
+    sine_graph.setTitle("Sine Function");
+    DataArray1D cosine_graph = new DataArray1D( cos_x, cos_y, cos_err );
+    cosine_graph.setTitle("Cosine Function");
+    Vector trig = new Vector();
+    trig.add(sine_graph);
+    trig.add(cosine_graph);
     // Put data array into a VirtualArrayList1D wrapper
-    IVirtualArrayList1D va1D = new VirtualArrayList1D( da1D );
+    IVirtualArrayList1D va1D = new VirtualArrayList1D( trig );
     // Give meaningful range, labels, units, and linear or log display method.
-    va1D.setAxisInfo( AxisInfo.X_AXIS, 0f, 360f, 
-    		        "TestX","TestUnits", true );
-    va1D.setAxisInfo( AxisInfo.Y_AXIS, -1f, 1f, 
-    			"TestY","TestYUnits", true );
-    va1D.setTitle("Sine Function");
+    AxisInfo info = va1D.getAxisInfo( AxisInfo.X_AXIS );
+    va1D.setAxisInfo( AxisInfo.X_AXIS, info.getMin(), info.getMax(), 
+    		        "Angle","Radians", true );
+    info = va1D.getAxisInfo( AxisInfo.Y_AXIS );
+    va1D.setAxisInfo( AxisInfo.Y_AXIS, info.getMin(), info.getMax(), 
+    			"Length","Unit Length", true );
+    va1D.setTitle("Sine and Cosine Function");
     // Make instance of a Display1D frame, giving the array, the initial
     // view type, and whether or not to add controls.
     Display1D display = new Display1D(va1D,Display1D.GRAPH,Display1D.CTRL_ALL);
