@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2005/01/20 23:37:16  millermi
+ *  - Added super.paint() to ThumbnailJPanel.paint().
+ *
  *  Revision 1.16  2004/08/04 18:54:23  millermi
  *  - Added code so selection would not disappear.
  *  - Added messaging Strings from TranslationJPanel.
@@ -463,6 +466,7 @@ public class PanViewControl extends ViewControl
     
     public void paint( Graphics g )
     {
+      super.paint(g);
       if( image != null )
         g.drawImage( image, 0, 0, this );
     }
