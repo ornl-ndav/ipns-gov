@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2001/05/09 21:12:15  dennis
+ *  Removed unneeded debug print.
+ *
  *  Revision 1.7  2001/05/07 20:57:25  dennis
  *  Added functions:
  *
@@ -342,7 +345,6 @@ public class IndexColorMaker implements Serializable
   public static Color[] getColorTable( IndexColorModel model )
   {
      int  num_vals =  model.getMapSize();
-     System.out.println( "num_vals, now = " + num_vals );
      byte reds[]   = new byte[ num_vals ];
      byte greens[] = new byte[ num_vals ];
      byte blues[]  = new byte[ num_vals ];
