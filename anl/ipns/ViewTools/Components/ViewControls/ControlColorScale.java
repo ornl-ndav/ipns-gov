@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/07/10 13:39:35  dennis
+ *  - Made One-sided color models available
+ *  (Mike Miller)
+ *
  *  Revision 1.5  2003/07/05 19:51:49  dennis
  *  - Now implements ILogAxisAddible2D, which includes adding
  *    method getLogScale().
@@ -135,7 +139,7 @@ public class ControlColorScale extends ViewControl
       if( interval_min < 0 )
          isTwoSided = true;
       else
-         isTwoSided = true; //********change this to false when working********
+         isTwoSided = false;
       setOrientation(orientation); 
       this.setLayout( new OverlayLayout(this) );  
       this.add( axis );
