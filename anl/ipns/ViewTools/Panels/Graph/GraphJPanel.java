@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.42  2004/07/28 19:35:28  robertsonj
+ * Used the TruLogScale function to map the original set of numbers 
+ * logarithmically
+ *
  * Revision 1.41  2004/04/21 02:36:12  millermi
  * - Added validation check to setData() and min/max calculations
  *   to make sure data wasn't null.
@@ -1002,8 +1006,8 @@ public boolean is_autoY_bounds()
     int x_offset = 0;
     int y_offset = 0;
    
-   // CoordBounds bounds = getGlobalWorldCoords();    // temporarily don't clip
-    CoordBounds bounds = getLocalWorldCoords();
+    CoordBounds bounds = getGlobalWorldCoords();    // temporarily don't clip
+    //CoordBounds bounds = getLocalWorldCoords();
    
     float first_x = bounds.getX1();
     float last_x  = bounds.getX2();
@@ -1090,13 +1094,14 @@ public boolean is_autoY_bounds()
 
         if( is_histogram ){
           for(int i = 0; i <= n_points; i++) {
-            x_copy[i] = logger.toSource(x_copy[i], log_scale);
+            x_copy[i] = logger.truLogScale(x_copy[i]);
           }
         }else
           for(int i = 0; i < n_points; i++) {
-            x_copy[i] = logger.toSource(x_copy[i], log_scale);
+            x_copy[i] = logger.truLogScale(x_copy[i]);
           }
       }
+
       if( log_scale_y )
       {
         float min = getYmin();
@@ -1105,7 +1110,7 @@ public boolean is_autoY_bounds()
         LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
 
         for(int i = 0; i < n_points; i++)
-          y_copy[i] = logger.toSource(y_copy[i], log_scale);
+          y_copy[i] = logger.truLogScale(y_copy[i]);
       }
   
        float error_bars_upper[] = null;
