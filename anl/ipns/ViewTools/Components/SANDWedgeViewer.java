@@ -33,6 +33,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.23  2004/02/16 05:44:44  millermi
+ * - Now uses error functionality provided with theIVirtualArray2D
+ *   class.
+ * - made integrate() method more efficient by getting the array
+ *   out of the virtual array and replacing getDataValue(row,col)
+ *   with data_array[row][col].
+ *
  * Revision 1.22  2004/02/14 03:39:08  millermi
  * - Updated changes made to ImageViewComponent.
  * - changed "Load/Save Project Settings" to "Load/Save Project"
@@ -263,7 +270,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient SplitPaneWithState pane;
   private transient ImageViewComponent ivc;
   private transient IVirtualArray2D data;
-  private transient float[][]       errors;      // error estimates in the data
+ //private transient float[][]       errors;      // error estimates in the data
   private transient JMenuBar menu_bar;
   private transient DataSet data_set;
   private String projectsDirectory = SharedData.getProperty("Data_Directory");
@@ -283,7 +290,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */
   public SANDWedgeViewer()
   {
-    init(null,null);
+    init(null);
   }
 
  /**
@@ -291,9 +298,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   *  
   *  @param  iva
   */
-  public SANDWedgeViewer( IVirtualArray2D iva, float[][] err_array )
+  public SANDWedgeViewer( IVirtualArray2D iva )
   {
-    init(iva, err_array);
+    init(iva);
   }
 
  /**
@@ -310,12 +317,12 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 		          AxisInfo yinfo,
 		          String title )
   {
-    VirtualArray2D temp = new VirtualArray2D( array );
+    VirtualArray2D temp = new VirtualArray2D( array, err_array );
     temp.setAxisInfo( AxisInfo.X_AXIS, xinfo.copy() );
     temp.setAxisInfo( AxisInfo.Y_AXIS, yinfo.copy() );
     temp.setTitle(title);
     
-    init(temp, err_array);
+    init(temp);
   }
  
  /**
@@ -518,7 +525,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         image_to_world_tran.setDestination( qxmin, qymax, qxmax, qymin );
 	image_to_world_tran.setSource( 0.001f, 0.001f, array[0].length-0.001f,
 				       array.length-0.001f );
-        VirtualArray2D va2D = new VirtualArray2D( array );
+        VirtualArray2D va2D = new VirtualArray2D( array, err_array );
         va2D.setAxisInfo( AxisInfo.X_AXIS, qxmin, qxmax, 
     		            "Qx","(Inverse Angstroms)", true );
         va2D.setAxisInfo( AxisInfo.Y_AXIS, qymin, qymax, 
@@ -528,13 +535,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	va2D.setAxisInfo( AxisInfo.Z_AXIS, 0, 1, 
     			    "","Intensity", true );
         va2D.setTitle("SAND Wedge Viewer");
-	setData( va2D, err_array );
+	setData( va2D );
       }
       // no file to be read, display file not found on empty jpanel.
       else
       {
         VirtualArray2D nullarray = null;
-        this.setData(nullarray,null);
+        this.setData(nullarray);
         ((JComponent)pane.getLeftComponent()).add( 
 	                                       new JLabel("File Not Found") );
         validate();
@@ -551,10 +558,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   *
   *  @param  values
   */ 
-  public void setData( IVirtualArray2D values, float[][] err_array )
+  public void setData( IVirtualArray2D values )
   {
     data   = values;
-    errors = err_array;
     
     if( ivc != null && data != null )
     {
@@ -584,7 +590,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */ 
   public void setData( float[][] array, float[][] err_array )
   {
-    setData( new VirtualArray2D(array), err_array );
+    setData( new VirtualArray2D(array, err_array) );
   }
  
  /**
@@ -602,7 +608,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   * so that the code does not have to exist in 3 spots. This will build the
   * niceties of the viewer.
   */ 
-  private void init( IVirtualArray2D iva, float[][] err_array )
+  private void init( IVirtualArray2D iva )
   {
     this_viewer = this;
     setTitle("SAND Wedge Viewer");
@@ -642,7 +648,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     data_set.setY_label("Relative Intensity" );
     if( data_set.getNum_entries() > 0 )
       data_set.setSelectFlag( data_set.getNum_entries() - 1, true );
-    setData(iva, err_array);
+    setData(iva);
   }
 
  /*
@@ -1005,15 +1011,20 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     float y = 0;
     float dist = 0;
     int index = 0;
+    // get arrays now since the "for" loop below will make several calls
+    // to the array. It is a lot faster to access the data through 
+    // the array than through the virtual array.
+    float[][] data_array = data.getRegionValues( 0,data.getNumRows()-1,
+                                                 0,data.getNumColumns()-1 );
+    float[][] err_array = data.getErrors();
     for ( int i = 0; i < selected_pts.length; i++ )
     {
       x = Math.abs( selected_pts[i].x - image_origin.x );
       y = Math.abs( selected_pts[i].y - image_origin.y );
       dist = (float)Math.sqrt( x*x + y*y );
       index = binarySearch( x_vals, dist );
-      y_vals[index] += data.getDataValue( selected_pts[i].y,
-                                          selected_pts[i].x );
-      err = errors[selected_pts[i].y][selected_pts[i].x];
+      y_vals[index] += data_array[ selected_pts[i].y ][ selected_pts[i].x ];
+      err = err_array[ selected_pts[i].y ][ selected_pts[i].x ];
       err_vals[index] += err*err; 
       hit_count[index]++;
     }
