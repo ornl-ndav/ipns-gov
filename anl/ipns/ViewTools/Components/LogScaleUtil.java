@@ -37,6 +37,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/08/07 15:55:22  dennis
+ *  - Added "normal" log methods toSource() and toDest()
+ *    (Mike Miller)
+ *
  *  Revision 1.1  2003/07/05 19:40:41  dennis
  *  Initial Version: Allows user to convert from one interval to another using
  *  logarithmic mapping.
@@ -94,10 +98,23 @@ public class LogScaleUtil
     dest_min = dmin;
     dest_max = dmax;
   }
+  
+ /**
+  * This method is for "normal" log scaling.
+  *
+  *  @param  num
+  *  @return source value;
+  */ 
+  public float toSource( float num )
+  {  
+    return toSource( num, (double)(source_max/source_min) );
+  }
 
  /**
-  * This method uses a look-up table to find the source value.
+  * This method converts num to a source value within the interval.
   *
+  *  @param  num
+  *  @param  s
   *  @return source value;
   */ 
   public float toSource( float num, double s )
@@ -128,11 +145,22 @@ public class LogScaleUtil
   } 
  
  /**
-  * This method finds the destination value. 
-  * Note: this value may not be extremely accurate since one source value 
-  * may be mapped to many destination values.
+  * This method finds the destination value for "normal" log scaling. 
   * 
   *  @param  source
+  *  @return destination value - the first table value that the source value
+  *                              maps to.
+  */ 
+  public float toDest( float source )
+  {
+    return toDest(source, (double)(source_max/source_min) );
+  }
+ 
+ /**
+  * This method finds the destination value. 
+  * 
+  *  @param  source
+  *  @param  s
   *  @return destination value - the first table value that the source value
   *                              maps to.
   */ 
