@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/01/24 21:09:44  bouzekc
+ *  Removed unused local variables.
+ *
  *  Revision 1.3  2003/11/05 04:29:29  bouzekc
  *  Fixed bug where a floating point number String with an exponent
  *  less than -3 was considered invalid.  Added javadocs to isOKay.  Added
@@ -55,7 +58,7 @@ package DataSetTools.util;
  */
 public class FloatFilter implements StringFilterer {
     private static Character MINUS =new Character((new String("-")).charAt(0));
-    private static Character PLUS  =new Character((new String("+")).charAt(0));
+    //private static Character PLUS  =new Character((new String("+")).charAt(0));
     private static Character DEC   =new Character((new String(".")).charAt(0));
     private static Character E     =new Character((new String("E")).charAt(0));
     

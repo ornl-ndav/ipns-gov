@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/01/24 21:09:44  bouzekc
+ *  Removed unused local variables.
+ *
  *  Revision 1.2  2004/01/24 21:03:47  bouzekc
  *  Added javadocs.
  *
@@ -74,8 +77,6 @@ public class FormatFilter implements StringFilterer {
 	 * on the rules of this filter.
 	 */
     public boolean isOkay(int offs, String inString, String curString){
-       
-        char[] source = inString.toCharArray();
         
         if( curString.length() < 1)
            return true;

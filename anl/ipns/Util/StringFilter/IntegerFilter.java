@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/24 21:09:44  bouzekc
+ *  Removed unused local variables.
+ *
  *  Revision 1.4  2004/01/24 21:03:47  bouzekc
  *  Added javadocs.
  *
@@ -56,9 +59,6 @@ package DataSetTools.util;
  */
 public class IntegerFilter implements StringFilterer {
     private static Character MINUS =new Character((new String("-")).charAt(0));
-    private static Character PLUS  =new Character((new String("+")).charAt(0));
-    private static Character DEC   =new Character((new String(".")).charAt(0));
-    private static Character E     =new Character((new String("E")).charAt(0));
     private static Character ZERO  =new Character((new String("0")).charAt(0));
     
     private boolean automod;
