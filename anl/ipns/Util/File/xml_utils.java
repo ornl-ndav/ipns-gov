@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/03/11 23:07:13  dennis
+ *  Removed dependency on DataSet Attributes
+ *
  *  Revision 1.9  2004/01/22 02:19:05  bouzekc
  *  Removed unused imports and local variables.
  *
@@ -63,11 +66,11 @@
  */
 
 
-package DataSetTools.dataset;
-import DataSetTools.util.StringUtil;
+package  gov.anl.ipns.Util.File;
+
+import   gov.anl.ipns.Util.Sys.*;
 import java.io.*;
 import java.util.*;
-
 
 
 /** Provides utilities for reading through sections of an
@@ -240,10 +243,10 @@ public class xml_utils
  /** Reports the message to the status pane then returns false
  */
   public static boolean setError( String Message)
-   {
-    DataSetTools.util.SharedData.addmsg(Message);
+  {
+    SharedMessages.addmsg(Message);
     return false;
-   }
+  }
 
  /** Skips to the end of the xml attributes associated with a tag<ul>
  * Use this only one time after a getTag, getEndTag, or getAttribute
@@ -348,128 +351,6 @@ public class xml_utils
 
     
    }
- /** only works for ones with simple names and values
- */
- public static boolean AttribXMLwrite( OutputStream stream, int mode, 
-                                     Attribute A)
-   {sb.setLength( 0 );
-    String dt = A.getClass().toString();
-    
-    dt=dt.substring( dt.lastIndexOf('.')+1);
-   
-    try
-    {String SS = StringUtil.toString( A.getValue());
-      if( SS != null)
-        if( SS.length() >=1)
-          {
-           if( SS.charAt(0) == '[')
-              SS = SS.substring(1);
-           if( SS.charAt( SS.length()-1) == ']')
-             SS = SS.substring( 0, SS.length()-1);
-          
-           }
-      sb.append("<");
-      sb.append(dt);
-      String nm = A.getName();
-      if( nm.equals("\u0394"+"2"+"\u03b8"))
-         nm="\\u0394"+"2"+"\\u03b8";
-      sb.append(">\n<name>");
-        sb.append(nm);
-        sb.append("</name>\n");
-      sb.append("<value>");
-         sb.append( SS);
-         sb.append("</value>\n</");
-      sb.append(dt);
-      sb.append(">\n");
-      stream.write( sb.toString().getBytes() );
-    }
-    catch ( IOException e )
-    { 
-      return xml_utils.setError("IO Exception="+ e.getMessage());
-      
-    } 
-    return true;
-
-
-    }
-
-public static boolean AttribXMLread( InputStream stream, Attribute A )
-   {String dt= A.getClass().toString();
-    dt=dt.substring( dt.lastIndexOf('.')+1); 
-    boolean done=false;
-    String fd="";
-    String key=  xml_utils.getTag( stream );
-    if( key.trim().equals("/"+dt))
-      {xml_utils.skipAttributes( stream );
-       done = true;
-       if(fd.equals("nv"))
-         return true;
-       else
-          return false;
-       }
-    while(!done)
-     {
-      if( !xml_utils.skipAttributes( stream ) )
-       {DataSetTools.util.SharedData.addmsg(xml_utils.getErrorMessage());
-        return false;
-        }
-      String v= xml_utils.getValue( stream);
-      if( v== null)
-        {DataSetTools.util.SharedData.addmsg(xml_utils.getErrorMessage());
-         return false;
-        }
-      if( key.equals( "name"))
-       {if( fd.indexOf('n')>=0)
-          return false;
-        if( v.equals("\\u0394"+"2"+"\\u03b8"))
-          v="\u0394"+"2"+"\u03b8";
-        
-        A.setName(v);
-        fd="n"+fd;
-        }
-      else if( key.equals("value"))
-       try{if(fd.indexOf('v')>=0)
-             return false;
-          fd=fd+"v";
-          //Object value= v;
-          if( (A instanceof IntAttribute) ||
-              (A instanceof FloatAttribute) ||
-              (A instanceof DoubleAttribute))
-            //value= new Double(v);
-          System.out.println("ERROR: setValue no longer supported " +
-                             "by Attribute class" );
-          // A.setValue( value );        ######## now that Attributes are
-          //                                      immutable, we need a new
-          //                                      way to do this
-          }
-       catch( Exception s)
-          { DataSetTools.util.SharedData.addmsg("Error"+s.getMessage()); 
-             return false;
-           
-           }
-       key=  xml_utils.getTag( stream );
-       if( key == null)
-         {DataSetTools.util.SharedData.addmsg(xml_utils.getErrorMessage());
-          return false;
-          }
-       if( key.trim().equals("/"+dt))
-        {xml_utils.skipAttributes( stream );
-         done = true;
-         if(fd.equals("nv"))
-           return true;
-         else
-          {DataSetTools.util.SharedData.addmsg("Did not Set both field ");
-           return false;
-          }
-       }
-      }
-      return true;
-      
-       
-
-
-   }
-
 
 
 
