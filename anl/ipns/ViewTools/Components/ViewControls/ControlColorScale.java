@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2004/11/11 19:48:24  millermi
+ *  - Modified method calls to new version of LogScaleUtil.
+ *  - Added getLocalCoordBounds() and getGlobalCoordBounds() to reflect the
+ *    changes made to the IAxisAddible interface.
+ *
  *  Revision 1.24  2004/11/05 22:06:52  millermi
  *  - Now implements IPseudoLogAxisAddible instead of ILogAxisAddible.
  *
@@ -422,10 +427,9 @@ public class ControlColorScale extends ViewControl
       {
 	axis_min = 0;
       }
-      LogScaleUtil logger = new LogScaleUtil( axis_min, axis_max,
-                                              axis_min, axis_max );
+      LogScaleUtil logger = new LogScaleUtil( axis_min, axis_max );
       double logscale = component.getLogScale(); 
-      marker = logger.toSource(marker, logscale);
+      marker = logger.toDest(marker, logscale);
       if( negate && isTwoSided )
         marker = -marker;
       // horizontal, zero out vertical factor
@@ -569,6 +573,25 @@ public class ControlColorScale extends ViewControl
   public Rectangle getRegionInfo()
   {
     return csi.getBounds();
+  }
+  
+ /**
+  * Stub that returns the "value axis" bounds since the colorscale does not
+  * allow zooming. This method is required by IAxisAddible interface.
+  */
+  public CoordBounds getLocalCoordBounds()
+  {
+    return new CoordBounds( value_info.getMin(), value_info.getMin(),
+                            value_info.getMax(), value_info.getMax() );
+  }
+  
+ /**
+  * Returns the global world bounds ("value axis bounds") of the colorscale.
+  * This method is required by IAxisAddible interface.
+  */
+  public CoordBounds getGlobalCoordBounds()
+  {
+    return getLocalCoordBounds();
   }
 
  /**
