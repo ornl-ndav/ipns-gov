@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/08/14 17:13:25  millermi
+ *  - Added comments and public variable PUT_IN_HELP for help menu.
+ *
  *  Revision 1.1  2003/05/22 13:02:50  dennis
  *  Menu items returned by ViewComponents to be added to the
  *  Menu bar. (Mike Miller)
@@ -43,7 +46,8 @@
  package DataSetTools.components.View.Menu;
  
  import javax.swing.*;
- import java.awt.event.*;
+ import java.awt.event.ActionEvent;
+ import java.awt.event.ActionListener;
  import java.util.Vector;
 
 /**
@@ -56,11 +60,12 @@ public class ViewMenuItem
    public static final String PUT_IN_EDIT    = "Edit";
    public static final String PUT_IN_VIEW    = "View";
    public static final String PUT_IN_OPTIONS = "Options";
+   public static final String PUT_IN_HELP    = "Help";
    
    private String location;    
    private JMenuItem item;
    private Vector listeners; 
-   private static boolean isTest = false;
+   private static boolean isTest = false; // for testing only
    
   /**
    * Constructor takes in a menu item and initializes path to an empty string.
@@ -191,11 +196,13 @@ public class ViewMenuItem
       
       if( PUT_IN_FILE.toLowerCase().equals(menu.toLowerCase()) )
          return true; 
-      if( PUT_IN_EDIT.toLowerCase().equals(menu.toLowerCase()) )
+      else if( PUT_IN_EDIT.toLowerCase().equals(menu.toLowerCase()) )
          return true; 
-      if( PUT_IN_VIEW.toLowerCase().equals(menu.toLowerCase()) )
+      else if( PUT_IN_VIEW.toLowerCase().equals(menu.toLowerCase()) )
          return true; 
-      if( PUT_IN_OPTIONS.toLowerCase().equals(menu.toLowerCase()) )
+      else if( PUT_IN_OPTIONS.toLowerCase().equals(menu.toLowerCase()) )
+         return true; 
+      else if( PUT_IN_HELP.toLowerCase().equals(menu.toLowerCase()) )
          return true; 
       return false;
    }
