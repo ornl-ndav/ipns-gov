@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/11 23:16:59  dennis
+ *  Fixed error in package name
+ *
  *  Revision 1.6  2004/03/11 23:11:14  dennis
  *  Changed to MathTools package
  *
@@ -37,7 +40,7 @@
  *  standardized header
  *
  */
-package  gov.anl.pns.MathTools;
+package  gov.anl.ipns.MathTools;
 
 import java.io.*;
 
