@@ -31,6 +31,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2002/06/14 20:52:11  dennis
+ * Added field: auto_data_bound
+ * Added methods: setX_bounds(), autoX_bounds(), set_auto_data_bound()
+ *                is_autoX_bounds(), is_autoY_bounds()
+ * To avoid recalculating the range of x and y values in some cases.
+ * (Needed to fix problem with XRange update in ScrolledGraphView)
+ *
  * Revision 1.7  2001/05/29 15:13:08  dennis
  * Now uses initializeWorldCoords to reset both the local and
  * global transforms.
@@ -102,6 +109,7 @@ public class GraphJPanel extends    CoordJPanel
   private int             x_offset_factor = 0;  
   private int             y_offset_factor = 0;  
   private boolean         remove_hidden_lines = false;
+  private CoordBounds     auto_data_bound;
 
 /* --------------------- Default Constructor ------------------------------ */
 
@@ -117,6 +125,8 @@ public class GraphJPanel extends    CoordJPanel
 
     y_bound_set = false;
     x_bound_set = false;
+
+    set_auto_data_bound();
   }
 
 
@@ -179,6 +189,7 @@ public class GraphJPanel extends    CoordJPanel
     gd.x_vals = x_vals;
     gd.y_vals = y_vals;
     
+    set_auto_data_bound();
     SetDataBounds();
 
     if ( redraw )
@@ -199,6 +210,7 @@ public class GraphJPanel extends    CoordJPanel
       graphs.removeElementAt( i );
 
     graphs.addElement( new GraphData() );    
+    set_auto_data_bound();
     SetDataBounds();
   }
 
@@ -322,8 +334,54 @@ public float getY_value( float x_value, int graph_number )
 }
 
 
-/* ------------------------------ setY_bounds ------------------------------- */
+/* ------------------------------ setX_bounds ------------------------------- */
 /**
+ *  Specify a range of x values to use for the graph.  By default, the x
+ *  range is automatically adjusted to the x range of the data.
+ *
+ *  @param  x_min  the smallest x value to be drawn
+ *  @parma  x_max  the largest x value to be drawn
+ */
+public void setX_bounds( float x_min, float x_max )
+{
+  CoordBounds data_bound = getGlobalWorldCoords();
+
+  data_bound.setBounds( x_min, data_bound.getY1(),    // change and "lock" the
+                        x_max, data_bound.getY2());   // new x_min, x_max
+
+  initializeWorldCoords( data_bound );
+
+  repaint();
+  x_bound_set = true;
+}
+
+
+/* ----------------------------- autoX_bounds ------------------------------ */
+/**
+ *  Set the x range fo the graph to the x range of data.  This is the default
+ *  behavior.
+ */ 
+
+public void autoX_bounds( )
+{
+  x_bound_set = false;
+  SetDataBounds();
+  repaint();
+}
+
+
+/* ---------------------------- is_autoX_bounds ---------------------------- */
+/**
+ *  @return flag indicating whether or not the current X bounds have been 
+ *          automatically determined from the data x values.
+ */
+public boolean is_autoX_bounds()
+{
+  return !x_bound_set;
+}
+
+
+/* ------------------------------ setY_bounds ------------------------------- *//**
  *  Specify a range of y values to use for the graph.  By default, the y
  *  range is automatically adjusted to the y range of the data.
  *
@@ -337,7 +395,7 @@ public void setY_bounds( float y_min, float y_max )
   data_bound.setBounds( data_bound.getX1(), y_min,     // change and "lock" the
                         data_bound.getX2(), y_max );   // new y_min, y_max
 
-  data_bound.invertBounds();               // needed for "upside down" pixel 
+  data_bound.invertBounds();               // needed for "upside down" pixel
   initializeWorldCoords( data_bound );     // coordinates
 
   repaint();
@@ -349,7 +407,7 @@ public void setY_bounds( float y_min, float y_max )
 /**
  *  Set the y range fo the graph to the y range of data.  This is the default
  *  behavior.
- */ 
+ */
 
 public void autoY_bounds( )
 {
@@ -357,6 +415,18 @@ public void autoY_bounds( )
   SetDataBounds();
   repaint();
 }
+
+
+/* ---------------------------- is_autoY_bounds ---------------------------- */
+/**
+ *  @return flag indicating whether or not the current Y bounds have been 
+ *          automatically determined from the data y values.
+ */
+public boolean is_autoY_bounds()
+{
+  return !y_bound_set;
+}
+
 
 
 /* --------------------------------- paint ------------------------------- */
@@ -499,6 +569,19 @@ public Dimension getPreferredSize()
 }
 
 
+private void set_auto_data_bound()
+{
+   auto_data_bound = new CoordBounds();
+   GraphData gd = (GraphData)graphs.elementAt(0);
+   auto_data_bound.setBounds( gd.x_vals, gd.y_vals );
+   for ( int i = 1; i < graphs.size(); i++ )
+   {
+     gd = (GraphData)graphs.elementAt(i);
+     auto_data_bound.growBounds( gd.x_vals, gd.y_vals );
+   }
+}
+
+
 /* --------------------------- SetDataBounds ----------------------------- */
 private void SetDataBounds()
 {
@@ -507,15 +590,6 @@ private void SetDataBounds()
                                        // and the automatically scaled bounds
     CoordBounds current_bound   = getGlobalWorldCoords();
     current_bound.invertBounds();
-
-    CoordBounds auto_data_bound = new CoordBounds();
-    GraphData gd = (GraphData)graphs.elementAt(0);
-    auto_data_bound.setBounds( gd.x_vals, gd.y_vals );
-    for ( int i = 1; i < graphs.size(); i++ )
-    {
-      gd = (GraphData)graphs.elementAt(i);
-      auto_data_bound.growBounds( gd.x_vals, gd.y_vals );
-    }
 
                                       // choose new y_bounds based on flag
     if ( y_bound_set )
