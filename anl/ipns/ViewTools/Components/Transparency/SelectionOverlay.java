@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.34  2004/02/14 03:37:23  millermi
+ *  - Replaced all WCRegion code with Region class.
+ *  - if regions are in setObjectState(), REGION_ADDED message
+ *    now sent to listeners.
+ *  - Removed "Selected" from method names.
+ *
  *  Revision 1.33  2004/02/06 23:23:43  millermi
  *  - Changed how editor bounds were stored in the ObjectState,
  *    removed check if visible.
@@ -229,7 +235,7 @@ import java.lang.Math;
 
 import DataSetTools.components.image.*;
 import DataSetTools.components.View.ObjectState;
-import DataSetTools.components.View.Region.WCRegion;
+import DataSetTools.components.View.Region.*;
 import DataSetTools.components.View.Cursor.*; 
 import DataSetTools.components.View.ViewControls.ControlSlider;
 import DataSetTools.util.floatPoint2D; 
@@ -266,7 +272,7 @@ public class SelectionOverlay extends OverlayJPanel
  /**
   * "Selected Regions" - This constant String is a key for referencing the
   * state information about which regions have been selected.
-  * The value that this key references is a Vector of WCRegion instances.
+  * The value that this key references is a Vector of Region instances.
   */
   public static final String SELECTED_REGIONS = "Selected Regions";
   
@@ -430,7 +436,10 @@ public class SelectionOverlay extends OverlayJPanel
     if( temp != null )
     {
       regions = ((Vector)temp);
-      redraw = true;  
+      redraw = true;
+      // only send message if region was added.
+      if( regions.size() > 0 )
+        sendMessage(REGION_ADDED); 
     }
     
     temp = new_state.get(SELECTION_COLOR);
@@ -555,11 +564,11 @@ public class SelectionOverlay extends OverlayJPanel
   
  /**
   * This method gets the vector containing all of the selected regions. All
-  * regions in the vector are in a WCRegion wrapper.
+  * regions in the vector are in a Region wrapper.
   *
   *  @return region vector
   */ 
-  public Vector getSelectedRegions()
+  public Vector getRegions()
   {
     return regions;
   }
@@ -567,7 +576,7 @@ public class SelectionOverlay extends OverlayJPanel
  /**
   * Remove all selections from the overlay.
   */
-  public void clearSelectedRegions()
+  public void clearRegions()
   {
     if( regions.size() > 0 )
     {
@@ -580,11 +589,17 @@ public class SelectionOverlay extends OverlayJPanel
   * This method allows a user to add a region with a method instead of by
   * using the GUI.
   *
-  *  @param  reg The WCRegion to be added.
+  *  @param  reg The array of Regions to be added.
   */
-  public void addSelectedRegion( WCRegion reg )
+  public void addRegions( Region[] reg )
   {
-    regions.add(reg);
+    // ignore if null
+    if( reg == null || reg.length == 0 )
+      return;
+    // add all regions in the array.
+    for( int i = 0; i < reg.length; i++ )
+      regions.add(reg[i]);
+    // send message that region was added.
     sendMessage(REGION_ADDED);
   } 
   
@@ -695,106 +710,101 @@ public class SelectionOverlay extends OverlayJPanel
     // color of all of the selections.
     g2d.setColor(reg_color);
 
-    WCRegion regionclass;      
-    String region;
+    Region region;    
     floatPoint2D[] fp;
     Point[] p;
     boolean nullfound = false;
     for( int num_reg = 0; num_reg < regions.size(); num_reg++ )
     {
-      regionclass = (WCRegion)regions.elementAt(num_reg);
-      p = new Point[regionclass.getNumWCP()];
-      fp = regionclass.getWorldCoordPoints();
-      for( int i = 0; i < regionclass.getNumWCP(); i++ )
+      region = (Region)regions.elementAt(num_reg);
+      fp = region.getDefiningPoints(Region.WORLD);
+      p = new Point[fp.length];
+      for( int i = 0; i < fp.length; i++ )
       {
         if( fp[i] == null )
 	{
 	  regions.remove(num_reg);
-	  i = regionclass.getNumWCP();
+	  i = fp.length;
 	  nullfound = true;
 	}
 	else
     	  p[i] = convertToPixelPoint( fp[i] );
       }
       if( !nullfound )
-        region = ((WCRegion)regions.elementAt(num_reg)).getRegionType(); 
-      else
       {
-        region = "BAD REGION, DO NOT DRAW";
-	num_reg = num_reg - 1; // do this since the region was removed.
-      }
-      //System.out.println("Point: " + p[0].x + "," + p[0].y );   
-      if( region.equals( SelectionJPanel.ELLIPSE ) )
-      {
-    	g2d.drawOval( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
-      }
-      else if( region.equals( SelectionJPanel.BOX ) )
-      {
-    	g2d.drawRect( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
-      }
-      else if( region.equals( SelectionJPanel.LINE ) )
-      {
-    	g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y ); 	 
-      }
-      else if( region.equals( SelectionJPanel.POINT ) )
-      {
-    	//System.out.println("Drawing instance of point at " + 
-    	//		   ((Point)region).x + "/" + ((Point)region).y );
-    	g2d.drawLine( p[0].x - 5, p[0].y, p[0].x + 5, p[0].y ); 	
-    	g2d.drawLine( p[0].x, p[0].y - 5, p[0].x, p[0].y + 5 );
-      }
-      else if( region.equals( SelectionJPanel.WEDGE ) )
-      {
-       /* p[0]   = center pt of circle that arc is taken from
-    	* p[1]   = last mouse point/point at intersection of line and arc
-    	* p[2]   = reflection of p[1]
-    	* p[3]   = top left corner of bounding box around arc's total circle
-    	* p[4]   = bottom right corner of bounding box around arc's circle
-    	* p[5].x = startangle, the directional vector in degrees
-    	* p[5].y = degrees covered by arc.
-    	*/
-    	// Since p[5] is not a point, but angular measures, they are a direct
-    	// cast from float to int, no convertion needed.
-    	p[p.length - 1].x = (int)fp[p.length - 1].x;
-    	p[p.length - 1].y = (int)fp[p.length - 1].y;
-    	g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y );
-    	g2d.drawLine( p[0].x, p[0].y, p[2].x, p[2].y ); 	  
-    	
-    	g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
-    		    p[4].y - p[3].y, p[5].x, p[5].y);
-      }
-      else if( region.equals( SelectionJPanel.DOUBLE_WEDGE ) )
-      {
-       /* p[0]   = center pt of circle that arc is taken from
-    	* p[1]   = last mouse point/point at intersection of line and arc
-    	* p[2]   = reflection of p[1]
-    	* p[3]   = top left corner of bounding box around arc's total circle
-    	* p[4]   = bottom right corner of bounding box around arc's circle
-    	* p[5].x = startangle, the directional vector in degrees
-    	* p[5].y = degrees covered by arc.
-    	*/
-    	// Since p[5] is not a point, but angular measures, they are a direct
-    	// cast from float to int, no convertion needed.
-    	p[p.length - 1].x = (int)fp[p.length - 1].x;
-    	p[p.length - 1].y = (int)fp[p.length - 1].y;
-    	g2d.drawLine( 2*p[0].x - p[1].x, 2*p[0].y - p[1].y, p[1].x, p[1].y );
-    	g2d.drawLine( 2*p[0].x - p[2].x, 2*p[0].y - p[2].y, p[2].x, p[2].y );
-    	
-    	g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
-    		    p[4].y - p[3].y, p[5].x, p[5].y);
-    	g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
-    		    p[4].y - p[3].y, p[5].x + 180, p[5].y);
-      }
-      else if( region.equals( SelectionJPanel.RING ) )
-      {
-       /* p[0]   = center pt of circle
-    	* p[1]   = top left corner of bounding box of inner circle
-    	* p[2]   = bottom right corner of bounding box of inner circle
-    	* p[3]   = top left corner of bounding box of outer circle
-    	* p[4]   = bottom right corner of bounding box of outer circle
-    	*/
-    	g2d.drawOval( p[1].x, p[1].y, p[2].x - p[1].x, p[2].y - p[1].y );
-    	g2d.drawOval( p[3].x, p[3].y, p[4].x - p[3].x, p[4].y - p[3].y );
+        //System.out.println("Point: " + p[0].x + "," + p[0].y );   
+        if( region instanceof EllipseRegion )
+        {
+          g2d.drawOval( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
+        }
+        else if( region instanceof BoxRegion )
+        {
+          g2d.drawRect( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
+        }
+        else if( region instanceof LineRegion )
+        {
+          g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y );	   
+        }
+        else if( region instanceof PointRegion )
+        {
+          //System.out.println("Drawing instance of point at " + 
+          //		     ((Point)region).x + "/" + ((Point)region).y );
+          g2d.drawLine( p[0].x - 5, p[0].y, p[0].x + 5, p[0].y );	  
+          g2d.drawLine( p[0].x, p[0].y - 5, p[0].x, p[0].y + 5 );
+        }
+        else if( region instanceof WedgeRegion )
+        {
+         /* p[0]   = center pt of circle that arc is taken from
+          * p[1]   = last mouse point/point at intersection of line and arc
+          * p[2]   = reflection of p[1]
+          * p[3]   = top left corner of bounding box around arc's total circle
+          * p[4]   = bottom right corner of bounding box around arc's circle
+          * p[5].x = startangle, the directional vector in degrees
+          * p[5].y = degrees covered by arc.
+          */
+          // Since p[5] is not a point, but angular measures, they are a direct
+          // cast from float to int, no convertion needed.
+          p[p.length - 1].x = (int)fp[p.length - 1].x;
+          p[p.length - 1].y = (int)fp[p.length - 1].y;
+          g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y );
+          g2d.drawLine( p[0].x, p[0].y, p[2].x, p[2].y );	    
+          
+          g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
+        	      p[4].y - p[3].y, p[5].x, p[5].y);
+        }
+        else if( region instanceof DoubleWedgeRegion )
+        {
+         /* p[0]   = center pt of circle that arc is taken from
+          * p[1]   = last mouse point/point at intersection of line and arc
+          * p[2]   = reflection of p[1]
+          * p[3]   = top left corner of bounding box around arc's total circle
+          * p[4]   = bottom right corner of bounding box around arc's circle
+          * p[5].x = startangle, the directional vector in degrees
+          * p[5].y = degrees covered by arc.
+          */
+          // Since p[5] is not a point, but angular measures, they are a direct
+          // cast from float to int, no convertion needed.
+          p[p.length - 1].x = (int)fp[p.length - 1].x;
+          p[p.length - 1].y = (int)fp[p.length - 1].y;
+          g2d.drawLine( 2*p[0].x - p[1].x, 2*p[0].y - p[1].y, p[1].x, p[1].y );
+          g2d.drawLine( 2*p[0].x - p[2].x, 2*p[0].y - p[2].y, p[2].x, p[2].y );
+          
+          g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
+        	      p[4].y - p[3].y, p[5].x, p[5].y);
+          g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
+        	      p[4].y - p[3].y, p[5].x + 180, p[5].y);
+        }
+        else if( region instanceof AnnularRegion )
+        {
+         /* p[0]   = center pt of circle
+          * p[1]   = top left corner of bounding box of inner circle
+          * p[2]   = bottom right corner of bounding box of inner circle
+          * p[3]   = top left corner of bounding box of outer circle
+          * p[4]   = bottom right corner of bounding box of outer circle
+          */
+          g2d.drawOval( p[1].x, p[1].y, p[2].x - p[1].x, p[2].y - p[1].y );
+          g2d.drawOval( p[3].x, p[3].y, p[4].x - p[3].x, p[4].y - p[3].y );
+        }
       }
     }
   } // end of paint()
@@ -874,10 +884,8 @@ public class SelectionOverlay extends OverlayJPanel
 	  floatPoint2D[] tempwcp = new floatPoint2D[2];
 	  tempwcp[0] = convertToWorldPoint( p1 );
 	  tempwcp[1] = convertToWorldPoint( p2 );
-					       
-	  WCRegion boxregion = new WCRegion(SelectionJPanel.BOX, tempwcp);
-					 
-	  regions.add( boxregion );
+			 
+	  regions.add( new BoxRegion(tempwcp) );
 	  //System.out.println("Drawing box region" );
 	}
 	else if( message.indexOf( SelectionJPanel.ELLIPSE ) > -1 )
@@ -900,10 +908,8 @@ public class SelectionOverlay extends OverlayJPanel
 	  tempwcp[0] = convertToWorldPoint( p1 );
 	  tempwcp[1] = convertToWorldPoint( p2 );
 	  tempwcp[2] = convertToWorldPoint( p3 );
-					       
-	  WCRegion circleregion = new WCRegion( SelectionJPanel.ELLIPSE, 
-						tempwcp );
-	  regions.add( circleregion );
+				
+	  regions.add( new EllipseRegion(tempwcp) );
 	}	
 	else if( message.indexOf( SelectionJPanel.LINE ) > -1 )
 	{
@@ -918,10 +924,8 @@ public class SelectionOverlay extends OverlayJPanel
 	  floatPoint2D[] tempwcp = new floatPoint2D[2];
 	  tempwcp[0] = convertToWorldPoint( p1 );
 	  tempwcp[1] = convertToWorldPoint( p2 );
-					       
-	  WCRegion lineregion = new WCRegion( SelectionJPanel.LINE, 
-					      tempwcp );
-	  regions.add( lineregion );
+	
+	  regions.add( new LineRegion(tempwcp) );
 	}	
 	else if( message.indexOf( SelectionJPanel.POINT ) > -1 )
 	{ 
@@ -934,7 +938,7 @@ public class SelectionOverlay extends OverlayJPanel
 	  floatPoint2D[] tempwcp = new floatPoint2D[1];
 	  tempwcp[0] = convertToWorldPoint( np );
 	  //System.out.println("tempwcp[0]: "+tempwcp[0].x+tempwcp[0].y );
-	  regions.add( new WCRegion(SelectionJPanel.POINT, tempwcp) );
+	  regions.add( new PointRegion(tempwcp) );
 	}    
 	else if( message.indexOf( SelectionJPanel.WEDGE ) > -1 &&
         	 message.indexOf( SelectionJPanel.DOUBLE_WEDGE ) == -1 )
@@ -958,8 +962,8 @@ public class SelectionOverlay extends OverlayJPanel
         			       (float)p_array[p_array.length - 1].y );
           }
           
-	  regions.add( new WCRegion(SelectionJPanel.WEDGE, tempwcp) );
-	}   
+	  regions.add( new WedgeRegion(tempwcp) );
+	}
 	else if( message.indexOf( SelectionJPanel.DOUBLE_WEDGE ) > -1 )
 	{ 
 	  //System.out.println("Drawing double wedge region" );
@@ -980,8 +984,8 @@ public class SelectionOverlay extends OverlayJPanel
         			       (float)p_array[p_array.length - 1].x,
         			       (float)p_array[p_array.length - 1].y );
           }
-	  regions.add( new WCRegion(SelectionJPanel.DOUBLE_WEDGE, tempwcp) );
-	}  
+	  regions.add( new DoubleWedgeRegion(tempwcp) );
+	} 
 	else if( message.indexOf( SelectionJPanel.RING ) > -1 )
 	{ 
 	  // create new point, otherwise regions would be shared.
@@ -1017,7 +1021,7 @@ public class SelectionOverlay extends OverlayJPanel
 	  tempwcp[3] = convertToWorldPoint( p4 );
 	  tempwcp[4] = convertToWorldPoint( p5 );
 	  
-	  regions.add( new WCRegion(SelectionJPanel.RING, tempwcp) );
+	  regions.add( new AnnularRegion(tempwcp) );
 	}
         else  // no recognized region was added
           regionadded = false;
