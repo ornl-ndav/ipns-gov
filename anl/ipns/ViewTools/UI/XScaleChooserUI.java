@@ -31,9 +31,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2001/07/26 19:56:59  dennis
+ *  Now extends ActiveJPanel instead of JPanel, so that it doesn't
+ *  have to maintain the list of listeners itself.
+ *
  *  Revision 1.1  2001/07/20 16:36:15  dennis
  *  GUI device for choosing X-Scales.
- *
  *
  */
 
@@ -54,7 +57,7 @@ import DataSetTools.util.*;
  * supported.  Future versions may include options for VariableXScales. 
  */
 
-public class XScaleChooserUI extends    JPanel
+public class XScaleChooserUI extends    ActiveJPanel
                              implements Serializable 
 {
   public static final String N_STEPS_CHANGED = "N Steps Changed";
@@ -63,7 +66,6 @@ public class XScaleChooserUI extends    JPanel
   private String      border_label = "X Scale";
   private TextValueUI n_steps_ui   = null;
   private TextRangeUI x_range_ui   = null;
-  private Vector      listeners    = null;
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -83,8 +85,6 @@ public class XScaleChooserUI extends    JPanel
                           float  x_max, 
                           int    n_steps )
   { 
-    listeners = new Vector();
-
     TitledBorder border = 
              new TitledBorder(LineBorder.createBlackLineBorder(), border_label);
     border.setTitleFont( FontUtil.BORDER_FONT );
@@ -111,7 +111,6 @@ public class XScaleChooserUI extends    JPanel
   */
  public XScale getXScale()
   {
-//    System.out.println("Start XScaleChooser.getXScale()......");
     int num_steps = (int)n_steps_ui.getValue();
     float x_min = x_range_ui.getMin();
     float x_max = x_range_ui.getMax();
@@ -126,67 +125,8 @@ public class XScaleChooserUI extends    JPanel
     else
       num_x = num_steps + 1;
 
-//    System.out.println("x_min, x max = " + x_min + ", " + x_max );
-//    System.out.println("num_steps, num_x = " + num_steps + ", " + num_x );
     return ( new UniformXScale( x_min, x_max, num_x ) );
   }
-
-
- /* ------------------------ addActionListener -------------------------- */
- /**
-  *  Add an ActionListener for this XScaleChooserUI.  Whenever the user
-  *  changes the interval or number of steps, an ActionEvent will be sent 
-  *  to all of the ActionListeners.
-  *
-  *  @param listener  An ActionListener whose ActionPerformed() method is
-  *                   to be called when the user changes the interval or
-  *                   number of bins.
-  */
-
-  public void addActionListener( ActionListener listener )
-  {
-    for ( int i = 0; i < listeners.size(); i++ )       // don't add it if it's
-      if ( listeners.elementAt(i).equals( listener ) ) // already there
-        return;
-    listeners.add( listener );
-  }
-
-
- /* ------------------------ removeActionListener ------------------------ */
- /**
-  *  Remove the specified ActionListener from this AnimationController.  If
-  *  the specified ActionListener is not in the list of ActionListeners for
-  *  for this controller this method has no effect.
-  *  NOTE: This method is NOT thread safe.  It should NOT be called when
-  *        the controller is being activated either by the user, or if it is
-  *        running forward or backward.
-  *
-  *  @param listener  The ActionListener to be removed.
-  */
-
-  public void removeActionListener( ActionListener listener )
-  {
-    listeners.remove( listener );
-  }
-
-/* -------------------------------------------------------------------------
- *
- *  PRIVATE METHODS
- *
- */
-
-/* -------------------------- send_message ------------------------------- */
-/**
- *  Send a message to all of the action listeners for the XScaleChooserUI
- */
- private void send_message( String message )
- {
-   for ( int i = 0; i < listeners.size(); i++ )
-   {
-     ActionListener listener = (ActionListener)listeners.elementAt(i);
-     listener.actionPerformed( new ActionEvent( this, 0, message ) );
-   }
- }
 
 
 /* -------------------------------------------------------------------------
@@ -266,16 +206,15 @@ public class XScaleChooserUI extends    JPanel
 
       f.getContentPane().setLayout( new GridLayout(1,1) );
       f.getContentPane().add( x_scale_ui );
-/*
-      value_ui.addActionListener( new ActionListener()
+
+      x_scale_ui.addActionListener( new ActionListener()
        {
          public void actionPerformed(ActionEvent e)
          {
-           System.out.println("Entered: " + value_ui.getText() );
-           System.out.println("Value = " + value_ui.getValue() );
+           System.out.println("Chose: " + x_scale_ui.getXScale() );
          }
        });
-*/
+
 
       f.setVisible(true);
     }

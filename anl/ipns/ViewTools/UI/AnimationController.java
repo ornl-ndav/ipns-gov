@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2001/07/26 19:56:57  dennis
+ *  Now extends ActiveJPanel instead of JPanel, so that it doesn't
+ *  have to maintain the list of listeners itself.
+ *
  *  Revision 1.8  2001/07/25 16:55:13  dennis
  *  addActionListener() now checks for duplicates and doesn't add
  *  a listener twice.
@@ -83,7 +87,7 @@ import DataSetTools.util.*;
  * frame numbers will be restricted to the range of indices for the array. 
  */
 
-public class AnimationController extends    JPanel 
+public class AnimationController extends    ActiveJPanel 
                                  implements Serializable 
 {
   private static final String  RUN_BACKWARD  = "<<";
@@ -94,7 +98,6 @@ public class AnimationController extends    JPanel
 
   private TextValueUI      text_box;
   private String           my_label  = "";
-  private Vector           listeners = null;
   private TitledBorder     border;
   private Thread           run_thread   = null;
                                                     // these are used by
@@ -115,8 +118,6 @@ public class AnimationController extends    JPanel
   */
   public AnimationController( )
   { 
-     listeners = new Vector();
-
      border = new TitledBorder(LineBorder.createBlackLineBorder(),
                                "");
      border.setTitleFont( FontUtil.BORDER_FONT );
@@ -189,45 +190,6 @@ public class AnimationController extends    JPanel
       text_box.setLabel( my_label );
     else
       text_box.setLabel( "" + frame_number + " " + my_label );
-  }
-
-
- /* ------------------------ addActionListener -------------------------- */
- /** 
-  *  Add an ActionListener for this AnimationController.  Whenever the frame
-  *  number is changed by the controller, an ActionEvent will be sent to all 
-  *  of the ActionListeners.  The ActionEvent contains the new frame number
-  *  as the ActionCommand string.
-  *  
-  *  @param listener  An ActionListener whose ActionPerformed() method is 
-  *                   to be called when the AnimationController changes the
-  *                   frame number.
-  */
- 
-  public void addActionListener( ActionListener listener )
-  {
-    for ( int i = 0; i < listeners.size(); i++ )       // don't add it if it's
-      if ( listeners.elementAt(i).equals( listener ) ) // already there
-        return;
-
-    listeners.add( listener );
-  }
-
- /* ------------------------ removeActionListener ------------------------ */
- /**
-  *  Remove the specified ActionListener from this AnimationController.  If 
-  *  the specified ActionListener is not in the list of ActionListeners for
-  *  for this controller this method has no effect. 
-  *  NOTE: This method is NOT thread safe.  It should NOT be called when
-  *        the controller is being activated either by the user, or if it is 
-  *        running forward or backward.
-  * 
-  *  @param listener  The ActionListener to be removed.
-  */
-
-  public void removeActionListener( ActionListener listener )
-  {
-    listeners.remove( listener );
   }
 
 
@@ -371,12 +333,7 @@ synchronized private void set_frame( int number )
   }
 
   frame_number = number;
-                                                  // send action event to 
-  for ( int i = 0; i < listeners.size(); i++ )    // all of the listeners
-  {
-    ActionListener listener = (ActionListener)listeners.elementAt(i);
-    listener.actionPerformed( new ActionEvent( this, 0, ""+frame_number ) );
-  }
+  send_message( ""+frame_number );
 }
 
 
