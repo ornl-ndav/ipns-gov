@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/06/15 16:46:20  dennis
+ * Added local implementations of gluLookAt and gluPerspective, since
+ * the Mesa GLU crashed with jogl.
+ *
  * Revision 1.3  2004/06/04 14:05:58  dennis
  * Added method to control whether a perspective or orthographic
  * projection is used.
@@ -115,7 +119,7 @@ public class ThreeD_GL_Panel implements Serializable
     try
     {
       GLCapabilities capabilities = new GLCapabilities();
-      capabilities.setDoubleBuffered( true );
+//      capabilities.setDoubleBuffered( false );
       System.out.println("capabilites = " + capabilities );
       canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
       canvas.addGLEventListener(new Renderer());
@@ -558,7 +562,9 @@ public int[] pickHitList( int x, int y )
           int viewport[] = { 0, 0, width, height };
           glu.gluPickMatrix( pick_x, height-pick_y, 1, 1, viewport );
         }
-        glu.gluPerspective( view_angle, 
+
+//      glu.gluPerspective( view_angle, 
+        gluPerspective( gl, view_angle, 
                             width/(float)height, 
                             near_plane, 
                             far_plane );
@@ -679,7 +685,8 @@ public int[] pickHitList( int x, int y )
       float vrp_pt[] = vrp.get();
       float vuv_pt[] = vuv.get();
 
-      glu.gluLookAt(cop_pt[0], cop_pt[1], cop_pt[2],
+//      glu.gluLookAt(cop_pt[0], cop_pt[1], cop_pt[2],
+      gluLookAt( gl, cop_pt[0], cop_pt[1], cop_pt[2],
                     vrp_pt[0], vrp_pt[1], vrp_pt[2],
                     vuv_pt[0], vuv_pt[1], vuv_pt[2] );
 
@@ -698,6 +705,114 @@ public int[] pickHitList( int x, int y )
       }
     }
   }
+
+
+  /**
+   *  Replacement for GLU's gluPerspective, since that crashes on some
+   *  implementations.
+   */
+  public void gluPerspective( GL     gl,
+                              double fovy, 
+                              double aspect, 
+                              double zNear, 
+                              double zFar) 
+  {
+    double xmin, xmax, ymin, ymax;
+
+    ymax = zNear * Math.tan(fovy * Math.PI / 360.0);
+    ymin = -ymax;
+    xmin = ymin * aspect;
+    xmax = ymax * aspect;
+
+    gl.glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+  }
+
+
+  /**
+   *  Replacement for GLU's gluLookAt since that crashes on some
+   *  implementations.
+   */
+  public void gluLookAt( GL gl,
+                         double eyex,    double eyey,    double eyez, 
+                         double centerx, double centery, double centerz, 
+                         double upx,     double upy,     double upz)
+  {
+    double m[] = new double[16];
+    double x[] = new double[3];
+    double y[] = new double[3];
+    double z[] = new double[3];
+    double mag;
+
+    /* Make rotation matrix */
+ 
+    /* Z vector */
+     z[0] = eyex - centerx;
+     z[1] = eyey - centery;
+     z[2] = eyez - centerz;
+     mag = Math.sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2]);
+     if (mag > 0.0) {                     /* mpichler, 19950515 */
+        z[0] /= mag;
+        z[1] /= mag;
+        z[2] /= mag;
+     }
+
+     /* Y vector */
+     y[0] = upx;
+     y[1] = upy;
+     y[2] = upz;
+
+     /* X vector = Y cross Z */
+     x[0] = y[1] * z[2] - y[2] * z[1];
+     x[1] = -y[0] * z[2] + y[2] * z[0];
+     x[2] = y[0] * z[1] - y[1] * z[0];
+
+     /* Recompute Y = Z cross X */
+     y[0] = z[1] * x[2] - z[2] * x[1];
+     y[1] = -z[0] * x[2] + z[2] * x[0];
+     y[2] = z[0] * x[1] - z[1] * x[0];
+
+     /* mpichler, 19950515 */
+     /* cross product gives area of parallelogram, which is < 1.0 for
+      * non-perpendicular unit-length vectors; so normalize x, y here
+      */
+
+     mag = Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
+     if (mag > 0.0) {
+        x[0] /= mag;
+        x[1] /= mag;
+        x[2] /= mag;
+     }
+
+     mag = Math.sqrt(y[0] * y[0] + y[1] * y[1] + y[2] * y[2]);
+     if (mag > 0.0) {
+        y[0] /= mag;
+        y[1] /= mag;
+        y[2] /= mag;
+     }
+
+     m[0+4* 0] = x[0];
+     m[0+4* 1] = x[1];
+     m[0+4* 2] = x[2];
+     m[0+4* 3] = 0.0;
+     m[1+4* 0] = y[0];
+     m[1+4* 1] = y[1];
+     m[1+4* 2] = y[2];
+     m[1+4* 3] = 0.0;
+     m[2+4* 0] = z[0];
+     m[2+4* 1] = z[1];
+     m[2+4* 2] = z[2];
+     m[2+4* 3] = 0.0;
+     m[3+4* 0] = 0.0;
+     m[3+4* 1] = 0.0;
+     m[3+4* 2] = 0.0;
+     m[3+4* 3] = 1.0;
+
+     gl.glMultMatrixd(m);
+
+     /* Translate Eye to Origin */
+     gl.glTranslated(-eyex, -eyey, -eyez);
+  }
+
 
    
   /* ------------------------ MouseClickHandler --------------------------- */
