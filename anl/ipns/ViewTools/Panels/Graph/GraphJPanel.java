@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2001/05/29 15:13:08  dennis
+ * Now uses initializeWorldCoords to reset both the local and
+ * global transforms.
+ *
  * Revision 1.6  2001/05/07 21:20:01  dennis
  * Fixed error in format of documentation.
  *
@@ -334,9 +338,7 @@ public void setY_bounds( float y_min, float y_max )
                         data_bound.getX2(), y_max );   // new y_min, y_max
 
   data_bound.invertBounds();               // needed for "upside down" pixel 
-  setGlobalWorldCoords( data_bound );      // coordinates
-  setLocalWorldCoords( data_bound );
-  SetTransformsToWindowSize();
+  initializeWorldCoords( data_bound );     // coordinates
 
   repaint();
   y_bound_set = true;
@@ -542,9 +544,7 @@ private void SetDataBounds()
     CoordBounds data_bound =  new CoordBounds( x1, y1, x2, y2 );
 
     data_bound.invertBounds();               // needed for "upside down" pixel
-    setGlobalWorldCoords( data_bound );      // coordinates
-    setLocalWorldCoords( data_bound );
-    SetTransformsToWindowSize();
+    initializeWorldCoords( data_bound );     // coordinates
 }
 
 

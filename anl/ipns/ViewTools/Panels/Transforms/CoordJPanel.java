@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2001/05/29 15:12:25  dennis
+ *  Now uses initializeWorldCoords to reset both the local and
+ *  global transforms.
+ *
  *  Revision 1.7  2001/05/07 21:02:40  dennis
  *  Added implementation for the method LocalTransformChanged()
  *  that was previously abstract.  This slightly simplified the
@@ -165,11 +169,18 @@ abstract public class CoordJPanel extends    JPanel
     return global_transform;
   }
 
-  public void setGlobalWorldCoords( CoordBounds b )
+
+  public void initializeWorldCoords( CoordBounds b )
   {
     SetTransformsToWindowSize();
     global_transform.setSource( b );
     local_transform.setSource( b );
+  }
+
+  public void setGlobalWorldCoords( CoordBounds b )
+  {
+    SetTransformsToWindowSize();
+    global_transform.setSource( b );
   }
 
   public CoordBounds getGlobalWorldCoords( )
@@ -393,8 +404,6 @@ public void SetTransformsToWindowSize()
   int width  = total_size.width;
   int height = total_size.height;
 
-//  global_transform.setDestination( 0.1f, 0.1f, 
-//                                   width-0.1f, height-0.1f );
   global_transform.setDestination( -0.1f, -0.1f, 
                                    width-0.9f, height-0.9f );
 
