@@ -31,6 +31,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/10 16:22:52  millermi
+ *  - Added static method getActiveMenuItem() that takes in
+ *    a String text and a component, and returns a JMenuItem.
+ *    The menu item returned will invoke the java print option when
+ *    clicked.
+ *
  *  Revision 1.3  2002/11/27 23:24:18  pfpeterson
  *  standardized header
  *
@@ -81,6 +87,22 @@ public static void setUpMenuItem(JMenu jm, Component comp )
   jmi.addActionListener(new PrintComponentActionListener( comp));
 
    }
+   
+/**
+ * This method will return a JMenuItem with the provided text name. The
+ * menu item will have a print listener added to it. If clicked on,
+ * this menu item will print out the component passed in.
+ *
+ *  @param  menu_text Display text on the JMenuItem
+ *  @param  comp Component to be printed.
+ *  @return menu item with listener to initiate printing routine.
+ */
+ public static JMenuItem getActiveMenuItem( String menu_text, Component comp )
+ {
+   JMenuItem jmi = new JMenuItem(menu_text);
+   jmi.addActionListener( new PrintComponentActionListener(comp) );
+   return jmi;
+ }
 
 
 }
