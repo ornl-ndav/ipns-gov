@@ -34,6 +34,9 @@
  *  of first and second moments, etc.   
  * 
  *  $Log$
+ *  Revision 1.7  2002/09/25 22:16:22  pfpeterson
+ *  Added a method to integrate function-table data using trapezoid method.
+ *
  *  Revision 1.6  2001/04/25 20:56:36  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -150,7 +153,41 @@ public final class NumericalAnalysis
   }
 
 
+  /**
+    * Do numerical integration of function-table data on the interval
+    * [a,b].  This is done using the trapezoidal method of
+    * integration.
+    *
+    * @param x_vals Array of x values that the function was evaluated
+    * at. There must be the same number of x values as y values.
+    *
+    * @param   y_vals    Array of counts at x values
+    *
+    * @param   a         The left hand endpoint of the interval over which the
+    *                    data is integrated.
+    *
+    * @param   b         The right hand endpoint of the interval over which the
+    *                    data is integrated.  
+    *
+    * @return  An approximate value for the definite integral of the function
+    *          represented by this histogram on the interval [a,b].
+    */
+  public static float IntegrateFunctionTable( float[] x_vals, float[] y_vals, 
+                                              float   a,      float   b   ){
+      if ( (x_vals.length!=y_vals.length) || (a>x_vals[x_vals.length-1]) 
+                         || (b<x_vals[0]) || (a>=b) ) return 0;
+      
+      double sum = 0.0;
+      
+      for( int i=1 ; i<x_vals.length ; i++ ){
+          if(x_vals[i]>=a){
+              if(x_vals[i]>b) break;
+              sum+=0.5*(y_vals[i]+y_vals[i-1])*(x_vals[i]-x_vals[i-1]);
+          }
+      }
 
+      return (float)sum;
+  }
 
   /**
     * Calculate 1st, 2nd, 3rd, etc. moments for the given histogram about the
