@@ -31,6 +31,20 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2001/05/07 20:57:25  dennis
+ *  Added functions:
+ *
+ *    GetColorTable( type, num )
+ *    GetDualColorTable( type, num )
+ *    GetColorTable( IndexColorModel )
+ *
+ *  to obtain arrays of Color objects holding the same pseudo-color
+ *  scales as previously could be obtained as IndexColorModel objects.
+ *  The IndexColorModel objects are needed for displaying images,
+ *  while the arrays of Color objects are useful for other graphics
+ *  primitives.
+ *
+ *
  *  Revision 1.6  2001/04/23 21:15:16  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -56,6 +70,7 @@
 
 package DataSetTools.components.image;
 
+import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
 
@@ -73,6 +88,21 @@ public class IndexColorMaker implements Serializable
   public static final String SPECTRUM_SCALE        = "Spectrum";
 
 
+  /**
+   *  Get an indexed color model for a pseudo color scale to be used with an
+   *  image.  The pseudo color scales have been choosen to work well with 
+   *  non-negative values in the interval  [ 0, num_colors-1 ].
+   *
+   *  @param scale_type   Specifies the type of pseudo color scale to be 
+   *                      constructed.  This must be one of the string values
+   *                      defined by this class, GRAY_SCALE...SPECTRUM_SCALE.
+   *
+   *  @param num_colors   The number of pseudo colors to use in the range
+   *                      16 to 256.
+   *
+   *  @return  Returns an IndexColorModel to be used to map indices in the
+   *           range 0 to num_colors-1 to pseudo colors in the color model.
+   */
   public static IndexColorModel getColorModel( String scale_type,
                                                int num_colors      )
   {
@@ -120,7 +150,32 @@ public class IndexColorMaker implements Serializable
     return( colors );
   }
 
-
+  /**
+   *  Get an indexed color model for a pseudo color scale to be used with an
+   *  image.  The pseudo color scales have been choosen to work well with 
+   *  signed values in the interval  [ -num_colors, num_colors ].
+   *
+   *  @param scale_type   Specifies the type of pseudo color scale to be
+   *                      constructed.  This must be one of the string values
+   *                      defined by this class, GRAY_SCALE...SPECTRUM_SCALE.
+   *
+   *  @param num_colors   The number of pseudo colors to use for positive 
+   *                      values.  This must be in the range 16 to 127.
+   *
+   *  @return  Returns an IndexColorModel to be used to map indices in the
+   *           range 0 to 2*num_colors to pseudo colors in the color model.
+   *           The colors are stored in the color model starting with the
+   *           color that corresponds to the most negative value in position 
+   *           0, then increasing towards the color that corresponds to 0 
+   *           and ending with the color that corresponds to the most positive
+   *           value.  Specifically, the colors:
+   *
+   *           most_negative...zero...most_positive
+   *
+   *           are arranged sequentially in positions:
+   *
+   *           0,...,num_colors,...,2*num_colors.
+   */
 
   public static IndexColorModel getDualColorModel( String scale_type, 
                                                    int num_colors      )
@@ -218,6 +273,120 @@ public class IndexColorMaker implements Serializable
                                                      red, green, blue );
     return( colors );
   } 
+
+
+  /**
+   *  Get a table of Colors for a pseudo color scale.  The pseudo color 
+   *  scales have been choosen to work well with non-negative values in 
+   *  the interval  [ 0, num_colors-1 ].
+   *
+   *  @param scale_type   Specifies the type of pseudo color scale to be
+   *                      constructed.  This must be one of the string values
+   *                      defined by this class, GRAY_SCALE...SPECTRUM_SCALE.
+   *
+   *  @param num_colors   The number of pseudo colors to use in the range
+   *                      16 to 256.
+   *
+   *  @return  Returns a table of Color objects to be used to map indices 
+   *           in the range 0 to num_colors-1 to pseudo colors.
+   */
+  public static Color[] getColorTable( String scale_type, int num_colors )
+  {
+     IndexColorModel model = getColorModel( scale_type, num_colors );
+     return getColorTable( model );
+  }
+
+  /**
+   *  Get a table of Colors for a pseudo color scale.  The pseudo color 
+   *  scales have been choosen to work well with signed values in the 
+   *  interval  [ -num_colors, num_colors ].
+   *
+   *  @param scale_type   Specifies the type of pseudo color scale to be
+   *                      constructed.  This must be one of the string values
+   *                      defined by this class, GRAY_SCALE...SPECTRUM_SCALE.
+   *
+   *  @param num_colors   The number of pseudo colors to use for positive
+   *                      values.  This must be in the range 16 to 127.
+   *
+   *  @return  Returns a table of Color objects to be used to map indices
+   *           in the range 0 to 2*num_colors to pseudo colors.
+   *           The colors are stored in the color table starting with the
+   *           color that corresponds to the most negative value in position
+   *           0, then increasing towards the color that corresponds to 0
+   *           and ending with the color that corresponds to the most positive
+   *           value.  Specifically, the colors:
+   *
+   *           most_negative...zero...most_positive
+   *
+   *           are arranged sequentially in positions:
+   *
+   *           0,...,num_colors,...,2*num_colors.
+   */
+
+  public static Color[] getDualColorTable( String scale_type, int num_colors )
+  {
+     IndexColorModel model = getDualColorModel( scale_type, num_colors );
+     return getColorTable( model );
+  }
+
+
+  /**
+   *  Get the table of Colors from an IndexColorModel object.
+   *
+   *  @param model   The IndexColorModel object whose colors are to be
+   *                 extracted.
+   *
+   *  @return  Returns the table of Color objects corresponding to the colors
+   *           in the specified IndexColorModel.
+   */
+  public static Color[] getColorTable( IndexColorModel model )
+  {
+     int  num_vals =  model.getMapSize();
+     System.out.println( "num_vals, now = " + num_vals );
+     byte reds[]   = new byte[ num_vals ];
+     byte greens[] = new byte[ num_vals ];
+     byte blues[]  = new byte[ num_vals ];
+
+     model.getReds  ( reds );
+     model.getGreens( greens );
+     model.getBlues ( blues );
+
+     float red,
+           green,
+           blue;
+
+     Color table[] = new Color[ num_vals ];
+     for ( int i = 0; i < num_vals; i++ )
+     {
+       if ( reds[i] < 0 )
+         red = reds[i] + 256;
+       else
+         red = reds[i];
+
+       if ( greens[i] < 0 )
+         green = greens[i] + 256;
+       else
+         green = greens[i];
+
+       if ( blues[i] < 0 )
+         blue = blues[i] + 256;
+       else
+         blue = blues[i];
+
+       table[i] = new Color( red/255, green/255, blue/255 ); 
+     }
+     return table;
+  }
+
+
+
+
+
+/* -------------------------------------------------------------------------
+ * 
+ *  PRIVATE METHODS
+ *
+ */
 
   private static void BuildGrayScale( byte red[], 
                                       byte green[], 
