@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/01/10 16:16:51  dennis
+ *  Removed empty statement(s).
+ *
  *  Revision 1.10  2004/12/05 06:03:44  millermi
  *  - Fixed Eclipse warnings.
  *
@@ -2254,12 +2257,12 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   {
     public void columnAdded( TableColumnModelEvent tme )
     {
-      ; // Stub
+      // Stub
     }
     
     public void columnMarginChanged( ChangeEvent ce )
     {
-      ; // Stub
+      // Stub
     }
     
     public void columnMoved( TableColumnModelEvent tme )
@@ -2302,12 +2305,12 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     
     public void columnRemoved( TableColumnModelEvent tme )
     {
-      ; // Stub
+      // Stub
     }
     
     public void columnSelectionChanged( ListSelectionEvent lse )
     {
-      ; // Stub
+      // Stub
     }
   }
   

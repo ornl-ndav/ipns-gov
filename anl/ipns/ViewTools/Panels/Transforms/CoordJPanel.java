@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.38  2005/01/10 16:16:51  dennis
+ *  Removed empty statement(s).
+ *
  *  Revision 1.37  2004/12/05 06:07:12  millermi
  *  - Fixed Eclipse warning.
  *
@@ -1139,7 +1142,7 @@ class CoordMouseAdapter extends MouseAdapter
       mouse_on_panel = false;
     }
   }
-};
+}
 
 
 class CoordMouseMotionAdapter extends MouseMotionAdapter

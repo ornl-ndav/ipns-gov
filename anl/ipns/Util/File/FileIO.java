@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2005/01/10 16:16:50  dennis
+ * Removed empty statement(s).
+ *
  * Revision 1.7  2004/04/19 12:47:53  rmikk
  * Error conditions now report line number where error occurred
  * reading numbers in Exponential notation is improved
@@ -682,7 +685,7 @@ class Nulll{
        
        if( width < 0){
          
-          for( c = fin.read(); (c != -1) && ( c <= 32); c = fin.read()){};
+          for( c = fin.read(); (c != -1) && ( c <= 32); c = fin.read()){}
 
           if( c == -1)
              return new ErrorString( FileIO.NO_MORE_DATA );
@@ -728,7 +731,7 @@ class Nulll{
        }else{
          
           //read past unreadable characters
-          for( c = fin.read(); (c != -1) && ( c < 32); c = fin.read()){};
+          for( c = fin.read(); (c != -1) && ( c < 32); c = fin.read()){}
           if( c < 0)
             return new ErrorString( FileIO.NO_MORE_DATA );
           S +=(char)c;
@@ -909,7 +912,7 @@ class Nulll{
         public Object write( Object O, int line){
            double N =FormatHandler.getDouble( O, line);
            if( FormatHandler.errorS != null)
-              return  FormatHandler.errorS;;
+              return  FormatHandler.errorS;
            return Format.singleExp( N , width);
         }
 
@@ -982,7 +985,7 @@ class Nulll{
          String S ="";
          ReadReturn = false;
          if( width < 0){
-           int c  = fin.read();;
+           int c  = fin.read();
            while( (c <= 32) && (c != -1))
               c =(char)fin.read();
            if( c == -1)

@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2005/01/10 16:16:49  dennis
+ * Removed empty statement(s).
+ *
  * Revision 1.4  2004/03/12 00:48:19  dennis
  * moved to package MathTools.Functions.FunctionTools
  *
@@ -98,13 +101,13 @@ public class C_Input
       else if(c[0]=='.') 
           { if(mode<0)mode=0;
             if(mode>=1)
-              {throw new IOException();};
+              {throw new IOException();}
             mode=1;
           }
       else if((c[0]=='E')||(c[0]=='e'))
           { 
             if((mode>2)||(mode<0))
-              {throw new IOException();};
+              {throw new IOException();}
            mode=3;
           }
       else if((c[0]=='+')||(c[0]=='-'))

@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.8  2005/01/10 16:16:50  dennis
+ * Removed empty statement(s).
+ *
  * Revision 1.7  2004/03/19 17:24:26  dennis
  * Removed unused variables
  *
@@ -574,7 +577,7 @@ private int parseString(int start,DataOutputStream ss) throws IOException
         { i=ProcessNums(s,i,i,ss);
 
           if(i<0)
-              return seterr( i, "Illegal character");;        
+              return seterr( i, "Illegal character");     
         }
       else if(c=='P')
         {if(i>s.length()-2)

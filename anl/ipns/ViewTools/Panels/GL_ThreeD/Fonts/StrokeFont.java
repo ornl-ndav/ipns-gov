@@ -30,6 +30,9 @@
  * Modified: 
  *
  * $Log$
+ * Revision 1.4  2005/01/10 16:16:50  dennis
+ * Removed empty statement(s).
+ *
  * Revision 1.3  2004/07/28 19:59:38  dennis
  * Fixed javadoc error.
  *
@@ -213,7 +216,7 @@ abstract public class StrokeFont
          cur_pt = cur_pt + 1;
          if ( x != 0 )
            gl.glVertex2f( x, y );
-      };
+      }
       gl.glEnd();
   } while ( !( (x==0) && (y==2) ) );
     

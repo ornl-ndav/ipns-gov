@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/01/10 16:16:50  dennis
+ *  Removed empty statement(s).
+ *
  *  Revision 1.7  2004/09/15 21:55:45  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -439,6 +442,5 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
   */
   public void setAllValues( float value )
   {
-    ;
   }
 }

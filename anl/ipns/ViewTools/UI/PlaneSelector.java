@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2005/01/10 16:16:52  dennis
+ * Removed empty statement(s).
+ *
  * Revision 1.3  2004/03/12 00:23:57  serumb
  * Changed Package.
  *
@@ -85,7 +88,7 @@ public class PlaneSelector extends JButton  implements ActionListener{
        points = null;
        addActionListener( this);
        Layer = null;
-       Arrays.fill(cardType_to_pos, -1);;
+       Arrays.fill(cardType_to_pos, -1);
       
       }
 

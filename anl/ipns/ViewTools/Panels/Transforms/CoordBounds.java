@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2005/01/10 16:16:51  dennis
+ * Removed empty statement(s).
+ *
  * Revision 1.13  2004/03/15 23:53:56  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -71,7 +74,7 @@ public class CoordBounds implements Serializable
   public CoordBounds()
   {
     setBounds( 0, 0, 1, 1 );
-  };
+  }
 
   /**
    *  Construct bounds initialized to the rectangle, [x1,y1] x [x2,y2].
@@ -85,7 +88,7 @@ public class CoordBounds implements Serializable
                       float x2, float y2 )
   {
     setBounds( x1, y1, x2, y2 );
-  }; 
+  }
 
   /**
    *  Set the current bounds to the rectangle, [x1,y1] x [x2,y2].
@@ -102,7 +105,7 @@ public class CoordBounds implements Serializable
     this.y1 = y1;
     this.x2 = x2;
     this.y2 = y2;
-  };
+  }
 
   /**
    *  Check whether or not the current bounds object has exactly the same
