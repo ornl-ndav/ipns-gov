@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/06/19 22:22:16  dennis
+ *  Added methods that evaluate the derivative with respect to
+ *  one parameter at a list of x values.
+ *
  *  Revision 1.3  2002/11/27 23:14:24  pfpeterson
  *  standardized header
  *
@@ -66,9 +70,12 @@ public interface IOneVarParameterizedFunction extends IOneVarFunction
   public double[] getParameters();
   public void     setParameters( double parameters[] );
 
-  public float    get_dFdai( float  x, int i );
-  public double   get_dFdai( double x, int i );
+  public float    get_dFdai( float  x, int i );  // derivative with respect to
+  public double   get_dFdai( double x, int i );  // ith parameter at one x
 
-  public float[]  get_dFda( float  x );
-  public double[] get_dFda( double x );
+  public float[]  get_dFdai( float  x[], int i );// derivatives with respect to
+  public double[] get_dFdai( double x[], int i );// ith parameter at list of x 
+
+  public float[]  get_dFda( float  x );          // derivatives with respect to
+  public double[] get_dFda( double x );          // all parameters at one x
 }
