@@ -34,6 +34,20 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/07/06 07:17:02  millermi
+ *  - Improved convertToTableRegions() so that selection order is now
+ *    maintained.
+ *  - Now implements IPreserveState, including static variables to save
+ *    various state information.
+ *  - Improved main() test program.
+ *  - setPointedAtCell() now moves the Viewport to the selected cell.
+ *  - All Points now use convention (x=column,y=row) to maintain
+ *    consistency with the TableRegion, which was maintaining consistency
+ *    with all other Regions.
+ *  - Added method getSelectedCells() that is an alternative to
+ *    getSelectedRegions(), only the "shape" of selections is not
+ *    maintained.
+ *
  *  Revision 1.2  2004/05/22 20:29:52  millermi
  *  - Added ExcelAdapter to allow copy and paste capabilities.
  *  - Added method convertToTableRegion() to convert any Region
@@ -77,11 +91,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseMotionAdapter;
 
 import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.IVirtualArrayList1D;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
+import gov.anl.ipns.ViewTools.Components.Region.PointRegion;
 import gov.anl.ipns.ViewTools.Components.Region.TableRegion;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
@@ -93,7 +110,7 @@ import gov.anl.ipns.Util.Sys.WindowShower;
  * of a typical spreadsheet program. This class does not extend JTable, thus
  * none of the JTable methods apply.
  */
-public class TableJPanel extends ActiveJPanel
+public class TableJPanel extends ActiveJPanel implements IPreserveState
 {
  /**
   * "Selected Changed" - This messaging String is sent out whenever the
@@ -106,6 +123,42 @@ public class TableJPanel extends ActiveJPanel
   * pointed at cell is changed.
   */
   public static final String POINTED_AT_CHANGED = "Pointed At Changed";
+ 
+ // The following variables are String keys used to preserve state information. 
+ /**
+  * "Label Background" - This String key is used to preserve state information
+  * of the background color used for the label display. The value this key
+  * references is of type Color.
+  */
+  public static final String LABEL_BACKGROUND = "Label Background";
+ 
+ /**
+  * "Show Row Labels" - This String key is used to preserve state information
+  * which determines whether or not the row labels are displayed on the table.
+  * The value this key references is of type Boolean.
+  */
+  public static final String SHOW_ROW_LABELS = "Show Row Labels";
+ 
+ /**
+  * "Show Column Labels" - This String key is used to preserve state information
+  * which determines whether or not the column labels are displayed on the
+  * table. The value this key references is of type Boolean.
+  */
+  public static final String SHOW_COLUMN_LABELS = "Show Column Labels";
+   
+ /**
+  * "Pointed At Cell" - This String key is used to preserve state information
+  * identifying the last pointed-at cell. The value this key references is
+  * a Point with (x=column,y=row).
+  */ 
+  public static final String POINTED_AT_CELL = "Pointed At Cell";
+   
+ /**
+  * "Table Selections" - This String key is used to preserve state information
+  * identifying selections made on this table. The value this key references is
+  * an array of TableRegions.
+  */ 
+  public static final String TABLE_SELECTIONS = "Table Selections";
   
   private final float SHIFT_DIVISOR = 4f; // 1/SHIFT_DIVISOR controls when
                                           // the table is shifted to the next
@@ -129,6 +182,8 @@ public class TableJPanel extends ActiveJPanel
   private boolean ignore_notify; // This variable is used to limit the
                                      // number of selected_changed messages
 				     // if setSelectedRegions() is called.
+  private boolean do_clear;  // This will prevent a region from being added
+                             // when the clearAll() method is called.
   
  /**
   * Default Constructor
@@ -180,6 +235,7 @@ public class TableJPanel extends ActiveJPanel
     label_color = Color.lightGray;
     selections = new Vector();
     ignore_notify = false;
+    do_clear = false;
     // Add copy and paste ability.
     new ExcelAdapter( table );
     
@@ -206,6 +262,78 @@ public class TableJPanel extends ActiveJPanel
     add( column_label_container, BorderLayout.NORTH );
     
     addComponentListener( new ResizedListener() );
+  }
+
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    boolean redraw = false;  // if any values are changed, repaint table.
+    Object temp = new_state.get(POINTED_AT_CELL);
+    if( temp != null )
+    {
+      setPointedAtCell( ((Point)temp).y, ((Point)temp).x );
+      redraw = true;  
+    }
+    
+    temp = new_state.get(LABEL_BACKGROUND);
+    if( temp != null )
+    {
+      setLabelBackground( (Color)temp );
+      redraw = true;  
+    }
+    
+    temp = new_state.get(SHOW_ROW_LABELS);
+    if( temp != null )
+    {
+      displayRowLabels( ((Boolean)temp).booleanValue() );
+      redraw = true;  
+    }
+    
+    temp = new_state.get(SHOW_COLUMN_LABELS);
+    if( temp != null )
+    {
+      displayColumnLabels( ((Boolean)temp).booleanValue() );
+      redraw = true;  
+    }
+    
+    temp = new_state.get(TABLE_SELECTIONS);
+    if( temp != null )
+    {
+      setSelectedRegions((TableRegion[])temp);
+      redraw = true;  
+    }
+  }
+  
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  is_default True if default state, use static variable.
+  *  @return if true, the selective default state, else the state for with
+  *          all possible saved values.
+  */ 
+  public ObjectState getObjectState( boolean is_default )
+  {
+    ObjectState state = new ObjectState();
+    state.insert( SHOW_ROW_LABELS,
+                  new Boolean(row_label_container.isVisible()) );
+    state.insert( SHOW_COLUMN_LABELS,
+                  new Boolean(column_label_container.isVisible()) );
+    state.insert( LABEL_BACKGROUND, label_color );
+    
+    // Only do the following if this is a project save, not a setting save.
+    if( !is_default )
+    {
+      state.insert( POINTED_AT_CELL, getPointedAtCell() );
+      state.insert( TABLE_SELECTIONS, getSelectedRegions() );
+    }
+    
+    return state;
   }
   
  /**
@@ -237,45 +365,45 @@ public class TableJPanel extends ActiveJPanel
       // If CTRL was used to add/remove a region of cells
       if( ctrl_anchor != null )
       {
-        Point row_col_ctrl_anchor = convertPixelToRowColumn(ctrl_anchor);
-        act_row_min = row_col_ctrl_anchor.x;
-	act_col_min = row_col_ctrl_anchor.y;
+        Point row_col_ctrl_anchor = convertPixelToColumnRow(ctrl_anchor);
+        act_col_min = row_col_ctrl_anchor.x;
+	act_row_min = row_col_ctrl_anchor.y;
 	// If active selection encompasses more than one cell.
         if( ctrl_extend != null )
 	{
-	  Point row_col_ctrl_extend = convertPixelToRowColumn(ctrl_extend);
-	  act_row_max = row_col_ctrl_extend.x;
-	  act_col_max = row_col_ctrl_extend.y;
+	  Point row_col_ctrl_extend = convertPixelToColumnRow(ctrl_extend);
+	  act_col_max = row_col_ctrl_extend.x;
+	  act_row_max = row_col_ctrl_extend.y;
 	}
 	// If active selection is only one cell.
 	else
 	{
-          act_row_max = row_col_ctrl_anchor.x;
-	  act_col_max = row_col_ctrl_anchor.y;
+          act_col_max = row_col_ctrl_anchor.x;
+	  act_row_max = row_col_ctrl_anchor.y;
 	}
-	is_selected = selected[row_col_ctrl_anchor.x][row_col_ctrl_anchor.y];
+	is_selected = selected[row_col_ctrl_anchor.y][row_col_ctrl_anchor.x];
       }
       // Region is being drawn using the mouse to drag and select a single
       // region of cells.
       else
       {
-        Point row_col_anchor = convertPixelToRowColumn(anchor);
-        act_row_min = row_col_anchor.x;
-	act_col_min = row_col_anchor.y;
+        Point row_col_anchor = convertPixelToColumnRow(anchor);
+        act_col_min = row_col_anchor.x;
+	act_row_min = row_col_anchor.y;
 	// If active selection encompasses more than one cell.
         if( extend != null )
 	{
-	  Point row_col_extend = convertPixelToRowColumn(extend);
-	  act_row_max = row_col_extend.x;
-	  act_col_max = row_col_extend.y;
+	  Point row_col_extend = convertPixelToColumnRow(extend);
+	  act_col_max = row_col_extend.x;
+	  act_row_max = row_col_extend.y;
 	}
 	// If active selection is only one cell.
 	else
 	{
-          act_row_max = row_col_anchor.x;
-	  act_col_max = row_col_anchor.y;
+          act_col_max = row_col_anchor.x;
+	  act_row_max = row_col_anchor.y;
 	}
-	is_selected = selected[row_col_anchor.x][row_col_anchor.y];
+	is_selected = selected[row_col_anchor.y][row_col_anchor.x];
       }
       // Make sure row and column values are ordered correctly.
       if( act_row_min > act_row_max )
@@ -359,17 +487,24 @@ public class TableJPanel extends ActiveJPanel
     int pixel_x = cell.width/2 + cell.width*column;
     int pixel_y = cell.height/2 + cell.height*row;
     focus = new Point(pixel_x,pixel_y);
+    
+    // Place the selected cell in the upper-lefthand corner of the Viewport,
+    // when possible.
+    Rectangle viewport = scroll.getViewport().getViewRect();
+    int x_pos = cell.width * column;
+    int y_pos = cell.height * row;
+    scroll.getViewport().setViewPosition( new Point(x_pos,y_pos) );
     send_message( POINTED_AT_CHANGED );
   }
   
  /**
-  * Get the cell which has the PointedAt border around it.
+  * Get the (x=column, y=row) cell which has the PointedAt border around it.
   *
-  *  @return A Point containing the row and column of the cell.
+  *  @return A Point containing the column and row of the cell.
   */ 
   public Point getPointedAtCell()
   {
-    return convertPixelToRowColumn(focus);
+    return convertPixelToColumnRow(focus);
   }
   
  /**
@@ -395,12 +530,12 @@ public class TableJPanel extends ActiveJPanel
   *  @param  pixel_pt The pixel point to be converted.
   *  @return A Point with cell row stored in x and cell column stored in y.
   */ 
-  public Point convertPixelToRowColumn( Point pixel_pt )
+  public Point convertPixelToColumnRow( Point pixel_pt )
   {
     if( pixel_pt == null )
       return null;
-    return new Point( table.rowAtPoint(pixel_pt),
-                      table.columnAtPoint(pixel_pt) );
+    return new Point( table.columnAtPoint(pixel_pt),
+		      table.rowAtPoint(pixel_pt) );
   }
   
  /**
@@ -438,13 +573,48 @@ public class TableJPanel extends ActiveJPanel
     if( selections.size() == 0 )
       ignore_notify = true;
     selections.clear();
+    do_clear = true;
     setSelectedCells( 0, table.getModel().getRowCount()-1,
 	              0, table.getModel().getColumnCount()-1, false);
+    do_clear = false;
     ignore_notify = false;
   }
   
  /**
-  * Get the selected cells in the form of a set of TableRegions.
+  * Use this method to get all the selected cells without preserving the
+  * "shape" of selections. The list of (column,row) points is wrapped in
+  * a single PointRegion instance.
+  *
+  *  @return A single PointRegion containing a list of selected cells.
+  */
+  public PointRegion getSelectedCells()
+  {
+    // Make a dynamic list of all the cells.
+    Vector selected_cells = new Vector();
+    for( int row = 0; row < selected.length; row++ )
+    {
+      for( int col = 0; col < selected[0].length; col++ )
+      {
+        // If selected, add it to the list of selected cells.
+        if( selected[row][col] )
+	{
+	  selected_cells.add( new floatPoint2D(col,row) );
+	}
+      }
+    }
+    
+    // Convert the dynamic array of cells to a static array of floatPoint2D
+    // to be passed into a single PointRegion.
+    floatPoint2D[] pts = new floatPoint2D[selected_cells.size()];
+    for( int cell = 0; cell < pts.length; cell++ )
+      pts[cell] = new floatPoint2D( 
+                          ((floatPoint2D)selected_cells.elementAt(cell)) );
+    return new PointRegion( pts );
+  }
+  
+ /**
+  * Get the selected cells in the form of a set of TableRegions. Use this
+  * method to preserve the "shape" of how cells were selected.
   *
   *  @return The set of TableRegions that defines the selected cells.
   */
@@ -461,7 +631,8 @@ public class TableJPanel extends ActiveJPanel
  /**
   * Set the selected cells in the form of a set of TableRegions. This call
   * can be used to set a complicated pattern of selected cells. Calling
-  * this method will clear all previously selected cells.
+  * this method will clear all previously selected cells. Passing in null will
+  * clear all selections.
   *
   *  @param  regions The regions, each of which defines a rectangular region
   *                  of cells that are either all selected or all unselected.
@@ -475,6 +646,9 @@ public class TableJPanel extends ActiveJPanel
     // If this method is called, clear all previous selections.
     // Note that the (x,y) point is actually stored as (column,row).
     clearAll();
+    // If regions is null, clear all selections and that is it.
+    if( regions == null )
+      return;
     // Use this to have other methods not send out messages since this
     // method already does. Have to reset to true since clearAll() sets it
     // to false.
@@ -515,7 +689,8 @@ public class TableJPanel extends ActiveJPanel
   
  /**
   * This method will take a list of any type of region and convert it
-  * to a list of TableRegions.
+  * to a list of TableRegions. Order is preserved, so selected and deselected
+  * TableRegions can be included in the list of Regions.
   *
   *  @param  any_region the list of Regions to be converted to TableRegions.
   *  @return A list of TableRegions that make up the same region as the
@@ -538,191 +713,221 @@ public class TableJPanel extends ActiveJPanel
       // If already a TableRegion, put it directly into the TableRegion list.
       if( any_region[i] instanceof TableRegion )
         table_regions.add(any_region[i]);
+      // If not a TableRegion, group all non-TableRegions together until
+      // you run into another TableRegion. Form that group into TableRegions
+      // and and those regions to the table_regions vector.
       else
       {
-        region_bounds = any_region[i].getRegionBounds();
-	// Find absolute min and max row and column of all the regions to
-	// reduce the size of the table rows and columns that are looked at.
-	if( row_min > region_bounds.getY1() )
-	  row_min = (int)region_bounds.getY1();
-	if( row_max < region_bounds.getY2() )
-	  row_max = (int)region_bounds.getY2();
-	if( col_min > region_bounds.getX1() )
-	  col_min = (int)region_bounds.getX1();
-	if( col_max < region_bounds.getX2() )
-	  col_max = (int)region_bounds.getX2();
-	// Add the region to the miscellaneous region list for further analysis.
-	other_regions.add(any_region[i]);
-      }
-    }
-    
-    // Convert the vector of misc. regions to an array of regions so the
-    // union of the regions can be calculated.
-    Region[] misc_region = new Region[other_regions.size()];
-    for( int reg_num = 0; reg_num < other_regions.size(); reg_num++ )
-    {
-      misc_region[reg_num] = (Region)other_regions.elementAt(reg_num);
-    }
-    
-    // Get all of the unique points selected by these regions.
-    Point[] misc_point = Region.getRegionUnion(misc_region);
-    
-    // Make grid and mark all of the selected points. Add an extra row that
-    // should be all false, this will cause any remaining bounds in the
-    // bounds_list to be converted to TableRegions.
-    boolean[][] points_grid = new boolean[row_max-row_min+2][col_max-col_min+1];
-    for( int point_index = 0; point_index < misc_point.length; point_index++ )
-      points_grid[misc_point[point_index].y-row_min]
-                 [misc_point[point_index].x-col_min] = true;
-    
-    // Keep a list of CoordBounds that are actively growing. If a bound is
-    // found to have stopped, remove it and convert it to a TableRegion.
-    Vector bounds_list = new Vector();
-    // Analyze the grid row by row.
-    for( int row = 0; row < points_grid.length; row++ )
-    {
-      for( int col = 0; col < points_grid[0].length; col++ )
-      {
-        // First row is special case.
-        if( row == 0 )
+        // Start a new group of non-TableRegions to be converted.
+	other_regions.clear();
+	// Group non-TableRegions together until the next TableRegion.
+	while( i < any_region.length &&
+	       !( any_region[i] instanceof TableRegion ) )
 	{
-	  // Only do something is a cell is selected in the first row.
-	  if( points_grid[row][col] )
-	  {
-	    CoordBounds temp_bound = new CoordBounds( (float)col, (float)row,
-	                                       (float)col+.1f, (float)row+.1f );
-	    col++;
-	    // While col is valid and the next cell is selected, increment col.
-	    while( col < points_grid[0].length && points_grid[row][col] )
-	    {
-	      col++;
-	    }
-	    // col is now one past the last true value, decrement col back to
-	    // the last true value.
-	    col--;
-	    temp_bound.setBounds( temp_bound.getX1(), temp_bound.getY1(),
-	                          (float)col+.1f, temp_bound.getY2() );
-	    bounds_list.add(temp_bound);
-	  }
+          region_bounds = any_region[i].getRegionBounds();
+	  // Find absolute min and max row and column of all the regions to
+	  // reduce the size of the table rows and columns that are looked at.
+	  if( row_min > region_bounds.getY1() )
+	    row_min = (int)region_bounds.getY1();
+	  if( row_max < region_bounds.getY2() )
+	    row_max = (int)region_bounds.getY2();
+	  if( col_min > region_bounds.getX1() )
+	    col_min = (int)region_bounds.getX1();
+	  if( col_max < region_bounds.getX2() )
+	    col_max = (int)region_bounds.getX2();
+	  // Add the region to the miscellaneous region list for further
+	  // analysis.
+	  other_regions.add(any_region[i]);
+	  i++;
 	}
-	// If not the first row, now check for differences between the current
-	// row and the previous row.
-        else if( points_grid[row-1][col] != points_grid[row][col] )
-	{
-	  // Find the index of the bound that has col in its interval.
-	  int bound_index = getBoundIndex( col, bounds_list );
-	  // If bound_index = -1 and the cell at row,col is selected,
-	  // a new bound must be added.
-	  if( bound_index == -1 && points_grid[row][col] )
-	  {
-	    CoordBounds temp_bound = new CoordBounds( (float)col, (float)row,
-	                                       (float)col+.1f, (float)row+.1f );
-	    col++;
-	    // While col is valid, the next cell is selected, and the next cell
-	    // is not part of an existing bound, increment col.
-	    // This will find the extent of the new bound.
-	    while( col < points_grid[0].length && points_grid[row][col] &&
-	           (getBoundIndex(col,bounds_list) == -1) )
-	    {
-	      col++;
-	    }
-	    // col is now one past the last true value, decrement col back to
-	    // the last true value.
-	    col--;
-	    // Set the extent of the column values for this bound.
-	    temp_bound.setBounds( temp_bound.getX1(), temp_bound.getY1(),
-	                          (float)col+.1f, temp_bound.getY2() );
-	    // Add the bound to the actively changing bound.
-	    bounds_list.add(temp_bound);
-	  }
-	  // If valid index, one of the existing bounds has ended.
-	  else if( bound_index != -1 )
-	  {
-	    // End the bound at bound_index
-	    CoordBounds ending =
-	                    (CoordBounds)bounds_list.elementAt(bound_index);
-	    // The initial row/col and ending column have been set, now set
-	    // the ending row to the current row.
-	    ending.setBounds( ending.getX1(), ending.getY1(),
-	                      ending.getX2(), (float)(row-1)+.1f );
-	    // Remove the ending bound since it is no longer actively growing.
-	    bounds_list.removeElementAt(bound_index);
-	    // Convert the ending bound into a TableRegion and add it to the
-	    // table_regions list.
-            floatPoint2D[] def_pts = new floatPoint2D[2];
-            def_pts[0] = new floatPoint2D( ending.getX1()+(float)col_min,
-	                                   ending.getY1()+(float)row_min);
-            def_pts[1] = new floatPoint2D( ending.getX2()+(float)col_min,
-	                                   ending.getY2()+(float)row_min);
-            table_regions.add( new TableRegion( def_pts, true ) );
-	    
-	    // If the difference did not occur at the beginning of the bound,
-	    // col should be the ending of a new bound that started at the same
-	    // column as "ending".
-	    if( Math.round( ending.getX1()) != col )
-	    {
-	      bounds_list.add( new CoordBounds( ending.getX1(), (float)row,
-	                                 (float)(col-1)+.1f, (float)row+.1f ) );
-	    }
-	    // If difference at beginning column, make sure no other bounds
-	    // were created that make up only part of the ending bounds.
-	    else
-	    {
-	      CoordBounds new_bound = new CoordBounds();
-	      boolean making_bound = false;
-	      boolean col_incremented = false;
-	      while( col < points_grid[0].length && 
-	             getBoundIndex(col,bounds_list) == -1 )
-	      {
-	        // If the points_grid is selected, start or grow the bound.
-	        if( points_grid[row][col] )
-		{
-		  // Set the beginning row and column and mark making_bound
-		  // flag to true.
-		  if( !making_bound )
-		  {
-		    new_bound.setBounds( (float)col, (float)row,
-		                         (float)col+.1f, (float)row+.1f );
-		    making_bound = true;
-		  }
-		  // If started, grow the bound's columns.
-		  else
-		  {
-		    new_bound.setBounds( new_bound.getX1(), new_bound.getY1(),
-		                         (float)col+.1f, new_bound.getY2() );
-		  }
-		}
-		else
-		{
-		  // If bound started, add it to the bounds_list.
-		  if( making_bound )
-		  {
-		    bounds_list.add( new_bound );
-		    making_bound = false;
-		  }
-		}
-		col++;
-		col_incremented = true;
-	      }
-	      
-	      // If col was incremented at all, move it back one so the last
-	      // column value is not skipped.
-	      if( col_incremented )
-	      {
-	        col--;
-		col_incremented = false;
-	      }
-	      // If new_bound was never ended, end now and add to bounds_list.
-	      if( making_bound )
-	      {
-	        bounds_list.add( new_bound );
-	        making_bound = false;
-	      }
-	    }
-	  } // end else if()
-	} // end else if()
-      } // end for( col )
-    } // end for( row )
+	// Must reset i back one since the "while" loop incremented i one
+	// past the last added region.
+        i--;
+	
+     	// Only do this stuff if regions have been added.
+     	if( other_regions.size() > 0 )
+     	{
+     	  // Convert the vector of misc. regions to an array of regions so the
+     	  // union of the regions can be calculated.
+     	  Region[] misc_region = new Region[other_regions.size()];
+     	  for( int reg_num = 0; reg_num < other_regions.size(); reg_num++ )
+     	  {
+     	    misc_region[reg_num] = (Region)other_regions.elementAt(reg_num);
+     	  }
+     	  
+     	  // Get all of the unique points selected by these regions.
+     	  Point[] misc_point = Region.getRegionUnion(misc_region);
+     	  
+     	  // Make grid and mark all of the selected points. Add an extra row
+     	  // that should be all false, this will cause any remaining bounds in
+     	  // the bounds_list to be converted to TableRegions.
+     	  boolean[][] points_grid = 
+	                  new boolean[row_max-row_min+2][col_max-col_min+1];
+     	  for(int point_index = 0; point_index<misc_point.length; point_index++)
+     	    points_grid[misc_point[point_index].y-row_min]
+     		       [misc_point[point_index].x-col_min] = true;
+     	  
+     	  // Keep a list of CoordBounds that are actively growing. If a bound
+     	  // is found to have stopped, remove it and convert it to a\
+	  // TableRegion.
+     	  Vector bounds_list = new Vector();
+     	  // Analyze the grid row by row.
+     	  for( int row = 0; row < points_grid.length; row++ )
+     	  {
+     	    for( int col = 0; col < points_grid[0].length; col++ )
+     	    {
+     	      // First row is special case.
+     	      if( row == 0 )
+     	      {
+     		// Only do something is a cell is selected in the first row.
+     		if( points_grid[row][col] )
+     		{
+     		  CoordBounds temp_bound = new CoordBounds( (float)col,
+		                                            (float)row,
+     						            (float)col+.1f,
+							    (float)row+.1f );
+     		  col++;
+     		  // While col is valid and the next cell is selected,
+		  // increment col.
+     		  while( col < points_grid[0].length && points_grid[row][col] )
+     		  {
+     		    col++;
+     		  }
+     		  // col is now one past the last true value, decrement col
+     		  // back to the last true value.
+     		  col--;
+     		  temp_bound.setBounds( temp_bound.getX1(), temp_bound.getY1(),
+     					(float)col+.1f, temp_bound.getY2() );
+     		  bounds_list.add(temp_bound);
+     		}
+     	      }
+     	      // If not the first row, now check for differences between the
+     	      // current row and the previous row.
+     	      else if( points_grid[row-1][col] != points_grid[row][col] )
+     	      {
+     		// Find the index of the bound that has col in its interval.
+     		int bound_index = getBoundIndex( col, bounds_list );
+     		// If bound_index = -1 and the cell at row,col is selected,
+     		// a new bound must be added.
+     		if( bound_index == -1 && points_grid[row][col] )
+     		{
+     		  CoordBounds temp_bound = new CoordBounds( (float)col,
+		                                            (float)row,
+     						            (float)col+.1f,
+							    (float)row+.1f );
+     		  col++;
+     		  // While col is valid, the next cell is selected, and the next
+     		  // cell is not part of an existing bound, increment col.
+     		  // This will find the extent of the new bound.
+     		  while( col < points_grid[0].length && points_grid[row][col] &&
+     			 (getBoundIndex(col,bounds_list) == -1) )
+     		  {
+     		    col++;
+     		  }
+     		  // col is now one past the last true value, decrement col back
+     		  // to the last true value.
+     		  col--;
+     		  // Set the extent of the column values for this bound.
+     		  temp_bound.setBounds( temp_bound.getX1(), temp_bound.getY1(),
+     					(float)col+.1f, temp_bound.getY2() );
+     		  // Add the bound to the actively changing bound.
+     		  bounds_list.add(temp_bound);
+     		}
+     		// If valid index, one of the existing bounds has ended.
+     		else if( bound_index != -1 )
+     		{
+     		  // End the bound at bound_index
+     		  CoordBounds ending =
+     				  (CoordBounds)bounds_list.elementAt(bound_index);
+     		  // The initial row/col and ending column have been set, now set
+     		  // the ending row to the current row.
+     		  ending.setBounds( ending.getX1(), ending.getY1(),
+     				    ending.getX2(), (float)(row-1)+.1f );
+     		  // Remove the ending bound since it is no longer actively
+		  // growing.
+     		  bounds_list.removeElementAt(bound_index);
+     		  // Convert the ending bound into a TableRegion and add it to the
+     		  // table_regions list.
+     		  floatPoint2D[] def_pts = new floatPoint2D[2];
+     		  def_pts[0] = new floatPoint2D( ending.getX1()+(float)col_min,
+     						 ending.getY1()+(float)row_min);
+     		  def_pts[1] = new floatPoint2D( ending.getX2()+(float)col_min,
+     						 ending.getY2()+(float)row_min);
+     		  table_regions.add( new TableRegion( def_pts, true ) );
+     		  
+     		  // If the difference did not occur at the beginning of the
+     		  // bound, col should be the ending of a new bound that started
+     		  // at the same column as "ending".
+     		  if( Math.round( ending.getX1()) != col )
+     		  {
+     		    bounds_list.add( new CoordBounds( ending.getX1(), (float)row,
+     					   (float)(col-1)+.1f, (float)row+.1f ) );
+     		  }
+     		  // If difference at beginning column, make sure no other bounds
+     		  // were created that make up only part of the ending bounds.
+     		  else
+     		  {
+     		    CoordBounds new_bound = new CoordBounds();
+     		    boolean making_bound = false;
+     		    boolean col_incremented = false;
+     		    while( col < points_grid[0].length && 
+     			   getBoundIndex(col,bounds_list) == -1 )
+     		    {
+     		      // If the points_grid is selected, start or grow the bound.
+     		      if( points_grid[row][col] )
+     		      {
+     			// Set the beginning row and column and mark
+     			// making_bound flag to true.
+     			if( !making_bound )
+     			{
+     			  new_bound.setBounds( (float)col, (float)row,
+     					       (float)col+.1f, (float)row+.1f );
+     			  making_bound = true;
+     			}
+     			// If started, grow the bound's columns.
+     			else
+     			{
+     			  new_bound.setBounds( new_bound.getX1(),
+			                       new_bound.getY1(),
+     					       (float)col+.1f,
+					       new_bound.getY2() );
+     			}
+     		      }
+     		      else
+     		      {
+     			// If bound started, add it to the bounds_list.
+     			if( making_bound )
+     			{
+     			  bounds_list.add( new_bound );
+     			  making_bound = false;
+     			}
+     		      }
+     		      col++;
+     		      col_incremented = true;
+     		    }
+     		    
+     		    // If col was incremented at all, move it back one so the
+		    // last column value is not skipped.
+     		    if( col_incremented )
+     		    {
+     		      col--;
+     		      col_incremented = false;
+     		    }
+     		    // If new_bound was never ended, end now and add to
+		    // bounds_list.
+     		    if( making_bound )
+     		    {
+     		      bounds_list.add( new_bound );
+     		      making_bound = false;
+     		    }
+     		  }
+     		} // end else if()
+     	      } // end else if()
+     	    } // end for( col )
+     	  } // end for( row )
+     	}
+      } // end else (not a TableRegion)
+    }
     
     // Convert table_regions vector into a list of TableRegions.
     TableRegion[] table_region_array = new TableRegion[table_regions.size()];
@@ -792,14 +997,18 @@ public class TableJPanel extends ActiveJPanel
       col_min = col_max;
       col_max = temp;
     }
-    
-    // Create a table region and add it to the list of selected rectangles.
-    // Note that the (x,y) point is actually stored as (column,row).
-    floatPoint2D[] def_pts = new floatPoint2D[2];
-    def_pts[0] = new floatPoint2D((float)col_min, (float)row_min);
-    def_pts[1] = new floatPoint2D((float)col_max, (float)row_max);
-    TableRegion tr = new TableRegion(def_pts,isSelected);
-    selections.add( tr );
+    // If clearAll() method is called, do not add an unselected region spanning
+    // the entire table.
+    if( !do_clear )
+    {
+      // Create a table region and add it to the list of selected rectangles.
+      // Note that the (x,y) point is actually stored as (column,row).
+      floatPoint2D[] def_pts = new floatPoint2D[2];
+      def_pts[0] = new floatPoint2D((float)col_min, (float)row_min);
+      def_pts[1] = new floatPoint2D((float)col_max, (float)row_max);
+      TableRegion tr = new TableRegion(def_pts,isSelected);
+      selections.add( tr );
+    }
     
     //System.out.println("Row Min/Max: "+row_min+"/"+row_max);
     //System.out.println("Column Min/Max: "+col_min+"/"+col_max);
@@ -823,11 +1032,11 @@ public class TableJPanel extends ActiveJPanel
   */ 
   private void setSelectedCells( Point pt1, Point pt2, boolean isSelected )
   {
-    Point temp_pt1 = convertPixelToRowColumn(pt1);
-    Point temp_pt2 = convertPixelToRowColumn(pt2);
+    Point temp_pt1 = convertPixelToColumnRow(pt1);
+    Point temp_pt2 = convertPixelToColumnRow(pt2);
     
-    setSelectedCells( temp_pt1.x, temp_pt2.x, 
-                      temp_pt1.y, temp_pt2.y, isSelected );
+    setSelectedCells( temp_pt1.y, temp_pt2.y, 
+                      temp_pt1.x, temp_pt2.x, isSelected );
   }
  
  /*
@@ -898,10 +1107,10 @@ public class TableJPanel extends ActiveJPanel
   {
     Point location = scroll.getViewport().getViewRect().getLocation();
     // Convert from pixel to row/column.
-    Point cell_row_col = convertPixelToRowColumn(location);
+    Point cell_row_col = convertPixelToColumnRow(location);
     
     // If less than half of the cell is showing, use labels for next cell.
-    Rectangle cell_size = table.getCellRect(cell_row_col.x,cell_row_col.y,true);
+    Rectangle cell_size = table.getCellRect(cell_row_col.y,cell_row_col.x,true);
     // Look half a cell down, if its a different cell, increment the row labels.
     Point row_variant = new Point(location);
     row_variant.y += (SHIFT_DIVISOR-1)*cell_size.height/SHIFT_DIVISOR;
@@ -912,25 +1121,25 @@ public class TableJPanel extends ActiveJPanel
     // Increment row if over half way scrolled down on next cell.
     if( !sameCell(row_variant,location) )
     {
-      cell_row_col.x++;
+      cell_row_col.y++;
     }
     // Increment column if over half way scrolled to the right on next cell.
     if( !sameCell(col_variant,location) )
     {
-      cell_row_col.y++;
+      cell_row_col.x++;
     }
     
     // Set the labels for the columns and rows.
     String label = "";
     for( int row = 0; row < row_labels.getRowCount(); row++ )
     {
-      label = "Row " + (row + cell_row_col.x);
+      label = "Row " + (row + cell_row_col.y);
       row_labels.setValueAt(label,row,0);
     }
     
     for( int col = 0; col < column_labels.getColumnCount(); col++ )
     {
-      label = "Column " + (col + cell_row_col.y);
+      label = "Column " + (col + cell_row_col.x);
       column_labels.setValueAt(label,0,col);
     }
   }
@@ -1076,17 +1285,17 @@ public class TableJPanel extends ActiveJPanel
       // opposite selected value of the ctrl_anchor.
       if( ctrl_anchor != null )
       {
-	Point rc_ctrl_anchor = convertPixelToRowColumn(ctrl_anchor);
+	Point rc_ctrl_anchor = convertPixelToColumnRow(ctrl_anchor);
         // If more than once cell, toggle all cells in additional region.
 	if( ctrl_extend != null )
 	{
 	  setSelectedCells( ctrl_anchor, ctrl_extend,
-	                    !selected[rc_ctrl_anchor.x][rc_ctrl_anchor.y] );
+	                    !selected[rc_ctrl_anchor.y][rc_ctrl_anchor.x] );
 	}
 	// Else, selection is only one cell. Toggle that cell.
 	else
 	  setSelectedCells( ctrl_anchor, ctrl_anchor,
-	                    !selected[rc_ctrl_anchor.x][rc_ctrl_anchor.y] );
+	                    !selected[rc_ctrl_anchor.y][rc_ctrl_anchor.x] );
       }
       // If an initial selection was made, select the cells in the new region.
       else if( anchor != null )
@@ -1329,10 +1538,10 @@ public class TableJPanel extends ActiveJPanel
 				   int row, int column )
     {
       // Get the cell in focus and convert to row/column coordinates.
-      Point row_col_focus = convertPixelToRowColumn(focus);
+      Point row_col_focus = convertPixelToColumnRow(focus);
       // If the current cell is in focus, pass in true for hasFocus.
-      if( row_col_focus != null && row_col_focus.x == row &&
-          row_col_focus.y == column )
+      if( row_col_focus != null && row_col_focus.y == row &&
+          row_col_focus.x == column )
       {
         // If selected, return the selected model with focus.
         if( isSelected(row,column) )
@@ -1417,9 +1626,6 @@ public class TableJPanel extends ActiveJPanel
     {
       if( iva instanceof IVirtualArray2D )
         return ((IVirtualArray2D)iva).getNumColumns();
-      // ##########this may need to be changed############
-      if( iva instanceof IVirtualArrayList1D )
-        return ((IVirtualArrayList1D)iva).getNumGraphs();
       return 0;
     }
     
@@ -1432,15 +1638,6 @@ public class TableJPanel extends ActiveJPanel
     {
       if( iva instanceof IVirtualArray2D )
         return ((IVirtualArray2D)iva).getNumRows();
-      // ##########this may need to be changed############
-      if( iva instanceof IVirtualArrayList1D )
-      {
-        if( ((IVirtualArrayList1D)iva).getNumGraphs() > 0 )
-	{
-	  float[] vals = ((IVirtualArrayList1D)iva).getYValues(0);
-          return vals.length;
-        }
-      }
       return 0;
     }
     
@@ -1448,15 +1645,6 @@ public class TableJPanel extends ActiveJPanel
     {
       if( iva instanceof IVirtualArray2D )
         return new Float( ((IVirtualArray2D)iva).getDataValue(row,column) );
-      // ##########this may need to be changed############
-      if( iva instanceof IVirtualArrayList1D )
-      {
-        if( ((IVirtualArrayList1D)iva).getNumGraphs() > 0 )
-	{
-	  float[] vals = ((IVirtualArrayList1D)iva).getYValues(column);
-          return new Float(vals[row]);
-        }
-      }
       return null;
     }
     
@@ -1475,11 +1663,6 @@ public class TableJPanel extends ActiveJPanel
       float value = ((Float)float_value).floatValue();
       if( iva instanceof IVirtualArray2D )
         ((IVirtualArray2D)iva).setDataValue(row,column,value);
-      // ##########this may need to be changed############
-      if( iva instanceof IVirtualArrayList1D )
-      {
-        ;
-      }
     }
   }
  
@@ -1511,19 +1694,39 @@ public class TableJPanel extends ActiveJPanel
       {
         public void actionPerformed( ActionEvent ae )
 	{
-	  System.out.println( ae.getActionCommand() );
+	  String message = ae.getActionCommand();
+	  System.out.println( message );
+	  // After selection is changed, print to console all of the regions.
+	  if( message.equals( SELECTED_CHANGED ) )
+	  {
+	    TableRegion[] regions = 
+	            ((TableJPanel)ae.getSource()).getSelectedRegions();
+	    
+	    System.out.println("*****Regions*****");
+	    for( int i = 0; i < regions.length; i++ )
+	      System.out.println((i+1)+". "+regions[i]);
+	    System.out.println("*******END*******");
+	  }
+	  // Test the isSelected() method.
+	  else if( message.equals( POINTED_AT_CHANGED ) )
+	  {
+            System.out.println("Is cell (column=1,row=3) selected? " +
+                       ((TableJPanel)ae.getSource()).isSelected(3,1) );
+            System.out.println("Is cell (column=10,row=5) selected? " +
+                       ((TableJPanel)ae.getSource()).isSelected(5,10) );
+	  }
 	}
       });
     // Make TableRegions to select/deselect cells.
     TableRegion[] reg = new TableRegion[3];
     floatPoint2D[] def_pts1 = new floatPoint2D[2];
-    def_pts1[0] = new floatPoint2D(1f,2f);
-    def_pts1[1] = new floatPoint2D(10f,11f);
+    def_pts1[0] = new floatPoint2D(1f,4f);
+    def_pts1[1] = new floatPoint2D(10f,13f);
     reg[0] = new TableRegion( def_pts1, true );
     
     floatPoint2D[] def_pts2 = new floatPoint2D[2];
     def_pts2[0] = new floatPoint2D(1f,2f);
-    def_pts2[1] = new floatPoint2D(5f,5f);
+    def_pts2[1] = new floatPoint2D(5f,6f);
     reg[1] = new TableRegion( def_pts2, false );
     
     floatPoint2D[] def_pts3 = new floatPoint2D[2];
@@ -1540,9 +1743,17 @@ public class TableJPanel extends ActiveJPanel
     // Check to make sure that the regions from the previous method were saved.
     testable.setSelectedRegions( testable.getSelectedRegions() );
     // Set the pointed at cell
-    testable.setPointedAtCell(2,4);
+    testable.setPointedAtCell(14,12);
     //testable.displayColumnLabels(false);
     //testable.displayRowLabels(false);
+    
+    // This is to test the ObjectState.
+    ObjectState state = testable.getObjectState(IPreserveState.PROJECT);
+    testable.clearAll();
+    testable.setLabelBackground(Color.green);
+    testable.setPointedAtCell(0,0);
+    testable.setObjectState(state);
+    
     frame.getContentPane().add(testable);
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
