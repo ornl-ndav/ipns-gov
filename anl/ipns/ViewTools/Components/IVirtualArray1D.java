@@ -125,7 +125,7 @@ public interface IVirtualArray1D
    * Get vertical error values for a line in the graph..
    */
    public float[] getErrorValues( int line_number );
-
+   public float[] getErrorVals_ofIndex( int index );
   /**
    * Get the Group ID number for the line label.
    */
@@ -150,6 +150,14 @@ public interface IVirtualArray1D
    * Returns number of lines in the array.
    */   
    public int getNumlines();
+
+   public int getPointedAtGraph();
+   public int[] getSelectedGraphs();
+   public boolean isSelected(int index);
+   public int getNumGraphs();
+
+   public float[] getXVals_ofIndex(int index);
+   public float[] getYVals_ofIndex(int index);
 
    public JComponent[] getSharedControls();
    public JComponent[] getPrivateControls();
