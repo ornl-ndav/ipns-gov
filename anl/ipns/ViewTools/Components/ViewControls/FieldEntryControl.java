@@ -35,6 +35,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/12/29 00:32:44  millermi
+ *  - Added contructor that takes in an integer to define the size
+ *    of the control.
+ *  - Added method getLabel() to compliment setLabel().
+ *
  *  Revision 1.1  2003/12/24 10:19:29  millermi
  *  - Initial Version - This class contains an array of editable
  *    text fields with a label for each. A special feature is to
@@ -79,6 +84,17 @@ public class FieldEntryControl extends ViewControl
   private ButtonGroup radioChoices = new ButtonGroup();
   private Hashtable radiotable = new Hashtable();
   private boolean radio_added = false;
+
+ /**
+  * This constructor will be used to create a control with labels but no
+  * default values.
+  *
+  *  @param  num_entries Specifies the number of field entries for this control.
+  */
+  public FieldEntryControl( int num_entries )
+  {
+    this( new String[num_entries] );
+  }  
 
  /**
   * This constructor will be used to create a control with labels but no
@@ -304,6 +320,25 @@ public class FieldEntryControl extends ViewControl
         }
       }
     }
+  }
+
+ /**
+  * This function sets the text of the label to be displayed in the text area.
+  *
+  * @param  index The int which represents the text area for the value to
+  *		  be displayed in. Index interval is [0,n-1].
+  * @return String label for textfield at index. Returns null if index is
+  *         invalid or label is null.
+  */
+  public String getLabel( int index )
+  {
+    // make sure index is valid.
+    if( index < text.length && index >= 0 )
+    {
+      // temporary change, on screen
+      return text[index][0].getText();
+    }
+    return null;
   }
 
  /**
@@ -740,8 +775,10 @@ public class FieldEntryControl extends ViewControl
     String[] menu4 = {"Menu5","Menu10","Menu15"};
     //int[] values = {0,2,4,6,8};
     //FieldEntryControl fec = new FieldEntryControl( menu, values );
-    FieldEntryControl fec = new FieldEntryControl( menu );
+    //FieldEntryControl fec = new FieldEntryControl( menu );
+    FieldEntryControl fec = new FieldEntryControl( 5 );
     fec.setTitle("Field Entry");
+    System.out.println("Label of entry 2: " + fec.getLabel(1) );
     fec.addRadioChoice( "Even", menu2 );
     fec.addRadioChoice( "Odd" , menu3 );
     fec.addRadioChoice( "Every Fifth", menu4, 0 );
