@@ -31,6 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2003/10/31 17:55:06  dennis
+ * Added constructor that builds the controls in an existing frame.
+ * Changed the close_frame() and display_controls() methods so that
+ * the current position of the frame is retained when opening and
+ * closing the controls.
+ *
  * Revision 1.12  2003/10/21 20:20:01  serumb
  * Now uses the CursorOutputControl.
  *
@@ -70,10 +76,9 @@
  *
  */
 package DataSetTools.components.View.ViewControls;
-                                                                                                                            
-import DataSetTools.components.ParametersGUI.*;
 
-import DataSetTools.components.ui.*;                                                                                                                                               
+import DataSetTools.components.ParametersGUI.*;
+import DataSetTools.components.ui.*;
 import DataSetTools.components.View.*;  // IVirtualArray1D
 import DataSetTools.components.View.OneD.*;
 import DataSetTools.components.View.Transparency.*;  //Axis Overlays
@@ -84,31 +89,23 @@ import DataSetTools.math.*;
 import DataSetTools.util.*;  //floatPoint2D FloatFilter
                                                                                                                                                
 // component changes
-                                                                                                                                               
 import java.applet.Applet;
-                                                                                                                                               
 import java.awt.*;
 import java.awt.Rectangle;
 import java.awt.color.ColorSpace;
 import java.awt.event.*;
-                                                                                                                                               
+
 // Component location and resizing within the big_picture
 import java.awt.event.ComponentAdapter.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.*;
-                                                                                                                                               
 import java.io.Serializable;
-                                                                                                                                               
 import java.lang.*;
 import java.lang.Object.*;
-                                                                                                                                               
 import java.util.*;
-                                                                                                                                               
 import javax.swing.*;
 import javax.swing.event.*;
-
-import javax.swing.border.*;                                                                                                                                               
-                                                                             
+import javax.swing.border.*;  
 
 /*
  * This class creates the controls and adds them to the control panel.
@@ -202,12 +199,22 @@ import javax.swing.border.*;
   private ControlSlider log_slider;
   private double log_scale = 10;
   private ViewControlsPanel main_panel;
-  private JFrame the_frame = new JFrame( "ISAW Function View Controls" );
+  private JFrame the_frame;
 
- private CursorOutputControl cursor;
+  private CursorOutputControl cursor;
+
+  public static final int FRAME_WIDTH  = 510; 
+  public static final int FRAME_HEIGHT = 380; 
   
-  public FunctionControls(IVirtualArray1D varr, GraphJPanel graph_j_panel,
-                         JPanel display_panel, FunctionViewComponent FVC) {
+  /**
+   *  Constructor that builds the controls in an existing frame.
+   */ 
+  public FunctionControls( IVirtualArray1D varr, 
+                           GraphJPanel graph_j_panel,
+                           JPanel display_panel, 
+                           FunctionViewComponent FVC,
+                           JFrame frame ) {
+    the_frame = frame;
     main_panel = new ViewControlsPanel();
     Varray1D = varr;
     fvc = FVC;
@@ -216,7 +223,22 @@ import javax.swing.border.*;
     buildControls();
 
     main_panel.addViewControl(controlpanel);
+    the_frame.setSize( FRAME_WIDTH, FRAME_HEIGHT );
+    the_frame.getContentPane().removeAll();
+    the_frame.getContentPane().add( (JComponent)main_panel.getPanel() );
   }
+
+  /**
+   *  Constructor that builds the controls in a new frame.
+   */ 
+  public FunctionControls( IVirtualArray1D varr, 
+                           GraphJPanel graph_j_panel,
+                           JPanel display_panel, 
+                           FunctionViewComponent FVC) {
+    this( varr, graph_j_panel, display_panel, FVC, 
+          new JFrame( "ISAW Function View Controls" ) );
+  }
+
 
   public void buildControls() {
     label_panel.setLayout( new FlowLayout( 1 ) );
@@ -406,14 +428,16 @@ import javax.swing.border.*;
   }
 
   public void display_controls() {
-
-    the_frame.setBounds( 600, 0, 510, 380 );
-    the_frame.getContentPane().add( (JComponent)main_panel.getPanel() );
-
     the_frame.setVisible( true  );  //display the frame
   }
+
   public void close_frame() {
+    // get the current location and reset the bounds, so that 
+    // the frame will reappear in the same place.
+
+    Point location =  the_frame.getLocation();
     the_frame.setVisible( false );
+    the_frame.setBounds( location.x, location.y, FRAME_WIDTH, FRAME_HEIGHT );
   }
 
   private class x_rangeListener implements ActionListener {
@@ -775,7 +799,7 @@ import javax.swing.border.*;
           if( LineStyleBox.getSelectedItem(  ).equals( "Transparent" ) ) {
              gjp.setTransparent(true, line_index, true);
              gjp.setStroke( 
-              gjp.strokeType( gjp.TRANSPARENT, line_index ), line_index, true );  
+              gjp.strokeType( gjp.TRANSPARENT, line_index ), line_index, true );
           }
 
         /*
@@ -997,7 +1021,6 @@ import javax.swing.border.*;
   
     AxisInfo2D xaxis = ArrayHandler.getAxisInfo( true );
     AxisInfo2D yaxis = ArrayHandler.getAxisInfo( false );                            
-
     System.out.println(
       "ArrayHandler info" + xaxis.getMax(  ) + "," + xaxis.getMin(  ) + "," +
       yaxis.getMax(  ) + "," + yaxis.getMin(  ));
@@ -1012,19 +1035,12 @@ import javax.swing.border.*;
     IVirtualArray1D Varray1D = fvc.getArray(); 
     GraphJPanel graph_panel = new GraphJPanel();
     JPanel main_panel = new JPanel();
-    JFrame f = new JFrame( "ISAW Function View Controls" );
     
     FunctionControls fcontrols = new FunctionControls(Varray1D, graph_panel,
-                                                      main_panel, fvc);                   
+                                                      main_panel, fvc); 
     fcontrols.display_controls();
-   // f.setBounds( 0, 0, 580, 330 );
-
-   // Container c = f.getContentPane(  );
-
-   // c.add( ((JComponent)fcontrols.get_panel(  ).getPanel()) );
-
-   // f.show(  );  //display the frame
   }  
+
    private void paintComponents( Graphics g ) {
     //big_picture.revalidate();
     for( int i = big_picture.getComponentCount(  ); i > 0; i-- ) {
