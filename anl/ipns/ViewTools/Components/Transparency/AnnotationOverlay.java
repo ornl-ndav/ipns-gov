@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2003/08/07 16:00:05  dennis
+ *  - Made "Default" font selection for allowing user to easily
+ *    return to the original font.
+ *    (Mike Miller)
+ *
  *  Revision 1.9  2003/07/25 14:42:04  dennis
  *  - Constructor now takes component of type IZoomTestAddible instead
  *    of IAxisAddible2D. (Mike Miller)
@@ -152,6 +157,7 @@ public class AnnotationOverlay extends OverlayJPanel
    private boolean editorOpen;
    private AnnotationEditor editor;
    private Font font;
+   private Font default_font;
    private boolean first = true;
    private CoordTransform pixel_local;
    
@@ -175,6 +181,7 @@ public class AnnotationOverlay extends OverlayJPanel
       text_color = Color.black;
       editorOpen = false; 
       font = izta.getFont();
+      default_font = izta.getFont();
       this.add(overlay); 
       overlay.setOpaque(false); 
       overlay.addActionListener( new NoteListener() );  
@@ -1027,11 +1034,15 @@ public class AnnotationOverlay extends OverlayJPanel
 	       {
 	          fontindex++;
 	       }
-	       font = fonts[fontindex];
-	       font = font.deriveFont( Font.PLAIN );
-	       font = font.deriveFont( (float)current_fontsize );
+	       if( message.equals("Default") )
+	         font = default_font;
+	       else
+	       {
+	         font = fonts[fontindex];
+	         font = font.deriveFont( Font.PLAIN );
+	         font = font.deriveFont( (float)current_fontsize );
+	       }
 	       this_panel.repaint();
-	       
 	    }
 	    else
 	    {
