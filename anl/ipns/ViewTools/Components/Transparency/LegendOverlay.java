@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/03/11 19:54:19  serumb
+ *  Added method to get the stroke using an integer key that is passed in as
+ *  a parameter.
+ *
  *  Revision 1.8  2005/01/20 23:05:52  millermi
  *  - Added super.paint(g) to paint method.
  *
@@ -107,7 +111,12 @@ public class LegendOverlay extends OverlayJPanel
   */
   public static final String EDITOR_BOUNDS  = "Editor Bounds";    
 
-  
+  public static final int DOTTED   = 6;
+  public static final int DASHED   = 7;
+  public static final int LINE     = 8;
+  public static final int DASHDOT  = 9;
+  public static final int TRANSPARENT  = 10;
+	    
   private static JFrame helper = null;
   private transient ILegendAddible component;
   private Font f;
@@ -116,13 +125,13 @@ public class LegendOverlay extends OverlayJPanel
   private transient LegendEditor editor;
   private transient Rectangle current_bounds;
   private Rectangle editor_bounds = new Rectangle(0,0,500,180);
-  private String[] graphs;
-  private int[] selectedGraphs;
-  private GraphData[] lineInfo;
-  private int x_offset = 0;
-  private int y_offset = 0;
+  private transient String[] graphs;
+  private transient int[] selectedGraphs;
+  private transient GraphData[] lineInfo;
+  private transient int x_offset = 0;
+  private transient int y_offset = 0;
   private boolean draw_border = true;
-  private String legend_label = "";
+  private transient String legend_label = "";
 
  /**
   * Constructor for initializing a new LegendOverlay
@@ -304,6 +313,65 @@ public class LegendOverlay extends OverlayJPanel
       helper.dispose();
   }
 
+/*------------------------------ StrokeType --------------------------------*/
+/**
+  *  Makes the different stroke types to be returned
+  *
+  *  @param  key         the integer constant for the stroke types.
+  *
+  *  @param  graph_num   the index of the graph.
+  *                      The index must be at least zero and less than the
+  *                      number of graphs currently held in this GraphJPanel.
+  *                      If the graph_num is not valid, this method has no
+  *                      effect and returns false.
+  *
+  *  @return             the stroke type for the particular key.
+  */
+  
+public BasicStroke strokeType(int key, int graph_num)
+{
+  if (graph_num < 0 || graph_num >= graphs.length )    // no such graph
+    return new BasicStroke();
+                                                                                                   
+  if (key == DASHED)
+  {
+    float dash1[] = {10.0f};
+    BasicStroke dashed = new BasicStroke(lineInfo[graph_num].linewidth,
+    BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 10.0f, dash1, 0.0f);
+    return dashed;
+  }
+  else if (key == DOTTED)
+  {
+    float dots1[] = {0,6,0,6};
+    BasicStroke dotted = new BasicStroke(lineInfo[graph_num].linewidth,
+    BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL, 0, dots1, 0);
+    return dotted;
+  }
+  else if (key == LINE)
+  {
+  BasicStroke stroke = new BasicStroke(lineInfo[graph_num].linewidth);
+  return stroke;
+  }
+  else if (key ==DASHDOT)
+  {
+    float[] dash2 = {6.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f};
+    BasicStroke dashdot = new BasicStroke(lineInfo[graph_num].linewidth, 
+    BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 10.0f, dash2, 0.0f);
+    return dashdot;
+  }
+  else if (key == TRANSPARENT)
+  {
+    float clear[] = {0.0f, 1000.0f};
+    BasicStroke transparent = new BasicStroke(0.0f);
+    return transparent;
+  }
+  else
+  {
+    System.out.println("ERROR: no Stroke of this type, default is returned");
+    return new BasicStroke();
+  }
+}
+                                            
  
  /**
   * This method will paint the legend.
@@ -403,7 +471,7 @@ public class LegendOverlay extends OverlayJPanel
     //Draw line
     for (int index = 0; index < graphs.length; index++)
       {
-         g2d.setStroke(lineInfo[index].Stroke);
+         g2d.setStroke(strokeType(lineInfo[index].linetype, index) );
          g2d.setColor(lineInfo[index].color);
          g2d.drawLine((int)current_bounds.getX()+(int)current_bounds
                               .getWidth() - 40 + x_offset,
@@ -416,6 +484,7 @@ public class LegendOverlay extends OverlayJPanel
       int size = 2;
       for (int index = 0; index < graphs.length; index++)
       {
+	 g2d.setStroke(new BasicStroke(1) );
          g2d.setColor(lineInfo[index].markcolor);
          int x_int =(int)current_bounds.getX()+(int)current_bounds
                             .getWidth() - 30 + x_offset;
