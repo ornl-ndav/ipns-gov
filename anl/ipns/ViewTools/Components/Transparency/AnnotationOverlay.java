@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2004/03/12 02:52:11  serumb
+ *  Change package and imports.
+ *
  *  Revision 1.28  2004/03/09 21:06:46  millermi
  *  - Added ToolTips to editors for user assistance.
  *
@@ -179,7 +182,7 @@
  *  annotation editing or annotation deletion. (Mike Miller)
  * 
  */
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import javax.swing.*; 
 import javax.swing.text.html.HTMLEditorKit;
@@ -193,15 +196,15 @@ import javax.swing.text.Keymap;
 import javax.swing.event.*;
 import java.awt.image.IndexColorModel;
 
-import DataSetTools.components.View.ObjectState;
-import DataSetTools.components.View.Cursor.AnnotationJPanel;
-import DataSetTools.components.View.Cursor.LineCursor;
-import DataSetTools.components.View.Cursor.Line;
-import DataSetTools.components.image.IndexColorMaker;
-import DataSetTools.components.ui.ColorScaleImage;
-import DataSetTools.components.image.*;
-import DataSetTools.util.floatPoint2D;
-import DataSetTools.util.WindowShower;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.Cursor.AnnotationJPanel;
+import gov.anl.ipns.ViewTools.Components.Cursor.LineCursor;
+import gov.anl.ipns.ViewTools.Components.Cursor.Line;
+import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
+import gov.anl.ipns.ViewTools.UI.ColorScaleImage;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.WindowShower;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 
 /**
  * This class allows a user to write comments near a region on the 
