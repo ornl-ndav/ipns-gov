@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/08/07 17:55:56  millermi
+ *  - Replaced elipse selection framework with line selection capabilities.
+ *
  *  Revision 1.4  2003/06/06 14:37:38  dennis
  *  Temporarily commented out call to setFocusable() so that
  *  it will compile under jdk 1.3.1.  The call to setFocusable()
@@ -78,20 +81,22 @@ public class SelectionJPanel extends ActiveJPanel
 
    public static final String BOX = "box";
    public static final String CIRCLE = "circle";
-   public static final String ELIPSE = "elipse";
+   public static final String LINE = "line";
    public static final String POINT = "point";
+   
    private BoxCursor box;
    private CircleCursor circle;
    private PointCursor point;
+   private LineCursor line;
    private boolean isAdown;   // true if A is pressed (for RESET_SELECTED)
    private boolean isBdown;   // true if B is pressed (for box selection)
    private boolean isCdown;   // true if C is pressed (for circle selection)
-   private boolean isEdown;   // true if E is pressed (for eliptical selection)
+   private boolean isLdown;   // true if E is pressed (for eliptical selection)
    private boolean isPdown;   // true if P is pressed (for point selection)
    private boolean doing_box;     // true if box selection started
    private boolean doing_circle;  // true if circle selection started
+   private boolean doing_line;    // true if line selection started
    private boolean doing_point;   // true if point selection started
-   private boolean doing_elipse;  // true if elipse selection started
    
   /**
    * Constructor adds listeners to this SelectionJPanel. All boolean values
@@ -103,19 +108,20 @@ public class SelectionJPanel extends ActiveJPanel
       isAdown = false;
       isBdown = false;
       isCdown = false;
-      isEdown = false;
+      isLdown = false;
       isPdown = false;
       
       doing_box = false;
       doing_circle = false;
+      doing_line = false;
       doing_point = false;
-      doing_elipse = false;
    
       box = new BoxCursor(this);
       circle = new CircleCursor(this);
+      line = new LineCursor(this);
       point = new PointCursor(this);
       
-      //setFocusable(true);
+      requestFocus();
       
       addMouseListener( new SelectMouseAdapter() );
       addMouseMotionListener( new SelectMouseMotionAdapter() );
@@ -156,7 +162,18 @@ public class SelectionJPanel extends ActiveJPanel
             cursor.redraw( current );
             doing_circle = true;
          }
-      }      
+      }  
+      else if( cursor instanceof LineCursor )
+      {
+         if ( doing_line )
+            cursor.redraw( current );
+         else
+         {
+            cursor.start( current );
+            cursor.redraw( current );
+            doing_line = true;
+         }
+      }        
       else if( cursor instanceof PointCursor )
       {
          if ( doing_point )
@@ -198,7 +215,16 @@ public class SelectionJPanel extends ActiveJPanel
             cursor.stop( current );
             doing_circle = false;
          }
-      }      
+      }  
+      else if( cursor instanceof LineCursor )
+      {   
+         if ( doing_line )
+         {
+            cursor.redraw( current );
+            cursor.stop( current );
+            doing_line = false;
+         }
+      }        
       else if( cursor instanceof PointCursor )
       {   
          if ( doing_point )
@@ -224,8 +250,8 @@ public class SelectionJPanel extends ActiveJPanel
          return box;
       else if( cursor.equals(CIRCLE) )
          return circle;
-    //else if( cursor.equals(ELIPSE) )          // elipse not implemented
-    //   return elipse; 	 
+      else if( cursor.equals(LINE) )
+         return line; 	 
       else //( cursor.equals(POINT) )
          return point;
    }
@@ -246,8 +272,8 @@ public class SelectionJPanel extends ActiveJPanel
 	    isBdown = true;
 	 if( code == KeyEvent.VK_C )
 	    isCdown = true;
-	 if( code == KeyEvent.VK_E )
-	    isEdown = true;
+	 if( code == KeyEvent.VK_L )
+	    isLdown = true;
 	 if( code == KeyEvent.VK_P )
 	    isPdown = true;		 	 
       }
@@ -264,8 +290,8 @@ public class SelectionJPanel extends ActiveJPanel
 	    isBdown = false;
 	 if( code == KeyEvent.VK_C )
 	    isCdown = false;
-	 if( code == KeyEvent.VK_E )
-	    isEdown = false;
+	 if( code == KeyEvent.VK_L )
+	    isLdown = false;
 	 if( code == KeyEvent.VK_P )
 	    isPdown = false;              
       }
@@ -280,29 +306,21 @@ public class SelectionJPanel extends ActiveJPanel
       public void mouseClicked (MouseEvent e)
       {
          if ( e.getClickCount() == 2 ) 
-	 {
-	    if( isAdown )
-	       send_message(RESET_SELECTED);	
-	    else
-	       send_message(RESET_LAST_SELECTED);
-	 }	        	    
+	    send_message(RESET_LAST_SELECTED);
       }
 
       public void mousePressed (MouseEvent e)
       {
          //System.out.println("here in mousepressed");
-
-         if( isBdown || isCdown || isEdown )
-	 {
-	 // turn off crosshairs in CoordJPanel, 
-	 // then do one of the following	    
-            if( isBdown )
-	       set_cursor( box, e.getPoint() );
-	    if( isCdown )
-	       set_cursor( circle, e.getPoint() );
-            if( isEdown )
-	       System.out.println("Eliptical Selection");	    	    	    
-         }
+	 // if A is pressed, delete all selections.      
+         if( isAdown )
+	    send_message(RESET_SELECTED);
+         if( isBdown )
+	    set_cursor( box, e.getPoint() );
+	 if( isCdown )
+	    set_cursor( circle, e.getPoint() );
+         if( isLdown )
+	    set_cursor( line, e.getPoint() ); 
 	 if( isPdown )
 	    set_cursor( point, e.getPoint() );	       
       }
@@ -321,10 +339,10 @@ public class SelectionJPanel extends ActiveJPanel
 	    stop_cursor( circle, e.getPoint() );
 	    send_message(REGION_SELECTED + ">" + CIRCLE);
          }
-	 if( doing_elipse )
+	 if( doing_line )
 	 {
-	    System.out.println("Eliptical Selection Complete");
-	    send_message(REGION_SELECTED + ">" + ELIPSE);
+	    stop_cursor( line, e.getPoint() );
+	    send_message(REGION_SELECTED + ">" + LINE);
          }
 	 if( doing_point )
 	 {
@@ -348,8 +366,8 @@ public class SelectionJPanel extends ActiveJPanel
             set_cursor( box, e.getPoint() );
          if( doing_circle )
 	    set_cursor( circle, e.getPoint() );
-         if( doing_elipse )
-	    System.out.println("Eliptical Selection");
+         if( doing_line )
+	    set_cursor( line, e.getPoint() );
          if( doing_point )
 	    set_cursor( point, e.getPoint() );
       }
