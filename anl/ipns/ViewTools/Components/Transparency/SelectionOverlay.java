@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2003/11/21 02:59:55  millermi
+ *  - Now saves editor bounds before dispose() is called on
+ *    the editor.
+ *
  *  Revision 1.21  2003/11/18 01:00:17  millermi
  *  - Made non-save dependent private variables transient.
  *
@@ -443,6 +447,7 @@ public class SelectionOverlay extends OverlayJPanel
     }
     else
     {
+      editor_bounds = editor.getBounds();
       editor.dispose();
       editor = new SelectionEditor();
       editor.setVisible(true);
@@ -888,7 +893,8 @@ public class SelectionOverlay extends OverlayJPanel
           this_panel.repaint();
         }
         else if( message.equals("Close") )
-        {   
+        {  
+	  editor_bounds = this_editor.getBounds(); 
           this_editor.dispose();
           this_panel.repaint();
         }

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2003/11/21 02:59:55  millermi
+ *  - Now saves editor bounds before dispose() is called on
+ *    the editor.
+ *
  *  Revision 1.19  2003/11/18 22:32:41  millermi
  *  - Added functionality to allow cursor events to be
  *    traced by the ControlColorScale.
@@ -524,7 +528,8 @@ public class AxisOverlay2D extends OverlayJPanel
       editor.requestFocus();
     }
     else
-    {
+    { 
+      editor_bounds = editor.getBounds(); 
       editor.dispose();
       editor = new AxisEditor();
       editor.setVisible(true);
@@ -1723,7 +1728,8 @@ public class AxisOverlay2D extends OverlayJPanel
             }
           }
           else if( message.equals("Close") )
-          {
+          { 
+	    editor_bounds = this_editor.getBounds(); 
             this_editor.dispose();
             this_panel.repaint();
           }
