@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/08/06 13:55:57  dennis
+ *  - Added Axis Editor to allow for the addition of grid lines.
+ *  - Log calibration display changed. Previously all calibrations
+ *    were shown, now a tick is shown only if it is at least 5 pixels
+ *    from the last calibration drawn.
+ *    (Mike Miller)
+ *
  *  Revision 1.10  2003/07/25 14:42:57  dennis
  *  - Added if statement to ensure component is of type LogAxisAddible2D
  *    in paintLogX() and paintLogY(). (Mike Miller)
@@ -105,7 +112,13 @@ public class AxisOverlay2D extends OverlayJPanel
    private boolean drawXLinear;
    private boolean drawYLinear;
    private boolean isTwoSided = true;
+   private int gridxdisplay = 0;  // 0 = none, 1 = major, 2 = major/minor
+   private int gridydisplay = 0;
+   private AxisOverlay2D this_panel;
    
+  /**
+   * Default constructor
+   */ 
    public AxisOverlay2D()
    {
       super();
@@ -121,8 +134,12 @@ public class AxisOverlay2D extends OverlayJPanel
       axesdrawn = DUAL_AXES;
       drawXLinear = true;
       drawYLinear = true;
+      this_panel = this;
    }
    
+  /**
+   * Constructor
+   */ 
    public AxisOverlay2D(IAxisAddible2D iaa)
    {
       super();
@@ -136,6 +153,7 @@ public class AxisOverlay2D extends OverlayJPanel
       setDisplayAxes( DUAL_AXES );
       setXAxisLinearOrLog( component.getAxisInfo(true).getIsLinear() );
       setYAxisLinearOrLog( component.getAxisInfo(false).getIsLinear() );
+      this_panel = this;
    }
 
   /**
@@ -238,7 +256,7 @@ public class AxisOverlay2D extends OverlayJPanel
       ystart = (int)( component.getRegionInfo().getLocation().getY() );
            
       // System.out.println("X,Y axis = " + xaxis + ", " + yaxis );
-      // System.out.println("X,Y start = " +  xstart + ", " + ystart );  
+      // System.out.println("X,Y start = " +  xstart + ", " + ystart );
       
       // draw title on the overlay if one exists
       if( component.getTitle() != IVirtualArray2D.NO_TITLE )
@@ -261,6 +279,12 @@ public class AxisOverlay2D extends OverlayJPanel
 	    paintLogY( g2d );
       }
    } // end of paint()
+   
+   public void editGridLines()
+   {
+     AxisEditor ae = new AxisEditor();
+     ae.show();
+   }
    
   /* ***********************Private Methods************************** */
    
@@ -329,20 +353,35 @@ public class AxisOverlay2D extends OverlayJPanel
          //System.out.println("Subpixel/XStart " + subpixel + "/" + xstart );
          if( subpixel > xstart && subpixel < (xstart + xaxis) )
          {
-            g2d.drawLine( subpixel, yaxis + ystart, 
-     	     		  subpixel, yaxis + ystart + xtick_length-2 );
+	   if( gridxdisplay == 2 )
+             g2d.drawLine( subpixel, ystart, 
+     	     		   subpixel, yaxis + ystart + xtick_length-2 );
+	   else
+             g2d.drawLine( subpixel, yaxis + ystart, 
+     	     		   subpixel, yaxis + ystart + xtick_length-2 );
          }
-
-         g2d.drawLine( pixel, yaxis + ystart, 
-     	     	       pixel, yaxis + ystart + xtick_length );  
+	 
+	 // to draw grid line for major ticks
+         if( gridxdisplay == 1 || gridxdisplay == 2 )
+	   g2d.drawLine( pixel, ystart, 
+     	     	         pixel, yaxis + ystart + xtick_length );
+         else
+	   g2d.drawLine( pixel, yaxis + ystart, 
+     	     	         pixel, yaxis + ystart + xtick_length );  
          //System.out.println("Y Position: " + (yaxis + ystart + 
          //					xtick_length) );
          if( steps == (numxsteps - 1) && 
              ( xaxis + xstart - pixel) > xaxis/(2*numxsteps) )
          { 
-            g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
-     	     		  pixel + (pixel - subpixel), 
-     	     		  yaxis + ystart + xtick_length-2 );
+	   // draw gridlines for subtick after last major tick
+	   if( gridxdisplay == 2 )
+	     g2d.drawLine( pixel + (pixel - subpixel), ystart, 
+     	     		   pixel + (pixel - subpixel), 
+     	     		   yaxis + ystart + xtick_length-2 );
+           else
+	     g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
+     	     		   pixel + (pixel - subpixel), 
+     	     		   yaxis + ystart + xtick_length-2 );
             steps++;
             A = (float)steps*step + start;	      
             pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart); 
@@ -354,8 +393,13 @@ public class AxisOverlay2D extends OverlayJPanel
                g2d.drawString( num.substring(0,exp_index), pixel - 
 	     	    fontdata.stringWidth(num.substring(0,exp_index))/2, 
         	    yaxis + ystart + xtick_length + fontdata.getHeight() );
-               g2d.drawLine( pixel, yaxis + ystart, 
-     	     	    pixel, yaxis + ystart + xtick_length );
+	       // to draw grid line for major ticks
+               if( gridxdisplay == 1 || gridxdisplay == 2 )
+	         g2d.drawLine( pixel, ystart, 
+     	     	         pixel, yaxis + ystart + xtick_length );
+               else
+	         g2d.drawLine( pixel, yaxis + ystart, 
+     	     	         pixel, yaxis + ystart + xtick_length );
             }
         		 
          }   
@@ -448,15 +492,25 @@ public class AxisOverlay2D extends OverlayJPanel
 	     		 fontdata.stringWidth(num.substring(0,exp_index)),
         		 ypixel + fontdata.getHeight()/4 );
             }		   
-
-            g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-        		  xstart - 1, ypixel - 1 );   
+            
+	    // paint gridlines for major ticks
+            if( gridydisplay == 1 || gridydisplay == 2 )
+	      g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+        		    xstart + xaxis - 1, ypixel - 1 );   
+	    else
+	      g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+        		    xstart - 1, ypixel - 1 );   
          }
          // if subpixel is between top and bottom of imagejpanel, draw it
          if( ysubpixel <= pmin && ysubpixel >= pmax )
          {
-            g2d.drawLine( xstart - (ytick_length - 2), ysubpixel - 1, 
-     	     		  xstart - 1, ysubpixel - 1 );
+	    // paint gridlines for minor ticks
+            if( gridydisplay == 2 )
+              g2d.drawLine( xstart - (ytick_length - 2), ysubpixel - 1, 
+     	     		    xstart + xaxis - 1, ysubpixel - 1 );
+            else
+	      g2d.drawLine( xstart - (ytick_length - 2), ysubpixel - 1, 
+     	     		    xstart - 1, ysubpixel - 1 );
          }
          // if a tick mark should be drawn at the end, draw it
          // since the above "if" takes care of all subtick marks before the
@@ -465,9 +519,14 @@ public class AxisOverlay2D extends OverlayJPanel
          if( ysteps == 0 && 
              (pmin - ypixel) > yaxis/(2*numysteps) ) 
          {
-            g2d.drawLine( xstart - (ytick_length - 2), 
-               (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
-	       xstart - 1, 
+	    // paint gridlines for major ticks
+            if( gridydisplay == 1 || gridydisplay == 2 )
+              g2d.drawLine( xstart - (ytick_length - 2), (int)(ysubpixel + 
+	       ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart + xaxis - 1, 
+     	       (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
+            else
+	      g2d.drawLine( xstart - (ytick_length - 2), (int)(ysubpixel + 
+	       ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart - 1, 
      	       (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
          }
       }
@@ -535,7 +594,8 @@ public class AxisOverlay2D extends OverlayJPanel
 
 	  int division = 0;    // 0-5, divisions in the xaxis.
 	  // rightmost pixel coord of last label drawn
-	  int last_drawn = -xstart;  
+	  int last_drawn = -xstart;
+	  int last_tick = 0;    // position of last tick mark drawn  
 	 
 	  // find division where the first label is to be drawn
 	  while( (int)logger.toSource(A, logscale) >= 
@@ -552,6 +612,8 @@ public class AxisOverlay2D extends OverlayJPanel
  
 	    //g2d.setColor(Color.black);
             xtick_length = TICK_LENGTH;
+	    // divide axis into 5, if next tick is in the next fifth, show
+	    // the number
             if( (pixel - xstart) >= (int)(xaxis/5 * division) )
 	    {
 	       // if this label does not interfer with the label before it
@@ -565,9 +627,23 @@ public class AxisOverlay2D extends OverlayJPanel
 		  xtick_length += 3;
                }
 	    }
-	    g2d.drawLine( pixel, yaxis + ystart, 
-     	     	          pixel, yaxis + ystart + xtick_length );   
-            
+	    if( last_tick + 5 < pixel )
+	    {
+	      // paint gridlines for major ticks
+              if( xtick_length == TICK_LENGTH + 3 &&
+	          (gridxdisplay == 1 || gridxdisplay == 2) )
+	        g2d.drawLine( pixel, ystart, 
+     	     	              pixel, yaxis + ystart + xtick_length );
+	      // paint gridlines for minor ticks
+              if( xtick_length == TICK_LENGTH && gridxdisplay == 2 )
+	        g2d.drawLine( pixel, ystart, 
+     	     	              pixel, yaxis + ystart + xtick_length );
+	      // only paint tick marks
+	      //if( gridxdisplay != 1 && gridxdisplay != 2 )
+	        g2d.drawLine( pixel, yaxis + ystart, 
+     	     	              pixel, yaxis + ystart + xtick_length );   
+            }
+	    last_tick = pixel;
 	    // draw xmax if no numbers are near the end of the calibration
 	    if( steps == numxsteps - 1 )
 	    {
@@ -580,8 +656,13 @@ public class AxisOverlay2D extends OverlayJPanel
 	          g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
         	    yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
 	       
-	          g2d.drawLine( pixel, yaxis + ystart, 
-     	     	                pixel, yaxis + ystart + TICK_LENGTH + 3 );
+	          // paint gridlines for major ticks
+                  if( gridxdisplay == 1 || gridxdisplay == 2 )
+	            g2d.drawLine( pixel, ystart, 
+     	     	                  pixel, yaxis + ystart + TICK_LENGTH + 3 );
+	          else
+		    g2d.drawLine( pixel, yaxis + ystart, 
+     	     	                  pixel, yaxis + ystart + TICK_LENGTH + 3 );
 	       }
 	    }
 	    // debug axis divider
@@ -605,8 +686,9 @@ public class AxisOverlay2D extends OverlayJPanel
 	  int neg_division = 5; // 5-0 , division # in the xaxis
 	  int last_drawn = 0;   // rightmost pixel coord of last label drawn
 	  int last_neg_drawn = xaxis;// leftmost pixel coords of last neg. label
-	  int first_drawn = 0; // the leftmost pixel coords of first pos. label
-	 
+	  int first_drawn = 0;  // the leftmost pixel coords of first pos. label
+	  int last_tick = 0;    // last tick mark drawn
+	  int last_neg_tick = (int)xmax;// last negative tick mark drawn
 	  // find division where the first label is to be drawn
 	  while( (int)logger.toSource(A, logscale) >= 
 	         (int)(xaxis/10 * (division + 1) ) )
@@ -650,7 +732,6 @@ public class AxisOverlay2D extends OverlayJPanel
 	    }
 	    // this will handle all negative labels, if a negative label
 	    // interfers with a positive label, don't display the negative label
-	    //xtick_length = 6;
 	    if( (neg_pixel - xstart) <= (int)(xaxis/10 * neg_division) )
 	    {
 	       if( first_drawn > ( neg_pixel + fontdata.stringWidth(neg_num)/2 )
@@ -667,12 +748,42 @@ public class AxisOverlay2D extends OverlayJPanel
 		  negtick_length += 3;
                }
 	    }
-            g2d.drawLine( pixel, yaxis + ystart, 
-     	     	          pixel, yaxis + ystart + xtick_length ); 
-            
-	    g2d.drawLine( neg_pixel, yaxis + ystart, 
-     	     	          neg_pixel, yaxis + ystart + negtick_length );
-         
+	    // this if will "weed out" tick marks close to each other
+	    if( last_tick + 5 < pixel )
+	    {
+	      // paint gridlines for major ticks
+              if( xtick_length == TICK_LENGTH + 3 &&
+	          (gridxdisplay == 1 || gridxdisplay == 2) )
+	        g2d.drawLine( pixel, ystart, 
+     	     	              pixel, yaxis + ystart + xtick_length );
+	      // paint gridlines for minor ticks
+              if( xtick_length == TICK_LENGTH && gridxdisplay == 2 )
+	        g2d.drawLine( pixel, ystart, 
+     	     	              pixel, yaxis + ystart + xtick_length );
+	      // only paint tick marks
+	      //if( gridxdisplay != 2 )
+                g2d.drawLine( pixel, yaxis + ystart, 
+     	     	              pixel, yaxis + ystart + xtick_length ); 
+            }
+	    // this if will "weed out" neg tick marks close to each other
+	    if( last_neg_tick - 5 > neg_pixel )
+	    {
+	      // paint gridlines for major negative ticks
+              if( negtick_length == TICK_LENGTH + 3 &&
+	          (gridxdisplay == 1 || gridxdisplay == 2) )
+	        g2d.drawLine( neg_pixel, ystart, 
+     	     	              neg_pixel, yaxis + ystart + negtick_length );
+	      // paint gridlines for minor ticks
+              if( negtick_length == TICK_LENGTH && gridxdisplay == 2 )
+	        g2d.drawLine( neg_pixel, ystart, 
+     	     	              neg_pixel, yaxis + ystart + negtick_length );
+	      // only paint tick marks
+	      //if( gridxdisplay != 1 && gridxdisplay != 2 )
+	        g2d.drawLine( neg_pixel, yaxis + ystart, 
+     	     	              neg_pixel, yaxis + ystart + negtick_length );
+            }
+	    last_tick = pixel;
+	    last_neg_tick = neg_pixel;
 	    // draw xmax if no numbers are near the end of the calibration
 	    if( steps == numxsteps - 1 )
 	    {
@@ -729,7 +840,8 @@ public class AxisOverlay2D extends OverlayJPanel
         	   yaxis + ystart + fontdata.getHeight() * 2 + 6 );   
       } // end if( instanceof)
       else
-        System.out.println("Not instance of ILogAxisAddible2D");
+        System.out.println("Instance of ILogAxisAddible2D needed " +
+	                   "in AxisOverlay2D.java");
    }
    
   /*
@@ -767,6 +879,7 @@ public class AxisOverlay2D extends OverlayJPanel
 	 int division = 0;    // 0-5, divisions in the yaxis.
 	 // top pixel coord of last label drawn
 	 int last_drawn = yaxis + ystart + fontdata.getHeight(); 
+	 int last_tick = last_drawn + 6;
 	 // find division where the first label is to be drawn
 	 while( (int)logger.toSource(a, logscale) >= 
 	        (int)(yaxis/5 * (division + 1) ) )
@@ -796,9 +909,25 @@ public class AxisOverlay2D extends OverlayJPanel
                      division++;
 	       }	   
 	    }
-            g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-                          xstart - 1, ypixel - 1 );   
-            ytick_length = TICK_LENGTH;
+	    // this if is to "weed out" the nearby tick marks
+	    if( last_tick - 5 > ypixel )
+	    {
+	      // paint gridlines for major ticks
+              if( ytick_length == TICK_LENGTH + 3 &&
+	    	  (gridydisplay == 1 || gridydisplay == 2) )
+                 g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+            		       xstart + xaxis - 1, ypixel - 1 ); 
+	      // paint gridlines for minor ticks
+              if( ytick_length == TICK_LENGTH && gridydisplay == 2 )
+                 g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+            		       xstart + xaxis - 1, ypixel - 1 ); 
+	      // only paint tick marks
+	      //if( gridydisplay != 1 && gridydisplay != 2 )
+                 g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                               xstart - 1, ypixel - 1 );   
+              ytick_length = TICK_LENGTH;
+	    }
+	    last_tick = ypixel;
 	    // draw end marker if nothing no values are near the end.
 	    if( ysteps == (numysteps - 1) )
 	    {
@@ -813,8 +942,20 @@ public class AxisOverlay2D extends OverlayJPanel
 	     	      fontdata.stringWidth(num),
         	      ypixel + fontdata.getHeight()/4 );
 	       }
-               g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-                             xstart - 1, ypixel - 1 ); 
+	       
+	       // paint gridlines for major ticks
+               if( ytick_length == TICK_LENGTH + 3 &&
+	           (gridydisplay == 1 || gridydisplay == 2) )
+                  g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                                xstart + xaxis - 1, ypixel - 1 ); 
+	       // paint gridlines for minor ticks
+               if( ytick_length == TICK_LENGTH && gridydisplay == 2 )
+                  g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                                xstart + xaxis - 1, ypixel - 1 ); 
+	       // only paint tick marks
+	       //if( gridydisplay != 1 && gridydisplay != 2 )
+                  g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                                xstart - 1, ypixel - 1 ); 
 	    }
 	     
             // debug axis divider
@@ -841,7 +982,8 @@ public class AxisOverlay2D extends OverlayJPanel
 	 //bottommost pixel coords of last neg label
 	 int last_neg_drawn = yaxis/2 + ystart - fontdata.getHeight();
 	 int first_drawn = 0;  //the bottommost pixel coords of first pos label
-	 
+	 int last_tick = last_drawn + 6;
+	 int last_neg_tick = last_neg_drawn - 6;
 	 // find division where the first label is to be drawn
 	 while( (int)logger.toSource(a, logscale) >= 
 	        (int)(yaxis/10 * (division + 1) ) )
@@ -900,21 +1042,63 @@ public class AxisOverlay2D extends OverlayJPanel
                }	   
 	    }
 	    
-	    if( a == 0 )	    	    
-               g2d.drawLine( xstart - ytick_length, ypixel, 
-                             xstart - 1, ypixel ); 		    	    
-            else
+	    // since only draw middle once, a = 0 is a special case
+	    if( a == 0 )
+	    {	
+	      // paint gridlines for major ticks
+              if( ytick_length == TICK_LENGTH + 3 &&
+	          (gridydisplay == 1 || gridydisplay == 2) )    	    
+                g2d.drawLine( xstart - ytick_length, ypixel, 
+                              xstart + xaxis - 1, ypixel ); 	   	    
+              else
+		g2d.drawLine( xstart - ytick_length, ypixel, 
+                              xstart - 1, ypixel ); 			    	    
+              last_tick = ypixel;
+	      last_neg_tick = ypixel;
+	    }
+	    else // two sided, draw both negative and positive
 	    {
-	       g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-                             xstart - 1, ypixel - 1 ); 	    
-               g2d.drawLine( xstart - negtick_length, neg_ypixel + 1, 
-                             xstart - 1, neg_ypixel + 1 );   
-            }
-	    
-	    // draw end marker if nothing no values are near the end.
+	      if( last_tick - 5 > ypixel )
+	      {
+	        // paint gridlines for major ticks
+                if( ytick_length == TICK_LENGTH + 3 &&
+	            (gridydisplay == 1 || gridydisplay == 2) )
+	          g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                                xstart + xaxis - 1, ypixel - 1 ); 
+	        // paint gridlines for minor ticks
+                if( ytick_length == TICK_LENGTH && gridydisplay == 2 )
+	          g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                                xstart + xaxis - 1, ypixel - 1 ); 
+	        // only paint tick marks
+	        //if( gridydisplay != 1 && gridydisplay != 2 )
+                  g2d.drawLine( xstart - ytick_length, ypixel - 1, 
+                                xstart - 1, ypixel - 1 ); 
+              }
+	      last_tick = ypixel;
+	      
+	      if( last_neg_tick + 5 < neg_ypixel )
+	      {
+	        // paint gridlines for major negative ticks
+                if( negtick_length == TICK_LENGTH + 3 &&
+	            (gridydisplay == 1 || gridydisplay == 2) )
+	          g2d.drawLine( xstart - negtick_length, neg_ypixel + 1, 
+                                xstart + xaxis - 1, neg_ypixel + 1 );
+	        // paint gridlines for minor ticks
+                if( negtick_length == TICK_LENGTH && gridydisplay == 2 )
+	          g2d.drawLine( xstart - negtick_length, neg_ypixel + 1, 
+                                xstart + xaxis - 1, neg_ypixel + 1 );
+	        // only paint tick marks
+	        //if( gridydisplay != 1 && gridydisplay != 2 )
+	          g2d.drawLine( xstart - negtick_length, neg_ypixel + 1, 
+                                xstart - 1, neg_ypixel + 1 );
+              }
+	      last_neg_tick = neg_ypixel;
+	    }
+	   
+	    // draw end marker if no values are near the end.
 	    if( ysteps == (numysteps - 1) )
 	    {
-	       a = ymin;
+	       a = ymax;
                ypixel = ystart + (int)(yaxis/2) - 
 	        	(int)logger.toSource(a,logscale);
                neg_ypixel = ystart + (int)(yaxis/2) + 
@@ -936,10 +1120,10 @@ public class AxisOverlay2D extends OverlayJPanel
 	     	      fontdata.stringWidth(neg_num),
         	      neg_ypixel + fontdata.getHeight()/4 + 2);	
 	       }    
-               g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-                	     xstart - 1, ypixel - 1 );  	 
-               g2d.drawLine( xstart - negtick_length, neg_ypixel + 1, 
-                             xstart - 1, neg_ypixel + 1);  
+               g2d.drawLine( xstart - ytick_length, ypixel, 
+                	     xstart - 1, ypixel );  	 
+               g2d.drawLine( xstart - negtick_length, neg_ypixel, 
+                             xstart - 1, neg_ypixel );  
 	    }
 	    
 	    // debug axis divider 
@@ -969,6 +1153,51 @@ public class AxisOverlay2D extends OverlayJPanel
        }
      } // end if( instanceof)
      else
-       System.out.println("Not instance of ILogAxisAddible2D");
+        System.out.println("Instance of ILogAxisAddible2D needed " +
+	                   "in AxisOverlay2D.java");
+   }
+   
+   private class AxisEditor
+   {
+     private JFrame editor;
+     private JComboBox xbox;
+     private JComboBox ybox;
+     public AxisEditor()
+     {
+       editor = new JFrame("Axis Editor");
+       editor.getContentPane().setLayout( new GridLayout() );
+       editor.setBounds(0,0,400,50);
+       editor.getContentPane().add( new JLabel("Grid Options") );
+       String[] xlist = {"X Axis (none)","Major Grid","Major/Minor Grid"};
+       String[] ylist = {"Y Axis (none)","Major Grid","Major/Minor Grid"};
+       xbox = new JComboBox(xlist);
+       xbox.setName("XBOX");
+       xbox.setSelectedIndex(gridxdisplay);
+       xbox.addActionListener( new ComboBoxListener() );
+       ybox = new JComboBox(ylist);
+       ybox.setName("YBOX");
+       ybox.setSelectedIndex(gridydisplay);
+       ybox.addActionListener( new ComboBoxListener() );
+       editor.getContentPane().add(xbox);
+       editor.getContentPane().add(ybox);
+     }
+     
+     public void show()
+     {
+       editor.setVisible(true);
+     }
+     
+     class ComboBoxListener implements ActionListener
+     {
+       public void actionPerformed( ActionEvent e )
+       {
+         JComboBox temp = ((JComboBox)e.getSource());
+	 if( temp.getName().equals("XBOX") )
+	   gridxdisplay = temp.getSelectedIndex();
+	 else
+	   gridydisplay = temp.getSelectedIndex();
+	 this_panel.repaint();
+       }
+     }
    }
 }
