@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2004/08/13 03:38:04  millermi
+ * - Added removeComponentMenuItems() to remove a component's menu
+ *   items from the JMenuBar.
+ * - Moved image specific menu items to Display2D
+ *
  * Revision 1.9  2004/07/30 17:43:12  millermi
  * - Fixed null pointer exception, now checks to see if controls
  *   list is null before checking if length = 0.
@@ -98,8 +103,6 @@ import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.UI.FontUtil;
-import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
-import gov.anl.ipns.Util.Sys.SaveImageActionListener;
 
 /**
  * This class acts as a base class for all display classes. Displays are
@@ -226,6 +229,35 @@ abstract public class Display extends JFrame implements IPreserveState,
       }
     }
   }
+  
+ /**
+  * Remove any menu items from the ViewComponent.
+  */   
+  protected void removeComponentMenuItems()
+  {
+    // get menu items from view component and place it in a menu
+    ViewMenuItem[] menus = ivc.getMenuItems();
+    if( menus == null || menus.length == 0 )
+      return;
+    for( int i = 0; i < menus.length; i++ )
+    {
+      if( ViewMenuItem.PUT_IN_FILE.equalsIgnoreCase(
+          menus[i].getPath()) )
+      {
+        menu_bar.getMenu(0).remove( menus[i].getItem() ); 
+      }
+      else if( ViewMenuItem.PUT_IN_OPTIONS.equalsIgnoreCase(
+               menus[i].getPath()) )
+      {
+        menu_bar.getMenu(1).remove( menus[i].getItem() );  	 
+      }
+      else if( ViewMenuItem.PUT_IN_HELP.equalsIgnoreCase(
+               menus[i].getPath()) )
+      {
+        menu_bar.getMenu(2).remove( menus[i].getItem() );
+      }
+    }
+  }
  
  /**
   * This method will load the user preferences that were saved in the specified
@@ -254,8 +286,6 @@ abstract public class Display extends JFrame implements IPreserveState,
     Vector file              = new Vector();
     Vector save_menu 	     = new Vector();
     Vector open_menu 	     = new Vector();
-    Vector print             = new Vector();
-    Vector save_image        = new Vector();
     Vector exit              = new Vector();
     Vector file_listeners    = new Vector();
     
@@ -268,12 +298,6 @@ abstract public class Display extends JFrame implements IPreserveState,
     file.add(save_menu);
       save_menu.add("Save Project");
       file_listeners.add( new MenuListener() ); // listener for save project
-    file.add(print);
-      print.add("Print Image");
-      file_listeners.add( new MenuListener() ); // listener for printing IVC
-    file.add(save_image);
-      save_image.add("Make JPEG Image");
-      file_listeners.add( new MenuListener() ); // listener saving IVC as jpg
     file.add(exit);
       exit.add("Exit");
       file_listeners.add( new MenuListener() ); // listener for exiting Display
@@ -284,19 +308,6 @@ abstract public class Display extends JFrame implements IPreserveState,
     menu_bar.add( MenuItemMaker.makeMenuItem(file,file_listeners) ); 
     
     setJMenuBar(menu_bar);
-    /*  old implementation by attempting to us setMnemonics()
-    // Add keyboard shortcuts
-    JMenu file_menu = menu_bar.getMenu(0);
-    file_menu.getItem(0).setMnemonic(KeyEvent.VK_O);   // Open Project
-    file_menu.getItem(1).setMnemonic(KeyEvent.VK_S);   // Save Project
-    file_menu.getItem(2).setMnemonic(KeyEvent.VK_P);   // Print Image
-    file_menu.getItem(3).setMnemonic(KeyEvent.VK_J);   // Make JPEG Image
-    file_menu.getItem(4).setMnemonic(KeyEvent.VK_X);   // Exit
-    JMenu option_menu = menu_bar.getMenu(1);
-    option_menu.getItem(0).setMnemonic(KeyEvent.VK_U); // Save User Settings
-    JMenu help_menu = menu_bar.getMenu(2);
-    help_menu.getItem(0).setMnemonic(KeyEvent.VK_H);   // Help Menu
-    */
     // Add keyboard shortcuts
     KeyStroke binding = 
                   KeyStroke.getKeyStroke(KeyEvent.VK_O,InputEvent.ALT_MASK);
@@ -304,12 +315,8 @@ abstract public class Display extends JFrame implements IPreserveState,
     file_menu.getItem(0).setAccelerator(binding);   // Open Project
     binding = KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.ALT_MASK);
     file_menu.getItem(1).setAccelerator(binding);   // Save Project
-    binding = KeyStroke.getKeyStroke(KeyEvent.VK_P,InputEvent.ALT_MASK);
-    file_menu.getItem(2).setAccelerator(binding);   // Print Image
-    binding = KeyStroke.getKeyStroke(KeyEvent.VK_J,InputEvent.ALT_MASK);
-    file_menu.getItem(3).setAccelerator(binding);   // Make JPEG Image
     binding = KeyStroke.getKeyStroke(KeyEvent.VK_X,InputEvent.ALT_MASK);
-    file_menu.getItem(4).setAccelerator(binding);   // Exit
+    file_menu.getItem(2).setAccelerator(binding);   // Exit
   }
   
  /**
@@ -375,32 +382,6 @@ abstract public class Display extends JFrame implements IPreserveState,
         ObjectState state = new ObjectState();
 	if( state.openFileChooser(false) )
 	  setObjectState(state);
-      }
-      else if( ae.getActionCommand().equals("Print Image") )
-      {
-        // Since pane could be one of two things, determine which one
-	// it is, then determine the image accordingly.
-	Component image;
-	if( pane instanceof SplitPaneWithState )
-	  image = ((SplitPaneWithState)pane).getLeftComponent();
-        else
-	  image = pane;
-	JMenuItem silent_menu = PrintComponentActionListener.getActiveMenuItem(
-	                                "not visible", image );
-	silent_menu.doClick();
-      }
-      else if( ae.getActionCommand().equals("Make JPEG Image") )
-      {
-        // Since pane could be one of two things, determine which one
-	// it is, then determine the image accordingly.
-	Component image;
-	if( pane instanceof SplitPaneWithState )
-	  image = ((SplitPaneWithState)pane).getLeftComponent();
-        else
-	  image = pane;
-        JMenuItem silent_menu = SaveImageActionListener.getActiveMenuItem(
-	                                "not visible", image );
-	silent_menu.doClick();
       }
       else if( ae.getActionCommand().equals("Exit") )
       {
