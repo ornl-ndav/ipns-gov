@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2001/05/07 21:12:04  dennis
+ *  Added a copy constructor and a method equals() to check if
+ *  two CoordTransform objects represent the same transformation.
+ *
  *  Revision 1.4  2001/04/23 21:15:00  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -67,6 +71,32 @@ public class CoordTransform implements Serializable
     from = source_region;
     to = destination_region;
   } 
+
+  public CoordTransform( CoordTransform tran )
+  {
+    from = tran.from.MakeCopy();
+    to   = tran.to.MakeCopy();
+  }
+
+
+  /**
+   *  Check whether or not the current transform maps between the same 
+   *  regions as the specified transform.
+   *
+   *  @param  tran   The transform object to compare with the current transform 
+   *                 object.
+   * 
+   *  @return Returns true if the current transform object maps between exactly
+   *  the same regions as the specified transform object.
+   */
+  public boolean equals( CoordTransform tran )
+  {
+    if ( from.equals( tran.from ) && to.equals( tran.to ) ) 
+      return true;
+    else
+      return false;
+  }
+
 
   public void MapTo( float x[], float y[] )
   {
