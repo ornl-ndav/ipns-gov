@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.36  2004/07/10 04:49:00  millermi
+ *  - Added private method removeTrailingZeros() to remove
+ *    zeros after the decimal on calibrations. To view
+ *    the AxisOverlay2D with the previous format, comment
+ *    out the body of removeTrailingZeros().
+ *
  *  Revision 1.35  2004/05/11 01:36:27  millermi
  *  - Removed unused variables.
  *
@@ -639,7 +645,9 @@ public class AxisOverlay2D extends OverlayJPanel
     Graphics2D g2d = (Graphics2D)g;
     g2d.setFont(f);
     FontMetrics fontdata = g2d.getFontMetrics();
-    // System.out.println("Precision = " + precision);
+    // System.out.println("Precision = " + precision); 
+    // Reset precision, make sure it is always consistent.
+    setPrecision( component.getPrecision() );
     
     xmin = component.getAxisInformation(AxisInfo.X_AXIS).getMin();
     xmax = component.getAxisInformation(AxisInfo.X_AXIS).getMax();
@@ -785,6 +793,32 @@ public class AxisOverlay2D extends OverlayJPanel
     }
   }
   
+
+ /*
+  * This code will eliminate trailing zeros after the decimal point. If
+  * the display of numbers is to be a consistent length, comment the body of
+  * this method out.
+  */
+  private String removeTrailingZeros( String string_num )
+  { 
+    int decimal_index = string_num.indexOf('.');
+    int char_index = string_num.length();
+    // If no decimal or the last zero is not after the decimal, no trailing
+    // zeroes exist.
+    if( string_num.lastIndexOf('0') < decimal_index ||
+   	decimal_index < 0 )
+      return string_num;
+    
+    // If a decimal exists, trim any trailing zeros.
+    while( char_index > decimal_index && 
+   	   ( string_num.endsWith("0") || string_num.endsWith(".") ) )
+    {
+      char_index = char_index - 1;
+      string_num = string_num.substring(0,char_index);
+    }
+    return string_num;
+  }
+  
  /*
   * Draw the x axis with horizontal numbers and ticks spaced linearly.
   */   
@@ -842,8 +876,9 @@ public class AxisOverlay2D extends OverlayJPanel
       // draw evenly spaced numeric labels.
       if( steps%skip == 0 )
       {
-        g2d.drawString( num.substring(0,exp_index), 
-             pixel - fontdata.stringWidth(num.substring(0,exp_index))/2, 
+        String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
+        g2d.drawString( temp_num, 
+             pixel - fontdata.stringWidth(temp_num)/2, 
              yaxis + ystart + xtick_length + fontdata.getHeight() );
       } 	
 
@@ -907,9 +942,9 @@ public class AxisOverlay2D extends OverlayJPanel
         {
           num = util.standardize( (step * (float)steps + start) );
           exp_index = num.lastIndexOf('E');
-        
-          g2d.drawString( num.substring(0,exp_index), pixel - 
-               fontdata.stringWidth(num.substring(0,exp_index))/2, 
+          String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
+          g2d.drawString( temp_num,
+	       pixel - fontdata.stringWidth(temp_num)/2, 
                yaxis + ystart + xtick_length + fontdata.getHeight() );
           // to draw grid line for major ticks
           if( gridxdisplay == 1 || gridxdisplay == 2 )
@@ -990,9 +1025,10 @@ public class AxisOverlay2D extends OverlayJPanel
       {
         if( ((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip) )
         {
-          g2d.drawString( num.substring(0,exp_index), 
+	  String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
+          g2d.drawString( temp_num,
           	    xstart - ytick_length - 
-          	    fontdata.stringWidth(num.substring(0,exp_index)),
+          	    fontdata.stringWidth(temp_num),
           	    ypixel + fontdata.getHeight()/4 );
         }	       
         
@@ -1110,7 +1146,9 @@ public class AxisOverlay2D extends OverlayJPanel
     	    // if this label does not interfer with the label before it
             if( last_drawn < (pixel - fontdata.stringWidth(num)) )
     	    {
-    	      g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+	      String temp_num = removeTrailingZeros(num);
+    	      g2d.drawString( temp_num,
+	        pixel - fontdata.stringWidth(temp_num)/2, 
                 yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
     	      last_drawn = pixel + fontdata.stringWidth(num)/2;
     	      if( A != 0 )
@@ -1156,7 +1194,9 @@ public class AxisOverlay2D extends OverlayJPanel
             if( last_drawn < 
     	        pixel - fontdata.stringWidth(num)/2 )
     	    {
-    	      g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+	      String temp_num = removeTrailingZeros(num);
+    	      g2d.drawString( temp_num,
+	        pixel - fontdata.stringWidth(temp_num)/2, 
             	yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
     	    
     	      // paint gridlines for major ticks
@@ -1230,7 +1270,9 @@ public class AxisOverlay2D extends OverlayJPanel
             if( last_drawn < 
     	        pixel - fontdata.stringWidth(num)/2 ) 
     	    {
-    	      g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+	      String temp_num = removeTrailingZeros(num);
+    	      g2d.drawString( temp_num,
+	        pixel - fontdata.stringWidth(temp_num)/2, 
             	yaxis + ystart + xtick_length + fontdata.getHeight() );
             
     	      last_drawn = pixel + fontdata.stringWidth(num)/2;
@@ -1245,8 +1287,9 @@ public class AxisOverlay2D extends OverlayJPanel
     	    if( first_drawn > (neg_pixel + fontdata.stringWidth(neg_num)/2) &&
     	        last_neg_drawn > (neg_pixel + fontdata.stringWidth(neg_num)/2) )
     	    {
-    	      g2d.drawString( neg_num, neg_pixel -
-                fontdata.stringWidth(neg_num)/2, 
+	      String temp_num = removeTrailingZeros(neg_num);
+    	      g2d.drawString( temp_num,
+	        neg_pixel - fontdata.stringWidth(temp_num)/2, 
                 yaxis + ystart + negtick_length + fontdata.getHeight() ); 
     	    
     	      last_neg_drawn = neg_pixel - 
@@ -1324,15 +1367,18 @@ public class AxisOverlay2D extends OverlayJPanel
     	    neg_num = Format.choiceFormat( -A, Format.SCIENTIFIC, tempprec );
             if( last_drawn < pixel - fontdata.stringWidth(num)/2 )
     	    {
-    	      g2d.drawString( num, pixel - fontdata.stringWidth(num)/2, 
+	      String temp_num = removeTrailingZeros(num);
+    	      g2d.drawString( temp_num,
+	        pixel - fontdata.stringWidth(temp_num)/2, 
                 yaxis + ystart + TICK_LENGTH + fontdata.getHeight() );
     	      xtick_length += 3;
     	    }
     	    if( last_neg_drawn > (neg_pixel +
                 fontdata.stringWidth(neg_num)/2) )
     	    {
-    	      g2d.drawString( neg_num, 
-    	        neg_pixel - fontdata.stringWidth(neg_num)/2, 
+	      String temp_num = removeTrailingZeros(neg_num);
+    	      g2d.drawString( temp_num, 
+    	        neg_pixel - fontdata.stringWidth(temp_num)/2, 
                 yaxis + ystart + negtick_length + fontdata.getHeight() ); 
               negtick_length += 3;
     	    }
@@ -1412,8 +1458,9 @@ public class AxisOverlay2D extends OverlayJPanel
 	    if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
             {
 	      ytick_length += 3;
-	      g2d.drawString( num, xstart - ytick_length - 
-         	  fontdata.stringWidth(num),
+	      String temp_num = removeTrailingZeros(num);
+    	      g2d.drawString( temp_num,
+	          xstart - ytick_length - fontdata.stringWidth(temp_num),
 	 	  ypixel + fontdata.getHeight()/4 );
               last_drawn = ypixel - fontdata.getHeight()/2;
               if( a != 0 )
@@ -1460,9 +1507,10 @@ public class AxisOverlay2D extends OverlayJPanel
 	    num = Format.choiceFormat( a, Format.SCIENTIFIC, tempprec );
             if( last_drawn > (ypixel - fontdata.getHeight()/2) ) 
             {	       
-              ytick_length += 3;    
-	      g2d.drawString( num, xstart - ytick_length - 
-         	  fontdata.stringWidth(num),
+              ytick_length += 3;
+	      String temp_num = removeTrailingZeros(num);
+    	      g2d.drawString( temp_num,
+	          xstart - ytick_length - fontdata.stringWidth(temp_num),
 	 	  ypixel + fontdata.getHeight()/4 );
             }
             
@@ -1551,8 +1599,9 @@ public class AxisOverlay2D extends OverlayJPanel
 	    if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
             {
 	      ytick_length += 3;
-	      g2d.drawString( num, 
-	  	  xstart - ytick_length - fontdata.stringWidth(num),
+	      String temp_num = removeTrailingZeros(num);
+    	      g2d.drawString( temp_num, 
+	  	  xstart - ytick_length - fontdata.stringWidth(temp_num),
 	  	  ypixel + fontdata.getHeight()/4 );
               last_drawn = ypixel - fontdata.getHeight()/2;
               if( ysteps != 0 )
@@ -1567,8 +1616,9 @@ public class AxisOverlay2D extends OverlayJPanel
 	    if( last_neg_drawn < (neg_ypixel - fontdata.getHeight()/2) )
             {
               negtick_length += 3;
-	      g2d.drawString( neg_num, xstart - ytick_length - 
-          	  fontdata.stringWidth(neg_num),
+	      String temp_num = removeTrailingZeros(neg_num);
+    	      g2d.drawString( temp_num,
+	          xstart - ytick_length - fontdata.stringWidth(temp_num),
 	  	  neg_ypixel + fontdata.getHeight()/4 + 2);
               last_neg_drawn = neg_ypixel + fontdata.getHeight()/2;
 	      neg_division++;
@@ -1673,12 +1723,15 @@ public class AxisOverlay2D extends OverlayJPanel
              {
                ytick_length += 3;
                negtick_length += 3;
-	       g2d.drawString( num, xstart - ytick_length - 
-                   fontdata.stringWidth(num),
+	       String temp_num = removeTrailingZeros(num);
+    	       g2d.drawString( temp_num,
+	           xstart - ytick_length - fontdata.stringWidth(temp_num),
 	           ypixel + fontdata.getHeight()/4 );
                    
-	       g2d.drawString( neg_num, xstart - negtick_length - 
-                   fontdata.stringWidth(neg_num),
+	       
+	       String temp_neg_num = removeTrailingZeros(neg_num);
+    	       g2d.drawString( temp_neg_num,
+	           xstart - negtick_length - fontdata.stringWidth(temp_neg_num),
 	           neg_ypixel + fontdata.getHeight()/4 + 2);	
 	       g2d.drawLine( xstart - ytick_length, ypixel, 
 	        	     xstart - 1, ypixel );       
