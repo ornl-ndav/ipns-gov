@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.45  2004/11/05 22:10:29  millermi
+ * - Added methods getPositiveXmin() and getPositiveYmin()
+ * - Replaced getXmin() and getYmin() with getPositiveXmin() and
+ *   getPositiveYmin() in instances where log bounds are needed.
+ * - Removed getScale() and setLogScale() since tru-log does not need
+ *   these methods.
+ *
  * Revision 1.44  2004/10/07 02:23:34  serumb
  * Made changes so Y_Log_scale works with negative numbers
  *
@@ -189,6 +196,12 @@ public class GraphJPanel extends    CoordJPanel
   private float           log_scale = 10;
   private boolean         log_scale_x = false;
   private boolean         log_scale_y = false;
+  private float maxy;
+  private float minx;
+  private float maxx;
+  private float miny;
+  private float min_positive_x;
+  private float min_positive_y;
 
   public static final int DOT   = 1;
   public static final int PLUS  = 2;
@@ -725,35 +738,6 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
     return true;
  }
 
-/* --------------------------- setLogScale  ------------------------ */
-/**
-  *  Set the value for the log scale.
-  *
-  *  @param  scale      the flot representing the log scale.
-  **/
-  public void setLogScale(float scale, boolean redraw)
-  {
-    if( scale < 0 || scale > 100 )
-      return;
-    
-    log_scale = scale;
-
-    if ( redraw )
-      repaint();
-  }
-/* --------------------------- getScale  ------------------------ */
-/**
-  *  Get the value for the log scale.
-  *
-  **/
-  public float getScale()
-  {
-    
-   return log_scale;
-
-  }
-  
-
 /* --------------------------- setLogScaleX  ------------------------ */
 /**
   *  Set the boolean value to check wether or not to scale the x
@@ -1019,15 +1003,18 @@ public boolean is_autoY_bounds()
     float last_x  = bounds.getX2();
     //bounds = getLocalWorldCoords();   
 
+    CoordBounds unscaled_bounds = getGlobalWorldCoords();
+    unscaled_bounds.scaleBounds(1f,1f/getScaleFactor());
+    
     if ( log_scale_x)
     {
-      float min = getXmin();
+      float min = getPositiveXmin();
       float max = getXmax();
       LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
 
 
-      first_x = logger.toDest(first_x, log_scale);
-      last_x = logger.toDest(last_x, log_scale);
+      first_x = logger.toSource(first_x);
+      last_x = logger.toSource(last_x);
     }
     int height = getHeight();
 
@@ -1091,7 +1078,7 @@ public boolean is_autoY_bounds()
       
       if( log_scale_x )
       {
-        float min = getXmin();
+        float min = getPositiveXmin();
         float max = getXmax();
 
 
@@ -1100,44 +1087,41 @@ public boolean is_autoY_bounds()
 
         if( is_histogram ){
           for(int i = 0; i <= n_points; i++) {
-            x_copy[i] = logger.truLogScale(x_copy[i]);
+            x_copy[i] = logger.toSource(x_copy[i]);
           }
         }else
           for(int i = 0; i < n_points; i++) {
-            x_copy[i] = logger.truLogScale(x_copy[i]);
+            x_copy[i] = logger.toSource(x_copy[i]);
           }
       }
   
       if( log_scale_y )
       {
-      	float tempmin = Float.MAX_VALUE;
-        float min = getYmin();
+        float min = getPositiveYmin();
         float max = getYmax();
-        if(min <= 0){
-        	
-        	for(int i = 0; i < n_points; i++){
-        		if(gd.y_vals[i] <= tempmin){
-        			tempmin = gd.y_vals[i];
-        			
-        		}
-        		for(int j = 0; j < n_points; j++){
-        			if(gd.y_vals[j] <= 0){
-        				gd.y_vals[j] = tempmin;
-        			}
-        		}
-        	}
-        }
         System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
-        
-
-        LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
-        min = getYmin();
-        max = getYmax();
-        
+	
+        CoordBounds log_bounds = new CoordBounds(min, min, max, max);
+        CoordBounds draw_bounds = new CoordBounds(unscaled_bounds.getY2(),
+						  unscaled_bounds.getY2(),
+						  unscaled_bounds.getY1(),
+						  unscaled_bounds.getY1());
+        CoordTransform y_axis_tran = new CoordTransform(log_bounds,draw_bounds);
+	LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
 
         for(int i = 0; i < n_points; i++)
-        	
-          y_copy[i] = logger.truLogScale(y_copy[i]);
+	{
+	  if( y_copy[i] > 0 )
+	  {
+	    //System.out.println("PreLogScale: "+y_copy[i]);
+	    //System.out.println("LogScale: "+logger.toSource(y_copy[i]));
+            y_copy[i] = y_axis_tran.MapXTo(logger.toSource(y_copy[i]));
+	    //System.out.println("PostLogScale: "+y_copy[i]);
+          }
+	  // if not positive, move to position off of the graph.
+	  else
+	    y_copy[i] = y_axis_tran.MapXTo(logger.toSource(min));
+	}
       }
   
        float error_bars_upper[] = null;
@@ -1308,7 +1292,7 @@ public boolean is_autoY_bounds()
                              x_int[i] - size, error_bars_upper[i] - y_int[i]);
                g2.draw( line2 );
                line3.setLine(x_int[i] + size, error_bars_lower[i] - y_int[i],
-                             x_int[i] - size, error_bars_lower[i] - y_int[i]);   
+                             x_int[i] - size, error_bars_lower[i] - y_int[i]);
                g2.draw( line3 );
              }
 
@@ -1342,7 +1326,7 @@ public boolean is_autoY_bounds()
 
           System.arraycopy( x_int, 1, x_int, 0, 2*y_copy.length ); //now draw 
           System.arraycopy( y_int, 1, y_int, 0, 2*y_copy.length ); //data points
-          g2.setColor( gd.color );                                  //themselves 
+          g2.setColor( gd.color );                                  //themselves
           g2.drawPolyline( x_int, y_int, 2*y_copy.length );
         }
         else
@@ -1523,11 +1507,19 @@ private void set_auto_data_bound()
      auto_data_bound.growBounds( gd.x_vals, gd.y_vals );
    }
 */
-   auto_data_bound.setBounds( getXmin(), getYmin(), getXmax(), getYmax() );
-
-  
-
-   auto_data_bound.scaleBounds( 1.0f, 1.05f );
+   float xmin, xmax, ymin, ymax;
+   xmin = getXmin();
+   xmax = getXmax();
+   ymin = getYmin();
+   ymax = getYmax();
+   // If log, make sure range is all positive.
+   if( getLogScaleX() )
+     xmin = getPositiveXmin();
+   if( getLogScaleY() )
+     ymin = getPositiveYmin();
+   
+   auto_data_bound.setBounds( xmin, ymin, xmax, ymax );
+   auto_data_bound.scaleBounds( 1.0f, getScaleFactor() );
 }
 
 
@@ -1569,10 +1561,6 @@ private void SetDataBounds()
     initializeWorldCoords( data_bound );     // coordinates
 }
 
-   float maxy;
-   float minx;
-   float maxx;
-   float miny;
 /* ------------------------------getYmin--------------------------------*/
 
 public float getYmin()
@@ -1585,6 +1573,7 @@ public float getYmin()
                                                                                 
     miny =  yvals[0];
     maxy =  yvals[0];
+    min_positive_y = Float.POSITIVE_INFINITY;               
     for (int line=0; line < graphs.size(); line++)
         {
           gd = (GraphData)graphs.elementAt(line);
@@ -1595,9 +1584,22 @@ public float getYmin()
                 miny = yvals[i];
               if (yvals[i] > maxy)
                 maxy = yvals[i];
-           }
+              if( yvals[i] > 0 && yvals[i] < min_positive_y )
+	        min_positive_y = yvals[i];
+	   }
         }
     return miny;
+}
+
+/**
+ * This method will return the scale factor used on the y-axis to create a
+ * border above and below the graph.
+ *
+ *  @return Scale factor used to scale y-axis.
+ */
+public float getScaleFactor()
+{
+  return 1.05f;
 }
 
 /*------------------------------- getYmax -----------------------------------*/
@@ -1607,9 +1609,15 @@ public float getYmax()
   return maxy;
 }
 
+/*---------------------------- getPositiveYmin ------------------------------*/
+public float getPositiveYmin()
+{
+  getYmin();
+  return min_positive_y;
+}
 
-/* ------------------------------getXmin--------------------------------*/
-                                                                                    
+
+/* ------------------------------getXmin--------------------------------*/     
 public float getXmin()
 {
   // check number of graphs
@@ -1617,9 +1625,10 @@ public float getXmin()
     return Float.NaN;
     GraphData gd = (GraphData)graphs.elementAt(0);
     float [] xvals = gd.x_vals;
-                                                                                    
+    
     minx =  xvals[0];
     maxx =  xvals[0];
+    min_positive_x = Float.POSITIVE_INFINITY;
     for (int line=0; line < graphs.size(); line++)
         {
           gd = (GraphData)graphs.elementAt(line);
@@ -1630,12 +1639,14 @@ public float getXmin()
                 minx = xvals[i];
               if (xvals[i] > maxx)
                 maxx = xvals[i];
+              if( xvals[i] > 0 && xvals[i] < min_positive_x )
+	        min_positive_x = xvals[i];
            }
         }
 
     return minx;
 }
-                                                                                    
+
 /*------------------------------- getXmax -----------------------------------*/
 public float getXmax()
 {
@@ -1643,7 +1654,68 @@ public float getXmax()
   return maxx;
 }
 
-                                                                                  
+/*---------------------------- getPositiveXmin -----------------------------*/
+public float getPositiveXmin()
+{
+  getXmin();
+  return min_positive_x;
+}
+
+/*--------------------------getLocalLogWorldCoords()------------------------*/
+/*
+ * This method returns positive current local world coordinate bounds. Like
+ * getLocalWorldCoords(), this method gives the bounds of the zoomed region.
+ * However, if any of the bounds are negative, they are replaced with the
+ * smallest positive value for that interval.
+ *
+ *  @return Positive local world coord bounds.
+ *
+public CoordBounds getLocalLogWorldCoords()
+{
+  CoordBounds world_coords = super.getLocalWorldCoords();
+  // If x2 < x1, see if x2 is less than zero. If so, replace the negative
+  // number with the minimum positive value.
+  if( world_coords.getX1() > world_coords.getX2() )
+  {
+    if( world_coords.getX2() < 0 )
+    {
+      // Call this to set min_positive_x.
+      getXmin();
+      world_coords.setBounds( world_coords.getX1(), world_coords.getY1(),
+    			      min_positive_x, world_coords.getY2() );
+    }
+  
+  }
+  // If x1 < x2, check to make sure x1 is positive.
+  else if( world_coords.getX1() < 0 )
+  {
+    // Call this to set min_positive_x.
+    getXmin();
+    world_coords.setBounds( min_positive_x, world_coords.getY1(),
+                            world_coords.getX2(), world_coords.getY2() );
+  }
+  // Do the same steps above for the y axis.
+  if( world_coords.getY1() > world_coords.getY2() )
+  {
+    if( world_coords.getY2() < 0 )
+    {
+      // Call this to set min_positive_y.
+      getYmin();
+      world_coords.setBounds( world_coords.getX1(), world_coords.getY1(),
+    			      world_coords.getX2(), min_positive_y );
+    }
+  
+  }
+  else if( world_coords.getY1() < 0 )
+  {
+    // Call this to set min_positive_y.
+    getYmin();
+    world_coords.setBounds( world_coords.getX1(), min_positive_y,
+                            world_coords.getX2(), world_coords.getY2() );
+  }
+  return world_coords;
+}
+*/
 
 /* -------------------------------- Main ------------------------------- */
 
@@ -1669,6 +1741,9 @@ public float getXmax()
     float g4_x_vals[] = { 0, (float).4, (float).6, 1};
     float g4_y_vals[] = { (float).3, (float).1, (float).4, (float).2 };
 
+    float g5_x_vals[] = { 0, -.4f, .6f, 1};
+    float g5_y_vals[] = { .3f, .1f, .4f, -.2f };
+
     graph.setBackground(Color.white);
     graph.setData( g1_x_vals, g1_y_vals, 0, false );
     graph.setErrors( g1_e_vals, 11, 1, true );
@@ -1688,12 +1763,15 @@ public float getXmax()
     graph.setMarkColor(Color.red,2,true);
     graph.setMarkType(CROSS, 2, true);
    
-
     graph.setData( g4_x_vals, g4_y_vals, 3, true );
     graph.setColor( Color.blue, 3, false );
     graph.setStroke( graph.strokeType(DASHDOT,3), 3, true);
     graph.setMarkColor(Color.black,2,true);
     graph.setMarkType(STAR, 3, true);
+    
+    graph.setData( g5_x_vals, g5_y_vals, 4, true );
+    System.out.println("Pos X Min: "+graph.getPositiveXmin());
+    System.out.println("Pos Y Min: "+graph.getPositiveYmin());
   }
 }
 
