@@ -35,6 +35,10 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.9  2003/02/06 21:27:32  dennis
+ *  Add code for finding inverse of 2x2 matrix.  Fixed potential problem
+ *  in inverse method.
+ *
  *  Revision 1.8  2003/02/04 19:43:53  pfpeterson
  *  Implemented isSquare(float[][]) and isRectangular(float[][]) without casting.
  *
@@ -102,21 +106,24 @@ public final class LinearAlgebra
     double[][] invA=new double[size][size];
     double detA=Double.NaN;
 
-    // check for rotation matrices
-    if(size==2 || size==3){          // only know how to do determinants 
-      detA=determinant(A);           // for 2x2 and 3x3 matrices
+                                     // check for small matrices
+    if(size==2 || size==3){          // determinants are more efficient for
+      detA=determinant(A);           // 2x2 and 3x3 matrices
       if(detA==0.){ // this is not invertable
         return null;
-      }else if(detA==1.){ // this is a rotation matrix
-        for( int i=0 ; i<size ; i++ ){
-          for( int j=0 ; j<size ; j++ ){
-            invA[i][j]=A[j][i];
-          }
+      }
+
+      if(size==2){                              // size must be 2 or....
+        if ( ! Double.isNaN(detA) ){
+          invA[0][0] =  A[1][1]/detA;
+          invA[1][0] = -A[1][0]/detA;
+          invA[0][1] = -A[0][1]/detA;
+          invA[1][1] =  A[0][0]/detA;
+
+          return invA;
         }
       }
-    }
-
-    if(size==3){
+                                                // otherwize size must be 3
       if( ! Double.isNaN(detA) ){
         invA[0][0]=(A[1][1]*A[2][2]-A[2][1]*A[1][2])/detA;
         invA[0][1]=(A[2][1]*A[0][2]-A[0][1]*A[2][2])/detA;
@@ -131,7 +138,7 @@ public final class LinearAlgebra
         return invA;
       }
     }
-    
+ 
     // put the identity matrix in temp[][]
     for ( int i = 0; i < size; i++ )
       invA[i][i] = 1;
@@ -716,5 +723,30 @@ public final class LinearAlgebra
 
       System.out.println("returned value = " + result );
     } 
+
+     double matrix[][] = {{ 1, 2 }, { 3, 4 }};
+     System.out.println("matrix is: " );
+     System.out.println("" + matrix[0][0] + "  " + matrix[0][1] );
+     System.out.println("" + matrix[1][0] + "  " + matrix[1][1] );
+     System.out.println();
+     matrix = getInverse(matrix);
+     System.out.println("Inverse is: " );
+     System.out.println("" + matrix[0][0] + "  " + matrix[0][1] );
+     System.out.println("" + matrix[1][0] + "  " + matrix[1][1] );
+     System.out.println();
+
+     ElapsedTime timer = new ElapsedTime();
+     double  mat[][] = new double[3][3];
+     for ( int i = 0; i < 3; i++ )
+       mat[i][i] = i+2;
+
+     int n_calcs = 1000000;
+     timer.reset(); 
+     for ( int i = 0; i < n_calcs; i++ )
+        mat = getInverse(mat);
+
+     System.out.println("Time to do " + n_calcs + 
+                        " 3x3 matrix inversions: " + timer.elapsed() );  
    }
+
 }
