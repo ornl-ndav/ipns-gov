@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2001/07/02 22:40:18  dennis
+ * Method addControlledPanel() now first checks to see if the
+ * panel is already in the vector of controlled panels.
+ *
  * Revision 1.2  2001/05/29 14:57:10  dennis
  * apply() now takes a parameter to specify
  * whether or not to reset the local transform as well as
@@ -116,6 +120,10 @@ public class ViewController extends    JPanel
  */
  public void addControlledPanel( ThreeD_JPanel panel )
  {
+   for ( int i = 0; i < panel3D.size(); i++ )         // don't add it if it's 
+     if ( panel3D.elementAt( i ).equals( panel ) )    // already there
+       return;
+
    panel3D.add( panel );
  }
 
