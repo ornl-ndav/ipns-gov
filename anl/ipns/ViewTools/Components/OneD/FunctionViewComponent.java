@@ -37,6 +37,7 @@ import java.awt.geom.*;
 public class FunctionViewComponent implements IFunctionComponent1D, 
                                            ActionListener,
                   DataSetTools.components.View.TwoD.IAxisAddible2D
+		 
 {
    private IVirtualArray1D Varray1D;  //An object containing our array of data
    private Point[] selectedset; //To be returned by getSelectedSet()   
@@ -50,28 +51,47 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    private int precision;
    private Font font;
    private LinkedList controls = new LinkedList();
- 
+
    private JPanel panel1 = new JPanel();
    private JPanel panel2 = new JPanel();
-   private JPanel panel3 = new JPanel();
+   private JPanel boxPanel = new JPanel();
+   private JPanel buttonPanel = new JPanel();
 
-   private JLabel label1 = new JLabel("Line Selected");
-   private JLabel label2 = new JLabel("Line Style");
-   private JLabel label3 = new JLabel("Line Width");
 
-   private JComboBox LineBox;
-   private JComboBox LineStyleBox;
-   private JComboBox LineWidthBox;
+   private String label1 = "Line Selected";
+   private String label2 = "Line Style";
+   private String label3 = "Line Width";
+   private String label4 = "Point Marker";
+   private String label5 = "Point Marker Size";
+
+   private JComboBox LineBox            = new JComboBox();
+   private JComboBox LineStyleBox       = new JComboBox();
+   private JComboBox LineWidthBox       = new JComboBox();
+   private JComboBox PointMarkerBox     = new JComboBox();
+   private JComboBox PointMarkerSizeBox = new JComboBox();
 
    private String[] lines;
    private String[] line_type;
    private String[] line_width;
+   private String[] mark_types;
+   private String[] mark_size;
 
-   private JButton lineColor;
+   private ButtonControl LineColor;
+   private ButtonControl MarkColor;
+
    private int line_index = 0;
-   private float linewidth = 1;	
-   private JColorChooser colors = new JColorChooser(Color.black);
+   private int linewidth = 1;	
+   private JColorChooser linecolors = new JColorChooser(Color.black);
+   private JColorChooser markcolors = new JColorChooser(Color.black);
 
+   private Box theBox = new Box(1);
+   private Box box1 = new Box(1);
+   
+   private LabelCombobox labelbox1;
+   private LabelCombobox labelbox2;
+   private LabelCombobox labelbox3;
+   private LabelCombobox labelbox4;
+   private LabelCombobox labelbox5;
 
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
@@ -84,7 +104,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     {	
        lines[i] = "Line_"+(i+1);
     } 
-    LineBox = new JComboBox(lines);
+    //LineBox = new JComboBox(lines);
+    LabelCombobox labelbox1 = new LabelCombobox(label1,lines); 
 
     line_type = new String[5];
     line_type[0] = "Solid"; 
@@ -92,7 +113,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     line_type[2] = "Dotted"; 
     line_type[3] = "Dash Dot Dot"; 
     line_type[4] = "Transparent";
-    LineStyleBox = new JComboBox(line_type);
+    //LineStyleBox = new JComboBox(line_type);
+    labelbox2 = new LabelCombobox(label2, line_type);
 
     line_width = new String[5];
     line_width[0] = "1";
@@ -100,52 +122,90 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     line_width[2] = "3";
     line_width[3] = "4";
     line_width[4] = "5";
+    labelbox3 = new LabelCombobox(label3, line_width);
 
-    LineWidthBox = new JComboBox(line_width);
+    mark_types = new String[6];
+    mark_types[0] = "DOT";
+    mark_types[1] = "PLUS";
+    mark_types[2] = "STAR";
+    mark_types[3] = "BOX";
+    mark_types[4] = "CROSS";
+    mark_types[5] = "NO POINT MARKS";
+    labelbox4 = new LabelCombobox(label4, mark_types);
+    labelbox4.setSelected(3);
 
+    mark_size = new String[5];
+    mark_size[0] = "1";
+    mark_size[1] = "2";
+    mark_size[2] = "3";
+    mark_size[3] = "4";
+    mark_size[4] = "5";
+    labelbox5 = new LabelCombobox(label5, mark_size);
 
-    lineColor = new JButton("Line Color");
-
-    BoxLayout theBox1 = new BoxLayout(panel1, BoxLayout.X_AXIS);
-    BoxLayout theBox2 = new BoxLayout(panel2, BoxLayout.X_AXIS);
-    BoxLayout theBox3 = new BoxLayout(panel3, BoxLayout.X_AXIS);
-
-    panel1.add(label1);
-    panel1.add(LineBox);
-    panel2.add(label2);
-    panel2.add(LineStyleBox);
-    panel3.add(label3);
-    panel3.add(LineWidthBox);
+    theBox.add(labelbox1.theBox);
+    theBox.add(labelbox2.theBox);
+    theBox.add(labelbox3.theBox);
+    theBox.add(labelbox4.theBox);
+    theBox.add(labelbox5.theBox);
+   
+  
+    boxPanel.add(theBox);
     
-      Varray1D = varr; // Get reference to varr
-      precision = 4;
-      font = FontUtil.LABEL_FONT2;
-      gjp = new GraphJPanel();
-      //Make gjp correspond to the data in f_array
-      int num_lines = varr.getNumlines();
-      boolean bool = false;
-      for (int i = 0; i < num_lines; i++)
-      {
-		
-	gjp.setData(varr.getXValues(i),
-		    varr.getYValues(i),i, bool); 
-	if(i >= num_lines -2)
-	    bool = true;
+        LineBox = labelbox1.cbox;          
+	LineStyleBox = labelbox2.cbox;      
+	LineWidthBox = labelbox3.cbox;  
+	PointMarkerBox = labelbox4.cbox;    
+	PointMarkerSizeBox = labelbox5.cbox;
 
-      }
+
+    FlowLayout Flayout = new FlowLayout(1);
+
+    LineColor = new ButtonControl("Line Color");
+    MarkColor = new ButtonControl("Point Marker Color");
+
+    panel1.setLayout(Flayout);
+    panel2.setLayout(Flayout);
+    panel1.add(LineColor.button);
+    panel2.add(MarkColor.button);
+    box1.add(panel1);
+    box1.add(panel2);
+    buttonPanel.add(box1);
+
+  
+    Varray1D = varr; // Get reference to varr
+    precision = 4;
+    font = FontUtil.LABEL_FONT2;
+    gjp = new GraphJPanel();
+    //Make gjp correspond to the data in f_array
+    int num_lines = varr.getNumlines();
+    boolean bool = false;
+    for (int i = 0; i < num_lines; i++)
+    {
+
+       gjp.setData(varr.getXValues(i),
+	    varr.getYValues(i),i, bool); 
+       if(i >= num_lines -2)
+	    bool = true;
+    }
+    // set initial line styles
     gjp.setBackground(Color.white);
     gjp.setColor( Color.black, 0, false );
-    gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 0, false);
-    gjp.setMarkType(Color.blue, gjp.BOX, 0, false);
+    gjp.setStroke( gjp.strokeType(gjp.LINE,0), 0, false);
+    gjp.setLineWidth(linewidth,0,false);
+    gjp.setMarkColor(Color.blue,0,false);
+    gjp.setMarkType(gjp.BOX, 0, false);
 
     
     gjp.setColor( Color.red, 1, true );
-    gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 1, true);
+    gjp.setStroke( gjp.strokeType(gjp.LINE,1), 1, true);
+    gjp.setLineWidth(linewidth,1,false);
 
     
     gjp.setColor( Color.green, 2, false );
-    gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 2, true);
-    gjp.setMarkType(Color.red, gjp.CROSS, 2, true);
+    gjp.setStroke( gjp.strokeType(gjp.LINE,2), 2, true);
+    gjp.setLineWidth(linewidth,0,false);
+    gjp.setMarkColor(Color.red,2,true);
+    gjp.setMarkType(gjp.CROSS, 2, true);
 
 
       ImageListener gjp_listener = new ImageListener();
@@ -370,7 +430,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    {
       Listeners.removeAllElements();
    }
-   
+    
    public JComponent[] getSharedControls()
    {  
       JComponent[] jcontrols = new JComponent[controls.size()];
@@ -381,11 +441,22 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    
    public JComponent[] getPrivateControls()
    {
-      System.out.println("Entering: JComponent[] getPrivateControls()");
-      System.out.println("");
+      //System.out.println("Entering: JComponent[] getPrivateControls()");
+      //System.out.println("");
 
-           JComponent[] Res = new JComponent[4];
-	   Res[0] = (JComponent) panel1;
+           JComponent[] Res = new JComponent[2];
+
+           Res[0] = (JComponent) boxPanel;
+	
+	
+	LineBox.addActionListener(new ControlListener());
+	LineStyleBox.addActionListener(new ControlListener());	
+	LineWidthBox.addActionListener(new ControlListener());
+	PointMarkerBox.addActionListener(new ControlListener());
+	PointMarkerSizeBox.addActionListener(new ControlListener());
+
+  
+/*           Res[0] = (JComponent) panel1;
            LineBox.addActionListener(new ControlListener());
 
 	   Res[1] = (JComponent)panel2;	
@@ -394,10 +465,18 @@ public class FunctionViewComponent implements IFunctionComponent1D,
 	   Res[2] = (JComponent)panel3;
 	   LineWidthBox.addActionListener(new ControlListener());
 
+	   Res[3] = (JComponent)panel4;
+	   PointMarkerBox.addActionListener(new ControlListener());
 
-	   Res[3] = (JComponent)lineColor;
-	   lineColor.addActionListener(new ControlListener());
-
+           Res[4] = (JComponent)panel5;
+	   PointMarkerSizeBox.addActionListener(new ControlListener());
+*/
+	   Res[1] = (JComponent)buttonPanel;
+	   LineColor.addActionListener(new ControlListener());
+           MarkColor.addActionListener(new ControlListener());
+	  // Res[2] = (JComponent)markColor;
+	  // MarkColor.addActionListener(new ControlListener());
+      
            return Res;
 
      // return new JComponent[0];
@@ -579,90 +658,187 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    {  
       public void actionPerformed( ActionEvent ae )
       {
-	String message = ae.getActionCommand();
-	//System.out.println("Graph sent message " + message );
-        
-	if(message.equals("Line Color"))
-	{
-        
-	   //colors.setPreviewPanel(new JPanel());
-           Color c = colors.showDialog(null, "color chart", Color.black);
-           if (c != null)
-	      gjp.setColor(c,line_index, true);
-	
 
-	
-	}
+	String message = ae.getActionCommand();
+
+	if(message.equals("BUTTON_PRESSED"))
+
+	{
+           if(ae.getSource() == LineColor)
+           {
+             Color c = linecolors.showDialog(null, "color chart", Color.black);
+             if (c != null)
+             gjp.setColor(c,line_index, true);
+	   }
+
+           if(ae.getSource() == MarkColor)
+	   {
+             Color m = markcolors.showDialog(null, "color chart", Color.black);
+             if (m != null)
+             gjp.setMarkColor(m,line_index, true);
+	   }
+        }
+	   
+
 	else if(message.equals("comboBoxChanged"))
 	{
 	   // System.out.println("action" + LineBox.getSelectedItem());
 	   // System.out.println("action" + LineBox.getSelectedIndex());
            if (ae.getSource() == LineBox)
-	      line_index = LineBox.getSelectedIndex();
+	   {   
+	       line_index = LineBox.getSelectedIndex();
+               //System.out.println("line index"+line_index);
+               GraphData gd = (GraphData)gjp.graphs.elementAt( line_index );
+               
+	       if(gjp.getStroke(line_index).equals( 
+				gjp.strokeType(gjp.DOTTED,line_index)))
+               {  
+		  LineStyleBox.setSelectedIndex(2);
+               } 
+               else if(gjp.getStroke(line_index).equals( 
+				gjp.strokeType(gjp.LINE,line_index)))
+               {
+		  LineStyleBox.setSelectedIndex(0);
+               } 
+               else if(gjp.getStroke(line_index).equals(
+				gjp.strokeType(gjp.DASHED,line_index)))
+		  LineStyleBox.setSelectedIndex(1);
+               else if(gjp.getStroke(line_index).equals(
+				gjp.strokeType(gjp.DASHDOT,line_index)))
+		  LineStyleBox.setSelectedIndex(3);
+               else if(gjp.getStroke(line_index).equals(
+				gjp.strokeType(gjp.TRANSPARENT, line_index)))
+		  LineStyleBox.setSelectedIndex(4); 
+
+               if(gd.marksize == 1)
+       	          PointMarkerSizeBox.setSelectedIndex(0);
+               else if(gd.marksize == 2)
+		  PointMarkerSizeBox.setSelectedIndex(1);
+               else if(gd.marksize == 3)
+		  PointMarkerSizeBox.setSelectedIndex(2);
+               else if(gd.marksize == 4)
+		  PointMarkerSizeBox.setSelectedIndex(3);
+               else if(gd.marksize == 5)
+		  PointMarkerSizeBox.setSelectedIndex(4);
+		
+	       if(gd.marktype == 0)
+		  PointMarkerBox.setSelectedIndex(5);
+	       else if(gd.marktype == 1)
+		  PointMarkerBox.setSelectedIndex(0);
+	       else if(gd.marktype == 2)
+		  PointMarkerBox.setSelectedIndex(1);
+	       else if(gd.marktype == 3)
+		  PointMarkerBox.setSelectedIndex(2);
+	       else if(gd.marktype == 4)
+		  PointMarkerBox.setSelectedIndex(3);
+	       else if(gd.marktype == 5)
+		  PointMarkerBox.setSelectedIndex(4);
+		
+	       if(gd.linewidth == 1) 
+		  LineWidthBox.setSelectedIndex(0);
+	       else if(gd.linewidth == 2) 
+		  LineWidthBox.setSelectedIndex(1);		
+	       else if(gd.linewidth == 3) 
+		  LineWidthBox.setSelectedIndex(2);		
+	       else if(gd.linewidth == 4) 
+	          LineWidthBox.setSelectedIndex(3);
+	       else if(gd.linewidth == 5) 
+		  LineWidthBox.setSelectedIndex(4);
+              
+
+
+	   }
 
 	   else if (ae.getSource() == LineStyleBox)
 	   {
 	      if (LineStyleBox.getSelectedItem().equals("Solid"))
 	      {
-		gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 
+		gjp.setStroke( gjp.strokeType(gjp.LINE,line_index), 
 				line_index, true);
 	      }
 
 	      if (LineStyleBox.getSelectedItem().equals("Dashed"))
 	      {
-		gjp.setStroke( gjp.strokeType(gjp.DASHED,linewidth), 
+		gjp.setStroke( gjp.strokeType(gjp.DASHED,line_index), 
 				line_index, true);
 	      }
 
 	      if (LineStyleBox.getSelectedItem().equals("Dotted"))
-	      {System.out.println("in dotted if");
-		gjp.setStroke( gjp.strokeType(gjp.DOTTED,linewidth), 
+	      {
+		gjp.setStroke( gjp.strokeType(gjp.DOTTED,line_index), 
 				line_index, true);
 	      }
 	      if (LineStyleBox.getSelectedItem().equals("Dash Dot Dot"))
 	      {
-		gjp.setStroke( gjp.strokeType(gjp.DASHDOT,linewidth), 
+		gjp.setStroke( gjp.strokeType(gjp.DASHDOT,line_index), 
 				line_index, true);
 	      }
 	      if (LineStyleBox.getSelectedItem().equals("Transparent"))
-	      {System.out.println("in here");
-  		gjp.setStroke(gjp.strokeType(gjp.DASHED,0),
+	      {
+  		gjp.setStroke(gjp.strokeType(gjp.TRANSPARENT,line_index),
                               line_index, true);
 	      }   
 	   }
            else if (ae.getSource() == LineWidthBox)
            {
                linewidth = LineWidthBox.getSelectedIndex() + 1;
-               
-	      if (LineStyleBox.getSelectedItem().equals("Solid"))
+
+               gjp.setLineWidth(linewidth, line_index, true);
+            
+              if (LineStyleBox.getSelectedItem().equals("Solid"))
 	      {
-		gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 
+		gjp.setStroke( gjp.strokeType(gjp.LINE,line_index), 
 				line_index, true);
 	      }
 
 	      if (LineStyleBox.getSelectedItem().equals("Dashed"))
 	      {
-		gjp.setStroke( gjp.strokeType(gjp.DASHED,linewidth), 
+		gjp.setStroke( gjp.strokeType(gjp.DASHED,line_index), 
 				line_index, true);
 	      }
 
 	      if (LineStyleBox.getSelectedItem().equals("Dotted"))
-	      {System.out.println("in dotted if");
-		gjp.setStroke( gjp.strokeType(gjp.DOTTED,linewidth), 
+	      {
+		gjp.setStroke( gjp.strokeType(gjp.DOTTED,line_index), 
 				line_index, true);
 	      }
 	      if (LineStyleBox.getSelectedItem().equals("Dash Dot Dot"))
 	      {
-		gjp.setStroke( gjp.strokeType(gjp.DASHDOT,linewidth), 
+		gjp.setStroke( gjp.strokeType(gjp.DASHDOT,line_index), 
 				line_index, true);
 	      }
-              if (LineStyleBox.getSelectedItem().equals("Transparent"))
-	      {
-  		gjp.setStroke(gjp.strokeType(gjp.DASHED,0),
-                              line_index, true);
-	      }
+
            }
-	}
+	   else if (ae.getSource() == PointMarkerBox)
+	   {
+	     if (PointMarkerBox.getSelectedItem().equals("DOT"))
+	        gjp.setMarkType(gjp.DOT, line_index, true);
+             else if (PointMarkerBox.getSelectedItem().equals("PLUS"))
+	        gjp.setMarkType(gjp.PLUS, line_index, true);
+	     else if (PointMarkerBox.getSelectedItem().equals("STAR"))
+	        gjp.setMarkType(gjp.STAR, line_index, true);
+	     else if (PointMarkerBox.getSelectedItem().equals("BOX"))
+	        gjp.setMarkType(gjp.BOX, line_index, true);
+	     else if (PointMarkerBox.getSelectedItem().equals("CROSS"))
+	        gjp.setMarkType(gjp.CROSS, line_index, true);
+             else if (PointMarkerBox.getSelectedItem().equals("NO POINT MARKS"))
+	        gjp.setMarkType(0, line_index, true);
+	   }
+           else if (ae.getSource() == PointMarkerSizeBox)
+	   {
+              if (PointMarkerSizeBox.getSelectedItem().equals("1"))
+	        gjp.setMarkSize(1, line_index, true);
+             else if (PointMarkerSizeBox.getSelectedItem().equals("2"))
+	        gjp.setMarkSize(2, line_index, true);
+	     else if (PointMarkerSizeBox.getSelectedItem().equals("3"))
+	        gjp.setMarkSize(3, line_index, true);
+	     else if (PointMarkerSizeBox.getSelectedItem().equals("4"))
+	        gjp.setMarkSize(4, line_index, true);
+	     else if (PointMarkerSizeBox.getSelectedItem().equals("5"))
+	        gjp.setMarkSize(4, line_index, true);
+	   }
+            
+	}    
 
       }
    }
@@ -676,14 +852,14 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    */
    public static void main( String args[] ) 
    {
-  /*      float g1_x_vals[] = { 0, (float).02, (float).04, (float).1 };
-          float g1_y_vals[] = { 0, (float)-.3, (float)-.2, -1 };
+  /*     float g1_x_vals[] = { 0, (float).02, (float).04, (float).1 };
+       float g1_y_vals[] = { 0, (float)-.3, (float)-.2, -1 };
 
-          float g2_x_vals[] = { 0, (float).1 };
-          float g2_y_vals[] = { -1, 0 };
+       float g2_x_vals[] = { 0, (float).1 };
+       float g2_y_vals[] = { -1, 0 };
 
-          float g3_x_vals[] = { 0, (float).05, (float).06, (float).1};
-          float g3_y_vals[] = { (float)-.1, (float)-.2, (float)-.7, (float)-.6 };
+       float g3_x_vals[] = { 0, (float).05, (float).06, (float).1};
+       float g3_y_vals[] = { (float)-.1, (float)-.2, (float)-.7, (float)-.6 };
 
 	
         //Make a sample 2D array
