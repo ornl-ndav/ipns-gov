@@ -7,7 +7,6 @@ package gov.anl.ipns.ViewTools.Displays;
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D;
 import gov.anl.ipns.ViewTools.Components.Transparency.IZoomTextAddible;
-import gov.anl.ipns.ViewTools.Components.ViewControls.ControlColorScale;
 import gov.anl.ipns.ViewTools.Components.ViewControls.IColorScaleAddible;
 import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
