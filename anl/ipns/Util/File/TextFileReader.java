@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2002/08/02 15:28:40  dennis
+ *  skip_blanks now sets mark with larger buffer size limit.
+ *
  *  Revision 1.7  2002/07/16 14:38:08  dennis
  *  Now maintain its own one character buffer that is used
  *  to reset the whitespace character terminating a non-blank
@@ -260,6 +263,8 @@ public class TextFileReader
 
     if ( look_ahead < 0 )                                    // -1 is EOF
       throw new IOException( EOF );
+    else
+      in.mark( BUFFER_SIZE );
   }
 
 
