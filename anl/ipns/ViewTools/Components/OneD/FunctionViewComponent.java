@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.45  2004/03/10 15:49:13  serumb
+ *  Implemented the kill method to dispose of the control panel.
+ *
  *  Revision 1.44  2004/03/09 22:20:41  millermi
  *  - Added setData() after data was cleared in dataChanged()
  *    to reset the pointed at graph.
@@ -220,22 +223,23 @@ public class FunctionViewComponent implements IViewComponent1D,
   
   public static final String GRAPHJPANEL        = "Graph JPanel";
   
-  private IVirtualArray1D Varray1D;  //An object containing our array of data
+  private transient IVirtualArray1D Varray1D;  //An object containing our
+                                               // array of data
   private Point[] selectedset;  //To be returned by getSelectedSet()   
-  private Vector Listeners   = null;
-  private JPanel big_picture = new JPanel();
+  private transient Vector Listeners   = null;
+  private transient JPanel big_picture = new JPanel();
   private GraphJPanel gjp;
   private final int MAX_GRAPHS = 20;
  
   // for component size and location adjustments
   //private ComponentAltered comp_listener;
-  private Rectangle regioninfo;
-  private CoordBounds local_bounds;
-  private CoordBounds global_bounds;
-  private Vector transparencies = new Vector(  );
+  private transient Rectangle regioninfo;
+  private transient CoordBounds local_bounds;
+  private transient CoordBounds global_bounds;
+  private transient Vector transparencies = new Vector(  );
   private int precision;
   private Font font;
-  private LinkedList controls = new LinkedList(  );
+  private transient LinkedList controls = new LinkedList(  );
   private int linewidth      = 1;
   private FunctionControls mainControls;
   private boolean draw_pointed_at = true;
@@ -867,7 +871,9 @@ public class FunctionViewComponent implements IViewComponent1D,
   /**
    * To be continued.
    **/
-   public void kill(){};
+   public void kill(){
+   mainControls.get_frame().dispose();
+   };
    
   // required since implementing ActionListener
 
@@ -1100,4 +1106,5 @@ public class FunctionViewComponent implements IViewComponent1D,
    }
  
 }
+
 
