@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/12 03:03:06  rmikk
+ *  Fixed package names
+ *
  *  Revision 1.7  2004/01/29 08:16:28  millermi
  *  - Updated the getObjectState() to include parameter for specifying
  *    default state.
@@ -66,7 +69,7 @@
  *
  */
 
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import java.awt.Rectangle;
 import java.awt.Graphics;
@@ -83,14 +86,14 @@ import javax.swing.JEditorPane;
 import javax.swing.text.html.HTMLEditorKit;
 import java.util.Vector; 
 
-import DataSetTools.components.View.ObjectState;
-import DataSetTools.components.View.Cursor.BoxPanCursor;
-import DataSetTools.components.View.Cursor.TranslationJPanel;
-import DataSetTools.components.image.CoordJPanel;
-import DataSetTools.components.image.CoordBounds;
-import DataSetTools.components.image.CoordTransform;
-import DataSetTools.util.floatPoint2D;
-import DataSetTools.util.WindowShower;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.Cursor.BoxPanCursor;
+import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
  * This overlay is not like the Axis, Annotation, or Selection Overlays. 
