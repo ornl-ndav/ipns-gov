@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.37  2004/12/05 06:07:12  millermi
+ *  - Fixed Eclipse warning.
+ *
  *  Revision 1.36  2004/11/05 22:09:55  millermi
  *  - Removed getLocalLogWorldCoords() method.
  *
@@ -142,7 +145,6 @@ import javax.swing.*;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
-import gov.anl.ipns.ViewTools.Components.LogScaleUtil;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Panels.Cursors.*;
