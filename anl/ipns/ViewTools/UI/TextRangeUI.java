@@ -30,14 +30,11 @@
  *
  * Modified:
  *
- *  2000/04/28  1.01 Dennis Mikkelson
- *                   Minor refinements, use NumberFormat and setFont()
- *
- *  2000/04/28  1.02 Dennis Mikkelson
- *                   Minor refinements, added "set" routines for min, max and
- *                   label 
- *
  *  $Log$
+ *  Revision 1.4  2001/06/05 20:25:08  dennis
+ *  Now uses ':' as separator when specifying the range, for
+ *  consistency with our  integer list <--> string  convention.
+ *
  *  Revision 1.3  2001/04/23 21:50:29  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -52,6 +49,13 @@
  *
  *  Revision 1.8  2000/05/11 16:54:45  dennis
  *  Added RCS logging
+ *
+ *  2000/04/28  1.01 Dennis Mikkelson
+ *                   Minor refinements, use NumberFormat and setFont()
+ *
+ *  2000/04/28  1.02 Dennis Mikkelson
+ *                   Minor refinements, added "set" routines for min, max and
+ *                   label
  *
  */
 
@@ -78,6 +82,10 @@ import java.io.*;
 public class TextRangeUI extends    JTextField 
                          implements Serializable
 {
+  public  static final char START     = '[';
+  public  static final char SEPARATOR = ':';
+  public  static final char END       = ']';
+
   private float  min;
   private float  max;
   private String label;
@@ -188,7 +196,7 @@ public class TextRangeUI extends    JTextField
   {
     NumberFormat f = NumberFormat.getInstance();
     f.setGroupingUsed( false );
-    setText( label+"[" + f.format(min) + "," + f.format(max) + "]" );    
+    setText( label + START + f.format(min) + SEPARATOR + f.format(max) + END );
   }
 
   /* ---------------------------- parse_text ---------------------------- */
@@ -204,12 +212,12 @@ public class TextRangeUI extends    JTextField
     String str          = getText();
     Float Float_NaN     = new Float(Float.NaN);
                                                         // get the first number
-    float val           = findNumber( '[', str, ',' );
+    float val           = findNumber( START, str, SEPARATOR );
     Float Float_val     = new Float(val);
     if ( !Float_val.equals(Float_NaN) )
       temporary_min = val;
                                                        // get the second number
-    val       = findNumber( ',', str, ']' );
+    val       = findNumber( SEPARATOR, str, END );
     Float_val = new Float(val);
     if ( !Float_val.equals(Float_NaN) )
       temporary_max = val;
