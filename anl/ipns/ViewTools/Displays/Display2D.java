@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/03/12 23:23:24  millermi
+ * - Factored out common functionality, now extends Display.
+ *
  * Revision 1.1  2004/03/12 21:00:30  millermi
  * - Added to CVS, stripped down version of SANDWedgeViewer
  *   that is independent of DataSets
@@ -56,8 +59,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+//import java.awt.event.WindowAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
 import java.io.Serializable;
 import java.io.IOException;
 import java.io.EOFException;
@@ -88,8 +92,7 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
  * 2D array of floats, in a frame. This class adds further implementation to
  * the ImageFrame2.java class for thorough testing of the ImageViewComponent.
  */
-public class Display2D extends JFrame implements IPreserveState,
-                                                       Serializable
+public class Display2D extends Display
 { 
  /**
   * "ViewerSize" - This constant String is a key for referencing
@@ -114,9 +117,8 @@ public class Display2D extends JFrame implements IPreserveState,
   
   // complete viewer, includes controls and ijp
   private transient Container pane;
-  private transient IViewComponent2D ivc;
-  private transient IVirtualArray2D data;
-  private transient JMenuBar menu_bar;
+  //private transient IViewComponent2D ivc;
+  //private transient IVirtualArray2D data;
   private String projectsDirectory = "";
   private transient Display2D this_viewer;
   private Vector Listeners = new Vector();
@@ -134,21 +136,8 @@ public class Display2D extends JFrame implements IPreserveState,
   */
   public Display2D( IVirtualArray2D iva, int view_code, boolean include_ctrls )
   {
-    // make sure data is not null
-    if( iva == null )
-    {
-      System.out.println("Error in Display2D - Virtual Array is null");
-      System.exit(-1);
-    }
-    this_viewer = this;
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setTitle("Display2D");
-    current_view = view_code;
-    add_controls = include_ctrls;
-    data = iva;    
-    AxisInfo xinfo = data.getAxisInfo( AxisInfo.X_AXIS );
-    AxisInfo yinfo = data.getAxisInfo( AxisInfo.Y_AXIS );
-    buildMenubar();
+    super(iva,view_code,include_ctrls);
+    addToMenubar();
     buildPane();
     
     // if Display2DProps.isv exists, load it into the ObjectState automatically.
@@ -296,20 +285,7 @@ public class Display2D extends JFrame implements IPreserveState,
   */ 
   public void dataChanged( IVirtualArray2D values )
   { 
-    ivc.dataChanged(data);
-  }
-  
- /**
-  * This method takes in a 2D array and updates the image. If the array
-  * is the same size as the previous data array, the image is just redrawn.
-  * If the size is different, the frame is disposed and a new view component
-  * is constructed.
-  *
-  *  @param  array
-  */ 
-  public void dataChanged()
-  {
-    ivc.dataChanged();
+    ((IViewComponent2D)ivc).dataChanged(values);
   }
   
  /**
@@ -334,7 +310,7 @@ public class Display2D extends JFrame implements IPreserveState,
   public void setPointedAt( floatPoint2D fpt )
   {
     //set the cursor position on the view component
-    ivc.setPointedAt( fpt ); 
+    ((IViewComponent2D)ivc).setPointedAt( fpt ); 
   }
 
  /**
@@ -345,7 +321,7 @@ public class Display2D extends JFrame implements IPreserveState,
   */
   public floatPoint2D getPointedAt()
   {
-    return ivc.getPointedAt();
+    return ((IViewComponent2D)ivc).getPointedAt();
   }
  
  /**
@@ -360,7 +336,7 @@ public class Display2D extends JFrame implements IPreserveState,
   */ 
   public void setSelectedRegions( Region[] rgn ) 
   {
-    ivc.setSelectedRegions(rgn);
+    ((IViewComponent2D)ivc).setSelectedRegions(rgn);
   }
  
  /**
@@ -370,7 +346,7 @@ public class Display2D extends JFrame implements IPreserveState,
   */ 
   public Region[] getSelectedRegions()
   {
-    return ivc.getSelectedRegions();
+    return ((IViewComponent2D)ivc).getSelectedRegions();
   }
 
  /*
@@ -380,7 +356,7 @@ public class Display2D extends JFrame implements IPreserveState,
   { 
     if( current_view == IMAGE )
     {
-      ivc = new ImageViewComponent( data );
+      ivc = new ImageViewComponent( (IVirtualArray2D)data );
       ((ImageViewComponent)ivc).setColorControlEast(true);
       ((ImageViewComponent)ivc).preserveAspectRatio(true);
     }
@@ -392,7 +368,7 @@ public class Display2D extends JFrame implements IPreserveState,
     
     //Box componentholder = new Box(BoxLayout.Y_AXIS);
     //componentholder.add( ivc.getDisplayPanel() );
-    Box view_comp_controls = buildControls();
+    Box view_comp_controls = buildControlPanel();
     // if user wants controls, and controls exist, display them in a splitpane.
     if( add_controls && view_comp_controls != null )
     {
@@ -407,30 +383,7 @@ public class Display2D extends JFrame implements IPreserveState,
       pane = ivc.getDisplayPanel();
     }
     getContentPane().add(pane);
-    /* 
-    // get menu items from view component and place it in a menu
-    ViewMenuItem[] menus = ivc.getMenuItems();
-    for( int i = 0; i < menus.length; i++ )
-    {
-      if( ViewMenuItem.PUT_IN_FILE.equalsIgnoreCase(
-          menus[i].getPath()) )
-      {
-        menu_bar.getMenu(0).add( menus[i].getItem() ); 
-      }
-      else if( ViewMenuItem.PUT_IN_OPTIONS.equalsIgnoreCase(
-               menus[i].getPath()) )
-      {
-        menu_bar.getMenu(1).add( menus[i].getItem() );  	 
-      }
-      else if( ViewMenuItem.PUT_IN_HELP.equalsIgnoreCase(
-               menus[i].getPath()) )
-      {
-        menu_bar.getMenu(2).add( menus[i].getItem() );
-      }
-    }*/
-    // enable Print Image and Make Image menu items
-    //menu_bar.getMenu(0).getItem(3).setEnabled(true); // print image
-    //menu_bar.getMenu(0).getItem(4).setEnabled(true); // make image
+    addComponentMenuItems();
   }
  
  /*
@@ -439,120 +392,25 @@ public class Display2D extends JFrame implements IPreserveState,
   * If the file being loaded is not found, those menu items
   * must be removed. To do so, rebuild the Menubar.
   */ 
-  private void buildMenubar()
-  { 
-    Vector file              = new Vector();
-    Vector options           = new Vector();
+  private void addToMenubar()
+  {
     Vector help              = new Vector();
-    Vector save_results_menu = new Vector();
-    Vector view_man  	     = new Vector();
-    Vector save_menu 	     = new Vector();
-    Vector load_menu 	     = new Vector();
-    Vector save_default      = new Vector();
-    Vector load_data         = new Vector();
-    Vector swv_help          = new Vector();
-    Vector print             = new Vector();
-    Vector save_image        = new Vector();
-    Vector exit              = new Vector();
-    Vector file_listeners    = new Vector();
-    Vector option_listeners  = new Vector();
+    Vector display_help       = new Vector();
     Vector help_listeners    = new Vector();
-    
-    // build file menu
-    file.add("File");
-    file_listeners.add( new MenuListener() ); // listener for file
-    file.add(load_data);
-      load_data.add("Load S(Qx,Qy)");
-      file_listeners.add( new MenuListener() ); // listener for load data
-    file.add(load_menu);
-      load_menu.add("Open Project");
-      file_listeners.add( new MenuListener() ); // listener for load project
-    file.add(save_menu);
-      save_menu.add("Save Project");
-      file_listeners.add( new MenuListener() ); // listener for save project
-    file.add(print);
-      print.add("Print Image");
-      file_listeners.add( new MenuListener() ); // listener for printing IVC
-    file.add(save_image);
-      save_image.add("Make Image (JPEG)");
-      file_listeners.add( new MenuListener() ); // listener for saving IVC as jpg
-    file.add(exit);
-      exit.add("Exit");
-      file_listeners.add( new MenuListener() ); // listener for exiting SWViewer
-    
-    // build options menu
-    options.add("Options");
-    option_listeners.add( new MenuListener() ); // listener for options
-    options.add(view_man);
-      view_man.add("Hide Results Window");
-      option_listeners.add( new MenuListener() ); // listener for view results
-    options.add(save_results_menu);
-      save_results_menu.add("Save Results to File");
-      option_listeners.add( new MenuListener() ); // listener for saving results
-    options.add(save_default);
-      save_default.add("Save User Settings");
-      option_listeners.add( new MenuListener() ); // listener for saving results
     
     // build help menu
     help.add("Help");
     help_listeners.add( new MenuListener() );
-    help.add( swv_help );
-      swv_help.add("SAND Wedge Viewer");
+    help.add( display_help );
+      display_help.add("Using Display2D");
       help_listeners.add( new MenuListener() );  // listener for SAND helper
-           
-    // add menus to the menu bar.
-    setJMenuBar(null);
-    menu_bar = new JMenuBar();
-    menu_bar.add( MenuItemMaker.makeMenuItem(file,file_listeners) ); 
-    menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
     
-    setJMenuBar(menu_bar);
-    
-    // since the IVC is not created unless data is available,
-    // do not load state unless data is available.
-    if( data == null )
-    {
-      JMenu file_menu = menu_bar.getMenu(0);
-      file_menu.getItem(2).setEnabled(false);   // disable Save Project Settings
-      file_menu.getItem(3).setEnabled(false);   // disable Print Image
-      file_menu.getItem(4).setEnabled(false);   // disable Make Image
-      JMenu option_menu = menu_bar.getMenu(1);
-      option_menu.getItem(0).setEnabled(false); // disable Hide Results Window
-      option_menu.getItem(1).setEnabled(false); // disable Save Results
-      option_menu.getItem(2).setEnabled(false); // disable Save User Settings
-    }
-  }
-  
- /*
-  * build controls for image view component.
-  */ 
-  private Box buildControls()
-  {
-    // add viewcomponent controls
-    Box ivc_controls = new Box(BoxLayout.Y_AXIS);
-    TitledBorder ivc_border = 
-    		     new TitledBorder(LineBorder.createBlackLineBorder(),
-        			      "View Controls");
-    ivc_border.setTitleFont( FontUtil.BORDER_FONT ); 
-    ivc_controls.setBorder( ivc_border );
-    ViewControl[] ivc_ctrl = ivc.getControls();
-    // if no controls, return null.
-    if( ivc_ctrl.length == 0 )
-      return null;
-    for( int i = 0; i < ivc_ctrl.length; i++ )
-    {
-      ivc_controls.add(ivc_ctrl[i]);
-    }
-    // if resized, adjust container size for the pan view control.
-    // THIS WAS COMMENTED OUT BECAUSE IT SLOWED THE VIEWER DOWN.
-    //ivc_controls.addComponentListener( new ResizedControlListener() );
-    
-    // add spacer between ivc controls
-    JPanel spacer = new JPanel();
-    spacer.setPreferredSize( new Dimension(0, 10000) );
-    ivc_controls.add(spacer);
-    return ivc_controls;
+    // Add keyboard shortcuts
+    KeyStroke binding = 
+                  KeyStroke.getKeyStroke(KeyEvent.VK_H,InputEvent.ALT_MASK);
+    JMenu help_menu = menu_bar.getMenu(2);
+    help_menu.getItem(0).setAccelerator(binding);   // Help Menu
   }
   
  /*
@@ -591,24 +449,32 @@ public class Display2D extends JFrame implements IPreserveState,
 	  setObjectState(state);
       }
       else if( ae.getActionCommand().equals("Print Image") )
-      {/*
-        // since the left component may change from data to data, only
-	// get the component when printing has been asked for.
-        JMenuItem silent_menu = PrintComponentActionListener.getActiveMenuItem(
-	                                "not visible",
-	                                pane.getLeftComponent() );
-	silent_menu.doClick();*/
+      {
+        // Since pane could be one of two things, determine which one
+	// it is, then determine the image accordingly.
+	Component image;
+	if( pane instanceof SplitPaneWithState )
+	  image = ((SplitPaneWithState)pane).getLeftComponent();
+        else
+	  image = pane;
+	JMenuItem silent_menu = PrintComponentActionListener.getActiveMenuItem(
+	                                "not visible", image );
+	silent_menu.doClick();
       }
-      else if( ae.getActionCommand().equals("Make Image (JPEG)") )
-      {/*
-        // since the left component may change from data to data, only
-	// get the component when saving has been asked for.
+      else if( ae.getActionCommand().equals("Make JPEG Image") )
+      {
+        // Since pane could be one of two things, determine which one
+	// it is, then determine the image accordingly.
+	Component image;
+	if( pane instanceof SplitPaneWithState )
+	  image = ((SplitPaneWithState)pane).getLeftComponent();
+        else
+	  image = pane;
         JMenuItem silent_menu = SaveImageActionListener.getActiveMenuItem(
-	                                "not visible",
-	                                pane.getLeftComponent() );
-	silent_menu.doClick();*/
+	                                "not visible", image );
+	silent_menu.doClick();
       }
-      else if( ae.getActionCommand().equals("SAND Wedge Viewer") )
+      else if( ae.getActionCommand().equals("Using Display2D") )
       {
         help();
       }
@@ -666,19 +532,28 @@ public class Display2D extends JFrame implements IPreserveState,
   */
   public static void main( String args[] )
   {
+    // build my 2-D data
     int row = 200;
     int col = 200;
     float test_array[][] = new float[row][col];
     for ( int i = 0; i < row; i++ )
       for ( int j = 0; j < col; j++ )
         test_array[i][j] = i - j;
+    
+    // Put 2-D data into a VirtualArray2D wrapper
     IVirtualArray2D va2D = new VirtualArray2D( test_array );
+    // Give meaningful range, labels, units, and linear or log display method.
     va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
     		        "TestX","TestUnits", true );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
-    			"TestY","TestYUnits", false );
-    va2D.setTitle("Display Test");
+    			"TestY","TestYUnits", true );
+    va2D.setAxisInfo( AxisInfo.Z_AXIS, 0f, 1f, "Z", "Units", false );
+    va2D.setTitle("Display2D Test");
+    // Make instance of a Display2D frame, giving the array, the initial
+    // view type, and whether or not to add controls.
     Display2D display = new Display2D(va2D,Display2D.IMAGE,true);
+    
+    // Class that "correctly" draws the display.
     WindowShower shower = new WindowShower(display);
     java.awt.EventQueue.invokeLater(shower);
     shower = null;
