@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/05/24 17:33:25  dennis
+ *  Added on/of control for Axis Overlay. (Mike Miller)
+ *
  *  Revision 1.6  2003/05/22 13:05:58  dennis
  *  Now returns menu items to place in menu bar.
  *
@@ -98,7 +101,7 @@ public class ImageViewComponent implements IViewComponent2D,
    private Vector transparencies = new Vector();
    private int precision;
    private Font font;
-   private ViewControl[] controls = new ViewControl[1];
+   private ViewControl[] controls = new ViewControl[2];
    private ViewMenuItem[] menus = new ViewMenuItem[1];
    
   /**
@@ -449,14 +452,15 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    private void buildViewControls()
    {
+      // Note: If controls are added here, the size of the array controls[]
+      // must be incremented.
       controls[0] = new ControlSlider();
       controls[0].setTitle("Intensity Slider");
-      controls[0].addActionListener( new SliderListener() );
+      controls[0].addActionListener( new ControlListener() );
       
-      // must increment size of array before adding this test control
-      //controls[1] = new ControlSlider();
-      //controls[1].setTitle("Not Attached");
-      //controls[1].showTicks(false);
+      controls[1] = new ControlCheckbox(true);
+      ((ControlCheckbox)controls[1]).setText("Axis Overlay");
+      controls[1].addActionListener( new ControlListener() );
    }
    
   /*
@@ -523,20 +527,48 @@ public class ImageViewComponent implements IViewComponent2D,
    }
    
   /*
-   * SliderListener moniters activities of a ControlSlider, which is a 
-   * control of the ImageViewComponent.
+   * ControlListener moniters activities of all controls 
+   * of the ImageViewComponent.
    */
-   private class SliderListener implements ActionListener
+   private class ControlListener implements ActionListener
    { 
       public void actionPerformed( ActionEvent ae )
       {
-         ControlSlider control = (ControlSlider)ae.getSource();
          String message = ae.getActionCommand();
                               // set image log scale when slider stops moving
-         if ( message == IViewControl.IS_CHANGED )
+         if ( message == IViewControl.SLIDER_CHANGED )
          {
+	    ControlSlider control = (ControlSlider)ae.getSource();
 	    ijp.changeLogScale( control.getValue(), true );
          } 
+         else if ( message == IViewControl.CHECKBOX_CHANGED )
+         {
+	    ControlCheckbox control = (ControlCheckbox)ae.getSource();
+	    // if this control turns on/off the axis overlay...
+	    if( control.getText().equals("Axis Overlay") )
+	    {	    
+	       JPanel back = (JPanel)big_picture.getComponent(
+	                        big_picture.getComponentCount() - 1 );
+               if( !control.isSelected() )
+	       {
+	          big_picture.getComponent(0).setVisible(false); // axis overlay
+	          back.getComponent(1).setVisible(false);        // north
+	          back.getComponent(2).setVisible(false);        // west
+	          back.getComponent(3).setVisible(false);        // south
+	          back.getComponent(4).setVisible(false);        // east
+	       }
+	       else
+	       {	       
+	          back.getComponent(1).setVisible(true);
+                  back.getComponent(2).setVisible(true);
+	          back.getComponent(3).setVisible(true);
+	          back.getComponent(4).setVisible(true);
+	          big_picture.getComponent(0).setVisible(true);
+	          //repaints axis overlay accurately
+	          big_picture.getParent().getParent().repaint();	       
+	       }
+	    }// end of if( axis overlay control )                  
+	 } 	 
       }
    } 
 
@@ -577,9 +609,9 @@ public class ImageViewComponent implements IViewComponent2D,
 	
         //Make a sample 2D array
 	VirtualArray2D va2D = new VirtualArray2D(row, col); 
-        va2D.setAxisInfoVA( AxisInfo2D.XAXIS, .001f, .1f, 
+        va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, .015f, 
                            "TestX","TestUnits", true );
-	va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, -1f, 
+	va2D.setAxisInfoVA( AxisInfo2D.YAXIS, -1001f, 1014f, 
                             "TestY","TestYUnits", true );
 	va2D.setTitle("Main Test");
 	//Fill the 2D array with the function x*y
