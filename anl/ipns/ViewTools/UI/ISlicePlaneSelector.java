@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/12 00:20:10  serumb
+ * Changed package and imports.
+ *
  * Revision 1.3  2004/03/04 20:48:21  dennis
  * Added constants for HKL and QXYZ mode, for use by related classes.
  *
@@ -42,9 +45,9 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
-import DataSetTools.math.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
  *  This interface defines the methods required of a component that will
