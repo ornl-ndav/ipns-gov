@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2002/03/06 19:27:19  pfpeterson
+ *  Print message in status pane if local version of help is not found.
+ *
  *  Revision 1.6  2002/03/04 20:31:34  pfpeterson
  *  Updated help finder to be more rhobust.
  *
@@ -242,6 +245,7 @@ public class FilenameUtil
 
 	// either it has been found or just give the URL
 	if( S == null ){
+            SharedData.status_pane.add("File ("+helpFile+") not found. Using version at "+URLDIR);
 	    S = URLDIR+helpFile;
 	}else{ 
 	    S = "file:///" + S; 
