@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2004/01/21 17:43:24  bouzekc
+ *  Removed unused local variables and unused imports.
+ *
  *  Revision 1.25  2004/01/21 17:42:06  bouzekc
  *  Now uses Java 1.4's split() method for this class's split() method.
  *
@@ -111,7 +114,6 @@
  */ 
 package DataSetTools.util;
 
-import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -297,7 +299,6 @@ public class StringUtil
   {
     StringTokenizer tokenizer = new StringTokenizer( in_string, delimiters );
     Vector tokens = new Vector();
-    String token;
 
     while (tokenizer.hasMoreTokens())
       tokens.add( tokenizer.nextToken() );
@@ -326,7 +327,6 @@ public class StringUtil
    */
   public static String getCommand( int num, String command, String s )
   {
-    boolean found = false;
 
     int position = nth_index_of( num, command, s );
     if ( position < 0 )
@@ -885,7 +885,6 @@ public class StringUtil
     System.out.println( getCommand( n, command, args ) );
 
 
-    int [] ilist;
     String in_str;
 
     for (int i = 0; i < args.length; i++)
