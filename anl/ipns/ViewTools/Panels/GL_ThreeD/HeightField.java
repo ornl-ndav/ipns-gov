@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/06/15 22:15:33  dennis
+ * Commented out some debug prints.
+ *
  * Revision 1.2  2004/06/15 16:48:23  dennis
  * Now uses 1-D texture map based on z value.
  *
@@ -179,19 +182,22 @@ public class HeightField extends GeometryDisplayListObject
          gl.glTexCoord1f( tex_coord );
          gl.glNormal3f( n[0], n[1], n[2] );
          gl.glVertex3f( x, y, h );
+/*
          if ( row == col )
            System.out.println("row, col, n = " + row + ", " + col + ", " + 
                                n[0] + ", " + n[1] + ", " + n[2] );
-
+*/
          n = ave_normal( row+1, col, x+dx, y, dx, dy );
          h = z[row+1][col];
          tex_coord = (h - range_min)/(range_max - range_min);
          gl.glTexCoord1f( tex_coord );
          gl.glNormal3f( n[0], n[1], n[2] ); 
          gl.glVertex3f( x+dx, y, h );
+/*
          if ( row == col )
            System.out.println("row, col, n = " + row + ", " + col + ", " + 
                                n[0] + ", " + n[1] + ", " + n[2] );
+*/
        }
        gl.glEnd();
      }
