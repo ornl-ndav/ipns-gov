@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/03/12 02:19:44  dennis
+ *  Moved to package gov.anl.ipns.MathToolsr.Functions
+ *
  *  Revision 1.12  2003/07/29 22:28:57  dennis
  *  Added convenience method: getResultsString() to form a multi-line
  *  string with the list of fitted parameters and error estimates.
@@ -88,13 +91,19 @@
  *
  */
 
-package DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
 
+import gov.anl.ipns.MathTools.*;
+import gov.anl.ipns.Util.Sys.*;
+import gov.anl.ipns.Util.Numeric.*;
+
+/*
 import DataSetTools.math.*;
 import DataSetTools.retriever.*;
 import DataSetTools.viewer.*;
 import DataSetTools.dataset.*;
 import DataSetTools.util.*;
+*/
 import java.util.*;
 
 public class MarquardtArrayFitter extends CurveFitter
@@ -460,7 +469,7 @@ public class MarquardtArrayFitter extends CurveFitter
                          " +- " + p_sigmas[i] +
                          " +- " + p_sigmas_2[i] );
     System.out.println("Chi Sq = " + fitter.getChiSqr() );
-
+/*
     String file_name = "/usr/local/ARGONNE_DATA/hrcs2447.run";
     RunfileRetriever rr = new RunfileRetriever(file_name); 
     DataSet monitor_ds = rr.getDataSet( 0 );
@@ -506,7 +515,7 @@ public class MarquardtArrayFitter extends CurveFitter
     SumFunction sum = new SumFunction( funs );
     interval = new ClosedInterval( 2500, 2900 );
     sum.setDomain( interval );
-
+*/
 /*
     fitter = new MarquardtArrayFitter( g1, x, y, sigma, 1.0e-20, 500 );
     p_sigmas = fitter.getParameterSigmas();
@@ -519,7 +528,7 @@ public class MarquardtArrayFitter extends CurveFitter
                          " +- " + p_sigmas_2[i] );
     model = new FunctionModel( x_scale, g1, 3 ); 
 */
-
+/*
     fitter = new MarquardtArrayFitter( sum, x, y, sigma, 1.0e-20, 500 );
     p_sigmas = fitter.getParameterSigmas();
     p_sigmas_2 = fitter.getParameterSigmas_2();
@@ -564,6 +573,7 @@ public class MarquardtArrayFitter extends CurveFitter
     model = new FunctionModel( x_scale, g1, 3 );
     monitor_ds.addData_entry( model );
     monitor_ds.notifyIObservers( IObserver.DATA_CHANGED );
+*/
   }
 
 }
