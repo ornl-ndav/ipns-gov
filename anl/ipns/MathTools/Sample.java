@@ -8,6 +8,7 @@
 
 package DataSetTools.math;
 
+import DataSetTools.util.*;
 
 public final class Sample 
 {
@@ -267,6 +268,7 @@ public final class Sample
     if ( iErr.length != num_i )
     {
       System.out.println("ERROR in ReBin ... iErr size wrong");
+      System.out.println("num_i = "+num_i + " iErr length = "+iErr.length);
       return( false );
     }
     if ( nErr.length != num_n )
@@ -653,5 +655,54 @@ public final class Sample
 
    return smoothed_i;
  }
+
+/* ------------------------------- Resample -------------------------------- */
+/**
+ *  Smooth a function.  This algorithm resamples a function tablulated at
+ *  irregularly spaced points at a new set of points using linear 
+ *  interpolation.
+ *
+ *  @param  iX       The original array of x values.  These MUST be in
+ *                   increasing order. 
+ *  @param  iY       The original array of y values.  There MUST be as many
+ *                   y values as x values
+ *  @param  nX       The new set of x values to use.
+ *
+ *  @return The new set of y-values obtained by interpolating the original
+ *  y values at the new x-values.
+ *
+ */
+ public static float[] Resample( float iX[], float iY[], float nX[] )
+ {
+   if ( iX == null || iY == null || nX == null )   
+     return null;
+
+   if ( iX.length <= 0 || iY.length <= 0 || nX.length <= 0 )
+   {
+     System.out.println("ERROR: Invalid parameters to Sample.Resample().....");
+     System.out.println("iX length = " + iX.length );
+     System.out.println("iY length = " + iY.length );
+     System.out.println("nX length = " + nX.length );
+     return null;
+   }
+
+   float nY[]    = new float[ nX.length ];
+   float first_x = iX[ 0 ];
+   float last_x  = iX[ iX.length - 1 ];
+   float x;
+   for ( int i = 0; i < nX.length; i++ )
+   {
+     x = nX[i];
+
+     if ( x < first_x || x > last_x )       // assume it's zero outside of 
+       nY[i] = 0;                           // the table of values given
+
+     else
+       nY[i] = arrayUtil.interpolate( x, iX, iY );     
+   } 
+   return nY; 
+ }
+
+
 
 }
