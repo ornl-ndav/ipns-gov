@@ -30,8 +30,11 @@
  * Modified:
  *
  * $Log$
- * Revision 1.21  2003/07/02 22:31:49  serumb
- * Fixed ImageView display problem.
+ * Revision 1.22  2003/07/02 22:37:28  dennis
+ * Replaced code to map the graph data to pixel coordinates.
+ *
+ * Revision 1.20  2003/07/02 21:47:12  serumb
+ * Updated java docs comments.
  *
  * Revision 1.17  2003/06/30 21:57:25  dennis
  * Removed shift by "first_index" that was improperly added.
@@ -864,6 +867,8 @@ public boolean is_autoY_bounds()
       y_copy = new float[ n_points ];
       System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
   
+      local_transform.MapTo( x_copy, y_copy );  // map graphs from WC to pixels
+
       float error_bars_upper[] = null;
       float error_bars_lower[] = null;
       if ( gd.getErrorVals() != null )
@@ -877,11 +882,10 @@ public boolean is_autoY_bounds()
            error_bars_upper[i] = y_copy[i] + gd.getErrorVals()[i]; 
            error_bars_lower[i] = y_copy[i] - gd.getErrorVals()[i];
         }
-        local_transform.MapYListTo(error_bars_upper);
-        local_transform.MapYListTo(error_bars_lower);
+        local_transform.MapYListTo(error_bars_upper); // map errors from WC to
+        local_transform.MapYListTo(error_bars_lower); // pixels
       }
       
-        local_transform.MapTo( x_copy, y_copy );       // map from WC to pixels
       if(gd.transparent) {
          g2.setComposite((Composite)AlphaComposite.getInstance(
                                     AlphaComposite.SRC_OVER, 0.0f));
@@ -930,7 +934,7 @@ public boolean is_autoY_bounds()
           g2.drawPolyline( x_int, y_int, n_points );
         }
         /* 
-          Sets the graphics two d back to visible to show point markers 
+          Sets the graphics twod back to visible to show point markers 
           and error bars for transparent lines.
         */
          if(gd.transparent)
