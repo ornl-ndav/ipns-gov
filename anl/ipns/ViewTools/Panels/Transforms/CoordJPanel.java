@@ -4,6 +4,11 @@
  *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.5  2001/03/30 19:21:10  dennis
+ *  The method   setLocalWorldCoordinates( bounds )   now intersects "bounds"
+ *  with the current global world coordinates to make sure that the local
+ *  coordinates are contained in the global corrdinates.
+ *
  *  Revision 1.4  2001/01/29 21:39:03  dennis
  *  Now uses CVS version numbers.
  *
@@ -143,7 +148,10 @@ abstract public class CoordJPanel extends    JPanel
   public void setLocalWorldCoords( CoordBounds b )
   {
     SetTransformsToWindowSize();
-    local_transform.setSource( b );
+
+    CoordBounds global_WC = getGlobalWorldCoords();      // keep new bounds
+                                                         // within global WC
+    local_transform.setSource( b.intersect( global_WC ));
   }
  
 
