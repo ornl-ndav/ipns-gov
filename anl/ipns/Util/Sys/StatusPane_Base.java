@@ -31,6 +31,11 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.7  2004/08/17 21:06:52  dennis
+ * Now just uses the append() method to add new messages, rather than
+ * appendDoc() that was a workaround for problems with earlier versions
+ * of java.
+ *
  * Revision 1.6  2004/03/11 22:13:14  millermi
  * - Changed package names and replaced SharedData with
  *   SharedMessages class.
@@ -137,7 +142,7 @@ public class StatusPane_Base extends JTextArea
         Object Value = evt.getNewValue();  
         
         if( PropName.equals( "Display")){
-            add( Value );
+            add( Value );  
         }else if( PropName.equals( "Clear")){
             Clearr();
         } 
@@ -163,7 +168,7 @@ public class StatusPane_Base extends JTextArea
             S = StringUtil.toString(Value);
 
         if( isDisplayable())
-            appendDoc(getDocument(), S ) ;
+            append( S + "\n" );
         else
             System.out.println( S );  
     } 
@@ -176,18 +181,4 @@ public class StatusPane_Base extends JTextArea
         setText(""); 
     } 
 
-    private void appendDoc( Document doc, String S )
-    {
-      if( doc == null )return;
-      int end = doc.getLength();
-
-      try
-      {
-         doc.insertString( end, S + "\n", null );
-      }
-      catch( Exception s )
-      {
-         System.out.println( "Error in StatusPane_Base.appendDoc=" + s );
-      }
-    } 
 }  
