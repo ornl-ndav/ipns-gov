@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/01/28 21:59:38  dennis
+ * Removed debug print.
+ *
  * Revision 1.2  2004/01/27 20:37:58  dennis
  * Added methods to get/set all relevant paramters, such as the
  * plane, width, height, depth and step size.
@@ -248,7 +251,6 @@ public class SliceSelectorUI extends    ActiveJPanel
   {
     public void actionPerformed( ActionEvent e )
     {
-      System.out.println("Value changed");
       send_message( ISlicePlaneSelector.PLANE_CHANGED );
     }
   }
