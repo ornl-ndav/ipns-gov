@@ -1,7 +1,7 @@
 /*
  * File: PanViewControl.java
  *
- * Copyright (C) 2003, Mike Miller
+ * Copyright (C) 2003-2005, Mike Miller
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2005/03/09 22:37:55  millermi
+ *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
+ *    to enable controls to be linked.
+ *  - Added "cm" as parameter to main() to test control with the
+ *    ControlManager.
+ *  - Now uses ImageJPanel2 instead of ImageJPanel for displaying image.
+ *
  *  Revision 1.17  2005/01/20 23:37:16  millermi
  *  - Added super.paint() to ThumbnailJPanel.paint().
  *
@@ -128,10 +135,11 @@
  import javax.swing.OverlayLayout;
  
  import gov.anl.ipns.ViewTools.Panels.Transforms.*;
- import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel;
+ import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
  import gov.anl.ipns.ViewTools.Components.Transparency.TranslationOverlay;
+ import gov.anl.ipns.ViewTools.Components.TwoD.ArrayGenerator;
  import gov.anl.ipns.Util.Sys.WindowShower;
  
 /**
@@ -178,6 +186,7 @@ public class PanViewControl extends ViewControl
   private TranslationOverlay overlay;  // where the region outline is drawn.
   private double data_width = 0;
   private double data_height = 0;
+  private boolean ignore_change = false;
   
  /**
   * Constructor for creating a thumbnail of the CoordJPanel passed in.
@@ -238,6 +247,32 @@ public class PanViewControl extends ViewControl
   }
   
  /**
+  * This method will set the local bounds for the PanViewControl. This is
+  * the same as calling setLocalBounds() only this method is used for generic
+  * getting and setting of values.
+  *
+  *  @param  value Local bounds (zoomed area) of the panel.
+  */
+  public void setControlValue(Object value)
+  {
+    if( value == null || !(value instanceof CoordBounds) )
+      return;
+    ignore_change = true;
+    setLocalBounds( (CoordBounds)value );
+    ignore_change = false;
+  }
+  
+ /**
+  * Get local bounds of the panel.
+  *
+  *  @return Local bounds of the panel.
+  */
+  public Object getControlValue()
+  {
+    return getLocalBounds();
+  }
+  
+ /**
   * Use this method to enable/disable the stretching ability of the viewport.
   *
   *  @param  can_stretch True to enable stretching, false to disable.
@@ -276,7 +311,43 @@ public class PanViewControl extends ViewControl
   */ 
   public void setLocalBounds( CoordBounds lb )
   {
-    overlay.setLocalBounds( lb.MakeCopy() );
+    CoordBounds global = getGlobalBounds();
+    float x1 = lb.getX1();
+    float x2 = lb.getX2();
+    float y1 = lb.getY1();
+    float y2 = lb.getY2();
+    // Make sure local x1 and x2 are between global x1 and x2.
+    if( global.getX1() < global.getX2() )
+    {
+      if( x1 < global.getX1() )
+        x1 = global.getX1();
+      if( x2 > global.getX2() )
+        x2 = global.getX2();
+    }
+    else // x2 < x1, so opposite of above.
+    {
+      if( x1 > global.getX1() )
+        x1 = global.getX1();
+      if( x2 < global.getX2() )
+        x2 = global.getX2();
+    }
+    // Make sure local y1 and y2 are between global y1 and y2.
+    if( global.getY1() < global.getY2() )
+    {
+      if( y1 < global.getY1() )
+        y1 = global.getY1();
+      if( y2 > global.getY2() )
+        y2 = global.getY2();
+    }
+    else // y2 < y1, so opposite of above.
+    {
+      if( y1 > global.getY1() )
+        y1 = global.getY1();
+      if( y2 < global.getY2() )
+        y2 = global.getY2();
+    }
+    // Set clamped local bounds, which are stored in overlay.
+    overlay.setLocalBounds( new CoordBounds(x1,y1,x2,y2) );
     repaint();
   }  
   
@@ -312,20 +383,45 @@ public class PanViewControl extends ViewControl
     refreshData();
   }
 
- /*
-  * Test program...
+ /**
+  *  Test program...If "cm" is passed as an argument, the
+  *  ControlManager will link controls.
   */
   public static void main(String[] args)
   {
+    // If cm is passed in, test with control manager.
+    if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
+    {
+      ImageJPanel2 test = new ImageJPanel2();
+      ArrayGenerator test_array = new ArrayGenerator(1000,1000);
+      test.setData(test_array, true);
+      ViewControl[] controls = new ViewControl[3];
+      controls[0] = new PanViewControl( test );
+      controls[0].setTitle("Pan1");
+      controls[1] = new PanViewControl( test );
+      controls[1].setTitle("Pan2");
+      controls[2] = new PanViewControl( test );
+      controls[2].setTitle("Pan3");
+      
+      String[] keys = new String[3];
+      keys[0] = "Pan";
+      keys[1] = "Pan";
+      keys[2] = "Pan";
+      
+      JFrame frame = ControlManager.makeManagerTestWindow( controls, keys );
+      frame.setBounds(0,0,450,500);
+      
+      WindowShower shower = new WindowShower(frame);
+      java.awt.EventQueue.invokeLater(shower);
+      shower = null;
+      return;
+    }
+    
     JFrame f = new JFrame("Test for PanViewControl");
     f.setBounds(0,0,200,200);
     f.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-    ImageJPanel test = new ImageJPanel();
-    
-    float test_array[][] = new float[500][500];
-    for ( int i = 0; i < 500; i++ )
-      for ( int j = 0; j < 500; j++ )
-        test_array[i][j] = i + j;
+    ImageJPanel2 test = new ImageJPanel2();
+    ArrayGenerator test_array = new ArrayGenerator(1000,1000);
     
     test.setData(test_array, true);
 
@@ -345,13 +441,13 @@ public class PanViewControl extends ViewControl
   {
     setImageDimension();
     setAspectRatio();
-    if( actual_cjp instanceof ImageJPanel )
+    if( actual_cjp instanceof ImageJPanel2 )
     { 
       Dimension panel_size = panel.getSize();
       // Since panel is in the PanViewControl, the aspect ratio of the
       // control affects the aspect ratio of the image. Don't need to
       // alter the image size according to the aspect ratio.
-      panel_image = ((ImageJPanel)actual_cjp).getThumbnail( panel_size.width, 
+      panel_image = ((ImageJPanel2)actual_cjp).getThumbnail( panel_size.width, 
                             panel_size.height );
       if( panel_image != null )
       {
@@ -379,10 +475,10 @@ public class PanViewControl extends ViewControl
   */ 
   private void setImageDimension()
   {
-    if( actual_cjp instanceof ImageJPanel )
+    if( actual_cjp instanceof ImageJPanel2 )
     {
-      data_width = (double)((ImageJPanel)actual_cjp).getNumDataColumns();
-      data_height = (double)((ImageJPanel)actual_cjp).getNumDataRows();
+      data_width = (double)((ImageJPanel2)actual_cjp).getNumDataColumns();
+      data_height = (double)((ImageJPanel2)actual_cjp).getNumDataRows();
     }
   }
  
@@ -418,7 +514,13 @@ public class PanViewControl extends ViewControl
   {
     public void actionPerformed( ActionEvent ae )
     {
-      send_message(ae.getActionCommand());
+      String message = ae.getActionCommand();
+      send_message(message);
+      // Only send out VALUE_CHANGED if local bounds are affected. Do not
+      // send out message if setControlValue() is called.
+      if( !ignore_change && (message.equals(BOUNDS_CHANGED) ||
+          message.equals(BOUNDS_MOVED) || message.equals(BOUNDS_RESIZED) ) )
+        send_message(VALUE_CHANGED);
     }
   }
  
