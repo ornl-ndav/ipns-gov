@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.33  2004/04/21 02:34:40  millermi
+ * - Fixed bug that incorrectly named selected indices.
+ *
  * Revision 1.32  2004/04/16 20:25:41  millermi
  * - Now uses new methods from the IVirtualArrayList1D.
  *
@@ -298,10 +301,13 @@ import javax.swing.border.*;
     String group_id;
     
     lines = new String[Varray1D.getNumSelectedGraphs(  )];
-
-    for( int i = 0; i < Varray1D.getNumSelectedGraphs(  ); i++ ) {
-      group_id   = Varray1D.getGraphTitle( i );
-      lines[i]   = "Group ID:" + group_id;
+    int index = 0;
+    for( int i = 0; i < Varray1D.getNumGraphs(  ); i++ ) {
+      if( Varray1D.isSelected(i) )
+      {
+        group_id   = Varray1D.getGraphTitle( i );
+        lines[index++]   = "Group ID:" + group_id;
+      }
     }
           
     //LineBox = new JComboBox(lines);
