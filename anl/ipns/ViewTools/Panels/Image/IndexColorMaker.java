@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2002/07/15 16:54:18  pfpeterson
+ *  Uses 'Heat 1' as default.
+ *
  *  Revision 1.10  2001/07/25 16:59:50  dennis
  *  Color scale names are no longer case sensitive.
  *
@@ -152,7 +155,7 @@ public class IndexColorMaker implements Serializable
       BuildSpectrumScale( red, green, blue );
 
     else
-      BuildGrayScale( red, green, blue );
+      BuildHeatedObjectScale( red, green, blue );
 
     IndexColorModel colors = new IndexColorModel( 8, num_colors,
                                                      red, green, blue );
