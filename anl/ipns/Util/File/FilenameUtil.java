@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2002/08/12 18:51:02  pfpeterson
+ *  Updated the documentation to reflect what fixSeparator actually does.
+ *
  *  Revision 1.8  2002/05/29 22:17:30  pfpeterson
  *  fixSeparator will now change all '' to '/'.
  *
@@ -77,13 +80,13 @@ public class FilenameUtil
 
   /**
    *  Replace all occurrences of the possible file separators "/" "\" "\\"
-   *  with the file separator needed for the local system.
+   *  with the appropriate file separator.
    *
    *  @param  file_name  A file name string possibly containing improper
    *                     separators.
    *
    *  @return  A string containing the file name with all separators replaced 
-   *           by the system dependent separtator needed on the local system. 
+   *           by the appropriate separtator.
    */
   public static String fixSeparator( String file_name )
   {
