@@ -1,5 +1,5 @@
 /*
- * File:  ThreeD_GL_Panel.java
+ * File:  BasicGLU.java
  *
  * Adapted and ported to java from the Mesa GLU implementation, "glu.c", 
  * Version 3.5, Copyright (C) 1995-2001, Brian Paul.
@@ -19,6 +19,10 @@
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log$
+ *  Revision 1.2  2004/06/17 15:27:02  dennis
+ *  Added implementation of gluUnProject() to map pixel locations back to
+ *  the corresponding point in 3D world coordinates.
+ *
  *  Revision 1.1  2004/06/15 22:12:19  dennis
  *  Implementation of a few basic GLU functions.  This was needed since
  *  jogl did not work with the GL Utilities (GLU) provided on some
@@ -29,6 +33,7 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 
 import net.java.games.jogl.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
  *  This class contains several utilities from the GLU package, ported from
@@ -236,4 +241,70 @@ public class BasicGLU
      gl.glMultMatrixf(m);
   }
 
+
+ /**
+  *  This method maps a point from window coordinates (with depth nomalized
+  *  to [0,1] back to a point in the view volumne.  This is designed to be
+  *  used to locate a point in 3D given a point on the window.
+  *  This is a replacement for GLU's  gluUnProject since the GLU functions
+  *  crashes when used with jogl on some implementations.  This code was
+  *  loosely adapted from the code in Mesa, originally written by 
+  *  M. Buffat 17/2/95.  
+  *
+  *  @param  win_x           The x-coordinate of the pixel
+  *  @param  win_y           The y-coordinate of the pixel 
+  *                          (in right-side-up pixel coordinates)
+  *  @param  win_z           The nomalized z-coordinate of the pixel, in [0,1],
+  *                          as returned by glReadPixels()
+  *  @param  model_view_mat  One dimensional array containing the entries 
+  *                          from the model view matrix, in column major order,
+  *                          as returned by GetDoublev( GL_MODELVIEW_MATRIX, m)
+  *  @param  projection_mat  One dimensional array containing the entries 
+  *                          from the projection matrix, in column major order,
+  *                          as returned by GetDoublev( GL_PROJECTION_MATRIX, m)  *  @param  viewport        One dimensional array containing the viewport
+  *                          position and dimensions {x,y,width,height}.
+  *  @param  world_x         Array to hold returned x coordinate in world_x[0]
+  *  @param  world_y         Array to hold returned y coordinate in world_y[0]
+  *  @param  world_z         Array to hold returned z coordinate in world_z[0]
+  */
+  public static void gluUnProject( double win_x, 
+                                   double win_y, 
+                                   double win_z, 
+                                   double model_view_mat[], 
+                                   double projection_mat[], 
+                                   int    viewport[],
+                                   double world_x[], 
+                                   double world_y[], 
+                                   double world_z[] )
+  {
+     Tran3D_d model_view = new Tran3D_d( model_view_mat );
+     Tran3D_d projection = new Tran3D_d( projection_mat );
+
+     model_view.transpose();                    // GL & GLU list matrices in 
+     projection.transpose();                    // column major order
+
+     System.out.println("Model View = " + model_view );
+     System.out.println("Projection = " + projection );
+     System.out.println("viewport = " + viewport[0] + 
+                                 ", " + viewport[1] + 
+                                 ", " + viewport[2] +
+                                 ", " + viewport[3] );
+
+     projection.multiply_by( model_view ); 
+     projection.invert();
+
+     double point[] = new double[4];
+     point[0] = (win_x - viewport[0]) * 2.0 / viewport[2] - 1.0;
+     point[1] = (win_y - viewport[1]) * 2.0 / viewport[3] - 1.0;
+     point[2] = 2 * win_z - 1.0;
+     point[3] = 1.0;
+     Vector3D_d vector = new Vector3D_d( point );
+
+     projection.apply_to( vector, vector );
+     double w = vector.get()[3];
+     world_x[0] = vector.get()[0]/w;
+     world_y[0] = vector.get()[1]/w;
+     world_z[0] = vector.get()[2]/w;
+  }
+ 
 }
