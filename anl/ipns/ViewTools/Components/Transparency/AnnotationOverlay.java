@@ -34,11 +34,32 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/06/05 22:08:33  dennis
+ *   (Mike Miller)
+ *   - Corrected resize capability
+ *   - Overlay now an AnnotationJPanel to allow arrow functionality
+ *   - Added getFocus() to fix keylistener problems and addAnnotation() to allow
+ *     internal classes (programmers) to add annotations.
+ *   - Added private class Note and MiniViewer
+ *
  *  Revision 1.1  2003/05/29 14:29:20  dennis
  *  Initial version, current functionality does not support
  *  annotation editing or annotation deletion. (Mike Miller)
- *
+ * 
  */
+
+/* *************************************************************
+ * *********Basic controls for the Annotation Overlay***********
+ * *************************************************************
+ * Keyboard Event    * Mouse Event       * Action              *
+ ***************************************************************
+ * press N (note)    * Press/Drag mouse  * add annotation      *
+ * none              * Double click      * clear last note     *
+ * press A (all)     * Double click      * clear all notes     *
+ ***************************************************************
+ * Important: 
+ * All keyboard events must be done prior to mouse events.
+ */ 
 
 package DataSetTools.components.View.Transparency;
 
@@ -49,20 +70,23 @@ import java.util.*;
 import java.lang.Math;
 
 import DataSetTools.components.View.TwoD.*;
+import DataSetTools.components.View.Cursor.*;
 
+/**
+ * This class allows a user to write comments near a region on the 
+ * IAxisAddible2D component. 
+ */
 public class AnnotationOverlay extends OverlayJPanel 
 {
-   private JPanel overlay;                // panel overlaying the center jpanel
+   private AnnotationJPanel overlay;      // panel overlaying the center jpanel
    private IAxisAddible2D component;      // component being passed
    private Vector notes;                  // all annotations
    private AnnotationOverlay this_panel;  // used for repaint by SelectListener 
-   private Rectangle init_bounds;
    private Rectangle current_bounds;
-   private int paint_num;
    private Color reg_color;
    
   /**
-   * Constructor creates OverlayJPanel with a transparent JPanel that
+   * Constructor creates OverlayJPanel with a transparent AnnotationJPanel that
    * shadows the region specified by the getRegionInfo() of the IAxisAddible2D
    * interface.
    *
@@ -73,27 +97,51 @@ public class AnnotationOverlay extends OverlayJPanel
       super();
       this.setLayout( new GridLayout(1,1) );
       
-      overlay = new JPanel();
+      overlay = new AnnotationJPanel();
       component = iaa;
       notes = new Vector();      
       this_panel = this;
-      paint_num = 0;
       reg_color = Color.black;
        
       this.add(overlay); 
-      overlay.setOpaque(false);     
-      overlay.addMouseListener( new ClickListener() );              
+      overlay.setOpaque(false); 
+      overlay.addActionListener( new NoteListener() );  
+      
+      overlay.requestFocus();           
    }
    
   /**
-   * This method sets the color of all annotations.
+   * This method sets the color of all annotations. Initially set to black.
    *
    *  @param  color
    */
    public void setTextColor( Color c )
    {
       reg_color = c;
-   }   
+      this_panel.repaint();
+   }
+   
+  /**
+   * This method requests focus from the parent. When called by the parent,
+   * this gives keyboard focus to the AnnotationJPanel.
+   */
+   public void getFocus()
+   {
+      overlay.requestFocus();
+   }      
+
+  /**
+   * Allows toplevel components to add annotations. To use this method, be sure
+   * the path to the Line class is in your import statements.
+   * Path: DataSetTools/components/View/Cursor/Line.java
+   *
+   *  @param  a_note
+   *  @param  placement
+   */
+   public void addAnnotation( String a_note, Line placement )
+   {
+      notes.add( new Note( a_note, placement, current_bounds ) );
+   }
 
   /**
    * Overrides paint method. This method will paint the annotations.
@@ -102,11 +150,9 @@ public class AnnotationOverlay extends OverlayJPanel
    */
    public void paint(Graphics g) 
    {  
-      Graphics2D g2d = (Graphics2D)g; 
+      Graphics2D g2d = (Graphics2D)g;
       current_bounds = component.getRegionInfo();  // current size of center
-      // get the initial size of center jpanel, only do this the first time.
-      if( paint_num == 0 )
-         init_bounds = current_bounds;
+
       // resize center "overlay" to size of center jpanel
       overlay.setBounds( current_bounds );
       // color of all of the annotations.
@@ -115,143 +161,203 @@ public class AnnotationOverlay extends OverlayJPanel
       int oy = overlay.getLocation().y;
      /* To "move" the annotations, an x & y scale had to be made. This
       * simply takes the width of the current rectangle/scale rectangle.
-      * The factors are not quite accurate, so a power function is used
-      * to make them more accurate.
       */ 
       float xfactor = 0;
       float yfactor = 0;
+      Note note;
       for( int comment = 0; comment < notes.size(); comment++ )
       {
+         note = (Note)notes.elementAt(comment);
          xfactor = (float)current_bounds.getWidth()/
-	       (float)((Note)notes.elementAt(comment)).getScale().getWidth();
-	 xfactor = (float)Math.pow(xfactor,.82); // xfactor not quite accurate
+	           (float)note.getScale().getWidth();
 	           
          yfactor = (float)current_bounds.getHeight()/
-	       (float)((Note)notes.elementAt(comment)).getScale().getHeight();
-	 yfactor = (float)Math.pow(yfactor,.89); // yfactor not quite accurate
-               
-	 //System.out.println("X/Y factor " + xfactor + "/" + yfactor);     
-         Point at = ((Note)notes.elementAt(comment)).getLocation();
-	 String note = ((Note)notes.elementAt(comment)).getText();
+	           (float)note.getScale().getHeight();
+                  
+         Point at = note.getLocation();
+	 String snote = note.getText();
 	 
-	 g2d.drawString( note, (int)((at.x + ox) * xfactor), 
-	                       (int)((at.y + oy) * yfactor) );
+	 g2d.drawLine( (int)(note.getLine().getP1().x * xfactor) + ox, 
+	               (int)(note.getLine().getP1().y * yfactor) + oy,
+	               (int)(note.getLine().getP2().x * xfactor) + ox, 
+		       (int)(note.getLine().getP2().y * yfactor) + oy );
+	 
+	 g2d.drawString( snote, (int)((at.x * xfactor) + ox), 
+	                        (int)((at.y * yfactor) + oy));
+	 /*
+         System.out.println("X/Y factor " + xfactor + "/" + yfactor); 
+	 System.out.println("PrePixel: (" + (at.x + ox) + "," + 
+	                                    (at.y + oy) + ")" ); 
+	 System.out.println("PostPixel: (" + (int)((at.x + ox) * xfactor) +
+	                    "," + (int)((at.y + oy) * yfactor) + ")" );
+	 */
       }     
-      paint_num++;  // only needed to get init_bounds
    } // end of paint()
 
   /*
-   * ClickListener listens for mouse clicks on the overlay field
-   * Currently the textfield that pops up can have a button that accompanies
-   * it. However, this was removed, and the user can add by pressing "Return".
+   * NoteListener listens to action events generated by the AnnotationJPanel.
    */
-   private class ClickListener extends MouseAdapter
+   private class NoteListener implements ActionListener
+   {
+      public void actionPerformed( ActionEvent ae )
+      {	
+         String message = ae.getActionCommand(); 
+         // clear all notes from the vector
+         if( message.equals( AnnotationJPanel.RESET_NOTE ) )
+         {
+	    //System.out.println("Clear all selected" ); 
+	    if( notes.size() > 0 )
+	       notes.clear(); 
+	    else
+	       System.out.println("No annotations created");          
+	 }
+	 // remove the last note from the vector
+         else if( message.equals( AnnotationJPanel.RESET_LAST_NOTE ) )
+         {
+	    //System.out.println("Clear last selected" ); 
+	    if( notes.size() > 0 )
+	       notes.removeElementAt(notes.size() - 1); 
+	    else
+	       System.out.println("No annotations created");	      
+	 }	 
+	 else if( message.equals( AnnotationJPanel.NOTE_REQUESTED ) )
+	 {	
+	    //****************** this code here may change ********************
+	    // this is here to allow the pop-up textfield to adjust if the
+	    // viewer itself is moved.
+	    Container viewer = this_panel.getParent().getParent().
+			  getParent().getParent().getParent(); 
+            //*****************************************************************
+	    // all new stuff is created here otherwise the reference is
+	    // maintained, which adjusts all notes to the same location...BAD
+	    Line temp = ((LineCursor)
+	                      overlay.getLineCursor()).region();
+	    Point p1 = new Point( temp.getP1() );
+	    Point p2 = new Point( temp.getP2() );
+	    Line newline = new Line( p1, p2 );
+	    new MiniViewer( newline, viewer );
+	 }
+	 this_panel.repaint();
+      }
+   }
+  
+  /*
+   * MiniViewer is the textfield the pops up when a user adds a new annotation.
+   * This class includes its own listener to the textfield.
+   */ 
+   private class MiniViewer
    {
       private JFrame frame;
       private JTextField text;
-      private Point current;
-      //private JButton addbutton;
-      
-      public ClickListener()
+      private Line region;
+      public MiniViewer( Line acline, Container viewer )
       {
+         region = acline;
+      
          frame = new JFrame();
-	 frame.setBounds(0,0,150,60);
-	 // if add button back in, replace these next two lines
-	 //frame.getContentPane().setLayout( new GridLayout(1,2) );
-	 frame.getContentPane().setLayout( new GridLayout(1,1) );
-	 text = new JTextField( 20 );
-	 text.addKeyListener( new TextListener() );
-	 //addbutton = new JButton("Add");
-	 //addbutton.setPreferredSize( new Dimension( 0, 40 ) );
-	 //addbutton.addActionListener( new AddListener() );
-	 frame.getContentPane().add(text);
-	 //frame.getContentPane().add(addbutton);
-      }  
-      
-      public void mouseClicked (MouseEvent e)
-      {
-         //System.out.println("Current = " + e.getPoint() );
+         frame.setBounds(0,0,150,60);
+         frame.getContentPane().setLayout( new GridLayout(1,1) );
+         text = new JTextField(20);
+         text.addKeyListener( new TextFieldListener() );
+         frame.getContentPane().add(text); 
 	 
-         if ( e.getClickCount() == 2 ) 
-	 {	    
-	    current = e.getPoint();
-	    text.setText("");
-	    Container viewer = this_panel.getParent().getParent().
-			  getParent().getParent().getParent(); 
-	    Point place = new Point(current); 
-	    place.x = place.x + (int)viewer.getLocation().getX();
-	    place.y = place.y + (int)viewer.getLocation().getY();
-	    frame.setLocation(place);
-	    frame.setVisible(true);
-	    text.requestFocus();
-	 }	        	    
-      } 
-/* here for the button 
-      private class AddListener implements ActionListener
-      {
-         public void actionPerformed( ActionEvent e )
-         {
-            System.out.println("here in actionPerformed");
-	    
-            Note postit = new Note( text.getText(), current, current_bounds );
-	    notes.add(postit);
-	    frame.setVisible(false);
-	    //this_panel.revalidate();
-	    this_panel.getParent().getParent().repaint();
-	 }	        	    
-      } 
-*/     
+	 Point place = new Point(region.getP2()); 
+	 place.x = place.x + (int)viewer.getLocation().getX();
+	 place.y = place.y + (int)viewer.getLocation().getY();
+	 frame.setLocation(place);
+	 frame.setVisible(true);
+	 text.requestFocus();		   
+      }
+            
      /*
-      * This class is used by the textfield to pass the "note" to paint()
+      * This internal class of the MiniViewer listens for the "enter" key to 
+      * be pressed. Once pressed, information is then passed on to the Note
+      * class and the MiniViewer is set to setVisible(false).
       */ 
-      private class TextListener extends KeyAdapter
+      class TextFieldListener extends KeyAdapter
       {
          public void keyTyped( KeyEvent e )
-	 {
-	    if( e.getKeyChar() == KeyEvent.VK_ENTER )
-	    {
-	       Note postit = new Note( text.getText(), current, current_bounds );
-	       notes.add(postit);
-	       frame.setVisible(false);
-	       this_panel.getParent().getParent().repaint();
-	       //System.out.println("KeyTyped " + e.getKeyChar() );
-	    }
-	 }
-      }     
-   
-   } // end ClickListener  
-
+         {
+     	    if( e.getKeyChar() == KeyEvent.VK_ENTER )
+     	    {
+       	       //JTextField text = (JTextField)e.getComponent();
+     	       this_panel.addAnnotation( text.getText(), region );
+     	       frame.setVisible(false);
+	       frame.dispose();  // since a new viewer is made each time,
+	                         // dispose of the old one.
+     	       this_panel.getParent().getParent().repaint();
+     	       //System.out.println("KeyTyped " + e.getKeyChar() );	    
+     	    }
+         }
+      }	      
+   } // end of MiniViewer
+     
   /*
    * This class creates an internal datastructure to easily group a string,
-   * its location to be displayed, and the rectangle it was created in.
+   * its location to be displayed, and the bounds it was created in.
    */
    private class Note
    {
-      private String text;         // actual note being drawn
-      private Point location;      // location to draw this note
-      private Rectangle scale;     // the bounds of the overlay when this 
-                                   // note was created
-      
-      public Note(String t, Point l, Rectangle s)
+      private JTextField textfield; // actual note being drawn
+      private Line arrow;           // location to draw this note
+      private Rectangle scale;      // the bounds of the overlay when this 
+                                    // note was created
+     /*
+      * This constructor takes in three parameters, a string text which is 
+      * the actual message, a line which has a beginning point at the region
+      * of interest and an ending point where the annotation will be drawn, and
+      * a third parameter rectangle, which represents the bounds in which this
+      * annotation was created.
+      */ 
+      public Note(String t, Line l, Rectangle s)
       {
-     	 text = t;
-     	 location = l;
-	 scale = s;
+     	 textfield = new JTextField(t);
+     	 arrow = new Line(l.getP1(), l.getP2());
+	 scale = new Rectangle(s);
       }
-      
+     
+     /*
+      * @return the actual note itself
+      */ 
       public String getText()
       {
-     	 return text;
+     	 return textfield.getText();
       }
       
+     /*
+      * @return the location the annotation will be drawn at.
+      */ 
       public Point getLocation()
       {
-     	 return location;
+     	 return arrow.getP2();
       }
-      
+     
+     /*
+      * @return the rectangle bounds this annotation was created in.
+      */ 
       public Rectangle getScale()
       {
          return scale;
+      }
+     
+     /*
+      * @return the textfield containing the string. A textfield was chosen
+      *         instead of just a string because when editing is allowed,
+      *         a textfield will be required anyways.
+      */ 
+      public JTextField getTextField()
+      {
+         return textfield;
+      }
+     
+     /*
+      * @return the line representing the arrow from p1 ( the point near
+      *         the intended area ) to p2 ( the location of the annotation ).
+      *         This also allows the paint to draw a line from p1 to p2. 
+      */ 
+      public Line getLine()
+      {
+         return arrow;
       }
    }
    
