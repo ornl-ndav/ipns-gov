@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/10/21 21:57:09  millermi
+ *  - Replaced the setPointedAt() and getPointedAt() methods since
+ *    these cannot be factored out at the "upper" level.
+ *
  *  Revision 1.6  2003/10/21 00:47:50  millermi
  *  - Now extends IViewComponent, thus requiring less
  *    methods to be outlined by this interface.
@@ -73,7 +77,21 @@ import DataSetTools.components.View.IVirtualArray2D;
  * data in a graphical form. Examples include images, tables, and graphs.
  */
 public interface IViewComponent2D extends IViewComponent
-{
+{  
+ /**
+  * This method is a notification to the view component that the selected
+  * point has changed.
+  *
+  *  @param  pt - current point
+  */ 
+  public void setPointedAt( Point pt );
+ 
+ /**
+  * This method is a notification to the view component that the selected
+  * point has changed.
+  */ 
+  public Point getPointedAt();
+
  /**
   * Given an array of points, a selection overlay can be created.
   *
