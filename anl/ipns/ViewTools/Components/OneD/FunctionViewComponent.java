@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.37  2004/01/30 19:10:49  serumb
+ *  Fixed index out of bounds exception.
+ *
  *  Revision 1.36  2004/01/30 18:12:27  serumb
  *  Initilized the GraphJPanel with the Virtual Array and
  *  added object state data.
@@ -252,7 +255,6 @@ public class FunctionViewComponent implements IViewComponent1D,
        float x[] = Varray1D.getXVals_ofIndex(i-1);
        float y[] = Varray1D.getYVals_ofIndex(i-1);
        gjp.setData( x, y, i, false );     
-       gjp.setErrors( varr.getErrorValues( i-1 ), 0, i, true );
     }
     gjp.setBackground( Color.white );
 /*    // set initial line styles
