@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/08/06 13:53:16  dennis
+ *  - Added functionality for JComboBox.(Mike Miller)
+ *
  *  Revision 1.1  2003/06/06 18:49:25  dennis
  *  - Initial Version, used to convert JComponents to ViewControls. Only
  *    components derived from AbstractButton will have listeners.
@@ -50,7 +53,7 @@
  
 /**
  * This class is to quickly convert JComponents to ViewControls. However,
- * only components extending an AbstractButton will have listeners.
+ * only components extending an AbstractButton or JComboBox will have listeners.
  */
 public class ViewControlMaker extends ViewControl
 {
@@ -63,7 +66,9 @@ public class ViewControlMaker extends ViewControl
       component = comp;
       this.add(component);
       if( component instanceof AbstractButton )
-         ((AbstractButton)component).addActionListener( new ActionList() );
+        ((AbstractButton)component).addActionListener( new ActionList() );
+      else if ( component instanceof JComboBox )
+        ((JComboBox)component).addActionListener( new ActionList() );
       this_panel = this;     
    }
       
@@ -95,5 +100,19 @@ public class ViewControlMaker extends ViewControl
          this_panel.send_message( e.getActionCommand() );
       }
    }  
+  
+  /*
+   *  For testing purposes only
+   */
+   public static void main(String[] args)
+   { 
+      String[] list = {"1","2","3"};
+      ViewControlMaker jcb = new ViewControlMaker( new JComboBox(list) );
+      JFrame frame = new JFrame("JComboBox Test");
+      frame.setBounds(0,0,200,200);
+      frame.getContentPane().add(jcb);
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      frame.setVisible(true);
+   }
 
 }
