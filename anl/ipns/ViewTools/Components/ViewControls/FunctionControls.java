@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.27  2004/03/12 02:55:56  millermi
+ * - Changed package, fixed most of the imports.
+ *
  * Revision 1.26  2004/03/11 23:35:41  serumb
  * Removed String entry objects.
  *
@@ -119,18 +122,17 @@
  * Added controls for zooming on the y axis.
  *
  */
-package DataSetTools.components.View.ViewControls;
+package gov.anl.ipns.ViewTools.Components.ViewControls;
 
-import DataSetTools.components.ParametersGUI.*;
-import DataSetTools.components.ui.*;
-import DataSetTools.components.View.*;  // IVirtualArray1D
-import DataSetTools.components.View.OneD.*;
-import DataSetTools.components.View.Transparency.*;  //Axis Overlays
-import DataSetTools.components.View.ViewControls.*;
-import DataSetTools.components.image.*;//GraphJPanel & ImageJPanel & CoordJPanel
-import DataSetTools.dataset.*;
-import DataSetTools.math.*;
-import DataSetTools.util.*;  //floatPoint2D FloatFilter
+//import DataSetTools.components.ParametersGUI.*;
+//import DataSetTools.components.ui.*;
+import gov.anl.ipns.ViewTools.Components.*;  // IVirtualArray1D
+import gov.anl.ipns.ViewTools.Components.OneD.*;
+import gov.anl.ipns.ViewTools.Components.Transparency.*;  //Axis Overlays
+import gov.anl.ipns.ViewTools.Panels.Graph.*;//GraphJPanel
+//import DataSetTools.dataset.*;
+//import DataSetTools.math.*;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;  //floatPoint2D FloatFilter
                                                                                                                                                
 // component changes
 import java.applet.Applet;
