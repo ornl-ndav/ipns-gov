@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2004/02/19 23:24:55  millermi
+ * - Added preserveAspectRatio() to ImageViewComponent,
+ *   the image dimensions are now similar to that of the selected
+ *   region.
+ * - Fixed SELECTED_CHANGED message problems with ImageViewComponent.
+ *
  * Revision 1.14  2004/02/13 22:56:22  millermi
  * - setData() now compares array references instead of data
  *   dimensions.
@@ -154,6 +160,7 @@ public class IVCTester extends JFrame implements IPreserveState,
   private transient JMenuBar menu_bar;
   private transient boolean helpAdded = false;
   private ObjectState state;
+  private boolean aspect = false;
 
  /**
   * Construct a frame with the specified image and title
@@ -179,7 +186,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     listeners.add( new ImageListener() );
     file.add("File");
     file.add(new_menu);
-      new_menu.add("New");
+      new_menu.add("Toggle Aspect Ratio");
     file.add(save_menu);
       save_menu.add("Save State");
     file.add(load_menu);
@@ -245,6 +252,10 @@ public class IVCTester extends JFrame implements IPreserveState,
   public void setObjectState( ObjectState new_state )
   {
     ivc.setObjectState(new_state);
+    Boolean preserve = (Boolean)
+        ivc.getObjectState(false).get(ImageViewComponent.PRESERVE_ASPECT_RATIO);
+    if( preserve != null )
+      aspect = preserve.booleanValue();
     //repaint();
   }
   
@@ -309,7 +320,6 @@ public class IVCTester extends JFrame implements IPreserveState,
     { 
       setTitle( data.getTitle() );
       ivc = new ImageViewComponent( data );
-      //ivc.setColorControlSouth(true);
       ivc.addActionListener( new ImageListener() );
       Box controls = new Box(BoxLayout.Y_AXIS);
       JComponent[] ctrl = ivc.getSharedControls();
@@ -359,17 +369,10 @@ public class IVCTester extends JFrame implements IPreserveState,
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals("New") )
+      if( ae.getActionCommand().equals("Toggle Aspect Ratio") )
       {
-        float temp_array[][] = new float[500][500];
-        for ( int i = 0; i < 500; i++ )
-          for ( int j = 0; j < 500; j++ )
-            temp_array[i][j] = i + 3*j;
-        VirtualArray2D temp_va = new VirtualArray2D(temp_array);
-	temp_va.setTitle("New IVC");
-	setData( temp_va );
-	validate();
-	repaint();	
+        aspect = !aspect;
+        ivc.preserveAspectRatio(aspect);
       }
       else if( ae.getActionCommand().equals("Save State") )
       {
@@ -422,8 +425,8 @@ public class IVCTester extends JFrame implements IPreserveState,
   */
   public static void main( String args[] )
   {
-    int row = 100;
-    int col = 100;
+    int row = 200;
+    int col = 300;
     float test_array[][] = new float[row][col];
     for ( int i = 0; i < row; i++ )
       for ( int j = 0; j < col; j++ )
@@ -438,6 +441,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     ObjectState sliderstate = new ObjectState();
     sliderstate.insert(ControlSlider.SLIDER_VALUE, new Float(20) );
     state.insert( ImageViewComponent.LOG_SCALE_SLIDER, sliderstate );
+    state.insert( ImageViewComponent.PRESERVE_ASPECT_RATIO, new Boolean(true) );
                   
     IVCTester im_frame = new IVCTester( va2D );
     im_frame.setObjectState(state);

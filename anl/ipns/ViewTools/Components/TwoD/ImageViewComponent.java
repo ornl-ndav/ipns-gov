@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.57  2004/02/19 23:24:54  millermi
+ *  - Added preserveAspectRatio() to ImageViewComponent,
+ *    the image dimensions are now similar to that of the selected
+ *    region.
+ *  - Fixed SELECTED_CHANGED message problems with ImageViewComponent.
+ *
  *  Revision 1.56  2004/02/14 03:38:19  millermi
  *  - renamed addSelection() to addSelectedRegion()
  *  - converted all WCRegion code to use the Region class instead.
@@ -335,7 +341,6 @@ import DataSetTools.components.ui.ColorScaleMenu;
  * and annotation abilities.
  */
 public class ImageViewComponent implements IViewComponent2D, 
-                                           ActionListener,
            /*for IAxisAddible2D*/          IColorScaleAddible,
            /*for Selection/Annotation*/    IZoomTextAddible,
 	                                   IPreserveState,
@@ -452,6 +457,14 @@ public class ImageViewComponent implements IViewComponent2D,
   * of the overlay.
   */
   public static final String SELECTION_OVERLAY   = "SelectionOverlay";
+
+ /**
+  * "Preserve Aspect Ratio" - This constant String is a key for referencing the
+  * state information about how to draw the ImageJPanel at the center of the
+  * display panel. If true, the center image should never get distorted.
+  * The value that this key references is a primative boolean.
+  */
+  public static final String PRESERVE_ASPECT_RATIO   = "Preserve Aspect Ratio";
   
   // this variable controls the max size of the virtual array to be analyzed.
   private static final int MAXDATASIZE = 1000000000;
@@ -475,7 +488,11 @@ public class ImageViewComponent implements IViewComponent2D,
   private boolean addColorControlEast = false;   // add calibrated color scale
   private boolean addColorControlSouth = false;  // add calibrated color scale
   private boolean addColorControl = true;  // add color scale with controls
-  
+  private int north_height = 0;  // These four values give the total height
+  private int south_height = 0;  // and width of the north, east, south, and
+  private int east_width = 0;    // west components of the background panel to
+  private int west_width = 0;    // be used for setting aspect ratio of image.
+  private boolean preserve_ratio = false;  // if true, preserve aspect ratio
  /**
   * Constructor that takes in a virtual array and creates an imagejpanel
   * to be viewed in a border layout.
@@ -672,6 +689,13 @@ public class ImageViewComponent implements IViewComponent2D,
       ((ControlCheckboxButton)controls[3]).setObjectState((ObjectState)temp);
       redraw = true;  
     }
+    
+    temp = new_state.get(PRESERVE_ASPECT_RATIO);
+    if( temp != null )
+    {
+      preserveAspectRatio(((Boolean)temp).booleanValue());
+      redraw = true;  
+    }
    
     if( redraw )
       reInit();
@@ -710,15 +734,51 @@ public class ImageViewComponent implements IViewComponent2D,
               ((ControlCheckboxButton)controls[3]).getObjectState(isDefault) );
     state.insert( SELECTION_OVERLAY,  
       ((OverlayJPanel)transparencies.elementAt(1)).getObjectState(isDefault) );
+    state.insert( PRESERVE_ASPECT_RATIO, new Boolean(preserve_ratio) );
     
     return state;
   }
-  /*
+  
+ /**
+  * Call this method to prevent the center image from being distorted. If true,
+  * the zoomed image will resize to the aspect ratio of the image rows and
+  * columns.
+  *
+  *  @param  doPreserve If true, the image will not be distorted.
+  */
   public void preserveAspectRatio( boolean doPreserve )
   {
-    ijp.setPreserveAspectRatio(doPreserve);
+    // add AspectRatio listener only if one has not been added.
+    ComponentListener[] bp_list = getDisplayPanel().getComponentListeners();
+    if( doPreserve )
+    {
+      // does a PreserveAspect listener exist
+      boolean contains_aspect_listener = false;
+      int i = 0;
+      // find index of component listeners from PreserveAspect class.
+      while( !contains_aspect_listener && (i < bp_list.length) )
+      {
+        if( bp_list[i] instanceof PreserveAspect )
+	{
+	  contains_aspect_listener = true;
+	}
+	i++;
+      }
+      // add PreserveAspect listener if none have been added.
+      if( !contains_aspect_listener )
+      {
+        getDisplayPanel().addComponentListener( new PreserveAspect() );
+      }
+    }
+    preserve_ratio = doPreserve;
+    // If image not yet visible, the componentResized() will be called
+    // when it is made visible. If image is visible, adjust image now.
+    if( getDisplayPanel().isVisible() )
+    {
+      buildAspectImage();
+    }
   }
-  */    
+      
  /**
   * This method will disable the selections included in the names
   * list. Names are defined by static Strings in the SelectionJPanel class.
@@ -787,11 +847,11 @@ public class ImageViewComponent implements IViewComponent2D,
     // if true, return x info
     if( axiscode == AxisInfo.X_AXIS )
     {
-       return new AxisInfo( ijp.getLocalWorldCoords().getX1(),
-    			    ijp.getLocalWorldCoords().getX2(),
-    			    Varray2D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
-    			    Varray2D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
-    			    AxisInfo.LINEAR );
+      return new AxisInfo( ijp.getLocalWorldCoords().getX1(),
+        		   ijp.getLocalWorldCoords().getX2(),
+        		   Varray2D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
+        		   Varray2D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
+        		   AxisInfo.LINEAR );
     }
     // if true, return y info
     if( axiscode == AxisInfo.Y_AXIS )
@@ -933,6 +993,7 @@ public class ImageViewComponent implements IViewComponent2D,
     if( !((ControlCheckboxButton)controls[3]).isSelected() )
       ((ControlCheckboxButton)controls[3]).doClick();
     returnFocus();
+    sendMessage(SELECTED_CHANGED);
   }
  
  /**
@@ -956,6 +1017,7 @@ public class ImageViewComponent implements IViewComponent2D,
       if( !((ControlCheckboxButton)controls[3]).isSelected() )
         ((ControlCheckboxButton)controls[3]).doClick();
       returnFocus();
+      sendMessage(SELECTED_CHANGED);
     }
   }
  
@@ -989,15 +1051,7 @@ public class ImageViewComponent implements IViewComponent2D,
     float[][] f_array = Varray2D.getRegionValues( 0, MAXDATASIZE, 
         					  0, MAXDATASIZE );
     ijp.setData(f_array, true);
-
-    AxisInfo xinfo = Varray2D.getAxisInfo(AxisInfo.X_AXIS);
-    AxisInfo yinfo = Varray2D.getAxisInfo(AxisInfo.Y_AXIS);
-/*
-    ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
-    					        yinfo.getMax(),
-    					        xinfo.getMax(),
-    					        yinfo.getMin() ) );
-*/
+    
     local_bounds = ijp.getLocalWorldCoords().MakeCopy();
     global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
 
@@ -1180,22 +1234,6 @@ public class ImageViewComponent implements IViewComponent2D,
     }
     buildViewComponent();
   }
- 
- // required since implementing ActionListener
- /**
-  * This method sends out a message if the pointed-at point is changed.
-  *
-  *  @param  e - action event
-  */ 
-  public void actionPerformed( ActionEvent e )
-  {
-    //get POINTED_AT_CHANGED or SELECTED_CHANGED message from e 
-    String message = e.getActionCommand();     
-    
-    //Send message to listeners 
-    if ( message.equals(POINTED_AT_CHANGED) )
-      sendMessage(POINTED_AT_CHANGED);
-  }
   
  /*
   * Tells all listeners about a new action.
@@ -1282,21 +1320,25 @@ public class ImageViewComponent implements IViewComponent2D,
   * Overlays are added to allow for calibration, selection, and annotation.
   */
   private void buildViewComponent()
-  {   
-    int westwidth = font.getSize() * precision + 22;
-    int southwidth = font.getSize() * 3 + 9;
+  {  
+    north_height = 25;
+    south_height = font.getSize() * 3 + 9;
+    east_width = 50;
+    west_width = font.getSize() * precision + 22;
     // this will be the background for the master panel
     background.removeAll();
     String title = getValueAxisInfo().getLabel() + " (" + 
                    getValueAxisInfo().getUnits() + ")";
     JPanel north = new JPanel();
-    north.setPreferredSize(new Dimension( 0, 25 ) );
+    north.setPreferredSize(new Dimension( 0, north_height ) );
     JPanel east; 
     JPanel south;
+    // add calibrated color scale to the east panel
     if( addColorControlEast )
     {
+      east_width += 40;  // reset east_width to 90 if it has a colorscale
       east = new ControlColorScale( this, ControlColorScale.VERTICAL );
-      east.setPreferredSize( new Dimension( 90, 0 ) );
+      east.setPreferredSize( new Dimension( east_width, 0 ) );
       //((ControlColorScale)east).setTwoSided(isTwoSided);
       //((ControlColorScale)east).setLogScale(logscale);
       ((ControlColorScale)east).setTitle(title);
@@ -1304,30 +1346,33 @@ public class ImageViewComponent implements IViewComponent2D,
     else
     {
       east = new JPanel();
-      east.setPreferredSize(new Dimension( 50, 0 ) );
+      east.setPreferredSize(new Dimension( east_width, 0 ) );
     }
+    // add calibrated color scale to the south panel
     if( addColorControlSouth )
     {
+      // divide south panel in two, upper spacer and lower color control
       south = new JPanel( new BorderLayout() );
+      // add spacer to upper part of south panel of display panel
       JPanel mininorth = new JPanel();
-      mininorth.setPreferredSize( new Dimension( 0, southwidth ) );
+      mininorth.setPreferredSize( new Dimension( 0, south_height ) );
       south.add( mininorth, "North" );
+      // add calibrated color control to lower part of south panel
       ControlColorScale ccs = new ControlColorScale(
 				    this,ControlColorScale.HORIZONTAL);
       ccs.setTitle(title);
-      //ccs.setTwoSided(isTwoSided);
-      //ccs.setLogScale(logscale);
       south.add( ccs, "Center" );
-      south.setPreferredSize( new Dimension( 0, southwidth + 75) );
+      south_height += 75; // add 75 to south panel if colorscale.
+      south.setPreferredSize( new Dimension( 0, south_height) );
     }
     else
     {
       south = new JPanel();    
-      south.setPreferredSize(new Dimension( 0, southwidth ) );
+      south.setPreferredSize(new Dimension( 0, south_height ) );
     }
  
     JPanel west = new JPanel();
-    west.setPreferredSize(new Dimension( westwidth, 0 ) );
+    west.setPreferredSize(new Dimension( west_width, 0 ) );
     
     //Construct the background JPanel
 
@@ -1335,7 +1380,8 @@ public class ImageViewComponent implements IViewComponent2D,
     background.add(north, "North");
     background.add(west, "West");
     background.add(south, "South");
-    background.add(east, "East" ); 
+    background.add(east, "East" );
+    buildAspectImage();
   }
   
  /*
@@ -1407,6 +1453,95 @@ public class ImageViewComponent implements IViewComponent2D,
     menus[1] = new ViewMenuItem(ViewMenuItem.PUT_IN_HELP, helpmenu );
   }
   
+ /*
+  * This method controls the aspect ratio of the imagejpanel by setting the
+  * preferred size of the north, south, east, and west panels. This method
+  * will only do something if preserveAspectRatio(true) is called.
+  */ 
+  private void buildAspectImage()
+  {
+    // temporary dimension values, don't want to change originals.
+    int n_h = north_height;
+    int e_w = east_width;
+    int s_h = south_height;
+    int w_w = west_width;
+    if( preserve_ratio )
+    {
+      // the actual desired size of the center panel.
+      int center_height = 0;
+      int center_width  = 0;
+      Dimension dim = getDisplayPanel().getSize();
+      // these are the maximum size that the center panel could be.
+      int max_height = dim.height - (n_h + s_h);
+      int max_width = dim.width - (e_w + w_w);
+      // calculate ratio of (rows/columns) or (y/x)
+      int image_row_min = ijp.ImageRow_of_WC_y(local_bounds.getY1());
+      int image_row_max = ijp.ImageRow_of_WC_y(local_bounds.getY2());
+      int image_col_min = ijp.ImageCol_of_WC_x(local_bounds.getX1());
+      int image_col_max = ijp.ImageCol_of_WC_x(local_bounds.getX2());
+      int x = image_col_max - image_col_min;
+      int y = image_row_max - image_row_min;
+      //System.out.println("y/x: " + y + "/" + x);
+      float ratio = Math.abs( (float)y/(float)x );  // rise over run
+      // height is greater than width
+      if( ratio > 1 )
+      {
+        center_height = max_height;
+        center_width  = Math.round(((float)center_height)/ratio);
+      }
+      else
+      {
+        center_width  = max_width;
+        center_height = Math.round(((float)center_width)*ratio);
+      }
+      // make sure component dimensions are below maximum range
+      if( center_width > max_width )
+      {
+        center_width  = max_width;
+        center_height = Math.round(((float)center_width)*ratio);
+      }
+      else if( center_height > max_height )
+      {
+        center_height = max_height;
+        center_width  = Math.round(((float)center_height)/ratio);
+      }
+      // Reset sizes of north, east, south, and west panel to consequently
+      // resize the center panel.
+      int fill_width  = dim.width - ( center_width + e_w + w_w );
+      int fill_height = dim.height - ( center_height + n_h + s_h );
+      // since dealing with integers, if value is odd, add left over one to
+      // west or north.
+      if( fill_width % 2 == 1 )  // if fill_width is odd, put extra in w_w
+        w_w += 1;
+      if( fill_height % 2 == 1 ) // if fill_height is odd, put extra in n_h
+        n_h += 1;
+      n_h += fill_height/2;  // add integer value of half to f_h
+      e_w += fill_width/2;   // add integer value of half to f_w
+      s_h += fill_height/2;  // add integer value of half to f_h
+      w_w += fill_width/2;   // add integer value of half to f_w 
+    }
+    // north
+    ((JPanel)background.getComponent(1)).setPreferredSize( 
+    				new Dimension( 0, n_h ) );    
+    // west
+    ((JPanel)background.getComponent(2)).setPreferredSize(
+    				new Dimension( w_w, 0 ) );
+    // south
+    ((JPanel)background.getComponent(3)).setPreferredSize(
+    				new Dimension( 0, s_h ) );
+    // east
+    ((JPanel)background.getComponent(4)).setPreferredSize(
+    				new Dimension( e_w, 0 ) );
+    
+    //System.out.println("Dim: [" + center_width + "," + center_height + "]");
+    background.invalidate();
+    background.validate();
+    // reset the center bounds and update the overlays.
+    regioninfo = new Rectangle( ijp.getLocation(), ijp.getSize() );
+    for( int trans = 0; trans < transparencies.size(); trans++ )
+      ((OverlayJPanel)transparencies.elementAt(trans)).repaint();
+  }
+  
  //***************************Assistance Classes******************************
  /*
   * ComponentAltered monitors if the imagejpanel has been resized. If so,
@@ -1453,7 +1588,6 @@ public class ImageViewComponent implements IViewComponent2D,
 	           (ControlColorScale)background.getComponent(4);
 	  east.setMarker( ijp.ImageValue_at_Cursor() );
 	}
-	
 	sendMessage(POINTED_AT_CHANGED);
       }
       else if (message == CoordJPanel.ZOOM_IN)
@@ -1463,8 +1597,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
 	((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
 	((PanViewControl)controls[5]).setLocalBounds(local_bounds);
-	paintComponents( big_picture.getGraphics() ); 
-	sendMessage(SELECTED_CHANGED);
+        buildAspectImage();
+	paintComponents( big_picture.getGraphics() );
       }
       else if (message == CoordJPanel.RESET_ZOOM)
       {
@@ -1473,10 +1607,10 @@ public class ImageViewComponent implements IViewComponent2D,
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
 	((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
 	((PanViewControl)controls[5]).setLocalBounds(local_bounds);
-	paintComponents( big_picture.getGraphics() ); 
-	sendMessage(SELECTED_CHANGED);
-      }
-    }	  
+        buildAspectImage();
+	paintComponents( big_picture.getGraphics() );
+      }	 
+    } 
   }
   
  /*
@@ -1594,13 +1728,11 @@ public class ImageViewComponent implements IViewComponent2D,
           PanViewControl pvc = (PanViewControl)ae.getSource();
           // since the pan view control has a CoordJPanel in it with the
           // same bounds, set its local bounds to the image local bounds.
-	//System.out.println("IVCLocal: " + local_bounds.toString() );
 	  local_bounds = pvc.getLocalBounds();
-	//System.out.println("IVCLocal2: " + local_bounds.toString() );
           ijp.setLocalWorldCoords( local_bounds );
           // this method is only here to repaint the image
           ijp.changeLogScale( logscale, true );
-          sendMessage(SELECTED_CHANGED);
+	  buildAspectImage();
         }
       }
       //repaints overlays accurately 
@@ -1712,8 +1844,7 @@ public class ImageViewComponent implements IViewComponent2D,
   } 
 
  /*
-  * This class relays messages to listeners and repackages WCRegions into
-  * Regions whenever the SelectionOverlay sends a message that
+  * This class relays messages from the SelectionOverlay whenever a
   * a selected region is added or removed.
   */  
   private class SelectedRegionListener implements ActionListener, Serializable
@@ -1721,6 +1852,18 @@ public class ImageViewComponent implements IViewComponent2D,
     public void actionPerformed( ActionEvent ae )
     {
       sendMessage( ae.getActionCommand() );
+    }
+  }
+  
+ /*
+  * PreserveAspect monitors if the display panel has been resized. If so,
+  * maintain the aspect ratio if the flag has been set.
+  */
+  private class PreserveAspect extends ComponentAdapter
+  {
+    public void componentResized( ComponentEvent e )
+    {
+      buildAspectImage();
     }
   }
      
