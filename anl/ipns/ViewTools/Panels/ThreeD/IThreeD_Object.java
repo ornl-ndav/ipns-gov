@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2003/10/15 23:27:25  dennis
+ * Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  * Revision 1.5  2002/11/27 23:12:52  pfpeterson
  * standardized header
  *
@@ -102,7 +105,7 @@ public static final int INVALID_PICK_ID = -1;
    *  Transform this object in 3D using the specified transformation.  The
    *  basic data representing the object will be altered.
    *
-   *  @param  projection   The transformation to be applied to the 3D 
+   *  @param  transform    The transformation to be applied to the 3D 
    *                       coordinates of the object.
    */
   public void Transform( Tran3D transform );

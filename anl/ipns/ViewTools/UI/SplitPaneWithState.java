@@ -30,6 +30,9 @@
  * Modified:
  *  
  * $Log$
+ * Revision 1.7  2003/10/15 23:29:18  dennis
+ * Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  * Revision 1.6  2002/11/27 23:13:06  pfpeterson
  * standardized header
  *
@@ -72,7 +75,7 @@ public class SplitPaneWithState extends    JSplitPane
  *                           of the split pane.
  *  @param second_component  The component to be in the right ( or botton ) part
  *                           of the split pane.
- *  @param divider location  A value between 0.0f and 1.0f giving the fraction
+ *  @param divider_location  A value between 0.0f and 1.0f giving the fraction
  *                           of the way across the split pane where the 
  *                           divider should be placed.
  */
@@ -92,7 +95,7 @@ public class SplitPaneWithState extends    JSplitPane
 /**
  *  Position the divider a specified fraction of the way across the split pane.
  *
- *  @param divider location  A value between 0.0f and 1.0f giving the fraction
+ *  @param divider_location  A value between 0.0f and 1.0f giving the fraction
  *                           of the way across the split pane where the 
  *                           divider should be placed.
  */

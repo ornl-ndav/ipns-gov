@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2003/10/15 23:27:25  dennis
+ * Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  * Revision 1.6  2002/11/27 23:12:52  pfpeterson
  * standardized header
  *
@@ -191,8 +194,8 @@ abstract public class ThreeD_Object implements IThreeD_Object
    *  Transform this object in 3D using the specified transformation.  The
    *  basic data representing the object will be altered.
    *
-   *  @param  projection   The transformation to be applied to the 3D 
-   *                       coordinates of the object.
+   *  @param  transform   The transformation to be applied to the 3D 
+   *                      coordinates of the object.
    */
   public void Transform( Tran3D transform )
   {

@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2003/10/15 23:27:25  dennis
+ * Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  * Revision 1.2  2002/11/27 23:12:52  pfpeterson
  * standardized header
  *
@@ -79,9 +82,9 @@ public class Polymarker  extends     ThreeD_Object
    *  which the marker is placed.  This affects all of the marker types,
    *  except the DOT marker.  A DOT marker is always just one pixel.
    *
-   *  @parm size  Adjust the size of the marker.  The actual size in pixels
-   *              is 2*size + 1, since this parameter specifies the distance
-   *              to draw from the center position.
+   *  @param size  Adjust the size of the marker.  The actual size in pixels
+   *               is 2*size + 1, since this parameter specifies the distance
+   *               to draw from the center position.
    */
   public void setSize( int size )
   {

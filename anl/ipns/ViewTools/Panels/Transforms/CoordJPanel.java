@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2003/10/15 23:34:32  dennis
+ *  Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  *  Revision 1.24  2003/08/07 16:27:04  dennis
  *  Improved naming of variables in method to transform
  *  local bounds by log transform. (Brent Serum)
@@ -505,7 +508,7 @@ public class CoordJPanel extends    ActiveJPanel
    *  Move the rubber band box cursor to the specified world coordinate
    *  point and notify any action listeners that the CURSOR_MOVED.  If the
    *  rubber band box was not previously started, this will specifiy the
-   *  initial point for the box.  If the rebber band box was previously
+   *  initial point for the box.  If the rubber band box was previously
    *  started, this will specify a new location for the other corner of
    *  the box.
    *
@@ -523,11 +526,11 @@ public class CoordJPanel extends    ActiveJPanel
    *  Move the rubber band box cursor to the specified pixel 
    *  point and notify any action listeners that the CURSOR_MOVED.  If the
    *  rubber band box was not previously started, this will specifiy the
-   *  initial point for the box.  If the rebber band box was previously
+   *  initial point for the box.  If the rubber band box was previously
    *  started, this will specify a new location for the other corner of
    *  the box.
    *
-   *  @param pt  The point where the rubber band box should be drawn
+   *  @param current  The point where the rubber band box should be drawn
    */
   public void set_box( Point current )
   {
@@ -566,8 +569,8 @@ public class CoordJPanel extends    ActiveJPanel
    *  Stop the crosshair cursor and set the current position to the
    *  specifed pixel coordinate point.
    *
-   *  @param  pt  The point to record as the current point, 
-   *              in pixel coordinates
+   *  @param  current  The point to record as the current point, 
+   *                   in pixel coordinates
    */
   public void stop_crosshair( Point current )
   {
@@ -583,7 +586,7 @@ public class CoordJPanel extends    ActiveJPanel
 
   /* ------------------------- stop_box_WC ---------------------------- */
   /**
-   *  Stop the ruber band box cursor and set the current position to the
+   *  Stop the rubber band box cursor and set the current position to the
    *  specifed world coordinate point.  If do_zoom is true, change the
    *  transform to map the selected region to the full panel and
    *  notify listeners of the zoom-in request.
@@ -602,7 +605,7 @@ public class CoordJPanel extends    ActiveJPanel
 
   /* -------------------------- stop_box ---------------------------- */
   /**
-   *  Stop the ruber band box cursor and set the current position to the
+   *  Stop the rubber band box cursor and set the current position to the
    *  specifed pixel coordinate point.  If do_zoom is true, change the
    *  transform to map the selected region to the full panel and
    *  notify listeners of the zoom-in request.

@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2003/10/15 23:35:39  dennis
+ *  Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  *  Revision 1.14  2003/10/02 19:31:47  dennis
  *  Fixed bug... two frame change messages were being sent for each
  *  newly selected frame.
@@ -247,7 +250,7 @@ public class AnimationController extends    ActiveJPanel
  /**
   *  Set the controller to the specified frame number.
   *
-  *  @param  the new frame number to use.
+  *  @param  frame    the new frame number to use.
   */
   public void setFrameNumber( int frame )
   {

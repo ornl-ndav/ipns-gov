@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2003/10/15 23:31:32  dennis
+ * Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  * Revision 1.8  2002/11/27 23:13:18  pfpeterson
  * standardized header
  *
@@ -115,8 +118,8 @@ public class CoordBounds implements Serializable
    *  it is replaced by a non-degenerate rectangle.  Specifically, if
    *  x1==x2, we use [x1, x1+1] and if y1==y2, we use [y1, y1+1].
    *
-   *  @param   x_vals[]   The x values that must be contained within the bounds.
-   *  @param   y_vals[]   The y values that must be contained within the bounds.
+   *  @param   x_vals   The x values that must be contained within the bounds.
+   *  @param   y_vals   The y values that must be contained within the bounds.
    */
   public void setBounds( float x_vals[], float y_vals[] )
   {
@@ -173,8 +176,8 @@ public class CoordBounds implements Serializable
    *  x_vals[i] will be in [x1, x2] and y_vals[i] will be in [y1, y2]  
    *  for each i.
    *
-   *  @param   x_vals[]   The x values that must be contained within the bounds.
-   *  @param   y_vals[]   The y values that must be contained within the bounds.
+   *  @param   x_vals   The x values that must be contained within the bounds.
+   *  @param   y_vals   The y values that must be contained within the bounds.
    */
   public void growBounds( float x_vals[], float y_vals[] )
   {
