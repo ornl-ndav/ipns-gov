@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2003/12/18 22:35:28  millermi
+ *  - Moved LINEAR and LOG strings to AxisInfo class.
+ *  - Changed string compare of NO_LABEL and NO_UNITS from
+ *    !String.equals() to != so the only way the string is
+ *    not shown is if it is NO_LABEL/UNITS not just "looks"
+ *    like it.
+ *
  *  Revision 1.20  2003/11/21 02:59:55  millermi
  *  - Now saves editor bounds before dispose() is called on
  *    the editor.
@@ -128,8 +135,8 @@ import java.awt.event.ComponentEvent;
 
 import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import DataSetTools.components.View.*;
-import DataSetTools.components.View.TwoD.IAxisAddible2D;
-import DataSetTools.components.View.TwoD.ILogAxisAddible2D;
+import DataSetTools.components.View.TwoD.IAxisAddible;
+import DataSetTools.components.View.TwoD.ILogAxisAddible;
 import DataSetTools.components.View.TwoD.ImageViewComponent;
 import DataSetTools.util.Format;
 import DataSetTools.util.floatPoint2D; 
@@ -165,18 +172,6 @@ public class AxisOverlay2D extends OverlayJPanel
   * displayed by the AxisOverlay2D class.
   */
   public static final int DUAL_AXES = 3;
-  
- /**
-  * true - This constant primative boolean selects linear display mode
-  * for the axis specified.
-  */
-  public static final boolean LINEAR = true;
-  
- /**
-  * false - This constant primative boolean selects logarithmic display mode
-  * for the axis specified.
-  */
-  public static final boolean LOG    = false;
   
   // these public variables are for preserving axis state information  
  /**
@@ -267,7 +262,7 @@ public class AxisOverlay2D extends OverlayJPanel
   private transient int yaxis = 0;
   private transient int xstart = 0;
   private transient int ystart = 0;
-  private transient IAxisAddible2D component;
+  private transient IAxisAddible component;
   private int precision;
   private Font f;
   private int axesdrawn;
@@ -284,22 +279,24 @@ public class AxisOverlay2D extends OverlayJPanel
  /**
   * Constructor for initializing a new AxisOverlay2D
   *
-  *  @param  iaa - IAxisAddible2D object
+  *  @param  iaa - IAxisAddible object
   */ 
-  public AxisOverlay2D(IAxisAddible2D iaa)
+  public AxisOverlay2D(IAxisAddible iaa)
   {
     super();
     addComponentListener( new NotVisibleListener() );
     component = iaa;
     f = iaa.getFont();
-    xmin = component.getAxisInfo(true).getMin();
-    xmax = component.getAxisInfo(true).getMax();
-    ymax = component.getAxisInfo(false).getMin();
-    ymin = component.getAxisInfo(false).getMax(); 
+    xmin = component.getAxisInformation(AxisInfo.X_AXIS).getMin();
+    xmax = component.getAxisInformation(AxisInfo.X_AXIS).getMax();
+    ymax = component.getAxisInformation(AxisInfo.Y_AXIS).getMin();
+    ymin = component.getAxisInformation(AxisInfo.Y_AXIS).getMax(); 
     setPrecision( iaa.getPrecision() );
     setDisplayAxes( DUAL_AXES );
-    setXAxisLinearOrLog( component.getAxisInfo(true).getIsLinear() );
-    setYAxisLinearOrLog( component.getAxisInfo(false).getIsLinear() );
+    setXAxisLinearOrLog( 
+          component.getAxisInformation(AxisInfo.X_AXIS).getIsLinear() );
+    setYAxisLinearOrLog( 
+          component.getAxisInformation(AxisInfo.Y_AXIS).getIsLinear() );
     editor = new AxisEditor();
     this_panel = this;
   }
@@ -310,7 +307,7 @@ public class AxisOverlay2D extends OverlayJPanel
   *  @param  iaa - IAxisAddible2D object
   *  @param  state - previously saved state
   */ 
-  public AxisOverlay2D(IAxisAddible2D iaa, ObjectState state)
+  public AxisOverlay2D(IAxisAddible iaa, ObjectState state)
   {
     this(iaa);
     setObjectState(state);
@@ -567,14 +564,14 @@ public class AxisOverlay2D extends OverlayJPanel
     if( !drawXLinear )
     {
       LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
-      double logscale = ((ILogAxisAddible2D)component).getLogScale();
+      double logscale = ((ILogAxisAddible)component).getLogScale();
       pixel_pt.x = (int)logger.toSource(value, logscale);
     }
     
     if( !drawYLinear )
     {
       LogScaleUtil logger = new LogScaleUtil( 0, yaxis, ymax, ymin + 1);
-      double logscale = ((ILogAxisAddible2D)component).getLogScale(); 
+      double logscale = ((ILogAxisAddible)component).getLogScale(); 
       pixel_pt.y = yaxis - (int)logger.toSource(value, logscale) - 1;
     }
     /* this code was to handle both linear and log, but since log is
@@ -590,7 +587,7 @@ public class AxisOverlay2D extends OverlayJPanel
     else
     {
       LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
-      double logscale = ((ILogAxisAddible2D)component).getLogScale();
+      double logscale = ((ILogAxisAddible)component).getLogScale();
  
       //pixel_pt.x = xstart + (int)logger.toSource(value, logscale);
       pixel_pt.x = (int)logger.toSource(value, logscale);
@@ -611,7 +608,7 @@ public class AxisOverlay2D extends OverlayJPanel
     else
     {
       LogScaleUtil logger = new LogScaleUtil( 0, yaxis, ymax, ymin + 1);
-      double logscale = ((ILogAxisAddible2D)component).getLogScale();
+      double logscale = ((ILogAxisAddible)component).getLogScale();
       //pixel_pt.y = ystart + yaxis - (int)logger.toSource(value, logscale); 
       pixel_pt.y = yaxis - (int)logger.toSource(value, logscale) - 1;
     }
@@ -632,12 +629,12 @@ public class AxisOverlay2D extends OverlayJPanel
      FontMetrics fontdata = g2d.getFontMetrics();
      // System.out.println("Precision = " + precision);
      
-     xmin = component.getAxisInfo(true).getMin();
-     xmax = component.getAxisInfo(true).getMax();
+     xmin = component.getAxisInformation(AxisInfo.X_AXIS).getMin();
+     xmax = component.getAxisInformation(AxisInfo.X_AXIS).getMax();
      
      // ymin & ymax swapped to adjust for axis standard
-     ymax = component.getAxisInfo(false).getMin();
-     ymin = component.getAxisInfo(false).getMax();
+     ymax = component.getAxisInformation(AxisInfo.Y_AXIS).getMin();
+     ymin = component.getAxisInformation(AxisInfo.Y_AXIS).getMax();
        
      // get the dimension of the center panel (imagejpanel)
      xaxis = (int)( component.getRegionInfo().getWidth() );
@@ -651,23 +648,23 @@ public class AxisOverlay2D extends OverlayJPanel
      
      // draw title on the overlay if one exists
      if( component.getTitle() != IVirtualArray2D.NO_TITLE )
-	g2d.drawString( component.getTitle(), xstart + xaxis/2 -
-		     fontdata.stringWidth(component.getTitle())/2, 
-		     ystart/2 + (fontdata.getHeight())/2 );
+       g2d.drawString( component.getTitle(), xstart + xaxis/2 -
+        	    fontdata.stringWidth(component.getTitle())/2, 
+        	    ystart/2 + (fontdata.getHeight())/2 );
 
      if( axesdrawn == X_AXIS || axesdrawn == DUAL_AXES )
      {
-	if( drawXLinear )
-	   paintLinearX( g2d );
-        else
-           paintLogX( g2d );
+       if( drawXLinear )
+         paintLinearX( g2d );
+       else
+         paintLogX( g2d );
      }
      if( axesdrawn == Y_AXIS || axesdrawn == DUAL_AXES )
      {
-	if( drawYLinear )
-	   paintLinearY( g2d );
-        else
-           paintLogY( g2d );
+       if( drawYLinear )
+         paintLinearY( g2d );
+       else
+         paintLogY( g2d );
      }
   } // end of paint()
   
@@ -812,20 +809,23 @@ public class AxisOverlay2D extends OverlayJPanel
      } // end of for
    
   // This will display the x label, x units, and common exponent (if not 0).
-     
+     // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
+     // strings then no strings will be displayed.
      String xlabel = "";
-     if( !component.getAxisInfo(true).getLabel().equals( 
-	 IVirtualArray2D.NO_XLABEL) )
-	xlabel = xlabel + component.getAxisInfo(true).getLabel();
-     if( !component.getAxisInfo(true).getUnits().equals( 
-	 IVirtualArray2D.NO_XUNITS) )
-	xlabel = xlabel + "  " + component.getAxisInfo(true).getUnits();
+     if( component.getAxisInformation(AxisInfo.X_AXIS).getLabel() != 
+	 AxisInfo.NO_LABEL )
+       xlabel = xlabel + 
+                component.getAxisInformation(AxisInfo.X_AXIS).getLabel();
+     if( component.getAxisInformation(AxisInfo.X_AXIS).getUnits() != 
+	 AxisInfo.NO_UNITS )
+       xlabel = xlabel + "  " + 
+                component.getAxisInformation(AxisInfo.X_AXIS).getUnits();
      if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
-	xlabel = xlabel + "  " + num.substring( exp_index );
+       xlabel = xlabel + "  " + num.substring( exp_index );
      if( xlabel != "" )
-	g2d.drawString( xlabel, xstart + xaxis/2 -
-		  fontdata.stringWidth(xlabel)/2, 
-		  yaxis + ystart + fontdata.getHeight() * 2 + 6 );
+       g2d.drawString( xlabel, xstart + xaxis/2 -
+        	 fontdata.stringWidth(xlabel)/2, 
+        	 yaxis + ystart + fontdata.getHeight() * 2 + 6 );
   } // end of paintLinearX()
   
  /*
@@ -953,14 +953,17 @@ public class AxisOverlay2D extends OverlayJPanel
      }
     
   // This will display the y label, y units, and common exponent (if not 0).
-     
+     // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
+     // strings then no strings will be displayed.
      String ylabel = "";
-     if( !component.getAxisInfo(false).getLabel().equals( 
-	 IVirtualArray2D.NO_YLABEL) )
-	ylabel = ylabel + component.getAxisInfo(false).getLabel();
-     if( !component.getAxisInfo(false).getUnits().equals(
-	 IVirtualArray2D.NO_YUNITS) )
-	ylabel = ylabel + "  " + component.getAxisInfo(false).getUnits();
+     if( component.getAxisInformation(AxisInfo.Y_AXIS).getLabel() != 
+	 AxisInfo.NO_LABEL )
+       ylabel = ylabel + 
+	        component.getAxisInformation(AxisInfo.Y_AXIS).getLabel();
+     if( component.getAxisInformation(AxisInfo.Y_AXIS).getUnits() !=
+	 AxisInfo.NO_UNITS )
+       ylabel = ylabel + "  " + 
+                component.getAxisInformation(AxisInfo.Y_AXIS).getUnits();
      if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
 	ylabel = ylabel + "  " + num.substring( exp_index );
      if( ylabel != "" )
@@ -978,9 +981,9 @@ public class AxisOverlay2D extends OverlayJPanel
   */   
   private void paintLogX( Graphics2D g2d )
   {
-     if( component instanceof ILogAxisAddible2D )
+     if( component instanceof ILogAxisAddible )
      {
-       ILogAxisAddible2D logcomponent = (ILogAxisAddible2D)component;
+       ILogAxisAddible logcomponent = (ILogAxisAddible)component;
        FontMetrics fontdata = g2d.getFontMetrics(); 
        String num = "";
        int TICK_LENGTH = 5;
@@ -1276,14 +1279,17 @@ public class AxisOverlay2D extends OverlayJPanel
        } // end of else (isTwoSided)
      
   // This will display the x label, x units, and common exponent (if not 0).
-     
+     // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
+     // strings then no strings will be displayed.
        String xlabel = "";
-       if( !logcomponent.getAxisInfo(true).getLabel().equals( 
-	   IVirtualArray2D.NO_XLABEL) )
-	 xlabel = xlabel + logcomponent.getAxisInfo(true).getLabel();
-       if( !logcomponent.getAxisInfo(true).getUnits().equals( 
-	   IVirtualArray2D.NO_XUNITS) )
-	 xlabel = xlabel + "  " + logcomponent.getAxisInfo(true).getUnits();
+       if( logcomponent.getAxisInformation(AxisInfo.X_AXIS).getLabel() != 
+	   AxisInfo.NO_LABEL )
+	 xlabel = xlabel + 
+	          logcomponent.getAxisInformation(AxisInfo.X_AXIS).getLabel();
+       if( logcomponent.getAxisInformation(AxisInfo.X_AXIS).getUnits() != 
+	   AxisInfo.NO_UNITS )
+	 xlabel = xlabel + "  " + 
+	          logcomponent.getAxisInformation(AxisInfo.X_AXIS).getUnits();
        if( xlabel != "" )
 	 g2d.drawString( xlabel, xstart + xaxis/2 -
 		  fontdata.stringWidth(xlabel)/2, 
@@ -1299,9 +1305,9 @@ public class AxisOverlay2D extends OverlayJPanel
   */	
   private void paintLogY( Graphics2D g2d )
   {
-    if( component instanceof ILogAxisAddible2D )
+    if( component instanceof ILogAxisAddible )
     {
-      ILogAxisAddible2D logcomponent = (ILogAxisAddible2D)component;
+      ILogAxisAddible logcomponent = (ILogAxisAddible)component;
       FontMetrics fontdata = g2d.getFontMetrics();   
       String num = "";
       int TICK_LENGTH = 5;
@@ -1634,14 +1640,17 @@ public class AxisOverlay2D extends OverlayJPanel
      
       }
   // This will display the y label, y units, and common exponent (if not 0).
-     
+     // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
+     // strings then no strings will be displayed.
       String ylabel = "";
-      if( !logcomponent.getAxisInfo(false).getLabel().equals( 
-	  IVirtualArray2D.NO_YLABEL) )
-	ylabel = ylabel + logcomponent.getAxisInfo(false).getLabel();
-      if( !logcomponent.getAxisInfo(false).getUnits().equals(
-	  IVirtualArray2D.NO_YUNITS) )
-	ylabel = ylabel + "  " + logcomponent.getAxisInfo(false).getUnits();
+      if( logcomponent.getAxisInformation(AxisInfo.Y_AXIS).getLabel() != 
+	  AxisInfo.NO_LABEL )
+	ylabel = ylabel + 
+	         logcomponent.getAxisInformation(AxisInfo.Y_AXIS).getLabel();
+      if( logcomponent.getAxisInformation(AxisInfo.Y_AXIS).getUnits() !=
+	  AxisInfo.NO_UNITS )
+	ylabel = ylabel + "  " + 
+	         logcomponent.getAxisInformation(AxisInfo.Y_AXIS).getUnits();
       if( ylabel != "" )
       {
 	g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );    
@@ -1652,7 +1661,7 @@ public class AxisOverlay2D extends OverlayJPanel
       }
     } // end if( instanceof)
     else
-       System.out.println("Instance of ILogAxisAddible2D needed " +
+       System.out.println("Instance of ILogAxisAddible needed " +
         		  "in AxisOverlay2D.java");
   }
   
