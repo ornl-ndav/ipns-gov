@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/05/27 19:14:10  robertsonj
+ *  *** empty log message ***
+ *
  *  Revision 1.10  2004/03/12 17:21:55  hammonds
  *  Moved from IsawGUI to gov.anl.ipns.Util.Sys
  *
@@ -51,8 +54,10 @@
 package gov.anl.ipns.Util.Sys;
 
 import java.awt.*;
-import javax.swing.*;
 import java.awt.print.*;
+
+import javax.print.attribute.*;
+import javax.swing.RepaintManager;
 
 /** A simple utility class that lets you very simply print
  *  an arbitrary component. Just pass the component to the
@@ -82,14 +87,25 @@ public class PrintUtilities implements Printable {
   
   public PrintUtilities(Component componentToBePrinted) {
     this.componentToBePrinted = componentToBePrinted;
+    //componentToBePrinted.validate();
+    //componentToBePrinted.show();
+
+
   }
   
   public void print() {
+  	
+
     PrinterJob printJob = PrinterJob.getPrinterJob();
+    //PageFormat newFormat = printJob.defaultPage();
+	HashPrintRequestAttributeSet aset2 = new HashPrintRequestAttributeSet();
+	 
+
+   
     printJob.setPrintable(this);
-    if (printJob.printDialog())
-      try {//System.out.println("aft dialog pageFormat="+printJob.getDefaultPage().getOrientation()); 
-        printJob.print();
+      if (printJob.printDialog(aset2))
+       try {//System.out.println("aft dialog pageFormat="+newFormat.getOrientation()); 
+        printJob.print(aset2);
       } catch(PrinterException pe) {
         System.out.println("Error printing: " + pe);
       }
@@ -98,6 +114,7 @@ public class PrintUtilities implements Printable {
   public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
     //System.out.println("in print pageFormat="+pageFormat.getOrientation()+","+
     //    pageFormat.LANDSCAPE+","+pageFormat.PORTRAIT); 
+	
     if (pageIndex > 0) {
       return(NO_SUCH_PAGE);
     } else {
