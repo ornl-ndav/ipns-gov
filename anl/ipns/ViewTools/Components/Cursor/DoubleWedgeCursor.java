@@ -37,6 +37,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/12/16 01:43:41  millermi
+ *  - Restructured selection so parameters define region
+ *    in a counterclockwise direction.
+ *
  *  Revision 1.2  2003/09/02 21:08:10  millermi
  *  - Removed bounding rectangle from cursor.
  *  - Directional vector new is redrawn when the wedge is being
@@ -93,16 +97,10 @@ public class DoubleWedgeCursor extends  XOR_Cursor3pt
   *  @param  p3 	Size of wedge arc.
   */
   public void draw( Graphics graphics, Point p1, Point p2, Point p3 )
-  {
+  {    
     // if second and third points are the same, draw only the line
-    if( p2.x == p3.x && p2.y == p3.y )
-      graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
-      //graphics.drawLine( p2.x, p2.y, p3.x, p3.y );
-    else
-    {  
-      // draw line from "if" again to make it disappear using XOR
-      graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
-         
+    if( !( p2.x == p3.x && p2.y == p3.y ) )
+    { 
       // draw reflection of line passing through p1 and p3 about the line 
       // passing through p1 and p2.
       
@@ -162,27 +160,35 @@ public class DoubleWedgeCursor extends  XOR_Cursor3pt
         swap = false;
       
       // the number of degrees the arc will span
-      int arcangle = initangle - startangle;
-      // since they are symmetric, they should be the same, however,
-      // problem exists if startangle is in first quadrant and stopangle is
-      // in the fourth quadrant and the arcangle < 180, this corrects that.
-      if( arcangle > stopangle - initangle )
-        arcangle = stopangle - initangle;
-      
-      // if arcangle > 90, then total angle difference between start and stop
-      // is > 180. Since this can't happen, correct the start, stop, and 
-      // then calculate a new arcangle. 
-      if( Math.abs(arcangle) > 90 )
+      int arcangle = stopangle - startangle;
+      // if initangle isn't between start and stop, then the angle includes
+      // the point where the unit circle goes from 359 to 0. Swap the start
+      // and stop angle so that the arcangle is always positive and the
+      // drawing always occurs in a counterclockwise direction.
+      // The initangle+1 and initangle-1 are adjustments to compensate for
+      // rounding.  
+      if( !( initangle+1 >= startangle && initangle-1 <= stopangle) )
       {
-        //System.out.println("***Start/Init/Stop angle: " + startangle + "/" + 
-        //                 initangle + "/" + stopangle );
-        if( arcangle > 0 )
-          arcangle = 180 - arcangle;
-        else
-          arcangle = -180 + arcangle;
+        int invertStop = 360 - stopangle;
+	arcangle = startangle + invertStop;
+	
+        int temp = startangle;
+	startangle = stopangle;
+	stopangle = temp;
+	swap = !swap;
+      }
+      
+      // If the arcangle is > 180, this can't happen since the double wedge
+      // contains two wedges or equal arclength, and if the arcangle exceeded
+      // 180, the angle or the two wedges would exceed 360, but our ellipse
+      // can only have a maxiumum of 360 degrees. 
+      if( arcangle > 180 )
+      {
+        arcangle = 360 - arcangle;
         int tempangle =  startangle;
-        startangle = stopangle - 180;
-        stopangle = tempangle + 180;
+        startangle = stopangle;
+        stopangle = tempangle;
+	swap = !swap;
 	if( startangle < 0 )
 	  startangle += 360;
 	if( stopangle > 360 )
@@ -192,20 +198,25 @@ public class DoubleWedgeCursor extends  XOR_Cursor3pt
 	  int temp = startangle;
 	  startangle = stopangle;
 	  stopangle = temp;
-	  swap = true;
+	  swap = !swap;
 	}
-	// the number of degrees the arc will span
-        arcangle = initangle - startangle;
-        // since they are symmetric, they should be the same, however,
-        // problem exists if startangle is in first quadrant and stopangle is
-        // in the fourth quadrant and the arcangle < 180, this corrects that.
-        if( arcangle > stopangle - initangle )
-          arcangle = stopangle - initangle;
+       
+        arcangle = stopangle - startangle;
+	initangle += 180;
+	if( initangle >= 360 )
+	  initangle -= 360;
+        if( !( initangle+1 >= startangle && initangle-1 <= stopangle) )
+        {
+          int invertStop = 360 - stopangle;
+	  arcangle = startangle + invertStop;
+	
+          int temp = startangle;
+	  startangle = stopangle;
+	  stopangle = temp;
+	  swap = !swap;
+        }
       }
-      
-      // need to double arcangle, since it goes from start to init or init
-      // to stop, which is only half the arc.
-      arcangle = 2 * arcangle;
+
       // create rectangle with p1 at its center that bounds the arc's circle
       // find radius of arc
       double xsquared = Math.pow( (double)(p1.x - p3.x), 2 );
@@ -235,6 +246,8 @@ public class DoubleWedgeCursor extends  XOR_Cursor3pt
       angles.x = startangle;
       angles.y = arcangle;
     }
+    // this line is the directional vector
+    graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
   }
 
  /**
