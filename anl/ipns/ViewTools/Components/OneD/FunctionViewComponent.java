@@ -33,6 +33,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.31  2003/12/20 07:40:47  millermi
+ *  - Changed paintComponents() to newer version in
+ *    ImageViewComponent that is more efficient and
+ *    consistent.
+ *  - Added paintComponents() method to
+ *    dataChanged(IVirtualArray1D) so the axes are updated
+ *    when the data is changed.
+ *
  *  Revision 1.30  2003/12/18 22:42:13  millermi
  *  - This file was involved in generalizing AxisInfo2D to
  *    AxisInfo. This change was made so that the AxisInfo
@@ -423,7 +431,7 @@ public class FunctionViewComponent implements IViewComponent1D,
                               // SAME FRAME, so that the frame doesn't move.
     mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel(),
                                         this, mainControls.get_frame() );
-
+    paintComponents( big_picture.getGraphics() );
     //      System.out.println("Value of first element: " + x_array[0] +
     //							y_array[0] );
     //System.out.println( "Thank you for notifying us" );
@@ -567,16 +575,15 @@ public class FunctionViewComponent implements IViewComponent1D,
     }
   }
 
-  private void paintComponents( Graphics g ) {
-   // big_picture.revalidate();
-
-    for( int i = big_picture.getComponentCount(  ); i > 0; i-- ) {
-      if( big_picture.getComponent( i - 1 ).isVisible(  )) { 
-        big_picture.getComponent( i - 1 ).update( g );
-      }
+  private void paintComponents( Graphics g ) {   
+    if( g != null )
+    {
+      big_picture.update(g);
     }
-    big_picture.getParent(  ).getParent(  ).getParent(  ).getParent(  ).
-                              repaint(  );
+    Component temppainter = big_picture;
+    while( temppainter.getParent() != null )
+      temppainter = temppainter.getParent();
+    temppainter.repaint();
   }
 
   private boolean DrawPointedAtGraph() {
