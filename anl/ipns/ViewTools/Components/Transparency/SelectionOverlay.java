@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/06/09 14:47:19  dennis
+ *  Added static method help() to display commands via the HelpMenu.
+ *  (Mike Miller)
+ *
  *  Revision 1.2  2003/06/05 22:07:21  dennis
  *     (Mike Miller)
  *   - Added resize capability
@@ -110,6 +114,33 @@ public class SelectionOverlay extends OverlayJPanel
       sjp.addActionListener( new SelectListener() ); 
       
       sjp.requestFocus();               
+   }
+
+  /**
+   * Contains/Displays control information about this overlay.
+   */
+   public static void help()
+   {
+      JFrame helper = new JFrame("Help for Selection Overlay");
+      helper.setBounds(0,0,600,400);
+      JTextArea text = new JTextArea("Commands for Selection Overlay\n\n");
+      helper.getContentPane().add(text);
+      text.setEditable(false);
+      text.setLineWrap(true);
+      text.append("Note: These commands will NOT work if the Annotation " +
+                  "Overlay checkbox IS checked or if the Selection " + 
+		  "Overlay IS NOT checked.\n\n");
+      text.append("Image Commands:\n");
+      text.append("Click/Drag/Release Mouse w/B_Key pressed>" + 
+                  "ADD BOX SELECTION\n");
+      text.append("Click/Drag/Release Mouse w/C_Key pressed>" + 
+                  "ADD CIRCLE SELECTION\n");
+      text.append("Click/Drag/Release Mouse w/P_Key pressed>" + 
+                  "ADD POINT SELECTION\n");
+      text.append("Double Click Mouse>REMOVE LAST SELECTION\n");
+      text.append("Double Click Mouse w/A_Key>REMOVE ALL SELECTIONS\n\n");
+      
+      helper.setVisible(true);
    }
    
   /**
@@ -248,7 +279,7 @@ public class SelectionOverlay extends OverlayJPanel
 	    }	    
 	    else if( message.indexOf( SelectionJPanel.ELIPSE ) > -1 )
 	    {
-	       //System.out.println("Elipse region not implemented" );
+	       System.out.println("Elipse region not implemented" );
 	    }	    
 	    else if( message.indexOf( SelectionJPanel.POINT ) > -1 )
 	    { 
