@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/24 21:55:22  bouzekc
+ *  Now inherits from StringFilter.
+ *
  *  Revision 1.5  2004/01/24 21:07:22  bouzekc
  *  Added javadocs.
  *
@@ -57,7 +60,7 @@ package DataSetTools.util;
  * PropertChange events to listeners. Should only be used from within
  * the package.
  */
-public class IntArrayFilter implements StringFilterer {
+public class IntArrayFilter extends StringFilter {
     private static Character COLON =new Character((new String(":")).charAt(0));
     private static Character COMMA =new Character((new String(",")).charAt(0));
     private static Character MINUS =new Character((new String("-")).charAt(0));
@@ -131,18 +134,5 @@ public class IntArrayFilter implements StringFilterer {
             }
         }
         return true;
-    }
-    
-	/**
-	 * Utility to return the inString turned into upper case.
-	 *
-	 * @param offs Unused.
-	 * @param inString The String to change to uppercase.
-	 * @param curString Unused.
-	 *
-	 * @return inString changed to uppercase.
-	 */
-    public String modifyString(int offs, String inString, String curString){
-        return inString;
     }
 }

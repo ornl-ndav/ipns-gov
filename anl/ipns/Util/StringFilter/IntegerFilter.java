@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/24 21:55:22  bouzekc
+ *  Now inherits from StringFilter.
+ *
  *  Revision 1.5  2004/01/24 21:09:44  bouzekc
  *  Removed unused local variables.
  *
@@ -57,7 +60,7 @@ package DataSetTools.util;
  * PropertChange events to listeners. Should only be used from within
  * the package.
  */
-public class IntegerFilter implements StringFilterer {
+public class IntegerFilter extends StringFilter {
     private static Character MINUS =new Character((new String("-")).charAt(0));
     private static Character ZERO  =new Character((new String("0")).charAt(0));
     
@@ -119,18 +122,5 @@ public class IntegerFilter implements StringFilterer {
         }
         
         return true;
-    }
-    
-	/**
-	 * Utility to return the inString turned into upper case.
-	 *
-	 * @param offs Unused.
-	 * @param inString The String to change to uppercase.
-	 * @param curString Unused.
-	 *
-	 * @return inString changed to uppercase.
-	 */
-    public String modifyString(int offs, String inString, String curString){
-        return inString.toUpperCase();
     }
 }

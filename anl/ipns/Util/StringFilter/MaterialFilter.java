@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/01/24 21:55:22  bouzekc
+ *  Now inherits from StringFilter.
+ *
  *  Revision 1.3  2004/01/24 21:07:22  bouzekc
  *  Added javadocs.
  *
@@ -49,7 +52,7 @@ package DataSetTools.util;
  * PropertChange events to listeners. Should only be used from within
  * the package.
  */
-public class MaterialFilter implements StringFilterer {
+public class MaterialFilter extends StringFilter {
   private static Character COMMA =new Character((new String(",")).charAt(0));
   private static Character UNDER =new Character((new String("_")).charAt(0));
   private static Character DEC   =new Character((new String(".")).charAt(0));
