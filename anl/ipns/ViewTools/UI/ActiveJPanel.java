@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.8  2005/01/27 19:52:03  millermi
+ * - Removed send_message(STATE_CHANGED) from main() test program.
+ *
  * Revision 1.7  2005/01/26 22:25:52  millermi
  * - Removed STATE_CHANGED public message String from class since
  *   it was unused.
@@ -167,8 +170,6 @@ public class ActiveJPanel extends JPanel
            System.out.println("Listener2,Message is :" + e.getActionCommand());
          }
        });
-
-      test.send_message( STATE_CHANGED );
 
       f.setVisible(true);
     }
