@@ -3,6 +3,9 @@
  *
  * ---------------------------------------------------------------------------
  *  $Log$
+ *  Revision 1.2  2000/07/28 14:00:23  dennis
+ *  Format changes only
+ *
  *  Revision 1.1  2000/07/10 22:26:13  dennis
  *  July 10, 2000 version... many changes
  *
