@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/03/03 23:20:03  dennis
+ * Increased default values for the slice dimensions and step size.
+ *
  * Revision 1.4  2004/02/02 23:53:05  dennis
  * Default width and height of plane is now 5 units.
  *
@@ -87,10 +90,10 @@ public class SliceImageUI extends    ActiveJPanel
    */
   public SliceImageUI( String title )
   {
-    step_ui      = new TextValueUI( "Step Size ", 0.02f );
-    width_ui     = new TextValueUI( "Width "    , 5     );
-    height_ui    = new TextValueUI( "Height "   , 5     );
-    thickness_ui = new TextValueUI( "Thickness ", 0.01f );
+    step_ui      = new TextValueUI( "Step Size ", 0.05f );
+    width_ui     = new TextValueUI( "Width "    , 10    );
+    height_ui    = new TextValueUI( "Height "   , 10    );
+    thickness_ui = new TextValueUI( "Thickness ", 0.0f  );
 
     step_ui.setLimits( MIN_VAL, MAX_VAL );
     width_ui.setLimits( MIN_VAL, MAX_VAL );
