@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2002/11/27 23:13:18  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.14  2002/11/26 19:28:27  dennis
  *  Added method setPreserveAspectRatio() that forces the global and
  *  local transforms to preserve aspect ratio.  Also, when the component
@@ -45,48 +47,6 @@
  *  Commented out code that sets the cursor... this is an attempt to
  *  prevent crash in native code outside of VM when cursor is set on
  *  Linux.
- *
- *  Revision 1.11  2001/08/08 14:24:58  dennis
- *  Now extends ActiveJPanel and sends action events to any
- *  ActionListeners when the cursor is moved, or when the
- *  panel is "zoomed".
- *
- *  Revision 1.10  2001/07/10 19:10:01  dennis
- *  Added more detailed debugging prints (currently commentd out).
- *
- *  Revision 1.9  2001/06/01 20:47:12  dennis
- *  Modified to work with XOR_Cursor, instead of the Rubberband class.
- *
- *  Revision 1.8  2001/05/29 15:12:25  dennis
- *  Now uses initializeWorldCoords to reset both the local and
- *  global transforms.
- *
- *  Revision 1.7  2001/05/07 21:02:40  dennis
- *  Added implementation for the method LocalTransformChanged()
- *  that was previously abstract.  This slightly simplified the
- *  GraphJPanel and ThreeD_JPanel classes.
- *
- *  Revision 1.6  2001/04/23 21:14:55  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.5  2001/03/30 19:21:10  dennis
- *  The method   setLocalWorldCoordinates( bounds )   now intersects "bounds"
- *  with the current global world coordinates to make sure that the local
- *  coordinates are contained in the global corrdinates.
- *
- *  Revision 1.4  2001/01/29 21:39:03  dennis
- *  Now uses CVS version numbers.
- *
- *  Revision 1.3  2000/07/10 22:11:46  dennis
- *  7/10/2000 version, many changes and improvements
- *
- *  Revision 1.18  2000/05/31 21:34:13  dennis
- *  Modified method that generates mouse events from key events to
- *  send a MOUSE_DRAGGED event with a MOUSE_PRESSED event so that the
- *  cursor draws/updates immediately
- *
- *  Revision 1.17  2000/05/11 16:53:19  dennis
- *  Added RCS logging
  *
  */
 

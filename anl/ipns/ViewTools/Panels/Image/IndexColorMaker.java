@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,55 +30,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2002/11/27 23:13:18  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.12  2002/07/17 15:18:38  dennis
  *  Removed informational print.
  *
  *  Revision 1.11  2002/07/15 16:54:18  pfpeterson
  *  Uses 'Heat 1' as default.
- *
- *  Revision 1.10  2001/07/25 16:59:50  dennis
- *  Color scale names are no longer case sensitive.
- *
- *  Revision 1.9  2001/07/23 16:13:16  dennis
- *  Fixed error: no longer using "==" for String comparison.
- *
- *  Revision 1.8  2001/05/09 21:12:15  dennis
- *  Removed unneeded debug print.
- *
- *  Revision 1.7  2001/05/07 20:57:25  dennis
- *  Added functions:
- *
- *    GetColorTable( type, num )
- *    GetDualColorTable( type, num )
- *    GetColorTable( IndexColorModel )
- *
- *  to obtain arrays of Color objects holding the same pseudo-color
- *  scales as previously could be obtained as IndexColorModel objects.
- *  The IndexColorModel objects are needed for displaying images,
- *  while the arrays of Color objects are useful for other graphics
- *  primitives.
- *
- *
- *  Revision 1.6  2001/04/23 21:15:16  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.5  2001/01/29 21:39:27  dennis
- *  Now uses CVS version numbers.
- *
- *  Revision 1.4  2000/11/07 16:09:46  dennis
- *  Refined use of dual +/- color scales.  The zero level is no longer always
- *  mapped to black, since this did not work well with negative gray color
- *  scales.
- *
- *  Revision 1.3  2000/10/03 21:39:18  dennis
- *  Added method to construct a "Dual" logarithmic scale to handle both
- *  negative and positive values.
- *
- *  Revision 1.2  2000/07/10 22:11:51  dennis
- *  7/10/2000 version, many changes and improvements
- *
- *  Revision 1.3  2000/05/11 16:53:19  dennis
- *  Added RCS logging
  *
  */
 

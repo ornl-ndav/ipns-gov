@@ -20,12 +20,17 @@
  * Contact : Ruth Mikkelson <mikkelsonr@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
- * Modified:
+ * This work was supported by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.2  2002/11/27 23:14:36  pfpeterson
+ * standardized header
+ *
  * Revision 1.1  2002/04/17 21:39:59  dennis
  * Classes for parsing mathematical expressions and generating
  * byte code for evaluating the functions.

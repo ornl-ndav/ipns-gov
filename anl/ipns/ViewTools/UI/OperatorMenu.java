@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -34,23 +33,12 @@
  *  organized according to the categories of the operators.
  *
  *  $Log$
+ *  Revision 1.6  2002/11/27 23:13:34  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.5  2002/02/22 20:34:50  pfpeterson
  *  Operator Reorganization.
  *
- *  Revision 1.4  2001/05/31 15:30:03  dennis
- *  Replaced call to deprecated getLabel() method with getText()
- *
- *  Revision 1.3  2001/04/23 21:50:16  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.2  2001/01/29 21:43:22  dennis
- *  Now uses CVS version numbers.
- *
- *  Revision 1.1  2000/11/10 22:55:13  dennis
- *  Class to build hierarchical menus for lists of operators,
- *  based on the operator categories.
- *
- *  
  */
 package DataSetTools.components.ui;  
 

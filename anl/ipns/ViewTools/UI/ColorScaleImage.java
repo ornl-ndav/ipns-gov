@@ -1,7 +1,7 @@
 /*
- * @(#)ColorScaleImage.java
+ * File: ColorScaleImage.java
  *
- * Copyright (C) 2001, Dennis Mikkelson
+ * Copyright (C) 2001 Dennis Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,19 +20,16 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
- * Modified:
- *
- *  $Log$
- *  Revision 1.1  2001/06/29 18:28:57  dennis
- *  GUI component showing a color scale.
+ * $Log$
+ * Revision 1.2  2002/11/27 23:13:34  pfpeterson
+ * standardized header
  *
  */
 

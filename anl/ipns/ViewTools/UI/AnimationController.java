@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,49 +30,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2002/11/27 23:13:34  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.12  2002/07/22 21:22:04  dennis
  *  Added methods setFrameValue() and setFrameNumber().
  *
  *  Revision 1.11  2002/02/18 16:28:11  dennis
  *  Added separate control to select the frame by specifying
  *  the frame number.
- *
- *  Revision 1.10  2001/08/14 19:20:15  dennis
- *  Fixed documentation format error.
- *
- *  Revision 1.9  2001/07/26 19:56:57  dennis
- *  Now extends ActiveJPanel instead of JPanel, so that it doesn't
- *  have to maintain the list of listeners itself.
- *
- *  Revision 1.8  2001/07/25 16:55:13  dennis
- *  addActionListener() now checks for duplicates and doesn't add
- *  a listener twice.
- *
- *  Revision 1.7  2001/07/13 22:04:47  dennis
- *  The text box displaying the frame value now will also display
- *  the frame number.
- *
- *  Revision 1.6  2001/07/02 20:46:59  dennis
- *  Added getFrameValue() method.
- *
- *  Revision 1.5  2001/06/29 18:30:18  dennis
- *  Added getFrameNumber() method.
- *
- *  Revision 1.4  2001/06/28 20:30:22  dennis
- *  The Autorun buttons now toggle between run/stop.
- *  Made variables that are used by two threads
- *  "volatile".
- *
- *  Revision 1.3  2001/06/06 21:27:45  dennis
- *  Removed redundant size check for the list of listeners.
- *
- *  Revision 1.2  2001/05/29 19:43:12  dennis
- *  Now properly displays the frame value immediately after setting
- *  values for the frames.
- *
- *  Revision 1.1  2001/05/29 15:03:27  dennis
- *  Component to start, stop and single step an animation.
- *
  *
  */
 

@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2002/11/27 23:15:47  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.9  2002/08/01 22:39:02  dennis
  *  Set Java's serialVersionUID = 1.
  *  Set the local object's IsawSerialVersion = 1 for our
@@ -40,26 +42,6 @@
  *
  *  Revision 1.8  2002/07/08 20:14:18  dennis
  *  toString() method now uses greek characters from DataSetTools.util.FontUtil.
- *
- *  Revision 1.7  2001/08/16 02:38:32  dennis
- *  getAveragePosition() calculates average position by averaging the
- *  components of the positions in spherical coordinates.  It also
- *  now checks for and ignores null positions in the points[] array.
- *
- *  Revision 1.6  2001/07/25 18:04:00  dennis
- *  Added method to calculate an average detector position.
- *
- *  Revision 1.5  2001/04/25 20:56:27  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.4  2001/01/29 21:05:32  dennis
- *  Now uses CVS revision numbers.
- *
- *  Revision 1.3  2000/07/18 18:15:49  dennis
- *  Added toString() method
- *
- *  Revision 1.2  2000/07/10 22:25:12  dennis
- *  Now Using CVS 
  *
  */
 package  DataSetTools.math;

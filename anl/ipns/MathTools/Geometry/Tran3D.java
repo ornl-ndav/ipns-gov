@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,23 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2002/11/27 23:15:47  pfpeterson
+ * standardized header
+ *
  * Revision 1.4  2002/10/04 20:17:35  dennis
  * Fixed typo in javadoc comment.
  *
- * Revision 1.3  2001/06/29 18:33:19  dennis
- * Added setOrientation() method to create a matrix that
- * moves and object from the origin to a specified point
- * in 3D with it's "base" and "up" vectors in specified
- * directions..
- *
- * Revision 1.2  2001/05/23 17:26:57  dennis
- * Added get() method.
- *
- * Revision 1.1  2001/05/07 21:35:09  dennis
- * Basic transformations of 3D homogeneous vectors, such as translate,
- * rotate, scale and perspective projection.
- *
- * 
  */
 
 package DataSetTools.math;

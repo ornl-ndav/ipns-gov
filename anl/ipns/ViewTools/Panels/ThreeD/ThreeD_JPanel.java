@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2002/11/27 23:12:53  pfpeterson
+ * standardized header
+ *
  * Revision 1.12  2002/11/26 19:51:34  dennis
  * Now preserves aspect ratio by using the setPreserveAspectRatio()
  * method on the underlying CoordJPanel.
@@ -40,50 +42,6 @@
  *
  * Revision 1.10  2002/07/31 16:42:31  dennis
  * Now uses Java's built in sort instead of customized Q-Sort
- *
- * Revision 1.9  2001/07/13 22:02:58  dennis
- * Modified request_painting() to sleep for the specified
- * number of milliseconds, and to just return if the panel is
- * not visible.  NOTE: request_painting() still does not work
- * properly.
- *
- * Revision 1.8  2001/07/12 16:29:22  dennis
- * build_object_list() is no only called during painting, if
- * items have been added to or removed from the list.
- *
- * Revision 1.7  2001/07/12 14:43:39  dennis
- * Added clear() method to remove all objects.
- * Private method build_object_list no longer calls repaint()
- * when the list is emptied.  It now sets tran3D_used to null
- * so that the objects will be projected and depth sorted when
- * the scene is painted.
- *
- * Revision 1.6  2001/07/10 16:31:36  dennis
- * Now uses Hashtable to keep the list of named ThreeD objects, instead
- * of using a Vector.
- *
- * Revision 1.5  2001/06/28 20:23:24  dennis
- * Now maintains separate named lists of 3D objects, that can
- * be added, removed and colored independently.
- *
- * Revision 1.4  2001/05/29 14:55:39  dennis
- * setVirtualScreen() now takes a third parameter to specify
- * whether or not to reset the local transform as well as
- * the global transform.
- *
- * Revision 1.3  2001/05/23 17:33:51  dennis
- * Now calculates front clipping plane between COP and VRP.
- * Also improved error checking for null transforms.
- *
- * Revision 1.2  2001/05/09 21:10:28  dennis
- * Added method pickID( x, y, pick_radius ) to get the ID of the
- * 3D object closest to the specified pixel (x,y).
- * Added method project( point ) to calculate the pixel coordinates
- * of the projection of the specified 3D point.
- * Added code to paint() to disable the cursors while repainting.
- *
- * Revision 1.1  2001/05/08 21:06:29  dennis
- * JPanel for drawing lists of 3D objects.
  *
  */
 

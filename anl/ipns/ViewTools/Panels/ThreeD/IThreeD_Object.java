@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,18 +30,15 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2002/11/27 23:12:52  pfpeterson
+ * standardized header
+ *
  * Revision 1.4  2002/10/31 23:14:37  dennis
  * Clarified documentation for depth() method.
  *
  * Revision 1.3  2002/10/29 23:46:49  dennis
  * Added method position() to get the average position of the
  * vertices for the object.
- *
- * Revision 1.2  2001/05/23 17:31:43  dennis
- * Added clipping using front clipping plane between COP and VRP
- *
- * Revision 1.1  2001/05/08 21:04:50  dennis
- * Interface for objects that can be drawn by a ThreeD_JPanel.
  *
  */
 

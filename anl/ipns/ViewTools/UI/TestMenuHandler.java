@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,14 +30,8 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.3  2001/04/23 21:50:26  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.2  2001/01/29 21:43:26  dennis
- *  Now uses CVS version numbers.
- *
- *  Revision 1.1  2000/11/10 22:55:46  dennis
- *  Trivial ActionListener to test menus.
+ *  Revision 1.4  2002/11/27 23:13:34  pfpeterson
+ *  standardized header
  *
  */
 package DataSetTools.components.ui;

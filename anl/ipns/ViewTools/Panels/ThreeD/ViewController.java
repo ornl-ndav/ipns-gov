@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,22 +30,8 @@
  * Modified:
  *
  * $Log$
- * Revision 1.4  2001/07/25 16:56:42  dennis
- * Now maintains a list of action listeners and has a method
- * addActionListener()
- *
- * Revision 1.3  2001/07/02 22:40:18  dennis
- * Method addControlledPanel() now first checks to see if the
- * panel is already in the vector of controlled panels.
- *
- * Revision 1.2  2001/05/29 14:57:10  dennis
- * apply() now takes a parameter to specify
- * whether or not to reset the local transform as well as
- * the global transform.
- *
- * Revision 1.1  2001/05/23 17:35:25  dennis
- * Base class for components to control a view matrix.
- *
+ * Revision 1.5  2002/11/27 23:12:53  pfpeterson
+ * standardized header
  *
  */
 

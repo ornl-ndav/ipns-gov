@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2002/11/27 23:13:18  pfpeterson
+ * standardized header
+ *
  * Revision 1.9  2002/10/04 14:41:34  dennis
  * getY_value() method now handles case where x_value is NaN.
  * ("Pointed At" x is initially NaN.)
@@ -41,51 +43,6 @@
  *                is_autoX_bounds(), is_autoY_bounds()
  * To avoid recalculating the range of x and y values in some cases.
  * (Needed to fix problem with XRange update in ScrolledGraphView)
- *
- * Revision 1.7  2001/05/29 15:13:08  dennis
- * Now uses initializeWorldCoords to reset both the local and
- * global transforms.
- *
- * Revision 1.6  2001/05/07 21:20:01  dennis
- * Fixed error in format of documentation.
- *
- * Revision 1.5  2001/05/07 21:04:21  dennis
- * Removed the LocalTransformChanged() method, since the
- * default implementation of this method in CoordJPanel
- * works.
- *
- * Revision 1.4  2001/04/23 21:15:10  dennis
- * Added copyright and GPL info at the start of the file.
- *
- * Revision 1.3  2001/01/29 21:39:17  dennis
- * Now uses CVS version numbers.
- *
- * Revision 1.2  2000/07/10 22:11:49  dennis
- * 7/10/2000 version, many changes and improvements
- *
- * Revision 1.15  2000/05/31 19:00:35  dennis
- * Now uses arraycopy to copy all but the first and last points of the
- * filled area to a new array for drawing the graph when doing hidden line
- * removal.
- *
- * Revision 1.14  2000/05/31 13:55:27  dennis
- * Added hidden line removal
- *
- * Revision 1.13  2000/05/24 22:36:28  dennis
- * Added method to set offsets for plotting multiple graphs.
- *
- *  Revision 1.12  2000/05/18 21:00:15  dennis
- *  Fixed bug that prevented specifying the color of a graph ( >1 ) before
- *  specifying the data.
- *  Also, now draw the graphs in reverse order so that graph #0 is drawn on
- *  top of the other graphs.
- * 
- *  Revision 1.11  2000/05/11 16:53:19  dennis
- *  Added RCS logging
- *
- *  1.1  2000/04/24  Dennis Mikkelson
- *                   Added ability to maintain multiple separate graphs with
- *                   different colors for each graph.
  *
  */
 

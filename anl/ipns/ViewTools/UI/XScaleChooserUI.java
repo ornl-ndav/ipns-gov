@@ -1,5 +1,5 @@
 /*
- * @(#)XScaleChooserUI.java
+ * File: XScaleChooserUI.java
  *
  * Copyright (C) 2001, Dennis Mikkelson
  *
@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/11/27 23:13:34  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.5  2002/07/24 23:23:26  dennis
  *  Now allows 0 bins to be set when it constructed.
  *
@@ -41,13 +43,6 @@
  *
  *  Revision 1.3  2002/03/18 21:40:16  dennis
  *  Constructor now checks that the min and max values are valid.
- *
- *  Revision 1.2  2001/07/26 19:56:59  dennis
- *  Now extends ActiveJPanel instead of JPanel, so that it doesn't
- *  have to maintain the list of listeners itself.
- *
- *  Revision 1.1  2001/07/20 16:36:15  dennis
- *  GUI device for choosing X-Scales.
  *
  */
 

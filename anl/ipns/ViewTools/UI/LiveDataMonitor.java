@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2002/11/27 23:13:34  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.22  2002/04/18 22:00:57  dennis
  *  Fixed name problem that prevented compiling with jdk1.3.1_03
  *  (Though it did compile with 1.4.0)
@@ -45,87 +47,6 @@
  *  Revision 1.20  2002/04/10 16:02:55  dennis
  *  Removed automatic request for update after requesting that a DataSet be
  *  shown.
- *
- *  Revision 1.19  2001/08/14 19:19:29  dennis
- *  Displays status messages in label, not on command line.
- *
- *  Revision 1.18  2001/08/14 15:16:28  dennis
- *  Temporarily displays status messages on console.
- *
- *  Revision 1.17  2001/08/13 23:35:42  dennis
- *  Uses RemoteDataRetriever.error_message() to generate string form
- *  of error message in some cases.
- *
- *  Revision 1.16  2001/08/09 16:11:00  dennis
- *  ViewManagers are now "listened" to and if the user closes a
- *  ViewManager, it is removed from the list of viewers and the
- *  checkboxes are un-checked.
- *
- *  Revision 1.15  2001/08/08 13:59:10  dennis
- *  Added status/error info to label giving host name.
- *  First stage integration of new error messages.
- *
- *  Revision 1.14  2001/06/08 22:40:36  dennis
- *  Made this implement IObservable, and added "record" button to
- *  send a DataSet to any observers.
- *
- *  Revision 1.13  2001/06/08 22:00:22  dennis
- *  Now keeps and reuses the old buttons, labels and viewers when
- *  the runs change.
- *
- *  Revision 1.12  2001/06/07 16:47:16  dennis
- *  Now sets up the control pane initially, even if there are no
- *  DataSets available yet from the LiveDataManager.
- *
- *  Revision 1.11  2001/06/06 21:26:22  dennis
- *  Now listens for an ActionEvent from the LiveDataManager to
- *  find out if the run number has been changed.
- *
- *  Revision 1.10  2001/05/23 17:39:44  dennis
- *  Changed component colors and fonts to improve printed screen dumps.
- *
- *  Revision 1.9  2001/04/23 21:50:13  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.8  2001/03/02 17:01:25  dennis
- *  Added tests for data_manager == null in methods to get info from
- *  the data_manager.
- *  Added rudimentary destroy() method.  THIS IS NOT COMPLETE.
- *
- *  Revision 1.7  2001/02/22 23:19:12  dennis
- *  Now includes separate check box that determines whether
- *  or not the DataSet is automatically updated.
- *  Also, if the DataSets are switched to a different run,
- *  the labels will be updated when the GUI controls are adjusted.
- *
- *  Revision 1.6  2001/02/22 21:06:04  dennis
- *  Moved code that builds the GUI into a private method SetUpGUI().
- *
- *  Revision 1.5  2001/02/20 23:06:11  dennis
- *  - Now uses slider to set the delay between auto updates.
- *  - Also, now uses more elaborate layout of the components
- *    and has descriptive borders on components.
- *  - Finally, added methods to get the number and type of
- *    the DataSets and to get the DataSets from the underlying
- *    LiveDataManager.  (These are just "wrapper" methods.)
- *
- *  Revision 1.4  2001/02/16 22:08:00  dennis
- *  Now the main program will get the instrument computer name
- *  or IP address from the command line.
- *  Fixed bug which caused auto updates for a DataSet to be missed
- *  if the DataSet was first hidden by "unchecking" the Show box and
- *  then made visible by pressing the Update button.
- *
- *  Revision 1.3  2001/02/16 16:40:21  dennis
- *  Changed order of buttons in GUI panel.
- *  Added some @see comments.
- *
- *  Revision 1.2  2001/02/15 23:18:05  dennis
- *  This version now works, using a default flow layout
- *
- *  Revision 1.1  2001/02/15 22:52:10  dennis
- *  Initial form of class for monitoring data from a
- *  remote LiveDataServer object.
  *
  */
 

@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,14 +30,8 @@
  * Modified:
  *
  * $Log$
- * Revision 1.2  2001/07/12 14:38:54  dennis
- * Added types SOLID and HOLLOW and method setType() to select
- * how the polygon should be drawn.
- *
- * Revision 1.1  2001/05/08 21:07:16  dennis
- * Arbitrary single colored polygon that can be drawn
- * by a ThreeD_JPanel.
- *
+ * Revision 1.3  2002/11/27 23:12:53  pfpeterson
+ * standardized header
  *
  */
 

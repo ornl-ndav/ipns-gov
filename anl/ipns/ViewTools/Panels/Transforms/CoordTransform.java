@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,30 +30,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2002/11/27 23:13:18  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.7  2002/11/26 19:21:21  dennis
  *  Added option to restrict the transformation to preserve aspect ratio.
  *  Changed getSource() and getDestination() routines to return copies of
  *  the source & destination regions rather than references to them.
  *  Added java docs for API.
- *
- *  Revision 1.6  2001/06/28 20:31:25  dennis
- *  Added toString() method.
- *
- *  Revision 1.5  2001/05/07 21:12:04  dennis
- *  Added a copy constructor and a method equals() to check if
- *  two CoordTransform objects represent the same transformation.
- *
- *  Revision 1.4  2001/04/23 21:15:00  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.3  2001/01/29 21:39:05  dennis
- *  Now uses CVS version numbers.
- *
- *  Revision 1.2  2000/07/10 22:11:47  dennis
- *  7/10/2000 version, many changes and improvements
- *
- *  Revision 1.4  2000/05/11 16:53:19  dennis
- *  Added RCS logging
  *
  */
 

@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,13 +30,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2002/11/27 23:15:47  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.6  2002/04/04 19:16:23  dennis
  *  Added SmoothResample() methods.  Currently these just call
  *  Resample().  The implementation should be changed to include
  *  smoothing.
- *
- *  Revision 1.5  2001/04/25 20:56:43  dennis
- *  Added copyright and GPL info at the start of the file.
  *
  */
 

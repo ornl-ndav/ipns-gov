@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2002/11/27 23:15:47  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.10  2002/08/01 22:39:02  dennis
  *  Set Java's serialVersionUID = 1.
  *  Set the local object's IsawSerialVersion = 1 for our
@@ -43,31 +45,6 @@
  *
  *  Revision 1.8  2002/06/14 21:24:51  rmikk
  *  Implements IXmlIO interface
- *
- *  Revision 1.7  2001/08/16 02:34:16  dennis
- *  getCenterofMass() now checks for and ignores null positions in the
- *  points[] array.
- *
- *  Revision 1.6  2001/07/25 18:05:30  dennis
- *  Added check for sum of weights == 0 to getCenterOfMass()
- *  method.
- *
- *  Revision 1.5  2001/04/25 20:56:39  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *
- *  Revision 1.3  2000/07/18 18:15:49  dennis
- *  Added toString() method
- *
- *  Revision 1.2  2000/07/10 22:25:14  dennis
- *  Now Using CVS 
- *
- *  Revision 1.4  2000/06/12 14:53:55  dennis
- *  Added method getCenterOfMass() to calculate a weighted sum of position
- *  objects.
- *
- *  Revision 1.3  2000/05/11 16:08:13  dennis
- *  Added RCS logging
  *
  */
 package  DataSetTools.math;

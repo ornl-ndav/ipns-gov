@@ -3,10 +3,6 @@
  *
  * Copyright (C) 2001, Dennis Mikkelson
  *
- * ( The basic technique used here was adapted from an example in  
- *   "graphic JAVA", David M. Geary, Alan L. McClellan, SunSoft Press
- *   Prentice Hall, 1997 )
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -24,18 +20,20 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
+ * ( The basic technique used here was adapted from an example in  
+ *   "graphic JAVA", David M. Geary, Alan L. McClellan, SunSoft Press
+ *   Prentice Hall, 1997 )
+ *
  *  $Log$
- *  Revision 1.1  2001/06/01 20:21:34  dennis
- *  Abstract base class for XOR drawn cursors such as the large
- *  crosshairs and rubber band box.
+ *  Revision 1.2  2002/11/27 23:13:18  pfpeterson
+ *  standardized header
  *
  */
 

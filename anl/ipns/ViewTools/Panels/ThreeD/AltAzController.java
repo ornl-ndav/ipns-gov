@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,31 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2002/11/27 23:12:52  pfpeterson
+ * standardized header
+ *
  * Revision 1.7  2002/02/18 18:10:47  dennis
  * Angles now change in steps of 0.1 degree
- *
- * Revision 1.6  2001/07/25 16:57:55  dennis
- * Added methods to get the altitude and view angles and to
- * get the distance.
- *
- * Revision 1.5  2001/07/04 15:27:18  dennis
- * Angle sliders border and includes "angle" and degrees symbol.
- *
- * Revision 1.4  2001/07/03 21:25:38  dennis
- * Added digital readout of degrees & distance on sliders.
- *
- * Revision 1.3  2001/06/28 20:24:27  dennis
- * Uses new form of ThreeD_JPanel with named lists of
- * 3D objects.
- *
- * Revision 1.2  2001/05/29 14:58:54  dennis
- * Now complete and documented
- *
- * Revision 1.1  2001/05/23 17:36:35  dennis
- * Control view matrix using sliders that adjust the
- * altitude angle, azimuthal angle and distance from the
- * VRP to the COP.
- *
  *
  */
 

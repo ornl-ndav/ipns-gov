@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -34,42 +33,15 @@
  *  of first and second moments, etc.   
  * 
  *  $Log$
+ *  Revision 1.9  2002/11/27 23:15:47  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.8  2002/10/08 15:41:28  dennis
  *  Added BisectionMethod() for solving f(x)=0 on interval where f()
  *  changes sign.
  *
  *  Revision 1.7  2002/09/25 22:16:22  pfpeterson
  *  Added a method to integrate function-table data using trapezoid method.
- *
- *  Revision 1.6  2001/04/25 20:56:36  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.5  2001/01/29 21:05:44  dennis
- *  Now uses CVS revision numbers.
- *
- *  Revision 1.4  2000/08/02 20:12:35  dennis
- *  Added routines to use trapezoidal rule to numerically integrate
- *  a function, and calculate moments of functions given by tablulated
- *  data points over an interval [a,b]
- *
- *  Revision 1.3  2000/07/13 14:27:27  dennis
- *  Removed extra ;
- *
- *  Revision 1.2  2000/07/10 22:25:13  dennis
- *  Now Using CVS 
- *
- *  Revision 1.7  2000/06/13 16:07:26  dennis
- *  fixed error message in HistogramMoment()
- *
- *  Revision 1.6  2000/06/12 14:46:10  dennis
- *  Fixed Integration and moment calculation for histograms.  Originally the
- *  histogram values were treated like ordinary function values and the
- *  integral was calculated as  SUM( y * dx ).  Now the integration is just
- *  done as SUM( y ) since the histogram values already give the total counts
- *  on an interval, not a count rate.
- *
- *  Revision 1.5  2000/05/11 16:08:13  dennis
- *  Added RCS logging
  *
  */
 

@@ -17,18 +17,22 @@
  * along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contact : Ruth Mikkelson, mikkelsonr@uwstout.edu
+ * Contact : Ruth Mikkelson <mikkelsonr@uwstout.edu>
+ *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
- * 
+ * This work was supported by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
- * For further information, see http://www.pns.anl.gov/ISAW/>
+ * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/11/27 23:14:07  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.4  2002/11/12 03:36:24  dennis
  *  Since Attributes are no longer mutable, this can't call setValue()
  *  for Double, Float and Int Attributes (line 421).  This must still be

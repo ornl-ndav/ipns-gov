@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,17 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2002/11/27 23:12:53  pfpeterson
+ * standardized header
+ *
  * Revision 1.3  2002/10/29 23:46:02  dennis
  * Added method position().
- *
- * Revision 1.2  2001/05/23 17:31:46  dennis
- * Added clipping using front clipping plane between COP and VRP
- *
- * Revision 1.1  2001/05/09 21:06:26  dennis
- * "Dummy" 3D object to use as a place holder in a list of
- * IThreeD_Objects.  This object is invisible and it methods
- * basically do nothing.
- *
  *
  */
 

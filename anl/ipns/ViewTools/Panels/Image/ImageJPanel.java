@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2002/11/27 23:13:18  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.11  2002/07/17 15:18:00  dennis
  *  Now sets valid default for the color model.
  *
@@ -39,45 +41,6 @@
  *
  *  Revision 1.9  2002/06/19 22:43:24  dennis
  *  Added some additional checks to keep row,col values in range.
- *
- *  Revision 1.8  2001/08/08 14:24:58  dennis
- *  Now extends ActiveJPanel and sends action events to any
- *  ActionListeners when the cursor is moved, or when the
- *  panel is "zoomed".
- *
- *  Revision 1.7  2001/04/23 21:15:13  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.6  2001/01/29 21:39:20  dennis
- *  Now uses CVS version numbers.
- *
- *  Revision 1.5  2000/12/07 22:32:32  dennis
- *  Added some debug prints
- *
- *  Revision 1.4  2000/10/03 21:48:27  dennis
- *  Modified to work with "Dual" color scales for both positive and negative
- *  values.
- *  Modified paint() routine to verify that the all data has been initialized.
- *  This was needed on the Mac to avoid null pointer problems.
- *
- *  Revision 1.3  2000/07/10 22:17:00  dennis
- *  minor format change to documentation
- *
- *  Revision 1.2  2000/07/10 22:11:50  dennis
- *  7/10/2000 version, many changes and improvements
- *
- *  Revision 1.13  2000/05/31 21:32:53  dennis
- *  Modified method that generates mouse events from key events to
- *  send a MOUSE_DRAGGED event with a MOUSE_PRESSED event so that the
- *  cursor draws/updates immediately
- *
- *  Revision 1.12  2000/05/16 22:28:40  dennis
- *  modified it to not copy the data array that is passed in.  This means
- *  that it will no longer work for "ragged" arrays, but it will be somewhat
- *  more efficient.
- *
- *  Revision 1.11  2000/05/11 16:53:19  dennis
- *  Added RCS logging
  *
  */
 
