@@ -30,6 +30,18 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/02/18 00:31:50  dennis
+ *  Now uses null character (char)0, as default value for look_ahead
+ *  buffer.  However, the null character is not returned by any of the
+ *  read routines.  This avoids an extra space at the beginning of lines.
+ *  Renamed the original "robust" eof() method, that checked for any
+ *  remaining non-blank characters in the file to end_of_data().  The
+ *  eof() file now just checks for the end of file mark in the look_ahead
+ *  buffer.
+ *  The read_String(n_to_read) method now sets a mark and uses the
+ *  "pre_mark_ch" variable to correctly "unread" fixed length values that
+ *  were read with the fixed length read routines.
+ *
  *  Revision 1.10  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -90,7 +102,7 @@ public class TextFileReader
   public  static final String EOL = "End of line"; // string used to construct
                                                    // the end-of-line exception
 
-  private int                 look_ahead =(int)' ';// One char buffer
+  private int                 look_ahead = 0;      // One char buffer
   private int                 pre_mark_ch;         // Saved buffer before mark
 
   public  static final int    BUFFER_SIZE = 200;   // Maximum number of chars 
@@ -114,8 +126,8 @@ public class TextFileReader
   {
     try
     {
-      reader   = new FileReader( file_name );
-      in = new BufferedReader( reader );
+      reader = new FileReader( file_name );
+      in     = new BufferedReader( reader );
       in.mark( BUFFER_SIZE );
       pre_mark_ch = look_ahead;
     }
@@ -140,8 +152,8 @@ public class TextFileReader
   {
     try
     {
-      reader   = new InputStreamReader( stream );
-      in = new BufferedReader( reader );
+      reader = new InputStreamReader( stream );
+      in     = new BufferedReader( reader );
       in.mark( BUFFER_SIZE );
       pre_mark_ch = look_ahead;
     }
@@ -187,18 +199,37 @@ public class TextFileReader
 
   /* ---------------------------- eof -------------------------------- */
   /**
-   *  Check for the end of file.  This eof() method will skip any blanks 
-   *  starting at the current position in the file and will advance to the 
-   *  first non-blank character remaining in the file, if there is one.
-   *  If there is a non-blank character remaining in the file, eof() will
-   *  return false and that non-blank character will be the next character
-   *  read from the file.  If no non-blank characters remain, eof() returns
-   *  true.  NOTE: This changes the current postion in the file.
+   *  Check for the end of file.  This eof() method just checks the look 
+   *  ahead character.  If it is -1, the end of file has been reached.
+   *  NOTE: This may be misleading, since there may just be whitespace 
+   *        remaining in the file.
+   *
+   *  @return true if the last character has been read from the file.
+   */
+  public boolean eof()
+  {
+    if ( look_ahead < 0 )
+      return true;
+
+    return false;
+  }
+
+
+  /* ------------------------- end_of_data ------------------------ */
+  /**
+   *  Check for the end of non-blank characters in the file.  This 
+   *  end_of_data() method will skip any blanks starting at the current 
+   *  position in the file and will advance to the first non-blank character 
+   *  remaining in the file, if there is one. If there is a non-blank character
+   *  remaining in the file, end_of_data() will return false and that non-blank
+   *  character will be the next character read from the file.  If no non-blank
+   *  characters remain, end_of_data() returns true.  
+   *  NOTE: This changes the current postion in the file.
    *
    *  @return true if no non-blank characters remain past the current position 
    *               in the file.   
    */
-  public boolean eof()
+  public boolean end_of_data()
   {
     try
     {
@@ -210,6 +241,7 @@ public class TextFileReader
     }
     return false;
   }
+
 
   /* -------------------------- read_line ---------------------------- */
   /**
@@ -226,7 +258,7 @@ public class TextFileReader
   {
     if ( look_ahead == '\n' )
     {
-      look_ahead = ' ';
+      look_ahead = 0;
       return new String("");
     }
     else
@@ -237,8 +269,11 @@ public class TextFileReader
       if ( s == null )
         throw new IOException( EOF );
 
-      s = "" + (char)look_ahead + s;
-      look_ahead = ' ';
+      if ( look_ahead != 0 )                       // don't keep null chars
+        s = "" + (char)look_ahead + s;
+ 
+      look_ahead = 0;                              // set look_ahead to null
+                                                   // at the end of a line.
       return s;
     }
   }
@@ -257,6 +292,9 @@ public class TextFileReader
   {
     in.mark(2);                           // prepare to reset to this position
     pre_mark_ch = look_ahead;             // at start of a non-blank string
+
+    if ( look_ahead == 0 )
+      look_ahead = (int)' ';
 
     while ( Character.isWhitespace( (char)look_ahead ) )
     {
@@ -298,8 +336,11 @@ public class TextFileReader
              look_ahead >= 0                            &&     // -1 is EOF
              n  < BUFFER_SIZE                            )
     {
-      buffer[n] = (byte)look_ahead;
-      n++;
+      if ( look_ahead != 0 )                              // ignore null chars
+      {
+        buffer[n] = (byte)look_ahead;
+        n++;
+      }
       getc();
     }
        
@@ -324,11 +365,13 @@ public class TextFileReader
      */
     public String read_String(int n_char) throws IOException{
         byte buffer[]=new byte[n_char];
-        int chr=(int)' ';
+        int chr=0;
 
         in.mark( BUFFER_SIZE );
+        pre_mark_ch = look_ahead;
+
         for( int i=0 ; i<n_char ; i++ ){
-            chr=getc();
+            chr = getc();
             if(chr=='\n'){
                 throw new IOException( EOL );
             }else if(chr>=0){
@@ -578,10 +621,22 @@ public class TextFileReader
   }
 
    
+  /* ------------------------------ getc ---------------------------------- */
+  /*
+   *  Get the next "logical" character from the file, which is currently stored
+   *  in the one character look_ahead "buffer".  Put the next actual character
+   *  from the file into the look_ahead buffer.
+   */
   private int getc() throws IOException
   {
-    int temp = look_ahead;
-    look_ahead = in.read();
+    int temp;
+
+    if ( look_ahead == 0 )          // no real look_ahead value, so 
+      temp = in.read();             // get an actual character from the file
+    else
+      temp = look_ahead;            // return the look_ahead value
+
+    look_ahead = in.read();         // and look ahead to the next character
     return temp;
   }
 
@@ -636,13 +691,22 @@ public class TextFileReader
       i_num = f.read_int();
       System.out.println("int value again is " + i_num );
 
-      /*f.skip_blanks();
-        ch = f.read_char();
-        System.out.println("char value is " + ch );
-        f.unread();
-        ch = f.read_char();
-        System.out.println("char value again is " + ch );*/
+      f.skip_blanks();
+      ch = f.read_char();
+      System.out.println("char value is " + ch );
+      f.unread();
+      ch = f.read_char();
+      System.out.println("char value again is " + ch );
 
+      f.skip_blanks();
+      ch = f.read_char();
+      System.out.println("char value is " + ch );
+      f.unread();
+      ch = f.read_char();
+      System.out.println("char value again is " + ch );
+ 
+      line = f.read_line();
+      System.out.println("rest of line is <" + line + ">" );
       //f.close();
     }
     catch ( Exception e )
@@ -668,7 +732,8 @@ public class TextFileReader
     }
 
     try{
-        f.read_line();
+        line = f.read_line();
+        System.out.println("read line is <" + line + ">" );
         //f.read_char();
         String str=f.read_String(8);
         System.out.println("FORMATTED: "+str);
@@ -677,17 +742,17 @@ public class TextFileReader
         System.out.println("FORMATTED AGAIN: "+str);
         f.unread();
         int i=f.read_int(2);
-        System.out.print("FORMATTED YET AGAIN: "+i);
+        System.out.println("FORMATTED YET AGAIN: "+i);
         double d=f.read_double(5);
-        System.out.print(" "+d);
+        System.out.println(" "+d);
+        f.read_line();
         float fl=f.read_float(4);
         System.out.println(" "+fl);
-        f.read_line();
     }catch( Exception e ){
         System.out.println("3: EXCEPTION: " + e );
     }
 
-    while ( f != null && !f.eof() )
+    while ( f != null && !f.end_of_data() )
     {
       try
       {
