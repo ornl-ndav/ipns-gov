@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2001/06/06 21:27:45  dennis
+ *  Removed redundant size check for the list of listeners.
+ *
  *  Revision 1.2  2001/05/29 19:43:12  dennis
  *  Now properly displays the frame value immediately after setting
  *  values for the frames.
@@ -300,13 +303,12 @@ synchronized private void set_frame( int number )
   }
 
   frame_number = number;
-
-  if ( listeners.size() > 0 )                       // send action event to 
-    for ( int i = 0; i < listeners.size(); i++ )    // all of the listeners
-    {
-      ActionListener listener = (ActionListener)listeners.elementAt(i);
-      listener.actionPerformed( new ActionEvent( this, 0, ""+frame_number ) );
-    }
+                                                  // send action event to 
+  for ( int i = 0; i < listeners.size(); i++ )    // all of the listeners
+  {
+    ActionListener listener = (ActionListener)listeners.elementAt(i);
+    listener.actionPerformed( new ActionEvent( this, 0, ""+frame_number ) );
+  }
 }
 
 
