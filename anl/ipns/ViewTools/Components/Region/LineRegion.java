@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/12/20 04:14:24  millermi
+ *  - Cosmetic changes, made code more user friendly.
+ *
  *  Revision 1.2  2003/10/22 20:27:58  millermi
  *  - Fixed java doc error.
  *
@@ -79,27 +82,27 @@ public class LineRegion extends Region
    { // needs to be changed.
      Point p1 = new Point( definingpoints[0] );
      Point p2 = new Point( definingpoints[1] );
+     // assume dx > dy
      int numsegments = Math.abs( p2.x - p1.x );
-     boolean ybig = false; // is dy > dx
+     // if dy > dx, use dy
      if( numsegments < Math.abs( p2.y - p1.y ) )
      {
        numsegments = Math.abs( p2.y - p1.y );
-       ybig = true;
      }
      // numsegments counts the interval not the points, so their are
      // numsegments+1 points.
      
      selectedpoints = new Point[numsegments + 1];
-     floatPoint2D deltap = new floatPoint2D();
-     deltap.x = (float)(p2.x - p1.x)/(float)(numsegments);
-     deltap.y = (float)(p2.y - p1.y)/(float)(numsegments);
+     floatPoint2D delta_p = new floatPoint2D();
+     delta_p.x = (float)(p2.x - p1.x)/(float)(numsegments);
+     delta_p.y = (float)(p2.y - p1.y)/(float)(numsegments);
      
      floatPoint2D actual = new floatPoint2D( (float)p1.x, (float)p1.y );
      selectedpoints[0] = new Point(p1);
      for( int i = 1; i < numsegments; i++ )
      {
-       actual.x += deltap.x;
-       actual.y += deltap.y;
+       actual.x += delta_p.x;
+       actual.y += delta_p.y;
        selectedpoints[i] = new Point( (int)Math.round(actual.x),
                                       (int)Math.round(actual.y) );
      }
