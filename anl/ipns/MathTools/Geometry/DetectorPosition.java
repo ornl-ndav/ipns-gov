@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2001/08/16 02:38:32  dennis
+ *  getAveragePosition() calculates average position by averaging the
+ *  components of the positions in spherical coordinates.  It also
+ *  now checks for and ignores null positions in the points[] array.
+ *
  *  Revision 1.6  2001/07/25 18:04:00  dennis
  *  Added method to calculate an average detector position.
  *
@@ -90,11 +95,11 @@ public class DetectorPosition extends    Position3D
 
 
   /**
-   *  Calculate a weighted average of a list of detector positions.  The
-   *  distance from the origin is the weighted average of the distances
-   *  to the detectors.  The direction to the average is the direction of
-   *  the center of mass of the detectors.  Any points for which a 
-   *  weight is not given will be given weight 0.
+   *  Calculate a weighted "average" of a list of detector positions.  The
+   *  "average" is obtained by calculating the average of the components
+   *  of the position in spherical coordinates.  Any points for which a 
+   *  weight is not given will be given weight 0.  Null entries in the 
+   *  points[] array are ignored.
    *
    *  @param  points   Array of Detector3D objects whose weighted average is
    *                   calculated
@@ -111,33 +116,46 @@ public class DetectorPosition extends    Position3D
   public static DetectorPosition getAveragePosition( DetectorPosition points[],
                                                      float            weights[])
   {
-    Position3D center_of_mass = getCenterOfMass( points, weights );
-    if ( center_of_mass == null )
-    {
-      System.out.println("ERROR: invalid data in " + 
-                         "DetectorPosition getAveragePosition" );
-      return null;
-    } 
-
     int n_points = points.length;
+
     if ( n_points > weights.length )
       n_points = weights.length;
 
-    float sum_r = 0;
-    float sum_w = 0;
+    if ( n_points == 0 )
+    {
+      System.out.println("ERROR: no points or weights specified in" +
+                         " DetectorPosition.getAveragePosition");
+      return null;
+    }
+
+    float sum_r     = 0;
+    float sum_theta = 0;
+    float sum_phi   = 0;
+    float sum_w     = 0;
     float coords[] = null;
     for ( int i = 0; i < n_points; i++ )
-    {
-      coords = points[i].getSphericalCoords();
-      sum_r += coords[0] * weights[i];
-      sum_w += weights[i];
-    }
-    float ave_r = sum_r / sum_w;
+      if ( points[i] != null )
+      {
+        coords = points[i].getSphericalCoords();
+        sum_r     += coords[0] * weights[i];
+        sum_theta += coords[1] * weights[i];
+        sum_phi   += coords[2] * weights[i];
+        sum_w     += weights[i];
+      }
 
-    coords = center_of_mass.getSphericalCoords();
+    if ( sum_w == 0 )
+    {
+      System.out.println("ERROR: sum of weights is zero in " +
+                         "DetectorPosition.getAveragePosition() " );
+      return null;
+    }
+
+    float ave_r     = sum_r / sum_w;
+    float ave_theta = sum_theta / sum_w;
+    float ave_phi   = sum_phi / sum_w;
 
     DetectorPosition ave_pos = new DetectorPosition();
-    ave_pos.setSphericalCoords( ave_r, coords[1], coords[2] );
+    ave_pos.setSphericalCoords( ave_r, ave_theta, ave_phi );
 
     return ave_pos;
   }   
