@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.40  2004/10/06 20:32:50  serumb
+ * Removed the log scale slider control because it is not used with
+ * the true log scale.
+ *
  * Revision 1.39  2004/09/15 21:55:47  millermi
  * - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *   Adding a second log required the boolean parameter to be changed
@@ -257,7 +261,6 @@ import javax.swing.border.*;
                                     new ControlCheckboxButton(  );
   private ControlCheckboxButton legend_checkbox = 
                                     new ControlCheckboxButton(  );
-  private ControlSlider log_slider;
   private double log_scale = 10;
   private float shift_factor = 1;
   private ViewControlsPanel main_panel;
@@ -408,9 +411,6 @@ import javax.swing.border.*;
 
    String the_string[] = {"X ","Y "};
     cursor = new CursorOutputControl(the_string);
-    log_slider = new ControlSlider();
-    log_slider.setTitle("Log Scale Slider");
-    log_slider.setValue(10.0f);
 
     GridLayout G_lout = new GridLayout( 1, 1 );
 
@@ -463,9 +463,7 @@ import javax.swing.border.*;
     rightBox.add( legend_checkbox );
     rightBox.add( TFP );
     rightBox.add( cursor );
-//  rightBox.add( labelbox7 );
     rightBox.add( labelbox8 );
-    rightBox.add( log_slider );
                                                                               
     RboxPanel.setLayout(G_lout);
     RboxPanel.add(rightBox);
@@ -490,7 +488,6 @@ import javax.swing.border.*;
     ShiftBox.addActionListener( new ControlListener(  ) );
     ShiftFactor.addActionListener( new ControlListener(  ) );
     LogBox.addActionListener( new ControlListener(  ) );
-    log_slider.addActionListener( new ControlListener( ) );
     x_range.addActionListener( new x_rangeListener(  ) );
     y_range.addActionListener( new y_rangeListener(  ) );
     gjp.addActionListener( new ImageListener(  ) );
@@ -723,15 +720,7 @@ import javax.swing.border.*;
          listens for the color buttons and displays a color chooser
          and sets the object to the appropriate color.
      */  
-      if ( message.equals(ControlSlider.SLIDER_CHANGED) ) {
-        if (LogBox.getSelectedIndex() != 0 )
-        {
-          log_scale = log_slider.getValue();
-          gjp.setLogScale((float)log_scale, true);
-          fvc.paintComponents( );
-        }
-      }
-      else if( message.equals( "BUTTON_PRESSED" ) ) {
+      if( message.equals( "BUTTON_PRESSED" ) ) {
         if( ae.getSource(  ) == LineColor ) {
           Color c = JColorChooser.showDialog( null, "color chart", Color.black );
 
