@@ -34,6 +34,24 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/08/04 18:57:31  millermi
+ *  - Restructured column labeling, now makes use of Java's column features.
+ *  - Added ability for row_labels column to automatically adjust to the size
+ *    of the largest label.
+ *  - Now makes use of new class TableModelMaker to convert from an
+ *    IVirtualArray2D to a TableModel.
+ *  - Added getRowCount() and getColumnCount() for user convenience.
+ *  - Renamed UnselectAll() to unselectAll().
+ *  - Added getEnableMoveColumn() to verify if column movement was
+ *    enabled or disabled.
+ *  - Added getColumnLabels() and getRowLabels().
+ *  - ObjectState now saves labels for Project saves.
+ *  - Added setColumnAlignment() to allow data to be left, right or center
+ *    justified.
+ *  - Added capability to handle null data.
+ *  - Corrected the code for calculating the number of visible rows in
+ *    the ResizedListener.
+ *
  *  Revision 1.4  2004/07/23 07:38:53  millermi
  *  - Updated how row and column labels were stored and displayed.
  *  - Added setRowLabels() and setColumnLabels() methods to modify
@@ -77,6 +95,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Point;
 import java.util.Vector;
@@ -87,9 +107,16 @@ import javax.swing.JTable;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
+import javax.swing.event.TableColumnModelListener;
+import javax.swing.event.TableColumnModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -106,33 +133,63 @@ import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
-import gov.anl.ipns.ViewTools.Components.IVirtualArrayList1D;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.Region.PointRegion;
 import gov.anl.ipns.ViewTools.Components.Region.TableRegion;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Sys.WindowShower;
+
+/*
+ */
 
 /**
  * This class has many of the capabilities of the JTable. The TableJPanel
  * allows for random selection, with selection methods parallelling that
  * of a typical spreadsheet program. This class does not extend JTable, thus
- * none of the JTable methods apply.
+ * only a few of the JTable methods are found in this class.
+ * <BR><BR><I>
+ * Note: Java's JTable uses multiple column indices for each column. Each
+ * column has a View index, where it visably "appears" in the table, and
+ * a Model index, how it was initially entered into the TableModel. Reordering
+ * of columns causes these two values to be different. This class expects
+ * all column values to be in Model indices, since the JTable methods 
+ * work on this system.
+ * <BR><BR><B>
+ * Example: Column 0 and Column 2 are interchanged. The index 0 should still
+ * be used to reference Column 0, not Column 2.</B></I>
  */
 public class TableJPanel extends ActiveJPanel implements IPreserveState
 {
  /**
   * "Selected Changed" - This messaging String is sent out whenever the
-  * selection of cells is changed.
+  * mouse is released and a selection of cells has been completed. Calling
+  * getSelectedRegions() will return a list of TableRegions with the last
+  * region being the newly created region that generated this message.
   */
   public static final String SELECTED_CHANGED = "Selected Changed";
+  
+ /**
+  * "Selection Changing" - This messaging String is sent out whenever the
+  * mouse is pressed and dragged, causing the selection of cells to be changed
+  * but not yet completed. Calling getSelectedRegions() will return a list
+  * of TableRegions that will not include the region that generated this
+  * message. Instead, call getActiveSelection() to get the changing selection.
+  */
+  public static final String SELECTION_CHANGING = "Selection Changing";
   
  /**
   * "Pointed At Changed" - This messaging String is sent out whenever the
   * pointed at cell is changed.
   */
   public static final String POINTED_AT_CHANGED = "Pointed At Changed";
+  
+ /**
+  * "Viewport Changed" - This messaging String is sent out whenever the
+  * horizontal or vertical scrollbars are adjusted.
+  */
+  public static final String VIEWPORT_CHANGED = "Viewport Changed";
  
  // The following variables are String keys used to preserve state information. 
  /**
@@ -141,6 +198,20 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   * references is of type Color.
   */
   public static final String LABEL_BACKGROUND = "Label Background";
+ 
+ /**
+  * "Row Labels" - This String key is used to preserve state information
+  * which stores row labels that are displayed on the table.
+  * The value this key references is an array of Objects.
+  */
+  public static final String ROW_LABELS = "Row Labels";
+ 
+ /**
+  * "Column Labels" - This String key is used to preserve state information
+  * which stores column labels that are displayed on the
+  * table. The value this key references is an array of Objects.
+  */
+  public static final String COLUMN_LABELS = "Column Labels";
  
  /**
   * "Show Row Labels" - This String key is used to preserve state information
@@ -169,25 +240,31 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   * an array of TableRegions.
   */ 
   public static final String TABLE_SELECTIONS = "Table Selections";
+ 
+ /**
+  * "Column Mobility" - This String key is used to preserve state information
+  * which determines whether columns may be moved, either by calling
+  * moveColumn() or by dragging column headers. The value this key references
+  * is an of type Boolean.
+  */
+  public static final String COLUMN_MOBILITY = "Column Mobility";
   
-  private final float SHIFT_DIVISOR = 4f; // 1/SHIFT_DIVISOR controls when
+  private final float SHIFT_DIVISOR = 2f; // 1/SHIFT_DIVISOR controls when
                                           // the table is shifted to the next
 					  // row and/or column.
   private Point anchor = new Point(); // The beginning of the initial selection.
   private Point extend = null; // The variable end of the initial selection.
   private Point ctrl_anchor = null; // The beginning of an additional selection.
   private Point ctrl_extend = null; // The end of a changing selection.
-  private Point focus = null; // The pix. pt. of the cell that has focus.
+  private Point focus; // The col/row pt. of the cell that has focus.
   private JTable table; // The table that will display the data.
   private JScrollPane scroll; // The scrollpane containing the table.
   private boolean[][] selected; // The grid used to determine selected cells.
-  private boolean active_selection; // true if mouse pressed, dragged, but
-                                    // not released.
-  private JTable column_labels; // The column labels.
+  private CoordBounds active_selection; // The actively growing selection.
+  private JTableHeader column_labels; // Save backup of header, so it can be
+                                      // set to null, thus not appearing.
   private JTable row_labels; // The row labels.
-  private JPanel column_label_container; // The column labels and spacers.
   private JPanel row_label_container; // The row labels and spacers.
-  private Vector column_label_list; // List of labels, one for each column.
   private Vector row_label_list; // List of labels, one for each row.
   private Color label_color; // Background color of the labels.
   private Vector selections; // List of TableRegions
@@ -195,12 +272,15 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
                                      // number of selected_changed messages
 				     // if setSelectedRegions() is called.
   private boolean do_clear;  // This will prevent a region from being added
-                             // when the UnselectAll() method is called.
+                             // when the unselectAll() method is called.
   private Point initial_column; // Initial column selected for drag & drop
   private Point current_column; // Current column selected for drag & drop
-  private int column_label_offset = 0; // Offset for labels to match viewable
-                                       // columns.
-  private boolean isMobile;
+  private String max_row_label; // Max width of any row label String.
+  private boolean disable_auto_position; // disable setPointedAt() cell tracer.
+  private boolean move_column_called; // was moveColumn() called to move column
+  private int pre_digits; // Number of digits before decimal, used in formatting
+  private int post_digits; // Number of digits after decimal, used in formatting
+  
  /**
   * Default Constructor
   */ 
@@ -220,7 +300,12 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   public TableJPanel( TableModel tm )
   {
     super();
-    table = new JTable(tm);
+    // Prevent data from being null. If zero rows/columns then just create
+    // a default JTable.
+    if( tm == null || tm.getRowCount() <= 0 || tm.getColumnCount() <= 0 )
+      table = new JTable();
+    else
+      table = new JTable(tm);
     init();
   }
   
@@ -234,7 +319,10 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   public TableJPanel( int num_rows, int num_columns )
   {
     super();
-    table = new JTable( num_rows, num_columns );
+    if( num_rows <= 0 || num_columns <= 0 )
+      table = new JTable();
+    else
+      table = new JTable( num_rows, num_columns );
     init();
   }
   
@@ -244,24 +332,40 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   private void init()
   {
     setLayout( new BorderLayout() );
+    // This will wrap the data in an additional TableModel to allow
+    // formatting of cells within the JTable.
+    table.setModel( new TableModelFormatter(table.getModel()) );
+    table.getColumnModel().addColumnModelListener(
+                                   new ColumnReorderedListener() );
+    
     int rows = table.getModel().getRowCount();
     int columns = table.getModel().getColumnCount();
     selected = new boolean[rows][columns];
-    active_selection = false;
-    label_color = Color.lightGray;
+    focus = new Point();
+    active_selection = null;
+    label_color = table.getTableHeader().getBackground();
+    column_labels = table.getTableHeader();
     selections = new Vector();
     ignore_notify = false;
     do_clear = false;
-    isMobile = true;
+    max_row_label = "";
+    disable_auto_position = false;
+    move_column_called = false;
+    setNumberFormat(-1,-1); // Set the initial setting no formatting.
     // Add copy and paste ability.
     new ExcelAdapter( table );
     
     table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
     table.setCellSelectionEnabled( false );
     scroll = new JScrollPane(table);
+    
     scroll.getHorizontalScrollBar().addAdjustmentListener(new ScrollAdjusted());
     scroll.getVerticalScrollBar().addAdjustmentListener( new ScrollAdjusted() );
-    add(scroll, BorderLayout.CENTER );
+    
+    if( table.getRowCount() == 0 || table.getColumnCount() == 0 )
+      add( new JLabel("Empty Table - No data to display.") );
+    else
+      add(scroll, BorderLayout.CENTER );
     
     // Make sure table isn't empty.
     if( table.getColumnCount() > 0 )
@@ -270,23 +374,13 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     table.addMouseListener( new SelectionStarted() );
     // put in dummy values
     row_labels = new JTable();
-    column_labels = new JTable();
-    // Add these two listeners to control column drag & drop.
-    column_labels.addMouseListener( new ColumnSelectListener() );
-    column_labels.addMouseMotionListener( new DragListener() );
     // Initialize the label lists to contain "Column #" or "Row #".
     row_label_list = new Vector();
-    column_label_list = new Vector();
     for( int row_num = 0; row_num < rows; row_num++ )
       row_label_list.add("Row "+row_num);
-    for( int col_num = 0; col_num < columns; col_num++ )
-      column_label_list.add("Column "+col_num);
-    column_label_container = new JPanel( new BorderLayout() );
-    column_label_container.add( column_labels, BorderLayout.CENTER );
     row_label_container = new JPanel( new BorderLayout() );
     row_label_container.add( row_labels, BorderLayout.CENTER );
     add( row_label_container, BorderLayout.WEST );
-    add( column_label_container, BorderLayout.NORTH );
     
     addComponentListener( new ResizedListener() );
   }
@@ -303,7 +397,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     Object temp = new_state.get(POINTED_AT_CELL);
     if( temp != null )
     {
-      setPointedAtCell( ((Point)temp).y, ((Point)temp).x );
+      setPointedAtCell( (Point)temp );
       redraw = true;  
     }
     
@@ -311,6 +405,20 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     if( temp != null )
     {
       setLabelBackground( (Color)temp );
+      redraw = true;  
+    }
+    
+    temp = new_state.get(ROW_LABELS);
+    if( temp != null )
+    {
+      setRowLabels( (Object[])temp );
+      redraw = true;  
+    }
+    
+    temp = new_state.get(COLUMN_LABELS);
+    if( temp != null )
+    {
+      setColumnLabels( (Object[])temp );
       redraw = true;  
     }
     
@@ -334,6 +442,19 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       setSelectedRegions((TableRegion[])temp);
       redraw = true;  
     }
+    
+    temp = new_state.get(COLUMN_MOBILITY);
+    if( temp != null )
+    {
+      enableMoveColumn( ((Boolean)temp).booleanValue() );
+      redraw = true;  
+    }
+    
+    if( redraw )
+    {
+      validate();
+      repaint();
+    }
   }
   
  /**
@@ -350,12 +471,16 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     state.insert( SHOW_ROW_LABELS,
                   new Boolean(row_label_container.isVisible()) );
     state.insert( SHOW_COLUMN_LABELS,
-                  new Boolean(column_label_container.isVisible()) );
+                  new Boolean(table.getTableHeader() != null) );
     state.insert( LABEL_BACKGROUND, label_color );
+    state.insert( COLUMN_MOBILITY,
+                  new Boolean( getEnableMoveColumn() ) );
     
     // Only do the following if this is a project save, not a setting save.
     if( !is_default )
     {
+      state.insert( ROW_LABELS, getRowLabels() );
+      state.insert( COLUMN_LABELS, getColumnLabels() );
       state.insert( POINTED_AT_CELL, getPointedAtCell() );
       state.insert( TABLE_SELECTIONS, getSelectedRegions() );
     }
@@ -379,7 +504,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   {
     // If a selection is in progress, treat the selection of cells in their
     // current state.
-    if( active_selection )
+    if( active_selection != null )
     {
       // Find the row/column bounds of the active selection.
       int act_row_min = -1;
@@ -458,6 +583,27 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     // selection just look at the boolean grid.
     return selected[row][column];
   }
+  
+ /**
+  * Get the actively changing selection. This method will only return a value
+  * if the selection is actively changing, otherwise null is returned. The
+  * SELECTION_CHANGING messaging String will be sent out when valid values
+  * exist.
+  *
+  *  @return Snapshot of the changing selection as a TableRegion.
+  */
+  public TableRegion getActiveSelection()
+  {
+    if( active_selection == null )
+      return null;
+    // Convert active_selection to a TableRegion.
+    floatPoint2D[] def_pts = new floatPoint2D[2];
+    def_pts[0] = new floatPoint2D( active_selection.getX1(),
+                                   active_selection.getY1() );
+    def_pts[1] = new floatPoint2D( active_selection.getX2(),
+                                   active_selection.getY2() );
+    return new TableRegion(def_pts,true);
+  }
 
  /**
   * Set the background color for the cells where the row and column labels
@@ -468,13 +614,58 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   public void setLabelBackground( Color color )
   {
     label_color = color;
+    updateLabels();
+    column_labels.setBackground(color);
+    if( table.getTableHeader() != null )
+      table.getTableHeader().setBackground(color);
+  }
+  
+ /**
+  * Set where the text is displayed in the table. Use Java's SwingContants
+  * class to specify column alignment. Alignment is limited to horizontal
+  * positioning, so valid alignments are LEFT, CENTER, RIGHT, EAST, and WEST.
+  */
+  public void setColumnAlignment( int alignment )
+  {
+    // If alignment is not valid, don't proceed.
+    if( !( alignment == SwingConstants.LEFT ||
+           alignment == SwingConstants.RIGHT ||
+           alignment == SwingConstants.CENTER ||
+           alignment == SwingConstants.EAST ||
+           alignment == SwingConstants.WEST ) )
+      return;
+    
+    DefaultTableCellRenderer renderer;
+    for( int i = 0; i < table.getColumnCount(); i++ )
+    {
+      renderer = (DefaultTableCellRenderer)table.getDefaultRenderer(
+                             table.getColumnClass(i) );
+      renderer.setHorizontalAlignment( alignment );
+    }
+  }
+  
+ /**
+  * Set the format of how numbers are displayed in the table. If either
+  * predecimal_digits or postdecimal_digits is negative, formatting of that
+  * portion of the number is left unchanged. 
+  *
+  *  @param  predecimal_digits The number of digits to appear "before" the
+  *                            decimal. This includes the ones,tens,hundreds,...
+  *  @param  postdecimal_digits The number of digits to appear "after" the
+  *                            decimal. This includes the tenths,hundredths,...
+  */
+  public void setNumberFormat( int predecimal_digits, int postdecimal_digits )
+  {
+    pre_digits = predecimal_digits;
+    post_digits = postdecimal_digits;
+    table.repaint();
   }
   
  /**
   * Choose whether or not to display the row labels found to the left of
   * the rows.
   *
-  *  @param  display True to display the row labels, false to hide them.
+  *  @param  display If true, display the row labels, else hide them.
   */
   public void displayRowLabels( boolean display )
   {
@@ -487,14 +678,34 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
  /**
   * Choose whether or not to display the column labels found above the columns.
   *
-  *  @param  display True to display the column labels, false to hide them.
+  *  @param  display If true, display the column labels, else hide them.
   */
   public void displayColumnLabels( boolean display )
   {
     if( display )
-      column_label_container.setVisible(true);
+    {
+      if( column_labels != null )
+        table.setTableHeader(column_labels);
+    }
     else
-      column_label_container.setVisible(false);
+    {
+      // If there is currently a JTableHeader for this table, save it in
+      // the column_labels variable so it may be restored if the labels
+      // need to be displayed at a later date.
+      if( table.getTableHeader() != null )
+        column_labels = table.getTableHeader();
+      table.setTableHeader(null);
+    }
+  }
+  
+ /**
+  * Use this method to get all of the labels used to identify rows.
+  *
+  *  @return  An Object array of labels.
+  */
+  public Object[] getRowLabels()
+  {
+    return row_label_list.toArray();
   }
   
  /**
@@ -508,13 +719,38 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   public void setRowLabels( Object[] labels )
   {
     // If not enough/too many labels, ignore the request.
-    if( labels.length != row_label_list.size() )
+    if( labels != null && labels.length != table.getRowCount() )
       return;
     
     // Clear the old list of labels.
     row_label_list.clear();
     for( int i = 0; i < labels.length; i++ )
+    {
+      if( labels[i].toString().length() > max_row_label.length() )
+        max_row_label = labels[i].toString();
       row_label_list.addElement(labels[i]);
+    }
+    updateLabels();
+  }
+  
+ /**
+  * Use this method to get all of the labels used to identify columns.
+  *
+  *  @return An Object array of labels.
+  */
+  public Object[] getColumnLabels()
+  {
+    Object[] values = new Object[table.getColumnCount()];
+    TableColumnModel tcm;
+    // If the column labels are visible, use the table's tableheader.
+    if( table.getTableHeader() != null )
+      tcm = table.getTableHeader().getColumnModel();
+    // If column labels are not visible, use the stored copy.
+    else
+      tcm = column_labels.getColumnModel();
+    for( int i = 0; i < values.length; i++ )
+      values[i] = tcm.getColumn(i).getHeaderValue();
+    return values;
   }
   
  /**
@@ -528,40 +764,18 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   public void setColumnLabels( Object[] labels )
   {
     // If not enough/too many labels, ignore the request.
-    if( labels.length != column_label_list.size() )
+    if( labels != null && labels.length != table.getColumnCount() )
       return;
     
-    // Clear the old list of labels.
-    column_label_list.clear();
+    TableColumnModel tcm;
+    // If the column labels are visible, use the table's tableheader.
+    if( table.getTableHeader() != null )
+      tcm = table.getTableHeader().getColumnModel();
+    // If column labels are not visible, use the stored copy.
+    else
+      tcm = column_labels.getColumnModel();
     for( int i = 0; i < labels.length; i++ )
-      column_label_list.addElement(labels[i]);
-  }
-  
- /**
-  * Set the cell which has the pointed-at focus border around it.
-  *
-  *  @param  row The cell row.
-  *  @param  column The cell column.
-  */ 
-  public void setPointedAtCell( int row, int column )
-  {
-    // If one of the two is not true, do nothing.
-    if( !(isValidRow(row) && isValidColumn(column)) )
-      return;
-    
-    // Find pixel coordinates for the center of the cell.
-    Rectangle cell = table.getCellRect(0,0,true);
-    int pixel_x = cell.width/2 + cell.width*column;
-    int pixel_y = cell.height/2 + cell.height*row;
-    focus = new Point(pixel_x,pixel_y);
-    
-    // Place the selected cell in the upper-lefthand corner of the Viewport,
-    // when possible.
-    Rectangle viewport = scroll.getViewport().getViewRect();
-    int x_pos = cell.width * column;
-    int y_pos = cell.height * row;
-    scroll.getViewport().setViewPosition( new Point(x_pos,y_pos) );
-    send_message( POINTED_AT_CHANGED );
+      tcm.getColumn(i).setHeaderValue(labels[i]);
   }
   
  /**
@@ -571,7 +785,76 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   */ 
   public Point getPointedAtCell()
   {
-    return convertPixelToColumnRow(focus);
+    return focus;
+  }
+  
+ /**
+  * Set the cell which has the pointed-at focus border around it.
+  *
+  *  @param  col_row_pt A Point with x = column, y = row.
+  */ 
+  public void setPointedAtCell( Point col_row_pt )
+  {
+    // If one of the two is not true, do nothing.
+    if( !(isValidRow(col_row_pt.y) && isValidColumn(col_row_pt.x)) )
+      return;
+    
+    focus = new Point(col_row_pt);
+    
+    // Auto-positioning done below disrupts some behaviors. This will allow
+    // those things affected to temporarily disable the auto-positioning.
+    // One such instance is if a user manually moves a column with the mouse,
+    // causing the columnMoved() event to be fired. In this case, the table
+    // scrolls through the columns too fast if auto-positioning is on.
+    // If moveColumn() is called, reset the viewport, even though calling this
+    // method will cause a columnMoved() event to be fired.
+    if( disable_auto_position && !move_column_called )
+      return;
+    
+    // Place the selected cell in the upper-lefthand corner of the Viewport,
+    // when possible.
+    setVisibleLocation(col_row_pt);
+    send_message( POINTED_AT_CHANGED );
+  }
+  
+ /**
+  * Get the rectangle (x=column, y=row) consisting of the visible cells.
+  *
+  *  @return A Rectangle containing the visible cells.
+  */ 
+  public Rectangle getVisibleRectangle()
+  {
+    Rectangle pixel_rect = scroll.getViewport().getViewRect();
+    Point top_left = pixel_rect.getLocation();
+    Point bottom_right = new Point(top_left);
+    bottom_right.x += pixel_rect.getWidth();
+    bottom_right.y += pixel_rect.getHeight();
+    // Convert the pixel Point to Column/Row coordinates.
+    top_left = convertPixelToColumnRow(top_left);
+    bottom_right = convertPixelToColumnRow(bottom_right);
+    return new Rectangle( top_left,
+                          new Dimension( bottom_right.x - top_left.x,
+		                         bottom_right.y - top_left.y ) );
+  }
+  
+ /**
+  * Set the cell to be visible in the upper left-hand corner of the viewport.
+  * This method is comparable to a setVisibleRectangle() method, only the size
+  * of the viewport has already been determined.
+  *
+  *  @return The column/row point specifying which cell will appear in the
+  *          upper left-hand corner of the viewport.
+  */ 
+  public void setVisibleLocation( Point col_row_pt )
+  {
+    // Place the selected cell in the upper-lefthand corner of the Viewport,
+    // when possible.
+    Rectangle cell = table.getCellRect(0,0,true);
+    Rectangle viewport = scroll.getViewport().getViewRect();
+    int x_pos = cell.width * col_row_pt.x;
+    int y_pos = cell.height * col_row_pt.y;
+    scroll.getViewport().setViewPosition( new Point(x_pos,y_pos) );
+    send_message(VIEWPORT_CHANGED);
   }
   
  /**
@@ -631,7 +914,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   public void selectAll()
   {
     // Remove all previous selections.
-    UnselectAll();
+    unselectAll();
     
     // Mark all of the grid entries to selected.
     for( int row = 0; row < selected.length; row++ )
@@ -654,7 +937,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   * This method will clear all selections, both in the vector and on the
   * grid. This will not clear the table entries.
   */
-  public void UnselectAll()
+  public void unselectAll()
   {
     // If there are no selections, do not send out the selected_changed message.
     if( selections.size() == 0 )
@@ -673,12 +956,17 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   * labels. Any column moves will void all existing selections, so column
   * moves should be made before any selections occur. 
   *
-  *  @param 
+  *  @param  column_to_move
+  *  @param  target_column_index
   */
   public void moveColumn( int column_to_move, int target_column_index )
   {
-    // If moveColumn() has been disabled, do nothing.
-    if( !isMobile )
+    // Note: The pointed-at cell is automatically kept with the column when
+    // it moves. The JTable remembers moved columns, and uses the same column
+    // index to reference a column, even after a move.
+    
+    // If table is set to not allow reordering, do nothing.
+    if( !getEnableMoveColumn() )
       return;
     // If they are equal, do nothing.
     if( column_to_move == target_column_index )
@@ -692,14 +980,11 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     else if( target_column_index >= selected[0].length )
       target_column_index = selected[0].length - 1;
     // Since column order is changing, selections are no longer stable.
-    UnselectAll();
+    unselectAll();
+    move_column_called = true;
     // Move the column label and the column of data.
     table.moveColumn( column_to_move, target_column_index );
-    // Reorder the saved list of column labels.
-    column_label_list.insertElementAt( 
-    	 column_label_list.remove(column_to_move), target_column_index );
-    // Visually update the labels.
-    updateLabels();
+    move_column_called = false;
   }
   
  /**
@@ -710,7 +995,24 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   */
   public void enableMoveColumn( boolean is_mobile )
   {
-    isMobile = is_mobile;
+    if( table.getTableHeader() != null )
+      table.getTableHeader().setReorderingAllowed(is_mobile);
+    else
+      column_labels.setReorderingAllowed(is_mobile);
+  }
+  
+ /**
+  * Returns whether column reordering via drag & drop is enabled (true)
+  * or disabled (false). This option is enabled by default.
+  *
+  *  @return If true, column reordering is enabled.
+  */
+  public boolean getEnableMoveColumn()
+  {
+    if( table.getTableHeader() != null )
+      return table.getTableHeader().getReorderingAllowed();
+    else
+      return column_labels.getReorderingAllowed();
   }
   
  /**
@@ -765,25 +1067,27 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   * Set the selected cells in the form of a set of TableRegions. This call
   * can be used to set a complicated pattern of selected cells. Calling
   * this method will clear all previously selected cells. Passing in null will
-  * clear all selections.
+  * clear all selections. Use convertToTableRegions() method to convert
+  * any list of Regions to a list of TableRegions.
   *
   *  @param  regions The regions, each of which defines a rectangular region
   *                  of cells that are either all selected or all unselected.
   *                  Since regions may overlap, order is important.
+  *  @see #convertToTableRegions( Region[] any_region )
   */
   public void setSelectedRegions( TableRegion[] regions )
   {
-    // Set ignore_notify to true so UnselectAll() doesn't send out a
+    // Set ignore_notify to true so unselectAll() doesn't send out a
     // SELECTED_CHANGED message.
     ignore_notify = true;
     // If this method is called, clear all previous selections.
     // Note that the (x,y) point is actually stored as (column,row).
-    UnselectAll();
+    unselectAll();
     // If regions is null, clear all selections and that is it.
     if( regions == null )
       return;
     // Use this to have other methods not send out messages since this
-    // method already does. Have to reset to true since UnselectAll() sets it
+    // method already does. Have to reset to true since unselectAll() sets it
     // to false.
     ignore_notify = true;
     
@@ -1132,7 +1436,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       col_min = col_max;
       col_max = temp;
     }
-    // If UnselectAll() method is called, do not add an unselected region
+    // If unselectAll() method is called, do not add an unselected region
     // spanning the entire table.
     if( !do_clear )
     {
@@ -1249,19 +1553,12 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     // Look half a cell down, if its a different cell, increment the row labels.
     Point row_variant = new Point(location);
     row_variant.y += (SHIFT_DIVISOR-1)*cell_size.height/SHIFT_DIVISOR;
-    // Look half a cell to the right, if its a different cell, increment the
-    // column labels.
-    Point col_variant = new Point(location);
-    col_variant.x += (SHIFT_DIVISOR-1)*cell_size.width/SHIFT_DIVISOR;
+    
+    //System.out.println("Variant vs location: " + row_variant+","+location);
     // Increment row if over half way scrolled down on next cell.
     if( !sameCell(row_variant,location) )
     {
       cell_row_col.y++;
-    }
-    // Increment column if over half way scrolled to the right on next cell.
-    if( !sameCell(col_variant,location) )
-    {
-      cell_row_col.x++;
     }
     
     // Set the labels for the columns and rows.
@@ -1272,13 +1569,18 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       row_labels.setValueAt(label,row,0);
     }
     
-    for( int col = 0; col < column_labels.getColumnCount(); col++ )
+    // This code will expand the row_labels table to the largest label if
+    // the row_labels has a Graphics object and it has a column of data.
+    Graphics graphics = row_labels.getGraphics();
+    if( graphics != null && row_labels.getColumnCount() > 0 )
     {
-      label = column_label_list.elementAt(col + cell_row_col.x);
-      column_labels.setValueAt(label,0,col);
+      FontMetrics fontmet = graphics.getFontMetrics();
+      int max_length = fontmet.stringWidth(max_row_label);
+      if( row_labels.getColumnModel().getColumn(0).getWidth() < max_length )
+      {
+    	row_labels.getColumnModel().getColumn(0).setMinWidth(max_length + 10);
+      }
     }
-    // Store the offset used to make the labels match the viewable columns.
-    column_label_offset = cell_row_col.x;
   }
  
  /*
@@ -1297,6 +1599,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       if( me.isControlDown() )
       {
         // If this is the first mouse click/drag, set the ctrl_anchor point.
+	// This code is here if user starts to drag before ctrl is pressed.
         if( ctrl_anchor == null )
 	{
 	  ctrl_anchor = me.getPoint();
@@ -1311,11 +1614,17 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 	  // Set the new extend point
 	  ctrl_extend = me.getPoint();
 	  // Set the cell that should have focus.
-	  focus = new Point(ctrl_extend);
+	  focus = convertPixelToColumnRow( new Point( ctrl_extend ) );
+	  active_selection.setBounds( active_selection.getX1(),
+	                              active_selection.getY1(),
+	                              focus.x, focus.y );
 	  // Since pointed_at_changed message sent on initial click, only send
           // message if on a different point.
 	  if( !sameCell(ctrl_anchor,me.getPoint()) )
+	  {
             send_message(POINTED_AT_CHANGED);
+            send_message(SELECTION_CHANGING);
+	  }
 	}
 	table.repaint();
 	// Do not do anything after this point.
@@ -1328,12 +1637,17 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       // get new extent
       extend = me.getPoint();
       // Set the cell that should have focus.
-      focus = new Point(extend);
+      focus = convertPixelToColumnRow( new Point( extend ) );
+      active_selection.setBounds( active_selection.getX1(),
+                                  active_selection.getY1(),
+        		          focus.x, focus.y );
       // Since pointed_at_changed message sent on initial click, only send
       // message if on a different point.
       if( !sameCell(anchor,me.getPoint()) )
+      {
         send_message(POINTED_AT_CHANGED);
-      
+        send_message(SELECTION_CHANGING);
+      }
       table.repaint();
     }
   }
@@ -1347,7 +1661,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     public void mousePressed( MouseEvent me )
     {
       // A selection has been started
-      active_selection = true;
+      active_selection = new CoordBounds();
       // if the point is not on any cell, ignore the mouse event
       if( !isPointOnCell(me.getPoint()) )
         return;
@@ -1359,7 +1673,8 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
         ctrl_anchor = me.getPoint();
 	ctrl_extend = null;
 	// Set the cell that should have focus.
-	focus = new Point(ctrl_anchor);
+	focus = convertPixelToColumnRow(new Point(ctrl_anchor));
+	active_selection.setBounds( focus.x, focus.y, focus.x, focus.y );
 	send_message(POINTED_AT_CHANGED);
       }
       // If shift is down, select everything between current point and
@@ -1370,7 +1685,8 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 	{
 	  anchor = me.getPoint();
 	  // Set the cell that should have focus.
-	  focus = new Point(anchor);
+	  focus = convertPixelToColumnRow( new Point( anchor ) );
+	  active_selection.setBounds( focus.x, focus.y, focus.x, focus.y );
 	  send_message(POINTED_AT_CHANGED);
 	}
 	else
@@ -1378,7 +1694,10 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 	  // Get new ending value of rectangular region of selected cells.
 	  extend = me.getPoint();
 	  // Set the cell that should have focus.
-	  focus = new Point(extend);
+	  focus = convertPixelToColumnRow( new Point(extend) );
+	  active_selection.setBounds( active_selection.getX1(),
+	                              active_selection.getY1(),
+	                              focus.x, focus.y );
 	  send_message(POINTED_AT_CHANGED);
 	}
       }
@@ -1389,17 +1708,19 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 	{
 	  anchor = me.getPoint();
 	  // Set the cell that should have focus.
-	  focus = new Point(anchor);
+	  focus = convertPixelToColumnRow(new Point(anchor));
+	  active_selection.setBounds( focus.x, focus.y, focus.x, focus.y );
 	  send_message(POINTED_AT_CHANGED);
 	}
 	else
 	{
 	  // If clicked without any modifiers, clear all previous selections.
-          UnselectAll();
+          unselectAll();
 	  // Set new anchor point and select it.
 	  anchor = me.getPoint();
 	  // Set the cell that should have focus.
-	  focus = new Point(anchor);
+	  focus = convertPixelToColumnRow( new Point(anchor) );
+	  active_selection.setBounds( focus.x, focus.y, focus.x, focus.y );
 	  send_message(POINTED_AT_CHANGED);
 	  // New initial selection started, reset other values to null.
 	  extend = null;
@@ -1416,7 +1737,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     */ 
     public void mouseReleased( MouseEvent me )
     {
-      active_selection = false;
+      active_selection = null;
       
       // If an additional selection was made, toggle the cells to the
       // opposite selected value of the ctrl_anchor.
@@ -1459,52 +1780,21 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       // Get the spacing between the cells.
       Dimension cell_spacing = table.getIntercellSpacing();
       // Bounds of the scroll pane, ignoring the presence of scroll bars.
-      Rectangle bounds = scroll.getBounds();
-      int bound_width_adjuster = 0;
-      int bound_height_adjuster = 0;
-     /* ***** Uncommenting this will prevent the column labels from   *****
-      * ***** appearing until the entire cell is in the viewport. The *****
-      * ***** current functionality allows for the label to appear    *****
-      * ***** above the vertical scrollpane.			      *****
-      // If the vertical scrollbar is visible, reduce width by the width of
-      // the scrollbar.
-      if( scroll.getVerticalScrollBar().isVisible() )
-        bound_width_adjuster = scroll.getVerticalScrollBar().getSize().width;
-      * ***************************************************************** */
-      // If the horizontal scrollbar is visible, remove one row from the table.
-      if( scroll.getHorizontalScrollBar().isVisible() )
-        bound_height_adjuster =scroll.getHorizontalScrollBar().getSize().height;
-      bounds.width -= bound_width_adjuster;
-      bounds.height -= bound_height_adjuster;
-      // The size of a cell with it's spacing.
+      Rectangle bounds = scroll.getViewport().getViewRect();
+      // The size of a table cell.
       Rectangle cell = table.getCellRect(0,0,true);
-      // Find the number of complete rows and columns currently viewable.
-      int num_rows = (int)Math.floor( (double)(bounds.height - cell.height) /
-                                 (double)cell.height) + 1;
-      int num_cols = (int)Math.floor( (double)(bounds.width - cell.width) /
-                                 (double)cell.width ) + 1;
-      
+      int num_rows = Math.round( (float)bounds.height/(float)cell.height );
       // If the number of rows/columns is larger than the size of the
       // selected array, use the dimensions of the selected array.
       if( num_rows > selected.length )
         num_rows = selected.length;
-      if( num_cols > selected[0].length )
-        num_cols = selected[0].length;
       
       // Make sure the number of rows/columns is not negative.
       if( num_rows < 0 )
         num_rows = 0;
-      if( num_cols < 0 )
-        num_cols = 0;
-      
-      // Find the remainder of the width.
-      int remainder_width = bounds.width + bound_width_adjuster -
-                            num_cols * cell.width - cell_spacing.width;
-      
+	
       // Find the remainder of the height.
-      int remainder_height = bounds.height + bound_height_adjuster -
-                             num_rows * cell.height - cell_spacing.height;
-      
+      int remainder_height = bounds.height - scroll.getBounds().height;
       // Set the scroll bar increments to the size of the table cells.
       scroll.getHorizontalScrollBar().setBlockIncrement(cell.width);
       scroll.getHorizontalScrollBar().setUnitIncrement(cell.width);
@@ -1513,62 +1803,21 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       
       // Remove the label panels so they can be rebuilt.
       remove( row_label_container );
-      remove( column_label_container );
-      
-      // ********* Build the upper column label panel. **********
-      // The left_col_spacer accounts for the space created by the row_labels
-      // column.
-      JPanel left_col_spacer = new JPanel();
-      left_col_spacer.setBackground(label_color);
-      // If the row labels are not visible, the spacer does not have to
-      // account for the extra column.
-      if( !row_label_container.isVisible() )
-      {
-        left_col_spacer.setPreferredSize( 
-                          new Dimension( cell_spacing.width, cell.height) );
-      }
-      else
-      {
-        left_col_spacer.setPreferredSize( 
-               new Dimension( cell.width + cell_spacing.width, cell.height) );
-      }
-      
-      // The right_col_spacer accounts for a partial column not entirely
-      // appearing in the JTable.
-      JPanel right_col_spacer = new JPanel();
-      right_col_spacer.setBackground(label_color);
-      right_col_spacer.setPreferredSize( new Dimension( remainder_width,
-                                                        cell.height ) );
-      // The actual labels for the columns, contains the number of cells
-      // equal to the number of entirely visible columns.
-      column_labels = new JTable(1,num_cols);
-      // Add these two listeners to control column drag & drop.
-      column_labels.addMouseListener( new ColumnSelectListener() );
-      column_labels.addMouseMotionListener( new DragListener() );
-      
-      // Make sure there are columns to render.
-      if( num_cols > 0 )
-        column_labels.setDefaultRenderer( column_labels.getColumnClass(0),
-                                          new IgnoreFocusRenderer() );
-      column_labels.setBackground(label_color);
-      column_labels.setCellSelectionEnabled(false);
-      column_label_container.removeAll();
-      column_label_container.add( left_col_spacer, BorderLayout.WEST );
-      column_label_container.add( column_labels, BorderLayout.CENTER );
-      column_label_container.add( right_col_spacer, BorderLayout.EAST );
-      
+           
       // ********* Build the left row label panel. *********
-      // This spacer will account for the row spacing, enabling the rows
-      // to be aligned with the labels.
+      // This spacer will account for the space taken up by the column headers,
+      // enabling the correct rows to be aligned with the correct labels.
       JPanel up_row_spacer = new JPanel();
       up_row_spacer.setBackground(label_color);
-      up_row_spacer.setPreferredSize( new Dimension( cell.width,
-                                                     cell_spacing.height ) );
+      if( table.getTableHeader() != null )
+        up_row_spacer.setPreferredSize( new Dimension( 0,
+                  table.getTableHeader().getHeight() + cell_spacing.height ) );
+      
       // The low_row_spacer accounts for a partial row not entirely
       // appearing in the JTable.
       JPanel low_row_spacer = new JPanel();
       low_row_spacer.setBackground(label_color);
-      low_row_spacer.setPreferredSize( new Dimension( cell.width,
+      low_row_spacer.setPreferredSize( new Dimension( 0,
                                                       remainder_height ) );
       // The actual labels containing the number of cells equal to the
       // number of entirely visible rows.
@@ -1586,7 +1835,6 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       
       // Add the two new panels to the container.
       add( row_label_container, BorderLayout.WEST );
-      add( column_label_container, BorderLayout.NORTH );
       
       // Update the labels when the component gets resized.
       updateLabels();
@@ -1605,11 +1853,22 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   {
     public void adjustmentValueChanged( AdjustmentEvent ae )
     {
+      if( table.getRowCount() == 0 || table.getColumnCount() == 0 )
+        return;
       // Ignore events until scroll bar has stopped moving.
       if( ((JScrollBar)ae.getSource()).getValueIsAdjusting() )
       {
         // Update the labels as the scrollbar moves.
         updateLabels();
+        return;
+      }
+      
+      // Removing this "if" will cause columns to be shifted so the top-left
+      // corner of a cell is always in the top-left corner of the viewport.
+      if( ae.getSource() == scroll.getHorizontalScrollBar() )
+      {
+        // Tell all listeners that the viewport has been changed.
+        send_message(VIEWPORT_CHANGED);
         return;
       }
       
@@ -1654,6 +1913,9 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       
       // Set the labels for the columns and rows.
       updateLabels();
+      
+      // Tell all listeners that the viewport has been changed.
+      send_message(VIEWPORT_CHANGED);
     }
   }
  
@@ -1678,11 +1940,8 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
                                    boolean isSelected, boolean hasFocus,
 				   int row, int column )
     {
-      // Get the cell in focus and convert to row/column coordinates.
-      Point row_col_focus = convertPixelToColumnRow(focus);
       // If the current cell is in focus, pass in true for hasFocus.
-      if( row_col_focus != null && row_col_focus.y == row &&
-          row_col_focus.x == column )
+      if( focus != null && focus.y == row && focus.x == column )
       {
         // If selected, return the selected model with focus.
         if( isSelected(row,column) )
@@ -1717,7 +1976,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   }
  
  /*
-  * This renderer is for the row_labels and column_labels tables. Do not
+  * This renderer is for the row_labels table. Do not
   * show any focus or selections, only the text.
   */ 
   private class IgnoreFocusRenderer extends DefaultTableCellRenderer
@@ -1741,111 +2000,188 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     }
   }
   
- /* 
-  * This listener is used by the column_labels to control column drag & drop.
-  */ 
-  private class DragListener extends MouseMotionAdapter
+ /*
+  * This class listens for when columns are moved and reordered. If a column
+  * is moved, this listener will clear all selections. If the column containing
+  * the pointed-at cell is moved, either directly or indirectly, the pointed-at
+  * cell location will be adjusted to the new column location.
+  */
+  private class ColumnReorderedListener implements TableColumnModelListener
   {
-    public void mouseDragged( MouseEvent me )
+    public void columnAdded( TableColumnModelEvent tme )
     {
-      JTable temp = (JTable)me.getSource();
-      if( isValidColumn( temp.columnAtPoint(me.getPoint()) ) )
+      ; // Stub
+    }
+    
+    public void columnMarginChanged( ChangeEvent ce )
+    {
+      ; // Stub
+    }
+    
+    public void columnMoved( TableColumnModelEvent tme )
+    {
+      // Unselect all selections made since column order is disrupted.
+      unselectAll();
+      // If the range is more than one cell, see if the to or from move affected
+      // the column with the pointed-at cell.
+      if( tme.getFromIndex() != tme.getToIndex() )
       {
-        current_column = me.getPoint();
-        int move_from_column = temp.columnAtPoint(initial_column);
-        int move_to_column = temp.columnAtPoint(current_column);
-	moveColumn( move_from_column + column_label_offset,
-	            move_to_column + column_label_offset );
-	// Reset the initial column to the current column.
-        initial_column = new Point(current_column);
+        // Check to see if the pointed-at cell was the column moved.
+        if( tme.getFromIndex() == getPointedAtCell().x )
+	{
+	  // Disable the auto-positioning done by setPointedAtCell() since it
+	  // interfers with tracing the moved column.
+          disable_auto_position = true;
+	  setPointedAtCell(new Point(tme.getToIndex(),getPointedAtCell().y));
+          disable_auto_position = false;
+	}
+        // Check to see if the pointed-at cell was replaced by the moved column.
+        else if( tme.getToIndex() == getPointedAtCell().x )
+	{
+	  // If column is moved to the right to col. X, the column at X will
+	  // shift to the left. If column is moved to left to col X, the 
+	  // column at X will move to the right.
+	  int shift = -1; // Assume moving column goes to the right.
+	  // If actually to the left, adjust accordingly.
+	  if( tme.getToIndex() < tme.getFromIndex() )
+	    shift = 1;
+	  shift += tme.getToIndex();
+	  // Disable the auto-positioning done by setPointedAtCell() since it
+	  // interfers with tracing the moved column.
+          disable_auto_position = true;
+	  setPointedAtCell(new Point(shift,getPointedAtCell().y));
+          disable_auto_position = false;
+	}
       }
+    }
+    
+    public void columnRemoved( TableColumnModelEvent tme )
+    {
+      ; // Stub
+    }
+    
+    public void columnSelectionChanged( ListSelectionEvent lse )
+    {
+      ; // Stub
     }
   }
   
- /* 
-  * This listener is used by the column_labels to initiate column drag & drop.
-  */  
-  private class ColumnSelectListener extends MouseAdapter
+  private class TableModelFormatter implements TableModel
   {
-    public void mousePressed( MouseEvent me )
+    TableModel model;
+    protected TableModelFormatter( TableModel modeled_data )
     {
-      JTable temp = (JTable)me.getSource();
-      // If the initial mouse click is on a valid column value return the value.
-      if( isValidColumn( temp.columnAtPoint(me.getPoint()) ) )
-      {
-        initial_column = me.getPoint();
-      }
-      // If invalid column, initialize point to (0,0).
-      else
-      {
-        initial_column = new Point();
-      }
+      model = modeled_data;
     }
-  }
- 
- /*
-  * This class is just here to allow easy use of the testing program.
-  */ 
-  private static class VirtualTableModel implements TableModel
-  {
-    private IVirtualArray iva;
-    
-    protected VirtualTableModel( IVirtualArray array )
+      
+    public Object getValueAt( int row, int column )
     {
-      iva = array;
+      Object value = model.getValueAt(row,column);
+      // Make sure value is not null.
+      if( value == null )
+        return new String("");
+      
+      // If both values are negative, the format should be left unchanged.
+      if( pre_digits < 0 && post_digits < 0 )
+        return value;
+	 
+      if( value instanceof Number )
+      {
+        int field_width = 0;
+	String s_num = value.toString();
+	int decimal_index = s_num.indexOf(".");
+	int negative_index = s_num.indexOf("-");
+	int temp_post_digits = post_digits;
+	// if true, leave whole number unformatted.
+        if( pre_digits < 0 )
+	{
+	  // If no decimal, then whole s_num is before decimal.
+	  if( decimal_index < 0 )
+	  {
+	    field_width = s_num.length();
+	    // Add decimal and postdecimal digits.
+	    field_width += 1 + post_digits;
+          }
+	  // Otherwise, give length of number including the decimal and
+	  // any negative sign. Also add on postdecimal digits.
+	  else
+	    field_width = decimal_index + post_digits;
+        }
+	// If true, leave everything after decimal unformatted.
+	else if( post_digits < 0 )
+	{
+	  if( decimal_index >= 0 )
+	  {
+	    // Get width of digits after the decimal.
+	    field_width = (s_num.length()-1) - decimal_index;
+	    // Remember the number of digits after the decimal for later
+	    // formatting.
+	    temp_post_digits = field_width;
+	    // Add on width of pre-decimal portion, including the decimal point
+	    // and space for any negative sign. 
+	    field_width += pre_digits + 1; // +1 accounts for decimal point.
+	    // If negative, increase field width by one to account for negative.
+	    if( negative_index >= 0 )
+	      field_width++;
+	  }
+	}
+	else
+	{
+	  // Width made up of predecimal dgts, a decimal, and postdecimal dgts.
+	  field_width = pre_digits + 1 + post_digits;
+	  // If negative, increase field width by one to account for negative.
+	  if( negative_index >= 0 )
+	    field_width++;
+	}
+	
+	if( value instanceof Integer )
+	{
+	  
+	}
+	return Format.real( ((Number)value).doubleValue(), field_width, 
+	                    temp_post_digits );
+        
+      }
+      else if( value instanceof String )
+      {
+      
+      }
+      // If not a number or a String representation of a number, return the
+      // original value.
+      return value;
+    }
+    /*
+    public Object getUnformattedValueAt( int row, int column )
+    {
+      return model.getValueAt(row,column);
+    }*/
+    
+    public Class getColumnClass(int i){ return new String().getClass(); }
+    
+    public void setValueAt( Object value, int row, int column )
+    {
+      model.setValueAt(value,row,column);
+    }
+    
+    public int getRowCount(){ return model.getRowCount(); }
+    
+    public int getColumnCount(){ return model.getColumnCount(); }
+    
+    public String getColumnName(int i){ return model.getColumnName(i); }
+    
+    public boolean isCellEditable( int row, int column )
+    {
+      return model.isCellEditable(row,column);
     }
     
     public void addTableModelListener( TableModelListener tml )
     {
-      ; // stub
-    }
-    
-    public Class getColumnClass( int column_index )
-    {
-      return iva.getClass();
-    }
-    
-    public int getColumnCount()
-    {
-      if( iva instanceof IVirtualArray2D )
-        return ((IVirtualArray2D)iva).getNumColumns();
-      return 0;
-    }
-    
-    public String getColumnName(int index)
-    {
-      return "";
-    }
-    
-    public int getRowCount()
-    {
-      if( iva instanceof IVirtualArray2D )
-        return ((IVirtualArray2D)iva).getNumRows();
-      return 0;
-    }
-    
-    public Object getValueAt( int row, int column )
-    {
-      if( iva instanceof IVirtualArray2D )
-        return new Float( ((IVirtualArray2D)iva).getDataValue(row,column) );
-      return null;
-    }
-    
-    public boolean isCellEditable( int row, int column )
-    {
-      return false;
+      model.addTableModelListener( tml );
     }
     
     public void removeTableModelListener( TableModelListener tml )
     {
-      ; // stub
-    }
-    
-    public void setValueAt( Object float_value, int row, int column )
-    {
-      float value = ((Float)float_value).floatValue();
-      if( iva instanceof IVirtualArray2D )
-        ((IVirtualArray2D)iva).setDataValue(row,column,value);
+      model.addTableModelListener( tml );
     }
   }
  
@@ -1856,12 +2192,12 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   */ 
   public static void main( String args[] )
   {
-    JFrame frame = new JFrame();
+    JFrame frame = new JFrame("TableJPanel Test");
     frame.setBounds(0,0,600,300);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     
-    int row = 30;
-    int col = 40;
+    int row = 100;
+    int col = 150;
     float[][] values = new float[row][col];
     Object[] row_lab_list = new Object[row];
     Object[] col_lab_list = new Object[col];
@@ -1874,11 +2210,11 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 	if( i == 0 )
 	  col_lab_list[j] = new String( "COL: "+j );
       }
-      row_lab_list[i] = new String( "ROW: "+(100+i) );
+      row_lab_list[i] = new String( "ROW: "+i );
     }
     
     VirtualArray2D iva = new VirtualArray2D(values);
-    TableJPanel testable = new TableJPanel(new VirtualTableModel(iva));
+    TableJPanel testable = new TableJPanel(TableModelMaker.getModel(iva));
     // Add a listener to send out pointed-at and selected changed messages.
     testable.addActionListener( new ActionListener()
       {
@@ -1933,26 +2269,28 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     // Check to make sure that the regions from the previous method were saved.
     testable.setSelectedRegions( testable.getSelectedRegions() );
     // Set the pointed at cell
-    testable.setPointedAtCell(14,12);
-    //testable.displayColumnLabels(false);
-    //testable.displayRowLabels(false);
-    
+    testable.setPointedAtCell(new Point(14,12));
     // Test the ObjectState by saving the initial settings, then changing
     // all of the defaults.
     ObjectState state = testable.getObjectState(IPreserveState.PROJECT);
-    testable.UnselectAll();
+    testable.unselectAll();
     testable.setLabelBackground(Color.green);
     testable.setRowLabels(row_lab_list);
     testable.setColumnLabels(col_lab_list);
-    testable.setPointedAtCell(0,0);
+    testable.setPointedAtCell(new Point(0,0));
+    testable.displayColumnLabels(true);
+    testable.displayRowLabels(false);
+    testable.enableMoveColumn(false);
     testable.setObjectState(state);
     /*
     System.out.println("Table Size: [rows = "+testable.getRowCount()+", "+
                        "columns = "+testable.getColumnCount()+"]");
     
+    testable.setPointedAtCell(new Point(2,0));
     testable.moveColumn(2,-4);  // Test error checking.
-    testable.moveColumn(26,99); // Test error checking.
+    testable.moveColumn(26,20); // Test error checking.
     */
+    testable.setColumnAlignment( SwingConstants.RIGHT );
     frame.getContentPane().add(testable);
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
