@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2005/03/20 05:29:23  millermi
+ *  - Added methods getSharedKey() and setSharedKey() for use with
+ *    ControlManager.
+ *
  *  Revision 1.9  2005/03/09 22:36:02  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -101,6 +105,7 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   * Method data:
   */
   private String title;
+  private String key = null;
  
  /**
   * "Title" - This constant String is a key for referencing the state
@@ -166,10 +171,7 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   *
   *  @return title
   */
-  public String getTitle()
-  {
-    return title;
-  }
+  public String getTitle(){ return title; }
   
  /**
   * Set title of the view control.
@@ -185,6 +187,23 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
     border.setTitleFont( FontUtil.BORDER_FONT ); 
     this.setBorder( border ); 
   }
+ 
+ /**
+  * Get the category key associating this control with other controls. This
+  * String will be used to "link" controls together.
+  *
+  *  @return Key used by ControlManager to link controls.
+  */
+  public String getSharedKey(){ return key; }
+ 
+ /**
+  * Set the category key associating this control with other controls. This
+  * String will be used to "link" controls together.
+  *
+  *  @param  key The key used by the ControlManager to link this control
+  *              with other similar controls.
+  */
+  public void setSharedKey(String key){ this.key = key; }
   
  /**
   * Set value associated with this control.

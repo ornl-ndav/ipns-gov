@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/03/20 05:29:22  millermi
+ *  - Added methods getSharedKey() and setSharedKey() for use with
+ *    ControlManager.
+ *
  *  Revision 1.8  2005/03/09 22:32:54  millermi
  *  - Added methods getControlValue() and setControlValue(Object) for
  *    use by ControlManager.
@@ -153,4 +157,21 @@ public interface IViewControl extends IPreserveState
   *  @return Value for this control.
   */
   public Object getControlValue();
+ 
+ /**
+  * Get the category key associating this control with other controls. This
+  * String will be used to "link" controls together.
+  *
+  *  @return Key used by ControlManager to link controls.
+  */
+  public String getSharedKey();
+ 
+ /**
+  * Set the category key associating this control with other controls. This
+  * String will be used to "link" controls together.
+  *
+  *  @param  key The key used by the ControlManager to link this control
+  *              with other similar controls.
+  */
+  public void setSharedKey(String key);
 }
