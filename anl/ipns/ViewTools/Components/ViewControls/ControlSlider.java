@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/30 22:14:59  millermi
+ *  - Reimplemented this control, now uses CoordTransform to
+ *    map from the float interval to the interval used by the
+ *    integer JSlider.
+ *  - ***NEED TO FINISH OBJECTSTATE IMPLEMENTATION***
+ *  - Added messaging String formerly located in IViewControl
+ *
  *  Revision 1.6  2004/01/05 18:14:06  millermi
  *  - Replaced show()/setVisible(true) with WindowShower.
  *  - Removed excess imports.
@@ -66,7 +73,11 @@
  import java.awt.GridLayout;
  import java.awt.Point;
  
+ import DataSetTools.util.floatPoint2D;
  import DataSetTools.util.WindowShower;
+ import DataSetTools.components.View.ObjectState;
+ import DataSetTools.components.image.CoordBounds;
+ import DataSetTools.components.image.CoordTransform;
 
 /**
  * This class is an ViewControl (ActiveJPanel) with a generic slider for use 
@@ -74,12 +85,39 @@
  * slider has been adjusted.
  */ 
 public class ControlSlider extends ViewControl
-{
+{ 
+ /**
+  * "Slider Changed" - This is a messaging String sent out whenever the
+  * slider "knob" has changed.
+  */
+  public static final String SLIDER_CHANGED  = "Slider Changed";
+ // ---------------------ObjectState Keys---------------------------------
+ /**
+  * "Slider Value" - This constant String is a key for referencing the state
+  * information about what value is at the current "knob" position.
+  * The value that this key references is a primative float within
+  * the range of slider values.
+  */
+  public static final String SLIDER_VALUE = "Slider Value";
+ 
+ /**
+  * "Range" - This constant String is a key for referencing the state
+  * information about the minimum and maximum values returned by this slider.
+  * The value that this key references is of type Point, but the values
+  * are floats multiplied by 10^x to become whole numbers.
+  */
+  public static final String RANGE = "Range";
+  
   private JSlider slide;
   private float value;
-  private Point range;
-  private int range_precision;
+  private int num_steps;
   private int power;
+  private floatPoint2D range;
+  private ControlSlider this_slider;
+  private CoordTransform float_to_int;  // this transform will be used to
+                                        // convert the float range to a
+					// suitable integer range for use
+					// with a JSlider.
   
  /**
   * Default constructor specifies no title but initializes slider with range
@@ -88,22 +126,49 @@ public class ControlSlider extends ViewControl
   */ 
   public ControlSlider()
   {  
+    this(0,100,.001f);
+    setMajorTickSpace(.2f);
+    setMinorTickSpace(.05f);
+  }
+ 
+ /**
+  * Constructor for slider with no title but has an initialized range
+  * [min,max] and step. 
+  *
+  *  @param  min Slider minimum
+  *  @param  max Slider maximum
+  *  @param  step_size Percent of interval per step, on interval (0,1]
+  */ 
+  public ControlSlider( float min, float max, float step_size )
+  {  
+    this( min, max, Math.round(1/step_size) );
+  }
+ 
+ /**
+  * Constructor for slider with no title but has an initialized range
+  * [min,max] and step. 
+  *
+  *  @param  min Slider minimum
+  *  @param  max Slider maximum
+  *  @param  numsteps Percent of interval per step, on interval (0,1]
+  */ 
+  public ControlSlider( float min, float max, int numsteps )
+  {  
     super("");
     this.setLayout( new GridLayout(1,1) );
     slide = new JSlider();
+    float_to_int = new CoordTransform();
     this.add(slide);
-    value = 0;
-    range = new Point(0,1000);
-    range_precision = 4;
-    power = 1;
+    this_slider = this;
+    setRange(min, max);
+    value = min;
+    // prevent step_size from being zero.
+    if( numsteps == 0 )
+      numsteps = 1;
+    setStep(numsteps);
     
     slide.addChangeListener( new SlideListener() );
-    slide.setValue(0);
-    slide.setMinimum(range.x);
-    slide.setMaximum(range.y);
-    slide.setMajorTickSpacing(200);
-    slide.setMinorTickSpacing(50);
-    slide.setPaintTicks(true);
+    setValue(value);
   }
  
  /**
@@ -116,6 +181,67 @@ public class ControlSlider extends ViewControl
   {
     this();
     this.setTitle(title);
+  } 
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault )
+  {
+    ObjectState state = super.getObjectState(isDefault);/*
+    state.insert( SELECTED, new Boolean(isSelected()) );
+    state.insert( BUTTON_TEXT, new String(getText()) );
+    state.insert( BUTTON_FONT, getButtonFont() );
+    state.insert( SELECTED_COLOR, checkcolor );
+    state.insert( UNSELECTED_COLOR, uncheckcolor );*/
+    return state;
+  }
+     
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    super.setObjectState( new_state );
+    /*
+    Object temp = new_state.get(SELECTED);
+    if( temp != null )
+    {
+      setSelected(((Boolean)temp).booleanValue()); 
+    }
+    
+    temp = new_state.get(BUTTON_TEXT);
+    if( temp != null )
+    {
+      setText((String)temp); 
+    }
+    
+    temp = new_state.get(BUTTON_FONT);
+    if( temp != null )
+    {
+      setButtonFont((Font)temp); 
+    }
+    
+    temp = new_state.get(SELECTED_COLOR);
+    if( temp != null )
+    {
+      setTextCheckedColor((Color)temp); 
+    }
+    
+    temp = new_state.get(UNSELECTED_COLOR);
+    if( temp != null )
+    {
+      setTextUnCheckedColor((Color)temp); 
+    }*/
   }
   
  /**
@@ -125,7 +251,7 @@ public class ControlSlider extends ViewControl
   */  
   public float getValue()
   {   
-    return value;
+    return float_to_int.MapXFrom( (float)slide.getValue() );
   }
   
  /**
@@ -136,114 +262,105 @@ public class ControlSlider extends ViewControl
   */
   public void setValue(float new_val)
   {
-    if( new_val <= (float)(range.y/Math.pow(10.0, power))
-	&& new_val >= (float)(range.x/Math.pow(10.0, power)) )
+    // since slider could have orientation from max to min, check to see if
+    // values are opposite.
+    float float_min = float_to_int.getSource().getX1();
+    float float_max = float_to_int.getSource().getX2();
+    // if opposite, swap them.
+    if( float_min > float_max )
     {
-      value = new_val;
-      slide.setValue((int)((new_val+.05)*Math.pow(10.0, power)));
+      float temp = float_min;
+      float_min = float_max;
+      float_max = temp;
     }
-    else
-      System.out.println("Invalid Value, must be in range ( " + 
-        		 (float)(range.x/Math.pow(10.0, power)) + " , " + 
-        		 (float)(range.y/Math.pow(10.0, power)) + " )");
+    if( new_val < float_min )
+      new_val = float_min;
+    else if( new_val > float_max )
+      new_val = float_max;
+    slide.setValue( Math.round(float_to_int.MapXTo(new_val)) );
   }
 
  /**
-  * This method specifies how to divide the range to be specified.
-  * Example: Range (0,99) with precision = 2 will have subintervals of 1
-  *	     Range (0,999) with precision = 3 will have subintervals of 1
-  *	     Range (0,999) with precision = 4 will have subintervals of 0.1
+  * This method specifies how to divide the range into steps. The step
+  * is specified by a percentage of the original interval.
   *
-  * Note: 1) setPrecision must be done before setRange() to have affect.
-  *	  2) if precision < precision of the values, loss of precision occurs
-  *	     at endpoints. 
-  *    Ex: range (1,1001) with prec = 2 yields range (0,1000) w/ interval 100 
-  *
-  *  @param  prec - Significant digits
+  *  @param  step_size The percentage of the interval per step. This value
+  *                    must be on the range (0,1)
   */
-  public void setPrecision(int prec)
+  public void setStep(float step_size)
   {
-    range_precision = prec;
+    // make sure the following equality is true: 0 < step <= 1 
+    if( step_size <= 0 )
+      num_steps = 1;
+    else if( step_size > 1 )
+      num_steps = 1;
+    else
+      num_steps = Math.round(1f/step_size);
+    setRangeTransform();
   } 
+
+ /**
+  * This method specifies how to divide the range into steps.
+  *
+  *  @param  numsteps The number of steps on this interval.
+  */
+  public void setStep(int numsteps)
+  {
+    // make sure the following equality is true: 0 < step <= 1 
+    if( numsteps <= 0 )
+      num_steps = 1;
+    else
+      num_steps = numsteps;
+    setRangeTransform();
+  }
   
  /**
   * Sets range of slider to specified range. The increment between the
   * minimun and maximum is determined by the setPrecision method.
   *
   *  @param  xmin - range minimum
-  *	     xmax - range maximum
+  *  @param  xmax - range maximum
   */	
   public void setRange( float xmin, float xmax )
-  {  
-    // swap if xmin is bigger than xmax     
-    if( xmax < xmin )
-    {
-      float temp = xmax;
-      xmax = xmin;
-      xmin = temp;
-    } 
-    // The following if is done because if the values are negative,
-    // instead of adding 0.5, we must subtract 0.5
-    int minegator = 1;
-    int maxegator = 1;
-    if( xmin < 0 )
-    {
-      minegator = -1;
-      if( xmax < 0 )
-   	maxegator = -1;
-    }
-          
-    float max = xmax;
-    if( Math.abs(max) < Math.abs(xmin) )
-      max = Math.abs(xmin);
-
-    int pow = 0;
-    while( (max*(float)Math.pow(10.0, pow)/
-     	   (float)Math.pow(10.0, range_precision - 1)) < 1 )
-      pow++;
-    if( pow > 0 )
-    {
-      range.x = (int)(xmin*Math.pow(10.0, pow) + minegator*.5);
-      range.y = (int)(xmax*Math.pow(10.0, pow) + maxegator*.5);
-    }
-    else
-    {
-      while( (max*(float)Math.pow(10.0, pow)/
-             (float)Math.pow(10.0, range_precision - 1)) > 1 )
-        pow--;
-      range.x = (int)(xmin*Math.pow(10.0, pow) + minegator*.5);
-      range.y = (int)(xmax*Math.pow(10.0, pow) + maxegator*.5);
-      if( pow < 0 )
-      System.out.println("Warning in ControlSlider.java: Range precision " + 
-        		 "lost due to choice of precision. To correct " +
-        		 "this problem, use setPrecision(int prec).");
-    }
-    power = pow;
-    slide.setMinimum(range.x);
-    slide.setMaximum(range.y); 
-    slide.setValue(range.x);	
+  {
+    range = new floatPoint2D(xmin, xmax);
+    setRangeTransform();
   }
  
  /**
-  * Set the spacing for the "long" tickmarks.
-  * See JSlider.setMajorTickSpacing() in java docs for futher info.
+  * Set the spacing for the "long" tickmarks. Enter a percentage of the
+  * interval that the major ticks should be spaced. 
+  * Ex. spacing = .2f would result in 5 major ticks since .2 => 1/5 
   *
   *  @param  spacing - major tick spacing 
   */ 
-  public void setMajorTickSpace(int spacing)
+  public void setMajorTickSpace(float spacing)
   {
-    slide.setMajorTickSpacing((int)(spacing*Math.pow(10.0, power)));
+    // make sure spacing is on interval [0,1]
+    if( spacing < 0 || spacing > 1 )
+      spacing = 0;
+    // get number of steps from integer range bounds, take percent of that. 
+    int step_size = Math.round(float_to_int.getDestination().getX2() * spacing);
+    slide.setMajorTickSpacing(step_size);
+    showTicks(true);
   }
 
  /**
-  * Set the spacing for the "short" tickmarks.
-  * See JSlider.setMinorTickSpacing() in java docs for futher info.
+  * Set the spacing for the "short" tickmarks.Enter a percentage of the
+  * interval that the major ticks should be spaced. 
+  * Ex. spacing = .2f would result in 5 major ticks since .2 => 1/5 
   *
   *  @param  spacing - minor tick spacing 
   */   
-  public void setMinorTickSpace(int spacing)
+  public void setMinorTickSpace(float spacing)
   {
-    slide.setMinorTickSpacing((int)(spacing*Math.pow(10.0, power)));
+    // make sure spacing is on interval [0,1]
+    if( spacing < 0 || spacing > 1 )
+      spacing = 0;
+    // get number of steps from integer range bounds, take percent of that. 
+    int step_size = Math.round(float_to_int.getDestination().getX2() * spacing);
+    slide.setMinorTickSpacing(step_size);
+    showTicks(true);
   }
 
  /**
@@ -259,6 +376,20 @@ public class ControlSlider extends ViewControl
     slide.setPaintTicks(showticks);
   }
   
+ /*
+  * This method creates an interval [0,num_steps] which allows each
+  * step to be mapped to a true float range value using the float_to_int
+  * transformation.
+  */ 
+  private void setRangeTransform()
+  {
+    float_to_int.setSource(new CoordBounds(range.x,0,range.y,1));
+    float float_min = float_to_int.getSource().getX1();
+    float float_max = float_to_int.getSource().getX2();
+    float_to_int.setDestination( new CoordBounds(0,0,num_steps,1) );
+    slide.setMinimum(0);
+    slide.setMaximum(num_steps);
+  }
   
  /*
   * This class listens for changes to the slider. With this class,
@@ -272,9 +403,8 @@ public class ControlSlider extends ViewControl
         	     
       if ( !slider.getValueIsAdjusting() )
       {
-        value = slider.getValue()/(float)Math.pow(10.0, power);
-        //System.out.println("In stateChanged(), Value = " + value);
-        ((ViewControl)slider.getParent()).send_message(SLIDER_CHANGED);
+        // System.out.println("In stateChanged(), Value = " + getValue());
+        this_slider.send_message(SLIDER_CHANGED);
       } 
     }
   }
@@ -288,18 +418,20 @@ public class ControlSlider extends ViewControl
     JFrame frame = new JFrame();
     frame.setBounds(0,0,150,90);
     frame.getContentPane().add(slide);
+    frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     slide.setTitle("mySlide");
-    slide.setPrecision(3);
+    //slide.setStep(.001f);
     slide.setRange(2.3f,20.5f);
-    slide.setMajorTickSpace(3);
-    slide.setMinorTickSpace(1);
+    slide.setMajorTickSpace(.25f);
+    slide.setMinorTickSpace(.05f);
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
-    
+    shower = null;
+    /*
     slide.setValue(13.29f);
     System.out.println("Value: " + slide.getValue());
     // invalid value
     slide.setValue(103.29f);
-    System.out.println("Value: 103.29");
+    System.out.println("Value: 103.29");*/
   }
 }
