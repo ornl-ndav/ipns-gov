@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/26 20:43:59  dennis
+ * Added constructor that takes a specified initial plane.
+ * Simplified default constructor.
+ *
  * Revision 1.1  2004/01/26 18:19:01  dennis
  * Initial version of class to select a slice plane by
  * specifying three points on the plane.
@@ -64,22 +68,36 @@ public class ThreePointSliceSelector extends     ActiveJPanel
    */
   public ThreePointSliceSelector()
   {
-    SlicePlane3D plane = new SlicePlane3D();
     setLayout( new GridLayout( 3, 1 ) );
 
-    origin_selector = new Vector3D_UI( "Center Point ", plane.getOrigin() );
+    origin_selector = new Vector3D_UI( "Center " );
+    p1_selector = new Vector3D_UI( "Right  " );
+    p2_selector = new Vector3D_UI( "Top    " );
+
     add( origin_selector ); 
-
-    p1_selector = new Vector3D_UI( "Right Point ", plane.getU() );
     add( p1_selector ); 
-
-    p2_selector = new Vector3D_UI( "Top Point   ", plane.getV() );
     add( p2_selector ); 
 
     PointListener point_listener = new PointListener();
     origin_selector.addActionListener( point_listener );
     p1_selector.addActionListener( point_listener );
     p2_selector.addActionListener( point_listener );
+
+    setPlane( new SlicePlane3D() );
+  }
+
+
+  /* ---------------- constructor with specified plane ------------------- */
+  /**
+   *  Construct the CenterNormalPointSliceSelector with the specified
+   *  slice plane.
+   *
+   *  @param plane  The plane to initially display in this selector.
+   */ 
+  public ThreePointSliceSelector( SlicePlane3D plane )
+  {
+    this();
+    setPlane( plane );
   }
 
 
