@@ -1,5 +1,5 @@
 /*
- * File: Region.java
+ * File: WRegion.java
  *
  * Copyright (C) 2003, Mike Miller
  *
@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/08/08 15:56:55  millermi
+ *  - Changed filename at top from Region.java to WCRegion.java
+ *  - Added method getWorldCoordPoints() for quicker access of data
+ *  - Changed name of getWCP() to getWorldCoordPointAt()
+ *
  *  Revision 1.1  2003/08/07 22:44:57  millermi
  *  - Initial Version - Renamed /View/Transpareny/Region.java to
  *  /View/Region/WCRegion.java
@@ -93,7 +98,7 @@ public class WCRegion
    *  @param  index
    *  @return wcp - floatPoint2D point at index
    */
-   public floatPoint2D getWCP(int index)
+   public floatPoint2D getWorldCoordPointAt(int index)
    {
      // if index out of bounds (negative)
      if( index < 0 )
@@ -103,6 +108,16 @@ public class WCRegion
        index = getNumWCP() - 1;
      return wcp[index];
    }  
+   
+  /**
+   * Get the entire array of world coordinate points.
+   *
+   *  @return wcp - floatPoint2D array
+   */
+   public floatPoint2D[] getWorldCoordPoints()
+   {
+     return wcp;
+   }
    
   /**
    * Get the number of world coordinate points used to specify the region.
