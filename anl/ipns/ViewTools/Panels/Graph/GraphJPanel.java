@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.39  2004/03/12 01:43:05  rmikk
+ * Fixed Package Names
+ *
  * Revision 1.38  2004/02/27 20:18:19  serumb
  * Set the data bounds to the proper min and max values.
  *
@@ -137,7 +140,7 @@
  *
  */
 
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Graph;
 
 import java.awt.*;
 import java.io.*;
@@ -145,10 +148,12 @@ import java.util.*;
 import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.util.*;
-import DataSetTools.math.*;
-import DataSetTools.components.ThreeD.*;
-import DataSetTools.components.View.*;
+import gov.anl.ipns.Util.Numeric.*;
+import gov.anl.ipns.MathTools.*;
+import gov.anl.ipns.ViewTools.Panels.ThreeD.*;
+import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+
 import java.lang.Object.*;
 import java.awt.geom.*;
 
