@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.44  2004/03/09 22:20:41  millermi
+ *  - Added setData() after data was cleared in dataChanged()
+ *    to reset the pointed at graph.
+ *
  *  Revision 1.43  2004/03/09 20:56:38  serumb
  *  Initilized the pointed at graph to zero.
  *
@@ -643,9 +647,11 @@ public class FunctionViewComponent implements IViewComponent1D,
    {
     if (Varray1D != pin_varray){
 
-    if (Varray1D.getNumlines() > pin_varray.getNumlines())
+    if (Varray1D.getNumlines() > pin_varray.getNumlines()){
        gjp.clearData();
-
+       float[] reset = {0,0.0001f};
+       gjp.setData(reset,reset, 0, false);
+    }
     Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
                               // SAME FRAME, so that the frame doesn't move.
