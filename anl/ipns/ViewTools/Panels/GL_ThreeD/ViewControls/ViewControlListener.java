@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/08/03 23:33:40  dennis
+ * Now always sets perspective on/off flag, without checking
+ * the elapsed time.
+ *
  * Revision 1.1  2004/06/18 19:23:09  dennis
  * Moved to ViewControls package
  *
@@ -54,7 +58,7 @@ import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
 
 /**
  *  This is a convenience class to handle viewer position change requests
- *  from ome or more view controllers and route the requestes to 
+ *  from ome or more view controllers and route the requests to 
  *  ThreeD_GL_Panel only if the requests are separated in time by a specified 
  *  minimum time.  This prevents view controllers from sending excessive 
  *  requests to redraw the panel.
@@ -102,6 +106,10 @@ public class ViewControlListener implements ActionListener
    */
   public void actionPerformed( ActionEvent e )
   {
+    IViewController controller = (IViewController)e.getSource();
+    boolean  perspective_onoff = controller.isPerspective();
+    panel.setPerspective( perspective_onoff );
+
     if ( timer.elapsed() < min_time ) // ignore events less than min_time apart
       return;
     timer.reset();
@@ -112,16 +120,13 @@ public class ViewControlListener implements ActionListener
       System.out.println("object that does not implement IViewController.");
       return;
     }
-    IViewController controller = (IViewController)e.getSource();
     Vector3D cop = controller.getCOP();
     Vector3D vrp = controller.getVRP();
     Vector3D vuv = controller.getVUV();
-    boolean  perspective_onoff = controller.isPerspective();
 
     panel.setCOP(cop);
     panel.setVRP(vrp);
     panel.setVUV(vuv);
-    panel.setPerspective( perspective_onoff );
     panel.Draw();
   }
 
