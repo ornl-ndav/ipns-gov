@@ -32,7 +32,12 @@
  *
  * Modified:
  *
- *  $Log: 
+ *  $Log$
+ *  Revision 1.5  2003/12/18 22:42:12  millermi
+ *  - This file was involved in generalizing AxisInfo2D to
+ *    AxisInfo. This change was made so that the AxisInfo
+ *    class can be used for more than just 2D axes.
+ *
  *
  */
  
@@ -124,8 +129,8 @@ public interface IVirtualArray1D
    */
    public int getGroupID( int line_number );
 
-   //**/get axisinfo 2d
-   public AxisInfo2D  getAxisInfo( boolean x_axis);
+   //**/get axisinfo
+   public AxisInfo  getAxisInfo( int axiscode );
      
   /**
    * Set all values in the array to a value. This method will usually

@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2003/12/18 22:42:13  millermi
+ *  - This file was involved in generalizing AxisInfo2D to
+ *    AxisInfo. This change was made so that the AxisInfo
+ *    class can be used for more than just 2D axes.
+ *
  *  Revision 1.29  2003/10/31 18:13:19  dennis
  *  Now when the selected data is changed, the
  *  view controls are rebuilt in the same frame,
@@ -130,8 +135,8 @@ import java.beans.*;
 public class FunctionViewComponent implements IViewComponent1D,
                                               ActionListener, 
                                               IZoomTextAddible, 
-                                              IAxisAddible2D,
-                                              ILogAxisAddible2D 
+                                              IAxisAddible,
+                                              ILogAxisAddible 
 {
   private IVirtualArray1D Varray1D;  //An object containing our array of data
   private Point[] selectedset;  //To be returned by getSelectedSet()   
@@ -231,8 +236,8 @@ public class FunctionViewComponent implements IViewComponent1D,
    * This method initializes the world coords.
    */
   public void setAxisInfo() {
-    AxisInfo2D xinfo = getAxisInfo( AxisInfo2D.XAXIS );
-    AxisInfo2D yinfo = getAxisInfo( AxisInfo2D.YAXIS );
+    AxisInfo xinfo = getAxisInformation( AxisInfo.X_AXIS );
+    AxisInfo yinfo = getAxisInformation( AxisInfo.Y_AXIS );
 
     gjp.initializeWorldCoords( 
       new CoordBounds( 
@@ -240,42 +245,42 @@ public class FunctionViewComponent implements IViewComponent1D,
         xinfo.getMax(  ), yinfo.getMin(  ) ) );
   }
  
-  public AxisInfo2D getAxisInfo( boolean isX ) {
+  public AxisInfo getAxisInformation( int axis ) {
     // if true, return x info
-    if( isX) {
+    if( axis == AxisInfo.X_AXIS) {
       if(gjp.getLogScaleX() == true) {
-        return new AxisInfo2D( 
+        return new AxisInfo( 
         gjp.getLocalLogWorldCoords(gjp.getScale() ).getX1(  ),
         gjp.getLocalLogWorldCoords(gjp.getScale() ).getX2(  ),
-        Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getLabel(  ),
-        Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getUnits(  ),
-        Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getIsLinear(  ) );
+        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
+        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
+        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getIsLinear(  ) );
       }
       else
-      return new AxisInfo2D( 
+      return new AxisInfo( 
         gjp.getLocalWorldCoords(  ).getX1(  ),
         gjp.getLocalWorldCoords(  ).getX2(  ),
-        Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getLabel(  ),
-        Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getUnits(  ),
-        Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getIsLinear(  ) );
+        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
+        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
+        Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getIsLinear(  ) );
     }
 
     // if false return y info
     if(gjp.getLogScaleY() == true) {
-      return new AxisInfo2D( 
+      return new AxisInfo( 
       gjp.getLocalLogWorldCoords(gjp.getScale() ).getY1(  ),
       gjp.getLocalLogWorldCoords(gjp.getScale() ).getY2(  ),
-      Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getLabel(  ),
-      Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getUnits(  ),
-      Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getIsLinear(  ) );
+      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
+      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
+      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
     }
     else
-    return new AxisInfo2D( 
+    return new AxisInfo( 
       gjp.getLocalWorldCoords(  ).getY1(  ),
       gjp.getLocalWorldCoords(  ).getY2(  ),
-      Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getLabel(  ),
-      Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getUnits(  ),
-      Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getIsLinear(  ) );
+      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getLabel(  ),
+      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getUnits(  ),
+      Varray1D.getAxisInfo( AxisInfo.Y_AXIS ).getIsLinear(  ) );
     }
 
    
@@ -726,8 +731,8 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     DataSetData ArrayHandler = new DataSetData( DSS[k] );
 
-    AxisInfo2D xaxis = ArrayHandler.getAxisInfo( true );
-    AxisInfo2D yaxis = ArrayHandler.getAxisInfo( false );
+    AxisInfo xaxis = ArrayHandler.getAxisInfo( AxisInfo.X_AXIS );
+    AxisInfo yaxis = ArrayHandler.getAxisInfo( AxisInfo.Y_AXIS );
 
     System.out.println( 
       "ArrayHandler info" + xaxis.getMax(  ) + "," + xaxis.getMin(  ) + "," +

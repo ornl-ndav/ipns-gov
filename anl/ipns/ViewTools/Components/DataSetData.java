@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2003/12/18 22:42:12  millermi
+ * - This file was involved in generalizing AxisInfo2D to
+ *   AxisInfo. This change was made so that the AxisInfo
+ *   class can be used for more than just 2D axes.
+ *
  * Revision 1.11  2003/12/16 23:19:01  dennis
  * Removed commented out code that returned controls.
  *
@@ -94,15 +99,15 @@ public class DataSetData implements IVirtualArray1D
        notifyAllListeners("DataChanged");
     }
     
-   public AxisInfo2D  getAxisInfo( boolean x_axis)
+   public AxisInfo getAxisInfo( int axis)
      {
       
-      if( x_axis)
-         return  new AxisInfo2D(findminX(), findmaxX(), 
+      if( axis == AxisInfo.X_AXIS )
+         return  new AxisInfo(findminX(), findmaxX(), 
                ds.getX_label(), ds.getX_units(), is_x_linear);
       else
 
-         return  new AxisInfo2D(findminY(), findmaxY(), 
+         return  new AxisInfo(findminY(), findmaxY(), 
                ds.getY_label(), ds.getY_units(), is_y_linear);
      }
 

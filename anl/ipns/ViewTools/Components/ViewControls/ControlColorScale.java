@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/12/18 22:42:13  millermi
+ *  - This file was involved in generalizing AxisInfo2D to
+ *    AxisInfo. This change was made so that the AxisInfo
+ *    class can be used for more than just 2D axes.
+ *
  *  Revision 1.11  2003/11/18 22:32:42  millermi
  *  - Added functionality to allow cursor events to be
  *    traced by the ControlColorScale.
@@ -100,9 +105,9 @@
  import DataSetTools.components.ui.ColorScaleImage;
  import DataSetTools.components.View.TwoD.ImageViewComponent;
  import DataSetTools.components.View.TwoD.IColorScaleAddible;
- import DataSetTools.components.View.TwoD.ILogAxisAddible2D;
+ import DataSetTools.components.View.TwoD.ILogAxisAddible;
  import DataSetTools.components.View.VirtualArray2D;
- import DataSetTools.components.View.AxisInfo2D;
+ import DataSetTools.components.View.AxisInfo;
  import DataSetTools.components.View.Transparency.AxisOverlay2D;
  import DataSetTools.components.image.CoordBounds;
  import DataSetTools.util.floatPoint2D;
@@ -112,7 +117,7 @@
  * by ViewComponents. No messages are sent by this control.
  */ 
 public class ControlColorScale extends ViewControl
-                                         implements ILogAxisAddible2D 
+                                         implements ILogAxisAddible 
 {
   public static final boolean HORIZONTAL = true;
   public static final boolean VERTICAL   = false;
@@ -306,18 +311,18 @@ public class ControlColorScale extends ViewControl
   }	       
 
  /**
-  * The boolean, either true for x, or false for y, will determine which axis
-  * to get information for. The information is wrapped in an AxisInfo2D object.
+  * The integer, from AxisInfo integer codes, will determine which axis
+  * to get information for. The information is wrapped in an AxisInfo object.
   * This method also tells the axis overlay to display the data in log form.
   *
-  *  @param  isX
+  *  @param  axiscode
   *  @return X or Y axisinfo of the component
   *	     If this is a basic color scale, a dumby value is returned.
   */
-  public AxisInfo2D getAxisInfo(boolean isX)
+  public AxisInfo getAxisInformation(int axiscode)
   {
     if( !isBasic )
-      return new AxisInfo2D( interval_min, interval_max, "", "", false );
+      return new AxisInfo( interval_min, interval_max, "", "", false );
     else
     {
       System.out.println("getAxisInfo() is not available with the " +
@@ -325,7 +330,7 @@ public class ControlColorScale extends ViewControl
         		 "public ControlColorScale( " +
         		 "IColorScaleAddible icsa, boolean orientation ) " +
         		 "to enable this method." );
-      return new AxisInfo2D( 0,1,"","",false );
+      return new AxisInfo( 0,1,"","",false );
     }
   }
   
@@ -472,9 +477,9 @@ public class ControlColorScale extends ViewControl
     int row = 250;    
     //Make a sample 2D array
     VirtualArray2D va2D = new VirtualArray2D(row, col); 
-    va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, .0001f, 
+    va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, .0001f, 
  			 "TestX","TestUnits", true );
-    va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, .001f, 
+    va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, .001f, 
  			  "TestY","TestYUnits", true );
     va2D.setTitle("Main Test");
     //Fill the 2D array with the function x*y

@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/12/18 22:42:12  millermi
+ *  - This file was involved in generalizing AxisInfo2D to
+ *    AxisInfo. This change was made so that the AxisInfo
+ *    class can be used for more than just 2D axes.
+ *
  *  Revision 1.5  2003/10/16 05:00:03  millermi
  *  - Fixed java docs errors.
  *
@@ -185,9 +190,9 @@ public class ViewerSim
       int row = 250;	
       //Make a sample 2D array
       VirtualArray2D va2D = new VirtualArray2D(row, col); 
-      va2D.setAxisInfoVA( AxisInfo2D.XAXIS, .001f, .1f, 
+      va2D.setAxisInfo( AxisInfo.X_AXIS, .001f, .1f, 
                            "TestX","TestUnits", true );
-      va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, -1f, 
+      va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, -1f, 
                             "TestY","TestYUnits", true );
       va2D.setTitle("Main Test");
       //Fill the 2D array with the function x*y

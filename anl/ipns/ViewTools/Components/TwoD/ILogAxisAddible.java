@@ -1,5 +1,5 @@
 /*
- * File: IColorScaleAddible.java
+ * File: ILogAxisAddible2D.java
  *
  * Copyright (C) 2003, Mike Miller
  *
@@ -34,56 +34,30 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.3  2003/12/18 22:42:13  millermi
+ *  Revision 1.1  2003/12/18 22:42:12  millermi
  *  - This file was involved in generalizing AxisInfo2D to
  *    AxisInfo. This change was made so that the AxisInfo
  *    class can be used for more than just 2D axes.
  *
- *  Revision 1.2  2003/07/05 19:48:40  dennis
- *  - Now implements ILogAxisAddible2D
- *  - Added methods getDataMin() and getDataMax().
- *  (Mike Miller)
- *
- *  Revision 1.1  2003/06/18 13:38:33  dennis
- *  (Mike Miller)
- *  - Initial version of interface that extends IAxisAddible2D to also
- *    allow adding a color scale "legend using the method getColorScale().
+ *  Revision 1.1  2003/07/05 19:50:06  dennis
+ *  - Initial version: Only one method, getLogScale(). For components
+ *    that need log scaling, this interface adds that capability to
+ *    the IAxisAddible2D interface. If log scaling is not required,
+ *    implement IAxisAddible2D instead. (Mike Miller)
  *
  */
  
 package DataSetTools.components.View.TwoD;
 
-import java.awt.event.ActionListener;
-
 /**
- * This interface is implemented by view components that utilize the 
- * ControlColorScale with calibrations. 
+ * This interface is implemented by components that utilize the 
+ * the AxisOverlay with logarithmic calibrations. 
  */
-public interface IColorScaleAddible extends ILogAxisAddible
+public interface ILogAxisAddible extends IAxisAddible
 {
   /**
-   * This method returns the color scale of the center image. 
-   * Possible scales are listed in file IndexColorScale.java.
-   */
-   public String getColorScale();
-   
-  /**
-   * This method adds an action listener to this component.
+   * This method will get the current log scale value for the region specified
+   * by the getRegionInfo().
    */ 
-   public void addActionListener( ActionListener a );
-   
-  /**
-   * This method will get the current data minimum from the component.
-   */    
-   public float getDataMin();
-   
-  /**
-   * This method will get the current data maximum from the component.
-   */    
-   public float getDataMax();
+   public double getLogScale();
 }
-
-
-
-
-   

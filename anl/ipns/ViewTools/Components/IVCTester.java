@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2003/12/18 22:42:12  millermi
+ * - This file was involved in generalizing AxisInfo2D to
+ *   AxisInfo. This change was made so that the AxisInfo
+ *   class can be used for more than just 2D axes.
+ *
  * Revision 1.8  2003/12/17 20:28:50  millermi
  * - Removed references to ImageViewComponent.COMPONENT_RESIZED.
  *   This was originally added to refresh the ImageViewCompoennt,
@@ -178,13 +183,13 @@ public class IVCTester extends JFrame implements IPreserveState,
   *  @param  title
   */  
   public IVCTester( float[][] array, 
-                    AxisInfo2D xinfo,
-		    AxisInfo2D yinfo,
+                    AxisInfo xinfo,
+		    AxisInfo yinfo,
 		    String title )
   {
     VirtualArray2D temp = new VirtualArray2D( array );
-    temp.setAxisInfoVA( AxisInfo2D.XAXIS, xinfo.copy() );
-    temp.setAxisInfoVA( AxisInfo2D.YAXIS, yinfo.copy() );
+    temp.setAxisInfo( AxisInfo.X_AXIS, xinfo.copy() );
+    temp.setAxisInfo( AxisInfo.Y_AXIS, yinfo.copy() );
     temp.setTitle(title);
     
     data = new VirtualArray2D(1,1);
@@ -351,8 +356,11 @@ public class IVCTester extends JFrame implements IPreserveState,
 	  int row = selectedpoints[j].y;
 	  int col = selectedpoints[j].x;
 	  
-	  data.setDataValue( row, col, data.getDataValue(row,col) * 2f );
-          //System.out.println("(" + selectedpoints[j].x + "," + 
+	  if( Float.compare(data.getDataValue(row,col), Float.NaN) != 0 )
+	  {
+	    data.setDataValue( row, col, data.getDataValue(row,col) * 2f );
+          }
+	  //System.out.println("(" + selectedpoints[j].x + "," + 
           //      	     selectedpoints[j].y + ")" );
         }
         ivc.dataChanged(data);
@@ -381,9 +389,9 @@ public class IVCTester extends JFrame implements IPreserveState,
       for ( int j = 0; j < col; j++ )
         test_array[i][j] = i + j;
     VirtualArray2D va2D = new VirtualArray2D( test_array );
-    va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, 10000f, 
+    va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
     		        "TestX","TestUnits", true );
-    va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, 1500f, 
+    va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
     			"TestY","TestYUnits", false );
     va2D.setTitle("ImageFrame Test");
     IVCTester im_frame = new IVCTester( va2D );
@@ -401,9 +409,9 @@ public class IVCTester extends JFrame implements IPreserveState,
     }
     
     IVCTester im_frame2 = new IVCTester( test_array,
-                                             new AxisInfo2D( 0f, 10000f,"TestX",
+                                             new AxisInfo( 0f, 10000f,"TestX",
 			                                    "TestUnits", true ),
-                                             new AxisInfo2D( 0f, 1500f,"TestY",
+                                             new AxisInfo( 0f, 1500f,"TestY",
 			                                   "TestYUnits", true ),
 					     "ImageFrame Alternate Test" );
     im_frame2.setData( test_array );*/

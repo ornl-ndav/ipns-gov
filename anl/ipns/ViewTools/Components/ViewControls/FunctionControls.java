@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.18  2003/12/18 22:42:13  millermi
+ * - This file was involved in generalizing AxisInfo2D to
+ *   AxisInfo. This change was made so that the AxisInfo
+ *   class can be used for more than just 2D axes.
+ *
  * Revision 1.17  2003/11/06 01:37:50  serumb
  * Set the initial colors for the error bar and point marker buttons.
  *
@@ -339,11 +344,11 @@ import javax.swing.border.*;
    
    
     x_range = new TextRangeUI("X Range", 
-                      Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMin(),
-                      Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMax());
+                      Varray1D.getAxisInfo(AxisInfo.X_AXIS ).getMin(),
+                      Varray1D.getAxisInfo(AxisInfo.X_AXIS ).getMax());
     y_range = new TextRangeUI("Y Range",Varray1D.getAxisInfo(
-                      AxisInfo2D.YAXIS ).getMin(), Varray1D.getAxisInfo(
-                      AxisInfo2D.YAXIS ).getMax()); 
+                      AxisInfo.Y_AXIS ).getMin(), Varray1D.getAxisInfo(
+                      AxisInfo.Y_AXIS ).getMax()); 
 
    String the_string[] = {"X ","Y "};
     cursor = new CursorOutputControl(the_string);
@@ -1033,8 +1038,8 @@ import javax.swing.border.*;
 
     DataSetData ArrayHandler = new DataSetData( DSS[k] );
   
-    AxisInfo2D xaxis = ArrayHandler.getAxisInfo( true );
-    AxisInfo2D yaxis = ArrayHandler.getAxisInfo( false );                            
+    AxisInfo xaxis = ArrayHandler.getAxisInfo( AxisInfo.X_AXIS );
+    AxisInfo yaxis = ArrayHandler.getAxisInfo( AxisInfo.Y_AXIS );
     System.out.println(
       "ArrayHandler info" + xaxis.getMax(  ) + "," + xaxis.getMin(  ) + "," +
       yaxis.getMax(  ) + "," + yaxis.getMin(  ));
