@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/07/14 16:05:21  rmikk
+ *  Fixed possible null pointer exception
+ *
  *  Revision 1.8  2004/03/11 22:27:45  millermi
  *  - Changed package.
  *
@@ -74,7 +77,7 @@ public class ErrorString  extends     SpecialString
 
     // get the message from the exception and set the string
     String message=exception.getMessage();
-    if(message==null && message.length()<=0)
+    if(message==null || message.length()<=0)
       this.setString(name);
     else
       this.setString(name+": "+message);
