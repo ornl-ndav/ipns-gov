@@ -34,6 +34,9 @@
  *  organized according to the categories of the operators.
  *
  *  $Log$
+ *  Revision 1.4  2001/05/31 15:30:03  dennis
+ *  Replaced call to deprecated getLabel() method with getText()
+ *
  *  Revision 1.3  2001/04/23 21:50:16  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -111,7 +114,7 @@ public static void build( JMenu           main_menu,
        while ( comp_index < num_components && !found )
        {
          comp = current_menu.getItem( comp_index );
-         if ( comp.getLabel().equalsIgnoreCase( categories[cat_index] ) )
+         if ( comp.getText().equalsIgnoreCase( categories[cat_index] ) )
          {
            found = true;
            current_menu = (JMenu)comp;        // we found the category, advance 
