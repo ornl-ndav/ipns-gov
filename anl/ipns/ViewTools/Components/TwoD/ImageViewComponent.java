@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.46  2003/12/23 02:21:37  millermi
+ *  - Added methods and functionality to allow enabling/disabling
+ *    of selections.
+ *  - Fixed interface package changes where applicable.
+ *
  *  Revision 1.45  2003/12/20 22:15:18  millermi
  *  - Now implements kill();
  *
@@ -685,6 +690,30 @@ public class ImageViewComponent implements IViewComponent2D,
     state.insert( TWO_SIDED, new Boolean(isTwoSided) );
     
     return state;
+  }
+      
+ /**
+  * This method will disable the selections included in the names
+  * list. Names are defined by static Strings in the SelectionJPanel class.
+  *
+  *  @param  names List of selection names defined by SelectionJPanel class.
+  *  @see DataSetTools.components.View.Cursor.SelectionJPanel
+  */
+  public void disableSelection(String[] names)
+  {
+    ((SelectionOverlay)(transparencies.elementAt(1))).disableSelection( names );
+  }
+     
+ /**
+  * This method will enable the selections included in the names
+  * list. Names are defined by static Strings in the SelectionJPanel class.
+  *
+  *  @param  names List of selection names defined by SelectionJPanel class.
+  *  @see DataSetTools.components.View.Cursor.SelectionJPanel
+  */
+  public void enableSelection(String[] names)
+  {
+    ((SelectionOverlay)(transparencies.elementAt(1))).enableSelection( names );
   }
   
  // These method are required because this component implements 

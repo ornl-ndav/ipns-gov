@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2003/12/23 02:21:36  millermi
+ * - Added methods and functionality to allow enabling/disabling
+ *   of selections.
+ * - Fixed interface package changes where applicable.
+ *
  * Revision 1.4  2003/12/20 22:18:49  millermi
  * - Orphaned windows are now disposed when setData() is called.
  * - Added simple help() for new users. More detail needed.
@@ -84,6 +89,7 @@ import DataSetTools.components.image.*;
 import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.Transparency.SelectionOverlay;
 import DataSetTools.components.View.Region.*;
+import DataSetTools.components.View.Cursor.SelectionJPanel;
 import DataSetTools.components.View.ViewControls.PanViewControl;
 import DataSetTools.util.TextFileReader;
 import DataSetTools.util.RobustFileFilter;
@@ -92,7 +98,7 @@ import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.Data;
 import DataSetTools.dataset.FunctionTable;
 import DataSetTools.dataset.UniformXScale;
- import DataSetTools.util.FontUtil;
+import DataSetTools.util.FontUtil;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -144,10 +150,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient JMenuBar menu_bar;
   private DataSet data_set;
   private String projectsDirectory = System.getProperty("user.home");
-  // since box,line,point selections are not needed, don't do anything when
-  // these selections are made. When selections are removed, there is no way
-  // to know what kind of selection was removed, so this keeps track.
-  private boolean[] validSelections = new boolean[99];
 
  /**
   * Construct a frame with no data to start with. This constructor will be
@@ -433,10 +435,15 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     if( data != null )
     {
       ivc = new ImageViewComponent( data );
-      fvc = new FunctionViewComponent( new DataSetData( data_set ) );
+      // since box, point, and line selections don't apply, disable them.
+      String[] disSelect = { SelectionJPanel.BOX,
+                             SelectionJPanel.POINT,
+			     SelectionJPanel.LINE };
+      ivc.disableSelection( disSelect );
       ivc.setColorControlEast(true);
       ivc.addActionListener( new WVListener() );
-      ivc.addActionListener( new ImageListener() );    
+      ivc.addActionListener( new ImageListener() ); 
+      fvc = new FunctionViewComponent( new DataSetData( data_set ) );   
       Box componentholder = new Box(BoxLayout.Y_AXIS);
       componentholder.add( ivc.getDisplayPanel() );
       componentholder.add(fvc.getDisplayPanel() );
@@ -633,17 +640,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       center = new Point( def_pts[2] );
       end_x = def_pts[1].x - center.x;
     }
-    // these shouldn't be used for this viewer.
-    // Code in the WVListener will prevent these from ever being true.
-    else if( region instanceof LineRegion )
-    {
-      return;
-    }
-    else if( region instanceof BoxRegion )
-    {
-      return;
-    }
-    else if( region instanceof PointRegion )
+    // should never get to this else, if it does, we have a problem.
+    else
     {
       return;
     }
@@ -658,7 +656,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     float y_vals[] = new float[n_xvals];
     float x_vals[] = x_scale.getXs();
     Point[] selected_pts = region.getSelectedPoints();
-    // this loop will...
+    // this loop will sum up values at the same distance and count the number
+    // of hits at each distance.
     float x = 0;
     float y = 0;
     float dist = 0;
@@ -676,6 +675,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       hit_count[index]++;
     }
     
+    // find average value per hit.
     for( int bindex = 0; bindex < n_xvals; bindex++ )
     {
       if( hit_count[bindex] != 0 )
@@ -771,25 +771,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         
       if( message.equals(SelectionOverlay.REGION_ADDED) )
       {
-        Region last_region = selectedregions[selectedregions.length-1];
-        if( last_region instanceof WedgeRegion ||
-            last_region instanceof DoubleWedgeRegion ||
-            last_region instanceof EllipseRegion )
-        {
-          // get points from the last selected region.
-          integrate( last_region );
-          fvc.dataChanged(new DataSetData(data_set));
-	  validSelections[selectedregions.length-1] = true;
-        }
+        // get points from the last selected region.
+        integrate( selectedregions[selectedregions.length-1] );
+        fvc.dataChanged(new DataSetData(data_set));
       }
       else if( message.equals(SelectionOverlay.REGION_REMOVED) )
       {
-        if( validSelections[selectedregions.length] )
-	{
-          data_set.removeData_entry( data_set.getNum_entries() - 1 );
-          fvc.dataChanged(new DataSetData(data_set));
-	  validSelections[selectedregions.length] = false;
-	}
+        data_set.removeData_entry( data_set.getNum_entries() - 1 );
+        fvc.dataChanged(new DataSetData(data_set));
       }
       else if( message.equals(SelectionOverlay.ALL_REGIONS_REMOVED) )
       {

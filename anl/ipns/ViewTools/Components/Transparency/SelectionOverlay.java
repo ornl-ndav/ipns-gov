@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2003/12/23 02:21:36  millermi
+ *  - Added methods and functionality to allow enabling/disabling
+ *    of selections.
+ *  - Fixed interface package changes where applicable.
+ *
  *  Revision 1.25  2003/12/20 21:37:29  millermi
  *  - implemented kill() so editor and help windows are now
  *    disposed when the kill() is called.
@@ -193,7 +198,6 @@ import java.lang.Math;
 import DataSetTools.components.image.*;
 import DataSetTools.components.View.ObjectState;
 import DataSetTools.components.View.Region.WCRegion;
-import DataSetTools.components.View.TwoD.IZoomAddible;
 import DataSetTools.components.View.Cursor.*; 
 import DataSetTools.components.View.ViewControls.ControlSlider;
 import DataSetTools.components.View.ViewControls.IViewControl;
@@ -271,6 +275,8 @@ public class SelectionOverlay extends OverlayJPanel
   private float opacity = 1.0f; 	 // value [0,1] where 0 is clear, 
 					 // and 1 is solid.
   private transient SelectionEditor editor;
+  // buttons for making selections, used by editor.
+  private JButton[] sjpbuttons;
   private Rectangle editor_bounds = new Rectangle(0,0,385,200);
  
  /**
@@ -284,6 +290,7 @@ public class SelectionOverlay extends OverlayJPanel
     super();
     this.setLayout( new GridLayout(1,1) );
     sjp = new SelectionJPanel();
+    sjpbuttons = sjp.getControls();
     editor = new SelectionEditor();
     addComponentListener( new NotVisibleListener() );
     component = iza;
@@ -556,6 +563,44 @@ public class SelectionOverlay extends OverlayJPanel
     editor.dispose();
     if( helper != null )
       helper.dispose();
+  }
+ 
+ /**
+  * This method will disable the selections and cursors included in the names
+  * list. Names are defined by static Strings in the SelectionJPanel class.
+  *
+  *  @param  names List of selection names defined by SelectionJPanel class.
+  *  @see DataSetTools.components.View.Cursor.SelectionJPanel
+  */ 
+  public void disableSelection( String[] select_names )
+  {
+    sjp.disableCursor( select_names );
+    sjpbuttons = sjp.getControls();
+    
+    if( editor.isVisible() )
+    {
+      editor.dispose();
+      editSelection();
+    }
+  }
+  
+ /**
+  * This method will enable the selections and cursors included in the names
+  * list. Names are defined by static Strings in the SelectionJPanel class.
+  *
+  *  @param  names List of selection names defined by SelectionJPanel class.
+  *  @see DataSetTools.components.View.Cursor.SelectionJPanel
+  */ 
+  public void enableSelection( String[] select_names )
+  {
+    sjp.enableCursor( select_names );
+    sjpbuttons = sjp.getControls();
+    
+    if( editor.isVisible() )
+    {
+      editor.dispose();
+      editSelection();
+    }
   }
 
  /**
@@ -880,8 +925,6 @@ public class SelectionOverlay extends OverlayJPanel
       this.setBounds(editor_bounds);
       this_editor = this;
       pane = new Box( BoxLayout.Y_AXIS );
-      // adds buttons for making selections.
-      JButton[] sjpbuttons = sjp.getControls();
       // number of grid rows, and add one in for the JLabel.
       int gridrows = (int)Math.ceil( (double)(sjpbuttons.length + 1)/3 );
       JPanel sjpcontrols = new JPanel( new GridLayout( gridrows, 1 ) );
