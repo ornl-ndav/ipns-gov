@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2003/10/20 16:31:06  rmikk
+ *  Fixed javadoc errors
+ *
  *  Revision 1.7  2003/06/18 20:35:35  pfpeterson
  *  Changed calls for NxNodeUtils.Showw(Object) to
  *  DataSetTools.util.StringUtil.toString(Object)
@@ -627,7 +630,8 @@ public static boolean AttribXMLread( InputStream stream, Attribute A )
 
    
  /** Test program for this module
- *@param   arg[0] is a filename in a simple xml format
+ *
+ *   arg[0] is a filename in a simple xml format
  */
 public static void main( String args[])
   { System.out.println("Here");
