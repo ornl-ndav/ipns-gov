@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.34  2004/04/16 19:00:33  millermi
+ *  - paintLabelsAndUnits() now checks for label and units
+ *    that are empty strings.
+ *
  *  Revision 1.33  2004/03/19 20:16:39  millermi
  *  - Fixed log axis display of y axis. Previously, the maximum
  *    positive and negative values were switched.
@@ -693,8 +697,11 @@ public class AxisOverlay2D extends OverlayJPanel
     if( axis == X_AXIS )
     {
       StringBuffer xlabel = new StringBuffer("");
+      // if no label string, or empty label append nothing
       if( !component.getAxisInformation(AxisInfo.X_AXIS).getLabel().equals( 
-    	  AxisInfo.NO_LABEL) )
+    	  AxisInfo.NO_LABEL) &&
+	  !component.getAxisInformation(AxisInfo.X_AXIS).getLabel().equals( 
+	  "") )
     	xlabel.append( component.getAxisInformation(AxisInfo.X_AXIS).getLabel()
 		       + "  " );
       // Since log calibrations carry their own exponent, none is required
@@ -708,7 +715,9 @@ public class AxisOverlay2D extends OverlayJPanel
         }
       }
       if( !component.getAxisInformation(AxisInfo.X_AXIS).getUnits().equals(
-    	  AxisInfo.NO_UNITS) )
+    	  AxisInfo.NO_UNITS) &&
+	  !component.getAxisInformation(AxisInfo.X_AXIS).getUnits().equals( 
+	  "") )
       {
         if( !open_parenthesis )
 	{
@@ -733,7 +742,9 @@ public class AxisOverlay2D extends OverlayJPanel
       StringBuffer ylabel = new StringBuffer("");
       StringBuffer xlabel = new StringBuffer("");
       if( !component.getAxisInformation(AxisInfo.Y_AXIS).getLabel().equals( 
-    	  AxisInfo.NO_LABEL) )
+    	  AxisInfo.NO_LABEL) &&
+	  !component.getAxisInformation(AxisInfo.Y_AXIS).getLabel().equals( 
+	  "") )
     	ylabel.append( component.getAxisInformation(AxisInfo.Y_AXIS).getLabel()
 		       + "  " );
       // Since log calibrations carry their own exponent, none is required
@@ -747,7 +758,9 @@ public class AxisOverlay2D extends OverlayJPanel
         }
       }
       if( !component.getAxisInformation(AxisInfo.Y_AXIS).getUnits().equals(
-    	  AxisInfo.NO_UNITS) )
+    	  AxisInfo.NO_UNITS) &&
+	  !component.getAxisInformation(AxisInfo.Y_AXIS).getUnits().equals( 
+	  "") )
       {
         if( !open_parenthesis )
 	{
