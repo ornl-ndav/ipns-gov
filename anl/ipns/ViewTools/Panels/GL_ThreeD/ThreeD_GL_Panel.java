@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2004/08/04 16:04:43  dennis
+ * Added main program to test basic functionality.
+ *
  * Revision 1.13  2004/08/03 23:40:36  dennis
  * Made all class level variables private.
  * Commented out mouse event handler used for debugging.
@@ -101,13 +104,14 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 
 import java.awt.*;
-//import java.awt.event.*;    // uncomment this if MouseClickHandler is needed
-                              // for debugging
+import java.awt.event.*;  
+import javax.swing.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ViewControls.*;
 import net.java.games.jogl.*;
 import net.java.games.jogl.util.*;
 
@@ -119,6 +123,8 @@ import net.java.games.jogl.util.*;
 
 public class ThreeD_GL_Panel implements Serializable
 {
+  private boolean       debug = true;
+
   private static Vector old_list_ids = null;
 
   private GLCanvas      canvas;
@@ -172,7 +178,10 @@ public class ThreeD_GL_Panel implements Serializable
       GLCapabilities capabilities = new GLCapabilities();
 //      capabilities.setDoubleBuffered( true );
 //      capabilities.setStereo( true );
-      System.out.println("capabilites = " + capabilities );
+
+      if ( debug )
+        System.out.println("capabilites = " + capabilities );
+
       canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
 //      canvas.setAutoSwapBufferMode(false);
       canvas.addGLEventListener(new Renderer());
@@ -185,7 +194,6 @@ public class ThreeD_GL_Panel implements Serializable
     obj_lists = new Hashtable();
     old_list_ids = new Vector();
 
-//    canvas.addMouseListener( new MouseClickHandler() );  // use for debugging
   }
 
 
@@ -431,10 +439,13 @@ public HitRecord[] pickHitList( int x, int y )
  {
    HitRecord hitlist[] = pickHitList( x, y );
 
-   System.out.println( "pickID() method, length = " + hitlist.length );
-   System.out.println( "x,y = " + x + ", " + y );
-   for ( int i = 0; i < hitlist.length; i++ )
-     System.out.println("hit = " + hitlist[i] );
+   if ( debug )
+   {
+      System.out.println( "pickID() method, length = " + hitlist.length );
+      System.out.println( "x,y = " + x + ", " + y );
+      for ( int i = 0; i < hitlist.length; i++ )
+         System.out.println("hit = " + hitlist[i] );
+   }
 
    if ( hitlist.length <= 0 )
      return GL_Shape.INVALID_PICK_ID;
@@ -819,7 +830,8 @@ public float[] pickedWorldCoordinates( int x, int y )
                        0.0f);
       if ( list == null || list.length == 0 )
       {
-        System.out.println("WARNING: Drawing empty list of objects");
+        if ( debug )
+          System.out.println("WARNING: Drawing empty list of objects");
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT );
         gl.glFlush();
         return; 
@@ -870,9 +882,9 @@ public float[] pickedWorldCoordinates( int x, int y )
                               vuv_pt[0], vuv_pt[1], vuv_pt[2] );
 
       for ( int i = 0; i < list.length; i++ )
-        if ( list == null )
+        if ( list == null && debug )
           System.out.println("LIST IS NULL ");
-        else if ( list[i] == null )
+        else if ( list[i] == null && debug )
           System.out.println("LIST[i] IS NULL, i = " + i );
         else
           list[i].Render( drawable );
@@ -882,8 +894,12 @@ public float[] pickedWorldCoordinates( int x, int y )
       if ( do_select )                            // switch back to render mode
       {                                           // to get the number of hits
         n_hits = gl.glRenderMode( GL.GL_RENDER );
+        n_hits--;                                 // #### this should not be
+                                                  // needed, but it seems we
+                                                  // are getting an extra hit
         do_select = false; 
-        System.out.println("n_hits = " + n_hits );
+        if ( debug )
+          System.out.println("n_hits = " + n_hits );
       }
     }
   }
@@ -895,8 +911,7 @@ public float[] pickedWorldCoordinates( int x, int y )
    *  and print a list of the OpenGL names that are "hit" by a ray through
    *  the current x,y pixel locations for debugging purposes.
    */
-/*
-   private class MouseClickHandler extends MouseAdapter
+   public class MouseClickHandler extends MouseAdapter
    {
       public void mouseClicked (MouseEvent e)
       {  
@@ -907,7 +922,7 @@ public float[] pickedWorldCoordinates( int x, int y )
 
            // Test locate point in 3D ...... 
 
-           float wc[] = getPixelWorldCoordinates( x, y );
+           float wc[] = pickedWorldCoordinates( x, y );
            System.out.println("World Coordinates " + wc[0] + 
                                               ", " + wc[1] +
                                               ", " + wc[2] );
@@ -922,5 +937,37 @@ public float[] pickedWorldCoordinates( int x, int y )
         }
       }
    }
-*/
+
+
+   /* ------------------------------- main ------------------------------- */
+   /**
+    *  Basic functionality test for Three
+    */
+   public static void main( String args[] )
+   {                                                 // make a 3D display panel 
+                                                     // and put it in a frame
+      ThreeD_GL_Panel panel = new ThreeD_GL_Panel();
+      JFrame frame = new JFrame( "ThreeD_GL_Panel" );
+      frame.setSize(500,500);
+      frame.getContentPane().add( panel.getDisplayComponent() );
+                     
+                                                     // add objects and show 
+                                                     // the frame
+      panel.setObject( "Cube 1", new Cube( 0, 0, 0, 2 ) );     
+      Cube cube2 =  new Cube( 0, 0, 1.5f, 1 );
+      cube2.setPickID( 1010101 );
+      panel.setObject( "Cube 2", cube2 );     
+      frame.show();
+
+      panel.getDisplayComponent().addMouseListener( 
+                                  panel.new MouseClickHandler() );
+
+      JFrame c_frame = new JFrame( "View Control" );
+      ViewController controller = new AltAzController( 45, 45, 1, 100, 25 );
+      c_frame.getContentPane().add( controller );
+      controller.addActionListener( new ViewControlListener( panel ) );
+      c_frame.setSize(200,200);
+      c_frame.show();
+   }
+
 }
