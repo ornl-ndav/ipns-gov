@@ -33,6 +33,9 @@
  *  of first and second moments, etc.   
  * 
  *  $Log$
+ *  Revision 1.10  2003/10/14 22:26:47  dennis
+ *  Fixed javadoc comments to build cleanly on jdk 1.4.2
+ *
  *  Revision 1.9  2002/11/27 23:15:47  pfpeterson
  *  standardized header
  *
@@ -488,7 +491,9 @@ public final class NumericalAnalysis
     * @param  f          The function being integrated.  This must provide 
     *                    precision values, so that single precision accuracy is
     *                    easier to achieve.
-    * @param  a, b       The endpoints of the interval [a,b] on which f is 
+    * @param  a          The left endpoint of the interval [a,b] on which f is 
+    *                    being integrated.
+    * @param  b          The right endpoint of the interval [a,b] on which f is 
     *                    being integrated.
     * @param  n_grid_pts The number of grid points to be used
     *
@@ -520,19 +525,21 @@ public final class NumericalAnalysis
   /**
     * Do numerical integration of a one variable function using Romberg
     * integration.  Integration is repeated until the relative error is 
-    * reduced the to the specified tolerance value, or more than MAX_STEPS
+    * reduced the to the specified tolerance value, or more than max_steps
     * have been taken.  Integration begins using 8 grid points and the number
     * of grid points is doubled at each step.
     *
     * @param  f            The function being integrated.  This must provide  
     *                      double precision values, so that single precision
     *                      accuracy is easier to achieve.
-    * @param  a, b         The endpoints of the interval [a,b] on which f is
-    *                      being integrated.
+    * @param  a            The left endpoint of the interval [a,b] on which f
+    *                      is being integrated.
+    * @param  b            The right endpoint of the interval [a,b] on which f
+    *                      is being integrated.
     * @param  tolerance    The relative error tolerance desired.  Since the 
     *                      result is returned in a float, tolerances of < 1.0E-7
     *                      should be used.
-    * @param  MAX_DOUBLES  The maximum number of times the number of intervals
+    * @param  max_steps    The maximum number of times the number of intervals
     *                      used should be doubled.  Since the integration 
     *                      begins with 2, a MAX_DOUBLES value of 10 will use
     *                      up to 2048 points, while a MAX_DOUBLES value of
@@ -545,10 +552,10 @@ public final class NumericalAnalysis
                                         float                a, 
                                         float                b, 
                                         float                tolerance,
-                                        int                  MAX_STEPS  )
+                                        int                  max_steps  )
   {
     int    n_grid_pts = 2; 
-    double table[][] = new double[MAX_STEPS+1][MAX_STEPS+1];
+    double table[][] = new double[max_steps+1][max_steps+1];
     double power,
            factor;
     double approx_1,
@@ -557,7 +564,7 @@ public final class NumericalAnalysis
     table[0][0] = TrapIntegrate( f, a, b, n_grid_pts );
     approx_1 = table[0][0];
     approx_2 = approx_1;
-    for ( int i = 1; i < MAX_STEPS; i++ )
+    for ( int i = 1; i < max_steps; i++ )
     {
       n_grid_pts *= 2;
       table[i][0] = TrapIntegrate( f, a, b, n_grid_pts ); 
@@ -690,7 +697,7 @@ public final class NumericalAnalysis
     *                    equation is solved.
     * @param   b         The right hand endpoint of the interval on which the
     *                    equation is solved.
-    * @param   n_steps   The number of steps used for the bisction method. 
+    * @param   max_tries The max number of steps used for the bisection method. 
     *                    Since the interval is divided in two equal length
     *                    pieces at each step, the solution is known to within
     *                    (b-a)/2**n after n steps.
