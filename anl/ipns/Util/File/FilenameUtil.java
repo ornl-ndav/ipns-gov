@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2002/12/11 16:59:06  pfpeterson
+ *  Updated javadocs of fixSeparator(String)
+ *
  *  Revision 1.11  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -78,13 +81,13 @@ public class FilenameUtil
 
   /**
    *  Replace all occurrences of the possible file separators "/" "\" "\\"
-   *  with the appropriate file separator.
+   *  with "/".
    *
    *  @param  file_name  A file name string possibly containing improper
    *                     separators.
    *
    *  @return  A string containing the file name with all separators replaced 
-   *           by the appropriate separtator.
+   *           by "/".
    */
   public static String fixSeparator( String file_name )
   {
