@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.68  2004/04/05 03:07:41  millermi
+ *  - BUG FIX: Fixed problem where selected regions did not
+ *    appear in the correct spot for non-square data. The
+ *    fix required the getNumColumns() and getNumRows() to
+ *    be swapped in the getSelectedRegions() method.
+ *
  *  Revision 1.67  2004/03/30 03:25:03  millermi
  *  - Added a minimum height and width to the preserveAspectImage().
  *    This will prevent the image from "disappearing" after continuous
@@ -1136,10 +1142,9 @@ public class ImageViewComponent implements IViewComponent2D,
     {
       selectedregions[i] = (Region)regions.elementAt(i);
       selectedregions[i].setWorldBounds(ijp.getGlobalWorldCoords());
-      //selectedregions[i].setImageBounds(ijp.getImageCoords());
       selectedregions[i].setImageBounds(new CoordBounds(0,0,
-                                                    Varray2D.getNumRows(),
-						    Varray2D.getNumColumns() ));
+                                                    Varray2D.getNumColumns(),
+						    Varray2D.getNumRows() ));
     }
     return selectedregions;
   } 
