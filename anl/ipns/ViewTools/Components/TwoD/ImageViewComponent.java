@@ -34,9 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/06/09 14:46:34  dennis
+ *  Added functional HelpMenu under Options. (Mike Miller)
+ *
  *  Revision 1.10  2003/06/06 18:51:00  dennis
  *  Added control for editing annotations. (Mike Miller)
  *
+ *  Revision 1.9  2003/06/05 17:15:00  dennis
  *   - Added getFocus() call when Selection/AnnotationOverlay checkbox
  *     is selected. (Mike Miller)
  *
@@ -114,7 +118,7 @@ public class ImageViewComponent implements IViewComponent2D,
    private int precision;
    private Font font;
    private ViewControl[] controls = new ViewControl[6];
-   private ViewMenuItem[] menus = new ViewMenuItem[1];
+   private ViewMenuItem[] menus = new ViewMenuItem[2];
    private String colorscale;
    
   /**
@@ -524,6 +528,9 @@ public class ImageViewComponent implements IViewComponent2D,
       menus[0] = new ViewMenuItem("Options", 
                                   new ColorScaleMenu( new ColorListener() ));
       menus[0].addActionListener( new MenuListener() );
+      
+      menus[1] = new ViewMenuItem("Options", new HelpMenu(new HelpListener()));
+      menus[1].addActionListener( new MenuListener() );
    }
    
   //***************************Assistance Classes******************************
@@ -700,6 +707,29 @@ public class ImageViewComponent implements IViewComponent2D,
 	 paintComponents( big_picture.getGraphics() ); 
       }
    }
+
+  /*
+   * This class relays the message sent out by the HelpMenu
+   */  
+   private class HelpListener implements ActionListener
+   {
+      public void actionPerformed( ActionEvent ae )
+      {
+         String button = ae.getActionCommand();
+	 if( button.equals("Annotation") )
+	 {
+	    //System.out.println("AnnotationHelpMenu");
+	    AnnotationOverlay.help();
+	 }
+	 else if( button.equals("Axes") )
+	    System.out.println("AxesHelpMenu");
+	 else if( button.equals("Selection") )
+	 {
+	    System.out.println("SelectionHelpMenu");
+	    SelectionOverlay.help();  
+	 }	 
+      }
+   } 
 
   /*
    * This class relays the message sent out by the ViewMenuItem
