@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/05/11 23:29:04  bouzekc
+ * Created private constructor, as this class should not be instantiated.
+ *
  * Revision 1.3  2004/03/11 22:31:22  millermi
  * - Changed package, added import for SharedMessages.
  * - Removed code that wrote out an error file since it was
@@ -45,8 +48,9 @@
  */
 package gov.anl.ipns.Util.File;
 
-import java.io.*;
 import gov.anl.ipns.Util.Sys.SharedMessages;
+
+import java.io.*;
 
 
 /**
@@ -54,7 +58,14 @@ import gov.anl.ipns.Util.Sys.SharedMessages;
  * and other text file things.
  */
 public class TextWriter {
-  //~ Methods ******************************************************************
+  //~ Constructors -------------------------------------------------------------
+
+  /**
+   * Do not instantiate
+   */
+  private TextWriter(  ) {}
+
+  //~ Methods ------------------------------------------------------------------
 
   /**
    * Utility to write to an ASCII file using a FileWriter.  Handles the
@@ -64,14 +75,14 @@ public class TextWriter {
    * @param text2Write The String to write to the file.
    */
   public static void writeASCII( File file2Write, String text2Write ) {
-    FileWriter fw  = null;
+    FileWriter fw = null;
+
     try {
       fw = new FileWriter( file2Write );
       fw.write( text2Write );
     } catch( IOException e ) {
       e.printStackTrace(  );
-      SharedMessages.addmsg( 
-        "Error saving file: " + file2Write.toString(  ) );
+      SharedMessages.addmsg( "Error saving file: " + file2Write.toString(  ) );
     } finally {
       if( fw != null ) {
         try {
@@ -108,8 +119,7 @@ public class TextWriter {
       pw = new PrintWriter( new FileWriter( file2Write ) );
       thrown.printStackTrace( pw );
     } catch( IOException e2 ) {
-      SharedMessages.addmsg( 
-        "Error writing stack trace and back trace to ." +
+      SharedMessages.addmsg( "Error writing stack trace and back trace to ." +
         file2Write.toString(  ) + ".  Please see console." );
       e2.printStackTrace(  );
     } finally {
