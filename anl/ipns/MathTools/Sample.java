@@ -31,9 +31,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/04/04 19:16:23  dennis
+ *  Added SmoothResample() methods.  Currently these just call
+ *  Resample().  The implementation should be changed to include
+ *  smoothing.
+ *
  *  Revision 1.5  2001/04/25 20:56:43  dennis
  *  Added copyright and GPL info at the start of the file.
- *
  *
  */
 
@@ -702,8 +706,8 @@ public final class Sample
 
 /* ------------------------------- Resample -------------------------------- */
 /**
- *  Smooth a function.  This algorithm resamples a function tablulated at
- *  irregularly spaced points at a new set of points using linear 
+ *  This algorithm resamples a function tablulated at arbitrarily spaced 
+ *  increasing points at a new set of increasing points using linear 
  *  interpolation.
  *
  *  @param  iX       The original array of x values.  These MUST be in
@@ -748,5 +752,74 @@ public final class Sample
  }
 
 
+/* ---------------------------- SmoothResample ---------------------------- */
+/**
+ *  This algorithm resamples a function tablulated at arbitrarily spaced 
+ *  increasing points at a new set of increasing points using linear 
+ *  interpolation.  In regions where there are significantly more original
+ *  x values than new x values, the function will be smoothed to a degree
+ *  determined by the smooth_flag parameter.  
+ *
+ *  @param  iX       The original array of x values.  These MUST be in
+ *                   increasing order.
+ *  @param  iY       The original array of y values.  There MUST be as many
+ *                   y values as x values
+ *  @param  nX       The new set of x values to use.
+ *
+ *  @param smooth_flag  Flag indicating the degree of smoothing to be 
+ *                      applied. #### smooth_flag not not currently 
+ *                      implemented.
+ *
+ *  @return The new set of y-values obtained by smoothing or interpolating 
+ *  the original y values at the new x-values.
+ */
+ public static float[] SmoothResample( float iX[], 
+                                       float iY[], 
+                                       float nX[], 
+                                       int   smooth_flag )
+ {
+   return Resample( iX, iY, nX );    // ##### not properly implemented yet 
+ } 
+
+
+/* ---------------------------- SmoothResample ---------------------------- */
+/**
+ *  This algorithm resamples a function tablulated at arbitrarily spaced
+ *  increasing points at a new set of increasing points using linear
+ *  interpolation.  It also calculates new error estimates for the smoothed
+ *  values.  In regions where there are significantly more original
+ *  x values than new x values, the function will be smoothed to a degree
+ *  determined by the smooth_flag parameter.
+ *
+ *  @param  iX       The original array of x values.  These MUST be in
+ *                   increasing order.
+ *  @param  iY       The original array of y values.  There MUST be as many
+ *                   y values as x values
+ *  @param  iErr     The original array of error extimates.  There MUST be
+ *                   as many error values as x values. 
+ *  @param  nX       The new set of x values to use.
+ *
+ *  @param smooth_flag  Flag indicating the degree of smoothing to be
+ *                      applied. #### smooth_flag not not currently
+ *                      implemented.
+ *
+ *  @return A two dimensional array with two rows.  The first row contains
+ *          the new set of y-values obtained by smoothing or interpolating
+ *          and the second row contains the corresponding error estimates. 
+ */
+ public static float[][] SmoothResample( float iX[],
+                                       float iY[],
+                                       float iErr[],
+                                       float nX[],
+                                       int   smooth_flag )
+ {
+   float y[]   = Resample( iX, iY, nX );     // ##### not properly implemented
+   float err[] = Resample( iX, iErr, nX );   //       yet.
+
+   float result[][] = new float[2][];
+   result[0] = y;
+   result[1] = err;
+   return result;
+ }
 
 }
