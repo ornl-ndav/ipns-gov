@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/10/16 00:34:42  dennis
+ *  Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  *  Revision 1.5  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -47,15 +50,14 @@ import java.util.*;
 public class Compare_floatPoint2D_X extends    Object
 // #####NOT IN JAVA 1.1                        implements Comparator
 {
-
   /**
    *  Compare two floatPoint2D objects, based on their X-coordianates.
    *
    *  @param  o1   the first floatPoint2D object
    *  @param  o2   the second floatPoint2D object
    *
-   *  @returns   Return -1 if o1.x < o2.x, +1 if o1.x > o2.x, and zero
-   *             otherwise.
+   *  @return   Return -1 if o1.x < o2.x, +1 if o1.x > o2.x, and zero
+   *            otherwise.
    */
   public int compare( Object o1, Object o2 )
   {

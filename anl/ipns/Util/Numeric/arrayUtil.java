@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2003/10/16 00:34:42  dennis
+ *  Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  *  Revision 1.17  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -90,7 +93,7 @@ public class arrayUtil
    *  a binary search.  
    *
    *  @param  x       The value to find
-   *  @parma  x_vals  The array of x values IN INCREASING ORDER.
+   *  @param  x_vals  The array of x values IN INCREASING ORDER.
    *
    *  @return The last index, i, for which  x_vals[i] <= x, provided that
    *          x is between x_vals[0] and x_vals[x_vals.length-1].  
@@ -138,7 +141,7 @@ public class arrayUtil
    *  a binary search.
    *
    *  @param  x       The value to find
-   *  @parma  x_vals  The array of x values IN INCREASING ORDER.
+   *  @param  x_vals  The array of x values IN INCREASING ORDER.
    *  @param  first   The first position to be considered in the search.
    *  @param  last    The last position to be considered in the search.
    *
@@ -200,8 +203,8 @@ public class arrayUtil
  *
  *  @param  x_value      the x value for which the corresponding y value is to
  *                       be interpolated
- *  @param  x[]          array of x values
- *  @param  y[]          array of corresponding y values.  There must be
+ *  @param  x            array of x values
+ *  @param  y            array of corresponding y values.  There must be
  *                       at least as many y values as x values.  
  *
  *  @return interpolated y value at the specified x value
