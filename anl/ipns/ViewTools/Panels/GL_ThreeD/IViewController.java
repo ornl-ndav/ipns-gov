@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/06/04 14:04:23  dennis
+ * Added methods to get the COP, VRP, VUV and set and get whether or
+ * not the projection is a perspective projection.
+ *
  * Revision 1.2  2004/06/02 15:47:04  dennis
  * Removed unused imports.
  *
@@ -55,12 +59,33 @@ public interface IViewController
   public static final String VIEW_CHANGED = "View Changed";
 
 
+/* -------------------------------- setCOP ------------------------------- */
+/**
+ *   Set the observer's position (i.e. the Center of Projection ) for this view. *
+ *   @param  cop  The new vector to use for the observer's position.  THIS MUST
+ *                BE DIFFERENT FROM THE VRP WHEN THE apply() METHOD IS CALLED.
+ */
+ public void setCOP( Vector3D cop );
+
+
 /* -------------------------------- getCOP ------------------------------- */
 /**
  *   Get the observer's position (i.e. the Center of Projection ) for this view. *
  *   @return  The the observer's position.  
  */
   public Vector3D getCOP( );
+
+
+/* -------------------------------- setVRP ------------------------------- */
+/**
+ *   Set the point the observer is looking at (i.e. the View Reference Point )
+ *   for this view.
+ *   
+ *   @param  vrp  The new vector to use for the point the observer is looking
+ *                at.  THIS MUST BE DIFFERENT FROM THE COP WHEN THE apply()
+ *                METHOD IS CALLED.
+ */
+  public void setVRP( Vector3D vrp );
 
 
 /* -------------------------------- getVRP ------------------------------- */
@@ -72,6 +97,17 @@ public interface IViewController
  */
   public Vector3D getVRP();
 
+/* -------------------------------- setVUV ------------------------------- */
+/**
+ *   Set the direction that is "up" from the observer's point of view
+ *   (i.e. the View Up Vector ) for this view.
+ * 
+ *   @param  vuv  The new vector to use for the view up vector.  THIS MUST
+ *                NOT BE IN THE SAME DIRECTION AS THE DIFFERENCE (cop-vrp)
+ *                WHEN THE apply() METHOD IS CALLED.
+ */
+  public void setVUV( Vector3D vuv );
+
 
 /* -------------------------------- getVUV ------------------------------- */
 /**
@@ -81,5 +117,25 @@ public interface IViewController
  *   @return  The the view up vector. 
  */
   public Vector3D getVUV();
+
+/* ---------------------------- setPerspective ---------------------------- */
+/**
+ *  Set whether or not to use a perspective projection, instead of an
+ *  orthographic projection.
+ *
+ *  @param  onoff  Flag to indicate whether or not to use perspective
+ *                 projection.
+ */
+  public void setPerspective( boolean onoff );
+
+
+/* ---------------------------- isPerspective ---------------------------- */
+/**
+ *  Get whether or not to use a perspective projection was selected.
+ *
+ *  @return  true if a perspective projection should be used and false
+ *           if an orthographic projection should be used.
+ */
+  public boolean isPerspective();
 
 }
