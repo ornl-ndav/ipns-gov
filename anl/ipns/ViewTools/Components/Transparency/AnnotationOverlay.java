@@ -34,6 +34,18 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/06/09 14:45:29  dennis
+ *  - Added a ColorScaleImage to the AnnotationEditor to allow the
+ *    user to change text and line colors.
+ *  - Replaced private data member reg_color which controlled color
+ *    for both the text and line of the annotation with two variables,
+ *    text_color and line_color, to support functionality introduced
+ *    by the ColorScaleImage.
+ *  - Added Shift-UP/DOWN/LEFT/RIGHT keymaps to allow for movement
+ *    of the anchor of the annotation.
+ *  - Added static method help() to display commands via the HelpMenu.
+ *    (Mike Miller)
+ *
  *  Revision 1.3  2003/06/06 18:47:48  dennis
  *  (Mike Miller)
  *  - Added private class AnnotationEditor to display all annotations.
@@ -82,9 +94,12 @@ import java.util.*;
 import java.lang.Math;
 import javax.swing.text.*;
 import javax.swing.event.*;
+import java.awt.image.IndexColorModel;
 
 import DataSetTools.components.View.TwoD.*;
 import DataSetTools.components.View.Cursor.*;
+import DataSetTools.components.image.IndexColorMaker;
+import DataSetTools.components.ui.ColorScaleImage;
 
 /**
  * This class allows a user to write comments near a region on the 
@@ -97,7 +112,8 @@ public class AnnotationOverlay extends OverlayJPanel
    private Vector notes;                  // all annotations
    private AnnotationOverlay this_panel;  // used for repaint by SelectListener 
    private Rectangle current_bounds;
-   private Color reg_color;
+   private Color line_color;              // annotation arrow color
+   private Color text_color;              // annotation text color
    private boolean editorOpen;
    private AnnotationEditor editor;
    
@@ -117,7 +133,8 @@ public class AnnotationOverlay extends OverlayJPanel
       component = iaa;
       notes = new Vector();      
       this_panel = this;
-      reg_color = Color.black;
+      line_color = Color.black;
+      text_color = Color.black;
       editorOpen = false; 
       this.add(overlay); 
       overlay.setOpaque(false); 
@@ -125,15 +142,58 @@ public class AnnotationOverlay extends OverlayJPanel
       
       overlay.requestFocus();           
    }
+
+  /**
+   * Contains/Displays control information about this overlay.
+   */
+   public static void help()
+   {
+      JFrame helper = new JFrame("Help for Annotation Overlay");
+      helper.setBounds(0,0,600,400);
+      JTextArea text = new JTextArea("Commands for Annotation Overlay\n\n");
+      helper.getContentPane().add(text);
+      text.setEditable(false);
+      text.setLineWrap(true);
+      text.append("Note: These commands will NOT work if the Annotation " +
+                  "Overlay checkbox IS NOT checked.\n\n");
+      text.append("Image Commands in conjunction with AnnotationEditor:\n");
+      text.append("Click/Drag/Release Mouse w/N_Key pressed>" + 
+                  "CREATE ANNOTATION\n");
+      text.append("After annotation creation, Press Enter>ADD ANNOTATION\n");
+      text.append("Double Click Mouse>REMOVE LAST ANNOTATION\n");
+      text.append("Double Click Mouse w/A_Key>REMOVE ALL ANNOTATIONS\n\n");
+      text.append("AnnotationEditor Commands (Focus>Action>Result)\n");
+      text.append("TextArea>Press Enter>REFRESH WINDOW\n");
+      text.append("TextArea>Hold Ctrl, Press Arrow Keys>MOVE ANNOTATION\n");
+      text.append("TextArea>Hold Shift, Press Arrow Keys>MOVE LINE ANCHOR\n");
+      text.append("TextArea>Remove All Text, Press Enter/Refresh>REMOVE "+
+                  "ANNOTATION\n");		 
+      text.append("ColorScale>Click Mouse>CHANGE TEXT AND LINE COLOR\n");
+      text.append("ColorScale>Hold Ctrl, Click Mouse>CHANGE LINE COLOR\n");
+      text.append("ColorScale>Hold Shift, Click Mouse>CHANGE TEXT COLOR\n");
+      
+      helper.setVisible(true);
+   }
    
   /**
-   * This method sets the color of all annotations. Initially set to black.
+   * This method sets the text color of all annotations. Initially set to black.
    *
    *  @param  color
    */
    public void setTextColor( Color c )
    {
-      reg_color = c;
+      text_color = c;
+      this_panel.repaint();
+   }
+
+  /**
+   * This method sets the line color of all annotations. Initially set to black.
+   *
+   *  @param  color
+   */
+   public void setLineColor( Color c )
+   {
+      line_color = c;
       this_panel.repaint();
    }
    
@@ -185,8 +245,7 @@ public class AnnotationOverlay extends OverlayJPanel
       FontMetrics fontinfo = g2d.getFontMetrics();
       // resize center "overlay" to size of center jpanel
       overlay.setBounds( current_bounds );
-      // color of all of the annotations.
-      g2d.setColor(reg_color);
+
       int ox = overlay.getLocation().x;
       int oy = overlay.getLocation().y;
      /* To "move" the annotations, an x & y scale had to be made. This
@@ -286,13 +345,19 @@ public class AnnotationOverlay extends OverlayJPanel
 	       autolocatex = 0;
 	       autolocatey = fontheight;	       
 	    }	 
-	 }	 
-	          	 
+	 }
+	 	 
+         // line color of all of the annotations.
+         g2d.setColor(line_color);	
+                	 
 	 g2d.drawLine( (int)(note.getLine().getP1().x * xfactor) + ox, 
 	               (int)(note.getLine().getP1().y * yfactor) + oy,
 	               (int)(note.getLine().getP2().x * xfactor) + ox, 
 		       (int)(note.getLine().getP2().y * yfactor) + oy );
 	 
+         // text color of all of the annotations.
+         g2d.setColor(text_color);
+
 	 g2d.drawString( snote, 
 	                 (int)(((at.x + autolocatex) * xfactor) + ox), 
 	                 (int)(((at.y + autolocatey) * yfactor) + oy));
@@ -492,6 +557,10 @@ public class AnnotationOverlay extends OverlayJPanel
       private JFrame viewer;
       private Vector textfields;
       private AnnotationEditor this_viewer;
+      // adjust this if more than the text color editor, refresh button,
+      // and close button are added. Anything that is not a JTextField from a
+      // note should increment this number.
+      private final int ADD_COMPONENTS = 3; 
       
       public AnnotationEditor( Vector textvect )
       {
@@ -511,9 +580,9 @@ public class AnnotationOverlay extends OverlayJPanel
       {
          viewer = new JFrame("Editor");
 	 viewer.addWindowListener( new FrameListener() );
-         viewer.setBounds(0,0,200,(35 * (textfields.size() + 2)) );
+         viewer.setBounds(0,0,200,(35 * (textfields.size() + ADD_COMPONENTS)) );
          viewer.getContentPane().setLayout( 
-	                        new GridLayout(textfields.size() + 2, 1) ); 
+	                new GridLayout(textfields.size() + ADD_COMPONENTS, 1) );
 	 
 	 JTextField text = new JTextField();
 	 for( int i = 0; i < textfields.size(); i++ )
@@ -523,6 +592,11 @@ public class AnnotationOverlay extends OverlayJPanel
 	    text.addKeyListener( new TextFieldListener() );
 	    viewer.getContentPane().add(text);
 	 }
+	 ColorScaleImage notecolor = new ColorScaleImage();
+	 notecolor.setNamedColorModel( IndexColorMaker.MULTI_SCALE, false );
+	 notecolor.addMouseListener( new NoteColorListener() );
+	 viewer.getContentPane().add( notecolor );
+	 
 	 JButton refreshbutton = new JButton("Refresh");
 	 refreshbutton.addActionListener( new ButtonListener() );
 	 viewer.getContentPane().add( refreshbutton );
@@ -531,9 +605,11 @@ public class AnnotationOverlay extends OverlayJPanel
 	 closebutton.addActionListener( new ButtonListener() );
 	 viewer.getContentPane().add( closebutton );
 
-	 // following was pulled from code examples provided by Java's Tech Tips
+	 // following was created with aid from code examples provided by 
+	 // Java's Tech Tips
 	 //*********************************************************************
 	 Keymap km = text.getKeymap();
+	 // these move p2 of the line (the actual note)
 	 KeyStroke up = KeyStroke.getKeyStroke( KeyEvent.VK_UP,
 	                                        Event.CTRL_MASK );
 	 KeyStroke down = KeyStroke.getKeyStroke( KeyEvent.VK_DOWN,
@@ -542,7 +618,8 @@ public class AnnotationOverlay extends OverlayJPanel
 	                                          Event.CTRL_MASK );
 	 KeyStroke right = KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT,
 	                                           Event.CTRL_MASK );
-	 Action actup = new KeyAction("Ctrl-UP"); 
+						   
+         Action actup = new KeyAction("Ctrl-UP"); 
 	 Action actdown = new KeyAction("Ctrl-DOWN"); 
 	 Action actleft = new KeyAction("Ctrl-LEFT");
 	 Action actright = new KeyAction("Ctrl-RIGHT");
@@ -550,11 +627,32 @@ public class AnnotationOverlay extends OverlayJPanel
 	 km.addActionForKeyStroke( up, actup );
 	 km.addActionForKeyStroke( down, actdown );
 	 km.addActionForKeyStroke( left, actleft );
-	 km.addActionForKeyStroke( right, actright );
+	 km.addActionForKeyStroke( right, actright );	 
+	 // these move p1 of the line (the starting point of the line)
+	 KeyStroke sup = KeyStroke.getKeyStroke( KeyEvent.VK_UP,
+	                                        Event.SHIFT_MASK );
+	 KeyStroke sdown = KeyStroke.getKeyStroke( KeyEvent.VK_DOWN,
+	                                          Event.SHIFT_MASK );
+	 KeyStroke sleft = KeyStroke.getKeyStroke( KeyEvent.VK_LEFT,
+	                                          Event.SHIFT_MASK );
+	 KeyStroke sright = KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT,
+	                                           Event.SHIFT_MASK );	 
+	 
+	 Action actsup = new KeyAction("Shift-UP"); 
+	 Action actsdown = new KeyAction("Shift-DOWN"); 
+	 Action actsleft = new KeyAction("Shift-LEFT");
+	 Action actsright = new KeyAction("Shift-RIGHT");
+	 
+	 km.addActionForKeyStroke( sup, actsup );
+	 km.addActionForKeyStroke( sdown, actsdown );
+	 km.addActionForKeyStroke( sleft, actsleft );
+	 km.addActionForKeyStroke( sright, actsright );
          //*********************************************************************
 	 	 
-	 viewer.setVisible(true);	      
-      }
+	 viewer.setVisible(true);
+	 viewer.getContentPane().getComponent(0).requestFocus();	      
+      } // end of buildViewer()
+      
       class ButtonListener implements ActionListener
       {
          public void actionPerformed( ActionEvent e )
@@ -562,8 +660,10 @@ public class AnnotationOverlay extends OverlayJPanel
 	    String message = e.getActionCommand();
 	    
 	    int viewersize = viewer.getContentPane().getComponentCount();
-	    // -2 in for is to account for two buttons added to viewer
-	    for( int compid = 0; compid < viewersize - 2; compid++ )
+	    // ADD_COMPONENTS accountS for components added to viewer that 
+	    // are not notes.
+	    for( int compid = 0; compid < 
+	                         (viewersize - ADD_COMPONENTS); compid++ )
 	    { 
 	       if( ((JTextField)viewer.getContentPane().getComponent(compid)).
 	                                            getText().equals("") )
@@ -582,6 +682,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	    else if( message.equals("Close") )
 	    {	
 	       viewer.dispose();
+	       this_panel.repaint();
 	    }
 	 }
       }       
@@ -595,7 +696,8 @@ public class AnnotationOverlay extends OverlayJPanel
      	    {
 	       int viewersize = viewer.getContentPane().getComponentCount();
 	       // -2 in for is to account for two buttons added to viewer
-	       for( int compid = 0; compid < viewersize - 2; compid++ )
+	       for( int compid = 0; compid < 
+	                            (viewersize - ADD_COMPONENTS); compid++ )
 	       { 
 	          if( ((JTextField)viewer.getContentPane().
 		          getComponent(compid)).getText().equals("") )
@@ -648,35 +750,96 @@ public class AnnotationOverlay extends OverlayJPanel
 	    
 	    int compid = 0;
 	    while( viewer.getContentPane().getComponent(compid) 
-	 	   != e.getSource() && compid < (viewersize - 2))
+	 	   != e.getSource() && compid < (viewersize - ADD_COMPONENTS))
 	    {
 	       compid++; 
 	    }
 	    
 	    Note tempnote = (Note)textfields.elementAt(compid);
+	    Point tempp1 = tempnote.getLine().getP1();
 	    Point tempp2 = tempnote.getLocation();
-	    if( name.equals("Ctrl-UP") )
+	    if( name.indexOf("Ctrl") > -1 )
 	    {
-	       if( tempp2.y > 0 )
-	          tempp2.y = tempp2.y - 1;
+	       if( name.equals("Ctrl-UP") )
+	       {
+	          if( tempp2.y > 0 )
+	             tempp2.y = tempp2.y - 1;
+	       }	    
+	       else if( name.equals("Ctrl-DOWN") )
+	       {
+	          if( tempp2.y < current_bounds.getHeight() )
+	             tempp2.y = tempp2.y + 1;
+               }	    
+	       else if( name.equals("Ctrl-LEFT") )
+	       {
+	          if( tempp2.x > 0 )
+	             tempp2.x = tempp2.x - 1;
+	       }
+	       else if( name.equals("Ctrl-RIGHT") )
+	       {
+	          if( tempp2.x < current_bounds.getWidth() )
+	             tempp2.x = tempp2.x + 1;
+	       }
+	    }
+	    else if( name.indexOf("Shift") > -1 )
+	    {
+	       if( name.equals("Shift-UP") )
+	       {
+	          if( tempp1.y > 0 )
+	             tempp1.y = tempp1.y - 1;
+	       }	    
+	       else if( name.equals("Shift-DOWN") )
+	       {
+	          if( tempp1.y < current_bounds.getHeight() )
+	             tempp1.y = tempp1.y + 1;
+               }	    
+	       else if( name.equals("Shift-LEFT") )
+	       {
+	          if( tempp1.x > 0 )
+	             tempp1.x = tempp1.x - 1;
+	       }
+	       else if( name.equals("Shift-RIGHT") )
+	       {
+	          if( tempp1.x < current_bounds.getWidth() )
+	             tempp1.x = tempp1.x + 1;
+	       }
 	    }	    
-	    else if( name.equals("Ctrl-DOWN") )
-	    {
-	       if( tempp2.y < current_bounds.getHeight() )
-	          tempp2.y = tempp2.y + 1;
-            }	    
-	    else if( name.equals("Ctrl-LEFT") )
-	    {
-	       if( tempp2.x > 0 )
-	          tempp2.x = tempp2.x - 1;
-	    }
-	    else if( name.equals("Ctrl-RIGHT") )
-	    {
-	       if( tempp2.x < current_bounds.getWidth() )
-	          tempp2.x = tempp2.x + 1;
-	    }
+	    
 	    this_panel.repaint();	    
 	 }     
+      } // end KeyAction
+     
+     /*
+      * This class listens to the ColorScaleImage on the AnnotationEditor.
+      * This listener allows for annotation color change.
+      */ 
+      class NoteColorListener extends MouseAdapter
+      {
+         public void mousePressed( MouseEvent e )
+	 {
+	    ColorScaleImage coloreditor = (ColorScaleImage)e.getSource();
+	    Color colorarray[] = IndexColorMaker.getColorTable(
+	                           IndexColorMaker.MULTI_SCALE, 127 );
+	    Color grayarray[] = IndexColorMaker.getColorTable(
+	                           IndexColorMaker.GRAY_SCALE, 127 );
+            int colorindex = (int)coloreditor.ImageValue_at_Cursor(); 
+	    if( colorindex >= 0 )
+	    {
+	       if( !e.isControlDown() )		   
+	          text_color = colorarray[colorindex];
+	       if( !e.isShiftDown() )
+	          line_color = colorarray[colorindex];
+	    }
+	    else
+	    {
+	       colorindex = -colorindex;
+	       if( !e.isControlDown() )
+	          text_color = grayarray[colorindex];
+	       if( !e.isShiftDown() )
+	          line_color = grayarray[colorindex];	       
+	    }
+	    this_panel.repaint();	 
+	 }
       }
    }
    
