@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/07/29 16:08:54  dennis
+ *  Fixed error when expanding list size in AppendToList().
+ *  Mistakenly continued to use list[] instead of new_list[].
+ *
  *  Revision 1.4  2001/04/25 22:24:38  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -215,9 +219,9 @@ private static int[] RightSizeList( int list[], int size )
 /* ---------------------------- AppendToList ---------------------------- */
 /**
  *  Append a new integer value to the specified list if it's not already
- *  in the list and then sort the list.
+ *  in the list.
  *
- *  @param  new_int   The integer to be inserted in the list if it's not
+ *  @param  new_int   The integer to be appended to the list if it's not
  *                    already there.
  *  @param  list      The current list of integers.
  *  @param  position  The position where the list is to be added.  This 
@@ -247,13 +251,18 @@ private static int[] AppendToList( int new_int, int list[], int position )
      new_list = list;
                                          // insert the new element in the list
                                          // where it belongs in the sorted list
+                                         // If used as intended, this will just
+                                         // do: new_list[ position ] = new_int;
+                                         // If new_int is NOT the largest value
+                                         // as it should be, at least it will
+                                         // be inserted where it belongs.
    int k = position;
-   while ( k > 0 && new_int < list[ k-1 ] )
+   while ( k > 0 && new_int < new_list[ k-1 ] )
    {
-     list[ k ] = list[ k-1 ];
+     new_list[ k ] = new_list[ k-1 ];
      k--;
    }
-   list[ k ] = new_int;
+   new_list[ k ] = new_int;
 
    return new_list;
 }
