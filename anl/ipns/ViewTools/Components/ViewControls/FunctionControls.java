@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.24  2004/03/10 16:38:19  serumb
+ * Changed the action listener to listen for the correct
+ * message when listening to the axis and annotation
+ * overlay controls.
+ *
  * Revision 1.23  2004/01/30 22:29:23  millermi
  * - Added new messaging String paths when listened for by action
  *   listeners.
@@ -677,7 +682,7 @@ import javax.swing.border.*;
       String message = ae.getActionCommand(  );
 
       //System.out.println( "action command: " + message );
-      //System.out.println( "action event: " + ae );
+      //System.out.println( "action event: " + ae.getSource() );
      
       /*
          listens for the color buttons and displays a color chooser
@@ -717,6 +722,8 @@ import javax.swing.border.*;
             gjp.setErrorColor( e, line_index, true );
           }
         }
+      } else if( message.equals( "Button Pressed" )) {
+ 
         if( ae.getSource() instanceof ControlCheckboxButton )
            {
              ControlCheckboxButton ccb = (ControlCheckboxButton)ae.getSource();
@@ -734,7 +741,7 @@ import javax.swing.border.*;
                note.editAnnotation();
              }
             paintComponents( big_picture.getGraphics(  ) );
-           } 
+           }
         /* 
            listens for the edit annotation button and brings up an edit 
            annotation pane.
@@ -1129,8 +1136,8 @@ import javax.swing.border.*;
                                                                                  
     big_picture.getParent(  ).getParent(  ).getParent(  ).
                               getParent(  ).repaint(  );
-   } 
-
+   }
+   
 }
 
 
