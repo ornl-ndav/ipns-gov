@@ -4,6 +4,9 @@
  * Programmer: Dennis Mikkelson
  *
  * $Log$
+ * Revision 1.4  2001/03/01 23:20:04  dennis
+ * Now implements clone() method.
+ *
  * Revision 1.3  2001/01/29 21:39:00  dennis
  * Now uses CVS version numbers.
  *
@@ -122,4 +125,10 @@ public class CoordBounds implements Serializable
   public String toString() {
       return "[x1=" + x1 + ", x2=" + x2 + ", y1=" + y1 + ", y2=" + y2 +"]";
   }
+
+  public Object clone()
+  {
+    return new CoordBounds( x1, y1, x2, y2 );
+  }
+
 }
