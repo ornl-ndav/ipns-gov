@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/12/19 01:37:14  millermi
+ *  - Overloaded toString(), now uses the Hashtable.toString()
+ *
  *  Revision 1.5  2003/12/17 06:37:10  millermi
  *  - openFileChooser() now returns a boolean, true if successful,
  *    false if not. Also added javadocs to this method.
@@ -283,6 +286,11 @@ public class ObjectState implements java.io.Serializable
   {
     return projectsDirectory;
   }
+  
+  public String toString()
+  {
+    return table.toString();
+  }
     
  /*
   * This method groups functionality for the insert() and reset() methods, with
@@ -457,6 +465,9 @@ public class ObjectState implements java.io.Serializable
     System.out.println( ostest.get("Four.Test2") );
     
     System.out.println("Directory: " + ostest.getProjectsDirectory() );
+    
+    System.out.println("toString(): " + ostest.toString() );
+    
     System.exit(1);
   }
 } 
