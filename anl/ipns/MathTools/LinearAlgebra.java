@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.19  2003/07/14 22:29:57  dennis
+ *  print methods now format their output in 5 columns.
+ *
  *  Revision 1.18  2003/07/14 13:36:01  dennis
  *  Fixed a java doc comment.
  *
@@ -264,6 +267,8 @@ public final class LinearAlgebra
     for( int i=0 ; i<a.length ; i++ ){
       for( int j=0 ; j<a[i].length ; j++ ){
         System.out.print( Format.real( a[i][j], 15, 7 ) + " ");
+        if ( j % 5 == 0 && j > 0 ) 
+          System.out.println();
       }
       System.out.println("");
     }
@@ -279,6 +284,8 @@ public final class LinearAlgebra
     for( int i=0 ; i<a.length ; i++ ){
       for( int j=0 ; j<a[i].length ; j++ ){
         System.out.print( Format.real( a[i][j], 15, 7 ) + " ");
+        if ( j % 5 == 0 && j > 0 ) 
+          System.out.println();
       }
       System.out.println("");
     }
@@ -290,7 +297,11 @@ public final class LinearAlgebra
    */
   public static void print(double[] a){
     for( int j=0 ; j<a.length ; j++ )
+    {
       System.out.print( Format.real( a[j], 15, 7 ) + " ");
+      if ( j % 5 == 0 && j > 0 ) 
+        System.out.println();
+    }
     System.out.println("");
   }
 
@@ -300,7 +311,11 @@ public final class LinearAlgebra
    */
   public static void print(float[] a){
     for( int j=0 ; j<a.length ; j++ )
+    {
       System.out.print( Format.real( a[j], 15, 7 ) + " ");
+      if ( j % 5 == 0 && j > 0 ) 
+        System.out.println();
+    }
     System.out.println("");
   }
 
