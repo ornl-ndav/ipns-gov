@@ -30,6 +30,14 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/05/06 20:53:49  dennis
+ * The setOrientation() method now recalculates the up vector to force
+ * it to be orthogonal to the base and normal directions.  The vectors
+ * are also normalized, so the transformation is now guaranteed to be
+ * an orthogonal transformation, combined with a translation, as long
+ * as the vectors are non-null and the up and base vectors have non-zero
+ * length and are not collinear.
+ *
  * Revision 1.5  2004/03/19 17:24:27  dennis
  * Removed unused variables
  *
@@ -360,7 +368,6 @@ public class Tran3D_d
   }
 
 
-
   /*------------------------- setOrientation -----------------------------*/
   /**
    *  Set this transform to position and orient an object in 3D.
@@ -369,20 +376,45 @@ public class Tran3D_d
    *  direction in the y direction.  The matrix created by this method
    *  will first orient the object so that it's base and up directions
    *  are in the directions given by the base and up parameters, and
-   *  then translate the object to the specified point.
+   *  then translate the object by the specified translation.  If the base and
+   *  up vectors are not orthogonal, a new up vector will be calculated 
+   *  that is in the same plane as the original up and base vectors, but
+   *  is orthogonal to the base vector.  If any of the vectors are null,
+   *  or if the base or up vectors have zero length, or are collinear,
+   *  then a error message will be printed and the current transformation
+   *  will not be altered.
    *
-   *  @param   base   The direction the x-axis is mapped to.
-   *  @param   up     The direction the y-axis is mapped to.
-   *  @param   point  The point the origin is transformed to.
+   *  @param   base         The direction the x-axis is mapped to.
+   *  @param   up           The direction the y-axis is mapped to.
+   *  @param   translation  The point the origin is transformed to.
    */
-  public void setOrientation( Vector3D_d base, Vector3D_d up, Vector3D_d point )
+  public void setOrientation( Vector3D_d  base, 
+                              Vector3D_d  up, 
+                              Vector3D_d  translation )
   {
-    setTranslation( point );
+    if ( base == null || up == null || translation == null )   // nothing to do
+    {
+      System.out.println("ERROR: null parameter to setOrientation()");
+      return;
+    }
                                         // build the orientation matrix
-    Vector3D_d n = new Vector3D_d(); 
+    Vector3D_d n = new Vector3D_d();
     n.cross( base, up );
 
-    Tran3D_d orient = new Tran3D_d();   
+    if ( n.length() <= 0 )
+    {
+      System.out.println("ERROR:base,up zero,or collinear in setOrientation()");
+      return;
+    }
+
+    base = new Vector3D_d( base );      // get copies, so we don't damage
+    up   = new Vector3D_d();            // the original parameters
+
+    n.normalize();                      // keep n perpendicular to base & up
+    base.normalize();
+    up.cross( n, base );                // make up perapendicular to n and base
+
+    Tran3D_d orient = new Tran3D_d();
     for ( int i = 0; i < 3; i++ )
       orient.a[i][0] = base.v[i];
 
@@ -392,8 +424,10 @@ public class Tran3D_d
     for ( int i = 0; i < 3; i++ )
       orient.a[i][2] = n.v[i];
 
+    setTranslation( translation );
     multiply_by( orient );             // combine orientation with tranlation
   }
+
 
   /*--------------------------- setViewMatrix ------------------------------*/
   /**
