@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.6  2004/01/21 23:05:50  dennis
+ * Minor adjustment to display format to improve legibility.
+ *
  * Revision 1.5  2002/11/27 23:13:34  pfpeterson
  * standardized header
  *
@@ -36,7 +39,6 @@
 package DataSetTools.components.ui;
 
 import java.awt.*;
-import java.awt.image.*;
 import java.text.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -46,7 +48,7 @@ import java.io.*;
 /**
  * A TextValueI object is an editable JTextField object with a format that 
  * has one  numerical value, in square brackets.  A label may also be applied,
- * eg: Num Bins[ 500].  The user may edit the numerical value, but if the 
+ * eg: Num Bins [ 500 ].  The user may edit the numerical value, but if the 
  * format is changed, it will be reset.  This object also provides a method
  * to get each the numerical value, and to specify a valid range of values
  * that can be entered.  To be informed when values have been changed, 
@@ -65,7 +67,7 @@ public class TextValueUI extends    JTextField
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
   *  Construct a TextValueUI object with the specifed label and current value.
-  *  The form of the text is  <label>[<value>].
+  *  The form of the text is  <label> [ <value> ].
   *
   *  @param  label  String to be used for the label for the value.
   *  @param  value  Value to use as the default value. 
@@ -163,7 +165,7 @@ public class TextValueUI extends    JTextField
 
     NumberFormat f = NumberFormat.getInstance();
     f.setGroupingUsed( false );
-    setText( label+"[" + f.format(value) + "]" );    
+    setText( label + " " + "[ " + f.format(value) + " ]" );    
   }
 
 

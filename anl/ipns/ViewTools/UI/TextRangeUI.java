@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/21 23:05:49  dennis
+ *  Minor adjustment to display format to improve legibility.
+ *
  *  Revision 1.6  2002/11/27 23:13:34  pfpeterson
  *  standardized header
  *
@@ -41,7 +44,6 @@
 package DataSetTools.components.ui;
 
 import java.awt.*;
-import java.awt.image.*;
 import java.text.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -50,7 +52,7 @@ import java.io.*;
 
 /**
  * A TextRangeUI object is an editable JTextField object with a format that 
- * includes two numerical values, in square brackets, separated by a comma. 
+ * includes two numerical values, in square brackets, separated by a colon. 
  * A label may also be applied, eg: TOF[100.0,4000.0].  The user may edit the
  * numerical values, but if the format is changed, it will be reset.  This 
  * object also provides methods to get each of the numerical values.  To be
@@ -72,7 +74,7 @@ public class TextRangeUI extends    JTextField
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
   *  Construct a TextRangeUI object with the specifed label and min and max
-  *  values.  The form of the text is  <label>[<min>,<max>].
+  *  values.  The form of the text is  <label> [ <min>:<max> ].
   *
   *  @param  label  String to be used for the label for the text range.
   *  @param  min    Value to use as the first entry in the range. 
@@ -186,7 +188,10 @@ public class TextRangeUI extends    JTextField
   {
     NumberFormat f = NumberFormat.getInstance();
     f.setGroupingUsed( false );
-    setText( label + START + f.format(min) + SEPARATOR + f.format(max) + END );
+    setText( label + " " +
+             START + " " + f.format(min) + 
+             SEPARATOR + f.format(max) + 
+             " " + END );
   }
 
   /* ---------------------------- parse_text ---------------------------- */
