@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.39  2003/11/21 00:48:14  millermi
+ *  - Changed how the IVC updated the PanViewControl,
+ *    now uses method refreshData().
+ *
  *  Revision 1.38  2003/11/18 22:32:42  millermi
  *  - Added functionality to allow cursor events to be
  *    traced by the ControlColorScale.
@@ -903,6 +907,7 @@ public class ImageViewComponent implements IViewComponent2D,
      float[][] f_array = Varray2D.getRegionValues( 0, MAXDATASIZE, 
 						   0, MAXDATASIZE );
      ijp.setData(f_array, true);
+     ((PanViewControl)controls[5]).refreshData();
      paintComponents( big_picture.getGraphics() );
   }
  
@@ -933,6 +938,7 @@ public class ImageViewComponent implements IViewComponent2D,
      }
      ijp.setData(Varray2D.getRegionValues( 0, MAXDATASIZE, 
 					   0, MAXDATASIZE ), true);
+     ((PanViewControl)controls[5]).refreshData();
      paintComponents( big_picture.getGraphics() );  
   }
   
@@ -1094,7 +1100,6 @@ public class ImageViewComponent implements IViewComponent2D,
     while( temppainter.getParent() != null )
       temppainter = temppainter.getParent();
     temppainter.repaint();
-    //big_picture.getParent().getParent().getParent().getParent().repaint();
   }
   
   private void returnFocus()
@@ -1176,9 +1181,9 @@ public class ImageViewComponent implements IViewComponent2D,
       note.getFocus();
     } 
     
-    ((PanViewControl)controls[5]).setImageColorScale( colorscale, isTwoSided );
     ((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
     ((PanViewControl)controls[5]).setLocalBounds(local_bounds);
+    ((PanViewControl)controls[5]).refreshData();
     
     //buildViewMenuItems(); 
   } 
@@ -1266,15 +1271,16 @@ public class ImageViewComponent implements IViewComponent2D,
     controls[4] = new ControlCheckboxButton();  // initially unchecked
     ((ControlCheckboxButton)controls[4]).setTitle("Annotation Overlay");
     controls[4].addActionListener( new ControlListener() );
-    
+    /*
     ImageJPanel ijp_copy = new ImageJPanel();
     ijp_copy.setGlobalWorldCoords( global_bounds );
     ijp_copy.setLocalWorldCoords( local_bounds );
     //Make ijp correspond to the data in f_array
     ijp_copy.setData( Varray2D.getRegionValues(0, MAXDATASIZE, 0, MAXDATASIZE),
    		      true);
-    controls[5] = new PanViewControl(ijp_copy); 
-    ((PanViewControl)controls[5]).setLocalBounds( ijp.getLocalWorldCoords() );
+    controls[5] = new PanViewControl(ijp_copy); */
+    controls[5] = new PanViewControl(ijp);
+    //((PanViewControl)controls[5]).setLocalBounds( ijp.getLocalWorldCoords() );
     controls[5].addActionListener( new ControlListener() );     
   }
   
@@ -1405,7 +1411,7 @@ public class ImageViewComponent implements IViewComponent2D,
         logscale = control.getValue();  				    
         ijp.changeLogScale( logscale, true );
         ((ControlColorScale)controls[1]).setLogScale( logscale );
-	((PanViewControl)controls[5]).setLogScale( logscale );
+	((PanViewControl)controls[5]).refreshData();
       } 
       else if ( message == IViewControl.CHECKBOX_CHANGED )
       { 
@@ -1597,9 +1603,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	colorscale = message;
 	ijp.setNamedColorModel( colorscale, isTwoSided, true );
 	((ControlColorScale)controls[1]).setColorScale( colorscale, 
-							isTwoSided );
-        ((PanViewControl)controls[5]).setImageColorScale( colorscale,
-	                                                  isTwoSided );
+							isTwoSided );        
+	((PanViewControl)controls[5]).refreshData();
       }
       sendMessage( message );
       paintComponents( big_picture.getGraphics() ); 
