@@ -609,7 +609,7 @@ public final class Sample
  *  @param  n_steps  The approximate number of steps to use for the new
  *                   smoothed function.
  *
- *  @return The number of entries in iX and iY that were used for the
+ *  @return The number of entries in iX and iY that are used for the
  *          smoothed function.
  *
  */
@@ -652,7 +652,15 @@ public final class Sample
      iY [ smoothed_i ] = y_sum / n_summed;
      smoothed_i++;
    }
+                                                    // zero out the unused part
+                                                    // of the arrays 
+   for ( int j = smoothed_i; j < iX.length; j++ )
+     iX[j] = 0;
 
+   for ( int j = smoothed_i; j < iY.length; j++ )
+     iY[j] = 0;
+                                                    // return the number of
+                                                    // positions now used
    return smoothed_i;
  }
 
