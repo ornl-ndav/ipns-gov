@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/06/09 22:35:06  dennis
+ *  - Added methods help() and getFocus() with implementation.
+ *    (Mike Miller)
+ *
  *  Revision 1.2  2003/05/16 14:57:09  dennis
  *  Added acknowledgement of NSF funding.
  *
@@ -50,4 +54,32 @@ public abstract class OverlayJPanel extends JPanel implements IOverlay
    {
       this.setOpaque(false);        // make the panel "see-through"	
    }
+   
+  /**
+   * This method will be used to display help information about this overlay.
+   * It should open it's own JFrame with information about the overlay.
+   */ 
+   public static void help()
+   {
+      JFrame helper = new JFrame("Help for Generic Overlay");
+      helper.setBounds(0,0,600,400);
+      JTextArea text = new JTextArea("Commands for Generic Overlay\n\n");
+      helper.getContentPane().add(text);
+      text.setEditable(false);
+      text.setLineWrap(true);
+      text.append("Help information not available for this overlay.\n\n");
+      
+      helper.setVisible(true);
+   }
+  
+  /**
+   * This method requests window focus for the overlay. If focus is wanted
+   * by a private data member of an overlay, this method should be overloaded
+   * to have the data member itself call requestFocus(). 
+   */ 
+   public void getFocus()
+   {
+      this.requestFocus();
+   }
+   
 }
