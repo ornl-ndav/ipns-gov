@@ -2,6 +2,10 @@
  * @(#) IndexColorMaker.java  1.0    1998/07/29   Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.3  2000/10/03 21:39:18  dennis
+ *  Added method to construct a "Dual" logarithmic scale to handle both
+ *  negative and positive values.
+ *
  *  Revision 1.2  2000/07/10 22:11:51  dennis
  *  7/10/2000 version, many changes and improvements
  *
@@ -15,6 +19,7 @@ package DataSetTools.components.image;
 import java.awt.image.*;
 import java.io.*;
 
+
 public class IndexColorMaker implements Serializable
 {
   public static final String GRAY_SCALE            = "Gray";
@@ -27,12 +32,13 @@ public class IndexColorMaker implements Serializable
   public static final String MULTI_SCALE           = "Multi";
   public static final String SPECTRUM_SCALE        = "Spectrum";
 
-  public static IndexColorModel getColorModel( String scale_type, 
+
+  public static IndexColorModel getColorModel( String scale_type,
                                                int num_colors      )
   {
     if ( num_colors > 256 )                // force valid and usable num_colors
       num_colors = 256;
-    else if ( num_colors < 16 ) 
+    else if ( num_colors < 16 )
       num_colors = 16;
 
     byte red[]   = new byte [ num_colors ];
@@ -40,36 +46,133 @@ public class IndexColorMaker implements Serializable
     byte blue[]  = new byte [ num_colors ];
 
     if (scale_type == GRAY_SCALE)
-      BuildGrayScale( red, green, blue ); 
+      BuildGrayScale( red, green, blue );
 
     else if (scale_type == NEGATIVE_GRAY_SCALE )
-      BuildNegativeGrayScale( red, green, blue ); 
+      BuildNegativeGrayScale( red, green, blue );
 
-    else if (scale_type == GREEN_YELLOW_SCALE ) 
-      BuildGreenYellowScale( red, green, blue ); 
+    else if (scale_type == GREEN_YELLOW_SCALE )
+      BuildGreenYellowScale( red, green, blue );
 
-    else if (scale_type == HEATED_OBJECT_SCALE ) 
-      BuildHeatedObjectScale( red, green, blue ); 
+    else if (scale_type == HEATED_OBJECT_SCALE )
+      BuildHeatedObjectScale( red, green, blue );
 
-    else if (scale_type == HEATED_OBJECT_SCALE_2 ) 
-      BuildHeatedObjectScale2( red, green, blue ); 
+    else if (scale_type == HEATED_OBJECT_SCALE_2 )
+      BuildHeatedObjectScale2( red, green, blue );
 
     else if (scale_type == RAINBOW_SCALE )
-      BuildRainbowScale( red, green, blue ); 
+      BuildRainbowScale( red, green, blue );
 
     else if (scale_type == OPTIMAL_SCALE )
-      BuildOptimalScale( red, green, blue ); 
+      BuildOptimalScale( red, green, blue );
 
     else if (scale_type == MULTI_SCALE )
-      BuildMultiScale( red, green, blue ); 
+      BuildMultiScale( red, green, blue );
 
     else if (scale_type == SPECTRUM_SCALE )
-      BuildSpectrumScale( red, green, blue ); 
+      BuildSpectrumScale( red, green, blue );
 
     else
       BuildGrayScale( red, green, blue );
-    
-    IndexColorModel colors = new IndexColorModel( 8, num_colors, 
+
+    IndexColorModel colors = new IndexColorModel( 8, num_colors,
+                                                     red, green, blue );
+    return( colors );
+  }
+
+
+
+  public static IndexColorModel getDualColorModel( String scale_type, 
+                                                   int num_colors      )
+  {
+    if ( num_colors > 127 )                // force valid and usable num_colors
+      num_colors = 127;
+    else if ( num_colors < 16 ) 
+      num_colors = 16;
+                                                // colors for positive values
+    byte p_red[]   = new byte [ num_colors ];
+    byte p_green[] = new byte [ num_colors ];
+    byte p_blue[]  = new byte [ num_colors ];
+                                                 // colors for negative values
+    byte m_red[]   = new byte [ num_colors ];
+    byte m_green[] = new byte [ num_colors ];
+    byte m_blue[]  = new byte [ num_colors ];
+                                                 // colors for combined +-values
+    byte red[]     = new byte [ 2*num_colors+1 ];
+    byte green[]   = new byte [ 2*num_colors+1 ];
+    byte blue[]    = new byte [ 2*num_colors+1 ];
+
+    if (scale_type == GRAY_SCALE)
+    {
+      BuildGrayScale( p_red, p_green, p_blue ); 
+      BuildHeatedObjectScale( m_red, m_green, m_blue ); 
+    }
+    else if (scale_type == NEGATIVE_GRAY_SCALE )
+    {
+      BuildNegativeGrayScale( p_red, p_green, p_blue ); 
+      BuildHeatedObjectScale( m_red, m_green, m_blue ); 
+    }
+    else if (scale_type == GREEN_YELLOW_SCALE ) 
+    {
+      BuildGreenYellowScale( p_red, p_green, p_blue ); 
+      BuildGrayScale( m_red, m_green, m_blue ); 
+    }
+    else if (scale_type == HEATED_OBJECT_SCALE ) 
+    {
+      BuildHeatedObjectScale( p_red, p_green, p_blue ); 
+      BuildGrayScale( m_red, m_green, m_blue ); 
+    }
+    else if (scale_type == HEATED_OBJECT_SCALE_2 ) 
+    {
+      BuildHeatedObjectScale2( p_red, p_green, p_blue ); 
+      BuildGrayScale( m_red, m_green, m_blue ); 
+    } 
+    else if (scale_type == RAINBOW_SCALE )
+    {
+      BuildRainbowScale( p_red, p_green, p_blue ); 
+      BuildGrayScale( m_red, m_green, m_blue ); 
+    }
+    else if (scale_type == OPTIMAL_SCALE )
+    {
+      BuildOptimalScale( p_red, p_green, p_blue ); 
+      BuildGrayScale( m_red, m_green, m_blue ); 
+    }
+    else if (scale_type == MULTI_SCALE )
+    {
+      BuildMultiScale( p_red, p_green, p_blue ); 
+      BuildGrayScale( m_red, m_green, m_blue ); 
+    }
+    else if (scale_type == SPECTRUM_SCALE )
+    {
+      BuildSpectrumScale( p_red, p_green, p_blue ); 
+      BuildGrayScale( m_red, m_green, m_blue ); 
+    }
+    else
+    {
+      BuildGrayScale( p_red, p_green, p_blue );
+      BuildGrayScale( m_red, m_green, m_blue ); 
+    }
+                              // Now fit both positive and negative color 
+                              // scales into red, green and blue arrays.
+                              // Black representing "0" is the mid entry
+    red  [ num_colors ] = 0;
+    green[ num_colors ] = 0;
+    blue [ num_colors ] = 0;
+
+    for ( int i = 0; i < num_colors; i++ ) 
+    {
+                                    // positive values increase from mid entry
+      red  [ num_colors + i + 1] = p_red  [ i ];
+      green[ num_colors + i + 1] = p_green[ i ];
+      blue [ num_colors + i + 1] = p_blue [ i ];
+
+                                    // negative values decrease from mid entry
+      red  [ num_colors - i - 1 ] = m_red  [ i ];
+      green[ num_colors - i - 1 ] = m_green[ i ]; 
+      blue [ num_colors - i - 1 ] = m_blue [ i ];
+    }
+
+    IndexColorModel colors = new IndexColorModel( 8, 2*num_colors+1, 
                                                      red, green, blue );
     return( colors );
   } 
