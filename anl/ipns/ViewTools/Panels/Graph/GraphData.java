@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2003/07/17 21:50:40  serumb
+ * Added if block to check if the Error Values are null.
+ *
  * Revision 1.12  2003/07/03 16:08:14  serumb
  * Added methods get_x_vals and get_y_vals, and added java docs commemts.
  *
@@ -95,10 +98,13 @@ public class GraphData implements Serializable
   public void setErrorVals(int error_loc, float[] error_vals)
   {
     errors = error_loc;
-
-    error_bars = new float[error_vals.length];
-    System.arraycopy( error_vals, 0 , 
-                        error_bars, 0, error_vals.length - 1 );
+    if(error_vals != null) 
+    {
+       error_bars = new float[error_vals.length];
+       System.arraycopy( error_vals, 0 , 
+                           error_bars, 0, error_vals.length - 1 );
+    }
+    else error_bars = null;
   }
 
 /*---------------------------- getErrorLocation -----------------------------*/
