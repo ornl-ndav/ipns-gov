@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.38  2004/07/28 19:38:35  robertsonj
+ * Changed the curser readouts to read the correct log coordinates depending
+ * on which scale is chosen to be logerithmic
+ *
  * Revision 1.37  2004/07/02 20:12:32  serumb
  * Added control to set the shift factor for the offset.
  *
@@ -678,20 +682,16 @@ import javax.swing.border.*;
       else if(message.equals("Cursor Moved")){ 
 
          if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-             cursor.setValue(0,loggerx.toDest(gjp.getCurrent_WC_point().x,
-                                                                log_scale));
-             cursor.setValue(1,loggery.toDest(gjp.getCurrent_WC_point().y,
-                                                                log_scale));
+             cursor.setValue(0,loggerx.truLogCoord(gjp.getCurrent_WC_point().x));
+             cursor.setValue(1,loggery.truLogCoord(gjp.getCurrent_WC_point().y));
 
            }
            else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
              cursor.setValue(0,gjp.getCurrent_WC_point().x);
-             cursor.setValue(1,loggery.toDest(gjp.getCurrent_WC_point().y,
-                                                                log_scale));
+             cursor.setValue(1,loggery.truLogCoord(gjp.getCurrent_WC_point().y));
            }
            else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
-             cursor.setValue(0,loggerx.toDest(gjp.getCurrent_WC_point().x,
-                                                                log_scale));
+             cursor.setValue(0,loggerx.truLogCoord(gjp.getCurrent_WC_point().x));
              cursor.setValue(1,gjp.getCurrent_WC_point().y);
            }
            else {
