@@ -2,6 +2,9 @@
  * @(#)ClosedInterval.java  2000/10/19  Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.3  2001/03/30 19:16:40  dennis
+ *  Added method   intersect( interval )
+ *
  *  Revision 1.2  2000/11/17 23:38:18  dennis
  *  Minor change to format of output in toString() method.
  *
@@ -100,6 +103,31 @@ public class ClosedInterval implements java.io.Serializable {
     else
       return false;
   }
+
+  /**
+   * Intersect two ClosedIntervals to obtain a new ClosedInterval, or
+   * null if the intervals don't intersect. 
+   *
+   * @param       interval  The ClosedInterval to intersect with this
+   *                        ClosedInterval.
+   *
+   * @return  A closed interval representing the intersection of this interval
+   *          with the specified interval, or null if the intersection is empty.
+   */
+   public ClosedInterval intersect( ClosedInterval interval )
+   {
+     if ( max < interval.min || min > interval.max )
+       return null;
+
+     float intersection_min,
+           intersection_max;
+     
+     intersection_max = Math.min( max, interval.max );
+     intersection_min = Math.max( min, interval.min );
+
+     return new ClosedInterval( intersection_min, intersection_max );
+   }
+
  
   /**
    * Returns a representation of this interval as a string.
@@ -108,4 +136,28 @@ public class ClosedInterval implements java.io.Serializable {
   {
     return "["+min+","+max+"]";
   }
+
+  /* ----------------------------- main --------------------------------- */
+  /*
+   *  main program for testing purposes.
+   */
+
+  public static void main( String argv[] )
+  {
+    ClosedInterval  i1 = new ClosedInterval( 10, 20 );
+    ClosedInterval  i2 = new ClosedInterval( 15, 25 );
+    ClosedInterval  i3 = new ClosedInterval( 21, 30 );
+
+    System.out.println("i1 intersect i2 = " + i1.intersect( i2 ));
+    System.out.println("i2 intersect i1 = " + i2.intersect( i1 ));
+    System.out.println("i2 intersect i3 = " + i2.intersect( i3 ));
+    System.out.println("i3 intersect i2 = " + i3.intersect( i2 ));
+
+    if ( i1.intersect( i3 ) == null )
+      System.out.println("Empty intersection is null");
+
+    if ( i3.intersect( i1 ) == null )
+      System.out.println("Empty intersection is null");
+  }
+
 }
