@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2003/06/20 16:19:04  serumb
+ * Added methods and variables to set and get error values.
+ *
  * Revision 1.8  2003/06/16 23:20:32  dennis
  * Initializes the stroke field with a new BasicStroke(1).
  *
@@ -62,5 +65,30 @@ public class GraphData implements Serializable
   public Color  markcolor = Color.red;
   public int    marksize  = 1;
   public BasicStroke Stroke = new BasicStroke(1);
+  private float[] error_bars = null;
+  private int errors = 0;
+  public Color  errorcolor = Color.blue;
+
+  // public methods
+
+  public boolean setErrorVals(int error_loc, float[] error_vals)
+  {
+    errors = error_loc;
+
+    error_bars = new float[error_vals.length];
+    System.arraycopy( error_vals, 0 , 
+                        error_bars, 0, error_vals.length - 1 );
+    return true;
+  }
+  
+  public int getErrorLocation()
+  {
+    return errors;
+  }
+
+  public float[] getErrorVals()
+  {
+   return error_bars;
+  }
 }
 
