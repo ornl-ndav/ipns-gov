@@ -1,7 +1,7 @@
 /*
  * File:  ImageJPanel.java
  *
- * Copyright (C) 1999, Dennis Mikkelson
+ * Copyright (C) 1999-2003, Dennis Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2003/07/05 19:15:37  dennis
+ *  Added methods to get min and max of data.  Added parameter to the
+ *  setNamedColorMode() method to control whether the color scale is
+ *  suitable for images with positive data or with both positive and
+ *  negative data. (Mike Miller)
+ *  Merged with previous changes.
+ *
  *  Revision 1.14  2003/04/18 15:20:42  dennis
  *  Vertical scrolling is no longer automatically set true.
  *
@@ -92,7 +99,7 @@ public class ImageJPanel extends    CoordJPanel
   private Image           image;
   private Image           rescaled_image = null;
   private float           data[][] = { {0,1}, {2,3} };
-  private float           min_data = 0;;
+  private float           min_data = 0;
   private float           max_data = 3;
 
   private IndexColorModel color_model;
@@ -150,6 +157,10 @@ public class ImageJPanel extends    CoordJPanel
  *  @param   color_scale_name  Name of the new color scale to use for the
  *                             image.  Supported color scales are listed in
  *                             the IndexColorMaker class.
+ *  @param   isTwoSided        Flag that determines whether a color scale 
+ *                             that includes colors for both positive and 
+ *                             negative values is used, or if only positive
+ *                             values are represented.
  *  @param   rebuild_image     Flag to determine whether the displayed image is
  *                             rebuilt with the new log scale factor, or if
  *                             rebuilding the displayed image should be delayed
@@ -160,10 +171,15 @@ public class ImageJPanel extends    CoordJPanel
  *  @see IndexColorMaker
  */
   public void setNamedColorModel( String   color_scale_name,
+                                  boolean  isTwoSided,
                                   boolean  rebuild_image   )
   {
-    color_model = IndexColorMaker.getDualColorModel( color_scale_name,
-                                                     NUM_POSITIVE_COLORS );
+    if( isTwoSided )
+      color_model = IndexColorMaker.getDualColorModel( color_scale_name,
+                                                       NUM_POSITIVE_COLORS );
+    else
+      color_model = IndexColorMaker.getColorModel( color_scale_name,
+                                                   NUM_POSITIVE_COLORS );
     if ( rebuild_image )
     {
       makeImage();
@@ -436,6 +452,30 @@ public Dimension getPreferredSize()
       cols = 0;
 
     return new Dimension( cols, rows );
+}
+
+
+/* -------------------------------- getDataMin --------------------------- */
+/**
+ *  Get the minimum value of the data represented by the image.
+ *
+ *  @return  min_data
+ */
+public float getDataMin()
+{
+  return min_data;
+}
+
+
+/* -------------------------------- getDataMax --------------------------- */
+/**
+ *  Get the maximum value of the data represented by the image.
+ *
+ *  @return  max_data
+ */
+public float getDataMax()
+{
+  return max_data;
 }
 
 
