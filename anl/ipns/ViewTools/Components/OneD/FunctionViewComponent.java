@@ -33,8 +33,9 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.23  2003/08/08 19:05:30  serumb
- *  Show Pointed at is selected as defult.
+ *  Revision 1.24  2003/08/08 21:08:08  serumb
+ *  Now un-checks the Function Controls box when Function Controls window
+ *  is closed.
  *
  *  Revision 1.22  2003/08/08 18:28:17  serumb
  *  Sends message to function controls letting it know to update x and y
@@ -140,6 +141,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   private FunctionControls mainControls;
   private boolean draw_pointed_at = true;
   private boolean isLinear = true;
+  private ControlCheckbox control_box = new ControlCheckbox(false);
+
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
    * to be viewed in a border layout.
@@ -195,7 +198,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     regioninfo      = new Rectangle( gjp.getBounds(  ) );
     local_bounds    = gjp.getLocalWorldCoords(  ).MakeCopy(  );
     global_bounds   = gjp.getGlobalWorldCoords(  ).MakeCopy(  );
-//7 dd
     setAxisInfo();
 
     Listeners = new Vector(  );
@@ -207,6 +209,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       DrawPointedAtGraph();
 
     mainControls = new FunctionControls(varr, gjp, getDisplayPanel(),this);
+    mainControls.get_frame().addWindowListener( new FrameListener() );
    // buildViewControls( gjp );
   }
 
@@ -350,9 +353,9 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    *  @param  pt
    */
   public void setPointedAt( Point pt ) {
-    System.out.println( "Entering: void setPointedAt( Point pt )" );
-    System.out.println( "X value = " + pt.getX(  ) );
-    System.out.println( "Y value = " + pt.getY(  ) );
+    //System.out.println( "Entering: void setPointedAt( Point pt )" );
+    //System.out.println( "X value = " + pt.getX(  ) );
+    //System.out.println( "Y value = " + pt.getY(  ) );
 
     //Type cast Point pt  into  floatPoint2D fpt
     floatPoint2D fpt = new floatPoint2D( ( float )pt.x, ( float )pt.y );
@@ -360,7 +363,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     //set the cursor position on GraphJPanel
     gjp.setCurrent_WC_point( fpt );
 
-    System.out.println( "" );
+    //System.out.println( "" );
   }
 
   /**
@@ -371,8 +374,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    */
   public void setSelectedSet( Point[] pts ) {
     // implement after selection overlay has been created
-    System.out.println( "Entering: void setSelectedSet( Point[] coords )" );
-    System.out.println( "" );
+    //System.out.println( "Entering: void setSelectedSet( Point[] coords )" );
+    //System.out.println( "" );
   }
 
   /**
@@ -396,6 +399,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     //get the complete 2D array of floats from pin_varray
     gjp.clearData();
     mainControls.close_frame();
+    control_box.setSelected(false);
     DrawSelectedGraphs();
     if(draw_pointed_at)
       DrawPointedAtGraph();  
@@ -416,8 +420,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    */
   public Point[] getSelectedSet(  )  //keep the same (for now)
    {
-    System.out.println( "Entering: Point[] getSelectedSet()" );
-    System.out.println( "" );
+    //System.out.println( "Entering: Point[] getSelectedSet()" );
+    //System.out.println( "" );
 
     return selectedset;
   }
@@ -428,8 +432,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    *  @param act_listener
    */
   public void addActionListener( ActionListener act_listener ) {
-    System.out.print( "Entering: void " );
-    System.out.println( "addActionListener( ActionListener act_listener )" );
+    //System.out.print( "Entering: void " );
+    //System.out.println( "addActionListener( ActionListener act_listener )" );
 
     for( int i = 0; i < Listeners.size(  ); i++ )  // don't add it if it's
 
@@ -441,7 +445,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     }
 
     Listeners.add( act_listener );  //Otherwise add act_listener
-    System.out.println( "" );
+    //System.out.println( "" );
   }
 
   /**
@@ -471,8 +475,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   }
 
   public JComponent[] getPrivateControls(  ) {
-    System.out.println("Entering: JComponent[] getPrivateControls()");
-    System.out.println("");
+    //System.out.println("Entering: JComponent[] getPrivateControls()");
+    //System.out.println("");
    JPanel[] Res = new JPanel[3];
 
    JPanel test_p = new JPanel();
@@ -480,7 +484,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    test_p.add(test_l);
    Res[0] = test_p;
 
-   Res[1] = new ControlCheckbox(false);
+   Res[1] = control_box;
    ((ControlCheckbox)Res[1]).setText("Function Controls");
    ((ControlCheckbox)Res[1]).addActionListener( new ControlListener() );
     
@@ -496,15 +500,15 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   }
 
   public JMenuItem[] getSharedMenuItems(  ) {
-    System.out.println( "Entering: JMenuItems[] getSharedMenuItems()" );
-    System.out.println( "" );
+    //System.out.println( "Entering: JMenuItems[] getSharedMenuItems()" );
+   // System.out.println( "" );
 
     return new JMenuItem[0];
   }
 
   public JMenuItem[] getPrivateMenuItems(  ) {
-    System.out.println( "Entering: JMenuItems[] getPrivateMenuItems()" );
-    System.out.println( "" );
+    //System.out.println( "Entering: JMenuItems[] getPrivateMenuItems()" );
+    //System.out.println( "" );
 
     return new JMenuItem[0];
   }
@@ -807,16 +811,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       }
     }
   }
-/*  private class ControlPanelListener implements PropertyChangeListener {
-    //~ Methods ****************************************************************
-  
-    public void propertyChange(PropertyChangeEvent evt) {
-             System.out.println("the event:" + evt);  
-             System.out.println("Name:" + evt.getPropertyName());
-               
-    }
-  }
-*/
   private class ControlListener implements ActionListener {
     //~ Methods ****************************************************************
 
@@ -833,6 +827,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
             mainControls.display_controls();
           } else {
             mainControls.close_frame();
+            control_box.setSelected(false);
           }
           
         }
@@ -851,6 +846,12 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       }    
     }
   }
+    private class FrameListener extends WindowAdapter  {
+    //~ Methods ****************************************************************
+      public void windowClosing(WindowEvent e) {
+        control_box.setSelected(false);
+      }
+   }
  
 }
 
