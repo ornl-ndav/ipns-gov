@@ -1,5 +1,5 @@
 /*
- * File:  CommandObject.java
+ * File: PartialDS_Selector.java 
  *
  * Copyright (C) 2003, Dennis Mikkelson
  *
@@ -30,6 +30,11 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.3  2003/03/07 22:53:15  dennis
+ *  Now implements IObservable.
+ *  Now gets initial values for the rebin factor and
+ *  for the attribute mode from the specified command object.
+ *
  *  Revision 1.2  2003/03/07 00:13:22  dennis
  *  Now uses the GetDataCommand constructor to make the test command
  *  in the main program.
@@ -68,7 +73,7 @@ import NetComm.*;
  *  message is sent.
  */
 
-public class PartialDS_Selector
+public class PartialDS_Selector implements IObservable
 {
   public static final String APPLY = "Apply";
   public static final String EXIT  = "Exit";
@@ -139,7 +144,7 @@ public class PartialDS_Selector
 
     input_panel.setLayout( new GridLayout(4,1) );
                                                           // group ID widget
-    list_ui = new IntListUI( "Group IDs ", "1:30,40");
+    list_ui = new IntListUI( "Group IDs ", command.getGroup_ids() );
     input_panel.add( list_ui );
                                                           // TOF widget
     tof_range = new TextRangeUI( "", command.getMin_x(), command.getMax_x() );
@@ -153,9 +158,18 @@ public class PartialDS_Selector
     input_panel.add( tof_panel );
                                                           // rebin widget
     rebin_box = new JComboBox( rebin_option_list );
+    int factor = command.getRebin_factor();
+    int i = 0;                                                // find first
+    while ( i < rebin_code.length && rebin_code[i] < factor ) // code >= factor
+      i++;
+    rebin_box.setSelectedIndex( i );
     input_panel.add( rebin_box ); 
                                                           // attribute widget 
     attr_box = new JComboBox( attr_option_list );
+    int attr_flag = command.getAttribute_mode();
+    for ( i = 0; i < attr_code.length; i++ )             // turn on matching
+      if ( attr_code[i] == attr_flag )                   // attribute selection
+        attr_box.setSelectedIndex( i );
     input_panel.add( attr_box );
     
     dialog.getContentPane().add( input_panel, BorderLayout.CENTER );
@@ -174,7 +188,7 @@ public class PartialDS_Selector
     apply_button.addActionListener( listener );
     exit_button.addActionListener( listener );
                                                       // now display it 
-    int width  = 260;
+    int width  = 280;
     int height = 230;
     dialog.setSize( width, height );
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -228,7 +242,7 @@ public class PartialDS_Selector
    *  @param  iobs   The observer object that is to be notified.
    *
    */
-   void addIObserver( IObserver iobs )
+   public void addIObserver( IObserver iobs )
    {
      observers.addIObserver( iobs );
    }
@@ -241,7 +255,7 @@ public class PartialDS_Selector
    *  @param  iobs   The observer object that should no longer be notified.
    *
    */
-   void deleteIObserver( IObserver iobs )
+   public void deleteIObserver( IObserver iobs )
    {
      observers.deleteIObserver( iobs );
    }
@@ -251,7 +265,7 @@ public class PartialDS_Selector
    *  Remove all objects from the list of observers to notify when this
    *  observable object changes.
    */
-   void deleteIObservers( )
+   public void deleteIObservers( )
    {
      observers.deleteIObservers();
    }
