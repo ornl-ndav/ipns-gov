@@ -4,6 +4,9 @@
  * Programmer: Dennis Mikkelson
  *
  * $Log$
+ * Revision 1.5  2001/03/30 19:17:54  dennis
+ * Added method  intersect( bounds )
+ *
  * Revision 1.4  2001/03/01 23:20:04  dennis
  * Now implements clone() method.
  *
@@ -20,7 +23,7 @@
 package DataSetTools.components.image;
 
 import java.io.*;
-
+import DataSetTools.util.*;
 
 public class CoordBounds implements Serializable
 {
@@ -96,6 +99,57 @@ public class CoordBounds implements Serializable
     this.y2 = temp; 
   }
 
+  public CoordBounds intersect( CoordBounds bounds )
+  {
+    ClosedInterval  interval1,
+                    interval2,
+                    interval;
+
+    interval1 = new ClosedInterval( x1, x2 ); 
+    interval2 = new ClosedInterval( bounds.x1, bounds.x2 ); 
+    interval  = interval1.intersect( interval2 );
+
+    if ( interval == null )                      // bounds don't intersect in x
+      return null;
+
+    float new_x1,
+          new_x2;
+
+    if ( x1 < x2 )                               // keep the same order as the
+    {                                            // current bounds
+      new_x1 = interval.getStart_x();
+      new_x2 = interval.getEnd_x();
+    }
+    else                                  
+    {
+      new_x1 = interval.getEnd_x();
+      new_x2 = interval.getStart_x();
+    }
+    
+    interval1 = new ClosedInterval( y1, y2 );
+    interval2 = new ClosedInterval( bounds.y1, bounds.y2 );
+    interval  = interval1.intersect( interval2 );
+
+    if ( interval == null )                      // bounds don't intersect in y
+      return null;
+
+    float new_y1,
+          new_y2;
+
+    if ( y1 < y2 )                               // keep the same order as the
+    {                                            // current bounds
+      new_y1 = interval.getStart_x();
+      new_y2 = interval.getEnd_x();
+    }
+    else                                  
+    {
+      new_y1 = interval.getEnd_x();
+      new_y2 = interval.getStart_x();
+    }
+
+    return new CoordBounds( new_x1, new_y1, new_x2, new_y2 );
+  }
+
   public CoordBounds MakeCopy( )
   {
     return( new CoordBounds( this.getX1(), this.getY1(), 
@@ -129,6 +183,29 @@ public class CoordBounds implements Serializable
   public Object clone()
   {
     return new CoordBounds( x1, y1, x2, y2 );
+  }
+
+ 
+  /* ----------------------------- main -------------------------------- */
+  /*
+   *  Main program for testing purposes.
+   */
+  public static void main( String args[] )
+  {
+    CoordBounds b1 = new CoordBounds( 0, 0, 10, 10 );
+    CoordBounds b2 = new CoordBounds( 5, 8, 15, 12 );
+
+    System.out.println( "Intersecting b1 = " + b1 );
+    System.out.println( "with b2 = " + b2 );
+    System.out.println( "gives " + b1.intersect( b2 ) );
+
+    CoordBounds b3 = new CoordBounds( 10, 10, 0, 0 );
+    CoordBounds b4 = new CoordBounds( 15, 12, 5, 8 );
+
+    System.out.println( "Intersecting b3 = " + b3 );
+    System.out.println( "with b4 = " + b4 );
+    System.out.println( "gives " + b3.intersect( b4 ) );
+
   }
 
 }
