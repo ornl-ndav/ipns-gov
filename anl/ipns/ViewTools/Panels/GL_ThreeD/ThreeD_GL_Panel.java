@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/06/04 14:05:58  dennis
+ * Added method to control whether a perspective or orthographic
+ * projection is used.
+ *
  * Revision 1.2  2004/05/30 04:31:07  dennis
  * Commented out calls to canvas.setRenderingThread() which prevented
  * test program from running on Compaq Evo N1000c running Windows XP
@@ -84,7 +88,7 @@ public class ThreeD_GL_Panel implements Serializable
   private Vector3D  cop, 
                     vrp, 
                     vuv;
-  private float view_angle = 50;
+  private float view_angle = 40;
   private float near_plane = 1;
   private float far_plane  = 500;
 
@@ -415,6 +419,20 @@ public int[] pickHitList( int x, int y )
  {
    vuv = new Vector3D( new_vuv );
  }
+
+
+/* ---------------------------- setPerspective ---------------------------- */
+/**
+ *  Set whether or not to use a perspective projection, instead of an
+ *  orthographic projection.
+ *
+ *  @param  onoff  Flag to indicate whether or not to use perspective
+ *                 projection.
+ */
+  public void setPerspective( boolean onoff )
+  {
+    use_perspective_proj = onoff;
+  }
 
 
 /* ---------------------------- getDisplayComponent ---------------------- */
