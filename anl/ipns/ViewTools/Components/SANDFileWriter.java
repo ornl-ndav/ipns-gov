@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/09 22:01:57  millermi
+ * - Format numbers so they output in nice columns.
+ * - Added column titles to describe each column.
+ *
  * Revision 1.2  2004/01/29 18:16:22  dennis
  * Fixed javadoc error.
  *
@@ -49,6 +53,7 @@ package DataSetTools.components.View;
 import DataSetTools.dataset.Data;
 import DataSetTools.util.SharedData;
 import DataSetTools.util.TextWriter;
+import DataSetTools.util.Format;
 
 /**
  * This class will write out the results of the SANDWedgeViewer to a file.
@@ -66,8 +71,9 @@ public class SANDFileWriter
     StringBuffer output = new StringBuffer();
     // if the header is valid, add it to the output with one line of space.
     if( header != null && !header.equals("") )
-      output.append( header ).append('\n');
-    
+      output.append( header );
+    // Add labels to the columns
+    output.append( "# Q             Intensity      Error\n" ).append('\n');
     // make sure arrays are of same size, if not, use length of smallest array.
     int length = q.length;
     if( length > intensity.length )
@@ -75,12 +81,20 @@ public class SANDFileWriter
     if( length > error.length )
       length = error.length;
     // create file with 3 columns: Q, Intensity, Error
-    // Columns are separated by a tab (\t)
+    // Columns are separated by a 3 space delimiter.
+    String delim = "   "; // 3 space delimiter.
+    int column_width = 12; // width of each column of numbers, excluding delim.
     for( int i = 0; i < length; i++ )
     {
-      output.append(Float.toString(q[i])).append('\t');          // Q
-      output.append(Float.toString(intensity[i])).append('\t');  // Intensity
-      output.append(Float.toString(error[i])).append('\n');      // Error
+      // Q
+      output.append(Format.singleExp( (double)q[i], 
+                                      column_width ) ).append(delim);
+      // Intensity
+      output.append(Format.singleExp( (double)intensity[i],
+                                      column_width ) ).append(delim);
+      // Error
+      output.append(Format.singleExp( (double)error[i],
+                                      column_width ) ).append('\n');
     }
     TextWriter.writeASCII( filename, output.toString() );
   }
