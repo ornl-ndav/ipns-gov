@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2002/10/23 19:58:27  pfpeterson
+ * Updated the JFileChooser behaviour so starts with the specified
+ * directory or file, as appropriate.
+ *
  * Revision 1.4  2002/08/19 17:07:04  pfpeterson
  * Reformated file to make it easier to read.
  *
@@ -121,8 +125,12 @@ public class SaveDocToFileListener
     public void actionPerformed( ActionEvent evt){
         final JFileChooser fc=new JFileChooser() ;
 	if( filename != null ){
-	    fc.setCurrentDirectory(new File(filename));
-	    fc.setSelectedFile(new File(filename));
+            File file=new File(filename);
+            if( file.isDirectory() ){
+              fc.setCurrentDirectory(new File(filename));
+            }else{
+              fc.setSelectedFile(new File(filename));
+            }
 	}
 	Dimension d= new Dimension(650,300);
 	fc.setPreferredSize(d);
