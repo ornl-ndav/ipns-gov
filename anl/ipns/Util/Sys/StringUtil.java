@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2002/08/06 21:22:31  pfpeterson
+ *  Added methods to get fun things like floats, ints and strings
+ *  out of a StringBuffer.
+ *
  *  Revision 1.6  2002/04/17 21:33:10  dennis
  *  Made replace() method more robust.  Now works even if the
  *  replaced string is contained in the new string.
@@ -362,6 +366,148 @@ public class StringUtil
   }
 
 
+  /**
+   * Method analogous to String.trim().
+   */
+  public static void trim(StringBuffer sb){
+      // don't try anything if it is an empty string
+      if(sb.length()<=0) return;
+
+      // trim leading whitespace
+      while(Character.isWhitespace(sb.charAt(0))){
+          sb.deleteCharAt(0);
+      }
+      // trim trailing whitespace
+      while(Character.isWhitespace(sb.charAt(sb.length()-1))){
+          sb.deleteCharAt(sb.length()-1);
+      }
+  }  
+
+  /**
+   * Method to get the first set of non-whitespace characters and
+   * construct a float. The characters (and any separating whitespace)
+   * are then removed from the StringBuffer.
+   */
+  public static float getFloat(StringBuffer sb){
+      float val=0f;
+      if(sb.length()<=0) return val; // don't bother if we have an empty string
+      
+      Float temp=null;
+      int end=0;
+      if(Character.isDigit(sb.charAt(0))){
+          end=sb.toString().indexOf(" ");
+          if(end==-1) end=sb.length();
+      }            
+      if(end>0){
+          temp=Float.valueOf(sb.substring(0,end));
+          val=temp.floatValue();
+            sb.delete(0,end);
+            StringUtil.trim(sb);
+      }
+      return val;
+  }
+
+  /**
+   * Method to get the first nchar characters and construct a
+   * float. The characters are then removed from the StringBuffer.
+   */
+  public static float getFloat(StringBuffer sb, int nchar){
+      float val=0f;
+
+      // don't bother if we have an empty string
+      if(sb.length()<nchar) return val;
+      
+      // just grab the next nchar characters and make a float
+      String sub=sb.substring(0,nchar).trim();
+      sb.delete(0,nchar);
+      if(sub==null || sub.length()==0) return val;
+      Float temp=Float.valueOf(sub);
+      val=temp.floatValue();
+      return val;
+  }
+
+  /**
+   * Method to get the first set of non-whitespace characters and
+   * construct an int. The characters (and any separating whitespace)
+   * are then removed from the StringBuffer.
+   */
+  public static int getInt(StringBuffer sb){
+      int val=0;
+      if(sb.length()<=0) return val; // don't bother if we have an empty string
+      
+      Integer temp=null;
+      int end=0;
+      
+      if(Character.isDigit(sb.charAt(0))){
+          end=sb.toString().indexOf(" ");
+          if(end==-1) end=sb.length();
+      }
+      if(end>0){
+          temp=Integer.valueOf(sb.substring(0,end));
+          val=temp.intValue();
+            sb.delete(0,end);
+            StringUtil.trim(sb);
+      }
+      return val;
+  }
+
+  /**
+   * Method to get the first nchar characters and construct an
+   * int. The characters are then removed from the StringBuffer.
+   */
+  public static int getInt(StringBuffer sb, int nchar){
+      int val=0;
+
+      // don't bother if we have an empty string
+      if(sb.length()<nchar) return val;
+      
+      // just grab the next nchar characters and make an int
+      Integer temp=Integer.valueOf(sb.substring(0,nchar));
+      val=temp.intValue();
+      sb.delete(0,nchar);
+      return val;
+  }
+
+
+  /**
+   * Method to get the first set of non-whitespace characters and
+   * construct a String. The characters (and any separating
+   * whitespace) are then removed from the StringBuffer.
+   */
+  public static String getString(StringBuffer sb){
+      String val=null;
+      if(sb.length()<=0) return val; // don't bother if we have an empty string
+
+      int end=0;
+      
+      if(!Character.isWhitespace(sb.charAt(0))){
+          end=sb.toString().indexOf(" ");
+          if(end==-1) end=sb.length();
+      }
+      if(end>0){
+          val=sb.substring(0,end);
+          sb.delete(0,end);
+          StringUtil.trim(sb);
+      }
+      return val;
+  }
+
+  /**
+   * Method to get the first nchar characters and construct a
+   * String. The characters are then removed from the StringBuffer.
+   */
+  public static String getString(StringBuffer sb, int nchar){
+      String val=null;
+
+      // don't bother if we have an empty string
+      if(sb.length()<nchar) return val;
+
+      // just grab the next nchar characters
+      val=sb.substring(0,nchar);
+      sb.delete(0,nchar);
+      return val;
+  }
+
 
 
 /* ---------------------------------------------------------------------------
@@ -453,4 +599,5 @@ public class StringUtil
     for ( int i = 0; i < tokens.length; i++ )
       System.out.println("|"+tokens[i]+"|");
   }
+
 }
