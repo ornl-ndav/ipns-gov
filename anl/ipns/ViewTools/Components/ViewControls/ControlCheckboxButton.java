@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/28 21:55:52  dennis
+ *  Added methods to get and set the font used on the Edit button
+ *
  *  Revision 1.5  2004/01/05 18:14:06  millermi
  *  - Replaced show()/setVisible(true) with WindowShower.
  *  - Removed excess imports.
@@ -68,6 +71,7 @@
  import java.awt.event.ActionListener;
  import java.awt.GridLayout;
  import java.awt.Color;
+ import java.awt.Font;
  import java.awt.BorderLayout;
  import javax.swing.border.TitledBorder;
  
@@ -187,7 +191,27 @@ public class ControlCheckboxButton extends ViewControl
   {
     return edit.getText();
   }
-  
+
+ /**
+  * This method sets the font used for the button. 
+  *
+  *  @param  font  The new font to use. 
+  */
+  public void setButtonFont( Font font )
+  {
+    edit.setFont(font);
+  }
+
+ /**
+  * This method gets the font used on the button. 
+  *
+  *  @return the current font used on the button.
+  */
+  public Font getButtonFont()
+  {
+    return edit.getFont();
+  }
+
  /**
   * This method sets the color of the titled border text of the control to the 
   * color specified when the checkbox is checked.
