@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.58  2004/07/15 19:29:25  dennis
+ *  Fixed serious inefficiency problem when constructing a selected
+ *  graph view from a DataSet with many spectra. (Ruth)
+ *
  *  Revision 1.57  2004/07/02 19:24:36  serumb
  *  Moved the Function Controls and Pointed At Checkboxes to the options menu.
  *
@@ -932,16 +936,13 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     int num_graphs = Varray1D.getNumGraphs();
 
-      for(int i=0; i < num_graphs && 
-                  Varray1D.getNumSelectedGraphs() < MAX_GRAPHS; i++) {
+      for(int i=0; i < num_graphs && draw_count < MAX_GRAPHS; i++) {
     
         if( Varray1D.isSelected(i) ) {
             draw_count++;
             Draw_GJP( i, draw_count, false );
-            
         }
-        
-       }
+      }
 
    // if( DrawPointedAtGraph() )
    //   draw_count++;
