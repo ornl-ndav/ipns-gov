@@ -32,6 +32,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.2  2003/08/14 20:38:34  millermi
+ * - Additional javadoc comments provided by Chris Bouzek.
+ *
  * Revision 1.1  2003/08/14 17:14:32  millermi
  * - Initial Version - Simplifies creating layered JMenu or JMenuItem by
  *   using Strings and Vectors.
@@ -60,8 +63,8 @@ public class MenuItemMaker
   * separate menus or menu items. Each element in this parameter Vector will
   * have a corresponding JMenuItem returned in the array.
   *
-  *  @param  names
-  *  @param  listener
+  *  @param  names The names of the menu items.
+  *  @param  listener The ActionListener which listens to "clicks" on the menu.
   *  @return array of JMenuItems equal to the size of the vector passed in.
   */
   public static JMenuItem[] makeMultiMenuItems( Vector names,
@@ -80,14 +83,21 @@ public class MenuItemMaker
   * This method creates a JMenuItem for each of the vector elements. However,
   * all of the JMenuItems are then placed under a JMenu corresponding to the
   * first element of the vector. Thus, only one JMenuItem is returned. 
+  *
+  * @param  names The names of the menu items.
+  * @param  listener The ActionListener which listens to "clicks" on the menu.
+  * @return JMenuItem which has names.size() elements.
   */
   public static JMenuItem makeMenuItem( Vector names, ActionListener listener )
   {
     return getMenuItem(names, listener);
   }
   
- /*
+ /**
   * This method uses recursion to create a JMenuItem heirarchy.
+  *
+  * @param names The names of the JMenuItem elements.
+  * @param  listener The ActionListener which listens to "clicks" on the menu.
   */
   private static JMenuItem getMenuItem( Object names, ActionListener listener )
   {
