@@ -34,11 +34,19 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/08/08 15:54:24  millermi
+ *  - Edited Revision 1.8 so it did not exceed 80 characters per line.
+ *  - Now uses method getWorldCoordPoints() to access WCRegion class.
+ *    This method is more efficient because it returns the whole
+ *    array of points, as opposed to getWorldCoordPointAt() which
+ *    requires multiple method calls.
+ *
  *  Revision 1.8  2003/08/07 22:47:55  millermi
  *  - Added line selection capabilities
- *  - Changed Help menu for REMOVE ALL SELECTIONS from "Double" to "Single" click
+ *  - Changed Help menu for REMOVE ALL SELECTIONS from "Double" to "Single" 
+ *    click
  *  - Usage of Region class changed to WCRegion class and adapted for generic
- *  number of points
+ *    number of points
  *
  *  Revision 1.7  2003/08/07 17:57:41  millermi
  *  - Added line selection capabilities
@@ -288,13 +296,15 @@ public class SelectionOverlay extends OverlayJPanel
 
       WCRegion regionclass;      
       String region;
+      floatPoint2D[] fp;
       Point[] p;
       for( int num_reg = 0; num_reg < regions.size(); num_reg++ )
       {
          regionclass = (WCRegion)regions.elementAt(num_reg);
          p = new Point[regionclass.getNumWCP()];
+	 fp = regionclass.getWorldCoordPoints();
 	 for( int i = 0; i < regionclass.getNumWCP(); i++ )
-	   p[i] = convertToPixelPoint( regionclass.getWCP(i) );
+	   p[i] = convertToPixelPoint( fp[i] );
 	 	    	   
 	 region = ((WCRegion)regions.elementAt(num_reg)).getRegionType(); 
          //System.out.println("Point: " + p[0].x + "," + p[0].y );   
