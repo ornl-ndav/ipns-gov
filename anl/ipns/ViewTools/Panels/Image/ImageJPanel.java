@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2003/04/18 15:20:42  dennis
+ *  Vertical scrolling is no longer automatically set true.
+ *
  *  Revision 1.13  2003/02/25 22:28:12  dennis
  *  Added java docs.  Set data method now rejects ragged arrays, or
  *  degenerate or empty arrays.
@@ -110,9 +113,6 @@ public class ImageJPanel extends    CoordJPanel
     log_scale = new byte[LOG_TABLE_SIZE];
     setLogScale( 0 );
   
-    h_scroll     = false;
-    v_scroll     = true;
-
     CJP_handle_arrow_keys = false;
     addKeyListener( new ImageKeyAdapter() );
   }
@@ -705,9 +705,24 @@ class ImageKeyAdapter extends KeyAdapter
  /* Basic main program for testing purposes only. */
   public static void main(String[] args)
   {
+    float test_array[][] = new float[500][500];
+
+    for ( int i = 0; i < 500; i++ )
+      for ( int j = 0; j < 500; j++ )
+      {
+        if ( i % 50 == 0 )
+          test_array[i][j] = 20 * i;
+        else if ( j % 50 == 0 )
+          test_array[i][j] = 20 * j;
+        else
+          test_array[i][j] = i + j;
+      }
+ 
     JFrame f = new JFrame("Test for ImageJPanel");
     f.setBounds(0,0,500,500);
     ImageJPanel panel = new ImageJPanel();
+    panel.setData( test_array, true );
+
     f.getContentPane().add(panel);
     f.setVisible(true);
   }
