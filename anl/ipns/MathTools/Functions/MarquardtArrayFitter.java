@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2003/07/14 22:38:32  dennis
+ *  Added some debugging code and debug flag.
+ *
  *  Revision 1.7  2003/07/14 13:43:55  dennis
  *  Fixed sign error in alternate way of estimating the standard
  *  deviations of the parameters.
@@ -187,11 +190,13 @@ public class MarquardtArrayFitter extends CurveFitter
 
   private void do_fit( double tolerance, int max_steps )
   {
+    boolean debug = false;                          // set true for some debug
+                                                    // messages.
     double lamda   = 0.001;
     int    n_steps = 0;
     double delta_chisq = tolerance + 1;
-    double chisq_1;
-    double chisq_2;
+    double chisq_1 = 0;
+    double chisq_2 = 0;
     boolean chisq_increasing;
     double  norm_da = tolerance + 1;
     double  norm_a  = 1;
@@ -233,8 +238,28 @@ public class MarquardtArrayFitter extends CurveFitter
 
       derivs = new double[n_params][];
       for ( int k = 0; k < n_params; k++ )
+      {
         derivs[k] = f.get_dFdai(x,k);      // get derivatives at all "x" points
                                            // with respect to kth parameter
+        if ( debug )
+        {
+          boolean all_zero = true;
+          int i = 0;
+          while (all_zero && i < n_points )
+          { 
+            if ( derivs[k][i] != 0 )
+              all_zero = false;
+            i++;
+          }
+          if ( all_zero )
+          {
+            System.out.println( "ERROR: all derivs 0 WRT parameter #" + k );
+            System.out.println( "a, a_old, da = " + a[k] + ", " 
+                                                  + a_old[k] + ", " 
+                                                  + da[k] );
+          }
+        }
+      }
 
       for ( int i = 0; i < n_points; i++ )            // sum over points x[i]
       {
@@ -298,9 +323,13 @@ public class MarquardtArrayFitter extends CurveFitter
           chisq_1 = chisq_2;
         }        
         n_steps++;
-//        System.out.println( n_steps + ", " + chisq_2 + ", " + lamda);
       }
+      if ( debug )
+        System.out.println("n,chisq2,lamda="+ n_steps + ", " + 
+                                              chisq_2 + ", " + 
+                                              lamda );
     }
+
     System.out.println("After fit ..............................");
     System.out.println("n_steps = " + n_steps );
     System.out.println("lamda = " + lamda );
