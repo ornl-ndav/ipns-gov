@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/08/14 21:48:11  millermi
+ *  - Added toFront() to SelectionEditor to display it over the viewer.
+ *
  *  Revision 1.11  2003/08/14 17:11:57  millermi
  *  - Added SelectionEditor class
  *  - Now capable of changing the selection color and also the opacity
@@ -255,12 +258,16 @@ public class SelectionOverlay extends OverlayJPanel
    public void editSelection()
    {
      if( editor.isVisible() )
+     {
+       editor.toFront();
        editor.requestFocus();
+     }
      else
      {
        editor.dispose();
        editor = new SelectionEditor();
        editor.setVisible(true);
+       editor.toFront();
      }
    }
    
@@ -562,11 +569,11 @@ public class SelectionOverlay extends OverlayJPanel
      {
        public void actionPerformed( ActionEvent ae )
        {
-         Color temp;
 	 String message = ae.getActionCommand();
          if( message.equals("Change Color") )
 	 {
-	   temp = JColorChooser.showDialog(pane, "Selection Color", reg_color);
+           Color temp =
+	          JColorChooser.showDialog(pane, "Selection Color", reg_color);
 	   if( temp != null )
 	   {
 	     reg_color = temp;
