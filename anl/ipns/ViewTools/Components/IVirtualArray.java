@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/12 00:05:00  rmikk
+ *  Fixed Package Names
+ *
  *  Revision 1.2  2003/12/18 22:30:55  millermi
  *  - Added getAxisInfo() method.
  *  - Moved NO_X/YUNITS and NO_X/YLABEL to AxisInfo
@@ -44,7 +47,7 @@
  *
  */
  
- package DataSetTools.components.View;
+ package gov.anl.ipns.ViewTools.Components;
 
 /**
  * This interface defines all other IVirtualArrayxD interfaces. Common

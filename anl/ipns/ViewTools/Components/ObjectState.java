@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/12 00:02:31  rmikk
+ *  Fixed Package Names
+ *
  *  Revision 1.7  2004/01/29 08:08:21  millermi
  *  - Added method silentFileChooser() to allow programmer to
  *    set read/write file without JFileChooser popping up.
@@ -50,7 +53,7 @@
  *    from saving to the current directory set by the user.
  *
  *  Revision 1.3  2003/11/18 01:19:29  millermi
- *  - changed System.out.println() to SharedData.addmsg() for
+ *  - changed System.out.println() to SharedMessages.addmsg() for
  *    output pertaining to the user.
  *
  *  Revision 1.2  2003/11/18 00:58:07  millermi
@@ -63,7 +66,7 @@
  *
  */
 
- package DataSetTools.components.View;
+ package gov.anl.ipns.ViewTools.Components;
  
  import java.util.Vector; 
  import java.util.Hashtable;
@@ -78,8 +81,8 @@
  import java.awt.event.ActionEvent;
  import java.awt.event.ActionListener;
  
- import DataSetTools.util.SerializeUtil;
- import DataSetTools.util.SharedData;
+ import gov.anl.ipns.Util.File.SerializeUtil;
+ import gov.anl.ipns.Util.Sys.*;
 
 /**
  * This class is used to preserve the state of on object. Similar to Java's
@@ -175,7 +178,7 @@ public class ObjectState implements java.io.Serializable
         if( nextstate instanceof ObjectState )
           return ((ObjectState)nextstate).get( nextkey );
         // if it gets to this point, the path was incorrect.
-        SharedData.addmsg("Invalid Path in ObjectState.java"); 	
+        SharedMessages.addmsg("Invalid Path in ObjectState.java"); 	
         return "Invalid Path in ObjectState.java";  
       }
     }
@@ -278,7 +281,7 @@ public class ObjectState implements java.io.Serializable
       {
         if( !SerializeUtil.writeObjectToFile( this_state, filename ) )
         {
-          SharedData.addmsg("Error saving state information in " +
+          SharedMessages.addmsg("Error saving state information in " +
         		     "ObjectState.java. State was not saved!!!" );
         }
 	else
@@ -289,7 +292,7 @@ public class ObjectState implements java.io.Serializable
         Object temp = SerializeUtil.readObjectFromFile( filename );
         if( temp == null || !(temp instanceof ObjectState) )
         {
-          SharedData.addmsg("Error loading state information in " +
+          SharedMessages.addmsg("Error loading state information in " +
         		     "ObjectState.java. State was not loaded!!!" );
         }
         else
@@ -402,7 +405,7 @@ public class ObjectState implements java.io.Serializable
         if( nextstate instanceof ObjectState )
           ((ObjectState)nextstate).editTable( nextkey, field, allow_replace );
         else
-          SharedData.addmsg("Invalid Path in ObjectState.java");
+          SharedMessages.addmsg("Invalid Path in ObjectState.java");
         // if it gets to here, the path was invalid
         return false;  
       }

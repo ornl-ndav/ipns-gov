@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/12 00:06:23  rmikk
+ *  Fixed Package Names
+ *
  *  Revision 1.6  2004/01/06 23:30:44  serumb
  *  Added documentation.
  *
@@ -44,7 +47,7 @@
  *
  */
  
-package DataSetTools.components.View;
+package gov.anl.ipns.ViewTools.Components;
 
 //import DataSetTools.components.View.OneD.*;
  import javax.swing.*;

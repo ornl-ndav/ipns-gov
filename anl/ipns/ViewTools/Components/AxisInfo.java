@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 00:05:22  rmikk
+ *  Fixed Package Names
+ *
  *  Revision 1.3  2004/01/29 23:50:25  millermi
  *  - Added toString() (Dennis)
  *  - Removed all references to AxisInfo2D
@@ -60,7 +63,7 @@
  *
  */
 
-package DataSetTools.components.View;
+package gov.anl.ipns.ViewTools.Components;
 
 /**
  * This class groups all of the information about an axis into one object.
