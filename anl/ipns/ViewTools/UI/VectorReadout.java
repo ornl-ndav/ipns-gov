@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/02/12 22:30:56  pfpeterson
+ *  Changed deprecated method call to suggested one.
+ *
  *  Revision 1.2  2002/11/27 23:13:34  pfpeterson
  *  standardized header
  *
@@ -135,7 +138,7 @@ public class VectorReadout extends    ActiveJPanel
   public VectorReadout( String title, String select_title )
   {
     this(title);
-    select_button.setLabel( select_title ); 
+    select_button.setText( select_title ); 
   }
 
 
