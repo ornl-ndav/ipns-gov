@@ -31,6 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2001/06/29 18:33:19  dennis
+ * Added setOrientation() method to create a matrix that
+ * moves and object from the origin to a specified point
+ * in 3D with it's "base" and "up" vectors in specified
+ * directions..
+ *
  * Revision 1.2  2001/05/23 17:26:57  dennis
  * Added get() method.
  *
@@ -280,6 +286,41 @@ public class Tran3D
     a[3][1] = 0.0F;
     a[3][2] = 0.0F;
     a[3][3] = 1.0F;
+  }
+
+
+  /*------------------------- setOrientation -----------------------------*/
+  /**
+   *  Set this transform to position and orient an object in 3D.
+   *  An object is assumed to be initially centered at the origin
+   *  with it's "base" direction in the x direction and it's "up"
+   *  direction in the y direction.  The matrix created by this method
+   *  will first orient the object so that it's base and up directions
+   *  are in the directions given by the base and up parameters, and
+   *  then translate the object to the specified point.
+   *
+   *  @param   base   The direction the x-axis is mapped to.
+   *  @param   up     The direction the y-axis is mapped to.
+   *  @param   point  The point the origin is transformed to.
+   */
+  public void setOrientation( Vector3D base, Vector3D up, Vector3D point )
+  {
+    setTranslation( point );
+                                        // build the orientation matrix
+    Vector3D n = new Vector3D(); 
+    n.cross( base, up );
+
+    Tran3D orient = new Tran3D();   
+    for ( int i = 0; i < 3; i++ )
+      orient.a[i][0] = base.v[i];
+
+    for ( int i = 0; i < 3; i++ )
+      orient.a[i][1] = up.v[i];
+
+    for ( int i = 0; i < 3; i++ )
+      orient.a[i][2] = n.v[i];
+
+    multiply_by( orient );             // combine orientation with tranlation
   }
 
   /*--------------------------- setViewMatrix ------------------------------*/
