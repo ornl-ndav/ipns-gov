@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2001/07/04 15:20:07  dennis
+ *  Added SignedAbsSum() method to use for detector heights and
+ *  scattering angles.
+ *
  *  Revision 1.11  2001/05/07 21:44:02  dennis
  *  Replaced Bubble Sort of list of integer by Quicksort.
  *  The version of Quicksort implemented uses the middle
@@ -260,6 +264,48 @@ public static float interpolate( float x_value, float x[], float y[] )
   return y1 + ( x_value - x1 )*( y2 - y1 ) / ( x2 - x1 );
 }
 
+
+/**
+ *  Calculate the "signed absolute" total value for an array of numbers.
+ *  If all the numbers have the same sign, this is just the ordinary sum.
+ *  If the numbers have mixed sign, this will be the sum of the absolute
+ *  values of the given numbers.
+ *
+ *  @param  x   The array of numbers being "summed".
+ *
+ *  @return  The sum if all the numbers have the same sign, the sum 
+ *           of the absolute values otherwise.
+ */
+public static float SignedAbsSum( float x[] )
+{
+  if ( x == null || x.length == 0 )
+  {
+    System.out.println("ERROR: invalid array in arrayUtil.SignedAbsSum()" );
+    return Float.NaN;
+  }
+
+  boolean all_LE_0 = true;
+  boolean all_GE_0 = true;
+
+  for ( int i = 0; i < x.length; i++ )
+  {
+    if ( x[i] < 0 )
+      all_GE_0 = false;  
+ 
+    if ( x[i] > 0 )
+      all_LE_0 = false;    
+  }
+
+  float sum = 0;
+  if ( all_LE_0 || all_GE_0 )
+    for ( int i = 0; i < x.length; i++ )         // for same sign, just use sum
+      sum += x[i];
+  else
+    for ( int i = 0; i < x.length; i++ )         // for mixed sign, use abs()
+      sum += Math.abs(x[i]);
+  
+  return sum;
+}
 
 
 /**
