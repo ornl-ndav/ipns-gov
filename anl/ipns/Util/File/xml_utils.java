@@ -29,6 +29,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/06/17 22:46:19  rmikk
+ *  Prettied  up the file. Made minor changes
+ *
  *  Revision 1.1  2002/06/14 21:25:44  rmikk
  *  Common utilities for Implementers of the IXmlIO interface
  *
@@ -75,8 +78,8 @@ public class xml_utils
   */
   public static String getEndTag( InputStream is)
    {errormessage=null;
-   String S="";
-   try
+    String S="";
+    try
      {sb.setLength( 0 );
       char c=findChar(is,delimiters,false);
       sb.append(c);
@@ -91,7 +94,7 @@ public class xml_utils
        return sb.toString();
 
      }
-   catch( Exception s)
+    catch( Exception s)
      {errormessage = s.getMessage();
        return null;
      }  
@@ -100,65 +103,65 @@ public class xml_utils
 
   private static char findChar(InputStream is, String delim, boolean stop)
                                  throws IOException
-   {  char c;
-      if(lastchar == '>')
-         c=lastchar;
-      else
-         c =(char)is.read();
-      lastchar=0;
-      boolean done = delim.indexOf(c) >= 0;
+   {char c;
+    if(lastchar == '>')
+      c=lastchar;
+    else
+      c =(char)is.read();
+    lastchar=0;
+    boolean done = delim.indexOf(c) >= 0;
+    if( !stop)
+      done = !done;
+    while( !done)
+     {c=(char)is.read();
+      done = delim.indexOf(c) >=0;
       if( !stop)
-        done = !done;
-      while( !done)
-        {c=(char)is.read();
-         done = delim.indexOf(c) >=0;
-         if( !stop)
-          done = !done;        
-         }
-       return c;
-    }
+       done = !done;        
+     }
+    return c;
+   }
 
   private static String getNextWord( InputStream is) throws IOException
-    { //sb.setLength( 0 );
-      char c;
-      if(lastchar == '>')
-        return null;
-      else
-         c =(char)is.read();
-      lastchar=0;
+   {
+    char c;
+    if(lastchar == '>')
+      return null;
+    else
+      c =(char)is.read();
+    lastchar=0;
      
-      if( delimiters.indexOf(c) >= 0)
-       {
-        return sb.toString();
-        }
-       sb.append(c);
-      for( c=(char)is.read(); (delimiters+"=></\"").indexOf(c)<0;
-             c=(char)is.read())
-         sb.append(c);
-      lastchar = c;
-      if(sb.length() <=0) 
-        {errormessage ="No Tag";
-         return null;
-         }
-       
-       return sb.toString();
+    if( delimiters.indexOf(c) >= 0)
+     {
+      return sb.toString();
+      }
+    sb.append(c);
+    for( c=(char)is.read(); (delimiters+"=></\"").indexOf(c)<0;
+                 c=(char)is.read())
+     sb.append(c);
+    lastchar = c;
+    if(sb.length() <=0) 
+     {errormessage ="No Tag";
+       return null;
      }
+       
+    return sb.toString();
+   }
 
   /** Returns an error message or null if no error
   */
   public static String getErrorMessage()
-    {return errormessage;
-    }
+   {return errormessage;
+   }
 
  /**
   * Reads the next xml attribute in a tag.
   * @return  A vector with two elements.  The first element is
   *          the xml attributes key and the second its value as a String
   */
- public static Vector getNextAttribute( InputStream is)
-  {errormessage = null;
-   Vector Res= new Vector();
-   try
+  public static Vector getNextAttribute( InputStream is)
+   {errormessage = null;
+    Vector Res= new Vector();
+    try
      {char c;  
       sb.setLength( 0 );
       if( lastchar =='>')
@@ -203,9 +206,9 @@ public class xml_utils
        return Res;
       
      }
-   catch( Exception s)
+    catch( Exception s)
      {errormessage = s.getMessage();
-       return null;
+      return null;
      }  
 
 
@@ -213,18 +216,19 @@ public class xml_utils
 
  /** Reports the message to the status pane then returns false
  */
- public static boolean setError( String Message)
+  public static boolean setError( String Message)
    {
-     DataSetTools.util.SharedData.status_pane.add(Message);
-     return false;
-    }
+    DataSetTools.util.SharedData.status_pane.add(Message);
+    return false;
+   }
+
  /** Skips to the end of the xml attributes associated with a tag<ul>
  * Use this only one time after a getTag, getEndTag, or getAttribute
  * method call </ul>
  **/
- public static boolean skipAttributes( InputStream is)
-  {errormessage=null;
-   try
+  public static boolean skipAttributes( InputStream is)
+   {errormessage=null;
+    try
      {boolean quote=false;
       boolean backslash=false;
       char c;
@@ -247,7 +251,7 @@ public class xml_utils
        lastchar = 0;
       
      }
-   catch( Exception s)
+    catch( Exception s)
      {errormessage = s.getMessage();
        return false;
      }  
