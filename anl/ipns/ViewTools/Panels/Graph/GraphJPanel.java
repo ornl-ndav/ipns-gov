@@ -1,5 +1,5 @@
 /*
- * File:  GraphJpanel.java
+ * File:  GraphJPanel.java
  *
  * Copyright (C) 1999, Dennis Mikkelson
  *
@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2003/06/06 14:47:34  serumb
+ * added different line styles(dotted, dashed, dash-dot-dot)
+ * added point marks(dot, plus, star, box, cross)
+ *
  * Revision 1.10  2002/11/27 23:13:18  pfpeterson
  * standardized header
  *
@@ -55,9 +59,12 @@ import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
 import DataSetTools.util.*;
+import DataSetTools.math.*;
+import DataSetTools.components.ThreeD.*;
+import java.lang.Object.*;
 
 /**
- *  A GraphJPanel object maintains and draws a list of graphs.
+ *  A GraphJPanelUdTest object maintains and draws a list of graphs.
  */ 
 
 public class GraphJPanel extends    CoordJPanel 
@@ -71,6 +78,16 @@ public class GraphJPanel extends    CoordJPanel
   private int             y_offset_factor = 0;  
   private boolean         remove_hidden_lines = false;
   private CoordBounds     auto_data_bound;
+
+  public static final int DOT   = 1;
+  public static final int PLUS  = 2;
+  public static final int STAR  = 3;
+  public static final int BOX   = 4;
+  public static final int CROSS = 5;
+  public static final int DOTTED   = 6;
+  public static final int DASHED   = 7;
+  public static final int LINE     = 8;
+  public static final int DASHDOT  = 9;
 
 /* --------------------- Default Constructor ------------------------------ */
 
@@ -204,6 +221,81 @@ public class GraphJPanel extends    CoordJPanel
 
     return true;
   }
+
+/*------------------------------ setStroke --------------------------------*/
+
+public boolean setStroke(BasicStroke theStroke, int graph_num, boolean redraw)
+  {
+    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+      return false;
+
+    if ( graph_num == graphs.size() )                  // add a new graph
+      graphs.addElement( new GraphData() );
+ 
+    GraphData gd = (GraphData)graphs.elementAt( graph_num );
+    gd.Stroke = theStroke; 
+
+    if ( redraw )
+      repaint(); 
+
+    return true;
+  }
+
+/*------------------------------ getStroke --------------------------------*/
+
+public BasicStroke strokeType(int key)
+{
+    float dash1[] = {10.0f};
+    float[] dash2 = {6.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f};
+    float dots1[] = {0,6,0,6};
+    float thickness = 2.0f; //1-5
+    BasicStroke dashed = new BasicStroke(thickness, 
+                                         BasicStroke.CAP_SQUARE, 
+                                         BasicStroke.JOIN_MITER, 
+                                         10.0f, dash1, 0.0f);
+
+    BasicStroke stroke = new BasicStroke(thickness);
+    BasicStroke dotted = new BasicStroke(thickness, BasicStroke.CAP_ROUND,
+				       BasicStroke.JOIN_ROUND, 
+				       0, dots1, 0);
+
+    BasicStroke dashdot = new BasicStroke(thickness, BasicStroke.CAP_BUTT,
+				BasicStroke.JOIN_MITER, 10.0f, dash2, 0.0f);
+
+
+    if (key == DASHED)
+	return dashed;
+    else if (key == DOTTED)
+	return dotted;
+    else if (key == LINE)
+	return stroke;
+    else if (key ==DASHDOT)
+	return dashdot;	
+    else 
+    {   System.out.println("ERROR: no Stroke of this type, defult is returned");
+	return stroke;
+    }
+}	
+/*-------------------------- setMarkType ---------------------------------*/
+
+public boolean setMarkType(Color color, int marktype, int graph_num, boolean redraw)
+{
+    if ( graph_num < 0 || graph_num > graphs.size() )    // no such graph
+      return false;
+
+    if ( graph_num == graphs.size() )                  // add a new graph
+      graphs.addElement( new GraphData() );
+ 
+    GraphData gd = (GraphData)graphs.elementAt( graph_num );
+    gd.markcolor = color;	
+    gd.marktype = marktype; 
+ 
+	
+    if ( redraw )
+      repaint(); 
+
+    return true;
+ }
 
 /* --------------------------- setMultiPlotOffsets ------------------------ */
 /**
@@ -406,9 +498,15 @@ public boolean is_autoY_bounds()
                                         // when the user moves the cursor (due
                                         // to XOR drawing).
     super.paint(g);
+    Graphics2D g2 = (Graphics2D)g;
+    
     SetTransformsToWindowSize();
     int x_offset = 0;
     int y_offset = 0;
+
+    	
+
+
     int height = getHeight();
     for ( int gr_index = graphs.size()-1; gr_index >= 0; gr_index-- )
     {
@@ -421,9 +519,13 @@ public boolean is_autoY_bounds()
       float y_copy[] = (float[])gd.y_vals.clone();
 
       local_transform.MapTo( x_copy, y_copy );         // map from WC to pixels
-
+         	
+      
       if ( x_copy.length == y_copy.length )            // Function data
       { 
+	
+	g2.setStroke(gd.Stroke);
+
         if ( remove_hidden_lines )
         {
           int x_int[] = new int[ n_points + 2 ];
@@ -437,14 +539,12 @@ public boolean is_autoY_bounds()
           }
           x_int[n_points+1] = (int)( x_copy[n_points-1] ) + x_offset;
           y_int[n_points+1] = height;
- 
-          g.setColor( getBackground() );                     // solid fill to
-          g.fillPolygon( x_int, y_int, n_points + 2 );       // hide lines
-
+          g2.setColor( getBackground() );                     // solid fill to
+	  g2.fillPolygon( x_int, y_int, n_points + 2 );       // hide lines
           System.arraycopy( x_int, 1, x_int, 0, n_points );  // now draw the
           System.arraycopy( y_int, 1, y_int, 0, n_points );  // data points
-          g.setColor( gd.color );                            // themselves
-          g.drawPolyline( x_int, y_int, n_points );
+          g2.setColor( gd.color );                            // themselves
+	  g2.drawPolyline( x_int, y_int, n_points );
         }
         else
         {
@@ -455,9 +555,77 @@ public boolean is_autoY_bounds()
             x_int[i] = (int)( x_copy[i] ) + x_offset;
             y_int[i] = (int)( y_copy[i] ) - y_offset;
           }
-          g.setColor( gd.color );
-          g.drawPolyline( x_int, y_int, n_points );
+          g2.setColor( gd.color );
+          g2.drawPolyline( x_int, y_int, n_points );
         }
+
+	/*
+        Vector3D[] testvect = new Vector3D[n_points];
+        for (int n=0; n < n_points; n++)
+	{    
+  	  testvect[n] = new Vector3D(x_copy[n], y_copy[n], 0);
+		System.out.println(testvect[n]);
+	}
+
+        Polymarker tM = new Polymarker(testvect, Color.blue);
+
+	tM.setSize(10);
+	tM.setType(4);
+	tM.Draw(g2);
+	*/
+        	
+
+	if (gd.marktype != 0)
+	{
+	  g2.setStroke(new BasicStroke(2));
+          int size = 5;
+	  g2.setColor( gd.markcolor );
+	  int type = gd.marktype;
+          for ( int i = 0; i < n_points; i++ )
+          {
+	     
+	     if ( type == DOT )
+              g.drawLine( (int)x_copy[i], (int)y_copy[i], 
+	  			(int)x_copy[i], (int)y_copy[i] );      
+             else if ( type == PLUS )
+             {
+               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i],
+	  		      (int)x_copy[i]+size, (int)y_copy[i]      );      
+              g.drawLine( (int)x_copy[i],      (int)y_copy[i]-size, 
+	  			(int)x_copy[i],      (int)y_copy[i]+size );      
+             }
+             else if ( type == STAR )
+             {
+               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i],
+	  			 (int)x_copy[i]+size, (int)y_copy[i]      );      
+               g.drawLine( (int)x_copy[i],      (int)y_copy[i]-size,
+	  			 (int)x_copy[i],      (int)y_copy[i]+size );      
+              g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
+	  			 (int)x_copy[i]+size, (int)y_copy[i]+size );      
+               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
+				 (int)x_copy[i]+size, (int)y_copy[i]-size );      
+             }
+             else if ( type == BOX )
+             {
+               g2.drawLine( (int)x_copy[i]-size, (int)(y_copy[i]-size), 
+	 		(int)x_copy[i]-size, (int)(y_copy[i]+size) );      
+               g2.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
+			 (int)x_copy[i]+size, (int)y_copy[i]+size );      
+               g2.drawLine( (int)x_copy[i]+size, (int)y_copy[i]+size,
+	 		 (int)x_copy[i]+size, (int)y_copy[i]-size );      
+               g2.drawLine( (int)x_copy[i]+size, (int)y_copy[i]-size,
+	 		 (int)x_copy[i]-size, (int)y_copy[i]-size );     
+             }
+             else   // type = CROSS
+             {
+               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
+	  		 (int)x_copy[i]+size, (int)y_copy[i]+size );      
+               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
+	  		 (int)x_copy[i]+size, (int)y_copy[i]-size );      
+             }    
+	  } 
+	}   
+
       }
       else if ( x_copy.length == y_copy.length + 1 )  // Histogram data
       {
@@ -475,13 +643,13 @@ public boolean is_autoY_bounds()
           x_int[ x_int.length - 1 ] = (int)( x_copy[y_copy.length-1] )+x_offset;
           y_int[ x_int.length - 1 ] = height;
 
-          g.setColor( getBackground() );                       // solid fill to
-          g.fillPolygon( x_int, y_int, 2*y_copy.length + 2 );  // hide lines
+          g2.setColor( getBackground() );                       // solid fill to
+          g2.fillPolygon( x_int, y_int, 2*y_copy.length + 2 );  // hide lines
 
           System.arraycopy( x_int, 1, x_int, 0, 2*y_copy.length ); //now draw 
           System.arraycopy( y_int, 1, y_int, 0, 2*y_copy.length ); //data points
-          g.setColor( gd.color );                                  //themselves 
-          g.drawPolyline( x_int, y_int, 2*y_copy.length );
+          g2.setColor( gd.color );                                  //themselves 
+          g2.drawPolyline( x_int, y_int, 2*y_copy.length );
         }
         else
         {
@@ -492,14 +660,15 @@ public boolean is_autoY_bounds()
             x_int[i] = (int)( x_copy[(i+1)/2] ) + x_offset;
             y_int[i] = (int)( y_copy[i/2] ) - y_offset;
           }
-          g.setColor( gd.color );
-          g.drawPolyline( x_int, y_int, 2*y_copy.length );
+          g2.setColor( gd.color );
+          g2.drawPolyline( x_int, y_int, 2*y_copy.length );
         }
 
       }
       else 
        System.out.println("ERROR: x&y arrays don't match in GraphJPanel.paint");
     } 
+
   }
 
 
@@ -591,22 +760,44 @@ private void SetDataBounds()
   /* Basic main program for testing purposes only. */
   public static void main(String[] args)
   {
+
     JFrame f = new JFrame("Test for ImageJPanel");
     f.setBounds(0,0,500,500);
     GraphJPanel graph = new GraphJPanel();
     f.getContentPane().add(graph);
     f.setVisible(true);
 
-    float g1_x_vals[] = { 0, 1 };
-    float g1_y_vals[] = { 0, 1 };
+    float g1_x_vals[] = { 0, (float).2, (float).4, 1 };
+    float g1_y_vals[] = { 0, (float).3, (float).2, 1 };
 
     float g2_x_vals[] = { 0, 1 };
     float g2_y_vals[] = { 1, 0 };
 
+    float g3_x_vals[] = { 0, (float).5, (float).6, 1};
+    float g3_y_vals[] = { (float).1, (float).2, (float).7, (float).6 };
+
+    float g4_x_vals[] = { 0, (float).4, (float).6, 1};
+    float g4_y_vals[] = { (float).3, (float).1, (float).4, (float).2 };
+
+    graph.setBackground(Color.white);
     graph.setData( g1_x_vals, g1_y_vals, 0, false );
     graph.setColor( Color.black, 0, false );
+    graph.setStroke( graph.strokeType(DASHED), 0, false);
+    graph.setMarkType(Color.blue, BOX, 0, false);
 
     graph.setData( g2_x_vals, g2_y_vals, 1, true );
     graph.setColor( Color.red, 1, true );
+    graph.setStroke( graph.strokeType(DOTTED), 1, true);
+
+    graph.setData( g3_x_vals, g3_y_vals, 2, true );
+    graph.setColor( Color.green, 2, false );
+    graph.setStroke( graph.strokeType(LINE), 2, true);
+    graph.setMarkType(Color.red, CROSS, 2, true);
+
+    graph.setData( g4_x_vals, g4_y_vals, 3, true );
+    graph.setColor( Color.blue, 3, false );
+    graph.setStroke( graph.strokeType(DASHDOT), 3, true);
+    graph.setMarkType(Color.green, STAR, 3, true);
   }
 }
+
