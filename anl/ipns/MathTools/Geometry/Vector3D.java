@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2003/02/04 19:13:13  dennis
+ * Added constructor that takes an array of floats.
+ *
  * Revision 1.3  2002/11/27 23:15:47  pfpeterson
  * standardized header
  *
@@ -85,6 +88,28 @@ public class Vector3D
   public Vector3D(float x, float y, float z )
   {
     set( x, y, z );
+  }
+
+  /*--------------------------- constructor ----------------------------*/
+  /**
+   *  Construct the 4 dimensional homogeneous point corresponding to the
+   *  first three entries in the array provided.  If there a not enough
+   *  entries, 0's will be used for values not specified. 
+   *
+   *  @param  arr  Array whose first three values specify the x,y,z values
+   *               for the new Vector3D object. 
+   */
+  public Vector3D( float arr[] )
+  {
+    if ( arr != null )
+    {
+      int i = 0;
+      while ( i < 3 && i < arr.length )
+      {
+        v[i] = arr[i];
+        i++;
+      }
+    }
   }
 
   /* ----------------------------- equals ------------------------------- */
