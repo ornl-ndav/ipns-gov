@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/08/11 23:46:13  millermi
+ *  - Adding test for selected regions.
+ *
  *  Revision 1.3  2003/06/06 18:50:04  dennis
  *  (Mike Miller) Altered space allocated by the control viewer.
  *
@@ -51,6 +54,7 @@
  package DataSetTools.components.View;
  
  import javax.swing.*;
+ import java.awt.Point;
  import java.awt.event.*;
  import java.awt.Container;
  import java.awt.Rectangle;
@@ -58,7 +62,8 @@
  import DataSetTools.components.View.ViewControls.*;
  import DataSetTools.components.View.TwoD.*;
  import DataSetTools.components.View.Menu.*;
- import DataSetTools.components.View.ViewControls.*;
+ import DataSetTools.components.View.Region.Region;
+ import DataSetTools.components.View.Transparency.SelectionOverlay;
  
 public class ViewerSim
 { 
@@ -77,6 +82,7 @@ public class ViewerSim
       ivc = comp;
       menus = ivc.getSharedMenuItems();
       controls = ivc.getSharedControls();
+      ivc.addActionListener( new IVCListener() );
    }
   
   /**
@@ -138,13 +144,35 @@ public class ViewerSim
          f2.setVisible(true); //display the frame      
       }
    }
+   
+   private class IVCListener implements ActionListener
+   {
+     public void actionPerformed( ActionEvent ae )
+     {
+       String message = ae.getActionCommand();
+       if( message.equals(SelectionOverlay.REGION_ADDED) )
+       {
+         Region[] selectedregions = ivc.getSelectedRegions();
+	 for( int i = 0; i < selectedregions.length; i++ )
+	 {
+	   Point[] selectedpoints = selectedregions[i].getSelectedPoints();
+	   System.out.println("NumSelectedPoints: " + selectedpoints.length);
+	   for( int j = 0; j < selectedpoints.length; j++ )
+	   {
+	     System.out.println("(" + selectedpoints[j].x + "," + 
+	                        selectedpoints[j].y + ")" );
+	   }
+	 }
+       }
+     }
+   }
 
   /*
    * MAIN - Basic main program to test an ImageViewComponent object
    */
    public static void main( String args[] ) 
    {
-      // *** test ImageVieComponent ***
+      // *** test ImageViewComponent ***
       int col = 250;
       int row = 250;	
       //Make a sample 2D array
