@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.51  2005/02/04 22:55:21  millermi
+ * - Added ZoomListener to flag if local bounds are zoomed.
+ * - Added check in SetDataBounds() to determine if local bounds are
+ *   zoomed.
+ *
  * Revision 1.50  2005/02/01 03:15:44  millermi
  * - Added method updatePointedAtGraph() which does not reset
  *   bounds. Replaces calls to setData() when pointed at is changed.
@@ -188,14 +193,16 @@ import java.awt.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
+import java.awt.geom.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import gov.anl.ipns.Util.Numeric.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 
-import java.awt.geom.*;
 
 /**
- *  A GraphJPanelUdTest object maintains and draws a list of graphs.
+ *  A GraphJPanel Test object maintains and draws a list of graphs.
  */ 
 
 public class GraphJPanel extends    CoordJPanel 
@@ -218,6 +225,9 @@ public class GraphJPanel extends    CoordJPanel
   private float miny;
   private float min_positive_x;
   private float min_positive_y;
+  private boolean reset_local = true; // This variable is used to determine
+                                      // whether or not the local bounds
+				      // are zoomed or global.
 
   public static final int DOT   = 1;
   public static final int PLUS  = 2;
@@ -237,7 +247,7 @@ public class GraphJPanel extends    CoordJPanel
   public GraphJPanel()
   { 
     GraphData gd = new GraphData();
-
+    addActionListener( new ZoomListener() );
     graphs = new Vector();
     graphs.addElement( gd );
 
@@ -336,6 +346,8 @@ public class GraphJPanel extends    CoordJPanel
     GraphData gd = (GraphData)graphs.elementAt(0);   
     gd.x_vals = x;
     gd.y_vals = y;
+    set_auto_data_bound();
+    SetDataBounds();
     repaint();
   }
 
@@ -1596,7 +1608,15 @@ private void SetDataBounds()
 
     CoordBounds data_bound =  new CoordBounds( x1, y1, x2, y2 );
     data_bound.invertBounds();               // needed for "upside down" pixel
-    initializeWorldCoords( data_bound );     // coordinates
+                                             // coordinates
+    CoordBounds local_bounds = getLocalWorldCoords();
+    // If "don't reset local bounds and local bounds are within the
+    // global bounds, only reset the world coordinates.
+    if( !reset_local )
+      setGlobalWorldCoords(data_bound);
+    // Otherwise reinitialize both.
+    else
+      initializeWorldCoords( data_bound );
 }
 
 /* ------------------------------getYmin--------------------------------*/
@@ -1697,6 +1717,23 @@ public float getPositiveXmin()
 {
   getXmin();
   return min_positive_x;
+}
+
+/*
+ * This listener flags whether the current local region is a zoomed region
+ * or the global bounds. This allows a zoomed region to remain zoomed even
+ * after the pointed at graph is updated.
+ */
+private class ZoomListener implements ActionListener
+{
+  public void actionPerformed( ActionEvent ae )
+  {
+    String command = ae.getActionCommand();
+    if( command.equals(ZOOM_IN) )
+      reset_local = false;
+    else if( command.equals(RESET_ZOOM) )
+      reset_local = true;
+  }
 }
 
 /*--------------------------getLocalLogWorldCoords()------------------------*/
