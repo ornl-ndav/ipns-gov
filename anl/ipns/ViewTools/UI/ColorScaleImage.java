@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.6  2003/12/23 20:56:30  millermi
+ * - Added main() for test purposes.
+ *
  * Revision 1.5  2003/11/18 01:52:56  millermi
  * - Added javadocs to public static final variables.
  *
@@ -161,5 +164,30 @@ public class ColorScaleImage extends    ImageJPanel
       }
     }      
   }
-
+  
+ /*
+  * Main program for testing...
+  */
+  public static void main( String args[] )
+  {
+    JFrame frame = new JFrame("ColorScaleImage Test");
+    frame.setBounds(0,0,150,150);
+    if( args.length == 0 )
+      frame.getContentPane().add( new ColorScaleImage() );
+    else
+    {
+      int type = -1;
+      try
+      {
+        type = Integer.parseInt(args[0]);
+        frame.getContentPane().add( new ColorScaleImage(type) );
+      }
+      catch( java.lang.NumberFormatException e )
+      {
+        frame.getContentPane().add( new ColorScaleImage() );
+      }
+    }
+    frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+    frame.setVisible(true);
+  }
 }
