@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/05/11 01:25:31  millermi
+ *  - Changed javadoc comments.
+ *  - Removed unused variables.
+ *
  *  Revision 1.1  2004/05/09 16:59:56  millermi
  *  - Initial Version - This region provides support for regions
  *    selected using a table.
@@ -42,7 +46,6 @@
 package gov.anl.ipns.ViewTools.Components.Region;
 
 import java.awt.Point;
-import java.util.Vector;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
@@ -69,7 +72,7 @@ public class TableRegion extends Region
   
  /**
   * Get all of the points inside the region. This method assumes
-  * that the input points are in (x,y) where (x = row, y = col ) form.
+  * that the input points are in (x,y) where (x = col, y = row ) form.
   * The points are entered into the array row by row.
   *
   *  @return array of points included within the region.
