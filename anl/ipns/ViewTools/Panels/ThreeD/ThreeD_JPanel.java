@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2001/05/23 17:33:51  dennis
+ * Now calculates front clipping plane between COP and VRP.
+ * Also improved error checking for null transforms.
+ *
  * Revision 1.2  2001/05/09 21:10:28  dennis
  * Added method pickID( x, y, pick_radius ) to get the ID of the
  * 3D object closest to the specified pixel (x,y).
@@ -40,7 +44,6 @@
  *
  * Revision 1.1  2001/05/08 21:06:29  dennis
  * JPanel for drawing lists of 3D objects.
- *
  *
  */
 
@@ -69,7 +72,10 @@ public class ThreeD_JPanel extends    CoordJPanel
   private  Tran3D          tran3D_used  = null;
   private  CoordTransform  tran2D_used  = null;
   private  boolean         data_painted = false;
-
+  private  float           clip_factor  = 0.9f;    // relative location of the
+                                                   // front clipping plane as 
+                                                   // fraction of distance from
+                                                   // VRP to COP
 
 /* --------------------- Default Constructor ------------------------------ */
 /**
@@ -123,6 +129,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
   public void paint( Graphics g )
   {
+    data_painted = true;
     stop_box( current_point, false );   // if the system redraws this without
     stop_crosshair( current_point );    // our knowlege, we've got to get rid
                                         // of the cursors, or the old position
@@ -142,8 +149,6 @@ public class ThreeD_JPanel extends    CoordJPanel
 
     for ( int i = 0; i < objects.length; i++ )
       objects[ index[i] ].Draw(g);
-
-    data_painted = true;
   }
 
 /* --------------------------- setViewTran --------------------------- */
@@ -307,7 +312,7 @@ public class ThreeD_JPanel extends    CoordJPanel
    if ( tran3D_used == null || tran2D_used == null || point == null )
    {
      System.out.println("WARNING: transform null in ThreeD_JPanel.project()");
-     return null;
+     return new Point( 0, 0 );
    }
 
    Vector3D proj_point = new Vector3D();
@@ -335,6 +340,12 @@ public class ThreeD_JPanel extends    CoordJPanel
       return;
 
     SetTransformsToWindowSize();
+                                   // can't project using null transforms
+    if ( tran == null || local_transform == null )
+    {
+      System.out.println("transforms null in ThreeD_JPanel");
+      return;
+    }
                                    // no need to recalculate projections and
                                    // do the depth sort if the same transforms
                                    // are used.
@@ -342,8 +353,17 @@ public class ThreeD_JPanel extends    CoordJPanel
          tran2D_used != null  &&  tran2D_used.equals( local_transform ) )
       return;
 
+                                   // The observer to vrp distance is given by
+                                   // 1/length of the vector with components
+                                   // from the last row of the view tran.
+    float a[][] = tran.get();
+    float vrp_to_cop_dist = 1 / (float)Math.sqrt( a[3][0] * a[3][0] +
+                                                  a[3][1] * a[3][1] +
+                                                  a[3][2] * a[3][2]  );
+    float clip_distance = clip_factor * vrp_to_cop_dist;
+
     for ( int i = 0; i < objects.length; i++ )
-      objects[i].Project( tran, local_transform );
+      objects[i].Project( tran, local_transform, clip_distance );
 
     q_sort( objects, index, 0, objects.length-1 );
 
@@ -412,19 +432,17 @@ private static void q_sort( IThreeD_Object list[],
                                                   // looking at the origin, from
                                                   // (5,4,10) with the up 
                                                   // direction along the y-axis
-    Tran3D view_tran = new Tran3D();
-    view_tran.setViewMatrix( new Vector3D( 5, 4, 10 ),
-                             new Vector3D( 0, 0, 0 ),
-                             new Vector3D( 0, 1, 0 ),
-                             true );
-    test.setViewTran( view_tran );
-    test.setVirtualScreenSize( 10, 10 );
+
+    ViewController v_control = new ViewController();
+//    v_control.setVirtualScreenSize( 10, 10 );
+    v_control.setViewAngle( 50 );
+    v_control.addControlledPanel( test );
                                                    // make a list of objects
                                                    // and give them to the
                                                    // 3D JPanel
     int n_objects  = 512;
     IThreeD_Object objs[] = new IThreeD_Object[n_objects];
-    Vector3D       pts[] = new Vector3D[4];
+    Vector3D       pts[]  = new Vector3D[4];
     for ( int p = 0; p < n_objects; p++ )
     {
       for ( int i = 0; i < pts.length; i++ )
@@ -445,6 +463,7 @@ private static void q_sort( IThreeD_Object list[],
       ((Polymarker)objs[p]).setType(Polymarker.STAR);
     }
     test.setObjects( objs );
+    v_control.apply( );
                                                      // test showing frames
                                                      // with different colors
     Color colors[] = new Color[ n_objects ];
@@ -470,15 +489,10 @@ private static void q_sort( IThreeD_Object list[],
                                                     // from different locations
     for ( int count = 0; count < N_REPS; count++ )
     {
-      view_tran = new Tran3D();
-      view_tran.setViewMatrix(new Vector3D(5+count/5.0f, 
-                                           4+count/5.0f, 
-                                           10.0f - count/5.0f),
-                             new Vector3D( 0, 0, 0 ),
-                             new Vector3D( 0, 1, 0 ),
-                             true );
-      test.setViewTran( view_tran );
-      test.request_painting( 200 );
+      v_control.setCOP( new Vector3D(5+count/5.0f,
+                                     4+count/5.0f,
+                                     10.0f - count/5.0f) );
+      v_control.apply();
     }
   }
 
