@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2004/11/12 17:26:07  millermi
+ *  - Code in setLogScale() was factored out into PseudoLogScaleUtil.
+ *    setLogScale() now used PseudoLogScaleUtil to do log mapping.
+ *
  *  Revision 1.28  2004/05/03 18:09:41  dennis
  *  Removed unused constant NUM_PSEUDO_COLORS.
  *
@@ -804,7 +808,7 @@ protected void LocalTransformChanged()
 /* ----------------------------- setLogScale -------------------------- */
 
   private void setLogScale( double s )
-  {                                       
+  { /*                                      
     if ( s > 100 )                                // clamp s to [0,100]
       s = 100;
     if ( s < 0 )
@@ -818,6 +822,13 @@ protected void LocalTransformChanged()
     for ( int i = 0; i < LOG_TABLE_SIZE; i++ )
       log_scale[i] = (byte)
                      (scale * Math.log(1.0+((s-1.0)*i)/LOG_TABLE_SIZE));
+    */
+    // The code above is used in the PseudoLogScaleUtil for mapping.
+    PseudoLogScaleUtil log_scaler = new PseudoLogScaleUtil(
+                                          0f, (float)LOG_TABLE_SIZE,
+					  0f, NUM_POSITIVE_COLORS );
+    for( int i = 0; i < LOG_TABLE_SIZE; i++ )
+      log_scale[i] = (byte)(log_scaler.toDest(i,s));
   }
 
 
