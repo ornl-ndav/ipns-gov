@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2001/05/23 17:26:57  dennis
+ * Added get() method.
+ *
  * Revision 1.1  2001/05/07 21:35:09  dennis
  * Basic transformations of 3D homogeneous vectors, such as translate,
  * rotate, scale and perspective projection.
@@ -112,6 +115,18 @@ public class Tran3D
           return false;
 
      return true;
+  }
+
+  /*------------------------------- get ---------------------------------*/
+  /**
+   *  Set a reference to the 4x4 array containing the matrix for this
+   *  transformation.
+   *
+   *  return reference to the 4x4 array containing the matrix.
+   */
+  public float[][] get()
+  {
+    return a;
   }
 
 
@@ -301,6 +316,7 @@ public class Tran3D
        System.out.println("Error: cop and vrp cooincide in " +
                           "Tran3D.setViewMatrix()");
        setIdentity();
+       a[3][2] = 1;
        return;
      } 
 
