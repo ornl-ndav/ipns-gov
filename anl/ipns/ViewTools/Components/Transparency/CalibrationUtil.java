@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/07/28 19:33:59  robertsonj
+ *  added functionality to find the greatest lower bound and the least upper
+ *  bound from the number 1*10^x, 2*10^x, 5*10^x, 1.2*10^x and 1.5*10^x
+ *  These functiions are used to find nice logarithmic numbers to use on the
+ *  axis overlay
+ *
  *  Revision 1.8  2004/05/11 01:40:13  millermi
  *  - Removed unused variables.
  *
@@ -150,7 +156,7 @@ public class CalibrationUtil
       float start = 0;
       float step = 0;
       float[] values = new float[3];
-  
+  	 
       s_diff = xmax - xmin;
       
       //System.out.println("Diff = " + s_diff );
@@ -167,7 +173,7 @@ public class CalibrationUtil
 	 s_diff = s_diff * 10.0f;
 	 i_power = i_power - 1;
       }
-      
+
       baseE = i_power - 1;
   /* Now choose step size to give a reasonable number of subdivisions
      over an interval of length b-a. */
@@ -196,7 +202,7 @@ public class CalibrationUtil
 	 start = start - (start%step);
 	 start = -start;
       }
-      
+
    // return the number of steps
       float sum = start; 
       int numstep = 0;     
@@ -205,12 +211,12 @@ public class CalibrationUtil
          sum = sum + step;
 	 numstep++;
       }
-      /*
-      System.out.println("Step = " + step );
-      System.out.println("Degree = " + i_power );
-      System.out.println("Start = " + start );
-      System.out.println("NumStep = " + numstep );
-      */   
+
+      //System.out.println("Step = " + step );
+      //System.out.println("Degree = " + i_power );
+      //System.out.println("Start = " + start );
+      //System.out.println("NumStep = " + numstep );
+        
       values[0] = step;
       values[1] = start;
       values[2] = numstep;
@@ -231,6 +237,131 @@ public class CalibrationUtil
    *
    *  @return array of steps for the interval
    */
+  public float leastUpperBound(){
+	//find the least upperbound from the values 1*10^x, 2*10^x or 5*10^x
+	if(xmin <=0){
+		xmin = 1;
+	}
+	int x = 0;
+		
+			while(1 * Math.pow(10, x) < (xmax)){
+				x = x + 1;
+				}
+			int ones = (int)Math.pow(10, x);
+			x=0;
+			while(1.2 * Math.pow(10,x) < xmax){
+				x++;
+			}
+			float onetwo = (float)1.2 * (int)Math.pow(10,x);
+			x = 0;
+			while(1.5 * Math.pow(10,  x) < xmax){
+				x++;
+			}
+			float onefive = (float)1.5 * (int)Math.pow(10, x);
+			x = 0;
+			while(2* Math.pow(10, x) < (xmax)){
+				x = x + 1;			
+			}
+			int twos = 2 * (int)Math.pow(10 ,x);
+			x = 0;
+			while(5 * Math.pow(10, x) < (xmax)){
+				x = x + 1;
+			}
+			int fives = 5 * (int)Math.pow(10, x);
+			float lub = 0;
+			if(ones < onetwo){
+				lub = ones;
+			}else{
+				lub = onetwo;
+			}
+			if(onefive < lub){
+				lub = onefive;
+			}
+			if(twos < lub){
+				lub = twos;
+			}
+			if(fives < lub){
+				lub = fives;
+			}
+
+			return lub;
+  }
+  
+ public float greatestLowerBound(){
+	if(xmin < 1)
+		xmin = 1;
+		
+	int x = 0;
+		   while(1 * Math.pow(10, x) <= xmin){
+			   x++;
+		   }
+		   int lones = 1 * (int)Math.pow(10, x-1);
+		   x = 0;
+	    
+		   while(1.2 * (int)Math.pow(10, x) <= xmin){
+			   x++;
+		   }
+		   float lonetwo = (float)1.2 * (int)Math.pow(10, x-1);
+		   x = 0;
+	    
+		   while(1.5 * Math.pow(10, x) <= xmin){
+			   x++;
+		   }
+		   float lonefive = (float)1.5 * (int)Math.pow(10, x-1);
+		   x = 0;
+	    
+		   while(2 * Math.pow(10, x) <= xmin){
+			   x++;
+		   }
+		   int ltwos = 2 * (int)Math.pow(10, x-1);
+		   x = 0;
+	    
+		   while(5 * Math.pow(10, x) <= xmin){
+			   x++;
+		   }
+		   int lfives = 5 * (int)Math.pow(10, x-1);
+		   x = 0;
+	    
+		   float glb = 0;
+		   if(lones > lonetwo){
+			   glb = lones;
+		   }else{
+			   glb = lonetwo;
+		   }
+		   if(lonefive > glb){
+			   glb = lonefive;
+		   }
+		   if(ltwos > glb){
+			   glb = ltwos;
+		   }
+	    
+		   if(lfives > glb){
+			   glb = lfives;
+		   }
+		
+	    return glb;
+  }
+  public int powerdiff(float glb, float lub){
+  	int powerdiff = 0;
+  	if(glb != 0){
+  	
+  		while ((glb * Math.pow(10, powerdiff)) <= lub){
+  			powerdiff++;
+  		}
+  	}
+  	return powerdiff;
+  }
+  public float[] subDivideLogLarge(float glb, float lub){
+  	float[] values = new float[3];
+  	values[2] = (float)powerdiff(glb, lub);
+  	values[0] = glb;
+  	values[1] = xmin;
+  	
+  	
+  	return values;
+  }
+
+  
    public float[] subDivideLog()
    {
      float[] values = new float[0];
@@ -488,10 +619,32 @@ public class CalibrationUtil
           value_step++; 
        }
      } // end else (inteval greater than one degree)
-     
+  
      return values;
       
    }
+   public float maxError(int axis){
+   	return ((float)Math.pow((xmax/xmin),(1/(float)axis)));
+   }
+   public float getError(float value, int axis){
+   	float r = 0;
+   	float power = (1/(float)axis);
+   	float number = xmax/value;
+   	r = (float)Math.pow(number,power);
+   	return r;
+   	
+   }
+   
+   public boolean isNice(float error, float value, float number){
+   	//System.out.println("checking nice number");
+   	if((number/error <= value && (number*error >= value)) ){
+   		return true;
+   	}else{
+   		return false;
+   	}
+   	
+   }
+
    
   /**
    * This method takes in a number and sets it to the power set in either
