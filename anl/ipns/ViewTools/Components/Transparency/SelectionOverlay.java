@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2003/10/02 23:04:42  millermi
+ *  - Added java docs to all public static variables.
+ *  - Added constructor to take in ObjectState information.
+ *
  *  Revision 1.17  2003/09/24 01:33:41  millermi
  *  - Added static variables to be used as keys by ObjectState
  *  - Added methods setObjectState() and getObjectState() to adjust to
@@ -172,14 +176,61 @@ import DataSetTools.util.floatPoint2D;
  */
 public class SelectionOverlay extends OverlayJPanel
 {
+ /**
+  * "REGION_ADDED" - This constant String is an Action Listener message
+  * sent out when a new region has been selected.
+  */
   public static final String REGION_ADDED   = "REGION_ADDED";
+  
+ /**
+  * "REGION_REMOVED" - This constant String is an Action Listener message
+  * sent out when a region has been deselected/removed.
+  */
   public static final String REGION_REMOVED = "REGION_REMOVED";
+  
+ /**
+  * "ALL_REGIONS_REMOVED" - This constant String is an Action Listener message
+  * sent out when all regions have been deselected/removed.
+  */
   public static final String ALL_REGIONS_REMOVED = "ALL_REGIONS_REMOVED";
+  
   // these variables are used to preserve the Selection state.
+ /**
+  * "Selected Regions" - This constant String is a key for referencing the
+  * state information about which regions have been selected.
+  * The value that this key references is a Vector of WCRegion instances.
+  */
   public static final String SELECTED_REGIONS = "Selected Regions";
+  
+ /**
+  * "Selection Color" - This constant String is a key for referencing the
+  * state information about the color of the selection outlines.
+  * The value that this key references is of type Color.
+  */
   public static final String SELECTION_COLOR  = "Selection Color";
+  
+ /**
+  * "Listeners" - This constant String is a key for referencing the
+  * state information about the classes listenering to this overlay.
+  * The value that this key references is a Vector of ActionListener
+  * instances.
+  */
   public static final String LISTENERS        = "Listeners";
+  
+ /**
+  * "Opacity" - This constant String is a key for referencing the
+  * state information about the invisibility of the selection outline.
+  * The value that this key references is a primative float on the range
+  * [0,1], with 0 = transparent, 1 = opaque.
+  */
   public static final String OPACITY	      = "Opacity";
+    
+ /**
+  * "Editor Bounds" - This constant String is a key for referencing the state
+  * information about the size and bounds of the Selection Editor window. 
+  * The value that this key references is a Rectangle. The Rectangle contains
+  * the dimensions for the editor.
+  */
   public static final String EDITOR_BOUNDS    = "Editor Bounds";
   
   private SelectionJPanel sjp;  	 // panel overlaying the center jpanel
@@ -196,10 +247,10 @@ public class SelectionOverlay extends OverlayJPanel
   private Rectangle editor_bounds = new Rectangle(0,0,385,200);
  
  /**
-  * Constructor creates an OverlayJPanel with a SeletionJPanel that shadows the
+  * Constructor creates an overlay with a SelectionJPanel that shadows the
   * center panel of the IZoomAddible component.
   *
-  *  @param  component
+  *  @param  iza - IZoomAddible component
   */ 
   public SelectionOverlay(IZoomAddible iza)
   {
@@ -228,6 +279,18 @@ public class SelectionOverlay extends OverlayJPanel
     
     Listeners = new Vector();
     sjp.requestFocus(); 	      
+  }
+ 
+ /**
+  * Constructor creates an SelectionOverlay with previous state information.
+  *
+  *  @param  iza - IZoomAddible component
+  *  @param  state - ObjectState of this overlay
+  */ 
+  public SelectionOverlay(IZoomAddible iza, ObjectState state)
+  {
+    this(iza);
+    setObjectState(state);
   }
 
  /**
