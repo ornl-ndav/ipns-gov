@@ -35,6 +35,10 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.26  2004/08/05 17:05:18  dennis
+ *  Added some additional explanation to the documentation for
+ *  the BestFitMatrix() routine.
+ *
  *  Revision 1.25  2004/07/16 19:05:22  dennis
  *  Fixed improper comparison with Float.NaN
  *
@@ -708,6 +712,12 @@ public final class LinearAlgebra
    *  the orientation matrix for SCD data proccessing. Specifically, M will
    *  be calculated to be the matrix that best fits the equations  Mqi=ri
    *  for vectors qi, ri, i=0,...,k-1, where k is the number of data vectors.
+   *  The vectors qi each have m components and the vectors ri each have n
+   *  components.  In many cases n = m = 3, but the solution is more general.
+   *  In the "simple" case, this finds the 3x3 matrix M that most nearly 
+   *  maps the 3D vectors qi to the 3D vectors ri.  Parameter q holds the
+   *  3D vectors qi in its ROWS and parameter r holds the 3D vectors ri in
+   *  its ROWS.
    *  This version uses the QR factorization method from this package and 
    *  returns the residual errors.  The BestFitMatrix2() is based on the
    *  Jama package from NIST.  It is included for testing purposes.
