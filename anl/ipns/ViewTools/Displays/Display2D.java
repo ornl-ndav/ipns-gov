@@ -33,6 +33,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/13 07:42:06  millermi
+ * - Removed unused imports.
+ * - Finished factoring out Display from Display2D.
+ * - ObjectState now implemented, but needs IViewComponet to
+ *   extend IPreserveState before completion.
+ * - Wrote meaningful help dialogue.
+ *
  * Revision 1.2  2004/03/12 23:23:24  millermi
  * - Factored out common functionality, now extends Display.
  *
@@ -48,43 +55,22 @@
 package gov.anl.ipns.ViewTools.Displays;
 
 import javax.swing.*;
-import java.util.StringTokenizer;
 import java.util.Vector;
 import java.awt.Container;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-//import java.awt.event.WindowAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
-import java.io.Serializable;
-import java.io.IOException;
-import java.io.EOFException;
-import javax.swing.border.TitledBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.text.html.HTMLEditorKit;
 
 import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.TwoD.*;
-import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
-import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
-import gov.anl.ipns.ViewTools.Components.Region.*;
-import gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel;
-import gov.anl.ipns.ViewTools.Components.ViewControls.CursorOutputControl;
-import gov.anl.ipns.ViewTools.Components.ViewControls.FieldEntryControl;
-import gov.anl.ipns.ViewTools.Components.ViewControls.PanViewControl;
-import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
+import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
+import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.Util.Sys.WindowShower;
-import gov.anl.ipns.ViewTools.UI.FontUtil;
-import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
-import gov.anl.ipns.Util.Sys.SaveImageActionListener;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
@@ -103,28 +89,24 @@ public class Display2D extends Display
   public static final String VIEWER_SIZE           = "Viewer Size";
   
  /**
-  * "Data Directory" - This constant String is a key for referencing
-  * the state information about the location of the data files being
-  * loaded by this viewer. The value this key references is of type
-  * String.
+  * "View Component" - This constant String is a key for referencing
+  * the state information about the ViewComponent. The value this key
+  * references is of type ObjectState.
   */
-  public static final String DATA_DIRECTORY        = "Data Directory";
+  public static final String VIEW_COMPONENT        = "View Component";
   
+ /**
+  * 0 - Use this int to specify display using the ImageViewComponent.
+  */ 
   public static final int IMAGE = 0;
+ 
+ /**
+  * 1 - Use this int to specify display using the TableViewComponent.
+  */
   public static final int TABLE = 1;
-  
+  // many of the variables are protected in the Display base class
   private static JFrame helper = null;
-  
-  // complete viewer, includes controls and ijp
-  private transient Container pane;
-  //private transient IViewComponent2D ivc;
-  //private transient IVirtualArray2D data;
-  private String projectsDirectory = "";
-  private transient Display2D this_viewer;
-  private Vector Listeners = new Vector();
   private boolean os_region_added = false;
-  private int current_view = 0;
-  private boolean add_controls = true;
   
  /**
   * Construct a frame with the specified image and title
@@ -137,6 +119,7 @@ public class Display2D extends Display
   public Display2D( IVirtualArray2D iva, int view_code, boolean include_ctrls )
   {
     super(iva,view_code,include_ctrls);
+    setTitle("Display2D");
     addToMenubar();
     buildPane();
     
@@ -158,28 +141,26 @@ public class Display2D extends Display
   *                    set to.
   */ 
   public void setObjectState( ObjectState new_state )
-  {/*
+  {
     boolean redraw = false;  // if any values are changed, repaint overlay.
-    Object temp = new_state.get(PROJECT_FILE);
+    Object temp = new_state.get(VIEW_COMPONENT);
     if( temp != null )
     {
-      datafile = (String)temp;
-      loadData(datafile);
-      redraw = true;  
-    } 
-    
-    temp = new_state.get(IMAGE_VIEW_COMPONENT);
-    if( temp != null )
-    {
-      Object os = ((ObjectState)temp).get(ImageViewComponent.SELECTION_OVERLAY);
-      if( os != null )
+      if( current_view == IMAGE )
       {
-        os = ((ObjectState)os).get(SelectionOverlay.SELECTED_REGIONS);
-	if( os != null )
-          os_region_added = true;
+        Object os = ((ObjectState)temp).get(
+	                        ImageViewComponent.SELECTION_OVERLAY);
+        if( os != null )
+        {
+          os = ((ObjectState)os).get(SelectionOverlay.SELECTED_REGIONS);
+	  if( os != null )
+            os_region_added = true;
+        }
       }
+    /* ###################################################################
+     * Uncomment this when IViewComponent interface extends IPreserveState
       if( ivc != null )
-        ivc.setObjectState( (ObjectState)temp );
+        ivc.setObjectState( (ObjectState)temp );*/
       redraw = true;  
     } 
     
@@ -190,14 +171,8 @@ public class Display2D extends Display
       redraw = true;  
     } 
     
-    temp = new_state.get(DATA_DIRECTORY); 
-    if( temp != null )
-    {
-      projectsDirectory = (String)temp;
-    } 
-    
     if( redraw )
-      repaint();*/
+      repaint();
   }
  
  /**
@@ -210,17 +185,13 @@ public class Display2D extends Display
   *          if false, the entire state, suitable for project specific saves.
   */
   public ObjectState getObjectState( boolean isDefault )
-  {/*
+  {
     ObjectState state = new ObjectState();
-    state.insert( IMAGE_VIEW_COMPONENT, ivc.getObjectState(isDefault) );
+    /* ###################################################################
+     * Uncomment this when IViewComponent interface extends IPreserveState
+    state.insert( VIEW_COMPONENT, ivc.getObjectState(isDefault) );*/
     state.insert( VIEWER_SIZE, getSize() );
-    state.insert( DATA_DIRECTORY, new String(projectsDirectory) );
-    // if they save the project, this file will automatically be loaded.
-    if( !isDefault )
-      state.insert( PROJECT_FILE, new String(datafile) );
-    
-    return state;*/
-    return new ObjectState();
+    return state;
   }
 
  /**
@@ -228,44 +199,27 @@ public class Display2D extends Display
   */
   public static void help()
   {
-    helper = new JFrame("Introduction to the SAND Wedge Viewer");
+    helper = new JFrame("Introduction to the Display2D");
     helper.setBounds(0,0,600,400);
     JEditorPane textpane = new JEditorPane();
     textpane.setEditable(false);
     textpane.setEditorKit( new HTMLEditorKit() );
     String text = "<H1>Description:</H1> <P>" + 
-                "The SAND Wedge Viewer (SWV) in an interactive analysis tool." +
-        	" SWV features the ability to make four selections: Wedge, " +
-    		"Double Wedge, Annular, and Ellipse. Once a " +
-    		"selection is made on the image, the graph will display " +
-		"the intensity values per hit as a function of distance " +
-		"in Q. Selections can be made in two ways: <BR>" +
-		"1. Graphically using the SelectionOverlay<BR>" +
-		"2. Entering defining information by pressing the Manual " +
-		"Selection button.</P>" + 
-		"<H2>Commands for SWV</H2>" +
-                "<P> SAVING USER PREFERENCES: Click on <B>File|Save User " +
+                "The Display2D (D2D) in an interactive analysis tool. " +
+        	"D2D features the ability to quickly analyze a 2-D " +
+		"array of data in a variety of views. Views that are " +
+		"included are currently restricted to Images, but new " +
+		"views will include Table and Contour.</P>" + 
+		"<H2>Commands for D2D</H2>" +
+                "<P> SAVING USER PREFERENCES: Click on <B>Options|Save User " +
 		"Settings</B>. Your preferences will automatically be saved " +
-		"in SandProps.isv in your home directory. <I>This option " +
-		"will not save project specific information, such as " +
-		"selections or annotations. Use <B>Options|Save Project " +
-		"Settings</B> to save project specific details.</I><BR><BR>" +
-		"<I>ATTENTION: Selections must be made before using the " +
-		"viewing or saving results to file. </I><BR><BR> " +
-		"VIEW RESULTS: The Results window will automatically appear " +
-		"after a selection has been made. <B>Options|Hide Results " +
-		"Window</B> will hide the window. If the window is not " +
-		"visible, <B>Options|Show Results Window</B> will cause the " +
-		"results window to appear.<BR>"+
-		"SAVE RESULTS TO FILE: Go to <B>File|Save Results</B> " +
-		"in the SWV. The new file has 3 columns: Q, Intensity, " +
-		"and Error Bounds. Information about the region is listed " +
-		"at the top of the file, prefixed by a pound symbol(#). " +
-		"<I>If multiple selections are made, only the last " +
-		"selection can be written to file.</I><BR>" +
+		"in Display2DProps.isv in your home directory. <I>This " +
+		"option will not save project specific information, such as " +
+		"selections or annotations. Use <B>File|Save Project</B> " +
+		"to save project specific details.</I><BR><BR>" +
 		"<BR>Note:<BR>" +
         	"Detailed commands for each overlay can be found under " +
-		"<B>Help|Overlays</B> after a data file has been loaded.</P>";
+		"<B>Help|Overlays</B>.</P>";
     textpane.setText(text);
     JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
@@ -286,20 +240,6 @@ public class Display2D extends Display
   public void dataChanged( IVirtualArray2D values )
   { 
     ((IViewComponent2D)ivc).dataChanged(values);
-  }
-  
- /**
-  * Method to add a listener to this component.
-  *
-  *  @param  act_listener
-  */
-  public void addActionListener( ActionListener act_listener )
-  {	     
-    for ( int i = 0; i < Listeners.size(); i++ )    // don't add it if it's
-      if ( Listeners.elementAt(i).equals( act_listener ) ) // already there
-        return;
-
-    Listeners.add( act_listener ); //Otherwise add act_listener
   }
   
  /**
@@ -395,15 +335,15 @@ public class Display2D extends Display
   private void addToMenubar()
   {
     Vector help              = new Vector();
-    Vector display_help       = new Vector();
+    Vector display_help      = new Vector();
     Vector help_listeners    = new Vector();
     
     // build help menu
     help.add("Help");
-    help_listeners.add( new MenuListener() );
+    help_listeners.add( new Menu2DListener() );
     help.add( display_help );
       display_help.add("Using Display2D");
-      help_listeners.add( new MenuListener() );  // listener for SAND helper
+      help_listeners.add( new Menu2DListener() );  // listener for D2D helper
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
     
     // Add keyboard shortcuts
@@ -427,62 +367,13 @@ public class Display2D extends Display
  /*
   * This class is required to handle all messages within the Display2D.
   */
-  private class MenuListener implements ActionListener
+  private class Menu2DListener implements ActionListener
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals("Save User Settings") )
-      {
-        String props = System.getProperty("user.home") + 
-	                System.getProperty("file.separator") +
-			"Display2DProps.isv";
-	getObjectState(IPreserveState.DEFAULT).silentFileChooser(props,true);
-      }
-      else if( ae.getActionCommand().equals("Save Project") )
-      {
-	getObjectState(IPreserveState.PROJECT).openFileChooser(true);
-      }
-      else if( ae.getActionCommand().equals("Open Project") )
-      {
-        ObjectState state = new ObjectState();
-	if( state.openFileChooser(false) )
-	  setObjectState(state);
-      }
-      else if( ae.getActionCommand().equals("Print Image") )
-      {
-        // Since pane could be one of two things, determine which one
-	// it is, then determine the image accordingly.
-	Component image;
-	if( pane instanceof SplitPaneWithState )
-	  image = ((SplitPaneWithState)pane).getLeftComponent();
-        else
-	  image = pane;
-	JMenuItem silent_menu = PrintComponentActionListener.getActiveMenuItem(
-	                                "not visible", image );
-	silent_menu.doClick();
-      }
-      else if( ae.getActionCommand().equals("Make JPEG Image") )
-      {
-        // Since pane could be one of two things, determine which one
-	// it is, then determine the image accordingly.
-	Component image;
-	if( pane instanceof SplitPaneWithState )
-	  image = ((SplitPaneWithState)pane).getLeftComponent();
-        else
-	  image = pane;
-        JMenuItem silent_menu = SaveImageActionListener.getActiveMenuItem(
-	                                "not visible", image );
-	silent_menu.doClick();
-      }
-      else if( ae.getActionCommand().equals("Using Display2D") )
+      if( ae.getActionCommand().equals("Using Display2D") )
       {
         help();
-      }
-      else if( ae.getActionCommand().equals("Exit") )
-      {
-	this_viewer.dispose();
-	System.gc();
-	System.exit(0);
       }
     }
   }
@@ -512,20 +403,6 @@ public class Display2D extends Display
       control_box.validate();
     }  
   }*/ 
-  
- /*
-  * Tells all listeners about a new action.
-  *
-  *  @param  message
-  */  
-  private void sendMessage( String message )
-  {
-    for ( int i = 0; i < Listeners.size(); i++ )
-    {
-      ActionListener listener = (ActionListener)Listeners.elementAt(i);
-      listener.actionPerformed( new ActionEvent( this, 0, message ) );
-    }
-  }
   
  /*
   * Main program.

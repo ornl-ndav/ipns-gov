@@ -33,6 +33,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/03/13 07:42:05  millermi
+ * - Removed unused imports.
+ * - Finished factoring out Display from Display2D.
+ * - ObjectState now implemented, but needs IViewComponet to
+ *   extend IPreserveState before completion.
+ * - Wrote meaningful help dialogue.
+ *
  * Revision 1.1  2004/03/12 23:22:43  millermi
  * - Initial Version - Factored out common functionality between
  *   into displays this abstract base class.
@@ -42,44 +49,28 @@
 package gov.anl.ipns.ViewTools.Displays;
 
 import javax.swing.*;
-import java.util.StringTokenizer;
 import java.util.Vector;
 import java.awt.Container;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-//import java.awt.event.WindowAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.io.Serializable;
-import java.io.IOException;
-import java.io.EOFException;
 import javax.swing.border.TitledBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.text.html.HTMLEditorKit;
 
 import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.TwoD.*;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
-import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
-import gov.anl.ipns.ViewTools.Components.Region.*;
-import gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel;
-import gov.anl.ipns.ViewTools.Components.ViewControls.CursorOutputControl;
-import gov.anl.ipns.ViewTools.Components.ViewControls.FieldEntryControl;
-import gov.anl.ipns.ViewTools.Components.ViewControls.PanViewControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.UI.FontUtil;
 import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
 import gov.anl.ipns.Util.Sys.SaveImageActionListener;
-import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -89,19 +80,15 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 abstract public class Display extends JFrame implements IPreserveState,
                                                        Serializable
 {  
-  private static JFrame helper = null;
-  
   // complete viewer, includes controls and ijp
-  private transient Container pane;
+  protected transient Container pane;
   protected transient IViewComponent ivc;
   protected transient IVirtualArray data;
   protected transient JMenuBar menu_bar;
-  private String projectsDirectory = "";
-  private transient Display this_viewer;
-  private Vector Listeners = new Vector();
-  private boolean os_region_added = false;
-  private int current_view = 0;
-  private boolean add_controls = true;
+  protected transient Display this_viewer;
+  protected Vector Listeners = new Vector();
+  protected int current_view = 0;
+  protected boolean add_controls = true;
   
  /**
   * Construct a frame with the specified image and title
@@ -156,12 +143,8 @@ abstract public class Display extends JFrame implements IPreserveState,
   abstract public ObjectState getObjectState( boolean isDefault );
   
  /**
-  * This method takes in a 2D array and updates the image. If the array
-  * is the same size as the previous data array, the image is just redrawn.
-  * If the size is different, the frame is disposed and a new view component
-  * is constructed.
-  *
-  *  @param  array
+  * This method updates the view component when changes are made to the
+  * existing array.
   */ 
   public void dataChanged()
   {
@@ -182,8 +165,8 @@ abstract public class Display extends JFrame implements IPreserveState,
     Listeners.add( act_listener ); //Otherwise add act_listener
   }
   
- /*
-  * The menu items from the ViewComponent.
+ /**
+  * Add the menu items from the ViewComponent.
   */   
   protected void addComponentMenuItems()
   {
@@ -297,8 +280,10 @@ abstract public class Display extends JFrame implements IPreserveState,
     option_menu.getItem(0).setAccelerator(binding); // Save User Settings
   }
   
- /*
-  * build controls for view component.
+ /**
+  * Put the controls for view component in a Box and return them as one entity.
+  *
+  *  @return Box containing all of the controls.
   */ 
   protected Box buildControlPanel()
   {
@@ -387,12 +372,12 @@ abstract public class Display extends JFrame implements IPreserveState,
     }
   }
   
- /*
+ /**
   * Tells all listeners about a new action.
   *
   *  @param  message
   */  
-  private void sendMessage( String message )
+  protected void sendMessage( String message )
   {
     for ( int i = 0; i < Listeners.size(); i++ )
     {
