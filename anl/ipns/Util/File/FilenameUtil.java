@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2001/12/11 17:54:13  pfpeterson
+ *  Added the method 'String helpDir(String helpFile)' which returns the full name of the helpFile to be used. The searchpath is (in order) Help_Directory, $HOME/IsawHelp, $CLASSPATH/IsawHelp, or online.
+ *
  *  Revision 1.2  2001/04/25 22:24:17  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -112,5 +115,92 @@ public class FilenameUtil
     return null;
   }
 
+    /**
+     * Produces the appropriate directory for a given help
+     *
+     * @param helpFile The name of the helpfile to be used
+     *
+     * @return A string containing a link to either the local helpfile
+     *         or one on the web.
+     */
+    public static String helpDir( String helpFile ){
+	// define the location of the URL version
+	final String URLDIR="http://www.pns.anl.gov/isaw/IsawHelp/";
+
+
+	// start the string as being the value of helpdirectory
+	String S = System.getProperty("Help_Directory").trim();
+
+	//System.out.println("1: Source is "+S); 
+
+	// fix the string up and check that helpFile exists there
+	if(S != null ){
+	    S = DataSetTools.util.StringUtil.fixSeparator(S);
+	    if( S.length()<1 ){ S=null; 
+	    }else if("\\/".indexOf(S.charAt(S.length()-1))<0){
+		S=S+java.io.File.separator; }
+
+	    if( new File(S+helpFile).exists()){
+	    }else{ S=null; }
+	}
+
+	//System.out.println("2: Source is "+S); 
+
+	// if helpFile is not in help_file then try in $HOME
+	if( S == null ){
+	    S=System.getProperty("user.dir").trim();
+	    if( S.length()>0 ){
+		if( "\\/".indexOf(S.charAt(S.length()-1)) < 0 ){
+		    S=S+java.io.File.separator;
+		}
+	    }
+	    S=DataSetTools.util.StringUtil.fixSeparator(S);
+	    if(!new File(S+"IsawHelp"+java.io.File.separator+helpFile).exists()){
+		S=null;
+	    }else{ 
+		S=S+"IsawHelp"+java.io.File.separator;
+	    }
+	}
+
+	//System.out.println("3: Source is "+S); 
+
+	
+	// if helpFile still hasn't been found look throughout the classpath
+	if( S != null ){
+	    S = S + helpFile;
+        }else{
+	    String CP = System.getProperty("java.class.path").replace( '\\','/');
+	    int s, t ;
+            for( s = 0; (s < CP.length()) && (S == null); s++){
+		t = CP.indexOf( java.io.File.pathSeparator, s+1);
+		if( t < 0){ t = CP.length(); }
+		S = CP.substring(s,t) .trim();
+		if( S.length() > 0 ){
+		    if ( S.charAt( S.length() -1) != '/'){ 
+			S = S + "/";
+		    }
+		}
+		if(new File(S+"IsawHelp"+java.io.File.separator+helpFile).exists()){
+		    S= S + "IsawHelp"+java.io.File.separator+helpFile;
+		}else{
+		    S = null;
+		}
+	    }
+	}
+	
+	//System.out.println("4: Source is "+S); 
+
+	// either it has been found or just give the URL
+	if( S == null ){
+	    S = URLDIR+helpFile;
+	}else{ 
+	    S = "file://" + S; 
+	}
+
+
+	//System.out.println("5: Source is "+S); 
+    
+	return S;
+    }
 
 }
