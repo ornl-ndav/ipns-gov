@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/12 02:55:22  hammonds
+ *  Change package name to gov.anl.ipns.Util.Numeric
+ *
  *  Revision 1.7  2003/05/02 19:19:17  dennis
  *  Added method niceGrid(n) to calculate a list of roughly n values in the
  *  interval, that are multiples of powers of .1, .2, .25 or .5.  These
@@ -43,7 +46,7 @@
  *
  */
 
-package DataSetTools.util;
+package gov.anl.ipns.Util.Numeric;
 
 /**
  *  Objects of this class represent a closed interval of floating point values,
