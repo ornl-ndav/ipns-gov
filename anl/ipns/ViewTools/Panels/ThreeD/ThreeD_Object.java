@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/03/12 01:10:58  dennis
+ * Moved to ViewTools.Panels.ThreeD package
+ *
  * Revision 1.7  2003/10/15 23:27:25  dennis
  * Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -49,12 +52,13 @@
  *
  */
 
-package DataSetTools.components.ThreeD;
+package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
 import java.io.*;
-import DataSetTools.math.*;
-import DataSetTools.components.image.*;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.MathTools.Geometry.*;
+
 
 /**
  *  Abstract base class for basic 3D objects such as Polygons, Polylines and

@@ -30,17 +30,19 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/12 01:13:40  dennis
+ * Moved to ViewTools.Panels.ThreeD package
+ *
  * Revision 1.2  2002/11/27 23:12:53  pfpeterson
  * standardized header
  *
  */
 
-package DataSetTools.components.ThreeD;
+package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
 import java.io.*;
-import DataSetTools.math.*;
-import DataSetTools.components.image.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
  *  This class represents a 3D polyline of one color.

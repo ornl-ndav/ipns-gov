@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/03/12 01:18:31  dennis
+ * Moved to ViewTools.Panels.ThreeD package
+ *
  * Revision 1.4  2002/11/27 23:12:53  pfpeterson
  * standardized header
  *
@@ -38,11 +41,12 @@
  *
  */
 
-package DataSetTools.components.ThreeD;
+package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
-import DataSetTools.components.image.*;
-import DataSetTools.math.*;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.MathTools.Geometry.*;
+
 
 /** 
  *  An object of this class can serve as a "place holder" in a list of 

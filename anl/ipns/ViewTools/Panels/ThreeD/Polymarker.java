@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/12 01:15:48  dennis
+ * Moved to ViewTools.Panels.ThreeD package
+ *
  * Revision 1.3  2003/10/15 23:27:25  dennis
  * Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -38,13 +41,11 @@
  *
  */
 
-package DataSetTools.components.ThreeD;
+package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
 import java.io.*;
-import DataSetTools.math.*;
-import DataSetTools.components.image.*;
-
+import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
  *  This class represents a 3D polymarker of one color.

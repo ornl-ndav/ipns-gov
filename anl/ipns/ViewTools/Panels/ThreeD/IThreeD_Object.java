@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/03/12 01:08:02  dennis
+ * Moved to ViewTools.Panels.ThreeD package
+ *
  * Revision 1.6  2003/10/15 23:27:25  dennis
  * Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -46,11 +49,11 @@
  */
 
 
-package DataSetTools.components.ThreeD;
+package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
-import DataSetTools.components.image.*;
-import DataSetTools.math.*;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 
 /** 
  *  This interface is the interface that classes must implement in order to
