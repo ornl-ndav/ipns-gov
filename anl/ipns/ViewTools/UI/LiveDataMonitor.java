@@ -31,6 +31,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2002/04/18 21:34:24  dennis
+ *  If the LiveDataManager Thread sends a message to this LiveDataMonitor,
+ *  the request is put into a queue and run by the Swing Event handling
+ *  thread using SwingUtilities.invokeLater().  This guarantees that the
+ *  Swing drawing that is needed in response to the message will be done
+ *  in the Swing Event handling thread.
+ *
  *  Revision 1.20  2002/04/10 16:02:55  dennis
  *  Removed automatic request for update after requesting that a DataSet be
  *  shown.
@@ -165,6 +172,9 @@ public class LiveDataMonitor extends    JPanel
   private JLabel           ds_label[]   = new JLabel[0];
   private JPanel           panel[]      = new JPanel[0];
   private IObserverList    observers;
+  private Vector           event_queue;          // queue for passing the action
+                                                 // event from the DataManager
+                                                 // to the event thread
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -178,6 +188,7 @@ public class LiveDataMonitor extends    JPanel
   */
   public LiveDataMonitor( String data_source_name ) 
   { 
+    event_queue = new Vector();
     this.data_source_name = data_source_name;
 
     data_manager = new LiveDataManager( data_source_name );
@@ -710,7 +721,25 @@ public class LiveDataMonitor extends    JPanel
   private class DataManagerListener implements ActionListener,
                                                Serializable
   {
-    public void actionPerformed( ActionEvent e )
+    public void actionPerformed( ActionEvent e )       // since this is called
+    {                                                  // from a different 
+      event_queue.addElement(e);                       // thread, save the 
+      Runnable actionRunnable = new Runnable()         // event in a queue and 
+      {                                                // use this "Runnable"
+        public void run()                              // to actually carry out 
+        {                                              // the requested action 
+          if ( event_queue.size() <= 0 )               // in the Swing event 
+            return;                                    // handling thread.
+                                                         
+          ActionEvent e = (ActionEvent)event_queue.elementAt(0);
+          event_queue.removeElementAt(0);
+          run_actionPerformed( e );
+        }
+      };
+      SwingUtilities.invokeLater( actionRunnable );
+    }
+
+    public void run_actionPerformed( ActionEvent e )
     {
       String message = e.getActionCommand();
 
