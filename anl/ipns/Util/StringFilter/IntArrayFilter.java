@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/24 21:07:22  bouzekc
+ *  Added javadocs.
+ *
  *  Revision 1.4  2003/11/05 04:32:34  bouzekc
  *  Added javadoc comments to isOkay().
  *
@@ -129,6 +132,16 @@ public class IntArrayFilter implements StringFilterer {
         }
         return true;
     }
+    
+	/**
+	 * Utility to return the inString turned into upper case.
+	 *
+	 * @param offs Unused.
+	 * @param inString The String to change to uppercase.
+	 * @param curString Unused.
+	 *
+	 * @return inString changed to uppercase.
+	 */
     public String modifyString(int offs, String inString, String curString){
         return inString;
     }

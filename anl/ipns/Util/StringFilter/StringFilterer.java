@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/24 21:03:47  bouzekc
+ *  Added javadocs.
+ *
  *  Revision 1.4  2003/11/16 18:56:06  bouzekc
  *  Added javadoc comments to isOkay().
  *
@@ -70,5 +73,15 @@ public interface StringFilterer extends Serializable{
      * on the rules of this filter.
      */
     public boolean isOkay(int offs, String inString, String curString);
+    
+	/**
+	 * Utility to return the inString turned into upper case.
+	 *
+	 * @param offs Unused.
+	 * @param inString The String to change to uppercase.
+	 * @param curString Unused.
+	 *
+	 * @return inString changed to uppercase.
+	 */
     public String modifyString(int offs, String inString, String curString);
 }

@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/01/24 21:07:22  bouzekc
+ *  Added javadocs.
+ *
  *  Revision 1.2  2003/11/05 04:32:35  bouzekc
  *  Added javadoc comments to isOkay().
  *
@@ -68,8 +71,6 @@ public class MaterialFilter implements StringFilterer {
   /**
    * This method is designed to test whether or not a given String
    * would be accepted by this StringFilter.
-   * Allows any combination of letters, numbers, commas, decimals, and
-   * underscores (in any order).
    * 
    * @param  offs                 The offset of the entry point in the
    *                              existing String curString.
@@ -133,9 +134,15 @@ public class MaterialFilter implements StringFilterer {
     return true;
   }
 
-  /**
-   * this handles changing case
-   */
+	/**
+	 * Utility to return the inString turned into upper case.
+	 *
+	 * @param offs Unused.
+	 * @param inString The String to change to uppercase.
+	 * @param curString Unused.
+	 *
+	 * @return inString changed to uppercase.
+	 */
   public String modifyString(int offs, String inString, String curString){
     if(inString==null || inString.length()<=0) return inString;
 

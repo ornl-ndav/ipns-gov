@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/24 21:07:22  bouzekc
+ *  Added javadocs.
+ *
  *  Revision 1.4  2003/11/05 04:32:35  bouzekc
  *  Added javadoc comments to isOkay().
  *
@@ -81,11 +84,15 @@ public class StringFilter implements StringFilterer {
         return true;
     }
     
-    /**
-     *  This particular instantiation of this method only returns inString,
-     *  although child class implementations may take this farther.
-     *
-     */
+   /**
+	 * This simply returns the inString.
+	 *
+	 * @param offs Unused.
+	 * @param inString The String to change to uppercase.
+	 * @param curString Unused.
+	 *
+	 * @return inString changed to uppercase.
+	 */
     public String modifyString(int offs, String inString, String curString){
         return inString;
     }

@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/01/24 21:03:47  bouzekc
+ *  Added javadocs.
+ *
  *  Revision 1.1  2003/10/27 14:58:52  rmikk
  *  A StringEntry Filter that only allows Fortran Format specifications
  *
@@ -58,7 +61,18 @@ public class FormatFilter implements StringFilterer {
        
     }
    
-
+	/**
+	 * This method is designed to test whether or not a given String
+	 * would be accepted by this StringFilter.
+	 * 
+	 * @param  offs                 The offset of the entry point in the
+	 *                              existing String curString.
+	 * @param  inString             The String you want to insert.
+	 * @param  curString            The String which currently exists.
+	 *
+	 * @return true if it would be OK to insert inString into curString based
+	 * on the rules of this filter.
+	 */
     public boolean isOkay(int offs, String inString, String curString){
        
         char[] source = inString.toCharArray();
@@ -132,6 +146,16 @@ public class FormatFilter implements StringFilterer {
           return -1;
         }
     }
+    
+	/**
+	 * Utility to return the inString turned into upper case.
+	 *
+	 * @param offs Unused.
+	 * @param inString The String to change to uppercase.
+	 * @param curString Unused.
+	 *
+	 * @return inString changed to uppercase.
+	 */
     public String modifyString(int offs, String inString, String curString){
         return inString.toUpperCase();
     }
