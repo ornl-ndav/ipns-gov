@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2003/02/13 20:57:49  pfpeterson
+ *  Deprecated fixSeparator and renamed the method to setForwardSlash.
+ *
  *  Revision 1.13  2003/01/27 14:57:17  rmikk
  *  Change methods docdir and helpdir to use system dependent
  *      slashes so they work in the browser control
@@ -92,8 +95,25 @@ public class FilenameUtil
    *
    *  @return  A string containing the file name with all separators replaced 
    *           by "/".
+   *
+   *  @deprecated  replaced by {@link #setForwardSlash(String)}
    */
   public static String fixSeparator( String file_name )
+  {
+    return setForwardSlash(file_name);
+  }
+
+  /**
+   *  Replace all occurrences of the possible file separators "/" "\" "\\"
+   *  with "/".
+   *
+   *  @param  file_name  A file name string possibly containing improper
+   *                     separators.
+   *
+   *  @return  A string containing the file name with all separators replaced 
+   *           by "/".
+   */
+  public static String setForwardSlash( String file_name )
   {
     String separator = "/"; //File.separator;
 
