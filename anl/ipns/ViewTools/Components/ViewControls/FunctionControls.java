@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2003/10/31 18:14:32  dennis
+ * Since the frame containing the controls may be reused,
+ * call validate() to get the displayed contents updated properly.
+ *
  * Revision 1.13  2003/10/31 17:55:06  dennis
  * Added constructor that builds the controls in an existing frame.
  * Changed the close_frame() and display_controls() methods so that
@@ -226,6 +230,7 @@ import javax.swing.border.*;
     the_frame.setSize( FRAME_WIDTH, FRAME_HEIGHT );
     the_frame.getContentPane().removeAll();
     the_frame.getContentPane().add( (JComponent)main_panel.getPanel() );
+    the_frame.validate();
   }
 
   /**
