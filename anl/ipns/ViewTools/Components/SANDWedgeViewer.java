@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.19  2004/01/24 03:06:37  millermi
+ * - Minor change to help()
+ *
  * Revision 1.18  2004/01/24 02:55:26  millermi
  * - Added File|Save Results menu item. This allows the
  *   results from the SWV to be neatly written out to file.
@@ -362,7 +365,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 		"SAVE RESULTS TO FILE: Go to <B>File|Save Results</B> " +
 		"in the SWV. The new file has 3 columns: Q, Intensity, " +
 		"and Error Bounds. Information about the region is listed " +
-		"at the top of the file, precluded by a pound symbol(#). " +
+		"at the top of the file, prefixed by a pound symbol(#). " +
 		"<I>If multiple selections are made, only the last " +
 		"selection can be written to file.</I><BR>" +
 		"<BR>Note:<BR>" +
