@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2003/12/16 23:19:01  dennis
+ * Removed commented out code that returned controls.
+ *
  * Revision 1.10  2003/12/16 23:17:07  dennis
  * Removed methods to get controls.  Combined methods to set x and y
  * values into one method.
@@ -320,19 +323,6 @@ public class DataSetData implements IVirtualArray1D
       return selectedInd.length;
     }
 
-/*
-   public JComponent[] getSharedControls()
-    {
-     return null;
-    }
-
-   public JComponent[] getPrivateControls()
-    {
-     JComponent[] Res = new JComponent[1];
-     
-     return new JComponent[0];
-    }
-*/
    
    Vector ActListeners = new Vector();
    public void addActionListener( ActionListener listener)
