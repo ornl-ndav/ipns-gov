@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/12/05 05:27:01  millermi
+ *  - Fixed Eclipse warnings.
+ *
  *  Revision 1.1  2004/11/12 17:22:01  millermi
  *  - Initial Version - Separated existing pseudo-log mapping
  *    out of LogScaleUtil into this new class.
@@ -85,10 +88,6 @@
  */
 
 package gov.anl.ipns.ViewTools.Components;
-
-import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
-import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
-
 
 /**
  * This class logarithmically maps from a source interval
