@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2003/12/12 06:13:00  millermi
+ * - Introduced variables for row/column sizes in main(),
+ *   this makes testing various sizes less tedious.
+ *
  * Revision 1.6  2003/11/21 01:26:35  millermi
  * - Commented test code out that was missed in last checkin.
  *
@@ -366,9 +370,11 @@ public class IVCTester extends JFrame implements IPreserveState,
   */
   public static void main( String args[] )
   {
-    float test_array[][] = new float[500][500];
-    for ( int i = 0; i < 500; i++ )
-      for ( int j = 0; j < 500; j++ )
+    int row = 100;
+    int col = 100;
+    float test_array[][] = new float[row][col];
+    for ( int i = 0; i < row; i++ )
+      for ( int j = 0; j < col; j++ )
         test_array[i][j] = i + j;
     VirtualArray2D va2D = new VirtualArray2D( test_array );
     va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, 10000f, 
