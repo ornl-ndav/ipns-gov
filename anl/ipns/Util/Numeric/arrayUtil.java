@@ -2,6 +2,10 @@
  * @(#)arrayUtil.java  1999/01/10   Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.8  2000/11/07 15:29:57  dennis
+ *  Temporarily commented out SortOnX method that used java.util.Arrays.sort()
+ *  menthod that is not present in Java 1.1.8 on Mac computers.
+ *
  *  Revision 1.7  2000/10/03 21:20:42  dennis
  *  Added SortOnX method to sort a list of points.
  *
@@ -220,18 +224,20 @@ public static float interpolate( float x_value, float x[], float y[] )
 
 /**
  *  Sort an array of 2D points based on the x coordinates of the points.
- * 
+ *  (Not implemented in Java 1.1 version. )
+ *
  *  @param  points   The array of 2D points to sort.
  *
  *  @return interpolated y value at the specified x value
  */
+/* ###################
 public static void SortOnX( floatPoint2D points[] )
 {
   Compare_floatPoint2D_X comp = new Compare_floatPoint2D_X();
 
   java.util.Arrays.sort( points, comp );
 }
-
+*/
 
 
   /**
@@ -340,7 +346,7 @@ public static void SortOnX( floatPoint2D points[] )
    points[3] = new floatPoint2D( 1, 10 );
    points[4] = new floatPoint2D( 4, 26 );
 
-   arrayUtil.SortOnX( points );
+//   arrayUtil.SortOnX( points );
    for ( int i = 0; i < 5; i++ )
      System.out.println( points[i] );
   }
