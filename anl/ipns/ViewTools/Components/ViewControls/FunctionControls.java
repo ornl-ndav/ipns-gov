@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.37  2004/07/02 20:12:32  serumb
+ * Added control to set the shift factor for the offset.
+ *
  * Revision 1.36  2004/06/16 22:11:21  serumb
  * Repaint components after changes made to the graph.
  *
@@ -205,6 +208,7 @@ import javax.swing.border.*;
   private JComboBox PointMarkerSizeBox = new JComboBox(  );
   private JComboBox ErrorBarBox = new JComboBox(  );
   private JComboBox ShiftBox = new JComboBox(  );
+  private JComboBox ShiftFactor = new JComboBox(  );
   private JComboBox LogBox = new JComboBox(  );
   private String[] lines;
   private String[] line_type;
@@ -230,6 +234,7 @@ import javax.swing.border.*;
   private LabelCombobox labelbox6;
   private LabelCombobox labelbox7;
   private LabelCombobox labelbox8;
+  private LabelCombobox labelbox9;
   private JLabel control_label;
   private Font label_font;
   private TextRangeUI x_range; 
@@ -244,13 +249,14 @@ import javax.swing.border.*;
                                     new ControlCheckboxButton(  );
   private ControlSlider log_slider;
   private double log_scale = 10;
+  private float shift_factor = 1;
   private ViewControlsPanel main_panel;
   private JFrame the_frame;
 
   private CursorOutputControl cursor;
 
-  public static final int FRAME_WIDTH  = 510; 
-  public static final int FRAME_HEIGHT = 380; 
+  public static final int FRAME_WIDTH  = 480; 
+  public static final int FRAME_HEIGHT = 350; 
   
   /**
    *  Constructor that builds the controls in an existing frame.
@@ -366,6 +372,11 @@ import javax.swing.border.*;
     log_placements[3] = "X and Y";
     labelbox8      = new LabelCombobox( label8, log_placements );
 
+    String [] factors      = new String[3];
+    factors[0]   = "1";
+    factors[1]   = "1.5";
+    factors[2]   = "2";
+    labelbox9      = new LabelCombobox( "Shift Factors", factors );
 
    
     LineColor   = new ButtonControl( "Line Color" );
@@ -410,7 +421,10 @@ import javax.swing.border.*;
     leftBox.add( panel2 );
     leftBox.add( labelbox6.theBox );
     leftBox.add( panel3 );
-                                                                                   
+    leftBox.add( labelbox7.theBox );
+    leftBox.add( labelbox9.theBox );
+        
+                                                                                 
     LineBox              = labelbox1.cbox;
     LineStyleBox         = labelbox2.cbox;
     LineWidthBox         = labelbox3.cbox;
@@ -418,7 +432,9 @@ import javax.swing.border.*;
     PointMarkerSizeBox   = labelbox5.cbox;
     ErrorBarBox          = labelbox6.cbox;
     ShiftBox             = labelbox7.cbox;
+    ShiftFactor          = labelbox9.cbox;
     LogBox               = labelbox8.cbox;
+    
    
     control_box.add(leftBox);
     vert_box.add( x_range );
@@ -437,7 +453,7 @@ import javax.swing.border.*;
     rightBox.add( legend_checkbox );
     rightBox.add( TFP );
     rightBox.add( cursor );
-    rightBox.add( labelbox7 );
+//  rightBox.add( labelbox7 );
     rightBox.add( labelbox8 );
     rightBox.add( log_slider );
                                                                               
@@ -462,6 +478,7 @@ import javax.swing.border.*;
     annotation_checkbox.addActionListener( new ControlListener(  ) );
     legend_checkbox.addActionListener( new ControlListener(  ) );
     ShiftBox.addActionListener( new ControlListener(  ) );
+    ShiftFactor.addActionListener( new ControlListener(  ) );
     LogBox.addActionListener( new ControlListener(  ) );
     log_slider.addActionListener( new ControlListener( ) );
     x_range.addActionListener( new x_rangeListener(  ) );
@@ -996,12 +1013,13 @@ import javax.swing.border.*;
         } else if( ae.getSource( ) == ShiftBox) {
             if ( ShiftBox.getSelectedItem( ).equals( "Diagonal" ))
               { 
-                gjp.setMultiplotOffsets(20,20);
+                gjp.setMultiplotOffsets((int)(20 * shift_factor),
+                                        (int)( 20 * shift_factor));
                 gjp.repaint();
               } 
             else if( ShiftBox.getSelectedItem( ).equals( "Vertical" ))
               {
-                gjp.setMultiplotOffsets(0,20);
+                gjp.setMultiplotOffsets(0,(int)(20 * shift_factor));
                 gjp.repaint();
               }
             else if( ShiftBox.getSelectedItem( ).equals( "Overlaid" ))
@@ -1013,6 +1031,16 @@ import javax.swing.border.*;
               gjp.setMultiplotOffsets(0,0);
               gjp.repaint();
             }
+        } else if( ae.getSource( ) == ShiftFactor) {
+            if (ShiftFactor.getSelectedItem( ).equals( "1" ))
+            shift_factor = 1;
+            if (ShiftFactor.getSelectedItem( ).equals( "1.5" ))
+            shift_factor = 1.5f;
+            if (ShiftFactor.getSelectedItem( ).equals( "2" ))
+            shift_factor = 2;
+            
+            ShiftBox.setSelectedItem(ShiftBox.getSelectedItem());
+
         } else if( ae.getSource( ) == LogBox) {
             AxisOverlay2D note = (AxisOverlay2D)big_picture.getComponent(
                                  big_picture.getComponentCount() - 2);
