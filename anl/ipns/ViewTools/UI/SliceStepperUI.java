@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/27 20:36:06  dennis
+ * Changing step size no longer sends message.
+ * Changed getStepSize() to getStep() which returns the last
+ * requested step amount as a signed value.
+ *
  * Revision 1.1  2004/01/26 23:54:32  dennis
  * Initial version of user interface for stepping a
  * rectangular slab, forward and backward in 3D.
@@ -55,9 +60,10 @@ import java.io.*;
 public class SliceStepperUI extends    ActiveJPanel
                             implements Serializable 
 {
-  public static final String VALUE_CHANGED = "Value Changed";
+  public static final String STEP = "Step";
 
   private TextValueUI  step_ui;
+  private float        sign = 1;
 
   /*-------------------------- default constructor ----------------------- */
   /**
@@ -65,7 +71,7 @@ public class SliceStepperUI extends    ActiveJPanel
    */
   public SliceStepperUI( String title )
   {
-    step_ui      = new TextValueUI( "Step Size ", 0.02f );
+    step_ui      = new TextValueUI( "Step Depth ", 0.02f );
 
     JButton backward_button = new JButton( "<" );
     JButton forward_button = new JButton( ">" );
@@ -83,21 +89,23 @@ public class SliceStepperUI extends    ActiveJPanel
     add( step_ui );
     add( button_panel );
 
-    ValueListener value_listener = new ValueListener();
-    step_ui.addActionListener( value_listener );
-    backward_button.addActionListener( value_listener );
-    forward_button.addActionListener( value_listener );
+    ButtonListener button_listener = new ButtonListener();
+    backward_button.addActionListener( button_listener );
+    forward_button.addActionListener( button_listener );
   }
 
-  /* ------------------------- getStepSize --------------------------- */
+  /* ----------------------------- getStep ------------------------------ */
   /**
-   *  Get the currently selected step size.
+   *  Get the current step amount, either the step size or minus step 
+   *  size, depending on whether the forward or backward button was 
+   *  pressed last. 
    *
-   *  @return the currently selected steps/unit.
+   *  @return  plus or minus the step size, depending on what button was
+   *           pressed last.
    */
-  public float getStepSize()
+  public float getStep()
   {
-    return step_ui.getValue();
+    return sign * step_ui.getValue();
   }
 
   /* ----------------------------- toString ------------------------------ */
@@ -106,7 +114,7 @@ public class SliceStepperUI extends    ActiveJPanel
    */
   public String toString()
   {
-    return step_ui.getLabel() + ": " + step_ui.getValue();
+    return step_ui.getLabel() + ": " + getStep();
   }
 
   /* -----------------------------------------------------------------------
@@ -114,16 +122,23 @@ public class SliceStepperUI extends    ActiveJPanel
    *  PRIVATE CLASSES
    *
    */
-  /* ------------------------ ValueListener ------------------------------ */
+  /* ------------------------ ButtonListener ------------------------------ */
   /*
-   *  Listen for a new value.
+   *  Listen for a button press on the "<" and ">" buttons.
    */ 
-  private class ValueListener implements ActionListener
+  private class ButtonListener implements ActionListener
   {
     public void actionPerformed( ActionEvent e )
     {
-      System.out.println("Value changed");
-      send_message( VALUE_CHANGED );
+      String command = e.getActionCommand();
+      if ( command.equals( "<" ) )
+        sign = -1;
+      else if  ( command.equals( ">" ) )
+        sign = +1;
+      else 
+        System.out.println("Invalid action command in SliceSteperUI");
+         
+      send_message( ISlicePlaneSelector.PLANE_CHANGED );
     }
   }
 
@@ -143,7 +158,7 @@ public class SliceStepperUI extends    ActiveJPanel
       public void actionPerformed(ActionEvent e)
       {
         System.out.println("New Values ----------------------------" );
-        System.out.println("" + test.getStepSize() );
+        System.out.println("" + test.getStep() );
         System.out.println("--------------------------------------" );
       }
     });
