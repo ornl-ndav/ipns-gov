@@ -31,7 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/12/01 20:05:40  kramer
+ * Fixed some of the javadoc statements so that they didn't have @param
+ * arguments referring to variables that didn't exist.
+ *
  * Revision 1.1  2004/11/03 23:56:41  kramer
+ *
  * This class implements a mathematical simplification of the Savitzky-Golay
  * smoothing algorithm.  It can more quickly smooth the data by assuming the
  * data points are evenly spaced.
@@ -175,30 +180,16 @@ public class QuickSavitzkyGolaySmoother extends AbstractSavitzkyGolaySmoother
    }
    
    /**
-    * Get all of the "c" coefficients used to smooth the data.  The 
+    * Calculates all of the "c" coefficients used to smooth the data.  The 
     * "c" coefficients are used to determine the coefficients of the 
     * smoothing polynomial.
     * <p>
     * Basically (a of i) = (c of -nL)*f(-nL)+(c of -nL+1)*f(-nL+1)
     * + . . . . +(c of nR)*f(nR) where (a of i) is the coefficient 
     * from the smoothing polynomial that is multiplied by x^i.
-    * @param nL The number of points to the left of the point being 
-    *           processed that are used to approximate the point 
-    *           being processed.
-    * @param nR The number of points to the right of the point being 
-    *           processed that are used to approximate the pont 
-    *           being processed.
-    * @param M  The order of the polynomial used to approximate the 
-    *           data.  This is also equal to the highest moment that 
-    *           is conserved.
-    * @return   The "c" coefficients used to smooth the data or null if 
-    *           they cannot be determined.
-    *           <p>
-    *           If <code>doubleArr</code> is the array returned from this 
-    *           method, then <code>doubleArr[i]</code> is the array of 
-    *           nL+nR+1 floats, each of which is one of the "c" coefficients 
-    *           corresponding to ai (the coefficient from the smoothing 
-    *           polynomial that is multiplied by x^i).
+    * <p>
+    * After calculating the "c" coefficients this method places them correctly 
+    * in the matrix (ie 2x2 matrix) {@link #coeffMatrix coeffMatrix}.
     */
    private void calculateCoefficientMatrix()
    {
@@ -224,8 +215,8 @@ public class QuickSavitzkyGolaySmoother extends AbstractSavitzkyGolaySmoother
    /**
     * Get the smoothed value for the y value at the index <code>yIndex</code>.
     * @param cArr     The array returned from the method 
-    *                 {@link #getCoefficientMatrix(int, int, int) 
-    *                 calculateAll_c_Coefficients(int, int, int)}.
+    *                 {@link #calculateCoefficientMatrix() 
+    *                 calculateCoefficientMatrix()}.
     * @param yValues  The array of y values that are used calculate the 
     *                 smoothed value.
     * @param yIndex   The index of the y value from <code>yValues</code> that 

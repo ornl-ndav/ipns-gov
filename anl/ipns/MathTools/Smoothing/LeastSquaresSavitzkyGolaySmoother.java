@@ -31,7 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/12/01 20:05:40  kramer
+ * Fixed some of the javadoc statements so that they didn't have @param
+ * arguments referring to variables that didn't exist.
+ *
  * Revision 1.1  2004/11/03 23:58:32  kramer
+ *
  * This class implements the Savitzky-Golay smoothing algorithm without
  * making any mathematical simplifications to the algorithm's equations.
  *
@@ -178,8 +183,6 @@ public class LeastSquaresSavitzkyGolaySmoother
 
    /**
     * Get the matrix "A" used in solving for a polynomial of best fit.
-    * @param isHistogram True if the data is from a histogram and false 
-    *                    if it is from a function.
     * @param M       The degree of the polynomial of best fit.
     * @param xValues     The x values used in the data.
     * @param yValues The y values used in the data.
@@ -274,9 +277,6 @@ public class LeastSquaresSavitzkyGolaySmoother
     *                    smoothed value.
     * @param yIndex      The index of the y value from <code>yValues</code> that 
     *                    is to be smoothed.
-    * @param isHistogram True if the x and y values are from a histogram and 
-    *                    false if 
-    *                    they are from a function.
     * @param nL          The number of points to the left of the point being 
     *                    processed that are used to approximate the point 
     *                    being processed.
