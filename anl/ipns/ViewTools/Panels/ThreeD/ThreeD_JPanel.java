@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2001/06/28 20:23:24  dennis
+ * Now maintains separate named lists of 3D objects, that can
+ * be added, removed and colored independently.
+ *
  * Revision 1.4  2001/05/29 14:55:39  dennis
  * setVirtualScreen() now takes a third parameter to specify
  * whether or not to reset the local transform as well as
@@ -71,8 +75,13 @@ import DataSetTools.components.image.*;
 public class ThreeD_JPanel extends    CoordJPanel 
                            implements Serializable
 {
-  private  IThreeD_Object  objects[] = null;
-  private  int             index[]   = null;
+  private  Vector          obj_lists     = null;  // Vector with name, object[]
+                                                  // pairs stored in successive
+                                                  // locations.
+  private  IThreeD_Object  all_objects[] = null;  // array of all current 
+                                                  // objects
+  private  int             index[]       = null;  // depth sorted array of
+                                                  // indices into all_objects[]
   private  Tran3D          tran;
   private  Tran3D          tran3D_used  = null;
   private  CoordTransform  tran2D_used  = null;
@@ -90,6 +99,7 @@ public class ThreeD_JPanel extends    CoordJPanel
   { 
     super();
 
+    obj_lists = new Vector();
     setVirtualScreenSize( 1, 1, true );
     setBackground( Color.black );
   }
@@ -144,17 +154,17 @@ public class ThreeD_JPanel extends    CoordJPanel
                                                // user moves the cursor (due
                                                // to XOR drawing).
     super.paint(g);
-    if ( objects == null )
+    if ( all_objects == null )
     {
       g.setColor( Color.white );
-      g.drawString( "ERROR: No 3D Objects", getWidth()/3, getHeight()/2 );
+      g.drawString( "No 3D Objects", getWidth()/3, getHeight()/2 );
       return;
     }
 
     project();
 
-    for ( int i = 0; i < objects.length; i++ )
-      objects[ index[i] ].Draw(g);
+    for ( int i = 0; i < all_objects.length; i++ )
+      all_objects[ index[i] ].Draw(g);
   }
 
 /* --------------------------- setViewTran --------------------------- */
@@ -223,78 +233,120 @@ public class ThreeD_JPanel extends    CoordJPanel
 
 /* ----------------------------- setColors --------------------------- */
 /**
- *  Change the the colors for the ThreeD objects currently handled by 
- *  this panel.  The list of objects must have been previously set using
- *  the setObject() method. 
+ *  Change the the colors for the specified ThreeD objects.
  *
  *  NOTE: The application must call repaint() or request_painting() to show
  *        the new colors.
  * 
- *  @param  colors   Array of colors to use for the objects of this panel.
+ *  @param  name     Name of the list of objects whose colors are to be 
+ *                   changed.
+ *  @param  colors   Array of colors to use for the name list of objects.
  */
-
-  public void setColors( Color colors[] )
+  public void setColors( String name, Color colors[] )
   {
-    if ( colors == null || objects == null )
-      return;
+    int  i = find( name );
 
-    int n_colors = colors.length;
+    if ( i >= 0 )
+    {
+      IThreeD_Object objects[] = (IThreeD_Object[])obj_lists.elementAt(i+1);
 
-    if ( n_colors > objects.length )
-      n_colors = objects.length;
+      int n_colors = colors.length;
+      if ( n_colors > objects.length )
+        n_colors = objects.length;
 
-    for ( int i = 0; i < n_colors; i++ )
-      objects[i].setColor( colors[i] );
+      for ( int j = 0; j < n_colors; j++ )
+        objects[j].setColor( colors[j] );
 
-    data_painted = false; 
+      data_painted = false; 
+    }
   }
+
 
 /* ----------------------------- setObjects ----------------------------- */
 /**
- *  Set the list of ThreeD objects to be handled by this panel.
+ *  Set a named list of ThreeD objects in the Vector of objects to be 
+ *  handled by this panel, if the name is already used, the new objects
+ *  will replace the old objects.
  *
  *  NOTE: The application must call repaint() or request_painting() to show
  *        the new list of objects.
  *
- *  @param  obj   Array of ThreeD objects to use for this panel.
+ *  @param  name  String identifer the array of objects being set for 
+ *                this panel.
+ *  @param  obj   Array of ThreeD objects to be set for this panel.
  */
- public void setObjects( IThreeD_Object obj[] )
+ public void setObjects( String name, IThreeD_Object obj[] )
  {
-   objects = obj;
+                                                     // ignore degenerate cases
+   if ( name == null || obj == null || obj.length <= 0 )  
+     return;
 
-   if ( objects != null )
+   int i = find( name );
+
+   if ( i < 0 )
    {
-     index = new int[ objects.length ];
-
-     for ( int i = 0; i < index.length; i++ )
-       index[i] = i;
-
-     data_painted = false; 
+     obj_lists.addElement( name );
+     obj_lists.addElement( obj );
    }
-   else                                    // nothing to paint, so why bother
-   {
-     index        = null;
-     data_painted = true; 
-   }
+   else
+     obj_lists.setElementAt( obj, i+1 );
+
+   build_object_list();
  }
+
+
+/* ----------------------------- removeObjects ----------------------------- */
+/**
+ *  Remove a named list of ThreeD objects from the objects to be handled by
+ *  this panel.  If the named list is not present, this method has no
+ *  effect.
+ *
+ *  NOTE: The application must call repaint() or request_painting() to show
+ *        the new list of objects.
+ *
+ *  @param  name  Unique string identifer to be used for the new array
+ *                of objects being removed from this panel
+ */
+ public void removeObjects( String name )
+ {
+   int i = find( name );
+
+   if ( i >= 0 )
+   {
+     obj_lists.removeElementAt( i );      // remove name
+     obj_lists.removeElementAt( i );      // remove objects
+     build_object_list();
+   } 
+ }
+
 
 
 /* ----------------------------- pickID ----------------------------- */
 /*
+ *  Return the Pick ID of the object whose projection is closest to
+ *  the specified pixel, provided it is within the specified pick radius.
  *
+ *  @param  x            The x coordinate of the specified pixel
+ *  @param  y            The y coordinate of the specified pixel
+ *  @param  pick_radius  Objects that are further away from the specified
+ *                       point than the pick_radius are ignored.
+ *
+ *  @return  The Pick ID of the first object found that is closest to 
+ *           pixel (x,y), provided it is within the pick_radius.  
+ *           If no such object is found, this returns INVALID_PICK_ID. 
  */
  public int pickID( int x, int y, int pick_radius )
  {
-   if ( objects == null || objects.length < 1 )
+   if ( all_objects == null || all_objects.length < 1 )
      return IThreeD_Object.INVALID_PICK_ID;
 
    float distance;
-   float min_distance = objects[0].distance_to( x, y );
+   float min_distance = all_objects[0].distance_to( x, y );
    int   min_index = 0;
    
-   for ( int i = 1; i < objects.length; i++ )
+   for ( int i = 1; i < all_objects.length; i++ )
    {
-     distance = objects[i].distance_to( x, y );
+     distance = all_objects[i].distance_to( x, y );
      if ( distance < min_distance )
      {
        min_distance = distance;
@@ -303,12 +355,12 @@ public class ThreeD_JPanel extends    CoordJPanel
    }
 
    if ( min_distance < pick_radius )
-     return objects[ min_index ].getPickID();
+     return all_objects[ min_index ].getPickID();
    else
      return IThreeD_Object.INVALID_PICK_ID;
  }
 
-
+/* ------------------------------- project ------------------------------ */
 /**
  *  Calculate the pixel coordinates of the projection of the specified 
  *  3D point, using the current viewing matrix and window transform.  This
@@ -346,11 +398,83 @@ public class ThreeD_JPanel extends    CoordJPanel
  *
  */
 
+/* --------------------------------- find --------------------------------- */
+/**
+ *  Find the specified name in the Vector of object lists.
+ *
+ *  @return Retruns the position in the Vector if it is found, -1 if not found.
+ */
+ public int find( String name )
+ {
+   if ( name == null )
+     return -1;
+
+   boolean found = false;
+   int     i = 0;
+
+   while ( i < obj_lists.size() && !found )
+   {
+     String current_name = (String)(obj_lists.elementAt(i));
+     if ( current_name.equals( name ) )
+       found = true;
+     else
+       i += 2;
+   }
+    
+   if ( found )
+     return i;
+   else
+     return -1;
+ }
+
+
+/* ------------------------- build_object_list --------------------------- */
+/**
+ *  Make a single array with references to all of the objects from all of the
+ *  named object lists for purposes of depth-sorting, projecting and drawing.
+ */
+ private void build_object_list()
+ {
+   if ( obj_lists.size() <= 0 )               // no more objects, so clean up
+   {
+     index = null;
+     all_objects = null;
+     repaint();
+     return;
+   }
+
+   int n_lists = obj_lists.size()/2;
+
+   int n_objects = 0;
+   for ( int i = 0; i < n_lists; i++ )
+     n_objects += ((IThreeD_Object[])(obj_lists.elementAt( 2*i + 1 ))).length;
+
+   all_objects = new IThreeD_Object[n_objects];
+   IThreeD_Object list[];
+   int place = 0;
+   for ( int i = 0; i < n_lists; i++ )
+   {
+     list = (IThreeD_Object[])obj_lists.elementAt( 2*i + 1 );
+     for ( int j = 0; j < list.length; j++ )
+     {
+       all_objects[ place ] = list[j];
+       place++;
+     }
+   }
+
+   index = new int[ all_objects.length ];
+
+   for ( int i = 0; i < index.length; i++ )
+     index[i] = i;
+
+   data_painted = false;
+ }
+
 /* ----------------------------- project ------------------------------ */
 
   private void project()
   {
-    if ( objects == null )         // nothing to project
+    if ( all_objects == null )         // nothing to project
       return;
                                    // can't project using null transforms
     if ( tran == null || local_transform == null )
@@ -374,10 +498,10 @@ public class ThreeD_JPanel extends    CoordJPanel
                                                   a[3][2] * a[3][2]  );
     float clip_distance = clip_factor * vrp_to_cop_dist;
 
-    for ( int i = 0; i < objects.length; i++ )
-      objects[i].Project( tran, local_transform, clip_distance );
+    for ( int i = 0; i < all_objects.length; i++ )
+      all_objects[i].Project( tran, local_transform, clip_distance );
 
-    q_sort( objects, index, 0, objects.length-1 );
+    q_sort( all_objects, index, 0, all_objects.length-1 );
 
     tran3D_used = new Tran3D( tran );
     tran2D_used = new CoordTransform( local_transform );
@@ -474,7 +598,7 @@ private static void q_sort( IThreeD_Object list[],
       ((Polymarker)objs[p]).setSize(2);
       ((Polymarker)objs[p]).setType(Polymarker.STAR);
     }
-    test.setObjects( objs );
+    test.setObjects( "SAMPLE_OBJECTS", objs );
     v_control.apply( true );
                                                      // test showing frames
                                                      // with different colors
@@ -494,7 +618,7 @@ private static void q_sort( IThreeD_Object list[],
         colors = IndexColorMaker.getDualColorTable( 
                      IndexColorMaker.NEGATIVE_GRAY_SCALE, 128 ); 
 
-      test.setColors( colors );
+      test.setColors( "SAMPLE_OBJECTS", colors );
       test.request_painting( 200 );
     }
                                                     // test showing scene
