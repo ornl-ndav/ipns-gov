@@ -34,6 +34,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.86  2005/03/21 00:39:38  millermi
+ *  - setPointedAt() now calls set_crosshair_WC() so the crosshairs
+ *    are displayed when a new pointed at is set.
+ *  - setPointedAt() ignores request if current point is already set
+ *    to the desired point.
+ *  - POINTED_AT_CHANGED message is no longer sent out while zooming in
+ *    occurs.
+ *  - TableRegions are now ignored by addSelectedRegion() and
+ *    setSelectedRegions().
+ *
  *  Revision 1.85  2005/03/17 02:08:37  millermi
  *  - Added checkbox menu item for toggling aspect ratio of the image.
  *  - Added additional javadocs to getControls() that tell user what
@@ -1278,8 +1288,13 @@ public class ImageViewComponent implements IViewComponent2D,
     // If the original data passed in was null, do nothing.
     if( null_data )
       return;
+    // If pointed at already set to the desired point, do nothing.
+    if( getPointedAt() == fpt || 
+        ( getPointedAt().x == fpt.x && getPointedAt().y == fpt.y ) )
+      return;
     //set the cursor position on ImageJPanel
-    ijp.setCurrent_WC_point( fpt ); 
+    ijp.set_crosshair_WC( fpt );
+    //ijp.setCurrent_WC_point(fpt);
   }
 
  /**
@@ -1308,13 +1323,21 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void addSelectedRegion( Region world_coord_region )
   {
-    // If the original data passed in was null, do nothing.
-    if( null_data )
+    // If the original data passed in was null or region passed in
+    // is null, do nothing.
+    if( null_data || world_coord_region == null )
       return;
+    // Since table regions are unsupported by the SelectionOverlay, filter
+    // them out.
+    if( world_coord_region instanceof TableRegion )
+    {
+      System.out.println("TableRegions not supported by ImageViewComponent."+
+                         "addSelectedRegion()");
+      return;
+    }
     Region[] reg = new Region[1];
     reg[0] = world_coord_region;
-    ((SelectionOverlay)
-        (transparencies.elementAt(1))).addRegions( reg );
+    ((SelectionOverlay)(transparencies.elementAt(1))).addRegions( reg );
     // if selection control is unchecked, turn it on.
     if( !((ControlCheckboxButton)controls[5]).isSelected() )
       ((ControlCheckboxButton)controls[5]).doClick();
@@ -1338,10 +1361,19 @@ public class ImageViewComponent implements IViewComponent2D,
     if( null_data )
       return;
     ((SelectionOverlay)(transparencies.elementAt(1))).clearRegions();
+    // If rgn is null, net effect is to clear regions.
     if( rgn != null )
     {
-      ((SelectionOverlay)
-          (transparencies.elementAt(1))).addRegions( rgn );
+      // Search through rgn list, count all table regions.
+      int counter = 0;
+      for( int i = 0; i < rgn.length; i++ )
+        if( rgn[i] instanceof TableRegion )
+	  counter++;
+      // If all elements of rgn are table regions, ignore request.
+      if( counter == rgn.length )
+        return;
+      // If a valid Region exists, add it.
+      ((SelectionOverlay)(transparencies.elementAt(1))).addRegions( rgn );
       // if selection control is unchecked, turn it on.
       if( !((ControlCheckboxButton)controls[5]).isSelected() )
         ((ControlCheckboxButton)controls[5]).doClick();
@@ -2106,7 +2138,9 @@ public class ImageViewComponent implements IViewComponent2D,
 	// update cursor readout when pointed-at is changed.
 	((CursorOutputControl)controls[2]).setValue(0,getPointedAt().x);
 	((CursorOutputControl)controls[2]).setValue(1,getPointedAt().y);
-	sendMessage(POINTED_AT_CHANGED);
+	// Do not send out message if zooming in.
+	if( !ijp.isDoingBox() )
+	  sendMessage(POINTED_AT_CHANGED);
       }
       else if (message == CoordJPanel.ZOOM_IN)
       {
