@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/12 21:06:56  serumb
+ *  Class now extends IVirtualArray, added setAxisInfo method.
+ *
  *  Revision 1.7  2004/03/12 00:06:23  rmikk
  *  Fixed Package Names
  *
@@ -63,7 +66,7 @@ package gov.anl.ipns.ViewTools.Components;
 
  */
 
-public interface IVirtualArray1D
+public interface IVirtualArray1D extends IVirtualArray
 {
    public static final String NO_XLABEL = "No X Label";
    public static final String NO_YLABEL = "No Y Label";
@@ -77,16 +80,6 @@ public interface IVirtualArray1D
    */
   
    
-  /**
-   * This method will return the title assigned to the data. 
-   */
-   public String getTitle();
-   
-  /**
-   * This method will assign a title to the data. 
-   */
-   public void setTitle( String title );
-  
   /**
    * Gets the x values for a line, given the index of the line. 
    */
@@ -107,7 +100,22 @@ public interface IVirtualArray1D
                             float[] errors,
                             int group_id,
                             int line_num);
-   
+  
+ /**
+  * Sets the attributes of the data array within a AxisInfo wrapper.
+  * This method will take in an integer to determine which axis
+  * info is being altered.
+  *
+  *  @param  axis Use AxisInfo.X_AXIS (0) or AxisInfo.Y_AXIS (1).
+  *  @param  min Minimum value for this axis.
+  *  @param  max Maximum value for this axis.
+  *  @param  label Label associated with the axis.
+  *  @param  units Units associated with the values for this axis.
+  *  @param  islinear Is axis linear (true) or logarithmic (false)
+  */
+  public void setAxisInfo( int axis, float min, float max,
+                           String label, String units, boolean islinear );
+ 
   /**
    * Get vertical error values for a line in the graph..
    * The "line_number" is the index for the selected lines.
@@ -119,15 +127,6 @@ public interface IVirtualArray1D
    * Get the Group ID number for the line label.
    */
    public int getGroupID( int line_number );
-
-   //**/get axisinfo
-   public AxisInfo  getAxisInfo( int axiscode );
-     
-  /**
-   * Set all values in the array to a value. This method will usually
-   * serve to "initialize" or zero out the array. 
-   */
-   public void setAllValues( float value );
 
   /**
    *  Returns the number of points in the line.
