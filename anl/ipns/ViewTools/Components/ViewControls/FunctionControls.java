@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.30  2004/03/12 22:57:52  serumb
+ * Now uses IVirtualArrayList1D in place of IVirtualArray1D.
+ *
  * Revision 1.29  2004/03/12 21:08:46  serumb
  * Took out references to DataSetData, replaced them with
  * calls to setAxisInfo from IVirtualArray1D.
@@ -135,7 +138,7 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
 //import DataSetTools.components.ui.*;
 import gov.anl.ipns.ViewTools.UI.*; 
 import gov.anl.ipns.ViewTools.Panels.Transforms.*; 
-import gov.anl.ipns.ViewTools.Components.*;  // IVirtualArray1D
+import gov.anl.ipns.ViewTools.Components.*;  // IVirtualArrayList1D
 import gov.anl.ipns.ViewTools.Components.OneD.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;  //Axis Overlays
 import gov.anl.ipns.ViewTools.Panels.Graph.*;//GraphJPanel
@@ -169,7 +172,7 @@ import javax.swing.border.*;
   public class FunctionControls
   {
 
-  private IVirtualArray1D Varray1D;
+  private IVirtualArrayList1D Varray1D;
   private FunctionViewComponent fvc;
   private GraphJPanel gjp;
   private JPanel big_picture = new JPanel();
@@ -260,7 +263,7 @@ import javax.swing.border.*;
   /**
    *  Constructor that builds the controls in an existing frame.
    */ 
-  public FunctionControls( IVirtualArray1D varr, 
+  public FunctionControls( IVirtualArrayList1D varr, 
                            GraphJPanel graph_j_panel,
                            JPanel display_panel, 
                            FunctionViewComponent FVC,
@@ -283,7 +286,7 @@ import javax.swing.border.*;
   /**
    *  Constructor that builds the controls in a new frame.
    */ 
-  public FunctionControls( IVirtualArray1D varr, 
+  public FunctionControls( IVirtualArrayList1D varr, 
                            GraphJPanel graph_j_panel,
                            JPanel display_panel, 
                            FunctionViewComponent FVC) {
@@ -1179,7 +1182,7 @@ import javax.swing.border.*;
     }
     FunctionViewComponent fvc = new FunctionViewComponent( ArrayHandler );
 
-    IVirtualArray1D Varray1D = fvc.getArray(); 
+    IVirtualArrayList1D Varray1D = fvc.getArray(); 
     GraphJPanel graph_panel = new GraphJPanel();
     JPanel main_panel = new JPanel();
     
