@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2001/07/12 14:38:54  dennis
+ * Added types SOLID and HOLLOW and method setType() to select
+ * how the polygon should be drawn.
+ *
  * Revision 1.1  2001/05/08 21:07:16  dennis
  * Arbitrary single colored polygon that can be drawn
  * by a ThreeD_JPanel.
@@ -53,6 +57,11 @@ public class Polygon  extends     ThreeD_Object
                       implements  Serializable
 {
 
+public static final int HOLLOW = 0;
+public static final int SOLID  = 1;
+ 
+private int type = SOLID;
+
   /** 
    *  Construct a polygon using the specified vertices and color.
    *
@@ -67,6 +76,17 @@ public class Polygon  extends     ThreeD_Object
     super( verts, color );
   }
 
+
+  /**
+   *  Specify whether the polygon should be drawn just using lines for it's
+   *  edges, or if it should be filled. 
+   *
+   *  @param polygon_type  Specifies the type as HOLLOW or SOLID
+   */
+  public void setType( int polygon_type )
+  {
+    type = polygon_type;
+  }
 
   /**
    *  Draw this Polygon using the projected 2D points in the specified
@@ -90,7 +110,12 @@ public class Polygon  extends     ThreeD_Object
      }
 
      g.setColor( color );
-     g.fillPolygon( xtemp, ytemp, xtemp.length );      
+     g.drawPolygon( xtemp, ytemp, xtemp.length );  // always draw border,
+                                                   // since it cheap and helps
+                                                   // prevent thin polygons
+                                                   // from disappearing
+     if ( type == SOLID )
+       g.fillPolygon( xtemp, ytemp, xtemp.length );      
   }
 
 }
