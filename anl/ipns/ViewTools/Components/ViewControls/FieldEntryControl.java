@@ -35,6 +35,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2005/03/11 20:34:48  millermi
+ *  - set/getControlValue() now includes radio button selection as
+ *    first entry of String[].
+ *  - getSelection() now returns null if radio button not found.
+ *
  *  Revision 1.13  2005/03/09 22:36:06  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -393,7 +398,9 @@ public class FieldEntryControl extends ViewControl
  /**
   * This method will set all the values in the field entry control given an
   * an array of Strings. Since values can be parsed later, use strings for
-  * generic purposes.
+  * generic purposes. The first entry of the String[] must refer to the
+  * radio button that is selected. If no radio buttons have been added
+  * to the control, pass in null for the first array value.
   *
   *  @param  value String[] of field entry values.
   */
@@ -402,26 +409,43 @@ public class FieldEntryControl extends ViewControl
     if( value == null || !(value instanceof String[]) )
       return;
     String[] values = (String[])value;
+    // First value is the selected radio button.
+    // Make sure radiolabel exists.
+    if( !radiotable.containsKey( values[0] ) )
+      return;
+    setSelected(values[0]);
     int min_length = values.length;
     // Let min_length be the smallest value between the String[] and number of
     // field entries.
-    if( min_length > text.length )
+    if( min_length > text.length + 1 )
       min_length = text.length;
     ignore_change = true;
-    for( int i = 0; i < min_length; i++ )
-      setValue(i,values[i]);
+    // Start at 1 since first value is radio button selection.
+    for( int i = 1; i < min_length; i++ )
+      setValue(i-1,values[i]);
+    // Submit values.
+    enter.doClick();
     ignore_change = false;
   }
   
  /**
-  * Get String[] of values in field entries. Parsing the strings is done
+  * Get String[] containing the selected radio button and all values in
+  * the field entries. Parsing the value strings is done
   * within this control to determine if the strings are numeric values.
+  * If no radio buttons have been added to the control, null is the first
+  * element of the array.
   *
-  *  @return Array of selected indicies for each combobox.
+  *  @return Array containing the selected radio button and all values in
+  *          the field entries.
   */
   public Object getControlValue()
   {
-    return getAllStringValues();
+    String[] values = getAllStringValues();
+    String[] return_values = new String[values.length+1];
+    return_values[0] = getSelected();
+    for( int i = 0; i < values.length; i++ )
+      return_values[i+1] = values[i];
+    return return_values;
   }
  
  /**
@@ -758,13 +782,14 @@ public class FieldEntryControl extends ViewControl
  /**
   * This method will return the label of the selected JRadioButton.
   *
-  *  @return The label of the selected radio button.
+  *  @return The label of the selected radio button. Returns null if no
+  *          radio buttons have been added to the control.
   */ 
   public String getSelected()
   {
     if( radio_added )
       return radioChoices.getSelection().getActionCommand();
-    return "Radio Button Needed";
+    return null;
   }
   
  /**
@@ -1015,20 +1040,28 @@ public class FieldEntryControl extends ViewControl
     // If cm is passed in, test with control manager.
     if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
     {
-      String[] namelist = {"A1","A2","A3"};
-      String[] valuelist = {"B1","B2","B3"};
-      String[] namelist2 = {"C1","C2","C3"};
-      String[] valuelist2 = {"D1","D2","D3"};
-      String[] namelist3 = {"E1","E2","E3"};
-      String[] valuelist3 = {"F1","F2","F3"};
+      String[] namelist1 = {"A1","A2","A3"};
+      String[] namelist2 = {"B1","B2","B3"};
+      String[] namelist3 = {"C1","C2","C3"};
+      String[] namelist4 = {"D1","D2","D3"};
+      String[] namelist5 = {"E1","E2","E3"};
       
-      ViewControl[] controls = new ViewControl[3];
-      controls[0] = new FieldEntryControl(namelist,valuelist);
+      FieldEntryControl[] controls = new FieldEntryControl[3];
+      controls[0] = new FieldEntryControl(3);
       controls[0].setTitle("FieldEntry1");
-      controls[1] = new FieldEntryControl(namelist2,valuelist2);
+      controls[0].addRadioChoice("A",namelist1);
+      controls[0].addRadioChoice("B",namelist2);
+      controls[0].addRadioChoice("C",namelist3);
+      controls[1] = new FieldEntryControl(3);
       controls[1].setTitle("FieldEntry2");
-      controls[2] = new FieldEntryControl(namelist3,valuelist3);
+      controls[1].addRadioChoice("A",namelist1);
+      controls[1].addRadioChoice("B",namelist2);
+      controls[1].addRadioChoice("C",namelist3);
+      controls[2] = new FieldEntryControl(3);
       controls[2].setTitle("FieldEntry3");
+      controls[2].addRadioChoice("C",namelist3);
+      controls[2].addRadioChoice("D",namelist4);
+      controls[2].addRadioChoice("E",namelist5);
       
       String[] keys = new String[3];
       keys[0] = "FieldEntry";
