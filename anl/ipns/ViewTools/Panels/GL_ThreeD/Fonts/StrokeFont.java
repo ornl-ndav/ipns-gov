@@ -27,7 +27,12 @@
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
- * Modified:
+ * Modified: 
+ *
+ * $Log$
+ * Revision 1.2  2004/06/18 19:44:44  dennis
+ * Moved to Fonts package.
+ *
  *
  * Revision 1.1  2004/06/01 03:43:30  dennis
  * Initial version of classes for drawing strings as sequences of
