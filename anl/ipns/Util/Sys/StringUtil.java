@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2002/08/12 18:51:47  pfpeterson
+ *  fixSeparator now points at FilenameUtil.fixSeparator. Also, updated
+ *  the documentation to reflect what fixSeparator actually does.
+ *
  *  Revision 1.7  2002/08/06 21:22:31  pfpeterson
  *  Added methods to get fun things like floats, ints and strings
  *  out of a StringBuffer.
@@ -82,24 +86,19 @@ public class StringUtil
 
   /* ---------------------------- fixSeparator --------------------------- */
   /**
-   *  Replace all occurrences of the possible file separators "/" "\" "\\"
-   *  with the file separator needed for the local system.
+   *  Method whichs calls its equivalent:
+   *  FilenameUtil.fixSeparator(file_name). See that method for
+   *  documentation.
    *
    *  @param  file_name  A file name string possibly containing improper
    *                     separators.
    *
    *  @return  A string containing the file name with all separators replaced 
-   *           by the system dependent separtator needed on the local system. 
+   *           by the appropriate separtator.
    */
   public static String fixSeparator( String file_name )
   {
-    String separator = File.separator;
-
-    String result = replace( file_name, "\\\\", separator );
-    result = replace( result, "\\", separator );
-    result = replace( result, "/", separator );
-
-    return result;
+      return FilenameUtil.fixSeparator(file_name);
   }
 
   /* ------------------------------ replace ------------------------------ */
