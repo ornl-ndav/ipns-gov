@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2005/01/28 17:54:43  dennis
+ * Commented out debug print message "name = "
+ *
  * Revision 1.4  2004/03/12 00:48:19  dennis
  * moved to package MathTools.Functions.FunctionTools
  *
@@ -49,37 +52,47 @@ package gov.anl.ipns.MathTools.Functions.FunctionTools;
 */
 
 public class ByteClassLoader extends ClassLoader
-{/**
+{
+/**
  * The bytecode for the class.
  */
   public byte bb[]; 
-/**
-*The number of bytes in the byteCode.
-*/
- public int sizee;
-/**
-*The name of this class.
-*/
- public  String Name;
-/**
-*Constructor.
-*@param  b  The ByteCode for the newly created (sub)class of Fxn
-*@param size  The number of Bytes in the ByteCode
-*@param name  The name of the newly created subclass
-*/    
-  public ByteClassLoader(byte b[],int size, String name){super();bb=b;sizee=size;Name=name;}
 
 /**
-*Finds the new class.
-*<P>If another class with the same name has already been loaded or a .class file for the same class is
-in the search path, the newly created class may not be the one that is loaded.
-*/
-  public Class findClass(String name) throws ClassNotFoundException
-   {  
-     System.out.println("name = " + name ); 
+ * The number of bytes in the byteCode.
+ */
+ public int sizee;
+
+/**
+ * The name of this class.
+ */
+ public String Name;
+
+/**
+ * Constructor.
+ * @param  b    The ByteCode for the newly created (sub)class of Fxn
+ * @param size  The number of Bytes in the ByteCode
+ * @param name  The name of the newly created subclass
+ */    
+  public ByteClassLoader(byte b[],int size, String name){
+    super();
+    bb=b;
+    sizee=size;
+    Name=name;
+  }
+
+/**
+ * Finds the new class.
+ * <P>If another class with the same name has already been loaded or a 
+ * .class file for the same class is in the search path, the newly created 
+ * class may not be the one that is loaded.
+ */
+  public Class findClass(String name) throws ClassNotFoundException {  
+
+     // System.out.println("name = " + name ); 
      if( !name.equals("gov.anl.ipns.MathTools.Functions.FunctionTools.Fxn"))
        return defineClass(name, bb, 0, bb.length);
      else
       return  super.findClass( name);
-    }
+  }
 }
