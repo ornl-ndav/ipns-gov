@@ -33,6 +33,15 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.22  2004/02/14 03:39:08  millermi
+ * - Updated changes made to ImageViewComponent.
+ * - changed "Load/Save Project Settings" to "Load/Save Project"
+ * - Added PROJECT_FILE key. This will allow the data file to
+ *   be loaded automatically when "Load Project" is selected.
+ * - setView() in ImageListener is now only called if a region is
+ *   added or removed. This was causing other operations to slow
+ *   because every message sent by IVC triggered this method.
+ *
  * Revision 1.21  2004/02/11 22:48:37  millermi
  * - ViewManager is now updated when selections are removed
  *   from the image.
@@ -231,7 +240,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   * the state was saved. The value this key references is of type
   * Dimension.
   */
-  public static final String VIEWER_SIZE           = "Viewer Size"; 
+  public static final String VIEWER_SIZE           = "Viewer Size";
   
  /**
   * "Data Directory" - This constant String is a key for referencing
@@ -240,6 +249,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   * String.
   */
   public static final String DATA_DIRECTORY        = "Data Directory";
+  
+ /**
+  * "Project File" - This constant String is a key for referencing
+  * the state information about the current data file being viewed with
+  * this viewer. The value this key references is of type String.
+  */
+  public static final String PROJECT_FILE        = "Project File";
   
   private static JFrame helper = null;
   
@@ -258,6 +274,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private String[] ellipselabels;
   private String[] wedgelabels;
   private String[] ringlabels;
+  private String   datafile;
+  private boolean os_region_added = false;
 
  /**
   * Construct a frame with no data to start with. This constructor will be
@@ -310,10 +328,26 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   public void setObjectState( ObjectState new_state )
   {
     boolean redraw = false;  // if any values are changed, repaint overlay.
-    Object temp = new_state.get(IMAGE_VIEW_COMPONENT);
+    Object temp = new_state.get(PROJECT_FILE);
     if( temp != null )
     {
-      ivc.setObjectState( (ObjectState)temp );
+      datafile = (String)temp;
+      loadData(datafile);
+      redraw = true;  
+    } 
+    
+    temp = new_state.get(IMAGE_VIEW_COMPONENT);
+    if( temp != null )
+    {
+      Object os = ((ObjectState)temp).get(ImageViewComponent.SELECTION_OVERLAY);
+      if( os != null )
+      {
+        os = ((ObjectState)os).get(SelectionOverlay.SELECTED_REGIONS);
+	if( os != null )
+          os_region_added = true;
+      }
+      if( ivc != null )
+        ivc.setObjectState( (ObjectState)temp );
       redraw = true;  
     } 
     
@@ -349,6 +383,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     state.insert( IMAGE_VIEW_COMPONENT, ivc.getObjectState(isDefault) );
     state.insert( VIEWER_SIZE, getSize() );
     state.insert( DATA_DIRECTORY, new String(projectsDirectory) );
+    // if they save the project, this file will automatically be loaded.
+    if( !isDefault )
+      state.insert( PROJECT_FILE, new String(datafile) );
     
     return state;
   }
@@ -413,6 +450,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */ 
   public void loadData( String filename )
   {
+    datafile = filename;
     int NUM_ROWS = 200;
     int NUM_COLS = 200;
     float[][] array     = new float[NUM_ROWS][NUM_COLS];
@@ -589,6 +627,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 				     iva.getNumRows()-0.001f );
     }
     data = new VirtualArray2D(1,1);
+    datafile = "";
     buildMenubar();
     
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -707,10 +746,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       view_man.add("Hide Results Window");
       option_listeners.add( new WVListener() ); // listener for view results
     options.add(save_menu);
-      save_menu.add("Save Project Settings");
+      save_menu.add("Save Project");
       option_listeners.add( new WVListener() ); // listener for save project
     options.add(load_menu);
-      load_menu.add("Load Project Settings");
+      load_menu.add("Load Project");
       option_listeners.add( new WVListener() ); // listener for load project
     help.add("Help");
     help_listeners.add( new WVListener() );
@@ -731,7 +770,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       JMenu option_menu = menu_bar.getMenu(1);
       option_menu.getItem(0).setEnabled(false); // disable Hide Results Window
       option_menu.getItem(1).setEnabled(false); // disable Save Project Settings
-      option_menu.getItem(2).setEnabled(false); // disable Load Project Settings
+    //option_menu.getItem(2).setEnabled(false); // disable Load Project Settings
     }
     // if ViewManager not visible, disable "Hide Results Window" button
     if( oldview == null || !oldview.isVisible() )
@@ -741,7 +780,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   }
   
  /*
-  * build controls for both view components.
+  * build controls for image view component.
   */ 
   private Box buildControls()
   {
@@ -812,7 +851,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     {
       return;
     }
-    floatPoint2D[] def_pts = region.getDefiningPoints();
+    floatPoint2D[] def_pts = region.getDefiningPoints(Region.IMAGE);
     if( region instanceof WedgeRegion )
     {
      /* def_pts[0]   = center pt of circle that arc is taken from
@@ -945,7 +984,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     }
 
     UniformXScale x_scale;      // "time channels" for the spectrum
-
     // build list of Q bin centers, with one bin for each "pixel" in the radius
     n_xvals = Math.round(end_x);
     x_scale = new UniformXScale( start_x, end_x, n_xvals );
@@ -1171,11 +1209,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 			"SandProps.isv";
 	getObjectState(IPreserveState.DEFAULT).silentFileChooser(props,true);
       }
-      else if( ae.getActionCommand().equals("Save Project Settings") )
+      else if( ae.getActionCommand().equals("Save Project") )
       {
 	getObjectState(IPreserveState.PROJECT).openFileChooser(true);
       }
-      else if( ae.getActionCommand().equals("Load Project Settings") )
+      else if( ae.getActionCommand().equals("Load Project") )
       {
         ObjectState state = new ObjectState();
 	if( state.openFileChooser(false) )
@@ -1209,8 +1247,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         
       if( message.equals(SelectionOverlay.REGION_ADDED) )
       {
-        // get points from the last selected region.
-        integrate( selectedregions[selectedregions.length-1] );
+        // REGION_ADDED message coming from setObjectState(), need to look
+	// at all of the selections, not just the last one.
+        if( os_region_added )
+	{
+	  for( int i = 0; i < selectedregions.length; i++ )
+            integrate( selectedregions[i] );
+	  os_region_added = false;
+	}
+        // region added graphically or manually, only need to get points
+	// from the last selected region.
+	else
+          integrate( selectedregions[selectedregions.length-1] );
+	// if a viewmanager has not been created yet, make one.
 	if( oldview == null )
 	{
           oldview = new ViewManager( data_set, IViewManager.SELECTED_GRAPHS );
@@ -1236,12 +1285,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       {
         data_set.removeData_entry( data_set.getNum_entries() - 1 );
 	data_set.notifyIObservers( IObserver.DATA_DELETED );
-	/*
-	if( oldview != null )
-	{
-	  oldview.setView( oldview.getView() );
-	  //oldview.update(data_set, IObserver.DATA_DELETED);
-	}*/
 	editor.selectionChanged();
       }
       else if( message.equals(SelectionOverlay.ALL_REGIONS_REMOVED) )
@@ -1256,6 +1299,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	//System.out.println("Pointed At Changed " + 
 	//                   ivc.getPointedAt().toString() );
       }
+      // disable "Hide/Show Results Window" if no selections exist.
       if( data_set.getNum_entries() > 0 )
       {
         menu_bar.getMenu(0).getItem(1).setEnabled(true);
@@ -1264,10 +1308,12 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       {
         menu_bar.getMenu(0).getItem(1).setEnabled(false);
       }
-      
+      // ################## Consider revising ########################
+      // Potential bottleneck...
       // This is a hack to get the ViewManager to update when selections
-      // are removed.
-      if( oldview != null )
+      // are removed. Need to ignore all messages except when a region is
+      // added or removed, otherwise the viewer bogs down.
+      if( oldview != null && message.toLowerCase().indexOf("region") >= 0 )
         oldview.setView( oldview.getView() );      
     }
   }
@@ -1399,13 +1445,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       leftpane.add(radiofec);
       
       selectlist = new JComboBox();
-     /* *******************CHANGE HERE FOR ADDED FEATURES**********************
-      * Uncomment line below, and remove setEnabled(false) to allow for 
-      * editing of selections. This cannot be done until the IVC passes
-      * world coords to this viewer.
-      */
       selectlist.addActionListener( new EditorListener() );
-      //selectlist.setEnabled(false);
       
       buildComboBox();
       rightpane.add( selectlist );
@@ -1515,7 +1555,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	    wc_pts[1] = new floatPoint2D( (values[0] + values[2]),
 	                                  (values[1] - values[3]) );
 	    wc_pts[2] = new floatPoint2D( values[0], values[1] );
-	    ivc.addSelection( new WCRegion( SelectionJPanel.ELLIPSE, wc_pts ) );
+	    ivc.addSelectedRegion( new EllipseRegion( wc_pts ) );
 	  }
 	  
      /* ***********************Defining Points for Wedge************************
@@ -1568,7 +1608,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	    while( startangle < 0 )
 	      startangle += 360;
 	    wc_pts[5] = new floatPoint2D( startangle, arcangle );
-	    ivc.addSelection( new WCRegion( SelectionJPanel.WEDGE, wc_pts ) );
+	    ivc.addSelectedRegion( new WedgeRegion( wc_pts ) );
 	  }
 	  
      /* *******************Defining Points for Double Wedge*********************
@@ -1621,8 +1661,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	    while( startangle < 0 )
 	      startangle += 360;
 	    wc_pts[5] = new floatPoint2D( startangle, arcangle );
-	    ivc.addSelection( new WCRegion( SelectionJPanel.DOUBLE_WEDGE,
-	                                    wc_pts ) );
+	    ivc.addSelectedRegion( new DoubleWedgeRegion( wc_pts ) );
 	  }
 	  
      /* ***********************Defining Points for Ring*************************
@@ -1656,7 +1695,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	                                  (values[1] + values[3]) );
 	    wc_pts[4] = new floatPoint2D( (values[0] + values[3]),
 	                                  (values[1] - values[3]) );
-	    ivc.addSelection( new WCRegion( SelectionJPanel.RING, wc_pts ) );
+	    ivc.addSelectedRegion( new AnnularRegion( wc_pts ) );
 	  }	  
         } // end if (BUTTON_PRESSED)
         else if( message.equals("Close") )
