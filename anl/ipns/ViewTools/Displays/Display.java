@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/05/11 01:55:30  millermi
+ * - Updated the class description in the javadocs.
+ *
  * Revision 1.6  2004/04/29 06:20:25  millermi
  * - Added window listener to listen when the display window
  *   is closed. Upon closing, the kill() method is called on
@@ -92,9 +95,11 @@ import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
 import gov.anl.ipns.Util.Sys.SaveImageActionListener;
 
 /**
- * Simple class to display an image, specified by an IVirtualArray2D or a 
- * 2D array of floats, in a frame. This class adds further implementation to
- * the ImageFrame2.java class for thorough testing of the ImageViewComponent.
+ * This class acts as a base class for all display classes. Displays are
+ * flexible, portable viewers that enable users to quickly visualize data.
+ * Displays are not intended to manipulate or make calculations with data,
+ * only to visualize the data in a graphical manner. Displays include the
+ * graph (Display1D), image (Display2D), and soon the table (both 1D and 2D).
  */
 abstract public class Display extends JFrame implements IPreserveState,
                                                        Serializable
