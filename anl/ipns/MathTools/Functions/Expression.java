@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 02:11:17  dennis
+ *  Moved to package gov.anl.ipns.MathTools.Functions
+ *
  *  Revision 1.3  2002/11/27 23:14:24  pfpeterson
  *  standardized header
  *
@@ -43,14 +46,13 @@
  *
  */
 
-package  DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
+
+import gov.anl.ipns.Util.Numeric.*;
+import gov.anl.ipns.MathTools.Functions.FunctionTools.*;
+import gov.anl.ipns.Util.Sys.*;
 
 import java.io.*;
-import DataSetTools.functions.FunctionTools.*;
-import DataSetTools.math.*;
-import DataSetTools.util.*;
-import DataSetTools.dataset.*;
-import DataSetTools.viewer.*;
 
 /**
  * This class implements a parameterized function that is given by an 
@@ -195,11 +197,12 @@ public class Expression extends OneVarParameterizedFunction
       System.out.println("Float Values are:");
       for ( int i = 0; i < xfs.length; i++ )
         System.out.println("xfs[i] = " + xfs[i] + ", " + "yfs[i] = " + yfs[i] );
-
+/*
       DataSet ds = new DataSet( expression, "Initial Version" );
       XScale x_scale = new UniformXScale( -5, 5, 500 );
       Data data = new FunctionModel( x_scale, f, 1 );
       ds.addData_entry( data );
       ViewManager vm = new ViewManager( ds, IViewManager.IMAGE );
+*/
     }
 }
