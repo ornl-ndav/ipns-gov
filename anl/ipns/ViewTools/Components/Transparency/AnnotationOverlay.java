@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/06/09 22:32:44  dennis
+ *  - Added setEventListening(false) method call for ColorScaleImage to
+ *    ignore keyboard/mouse events on the AnnotationEditor.
+ *  - Fixed ArrayOutOfBounds exception when the ColorScaleImage
+ *    extreme values are passed.
+ *  - Added space between line and text in paint method.
+ *    (Mike Miller)
+ *
  *  Revision 1.4  2003/06/09 14:45:29  dennis
  *  - Added a ColorScaleImage to the AnnotationEditor to allow the
  *    user to change text and line colors.
@@ -207,7 +215,8 @@ public class AnnotationOverlay extends OverlayJPanel
    }      
 
   /**
-   *
+   * This method creates a new AnnotationEditor ( display is done internally
+   * in the AnnotationEditor.
    */
    public void editAnnotation()
    {
@@ -280,21 +289,21 @@ public class AnnotationOverlay extends OverlayJPanel
 	 p2 = note.getLine().getP2();
 	 // negate the slope since the x scale is top-down instead of bottom-up
 	 slope = -(float)(p2.y - p1.y)/(float)(p2.x - p1.x);
-	 //System.out.println("Slope = " + slope );
-	 
+
+	 // Any 2s or 3s except for x/2 are to provide spacing between line/text
 	 // Octdrent I or V
 	 if( (slope < .5) && (slope >= (-.5)) )
 	 {  // Octdrent I, between -22.5 and 22.5 degrees
 	    if( p1.x < p2.x )
 	    {
 	       //System.out.println("Octdrent I");
-	       autolocatex = 0;
+	       autolocatex = 3;
 	       autolocatey = fontheight/2;
 	    }
 	    else // Octdrent V, between 157.5 and 202.5 degrees
 	    {
 	       //System.out.println("Octdrent V");
-	       autolocatex = -textwidth;
+	       autolocatex = -textwidth - 2;
 	       autolocatey = fontheight/2;	       
 	    }
 	 }
@@ -304,8 +313,8 @@ public class AnnotationOverlay extends OverlayJPanel
 	    if( p1.x < p2.x )
 	    {
 	       //System.out.println("Octdrent II");
-	       autolocatex = 0;
-	       autolocatey = 0;
+	       autolocatex = 3;
+	       autolocatey = -2;
 	    }
 	    else // Octdrent VI, between 202.5 and 247.5 degrees
 	    {
@@ -321,7 +330,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	    {
 	       //System.out.println("Octdrent III");
 	       autolocatex = -textwidth/2;
-	       autolocatey = 0;
+	       autolocatey = -2;
 	    }
 	    else // Octdrent VII, between 247.5 and 292.5 degrees
 	    {
@@ -337,12 +346,12 @@ public class AnnotationOverlay extends OverlayJPanel
 	    {
 	       //System.out.println("Octdrent IV");
 	       autolocatex = -textwidth;
-	       autolocatey = 0;
+	       autolocatey = -2;
 	    }
 	    else // Octdrent VIII, between 292.5 and 337.5 degrees
 	    {
 	       //System.out.println("Octdrent VIII");
-	       autolocatex = 0;
+	       autolocatex = 3;
 	       autolocatey = fontheight;	       
 	    }	 
 	 }
@@ -594,6 +603,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	 }
 	 ColorScaleImage notecolor = new ColorScaleImage();
 	 notecolor.setNamedColorModel( IndexColorMaker.MULTI_SCALE, false );
+	 notecolor.setEventListening(false);
 	 notecolor.addMouseListener( new NoteColorListener() );
 	 viewer.getContentPane().add( notecolor );
 	 
@@ -650,7 +660,7 @@ public class AnnotationOverlay extends OverlayJPanel
          //*********************************************************************
 	 	 
 	 viewer.setVisible(true);
-	 viewer.getContentPane().getComponent(0).requestFocus();	      
+	 //viewer.getContentPane().getComponent(0).requestFocus();	      
       } // end of buildViewer()
       
       class ButtonListener implements ActionListener
@@ -822,9 +832,13 @@ public class AnnotationOverlay extends OverlayJPanel
 	                           IndexColorMaker.MULTI_SCALE, 127 );
 	    Color grayarray[] = IndexColorMaker.getColorTable(
 	                           IndexColorMaker.GRAY_SCALE, 127 );
-            int colorindex = (int)coloreditor.ImageValue_at_Cursor(); 
-	    if( colorindex >= 0 )
+            int colorindex = (int)coloreditor.ImageValue_at_Cursor();
+	    System.out.println("ColorIndex: " + colorindex );
+	    System.out.println("ColorArray Size: " + colorarray.length );
+	    System.out.println("GrayArray Size: " + grayarray.length ); 
+	    if( colorindex > 0 )
 	    {
+	       colorindex = colorindex - 1;
 	       if( !e.isControlDown() )		   
 	          text_color = colorarray[colorindex];
 	       if( !e.isShiftDown() )
@@ -832,6 +846,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	    }
 	    else
 	    {
+	       colorindex = colorindex + 1;
 	       colorindex = -colorindex;
 	       if( !e.isControlDown() )
 	          text_color = grayarray[colorindex];
