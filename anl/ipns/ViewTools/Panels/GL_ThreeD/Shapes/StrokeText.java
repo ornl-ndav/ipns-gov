@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2005/01/10 16:10:26  dennis
+ * Fixed minor error that would cause an extra glTranslate() to
+ * be called when it would not be used.
+ *
  * Revision 1.2  2004/06/18 19:58:51  dennis
  * Now imports Fonts package since StrokeFont.java moved
  * to Fonts directory.
@@ -282,7 +286,7 @@ public class StrokeText extends GL_Shape
     for ( int i = 0; i < str.length(); i++ )
     {
       font.DrawCharacter( drawable, str.charAt(i) );
-      if ( i < str.length() - 1 );
+      if ( i < str.length() - 1 )
         gl.glTranslatef( font.CharWidth( str.charAt(i) ), 0.0f, 0.0f );
     }
     gl.glPopMatrix();
