@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2001/10/05 16:58:13  dennis
+ *  Added methods to get the min and max step size in an array and to
+ *  determine whether or not the values are evenly spaced.
+ *
  *  Revision 1.12  2001/07/04 15:20:07  dennis
  *  Added SignedAbsSum() method to use for detector heights and
  *  scattering angles.
@@ -461,6 +465,95 @@ public static void q_sort( int list[], int start, int end )
       return min;
     }
   }
+
+
+  /**
+   *  Get the largest difference between successive values in an array.
+   *
+   *  @param  arr  The array in which the largest step is to be found
+   *
+   *  @return  The largest difference between successive values in the array.
+   *           If the array is empty, or if there is only one element in 
+   *           the array, return 0.
+   */
+  public static float getMaxStep( float arr[] )
+  {
+    if ( arr == null || arr.length <= 1 )
+      return 0;
+    else
+    {
+      float step;
+      float max_step = Math.abs( arr[1] - arr[0] );
+      for ( int i = 2; i < arr.length; i++ )
+      {
+        step = Math.abs( arr[i] - arr[i-1] );
+        if ( max_step < step )
+          max_step = step;
+      }
+      return max_step;
+    }
+  }
+
+
+  /**
+   *  Get the smallest difference between successive values in an array.
+   *
+   *  @param  arr  The array in which the smallest step is to be found
+   *
+   *  @return  The smallest difference between successive values in the array.  
+   *           If the array is empty, or if there is only one element in 
+   *           the array, return 0.
+   */
+  public static float getMinStep( float arr[] )
+  {
+    if ( arr == null || arr.length <= 1 )
+      return 0;
+    else
+    {
+      float step;
+      float min_step = Math.abs( arr[1] - arr[0] );
+      for ( int i = 2; i < arr.length; i++ )
+      {
+        step = Math.abs( arr[i] - arr[i-1] );
+        if ( min_step > step )
+          min_step = step;
+      }
+      return min_step;
+    }
+  }
+
+
+  /**
+   *  Check whether or not the values in an array are essentially evenly
+   *  spaced to within a specified percentage.  It is assumed that the
+   *  values in the array are either increasing or decreasing.  If max and
+   *  min are the largest and smallest absolute differences between successive
+   *  values, this function returns true if 100 * (max-min)/max < tol.
+   *
+   *  @param  arr  The array to be checked for uniform step sizes.
+   *  @param  tol  The tolerance for the percentage difference in step sizes. 
+   *
+   *  @return  True if there is a non-zero step size and the step sizes are
+   *           with tol% of the largest step size.  Return false otherwise.
+   */
+  public static boolean isUniformlySpaced( float arr[], float tol )
+  {
+    if ( arr == null || arr.length <= 1 )
+      return false;
+    else
+    {
+      float max_step = getMaxStep( arr );
+      if ( max_step <= 0 )
+        return false;
+
+      float min_step = getMinStep( arr );
+      if ( 100 * (max_step - min_step )/max_step > tol )
+        return false;
+
+      return true;
+    }
+  }
+
 
 
   /**
