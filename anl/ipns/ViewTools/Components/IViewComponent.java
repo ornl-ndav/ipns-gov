@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/21 21:58:40  millermi
+ *  - Removed setPointedAt() and getPointedAt() since not
+ *    all extending interfaces will use these methods in
+ *    the same way.
+ *
  *  Revision 1.1  2003/10/21 00:46:42  millermi
  *  - Initial Version - Factored out common functionality
  *    between all view component interfaces into this
@@ -70,18 +75,6 @@ public interface IViewComponent
   * to inform listeners that the current selected region has changed.
   */
   public static final String SELECTED_CHANGED = "SELECTED_CHANGED";
-  
- /**
-  * This method is a notification to the view component that the selected
-  * point has changed.
-  */ 
-  public void setPointedAt( Point pt );
- 
- /**
-  * This method is a notification to the view component that the selected
-  * point has changed.
-  */ 
-  public Point getPointedAt();
   
  /**
   * This method is invoked to notify the view component when the data
