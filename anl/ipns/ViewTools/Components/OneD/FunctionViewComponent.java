@@ -238,6 +238,27 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       return font;
    }
     
+  /**
+   * This method will return the local coordinate bounds of the center
+   * jpanel. To be implemented, the center may have to be a coordjpanel.
+   */
+   public CoordBounds getLocalCoordBounds()
+   {
+      //return local_bounds;
+      return gjp.getLocalWorldCoords().MakeCopy();
+   }
+
+  /**
+   * This method will return the global coordinate bounds of the center
+   * jpanel. To be implemented, the center may have to be a coordjpanel.
+   */
+   public CoordBounds getGlobalCoordBounds()
+   {
+      //return global_bounds;
+      return gjp.getGlobalWorldCoords().MakeCopy();
+   }
+
+
  
   /**
    * This method adjusts the crosshairs on the graphjpanel.
