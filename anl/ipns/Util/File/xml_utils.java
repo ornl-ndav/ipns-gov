@@ -29,6 +29,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2002/07/10 19:35:23  rmikk
+ *  Change in documentation
+ *
  *  Revision 1.2  2002/06/17 22:46:19  rmikk
  *  Prettied  up the file. Made minor changes
  *
@@ -280,7 +283,7 @@ public class xml_utils
    }
 
   /** This will ignore all values in a block<P>
-  * Invoke this method AFTER the tag and all its values have
+  * Invoke this method AFTER the tag and all its attributes have
   * been dealt with(">" has been read)
   */
  public static String skipBlock( InputStream is)
