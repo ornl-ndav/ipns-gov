@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/04/07 01:19:51  millermi
+ *  - Added get/set methods.
+ *  - Added toString()
+ *
  *  Revision 1.2  2004/04/02 20:58:33  millermi
  *  - Fixed javadoc errors
  *
@@ -173,7 +177,8 @@ public class Marker implements java.io.Serializable
   *  @param  type The type of marker desired.
   *  @param  locale The world coord. location for each marker.
   *  @param  color The color of all the markers specified by this instance.
-  *  @param  radius The radius of the circle circumscribing the marker.
+  *  @param  radius The radius of the circle circumscribing the marker in
+  *                 world coordinates.
   *  @param  behave_on_zoom How the cursor reacts to zooming, either resizes
   *                         or maintains the same size.
   */ 
@@ -191,20 +196,11 @@ public class Marker implements java.io.Serializable
   private void init( int type, floatPoint2D[] locales, Color color,
                      float radius, int behave_on_zoom  )
   {
-    // make sure type is a valid choice.
-    if( type > 0 && type < 14 )
-    {
-      if( !( type > 6 && type < 10 ) )
-      {
-        markertype = type;
-      }
-    }
+    setMarkerType(type);
     locations = locales;
-    if( color != null )
-      markercolor = color;
-    this.radius = radius;
-    if( behave_on_zoom > 0 && behave_on_zoom < 2 )
-      markerscaling = behave_on_zoom;
+    setColor(color);
+    resize(radius);
+    setBehavior(behave_on_zoom);
   } // end of init.
   
  /**
@@ -218,10 +214,117 @@ public class Marker implements java.io.Serializable
     transform_set = true;
   }
   
+ /**
+  * Set the color of all the markers specified by this instance.
+  *
+  *  @return The color of the marker.
+  */ 
+  public Color getColor()
+  {
+    return markercolor;
+  }
+  
+ /**
+  * Set the color of all the markers specified by this instance.
+  *
+  *  @param  color The color of the markers.
+  */ 
   public void setColor( Color color )
   {
     if( color != null )
       markercolor = color;
+  }
+  
+ /**
+  * The size refers to the radius of the circle circumscribing the marker.
+  * This size should be in world coordinates.
+  *
+  *  @return The radius of the circle circumscribing the marker in
+  *          world coordinates.
+  */
+  public float getSize()
+  {
+    return radius;
+  }
+  
+ /**
+  * The size refers to the radius of the circle circumscribing the marker.
+  * This size should be in world coordinates.
+  *
+  *  @param  new_size The radius of the circle circumscribing the marker in
+  *                   world coordinates.
+  */
+  public void resize( float new_size )
+  {
+    // make sure radius is valid.
+    if( new_size < 0 )
+      return;
+    radius = new_size;
+    // convert size to pixel coordinates since it is in world coords.
+    floatPoint2D base = pixel_to_world.MapFrom( 
+    			  new floatPoint2D(0,0) );
+    floatPoint2D extent = pixel_to_world.MapFrom( 
+    			  new floatPoint2D(radius,radius) );
+    // since distortion may happen during zooming, take the radius
+    // from a 45 degree angle to help keep aspect ratio of the marker.
+    float xpix_extent = extent.x - base.x;
+    float ypix_extent = extent.y - base.y;
+    // Following formula: r=sqrt( x^2 + y^2 )
+    float pixradius = (float)Math.sqrt( Math.pow(xpix_extent,2) + 
+    				     Math.pow(ypix_extent,2) );
+    size = Math.round(pixradius);
+  }
+  
+ /**
+  * Get the visual display type of the marker. The marker types are
+  * specified by static variables defined in this class.
+  *
+  *  @return The type of marker to be diplayed.
+  */
+  public int getMarkerType()
+  {
+    return markertype;
+  }
+  
+ /**
+  * Set the visual display type of the marker. The marker types are
+  * specified by static variables defined in this class.
+  *
+  *  @param  type The type of marker to be diplayed.
+  */
+  public void setMarkerType( int type )
+  {
+    // make sure type is a valid choice.
+    if( type >= 0 && type < 14 )
+    {
+      if( !( type > 6 && type < 10 ) )
+      {
+        markertype = type;
+      }
+    }
+  }
+  
+ /**
+  * Get how the marker reacts to zooming. Two options are currently supported,
+  * resize on zoom (RESIZEABLE) and maintain size on zoom (STATIC).
+  *
+  *  @return How the marker reacts to zooming.
+  */
+  public int getBehavior()
+  {
+    return markerscaling;
+  }
+  
+ /**
+  * Set how the marker reacts to zooming. Two options are currently supported,
+  * resize on zoom (RESIZEABLE) and maintain size on zoom (STATIC).
+  *
+  *  @param  behave_on_zoom  How the marker reacts to zooming.
+  */
+  public void setBehavior( int behave_on_zoom )
+  {
+    if( behave_on_zoom >= 0 && behave_on_zoom < 2 )
+      markerscaling = behave_on_zoom;
   }
   
  /**
@@ -231,6 +334,11 @@ public class Marker implements java.io.Serializable
   */
   public void draw( Graphics2D g2d )
   {
+    //System.out.println("Type: " + toString());
+    //System.out.println("MarkerScaling: " + getBehavior());
+    //System.out.println("Color: " + getColor());
+    //System.out.println("Size: " + radius);
+    
     // make sure the pixel_to_world transform has been set before drawing.
     if( !transform_set )
     {
@@ -436,6 +544,37 @@ public class Marker implements java.io.Serializable
     }
     // reset the color of Graphics2D object to its original color
     g2d.setColor(original_color);
+  }
+  
+ /**
+  *
+  */
+  public String toString()
+  {
+    // assume it is a plus
+    String type = "Plus(+)";
+    if( markertype == X )
+      type = "X(x)";
+    else if( markertype == STAR )
+      type = "Star(*)";
+    else if( markertype == BOX )
+      type = "Box([])";
+    else if( markertype == CIRCLE )
+      type = "Circle(o)";
+    else if( markertype == VDASH )
+      type = "Vertical Dash(|)";
+    else if( markertype == HDASH )
+      type = "Horizontal Dash(-)";
+    else if( markertype == VLINE )
+      type = "Vertical Line(|)";
+    else if( markertype == HLINE )
+      type = "Horizontal Line(-)";
+    else if( markertype == NLINE )
+      type = "Negative Slope Diagonal Line(\\)";
+    else if( markertype == PLINE )
+      type = "Positive Slope Diagonal Line(/)";
+    
+    return type;
   }
 } // end of Marker
 
