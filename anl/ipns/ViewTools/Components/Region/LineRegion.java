@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/02/14 03:34:57  millermi
+ *  - selectedpoints no longer includes point found off the image.
+ *  - added toString() method.
+ *
  *  Revision 1.4  2004/01/07 06:44:53  millermi
  *  - Added static method getRegionUnion() which removes duplicate
  *    points from one or more selections.
@@ -57,6 +61,7 @@
 package DataSetTools.components.View.Region;
 
 import java.awt.Point;
+import java.util.Vector;
 
 import DataSetTools.util.floatPoint2D;
 import DataSetTools.components.image.CoordBounds; 
@@ -99,10 +104,10 @@ public class LineRegion extends Region
   */
   protected Point[] initializeSelectedPoints()
   { 
-    floatPoint2D p1 = new floatPoint2D( definingpoints[0] );
-    floatPoint2D p2 = new floatPoint2D( definingpoints[1] );
+    Point p1 = floorImagePoint(world_to_image.MapTo(definingpoints[0]));
+    Point p2 = floorImagePoint(world_to_image.MapTo(definingpoints[1]));
     // assume dx > dy
-    float numsegments = Math.abs( p2.x - p1.x );
+    int numsegments = Math.abs( p2.x - p1.x );
     // if dy > dx, use dy
     if( numsegments < Math.abs( p2.y - p1.y ) )
     {
@@ -111,23 +116,46 @@ public class LineRegion extends Region
     // numsegments counts the interval not the points, so their are
     // numsegments+1 points.
     
-    selectedpoints = new Point[Math.round(numsegments) + 1];
+    // Use a vector to hold points, then build an array from this vector.
+    // This will allow removal of points not on the image.
+    Vector pts = new Vector();
     floatPoint2D delta_p = new floatPoint2D();
-    delta_p.x = (p2.x - p1.x)/numsegments;
-    delta_p.y = (p2.y - p1.y)/numsegments;
+    delta_p.x = (p2.x - p1.x)/(float)numsegments;
+    delta_p.y = (p2.y - p1.y)/(float)numsegments;
     
+    // Get all of the points, add them to the vector if the points are on
+    // the image.
     floatPoint2D actual = new floatPoint2D( p1 );
-    selectedpoints[0] = actual.toPoint();
-    for( int i = 1; i < numsegments; i++ )
+    Point temp = new Point();
+    CoordBounds imagebounds = world_to_image.getDestination();
+    for( int i = 0; i < numsegments + 1; i++ )
     {
+      temp = floorImagePoint(actual);
+      // add it to the array if the point is on the image.
+      if( imagebounds.onXInterval(temp.x) && imagebounds.onYInterval(temp.y) )
+        pts.add(temp);
+      // increment to next point
       actual.x += delta_p.x;
       actual.y += delta_p.y;
-      selectedpoints[i] = actual.toPoint();
     }
-    selectedpoints[Math.round(numsegments)] = p2.toPoint();
-    
+    // construct static list of points.
+    selectedpoints = new Point[pts.size()];
+    for( int i = 0; i < pts.size(); i++ )
+      selectedpoints[i] = (Point)pts.elementAt(i);
     return selectedpoints;
-  } 
+  }
+  
+ /**
+  * Display the region type with its defining points.
+  *
+  *  @return region type and defining points.
+  */
+  public String toString()
+  {
+    return ("Region: Line\n" +
+            "Start Point: " + definingpoints[0] + "\n" +
+	    "End Point: " + definingpoints[1] + "\n");
+  }
    
  /**
   * This method returns the rectangle containing the line.
@@ -136,9 +164,9 @@ public class LineRegion extends Region
   */
   protected CoordBounds getRegionBounds()
   {
-    return new CoordBounds( definingpoints[0].x,
-                            definingpoints[0].y, 
-                            definingpoints[1].x,
-			    definingpoints[1].y );
+    return new CoordBounds( world_to_image.MapTo(definingpoints[0]).x,
+                            world_to_image.MapTo(definingpoints[0]).y, 
+                            world_to_image.MapTo(definingpoints[1]).x,
+			    world_to_image.MapTo(definingpoints[1]).y );
   }
 }

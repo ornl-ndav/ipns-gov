@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/02/14 03:34:56  millermi
+ *  - selectedpoints no longer includes point found off the image.
+ *  - added toString() method.
+ *
  *  Revision 1.5  2004/01/07 06:44:53  millermi
  *  - Added static method getRegionUnion() which removes duplicate
  *    points from one or more selections.
@@ -101,32 +105,6 @@ public class EllipseRegion extends Region
   public EllipseRegion( floatPoint2D[] dp )
   {
     super(dp);
-    float xextent = definingpoints[2].x - definingpoints[0].x;
-    float yextent = definingpoints[2].y - definingpoints[0].y; 
-    // since a mapping is done with the imagejpanel, the topleft or bottomright
-    // could have been mapped to the side of the image. However, at most
-    // one will be affected, so take the maximum extent of the two.
-    // Correct the defining points if selection made near border of image.
-    // Bottomright to center
-    if( (definingpoints[1].x - definingpoints[2].x) > xextent )
-    {
-      xextent = definingpoints[1].x - definingpoints[2].x; 
-      definingpoints[0].x = definingpoints[2].x - xextent;
-    }
-    else if( (definingpoints[1].x - definingpoints[2].x) < xextent )
-    {
-      definingpoints[1].x = definingpoints[2].x + xextent;
-    }
-    // topleft to center
-    if( (definingpoints[1].y - definingpoints[2].y) > yextent )
-    {
-      yextent = definingpoints[1].y - definingpoints[2].y;
-      definingpoints[0].y = definingpoints[2].y - yextent;
-    }
-    else if( (definingpoints[1].y - definingpoints[2].y) < yextent )
-    {
-      definingpoints[1].y = definingpoints[2].y + yextent;
-    }
   }
   
  /**
@@ -147,28 +125,40 @@ public class EllipseRegion extends Region
   */
   protected Point[] initializeSelectedPoints()
   { 
-    floatPoint2D topleft = new floatPoint2D( definingpoints[0] );
-    floatPoint2D bottomright = new floatPoint2D( definingpoints[1] );
-    floatPoint2D center = new floatPoint2D( definingpoints[2] );
-    float xextent = center.x - topleft.x;
-    float yextent = center.y - topleft.y; 
+    Point topleft = floorImagePoint(world_to_image.MapTo(definingpoints[0]));
+    Point bottomright = floorImagePoint(
+                               world_to_image.MapTo(definingpoints[1]) );
+    Point center = floorImagePoint(world_to_image.MapTo(definingpoints[2]) );
+    float xextent = (float)(center.x - topleft.x);
+    float yextent = (float)(center.y - topleft.y); 
     Vector points = new Vector();  // dynamic array of points
     
     // if only one pixel is selected by the circle, for low resolution.
     if( xextent == 0 && yextent == 0 )
-      points.add( center.toPoint() );
+      points.add( center );
     // if one pixel in x, and more than one in y is selected
     else if( xextent == 0 )
     {
-      for( int y = Math.round(topleft.y); y <= bottomright.y; y++ ) 
-	points.add( new Point( Math.round(topleft.x), y ) );
+      for( int y = topleft.y; y <= bottomright.y; y++ ) 
+      {
+	// make sure point is on the image.
+	CoordBounds imagebounds = world_to_image.getDestination();
+	if( imagebounds.onXInterval((float)topleft.x) && 
+	    imagebounds.onYInterval((float)y) )
+	  points.add( new Point( topleft.x, y ) );
+      }
     }
     // if one pixel in y, and more than one in x is selected
     else if( yextent == 0 )
     {
-      for( int x = Math.round(topleft.x); x <= bottomright.x; x++ ) 
-	points.add( new Point( x, Math.round(topleft.y) ) );
-      
+      for( int x = topleft.x; x <= bottomright.x; x++ )
+      {
+	// make sure point is on the image.
+	CoordBounds imagebounds = world_to_image.getDestination();
+	if( imagebounds.onXInterval((float)x) && 
+	    imagebounds.onYInterval((float)topleft.y) )
+	  points.add( new Point( x, topleft.y ) );
+      }
     }
     // large region, more than one pixel in both x and y
     else
@@ -178,15 +168,15 @@ public class EllipseRegion extends Region
       float ydiff = 0;
       // using formula for ellipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
       // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
-      for( int y = Math.round(topleft.y); y <= bottomright.y; y++ )
+      for( int y = topleft.y; y <= bottomright.y; y++ )
       {
-	for( int x = Math.round(topleft.x); x <= bottomright.x; x++ )
+	for( int x = topleft.x; x <= bottomright.x; x++ )
 	{
 	  xdiff = 0;
           ydiff = 0;
           // x/y diff represent x-h/y-k respectively
-	  xdiff = Math.abs( (float)x - center.x );
-	  ydiff = Math.abs( (float)y - center.y );
+	  xdiff = Math.abs( (float)(x - center.x) );
+	  ydiff = Math.abs( (float)(y - center.y) );
           // Subtracting 1/(xextent*4) is to account for fractional pixels.
           // This will give a smoother, more accurate selected region.
 	  dist = Math.pow((double)(xdiff - 1/(xextent*4)),2) / 
@@ -194,16 +184,35 @@ public class EllipseRegion extends Region
         	   Math.pow((double)(ydiff - 1/(yextent*4)),2) /
         	   Math.pow((double)yextent,2);
           //System.out.println("(" + x + "," + y + ")..." + dist ); 
-          if( dist <= 1 )
-            points.add( new Point( x, y ) ); 
+          if( dist < 1 )
+	  {
+	    // make sure point is on the image.
+	    CoordBounds imagebounds = world_to_image.getDestination();
+	    if( imagebounds.onXInterval((float)x) && 
+	        imagebounds.onYInterval((float)y) )
+              points.add( new Point( x, y ) ); 
+	  }
 	} 
       }
     }
     selectedpoints = new Point[points.size()];
     for( int i = 0; i < points.size(); i++ )
-	selectedpoints[i] = (Point)points.elementAt(i);
+      selectedpoints[i] = (Point)points.elementAt(i);
     return selectedpoints;
-  } 
+  }
+  
+ /**
+  * Display the region type with its defining points.
+  *
+  *  @return region type and defining points.
+  */
+  public String toString()
+  {
+    return ("Region: Ellipse\n" +
+            "Center: " + definingpoints[2] + "\n" +
+	    "Top-left bound: " + definingpoints[0] + "\n" +
+	    "Bottom-right bound: " + definingpoints[1] + "\n");
+  }
    
  /**
   * This method returns the rectangle containing the ellipse.
@@ -212,9 +221,9 @@ public class EllipseRegion extends Region
   */
   protected CoordBounds getRegionBounds()
   {
-    return new CoordBounds( definingpoints[0].x,
-                            definingpoints[0].y, 
-                            definingpoints[1].x,
-			    definingpoints[1].y );
+    return new CoordBounds( world_to_image.MapTo(definingpoints[0]).x,
+                            world_to_image.MapTo(definingpoints[0]).y, 
+                            world_to_image.MapTo(definingpoints[1]).x,
+			    world_to_image.MapTo(definingpoints[1]).y );
   }
 }

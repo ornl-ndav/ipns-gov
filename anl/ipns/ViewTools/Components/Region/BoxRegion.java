@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/02/14 03:34:56  millermi
+ *  - selectedpoints no longer includes point found off the image.
+ *  - added toString() method.
+ *
  *  Revision 1.3  2004/01/07 06:44:53  millermi
  *  - Added static method getRegionUnion() which removes duplicate
  *    points from one or more selections.
@@ -54,6 +58,7 @@
 package DataSetTools.components.View.Region;
 
 import java.awt.Point;
+import java.util.Vector;
 
 import DataSetTools.util.floatPoint2D;
 import DataSetTools.components.image.CoordBounds;
@@ -97,40 +102,53 @@ public class BoxRegion extends Region
   */
   protected Point[] initializeSelectedPoints()
   { 
-    floatPoint2D topleft = new floatPoint2D( definingpoints[0] );
-    floatPoint2D bottomright = new floatPoint2D( definingpoints[1] );
-    float w = bottomright.x - topleft.x + 1;
-    float h = bottomright.y - topleft.y + 1;
+    Point topleft = floorImagePoint(world_to_image.MapTo(definingpoints[0]));
+    Point bottomright = floorImagePoint(
+                           world_to_image.MapTo(definingpoints[1]) );
+    int w = bottomright.x - topleft.x + 1;
+    int h = bottomright.y - topleft.y + 1;
     
-    selectedpoints = new Point[Math.round(w*h)];
-    if( selectedpoints.length > 0 )
+    Vector pts = new Vector();
+    CoordBounds imagebounds = world_to_image.getDestination();
+    // Set through box rowwise, getting points that are on the image.
+    for( int row = topleft.x; row <= bottomright.x; row++ )
     {
-      int index = 0;
-      for( int col = Math.round(topleft.x); col <= bottomright.x; col++ )
-	for( int row = Math.round(topleft.y); row <= bottomright.y; row++ )
-        {
-	  selectedpoints[index] = new Point( col, row );
-          index++;
-        }
+      for( int col = topleft.y; col <= bottomright.y; col++ )
+      {
+        // add it to the array if the point is on the image.
+        if( imagebounds.onXInterval(row) && imagebounds.onYInterval(col) )
+          pts.add(new Point(row,col));
+      }
     }
-    else
-    {
-      selectedpoints = new Point[1];
-      selectedpoints[0] = topleft.toPoint();
-    }
+    // construct static list of points.
+    selectedpoints = new Point[pts.size()];
+    for( int i = 0; i < pts.size(); i++ )
+      selectedpoints[i] = (Point)pts.elementAt(i);
     return selectedpoints;
-  } 
+  }
+  
+ /**
+  * Display the region type with its defining points.
+  *
+  *  @return region type and defining points.
+  */
+  public String toString()
+  {
+    return ("Region: Box\n" +
+            "Top-left Corner: " + definingpoints[0] + "\n" +
+	    "Bottom-right Corner: " + definingpoints[1] + "\n");
+  }
    
  /**
-  * This method returns the rectangle containing the line.
+  * This method returns the rectangle representing the box.
   *
-  *  @return The bounds of the LineRegion.
+  *  @return The bounds of the BoxRegion.
   */
   protected CoordBounds getRegionBounds()
   {
-    return new CoordBounds( definingpoints[0].x,
-                            definingpoints[0].y, 
-                            definingpoints[1].x,
-			    definingpoints[1].y );
+    return new CoordBounds( world_to_image.MapTo(definingpoints[0]).x,
+                            world_to_image.MapTo(definingpoints[0]).y, 
+                            world_to_image.MapTo(definingpoints[1]).x,
+			    world_to_image.MapTo(definingpoints[1]).y );
   }
 }

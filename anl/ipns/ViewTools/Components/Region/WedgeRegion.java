@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2004/02/14 03:34:57  millermi
+ *  - selectedpoints no longer includes point found off the image.
+ *  - added toString() method.
+ *
  *  Revision 1.11  2004/01/07 06:44:53  millermi
  *  - Added static method getRegionUnion() which removes duplicate
  *    points from one or more selections.
@@ -134,32 +138,6 @@ public class WedgeRegion extends Region
   public WedgeRegion( floatPoint2D[] dp )
   {
     super(dp);
-    float xextent = definingpoints[0].x - definingpoints[3].x;
-    float yextent = definingpoints[0].y - definingpoints[3].y; 
-    // since a mapping is done with the imagejpanel, the topleft or bottomright
-    // could have been mapped to the side of the image. However, at most
-    // one will be affected, so take the maximum extent of the two.
-    // Correct the defining points if selection made near border of image.
-    // Bottomright to center
-    if( (definingpoints[4].x - definingpoints[0].x) > xextent )
-    {
-      xextent = definingpoints[4].x - definingpoints[0].x; 
-      definingpoints[3].x = definingpoints[0].x - xextent;
-    }
-    else if( (definingpoints[4].x - definingpoints[0].x) < xextent )
-    {
-      definingpoints[4].x = definingpoints[0].x + xextent;
-    }
-    // topleft to center
-    if( (definingpoints[4].y - definingpoints[0].y) > yextent )
-    {
-      yextent = definingpoints[4].y - definingpoints[0].y;
-      definingpoints[3].y = definingpoints[0].y - yextent;
-    }
-    else if( (definingpoints[4].y - definingpoints[0].y) < yextent )
-    {
-      definingpoints[4].y = definingpoints[0].y + yextent;
-    }
   }
   
  /**
@@ -194,15 +172,20 @@ public class WedgeRegion extends Region
     * p[5].x = startangle, the directional vector in degrees
     * p[5].y = degrees covered by arc.
     */
-    floatPoint2D center = new floatPoint2D( definingpoints[0] );
-    floatPoint2D p1 = new floatPoint2D( definingpoints[1] );
+    Point center = floorImagePoint(
+                                world_to_image.MapTo(definingpoints[0]));
+    Point p1 = floorImagePoint(
+                                world_to_image.MapTo(definingpoints[1]));
     // rp1 is reflection of p1
-    floatPoint2D rp1 = new floatPoint2D( definingpoints[2] );
-    floatPoint2D topleft = new floatPoint2D( definingpoints[3] );
-    floatPoint2D bottomright = new floatPoint2D( definingpoints[4] );
+    Point rp1 = floorImagePoint(
+                                world_to_image.MapTo(definingpoints[2]));
+    Point topleft = floorImagePoint(
+                                world_to_image.MapTo(definingpoints[3]));
+    Point bottomright = floorImagePoint(
+                                world_to_image.MapTo(definingpoints[4]));
     
-    float xextent = center.x - topleft.x;
-    float yextent = center.y - topleft.y; 
+    int xextent = center.x - topleft.x;
+    int yextent = center.y - topleft.y; 
     
     Vector points = new Vector();  // dynamic array of points
     float startangle = definingpoints[5].x;
@@ -282,7 +265,6 @@ public class WedgeRegion extends Region
         rp1yadjust = 0.5f;
       }
     }
-    //System.out.println("p1/rp1 Quad: " + p1quad + "/" + rp1quad );
     
     // using formula for ellipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
     // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
@@ -303,7 +285,6 @@ public class WedgeRegion extends Region
     else if( rp1quad == p1quad && definingpoints[5].y > 90 )
       rp1quad += 3;
 
-    //System.out.println("p1quad/rp1quad: " + p1quad + "/" + rp1quad );
     // Step through each quadrant involved in the selection.
     for( int quadcount = p1quad; quadcount <= rp1quad; quadcount++ )
     {
@@ -321,31 +302,31 @@ public class WedgeRegion extends Region
       // and stop are switched.
       if( quadnum == 1 )
       {
-	ystart = Math.round(center.y);
-	ystop  = Math.round(topleft.y);
-	xstart = Math.round(center.x);
-	xstop  = Math.round(bottomright.x);
+	ystart = center.y;
+	ystop  = topleft.y;
+	xstart = center.x;
+	xstop  = bottomright.x;
       }
       else if( quadnum == 2 )
       {
-	ystart = Math.round(center.y);
-	ystop  = Math.round(topleft.y);
-	xstart = Math.round(topleft.x);
-	xstop  = Math.round(center.x - 1);
+	ystart = center.y;
+	ystop  = topleft.y;
+	xstart = topleft.x;
+	xstop  = center.x - 1;
       }
       else if( quadnum == 3 )
       {
-	ystart = Math.round(bottomright.y);
-	ystop  = Math.round(center.y + 1);
-	xstart = Math.round(topleft.x);
-	xstop  = Math.round(center.x - 1);
+	ystart = bottomright.y;
+	ystop  = center.y + 1;
+	xstart = topleft.x;
+	xstop  = center.x - 1;
       }
       else if( quadnum == 4 )
       {
-	ystart = Math.round(bottomright.y);
-	ystop  = Math.round(center.y + 1);
-	xstart = Math.round(center.x);
-	xstop  = Math.round(bottomright.x);
+	ystart = bottomright.y;
+	ystop  = center.y + 1;
+	xstart = center.x;
+	xstop  = bottomright.x;
       }
       //System.out.println("Current quad(c): " + quadnum );
       double dist = 0;
@@ -361,13 +342,13 @@ public class WedgeRegion extends Region
 	  xdiff = 0;
 	  ydiff = 0;
 	  // x/y diff represent x-h/y-k respectively
-	  xdiff = Math.abs( (float)x - center.x );
-	  ydiff = Math.abs( (float)y - center.y );
+	  xdiff = Math.abs( (float)(x - center.x) );
+	  ydiff = Math.abs( (float)(y - center.y) );
 	  // Subtracting 1/(xextent*4) is to account for fractional pixels.
 	  // This will give a smoother, more accurate selected region.
-	  dist = Math.pow((double)(xdiff - 1/(xextent*4)),2) /
+	  dist = Math.pow((double)(xdiff - 1/(double)(xextent*4)),2) /
         	 Math.pow((double)xextent,2) + 
-		   Math.pow((double)(ydiff - 1/(yextent*4)),2) /
+		   Math.pow((double)(ydiff - 1/(double)(yextent*4)),2) /
         	   Math.pow((double)yextent,2);
 	  //System.out.println("(" + x + "," + y + ")..." + dist ); 
 	  // Using ellipse equation, the distance must be < 1 in order to
@@ -389,7 +370,11 @@ public class WedgeRegion extends Region
               if( pointangle >= startangle || 
         	  pointangle <= stopangle - 360f )
               {
-		points.add( new Point( x, y ) );
+	        // make sure point is on the image.
+	        CoordBounds imagebounds = world_to_image.getDestination();
+	        if( imagebounds.onXInterval((float)x) && 
+	            imagebounds.onYInterval((float)y) )
+		  points.add( new Point( x, y ) );
               }
             }
             // otherwise the angle must be between the start and stop angle.
@@ -397,7 +382,11 @@ public class WedgeRegion extends Region
             {
               if( pointangle >= startangle && pointangle <= stopangle )
               {
-		points.add( new Point( x, y ) );
+	        // make sure point is on the image.
+	        CoordBounds imagebounds = world_to_image.getDestination();
+	        if( imagebounds.onXInterval((float)x) && 
+	            imagebounds.onYInterval((float)y) )
+		  points.add( new Point( x, y ) );
               }
             }
 	  } // if( dist < 1 )
@@ -410,33 +399,37 @@ public class WedgeRegion extends Region
     
     // this code uses line regions to select the points along the bounding
     // lines of the wedge
-    floatPoint2D p1temp = new floatPoint2D( p1.x + p1xadjust,
-					    p1.y + p1yadjust );
-    floatPoint2D[] p1pts = {center,p1temp};
+    floatPoint2D p1temp = new floatPoint2D( definingpoints[1].x + p1xadjust,
+					    definingpoints[1].y + p1yadjust );
+    // map defining points back to world coords.
+    floatPoint2D[] p1pts = {definingpoints[0],p1temp};
     LineRegion p1line = new LineRegion( p1pts );
+    p1line.setWorldBounds(world_to_image.getSource());
+    p1line.setImageBounds(world_to_image.getDestination());
     Point[] p1select = p1line.initializeSelectedPoints();
     for( int i = 0; i < p1select.length; i++ )
     {
-      // make sure points are within accepted bounds of the region.
-      if( !(p1select[i].x < topleft.x || p1select[i].y < topleft.y) &&
-	  !(p1select[i].x > bottomright.x || p1select[i].y > bottomright.y) )
-      {
-	points.add( new Point( p1select[i] ) );
-      }
+      // make sure point is on the image.
+      CoordBounds imagebounds = world_to_image.getDestination();
+      if( imagebounds.onXInterval((float)p1select[i].x) && 
+          imagebounds.onYInterval((float)p1select[i].y) )
+        points.add( new Point( p1select[i] ) );
     }
-    floatPoint2D rp1temp = new floatPoint2D( rp1.x + rp1xadjust,
-					    rp1.y + rp1yadjust );
-    floatPoint2D[] rp1pts = {center,rp1temp};
+    floatPoint2D rp1temp = new floatPoint2D( definingpoints[2].x + rp1xadjust,
+					     definingpoints[2].y + rp1yadjust );
+    // map defining points back to world coords.
+    floatPoint2D[] rp1pts = {definingpoints[0],rp1temp};
     LineRegion rp1line = new LineRegion( rp1pts );
+    rp1line.setWorldBounds(world_to_image.getSource());
+    rp1line.setImageBounds(world_to_image.getDestination());
     Point[] rp1select = rp1line.initializeSelectedPoints();
     for( int i = 0; i < rp1pts.length; i++ )
     {
-      // make sure points are within accepted bounds of the region.
-      if( !(rp1select[i].x < topleft.x || rp1select[i].y < topleft.y) &&
-	  !(rp1select[i].x > bottomright.x || rp1select[i].y > bottomright.y) )
-      {
-	points.add( new Point( rp1select[i] ) );
-      }
+      // make sure point is on the image.
+      CoordBounds imagebounds = world_to_image.getDestination();
+      if( imagebounds.onXInterval((float)rp1select[i].x) && 
+          imagebounds.onYInterval((float)rp1select[i].y) )
+        points.add( new Point( rp1select[i] ) );
     }
     
     // put the vector of points into an array of points
@@ -445,6 +438,23 @@ public class WedgeRegion extends Region
       selectedpoints[i] = (Point)points.elementAt(i);
     return selectedpoints;     
   } 
+  
+ /**
+  * Display the region type with its defining points.
+  *
+  *  @return region type and defining points.
+  */
+  public String toString()
+  {
+    return ("Region: Wedge\n" +
+            "Center: " + definingpoints[0] + "\n" +
+	    "Arc Beginning Pt: " + definingpoints[1] + "\n" +
+	    "Arc Ending Pt: " + definingpoints[2] + "\n" +
+	    "Top-left bound: " + definingpoints[3] + "\n" +
+	    "Bottom-right bound: " + definingpoints[4] + "\n" +
+	    "Starting Angle: " + definingpoints[5].x + "\n" + 
+	    "Interior Angle: " + definingpoints[5].y + "\n" );
+  }
    
  /**
   * This method returns the rectangle containing the ellipse from which the
@@ -454,9 +464,9 @@ public class WedgeRegion extends Region
   */
   protected CoordBounds getRegionBounds()
   {
-    return new CoordBounds( definingpoints[3].x,
-                            definingpoints[3].y, 
-                            definingpoints[4].x,
-			    definingpoints[4].y );
+    return new CoordBounds( world_to_image.MapTo(definingpoints[3]).x,
+                            world_to_image.MapTo(definingpoints[3]).y, 
+                            world_to_image.MapTo(definingpoints[4]).x,
+			    world_to_image.MapTo(definingpoints[4]).y );
   }
 }

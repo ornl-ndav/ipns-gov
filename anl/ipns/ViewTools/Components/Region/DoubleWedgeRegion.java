@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/02/14 03:34:56  millermi
+ *  - selectedpoints no longer includes point found off the image.
+ *  - added toString() method.
+ *
  *  Revision 1.6  2004/01/07 06:44:53  millermi
  *  - Added static method getRegionUnion() which removes duplicate
  *    points from one or more selections.
@@ -104,32 +108,6 @@ public class DoubleWedgeRegion extends Region
   public DoubleWedgeRegion( floatPoint2D[] dp )
   {
     super(dp);
-    float xextent = definingpoints[0].x - definingpoints[3].x;
-    float yextent = definingpoints[0].y - definingpoints[3].y; 
-    // since a mapping is done with the imagejpanel, the topleft or bottomright
-    // could have been mapped to the side of the image. However, at most
-    // one will be affected, so take the maximum extent of the two.
-    // Correct the defining points if selection made near border of image.
-    // Bottomright to center
-    if( (definingpoints[4].x - definingpoints[0].x) > xextent )
-    {
-      xextent = definingpoints[4].x - definingpoints[0].x; 
-      definingpoints[3].x = definingpoints[0].x - xextent;
-    }
-    else if( (definingpoints[4].x - definingpoints[0].x) < xextent )
-    {
-      definingpoints[4].x = definingpoints[0].x + xextent;
-    }
-    // topleft to center
-    if( (definingpoints[4].y - definingpoints[0].y) > yextent )
-    {
-      yextent = definingpoints[4].y - definingpoints[0].y;
-      definingpoints[3].y = definingpoints[0].y - yextent;
-    }
-    else if( (definingpoints[4].y - definingpoints[0].y) < yextent )
-    {
-      definingpoints[4].y = definingpoints[0].y + yextent;
-    }
   }
   
  /**
@@ -166,50 +144,30 @@ public class DoubleWedgeRegion extends Region
     * be aware that the slope in these quadrants does not behave in the same
     * fashion. Quad II & III have positive slope while Quad I & IV have neg.
     */
-    floatPoint2D center = new floatPoint2D( definingpoints[0] );
-    floatPoint2D p1 = new floatPoint2D( definingpoints[1] );
-    floatPoint2D rp1 = new floatPoint2D( definingpoints[2] );
-    floatPoint2D topleft = new floatPoint2D( definingpoints[3] );
-    floatPoint2D bottomright = new floatPoint2D( definingpoints[4] );	  
+    // convert world coord defining points to image values.
+    floatPoint2D center = world_to_image.MapTo(definingpoints[0]);
+    floatPoint2D p1 = world_to_image.MapTo(definingpoints[1]);
+    floatPoint2D rp1 = world_to_image.MapTo(definingpoints[2]);
+    floatPoint2D topleft = world_to_image.MapTo(definingpoints[3]);
+    floatPoint2D bottomright = world_to_image.MapTo(definingpoints[4]);	  
     float xextent = center.x - topleft.x;
     float yextent = center.y - topleft.y; 
-    //System.out.println(bottomright.toString() + " " + topleft.toString() );
-    
+    //System.out.println(bottomright + " " + topleft );
+    // use 2 wedgeregions to construct the doublewedge
     WedgeRegion wedge1 = new WedgeRegion(definingpoints);
+    wedge1.setWorldBounds(world_to_image.getSource());
+    wedge1.setImageBounds(world_to_image.getDestination());
     Point[] selected_pts_wedge1 = wedge1.initializeSelectedPoints();
     
+    // defining points for wedge2
     floatPoint2D[] defpt2 = new floatPoint2D[definingpoints.length];
     defpt2[0] = new floatPoint2D( definingpoints[0] );
-    defpt2[1] = new floatPoint2D( 2f*center.x - p1.x, 2f*center.y - p1.y );
-    defpt2[2] = new floatPoint2D( 2f*center.x - rp1.x, 2f*center.y - rp1.y );
+    defpt2[1] = new floatPoint2D( 2f*defpt2[0].x - definingpoints[1].x,
+                                  2f*defpt2[0].y - definingpoints[1].y );
+    defpt2[2] = new floatPoint2D( 2f*defpt2[0].x - definingpoints[2].x,
+                                  2f*defpt2[0].y - definingpoints[2].y );
     defpt2[3] = new floatPoint2D( definingpoints[3] );
     defpt2[4] = new floatPoint2D( definingpoints[4] );
-    
-    // since defpt2[1] & defpt2[2] are calculated, it is possible for them
-    // to fall outside of the bounds. This will make sure they don't.
-    // bound defpt2[1].x   topleft-x
-    if( defpt2[1].x > bottomright.x )
-      defpt2[1].x = bottomright.x;
-    else if( defpt2[1].x < topleft.x )
-      defpt2[1].x = topleft.x;
-    
-    // bound defpt2[1].y   topleft-y
-    if( defpt2[1].y > bottomright.y )
-      defpt2[1].y = bottomright.y;
-    else if( defpt2[1].y < topleft.y )
-      defpt2[1].y = topleft.y;
-    
-    // bound defpt2[2].x   bottomright.x
-    if( defpt2[2].x > bottomright.x )
-      defpt2[2].x = bottomright.x;
-    else if( defpt2[2].x < topleft.x )
-      defpt2[2].x = topleft.x;
-    
-    // bound defpt2[2].y   bottomright.y
-    if( defpt2[2].y > bottomright.y )
-      defpt2[2].y = bottomright.y;
-    else if( defpt2[2].y < topleft.y )
-      defpt2[2].y = topleft.y;
     
     // adjust starting angle to either 180 degrees ahead or behind,
     // depending on the angle. Always keep angle on interval [0,360)
@@ -221,23 +179,41 @@ public class DoubleWedgeRegion extends Region
 				    definingpoints[5].y );
     
     WedgeRegion wedge2 = new WedgeRegion(defpt2);
+    wedge2.setWorldBounds(world_to_image.getSource());
+    wedge2.setImageBounds(world_to_image.getDestination());
     Point[] selected_pts_wedge2 = wedge2.initializeSelectedPoints();
     int total_num_pts = selected_pts_wedge1.length +
 			selected_pts_wedge2.length;
     
     selectedpoints = new Point[total_num_pts];
+    // fill points array with points from first wedge
     for( int i = 0; i < selected_pts_wedge1.length; i++ )
       selectedpoints[i] = new Point(selected_pts_wedge1[i]);
-    Point temp;
-    // this increment value is used to avoid gaps in the array when
-    // duplicate points are bypassed and not added to the selectedpoints array.
-    int inc = 0;
+    
+    // fill points array with points from second wedge
     for( int j = 0; j < selected_pts_wedge2.length; j++ )
       selectedpoints[selected_pts_wedge1.length + j] = 
-				new Point(selected_pts_wedge2[j]);
+                     new Point(selected_pts_wedge2[j]);
     
     return selectedpoints;
   } 
+  
+ /**
+  * Display the region type with its defining points.
+  *
+  *  @return region type and defining points.
+  */
+  public String toString()
+  {
+    return ("Region: Double Wedge\n" +
+            "Center: " + definingpoints[0] + "\n" +
+	    "Arc Beginning Pt: " + definingpoints[1] + "\n" +
+	    "Arc Ending Pt: " + definingpoints[2] + "\n" +
+	    "Top-left bound: " + definingpoints[3] + "\n" +
+	    "Bottom-right bound: " + definingpoints[4] + "\n" +
+	    "Starting Angle: " + definingpoints[5].x + "\n" + 
+	    "Interior Angle: " + definingpoints[5].y + "\n" );
+  }
    
  /**
   * This method returns the rectangle containing the ellipse from which the
@@ -247,9 +223,9 @@ public class DoubleWedgeRegion extends Region
   */
   protected CoordBounds getRegionBounds()
   {
-    return new CoordBounds( definingpoints[3].x,
-                            definingpoints[3].y, 
-                            definingpoints[4].x,
-			    definingpoints[4].y );
+    return new CoordBounds( world_to_image.MapTo(definingpoints[3]).x,
+                            world_to_image.MapTo(definingpoints[3]).y, 
+                            world_to_image.MapTo(definingpoints[4]).x,
+			    world_to_image.MapTo(definingpoints[4]).y );
   }
 }

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/02/14 03:34:57  millermi
+ *  - selectedpoints no longer includes point found off the image.
+ *  - added toString() method.
+ *
  *  Revision 1.4  2004/01/07 06:44:53  millermi
  *  - Added static method getRegionUnion() which removes duplicate
  *    points from one or more selections.
@@ -57,6 +61,7 @@
 package DataSetTools.components.View.Region;
 
 import java.awt.Point;
+import java.util.Vector;
 
 import DataSetTools.util.floatPoint2D;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
@@ -99,11 +104,40 @@ public class PointRegion extends Region
   *  @return array of points included within the region.
   */
   protected Point[] initializeSelectedPoints()
-  { 
-    selectedpoints = new Point[definingpoints.length];
+  {
+    Vector pts = new Vector();
+    CoordBounds imagebounds = world_to_image.getDestination();
+    Point temp;
+    // Convert defining points from world coords to image coords and
+    // add it to the array if the point is on the image.
     for( int i = 0; i < definingpoints.length; i++ )
-      selectedpoints[i] = definingpoints[i].toPoint();
+    {
+      temp = floorImagePoint(world_to_image.MapTo(definingpoints[i]));
+      if( imagebounds.onXInterval(temp.x) && imagebounds.onYInterval(temp.y) )
+        pts.add(temp);
+    }
+    // construct static list of points.
+    selectedpoints = new Point[pts.size()];
+    for( int i = 0; i < pts.size(); i++ )
+      selectedpoints[i] = (Point)pts.elementAt(i);
     return selectedpoints;
+  } 
+  
+ /**
+  * Display the region type with its defining points. For a PointRegion,
+  * all points will be displayed.
+  *
+  *  @return region type and defining points.
+  */
+  public String toString()
+  {
+    StringBuffer regstring = new StringBuffer("Region: Point\n");
+    // add all points to be displayed.
+    for( int i = 0; i < definingpoints.length; i++ )
+    {
+      regstring.append("Point " + (i+1) + ": " + definingpoints[i] + "\n");
+    }
+    return regstring.toString();
   } 
    
  /**
@@ -113,20 +147,20 @@ public class PointRegion extends Region
   */
   protected CoordBounds getRegionBounds()
   {
-    float xmin = definingpoints[0].x;
-    float xmax = definingpoints[0].x;
-    float ymin = definingpoints[0].y;
-    float ymax = definingpoints[0].y;
+    float xmin = world_to_image.MapTo(definingpoints[0]).x;
+    float xmax = world_to_image.MapTo(definingpoints[0]).x;
+    float ymin = world_to_image.MapTo(definingpoints[0]).y;
+    float ymax = world_to_image.MapTo(definingpoints[0]).y;
     for( int i = 1; i < definingpoints.length; i++ )
     {
-      if( definingpoints[i].x < xmin )
-        xmin = definingpoints[i].x;
-      if( definingpoints[i].x > xmax )
-        xmax = definingpoints[i].x;
-      if( definingpoints[i].y < ymin )
-        ymin = definingpoints[i].y;
-      if( definingpoints[i].y > ymax )
-        ymax = definingpoints[i].y;
+      if( world_to_image.MapTo(definingpoints[i]).x < xmin )
+        xmin = world_to_image.MapTo(definingpoints[i]).x;
+      if( world_to_image.MapTo(definingpoints[i]).x > xmax )
+        xmax = world_to_image.MapTo(definingpoints[i]).x;
+      if( world_to_image.MapTo(definingpoints[i]).y < ymin )
+        ymin = world_to_image.MapTo(definingpoints[i]).y;
+      if( world_to_image.MapTo(definingpoints[i]).y > ymax )
+        ymax = world_to_image.MapTo(definingpoints[i]).y;
     }
     return new CoordBounds( xmin, ymin, xmax, ymax );
   }
