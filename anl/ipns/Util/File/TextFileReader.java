@@ -1,7 +1,7 @@
 /*
  * File: TextFileReader.java
  *
- * Copyright (C) 2000, Dennis Mikkelson
+ * Copyright (C) 2001-2002, Dennis Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2002/03/29 17:34:04  dennis
+ *  Added eof() method.
+ *  Removed unneeded try{}catch{} blocks in methods that throw
+ *  exceptions.
+ *  Methods that read numeric values now explicitly throw a
+ *  NumberFormatException as well as an IOException
+ *  Constructor now tries to close any resources that might have
+ *  been allocated in an unsuccessful construction.
+ *
  *  Revision 1.3  2002/03/27 22:54:29  pfpeterson
  *  All exceptions that are caught or thrown are now IOExceptions.
  *
@@ -40,8 +49,6 @@
  *  Revision 1.1  2001/11/09 18:50:39  dennis
  *  Utility to simplify reading numerical and string values from an
  *  ordinary ASCII file.
- *
- *
  */
 
 package DataSetTools.util;
@@ -57,10 +64,11 @@ import java.io.*;
 public class TextFileReader 
 {
   public static final String EOF = "End of file";  // string used to construct 
-                                                   // the eof exception 
+                                                   // the EOF exception 
   public static final int    BUFFER_SIZE = 200;    // Maximum number of chars 
                                                    // in a String or one line
-  private BufferedReader in;
+  private BufferedReader     in       = null;
+  private FileInputStream    f_stream = null;
 
 
   /* -------------------------- Constructor -------------------------- */
@@ -74,18 +82,43 @@ public class TextFileReader
    */
   public TextFileReader( String file_name ) throws IOException
   {
-    FileInputStream  file_stream;
     try
     {
-      file_stream = new FileInputStream( file_name );
-      in = new BufferedReader( new InputStreamReader( file_stream ) );
+      f_stream = new FileInputStream( file_name );
+      in = new BufferedReader( new InputStreamReader( f_stream ) );
       in.mark( BUFFER_SIZE );
     }
     catch ( IOException e )
     {
-      file_stream = null;
+      close();
       throw e;
     }
+  }
+
+  /* ---------------------------- eof -------------------------------- */
+  /**
+   *  Check for the end of file.  This eof() method will skip any blanks 
+   *  starting at the current position in the file and will advance to the 
+   *  first non-blank character remaining in the file, if there is one.
+   *  If there is a non-blank character remaining in the file, eof() will
+   *  return false and that non-blank character will be the next character
+   *  read from the file.  If no non-blank characters remain, eof() returns
+   *  true.  NOTE: This changes the current postion in the file.
+   *
+   *  @return true if no non-blank characters remain past the current position 
+   *               in the file.   
+   */
+  public boolean eof()
+  {
+    try
+    {
+      skip_blanks();
+    }
+    catch ( IOException e )
+    {
+      return true;
+    }
+    return false;
   }
 
   /* -------------------------- read_line ---------------------------- */
@@ -101,18 +134,11 @@ public class TextFileReader
    */
   public String read_line() throws IOException
   {
-    try
-    {
-      in.mark( BUFFER_SIZE );
-      String s = in.readLine();
-      if ( s == null )
-        throw new IOException( EOF );
-      return s;
-    }
-    catch ( IOException e )
-    {
-      throw e;
-    }
+    in.mark( BUFFER_SIZE );
+    String s = in.readLine();
+    if ( s == null )
+      throw new IOException( EOF );
+    return s;
   }
  
   /* -------------------------- skip_blanks ---------------------------- */
@@ -128,26 +154,18 @@ public class TextFileReader
   public void skip_blanks() throws IOException
   {
     int  ch;
-
-    try
+    in.mark(2);
+    ch = in.read(); 
+    while ( Character.isWhitespace( (char)ch ) )
     {
       in.mark(2);
       ch = in.read(); 
-      while ( Character.isWhitespace( (char)ch ) )
-      {
-        in.mark(2);
-        ch = in.read(); 
-      }
-
-      if ( ch < 0 )                                         // -1 is EOF
-        throw new IOException( EOF );
-
-      in.reset();
     }
-    catch ( IOException e )
-    {
-      throw e;
-    }
+
+    if ( ch < 0 )                                         // -1 is EOF
+      throw new IOException( EOF );
+
+    in.reset();
   }
 
 
@@ -172,30 +190,23 @@ public class TextFileReader
     int  ch;
     int  n = 0;
 
-    try
-    {
-      skip_blanks();
+    skip_blanks();
 
-      n = 0;
-      ch = in.read(); 
-      while ( !Character.isWhitespace( (char)ch ) && 
-               ch >= 0                            &&         // -1 is EOF
-               n  < BUFFER_SIZE                       )
-      {
-        buffer[n] = (byte)ch;
-        n++;
-        ch = in.read();
-      }
-       
-      if ( n > 0 )
-        return new String( buffer, 0, n );
-      else
-        throw new IOException( EOF );
-    }
-    catch ( IOException e )
+    n = 0;
+    ch = in.read(); 
+    while ( !Character.isWhitespace( (char)ch ) && 
+             ch >= 0                            &&         // -1 is EOF
+             n  < BUFFER_SIZE                       )
     {
-      throw e;
+      buffer[n] = (byte)ch;
+      n++;
+      ch = in.read();
     }
+       
+    if ( n > 0 )
+      return new String( buffer, 0, n );
+    else
+      throw new IOException( EOF );
   }
 
   /* -------------------------- read_int ---------------------------- */
@@ -211,18 +222,11 @@ public class TextFileReader
    *          of file has been reached, or a NumberFormatException, if the
    *          characters don't represent an int.
    */
-  public int read_int() throws IOException
+  public int read_int() throws IOException, NumberFormatException
   {
-    try
-    {
-      String s = read_String();
-      int val = (new Integer( s )).intValue();
-      return val;
-    }
-    catch ( IOException e )
-    {
-      throw e;
-    }
+    String s = read_String();
+    int val = (new Integer( s )).intValue();
+    return val;
   }
 
   /* -------------------------- read_float ---------------------------- */
@@ -238,18 +242,11 @@ public class TextFileReader
    *          of file has been reached, or a NumberFormatException, if the
    *          characters don't represent a float.
    */
-  public float read_float() throws IOException
+  public float read_float() throws IOException, NumberFormatException
   {
-    try 
-    {
-      String s = read_String();
-      float val = (new Float( s )).floatValue();
-      return val;
-    }
-    catch ( IOException e )
-    {
-      throw e;
-    }
+    String s = read_String();
+    float val = (new Float( s )).floatValue();
+    return val;
   }
 
 
@@ -266,18 +263,11 @@ public class TextFileReader
    *          of file has been reached, or a NumberFormatException, if the
    *          characters don't represent a double.
    */
-  public double read_double() throws IOException
+  public double read_double() throws IOException, NumberFormatException
   {
-    try
-    {
-      String s = read_String();
-      double val = (new Double( s )).doubleValue();
-      return val;
-    }
-    catch ( IOException e )
-    {
-      throw e;
-    }
+    String s = read_String();
+    double val = (new Double( s )).doubleValue();
+    return val;
   }
 
 
@@ -297,16 +287,9 @@ public class TextFileReader
    */
   public boolean read_boolean() throws IOException
   {
-    try
-    {
-      String s = read_String();
-      boolean val = (new Boolean( s )).booleanValue();
-      return val;
-    }
-    catch ( IOException e )
-    {
-      throw e;
-    }
+    String s = read_String();
+    boolean val = (new Boolean( s )).booleanValue();
+    return val;
   }
 
 
@@ -321,15 +304,8 @@ public class TextFileReader
    */
   public char read_char() throws IOException
   {
-    try
-    {
-      in.mark(2);
-      return (char)(in.read());
-    }
-    catch ( IOException e )
-    {
-      throw e;
-    }
+    in.mark(2);
+    return (char)(in.read());
   }
 
   /* ----------------------------- unread ------------------------------ */
@@ -342,34 +318,25 @@ public class TextFileReader
    */
   public void unread() throws IOException
   {
-    try
-    {
-      in.reset();
-    }
-    catch ( IOException e )
-    {
-      throw e;
-    }
+    in.reset();
   }
 
 
   /* ----------------------------- close ------------------------------ */
   /**
-   *  Close the file.
+   *  Close the file.  Both the BufferedReader and underlying FileInputStream 
+   *  are closed.  
    *
    *  @throws IOException if something goes wrong when trying to close the
-   *          BufferedReader.
+   *          BufferedReader or FileInputStream.
    */
   public void close() throws IOException
   {
-    try
-    {
+    if ( in != null ) 
       in.close();
-    }
-    catch ( IOException e )
-    {
-      throw e;
-    }
+
+    if ( f_stream != null )
+      f_stream.close();
   }
 
  
@@ -386,6 +353,7 @@ public class TextFileReader
     char           ch    = 0;
     boolean        b     = false;
     TextFileReader f     = null;
+
     try
     {
       f = new TextFileReader("my_file.dat");
@@ -419,32 +387,25 @@ public class TextFileReader
       ch = f.read_char();
       System.out.println("char value again is " + ch );
 
-//      f.close();
+      f.close();
     }
     catch ( Exception e )
     {
-      System.out.println("EXCEPTION: " + e );
+      System.out.println("1: EXCEPTION: " + e );
     }
 
 
-    try 
+    while ( !f.eof() )
     {
-      for ( int i = 0; i < 8; i++ )
+      try
       {
-        val = f.read_String();
-        System.out.println("Val: " + val );
-        f.unread();
-        val = f.read_String();
-        System.out.println("Val again: " + val );
-
-        line = f.read_line();
-        System.out.println("Line |" + line + "| length = " + line.length());
+        f_num = f.read_float();
+        System.out.println("Read : " + f_num );
+      }
+      catch ( Exception e )
+      {
+        System.out.println("2: EXCEPTION: " + e );
       }
     }
-    catch ( Exception e )
-    {
-      System.out.println("EXCEPTION: " + e );
-    }
   }
-
 } 
