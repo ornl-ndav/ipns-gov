@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.38  2004/05/18 19:40:17  millermi
+ *  - Changed layout of editor to BoxLayout.
+ *  - Make use of set...() methods to set private variables.
+ *
  *  Revision 1.37  2004/04/02 20:58:33  millermi
  *  - Fixed javadoc errors
  *
@@ -249,6 +253,7 @@ import gov.anl.ipns.ViewTools.Components.Region.*;
 import gov.anl.ipns.ViewTools.Components.Cursor.*; 
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.Util.Numeric.floatPoint2D; 
+import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 
@@ -326,7 +331,7 @@ public class SelectionOverlay extends OverlayJPanel
   private transient SelectionEditor editor;
   // buttons for making selections, used by editor.
   private JButton[] sjpbuttons;
-  private Rectangle editor_bounds = new Rectangle(0,0,385,200);
+  private Rectangle editor_bounds = new Rectangle(0,0,430,290);
  
  /**
   * Constructor creates an overlay with a SelectionJPanel that shadows the
@@ -456,14 +461,14 @@ public class SelectionOverlay extends OverlayJPanel
     temp = new_state.get(SELECTION_COLOR);
     if( temp != null )
     {
-      reg_color = (Color)temp;
+      setRegionColor( (Color)temp );
       redraw = true;  
     }
     
     temp = new_state.get(OPACITY);
     if( temp != null )
     {
-      opacity = ((Float)temp).floatValue(); 
+      setOpacity( ((Float)temp).floatValue() ); 
       redraw = true;  
     }  
      
@@ -695,11 +700,11 @@ public class SelectionOverlay extends OverlayJPanel
   public void paint(Graphics g) 
   { 
     Graphics2D g2d = (Graphics2D)g; 
-    // testing...
+    // Change the opaqueness of the selections.
     AlphaComposite ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER,
         					    opacity );
     g2d.setComposite(ac);
-    // end of testing...
+    
     current_bounds = component.getRegionInfo();  // current size of center
     sjp.setBounds( current_bounds );
     // this limits the paint window to the size of the background image.
@@ -707,7 +712,6 @@ public class SelectionOverlay extends OverlayJPanel
         	  (int)current_bounds.getY(),
     		  (int)current_bounds.getWidth(),
     		  (int)current_bounds.getHeight() );
-    //this_panel.setBounds( current_bounds ); 
     // the current pixel coordinates
     CoordBounds pixel_map = 
             new CoordBounds( (float)current_bounds.getX(), 
@@ -948,7 +952,6 @@ public class SelectionOverlay extends OverlayJPanel
 	  np.y += (int)current_bounds.getY();
 	  floatPoint2D[] tempwcp = new floatPoint2D[1];
 	  tempwcp[0] = convertToWorldPoint( np );
-	  //System.out.println("tempwcp[0]: "+tempwcp[0].x+tempwcp[0].y );
 	  regions.add( new PointRegion(tempwcp) );
 	}    
 	else if( message.indexOf( SelectionJPanel.WEDGE ) > -1 &&
@@ -977,7 +980,6 @@ public class SelectionOverlay extends OverlayJPanel
 	}
 	else if( message.indexOf( SelectionJPanel.DOUBLE_WEDGE ) > -1 )
 	{ 
-	  //System.out.println("Drawing double wedge region" );
 	  // create new point, otherwise regions would be shared.
 	  Point[] p_array = ( ((DoubleWedgeCursor)
 		  sjp.get3ptCursor( SelectionJPanel.DOUBLE_WEDGE )).region() );
@@ -1052,7 +1054,7 @@ public class SelectionOverlay extends OverlayJPanel
   */ 
   private class SelectionEditor extends JFrame
   {
-    private Box pane;
+    private JPanel pane;
     private SelectionEditor this_editor;
     
     public SelectionEditor()
@@ -1060,34 +1062,45 @@ public class SelectionOverlay extends OverlayJPanel
       super("SelectionEditor");
       this.setBounds(editor_bounds);
       this_editor = this;
-      pane = new Box( BoxLayout.Y_AXIS );
-      // number of grid rows, and add one in for the JLabel.
+      pane = new JPanel();
+      new BoxLayout( pane, BoxLayout.Y_AXIS );
+      // Number of grid rows needed for the selection type buttons,
+      // and add one in for the JLabel.
       int gridrows = (int)Math.ceil( (double)(sjpbuttons.length + 1)/3 );
+      // If number of rows are specified, the number of columns doesn't matter.
       JPanel sjpcontrols = new JPanel( new GridLayout( gridrows, 1 ) );
       sjpcontrols.add( new JLabel("Add Selection") );
       for( int i = 0; i < sjpbuttons.length; i++ )
 	sjpcontrols.add( sjpbuttons[i] );
+     
       pane.add( sjpcontrols );
       
+      ColorSelector color_chooser = new ColorSelector(ColorSelector.SWATCH);
+      color_chooser.addActionListener( new ControlListener() );
+      
+      pane.add(color_chooser);
+      
+      // Slider that controls the opaqueness of the selections.
       ControlSlider opacityscale = 
 			   new ControlSlider("Selection Opacity Scale");
       opacityscale.setStep(.01f);
-      opacityscale.setRange(0f,100f);
+      opacityscale.setRange(0f,1f);
       opacityscale.setMajorTickSpace(.2f);
       opacityscale.setMinorTickSpace(.05f);
-      opacityscale.setValue(opacity*100f);
+      opacityscale.setValue(opacity);
       opacityscale.addActionListener( new ControlListener() );
-      pane.add(opacityscale);
-      
-      JButton colorbutton = new JButton("Change Color");
-      colorbutton.setAlignmentX( Component.CENTER_ALIGNMENT );
-      colorbutton.addActionListener( new ControlListener() );
-      pane.add(colorbutton);
       
       JButton closebutton = new JButton("Close");
-      closebutton.setAlignmentX( Component.CENTER_ALIGNMENT );
       closebutton.addActionListener( new ControlListener() );
-      pane.add( closebutton );
+      JPanel spacer = new JPanel();
+      spacer.setPreferredSize( new Dimension(editor_bounds.width/4,0) );
+      
+      JPanel slider_and_close = new JPanel( new BorderLayout() );
+      slider_and_close.add(opacityscale, BorderLayout.WEST );
+      slider_and_close.add(spacer, BorderLayout.CENTER );
+      slider_and_close.add(closebutton, BorderLayout.EAST );
+      
+      pane.add(slider_and_close);
       
       this.getContentPane().add(pane);
       this_editor.addComponentListener( new EditorListener() );
@@ -1102,27 +1115,20 @@ public class SelectionOverlay extends OverlayJPanel
       public void actionPerformed( ActionEvent ae )
       {
         String message = ae.getActionCommand();
-	if( message.equals("Change Color") )
+	if( message.equals( ColorSelector.COLOR_CHANGED ) )
         {
-	  Color temp =
-        	 JColorChooser.showDialog(pane, "Selection Color", reg_color);
-          if( temp != null )
-          {
-            reg_color = temp;
-            this_panel.repaint();
-          }
+	  setRegionColor( ((ColorSelector)ae.getSource()).getSelectedColor() );
 	}
         else if( message.equals( ControlSlider.SLIDER_CHANGED ) )
         {
-          opacity = ((ControlSlider)ae.getSource()).getValue() / 100f;
-          this_panel.repaint();
+          setOpacity( ((ControlSlider)ae.getSource()).getValue() );
         }
         else if( message.equals("Close") )
         {  
 	  editor_bounds = this_editor.getBounds(); 
           this_editor.dispose();
-          this_panel.repaint();
         }
+        this_panel.repaint();
       }
     }
      
