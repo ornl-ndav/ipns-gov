@@ -1,4 +1,4 @@
-/**
+ /**
  * File: StringUtil.java
  *
  * Copyright (C) 2000, Dennis Mikkelson
@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2003/12/18 13:09:30  rmikk
+ *  Added a new method, toString( object, boolean), which displays ALL the
+ *    members of an array or Collection if the second argument is true.
+ *
  *  Revision 1.23  2003/10/22 20:28:46  rmikk
  *  Fixed javadoc error
  *
@@ -430,6 +434,17 @@ public class StringUtil
      }
      return -1;
   }
+  
+  /**
+   * Method for turning an Object into a String that represents its
+   * value. This turns java.util.Collection and
+   * Arrays into a comma delimeted list with square brackets, these
+   * are only printed up to java's MAX_ARRAY_DEPTH
+   * values long.
+   */
+  public static String toString( Object object){
+      return toString( object, false);
+  }
 
   /**
    * Method for turning an Object into a String that represents its
@@ -438,7 +453,7 @@ public class StringUtil
    * are only printed up to java's MAX_ARRAY_DEPTH
    * values long.
    */
-  public static String toString(Object object){
+  public static String toString(Object object, boolean showAll){
     if(object==null){
       return "null";
     }else if(object instanceof String){
@@ -448,8 +463,8 @@ public class StringUtil
       int count=0;
 
       Iterator iterator=((Collection)object).iterator();
-      while(iterator.hasNext() && count<MAX_ARRAY_DEPTH){
-        result.append(toString(iterator.next()));
+      while(iterator.hasNext() && (count<MAX_ARRAY_DEPTH || showAll)){
+        result.append(toString(iterator.next(), showAll));
         if(iterator.hasNext()) result.append(",");
         count++;
       }
@@ -461,9 +476,9 @@ public class StringUtil
       StringBuffer result=new StringBuffer("[");
       int length=Array.getLength(object);
       int max=Math.min(MAX_ARRAY_DEPTH,length);
-
+      if( showAll) max = length;
       for( int i=0 ; i<max ; i++ ){
-        result.append(toString(Array.get(object,i)));
+        result.append(toString(Array.get(object,i), showAll));
         if(i<length-1) result.append(",");
       }
       if(max<length) result.append("...");
@@ -805,13 +820,29 @@ public class StringUtil
 
     return numFound;
   }
-
+  /**
+    *  Test program for the toString variations
+    */
+  public static void main(String[] args)
+  {
+    int n = ( new Integer( args[0])).intValue();
+    int m = 1;
+    if( args.length > 1)
+      m =( new Integer( args[1])).intValue();
+    
+   int[][]data = new int [m][n];
+   for( int i=0;i < n; i++)
+    for( int j=0; j< m; j++)
+      data[j][i] = i+2*j;
+   System.out.println( "short="+ StringUtil.toString( data));
+   System.out.println("\n\n long="+ StringUtil.toString( data, true));
+  }
 /* ---------------------------------------------------------------------------
  *
  *  Main program for test purposes.
  *
  */
-  public static void main(String[] args)
+  public static void main1(String[] args)
   {
     String s       = "-D   /home/dennis/ -Llog.txt -D/usr/data/";
     String command = "-D";
