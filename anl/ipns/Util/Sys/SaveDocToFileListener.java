@@ -1,6 +1,6 @@
 /*
- * File:  SaveDocToFileListener.java 
- *             
+ * File:  SaveDocToFileListener.java
+ *            
  * Copyright (C) 2001, Ruth Mikkelson
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2002/01/10 15:39:45  rmikk
+ * Fixed an error that caused it not to remember the last
+ * directory
+ *
  * Revision 1.1  2001/12/21 17:47:06  dennis
  * An ActionListener that pops up a save file dialog box and
  * saves the contents of the document to a file.
@@ -44,12 +48,11 @@ import java.io.*;
  import IsawGUI.*;
  import javax.swing.*;
 
-
 /** Pops up a file dialog so the filename can be selected.  Then saves the contents
  * of the PlainDocument doc to this file. Other features include <UL><LI>to notify listeners of
  * a new filename <LI> also listen for a new "current filename" <LI>The current filename
  * appears in the pop up file dialog box.
- *  <LI> As a PropertyChange Listener, this class only listens for the property with 
+ *  <LI> As a PropertyChange Listener, this class only listens for the property with
  * the name "filename".  The New Value is the new filename.</ul>
 
 */
@@ -60,33 +63,33 @@ public class SaveDocToFileListener  implements ActionListener , PropertyChangeLi
     Document doc;
 
     /** Constructor that sets the document that will be saved when triggered by an event
-    * 
+    *
     *@param   doc the file whose contents will be saved
-    *@param   filename  sets the filename and directory in the pop up file dialog box 
-    * 
+    *@param   filename  sets the filename and directory in the pop up file dialog box
+    *
     */
     public SaveDocToFileListener( Document doc,String filename)
       {this( doc, filename, null, null);
        }
 
-    /**  Constructor that sets the document that will be saved when triggered by an 
-     *event. It also <ul><li> adds one PropertyChangeListener 
-     *<li> Allows a different property name to be sent when notifying the listener 
+    /**  Constructor that sets the document that will be saved when triggered by an
+     *event. It also <ul><li> adds one PropertyChangeListener
+     *<li> Allows a different property name to be sent when notifying the listener
      *   about the changed filename
      *</ul>
      *@param  doc the file whose contents will be saved
      *@param  filename  sets the filename and directory in the pop up file dialog box
-     *@param FilenameListener <ul>Listener for a new filename that saved a doc or null 
-     *           if none </ul> 
+     *@param FilenameListener <ul>Listener for a new filename that saved a doc or null
+     *           if none </ul>
      *@param FilenamePropertyName  <ul>The property name sent to Listener when notifying
-     *                   about the new filename</ul> 
-    */  
-    public SaveDocToFileListener( Document doc, String filename, 
+     *                   about the new filename</ul>
+    */
+    public SaveDocToFileListener( Document doc, String filename,
                            PropertyChangeListener FilenameListener,
                                     String FilenamePropertyName )
       { this.doc = doc;
         this. FilenameListener= FilenameListener;
-        
+      
         this.FilenamePropertyName = FilenamePropertyName;
         this.filename = filename;
         if( FilenameListener != null)
@@ -94,45 +97,45 @@ public class SaveDocToFileListener  implements ActionListener , PropertyChangeLi
              FilenamePropertyName = "filename";
       }
 
-     /** Stores the doc to the file selected and notifies any listeners of the 
+     /** Stores the doc to the file selected and notifies any listeners of the
       *  filename that was used to store the file
      */
      public void actionPerformed( ActionEvent evt)
       {
         final JFileChooser fc ;
 
-        if( filename == null) 
-            fc= new JFileChooser() ; 
+        if( filename == null)
+            fc= new JFileChooser() ;
         else
-             fc= new JFileChooser( filename ) ; 
+             fc= new JFileChooser( filename ) ;
 
-         int state  ; 
+         int state  ;
          if( filename != null )
            fc.setSelectedFile( new File(filename));
-      
-	 state = fc.showSaveDialog( null ) ; 
+    
+	 state = fc.showSaveDialog( null ) ;
          if( state != JFileChooser.APPROVE_OPTION )
-               return ; 
-         
-	 File SelectedFile = fc.getSelectedFile() ; 
-         String filename  = SelectedFile.toString() ; 
-        
- 
+               return ;
+       
+	 File SelectedFile = fc.getSelectedFile() ;
+         filename  = SelectedFile.toString() ;
+      
+
 	 (new Util()).saveDoc( doc , filename );
          if( FilenameListener != null)
-            FilenameListener.propertyChange( 
+            FilenameListener.propertyChange(
                    new PropertyChangeEvent(this, FilenamePropertyName ,
-                                filename, filename));    
+                                filename, filename));  
        }
-   
+ 
     /** This method is invoked when a PropertyChange event is triggered and an
     *   instance of this class was added as a listener. The filename that appears
-    *   when the pop up file dialog box appears is set by this method if the 
+    *   when the pop up file dialog box appears is set by this method if the
     *   Property Name was "filename".
     *@param  evt  the Property Change event
     */
     public void propertyChange( PropertyChangeEvent evt)
-      { System.out.println( "Savedoc prop chang="+evt.getPropertyName());
+      { //System.out.println( "Savedoc prop chang="+evt.getPropertyName());
          if( evt.getPropertyName().equals("filename"))
           { filename = (String)evt.getNewValue();
            }
@@ -148,7 +151,7 @@ public class SaveDocToFileListener  implements ActionListener , PropertyChangeLi
        {filename= Filename;
         }
 
-     /** Returns the last selected filename.  
+     /** Returns the last selected filename. 
      */
      public String getFileName()
        { return filename;
@@ -163,3 +166,4 @@ public class SaveDocToFileListener  implements ActionListener , PropertyChangeLi
          FilenamePropertyName ="filename";
         }
    }
+
