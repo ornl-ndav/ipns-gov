@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/03/13 23:21:59  millermi
+ *  - Improved comments and javadocs.
+ *
  *  Revision 1.10  2005/01/26 22:27:00  millermi
  *  - Removed public messaging string STATE_CHANGED since it
  *    was unused.
@@ -90,10 +93,10 @@
  * Hashtable, ObjectState uses a key to identify a field. However, since
  * ObjectStates can be nested, recursion is used to find which table the field
  * is contained in. Recursion is only available if the key is a string and
- * incorporates the following naming convention: 
- * 
+ * incorporates the following naming convention: <BR><BR>
+ * <B>
  * ClassName1.ClassName2.ClassNameN.Key
- *
+ * </B><BR><BR>
  * Each class that uses ObjectState should specify a public static final
  * key_name for each field whose state is being preserved. 
  * 
@@ -224,6 +227,7 @@ public class ObjectState implements java.io.Serializable
   */
   public boolean silentFileChooser( String filename, boolean isSave )
   {
+    // Add .isv extension if not already present.
     filename = new StateFileFilter().appendExtension(filename);
     if( isSave )
     {
@@ -260,7 +264,7 @@ public class ObjectState implements java.io.Serializable
     StateFileFilter sff = new StateFileFilter();
     fc.setFileFilter( sff );
     //System.out.println("Current: " + fc.getCurrentDirectory().getPath() );
-    
+    // Set title of JDialog window.
     if( isSave )
     {
       title = "Save State";   
@@ -271,7 +275,7 @@ public class ObjectState implements java.io.Serializable
     }
     
     int result = fc.showDialog(f,title);
-    
+    // If affirmative button pressed, attempt to save/load file.
     if( result == JFileChooser.APPROVE_OPTION )
     {
       String filename = fc.getSelectedFile().toString();
@@ -310,7 +314,10 @@ public class ObjectState implements java.io.Serializable
    * Chris Bouzek's Wizard.java.
    */
  /**
-  * Sets the directory for the state save files to go into.
+  * Sets the directory for the state save files to go into. By default,
+  * files are saved to the home directory.
+  *
+  *  @param  dir Directory projects are to be saved to.
   */
   public void setProjectsDirectory( String dir )
   {
@@ -318,13 +325,22 @@ public class ObjectState implements java.io.Serializable
   }
 
  /**
-  * Gets the directory for the state save files.
+  * Gets the directory for the state save files. By default, projects are
+  * saved to the home directory.
+  *
+  *  @return Directory where files will be saved to.
   */
   public String getProjectsDirectory()
   {
     return projectsDirectory;
   }
-  
+ 
+ /**
+  * Override Object.toString(). Uses Hashtable.toString() for better println
+  * readout.
+  *
+  *  @return String representation of this ObjectState.
+  */ 
   public String toString()
   {
     return table.toString();
@@ -337,22 +353,27 @@ public class ObjectState implements java.io.Serializable
   */ 
   private boolean editTable( Object key, Object field, boolean allow_replace )
   {
+    // Ensure key is a String.
     if( key instanceof String )
     {
       String skey = (String)key;
       String nextkey = null;
       int period_index = skey.indexOf(".");
+      // If period exists, let skey = preperiod, nextkey = postperiod string.
       if( period_index > 0 )
       {
 	nextkey = skey.substring(period_index + 1);
 	skey = skey.substring(0,period_index);
       }
       //System.out.println(skey + " " + temp_key);
-      // if null, then no recursion needed
+      // if null, no period found, skey is the key registered in table.
+      // No more recursion needed.
       if( nextkey == null )
       {
+        // reset() called, replace value.
 	if( allow_replace )
         {
+	  // If the key is found in the hashtable, replace the old value.
           if( get(skey) != null )
           {
             table.put(skey,field);
@@ -360,7 +381,7 @@ public class ObjectState implements java.io.Serializable
           }
           return false;
         }
-        // else insert() method called this
+        // else insert() method called.
 	Object temp = table.put(skey,field);
 	// if temp != null, then the key already existed. Temp contains the old
 	// field that key referenced.
@@ -376,16 +397,20 @@ public class ObjectState implements java.io.Serializable
       } // end if nextkey == null
       else if( skey.equals(GLOBAL) )
       {
+        // If reset() called...
         if( allow_replace )
 	{
+	  // If nextkey is a key in the hashtable...
           if( get(nextkey) != null )
           {
-            table.put(nextkey,field);
+            // replace the existing value.
+	    table.put(nextkey,field);
 	    Enumeration e = table.elements();
 	    Object temp_entry;
+	    // Create new key "GLOBAL.nextkey"
 	    String jointkey = new String(skey.concat(".").concat(nextkey));
 	    // go through this level and find all ObjectStates, then
-	    // pass the global variable down to them.
+	    // pass (reset) the global variable down to all lower levels.
 	    while( e.hasMoreElements() )
 	    {
 	      temp_entry = e.nextElement();
@@ -399,9 +424,12 @@ public class ObjectState implements java.io.Serializable
 	// if !allow_replace, do nothing. Don't want to insert global variables
 	return false;
       } // end if skey.equals(GLOBAL)
+      // Else, have case: Level1.Level2.Level3...LevelN.key, need to get
+      // through levels to find key.
       else
       {
 	Object nextstate = get( skey );
+	// Get next level, Must be ObjectState, if not, something is wrong.
         if( nextstate instanceof ObjectState )
           ((ObjectState)nextstate).editTable( nextkey, field, allow_replace );
         else
