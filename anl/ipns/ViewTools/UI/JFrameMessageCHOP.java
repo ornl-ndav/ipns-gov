@@ -1,3 +1,13 @@
+/*  JFrameMessage CHOP   Aug. 2000, Dongfeng Chen
+*/
+/*
+ * $Log$
+ * Revision 1.2  2000/11/07 16:07:44  dennis
+ * Minor fix in documentation and added $Log$ for CVS logging.
+ *
+ *
+ */
+
 package DataSetTools.components.ui;
 import java.awt.*;
 import java.awt.event.*;
@@ -42,9 +52,8 @@ public class JFrameMessageCHOP extends javax.swing.JFrame
 	}
 
     /**
-     * Creates a new instance of JFrame1 with the given title.
+     * Creates a new instance with the given title.
      * @param sTitle the title for the new frame.
-     * @see #JFrame1()
      */
 	public JFrameMessageCHOP(String sTitle)
 	{
