@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2002/09/25 16:46:58  pfpeterson
+ *  Fixed a bug in getFloat(sb) and getInt(sb) where negative numbers
+ *  where not considered numbers.
+ *
  *  Revision 1.10  2002/08/15 18:45:09  pfpeterson
  *  Now replaces "//" in fixSeparator as well.
  *
@@ -406,7 +410,8 @@ public class StringUtil
       
       Float temp=null;
       int end=0;
-      if(Character.isDigit(sb.charAt(0))){
+      String start=sb.substring(0,1);
+      if(Character.isDigit(sb.charAt(0)) || start.equals("-")){
           end=sb.toString().indexOf(" ");
           if(end==-1) end=sb.length();
       }            
@@ -450,7 +455,8 @@ public class StringUtil
       Integer temp=null;
       int end=0;
       
-      if(Character.isDigit(sb.charAt(0))){
+      String start=sb.substring(0,1);
+      if(Character.isDigit(sb.charAt(0)) || start.equals("-")){
           end=sb.toString().indexOf(" ");
           if(end==-1) end=sb.length();
       }
