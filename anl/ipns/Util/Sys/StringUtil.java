@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2003/10/22 20:28:46  rmikk
+ *  Fixed javadoc error
+ *
  *  Revision 1.22  2003/10/16 00:35:41  dennis
  *  Partly fixed javadocs to build cleanly with jdk 1.4.2
  *  Line 433 @link MAX_ARRAY_DEPTH reference still not found
@@ -430,9 +433,9 @@ public class StringUtil
 
   /**
    * Method for turning an Object into a String that represents its
-   * value. This turns {@link java.util.Collection Collection} and
+   * value. This turns java.util.Collection and
    * Arrays into a comma delimeted list with square brackets, these
-   * are only printed up to {@link MAX_ARRAY_DEPTH}
+   * are only printed up to java's MAX_ARRAY_DEPTH
    * values long.
    */
   public static String toString(Object object){
