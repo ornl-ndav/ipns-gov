@@ -30,11 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/02 15:17:00  dennis
+ * Added java docs with links to the java classes with the
+ * Hershey font data.
+ *
  * Revision 1.1  2004/06/01 03:43:33  dennis
  * Initial version of classes for drawing strings as sequences of
  * line segments, using the "Hershey" fonts.
- *
- *
  */
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
@@ -45,7 +47,28 @@ import net.java.games.jogl.*;
 /**
  *  A StrokeText object draws a character string with a specified size, 
  *  orientation and alignment, using a StrokedFont object to draw the 
- *  individual characters.
+ *  individual characters as a sequence of line segments.  
+ *  The "Simplex" fonts are drawn with single
+ *  lines.  The "Duplex" and "Complex" fonts are draw with pairs of lines,
+ *  with "Complex" fonts being somewhat more elaborate than "Duplex" fonts
+ *  of the same type.  For example, RomanComplex includes serifs on the
+ *  characters whereas RomanDuplex does not.  "Triplex" fonts are drawn with
+ *  sets of three lines.
+ *
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.CyrilicComplex
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.GothicBritishTriplex
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.GothicGermanTriplex
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.GothicItalianTriplex
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.GreekComplex
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.GreekSimplex 
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.ItalicComplex 
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.ItalicTriplex 
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.RomanComplex 
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.RomanDuplex 
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.RomanSimplex 
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.RomanTriplex 
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.ScriptComplex 
+ *  @see gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.ScriptSimplex 
  */
 
 public class StrokeText extends GL_Shape
