@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/07/06 19:43:14  serumb
+ *  Added a check for a valid index in the get errors method.
+ *
  *  Revision 1.5  2004/06/10 23:25:10  serumb
  *  Added method to get selected indexes.
  *
@@ -231,8 +234,11 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
   *  @return Error values for graph specified.
   */
   public float[] getErrorValues( int graph_number )
-  {
-    return ((DataArray1D)graphs.elementAt(graph_number)).getErrorArray();
+  { 
+      // check for valid index
+    if( graph_number >= 0 && graph_number < graphs.size() )
+      return ((DataArray1D)graphs.elementAt(graph_number)).getErrorArray();
+    return null;
   }
   
  /**
