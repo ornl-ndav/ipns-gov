@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/12/20 19:37:33  millermi
+ *  - Added axisinfo for value axis.
+ *
  *  Revision 1.8  2003/12/20 03:35:41  millermi
  *  - changed comments and code on how Float.NaN is checked.
  *
@@ -88,6 +91,7 @@ public class VirtualArray2D implements IVirtualArray2D
   private int num_columns;	     // In M x N array, stores N
   private AxisInfo rowinfo;
   private AxisInfo colinfo;
+  private AxisInfo datainfo;
   private String title;
    
  /**
@@ -108,6 +112,7 @@ public class VirtualArray2D implements IVirtualArray2D
     num_columns = columns;
     rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
     colinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
+    datainfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
     title = NO_TITLE;
   }
 
@@ -124,6 +129,7 @@ public class VirtualArray2D implements IVirtualArray2D
     num_rows = array2d.length;
     rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
     colinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
+    datainfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS, true);
     title = NO_TITLE;
   }	 
 
@@ -147,7 +153,9 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     if( axiscode == AxisInfo.X_AXIS )
       return rowinfo;
-    return colinfo;
+    if( axiscode == AxisInfo.Y_AXIS )
+      return colinfo;
+    return datainfo;
   }
   
  /**
@@ -167,8 +175,10 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     if(axiscode == AxisInfo.X_AXIS)
       rowinfo = new AxisInfo(min,max,label,units, islinear);
-    else
+    else if(axiscode == AxisInfo.Y_AXIS)
       colinfo = new AxisInfo(min,max,label,units, islinear);
+    else
+      datainfo = new AxisInfo(min,max,label,units, islinear);
   } 
   
  /**
@@ -183,8 +193,10 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     if( axiscode == AxisInfo.X_AXIS )
       rowinfo = info.copy();
-    else
+    else if(axiscode == AxisInfo.Y_AXIS)
       colinfo = info.copy();
+    else
+      datainfo = info.copy();
   } 
   
  /**
