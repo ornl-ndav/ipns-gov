@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2003/08/07 16:27:04  dennis
+ *  Improved naming of variables in method to transform
+ *  local bounds by log transform. (Brent Serum)
+ *
  *  Revision 1.23  2003/08/05 23:19:19  serumb
  *  Added method getLocalLogCoords to get the coord bounds that have been
  *  scaled.
@@ -436,12 +440,12 @@ public class CoordJPanel extends    ActiveJPanel
     y2 = b2.getY2();    
     LogScaleUtil loggerx = new LogScaleUtil(b.getX1(),b.getX2(),b.getX1(),b.getX2());
     LogScaleUtil loggery = new LogScaleUtil(b.getY1(),b.getY2(),b.getY1(),b.getY2());
-    b.setBounds(loggerx.toDest(x1, scale),
+    b2.setBounds(loggerx.toDest(x1, scale),
                 loggery.toDest(y1, scale),
                 loggerx.toDest(x2, scale),
                 loggery.toDest(y2, scale));
 
-    return( b );
+    return( b2 );
   }
 
 
