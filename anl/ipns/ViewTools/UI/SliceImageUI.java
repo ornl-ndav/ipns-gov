@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/02/02 23:53:05  dennis
+ * Default width and height of plane is now 5 units.
+ *
  * Revision 1.3  2004/01/27 23:27:15  dennis
  * Added min/max bounds on values that can be entered.
  *
@@ -85,8 +88,8 @@ public class SliceImageUI extends    ActiveJPanel
   public SliceImageUI( String title )
   {
     step_ui      = new TextValueUI( "Step Size ", 0.02f );
-    width_ui     = new TextValueUI( "Width "    , 2     );
-    height_ui    = new TextValueUI( "Height "   , 2     );
+    width_ui     = new TextValueUI( "Width "    , 5     );
+    height_ui    = new TextValueUI( "Height "   , 5     );
     thickness_ui = new TextValueUI( "Thickness ", 0.01f );
 
     step_ui.setLimits( MIN_VAL, MAX_VAL );
