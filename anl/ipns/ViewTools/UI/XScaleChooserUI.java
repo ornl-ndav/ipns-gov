@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/07/24 23:23:26  dennis
+ *  Now allows 0 bins to be set when it constructed.
+ *
  *  Revision 1.4  2002/07/12 18:36:17  dennis
  *  Now returns NULL if users specifies <= 0 steps on the XScale.
  *  Viewers using this must trap this and use a default XScale
@@ -109,7 +112,7 @@ public class XScaleChooserUI extends    ActiveJPanel
       x_max = 1; 
     } 
 
-    if ( n_steps <= 1 )
+    if ( n_steps < 0 )
     {
       System.out.println("Error: n_steps invalid in XScaleChooserUI");
       System.out.println("n_steps = " + n_steps);
