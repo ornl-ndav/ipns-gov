@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/03/12 00:00:13  serumb
+ * Changed package and imports.
+ *
  * Revision 1.1  2004/01/26 20:49:03  dennis
  * Initial version of class that selects a plane based on
  * a "center" point on the plane, a second point on the
@@ -38,14 +41,14 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.math.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.Util.Sys.*;
 
 /**
  *  This class selects a plane by specifying three points on the plane.

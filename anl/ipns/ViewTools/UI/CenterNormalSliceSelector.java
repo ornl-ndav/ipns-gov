@@ -30,20 +30,22 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/03/12 00:02:11  serumb
+ * Changed package and imports.
+ *
  * Revision 1.1  2004/01/26 20:47:36  dennis
  * Initial version of class that selects a plane based on
  * a point on the plane and a normal vector.
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.math.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
  *  This class selects a plane by specifying a point on the plane and 
