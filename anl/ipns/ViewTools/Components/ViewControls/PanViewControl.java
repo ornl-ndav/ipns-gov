@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/11/21 01:27:29  millermi
+ *  - Removed println() statements.
+ *  - Fixed bug that caused image to be repainted over the cursor.
+ *
  *  Revision 1.4  2003/11/21 00:43:03  millermi
  *  - replica of image is now an Image instead of a CoordJPanel.
  *  - Replaced methods that updated the logscale and colorscale
@@ -108,9 +112,9 @@ public class PanViewControl extends ViewControl
   {
     super("");
     panel = new ThumbnailJPanel();
+    overlay = new TranslationOverlay();
     actual_cjp = cjp;
     refreshData();
-    overlay = new TranslationOverlay();
     overlay.addActionListener( new OverlayListener() );
     setGlobalBounds( cjp.getGlobalWorldCoords() );
     setLocalBounds( cjp.getLocalWorldCoords() );
@@ -188,7 +192,9 @@ public class PanViewControl extends ViewControl
                                                            panel_size.height ); 
     }
     panel.setImage(panel_image);
-    repaint();
+    Graphics g = getGraphics();
+    if( g != null )
+      update(g);
   }
 
  /*
@@ -240,7 +246,6 @@ public class PanViewControl extends ViewControl
     //System.out.println("Pan Height: " + pan_height );
     setMinimumSize( new Dimension( 0, (int)pan_height ) );
     setPreferredSize( new Dimension( (int)pan_width, (int)pan_height ) );
-    System.out.println("Size: " + getPreferredSize().toString() );
   }
 
  /*
