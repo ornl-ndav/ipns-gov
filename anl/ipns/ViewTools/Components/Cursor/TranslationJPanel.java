@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/03/21 23:26:29  millermi
+ *  - Added ObjectState key STRETCH_ENABLED which required
+ *    getObjectState to be added to the class to override the
+ *    method from the super class.
+ *
  *  Revision 1.11  2004/08/04 18:52:30  millermi
  *  - Added enableStretch() and isStretchEnabled() to turn resizing
  *    of the viewport on/off.
@@ -132,6 +137,13 @@ public class TranslationJPanel extends CoordJPanel
   * the mouse cursor has been changed due to boundry dragging.
   */
   public static final String CURSOR_CHANGED = "Cursor Changed";
+ /* ----------------------------ObjectState Keys--------------------------*/
+ /**
+  * "Stretch Enabled" - This String key refers to whether or not the
+  * viewport can be resized through mouse events. This ObjectState key
+  * references a Boolean.
+  */
+  public static final String STRETCH_ENABLED = "Stretch Enabled";
   
   private BoxPanCursor box;
   private CoordBounds restore = new CoordBounds(0,0,0,0);
@@ -171,13 +183,35 @@ public class TranslationJPanel extends CoordJPanel
   
  /**
   * This method must override the parent method inorder to incorporate
+  * additional state information.
+  *
+  *  @param  is_default Is desired state for project or preferences?
+  *  @return The state of the TranslationJPanel.
+  */ 
+  public ObjectState getObjectState( boolean is_default )
+  {
+    ObjectState state = super.getObjectState(is_default);
+    state.insert( STRETCH_ENABLED, new Boolean( isStretchEnabled() ) );
+    return state;
+  }
+  
+ /**
+  * This method must override the parent method inorder to incorporate
   * sending messages after the object state has been set.
   *
   *  @param  state The new state of the JPanel
   */ 
   public void setObjectState( ObjectState state )
   {
+    // Do nothing if state is null.
+    if( state == null )
+      return;
     super.setObjectState(state);
+    Object value = state.get(STRETCH_ENABLED);
+    if( value != null )
+    {
+      enableStretch( ((Boolean)value).booleanValue() );
+    }
     send_message(BOUNDS_CHANGED);
   }
   
