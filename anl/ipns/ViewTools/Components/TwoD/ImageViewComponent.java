@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.50  2004/01/07 06:47:39  millermi
+ *  - New float Region parameters have been updated.
+ *
  *  Revision 1.49  2003/12/30 00:39:40  millermi
  *  - Added Annular selection capabilities.
  *  - Changed SelectionJPanel.CIRCLE to SelectionJPanel.ELLIPSE
@@ -711,7 +714,12 @@ public class ImageViewComponent implements IViewComponent2D,
     
     return state;
   }
-      
+  /*
+  public void preserveAspectRatio( boolean doPreserve )
+  {
+    ijp.setPreserveAspectRatio(doPreserve);
+  }
+  */    
  /**
   * This method will disable the selections included in the names
   * list. Names are defined by static Strings in the SelectionJPanel class.
@@ -1692,7 +1700,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	WCRegion lastregion = (WCRegion)regions.lastElement();
         String regiontype = lastregion.getRegionType();
 	floatPoint2D[] wcp = lastregion.getWorldCoordPoints();
-        Point[] imagecolrow = new Point[wcp.length];
+        floatPoint2D[] imagecolrow = new floatPoint2D[wcp.length];
 	
 	// wcp[0] must be on image, but wcp[1] may not always be.
 	// If wcp[1] isn't on the image, move endpoint to edge of image.
@@ -1739,17 +1747,20 @@ public class ImageViewComponent implements IViewComponent2D,
 	    wcp[1].x = (wcp[1].y - wcp[0].y)/slope + wcp[0].x;
 	  }
 	    
-          imagecolrow[0] = new Point( ijp.ImageCol_of_WC_x( wcp[0].x ),
-                		      ijp.ImageRow_of_WC_y( wcp[0].y ) );
-          imagecolrow[1] = new Point( ijp.ImageCol_of_WC_x( wcp[1].x ),
-                		      ijp.ImageRow_of_WC_y( wcp[1].y ) );
+          imagecolrow[0] = new floatPoint2D( new Point( 
+	                              ijp.ImageCol_of_WC_x( wcp[0].x ),
+                		      ijp.ImageRow_of_WC_y( wcp[0].y ) ) );
+          imagecolrow[1] = new floatPoint2D( new Point( 
+	                              ijp.ImageCol_of_WC_x( wcp[1].x ),
+                		      ijp.ImageRow_of_WC_y( wcp[1].y ) ) );
 	}
 	else
 	{
           for( int i = 0; i < imagecolrow.length; i++ )
           {
-	    imagecolrow[i] = new Point( ijp.ImageCol_of_WC_x( wcp[i].x ),
-        			        ijp.ImageRow_of_WC_y( wcp[i].y ) );
+	    imagecolrow[i] = new floatPoint2D( new Point( 
+	                                ijp.ImageCol_of_WC_x( wcp[i].x ),
+        			        ijp.ImageRow_of_WC_y( wcp[i].y ) ) );
 	  /*System.out.println("ImageCoords: " + 
         		   ijp.ImageCol_of_WC_x( wcp[i].x ) + "/" +
         		   ijp.ImageRow_of_WC_y( wcp[i].y ) );
@@ -1771,13 +1782,13 @@ public class ImageViewComponent implements IViewComponent2D,
         else if( regiontype.equals(SelectionJPanel.WEDGE) )
         {
           int size = imagecolrow.length - 1;
-          imagecolrow[size] = new Point( (int)wcp[size].x, (int)wcp[size].y );
+          imagecolrow[size] = new floatPoint2D( wcp[size].x, wcp[size].y );
           selregion = new WedgeRegion( imagecolrow );
         }
         else if( regiontype.equals(SelectionJPanel.DOUBLE_WEDGE) )
         {
           int size = imagecolrow.length - 1;
-          imagecolrow[size] = new Point( (int)wcp[size].x, (int)wcp[size].y );
+          imagecolrow[size] = new floatPoint2D( wcp[size].x, wcp[size].y );
           selregion = new DoubleWedgeRegion( imagecolrow );
         }
         else if( regiontype.equals(SelectionJPanel.RING) )

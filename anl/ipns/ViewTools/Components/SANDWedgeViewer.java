@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2004/01/07 06:47:39  millermi
+ * - New float Region parameters have been updated.
+ *
  * Revision 1.9  2004/01/06 20:28:16  dennis
  * Fixed some problems with labels.
  * Now displays intensity vs Q graph.
@@ -128,7 +131,7 @@ import DataSetTools.dataset.Data;
 import DataSetTools.dataset.FunctionTable;
 import DataSetTools.dataset.UniformXScale;
 import DataSetTools.util.FontUtil;
-import DataSetTools.dataset.IntListAttribute;
+import DataSetTools.dataset.Float1DAttribute;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -495,8 +498,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 
     data_set.setY_units("" );
     data_set.setY_label("Relative Intensity" );
-    
-    data_set.setSelectFlag( data_set.getNum_entries() - 1, true );
+    if( data_set.getNum_entries() > 0 )
+      data_set.setSelectFlag( data_set.getNum_entries() - 1, true );
     setData(iva);
   }
 
@@ -701,12 +704,12 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     int   ID      = 1;
     float start_x = 0;
     float end_x   = 0;
+    floatPoint2D center = new floatPoint2D(); 
     floatPoint2D  start_point = null,
                   end_point   = null;
-    int   n_xvals;
-    Point center = new Point(0,0); 
+    int n_xvals;
     String attribute_name = "";
-    int[] attributes;
+    float[] attributes;
     // Attributes for wedge/double wedge.
     // 0. Type of selection (Static ints at top of this file)
     // 1. X axis Center position, in world coordinates
@@ -719,7 +722,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     {
       return;
     }
-    Point[] def_pts = region.getDefiningPoints();
+    floatPoint2D[] def_pts = region.getDefiningPoints();
     if( region instanceof WedgeRegion )
     {
      /* def_pts[0]   = center pt of circle that arc is taken from
@@ -730,15 +733,15 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[5].x = startangle, the directional vector in degrees
       * def_pts[5].y = degrees covered by arc.
       */
-      attributes = new int[5];
-      center = new Point( def_pts[0] );
+      attributes = new float[5];
+      center = new floatPoint2D( def_pts[0] );
       end_x = def_pts[4].x - center.x;
       // build attributes list
       attribute_name = SelectionJPanel.WEDGE;
-      int axisangle = Math.round((float)def_pts[5].x + (float)def_pts[5].y/2f);
-      if( axisangle > 359 )
+      float axisangle = def_pts[5].x + def_pts[5].y/2f;
+      if( axisangle >= 360 )
         axisangle -= 360;
-      int radius = def_pts[4].x - center.x;
+      float radius = def_pts[4].x - center.x;
       attributes[0] = center.x;
       attributes[1] = center.y;
       attributes[2] = radius;
@@ -756,15 +759,15 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[5].x = startangle, the directional vector in degrees
       * def_pts[5].y = degrees covered by arc.
       */
-      attributes = new int[5];
-      center = new Point( def_pts[0] );
+      attributes = new float[5];
+      center = new floatPoint2D( def_pts[0] );
       end_x = def_pts[4].x - center.x;
       // build attributes list
       attribute_name = SelectionJPanel.DOUBLE_WEDGE;
-      int axisangle = Math.round((float)def_pts[5].x + (float)def_pts[5].y/2f);
+      float axisangle = def_pts[5].x + def_pts[5].y/2f;
       if( axisangle > 359 )
         axisangle -= 360;
-      int radius = def_pts[4].x - center.x;
+      float radius = def_pts[4].x - center.x;
       attributes[0] = center.x;
       attributes[1] = center.y;
       attributes[2] = radius;
@@ -778,13 +781,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[1]   = bottom right corner of bounding box around ellipse
       * def_pts[2]   = center pt of ellipse
       */
-      attributes = new int[4];
-      center = new Point( def_pts[2] );
+      attributes = new float[4];
+      center = new floatPoint2D( def_pts[2] );
       end_x = def_pts[1].x - center.x;
       // build attributes list
       attribute_name = SelectionJPanel.ELLIPSE;
-      int major_radius = def_pts[1].x - center.x;
-      int minor_radius = def_pts[1].y - center.y;
+      float major_radius = def_pts[1].x - center.x;
+      float minor_radius = def_pts[1].y - center.y;
       attributes[0] = center.x;
       attributes[1] = center.y;
       attributes[2] = major_radius;
@@ -802,13 +805,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[3]   = top left corner of bounding box of outer circle
       * def_pts[4]   = bottom right corner of bounding box of outer circle
       */
-      attributes = new int[4];
-      center = new Point( def_pts[0] );
+      attributes = new float[4];
+      center = new floatPoint2D( def_pts[0] );
       end_x = def_pts[4].x - center.x;
       // build attributes list
       attribute_name = SelectionJPanel.RING;
-      int inner_radius = def_pts[2].x - center.x;
-      int outer_radius = def_pts[4].x - center.x;
+      float inner_radius = def_pts[2].x - center.x;
+      float outer_radius = def_pts[4].x - center.x;
       attributes[0] = center.x;
       attributes[1] = center.y;
       attributes[2] = inner_radius;
@@ -861,7 +864,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     }
     // put it into a "Data" object and then add it to the dataset
     spectrum = new FunctionTable( x_scale, y_vals, ID );
-    spectrum.setAttribute( new IntListAttribute( attribute_name, attributes ) );
+    spectrum.setAttribute( new Float1DAttribute( attribute_name, attributes ) );
 
     // Convert the spectrum into a spectrum relative to "Q".  Also, discard the
     // the first bin, at the central vertex of the wedge, since the counts
@@ -895,7 +898,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   
     ID++;
     Data new_spectrum = new FunctionTable( new_x_scale, new_y_vals, ID );
-    new_spectrum.setAttribute( new IntListAttribute( attribute_name, 
+    new_spectrum.setAttribute( new Float1DAttribute( attribute_name, 
                                attributes ) );
 
 //    data_set.addData_entry( spectrum ); 
@@ -1392,9 +1395,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	                                        SelectionJPanel.ELLIPSE) >= 0 )
 	    {
 	      radiofec.setSelected(SelectionJPanel.ELLIPSE);
-	      IntListAttribute att =
-	           (IntListAttribute)data.getAttribute(SelectionJPanel.ELLIPSE);
-	      int[] attlist = att.getIntegerValue();
+	      Float1DAttribute att =
+	           (Float1DAttribute)data.getAttribute(SelectionJPanel.ELLIPSE);
+	      float[] attlist = att.getFloatValue();
 	      for( int i = 0; i < attlist.length; i++ )
 	        radiofec.setValue( i-1,attlist[i] );
 	    }
@@ -1402,9 +1405,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	                                   SelectionJPanel.DOUBLE_WEDGE) >= 0 )
 	    {
 	      radiofec.setSelected(SelectionJPanel.DOUBLE_WEDGE);
-	      IntListAttribute att = (IntListAttribute)
+	      Float1DAttribute att = (Float1DAttribute)
 	            data.getAttribute(SelectionJPanel.DOUBLE_WEDGE);
-	      int[] attlist = att.getIntegerValue();
+	      float[] attlist = att.getFloatValue();
 	      for( int i = 0; i < attlist.length; i++ )
 	        radiofec.setValue( i-1,attlist[i] );
 	    }
@@ -1412,9 +1415,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	                                   SelectionJPanel.WEDGE) >= 0 )
 	    {
 	      radiofec.setSelected(SelectionJPanel.WEDGE);
-	      IntListAttribute att =
-	             (IntListAttribute)data.getAttribute(SelectionJPanel.WEDGE);
-	      int[] attlist = att.getIntegerValue();
+	      Float1DAttribute att =
+	             (Float1DAttribute)data.getAttribute(SelectionJPanel.WEDGE);
+	      float[] attlist = att.getFloatValue();
+	      for( int i = 0; i < attlist.length; i++ )
+	        radiofec.setValue( i-1,attlist[i] );
+	    }
+	    else if( ((String)selectlist.getSelectedItem()).indexOf(
+	                                   SelectionJPanel.RING) >= 0 )
+	    {
+	      radiofec.setSelected(SelectionJPanel.RING);
+	      Float1DAttribute att =
+	             (Float1DAttribute)data.getAttribute(SelectionJPanel.RING);
+	      float[] attlist = att.getFloatValue();
 	      for( int i = 0; i < attlist.length; i++ )
 	        radiofec.setValue( i-1,attlist[i] );
 	    }
