@@ -34,12 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/06/06 18:50:04  dennis
+ *  (Mike Miller) Altered space allocated by the control viewer.
+ *
  *  Revision 1.2  2003/05/29 14:26:54  dennis
  *  Two changes: (Mike Miller)
  *   -added exit on close feature
  *   -added coordination in displaying window and f2 JFrames, no longer initially
  *    display over each other.
- *
+ * 
  *  Revision 1.1  2003/05/22 13:06:55  dennis
  *  Basic test program for ViewComponent.
  *
@@ -130,7 +133,7 @@ public class ViewerSim
 	 Rectangle main = window.getBounds();
 	 int x = (int)( main.getX() + main.getWidth() );
 	 int y = (int)( main.getY() );
-         f2.setBounds(x, y, 200, y + (100 * controls.length)); 
+         f2.setBounds(x, y, 200, y + (60 * controls.length)); 
 	 f2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
          f2.setVisible(true); //display the frame      
       }
