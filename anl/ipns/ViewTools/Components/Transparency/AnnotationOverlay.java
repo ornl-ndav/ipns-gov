@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2004/01/29 23:46:17  millermi
+ *  - Added clearAnnotations() to remove all annotations.
+ *
  *  Revision 1.25  2004/01/29 08:16:27  millermi
  *  - Updated the getObjectState() to include parameter for specifying
  *    default state.
@@ -531,6 +534,14 @@ public class AnnotationOverlay extends OverlayJPanel
     floatPoint2D p12d = convertToWorldPoint( placement.getP1() );
     floatPoint2D p22d = convertToWorldPoint( placement.getP2() );
     notes.add( new Note( a_note, placement, now, p12d, p22d ) );
+  }
+
+ /**
+  * Allows toplevel components to remove all annotations.
+  */
+  public void clearAnnotations()
+  {
+    notes.clear();
   }
      
  /**
