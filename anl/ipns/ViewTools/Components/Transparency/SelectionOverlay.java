@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2003/08/18 20:52:40  millermi
+ *  - Added "Add Selection" controls to SelectionEditor so user no longer
+ *    needs to know the keyboard events to make selections.
+ *  - Added javadoc comments.
+ *
  *  Revision 1.13  2003/08/14 22:57:44  millermi
  *  - ControlSlider for editor now ranging from 0-100 which
  *    decreased the number of increments in the slider.
@@ -176,9 +181,8 @@ public class SelectionOverlay extends OverlayJPanel
    {
       super();
       this.setLayout( new GridLayout(1,1) );
-      editor = new SelectionEditor();
-      //editor.setVisible(false);
       sjp = new SelectionJPanel();
+      editor = new SelectionEditor();
       component = iza;
       regions = new Vector();       
       this_panel = this;
@@ -248,7 +252,13 @@ public class SelectionOverlay extends OverlayJPanel
       helper.getContentPane().add(scroll);
       helper.setVisible(true);
    }
-   
+  
+  /**
+   * This method sets the opaqueness of the selection. Values will fall in the
+   * interval [0,1], with 1 being opaque, and 0 being transparent. 
+   *
+   *  @param  value [0,1]
+   */ 
    public void setOpacity( float value )
    {
      if( value > 1 )
@@ -259,6 +269,9 @@ public class SelectionOverlay extends OverlayJPanel
        opacity = value;
    }
    
+  /**
+   * This method is used to view an instance of the Selection Editor.
+   */ 
    public void editSelection()
    {
      if( editor.isVisible() )
@@ -307,6 +320,12 @@ public class SelectionOverlay extends OverlayJPanel
       Listeners.removeAllElements();
    }
    
+  /**
+   * This method gets the vector containing all of the selected regions. All
+   * regions in the vector are in a WCRegion wrapper.
+   *
+   *  @return region vector
+   */ 
    public Vector getSelectedRegions()
    {
       return regions;
@@ -547,13 +566,18 @@ public class SelectionOverlay extends OverlayJPanel
      public SelectionEditor()
      {
        super("SelectionEditor");
-       this.setBounds(0,0,200,125);
+       this.setBounds(0,0,350,170);
        this_editor = this;
        pane = new Box( BoxLayout.Y_AXIS	);
-       JButton colorbutton = new JButton("Change Color");
-       colorbutton.setAlignmentX( Component.CENTER_ALIGNMENT );
-       colorbutton.addActionListener( new ControlListener() );
-       pane.add(colorbutton);
+       // adds buttons for making selections.
+       JButton[] sjpbuttons = sjp.getControls();
+       // number of grid rows, and add one in for the JLabel.
+       int gridrows = (int)Math.ceil( (double)(sjpbuttons.length + 1)/3 );
+       JPanel sjpcontrols = new JPanel( new GridLayout( gridrows, 1 ) );
+       sjpcontrols.add( new JLabel("Add Selection") );
+       for( int i = 0; i < sjpbuttons.length; i++ )
+         sjpcontrols.add( sjpbuttons[i] );
+       pane.add( sjpcontrols );
        
        ControlSlider opacityscale = 
                             new ControlSlider("Selection Opacity Scale");
@@ -564,7 +588,12 @@ public class SelectionOverlay extends OverlayJPanel
        opacityscale.setValue(opacity*100f);
        opacityscale.addActionListener( new ControlListener() );
        pane.add(opacityscale);
-	 
+       
+       JButton colorbutton = new JButton("Change Color");
+       colorbutton.setAlignmentX( Component.CENTER_ALIGNMENT );
+       colorbutton.addActionListener( new ControlListener() );
+       pane.add(colorbutton);
+       
        JButton closebutton = new JButton("Close");
        closebutton.setAlignmentX( Component.CENTER_ALIGNMENT );
        closebutton.addActionListener( new ControlListener() );
