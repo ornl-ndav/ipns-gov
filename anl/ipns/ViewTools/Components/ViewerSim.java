@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/05/29 14:26:54  dennis
+ *  Two changes: (Mike Miller)
+ *   -added exit on close feature
+ *   -added coordination in displaying window and f2 JFrames, no longer initially
+ *    display over each other.
+ *
  *  Revision 1.1  2003/05/22 13:06:55  dennis
  *  Basic test program for ViewComponent.
  *
@@ -44,6 +50,7 @@
  import javax.swing.*;
  import java.awt.event.*;
  import java.awt.Container;
+ import java.awt.Rectangle;
  
  import DataSetTools.components.View.ViewControls.*;
  import DataSetTools.components.View.TwoD.*;
@@ -59,6 +66,8 @@ public class ViewerSim
   /**
    * Constructor reads in an IViewComponent2D and gets the controls and menu
    * from that component.
+   *
+   *  @param  component
    */
    public ViewerSim( IViewComponent2D comp )
    {
@@ -107,7 +116,8 @@ public class ViewerSim
                optionsMenu.add( menus[i].getItem() );           
          }      
       }
-      window.show();
+      window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      window.setVisible(true);
  
       if( controls.length > 0 )
       {
@@ -117,8 +127,12 @@ public class ViewerSim
 
          for( int i = 0; i < controls.length; i++ )
             cpain.add(controls[i]);
-         f2.setBounds(0,0,200,(100 * controls.length)); 
-         f2.show(); //display the frame      
+	 Rectangle main = window.getBounds();
+	 int x = (int)( main.getX() + main.getWidth() );
+	 int y = (int)( main.getY() );
+         f2.setBounds(x, y, 200, y + (100 * controls.length)); 
+	 f2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+         f2.setVisible(true); //display the frame      
       }
    }
 
