@@ -33,6 +33,15 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2004/01/08 22:26:03  millermi
+ * - Separated off the FunctionViewComponent. Now use "View Results"
+ *   under the options menu to view a ViewManager with all of the
+ *   old views, including the graph and table view.
+ * - The ViewManager is always initialized with the graph view
+ *   displaying the results.
+ * - More testing needs to be done on this version...Please test and
+ *   give feedback.
+ *
  * Revision 1.12  2004/01/08 21:07:33  millermi
  * - Fixed bug introduced when world coord conversion took place.
  *
@@ -137,6 +146,9 @@ import DataSetTools.util.floatPoint2D;
 import DataSetTools.util.SharedData;
 import DataSetTools.util.WindowShower;
 import DataSetTools.util.Format;
+import DataSetTools.util.IObserver;
+import DataSetTools.viewer.IViewManager;
+import DataSetTools.viewer.ViewManager;
 // these imports are for putting data into a dataset, then into DataSetData.
 import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.Data;
@@ -190,13 +202,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   // complete viewer, includes controls and ijp
   private transient SplitPaneWithState pane;
   private transient ImageViewComponent ivc;
-  private transient FunctionViewComponent fvc;
+  //private transient FunctionViewComponent fvc;
   private transient IVirtualArray2D data;
   private transient JMenuBar menu_bar;
-  private DataSet data_set;
+  private transient DataSet data_set;
   private String projectsDirectory = SharedData.getProperty("Data_Directory");
   private transient SANDEditor editor = new SANDEditor();
-  private CoordTransform world_image_tran = new CoordTransform();
+  private transient CoordTransform world_image_tran = new CoordTransform();
+  private ViewManager oldview;
 
  /**
   * Construct a frame with no data to start with. This constructor will be
@@ -433,8 +446,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     // If they are null, no windows were made.
     if( ivc != null )
       ivc.kill();
-    if( fvc != null )
-      fvc.kill();
+    //if( fvc != null )
+    //  fvc.kill();
     
     // if new array is same size as old array
     if( values != null && data != null &&
@@ -504,8 +517,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     buildMenubar();
     
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setBounds(0,0,550,615);
-    
+    // this was the old bounds with the function view component
+    //setBounds(0,0,550,615);
+    setBounds(0,0,700,485);
     data_set   = new DataSet("Intensity vs Q in Region", 
                              "Calculated Intensity vs Q in Region");
 
@@ -535,13 +549,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       ivc.setColorControlEast(true);
       //ivc.preserveAspectRatio(true);
       ivc.addActionListener( new ImageListener() ); 
-      fvc = new FunctionViewComponent( new DataSetData( data_set ) );   
+      //fvc = new FunctionViewComponent( new DataSetData( data_set ) );   
       Box componentholder = new Box(BoxLayout.Y_AXIS);
       componentholder.add( ivc.getDisplayPanel() );
-      componentholder.add(fvc.getDisplayPanel() );
+      //componentholder.add(fvc.getDisplayPanel() );
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
     	  			    componentholder,
-        			    buildControls(), .68f );
+        			    buildControls(), .75f );
+      // old divider ratio was .68f with function view component
       // get menu items from view component and place it in a menu
       ViewMenuItem[] menus = ivc.getSharedMenuItems();
       for( int i = 0; i < menus.length; i++ )
@@ -562,7 +577,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	  menu_bar.getMenu(2).add( menus[i].getItem() );
         }
       }
-      
+      /*
       // get menu items from function view component and place it in a menu
       ViewMenuItem[] fmenus = fvc.getSharedMenuItems();
       for( int i = 0; i < fmenus.length; i++ )
@@ -583,12 +598,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	  menu_bar.getMenu(2).add( fmenus[i].getItem() );
         }
       }
+      */
     }
     // no data, build an empty split pane.
     else
     {
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
-                                    new JPanel(), new JPanel(), .68f );
+                                    new JPanel(), new JPanel(), .75f );
     }	   
   }
  
@@ -607,6 +623,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     Vector file      = new Vector();
     Vector options   = new Vector();
     Vector help      = new Vector();
+    Vector view_man  = new Vector();
     Vector save_menu = new Vector();
     Vector load_menu = new Vector();
     Vector load_data = new Vector();
@@ -622,6 +639,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     
     options.add("Options");
     option_listeners.add( new WVListener() ); // listener for options
+    options.add(view_man);
+      view_man.add("View Results");
+      option_listeners.add( new WVListener() ); // listener for view results
     options.add(save_menu);
       save_menu.add("Save State");
       option_listeners.add( new WVListener() ); // listener for save state
@@ -642,8 +662,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     if( data == null )
     {
       JMenu option_menu = menu_bar.getMenu(1);
-      option_menu.getItem(0).setEnabled(false);
+      //option_menu.getItem(0).setEnabled(false);
       option_menu.getItem(1).setEnabled(false);
+      option_menu.getItem(2).setEnabled(false);
     }
   }
   
@@ -689,7 +710,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     JPanel spacer = new JPanel();
     spacer.setPreferredSize( new Dimension(0, 10000) );
     controls.add(spacer);
-    
+    /*
     // add functionviewcomponent controls if any exist
     Box fvc_controls = new Box(BoxLayout.Y_AXIS); 
     TitledBorder fvc_border = 
@@ -707,7 +728,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     {
       controls.add(fvc_controls);
     }
-    
+    */
     return controls;
   }
 
@@ -997,15 +1018,21 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
           loadData(filename);
         }
       } // end else if load data
+      else if( ae.getActionCommand().equals("View Results") )
+      {
+        oldview = new ViewManager( data_set, IViewManager.SELECTED_GRAPHS );
+        /*oldview.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
+        WindowShower shower = new WindowShower(oldview);
+        java.awt.EventQueue.invokeLater(shower);
+        shower = null;*/
+      }
       else if( ae.getActionCommand().equals("Save State") )
       {
-        //state = ivc.getObjectState();
 	getObjectState().openFileChooser(true);
       }
       else if( ae.getActionCommand().equals("Load State") )
       {
         ObjectState state = new ObjectState();
-        //state = ivc.getObjectState();
 	if( state.openFileChooser(false) )
 	  setObjectState(state);
       }
@@ -1039,19 +1066,34 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       {
         // get points from the last selected region.
         integrate( selectedregions[selectedregions.length-1] );
-        fvc.dataChanged(new DataSetData(data_set));
+        //fvc.dataChanged(new DataSetData(data_set));
+	if( oldview != null )
+	{
+	  //oldview.setDataSet( data_set );
+	  oldview.update(data_set, IObserver.DATA_CHANGED);
+	}
 	editor.selectionChanged();
       }
       else if( message.equals(SelectionOverlay.REGION_REMOVED) )
       {
         data_set.removeData_entry( data_set.getNum_entries() - 1 );
-        fvc.dataChanged(new DataSetData(data_set));
+        //fvc.dataChanged(new DataSetData(data_set));
+	if( oldview != null )
+	{
+	  oldview.setDataSet( data_set );
+	  oldview.update(data_set, IObserver.DATA_CHANGED);
+	}
 	editor.selectionChanged();
       }
       else if( message.equals(SelectionOverlay.ALL_REGIONS_REMOVED) )
       {
         data_set.removeAll_data_entries();
-        fvc.dataChanged(new DataSetData(data_set));
+        //fvc.dataChanged(new DataSetData(data_set));
+	if( oldview != null )
+	{
+	  oldview.setDataSet( data_set );
+	  oldview.update(data_set, IObserver.DATA_CHANGED);
+	}
 	editor.selectionChanged();
       }
       else if( message.equals(IViewComponent.POINTED_AT_CHANGED) )
