@@ -37,6 +37,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/07/28 19:37:51  robertsonj
+ *  added truLogScale which scales numbers to a logarithmic scale
+ *  added truLogCoord which is the invers of truLogScale
+ *
  *  Revision 1.7  2004/05/11 00:51:56  millermi
  *  - Removed unused variables.
  *
@@ -65,6 +69,9 @@
 
 package gov.anl.ipns.ViewTools.Components;
 
+
+
+
 /**
  * This class logarithmically maps a linear interval to another linear interval,
  * especially useful for altering pixel coordinates logarithmically.
@@ -75,6 +82,8 @@ public class LogScaleUtil
   private float source_max;
   private float dest_min;
   private float dest_max;
+  private float sliderPos;
+  private float xMax;
   
  /**
   * Constructor - construct intervals sourcemin - sourcemax, and map it to
@@ -87,6 +96,7 @@ public class LogScaleUtil
   */ 
   public LogScaleUtil( float smin, float smax, float dmin, float dmax )
   { 
+  	//System.out.println("in LogscaleUtil");
     // if values are backwards, swap
     if( smin > smax )
     {
@@ -103,9 +113,22 @@ public class LogScaleUtil
       float temp = dmin;
       dmin = dmax;
       dmax = temp;
-    }/*
+    }
+    if(dmin <= 0){
+    	dmin = Float.MIN_VALUE;
+    }
+    
+    if(smin <= 0){
+    	smin = Float.MIN_VALUE;
+    }
+    
+    
+    //if(dmin < 0)
+    //{
+    //	dmin = (-1)*dmin;
+    //}
     // make sure interval is positive
-    if( dmax < 0 )
+    /*if( dmax < 0 )
     {
       float temp = dmin;
       dmin = -dmax; // when negated, the max becomes the min.
@@ -116,8 +139,30 @@ public class LogScaleUtil
       dmin = 0;*/
     dest_min = dmin;
     dest_max = dmax;
+
   }
-  
+  public LogScaleUtil(float sliderPos, float xMax){
+  	this.sliderPos = sliderPos;
+  	this.xMax = xMax;
+  }
+  public LogScaleUtil(float[] data_points){
+  	float tempmin = Float.MAX_VALUE;
+  	float tempmax = Float.MIN_VALUE;
+  	for(int i = 0; i < data_points.length; i++){
+  		if((data_points[i] < tempmin) && (data_points[i] > Float.MIN_VALUE)){
+  			tempmin = data_points[i];
+  		}
+  	}
+  	for(int i = 0; i < data_points.length; i++){
+  		if(data_points[i] > tempmax){
+  			tempmax = data_points[i];
+  		}
+  	}
+  	source_min = tempmin;
+  	dest_min = tempmin;
+  	dest_max = tempmax;
+  	source_max = tempmax;
+  }
  /**
   * This method is for "normal" log scaling.
   *
@@ -138,6 +183,9 @@ public class LogScaleUtil
   */ 
   public float toSource( float num, double s )
   {
+  	//System.out.println("toSource num = " + num);
+  	//System.out.println("toSource s = " + s);
+  	//System.out.println("toSource dest_max = " + dest_max);
     // clamp number to the destination interval
     if( num < dest_min )
     {
@@ -154,13 +202,20 @@ public class LogScaleUtil
     if ( s < 0 )
       s = 0;
 
-    s = Math.exp(20 * s / 100.0) + 0.1; // map [0,100] exponentially to get 
-                                        // scale change that appears more linear
-
+    //System.out.println("dest_min= " + dest_min);
+    //stem.out.println("dest_max= " + dest_max);
+	//System.out.println("Source_max = " + source_max);
+    s =Math.exp(20 * s / 100.0) + 0.1; // map [0,100] exponentially to get 
+                                       // scale change that appears more linear
+	//System.out.println("S = " + s);
+    //System.out.println("(source_max - source_min) / Math.log(s)" + source_max + " - " + source_min + "/" + Math.log(s));
     double scale = (source_max - source_min) / Math.log(s);
-    
-    return (float)( source_min + ( scale * Math.log( 1.0 + 
+    //System.out.println("scale = " + scale);
+    //System.out.println("source_min = " + source_min);
+    float returnvalue = (float)( source_min + ( scale * Math.log( 1.0 + 
 		     ((s-1.0)*(num-dest_min)/(dest_max - dest_min)) ) ) );
+		     //System.out.println("returnvalue = " + returnvalue);     
+	return returnvalue;
   } 
  
  /**
@@ -186,6 +241,8 @@ public class LogScaleUtil
   */ 
   public float toDest( float source, double s )
   {
+  	//System.out.println("toDest source = " + source);
+  	//System.out.println("toDest s = " + s);
     // clamp number to the destination interval
     if( source < source_min )
     {
@@ -210,30 +267,68 @@ public class LogScaleUtil
     s = Math.exp(20 * s / 100.0) + 0.1; // map [0,100] exponentially to get 
                                         // scale change that appears more linear
 
-    return (float)( ( Math.exp( (double)(source - source_min) * Math.log(s)/
+
+    float returnvalue = (float)( ( Math.exp( (double)(source - source_min) * Math.log(s)/
                     (source_max - source_min) ) - 1 ) *
                     ( dest_max - dest_min)/(s-1) ) + dest_min;
+    //System.out.println("toDest returnValue = " + returnvalue);
+    return returnvalue;
   }
+public float returna(float num){
+	return (dest_max - dest_min)/((float)Math.log(dest_max/dest_min));
+}
+public float truLogScale(float num){
+	float returnvalue = 0;
+	float a = (dest_max - dest_min)/((float)Math.log(dest_max/dest_min));
+	returnvalue = a*(float)Math.log(num/dest_min);
+	return returnvalue;
+}
+public float truLogCoord(float num)
+{   
+
+	float returnvalue = 0;
+	float a = (dest_max - dest_min)/((float)Math.log(dest_max/dest_min));
+	float power = num / a;
+	returnvalue = dest_min*((float)Math.exp((double)power));
+	return returnvalue;
+}
+  
  
- /*
-  * For Test purposes only...
-  */  
-  public static void main( String argv[] )
+  //For Test purposes only...
+ 
+ public static void main( String argv[] )
   {
-    float smin   = -210;
-    float smax = 210f;
-    float dmin   = -.11f;
-    float dmax   = .1200f;
+  	
+    float smin   = 1f;
+    float smax = 1000f;
+    float dmin   = 1f;
+    float dmax   = 1000f;
+    LogScaleUtil testutil = new LogScaleUtil(smin,smax,dmin,dmax);
     //float dmin   = 1f;
     //float dest   = 1000f;
-    LogScaleUtil testutil = new LogScaleUtil( smin, smax, dmin, dmax );
-    
-    System.out.println("Smin: " + testutil.toSource(dmin,0) );
+    //FileWriter fw = null;
+   // try{
+	//fw = new FileWriter("output.txt");	
+   // }catch(IOException e){
+    //	System.out.println(e);
+   // }
+	//BufferedWriter br = new BufferedWriter(fw);
+    //String answer;
+	float[] testarray = new float[1000];
+	for(int i=1; i<1000; i++){
+		testarray[i] = i;
+		//testarray[i] = testutil.truLogCoord(testarray[i]);
+		
+	}
+for (int i = 1; i < 999; i++){
+	System.out.println("div = " + testarray[i+1]/testarray[i]);	
+}
+    /*System.out.println("Smin: " + testutil.toSource(dmin,0) );
     System.out.println("Smax: " + testutil.toSource(dmax,0) );
     System.out.println("Dmin: " + testutil.toDest(smin,0) );
-    System.out.println("Dmax: " + testutil.toDest(smax,0) );
+    System.out.println("Dmax: " + testutil.toDest(smax,0) );*/
     
-    for( int i = (int)(dmin*1000); i < dmax*1000; i++ )
+    /*for( int i = (int)(dmin*1000); i < dmax*1000; i++ )
       if( i%10 == 0 )
         System.out.println("Dest/Source: " + (float)i/1000 + "/" + 
 	                    testutil.toSource((float)i/1000, .3) );
@@ -243,6 +338,7 @@ public class LogScaleUtil
         System.out.println("Source/Dest: " + j + "/" + 
                         testutil.toDest((float)j, .3) );
     
-    //System.out.println("Extreme tests: " + testutil.toSource(1f) );
+    //System.out.println("Extreme tests: " + testutil.toSource(1f) );*/
   }
 }
+
