@@ -33,6 +33,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.21  2004/02/11 22:48:37  millermi
+ * - ViewManager is now updated when selections are removed
+ *   from the image.
+ * - Commented out Q range debug statement in integrate()
+ * - Revised setData(), no longer concerned with size of the
+ *   2-d virtual array.
+ *
  * Revision 1.20  2004/01/29 08:23:06  millermi
  * - Updated the getObjectState() to include parameter for specifying
  *   default state.
@@ -508,27 +515,18 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */ 
   public void setData( IVirtualArray2D values, float[][] err_array )
   {
-    // since data is changing, kill all windows created by ivc.
-    // If they are null, no windows were made.
-    if( ivc != null )
-      ivc.kill();
+    data   = values;
+    errors = err_array;
     
-    // if new array is same size as old array
-    if( values != null && data != null &&
-        ( values.getNumRows() == data.getNumRows() &&
-          values.getNumColumns() == data.getNumColumns() ) )
-    {  
-      data   = values;
-      errors = err_array;
-      ivc.setSelectedRegions(null);
-      ivc.dataChanged(data);
-      integrate(null);
+    if( ivc != null && data != null )
+    {
+      ivc.kill();  // since data is changing, kill all windows created by ivc.
+      ivc.dataChanged(data);  // if ivc exists, update the image.
     }  
-    // if different sized array, remove everything and build again.
+    // if data == null, remove everything and build again.
+    // if ivc == null, build for the first time.
     else
     { 
-      data   = values;
-      errors = err_array;
       getContentPane().removeAll();
       buildMenubar();
       buildPane();
@@ -553,6 +551,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
  
  /**
   * This method sets the directory where data files can be found.
+  *
+  *  @param  path Path to directory where data is located.
   */ 
   public void setDataDirectory( String path )
   {
@@ -1013,8 +1013,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       new_start_x += step;
     }
 
-    System.out.println("Using Q between " + new_start_x + 
-                              " and " + new_end_x );
+    //System.out.println("Using Q between " + new_start_x + 
+    //                          " and " + new_end_x );
     // first bin gone, so n_xvals-1 values
     UniformXScale new_x_scale = new UniformXScale( new_start_x, 
                                                    new_end_x, 
@@ -1220,7 +1220,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	}
 	else
 	{
-	  oldview.update(data_set, IObserver.DATA_CHANGED);
+	  data_set.notifyIObservers(IObserver.DATA_CHANGED);
 	  if( !oldview.isVisible() )
 	  {
             WindowShower shower = new WindowShower(oldview);
@@ -1235,19 +1235,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       else if( message.equals(SelectionOverlay.REGION_REMOVED) )
       {
         data_set.removeData_entry( data_set.getNum_entries() - 1 );
+	data_set.notifyIObservers( IObserver.DATA_DELETED );
+	/*
 	if( oldview != null )
 	{
-	  oldview.update(data_set, IObserver.DATA_CHANGED);
-	}
+	  oldview.setView( oldview.getView() );
+	  //oldview.update(data_set, IObserver.DATA_DELETED);
+	}*/
 	editor.selectionChanged();
       }
       else if( message.equals(SelectionOverlay.ALL_REGIONS_REMOVED) )
       {
         data_set.removeAll_data_entries();
-	if( oldview != null )
-	{
-	  oldview.update(data_set, IObserver.DATA_CHANGED);
-	}
+	data_set.notifyIObservers( IObserver.DATA_DELETED );
 	editor.selectionChanged();
       }
       else if( message.equals(IViewComponent.POINTED_AT_CHANGED) )
@@ -1264,6 +1264,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       {
         menu_bar.getMenu(0).getItem(1).setEnabled(false);
       }
+      
+      // This is a hack to get the ViewManager to update when selections
+      // are removed.
+      if( oldview != null )
+        oldview.setView( oldview.getView() );      
     }
   }
   
