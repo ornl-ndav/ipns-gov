@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/04 14:11:04  dennis
+ * Added methods to get/set whether or not the projection is a
+ * perspective projection.  Changed methods to set the VRP, COP
+ * and VUP to public, from private.
+ *
  * Revision 1.1  2004/05/28 20:51:19  dennis
  * Initial (test) version of classes for displaying and picking
  * 3D objects using OpenGL from Java, built on the "jogl" system.
@@ -59,6 +64,9 @@ abstract public class ViewController extends    ActiveJPanel
   private Vector3D vrp,
                    cop,
                    vuv;
+
+  private boolean  use_perspective = true;
+
 
 /* ------------------------- Default Constructor -------------------------- */
 /**
@@ -90,7 +98,7 @@ abstract public class ViewController extends    ActiveJPanel
  *   @param  cop  The new vector to use for the observer's position.  THIS MUST
  *                BE DIFFERENT FROM THE VRP WHEN THE apply() METHOD IS CALLED.
  */
- protected void setCOP( Vector3D cop )
+ public void setCOP( Vector3D cop )
  {
    this.cop = new Vector3D( cop );
  }
@@ -104,7 +112,7 @@ abstract public class ViewController extends    ActiveJPanel
  *                at.  THIS MUST BE DIFFERENT FROM THE COP WHEN THE apply() 
  *                METHOD IS CALLED.
  */
-  protected void setVRP( Vector3D vrp )
+  public void setVRP( Vector3D vrp )
   {
     this.vrp = new Vector3D( vrp );
   }
@@ -118,7 +126,7 @@ abstract public class ViewController extends    ActiveJPanel
  *                NOT BE IN THE SAME DIRECTION AS THE DIFFERENCE (cop-vrp)
  *                WHEN THE apply() METHOD IS CALLED.
  */
-  protected void setVUV( Vector3D vuv )
+  public void setVUV( Vector3D vuv )
   {
     this.vuv = new Vector3D( vuv );
   }
@@ -156,5 +164,31 @@ abstract public class ViewController extends    ActiveJPanel
   {
     return new Vector3D( vuv );
   }
+
+/* ---------------------------- setPerspective ---------------------------- */
+/**
+ *  Set whether or not to use a perspective projection, instead of an 
+ *  orthographic projection.
+ *
+ *  @param  onoff  Flag to indicate whether or not to use perspective
+ *                 projection.
+ */
+  public void setPerspective( boolean onoff )
+  {
+    use_perspective = onoff;
+  }
+
+/* ---------------------------- isPerspective ---------------------------- */
+/**
+ *  Get whether or not to use a perspective projection was selected.
+ *
+ *  @return  true if a perspective projection should be used and false
+ *           if an orthographic projection should be used.
+ */
+  public boolean isPerspective()
+  {
+    return use_perspective;
+  }
+
 
 }
