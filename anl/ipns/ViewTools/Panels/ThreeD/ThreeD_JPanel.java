@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.17  2004/03/12 01:33:21  dennis
+ * Moved to ViewTools.panels.ThreeD package
+ *
  * Revision 1.16  2003/10/08 22:24:31  dennis
  * Put two debug prints inside of "if (debug) " statements.
  *
@@ -62,7 +65,7 @@
  *
  */
 
-package DataSetTools.components.ThreeD;
+package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
 import java.io.*;
@@ -70,9 +73,12 @@ import java.util.*;
 import java.awt.image.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.util.*;
-import DataSetTools.math.*;
-import DataSetTools.components.image.*;
+import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.ViewTools.Panels.Image.*;
+import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.Util.Sys.*;
+import gov.anl.ipns.Util.Numeric.*;
+
 
 /**
  *  A ThreeD_JPanel object maintains and draws a list of ThreeD objects.
