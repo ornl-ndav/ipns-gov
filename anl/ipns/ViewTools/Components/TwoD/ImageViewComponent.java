@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2003/07/10 13:38:30  dennis
+ *  - Commented out unnecessary import statement
+ *  - Made One-sided color models available
+ *  (Mike Miller)
+ *
  *  Revision 1.15  2003/07/05 19:47:34  dennis
  *  - Added methods getDataMin() and getDataMax().
  *  - Added capability for one- or two-sided color models. Currently,
@@ -115,9 +120,6 @@ import DataSetTools.components.View.ViewControls.*;
 import DataSetTools.components.View.Menu.*;
 import DataSetTools.components.ui.ColorScaleMenu;
 
-// component changes
-import java.applet.Applet;
-
 // Component location and resizing within the big_picture
 import java.awt.event.ComponentAdapter.*;
 import java.awt.geom.*;
@@ -190,7 +192,7 @@ public class ImageViewComponent implements IViewComponent2D,
          isTwoSided = true;
       // one-sided model
       else
-         isTwoSided = true; //********change this to false when working********
+         isTwoSided = false;
       ijp.setNamedColorModel(colorscale, isTwoSided, false); 
       
       Listeners = new Vector();
@@ -529,17 +531,6 @@ public class ImageViewComponent implements IViewComponent2D,
        listener.actionPerformed( new ActionEvent( this, 0, message ) );
      }
    }
-   
-   private void paintComponents( Graphics g )
-   {
-      //big_picture.revalidate();
-      for( int i = big_picture.getComponentCount(); i > 0; i-- )
-      {
-         if( big_picture.getComponent( i - 1 ).isVisible() )
-	    big_picture.getComponent( i - 1 ).update(g);
-      }
-      big_picture.getParent().getParent().getParent().getParent().repaint();
-   }
   
   // required since implementing ActionListener
   /**
@@ -553,6 +544,16 @@ public class ImageViewComponent implements IViewComponent2D,
      //Send message to tester 
      if ( message.equals(POINTED_AT_CHANGED) )
          sendMessage(POINTED_AT_CHANGED);
+   }
+   
+   private void paintComponents( Graphics g )
+   {
+      for( int i = big_picture.getComponentCount(); i > 0; i-- )
+      {
+         if( big_picture.getComponent( i - 1 ).isVisible() )
+	    big_picture.getComponent( i - 1 ).update(g);
+      }
+      big_picture.getParent().getParent().getParent().getParent().repaint();
    }
    
   /*
@@ -920,18 +921,17 @@ public class ImageViewComponent implements IViewComponent2D,
         		  "TestY","TestYUnits", true );
       va2D.setTitle("Main Test");
       //Fill the 2D array with the function x*y
-      float ftemp;
       for(int i = 0; i < row; i++)
       {
           for(int j = 0; j < col; j++)
           {
-              ftemp = i*j;
+	      // adds vertical and horizontal test lines every 25th pixel
               if ( i % 25 == 0 )
         	va2D.setDataValue(i, j, i*col); //put float into va2D
               else if ( j % 25 == 0 )
         	va2D.setDataValue(i, j, j*row); //put float into va2D
               else
-        	va2D.setDataValue(i, j, ftemp); //put float into va2D
+        	va2D.setDataValue(i, j, i*j); //put float into va2D
           }
       }
 
