@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/12/11 17:12:42  millermi
+ *  - Now restricts selection if any of the defining points
+ *    are outside of the viewport.
+ *
  *  Revision 1.10  2003/10/16 05:00:04  millermi
  *  - Fixed java docs errors.
  *
@@ -421,11 +425,11 @@ public class SelectionJPanel extends ActiveJPanel
    */
    private boolean doingAny()
    {
-      if( doing_box || doing_circle || doing_line || 
-          doing_point || doing_wedge || doing_dblwedge )
-	return true;
-      // else nothing is selecting
-      return false;
+     if( doing_box || doing_circle || doing_line || 
+     	 doing_point || doing_wedge || doing_dblwedge )
+       return true;
+     // else nothing is selecting
+     return false;
    }
    
   /*
@@ -441,6 +445,25 @@ public class SelectionJPanel extends ActiveJPanel
      isLdown = false;
      isPdown = false;
      isWdown = false;
+   }
+   
+  /*
+   * This method is used to restrict the point to the bounds of the 
+   * selectionjpanel.
+   */ 
+   private boolean containsPoint( Point p )
+   {
+     Dimension panelsize = getSize();
+     if( p.x < 0 )
+       return false;
+     else if( p.x > panelsize.width )
+       return false;    
+     else if( p.y < 0 )
+       return false;
+     else if( p.y > panelsize.height )
+       return false;
+     
+     return true;
    }
 
   /*
@@ -602,34 +625,40 @@ public class SelectionJPanel extends ActiveJPanel
      public void mouseReleased(MouseEvent e)
      {
        //System.out.println("here in mousereleased");
-
+       Point current = e.getPoint();
+       boolean validpoint = containsPoint( current );
+       String message = REGION_SELECTED;
        if( doing_box )
        {
-         stop_cursor( box, e.getPoint() );
+         stop_cursor( box, current );
          isBdown = false;
-         send_message(REGION_SELECTED + ">" + BOX);
+         if( validpoint )
+	   message += ">" + BOX;
        }
        else if( doing_circle )
        {
-         stop_cursor( circle, e.getPoint() );
+         stop_cursor( circle, current );
          isCdown = false;
-         send_message(REGION_SELECTED + ">" + CIRCLE);
+         if( validpoint )
+	   message += ">" + CIRCLE;
        }
        else if( doing_line )
        {
-         stop_cursor( line, e.getPoint() );
+         stop_cursor( line, current );
          isLdown = false;
-         send_message(REGION_SELECTED + ">" + LINE);
+         if( validpoint )
+	   message += ">" + LINE;
        }
        else if( doing_point )
        {
-         stop_cursor( point, e.getPoint() ); 
+         stop_cursor( point, current ); 
          isPdown = false;
-         send_message(REGION_SELECTED + ">" + POINT); 
+         if( validpoint )
+	   message += ">" + POINT; 
        }  
        else if( doing_wedge )
        {
-         stop_cursor( wedge, e.getPoint() ); 
+         stop_cursor( wedge, current ); 
 	 if( firstRun )
 	 {
            isWdown = true;
@@ -637,13 +666,14 @@ public class SelectionJPanel extends ActiveJPanel
 	 else
 	 {
 	   isWdown = false;
-           send_message(REGION_SELECTED + ">" + WEDGE);
+           if( validpoint )
+	     message += ">" + WEDGE;
 	 }
 	 firstRun = !firstRun; 
        }   
        else if( doing_dblwedge )
        {
-         stop_cursor( dblwedge, e.getPoint() ); 
+         stop_cursor( dblwedge, current ); 
 	 if( firstRun )
 	 {
            isDdown = true;
@@ -651,10 +681,12 @@ public class SelectionJPanel extends ActiveJPanel
 	 else
 	 {
 	   isDdown = false;
-           send_message(REGION_SELECTED + ">" + DOUBLE_WEDGE);
+           if( validpoint )
+	     message += ">" + DOUBLE_WEDGE;
 	 }
 	 firstRun = !firstRun; 
-       }          
+       } 
+       send_message(message);         
      }
    } 
    
