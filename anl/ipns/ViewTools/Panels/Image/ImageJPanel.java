@@ -30,6 +30,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2003/10/23 05:44:14  millermi
+ *  - Added getObjectState() and setObjectState() methods to
+ *    allow for preservation of state.
+ *  - Now implements IPreserveState interface
+ *  - Added public static Strings as keys for accessing state
+ *    information.
+ *
  *  Revision 1.17  2003/10/22 20:26:47  millermi
  *  - Fixed java doc error.
  *
@@ -80,6 +87,8 @@ import javax.swing.*;
 import java.text.*;
 
 import DataSetTools.util.*;
+import DataSetTools.components.View.IPreserveState;
+import DataSetTools.components.View.ObjectState;
 
 /**
  *    This class displays two dimensional arrays of floating point values as 
@@ -102,8 +111,33 @@ import DataSetTools.util.*;
  */
 
 public class ImageJPanel extends    CoordJPanel 
-                         implements Serializable
+                         implements Serializable, IPreserveState
 {
+ // these variables preserve state for the ImageJPanel
+ /**
+  * "Color Model" - This constant String is a key for referencing the state
+  * information about the IndexColorModel used by the ImageJPanel. The value
+  * referenced by this key is of type IndexColorModel.
+  */
+  public static final String COLOR_MODEL = "Color Model";
+  
+ /**
+  * "Log Scale" - This constant String is a key for referencing the state
+  * information about the log scale table used to map data values to colors
+  * within the colorscale. The value referenced by this key is an array of
+  * bytes.
+  */
+  public static final String LOG_SCALE   = "Log Scale";
+  
+ /**
+  * "Two Sided" - This constant String is a key for referencing the state
+  * information about displaying the data. If one-sided, negative data will
+  * be mapped to zero and a one-sided color model will be used, where as
+  * two-sided data will remain negative and be mapped to colors on a two-sided
+  * color model.
+  */
+  public static final String TWO_SIDED   = "Two Sided";
+  
   private final int       LOG_TABLE_SIZE      = 60000;
   private final int       NUM_POSITIVE_COLORS = 127; 
   private final int       NUM_PSEUDO_COLORS   = 2 * NUM_POSITIVE_COLORS + 1;
@@ -135,6 +169,59 @@ public class ImageJPanel extends    CoordJPanel
   
     CJP_handle_arrow_keys = false;
     addKeyListener( new ImageKeyAdapter() );
+  }
+
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    // since ImageJPanel extends CoordJPanel, set those state variables first.
+    super.setObjectState(new_state);
+    boolean redraw = false;  // if any values are changed, repaint.
+    Object temp = new_state.get(COLOR_MODEL);
+    if( temp != null )
+    {
+      color_model = (IndexColorModel)temp;
+      redraw = true;  
+    }
+    
+    temp = new_state.get(LOG_SCALE);
+    if( temp != null )
+    {
+      log_scale = (byte[])temp;
+      redraw = true;  
+    }  
+    
+    temp = new_state.get(TWO_SIDED);
+    if( temp != null )
+    {
+      isTwoSided = ((Boolean)temp).booleanValue();
+      redraw = true;  
+    }
+    
+    // may need changing
+    if( redraw )
+      repaint();
+   
+  } 
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState. Keys will be
+  * put in alphabetic order.
+  */ 
+  public ObjectState getObjectState()
+  {
+    ObjectState state = super.getObjectState(); //get ObjectState of CoordJPanel
+    state.insert( COLOR_MODEL, color_model );
+    state.insert( LOG_SCALE, log_scale );
+    state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+    
+    return state;
   }
 
 /* ------------------------- changeLogScale -------------------------- */
