@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.82  2005/01/20 23:33:52  millermi
+ *  - Commented out big_picture.update() in paintComponents(). No
+ *    longer needed when super.paint() was added to overlay
+ *    paint methods.
+ *  - Cleaned up messages sent from the ImageViewComponent.
+ *    No longer sends messages to listeners that are not defined
+ *    at the ViewComponent level.
+ *
  *  Revision 1.81  2005/01/19 21:00:20  millermi
  *  - Removed sendMessage(SELECTED_CHANGED) from addSelectedRegion()
  *    and setSelectedRegion() since the SelectedRegionListener
@@ -1761,11 +1769,11 @@ public class ImageViewComponent implements IViewComponent2D,
   * This method repaints the ImageViewComponent correctly
   */ 
   private void paintComponents( Graphics g )
-  {
+  {/*
     if( g != null )
     {
       big_picture.update(g);
-    }
+    }*/
     Component temppainter = big_picture;
     while( temppainter.getParent() != null )
       temppainter = temppainter.getParent();
@@ -2300,8 +2308,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	  buildAspectImage();
         }
       }
-      //repaints overlays accurately 
-      sendMessage( message );
+      //repaints overlays accurately
       returnFocus();
       paintComponents( big_picture.getGraphics() ); 
     }
@@ -2376,7 +2383,6 @@ public class ImageViewComponent implements IViewComponent2D,
 	setColorScale(message);
 	return;
       }
-      sendMessage( message );
       background.validate();
       paintComponents( big_picture.getGraphics() );
     }
