@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/06/17 13:21:37  dennis
+ *  (Mike Miller)
+ *  - Made selections zoomable. clipRect() method was added to paint
+ *    to restrict the painted area to only that directly above
+ *    the center panel.
+ *
  *  Revision 1.3  2003/06/09 14:47:19  dennis
  *  Added static method help() to display commands via the HelpMenu.
  *  (Mike Miller)
@@ -78,6 +84,7 @@ import java.lang.Math;
 import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import DataSetTools.components.View.TwoD.*;
 import DataSetTools.components.View.Cursor.*; 
+import DataSetTools.util.floatPoint2D;
 
 /**
  * This class allows users to select a region for calculation purposes.
@@ -92,6 +99,7 @@ public class SelectionOverlay extends OverlayJPanel
    private SelectionOverlay this_panel;   // used for repaint by SelectListener 
    private Color reg_color;
    private Rectangle current_bounds;
+   private CoordTransform pixel_local;
   
   /**
    * Constructor creates an OverlayJPanel with a SeletionJPanel that shadows the
@@ -112,6 +120,17 @@ public class SelectionOverlay extends OverlayJPanel
        
       this.add(sjp);
       sjp.addActionListener( new SelectListener() ); 
+      current_bounds = component.getRegionInfo();
+      //this_panel.setBounds( current_bounds );
+      CoordBounds pixel_map = 
+                   new CoordBounds( (float)current_bounds.getX(), 
+                                    (float)current_bounds.getY(),
+                                    (float)(current_bounds.getX() + 
+				            current_bounds.getWidth()),
+			            (float)(current_bounds.getY() + 
+				            current_bounds.getHeight() ) );
+      pixel_local = new CoordTransform( pixel_map, 
+                                        component.getLocalCoordBounds() );
       
       sjp.requestFocus();               
    }
@@ -127,9 +146,12 @@ public class SelectionOverlay extends OverlayJPanel
       helper.getContentPane().add(text);
       text.setEditable(false);
       text.setLineWrap(true);
-      text.append("Note: These commands will NOT work if the Annotation " +
+      text.append("Note:\n" +
+                  "- These commands will NOT work if the Annotation " +
                   "Overlay checkbox IS checked or if the Selection " + 
-		  "Overlay IS NOT checked.\n\n");
+		  "Overlay IS NOT checked.\n" +
+		  "- Zooming on the image is only allowed if this annotation " +
+		  "is turned off.\n\n" );
       text.append("Image Commands:\n");
       text.append("Click/Drag/Release Mouse w/B_Key pressed>" + 
                   "ADD BOX SELECTION\n");
@@ -170,66 +192,77 @@ public class SelectionOverlay extends OverlayJPanel
    *  @param  graphic
    */
    public void paint(Graphics g) 
-   {  
+   { 
       Graphics2D g2d = (Graphics2D)g; 
       current_bounds = component.getRegionInfo();  // current size of center
       sjp.setBounds( current_bounds );
+      // this limits the paint window to the size of the background image.
+      g2d.clipRect( (int)current_bounds.getX(),
+                    (int)current_bounds.getY(),
+		    (int)current_bounds.getWidth(),
+		    (int)current_bounds.getHeight() );
+      //this_panel.setBounds( current_bounds ); 
+      // the current pixel coordinates
+      CoordBounds pixel_map = 
+              new CoordBounds( (float)current_bounds.getX(), 
+                               (float)current_bounds.getY(),
+                               (float)(current_bounds.getX() + 
+			               current_bounds.getWidth()),
+			       (float)(current_bounds.getY() + 
+			               current_bounds.getHeight() ) );
+      pixel_local.setSource( pixel_map );
+      pixel_local.setDestination( component.getLocalCoordBounds() );
       // color of all of the selections.
       g2d.setColor(reg_color);
       // top left corner of sjp
-      Point tlc = new Point( sjp.getLocation() );
-     /* To "move" the annotations, an x & y scale had to be made. This
-      * simply takes the width of the current rectangle/scale rectangle.
-      * This is calculated in the for loop.
-      */ 
-      float xfactor = 0;
-      float yfactor = 0;
+
       Region regionclass;      
       Object region;
+      Point p1 = new Point();
+      Point p2 = new Point();
+      
       for( int num_reg = 0; num_reg < regions.size(); num_reg++ )
       {
          regionclass = (Region)regions.elementAt(num_reg);
-	 
-         xfactor = (float)current_bounds.getWidth()/
-	           (float)regionclass.getScale().getWidth();
-	           
-         yfactor = (float)current_bounds.getHeight()/
-	           (float)regionclass.getScale().getHeight();	
-		   
+	 p1 = convertToPixelPoint( regionclass.getWCP1() );
+	 if( regionclass.getWCP2() != null )
+	    p2 = convertToPixelPoint( regionclass.getWCP2() );
+	 	    	   
 	 region = ((Region)regions.elementAt(num_reg)).getRegion();    
          if( region instanceof Circle )
 	 {
-	    Point center = ((Circle)region).getCenter();
-	    int radius = (int)(((Circle)region).getRadius());
-	    g2d.drawOval( (int)((center.x - radius) * xfactor ) + tlc.x, 
-	                  (int)((center.y - radius) * yfactor ) + tlc.y, 
-	                  (int)(2 * radius * xfactor), 
-			  (int)(2 * radius * yfactor) ); 	    
+	    g2d.drawOval( p1.x, p1.y, p2.x - p1.x, p2.y - p1.y );   
 	 }
          if( region instanceof Rectangle )
 	 {
-	    g2d.drawRect( (int)( ((Rectangle)region).getX() * xfactor) + tlc.x, 
-	                  (int)( ((Rectangle)region).getY() * yfactor) + tlc.y,
-	                  (int)( ((Rectangle)region).getWidth() * xfactor),
-	                  (int)( ((Rectangle)region).getHeight() * yfactor) ); 	    
+	    g2d.drawRect( p1.x, p1.y, p2.x - p1.x, p2.y - p1.y ); 	    
 	 }
          if( region instanceof Point )
 	 {
 	    //System.out.println("Drawing instance of point at " + 
 	    //                 ((Point)region).x + "/" + ((Point)region).y );
-	    int x = ((Point)region).x;
-	    int y = ((Point)region).y;
-	    g2d.drawLine( (int)((x - 5 ) * xfactor ) + tlc.x, 
-	                  (int)(y * yfactor) + tlc.y, 
-			  (int)((x + 5 ) * xfactor ) + tlc.x, 
-			  (int)(y * yfactor) + tlc.y ); 	    
-	    g2d.drawLine( (int)(x * xfactor) + tlc.x, 
-	                  (int)((y - 5 ) * yfactor ) + tlc.y, 
-			  (int)(x * xfactor) + tlc.x,
-			  (int)((y + 5 ) * yfactor ) + tlc.y );
+	    g2d.drawLine( p1.x - 5, p1.y, p1.x + 5, p1.y ); 	    
+	    g2d.drawLine( p1.x, p1.y - 5, p1.x, p1.y + 5 );
 	 }	 	 
       }
    } // end of paint()
+
+  /*
+   * Converts from world coordinates to a pixel point
+   */
+   private Point convertToPixelPoint( floatPoint2D fp )
+   {
+      floatPoint2D fp2d = pixel_local.MapFrom( fp );
+      return new Point( (int)fp2d.x, (int)fp2d.y );
+   }
+  
+  /*
+   * Converts from pixel coordinates to world coordinates.
+   */
+   private floatPoint2D convertToWorldPoint( Point p )
+   {
+      return pixel_local.MapTo( new floatPoint2D((float)p.x, (float)p.y) );
+   }
 
   /*
    * SelectListener listens for messages being passed from the SelectionJPanel.
@@ -263,17 +296,36 @@ public class SelectionOverlay extends OverlayJPanel
          {
 	    if( message.indexOf( SelectionJPanel.BOX ) > -1 )
 	    {
-	       Region boxregion = new Region( 
-	            ((BoxCursor)sjp.getCursor( SelectionJPanel.BOX )).region(),
-		    current_bounds );
+	       Rectangle box = ((BoxCursor)sjp.getCursor( 
+	                              SelectionJPanel.BOX )).region();				      
+	       Point p1 = new Point( box.getLocation() );
+	       p1.x += (int)current_bounds.getX();
+	       p1.y += (int)current_bounds.getY();
+	       Point p2 = new Point( p1 );
+	       p2.x += (int)box.getWidth();
+	       p2.y += (int)box.getHeight();
+	       floatPoint2D tempwcp1 = convertToWorldPoint( p1 );
+	       floatPoint2D tempwcp2 = convertToWorldPoint( p2 );
+	                                            
+	       Region boxregion = new Region( box, tempwcp1, tempwcp2 );
+	                                      
 	       regions.add( boxregion );
 	       //System.out.println("Drawing box region" );
 	    }
 	    else if( message.indexOf( SelectionJPanel.CIRCLE ) > -1 )
 	    {
-	       Region circleregion = new Region( ((CircleCursor)
-	            sjp.getCursor( SelectionJPanel.CIRCLE )).region(),
-		    current_bounds );
+	       Circle circle = ((CircleCursor)sjp.getCursor( 
+	                              SelectionJPanel.CIRCLE )).region();				      
+	       Point p1 = new Point( circle.getDrawPoint() );
+	       p1.x += (int)current_bounds.getX();
+	       p1.y += (int)current_bounds.getY();
+	       Point p2 = new Point( circle.getCenter() );
+	       p2.x += circle.getRadius() + (int)current_bounds.getX();
+	       p2.y += circle.getRadius() + (int)current_bounds.getY();
+	       floatPoint2D tempwcp1 = convertToWorldPoint( p1 );
+	       floatPoint2D tempwcp2 = convertToWorldPoint( p2 );
+	                                            
+	       Region circleregion = new Region( circle, tempwcp1, tempwcp2 );
 	       regions.add( circleregion );
 	       //System.out.println("Drawing circle region" );
 	    }	    
@@ -287,8 +339,10 @@ public class SelectionOverlay extends OverlayJPanel
 	       // create new point, otherwise regions would be shared.
 	       Point np = new Point( ((PointCursor)
 	               sjp.getCursor( SelectionJPanel.POINT )).region() );
-	       
-	       regions.add( new Region(np, current_bounds) );
+	       np.x += (int)current_bounds.getX();
+	       np.y += (int)current_bounds.getY();
+	       floatPoint2D tempwcp1 = convertToWorldPoint( np );
+	       regions.add( new Region(np, tempwcp1, null) );
 	    }
 	 }
 	 this_panel.repaint();  // Without this, the newly drawn regions would
@@ -304,12 +358,14 @@ public class SelectionOverlay extends OverlayJPanel
    private class Region
    {
       private Object region;
-      private Rectangle scale;      // bounds when this region was created.
+      private floatPoint2D wcp1;      
+      private floatPoint2D wcp2;
       
-      public Region( Object o, Rectangle r )
+      public Region( Object o, floatPoint2D p1, floatPoint2D p2 )
       {
          region = o;
-	 scale = r;
+	 wcp1 = p1;
+	 wcp2 = p2;
       }
       
       public Object getRegion()
@@ -317,9 +373,14 @@ public class SelectionOverlay extends OverlayJPanel
          return region;
       }
       
-      public Rectangle getScale()
+      public floatPoint2D getWCP1()
       {
-         return scale;
+         return wcp1;
+      }  
+          
+      public floatPoint2D getWCP2()
+      {
+         return wcp2;
       }
    }
 }
