@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/07/25 14:39:34  dennis
+ *  - Constructor now takes component of type IZoomAddible instead of
+ *    IAxisAddible2D
+ *  - Private class Region now moved to an independent file to allow for use by
+ *    components using the selection overlay.
+ *  - Added public methods addActionListener(), removeActionListener(),
+ *    removeAllActionListeners(), and private method sendMessage() to allow
+ *    listeners for when a selection occurs.
+ *  - Added getSelectedRegion()
+ *    (Mike Miller)
+ *
  *  Revision 1.4  2003/06/17 13:21:37  dennis
  *  (Mike Miller)
  *  - Made selections zoomable. clipRect() method was added to paint
@@ -81,7 +92,7 @@ import java.awt.event.*;
 import java.util.*; 
 import java.lang.Math;
 
-import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
+import DataSetTools.components.image.*;
 import DataSetTools.components.View.TwoD.*;
 import DataSetTools.components.View.Cursor.*; 
 import DataSetTools.util.floatPoint2D;
@@ -93,27 +104,31 @@ import DataSetTools.util.floatPoint2D;
  */
 public class SelectionOverlay extends OverlayJPanel 
 {
+   public static final String REGION_ADDED   = "REGION_ADDED";
+   public static final String REGION_REMOVED = "REGION_REMOVED";
+   
    private SelectionJPanel sjp;           // panel overlaying the center jpanel
-   private IAxisAddible2D component;      // component being passed
+   private IZoomAddible component;        // component being passed
    private Vector regions;                // all selected regions
    private SelectionOverlay this_panel;   // used for repaint by SelectListener 
    private Color reg_color;
    private Rectangle current_bounds;
-   private CoordTransform pixel_local;
+   private CoordTransform pixel_local;  
+   private Vector Listeners = null;   
   
   /**
    * Constructor creates an OverlayJPanel with a SeletionJPanel that shadows the
-   * center panel of the IAxisAddible2D component.
+   * center panel of the IZoomAddible component.
    *
    *  @param  component
    */ 
-   public SelectionOverlay(IAxisAddible2D iaa)
+   public SelectionOverlay(IZoomAddible iza)
    {
       super();
       this.setLayout( new GridLayout(1,1) );
       
       sjp = new SelectionJPanel();
-      component = iaa;
+      component = iza;
       regions = new Vector();       
       this_panel = this;
       reg_color = Color.white;
@@ -132,6 +147,7 @@ public class SelectionOverlay extends OverlayJPanel
       pixel_local = new CoordTransform( pixel_map, 
                                         component.getLocalCoordBounds() );
       
+      Listeners = new Vector();
       sjp.requestFocus();               
    }
 
@@ -166,6 +182,43 @@ public class SelectionOverlay extends OverlayJPanel
    }
    
   /**
+   * Method to add a listener to this overlay.
+   *
+   *  @param act_listener
+   */
+   public void addActionListener( ActionListener act_listener )
+   {          
+      for ( int i = 0; i < Listeners.size(); i++ )    // don't add it if it's
+        if ( Listeners.elementAt(i).equals( act_listener ) ) // already there
+          return;
+
+      Listeners.add( act_listener ); //Otherwise add act_listener
+   }
+  
+  /**
+   * Method to remove a listener from this component.
+   *
+   *  @param act_listener
+   */ 
+   public void removeActionListener( ActionListener act_listener )
+   {
+      Listeners.remove( act_listener );
+   }
+  
+  /**
+   * Method to remove all listeners from this component.
+   */ 
+   public void removeAllActionListeners()
+   {
+      Listeners.removeAllElements();
+   }
+   
+   public Vector getSelectedRegions()
+   {
+      return regions;
+   }
+   
+  /**
    * This method sets all the colors for the selected regions. Initially set
    * to white.
    *
@@ -179,7 +232,7 @@ public class SelectionOverlay extends OverlayJPanel
    
   /**
    * This method gives focus to the SelectionJPanel, which is overlayed on the
-   * center of the IAxisAddible2D component.
+   * center of the IZoomAddible component.
    */
    public void getFocus()
    {
@@ -263,6 +316,20 @@ public class SelectionOverlay extends OverlayJPanel
    {
       return pixel_local.MapTo( new floatPoint2D((float)p.x, (float)p.y) );
    }
+   
+  /*
+   * Tells all listeners about a new action.
+   *
+   *  @param  message
+   */  
+   private void sendMessage( String message )
+   {
+     for ( int i = 0; i < Listeners.size(); i++ )
+     {
+       ActionListener listener = (ActionListener)Listeners.elementAt(i);
+       listener.actionPerformed( new ActionEvent( this, 0, message ) );
+     }
+   }
 
   /*
    * SelectListener listens for messages being passed from the SelectionJPanel.
@@ -274,21 +341,21 @@ public class SelectionOverlay extends OverlayJPanel
          String message = ae.getActionCommand(); 
          // clear all selections from the vector
          if( message.equals( SelectionJPanel.RESET_SELECTED ) )
-         {
-	    //System.out.println("Clear all selected" ); 
+         { 
 	    if( regions.size() > 0 )
+	    {
 	       regions.clear(); 
-	    else
-	       System.out.println("No Regions selected");          
+	       sendMessage(REGION_REMOVED);
+	    }         
 	 }
 	 // remove the last selection from the vector
          else if( message.equals( SelectionJPanel.RESET_LAST_SELECTED ) )
          {
-	    //System.out.println("Clear last selected" ); 
 	    if( regions.size() > 0 )
-	       regions.removeElementAt(regions.size() - 1); 
-	    else
-	       System.out.println("No Regions selected");          	      
+	    {
+	       regions.removeElementAt(regions.size() - 1);  
+	       sendMessage(REGION_REMOVED);
+	    }      	      
 	 }
 	 // region is specified by REGION_SELECTED>BOX >CIRCLE >POINT	
 	 // if REGION_SELECTED is in the string, find which region 
@@ -297,7 +364,7 @@ public class SelectionOverlay extends OverlayJPanel
 	    if( message.indexOf( SelectionJPanel.BOX ) > -1 )
 	    {
 	       Rectangle box = ((BoxCursor)sjp.getCursor( 
-	                              SelectionJPanel.BOX )).region();				      
+	                              SelectionJPanel.BOX )).region();
 	       Point p1 = new Point( box.getLocation() );
 	       p1.x += (int)current_bounds.getX();
 	       p1.y += (int)current_bounds.getY();
@@ -310,12 +377,13 @@ public class SelectionOverlay extends OverlayJPanel
 	       Region boxregion = new Region( box, tempwcp1, tempwcp2 );
 	                                      
 	       regions.add( boxregion );
+	       sendMessage(REGION_ADDED);
 	       //System.out.println("Drawing box region" );
 	    }
 	    else if( message.indexOf( SelectionJPanel.CIRCLE ) > -1 )
 	    {
 	       Circle circle = ((CircleCursor)sjp.getCursor( 
-	                              SelectionJPanel.CIRCLE )).region();				      
+	                              SelectionJPanel.CIRCLE )).region();
 	       Point p1 = new Point( circle.getDrawPoint() );
 	       p1.x += (int)current_bounds.getX();
 	       p1.y += (int)current_bounds.getY();
@@ -327,11 +395,12 @@ public class SelectionOverlay extends OverlayJPanel
 	                                            
 	       Region circleregion = new Region( circle, tempwcp1, tempwcp2 );
 	       regions.add( circleregion );
+	       sendMessage(REGION_ADDED);
 	       //System.out.println("Drawing circle region" );
 	    }	    
 	    else if( message.indexOf( SelectionJPanel.ELIPSE ) > -1 )
 	    {
-	       System.out.println("Elipse region not implemented" );
+	       //System.out.println("Elipse region not implemented" );
 	    }	    
 	    else if( message.indexOf( SelectionJPanel.POINT ) > -1 )
 	    { 
@@ -343,44 +412,11 @@ public class SelectionOverlay extends OverlayJPanel
 	       np.y += (int)current_bounds.getY();
 	       floatPoint2D tempwcp1 = convertToWorldPoint( np );
 	       regions.add( new Region(np, tempwcp1, null) );
+	       sendMessage(REGION_ADDED);
 	    }
 	 }
 	 this_panel.repaint();  // Without this, the newly drawn regions would
 	                        // not appear.
       }  // end actionPerformed()   
-   } // end SelectListener  
-  
-  /*
-   * This class groups together the selected region and the context in which
-   * it was drawn. Without this class, objects drawn on a resized component
-   * would assume they were drawn at the component's original state.
-   */ 
-   private class Region
-   {
-      private Object region;
-      private floatPoint2D wcp1;      
-      private floatPoint2D wcp2;
-      
-      public Region( Object o, floatPoint2D p1, floatPoint2D p2 )
-      {
-         region = o;
-	 wcp1 = p1;
-	 wcp2 = p2;
-      }
-      
-      public Object getRegion()
-      {
-         return region;
-      }
-      
-      public floatPoint2D getWCP1()
-      {
-         return wcp1;
-      }  
-          
-      public floatPoint2D getWCP2()
-      {
-         return wcp2;
-      }
-   }
+   } // end SelectListener
 }
