@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.34  2004/05/03 18:10:19  dennis
+ *  Removed unused local variable.
+ *
  *  Revision 1.33  2004/03/19 17:24:27  dennis
  *  Removed unused variables
  *
@@ -681,7 +684,6 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
                                             float xmax, float ymin, float ymax)
   {
     SetTransformsToWindowSize();
-    CoordBounds b = getGlobalWorldCoords();
     CoordBounds b2 = local_transform.getSource( );
     float x1,x2,y1,y2;
     x1 = b2.getX1();
