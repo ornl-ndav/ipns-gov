@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/04/21 02:32:26  millermi
+ *  - Added index validation to getXvalues() and getYvalues().
+ *
  *  Revision 1.2  2004/04/20 05:03:11  millermi
  *  - Added init() method to group functionality of constructors.
  *  - Added constructor that takes in one DataArray1D object.
@@ -125,10 +128,10 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
 	  // find x and y range
 	  if( temp_array.isSelected() )
 	  {
-    	    xmin = Float.NaN;
-    	    xmax = Float.NaN;
-    	    ymin = Float.NaN;
-    	    ymax = Float.NaN;
+    	    xmin = Float.POSITIVE_INFINITY;
+    	    xmax = Float.NEGATIVE_INFINITY;
+    	    ymin = Float.POSITIVE_INFINITY;
+    	    ymax = Float.NEGATIVE_INFINITY;
 	    selected_exist = true;
 	    float[] xtemp = temp_array.getXArray();
 	    float[] ytemp = temp_array.getYArray();
@@ -137,12 +140,12 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
 	      // find x range
 	      if( xtemp[index] > xmax )
 	        xmax = xtemp[index];
-	      else if( xtemp[index] < xmin )
+	      if( xtemp[index] < xmin )
 	        xmin = xtemp[index];
 	      // find y range
 	      if( ytemp[index] > ymax )
 	        ymax = ytemp[index];
-	      else if( ytemp[index] < ymin )
+	      if( ytemp[index] < ymin )
 	        ymin = ytemp[index];
 	    }
 	    // check for histogram case (x length = y length + 1)
@@ -151,7 +154,7 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
 	      // find x range
 	      if( xtemp[xtemp.length - 1] > xmax )
 	        xmax = xtemp[xtemp.length - 1];
-	      else if( xtemp[xtemp.length - 1] < xmin )
+	      if( xtemp[xtemp.length - 1] < xmin )
 	        xmin = xtemp[xtemp.length - 1];
 	    } // end if
 	  } // end if
@@ -194,7 +197,10 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
   */
   public float[] getXValues( int graph_number )
   {
-    return ((DataArray1D)graphs.elementAt(graph_number)).getXArray();
+    // check for valid index
+    if( graph_number >= 0 && graph_number < graphs.size() )
+      return ((DataArray1D)graphs.elementAt(graph_number)).getXArray();
+    return null;
   }
   
   
@@ -206,7 +212,10 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
   */
   public float[] getYValues( int graph_number )
   {
-    return ((DataArray1D)graphs.elementAt(graph_number)).getYArray();
+    // check for valid index
+    if( graph_number >= 0 && graph_number < graphs.size() )
+      return ((DataArray1D)graphs.elementAt(graph_number)).getYArray();
+    return null;
   }
 
  /**
