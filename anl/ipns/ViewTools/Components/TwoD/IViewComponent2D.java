@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/10/16 16:01:26  millermi
+ *  - Added method getPointedAt() to get the current point.
+ *
  *  Revision 1.4  2003/08/11 23:44:24  millermi
  *  - Changed getSelectedSet() to getSelectedRegions() which now
  *    returns an array of Regions.
@@ -76,6 +79,11 @@ public interface IViewComponent2D
    * point has changed.
    */ 
    public void setPointedAt( Point pt );
+   
+  /**
+   * This method is a gets the current point from the view component.
+   */ 
+   public Point getPointedAt();
   
   /**
    * Given an array of points, a selection overlay can be created.
@@ -88,7 +96,8 @@ public interface IViewComponent2D
    public Region[] getSelectedRegions();
    
   /**
-   * To be continued...
+   * This method is invoked to notify the view component when the IVirtualArray
+   * of data has changed. 
    */ 
    public void dataChanged();
    
@@ -119,7 +128,7 @@ public interface IViewComponent2D
    public JComponent[] getSharedControls();
 
   /**
-   * To be continued...
+   * Currently unused and unimplemented...
    */   
    public JComponent[] getPrivateControls();
 
@@ -129,7 +138,7 @@ public interface IViewComponent2D
    public ViewMenuItem[] getSharedMenuItems();
    
   /**
-   * To be continued...
+   * Currently unused and unimplemented...
    */
    public ViewMenuItem[] getPrivateMenuItems();
    
