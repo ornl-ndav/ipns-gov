@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2003/10/02 19:31:47  dennis
+ *  Fixed bug... two frame change messages were being sent for each
+ *  newly selected frame.
+ *
  *  Revision 1.13  2002/11/27 23:13:34  pfpeterson
  *  standardized header
  *
@@ -84,6 +88,9 @@ public class AnimationController extends    ActiveJPanel
   private volatile float[] frame_values = null;
   private volatile String  run_state    = STOP;
 
+  private volatile int     last_num_sent = -1;      // track the last frame
+                                                    // number sent and don't
+                                                    // send same one twice
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -351,7 +358,11 @@ synchronized private void set_frame( int number )
   }
 
   frame_number = number;
-  send_message( ""+frame_number );
+  if ( frame_number != last_num_sent )
+  {
+    last_num_sent = frame_number;
+    send_message( ""+frame_number );
+  }
 }
 
 
