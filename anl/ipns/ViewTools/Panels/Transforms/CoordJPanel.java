@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2003/07/25 16:53:01  serumb
+ *  Adjusted methods so that zoom messages are sent after
+ *  the transformations have been made.
+ *
  *  Revision 1.21  2003/06/25 21:34:36  serumb
  *  Added setZoom_region method.
  *
@@ -238,12 +242,11 @@ public class CoordJPanel extends    ActiveJPanel
       return;
     }
 
-    send_message( ZOOM_IN );
-
     SetTransformsToWindowSize();
 
     local_transform.setSource(x1, y1, x2, y2 );
   
+    send_message( ZOOM_IN );
   }
 
   /* ---------------------- getCurrent_pixel_point ----------------------- */
@@ -644,10 +647,10 @@ protected void LocalTransformChanged()
 private void resetZoom()
 {
   SetZoomRegionToWindowSize();
-  send_message( RESET_ZOOM );
   SetTransformsToWindowSize();
   local_transform.setSource( global_transform.getSource() );
   LocalTransformChanged();
+  send_message( RESET_ZOOM );
 }
 
 
@@ -731,7 +734,6 @@ private void ZoomToPixelSubregion( float x1, float y1, float x2, float y2 )
     return;
   }
 
-  send_message( ZOOM_IN );
 
   SetTransformsToWindowSize();
 
@@ -762,6 +764,8 @@ private void ZoomToPixelSubregion( float x1, float y1, float x2, float y2 )
                                               // preserve the "right side up"
                                               // coordinate system 
   local_transform.setSource( WC_x1, WC_y1, WC_x2, WC_y2 );
+
+  send_message( ZOOM_IN );
 
 /*
   System.out.println("WC: x1, y1, x2, y2 = " + WC_x1 + ", " + WC_y1 + ", " +
