@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.32  2004/03/19 18:07:04  millermi
+ *  - Changed how label, units, and power is displayed.
+ *  - Factored out display of labels into method
+ *    paintLabelsAndUnits().
+ *
  *  Revision 1.31  2004/03/15 23:53:52  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -179,7 +184,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-//import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Sys.WindowShower;
@@ -664,6 +668,101 @@ public class AxisOverlay2D extends OverlayJPanel
   } // end of paint()
   
  /* ***********************Private Methods************************** */
+ 
+ /*
+  * This will display the labels, units, and common exponent (if not 0).
+  * if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
+  * strings then no strings will be displayed.
+  *
+  *  @param num The String number with exponent, ex: 1E3
+  *  @param axis Use axis codes above to determin axes, either X or Y
+  */
+  private void paintLabelsAndUnits( String num, int axis, 
+                                    boolean log, Graphics2D g2d )
+  {
+    // true if "(" has been appended but not ")"
+    boolean open_parenthesis = false;
+    // Display will appear as such: "Label (10^x Units)"
+    FontMetrics fontdata = g2d.getFontMetrics(); 
+    if( axis == X_AXIS )
+    {
+      StringBuffer xlabel = new StringBuffer("");
+      if( !component.getAxisInformation(AxisInfo.X_AXIS).getLabel().equals( 
+    	  AxisInfo.NO_LABEL) )
+    	xlabel.append( component.getAxisInformation(AxisInfo.X_AXIS).getLabel()
+		       + "  " );
+      // Since log calibrations carry their own exponent, none is required
+      if( !log )
+      { 
+        int exp_index = num.lastIndexOf('E');       
+        if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
+	{
+    	  xlabel.append( "( 10^" + num.substring( exp_index + 1 ) + " ");
+	  open_parenthesis =  true;
+        }
+      }
+      if( !component.getAxisInformation(AxisInfo.X_AXIS).getUnits().equals(
+    	  AxisInfo.NO_UNITS) )
+      {
+        if( !open_parenthesis )
+	{
+	  xlabel.append("( ");
+	  open_parenthesis = true;
+    	}
+	xlabel.append( component.getAxisInformation(AxisInfo.X_AXIS).getUnits()
+	               + " )");
+        open_parenthesis = false;
+      }
+      // make sure there is always a last parenthesis
+      if( open_parenthesis )
+        xlabel.append(")");
+      if( !xlabel.toString().equals("") )
+    	g2d.drawString( xlabel.toString(), xstart + xaxis/2 -
+    		  fontdata.stringWidth(xlabel.toString())/2, 
+    		  yaxis + ystart + fontdata.getHeight() * 2 + 6 );
+    }
+    else if( axis == Y_AXIS )
+    {
+      open_parenthesis = false; // reset and use again.
+      StringBuffer ylabel = new StringBuffer("");
+      StringBuffer xlabel = new StringBuffer("");
+      if( !component.getAxisInformation(AxisInfo.Y_AXIS).getLabel().equals( 
+    	  AxisInfo.NO_LABEL) )
+    	ylabel.append( component.getAxisInformation(AxisInfo.Y_AXIS).getLabel()
+		       + "  " );
+      // Since log calibrations carry their own exponent, none is required
+      if( !log )
+      { 
+        int exp_index = num.lastIndexOf('E');       
+        if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
+	{
+    	  ylabel.append( "( 10^" + num.substring( exp_index + 1 ) + " ");
+	  open_parenthesis =  true;
+        }
+      }
+      if( !component.getAxisInformation(AxisInfo.Y_AXIS).getUnits().equals(
+    	  AxisInfo.NO_UNITS) )
+      {
+        if( !open_parenthesis )
+	{
+	  ylabel.append("( ");
+	  open_parenthesis = true;
+    	}
+	ylabel.append( component.getAxisInformation(AxisInfo.Y_AXIS).getUnits()
+	               + " )");
+        open_parenthesis = false;
+      }
+      // draw the label rotated along y-axis      
+      if( !ylabel.toString().equals("") )
+      {
+    	g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );    
+    	g2d.drawString( ylabel.toString(), xstart + yaxis/2 -
+    			fontdata.stringWidth(ylabel.toString())/2, 
+    			yaxis + ystart - xstart + fontdata.getHeight() );
+    	g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
+      }
+    }
+  }
   
  /*
   * Draw the x axis with horizontal numbers and ticks spaced linearly.
@@ -806,26 +905,8 @@ public class AxisOverlay2D extends OverlayJPanel
         }    
       }   
     } // end of for
-   
-  // This will display the x label, x units, and common exponent (if not 0).
-    // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
-    // strings then no strings will be displayed.
-    String xlabel = "";
-    if( component.getAxisInformation(AxisInfo.X_AXIS).getLabel() != 
-        AxisInfo.NO_LABEL )
-      xlabel = xlabel + 
-    	       component.getAxisInformation(AxisInfo.X_AXIS).getLabel();
-    if( component.getAxisInformation(AxisInfo.X_AXIS).getUnits() != 
-        AxisInfo.NO_UNITS )
-      xlabel = xlabel + "  " + 
-    	       component.getAxisInformation(AxisInfo.X_AXIS).getUnits();
-    if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
-      xlabel = xlabel + "  " + num.substring( exp_index );
-    if( xlabel != "" )
-      g2d.drawString( xlabel, xstart + xaxis/2 -
-    		fontdata.stringWidth(xlabel)/2, 
-    		yaxis + ystart + fontdata.getHeight() * 2 + 6 );
-  } // end of paintLinearX()
+    paintLabelsAndUnits( num, X_AXIS, false, g2d );
+  }
   
  /*
   * Draw the y axis with horizontal numbers and ticks spaced linearly.
@@ -950,29 +1031,7 @@ public class AxisOverlay2D extends OverlayJPanel
            (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
       }
     }
-    
-  // This will display the y label, y units, and common exponent (if not 0).
-    // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
-    // strings then no strings will be displayed.
-    String ylabel = "";
-    if( component.getAxisInformation(AxisInfo.Y_AXIS).getLabel() != 
-        AxisInfo.NO_LABEL )
-      ylabel = ylabel + 
-               component.getAxisInformation(AxisInfo.Y_AXIS).getLabel();
-    if( component.getAxisInformation(AxisInfo.Y_AXIS).getUnits() !=
-        AxisInfo.NO_UNITS )
-      ylabel = ylabel + "  " + 
-    	       component.getAxisInformation(AxisInfo.Y_AXIS).getUnits();
-    if( Integer.parseInt( num.substring( exp_index + 1) ) != 0 )
-      ylabel = ylabel + "  " + num.substring( exp_index );
-    if( ylabel != "" )
-    {
-      g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );    
-      g2d.drawString( ylabel, xstart + yaxis/2 -
-        	      fontdata.stringWidth(ylabel)/2, 
-        	      yaxis + ystart - xstart + fontdata.getHeight() );
-      g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
-    }
+    paintLabelsAndUnits( num, Y_AXIS, false, g2d );
   } // end of paintLinearY()
   
  /*
@@ -1275,23 +1334,7 @@ public class AxisOverlay2D extends OverlayJPanel
     			   xaxis*i/10, yaxis + ystart + TICK_LENGTH );*/
     	} // end of for
       } // end of else (isTwoSided)
-    
-  // This will display the x label, x units, and common exponent (if not 0).
-    // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
-    // strings then no strings will be displayed.
-      String xlabel = "";
-      if( logcomponent.getAxisInformation(AxisInfo.X_AXIS).getLabel() != 
-          AxisInfo.NO_LABEL )
-        xlabel = xlabel + 
-        	 logcomponent.getAxisInformation(AxisInfo.X_AXIS).getLabel();
-      if( logcomponent.getAxisInformation(AxisInfo.X_AXIS).getUnits() != 
-          AxisInfo.NO_UNITS )
-        xlabel = xlabel + "  " + 
-        	 logcomponent.getAxisInformation(AxisInfo.X_AXIS).getUnits();
-      if( xlabel != "" )
-        g2d.drawString( xlabel, xstart + xaxis/2 -
-        	 fontdata.stringWidth(xlabel)/2, 
-        	 yaxis + ystart + fontdata.getHeight() * 2 + 6 );   
+      paintLabelsAndUnits( num, X_AXIS, true, g2d );  
     } // end if( instanceof)
     else
       System.out.println("Instance of ILogAxisAddible2D needed " +
@@ -1637,26 +1680,7 @@ public class AxisOverlay2D extends OverlayJPanel
 	        	   xstart - 1, ystart + yaxis*i/10 ); */
 	}
       }
-  // This will display the y label, y units, and common exponent (if not 0).
-     // if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
-     // strings then no strings will be displayed.
-      String ylabel = "";
-      if( logcomponent.getAxisInformation(AxisInfo.Y_AXIS).getLabel() != 
-	  AxisInfo.NO_LABEL )
-	ylabel = ylabel + 
-	         logcomponent.getAxisInformation(AxisInfo.Y_AXIS).getLabel();
-      if( logcomponent.getAxisInformation(AxisInfo.Y_AXIS).getUnits() !=
-	  AxisInfo.NO_UNITS )
-	ylabel = ylabel + "  " + 
-	         logcomponent.getAxisInformation(AxisInfo.Y_AXIS).getUnits();
-      if( ylabel != "" )
-      {
-	g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );    
-	g2d.drawString( ylabel, xstart + yaxis/2 -
-			fontdata.stringWidth(ylabel)/2, 
-			yaxis + ystart - xstart + fontdata.getHeight() );
-	g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
-      }
+      paintLabelsAndUnits( num, Y_AXIS, true, g2d );
     } // end if( instanceof)
     else
        System.out.println("Instance of ILogAxisAddible needed " +
