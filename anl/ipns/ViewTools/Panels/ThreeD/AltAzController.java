@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2001/06/28 20:24:27  dennis
+ * Uses new form of ThreeD_JPanel with named lists of
+ * 3D objects.
+ *
  * Revision 1.2  2001/05/29 14:58:54  dennis
  * Now complete and documented
  *
@@ -249,7 +253,7 @@ public class AltAzController extends    ViewController
     pts[2] = new Vector3D(  1, -1, 0 );
     pts[3] = new Vector3D( -1, -1, 0 );
     objs[0] = new Polyline( pts, Color.green );
-    test.setObjects( objs );
+    test.setObjects( "SAMPLE_OBJECTS", objs );
     controller.apply( true );
   }
  
