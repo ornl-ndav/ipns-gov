@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2001/05/29 19:43:12  dennis
+ *  Now properly displays the frame value immediately after setting
+ *  values for the frames.
+ *
  *  Revision 1.1  2001/05/29 15:03:27  dennis
  *  Component to start, stop and single step an animation.
  *
@@ -239,6 +243,7 @@ public class AnimationController extends    JPanel
     {
       frame_values = new float[ values.length ];
       System.arraycopy( values, 0, frame_values, 0, values.length );
+      set_frame( frame_number );
     }
   }
 
