@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.50  2005/02/01 03:15:44  millermi
+ * - Added method updatePointedAtGraph() which does not reset
+ *   bounds. Replaces calls to setData() when pointed at is changed.
+ *
  * Revision 1.49  2005/01/24 22:38:38  millermi
  * - Added positive check for log x axis values in paint().
  *
@@ -318,6 +322,21 @@ public class GraphJPanel extends    CoordJPanel
       repaint(); 
 
     return true;
+  }
+  
+ /**
+  * Call this method to update the pointed at graph. This method is used in
+  * in place of setData() because it will not reset the bounds.
+  *
+  *  @param  x - X values of the graph.
+  *  @param  y - Y values of the graph.
+  */ 
+  public void updatePointedAtGraph( float[] x, float[] y )
+  {
+    GraphData gd = (GraphData)graphs.elementAt(0);   
+    gd.x_vals = x;
+    gd.y_vals = y;
+    repaint();
   }
 
 
