@@ -7,6 +7,7 @@ package gov.anl.ipns.ViewTools.Displays;
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D;
 import gov.anl.ipns.ViewTools.Components.Transparency.IZoomTextAddible;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlColorScale;
 import gov.anl.ipns.ViewTools.Components.ViewControls.IColorScaleAddible;
 import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
@@ -266,6 +267,22 @@ public class DisplayPanel2D extends ImageJPanel implements IColorScaleAddible,
         colorscale = scale;
         setNamedColorModel(scale, sides, true);
 
+    }
+
+    /* (non-Javadoc)
+     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#yScreen2Data(int)
+     */
+    public float yScreen2Data(float y) {
+        return local_transform.MapYFrom(y
+                + local_transform.getDestination().getY1());
+    }
+
+    /* (non-Javadoc)
+     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#xScreen2Data(int)
+     */
+    public float xScreen2Data(float x) {
+        return local_transform.MapXFrom(x
+                + local_transform.getDestination().getX1());
     }
 
     /*
