@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.41  2003/11/26 18:49:45  millermi
+ *  - Changed ElipseRegion reference to EllipseRegion.
+ *
  *  Revision 1.40  2003/11/21 02:51:08  millermi
  *  - improved efficiency of paintComponents() and other aspects
  *    that repaint the IVC.
@@ -1666,7 +1669,7 @@ public class ImageViewComponent implements IViewComponent2D,
         if( regiontype.equals(SelectionJPanel.BOX) )
           selregion = new BoxRegion( imagecolrow );
         else if( regiontype.equals(SelectionJPanel.CIRCLE) )
-          selregion = new ElipseRegion( imagecolrow );
+          selregion = new EllipseRegion( imagecolrow );
         else if( regiontype.equals(SelectionJPanel.LINE) )
           selregion = new LineRegion( imagecolrow );
         else if( regiontype.equals(SelectionJPanel.POINT) )
