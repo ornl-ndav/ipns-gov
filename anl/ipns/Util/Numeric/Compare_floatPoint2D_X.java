@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/04/02 15:10:26  dennis
+ *  Uncommented use of "Comparator" and "SortOnX()" method to sort
+ *  floatPoint2D objects on their X components.  This had been commented
+ *  out to maintain compatibility with java 1.1*.
+ *
  *  Revision 1.8  2004/03/15 23:53:49  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -46,6 +51,8 @@
  */
 package gov.anl.ipns.Util.Numeric;
 
+import java.util.*;
+
 /**
  *  This class implements the Comparator interface for objects of type
  *  floatPoint2D, to allow for sorting based on the X-coordinate.
@@ -53,7 +60,7 @@ package gov.anl.ipns.Util.Numeric;
  */
 
 public class Compare_floatPoint2D_X extends    Object
-// #####NOT IN JAVA 1.1                        implements Comparator
+                                               implements Comparator
 {
   /**
    *  Compare two floatPoint2D objects, based on their X-coordianates.
