@@ -2,6 +2,9 @@
  * @(#)DataSetXConversionsTable  1.0  2000/04/26  Dennis Mikkelson
  *
  * $Log$
+ * Revision 1.2  2000/11/10 22:50:56  dennis
+ * Changed to work with new Operator hierarchy.
+ *
  * Revision 1.1  2000/07/10 22:18:32  dennis
  * user interface component, initial version
  *
@@ -88,7 +91,7 @@ public class DataSetXConversionsTable  implements Serializable
       if ( op.getCategory() == DataSetOperator.X_AXIS_CONVERSION )
       {
         conv_ops.addElement( op );
-        labels.addElement( ((XAxisConversionOperator)op).new_X_label() );
+        labels.addElement( ((XAxisConversionOp)op).new_X_label() );
       }
     }
  
@@ -240,8 +243,7 @@ public class DataSetXConversionTableModel extends    AbstractTableModel
       value = y;
     else                                            // do a conversion
     {
-      XAxisConversionOperator op 
-                 = (XAxisConversionOperator)conv_ops.elementAt(row-2);
+      XAxisConversionOp op = (XAxisConversionOp)conv_ops.elementAt(row-2);
 
       value = op.convert_X_Value( x, index );
     }
