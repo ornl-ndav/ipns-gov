@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.28  2004/05/03 18:09:41  dennis
+ *  Removed unused constant NUM_PSEUDO_COLORS.
+ *
  *  Revision 1.27  2004/03/19 17:24:27  dennis
  *  Removed unused variables
  *
@@ -180,7 +183,6 @@ public class ImageJPanel extends    CoordJPanel
   
   private final int       LOG_TABLE_SIZE      = 60000;
   private final int       NUM_POSITIVE_COLORS = 127; 
-  private final int       NUM_PSEUDO_COLORS   = 2 * NUM_POSITIVE_COLORS + 1;
   private final byte      ZERO_COLOR_INDEX    = (byte)NUM_POSITIVE_COLORS; 
   private Image           image;
   private Image           rescaled_image = null;
