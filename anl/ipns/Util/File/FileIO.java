@@ -32,6 +32,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2003/10/27 15:00:06  rmikk
+ * End of File conditions now work
+ *
  * Revision 1.2  2003/09/16 16:12:33  rmikk
  * Improved End Condition response
  *
@@ -67,7 +70,7 @@ public class FileIO{
  *   @param   Format   A simple FORTRAN-like format descriptors separated by 
  *                     commas.  Only I,F,E,S(for string) and /(for return) are
  *                     considered.  S5+ right justifies a string in a width of 
- *                     length 5.
+ *                     length 5. Negative widths are freeform
  *   @return  The Integer value of the number of elements in the arrays written,
  *             or a descriptive ErrorString
  */
@@ -183,13 +186,17 @@ public class FileIO{
           if( S instanceof ErrorString)
              if( S.toString() != FileIO.NO_MORE_DATA)
                 return S;
-             else 
+             else {
                 done = true; 
+                omitLast = 1;
+             }
           LastLine.addElement( S );
           
          }
-       line++;
-       if ( (MaxLines >= 0) &&(line >= MaxLines))
+       if( omitLast == 0)
+           line++;
+       if( omitLast !=0){
+       }if ( (MaxLines >= 0) &&(line >= MaxLines))
          done = true;
        else if( EndConditions == null){
        }
@@ -268,43 +275,37 @@ public class FileIO{
 
     int i;
     Vector V;
-    String[] x = new String[30];
+    /*String[] x = new String[30];
     for(  i = 0; i< 30; i++)
         x[i] = ""+i;
     double[] y = new double[30];
     for(  i = 0; i< 30; i++)
         y[i] = 35+i;
     V = new Vector();
-    V.addElement( "Hi There" );
-    //V.addElement(y);
+    V.addElement(y);
     System.out.println("Result="+ FileIO.Write("x.dat", false, true,
-             V, "S8"));
-   /* V = new Vector();
+             V, "S8,S8,S8,S8,S8,/"));
+    V = new Vector();
     V.addElement(y);
     System.out.println("Result="+ FileIO.Write("x.dat", true, false,
              V, "I8,I8,I8,I8,/"));
- 
+   */
     V = new Vector();
     V.addElement( new double[0]);
     //V.addElement( new double[0]);
     try{
        FileInputStream fin = new FileInputStream( "x.dat");
-    System.out.println( FileIO.Read( fin, V,"F8.2,F8.2,F8.2,F8.2,/", 30, null) );
-    Vector V1 = new Vector();
-     V1.addElement( new double[0] );
-    
-    System.out.println( FileIO.Read(fin, V1,"F8.2,F8.2,F8.2,F8.2,/", 30, null) );
-    System.out.println("Res1="+ StringUtil.toString( V.elementAt(0) ) );
-     System.out.println("Res2="+ StringUtil.toString( V1.elementAt(0) ) );
+       System.out.println( FileIO.Read( fin, V,"F8.2", -1, null) );
+       Vector V1 = new Vector();
+      
+       System.out.println("Res1="+ StringUtil.toString( V.elementAt(0) ) );
        }
      catch( IOException ss){
        System.out.println("Exception="+ss);
      }
 
-*/
 
-
-  }
+  }//main
   /**
   *    This method produces an EndCond that can be put into a Vector of
   *    end conditions
@@ -690,7 +691,10 @@ class Nulll{
              
              c = fin.read();
              if( c == -1)
-                break;
+               if( S.trim().length() < 1)
+                 return new ErrorString( FileIO.NO_MORE_DATA );
+               else
+                  break;
              cc =(char)c;
           }
          if( c >32)
@@ -706,6 +710,8 @@ class Nulll{
          
           //read past unreadable characters
           for( c = fin.read(); (c != -1) && ( c < 32); c = fin.read()){};
+          if( c < 0)
+            return new ErrorString( FileIO.NO_MORE_DATA );
           S +=(char)c;
           for( int i=0; i< width-1; i++){
              c = fin.read();
