@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/26 18:16:49  dennis
+ * Removed local copy of slice plane.  Now constructs the
+ * slice plane from the values specified in the GUI
+ * components, when the slice plane is requested.
+ *
  * Revision 1.1  2004/01/24 23:32:59  dennis
  * Panel that lets the user specify a plane in HKL as a
  * by choosing one coordinate axis as the plane normal
@@ -64,10 +69,9 @@ public class HKL_SliceSelector extends     ActiveJPanel
   private static final String K_STRING = "Constant K";
   private static final String L_STRING = "Constant L";
 
-  private SlicePlane3D plane; 
   private Vector3D_UI  origin_selector;
   private JComboBox    hkl_selector;
-  int old_mode;
+  int mode;
 
 
   /* ------------------------- default constructor ---------------------- */
@@ -76,7 +80,7 @@ public class HKL_SliceSelector extends     ActiveJPanel
    */
   public HKL_SliceSelector()
   {
-    plane = new SlicePlane3D();
+    SlicePlane3D plane = new SlicePlane3D();      // build default slice plane
     setLayout( new GridLayout( 2, 1 ) );
 
     hkl_selector = new JComboBox();
@@ -91,12 +95,12 @@ public class HKL_SliceSelector extends     ActiveJPanel
 
     origin_selector.addActionListener( new CenterListener() );
     hkl_selector.addActionListener( new HKL_ModeListener() );
-    old_mode = -1;
+    mode = -1;
     setMode( hkl_selector.getSelectedIndex() ); 
   }
 
 
-  /* --------------------------- getPlane ----------------------------- */
+  /* --------------------------- setPlane ----------------------------- */
   /**
    *  Set the plane whose parameters are to be displayed by this plane selector.
    *  Since we cannot guarantee that the specified plane has a normal vector
@@ -114,12 +118,17 @@ public class HKL_SliceSelector extends     ActiveJPanel
                                 "HKL_SliceSelector.setPlane");
       return;
     }
-                                                // set our plane to be as close
-    plane.setOrigin( new_plane.getOrigin() );   // to the same as the new_plane 
-                                                // as possible.  The normal is
-    Vector3D n = new_plane.getNormal();         // changed to the direction of
-    float coords[] = n.get();                   // a coordinate axis.
+    //
+    // Now, set our plane to be as close to the same as the new_plane 
+    // as possible.  First set and display the new origin value.
+    //
+    origin_selector.setVector( new_plane.getOrigin());  
+    Vector3D n = new_plane.getNormal();    
+    float coords[] = n.get();       
 
+    //
+    // Next, the normal is changed to the direction of a coordinate axis.  
+    //
     float max_abs = Math.abs( coords[0] );
     int   max_i   = 0; 
     for ( int i = 1; i < 3; i++ ) 
@@ -141,7 +150,19 @@ public class HKL_SliceSelector extends     ActiveJPanel
    */
   public SlicePlane3D getPlane()
   {
-    return new SlicePlane3D( plane );
+    SlicePlane3D plane = new SlicePlane3D();
+    plane.setOrigin( origin_selector.getVector() ); 
+
+    if ( mode == H_CONSTANT )
+      plane.setU_and_V( new Vector3D( 0, 1, 0 ), new Vector3D( 0, 0, 1 ) );
+
+    else if ( mode == K_CONSTANT )
+      plane.setU_and_V( new Vector3D( 0, 0, 1 ), new Vector3D( 1, 0, 0 ) );
+
+    else if ( mode == L_CONSTANT )
+      plane.setU_and_V( new Vector3D( 1, 0, 0 ), new Vector3D( 0, 1, 0 ) );
+
+    return plane;
   }
 
 
@@ -154,22 +175,14 @@ public class HKL_SliceSelector extends     ActiveJPanel
    *                public static integer mode values for this class.
    */
   public void setMode( int mode )
-  {
-    if ( mode == H_CONSTANT )
-      plane.setU_and_V( new Vector3D( 0, 1, 0 ), new Vector3D( 0, 0, 1 ) );
-
-    else if ( mode == K_CONSTANT )
-      plane.setU_and_V( new Vector3D( 0, 0, 1 ), new Vector3D( 1, 0, 0 ) );
-
-    else if ( mode == L_CONSTANT )
-      plane.setU_and_V( new Vector3D( 1, 0, 0 ), new Vector3D( 0, 1, 0 ) );
-
-    if ( mode >= 0                            &&  
-         mode < hkl_selector.getItemCount()   &&
-         mode != hkl_selector.getSelectedIndex() )
+  { 
+    if ( mode >= H_CONSTANT &&  
+         mode <= L_CONSTANT  ) 
     {
-      hkl_selector.setSelectedIndex( mode );
-      old_mode = mode;
+      this.mode = mode;                                // record valid mode 
+
+      if ( mode != hkl_selector.getSelectedIndex() )   // update display if 
+        hkl_selector.setSelectedIndex( mode );         // needed
     }
   }
   
@@ -188,15 +201,12 @@ public class HKL_SliceSelector extends     ActiveJPanel
   {
      public void actionPerformed( ActionEvent e )
      {
-       Vector3D new_origin = origin_selector.getVector(); 
-       plane.setOrigin( new_origin );
        send_message( PLANE_CHANGED );
      }
   }
 
   /* ----------------------- HKL_ModeListener ----------------------------- */
   /*
-   *
    *  Listener for the HKL combo box 
    */ 
   private class HKL_ModeListener implements ActionListener,
@@ -204,10 +214,10 @@ public class HKL_SliceSelector extends     ActiveJPanel
   {
      public void actionPerformed( ActionEvent e )
      {
-       int mode = hkl_selector.getSelectedIndex();
-       if ( mode != old_mode )
+       int new_mode = hkl_selector.getSelectedIndex();
+       if ( new_mode != mode )
        {
-         setMode( mode );
+         mode = new_mode;
          send_message( PLANE_CHANGED );
        }
      }
