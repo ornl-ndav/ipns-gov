@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2004/03/11 22:39:29  serumb
+ *  Changed Package and imports.
+ *
  *  Revision 1.15  2003/10/15 23:35:39  dennis
  *  Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -49,7 +52,7 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.io.*;
 import java.awt.*;
@@ -57,7 +60,7 @@ import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import DataSetTools.util.*;
+//import DataSetTools.util.*;
 
 /**
  * An AnimationController object is a GUI component for controlling a sequence
