@@ -1,7 +1,7 @@
 /* 
  * file: ObjectState.java
  *
- * Copyright (C) 2003-2004, Mike Miller
+ * Copyright (C) 2003-2005, Mike Miller
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/03/14 20:50:56  millermi
+ *  - Added private method getGlobal() which will recursively find
+ *    all instances of a key if GLOBAL option is used.
+ *  - Added functionality to get() to get all values referenced by
+ *    a key if GLOBAL is used.
+ *  - Revised documentation and javadocs for get() to reflect new
+ *    functionality.
+ *
  *  Revision 1.11  2005/03/13 23:21:59  millermi
  *  - Improved comments and javadocs.
  *
@@ -154,9 +162,28 @@ public class ObjectState implements java.io.Serializable
   * a field value, primative types must be stored in their Object equivalent.
   * Ex: int -> Integer, boolean -> Boolean, ect.
   * Because of this, the returned Object will never be a primative type.
+  * If GLOBAL.key is used, all instances of the key will be returned in the
+  * following form: If key not found, null is returned. If any instance of the
+  * key is found, a Vector containing all of the values is returned. To
+  * decifer values, the entries in the Vector will be a two-element Object[]
+  * consisting of the full path key and the value.<BR><BR>
+  * <I>Example use of <B>GLOBAL</B></I><BR>
+  * ObjectState1 contains key1(Float), key2(Float), key3(ObjectState2)<BR>
+  * ObjectState2 contains key1(String), key4(Integer), key5(ObjectState3)<BR>
+  * ObjectState3 contains key6(Float), key1(Float)<BR><BR>
+  * Calling get(GLOBAL.key1) would return:<BR>
+  * Vector containing three Object[2] pairs.<BR>
+  * Element 1: Object[0] = String key3.key5.key1, Object[1] = Float value<BR>
+  * Element 2: Object[0] = String key3.key1, Object[1] = String value<BR>
+  * Element 3: Object[0] = String key1, Object[1] = Float value<BR>
   *
-  *  @param  key
-  *  @return field - null if key not found
+  *  @param  key Key referencing the saved value. Key does not have to be
+  *              a String unless the value is in an imbedded ObjectState,
+  *              but use of Strings is recommended.
+  *  @return The value referenced by the key. If GLOBAL.key is used,
+  *          the returned value will be a Vector of two-element Object arrays.
+  *          See method description for more detail. If key is not found,
+  *          null is returned.
   */ 
   public Object get( Object key )
   {
@@ -171,16 +198,35 @@ public class ObjectState implements java.io.Serializable
 	skey = skey.substring(0,period_index);
       }
       //System.out.println(skey + " " + temp_key);
+      // Special Case: if key is global (GLOBAL.key), get all instances of
+      // that key at every level of the ObjectState.
+      if( skey.equals(GLOBAL) )
+      {
+        if( nextkey == null )
+	  return null;
+        // Store values at every level in a vector.
+	Vector key_list = new Vector();
+	// Get list of keys that match "nextkey" at every level.
+        getGlobal(nextkey,null,key_list);
+	// If any instance of key was found, return list.
+	if( key_list.size() > 0 )
+	  return key_list;
+        // If key was not found, return null.
+	return null;
+      }
       
       // if null, then no recursion needed because field is in this table
       if( nextkey == null )
 	return table.get(key);
       else
       {
+        // Get skey value.
 	Object nextstate = get( skey );
+	// nextstate must be ObjectState since this is a compound key,
+	// os1.os2.os3...osN.key. Repeat process until only the key is left.
         if( nextstate instanceof ObjectState )
           return ((ObjectState)nextstate).get( nextkey );
-        // if it gets to this point, the path was incorrect.
+	// if it gets to this point, the path was incorrect.
         SharedMessages.addmsg("Invalid Path in ObjectState.java"); 	
         return "Invalid Path in ObjectState.java";  
       }
@@ -345,6 +391,62 @@ public class ObjectState implements java.io.Serializable
   {
     return table.toString();
   }
+ 
+ /*
+  * This method uses recursion to retrieve a value at any level referenced by
+  * the specified key. If key does not exist, nothing is added to the Vector.
+  *
+  *  @param  key The key being searched for.
+  *  @param  level_up The key(s) from the ObjectStates above this one.
+  *  @param  value_list The list of values where all the values of a global
+  *                     key are stored.
+  */ 
+  private void getGlobal( String key, String level_up, Vector value_list )
+  {
+    // Get list of keys at this level.
+    Enumeration keys = table.keys();
+    String tempkey;
+    Object value;
+    // Go through each key, find all ObjectState values. If value is an
+    // ObjectState, search it for further instances of nextkey.
+    while( keys.hasMoreElements() )
+    {
+      tempkey = (String)keys.nextElement();
+      value = table.get(tempkey);
+      // Use recursion to go down each level of the ObjectState.
+      if( value instanceof ObjectState )
+      {
+        // If level_up = null, do not prepend it to the key.
+        if( level_up == null )
+    	  ((ObjectState)value).getGlobal( key, tempkey, value_list );
+    	else
+	  ((ObjectState)value).getGlobal( key,
+	                                  new String(level_up+"."+tempkey),
+					  value_list );
+      }
+    }
+    // If key exists at this level, make an entry consisting of the
+    // full path and the value.
+    String compound_key;
+    // if no level above this, do not prepend anything to key.
+    if( level_up == null )
+      compound_key = key;
+    // Prepend the path to get to this key.
+    else
+      compound_key = new String(level_up+"."+key);
+    Object tempvalue = get(key);
+    // If tempvalue exists...
+    if( tempvalue != null )
+    {
+      // Create entry consisting of full path key and value.
+      Object[] key_value_entry;
+      key_value_entry = new Object[2];
+      key_value_entry[0] = new String(compound_key);
+      key_value_entry[1] = tempvalue;
+      // Add entry to list.
+      value_list.add(key_value_entry);
+    }
+  }
     
  /*
   * This method groups functionality for the insert() and reset() methods, with
@@ -493,6 +595,19 @@ public class ObjectState implements java.io.Serializable
     
     ostest.reset("One.Two.Three.Test", "test5");
     System.out.println( ostest.get("One.Two.Three.Test") );
+    System.out.println("Testing global get...");
+    Vector list = (Vector)ostest.get(new String(GLOBAL+".Test"));
+    Object[] temp;
+    if( list != null )
+    {
+      for( int i = 0; i < list.size(); i++ )
+      {
+        temp = (Object[])list.elementAt(i);
+        System.out.println("Key: "+temp[0]+", Value: "+temp[1]);
+      }
+    }
+    else
+      System.out.println(GLOBAL+".Test not found.");
     // resets any value for the variable "Test" in the heirarchy to 
     // "Global testing"
     ostest.reset("Global.Test", "Global testing");
