@@ -30,16 +30,17 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/02 15:47:04  dennis
+ * Removed unused imports.
+ *
  * Revision 1.1  2004/05/28 20:51:14  dennis
  * Initial (test) version of classes for displaying and picking
  * 3D objects using OpenGL from Java, built on the "jogl" system.
- *
- *
+ * 
  */
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 
-import java.awt.*;
 import net.java.games.jogl.*;
 
 /** 

@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/02 15:47:04  dennis
+ * Removed unused imports.
+ *
  * Revision 1.1  2004/05/28 20:51:14  dennis
  * Initial (test) version of classes for displaying and picking
  * 3D objects using OpenGL from Java, built on the "jogl" system.
@@ -39,10 +42,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 
-import java.io.*;
-
 import gov.anl.ipns.MathTools.Geometry.*;
-import gov.anl.ipns.ViewTools.UI.*;
 
 /**
  *  A ViewController object controls the observers position for one or more
