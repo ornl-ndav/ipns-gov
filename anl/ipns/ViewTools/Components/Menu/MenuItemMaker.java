@@ -32,6 +32,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.6  2004/04/29 06:26:24  millermi
+ * - Added MarkerOverlay to overlay list.
+ *
  * Revision 1.5  2004/03/11 23:52:51  rmikk
  * Fixed Package names
  *
@@ -148,6 +151,7 @@ public class MenuItemMaker
     overlay.add("Overlays");
       overlay.add("Annotation");
       overlay.add("Axis");
+      overlay.add("Marker");
       overlay.add("Selection");
     
     listener.add(al);
