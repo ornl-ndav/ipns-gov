@@ -31,6 +31,10 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.10  2004/03/11 23:26:28  millermi
+ * - Made all methods of DocumentIO static.
+ * - Listener classes using DocumentIO now call static methods.
+ *
  * Revision 1.9  2004/03/11 23:14:01  millermi
  * - Removed scriptFilter which checked for Isaw scripts.
  * - Changed SharedData to SharedMessages
@@ -51,8 +55,8 @@
  * Eliminated commented out code
  *
  * Revision 1.3  2002/01/25 19:41:26  pfpeterson
- * Use the script filter to show only iss files. Also remembers the last item and
- * defaults to the Script_Path directory.
+ * Use the script filter to show only iss files. Also remembers the last item
+ * and defaults to the Script_Path directory.
  *
  * Revision 1.2  2002/01/10 15:39:18  rmikk
  * Fixed an error the caused a failure to remember the last
@@ -152,7 +156,7 @@ public class OpenFileToDocListener
 	    
         try{  
             doc.remove( doc.getStartPosition().getOffset(), doc.getLength());  
-            Document D = (new DocumentIO()).openDoc( filename);  
+            Document D = DocumentIO.openDoc( filename);  
             doc.insertString( 0, D.getText( D.getStartPosition().getOffset(),  
                                             D.getLength()), null);    
         }catch( Exception s){

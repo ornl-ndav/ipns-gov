@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2004/03/11 23:26:29  millermi
+ * - Made all methods of DocumentIO static.
+ * - Listener classes using DocumentIO now call static methods.
+ *
  * Revision 1.9  2004/03/11 23:14:01  millermi
  * - Removed scriptFilter which checked for Isaw scripts.
  * - Changed SharedData to SharedMessages
@@ -169,7 +173,7 @@ public class SaveDocToFileListener
 	   filename  = SelectedFile.toString() ; */
         
         
-        (new DocumentIO()).saveDoc( doc , filename );
+        DocumentIO.saveDoc( doc , filename );
         if( FilenameListener != null)
             FilenameListener.propertyChange(
                             new PropertyChangeEvent(this, FilenamePropertyName ,
