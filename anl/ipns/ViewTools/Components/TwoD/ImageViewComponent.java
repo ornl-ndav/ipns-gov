@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.72  2004/07/10 04:50:25  millermi
+ *  - Added setPrecision() method to allow outside programmers to
+ *    set the precision of the displayed numbers.
+ *
  *  Revision 1.71  2004/04/29 06:27:05  millermi
  *  - Added MarkerOverlay help to list of menu items.
  *
@@ -641,7 +645,7 @@ public class ImageViewComponent implements IViewComponent2D,
   public ImageViewComponent( IVirtualArray2D varr )  
   {
     Varray2D = varr; // Get reference to varr
-    precision = 4;
+    setPrecision(4);
     font = FontUtil.LABEL_FONT2;
     ijp = new ImageJPanel();
     //Make ijp correspond to the data in f_array
@@ -738,7 +742,7 @@ public class ImageViewComponent implements IViewComponent2D,
     temp = new_state.get(PRECISION);
     if( temp != null )
     {
-      precision = ((Integer)temp).intValue();
+      setPrecision( ((Integer)temp).intValue() );
       redraw = true;  
     }
     
@@ -890,7 +894,7 @@ public class ImageViewComponent implements IViewComponent2D,
               ((ControlCheckboxButton)controls[3]).getObjectState(isDefault) );
     state.insert( MARKER_OVERLAY,  
       ((OverlayJPanel)transparencies.elementAt(3)).getObjectState(isDefault) );
-    state.insert( PRECISION, new Integer(precision) );
+    state.insert( PRECISION, new Integer(getPrecision()) );
     state.insert( SELECTION_CONTROL,
               ((ControlCheckboxButton)controls[5]).getObjectState(isDefault) );
     state.insert( SELECTION_OVERLAY,  
@@ -1077,7 +1081,21 @@ public class ImageViewComponent implements IViewComponent2D,
   public int getPrecision() 
   {
     return precision;
-  }  
+  }
+  
+ /**
+  * This method will set the precision of numbers displayed by the
+  * ImageViewComponent. Precision is assumed to be 4 if not specified.
+  *
+  *  @param  precision of displayed values
+  */
+  public void setPrecision( int precision ) 
+  {
+    // If negative or zero, do not set.
+    if( precision <= 0 )
+      return;
+    this.precision = precision;
+  }
   
  /**
   * This method will return the font used on by the overlays. The axis overlay
@@ -1488,7 +1506,7 @@ public class ImageViewComponent implements IViewComponent2D,
     north_height = 25;
     south_height = font.getSize() * 3 + 9;
     east_width = 50;
-    west_width = font.getSize() * precision + 22;
+    west_width = font.getSize() * getPrecision() + 22;
     // this will be the background for the master panel
     background.removeAll();
     String title = getValueAxisInfo().getLabel() + " (" + 
