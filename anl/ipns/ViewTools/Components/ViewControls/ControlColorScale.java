@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/06/18 22:15:33  dennis
+ *  (Mike Miller)
+ *  - Fixed calibration update on zoom. Previously, the interval
+ *    on the color scale would adjust when the image was zoomed.
+ *    Now it remains constant.
+ *
  *  Revision 1.3  2003/06/18 13:30:03  dennis
  *  - Restructured to enable calibrations. Added constructor for
  *    calibration color scale.
@@ -86,6 +92,8 @@ public class ControlColorScale extends ViewControl
    private String colorscheme;
    private boolean isBasic = true; // basic vs calibrated color scales
    private Font font;
+   private float interval_min;
+   private float interval_max;
    
   /* Possible color schemes as designated by 
    * DataSetTools/components/image/IndexColorMaker.java
@@ -120,6 +128,8 @@ public class ControlColorScale extends ViewControl
       csi.setNamedColorModel( colorscheme, true ); 
       setAxisVisible(true); 
       font = component.getFont();
+      interval_min = component.getAxisInfo(orientation).getMin();
+      interval_max = component.getAxisInfo(orientation).getMax();
       component.addActionListener( new ColorChangedListener() );
    }
    
@@ -226,9 +236,7 @@ public class ControlColorScale extends ViewControl
    public AxisInfo2D getAxisInfo(boolean isX)
    {
       if( !isBasic )
-         return new AxisInfo2D( component.getAxisInfo(isX).getMin(),
-                                        component.getAxisInfo(isX).getMax(),
-					"","",true );
+         return new AxisInfo2D( interval_min, interval_max, "", "", true );
       else
       {
          System.out.println("getAxisInfo() is not available with the " +
