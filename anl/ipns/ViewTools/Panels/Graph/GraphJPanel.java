@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.38  2004/02/27 20:18:19  serumb
+ * Set the data bounds to the proper min and max values.
+ *
  * Revision 1.37  2004/01/09 20:32:13  serumb
  * Utilize getLocalLogWorldCoords to correct log
  * transformations.
@@ -986,19 +989,18 @@ public boolean is_autoY_bounds()
     SetTransformsToWindowSize();
     int x_offset = 0;
     int y_offset = 0;
-
+   
    // CoordBounds bounds = getGlobalWorldCoords();    // temporarily don't clip
     CoordBounds bounds = getLocalWorldCoords();
    
-
     float first_x = bounds.getX1();
     float last_x  = bounds.getX2();
     //bounds = getLocalWorldCoords();   
+
     if ( log_scale_x)
     {
       float min = getXmin();
       float max = getXmax();
-
       LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
 
 
@@ -1469,13 +1471,17 @@ public Dimension getPreferredSize()
 private void set_auto_data_bound()
 {
    auto_data_bound = new CoordBounds();
-   GraphData gd = (GraphData)graphs.elementAt(0);
+  /* GraphData gd = (GraphData)graphs.elementAt(0);
    auto_data_bound.setBounds( gd.x_vals, gd.y_vals );
    for ( int i = 1; i < graphs.size(); i++ )
    {
      gd = (GraphData)graphs.elementAt(i);
      auto_data_bound.growBounds( gd.x_vals, gd.y_vals );
    }
+*/
+   auto_data_bound.setBounds( getXmin(), getYmin(), getXmax(), getYmax() );
+
+  
 
    auto_data_bound.scaleBounds( 1.0f, 1.05f );
 }
