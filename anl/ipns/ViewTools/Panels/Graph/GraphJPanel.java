@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2003/06/09 22:34:54  serumb
+ * SetStroke now takes in the line width as a parameter.
+ *
  * Revision 1.11  2003/06/06 14:47:34  serumb
  * added different line styles(dotted, dashed, dash-dot-dot)
  * added point marks(dot, plus, star, box, cross)
@@ -243,36 +246,49 @@ public boolean setStroke(BasicStroke theStroke, int graph_num, boolean redraw)
 
 /*------------------------------ getStroke --------------------------------*/
 
-public BasicStroke strokeType(int key)
+public BasicStroke strokeType(int key, float linewidth)
 {
     float dash1[] = {10.0f};
     float[] dash2 = {6.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f};
     float dots1[] = {0,6,0,6};
-    float thickness = 2.0f; //1-5
-    BasicStroke dashed = new BasicStroke(thickness, 
+
+    BasicStroke dashed = new BasicStroke(linewidth, 
                                          BasicStroke.CAP_SQUARE, 
                                          BasicStroke.JOIN_MITER, 
                                          10.0f, dash1, 0.0f);
 
-    BasicStroke stroke = new BasicStroke(thickness);
-    BasicStroke dotted = new BasicStroke(thickness, BasicStroke.CAP_ROUND,
+    BasicStroke stroke = new BasicStroke(linewidth);
+    BasicStroke dotted = new BasicStroke(linewidth, BasicStroke.CAP_ROUND,
 				       BasicStroke.JOIN_ROUND, 
 				       0, dots1, 0);
 
-    BasicStroke dashdot = new BasicStroke(thickness, BasicStroke.CAP_BUTT,
+    BasicStroke dashdot = new BasicStroke(linewidth, BasicStroke.CAP_BUTT,
 				BasicStroke.JOIN_MITER, 10.0f, dash2, 0.0f);
 
-
+    Rectangle R = getBounds();
+    float[] f;
     if (key == DASHED)
-	return dashed;
+       { f = new float[2];
+         f[0] = java.lang.Math.max(15, R.width/200);
+         f[1] = f[0];
+	//return new BasicStroke(linewidth,BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER,
+        //            1.f,   f,0f);
+	  return dashed;
+       }
     else if (key == DOTTED)
-	return dotted;
+         { f = new float[2];
+         f[0] = java.lang.Math.max(5, R.width/2000);
+         f[1] = f[0];
+	//return new BasicStroke(linewidth,BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER,
+        //             1.0f,  f,0f);
+	  return dotted;
+       }
     else if (key == LINE)
 	return stroke;
     else if (key ==DASHDOT)
 	return dashdot;	
     else 
-    {   System.out.println("ERROR: no Stroke of this type, defult is returned");
+    {   System.out.println("ERROR: no Stroke of this type, default is returned");
 	return stroke;
     }
 }	
@@ -600,7 +616,7 @@ public boolean is_autoY_bounds()
 	  			 (int)x_copy[i]+size, (int)y_copy[i]      );      
                g.drawLine( (int)x_copy[i],      (int)y_copy[i]-size,
 	  			 (int)x_copy[i],      (int)y_copy[i]+size );      
-              g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
+               g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]-size,
 	  			 (int)x_copy[i]+size, (int)y_copy[i]+size );      
                g.drawLine( (int)x_copy[i]-size, (int)y_copy[i]+size,
 				 (int)x_copy[i]+size, (int)y_copy[i]-size );      
@@ -629,6 +645,7 @@ public boolean is_autoY_bounds()
       }
       else if ( x_copy.length == y_copy.length + 1 )  // Histogram data
       {
+	g2.setStroke(gd.Stroke);
         if ( remove_hidden_lines )
         {
           int x_int[] = new int[ 2*y_copy.length + 2 ];
@@ -782,21 +799,22 @@ private void SetDataBounds()
     graph.setBackground(Color.white);
     graph.setData( g1_x_vals, g1_y_vals, 0, false );
     graph.setColor( Color.black, 0, false );
-    graph.setStroke( graph.strokeType(DASHED), 0, false);
+    graph.setStroke( graph.strokeType(DASHED,1), 0, false);
     graph.setMarkType(Color.blue, BOX, 0, false);
 
     graph.setData( g2_x_vals, g2_y_vals, 1, true );
     graph.setColor( Color.red, 1, true );
-    graph.setStroke( graph.strokeType(DOTTED), 1, true);
+    graph.setStroke( graph.strokeType(DOTTED,1), 1, true);
 
     graph.setData( g3_x_vals, g3_y_vals, 2, true );
     graph.setColor( Color.green, 2, false );
-    graph.setStroke( graph.strokeType(LINE), 2, true);
+    graph.setStroke( graph.strokeType(LINE,1), 2, true);
     graph.setMarkType(Color.red, CROSS, 2, true);
+   
 
     graph.setData( g4_x_vals, g4_y_vals, 3, true );
     graph.setColor( Color.blue, 3, false );
-    graph.setStroke( graph.strokeType(DASHDOT), 3, true);
+    graph.setStroke( graph.strokeType(DASHDOT,1), 3, true);
     graph.setMarkType(Color.green, STAR, 3, true);
   }
 }
