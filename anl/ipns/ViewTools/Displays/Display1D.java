@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2005/03/09 23:13:02  millermi
+ * - Uncommented and reimplemented dataChanged(IVirtualArrayList1D).
+ *   Functionality for dataChanged() is currently untested.
+ * - Edited help() to reflect new table display capabilities.
+ *
  * Revision 1.6  2005/02/11 23:46:24  millermi
  * - Added private class ArrayConverter which converts an
  *   IVirtualArrayList1D to an IVirtualArray2D. This class allows
@@ -198,10 +203,9 @@ public class Display1D extends Display
     textpane.setEditorKit( new HTMLEditorKit() );
     String text = "<H1>Description:</H1> <P>" + 
                 "The Display1D (D1D) in an interactive analysis tool. " +
-        	"D1D features the ability to quickly analyze a 2-D " +
-		"array of data in a variety of views. Views that are " +
-		"included are currently restricted to Graphs, but additional " +
-		"support for a Table view will be included soon.</P>" + 
+        	"D1D features the ability to quickly analyze a 1-D " +
+		"array of data in a variety of views. Views currently " +
+		"include a Graph view and a Table view.</P>" + 
 		"<H2>Commands for D1D</H2>" +
                 "<P> SAVING USER PREFERENCES: Click on <B>Options|Save User " +
 		"Settings</B>. Your preferences will automatically be saved " +
@@ -222,17 +226,23 @@ public class Display1D extends Display
     shower = null;
   }
   
- /*
+ /**
   * This method takes in a virtual array and updates the image. If the array
   * is the same data array, the image is just redrawn. If the array is
   * different, the a new view component is constructed.
+  * *****Functionality for dataChanged() currently untested*****
   *
   *  @param  values
-  * 
+  */
   public void dataChanged( IVirtualArrayList1D values )
   { 
-    ((IViewComponent1D)ivc).dataChanged(values);
-  }*/
+    if( ivc instanceof FunctionViewComponent )
+      ((FunctionViewComponent)ivc).dataChanged(values);
+    else if( ivc instanceof TableViewComponent )
+      ((TableViewComponent)ivc).dataChanged(
+                                     ArrayConverter.makeInstance(values));
+    
+  }
   
  /*
   * This method sets the pointed-at on this display. This may need to be changed
