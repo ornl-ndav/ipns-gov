@@ -25,12 +25,16 @@
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
  *
- * This work was supported by the Intense Pulsed Neutron Source Division
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0218882, and by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.2  2003/06/09 22:35:50  dennis
+ * - Updated comments, no functional changes made. (Mike Miller)
+ *
  * Revision 1.1  2003/06/09 14:44:04  dennis
  * Initial Version, currently able to provide help
  * information on the overlays. (Mike Miller)
@@ -45,25 +49,19 @@ import java.awt.event.*;
 import javax.swing.*;
 
 /**
- *  This class represents a JMenu listing available "named" pseudo color
- *  scales.
+ * This class represents a JMenu listing available help options for this window.
  */
-
 public class HelpMenu extends    JMenu 
-                      implements Serializable 
+                            implements Serializable 
 {
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
   *
-  *  Construct a JMenu giving the available "named" pseudo color scales
-  *  as listed in the IndexColorMaker class.
+  *  Construct a JMenu giving the available help options available.
   *
   *  @param  listener  The action listener that will be added to each 
   *                    menu item. 
-  *
-  *  @see DataSetTools.components.image.IndexColorMaker
-  *                    
   */
   public HelpMenu( ActionListener listener )
   { 
