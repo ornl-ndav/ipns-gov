@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/11 22:27:45  millermi
+ *  - Changed package.
+ *
  *  Revision 1.7  2003/06/02 20:59:07  pfpeterson
  *  Added a constructor which takes a Throwable.
  *
@@ -37,7 +40,7 @@
  *  standardized header
  *
  */
-package DataSetTools.util;
+package gov.anl.ipns.Util.SpecialStrings;
 
 import java.io.Serializable;
 
