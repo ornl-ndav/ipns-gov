@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/01/06 20:28:16  dennis
+ * Fixed some problems with labels.
+ * Now displays intensity vs Q graph.
+ * Some problems remain with the graph region and log axes.
+ *
  * Revision 1.8  2004/01/03 04:40:23  millermi
  * - help() now uses html toolkit
  * - replaced setVisible(true) with WindowShower.
@@ -372,13 +377,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 				    array.length-0.001f );
         VirtualArray2D va2D = new VirtualArray2D( array );
         va2D.setAxisInfo( AxisInfo.X_AXIS, qxmin, qxmax, 
-    		            "Qx","X Units", true );
+    		            "Qx","(Inverse Angstroms)", true );
         va2D.setAxisInfo( AxisInfo.Y_AXIS, qymin, qymax, 
-    			    "Qy","Y Units", true );
+    			    "Qy","(Inverse Angstroms)", true );
         // since datamin/max are gotten from the image,
 	// the min/max are dummy values.
 	va2D.setAxisInfo( AxisInfo.Z_AXIS, 0, 1, 
-    			    "Qz","Z Units", true );
+    			    "","Intensity", true );
         va2D.setTitle("SAND Wedge Viewer");
 	setData( va2D );
       }
@@ -482,14 +487,16 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setBounds(0,0,550,615);
     
-    data_set   = new DataSet("Value per Hit vs Distance", "Sample log-info");
+    data_set   = new DataSet("Intensity vs Q in Region", 
+                             "Calculated Intensity vs Q in Region");
 
-    data_set.setX_units("(Units)" );
-    data_set.setX_label("Distance" );
+    data_set.setX_units("(Inverse Angstroms)" );
+    data_set.setX_label("Q" );
 
-    data_set.setY_units("(Units)" );
-    data_set.setY_label("Value per Hit" );
+    data_set.setY_units("" );
+    data_set.setY_label("Relative Intensity" );
     
+    data_set.setSelectFlag( data_set.getNum_entries() - 1, true );
     setData(iva);
   }
 
@@ -694,7 +701,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     int   ID      = 1;
     float start_x = 0;
     float end_x   = 0;
-    int   n_xvals = 200;
+    floatPoint2D  start_point = null,
+                  end_point   = null;
+    int   n_xvals;
     Point center = new Point(0,0); 
     String attribute_name = "";
     int[] attributes;
@@ -735,6 +744,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       attributes[2] = radius;
       attributes[3] = axisangle;
       attributes[4] = def_pts[5].y;
+      end_point = new floatPoint2D( def_pts[1].x, def_pts[1].y );
     }
     else if( region instanceof DoubleWedgeRegion )
     {
@@ -760,6 +770,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       attributes[2] = radius;
       attributes[3] = axisangle;
       attributes[4] = def_pts[5].y;
+      end_point = new floatPoint2D( def_pts[1].x, def_pts[1].y );
     }
     else if( region instanceof EllipseRegion )
     {
@@ -778,6 +789,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       attributes[1] = center.y;
       attributes[2] = major_radius;
       attributes[3] = minor_radius;
+                                      // The following end_point calculation
+                                      // may need to be changed ###############
+      end_point = new floatPoint2D( center.x + major_radius, center.y );
     }
     else if( region instanceof AnnularRegion )
     {
@@ -799,6 +813,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       attributes[1] = center.y;
       attributes[2] = inner_radius;
       attributes[3] = outer_radius;
+                                      // The following end_point calculation
+                                      // needs to be changed ###############
+      end_point = new floatPoint2D( center.x + outer_radius, center.y );
     }
     // should never get to this else, if it does, we have a problem.
     else
@@ -809,7 +826,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     Data          spectrum;     // data block that will hold a "spectrum"
     UniformXScale x_scale;      // "time channels" for the spectrum
 
-    // build list of time channels
+    // build list of Q bin centers, with one bin for each "pixel" in the radius
+    n_xvals = Math.round(end_x);
     x_scale = new UniformXScale( start_x, end_x, n_xvals );
 
     int hit_count[] = new int[n_xvals];
@@ -844,8 +862,44 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     // put it into a "Data" object and then add it to the dataset
     spectrum = new FunctionTable( x_scale, y_vals, ID );
     spectrum.setAttribute( new IntListAttribute( attribute_name, attributes ) );
+
+    // Convert the spectrum into a spectrum relative to "Q".  Also, discard the
+    // the first bin, at the central vertex of the wedge, since the counts
+    // there are usually 0.  ( 0 causes problems with the log-log display.)
+    //
+    // NOTE: The calculation in "pixel space" added the intensity to y_vals[k]
+    //       provided the point's distance from the center was closest to
+    //       x_vals[k], so the x_vals[] are actually bin centers.
+   
     
-    data_set.addData_entry( spectrum ); 
+    start_point = new floatPoint2D( center.x, center.y );
+    start_point = world_image_tran.MapTo( start_point ); 
+    end_point   = world_image_tran.MapTo( end_point ); 
+
+    float new_start_x = start_point.magnitude(); 
+    float new_end_x   = end_point.magnitude(); 
+    if ( n_xvals > 1 )
+    {
+      float step = (new_end_x - new_start_x) / (n_xvals-1);
+      new_start_x += step;
+    }
+
+    System.out.println("Using Q between " + new_start_x + 
+                              " and " + new_end_x );
+    UniformXScale new_x_scale = new UniformXScale( new_start_x, 
+                                                   new_end_x, 
+                                                   n_xvals-1 );
+    float new_y_vals[] = new float[ y_vals.length - 1 ];
+    for ( int i = 0; i < new_y_vals.length; i++ )
+      new_y_vals[i] = y_vals[i+1];
+  
+    ID++;
+    Data new_spectrum = new FunctionTable( new_x_scale, new_y_vals, ID );
+    new_spectrum.setAttribute( new IntListAttribute( attribute_name, 
+                               attributes ) );
+
+//    data_set.addData_entry( spectrum ); 
+    data_set.addData_entry( new_spectrum ); 
     data_set.setSelectFlag( data_set.getNum_entries() - 1, true );
   }
  
