@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/01/22 02:19:05  bouzekc
+ *  Removed unused imports and local variables.
+ *
  *  Revision 1.8  2003/10/20 16:31:06  rmikk
  *  Fixed javadoc errors
  *
@@ -64,7 +67,6 @@ package DataSetTools.dataset;
 import DataSetTools.util.StringUtil;
 import java.io.*;
 import java.util.*;
-import Command.*;
 
 
 
@@ -83,9 +85,8 @@ public class xml_utils
  */
  public static String getTag( InputStream is)
   {errormessage=null;
-   String S="";
    try
-     {char c=findChar(is,"<",true);
+     {findChar(is,"<",true);
       return getEndTag(is );
 
      }
@@ -101,7 +102,6 @@ public class xml_utils
   */
   public static String getEndTag( InputStream is)
    {errormessage=null;
-    String S="";
     try
      {sb.setLength( 0 );
       char c=findChar(is,delimiters,false);
@@ -431,11 +431,11 @@ public static boolean AttribXMLread( InputStream stream, Attribute A )
        try{if(fd.indexOf('v')>=0)
              return false;
           fd=fd+"v";
-          Object value= v;
+          //Object value= v;
           if( (A instanceof IntAttribute) ||
               (A instanceof FloatAttribute) ||
               (A instanceof DoubleAttribute))
-            value= new Double(v);
+            //value= new Double(v);
           System.out.println("ERROR: setValue no longer supported " +
                              "by Attribute class" );
           // A.setValue( value );        ######## now that Attributes are
