@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2001/05/23 17:39:44  dennis
+ *  Changed component colors and fonts to improve printed screen dumps.
+ *
  *  Revision 1.9  2001/04/23 21:50:13  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -220,6 +223,12 @@ public class LiveDataMonitor extends    JPanel
 
   private void SetUpGUI()
   {
+    final Color  BACKGROUND = Color.white;
+    final Color  FOREGROUND = Color.black;
+
+    setBackground( BACKGROUND );
+    setForeground( FOREGROUND );
+
     int num_ds   = data_manager.numDataSets();
 
                                         // make lists to save references to the
@@ -242,6 +251,7 @@ public class LiveDataMonitor extends    JPanel
     time_slider.setMajorTickSpacing( 60 );
     time_slider.setMinorTickSpacing( 20 );
     time_slider.addChangeListener( new UpdateTimeListener() );
+    time_slider.setBackground( BACKGROUND );
     data_manager.setUpdateInterval( time_slider.getValue() );
 
     JPanel label_panel  = new JPanel();
@@ -254,34 +264,45 @@ public class LiveDataMonitor extends    JPanel
     source_label.setHorizontalTextPosition( SwingConstants.CENTER );
     source_label.setVerticalAlignment( SwingConstants.CENTER );
     source_label.setVerticalTextPosition( SwingConstants.CENTER );
+    source_label.setBackground( BACKGROUND );
+    source_label.setForeground( FOREGROUND );
     TitledBorder border = new TitledBorder( LineBorder.createBlackLineBorder(),
                                             "Data Source:" );
     border.setTitleFont( FontUtil.BORDER_FONT );
+    border.setTitleColor( FOREGROUND );
     label_panel.setBorder( border );
     label_panel.add( source_label );
+    label_panel.setBackground( BACKGROUND );
     panel_box.add( label_panel );
 
     for ( int i = 0; i < data_manager.numDataSets(); i++ )
     {
       JPanel panel = new JPanel();               // use a separate "sub" panel
       panel.setLayout( new FlowLayout() );       // for each possible DataSet
+      panel.setBackground( BACKGROUND );
       border = new TitledBorder( LineBorder.createBlackLineBorder(),
                                  "DataSet #" + i );
       border.setTitleFont( FontUtil.BORDER_FONT );
+      border.setTitleColor( FOREGROUND );
       panel.setBorder( border );
 
       DataSet ds   = data_manager.getDataSet( i );
       ds_label[i]  = new JLabel( ds.getTitle() );
       ds_label[i].setFont( FontUtil.BORDER_FONT );
+      ds_label[i].setForeground( FOREGROUND );
 
       JButton button = new JButton("Update");
-      button.setFont( FontUtil.LABEL_FONT );
+//      button.setFont( FontUtil.LABEL_FONT );
+      button.setFont( FontUtil.BORDER_FONT );
+      button.setBackground( BACKGROUND );
       UpdateButtonListener button_listener = new UpdateButtonListener( i );
       button.addActionListener( button_listener );
 
       show_box[i] = new JCheckBox( "Show" );
-      show_box[i].setFont( FontUtil.LABEL_FONT );
+//      show_box[i].setFont( FontUtil.LABEL_FONT );
+      show_box[i].setFont( FontUtil.BORDER_FONT );
       show_box[i].setSelected( false );
+      show_box[i].setBackground( BACKGROUND );
       ShowCheckboxListener show_box_listener = new ShowCheckboxListener( i );
       show_box[i].addActionListener( show_box_listener );
 
@@ -291,7 +312,9 @@ public class LiveDataMonitor extends    JPanel
                                                     // DataSets
 
       auto_box[i] = new JCheckBox( "Auto" );
-      auto_box[i].setFont( FontUtil.LABEL_FONT );
+//      auto_box[i].setFont( FontUtil.LABEL_FONT );
+      auto_box[i].setFont( FontUtil.BORDER_FONT );
+      auto_box[i].setBackground( BACKGROUND );
       auto_box[i].setSelected( false );
       AutoCheckboxListener auto_box_listener = new AutoCheckboxListener( i );
       auto_box[i].addActionListener( auto_box_listener ); 
@@ -308,6 +331,7 @@ public class LiveDataMonitor extends    JPanel
     border = new TitledBorder( LineBorder.createBlackLineBorder(),
                                "Auto Update Interval( 0 - 10 Min )" );
     border.setTitleFont( FontUtil.BORDER_FONT );
+    border.setTitleColor( FOREGROUND );
     time_slider.setBorder( border );
 
     panel_box.add( time_slider );
