@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2002/02/18 18:10:47  dennis
+ * Angles now change in steps of 0.1 degree
+ *
  * Revision 1.6  2001/07/25 16:57:55  dennis
  * Added methods to get the altitude and view angles and to
  * get the distance.
@@ -78,9 +81,11 @@ import DataSetTools.util.*;
 public class AltAzController extends    ViewController
                              implements Serializable
 {
-  public static final int   MAX_ALT_ANGLE         = 89;
+  public static final float MAX_ALT_ANGLE         = 89.9f;
+  public static final float MAX_AZI_ANGLE         = 180.0f; 
+  public static final float ANGLE_SCALE_FACTOR    = 10.0f;
   public static final float DISTANCE_SCALE_FACTOR = 10.0f;
-
+  
   JSlider  azimuth_slider;
   JSlider  altitude_slider;
   JSlider  distance_slider;
@@ -122,8 +127,8 @@ public class AltAzController extends    ViewController
     setBorder( border );
 
     altitude_slider = new JSlider( JSlider.HORIZONTAL, 
-                                  -MAX_ALT_ANGLE, 
-                                   MAX_ALT_ANGLE, 
+                                  -(int)(ANGLE_SCALE_FACTOR*MAX_ALT_ANGLE), 
+                                   (int)(ANGLE_SCALE_FACTOR*MAX_ALT_ANGLE), 
                                    0 );
     altitude_slider.addChangeListener( new SliderChanged() );
     border = new TitledBorder( LineBorder.createBlackLineBorder(),"Altitude");
@@ -131,7 +136,10 @@ public class AltAzController extends    ViewController
     altitude_slider.setBorder( border );
     add( altitude_slider ); 
 
-    azimuth_slider = new JSlider( JSlider.HORIZONTAL, -180, 180, 0 );
+    azimuth_slider = new JSlider( JSlider.HORIZONTAL, 
+                                 -(int)(ANGLE_SCALE_FACTOR*MAX_AZI_ANGLE), 
+                                  (int)(ANGLE_SCALE_FACTOR*MAX_AZI_ANGLE), 
+                                  0 );
     azimuth_slider.addChangeListener( new SliderChanged() );
     border = new TitledBorder( LineBorder.createBlackLineBorder(),"Azimuth");
     border.setTitleFont( FontUtil.BORDER_FONT );
@@ -214,12 +222,12 @@ public class AltAzController extends    ViewController
   */
   public void setAzimuthAngle( float degrees )
   {
-    if ( degrees > 180 )
-      degrees = 180;
-    else if ( degrees < -180 )
-      degrees = -180;
+    if ( degrees > MAX_AZI_ANGLE )
+      degrees = MAX_AZI_ANGLE;
+    else if ( degrees < -MAX_AZI_ANGLE )
+      degrees = -MAX_AZI_ANGLE;
 
-    azimuth_slider.setValue( (int)degrees );
+    azimuth_slider.setValue( (int)(ANGLE_SCALE_FACTOR * degrees) );
   }
 
 
@@ -232,7 +240,7 @@ public class AltAzController extends    ViewController
   */
   public float getAzimuthAngle()
   {
-    return azimuth_slider.getValue();
+    return azimuth_slider.getValue() / ANGLE_SCALE_FACTOR;
   }
 
 
@@ -251,7 +259,7 @@ public class AltAzController extends    ViewController
     else if ( degrees < -MAX_ALT_ANGLE )
        degrees = -MAX_ALT_ANGLE;
 
-    altitude_slider.setValue( (int)degrees );
+    altitude_slider.setValue( (int)(ANGLE_SCALE_FACTOR * degrees) );
   }
 
 
@@ -264,7 +272,7 @@ public class AltAzController extends    ViewController
   */
   public float getAltitudeAngle()
   {
-    return altitude_slider.getValue();
+    return altitude_slider.getValue() / ANGLE_SCALE_FACTOR;
   }
 
 
@@ -285,9 +293,9 @@ public class AltAzController extends    ViewController
 
  private void setView( boolean reset_zoom )
  {
-   float azimuth  = azimuth_slider.getValue();
-   float altitude = altitude_slider.getValue();
-   float distance = distance_slider.getValue()/DISTANCE_SCALE_FACTOR;
+   float azimuth  = getAzimuthAngle();
+   float altitude = getAltitudeAngle();
+   float distance = getDistance();
 
    float r = (float)(distance * Math.cos( altitude * Math.PI/180.0 ));
 
@@ -317,11 +325,11 @@ public class AltAzController extends    ViewController
 
        TitledBorder border = (TitledBorder)slider.getBorder();
        if ( slider.equals( azimuth_slider ))
-         border.setTitle( "Azimuth \u2220 " + slider.getValue() + "\u00B0" );
+         border.setTitle( "Azimuth \u2220 " + getAzimuthAngle() + "\u00B0" );
        else if ( slider.equals( altitude_slider ))
-         border.setTitle( "Altitude \u2220 " + slider.getValue() + "\u00B0" );
+         border.setTitle( "Altitude \u2220 " + getAltitudeAngle() + "\u00B0" );
        else if ( slider.equals( distance_slider ) )
-         border.setTitle( "Distance "+slider.getValue()/DISTANCE_SCALE_FACTOR);
+         border.setTitle( "Distance " + getDistance() );
 
        if ( slider.equals( distance_slider ) )
          setView( true );
