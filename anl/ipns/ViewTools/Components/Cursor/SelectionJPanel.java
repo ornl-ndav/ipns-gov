@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/09/02 20:49:07  millermi
+ *  - Allows for changing selection type, as long as selection
+ *    was not started.
+ *  - Fixed bug where wedge and dbl_wedge were selectable after
+ *    key was released.
+ *
  *  Revision 1.8  2003/08/26 03:40:24  millermi
  *  - Added functionality for double wedge, including panel button.
  *
@@ -108,7 +114,6 @@ public class SelectionJPanel extends ActiveJPanel
    private boolean isLdown;   // true if L is pressed (for line selection)
    private boolean isPdown;   // true if P is pressed (for point selection)
    private boolean isWdown;   // true if W is pressed (for wedge selection)
-   private boolean isAnydown; // true if any of the keys above is down
    private boolean doing_box;      // true if box selection started
    private boolean doing_circle;   // true if circle selection started
    private boolean doing_dblwedge; // true if wedge selection started
@@ -124,36 +129,35 @@ public class SelectionJPanel extends ActiveJPanel
    */ 
    public SelectionJPanel()
    { 
-      isAdown = false;
-      isBdown = false;
-      isCdown = false;
-      isDdown = false;
-      isLdown = false;
-      isPdown = false;
-      isWdown = false;
-      isAnydown = false;
-      
-      doing_box = false;
-      doing_circle = false;
-      doing_line = false;
-      doing_point = false;
-      doing_wedge = false;
-      doing_dblwedge = false;
-      
-      firstRun = true;
+     isAdown = false;
+     isBdown = false;
+     isCdown = false;
+     isDdown = false;
+     isLdown = false;
+     isPdown = false;
+     isWdown = false;
+     
+     doing_box = false;
+     doing_circle = false;
+     doing_line = false;
+     doing_point = false;
+     doing_wedge = false;
+     doing_dblwedge = false;
+     
+     firstRun = true;
    
-      box = new BoxCursor(this);
-      circle = new CircleCursor(this);
-      line = new LineCursor(this);
-      point = new PointCursor(this);
-      wedge = new WedgeCursor(this);
-      dblwedge = new DoubleWedgeCursor(this);
-      
-      requestFocus();
-      
-      addMouseListener( new SelectMouseAdapter() );
-      addMouseMotionListener( new SelectMouseMotionAdapter() );
-      addKeyListener( new SelectKeyAdapter() );
+     box = new BoxCursor(this);
+     circle = new CircleCursor(this);
+     line = new LineCursor(this);
+     point = new PointCursor(this);
+     wedge = new WedgeCursor(this);
+     dblwedge = new DoubleWedgeCursor(this);
+     
+     requestFocus();
+     
+     addMouseListener( new SelectMouseAdapter() );
+     addMouseMotionListener( new SelectMouseMotionAdapter() );
+     addKeyListener( new SelectKeyAdapter() );
    }
 
   /* ------------------------ set_cursor ------------------------------ */
@@ -408,6 +412,33 @@ public class SelectionJPanel extends ActiveJPanel
      
      return controls;
    }
+   
+  /*
+   * This method is to check to see if any selections have been started
+   */
+   private boolean doingAny()
+   {
+      if( doing_box || doing_circle || doing_line || 
+          doing_point || doing_wedge || doing_dblwedge )
+	return true;
+      // else nothing is selecting
+      return false;
+   }
+   
+  /*
+   * This method sets all of the is*down to false, thus only the newly pressed
+   * button will be used.
+   */ 
+   private void clearButtonPressed()
+   {
+     isAdown = false;
+     isBdown = false;
+     isCdown = false;
+     isDdown = false;
+     isLdown = false;
+     isPdown = false;
+     isWdown = false;
+   }
 
   /*
    * Tells the SelectMouseAdapter is any keys are pressed.
@@ -419,42 +450,36 @@ public class SelectionJPanel extends ActiveJPanel
        //System.out.println("here in keypressed");
        int code = e.getKeyCode();
        // only make a selection if no other selections are in progress
-       if( !isAnydown )
+       if( !doingAny() )
        {
+         clearButtonPressed();
          if( code == KeyEvent.VK_A )
          {
-           isAdown = true; 
-	   isAnydown = true;     
+           isAdown = true;     
          }
          else if( code == KeyEvent.VK_B )
          {
-           isBdown = true; 
-	   isAnydown = true;    
+           isBdown = true;     
          }
          else if( code == KeyEvent.VK_C )
          {
-           isCdown = true; 
-	   isAnydown = true;    
+           isCdown = true;    
          }
          else if( code == KeyEvent.VK_D )
          {
-           isDdown = true; 
-	   isAnydown = true;    
+           isDdown = true;   
          }
          else if( code == KeyEvent.VK_L )
          {
-           isLdown = true;
-	   isAnydown = true;     
+           isLdown = true;    
          }
          else if( code == KeyEvent.VK_P )
          {
-           isPdown = true; 
-	   isAnydown = true;    
+           isPdown = true;     
          }
          else if( code == KeyEvent.VK_W )
          {
-           isWdown = true; 
-	   isAnydown = true;    
+           isWdown = true;    
          }
        }			       
      }
@@ -477,6 +502,10 @@ public class SelectionJPanel extends ActiveJPanel
        {
          isCdown = false;     
        }
+       else if( code == KeyEvent.VK_D && !doing_dblwedge )
+       {
+         isDdown = false;     
+       }
        else if( code == KeyEvent.VK_L )
        {
          isLdown = false;     
@@ -485,13 +514,8 @@ public class SelectionJPanel extends ActiveJPanel
        {
          isPdown = false;     
        } 
-       //else if( code == KeyEvent.VK_W )
-       //  isWdown = false;
-       
-       // if no one is down, then set isAnydown = false		 
-       if( !isAdown && !isBdown && !isCdown && !isDdown &&
-           !isLdown && ! isPdown && !isWdown )
-	 isAnydown = false; 
+       else if( code == KeyEvent.VK_W && !doing_wedge )
+         isWdown = false;
      }
    }
    
@@ -505,43 +529,38 @@ public class SelectionJPanel extends ActiveJPanel
        String message = ae.getActionCommand();
        
        // only make a selection if no other selections are in progress
-       if( !isAnydown )
+       if( !doingAny() )
        {
+         clearButtonPressed();
          if( message.equals("Box") )
          {
            isBdown = true;
-	   isAnydown = true;
          }
          else if( message.equals("Circle") )
          {
            isCdown = true;
-	   isAnydown = true;
          }
          else if( message.equals("Double Wedge") )
          {
            isDdown = true;
-	   isAnydown = true;
          }
          else if( message.equals("Line") )
          {
            isLdown = true;
-	   isAnydown = true;
          }
          else if( message.equals("Point") )
          {
            isPdown = true;
-	   isAnydown = true;
          }
          else if( message.equals("Wedge") )
          {
            isWdown = true;
-	   isAnydown = true;
          }
          else if( message.equals("Clear All") )
          {
            send_message(RESET_SELECTED);
          }
-       } // end if !isAnydown
+       } // end if !doingAny
      }
    }
 
@@ -585,28 +604,24 @@ public class SelectionJPanel extends ActiveJPanel
        {
          stop_cursor( box, e.getPoint() );
          isBdown = false;
-	 isAnydown = false;
          send_message(REGION_SELECTED + ">" + BOX);
        }
        else if( doing_circle )
        {
          stop_cursor( circle, e.getPoint() );
          isCdown = false;
-	 isAnydown = false;
          send_message(REGION_SELECTED + ">" + CIRCLE);
        }
        else if( doing_line )
        {
          stop_cursor( line, e.getPoint() );
          isLdown = false;
-	 isAnydown = false;
          send_message(REGION_SELECTED + ">" + LINE);
        }
        else if( doing_point )
        {
          stop_cursor( point, e.getPoint() ); 
          isPdown = false;
-	 isAnydown = false;
          send_message(REGION_SELECTED + ">" + POINT); 
        }  
        else if( doing_wedge )
@@ -615,12 +630,10 @@ public class SelectionJPanel extends ActiveJPanel
 	 if( firstRun )
 	 {
            isWdown = true;
-	   isAnydown = true;
 	 }
 	 else
 	 {
 	   isWdown = false;
-	   isAnydown = false;
            send_message(REGION_SELECTED + ">" + WEDGE);
 	 }
 	 firstRun = !firstRun; 
@@ -631,12 +644,10 @@ public class SelectionJPanel extends ActiveJPanel
 	 if( firstRun )
 	 {
            isDdown = true;
-	   isAnydown = true;
 	 }
 	 else
 	 {
 	   isDdown = false;
-	   isAnydown = false;
            send_message(REGION_SELECTED + ">" + DOUBLE_WEDGE);
 	 }
 	 firstRun = !firstRun; 
@@ -647,7 +658,7 @@ public class SelectionJPanel extends ActiveJPanel
   /*
    * Redraw the specified cursor, giving the rubber band stretch effect.
    */ 
-   class SelectMouseMotionAdapter extends MouseMotionAdapter
+   private class SelectMouseMotionAdapter extends MouseMotionAdapter
    {
      public void mouseDragged(MouseEvent e)
      {
