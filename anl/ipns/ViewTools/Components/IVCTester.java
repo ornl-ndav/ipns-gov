@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2004/02/13 22:56:22  millermi
+ * - setData() now compares array references instead of data
+ *   dimensions.
+ *
  * Revision 1.13  2004/02/06 22:15:30  millermi
  * - Changed test for ObjectState.
  *
@@ -119,8 +123,8 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
- import java.awt.event.ComponentAdapter;
- import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.Serializable;
 
 import DataSetTools.components.View.TwoD.ImageViewComponent;
@@ -133,6 +137,7 @@ import DataSetTools.components.View.Region.Region;
 import DataSetTools.components.View.ViewControls.ControlSlider;
 import DataSetTools.components.View.ViewControls.PanViewControl;
 import DataSetTools.util.SharedData;
+import DataSetTools.util.WindowShower;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -189,7 +194,10 @@ public class IVCTester extends JFrame implements IPreserveState,
     
     setData(iva);
     ivc.addActionListener( new IVCListener() );
-    setVisible(true);
+    // display IVCTester
+    WindowShower shower = new WindowShower(this);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
 
  /**
@@ -222,7 +230,10 @@ public class IVCTester extends JFrame implements IPreserveState,
     setBounds(0,0,700,500);
     
     setData(temp);
-    setVisible(true);
+    // display IVCTester
+    WindowShower shower = new WindowShower(this);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
     
  /**
@@ -262,16 +273,14 @@ public class IVCTester extends JFrame implements IPreserveState,
   public void setData( IVirtualArray2D values )
   {
     // if new array is same size as old array
-    if( values.getNumRows() == data.getNumRows() &&
-        values.getNumColumns() == data.getNumColumns() )
-    {  
-      data = values;
+    if( values == data )
+    { 
       ivc.dataChanged();
     }  
     // if different sized array, remove everything and build again.
     else
     {
-      dispose();
+      getContentPane().removeAll();
       data = values;
       buildPane();
       getContentPane().add(pane);
@@ -295,42 +304,51 @@ public class IVCTester extends JFrame implements IPreserveState,
   * This method builds the content pane of the frame.
   */
   private void buildPane()
-  {  
-    setTitle( data.getTitle() );
-    ivc = new ImageViewComponent( data );
-    //ivc.setColorControlSouth(true);
-    ivc.addActionListener( new ImageListener() );
-    Box controls = new Box(BoxLayout.Y_AXIS);
-    JComponent[] ctrl = ivc.getSharedControls();
-    Dimension preferred_size;
-    for( int i = 0; i < ctrl.length; i++ )
-    {
-      controls.add(ctrl[i]);
+  { 
+    if( data != null )
+    { 
+      setTitle( data.getTitle() );
+      ivc = new ImageViewComponent( data );
+      //ivc.setColorControlSouth(true);
+      ivc.addActionListener( new ImageListener() );
+      Box controls = new Box(BoxLayout.Y_AXIS);
+      JComponent[] ctrl = ivc.getSharedControls();
+      Dimension preferred_size;
+      for( int i = 0; i < ctrl.length; i++ )
+      {
+    	controls.add(ctrl[i]);
+      }
+      JPanel spacer = new JPanel();
+      // the value 60 is an arbitrary value for the average component height
+      //spacer.setPreferredSize(new Dimension(0,(this.getHeight() - 
+      //					 (ctrl.length*60) ) ) );
+      spacer.setPreferredSize( new Dimension(0, 10000) );
+      controls.add(spacer);
+      //controls.addComponentListener( new ResizedPaneListener() );
+      pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
+    				    ivc.getDisplayPanel(),
+    				    controls, .75f );
+      // get menu items from view component and place it in a menu
+      ViewMenuItem[] menus = ivc.getSharedMenuItems();
+      for( int i = 0; i < menus.length; i++ )
+      {
+    	if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(
+    	    menus[i].getPath().toLowerCase()) )
+    	  menu_bar.getMenu(0).add( menus[i].getItem() ); 
+    	else if( ViewMenuItem.PUT_IN_OPTIONS.toLowerCase().equals(
+    		 menus[i].getPath().toLowerCase()) )
+    	  menu_bar.getMenu(1).add( menus[i].getItem() );     
+    	else if( ViewMenuItem.PUT_IN_HELP.toLowerCase().equals(
+    		 menus[i].getPath().toLowerCase()) )
+    	  menu_bar.getMenu(2).add( menus[i].getItem() );
+      }
     }
-    JPanel spacer = new JPanel();
-    // the value 60 is an arbitrary value for the average component height
-    //spacer.setPreferredSize(new Dimension(0,(this.getHeight() - 
-    //                                         (ctrl.length*60) ) ) );
-    spacer.setPreferredSize( new Dimension(0, 10000) );
-    controls.add(spacer);
-    //controls.addComponentListener( new ResizedPaneListener() );
-    pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
-                                  ivc.getDisplayPanel(),
-			          controls, .75f );
-    // get menu items from view component and place it in a menu
-    ViewMenuItem[] menus = ivc.getSharedMenuItems();
-    for( int i = 0; i < menus.length; i++ )
+    // no data, build an empty split pane.
+    else
     {
-      if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(
-    	  menus[i].getPath().toLowerCase()) )
-    	menu_bar.getMenu(0).add( menus[i].getItem() ); 
-      else if( ViewMenuItem.PUT_IN_OPTIONS.toLowerCase().equals(
-    	       menus[i].getPath().toLowerCase()) )
-    	menu_bar.getMenu(1).add( menus[i].getItem() );	   
-      else if( ViewMenuItem.PUT_IN_HELP.toLowerCase().equals(
-    	       menus[i].getPath().toLowerCase()) )
-        menu_bar.getMenu(2).add( menus[i].getItem() );
-    }	   
+      pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
+                                    new JPanel(), new JPanel(), .75f );
+    }       
   }
   
  /*
@@ -343,17 +361,14 @@ public class IVCTester extends JFrame implements IPreserveState,
     {
       if( ae.getActionCommand().equals("New") )
       {
-        //ivc = new ImageViewComponent( data );
-	remove(pane);
-	
         float temp_array[][] = new float[500][500];
         for ( int i = 0; i < 500; i++ )
           for ( int j = 0; j < 500; j++ )
             temp_array[i][j] = i + 3*j;
-
-	data = new VirtualArray2D(1,1);	
-	setData( temp_array );
-	//setVisible(true);
+        VirtualArray2D temp_va = new VirtualArray2D(temp_array);
+	temp_va.setTitle("New IVC");
+	setData( temp_va );
+	validate();
 	repaint();	
       }
       else if( ae.getActionCommand().equals("Save State") )
@@ -371,7 +386,8 @@ public class IVCTester extends JFrame implements IPreserveState,
   }
   
  /*
-  * This class listeners for selections made by the selection overlay
+  * This class listeners for selections made by the selection overlay.
+  * Since this is a test program, this listener will MODIFY THE DATA.
   */ 
   private class IVCListener implements ActionListener
   {
@@ -396,19 +412,10 @@ public class IVCTester extends JFrame implements IPreserveState,
 	  //System.out.println("(" + selectedpoints[j].x + "," + 
           //      	     selectedpoints[j].y + ")" );
         }
-        ivc.dataChanged(data);
+        ivc.dataChanged();
       }
     }
   }
- /*  Problem is that when this resizes, the PanViewControl's new preferredSize
-  *  is not set until after the repaint;
-  private class ResizedPaneListener extends ComponentAdapter
-  {
-    public void componentResized( ComponentEvent e )
-    {
-      repaint();
-    }  
-  }*/
   
  /*
   * Testing purposes only
@@ -429,7 +436,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     va2D.setTitle("ImageFrame Test");
     ObjectState state = new ObjectState();
     ObjectState sliderstate = new ObjectState();
-    sliderstate.insert(ControlSlider.SLIDER_VALUE, new Float(50) );
+    sliderstate.insert(ControlSlider.SLIDER_VALUE, new Float(20) );
     state.insert( ImageViewComponent.LOG_SCALE_SLIDER, sliderstate );
                   
     IVCTester im_frame = new IVCTester( va2D );
