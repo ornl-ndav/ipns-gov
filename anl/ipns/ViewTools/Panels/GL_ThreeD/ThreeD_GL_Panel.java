@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2004/07/28 15:48:55  dennis
+ * Decreased default light intensity to 0.7, instead of 1.  Made LIGHT0
+ * also contribute to the ambient light.
+ *
  * Revision 1.11  2004/07/23 13:06:21  dennis
  * Commented out explicit request for double buffer.
  *
@@ -828,7 +832,7 @@ public float[] getPixelWorldCoordinates( int x, int y )
 
       if ( !do_select )                    // only need lighting for actual
       {                                    // rendering, not if doing selection
-        float white[] = { 1, 1, 1, 1 };
+        float white[] = { 0.7f, 0.7f, 0.7f, 1 };
         float l0_position[] = { 0, 0, 0, 1 };
         gl.glLightModeli( GL.GL_LIGHT_MODEL_COLOR_CONTROL,
                           GL.GL_SEPARATE_SPECULAR_COLOR);
@@ -841,6 +845,7 @@ public float[] getPixelWorldCoordinates( int x, int y )
         // light 0 is the "headlight"
         gl.glEnable( GL.GL_LIGHT0 );
         gl.glLightfv( GL.GL_LIGHT0, GL.GL_POSITION, l0_position );
+        gl.glLightfv( GL.GL_LIGHT0, GL.GL_AMBIENT, white );
         gl.glLightfv( GL.GL_LIGHT0, GL.GL_DIFFUSE, white );
       }
 
