@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/03/11 23:42:23  millermi
+ * - Removed DataSetTools.util reference from Format class.
+ *
  * Revision 1.5  2004/03/11 22:25:01  millermi
  * - Changed package name and imports.
  *
@@ -52,6 +55,7 @@ package gov.anl.ipns.Util.File;
 import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
+import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.SpecialStrings.ErrorString;
 import gov.anl.ipns.Util.Sys.StringUtil;
 public class FileIO{
@@ -808,7 +812,7 @@ class Nulll{
            if( FormatHandler.errorS != null)
               return  FormatHandler.errorS;
            
-           return DataSetTools.util.Format.integer( N , width);
+           return Format.integer( N , width);
            
         }
        public boolean hasReadReturn(){
@@ -851,7 +855,7 @@ class Nulll{
            double N =FormatHandler.getDouble( O, line);
            if( FormatHandler.errorS != null)
               return  FormatHandler.errorS;
-           return DataSetTools.util.Format.real( N , width, dec);
+           return Format.real( N , width, dec);
         }
 
         public boolean hasReadReturn(){
@@ -893,7 +897,7 @@ class Nulll{
            double N =FormatHandler.getDouble( O, line);
            if( FormatHandler.errorS != null)
               return  FormatHandler.errorS;;
-           return DataSetTools.util.Format.singleExp( N , width);
+           return Format.singleExp( N , width);
         }
 
        public boolean hasReadReturn(){
@@ -952,7 +956,7 @@ class Nulll{
              S = O.toString();
               
            
-           return DataSetTools.util.Format.string( S ,width, left);
+           return Format.string( S ,width, left);
         }
        boolean ReadReturn = false;
 
