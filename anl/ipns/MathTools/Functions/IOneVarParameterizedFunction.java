@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/06/17 22:19:45  dennis
+ *  Added methods for derivatives and made the parameters 'double'.
+ *
  *  Revision 1.1  2002/04/11 20:56:47  dennis
  *  Interface for functions of one variable that are controlled by
  *  an array of parameters and that return float or double
@@ -55,7 +58,15 @@ import DataSetTools.util.*;
 public interface IOneVarParameterizedFunction extends IOneVarFunction
 {
   public int      numParameters(); 
-  public float[]  getParameters();
-  public void     setParameters( float parameters[] );
+
   public String[] getParameterNames();
+
+  public double[] getParameters();
+  public void     setParameters( double parameters[] );
+
+  public float    get_dFdai( float  x, int i );
+  public double   get_dFdai( double x, int i );
+
+  public float[]  get_dFda( float  x );
+  public double[] get_dFda( double x );
 }

@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2002/06/17 22:21:01  dennis
+ *  Added methods for derivatives and made the parameters 'double'.
+ *
  *  Revision 1.2  2002/04/19 16:52:21  dennis
  *  Added more javadocs.
  *
@@ -59,7 +62,7 @@ import DataSetTools.util.*;
 abstract public class OneVarParameterizedFunction extends OneVarFunction 
                                   implements IOneVarParameterizedFunction
 {
-  protected float  parameters[];
+  protected double parameters[];
   protected String parameter_names[];
 
   /**
@@ -75,7 +78,7 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
    *                           default names P0, P1, P2, etc. will be generated.
    */
   OneVarParameterizedFunction( String name, 
-                               float  parameters[], 
+                               double parameters[], 
                                String parameter_names[] )
   {
     super( name );
@@ -83,11 +86,11 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
     if ( parameters != null )                 // make a valid parameter list,
       this.parameters = parameters;      
     else
-      this.parameters = new float[0];
+      this.parameters = new double[0];
                                               // copy any names that were given
                                               // into a new list of names, and
                                               // synthesize the rest. 
-    this.parameter_names = new String[ parameters.length ]; 
+    this.parameter_names = new String[ this.parameters.length ]; 
     if ( parameter_names != null )           
     {
       for ( int i = 0; i < parameter_names.length; i++ )
@@ -97,7 +100,7 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
         this.parameter_names[i] = "P"+i; 
     }
     else
-      for ( int i = 0; i < parameters.length; i++ )
+      for ( int i = 0; i < this.parameters.length; i++ )
         parameter_names[i] = "P"+i; 
   }
   
@@ -113,11 +116,22 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
 
 
   /**
+   *  Get a reference to the list of parameter names for this function.
+   *
+   *  @return  Reference to the parameter names for this function.
+   */
+  public String[] getParameterNames()
+  {
+    return parameter_names;
+  }
+
+
+  /**
    *  Get a reference to the list of parameters for this function.
    *
    *  @return  Reference to the parameters of this function.
    */
-  public float[] getParameters()
+  public double[] getParameters()
   {
     return parameters;
   }
@@ -129,7 +143,7 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
    *  @param  parameters  Array containing values to copy into the list of
    *                      parameter values for this function.
    */
-  public void setParameters( float parameters[] )
+  public void setParameters( double parameters[] )
   {
     if ( parameters != null )
     { 
@@ -140,15 +154,71 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
   }
 
   
-  /**
-   *  Get a reference to the list of parameter names for this function.
-   *
-   *  @return  Reference to the parameter names for this function.
-   */
-  public String[] getParameterNames()
+  public float get_dFdai( float  x, int i )
   {
-    return parameter_names;
+    return (float)get_dFdai( (double)x, i );
   }
+  
+
+  public double get_dFdai( double x, int i )
+  {
+    if ( i < 0 || i >= numParameters() )
+      return 0;
+
+    if (parameters.length == 0)           // must be a SumFunction with it's
+    {                                     // own list of parameters 
+      double parameters_copy[] = getParameters();
+      double old_a_val   = parameters_copy[i];
+
+      parameters_copy[i] = old_a_val + DELTA;
+      setParameters( parameters_copy );
+      double f1 = getValue( x );
+
+      parameters_copy[i] = old_a_val - DELTA;
+      setParameters( parameters_copy );
+      double f0 = getValue( x );
+
+      parameters_copy[i] = old_a_val;
+      setParameters( parameters_copy );
+
+      return (f1 - f0) / ( 2*DELTA );
+ 
+    }
+    else                                  // use our local list of parameters
+    {                                     // for the sake of efficiency
+      double old_a_val = parameters[i];
+      parameters[i] = old_a_val + DELTA;
+      double f1 = getValue( x );
+
+      parameters[i] = old_a_val - DELTA;
+      double f0 = getValue( x );
+
+      parameters[i] = old_a_val;
+
+      return (f1 - f0) / ( 2*DELTA ); 
+    }
+  }
+
+
+  public float[]  get_dFda( float  x )
+  {
+    float result[] = new float[ numParameters() ];
+    for ( int i = 0; i < result.length; i++ )
+      result[i] = (float)get_dFdai( (double)x, i );
+
+    return result;
+  }
+
+
+  public double[] get_dFda( double x )
+  {
+    double result[] = new double[ numParameters() ];
+    for ( int i = 0; i < result.length; i++ )
+      result[i] = get_dFdai( x, i );
+
+    return result;
+  }
+
 
 
   /**
