@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.38  2004/07/29 14:47:40  robertsonj
+ *  fixed the major/minor tick marks for small orders of magnatude
+ *
  *  Revision 1.37  2004/07/28 19:34:52  robertsonj
  *  added paint truLogX and paintTruLogY for painting x and y axis on the 
  *  overlay.  The functionality of these have not been completely work out
@@ -651,7 +654,6 @@ public class AxisOverlay2D extends OverlayJPanel
     Graphics2D g2d = (Graphics2D)g;
     g2d.setFont(f);
     FontMetrics fontdata = g2d.getFontMetrics();
-    // System.out.println("Precision = " + precision); 
     // Reset precision, make sure it is always consistent.
     setPrecision( component.getPrecision() );
 
@@ -673,11 +675,8 @@ public class AxisOverlay2D extends OverlayJPanel
     xstart = (int)( component.getRegionInfo().getLocation().getX() );
     ystart = (int)( component.getRegionInfo().getLocation().getY() );
 
-    //System.out.println("ystart = " + ystart);
-         
-    // System.out.println("X,Y axis = " + xaxis + ", " + yaxis );
-    // System.out.println("X,Y start = " +  xstart + ", " + ystart );
-    
+
+
     // draw title on the overlay if one exists
     if( component.getTitle() != IVirtualArray2D.NO_TITLE )
       g2d.drawString( component.getTitle(), xstart + xaxis/2 -
@@ -856,8 +855,7 @@ public class AxisOverlay2D extends OverlayJPanel
     float start = values[1];	// the power of the step
    
     int numxsteps = (int)values[2];	   
-
-  //  System.out.println("X ticks = " + numxsteps );	    
+    
     int pixel = 0;
     int subpixel = 0;
     /* xaxis represents Pmax - Pmin
@@ -878,8 +876,7 @@ public class AxisOverlay2D extends OverlayJPanel
       pixel = (int)( 
               (float)xaxis*(A - xmin)/
               (xmax-xmin) + xstart);	 
-      //System.out.println("Pixel " + pixel );
-     //System.out.println("Xmin/Xmax " + xstart + "/" + (xstart + xaxis) );
+  
       subpixel = (int)( 
               ( (float)xaxis*(A - xmin - step/2 ) )/
               (xmax-xmin) + xstart);	  
@@ -907,7 +904,7 @@ public class AxisOverlay2D extends OverlayJPanel
       
       } 	
 
-      //System.out.println("Subpixel/XStart " + subpixel + "/" + xstart );
+
       // draw minor tick marks (subpixel refers to minor tick mark)
       if( subpixel > xstart && subpixel < (xstart + xaxis) )
       {  
@@ -936,8 +933,7 @@ public class AxisOverlay2D extends OverlayJPanel
         // then draw tick mark in black
         g2d.setColor( Color.black );
       }
-      //System.out.println("y1 = " + (yaxis + ystart));
-      //System.out.println("y2 = " + (yaxis + ystart + xtick_length));
+
       g2d.drawLine( pixel, yaxis + ystart, 
         	    pixel, yaxis + ystart + xtick_length );  
       //System.out.println("Y Position: " + (yaxis + ystart + 
@@ -999,7 +995,7 @@ public class AxisOverlay2D extends OverlayJPanel
   {
     FontMetrics fontdata = g2d.getFontMetrics();   
     String num = "";
-    //System.out.println("-=------------------------------------");
+
     CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
         					 Format.ENGINEER );
     float[] values = yutil.subDivide();
@@ -1452,20 +1448,14 @@ public class AxisOverlay2D extends OverlayJPanel
 		String num = "";
 		ILogAxisAddible logcomponent = (ILogAxisAddible)component;
 		FontMetrics fontdata = g2d.getFontMetrics(); 
-		
-		
 		float axisdist = xaxis - xstart;
-	    
-		//System.out.println("xmin, xmax = " + xmin + " , " + (xmax+ xmin));
-		LogScaleUtil loggerx = new LogScaleUtil(xstart, xaxis+xstart, xstart, xaxis + xstart);
-		CalibrationUtil util = new CalibrationUtil((xmin),(xmax+xmin), precision, 
+		LogScaleUtil loggerx = new LogScaleUtil(xmin, xmax, xmin, xmax);
+		CalibrationUtil util = new CalibrationUtil((xmin),(xmax), precision, 
 														   Format.ENGINEER );
 		float lub = util.leastUpperBound();
+		float glb = util.greatestLowerBound();
+		float powerdiff = lub/glb;
 
-				float glb = util.greatestLowerBound();
-
-				int powerdiff = util.powerdiff(glb,lub);
-		xmax = xmax + xmin;
 		LogScaleUtil coordLoggerx = new LogScaleUtil(xmin, xmax, xmin, xmax);	    
 		float pixel = 0;
 		int paintpixel = 0;
@@ -1474,36 +1464,119 @@ public class AxisOverlay2D extends OverlayJPanel
 		float gridLength = xmax - xmin;
 		float axisLength = xaxis;
 		String stepnum = "";
-		float checker = 0;
+		float marker = 0;
+		float minortickcounter = 0;
+		int numminorsteps = 0;
+		int minortickpainter = 0;
+		float minortick = 0;
+		
+		float[] values = new float[3];
+		boolean isLarge = false;
+		
+		if(powerdiff < 100){
+			//use linear axis numbers but paint them at there logerithmic point
+			 values = util.subDivide();
+		}else{
+			//use linear number(subdivideloglarge) numbers
+			 values = util.subDivideLogLarge(glb, lub);	
+			 isLarge = true;	
+		}
+		//get information from either of the subDivide function to start out for loop
+		float step = values[0];
+
+		float start = values[1];
+
+		float numsteps = values[2];
+
+		
+		for(int steps = 0; steps < numsteps; steps++){
+			if(isLarge == false){
+				percentnum = step * steps + start;
+
+			}else{
+				percentnum = step * (float)Math.pow(10, steps);
+			}
+			//check if the first glb is applicable for the start of the axis or not
+			//check to see if the first number is applicable for the graph.
+			
+			//paint minor tickmarks
+			if(steps == 0){
+				numminorsteps = 10;
+			}else{
+				numminorsteps = 9;
+			}
+			marker = percentnum;
+			if(powerdiff > 100){
+				for(int minorsteps = 0; minorsteps < numminorsteps; minorsteps++){
+					minortickcounter = minortickcounter + marker;
+
+					minortick = loggerx.truLogScale(minortickcounter);
+					minortick = minortick/gridLength;
+					minortick = minortick * axisLength;
+					minortickpainter = (int)(minortick + xstart);
+
+					if(minortickpainter >= xstart && minortickpainter <= (xstart + xaxis)){
+						g2d.drawLine( minortickpainter, yaxis + ystart, 
+							minortickpainter, yaxis + ystart + 3 );
+					}
+					
+				}
+			}
+
+			//Check to see if the first number is valid for the graph.  Not implemented yet
+			stepnum = stepnum + percentnum; //make the percentnum into a string for drawing
+			percentnum = coordLoggerx.truLogScale(percentnum); //log percentnum
+			percentnum = percentnum/gridLength; // find the percentage that the scaled number takes 
+												// up on the graph
+			percentnum = percentnum * axisLength;  //find the corresponding percentage in pixels 
+												   //for the axis corrdinate system.
+			paintpixel = (int)(percentnum + xstart);
+			if(paintpixel >= xstart && paintpixel <= (xstart + xaxis)){
+				g2d.drawString(stepnum, paintpixel - (fontdata.stringWidth(stepnum)/2),yaxis + ystart + 25);
+				g2d.drawLine(paintpixel,yaxis+ystart, paintpixel, yaxis + ystart + 5);
+			}
+			stepnum = "";
+			
+		}
+		
+		
+		//if it is a large value I have to paint minor tick marks.
+		
+
+		
+		/*
 		//System.out.println("powerdiff = " + powerdiff);
 		if(powerdiff <= 2){
 			float[] values = util.subDivide();
 			float step = values[0];
-			//System.out.println("step = " + step);
+			System.out.println("step = " + step);
 			float start = values[1];
-			//System.out.println("start = " + start);
+			System.out.println("start = " + start);
 			float number = values[0];
 			int numxsteps = (int)values[2];
-			//System.out.println("numxsteps = " + numxsteps);	 
+			System.out.println("numxsteps = " + numxsteps);	 
 
 			 
 			for( int steps = 0 ; steps < numxsteps; steps++){
+				System.out.println("steps = " + steps);
 				percentnum = step * steps + start;
 				checker = percentnum;
 				stepnum = stepnum + percentnum;
 				percentnum = coordLoggerx.truLogScale(percentnum);
-				percentnum = percentnum - xmin;
+				//percentnum = percentnum;
 				percent = percentnum/gridLength;
 				pixel = axisLength * percent;
-				paintpixel = xstart + (int)pixel;	
+				paintpixel = xstart + (int)pixel + 1;	
 				
 				if(steps == 0){
 					if(util.isNice(util.maxError(xaxis), glb, xmin)){
+						System.out.println("isNice is true");
 						g2d.drawLine(xstart, yaxis + ystart, 
 								  xstart, yaxis + ystart + 5 );
 						g2d.drawString(""+ glb , (xstart - fontdata.stringWidth("" + glb)/2), yaxis + ystart + 25);
 						stepnum = "";
 					}
+					stepnum = "";
 				}else{
 					g2d.drawString(stepnum, (paintpixel - fontdata.stringWidth(stepnum)/2), yaxis+ystart + 25);				
 					g2d.drawLine(paintpixel,yaxis+ystart, paintpixel, yaxis + ystart + 5 );
@@ -1514,8 +1587,10 @@ public class AxisOverlay2D extends OverlayJPanel
 				float[] values = util.subDivideLogLarge(glb, lub);
 				float step = values[0];
 				float start = values[1];
+				System.out.println("start = " + start);
 				float minorstep = 0;
 				float minortick = 0;
+				int minortickcounter = 0;
 				int paintminortick = 0;
 				//System.out.println("start = " + start);
 				float number = values[0];
@@ -1527,21 +1602,26 @@ public class AxisOverlay2D extends OverlayJPanel
 						(util.isNice(util.maxError(xaxis),glb, xmin))||
 						(util.isNice(util.maxError(xaxis), lub, xmax))){
 							//painting minor tick marks between major tick marks
+							minortickcounter = 0;
 							minorstep = start*(float)Math.pow(10, steps);
-							for(int minorsteps = 0; minorsteps < 10; minorsteps ++){
-							if(steps != numxsteps -1){
-								minortick = minorstep * minorsteps;
-								minortick = coordLoggerx.truLogScale(minortick);
+							if(steps != (numxsteps -1)){ //make sure you are not painting to many tick marks
+								minorstep = start*(float)Math.pow(10, steps);
+							for(int minorsteps = 0; minorsteps < 9; minorsteps ++){
+								System.out.println("minorsteps = " + minorsteps);
+							//if(steps != numxsteps -1){
+								minortickcounter = (int)(minortickcounter + minorstep);
+								System.out.println("minortickcounter = " + minortickcounter);
+								minortick = coordLoggerx.truLogScale(minortickcounter);
 								//System.out.println("minortick2 = " + minortick);
 								minortick = minortick/(gridLength);
 								//System.out.println("minortick3 = " + minortick);
 								minortick = minortick * axisLength;
 								//System.out.println("minortick4 = " + minortick);
 								paintminortick = xstart + (int)minortick;
-								if(minorsteps > 1){
-								g2d.drawLine(paintminortick, yaxis + ystart, paintminortick, yaxis + ystart + 3);
+								if(minorsteps > 0){
+								
 								}
-								}
+							  }
 							}
 						stepnum = stepnum + percentnum;
 						percentnum = coordLoggerx.truLogScale(percentnum);
@@ -1551,8 +1631,7 @@ public class AxisOverlay2D extends OverlayJPanel
 						paintpixel = xstart + (int)pixel;
 						//System.out.println("steps = " + steps);
 						g2d.drawString(stepnum, (paintpixel - fontdata.stringWidth(stepnum)/2), yaxis+ystart + 25);
-						g2d.drawLine( paintpixel, yaxis + ystart, 
-				            paintpixel, yaxis + ystart + 5 );
+						
 						stepnum = "";
 						
 					}else if(steps == 0){
@@ -1564,7 +1643,7 @@ public class AxisOverlay2D extends OverlayJPanel
 					}
 				}
 				
-			}
+			}*/
 				
 		}
 				
@@ -1572,13 +1651,14 @@ public class AxisOverlay2D extends OverlayJPanel
 	}
 
   private void paintTruLogY(Graphics2D g2d){
+  	
 	FontMetrics fontdata = g2d.getFontMetrics();
 
 
-
-	CalibrationUtil yUtil = new CalibrationUtil(ymin, (ymax), 5, 
+	LogScaleUtil loggery = new LogScaleUtil(ymin, ymax, ymin, ymax);
+	CalibrationUtil yUtil = new CalibrationUtil((ymin), (ymax), 5, 
 	Format.ENGINEER );
-	System.out.println("ymin, ymax = " + ymin + " , " + " ymax" + ymax);
+
 	String stepnum = "";
 	float percentnum = 0;
 	float percent = 0;
@@ -1587,17 +1667,19 @@ public class AxisOverlay2D extends OverlayJPanel
 	float a = 0;
 	float axislength = yaxis - ystart;
 	float glb = yUtil.greatestLowerBound();
-	System.out.println("glb = " + glb);
+
 
 	float lub = yUtil.leastUpperBound();
-	System.out.println("lub = " + lub);
+
 
 	int powerdiff = yUtil.powerdiff(glb, lub);
-	System.out.println("powerdiff = " + powerdiff);
+
 
 	
 	//System.out.println("powerdiff = " + powerdiff);
-	LogScaleUtil loggery = new LogScaleUtil(ymin, ymax, ymin, ymax);
+
+	
+	
 if(powerdiff <=2)
 {
 	float[] values = yUtil.subDivide();
@@ -1610,14 +1692,21 @@ if(powerdiff <=2)
 		percentnum = step * steps + start;
 
 		stepnum = stepnum + percentnum;
+
 		percentnum = loggery.truLogScale(percentnum);
-		percentnum = percentnum - ymin;
+		//percentnum = percentnum; - ymin;
 		percent = percentnum/(ymax - ymin);
 		percent = 1 - percent;
 		pixel = percent * (yaxis);
 		paintpixel = ystart  + (int)pixel;
+		if(paintpixel >= ystart && paintpixel <= yaxis){
 		g2d.drawString(stepnum, xstart - fontdata.stringWidth(stepnum) - 15, paintpixel + (fontdata.getHeight()/4) );
+		g2d.drawLine(xstart - 3, paintpixel, xstart, paintpixel);
+		}
 		stepnum = "";	
+		
+			
+		
 		
 	}
 }else{
@@ -1627,26 +1716,27 @@ if(powerdiff <=2)
 	float minorstep = 0;
 	float numysteps = largevalues[2];
 	float minortick = 0;
+	int minortickcounter = 0;
 	int paintminortick = 0;
 	for(int steps = 0; steps < numysteps; steps++){
 		percentnum =  step*(float)(Math.pow(10,steps));
-		if((percentnum >= ymin && percentnum <= ymax)|| 
-						(yUtil.isNice(yUtil.maxError(yaxis),glb, ymin))||
-						(yUtil.isNice(yUtil.maxError(yaxis), lub, ymax))){
-		
-		
+			
+		    minortickcounter = 0;
 			minorstep =	start* (float)Math.pow(10, steps);
+
 			for(int minorsteps = 0; minorsteps < 10; minorsteps++){
-			minortick = minorstep * minorsteps;
-			minortick = loggery.truLogScale(minortick);
+			minortickcounter = (int)(minortickcounter + minorstep);
+
+			minortick = loggery.truLogScale(minortickcounter);
 			minortick = minortick/(ymax - ymin);
 			minortick = 1 - minortick;
 			minortick = minortick * yaxis;
 			paintminortick = ystart + (int)minortick;
-		if(minorsteps > 1){
+		if(paintminortick >= ystart && paintminortick <= yaxis){
 			g2d.drawLine(xstart - 3, paintminortick, xstart, paintminortick); 
 			}
-		}
+		  }
+		
 			stepnum = stepnum + percentnum;
 			percentnum = loggery.truLogScale(percentnum);
 			percentnum = percentnum - ymin;
@@ -1654,14 +1744,11 @@ if(powerdiff <=2)
 			percent = 1 - percent;
 			pixel = percent * (yaxis);
 			paintpixel = ystart + (int)pixel;
+			if(paintpixel >= ystart && paintpixel <= yaxis){
 			g2d.drawString(stepnum, xstart - fontdata.stringWidth(stepnum) - 15, paintpixel + (fontdata.getHeight()/4)) ;
 			g2d.drawLine(xstart - 5, paintpixel, xstart, paintpixel);
-		}else if((steps == 0) && (yUtil.getError(glb, yaxis) <= yUtil.maxError(yaxis))){
-			stepnum = "";
-			stepnum = stepnum + glb;
-			g2d.drawString(stepnum, xstart - fontdata.stringWidth(stepnum) -15 , yaxis + ystart);
-		}else if((steps == (numysteps-1)) && (yUtil.maxError(yaxis) > yUtil.getError(glb,yaxis))){
-		}
+			}
+		
 			
 		stepnum = "";	
 	}
