@@ -31,6 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2001/07/13 22:02:58  dennis
+ * Modified request_painting() to sleep for the specified
+ * number of milliseconds, and to just return if the panel is
+ * not visible.  NOTE: request_painting() still does not work
+ * properly.
+ *
  * Revision 1.8  2001/07/12 16:29:22  dennis
  * build_object_list() is no only called during painting, if
  * items have been added to or removed from the list.
@@ -137,6 +143,9 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
   public void request_painting( int time_ms )
   {
+      if ( !isVisible() )
+        return;
+
       if ( data_painted )               // nothing to do
         return;
 
@@ -144,7 +153,7 @@ public class ThreeD_JPanel extends    CoordJPanel
       while ( !data_painted )           // wait till it's done painting
       try
       {
-        Thread.sleep( 100 );
+        Thread.sleep( time_ms );
       }
       catch( Exception e )
       {
