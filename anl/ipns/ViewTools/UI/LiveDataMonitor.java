@@ -4,6 +4,9 @@
  *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.6  2001/02/22 21:06:04  dennis
+ *  Moved code that builds the GUI into a private method SetUpGUI().
+ *
  *  Revision 1.5  2001/02/20 23:06:11  dennis
  *  - Now uses slider to set the delay between auto updates.
  *  - Also, now uses more elaborate layout of the components
@@ -29,7 +32,6 @@
  *  Revision 1.1  2001/02/15 22:52:10  dennis
  *  Initial form of class for monitoring data from a
  *  remote LiveDataServer object.
- *
  *
  */
 
@@ -61,7 +63,8 @@ import DataSetTools.util.*;
 public class LiveDataMonitor extends    JPanel
                              implements Serializable 
 {
-  private LiveDataManager  data_manager;
+  private String           data_source_name = "";
+  private LiveDataManager  data_manager = null;
   private ViewManager      viewers[] = new ViewManager[0];
   private JCheckBox        checkbox[] = new JCheckBox[0];
  
@@ -77,94 +80,19 @@ public class LiveDataMonitor extends    JPanel
   */
   public LiveDataMonitor( String data_source_name ) 
   { 
+    this.data_source_name = data_source_name;
+
     data_manager = new LiveDataManager( data_source_name );
     int num_ds   = data_manager.numDataSets();
 
-                                                       // make lists to save 
-                                                       // references to the 
-                                                       // viewers and "Show" 
-                                                       // checkboxes
-    viewers = new ViewManager[ num_ds ]; 
-    checkbox = new JCheckBox[ num_ds ];
-    setLayout( new GridLayout( 1, 1 ) );
-    Box panel_box = new Box( BoxLayout.Y_AXIS );
-    add( panel_box );
-                                                            // Set up the update
-                                                            // time control
-    JSlider time_slider = new JSlider( JSlider.HORIZONTAL, 0, 600, 60 );
-    time_slider.setMinimumSize( new Dimension(50, 20) );
-    time_slider.setPaintTicks( true );
-    time_slider.setMajorTickSpacing( 60 );
-    time_slider.setMinorTickSpacing( 20 );
-    time_slider.addChangeListener( new UpdateTimeListener() );
-    data_manager.setUpdateInterval( time_slider.getValue() );
-
-    JPanel label_panel  = new JPanel();
-    label_panel.setLayout( new GridLayout( 1, 1 ) );
-    JLabel source_label = new JLabel( data_source_name.toUpperCase() );
-    source_label.setFont( FontUtil.BORDER_FONT );
-    source_label.setMinimumSize( new Dimension(50, 10) );
-    source_label.setHorizontalAlignment( SwingConstants.CENTER );
-    source_label.setHorizontalTextPosition( SwingConstants.CENTER );
-    source_label.setVerticalAlignment( SwingConstants.CENTER );
-    source_label.setVerticalTextPosition( SwingConstants.CENTER );
-    TitledBorder border = new TitledBorder( LineBorder.createBlackLineBorder(),
-                                            "Data Source:" );
-    border.setTitleFont( FontUtil.BORDER_FONT );
-    label_panel.setBorder( border );
-    label_panel.add( source_label );
-    panel_box.add( label_panel );
-
-    for ( int i = 0; i < data_manager.numDataSets(); i++ )
-    {
-      JPanel panel = new JPanel();               // use a separate "sub" panel
-      panel.setLayout( new FlowLayout() );       // for each possible DataSet 
-      border = new TitledBorder( LineBorder.createBlackLineBorder(),
-                                 "DataSet #" + i );
-      border.setTitleFont( FontUtil.BORDER_FONT );
-      panel.setBorder( border );
-
-      DataSet ds = data_manager.getDataSet( i );
-      JLabel  label  = new JLabel( ds.getTitle() + ":");
-      label.setFont( FontUtil.BORDER_FONT );
-
-      JButton button = new JButton("Update");
-      button.setFont( FontUtil.LABEL_FONT );
-      UpdateButtonListener button_listener = new UpdateButtonListener( i );
-      button.addActionListener( button_listener );
-
-      checkbox[i] = new JCheckBox( "Show" );
-      checkbox[i].setFont( FontUtil.LABEL_FONT );
-      if ( i < 2 )                               // by default, on show first
-      {                                          // two DataSets
-        viewers[i] = new ViewManager( ds, IViewManager.IMAGE );
-        data_manager.setUpdateIgnoreFlag( i, false );
-        checkbox[i].setSelected( true );
-      }
-      else
-      {
-        viewers[i] = null;
-        data_manager.setUpdateIgnoreFlag( i, true );
-        checkbox[i].setSelected( false );
-      }
-
-      ShowCheckboxListener checkbox_listener = new ShowCheckboxListener( i );
-      checkbox[i].addActionListener( checkbox_listener );
-
-      panel.add( label );                        // Add the components for this
-      panel.add( checkbox[i] );                  // DataSet to the current panel
-      panel.add( button );
-
-      panel_box.add( panel );                    // Add the panel to this
-                                                 // LiveDataMonitor 
+    if ( num_ds == 0 )
+    { setLayout( new GridLayout( 1, 1 ) );
+      JLabel error_label = new JLabel( data_source_name + "  HAS NO DATA SETS");
+      add( error_label );
+      return;
     }
 
-    border = new TitledBorder( LineBorder.createBlackLineBorder(),
-                               "Update Time Interval( 0 - 10 Min )" );
-    border.setTitleFont( FontUtil.BORDER_FONT );
-    time_slider.setBorder( border );
-
-    panel_box.add( time_slider );
+    SetUpGUI();
   }
 
 
@@ -204,6 +132,108 @@ public class LiveDataMonitor extends    JPanel
   public DataSet getDataSet( int data_set_num )
   {
     return data_manager.getDataSet( data_set_num );
+  }
+
+
+ /* ------------------------------------------------------------------------
+  *
+  *  PRIVATE METHODS 
+  *
+  */
+
+  /* ------------------------------ SetUpGUI ------------------------------- */
+
+  private void SetUpGUI()
+  {
+    int num_ds   = data_manager.numDataSets();
+
+                                        // make lists to save references to the
+                                        // viewers and "Show" checkboxes
+    viewers = new ViewManager[ num_ds ];
+    checkbox = new JCheckBox[ num_ds ];
+                                                  // Clear the panel and set up
+                                                  // a new layout using a box.
+    removeAll();                                  
+    setLayout( new GridLayout( 1, 1 ) );
+    Box panel_box = new Box( BoxLayout.Y_AXIS );
+    add( panel_box );
+                                                            // Set up the update
+                                                            // time control
+    JSlider time_slider = new JSlider( JSlider.HORIZONTAL, 0, 600, 60 );
+    time_slider.setMinimumSize( new Dimension(50, 20) );
+    time_slider.setPaintTicks( true );
+    time_slider.setMajorTickSpacing( 60 );
+    time_slider.setMinorTickSpacing( 20 );
+    time_slider.addChangeListener( new UpdateTimeListener() );
+    data_manager.setUpdateInterval( time_slider.getValue() );
+
+    JPanel label_panel  = new JPanel();
+    label_panel.setLayout( new GridLayout( 1, 1 ) );
+    JLabel source_label = new JLabel( data_source_name.toUpperCase() );
+    source_label.setFont( FontUtil.BORDER_FONT );
+    source_label.setMinimumSize( new Dimension(50, 10) );
+    source_label.setPreferredSize( new Dimension(50, 10) );
+    source_label.setHorizontalAlignment( SwingConstants.CENTER );
+    source_label.setHorizontalTextPosition( SwingConstants.CENTER );
+    source_label.setVerticalAlignment( SwingConstants.CENTER );
+    source_label.setVerticalTextPosition( SwingConstants.CENTER );
+    TitledBorder border = new TitledBorder( LineBorder.createBlackLineBorder(),
+                                            "Data Source:" );
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    label_panel.setBorder( border );
+    label_panel.add( source_label );
+    panel_box.add( label_panel );
+
+    for ( int i = 0; i < data_manager.numDataSets(); i++ )
+    {
+      JPanel panel = new JPanel();               // use a separate "sub" panel
+      panel.setLayout( new FlowLayout() );       // for each possible DataSet
+      border = new TitledBorder( LineBorder.createBlackLineBorder(),
+                                 "DataSet #" + i );
+      border.setTitleFont( FontUtil.BORDER_FONT );
+      panel.setBorder( border );
+
+      DataSet ds = data_manager.getDataSet( i );
+      JLabel  label  = new JLabel( ds.getTitle() + ":");
+      label.setFont( FontUtil.BORDER_FONT );
+
+      JButton button = new JButton("Update");
+      button.setFont( FontUtil.LABEL_FONT );
+      UpdateButtonListener button_listener = new UpdateButtonListener( i );
+      button.addActionListener( button_listener );
+
+      checkbox[i] = new JCheckBox( "Show" );
+      checkbox[i].setFont( FontUtil.LABEL_FONT );
+      if ( i < 2 )                               // by default, on show first
+      {                                          // two DataSets
+        viewers[i] = new ViewManager( ds, IViewManager.IMAGE );
+        data_manager.setUpdateIgnoreFlag( i, false );
+        checkbox[i].setSelected( true );
+      }
+      else
+      {
+        viewers[i] = null;
+        data_manager.setUpdateIgnoreFlag( i, true );
+        checkbox[i].setSelected( false );
+      }
+
+      ShowCheckboxListener checkbox_listener = new ShowCheckboxListener( i );
+      checkbox[i].addActionListener( checkbox_listener );
+
+      panel.add( label );                        // Add the components for this
+      panel.add( checkbox[i] );                  // DataSet to the current panel
+      panel.add( button );
+
+      panel_box.add( panel );                    // Add the panel to this
+                                                 // LiveDataMonitor
+    }
+
+    border = new TitledBorder( LineBorder.createBlackLineBorder(),
+                               "Update Time Interval( 0 - 10 Min )" );
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    time_slider.setBorder( border );
+
+    panel_box.add( time_slider );
   }
 
 
