@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/12/30 23:17:47  millermi
+ *  - Added setMaximumSize(200,200) to limit the size of the pan
+ *    control to 200 x 200.
+ *
  *  Revision 1.8  2003/12/20 04:42:50  millermi
  *  - changed super.repaint() in refreshData() to update(). This
  *    was needed to consistently paint the overlay over the image.
@@ -130,6 +134,7 @@ public class PanViewControl extends ViewControl
     setLocalBounds( cjp.getLocalWorldCoords() );
     setLayout( new OverlayLayout(this) );
     setPreferredSize( new Dimension(0,150) );
+    setMaximumSize( new Dimension(200,200) );
     add(overlay);
     add(panel);
     addMouseListener( new PanMouseAdapter() );
