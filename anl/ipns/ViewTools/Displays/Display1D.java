@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/05/11 01:47:38  millermi
+ * - Updated javadocs for class description.
+ *
  * Revision 1.2  2004/04/21 02:39:53  millermi
  * - main() now has two functions.
  *
@@ -64,9 +67,9 @@ import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
- * Simple class to display an image, specified by an IVirtualArray2D or a 
- * 2D array of floats, in a frame. This class adds further implementation to
- * the ImageFrame2.java class for thorough testing of the ImageViewComponent.
+ * Simple class to display a 1-dimensional or list of 1-dimensional arrays,
+ * specified by an IVirtualArrayList1D. The two common views for this display
+ * are as a graph and as a table (in progress).
  */
 public class Display1D extends Display
 { 

@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/05/11 01:49:49  millermi
+ * - Updated javadocs for class description.
+ *
  * Revision 1.5  2004/03/19 21:30:06  millermi
  * - Changed controls parameter to int instead of boolean.
  * - Added CTRL_ALL and CTRL_NONE to Display as constants for
@@ -84,9 +87,9 @@ import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
- * Simple class to display an image, specified by an IVirtualArray2D or a 
- * 2D array of floats, in a frame. This class adds further implementation to
- * the ImageFrame2.java class for thorough testing of the ImageViewComponent.
+ * Simple class to display an 2-dimensional array of data, specified by an
+ * IVirtualArray2D. Two common views for this display are as an image and
+ * as a table (in progress).
  */
 public class Display2D extends Display
 { 
