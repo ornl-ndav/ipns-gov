@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2004/03/12 01:23:09  rmikk
+ * Fixed the name of the super class
+ *
  * Revision 1.4  2004/03/12 00:48:19  dennis
  * moved to package MathTools.Functions.FunctionTools
  *
@@ -65,7 +68,7 @@ public class String2Instance1
 
  //******If another package name is used, redefine this string analogously
  public static final  String SUPER_CLASS_NAME = 
-                             "gov.anl.ipns.MathTools.Functions.FunctionTools.Fxn";
+                             "gov/anl/ipns/MathTools/Functions/FunctionTools/Fxn";
 
  private ByteArrayOutputStream  bb;
  DataOutputStream str;
