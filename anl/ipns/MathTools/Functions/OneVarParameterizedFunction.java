@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/07/14 14:02:05  dennis
+ *  Changed the offset used for calculation of numerical approximation
+ *  to the derivative.  Now set to DELTA = 1.0e-5 if it was set less
+ *  than DELTA.
+ *
  *  Revision 1.8  2003/06/30 22:36:17  dennis
  *  Made calculation of derivatives with respect to parameters
  *  at a collection of x-values, more efficient.
@@ -198,7 +203,7 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
     double old_a_val   = parameters_copy[i];
 
     double da = Math.abs( DELTA * old_a_val );
-    if ( da == 0 )
+    if ( da < DELTA )
       da = DELTA;
 
     parameters_copy[i] = old_a_val + da;
@@ -240,7 +245,7 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
     double old_a_val   = parameters_copy[i];
 
     double da = Math.abs( DELTA * old_a_val );
-    if ( da == 0 )
+    if ( da < DELTA )
       da = DELTA;
 
     parameters_copy[i] = old_a_val + da;

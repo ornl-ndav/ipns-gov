@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/07/14 14:02:05  dennis
+ *  Changed the offset used for calculation of numerical approximation
+ *  to the derivative.  Now set to DELTA = 1.0e-5 if it was set less
+ *  than DELTA.
+ *
  *  Revision 1.5  2003/06/17 23:05:36  dennis
  *  The step size for calculating numerical derivatives is now
  *  interpreted as a fractional change, rather than as an
@@ -183,7 +188,7 @@ abstract public class OneVarFunction implements IOneVarFunction
   public double get_dFdx( double x )
   {
     double dx = Math.abs( DELTA*x );
-    if ( dx == 0 )
+    if ( dx < DELTA )
       dx = DELTA;
     return (getValue( x + dx ) - getValue( x - dx ))/ ( 2 * dx );
   }
