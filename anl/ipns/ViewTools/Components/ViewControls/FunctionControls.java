@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2003/09/11 21:21:48  serumb
+ * Added control to show the cursor readings.
+ *
  * Revision 1.10  2003/08/29 18:58:13  serumb
  * Change the color of the button text for the color buttons to the
  * color selected.
@@ -104,7 +107,8 @@ import java.util.*;
                                                                                                                                                
 import javax.swing.*;
 import javax.swing.event.*;
-                                                                                                                                               
+
+import javax.swing.border.*;                                                                                                                                               
                                                                              
 
 /*
@@ -129,6 +133,7 @@ import javax.swing.event.*;
   private JPanel controlpanel= new JPanel(  );
   private JPanel label_panel = new JPanel(  );
   private JPanel z_panel     = new JPanel(  );
+  private JPanel cursor_panel= new JPanel(  );
   private String label1      = "Line Selected";
   private String label2      = "Line Style";
   private String label3      = "Line Width";
@@ -189,8 +194,13 @@ import javax.swing.event.*;
   private StringEntry y_start_field;
   private StringEntry y_end_field;
   private TextRangeUI x_range; 
-  private TextRangeUI y_range; 
+  private TextRangeUI y_range;
+  private TextValueUI x_loc;
+  private TextValueUI y_loc;
+  private TitledBorder border;
+ 
   private Box vert_box = new Box(1);
+  private Box vert2_box = new Box(1);
   private ControlCheckboxButton axis_checkbox = new ControlCheckboxButton(true);
   private ControlCheckboxButton annotation_checkbox = 
                                     new ControlCheckboxButton(  );
@@ -293,13 +303,18 @@ import javax.swing.event.*;
     ErrorColor  = new ButtonControl( "Error Bar Color" );
     axis_checkbox.setTitle( "Axis Overlay" );
     annotation_checkbox.setTitle( "Annotation Overlay" );
-
+   
+   
     x_range = new TextRangeUI("X Range", 
                       Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMin(),
                       Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMax());
     y_range = new TextRangeUI("Y Range",Varray1D.getAxisInfo(
                       AxisInfo2D.YAXIS ).getMin(), Varray1D.getAxisInfo(
                       AxisInfo2D.YAXIS ).getMax()); 
+
+    x_loc = new TextValueUI("X Location", Float.NaN);
+   
+    y_loc = new TextValueUI("Y Location", Float.NaN);
 
     log_slider = new ControlSlider();
     log_slider.setTitle("Log Scale Slider");
@@ -333,18 +348,36 @@ import javax.swing.event.*;
     ErrorBarBox          = labelbox6.cbox;
     ShiftBox             = labelbox7.cbox;
     LogBox               = labelbox8.cbox;
+   
+    //x_loc.setEnabled(false);
+    //y_loc.setEnabled(false);
+    x_loc.setEditable(false);
+    y_loc.setEditable(false);
 
     control_box.add(leftBox);
-
     vert_box.add( x_range );
     vert_box.add( y_range );
+    vert2_box.add( x_loc );
+    vert2_box.add( y_loc );
+    
+    border = new TitledBorder(LineBorder.createBlackLineBorder(),"Scale");
+    border.setTitleFont( FontUtil.BORDER_FONT );
 
     TFP.setLayout( G_lout );
+    TFP.setBorder( border );
     TFP.add( vert_box );
-                                                                               
+    
+    border = new TitledBorder(LineBorder.createBlackLineBorder(),"Cursor");
+    border.setTitleFont( FontUtil.BORDER_FONT );
+
+    cursor_panel.setLayout( G_lout );
+    cursor_panel.setBorder( border );
+    cursor_panel.add( vert2_box );
+    
     rightBox.add( axis_checkbox );
     rightBox.add( annotation_checkbox );
     rightBox.add( TFP );
+    rightBox.add( cursor_panel );
     rightBox.add( labelbox7 );
     rightBox.add( labelbox8 );
     rightBox.add( log_slider );
@@ -460,13 +493,13 @@ import javax.swing.event.*;
                              x_range.getMax(),
                              loggery.toSource(y_range.getMin(),gjp.getScale()));
            }
-          else
-          gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
-                              x_range.getMax(), y_range.getMin());
+           else
+           gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
+                               x_range.getMax(), y_range.getMin());
 
-         }
+    }
   }
-
+ 
  private class ImageListener implements ActionListener {
     //~ Methods ****************************************************************
 
@@ -529,6 +562,28 @@ import javax.swing.event.*;
              y_range.setMin(gjp.getLocalWorldCoords().getY2()); 
              y_range.setMax(gjp.getLocalWorldCoords().getY1());
            }
+      }
+      else if(message.equals("Cursor Moved")){ 
+         if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
+             x_loc.setValue(loggerx.toDest(gjp.getCurrent_WC_point().x,
+                                                                log_scale));
+             y_loc.setValue(loggery.toDest(gjp.getCurrent_WC_point().y,
+                                                                log_scale));
+           }
+           else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
+             x_loc.setValue(gjp.getCurrent_WC_point().x);
+             y_loc.setValue(loggery.toDest(gjp.getCurrent_WC_point().y,
+                                                                log_scale));
+           }
+           else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
+             x_loc.setValue(loggerx.toDest(gjp.getCurrent_WC_point().x,
+                                                                log_scale));
+             y_loc.setValue(gjp.getCurrent_WC_point().y);
+           }
+           else {
+             x_loc.setValue(gjp.getCurrent_WC_point().x);
+             y_loc.setValue(gjp.getCurrent_WC_point().y);
+           } 
       }
     }
  }
