@@ -30,6 +30,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2003/10/30 02:45:41  bouzekc
+ * Now implements java.io.FileFilter to be compatible with several File methods.
+ *
  * Revision 1.4  2003/10/17 02:52:57  bouzekc
  * Fixed javadoc errors.
  *
@@ -62,7 +65,8 @@ import java.util.Vector;
  */
 public abstract class RobustFileFilter extends
                                        javax.swing.filechooser.FileFilter 
-                                       implements java.io.Serializable
+                                       implements java.io.Serializable, 
+                                       java.io.FileFilter
 {
   private Vector extensions;
   private String description;
