@@ -35,6 +35,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2003/07/16 22:27:47  dennis
+ *  Now calculates numerical derivatives with a smaller step size,
+ *  but with a minumum step size of 1e-8.  Also now uses "weighted"
+ *  ChiSqr rather than un-weighted ChiSqr, when weights that are
+ *  not identically = 1 are specified.
+ *
  *  Revision 1.8  2003/07/14 22:38:32  dennis
  *  Added some debugging code and debug flag.
  *
@@ -143,19 +149,21 @@ public class MarquardtArrayFitter extends CurveFitter
       a_save = a[k];
       while ( diff <= 0.0 && n_steps < 10 )
       {
-        delta = 0.0001 * a_save;
+        delta = 1.0e-8 * a_save;
+        if ( delta < 1.0e-8 )
+          delta = 1.0e-8;
 
         a[k] = a_save + delta;
         f.setParameters(a);
-        double chi_3 = getChiSqr();
+        double chi_3 = getWeightedChiSqr();
 
         a[k] = a_save - delta;
         f.setParameters(a);
-        double chi_1 = getChiSqr();
+        double chi_1 = getWeightedChiSqr();
 
         a[k] = a_save;
         f.setParameters(a);
-        double chi_2 = getChiSqr();
+        double chi_2 = getWeightedChiSqr();
 
         diff = Math.abs(chi_1-2*chi_2+chi_3);
         if ( diff != 0 )
@@ -223,7 +231,7 @@ public class MarquardtArrayFitter extends CurveFitter
       else                                            // invalid sigma value
         weights[i] = 1.0/(sigma[i]*sigma[i]);
 
-    chisq_1 = getChiSqr();
+    chisq_1 = getWeightedChiSqr();
     while ( n_steps < max_steps && norm_da/norm_a > tolerance )
     {
                                                       // calculate vector beta
@@ -307,7 +315,7 @@ public class MarquardtArrayFitter extends CurveFitter
           a[k] = a_old[k] + da[k];
         f.setParameters(a);
         
-        chisq_2 = getChiSqr();
+        chisq_2 = getWeightedChiSqr();
         delta_chisq = Math.abs( chisq_2 - chisq_1 );
         if ( chisq_2 > chisq_1 )
         {
@@ -379,7 +387,7 @@ public class MarquardtArrayFitter extends CurveFitter
       System.out.println(names[i] + " = " + coefs[i] + 
                          " +- " + p_sigmas[i] +
                          " +- " + p_sigmas_2[i] );
-    System.out.println("Chi Sq = " + fitter.getChiSqr() );
+    System.out.println("Chi Sq = " + fitter.getWeightedChiSqr() );
 
     String file_name = "/usr/local/ARGONNE_DATA/hrcs2447.run";
     RunfileRetriever rr = new RunfileRetriever(file_name); 
@@ -451,7 +459,7 @@ public class MarquardtArrayFitter extends CurveFitter
                          " +- " + p_sigmas_2[i] );
 
     model = new FunctionModel( x_scale, sum, 3 ); 
-    System.out.println("Chi Sq = " + fitter.getChiSqr() );
+    System.out.println("Chi Sq = " + fitter.getWeightedChiSqr() );
 
     monitor_ds.addData_entry( model );
     monitor_ds.notifyIObservers( IObserver.DATA_CHANGED );
