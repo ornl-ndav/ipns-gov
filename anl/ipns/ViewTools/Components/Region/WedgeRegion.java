@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/02/17 01:57:52  millermi
+ *  - Removed LineRegions which selected points on the boundry of the
+ *    wedge. This fixes a bug that causes an index out of bounds
+ *    exception found by Alok.
+ *
  *  Revision 1.12  2004/02/14 03:34:57  millermi
  *  - selectedpoints no longer includes point found off the image.
  *  - added toString() method.
@@ -396,7 +401,7 @@ public class WedgeRegion extends Region
     
     //System.out.println("Center: (" + (center.x - topleft.x) + "," +
     //  		 (center.y - topleft.y) + ")");
-    
+    /*
     // this code uses line regions to select the points along the bounding
     // lines of the wedge
     floatPoint2D p1temp = new floatPoint2D( definingpoints[1].x + p1xadjust,
@@ -430,7 +435,7 @@ public class WedgeRegion extends Region
       if( imagebounds.onXInterval((float)rp1select[i].x) && 
           imagebounds.onYInterval((float)rp1select[i].y) )
         points.add( new Point( rp1select[i] ) );
-    }
+    }*/
     
     // put the vector of points into an array of points
     selectedpoints = new Point[points.size()];
