@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/01/26 20:41:00  dennis
+ * The setOrigin() method now checks for the error of passing in
+ * a null vector and returns a boolean value indicating whether
+ * or not the setOrigin() method succeeded.
+ *
  * Revision 1.2  2004/01/24 23:46:37  dennis
  * Added copy constructor.
  *
@@ -100,10 +105,18 @@ public class SlicePlane3D
   /**
    *  Set the origin vector for this plane, keeping the same u and v vectors.
    *
+   *  @param   new_origin  The new vector to use as the origin for this 
+   *                       slice plane.
+   *
+   *  @return  true if the new_origin parameter was valid, false otherwise.
    */
-  public void setOrigin( Vector3D new_origin )
+  public boolean setOrigin( Vector3D new_origin )
   {
+    if ( new_origin == null ) 
+      return false;
+
     origin = new Vector3D( new_origin );
+    return true;
   }
 
 
