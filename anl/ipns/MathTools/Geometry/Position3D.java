@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2002/06/14 21:24:51  rmikk
+ *  Implements IXmlIO interface
+ *
  *  Revision 1.7  2001/08/16 02:34:16  dennis
  *  getCenterofMass() now checks for and ignores null positions in the
  *  points[] array.
@@ -61,7 +64,7 @@ package  DataSetTools.math;
 
 import java.io.*;
 import java.text.*;
-
+import DataSetTools.dataset.*;
 /**
  * Position3D represents a position in 3D space in cartesian, cylindrical
  * and spherical coordinate systems.  Methods are provided to get & set the
@@ -69,7 +72,8 @@ import java.text.*;
  * are specified and returned in radians. 
  */
 
-public class Position3D implements Serializable
+public class Position3D implements Serializable,
+                                   IXmlIO
 {
   private  float  sph_radius;     // distance from the origin to the point
 
@@ -306,6 +310,89 @@ public class Position3D implements Serializable
     Position3D position = new Position3D( this );
 
     return position;
+  }
+
+ 
+ /** Implements the IXmlIO interface so a DetectoPositon can write itself
+  *
+  * @param stream  the OutputStream to which the data is written
+  * @param mode    either IXmlIO.BASE64 or IXmlOP.NORMAL. This indicates 
+  *                how a Data's xvals, yvals and errors are written
+  * @return true if successful otherwise false<P>
+  *
+  * NOTE: This routine writes all of the begin and end tags.  These tag names
+  *       are NOT TabulatedData but either HistogramTable or FunctionTable
+  */
+  public boolean XMLwrite( OutputStream stream, int mode )
+  { String S="<DetectorPosition>\n";
+    S +="<sph_radius>"+ sph_radius+"</sph_radius>\n";
+    S += "<azimuth_angle>"+ azimuth_angle +"</azimuth_angle>\n";
+    S += "<polar_angle>"+   polar_angle+"</polar_angle>\n";
+    try
+    {
+      stream.write(S.getBytes());
+      stream.write("</DetectorPosition>\n".getBytes());
+      return true;
+    }
+    catch( Exception s)
+    { return xml_utils.setError("IO Exc="+s.getMessage());
+    }
+  }
+
+ /** Implements the IXmlIO interface so a Detector Position can read itself
+  *
+  * @param stream  the InStream to which the data is written
+
+  * @return true if successful otherwise false<P>
+  *
+  * NOTE: This routine assumes the begin tag has been completely read.  It reads
+  *       the end tag.  The tag names 
+  *       are NOT TabulatedData but either HistogramTable or FunctionTable
+  */
+  public boolean XMLread( InputStream stream )
+  { 
+    try
+    {
+      String Tag = xml_utils.getTag(stream);
+      if( Tag == null)
+        return xml_utils.setError( xml_utils.getErrorMessage());
+      if( !Tag.equals("sph_radius"))
+        return xml_utils.setError("AWrong tag order in Pos3D"+Tag);
+      String vString = xml_utils.getValue(stream);
+      if(vString == null)
+        return xml_utils.setError(xml_utils.getErrorMessage());
+      this.sph_radius =(new Float(vString)).floatValue();
+
+      Tag = xml_utils.getTag(stream);
+      if( Tag == null)
+        return xml_utils.setError( xml_utils.getErrorMessage());
+      if( !Tag.equals("azimuth_angle"))
+        return xml_utils.setError("BWrong tag order in Pos3D"+Tag);
+      vString = xml_utils.getValue(stream);
+      if(vString == null)
+        return xml_utils.setError(xml_utils.getErrorMessage());
+      this.azimuth_angle =(new Float(vString)).floatValue();
+
+      Tag = xml_utils.getTag(stream);
+      if( Tag == null)
+        return xml_utils.setError( xml_utils.getErrorMessage());
+      if( !Tag.equals("polar_angle"))
+        return xml_utils.setError("CWrong tag order in Pos3D"+Tag);
+      vString = xml_utils.getValue(stream);
+      if(vString == null)
+        return xml_utils.setError(xml_utils.getErrorMessage());
+      this.polar_angle =(new Float(vString)).floatValue();
+
+      Tag = xml_utils.getTag(stream);
+      if( Tag == null)
+        return xml_utils.setError( xml_utils.getErrorMessage());
+      if( !Tag.equals("/DetectorPosition"))
+        return xml_utils.setError("No End tag in Pos3D");
+      return true;
+    }
+    catch(Exception s)
+    { return xml_utils.setError( "Err="+s.getMessage());
+    }
   }
 
   /**
