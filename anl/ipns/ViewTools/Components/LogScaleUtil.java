@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/12/05 05:25:17  millermi
+ *  - Fixed eclipse warnings.
+ *
  *  Revision 1.12  2004/11/12 17:22:54  millermi
  *  - Removed pseudo-log mapping functions. Now in PseudoLogScaleUtil.
  *
@@ -218,8 +221,6 @@ public class LogScaleUtil
   {
     float min   = 1f;
     float max   = 1000f;
-    float nmin  = 50f;
-    float nmax  = 50000f;
     
     // Test toDest() and toSource().
     LogScaleUtil testutil = new LogScaleUtil(min,max);
