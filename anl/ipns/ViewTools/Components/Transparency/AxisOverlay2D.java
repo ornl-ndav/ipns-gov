@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/06/09 22:33:33  dennis
+ *  - Added static method help() to display commands via the HelpMenu.
+ *    (Mike Miller)
+ *
  *  Revision 1.4  2003/05/22 17:51:05  dennis
  *  Corrected problem of missing calibratons at beginning and end
  *  of y-axis and beginning of x-axis. (Mike Miller)
@@ -83,6 +87,31 @@ public class AxisOverlay2D extends OverlayJPanel
       xmax = 1;
       ymin = 0;
       ymax = 1;       
+   }
+
+  /**
+   * Contains/Displays control information about this overlay.
+   */
+   public static void help()
+   {
+      JFrame helper = new JFrame("Help for Axes Overlay");
+      helper.setBounds(0,0,600,400);
+      JTextArea text = new JTextArea("Commands for Axes Overlay\n\n");
+      helper.getContentPane().add(text);
+      text.setEditable(false);
+      text.setLineWrap(true);
+
+      text.append("The Axes Overlay has no commands associated with it. " +
+                  "Instead, it allows the commands of the underlying image. ");
+      text.append("These commands will NOT work if any other overlay " +
+		  "is checked.\n\n");
+      text.append("Commands for Underlying image\n");
+      text.append("Click/Drag/Release MouseButton2>ZOOM IN\n");
+      text.append("Click/Drag/Release Mouse w/Shift_Key>ZOOM IN ALTERNATE\n");
+      text.append("Double Click Mouse>RESET ZOOM\n");
+      text.append("Single Click Mouse>CURRENT POINT\n\n");
+      
+      helper.setVisible(true);
    }
    
    public void setPrecision( int digits )
