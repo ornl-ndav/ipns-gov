@@ -4,8 +4,9 @@
  *  Comparator function to allow sorting of 2D points
  *
  *  $Log$
- *  Revision 1.1  2000/10/03 22:33:03  dennis
- *  Comparator function for sorting points
+ *  Revision 1.2  2000/10/10 20:19:19  dennis
+ *  Log message was missing?  This class implements a comparator function for
+ *  sorting points.
  *
  *
  */
