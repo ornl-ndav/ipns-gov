@@ -29,10 +29,13 @@
  *
  * Modified:
  *
- *  $Log:
+ *  $Log$
+ *  Revision 1.2  2004/03/12 02:24:53  millermi
+ *  - Changed package, fixed imports.
+ *
  */
   
-package DataSetTools.components.View.ViewControls;
+package gov.anl.ipns.ViewTools.Components.ViewControls;
  
  import javax.swing.*;
  import javax.swing.event.*;
@@ -40,8 +43,8 @@ package DataSetTools.components.View.ViewControls;
  import java.awt.*;
  import java.lang.Object.*;
  
- import DataSetTools.viewer.ViewerState;
- import DataSetTools.util.*;
+ //import DataSetTools.viewer.ViewerState;
+ //import DataSetTools.util.*;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a generic checkbox for use 

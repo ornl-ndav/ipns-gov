@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/03/12 02:24:53  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.9  2004/02/06 17:15:06  millermi
  *  - Added getNumSteps(), getStepSize(), getMajorTickSpace(),
  *    getMinorTickSpace() for convenience.
@@ -71,7 +74,7 @@
  *
  */
   
- package DataSetTools.components.View.ViewControls;
+ package gov.anl.ipns.ViewTools.Components.ViewControls;
  
  import javax.swing.JSlider;
  import javax.swing.JFrame;
@@ -81,11 +84,11 @@
  import java.awt.GridLayout;
  import java.awt.Point;
  
- import DataSetTools.util.floatPoint2D;
- import DataSetTools.util.WindowShower;
- import DataSetTools.components.View.ObjectState;
- import DataSetTools.components.image.CoordBounds;
- import DataSetTools.components.image.CoordTransform;
+ import gov.anl.ipns.Util.Numeric.floatPoint2D;
+ import gov.anl.ipns.Util.Sys.WindowShower;
+ import gov.anl.ipns.ViewTools.Components.ObjectState;
+ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
 /**
  * This class is an ViewControl (ActiveJPanel) with a generic slider for use 

@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/12 02:24:53  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.6  2004/02/06 18:02:10  millermi
  *  - Added valid interval to setValue() javadocs.
  *  - setValue() now checks if index is valid, does nothing
@@ -54,14 +57,14 @@
  *
  */
 
-package DataSetTools.components.View.ViewControls;
+package gov.anl.ipns.ViewTools.Components.ViewControls;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 
-import DataSetTools.components.ui.TextValueUI;
-import DataSetTools.util.WindowShower;
+import gov.anl.ipns.ViewTools.UI.TextValueUI;
+import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
   * This class is a ViewControl (ActiveJPanel) with text fields set up for

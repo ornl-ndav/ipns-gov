@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/12 02:24:53  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.8  2004/02/06 20:07:38  millermi
  *  - Each key now references a String[] of labels. Previously,
  *    a key could reference another key.
@@ -73,7 +76,7 @@
  *
  */
 
-package DataSetTools.components.View.ViewControls;
+package gov.anl.ipns.ViewTools.Components.ViewControls;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -88,8 +91,8 @@ import java.awt.event.ActionListener;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
-import DataSetTools.util.WindowShower;
-import DataSetTools.components.View.ObjectState;
+import gov.anl.ipns.Util.Sys.WindowShower;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with labels and input text fields

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/12 02:24:53  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.6  2004/01/30 22:11:13  millermi
  *  - Removed messaging Strings from interface and into respective
  *    implementing classes that actually send out the message.
@@ -57,7 +60,7 @@
  *
  */
   
- package DataSetTools.components.View.ViewControls;
+ package gov.anl.ipns.ViewTools.Components.ViewControls;
  
  import javax.swing.JCheckBox;
  import javax.swing.JFrame;
@@ -66,8 +69,8 @@
  import java.awt.GridLayout;
  import java.awt.Color;
  
- import DataSetTools.util.WindowShower;
- import DataSetTools.components.View.ObjectState;
+ import gov.anl.ipns.Util.Sys.WindowShower;
+ import gov.anl.ipns.ViewTools.Components.ObjectState;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a generic checkbox for use 

@@ -29,19 +29,21 @@
  *
  * Modified:
  *
- *  $Log:
+ *  $Log$
+ *  Revision 1.3  2004/03/12 02:24:52  millermi
+ *  - Changed package, fixed imports.
+ *
  */
   
-package DataSetTools.components.View.ViewControls;
+package gov.anl.ipns.ViewTools.Components.ViewControls;
  
  import javax.swing.*;
  import javax.swing.event.*;
  import java.awt.event.*;
- import java.awt.*;
- import java.lang.Object.*;
+ import java.awt.GridLayout;
+ //import java.lang.Object.*;
  
- import DataSetTools.viewer.ViewerState;
- import DataSetTools.util.*;
+ //import DataSetTools.util.*;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a generic button for use 
