@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/06/18 19:57:41  dennis
+ * Imports newly created subpackage Shapes
+ *
  * Revision 1.7  2004/06/17 19:23:14  dennis
  * Code to locate a point in 3D now pushes the projection matrix stack,
  * computes the projection matrix and pops the projection matrix
@@ -76,6 +79,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes.*;
 import net.java.games.jogl.*;
 import net.java.games.jogl.util.*;
 
@@ -113,7 +117,7 @@ public class ThreeD_GL_Panel implements Serializable
                     vuv;
   private float view_angle = 40;
   private float near_plane = 1;
-  private float far_plane  = 50;
+  private float far_plane  = 200;
 
   private boolean use_perspective_proj = true;
 
