@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2003/07/05 19:43:17  dennis
+ *  - Updated to match the changes made to the ImageJPanel
+ *    and the ColorScaleImage.  (Mike Miller)
+ *
  *  Revision 1.7  2003/06/17 13:20:39  dennis
  *  (Mike Miller)
  *  - Corrected the "jump" when a note is zoomed in.
@@ -730,8 +734,9 @@ public class AnnotationOverlay extends OverlayJPanel
 	 sizelist.addActionListener( new ComboBoxListener() );
 	 viewer.getContentPane().add( sizelist );
 	 
-	 ColorScaleImage notecolor = new ColorScaleImage();
-	 notecolor.setNamedColorModel( IndexColorMaker.MULTI_SCALE, false );
+	 ColorScaleImage notecolor = 
+	       new ColorScaleImage(ColorScaleImage.HORIZONTAL_DUAL);
+	 notecolor.setNamedColorModel( IndexColorMaker.MULTI_SCALE,true,false );
 	 notecolor.setEventListening(false);
 	 notecolor.addMouseListener( new NoteColorListener() );
 	 viewer.getContentPane().add( notecolor );
