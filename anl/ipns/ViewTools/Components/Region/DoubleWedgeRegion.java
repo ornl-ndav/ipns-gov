@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/05/11 01:06:44  millermi
+ *  - Removed unused variables
+ *
  *  Revision 1.10  2004/03/15 23:53:51  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -183,12 +186,7 @@ public class DoubleWedgeRegion extends Region
     */
     // convert world coord defining points to image values.
     floatPoint2D center = world_to_image.MapTo(definingpoints[0]);
-    floatPoint2D p1 = world_to_image.MapTo(definingpoints[1]);
-    floatPoint2D rp1 = world_to_image.MapTo(definingpoints[2]);
     floatPoint2D topleft = world_to_image.MapTo(definingpoints[3]);
-    floatPoint2D bottomright = world_to_image.MapTo(definingpoints[4]);	  
-    float xextent = center.x - topleft.x;
-    float yextent = center.y - topleft.y; 
     //System.out.println(bottomright + " " + topleft );
     // use 2 wedgeregions to construct the doublewedge
     WedgeRegion wedge1 = new WedgeRegion(definingpoints);
