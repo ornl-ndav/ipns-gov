@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/03/12 03:05:12  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.12  2004/03/02 22:12:52  dennis
  *  Now only calls update if the PanViewControl "isShowing()".  This
  *  fixes a problem where the PanViewControl would "flash" on the
@@ -91,7 +94,7 @@
  *
  */
  
- package DataSetTools.components.View.ViewControls;
+ package gov.anl.ipns.ViewTools.Components.ViewControls;
 
  import java.awt.Image;
  import java.awt.event.ActionListener;
@@ -108,16 +111,14 @@
  import javax.swing.JPanel;
  import javax.swing.OverlayLayout;
  
- import DataSetTools.components.image.CoordJPanel;
- import DataSetTools.components.image.BoxCursor;
- import DataSetTools.components.image.CoordBounds;
- import DataSetTools.components.image.CoordTransform;
- import DataSetTools.components.image.ImageJPanel;
- import DataSetTools.components.View.ObjectState;
- import DataSetTools.components.View.Cursor.TranslationJPanel;
- import DataSetTools.components.View.Transparency.TranslationOverlay;
- import DataSetTools.util.floatPoint2D;
- import DataSetTools.util.WindowShower;
+ import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+ import gov.anl.ipns.ViewTools.Panels.Cursors.BoxCursor;
+ import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel;
+ import gov.anl.ipns.ViewTools.Components.ObjectState;
+ import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
+ import gov.anl.ipns.ViewTools.Components.Transparency.TranslationOverlay;
+ import gov.anl.ipns.Util.Numeric.floatPoint2D;
+ import gov.anl.ipns.Util.Sys.WindowShower;
  
 /**
  * This view control is used to "pan" an image. Adding a PanViewControl
