@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.34  2004/05/20 16:33:53  serumb
+ * Removed unused variables.
+ *
  * Revision 1.33  2004/04/21 02:34:40  millermi
  * - Fixed bug that incorrectly named selected indices.
  *
@@ -177,9 +180,7 @@ import javax.swing.border.*;
   private JPanel panel2      = new JPanel(  );
   private JPanel panel3      = new JPanel(  );
   private JPanel RboxPanel   = new JPanel(  );
-  private JPanel boxPanel    = new JPanel(  );
   private JPanel TFP         = new JPanel(  );
-  private JPanel ZBP         = new JPanel(  );
   private JPanel controlpanel= new JPanel(  );
   private JPanel label_panel = new JPanel(  );
   private JPanel z_panel     = new JPanel(  );
@@ -210,19 +211,10 @@ import javax.swing.border.*;
   private ButtonControl LineColor;
   private ButtonControl MarkColor;
   private ButtonControl ErrorColor;
-  private ButtonControl ZoomButton;
   private int line_index     = 1;
   private int linewidth      = 1;
-  private JColorChooser choosecolors = new JColorChooser( Color.black );
   private Box leftBox        = new Box( 1 );
   private Box rightBox       = new Box( 1 );
-  private Box box1           = new Box( 1 );
-  private Box z_box          = new Box( 0 );
-  private Box t_box          = new Box( 0 );
-  private Box t1_box         = new Box( 0 );
-  private Box t2_box         = new Box( 0 );
-  private Box t3_box         = new Box( 0 );
-  private Box T_Box          = new Box( 1 );
   private Box control_box    = new Box( 0 );
   private LabelCombobox labelbox1;
   private LabelCombobox labelbox2;
@@ -232,10 +224,6 @@ import javax.swing.border.*;
   private LabelCombobox labelbox6;
   private LabelCombobox labelbox7;
   private LabelCombobox labelbox8;
-  private JLabel z_begin;
-  private JLabel z_end;
-  private JLabel yz_begin;
-  private JLabel yz_end;
   private JLabel control_label;
   private Font label_font;
   private TextRangeUI x_range; 
@@ -507,7 +495,6 @@ import javax.swing.border.*;
           // System.out.println("Entered: " + x_range.getText() );
           // System.out.println("Min = " + x_range.getMin() );
           // System.out.println("Max = " + x_range.getMax() );
-             CoordBounds b = gjp.getLocalWorldCoords();
 
    LogScaleUtil loggery = new LogScaleUtil(gjp.getYmin(), gjp.getYmax(),
                                     gjp.getYmin(), gjp.getYmax());
@@ -543,8 +530,6 @@ import javax.swing.border.*;
          //  System.out.println("Entered: " +y_range.getText() );
          //  System.out.println("Min = " + y_range.getMin() );
          //  System.out.println("Max = " + y_range.getMax() );
-             CoordBounds b = gjp.getLocalWorldCoords();
-            
 
    LogScaleUtil loggery = new LogScaleUtil(gjp.getYmin(), gjp.getYmax(),
                                     gjp.getYmin(), gjp.getYmax());
@@ -581,9 +566,6 @@ import javax.swing.border.*;
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
      
-      CoordBounds b = gjp.getLocalWorldCoords();
-
-
        float xmin,xmax,ymin,ymax;
        xmin = gjp.getXmin();
        xmax = gjp.getXmax();
