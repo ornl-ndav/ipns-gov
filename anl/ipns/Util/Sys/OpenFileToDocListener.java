@@ -31,6 +31,9 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.8  2004/03/11 22:46:18  millermi
+ * - Changed package.
+ *
  * Revision 1.7  2003/10/20 16:30:00  rmikk
  * Fixed javadoc errors
  *
@@ -56,7 +59,7 @@
  * loads a Document with the contents of the file. 
  *  
 */  
-package Command;  
+package gov.anl.ipns.Util.Sys;  
 import javax.swing.text.*;  
 import java.io.*;  
 import java.awt.event.*;  

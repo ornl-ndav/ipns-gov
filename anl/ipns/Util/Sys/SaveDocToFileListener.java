@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/03/11 22:46:18  millermi
+ * - Changed package.
+ *
  * Revision 1.7  2003/10/22 19:57:16  rmikk
  * Fixed javadoc error
  *
@@ -57,7 +60,7 @@
  * saves the contents of the document to a file.
  *
 */
-package Command;
+package gov.anl.ipns.Util.Sys;
 import javax.swing.text.*;
 import java.io.*;
  import java.awt.event.*;

@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/11 22:46:18  millermi
+ * - Changed package.
+ *
  * Revision 1.3  2002/11/27 23:12:10  pfpeterson
  * standardized header
  *
@@ -42,7 +45,7 @@
  * associated document
  *
 */
-package Command;
+package gov.anl.ipns.Util.Sys;
 import java.awt.event.*;
 import javax.swing.text.*;
 

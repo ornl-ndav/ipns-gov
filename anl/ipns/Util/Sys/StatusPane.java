@@ -31,6 +31,9 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.10  2004/03/11 22:46:18  millermi
+ * - Changed package.
+ *
  * Revision 1.9  2003/12/14 19:18:09  bouzekc
  * Removed unused import statements.
  *
@@ -69,7 +72,7 @@
  * The property names are "Display" and "Clear" 
  *  
 */  
-package Command;  
+package gov.anl.ipns.Util.Sys;  
   
 import javax.swing.*;  
 import java.beans.*;  
