@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.61  2004/09/29 20:41:42  serumb
+ *  Removed unnecessary call to request focus.
+ *
  *  Revision 1.60  2004/09/15 21:55:46  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -921,7 +924,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     temppainter.repaint();
         for( int next = 0; next < transparencies.size(  ); next++ ) {
           ( ( OverlayJPanel )transparencies.elementAt( next ) ).repaint(  );
-          ( ( OverlayJPanel )transparencies.elementAt( next ) ).getFocus(  );
         }
   }
 
