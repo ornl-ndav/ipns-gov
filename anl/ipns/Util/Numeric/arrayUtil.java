@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2002/11/27 23:23:49  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.16  2002/04/11 21:17:06  dennis
  *  Fixed documentation for get_index_of() method.
  *  interpolate() method now includes the endpoints in the
@@ -38,60 +40,6 @@
  *
  *  Revision 1.15  2002/03/18 21:15:49  dennis
  *  The reverse() method now just returns if the array is null.
- *
- *  Revision 1.14  2001/10/17 18:32:33  dennis
- *  Added methods to check if a list of integers has distinct values in increasing
- *  order and to remove duplicates and put a list in increasing order.
- *
- *  Revision 1.13  2001/10/05 16:58:13  dennis
- *  Added methods to get the min and max step size in an array and to
- *  determine whether or not the values are evenly spaced.
- *
- *  Revision 1.12  2001/07/04 15:20:07  dennis
- *  Added SignedAbsSum() method to use for detector heights and
- *  scattering angles.
- *
- *  Revision 1.11  2001/05/07 21:44:02  dennis
- *  Replaced Bubble Sort of list of integer by Quicksort.
- *  The version of Quicksort implemented uses the middle
- *  element of the list as the key to split the list.  This
- *  form of Quicksort works efficiently on sorted lists as well as
- *  on most lists.
- *
- *  Revision 1.10  2001/04/25 22:24:48  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.9  2001/04/20 19:51:05  dennis
- *  Added function to sort an array of integer values.
- *
- *  Revision 1.8  2000/11/07 15:29:57  dennis
- *  Temporarily commented out SortOnX method that used java.util.Arrays.sort()
- *  menthod that is not present in Java 1.1.8 on Mac computers.
- *
- *  Revision 1.7  2000/10/03 21:20:42  dennis
- *  Added SortOnX method to sort a list of points.
- *
- *  Revision 1.6  2000/08/01 20:54:33  dennis
- *  Changed return value to -1 for get_index_of() method in the case that
- *  the x value searched for is larger than the last entry in x_vals[]
- *
- *  Revision 1.5  2000/07/26 20:48:57  dennis
- *  added method to interpolate in tables of x,y values
- *
- *  Revision 1.4  2000/07/21 14:24:26  dennis
- *  Added binary search of a portion of an array of integers
- *
- *  Revision 1.3  2000/07/10 22:55:37  dennis
- *  Now Using CVS 
- *
- *  Revision 1.5  2000/06/13 14:39:25  dennis
- *  Added dcoumentation and simplified the method to get a portion of an array.
- *
- *  Revision 1.4  2000/06/08 19:07:37  dennis
- *  Fixed DOS text problem
- *
- *  Revision 1.3  2000/05/11 16:18:22  dennis
- *  Added RCS logging
  *
  */ 
 package DataSetTools.util;

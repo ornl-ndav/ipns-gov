@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2002/11/27 23:23:49  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.6  2002/07/25 22:12:21  pfpeterson
  *  Added methods to print 'real' numbers w/o a minimum number
  *  digits past the decimal.
@@ -44,12 +46,6 @@
  *
  *  Revision 1.3  2002/07/16 22:15:55  pfpeterson
  *  Added new formatting methods for Strings and StringBuffers.
- *
- *  Revision 1.2  2001/04/25 22:24:22  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.1  2000/07/13 22:25:22  dennis
- *  Convenient utilities for formatting numbers with a specific string length
  *
  */ 
 

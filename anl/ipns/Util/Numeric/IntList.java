@@ -21,8 +21,8 @@
  * Contact : Tom Worlton <tgworlton@anl.gov>
  *           Intense Pulsed Neutron Source Division
  *           Argonne National Laboratory
- *           Argonne, IL 60439-4845
- *           USA
+ *           9700 South Cass Avenue, Bldg 360
+ *           Argonne, IL 60439-4845, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -32,19 +32,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/11/27 23:23:49  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.5  2002/07/29 16:08:54  dennis
  *  Fixed error when expanding list size in AppendToList().
  *  Mistakenly continued to use list[] instead of new_list[].
- *
- *  Revision 1.4  2001/04/25 22:24:38  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.3  2000/11/10 22:47:48  dennis
- *  Added code to main test program to test behavior with unordered lists of
- *  integers.
- *
- *  Revision 1.2  2000/07/21 18:56:30  dennis
- *  Now can convert empty string to empty array of ints.
  *
  */
 package DataSetTools.util;

@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,29 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/11/27 23:23:49  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.5  2002/11/07 16:31:40  pfpeterson
  *  Added new constant for telling viewers to close.
- *
- *  Revision 1.4  2001/04/25 22:24:27  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.3  2001/01/29 20:52:51  dennis
- *  Now uses CVS revision numbers.
- *
- *  Revision 1.2  2000/11/07 15:31:27  dennis
- *  Added ATTRIBUTE_CHANGED and FIELD_CHANGED messages.
- *
- *  Revision 1.1  2000/07/10 22:53:05  dennis
- *  Interfaces for observer/observable communications mechanism
- *
- *  Revision 1.5  2000/06/12 19:49:08  dennis
- *  Added DATA_CHANGED message
- *
- *  Revision 1.4  2000/06/08 19:07:37  dennis
- *  Fixed DOS text problem
- *
- *  Revision 1.3  2000/05/11 16:18:22  dennis
- *  Added RCS logging
  *
  */
 

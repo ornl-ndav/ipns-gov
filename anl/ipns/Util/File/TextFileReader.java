@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2002/11/27 23:23:49  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.9  2002/08/05 19:00:32  pfpeterson
  *  Added reading of fixed format text files. Most of the original
  *  methods were cloned with a new parameter specifying how many
@@ -69,12 +71,6 @@
  *  Revision 1.3  2002/03/27 22:54:29  pfpeterson
  *  All exceptions that are caught or thrown are now IOExceptions.
  *
- *  Revision 1.2  2001/11/21 21:14:21  dennis
- *  Added close() method
- *
- *  Revision 1.1  2001/11/09 18:50:39  dennis
- *  Utility to simplify reading numerical and string values from an
- *  ordinary ASCII file.
  */
 
 package DataSetTools.util;

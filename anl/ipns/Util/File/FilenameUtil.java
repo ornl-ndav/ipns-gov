@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2002/11/27 23:23:49  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.10  2002/08/15 18:45:07  pfpeterson
  *  Now replaces "//" in fixSeparator as well.
  *
@@ -54,13 +56,6 @@
  *
  *  Revision 1.3  2001/12/11 17:54:13  pfpeterson
  *  Added the method 'String helpDir(String helpFile)' which returns the full name of the helpFile to be used. The searchpath is (in order) Help_Directory, $HOME/IsawHelp, $CLASSPATH/IsawHelp, or online.
- *
- *  Revision 1.2  2001/04/25 22:24:17  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.1  2000/08/03 21:41:14  dennis
- *  Now includes FilenameUtil.fixCase() to check for case errors in basic
- *  filename
  *
  */ 
 package DataSetTools.util;

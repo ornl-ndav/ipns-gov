@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,17 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2002/11/27 23:23:49  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.3  2001/11/27 18:38:18  dennis
  *     1. Set the string value to the first in the list
  *     2. Added "some" tests for null lists. (Ruth)
- *
- *  Revision 1.2  2001/11/12 21:53:13  dennis
- *  Added Construtor that takes a list of strings. (Ruth)
- *
- *  Revision 1.1  2001/11/12 21:32:59  dennis
- *    Base class for classes that hold a list of string choices.  One string
- *    is designated as the current choice and is returned by toString().
- *    Derived classes define specific lists of strings. (Bug fixed by Ruth).
  *
  */
 

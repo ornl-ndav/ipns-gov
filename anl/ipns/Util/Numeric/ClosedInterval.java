@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,20 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/11/27 23:23:49  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.5  2002/07/23 18:16:53  dennis
  *  Added comment that ClosedInterval should be immutable.
- *
- *  Revision 1.4  2001/04/25 22:23:59  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.3  2001/03/30 19:16:40  dennis
- *  Added method   intersect( interval )
- *
- *  Revision 1.2  2000/11/17 23:38:18  dennis
- *  Minor change to format of output in toString() method.
- *
- *  Revision 1.1  2000/11/07 16:31:25  dennis
- *  Specify a closed interval [a,b] that can degenerate to one point.
  *
  */
 

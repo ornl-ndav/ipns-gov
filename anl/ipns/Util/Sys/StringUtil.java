@@ -20,8 +20,7 @@
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
- *           Menomonie, WI. 54751
- *           USA
+ *           Menomonie, WI 54751, USA
  *
  * This work was supported by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
@@ -31,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2002/11/27 23:23:49  pfpeterson
+ *  standardized header
+ *
  *  Revision 1.11  2002/09/25 16:46:58  pfpeterson
  *  Fixed a bug in getFloat(sb) and getInt(sb) where negative numbers
  *  where not considered numbers.
@@ -57,24 +59,6 @@
  *  the string is bordered by non-alphanumeric characters.
  *  Added method extract_tokens() that places separate tokens that
  *  occur in a String into an array of Strings.
- *
- *  Revision 1.5  2001/08/14 15:14:54  dennis
- *  Fixed documentation.
- *
- *  Revision 1.4  2001/08/10 19:49:28  dennis
- *  Added method commandPresent() to check whether or not a specified
- *  single command with no argument occurs in an argument list.
- *
- *  Revision 1.3  2001/08/10 14:54:46  dennis
- *  Added methods to find the nth occurence of a string and to find
- *  arguments for commands of the form "-<letter><argument>" on a
- *  command line.
- *
- *  Revision 1.2  2001/04/25 22:24:45  dennis
- *  Added copyright and GPL info at the start of the file.
- *
- *  Revision 1.1  2000/07/28 16:16:08  dennis
- *  Utility for fixing file names for portability to different systems
  *
  */ 
 package DataSetTools.util;
