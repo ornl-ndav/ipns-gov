@@ -36,6 +36,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.4  2002/06/17 18:54:26  dennis
+ *  Added methods QR_solve() and Norm().
+ *
  *  Revision 1.3  2001/04/25 20:56:33  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -105,6 +108,40 @@ public final class LinearAlgebra
                                           // Apply the Householder transforms
                                           // that reduced A to upper triangular
                                           // form to the right hand side, b. 
+    return QR_solve( A, u, b );
+  }
+
+
+  /* ------------------------------- QR_solve ----------------------------- */
+  /**
+   *  Solve a system of linear equations, Ax = b, using the QR factored 
+   *  form of A.  This is a portion of the full solution process.  To solve
+   *  Ax = b, either:
+   *  1. use u = QR_factorization(A) to construct u = Q, A = R and
+   *  2. use QR_solve(A,u,b) to replace the components of b with the components
+   *     of the solution x.
+   *
+   *  or just use the solve(A,b) method which combines these two steps.
+   *
+   *  @param   A     Rectangular array containing a matrix "A", as altered by
+   *                 the method QR_factorization(A).
+   *
+   *  @param  u      The QR factorization of A as returned by the method
+   *                 QR_factorization.
+   *
+   *  @param  b      The right hand side of the linear equations Ax = b
+   *
+   *  @ return  The return value represents the residual error in the least
+   *            squares approximation if u has more rows than columns.  If
+   *            u is square, the return value is 0.  If u has more columns
+   *            than rows, or if the system is singular, this function fails 
+   *            and returns NaN.
+   */
+  public static double QR_solve( double A[][], double u[][], double b[] )
+  {
+                                          // Apply the Householder transforms
+                                          // that reduced A to upper triangular
+                                          // form to the right hand side, b. 
     for ( int i = 0; i < u.length; i++ )
       HouseholderTransform( u[i], b );
                                           // now back substitute  
@@ -121,7 +158,7 @@ public final class LinearAlgebra
 
       b[i] = ( b[i] - sum )/A[i][i];
     }
-    
+
     double error = 0.0;
     for ( int i = A[0].length; i < A.length; i++ )
       error = b[i]*b[i];
@@ -291,6 +328,27 @@ public final class LinearAlgebra
                    
     for ( int i = 0; i < v.length; i++ )
       v[i] /= norm;
+  }
+
+
+  /* ----------------------------- Norm --------------------------------- */
+  /**
+   *  Calculate the L2 norm of a vector.
+   *
+   *  @param  v    The vector whose norm is to be calculated.
+   *
+   *  @return  The square root of the sum of the squares of the components
+   *           of the specified vector.
+   */
+
+  public static double Norm( double v[] )
+  {
+    double norm = 0.0;
+
+    for ( int i = 0; i < v.length; i++ )
+      norm += v[i]*v[i];
+
+    return Math.sqrt( norm );
   }
 
 
