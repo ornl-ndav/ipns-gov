@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/04/07 01:21:44  millermi
+ *  - Added javadocs to addMarker() and removeMarker()
+ *  - Added MarkerEditor, enabling users to interactively edit the markers.
+ *  - Added editMarker() method which creates an instance of the MarkerEditor.
+ *
  *  Revision 1.1  2004/03/26 21:28:59  millermi
  *  - Initial Check in - Allows users to programmatically
  *    place markers at points of interest.
@@ -41,14 +46,22 @@
  */
 package gov.anl.ipns.ViewTools.Components.Transparency;
 
-import javax.swing.*; 
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.colorchooser.AbstractColorChooserPanel;
+import javax.swing.colorchooser.ColorSelectionModel;
 import javax.swing.text.html.HTMLEditorKit;
 import java.util.Vector;
+import java.util.Enumeration;
 import java.awt.*;
 import java.awt.event.*;
 
 import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
@@ -60,7 +73,14 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.*;
  */
 public class MarkerOverlay extends OverlayJPanel
 {
-  // these public variables are used to preserve the annotation state    
+  // these public variables are used to preserve the overlay state   
+ /**
+  * "Markers" - This constant String is a key for referencing the state
+  * information about the markers created by this marker overlay. 
+  * The value that this key references is a Vector of Markers.
+  */
+  public static final String MARKERS  = "Markers";
+     
  /**
   * "Editor Bounds" - This constant String is a key for referencing the state
   * information about the size and bounds of the Marker Editor window. 
@@ -72,10 +92,12 @@ public class MarkerOverlay extends OverlayJPanel
   private static JFrame helper = null;
   // panel overlaying the center jpanel
   private transient Rectangle current_bounds;
+  private transient MarkerOverlay this_overlay;
   private Vector markers;
   private transient IZoomAddible component;	 // component being passed
   private Rectangle editor_bounds = new Rectangle(0,0,200,(35 * 5) );
   private transient CoordTransform pixel_local;
+  private transient MarkerEditor editor;
   
  /**
   * 
@@ -86,9 +108,10 @@ public class MarkerOverlay extends OverlayJPanel
   {
     super();
     this.setLayout( new GridLayout(1,1) );
-    
+    this_overlay = this;
     component = iza;
-    markers = new Vector(); 
+    markers = new Vector();
+    editor = new MarkerEditor(); 
     current_bounds =  component.getRegionInfo();
     Rectangle temp = component.getRegionInfo();
     CoordBounds pixel_map = 
@@ -144,17 +167,24 @@ public class MarkerOverlay extends OverlayJPanel
   *  @param new_state
   */
   public void setObjectState( ObjectState new_state )
-  { /*
+  { 
     boolean redraw = false;  // if any values are changed, repaint overlay.
-    Object temp = new_state.get(NOTES);
+    Object temp = new_state.get(MARKERS);
     if( temp != null )
     {
-      notes = ((Vector)temp);
+      markers = ((Vector)temp);
+      redraw = true;  
+    }
+    
+    temp = new_state.get(EDITOR_BOUNDS);
+    if( temp != null )
+    {
+      editor_bounds = ((Rectangle)temp);
       redraw = true;  
     }
     
     if( redraw )
-      this_panel.repaint(); */
+      repaint();
   }
  
  /**
@@ -170,13 +200,13 @@ public class MarkerOverlay extends OverlayJPanel
   {
     ObjectState state = new ObjectState();
     state.insert( EDITOR_BOUNDS, editor_bounds );
-   /*
+   
     // load these for project specific instances.
     if( !isDefault )
     {
-      state.insert( NOTES, notes );
+      state.insert( MARKERS, markers );
     }
-    */
+    
     return state;
   }
   
@@ -198,19 +228,41 @@ public class MarkerOverlay extends OverlayJPanel
   }
   
  /**
+  * Add a marker to the MarkerOverlay to be shown on the display. An
+  * advantage to using this method is that the marker class has a constructor
+  * to allow creation of one marker without putting its location into an array.
   *
+  *  @param  marker The marker to be displayed.
   */
   public void addMarker( Marker marker )
   {
     if( marker != null )
       markers.add(marker);
     repaint();
+    editor.updateMarkerList();
   }
-  
+ 
+ /**
+  * Remove the marker at the given index. If negative one (-1) is passed in,
+  * the last marker will be removed. Invalid indices will be ignored.
+  *
+  *  @param  index Index of the marker to be removed. The first index is zero.
+  */ 
   public void removeMarker( int index )
   {
-    markers.remove(index);
+    // If size is zero, there is nothing to remove.
+    if( markers.size() == 0 )
+      return;
+    // if index is -1, remove last marker.
+    if( index == -1 )
+      markers.remove( markers.size() - 1 );
+    // else if an invalid index, do nothing
+    else if( index < 0 || index >= markers.size() )
+      return;
+    else
+      markers.remove(index);
     repaint();
+    editor.updateMarkerList();
   }
 
  /**
@@ -223,7 +275,7 @@ public class MarkerOverlay extends OverlayJPanel
   }
 
  /**
-  * This method sets the line color of all annotations. Initially set to black.
+  * This method sets the color of all the markers. Initially set to black.
   *
   *  @param  color
   */
@@ -235,6 +287,28 @@ public class MarkerOverlay extends OverlayJPanel
     }
     repaint();
   }
+  
+ /**
+  * This method is used to view an instance of the Marker Editor.
+  */ 
+  public void editMarker()
+  {
+    if( editor.isVisible() )
+    {
+      editor.toFront();
+      editor.requestFocus();
+    }
+    else
+    {
+      editor_bounds = editor.getBounds();
+      editor.dispose();
+      editor = new MarkerEditor();
+      WindowShower shower = new WindowShower(editor);
+      java.awt.EventQueue.invokeLater(shower);
+      shower = null;
+      editor.toFront();
+    }
+  }
      
  /**
   * This method is called by to inform the overlay that it is no
@@ -243,12 +317,13 @@ public class MarkerOverlay extends OverlayJPanel
   */ 
   public void kill()
   {
+    editor.dispose();
     if( helper != null )
       helper.dispose();
   }
 
  /**
-  * Overrides paint method. This method will paint the annotations.
+  * Overrides paint method. This method will paint the markers.
   *
   *  @param  g - graphics object
   */
@@ -277,6 +352,330 @@ public class MarkerOverlay extends OverlayJPanel
       ((Marker)markers.elementAt(m)).draw(g2d);
     }
   } // end of paint()
+ 
+ /*
+  * This is an editor for the markers.
+  */
+  private class MarkerEditor extends JFrame
+  {
+    private MarkerEditor this_editor;
+    private JColorChooser colorchooser = new JColorChooser(Color.black);
+    private JComboBox markerlist;
+    private JComboBox markertypelist;
+    private ButtonGroup resizeable;
+    private ControlSlider size_adjuster;
+    // current list of available markertypes, must be maintained and updated.
+    private String[] markertypes = {"Marker Types", "Plus(+)", "X(x)",
+                                    "Star(*)", "Box([])", "Circle(o)",
+				    "Vertical Dash(|)", "Horizontal Dash(-)",
+				    "Vertical Line(|)", "Horizontal Line(-)",
+				    "Negative Slope Diagonal Line(\\)",
+				    "Positive Slope Diagonal Line(/)"};
+    // Array that parallels the marker types, these are the int codes defined
+    // by the Marker class.
+    private int[] markercodes = {-1, Marker.PLUS, Marker.X, Marker.STAR,
+                                 Marker.BOX, Marker.CIRCLE, Marker.VDASH,
+				 Marker.HDASH, Marker.VLINE, Marker.HLINE,
+				 Marker.NLINE, Marker.PLINE};
+    protected MarkerEditor()
+    {
+      this_editor = this;
+      setTitle("Marker Editor");
+      this_editor.setBounds(0,0,435,330);
+      getContentPane().setLayout( new GridLayout(1,1) );
+      setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
+      buildPane();
+    }
+    
+    protected void updateMarkerList()
+    {
+      buildPane();
+    }
+    
+    private void setResizeable( boolean isOn )
+    {
+      if( resizeable != null )
+      {
+	Enumeration on_off = resizeable.getElements();
+        JRadioButton nextbutton = (JRadioButton)on_off.nextElement();
+	if( isOn )
+	{
+	  if( !nextbutton.isSelected() )
+            resizeable.setSelected(nextbutton.getModel(),true);
+	}
+	else
+	{
+	  // move to off option
+	  nextbutton = (JRadioButton)on_off.nextElement();
+	  if( !nextbutton.isSelected() )
+            resizeable.setSelected(nextbutton.getModel(),true);
+	}
+      }
+    }
+    
+    private void buildPane()
+    {
+      getContentPane().removeAll();
+      // construct the first line of controls
+      markerlist = new JComboBox();
+      markerlist.addItemListener( new MarkerListListener() );
+      markerlist.addItem("All Markers");
+      String combotitle = "";
+      for( int i = 0; i < markers.size(); i++ )
+      {
+        combotitle = markers.elementAt(i) + " " + (i+1);
+        markerlist.addItem( combotitle );
+      }
+      JButton remove = new JButton("Remove");
+      remove.addActionListener( new ButtonListener() );
+      JPanel line1controls = new JPanel( new BorderLayout() );
+      TitledBorder border = 
+	  new TitledBorder(LineBorder.createBlackLineBorder(),
+	                   "Select Marker of Interest");
+      border.setTitleFont( gov.anl.ipns.ViewTools.UI.FontUtil.BORDER_FONT ); 
+      line1controls.setBorder( border );
+      line1controls.add(markerlist, BorderLayout.CENTER);
+      line1controls.add(remove, BorderLayout.EAST );
+      // construct second line of controls
+      markertypelist = new JComboBox(markertypes);
+      markertypelist.addItemListener( new MarkerTypeListener() );
+      //JPanel resize_with_label = new JPanel( new GridLayout(2,1) );
+      //resize_with_label.add( new JLabel("Resize on Zoom", JLabel.CENTER) );
+      JPanel resize_radios = new JPanel( new GridLayout(2,1) );
+      TitledBorder radioborder = 
+	  new TitledBorder(LineBorder.createBlackLineBorder(),
+	                   "Resize Marker on Zoom");
+      radioborder.setTitleFont(gov.anl.ipns.ViewTools.UI.FontUtil.BORDER_FONT); 
+      resize_radios.setBorder( radioborder );
+      JRadioButton enable_resize = new JRadioButton("Enable Resize");
+      JRadioButton disable_resize = new JRadioButton("Disable Resize");
+      enable_resize.addActionListener( new ButtonListener() );
+      disable_resize.addActionListener( new ButtonListener() );
+      resize_radios.add(enable_resize);
+      resize_radios.add(disable_resize);
+      //resize_with_label.add(resize_radios);
+      resizeable = new ButtonGroup();
+      resizeable.add( enable_resize );
+      resizeable.add( disable_resize );
+      setResizeable(true);
+      JPanel line2controls = new JPanel( new BorderLayout() );
+      line2controls.add(markertypelist, BorderLayout.CENTER);
+      line2controls.add(resize_radios, BorderLayout.EAST);
+      // find maximum world coord value to be used as upper bound for
+      // the controlslider.
+      CoordBounds wc_bounds = component.getGlobalCoordBounds();
+      float xmax = Math.abs(wc_bounds.getX1());
+      float ymax = Math.abs(wc_bounds.getY1());
+      if( xmax < Math.abs(wc_bounds.getX2()) )
+        xmax = Math.abs(wc_bounds.getX2());
+      if( ymax < Math.abs(wc_bounds.getY1()) )
+        ymax = Math.abs(wc_bounds.getY1());
+      if( ymax < Math.abs(wc_bounds.getY2()) )
+        ymax = Math.abs(wc_bounds.getY2());
+      // find the minimum of the two maximums.
+      float max = xmax;
+      if( max > ymax )
+        max = ymax;
+      // Use upper bound of max/2 since size is a radial dimension.
+      size_adjuster = new ControlSlider(0,max/2f,100);
+      size_adjuster.setMajorTickSpace(.25f);
+      size_adjuster.setMinorTickSpace(.05f);
+      size_adjuster.setTitle("Adjust Marker Size");
+      size_adjuster.addActionListener(new SizeAdjustListener());
+      JPanel chooser = new JPanel( new BorderLayout() );
+      TitledBorder chooserborder = 
+	  new TitledBorder(LineBorder.createBlackLineBorder(),
+	                   "Select New Color");
+      chooserborder.setTitleFont(
+                          gov.anl.ipns.ViewTools.UI.FontUtil.BORDER_FONT ); 
+      chooser.setBorder( chooserborder );
+      // get the color selection part of the colorchooser
+      AbstractColorChooserPanel[] acc = colorchooser.getChooserPanels();
+      colorchooser.getSelectionModel().addChangeListener(
+                                          new ColorChangedListener() );
+      JButton close = new JButton("Close");
+      close.addActionListener( new ButtonListener() );
+      // build chooser panel, with label, JColorChooser, and close button.
+      chooser.add(acc[0], BorderLayout.NORTH);
+      chooser.add(close, BorderLayout.CENTER);
+      JPanel upper_ctrls = new JPanel( new GridLayout(3,1) );
+      upper_ctrls.add(line1controls);
+      upper_ctrls.add(line2controls);
+      upper_ctrls.add(size_adjuster);
+      
+      // build container of all controls
+      JPanel container = new JPanel( new GridLayout(2,1) );
+      container.add(upper_ctrls);
+      container.add(chooser);
+      // add container to frame
+      getContentPane().add(container);
+      // update the changes.
+      this_editor.validate();
+      this_editor.repaint();
+    }
+    
+    private class ColorChangedListener implements ChangeListener
+    {
+      public void stateChanged( ChangeEvent ce )
+      {
+        Color newcolor = colorchooser.getSelectionModel().getSelectedColor();
+	int index = markerlist.getSelectedIndex();
+	// if "All Markers"
+	if( index == 0 )
+	{
+          for( int i = 0; i < markers.size(); i++ )
+	  {
+	    ((Marker)markers.elementAt(i)).setColor( newcolor );
+	  }
+	}
+	// else find the marker, remembering that "All Markers" is the first
+	// indexed element.
+	else
+	{
+	  ((Marker)markers.elementAt(index-1)).setColor( newcolor );
+	}
+	this_overlay.repaint();
+      }
+    }
+    
+    private class ButtonListener implements ActionListener
+    {
+      public void actionPerformed( ActionEvent ae )
+      {
+        String message = ae.getActionCommand();
+        if( message.equals("Remove") )
+	{
+	  removeMarker( markerlist.getSelectedIndex() - 1 );
+	  this_overlay.repaint();
+	  buildPane();
+	}
+        else if( message.equals("Close") )
+        {  
+	  editor_bounds = this_editor.getBounds(); 
+          this_editor.dispose();
+          this_overlay.repaint();
+        }
+        else if( message.equals("Enable Resize") )
+        {
+	  int index = markerlist.getSelectedIndex();
+          // If not "All Markers", get the specific information about this
+	  // marker.
+          if( index != 0 )
+          {
+	    Marker selectmark = ((Marker)markers.elementAt(index-1));
+	    selectmark.setBehavior( Marker.RESIZEABLE );
+	  }
+        }
+        else if( message.equals("Disable Resize") )
+        {
+	  int index = markerlist.getSelectedIndex();
+          // If not "All Markers", get the specific information about this
+	  // marker.
+          if( index != 0 )
+          {
+	    Marker selectmark = ((Marker)markers.elementAt(index-1));
+	    selectmark.setBehavior( Marker.STATIC );
+	  }
+        }
+      }
+    }
+    
+    private class MarkerTypeListener implements ItemListener
+    {
+      public void itemStateChanged( ItemEvent ie )
+      {
+        if( ie.getStateChange() == ItemEvent.SELECTED )
+	{
+	  // Get the marker code for the selected marker type.
+	  int marktype = markercodes[markertypelist.getSelectedIndex()];
+	  int index = markerlist.getSelectedIndex();
+          // if "All Markers"
+          if( index == 0 )
+          {
+            for( int i = 0; i < markers.size(); i++ )
+            {
+              ((Marker)markers.elementAt(i)).setMarkerType( marktype );
+            }
+          }
+          // else find the marker, remembering that "All Markers" is the first
+          // indexed element.
+          else
+          {
+            ((Marker)markers.elementAt(index-1)).setMarkerType( marktype );
+          }
+          this_overlay.repaint();
+	}
+      }
+    }
+    
+    private class MarkerListListener implements ItemListener
+    {
+      public void itemStateChanged( ItemEvent ie )
+      {
+        if( ie.getStateChange() == ItemEvent.SELECTED )
+	{
+	  int index = markerlist.getSelectedIndex();
+          // If not "All Markers", get the specific information about this
+	  // marker.
+          if( index != 0 )
+          {
+	    Marker selectmark = ((Marker)markers.elementAt(index-1));
+	    // get marker type, set the markertypelist to this type.
+            int marktype = selectmark.getMarkerType();
+	    int list_index = 0;
+	    while( list_index < markertypes.length &&
+	           markercodes[list_index] != marktype )
+	      list_index++;
+            if( list_index < markertypes.length )
+	      markertypelist.setSelectedIndex(list_index);
+	    // get the resizeable info
+	    int behave = selectmark.getBehavior();
+	    if( behave == Marker.STATIC )
+	      setResizeable(false);
+	    else
+	      setResizeable(true);
+	    size_adjuster.setValue( selectmark.getSize() );
+	  }
+	  // if "All Markers", set defaults
+	  else
+	  {
+	    if( markertypelist != null )
+	      markertypelist.setSelectedIndex(0);
+	    setResizeable(true);
+	  }
+	  this_editor.repaint();
+          this_overlay.repaint();
+	}
+      }
+    }
+    
+    private class SizeAdjustListener implements ActionListener
+    {
+      public void actionPerformed( ActionEvent ae )
+      {
+        if( ae.getActionCommand().equals(ControlSlider.SLIDER_CHANGED) )
+	{
+	  float new_size = ((ControlSlider)ae.getSource()).getValue();
+	  int index = markerlist.getSelectedIndex();
+          // if "All Markers"
+          if( index == 0 )
+          {
+            for( int i = 0; i < markers.size(); i++ )
+            {
+              ((Marker)markers.elementAt(i)).resize( new_size );
+            }
+          }
+          // else find the marker, remembering that "All Markers" is the first
+          // indexed element.
+          else
+          {
+            ((Marker)markers.elementAt(index-1)).resize( new_size );
+          }
+          this_overlay.repaint();
+	}
+      }
+    }
+  }
  
  /**
   * For testing purposes only.
