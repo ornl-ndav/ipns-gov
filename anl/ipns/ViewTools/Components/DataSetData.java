@@ -12,7 +12,7 @@ public class DataSetData implements IVirtualArray1D
    float minx;
    float maxx;
    float miny;
-   JCheckBox Errors;
+   
 
    public DataSetData( DataSet DS)
      {
@@ -20,8 +20,7 @@ public class DataSetData implements IVirtualArray1D
       
        selectedInd = ds.getSelectedIndices();
        minx=maxx=miny=maxy= Float.NaN;
-       Errors = new JCheckBox("Show Errors");
-
+  
       }
 
    public AxisInfo2D  getAxisInfo( boolean x_axis)
@@ -191,8 +190,8 @@ public class DataSetData implements IVirtualArray1D
    public JComponent[] getPrivateControls()
     {
      JComponent[] Res = new JComponent[1];
-     Res[0] = (JComponent)Errors;
-     return Res;
+     
+     return new JComponent[0];
     }
    
    public void addActionListener( ActionListener listener)
