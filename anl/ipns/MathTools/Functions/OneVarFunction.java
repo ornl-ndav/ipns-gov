@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/10/17 15:41:53  dennis
+ *  Fixed javadocs to build cleanly with jdk 1.4.2
+ *
  *  Revision 1.6  2003/07/14 14:02:05  dennis
  *  Changed the offset used for calculation of numerical approximation
  *  to the derivative.  Now set to DELTA = 1.0e-5 if it was set less
@@ -184,7 +187,6 @@ abstract public class OneVarFunction implements IOneVarFunction
    *  
    *  @return The centered difference approximation to the derivative at x.
    */
-
   public double get_dFdx( double x )
   {
     double dx = Math.abs( DELTA*x );
@@ -192,7 +194,6 @@ abstract public class OneVarFunction implements IOneVarFunction
       dx = DELTA;
     return (getValue( x + dx ) - getValue( x - dx ))/ ( 2 * dx );
   }
-
 
 
   /**
@@ -205,10 +206,11 @@ abstract public class OneVarFunction implements IOneVarFunction
     return name;
   }
 
+
   /**
    *  Set the name that to use for this function.
    *
-   *  @param the new name to use for this function.
+   *  @param name  the new name to use for this function.
    */
   public void setName( String name)
   {
@@ -231,7 +233,8 @@ abstract public class OneVarFunction implements IOneVarFunction
   /**
    *  Set the current domain for this function.
    *
-   *  @param the closed interval that specifies the domain for this function.
+   *  @param interval  the closed interval that specifies the domain 
+   *                   for this function.
    */
   public void setDomain( ClosedInterval interval )
   {
