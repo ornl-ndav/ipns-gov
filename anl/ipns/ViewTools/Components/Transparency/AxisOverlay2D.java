@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.33  2004/03/19 20:16:39  millermi
+ *  - Fixed log axis display of y axis. Previously, the maximum
+ *    positive and negative values were switched.
+ *  - Fixed y log axis display that caused end tick marks
+ *    to be drawn twice.
+ *
  *  Revision 1.32  2004/03/19 18:07:04  millermi
  *  - Changed how label, units, and power is displayed.
  *  - Factored out display of labels into method
@@ -1645,7 +1651,7 @@ public class AxisOverlay2D extends OverlayJPanel
           // draw end marker if no values are near the end.
           if( ysteps == (numysteps - 1) )
           {
-             a = ymax;
+             a = Math.abs(ymax);
 	     ypixel = ystart + (int)(yaxis/2) - 
                       (int)logger.toSource(a,logscale);
 	     neg_ypixel = ystart + (int)(yaxis/2) + 
@@ -1657,20 +1663,20 @@ public class AxisOverlay2D extends OverlayJPanel
              negtick_length = TICK_LENGTH;
              if( last_drawn > (ypixel + fontdata.getHeight()/2) ) 
              {
-                ytick_length += 3;
-                negtick_length += 3;
-	        g2d.drawString( num, xstart - ytick_length - 
-                    fontdata.stringWidth(num),
-	            ypixel + fontdata.getHeight()/4 );
-                    
-	        g2d.drawString( neg_num, xstart - negtick_length - 
-                    fontdata.stringWidth(neg_num),
-	            neg_ypixel + fontdata.getHeight()/4 + 2); 
-             }    
-	     g2d.drawLine( xstart - ytick_length, ypixel, 
-	        	   xstart - 1, ypixel );       
-	     g2d.drawLine( xstart - negtick_length, neg_ypixel, 
-	        	   xstart - 1, neg_ypixel );  
+               ytick_length += 3;
+               negtick_length += 3;
+	       g2d.drawString( num, xstart - ytick_length - 
+                   fontdata.stringWidth(num),
+	           ypixel + fontdata.getHeight()/4 );
+                   
+	       g2d.drawString( neg_num, xstart - negtick_length - 
+                   fontdata.stringWidth(neg_num),
+	           neg_ypixel + fontdata.getHeight()/4 + 2);	
+	       g2d.drawLine( xstart - ytick_length, ypixel, 
+	        	     xstart - 1, ypixel );       
+	       g2d.drawLine( xstart - negtick_length, neg_ypixel, 
+	        	     xstart - 1, neg_ypixel );
+             } 
           }
           
           // debug axis divider 
