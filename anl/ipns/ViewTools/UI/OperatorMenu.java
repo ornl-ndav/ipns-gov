@@ -34,6 +34,9 @@
  *  organized according to the categories of the operators.
  *
  *  $Log$
+ *  Revision 1.5  2002/02/22 20:34:50  pfpeterson
+ *  Operator Reorganization.
+ *
  *  Revision 1.4  2001/05/31 15:30:03  dennis
  *  Replaced call to deprecated getLabel() method with getText()
  *
@@ -59,6 +62,9 @@ import java.io.*;
 import DataSetTools.dataset.*;
 import DataSetTools.instruments.*;
 import DataSetTools.operator.*;
+import DataSetTools.operator.Generic.*;
+import DataSetTools.operator.Generic.Load.*;
+import DataSetTools.operator.Generic.Batch.*;
 
 public class OperatorMenu
 {

@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2002/02/22 20:34:49  pfpeterson
+ * Operator Reorganization.
+ *
  * Revision 1.4  2001/04/23 21:50:00  dennis
  * Added copyright and GPL info at the start of the file.
  *
@@ -61,6 +64,8 @@ import javax.swing.*;
 import javax.swing.table.*;
 import DataSetTools.dataset.*;
 import DataSetTools.operator.*;
+import DataSetTools.operator.DataSet.*;
+import DataSetTools.operator.DataSet.Conversion.XAxis.*;
 import DataSetTools.retriever.*;
 import DataSetTools.util.*;
 
