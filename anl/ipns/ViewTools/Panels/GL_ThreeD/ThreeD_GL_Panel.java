@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2004/07/14 16:41:05  dennis
+ * Changed return type on pickedObject() to be Gl_Shape, rather than
+ * IThreeD_GL_Object, since only actual shapes can be picked.
+ * Added method pickedPoint() that will return the 3D coordinates of
+ * a point.
+ * These methods are currently just "stubs".
+ *
  * Revision 1.8  2004/06/18 19:57:41  dennis
  * Imports newly created subpackage Shapes
  *
@@ -433,9 +440,26 @@ public float[] getPixelWorldCoordinates( int x, int y )
  *           if the last attempt at picking returned INVALID_PICK_ID.
  *           If no such object is found, this returns INVALID_PICK_ID.
  */
- public IThreeD_GL_Object pickedObject()
+ public GL_Shape pickedObject()
  {
-   return picked_object;
+   if ( picked_object instanceof GL_Shape )
+     return (GL_Shape)picked_object;
+   else
+     return null;
+ }
+
+
+/* ---------------------------- pickedPoint ----------------------------- */
+/*
+ *  NOT IMPLEMENTED YET.
+ *  Return the most recently selected point in 3D.
+ *
+ *  @return  A vector corresponding to the position in 3D that was last
+ *           clicked on, or null
+ */
+ public Vector3D pickedPoint()
+ {  
+   return null;
  }
 
 
@@ -620,10 +644,10 @@ public float[] getPixelWorldCoordinates( int x, int y )
         Vector3D difference_v = new Vector3D( cop );
         difference_v.subtract( vrp );
         float distance = difference_v.length();
-        float angle_radians = (float)(Math.PI * view_angle / 180);
+        float angle_radians = (float)(Math.PI * view_angle/2 / 180);
         float half_h = (float)Math.tan( angle_radians ) * distance;
         float half_w = half_h * width/(float)height;
-        gl.glOrtho( -half_w, half_w, -half_h, half_h, -1000, 1000 );
+        gl.glOrtho( -half_w, half_w, -half_h, half_h, near_plane, far_plane );
       }
     
       gl.glFlush();
@@ -669,6 +693,11 @@ public float[] getPixelWorldCoordinates( int x, int y )
       if ( size.width <= 0 || size.height <= 0 )
       {
         System.out.println("ERROR: Drawable has zero area");
+        return;
+      }
+      if ( drawable instanceof GLCanvas && !((GLCanvas)drawable).isShowing() )
+      {
+        System.out.println("ERROR: Drawable not visible yet");
         return;
       }
 
@@ -766,7 +795,12 @@ public float[] getPixelWorldCoordinates( int x, int y )
                               vuv_pt[0], vuv_pt[1], vuv_pt[2] );
 
       for ( int i = 0; i < list.length; i++ )
-        list[i].Render( drawable );
+        if ( list == null )
+          System.out.println("LIST IS NULL ");
+        else if ( list[i] == null )
+          System.out.println("LIST[i] IS NULL, i = " + i );
+        else
+          list[i].Render( drawable );
 
       gl.glFlush();
 //      drawable.swapBuffers();
