@@ -1,10 +1,10 @@
 /*
  * @(#)arrayUtil.java  1999/01/10   Dennis Mikkelson
  *
- * ---------------------------------------------------------------------------
  *  $Log$
- *  Revision 1.2  2000/07/10 22:52:01  dennis
- *  Standard fonts for labels and borders, etc.
+ *  Revision 1.3  2000/07/10 22:55:37  dennis
+ *  July 10, 2000 version... many changes
+ *
  *
  *  Revision 1.5  2000/06/13 14:39:25  dennis
  *  Added dcoumentation and simplified the method to get a portion of an array.
