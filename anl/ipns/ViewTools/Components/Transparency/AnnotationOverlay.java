@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/06/13 14:40:23  dennis
+ *  (Mike Miller)
+ *  - Removed debug statements.
+ *  - Added setFont() method and functionality.
+ *  - Changed mapping, now used world coordinates with ratios to
+ *    account for image zoom consistency.
+ *  - Added JComboBox for font and font size to AnnotationEditor.
+ *
  *  Revision 1.5  2003/06/09 22:32:44  dennis
  *  - Added setEventListening(false) method call for ColorScaleImage to
  *    ignore keyboard/mouse events on the AnnotationEditor.
@@ -91,6 +99,7 @@
  * ALL EVENTS IN UPPERCASE ARE DONE TO THE AnnotationEditor AFTER IT POPS UP.
  * Important: 
  * All keyboard events must be done prior to mouse events.
+ * More event documentation can be found in the help() method.
  */ 
 
 package DataSetTools.components.View.Transparency;
@@ -100,6 +109,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*; 
 import java.lang.Math;
+import java.lang.Integer;
 import javax.swing.text.*;
 import javax.swing.event.*;
 import java.awt.image.IndexColorModel;
@@ -108,6 +118,8 @@ import DataSetTools.components.View.TwoD.*;
 import DataSetTools.components.View.Cursor.*;
 import DataSetTools.components.image.IndexColorMaker;
 import DataSetTools.components.ui.ColorScaleImage;
+import DataSetTools.components.image.*;
+import DataSetTools.util.floatPoint2D;
 
 /**
  * This class allows a user to write comments near a region on the 
@@ -124,6 +136,9 @@ public class AnnotationOverlay extends OverlayJPanel
    private Color text_color;              // annotation text color
    private boolean editorOpen;
    private AnnotationEditor editor;
+   private Font font;
+   private boolean first = true;
+   private CoordTransform pixel_local;
    
   /**
    * Constructor creates OverlayJPanel with a transparent AnnotationJPanel that
@@ -144,10 +159,19 @@ public class AnnotationOverlay extends OverlayJPanel
       line_color = Color.black;
       text_color = Color.black;
       editorOpen = false; 
+      font = iaa.getFont();
       this.add(overlay); 
       overlay.setOpaque(false); 
       overlay.addActionListener( new NoteListener() );  
-      
+      current_bounds =  component.getRegionInfo();
+      Rectangle temp = component.getRegionInfo();
+      CoordBounds pixel_map = 
+                   new CoordBounds( (float)temp.getX(), 
+                                    (float)temp.getY(),
+                                    (float)(temp.getX() + temp.getWidth()),
+			            (float)(temp.getY() + temp.getHeight() ) );
+      pixel_local = new CoordTransform( pixel_map, 
+                                        component.getLocalCoordBounds() );
       overlay.requestFocus();           
    }
 
@@ -162,8 +186,15 @@ public class AnnotationOverlay extends OverlayJPanel
       helper.getContentPane().add(text);
       text.setEditable(false);
       text.setLineWrap(true);
-      text.append("Note: These commands will NOT work if the Annotation " +
-                  "Overlay checkbox IS NOT checked.\n\n");
+      text.append("Note:\n" +
+                  "- These commands will NOT work if the Annotation " +
+                  "Overlay checkbox IS NOT checked.\n" +
+		  "- If zooming is done (this annotation must first be " +
+		  "turned off to zoom) the anchor of the annotation must be " +
+		  "included in the zoom. If the anchor is included, but the " +
+		  "text itself is not, the text will be temporarily relocated" +
+		  " for your convenience. As a side effect, if you try to " +
+		  "move the annotation after a zoom, it may jump.\n\n" );
       text.append("Image Commands in conjunction with AnnotationEditor:\n");
       text.append("Click/Drag/Release Mouse w/N_Key pressed>" + 
                   "CREATE ANNOTATION\n");
@@ -204,6 +235,16 @@ public class AnnotationOverlay extends OverlayJPanel
       line_color = c;
       this_panel.repaint();
    }
+
+  /**
+   * This method sets the font for all annotations.
+   *
+   *  @param newfont
+   */
+   public void setFont( Font newfont )
+   {
+      font = newfont;
+   }
    
   /**
    * This method requests focus from the parent. When called by the parent,
@@ -225,7 +266,6 @@ public class AnnotationOverlay extends OverlayJPanel
       else
       {
          editor.refresh();
-	 //editor = new AnnotationEditor( notes );
       }
    }
 
@@ -239,7 +279,9 @@ public class AnnotationOverlay extends OverlayJPanel
    */
    public void addAnnotation( String a_note, Line placement )
    {
-      notes.add( new Note( a_note, placement, current_bounds ) );
+      floatPoint2D p12d = convertToWorldPoint( placement.getP1() );
+      floatPoint2D p22d	= convertToWorldPoint( placement.getP2() );
+      notes.add( new Note( a_note, placement, current_bounds, p12d, p22d ) );
    }
 
   /**
@@ -250,20 +292,24 @@ public class AnnotationOverlay extends OverlayJPanel
    public void paint(Graphics g) 
    {  
       Graphics2D g2d = (Graphics2D)g;
-      current_bounds = component.getRegionInfo();  // current size of center
+      g2d.setFont( font );
+      
+      current_bounds = component.getRegionInfo(); // current size of center  
+      // the current pixel coordinates
+      CoordBounds pixel_map = 
+              new CoordBounds( (float)current_bounds.getX(), 
+                               (float)current_bounds.getY(),
+                               (float)(current_bounds.getX() + 
+			               current_bounds.getWidth()),
+			       (float)(current_bounds.getY() + 
+			               current_bounds.getHeight() ) );
+      pixel_local.setSource( pixel_map );
+      pixel_local.setDestination( component.getLocalCoordBounds() );
       FontMetrics fontinfo = g2d.getFontMetrics();
       // resize center "overlay" to size of center jpanel
       overlay.setBounds( current_bounds );
 
-      int ox = overlay.getLocation().x;
-      int oy = overlay.getLocation().y;
-     /* To "move" the annotations, an x & y scale had to be made. This
-      * simply takes the width of the current rectangle/scale rectangle.
-      */ 
-      float xfactor = 0;
-      float yfactor = 0;
       Note note;
-      Point at;
       String snote;
       // these variables are used to auto position the text to the arrow
       Point p1;
@@ -273,23 +319,22 @@ public class AnnotationOverlay extends OverlayJPanel
       int autolocatey = 0;
       int fontheight = fontinfo.getAscent();
       int textwidth = 0;
+      boolean drawNote; // if the anchor (p1) of the note is not in a zoom,
+                        // don't draw it.
+      // draw each note
       for( int comment = 0; comment < notes.size(); comment++ )
       {
+         drawNote = true;
          note = (Note)notes.elementAt(comment);
-         xfactor = (float)current_bounds.getWidth()/
-	           (float)note.getScale().getWidth();
-	           
-         yfactor = (float)current_bounds.getHeight()/
-	           (float)note.getScale().getHeight();
-
-         at = note.getLocation();
 	 snote = note.getText();
          textwidth = fontinfo.stringWidth(snote);
-         p1 = note.getLine().getP1();
-	 p2 = note.getLine().getP2();
+         p1 = new Point( note.getLine().getP1() );
+	 p2 = new Point( note.getLine().getP2() );
 	 // negate the slope since the x scale is top-down instead of bottom-up
 	 slope = -(float)(p2.y - p1.y)/(float)(p2.x - p1.x);
 
+         // This section of code will adjust the text portion of the annotation
+	 // according to the slope of the line. 
 	 // Any 2s or 3s except for x/2 are to provide spacing between line/text
 	 // Octdrent I or V
 	 if( (slope < .5) && (slope >= (-.5)) )
@@ -355,31 +400,74 @@ public class AnnotationOverlay extends OverlayJPanel
 	       autolocatey = fontheight;	       
 	    }	 
 	 }
-	 	 
-         // line color of all of the annotations.
-         g2d.setColor(line_color);	
-                	 
-	 g2d.drawLine( (int)(note.getLine().getP1().x * xfactor) + ox, 
-	               (int)(note.getLine().getP1().y * yfactor) + oy,
-	               (int)(note.getLine().getP2().x * xfactor) + ox, 
-		       (int)(note.getLine().getP2().y * yfactor) + oy );
 	 
-         // text color of all of the annotations.
-         g2d.setColor(text_color);
+	 p1 = convertToPixelPoint( note.getWCP1() );
+	 p2 = convertToPixelPoint( note.getWCP2() );
+         //System.out.println("WCP1 = " + note.getWCP1() );
+	 //System.out.println("P1 = " + p1 );
+	 
+	 Rectangle bounds = new Rectangle(current_bounds);
+	 
+	 // This section of code controls how the annotation reacts to a zoom.
+	 // If the entire "anchor" or p1 is not in the zoom, none of the 
+	 // annotation will show. If p2 is not in the zoom, it is readjusted
+	 // by the rules below.
+	 if( p1.x < bounds.getLocation().x || 
+	     p1.y < bounds.getLocation().y )
+	 {  //if p1 cut off, don't draw anything
+	    drawNote = false;
+	 }
+	 else if( p1.x > (bounds.getLocation().x + bounds.getWidth()) || 
+	          p1.y > (bounds.getLocation().y + bounds.getHeight()) )
+	 {   // if p1 cut off, don't draw anything
+	    drawNote = false;	    
+	 }
+         
+	 if( p2.x < (bounds.getLocation().x + textwidth + 3) )
+	    p2.x = bounds.getLocation().x + textwidth + 3;
+	 else if( p2.x > 
+	          (bounds.getLocation().x + bounds.getWidth() - textwidth - 3) )
+	    p2.x = (int)(bounds.getLocation().x + bounds.getWidth())
+	           - textwidth - 3;
+	 
+	 if( p2.y < (bounds.getLocation().y + fontheight + 2) )
+	    p2.y = bounds.getLocation().y + fontheight + 2;
+	 else if( p2.y > (bounds.getLocation().y + 
+		 bounds.getHeight() - fontheight - 2) )
+	    p2.y = (int)(bounds.getLocation().y + bounds.getHeight())
+	           - fontheight - 2;
+	 	   
+	 // only draw annotation if p1 was in the selected region.	 	 
+	 if( drawNote )
+	 {
+	    // line color of all of the annotations.
+            g2d.setColor(line_color);
+	    g2d.drawLine( p1.x, p1.y, p2.x, p2.y );         
 
-	 g2d.drawString( snote, 
-	                 (int)(((at.x + autolocatex) * xfactor) + ox), 
-	                 (int)(((at.y + autolocatey) * yfactor) + oy));
-	 /*
-         System.out.println("X/Y factor " + xfactor + "/" + yfactor); 
-	 System.out.println("PrePixel: (" + (at.x + ox) + "," + 
-	                                    (at.y + oy) + ")" ); 
-	 System.out.println("PostPixel: (" + (int)((at.x + ox) * xfactor) +
-	                    "," + (int)((at.y + oy) * yfactor) + ")" );
-	 */
+            // text color of all of the annotations.
+            g2d.setColor(text_color);
+	    g2d.drawString( snote, p2.x + autolocatex, p2.y + autolocatey );
+         }
       }     
    } // end of paint()
 
+  /*
+   * Converts from world coordinates to a pixel point
+   */
+   private Point convertToPixelPoint( floatPoint2D fp )
+   {
+      floatPoint2D fp2d = pixel_local.MapFrom( fp );
+      return new Point( (int)fp2d.x, (int)fp2d.y );
+   }
+  
+  /*
+   * Converts from pixel coordinates to world coordinates.
+   */
+   private floatPoint2D convertToWorldPoint( Point p )
+   {
+      return pixel_local.MapTo( new floatPoint2D((float)p.x, (float)p.y) );
+   }
+   
   /*
    * NoteListener listens to action events generated by the AnnotationJPanel.
    */
@@ -428,8 +516,15 @@ public class AnnotationOverlay extends OverlayJPanel
 	    // maintained, which adjusts all notes to the same location...BAD
 	    Line temp = ((LineCursor)
 	                      overlay.getLineCursor()).region();
+	    // since the mapping is from the current_bounds to world coordinates
+	    // the local pixel coords are translated to global pixel coords,
+	    // which is how they are displayed.
 	    Point p1 = new Point( temp.getP1() );
+	    p1.x += current_bounds.getX();
+	    p1.y += current_bounds.getY();
 	    Point p2 = new Point( temp.getP2() );
+	    p2.x += current_bounds.getX();
+	    p2.y += current_bounds.getY();
 	    Line newline = new Line( p1, p2 );
 	    new MiniViewer( newline, viewer );
 	 }
@@ -496,21 +591,27 @@ public class AnnotationOverlay extends OverlayJPanel
    private class Note
    {
       private JTextField textfield; // actual note being drawn
-      private Line arrow;           // location to draw this note
+      private Line arrow;           // location to draw this note (p1, p2)
       private Rectangle scale;      // the bounds of the overlay when this 
                                     // note was created
+      private floatPoint2D wcp1;    // the world coordinate associated with p1
+      private floatPoint2D wcp2;    // the world coordinate associated with p2
      /*
-      * This constructor takes in three parameters, a string text which is 
+      * This constructor takes in five parameters, a string text which is 
       * the actual message, a line which has a beginning point at the region
-      * of interest and an ending point where the annotation will be drawn, and
-      * a third parameter rectangle, which represents the bounds in which this
-      * annotation was created.
+      * of interest and an ending point where the annotation will be drawn, a
+      * rectangle which represents the bounds in which this annotation was 
+      * created, and two world points, corresponding to the world values
+      * referred to by p1 and p2 of the line.
       */ 
-      public Note(String t, Line l, Rectangle s)
+      public Note(String t, Line l, Rectangle s, floatPoint2D wc_p1,
+                                                 floatPoint2D wc_p2 )
       {
      	 textfield = new JTextField(t);
      	 arrow = new Line(l.getP1(), l.getP2());
 	 scale = new Rectangle(s);
+	 wcp1 = new floatPoint2D( wc_p1 );
+	 wcp2 = new floatPoint2D( wc_p2 );
       }
      
      /*
@@ -556,35 +657,75 @@ public class AnnotationOverlay extends OverlayJPanel
       {
          return arrow;
       }
+     
+     /*
+      * @return the world coordinate point p1 refers to.
+      */ 
+      public floatPoint2D getWCP1()
+      {
+         return wcp1;
+      } 
+      
+      public void setWCP1( floatPoint2D p1 )
+      {
+         wcp1 = p1;
+      }
+          
+     /*
+      * @return the world coordinate point p2 refers to.
+      */ 
+      public floatPoint2D getWCP2()
+      {
+         return wcp2;
+      }
+      
+      public void setWCP2( floatPoint2D p2 )
+      {
+         wcp2 = p2;
+      }
    } // end of Note
   
   /*
-   * This viewer contains the meat and bones in editing annotations.
+   * This viewer contains everything for editing annotations. All of its
+   * listeners are self-contained.
    */ 
    private class AnnotationEditor
    {
       private JFrame viewer;
-      private Vector textfields;
+      private Vector textfields; // references the notes vector
       private AnnotationEditor this_viewer;
-      // adjust this if more than the text color editor, refresh button,
-      // and close button are added. Anything that is not a JTextField from a
-      // note should increment this number.
-      private final int ADD_COMPONENTS = 3; 
-      
+      // adjust this if more than the font, fontsize, text color editor, 
+      // refresh button, and close button are added. Anything that is not a 
+      // JTextField from a note should increment this number.
+      private final int ADD_COMPONENTS = 5; 
+      private int current_fontsize;
+      private Font[] fonts;
+     
+     /*
+      * constructs a new annotation editor. The buildViewer() will make this
+      * instance visible.
+      */ 
       public AnnotationEditor( Vector textvect )
       {
          textfields = textvect;
          buildViewer();
 	 this_viewer = this;
-
+         current_fontsize = font.getSize();
       } // end of constructor
       
+     /*
+      * If a refresh is done, things may have changed, so kill old viewer and
+      * create a new one.
+      */ 
       public void refresh()
       {
          viewer.dispose();
 	 buildViewer();
       }
       
+     /*
+      * This method actually builds and displays the viewer.
+      */ 
       private void buildViewer()
       {
          viewer = new JFrame("Editor");
@@ -601,6 +742,21 @@ public class AnnotationOverlay extends OverlayJPanel
 	    text.addKeyListener( new TextFieldListener() );
 	    viewer.getContentPane().add(text);
 	 }
+	 GraphicsEnvironment ge =
+	              GraphicsEnvironment.getLocalGraphicsEnvironment();
+	 fonts = ge.getAllFonts();
+	 String[] fontnames = ge.getAvailableFontFamilyNames();
+	 JComboBox fontlist = new JComboBox( fontnames );
+	 fontlist.insertItemAt("Change Font",0);
+	 fontlist.setSelectedIndex(0);
+	 fontlist.addActionListener( new ComboBoxListener() );
+	 viewer.getContentPane().add( fontlist );
+	 
+	 String[] sizes = {"Change Font Size","8","12","16","20","24","28"};
+	 JComboBox sizelist = new JComboBox( sizes );
+	 sizelist.addActionListener( new ComboBoxListener() );
+	 viewer.getContentPane().add( sizelist );
+	 
 	 ColorScaleImage notecolor = new ColorScaleImage();
 	 notecolor.setNamedColorModel( IndexColorMaker.MULTI_SCALE, false );
 	 notecolor.setEventListening(false);
@@ -615,8 +771,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	 closebutton.addActionListener( new ButtonListener() );
 	 viewer.getContentPane().add( closebutton );
 
-	 // following was created with aid from code examples provided by 
-	 // Java's Tech Tips
+	 // These commands will create key events for moving the annotation
 	 //*********************************************************************
 	 Keymap km = text.getKeymap();
 	 // these move p2 of the line (the actual note)
@@ -660,7 +815,7 @@ public class AnnotationOverlay extends OverlayJPanel
          //*********************************************************************
 	 	 
 	 viewer.setVisible(true);
-	 //viewer.getContentPane().getComponent(0).requestFocus();	      
+	 viewer.getContentPane().getComponent(0).requestFocus();	      
       } // end of buildViewer()
       
       class ButtonListener implements ActionListener
@@ -743,7 +898,10 @@ public class AnnotationOverlay extends OverlayJPanel
 	    editorOpen = false;
 	 }	 
       }// end FrameListener
-      
+     
+     /*
+      * This class defines the actions for the key strokes created above. 
+      */ 
       class KeyAction extends TextAction
       {
          private String name;
@@ -768,6 +926,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	    Note tempnote = (Note)textfields.elementAt(compid);
 	    Point tempp1 = tempnote.getLine().getP1();
 	    Point tempp2 = tempnote.getLocation();
+	    
 	    if( name.indexOf("Ctrl") > -1 )
 	    {
 	       if( name.equals("Ctrl-UP") )
@@ -813,7 +972,9 @@ public class AnnotationOverlay extends OverlayJPanel
 	          if( tempp1.x < current_bounds.getWidth() )
 	             tempp1.x = tempp1.x + 1;
 	       }
-	    }	    
+	    }
+	    tempnote.setWCP1( convertToWorldPoint( tempp1 ) );
+	    tempnote.setWCP2( convertToWorldPoint( tempp2 ) );
 	    
 	    this_panel.repaint();	    
 	 }     
@@ -833,9 +994,7 @@ public class AnnotationOverlay extends OverlayJPanel
 	    Color grayarray[] = IndexColorMaker.getColorTable(
 	                           IndexColorMaker.GRAY_SCALE, 127 );
             int colorindex = (int)coloreditor.ImageValue_at_Cursor();
-	    System.out.println("ColorIndex: " + colorindex );
-	    System.out.println("ColorArray Size: " + colorarray.length );
-	    System.out.println("GrayArray Size: " + grayarray.length ); 
+	    
 	    if( colorindex > 0 )
 	    {
 	       colorindex = colorindex - 1;
@@ -856,6 +1015,48 @@ public class AnnotationOverlay extends OverlayJPanel
 	    this_panel.repaint();	 
 	 }
       }
+
+     /*
+      * This class handles the font and font size.
+      */
+      class ComboBoxListener implements ActionListener
+      {
+         public void actionPerformed( ActionEvent e )
+	 {
+	    JComboBox temp = ((JComboBox)e.getSource());
+	    String message = (String)temp.getSelectedItem();
+	    boolean isNumeric = false;
+	    try
+	    {
+	       current_fontsize = Integer.parseInt(message);
+	       isNumeric = true;
+	    }
+	    catch( NumberFormatException nfe )
+	    {
+	       isNumeric = false;
+	    }
+	    if( !isNumeric )
+	    {
+	       int fontindex = 0;
+	       while( message.indexOf("Change") < 0 &&
+	              !(fonts[fontindex].getFamily().equals(message)) &&
+	              (fontindex < fonts.length - 1) )
+	       {
+	          fontindex++;
+	       }
+	       font = fonts[fontindex];
+	       font = font.deriveFont( Font.PLAIN );
+	       font = font.deriveFont( (float)current_fontsize );
+	       this_panel.repaint();
+	       
+	    }
+	    else
+	    {
+	       font = font.deriveFont( (float)current_fontsize );
+	       this_panel.repaint();
+	    }
+	 }
+      } // end ComboBoxListener         
    }
    
 }
