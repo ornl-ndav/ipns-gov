@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2005/03/14 19:20:16  serumb
+ *  Changed public variable button to private and added a method to get
+ *  the button.
+ *
  *  Revision 1.5  2005/03/09 22:36:03  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -60,7 +64,7 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
  */ 
 public class ButtonControl extends ViewControl
 {
-   public JButton button;
+   private JButton button;
    private transient boolean ignore_change = false;
    private transient boolean button_pressed = false;
 
@@ -106,7 +110,15 @@ public class ButtonControl extends ViewControl
     return new Boolean(button_pressed);
   }
   
-
+ /**
+  * Gets the button
+  *
+  * @return Returns an object of type JButton.
+  */
+  public JButton getButton()
+  {
+    return button;
+  }  
 
 
  /*
