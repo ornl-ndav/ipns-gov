@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2003/11/21 18:20:15  dennis
+ * Added method scaleBounds() to scale the bounding rectangle about
+ * it's center, by specified scale factors in the x and y directions.
+ *
  * Revision 1.9  2003/10/15 23:31:32  dennis
  * Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -209,6 +213,35 @@ public class CoordBounds implements Serializable
      this.y1 = temp.y1;
      this.y2 = temp.y2;
   }
+
+
+  /**
+   *  Scale the current bounds to a rectangle, [x1,y1] x [x2,y2], centered on
+   *  the current rectangle, which is scaled in the "x" and "y" directions 
+   *  by the specified, non-zero, factors.  If a scale factor is negative, 
+   *  the order of the endpoints will reversed.  A scale factor of zero 
+   *  will be ignored.
+   *
+   *  @param   x_factor   The scale factor for the x direction. 
+   *  @param   y_factor   The scale factor for the x direction..
+   */
+  public void scaleBounds( float x_factor, float y_factor )
+  {
+    if ( x_factor != 0 && x_factor != 1 )
+    {
+      float mid = (x1+x2)/2;
+      x1 = mid + x_factor * ( x1 - mid );
+      x2 = mid + x_factor * ( x2 - mid );
+    } 
+
+    if ( y_factor != 0 && y_factor != 1 )
+    {
+      float mid = (y1+y2)/2;
+      y1 = mid + y_factor * ( y1 - mid );
+      y2 = mid + y_factor * ( y2 - mid );
+    } 
+  }
+
 
   /**
    *  Swap the y values of the current bounds.  That is, interchange
