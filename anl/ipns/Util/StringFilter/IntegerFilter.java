@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/11/05 04:32:35  bouzekc
+ *  Added javadoc comments to isOkay().
+ *
  *  Revision 1.2  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -64,6 +67,18 @@ public class IntegerFilter implements StringFilterer {
         this.automod=automicallymodifystring;
     }
 
+    /**
+     * This method is designed to test whether or not a given String
+     * would be accepted by this StringFilter.
+     * 
+     * @param  offs                 The offset of the entry point in the
+     *                              existing String curString.
+     * @param  inString             The String you want to insert.
+     * @param  curString            The String which currently exists.
+     *
+     * @return true if it would be OK to insert inString into curString based
+     * on the rules of this filter.
+     */
     public boolean isOkay(int offs, String inString, String curString){
         if(automod) this.modifyString(offs,inString,curString);
         char[]    source  = inString.toCharArray();
