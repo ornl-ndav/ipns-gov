@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.27  2003/12/29 06:35:04  millermi
+ *  - Added addSelectedRegion() so regions could be added
+ *    through commands and not just through the GUI.
+ *  - Made paint() more robust, if region has null defining
+ *    point, the region is deleted from the list of regions.
+ *
  *  Revision 1.26  2003/12/23 02:21:36  millermi
  *  - Added methods and functionality to allow enabling/disabling
  *    of selections.
@@ -533,6 +539,18 @@ public class SelectionOverlay extends OverlayJPanel
   }
   
  /**
+  * This method allows a user to add a region with a method instead of by
+  * using the GUI.
+  *
+  *  @param  reg The WCRegion to be added.
+  */
+  public void addSelectedRegion( WCRegion reg )
+  {
+    regions.add(reg);
+    sendMessage(REGION_ADDED);
+  } 
+  
+ /**
   * This method sets all the colors for the selected regions. Initially set
   * to white.
   *
@@ -641,15 +659,30 @@ public class SelectionOverlay extends OverlayJPanel
     String region;
     floatPoint2D[] fp;
     Point[] p;
+    boolean nullfound = false;
     for( int num_reg = 0; num_reg < regions.size(); num_reg++ )
     {
       regionclass = (WCRegion)regions.elementAt(num_reg);
       p = new Point[regionclass.getNumWCP()];
       fp = regionclass.getWorldCoordPoints();
       for( int i = 0; i < regionclass.getNumWCP(); i++ )
-    	p[i] = convertToPixelPoint( fp[i] );
-    			
-      region = ((WCRegion)regions.elementAt(num_reg)).getRegionType(); 
+      {
+        if( fp[i] == null )
+	{
+	  regions.remove(num_reg);
+	  i = regionclass.getNumWCP();
+	  nullfound = true;
+	}
+	else
+    	  p[i] = convertToPixelPoint( fp[i] );
+      }
+      if( !nullfound )
+        region = ((WCRegion)regions.elementAt(num_reg)).getRegionType(); 
+      else
+      {
+        region = "BAD REGION, DO NOT DRAW";
+	num_reg = num_reg - 1; // do this since the region was removed.
+      }
       //System.out.println("Point: " + p[0].x + "," + p[0].y );   
       if( region.equals( SelectionJPanel.CIRCLE ) )
       {
