@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.46  2004/11/11 19:50:06  millermi
+ * - Added getScaleFactor() so outside classes have access to the
+ *   y-axis scale factor.
+ *
  * Revision 1.45  2004/11/05 22:10:29  millermi
  * - Added methods getPositiveXmin() and getPositiveYmin()
  * - Replaced getXmin() and getYmin() with getPositiveXmin() and
@@ -1003,18 +1007,18 @@ public boolean is_autoY_bounds()
     float last_x  = bounds.getX2();
     //bounds = getLocalWorldCoords();   
 
-    CoordBounds unscaled_bounds = getGlobalWorldCoords();
+    CoordBounds unscaled_bounds = bounds.MakeCopy();
     unscaled_bounds.scaleBounds(1f,1f/getScaleFactor());
     
     if ( log_scale_x)
     {
       float min = getPositiveXmin();
       float max = getXmax();
-      LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
+      LogScaleUtil logger = new LogScaleUtil(min,max);
 
 
-      first_x = logger.toSource(first_x);
-      last_x = logger.toSource(last_x);
+      first_x = logger.toDest(first_x);
+      last_x = logger.toDest(last_x);
     }
     int height = getHeight();
 
@@ -1081,17 +1085,15 @@ public boolean is_autoY_bounds()
         float min = getPositiveXmin();
         float max = getXmax();
 
-
-        LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
-
+        LogScaleUtil logger = new LogScaleUtil(min,max);
 
         if( is_histogram ){
           for(int i = 0; i <= n_points; i++) {
-            x_copy[i] = logger.toSource(x_copy[i]);
+            x_copy[i] = logger.toDest(x_copy[i]);
           }
         }else
           for(int i = 0; i < n_points; i++) {
-            x_copy[i] = logger.toSource(x_copy[i]);
+            x_copy[i] = logger.toDest(x_copy[i]);
           }
       }
   
@@ -1101,26 +1103,21 @@ public boolean is_autoY_bounds()
         float max = getYmax();
         System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
 	
-        CoordBounds log_bounds = new CoordBounds(min, min, max, max);
-        CoordBounds draw_bounds = new CoordBounds(unscaled_bounds.getY2(),
-						  unscaled_bounds.getY2(),
-						  unscaled_bounds.getY1(),
-						  unscaled_bounds.getY1());
-        CoordTransform y_axis_tran = new CoordTransform(log_bounds,draw_bounds);
-	LogScaleUtil logger = new LogScaleUtil(min,max,min,max);
+	LogScaleUtil logger = new LogScaleUtil(min,max,unscaled_bounds.getY2(),
+	                                       unscaled_bounds.getY1());
 
         for(int i = 0; i < n_points; i++)
 	{
 	  if( y_copy[i] > 0 )
 	  {
 	    //System.out.println("PreLogScale: "+y_copy[i]);
-	    //System.out.println("LogScale: "+logger.toSource(y_copy[i]));
-            y_copy[i] = y_axis_tran.MapXTo(logger.toSource(y_copy[i]));
+	    //System.out.println("LogScale: "+logger.toDest(y_copy[i]));
+            y_copy[i] = logger.toDest( y_copy[i] );
 	    //System.out.println("PostLogScale: "+y_copy[i]);
           }
 	  // if not positive, move to position off of the graph.
 	  else
-	    y_copy[i] = y_axis_tran.MapXTo(logger.toSource(min));
+	    y_copy[i] = logger.toDest(min);
 	}
       }
   
