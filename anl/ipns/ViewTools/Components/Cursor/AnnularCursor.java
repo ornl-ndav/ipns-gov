@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/01/08 21:55:38  millermi
+ *  - Added crosshairs to center of ring.
+ *
  *  Revision 1.1  2003/12/30 00:00:12  millermi
  *  - Initial Version - This cursor allows users to select rings.
  *
@@ -100,6 +103,9 @@ public class AnnularCursor extends  XOR_Cursor3pt
       
       // draw inner circle of ring  	 
       graphics.drawOval( (p1.x - r), (p1.y - r), 2*r, 2*r );
+      // draw crosshair at center of ring
+      graphics.drawLine( p1.x - 2, p1.y, p1.x + 2, p1.y );
+      graphics.drawLine( p1.x, p1.y - 2, p1.x, p1.y + 2 );
     }
   }
 
