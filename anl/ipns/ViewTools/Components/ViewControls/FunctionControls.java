@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2003/11/05 17:49:51  serumb
+ * Changed the cursor output strings to X and Y.
+ *
  * Revision 1.14  2003/10/31 18:14:32  dennis
  * Since the frame containing the controls may be reused,
  * call validate() to get the displayed contents updated properly.
@@ -336,7 +339,7 @@ import javax.swing.border.*;
                       AxisInfo2D.YAXIS ).getMin(), Varray1D.getAxisInfo(
                       AxisInfo2D.YAXIS ).getMax()); 
 
-   String the_string[] = {"X LocationY","Y Location"};
+   String the_string[] = {"X ","Y "};
     cursor = new CursorOutputControl(the_string);
     log_slider = new ControlSlider();
     log_slider.setTitle("Log Scale Slider");
