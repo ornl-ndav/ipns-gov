@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2001/07/25 18:04:00  dennis
+ *  Added method to calculate an average detector position.
+ *
  *  Revision 1.5  2001/04/25 20:56:27  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -84,6 +87,61 @@ public class DetectorPosition extends    Position3D
 
     return (float)Math.atan2( dist_from_x, x ); 
   }
+
+
+  /**
+   *  Calculate a weighted average of a list of detector positions.  The
+   *  distance from the origin is the weighted average of the distances
+   *  to the detectors.  The direction to the average is the direction of
+   *  the center of mass of the detectors.  Any points for which a 
+   *  weight is not given will be given weight 0.
+   *
+   *  @param  points   Array of Detector3D objects whose weighted average is
+   *                   calculated
+   *
+   *  @param  weights  Array of floats giving the weights to be used for the
+   *                   detectors.  The weights should be determined by the
+   *                   effective solid angles and efficiencies.
+   *
+   *  @return  A DetectorPosition  containing the weighted average of 
+   *           the specified positions, or null if the weights and/or
+   *           points are not valid.
+   */
+
+  public static DetectorPosition getAveragePosition( DetectorPosition points[],
+                                                     float            weights[])
+  {
+    Position3D center_of_mass = getCenterOfMass( points, weights );
+    if ( center_of_mass == null )
+    {
+      System.out.println("ERROR: invalid data in " + 
+                         "DetectorPosition getAveragePosition" );
+      return null;
+    } 
+
+    int n_points = points.length;
+    if ( n_points > weights.length )
+      n_points = weights.length;
+
+    float sum_r = 0;
+    float sum_w = 0;
+    float coords[] = null;
+    for ( int i = 0; i < n_points; i++ )
+    {
+      coords = points[i].getSphericalCoords();
+      sum_r += coords[0] * weights[i];
+      sum_w += weights[i];
+    }
+    float ave_r = sum_r / sum_w;
+
+    coords = center_of_mass.getSphericalCoords();
+
+    DetectorPosition ave_pos = new DetectorPosition();
+    ave_pos.setSphericalCoords( ave_r, coords[1], coords[2] );
+
+    return ave_pos;
+  }   
+
 
   /**
    *  Form a string giving the scattering angle followed by the position
