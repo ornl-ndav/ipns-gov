@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/04/07 20:43:00  millermi
+ *  - Now uses string and intcode list from Marker class to construct
+ *    the combo box.
+ *
  *  Revision 1.2  2004/04/07 01:21:44  millermi
  *  - Added javadocs to addMarker() and removeMarker()
  *  - Added MarkerEditor, enabling users to interactively edit the markers.
@@ -364,19 +368,11 @@ public class MarkerOverlay extends OverlayJPanel
     private JComboBox markertypelist;
     private ButtonGroup resizeable;
     private ControlSlider size_adjuster;
-    // current list of available markertypes, must be maintained and updated.
-    private String[] markertypes = {"Marker Types", "Plus(+)", "X(x)",
-                                    "Star(*)", "Box([])", "Circle(o)",
-				    "Vertical Dash(|)", "Horizontal Dash(-)",
-				    "Vertical Line(|)", "Horizontal Line(-)",
-				    "Negative Slope Diagonal Line(\\)",
-				    "Positive Slope Diagonal Line(/)"};
+    // String list of marker types
+    private String[] markertypes;
     // Array that parallels the marker types, these are the int codes defined
     // by the Marker class.
-    private int[] markercodes = {-1, Marker.PLUS, Marker.X, Marker.STAR,
-                                 Marker.BOX, Marker.CIRCLE, Marker.VDASH,
-				 Marker.HDASH, Marker.VLINE, Marker.HLINE,
-				 Marker.NLINE, Marker.PLINE};
+    private int[] markercodes;
     protected MarkerEditor()
     {
       this_editor = this;
@@ -384,6 +380,19 @@ public class MarkerOverlay extends OverlayJPanel
       this_editor.setBounds(0,0,435,330);
       getContentPane().setLayout( new GridLayout(1,1) );
       setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
+      // initialize the marker types array, First value is a label, then copy
+      // the array over.
+      String[] temptypes = Marker.getStringArray();
+      int[] tempcodes = Marker.getIntCodeArray();
+      markertypes = new String[temptypes.length];
+      markertypes[0] = "Marker Types";
+      markercodes = new int[tempcodes.length];
+      markercodes[0] = -1;
+      for( int i = 1; i < tempcodes.length; i++ )
+      {
+        markertypes[i] = temptypes[i-1];
+	markercodes[i] = tempcodes[i-1];
+      }
       buildPane();
     }
     
