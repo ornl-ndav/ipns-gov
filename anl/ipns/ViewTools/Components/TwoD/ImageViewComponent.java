@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/06/13 14:43:53  dennis
+ *  - Added methods and implementation for getLocalCoordBounds() and
+ *  getGlobalCoordBounds() to allow selection and annotation overlays to adjust
+ *  when a zoom occurs. (Mike Miller)
+ *
  *  Revision 1.11  2003/06/09 14:46:34  dennis
  *  Added functional HelpMenu under Options. (Mike Miller)
  *
@@ -81,7 +86,7 @@ import java.awt.Rectangle.*;
 import java.util.*; 
 import java.awt.font.FontRenderContext;
 
-import DataSetTools.util.*;  //floatPoint2D
+import DataSetTools.util.*; 
 import DataSetTools.math.*;
 import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import DataSetTools.components.View.Transparency.*;
@@ -114,6 +119,8 @@ public class ImageViewComponent implements IViewComponent2D,
    // for component size and location adjustments
    //private ComponentAltered comp_listener;
    private Rectangle regioninfo;
+   private CoordBounds local_bounds;
+   private CoordBounds global_bounds;
    private Vector transparencies = new Vector();
    private int precision;
    private Font font;
@@ -141,7 +148,10 @@ public class ImageViewComponent implements IViewComponent2D,
       ComponentAltered comp_listener = new ComponentAltered();   
       ijp.addComponentListener( comp_listener );
       
-      regioninfo = ijp.getBounds();
+      regioninfo = new Rectangle( ijp.getBounds() );
+      local_bounds = ijp.getLocalWorldCoords().MakeCopy();
+      global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
+      
       AxisInfo2D xinfo = varr.getAxisInfoVA(AxisInfo2D.XAXIS);
       AxisInfo2D yinfo = varr.getAxisInfoVA(AxisInfo2D.YAXIS);
       
@@ -230,7 +240,27 @@ public class ImageViewComponent implements IViewComponent2D,
    {
       return font;
    }
-    
+   
+  /**
+   * This method will return the local coordinate bounds of the center
+   * jpanel. To be implemented, the center may have to be a coordjpanel.
+   */
+   public CoordBounds getLocalCoordBounds()
+   {
+      //return local_bounds;
+      return ijp.getLocalWorldCoords().MakeCopy();
+   }
+      
+  /**
+   * This method will return the global coordinate bounds of the center
+   * jpanel. To be implemented, the center may have to be a coordjpanel.
+   */
+   public CoordBounds getGlobalCoordBounds()
+   {
+      //return global_bounds;
+      return ijp.getGlobalWorldCoords().MakeCopy();
+   }
+       
   // Methods required since implementing IViewComponent2D
   /**
    * This method adjusts the crosshairs on the imagejpanel.
@@ -432,7 +462,7 @@ public class ImageViewComponent implements IViewComponent2D,
      String message = e.getActionCommand();     
      
      //Send message to tester 
-     if (message == "POINTED_AT_CHANGED")
+     if ( message.equals(POINTED_AT_CHANGED) )
          sendMessage(POINTED_AT_CHANGED);
    }
    
@@ -575,6 +605,11 @@ public class ImageViewComponent implements IViewComponent2D,
 	    for(int next = 0; next < transparencies.size(); next++ )
 	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
             sendMessage(SELECTED_CHANGED);
+	    ImageJPanel center = (ImageJPanel)ae.getSource();
+	    local_bounds = 
+	            ((ImageJPanel)center).getLocalWorldCoords().MakeCopy();
+	    global_bounds = 
+	            ((ImageJPanel)center).getGlobalWorldCoords().MakeCopy();
 	 }
 	 if (message == CoordJPanel.RESET_ZOOM)
          {
@@ -722,10 +757,13 @@ public class ImageViewComponent implements IViewComponent2D,
 	    AnnotationOverlay.help();
 	 }
 	 else if( button.equals("Axes") )
-	    System.out.println("AxesHelpMenu");
+	 {
+	    //System.out.println("AxesHelpMenu");
+	    AxisOverlay2D.help();
+	 }
 	 else if( button.equals("Selection") )
 	 {
-	    System.out.println("SelectionHelpMenu");
+	    //System.out.println("SelectionHelpMenu");
 	    SelectionOverlay.help();  
 	 }	 
       }
@@ -754,9 +792,9 @@ public class ImageViewComponent implements IViewComponent2D,
 	
         //Make a sample 2D array
 	VirtualArray2D va2D = new VirtualArray2D(row, col); 
-        va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, .015f, 
+        va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, 100f, 
                            "TestX","TestUnits", true );
-	va2D.setAxisInfoVA( AxisInfo2D.YAXIS, -1001f, 1014f, 
+	va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, 1000f, 
                             "TestY","TestYUnits", true );
 	va2D.setTitle("Main Test");
 	//Fill the 2D array with the function x*y
