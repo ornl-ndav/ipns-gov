@@ -2,6 +2,11 @@
  * @(#) IndexColorMaker.java  1.0    1998/07/29   Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.4  2000/11/07 16:09:46  dennis
+ *  Refined use of dual +/- color scales.  The zero level is no longer always
+ *  mapped to black, since this did not work well with negative gray color
+ *  scales.
+ *
  *  Revision 1.3  2000/10/03 21:39:18  dennis
  *  Added method to construct a "Dual" logarithmic scale to handle both
  *  negative and positive values.
@@ -110,7 +115,7 @@ public class IndexColorMaker implements Serializable
     else if (scale_type == NEGATIVE_GRAY_SCALE )
     {
       BuildNegativeGrayScale( p_red, p_green, p_blue ); 
-      BuildHeatedObjectScale( m_red, m_green, m_blue ); 
+      BuildNegativeHeatedObjectScale( m_red, m_green, m_blue ); 
     }
     else if (scale_type == GREEN_YELLOW_SCALE ) 
     {
@@ -147,17 +152,19 @@ public class IndexColorMaker implements Serializable
       BuildSpectrumScale( p_red, p_green, p_blue ); 
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
-    else
+    else                           // by default, use HEATED OBJECT/GRAY SCALE
     {
-      BuildGrayScale( p_red, p_green, p_blue );
+      BuildHeatedObjectScale( p_red, p_green, p_blue );
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
                               // Now fit both positive and negative color 
                               // scales into red, green and blue arrays.
-                              // Black representing "0" is the mid entry
-    red  [ num_colors ] = 0;
-    green[ num_colors ] = 0;
-    blue [ num_colors ] = 0;
+                              // The average of the first positive and first
+                              // negative color represents "0" and is the mid 
+                              // entry.
+    red  [ num_colors ] = (byte)(( (int)p_red[0]   + (int)m_red[0]  ) / 2);
+    green[ num_colors ] = (byte)(( (int)p_green[0] + (int)m_green[0]) / 2);
+    blue [ num_colors ] = (byte)(( (int)p_blue[0]  + (int)m_blue[0] ) / 2);
 
     for ( int i = 0; i < num_colors; i++ ) 
     {
@@ -209,6 +216,19 @@ public class IndexColorMaker implements Serializable
 
     InterpolateColorScale( base_red, base_green, base_blue, red, green, blue );
   }
+
+
+  private static void BuildNegativeHeatedObjectScale( byte red[],
+                                                      byte green[],
+                                                      byte blue[] )
+  {
+    float base_red[]   = { 255, 255, 230, 127, 40 };
+    float base_green[] = { 255, 180, 127,   0, 20 };
+    float base_blue[]  = { 255,  77,   0,   0, 20 };
+
+    InterpolateColorScale( base_red, base_green, base_blue, red, green, blue );
+  }
+
 
   private static void BuildHeatedObjectScale( byte red[], 
                                               byte green[], 
