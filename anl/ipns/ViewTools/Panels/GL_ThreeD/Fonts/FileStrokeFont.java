@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/18 20:03:10  dennis
+ * Fixed package and imports after moving to Fonts package.
+ *
  * Revision 1.1  2004/06/18 19:51:40  dennis
  * Moved to Fonts package.
  *
@@ -55,9 +58,8 @@
  *
  */
 
-package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
+package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts;
 import  gov.anl.ipns.Util.File.*;
-import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.*;
 
 import  java.io.*;
 
