@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2004/04/05 02:36:43  millermi
+ *  - Fixed bug that scaled the image in the refreshData() when
+ *    the actual panel_size should have been used.
+ *
  *  Revision 1.14  2004/03/15 23:53:54  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -285,12 +289,15 @@ public class PanViewControl extends ViewControl
   private void refreshData()
   {
     setImageDimension();
-    double aspect_ratio = setAspectRatio();
+    setAspectRatio();
     if( actual_cjp instanceof ImageJPanel )
     { 
       Dimension panel_size = panel.getSize();
+      // Since panel is in the PanViewControl, the aspect ratio of the
+      // control affects the aspect ratio of the image. Don't need to
+      // alter the image size according to the aspect ratio.
       panel_image = ((ImageJPanel)actual_cjp).getThumbnail( panel_size.width, 
-                            (int)(panel_size.width*aspect_ratio) ); 
+                            panel_size.height );
       if( panel_image != null )
       {
         panel.setImage(panel_image);
@@ -320,14 +327,14 @@ public class PanViewControl extends ViewControl
   * This method uses aspect ratio of height/width to keep the ratio of the
   * panviewcontrol similar to that of the data.
   */ 
-  private double setAspectRatio()
+  private void setAspectRatio()
   { 
     double aspect_ratio = data_height / data_width;
     
     // limit aspect ratio between 2/3 and 3/2
     if( aspect_ratio < (2f/3f) )
       aspect_ratio = 2.0/3.0;
-    if( aspect_ratio > (3f/2f) )
+    else if( aspect_ratio > (3f/2f) )
       aspect_ratio = 3.0/2.0;
      
     double pan_width = getWidth();
@@ -338,7 +345,6 @@ public class PanViewControl extends ViewControl
     //System.out.println("Pan Height: " + pan_height );
     setPreferredSize( new Dimension( (int)pan_width, (int)pan_height ) );
     setSize( new Dimension( (int)pan_width, (int)pan_height ) );
-    return aspect_ratio;
   }
 
  /*
