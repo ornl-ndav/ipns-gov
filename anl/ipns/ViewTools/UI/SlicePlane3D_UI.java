@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/01/26 21:15:25  dennis
+ * Now has four tabbed panes for selecting slice plane.
+ * Added beep if plane is improperly specified.
+ * Added listener in main test program.
+ *
  * Revision 1.2  2004/01/26 18:20:38  dennis
  * Added ThreePointSliceSelector to tabbed pane.
  * Added getPlane() method.
@@ -67,8 +72,10 @@ public class SlicePlane3D_UI extends    ActiveJPanel
 {
   private SlicePlane3D old_slice_plane;
   private JTabbedPane  tabbed_pane;
-  private HKL_SliceSelector       hkl_slice_selector;
-  private ThreePointSliceSelector three_point_slice_selector;
+  private HKL_SliceSelector              hkl_selector;
+  private ThreePointSliceSelector        three_point_selector;
+  private CenterNormalSliceSelector      center_normal_selector;
+  private CenterNormalPointSliceSelector center_normal_point_selector;
 
   /*-------------------------- default constructor ----------------------- */
   /**
@@ -76,20 +83,29 @@ public class SlicePlane3D_UI extends    ActiveJPanel
    */
   public SlicePlane3D_UI( String title )
   {
-    hkl_slice_selector = new HKL_SliceSelector();
-    hkl_slice_selector.addActionListener( new PaneListener() );
-    SlicePlane3D slice_plane = hkl_slice_selector.getPlane();
+    hkl_selector = new HKL_SliceSelector();
+    hkl_selector.addActionListener( new PaneListener() );
+    SlicePlane3D slice_plane = hkl_selector.getPlane();
 
-    three_point_slice_selector = new ThreePointSliceSelector();
-    three_point_slice_selector.addActionListener( new PaneListener() );
-    three_point_slice_selector.setPlane( slice_plane );
+    three_point_selector = new ThreePointSliceSelector();
+    three_point_selector.addActionListener( new PaneListener() );
+    three_point_selector.setPlane( slice_plane );
+     
+    center_normal_selector = new CenterNormalSliceSelector();
+    center_normal_selector.addActionListener( new PaneListener() );
+    center_normal_selector.setPlane( slice_plane );
+
+    center_normal_point_selector = new CenterNormalPointSliceSelector();
+    center_normal_point_selector.addActionListener( new PaneListener() );
+    center_normal_point_selector.setPlane( slice_plane );
      
     tabbed_pane = new JTabbedPane();
     tabbed_pane.setFont( FontUtil.LABEL_FONT );
-    tabbed_pane.addTab( "HKLC", hkl_slice_selector );
-    tabbed_pane.addTab( "NC", new JPanel() );
-    tabbed_pane.addTab( "CPP", three_point_slice_selector );
-    tabbed_pane.addTab( "NCP", new JPanel() );
+    tabbed_pane.addTab( "CN",  center_normal_selector );
+    tabbed_pane.addTab( "CPP", three_point_selector );
+    tabbed_pane.addTab( "CNP", center_normal_point_selector );
+    tabbed_pane.addTab( "CHKL", hkl_selector );
+    tabbed_pane.setSelectedIndex( 3 );
     tabbed_pane.addChangeListener( new TabListener() );
 
     TitledBorder border =
@@ -99,6 +115,7 @@ public class SlicePlane3D_UI extends    ActiveJPanel
 
     setLayout( new GridLayout(1,1) );
     add( tabbed_pane );
+    old_slice_plane = getPlane();
   }
 
   /* ---------------------------- getPlane ------------------------------ */
@@ -160,10 +177,17 @@ public class SlicePlane3D_UI extends    ActiveJPanel
     {
       ISlicePlaneSelector selector = 
                       (ISlicePlaneSelector)tabbed_pane.getSelectedComponent();
-      old_slice_plane = selector.getPlane();
-      System.out.println("in SlicePlane3D_UI.PaneListener... NEW PLANE");
-      System.out.println("Send message " + ISlicePlaneSelector.PLANE_CHANGED);
-      System.out.println("new plane = " + old_slice_plane );
+
+      SlicePlane3D new_plane = selector.getPlane();
+
+      if ( new_plane == null )              // invalid, so just restore old one
+      {                                        
+        Toolkit.getDefaultToolkit().beep();
+        selector.setPlane( old_slice_plane );
+        return;
+      }
+
+      old_slice_plane = new_plane;
       send_message( ISlicePlaneSelector.PLANE_CHANGED );
     }
   }
@@ -177,8 +201,17 @@ public class SlicePlane3D_UI extends    ActiveJPanel
     JFrame  f = new JFrame("Test for SlicePlane3D_UI");
     f.setBounds( 0, 0, 200, 200 ); 
 
-    SlicePlane3D_UI test = new SlicePlane3D_UI("Select Plane");
-    System.out.println("Default is:" + test );
+    final SlicePlane3D_UI test = new SlicePlane3D_UI("Select Plane");
+
+    test.addActionListener( new ActionListener()
+    {
+      public void actionPerformed(ActionEvent e)
+      {
+        System.out.println("New Plane ----------------------------" );
+        System.out.println("" + test.getPlane() );
+        System.out.println("--------------------------------------" );
+      }
+    });
 
     f.getContentPane().setLayout( new GridLayout(1,1) );
     f.getContentPane().add( test );
