@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.70  2005/03/28 05:58:52  serumb
+ *  Now uses new methods from function controls for data changed and for
+ *  initializing the controls with the ObjectState.
+ *
  *  Revision 1.69  2005/03/11 19:47:30  serumb
  *  Added Object State and fixed eclipse warnings.
  *
@@ -714,7 +718,8 @@ public class FunctionViewComponent implements IViewComponent1D,
    public GraphData getGraphData(int graph){
      GraphData data = null;
 
-     if ( gjp != null && gjp.graphs != null && graph > 0 && graph < gjp.graphs.size() )
+     if ( gjp != null && gjp.graphs != null && graph > 
+          0 && graph < gjp.graphs.size() )
        data = ( GraphData )gjp.graphs.elementAt( graph );
     
      return data; //test 
@@ -737,6 +742,35 @@ public class FunctionViewComponent implements IViewComponent1D,
    public int[] getSelectedGraphs(){
    return Varray1D.getSelectedIndexes();
    }
+
+  /**
+   *  This function will return an array of 17 ViewControls 
+   *  which are used by the Function View Component.
+   *  [0] - Control to choose a selected line.
+   *  [1] - Control to choose the style of the chosen line.
+   *  [2] - Control to choose the thickness of the chosen line.
+   *  [3] - Control to display point markers for the chosen line.
+   *  [4] - Control to choose the size of the point markers for the line.
+   *  [5] - Control to display error bars for the choosen line.
+   *  [6] - Button Control to select the color of the chosen line.
+   *  [7] - Button Control to select the color of the point markers.
+   *  [8] - Button Control to select the color of the error bars.
+   *  [9] - Control to offset the selected lines
+   *  [10]- Control to set a shift factor to offset the selected lines by.
+   *  [11]- Control to select the axis overlay.
+   *  [12]- Control to select the annotation overlay.
+   *  [13]- Control to select the legend overlay.
+   *  [14]- Control to select a range for the graph to display.
+   *  [15]- Control to show the location of the cursor.
+   *  [16]- Control to display logarithmic axes.
+   *
+   *  @return ViewControl[] the array of view controls
+   */
+   public ViewControl[] getControlList()
+   {
+     return mainControls.getControlList();
+   } 
+
 
   /**
    * This method will return the local coordinate bounds of the center
@@ -858,9 +892,8 @@ public class FunctionViewComponent implements IViewComponent1D,
       Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
                               // SAME FRAME, so that the frame doesn't move.
-      mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel(),
-                                        this, mainControls.get_frame() );
-      DrawSelectedGraphs(); 
+     mainControls.dataChanged(Varray1D);
+     DrawSelectedGraphs(); 
     } 
     dataChanged();
     transparencies.set(0 ,  new LegendOverlay(this));
@@ -1042,8 +1075,9 @@ public class FunctionViewComponent implements IViewComponent1D,
     return false;
   }
   private void reInit(){
-    mainControls = new FunctionControls(Varray1D, gjp, getDisplayPanel(),
-                                        this, mainControls.get_frame() );
+      mainControls.reInit();
+    //mainControls = new FunctionControls(Varray1D, gjp, getDisplayPanel(),
+    //                                    this, mainControls.get_frame() );
     buildViewComponent();
   }  
     
