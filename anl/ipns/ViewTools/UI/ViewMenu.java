@@ -3,6 +3,9 @@
  * $Id$
  *
  * $Log$
+ * Revision 1.2  2001/07/31 16:07:56  neffk
+ * added some System.out.println( ... ) statements to the default listener.
+ *
  * Revision 1.1  2001/07/25 18:20:57  neffk
  * encapsulates a menu that displays and listens to various view
  * options.
@@ -52,19 +55,23 @@ public class ViewMenu
                      DataSet[] dss,
                      ActionListener listener )
   {
+    main_menu.addActionListener( listener );
+
     this.dss = dss;
 
     JMenuItem image_mi  = new JMenuItem( IMAGE_VIEW_MI );
+              image_mi.addActionListener( listener ); 
     JMenuItem scroll_mi = new JMenuItem( SCROLL_VIEW_MI );
+              scroll_mi.addActionListener( listener );
     JMenuItem select_mi = new JMenuItem( SELECTED_VIEW_MI );  
+              select_mi.addActionListener( listener );
     JMenuItem threed_mi = new JMenuItem( THREED_VIEW_MI );
+              threed_mi.addActionListener( listener );
 
     main_menu.add( image_mi );
     main_menu.add( scroll_mi );
     main_menu.add( select_mi );
     main_menu.add( threed_mi );
-
-    main_menu.addActionListener( listener );
   }
 
 
@@ -81,17 +88,16 @@ public class ViewMenu
       System.out.println( "ViewMenu option selected" ); 
 
       if(  e.getActionCommand().equals( ViewManager.IMAGE )  )
-      {
-      }
+        System.out.println( "IMAGE viewer invoked" );
+
       if(  e.getActionCommand().equals( ViewManager.SCROLLED_GRAPHS )  )
-      {
-      }
+        System.out.println( "SCROLLED_GRAPHS viewer invoked" );
+
       if(  e.getActionCommand().equals( ViewManager.SELECTED_GRAPHS )   )
-      {
-      }
+        System.out.println( "SELECTED_GRAPHS viewer invoked" );
+
       if(  e.getActionCommand().equals( ViewManager.THREE_D )  )
-      {
-      }
+        System.out.println( "THREE_D invoked" );
     }
   }
 
