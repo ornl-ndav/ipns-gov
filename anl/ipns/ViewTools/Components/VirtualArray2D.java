@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/08/07 15:57:04  dennis
+ *  - Added method and implementation of setAxisInfoVA() with
+ *    alternate parameters.  Since getAxisInfoVA() returns an
+ *    AxisInfo2D object, this new method takes in an AxisInfo2D
+ *    object.
+ *    (Mike Miller)
+ *
  *  Revision 1.2  2003/05/16 15:01:54  dennis
  *  Minor fix to java doc comments and added acknowledgement of NSF funding.
  *
@@ -142,7 +149,23 @@ public class VirtualArray2D implements IVirtualArray2D
          rowinfo = new AxisInfo2D(min,max,label,units, islinear);
       else
          colinfo = new AxisInfo2D(min,max,label,units, islinear);
-   }   
+   } 
+   
+  /**
+   * Sets the attributes of the data array within a AxisInfo2D wrapper.
+   * This method will take in a boolean value to determine for which axis
+   * info is being altered.          true = X axis, false = Y axis.
+   *
+   *  @param  isX
+   *  @param  axisinfo
+   */
+   public void setAxisInfoVA( boolean isX, AxisInfo2D info )
+   {
+      if(isX)
+         rowinfo = info.copy();
+      else
+         colinfo = info.copy();
+   } 
    
   /**
    * This method will return the title assigned to the data. 
