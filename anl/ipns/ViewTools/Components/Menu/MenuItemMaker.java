@@ -32,6 +32,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.7  2004/08/06 18:52:12  millermi
+ * - Added HTML to javadocs to make them legible.
+ *
  * Revision 1.6  2004/04/29 06:26:24  millermi
  * - Added MarkerOverlay to overlay list.
  *
@@ -81,27 +84,27 @@ import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
  * Example (This example demonstrates behavior of makeMenuItem(). The method
  *          makeMultiMenuItem() differs only in that the "names" vector would
  *          contain multiple "Trees", thus requiring no listener.)
- *
- * Tree (vector)               // first listener here, unused listener
- *   TreeTitle (string)        // first string of the vector labels the JMenu
- *   Branch1 (vector)          // second listener here
- *     Branch1Title (string)   // first string of the vector labels the JMenu
- *     Branch1.a (string)      // first JMenuItem in Branch1, uses 2nd listener
- *     BranchI (vector)        // third listener here
- *       BranchITitle (string) // first string of vector labels the JMenu
- *       BranchI.a (string)    // first JMenuItem in BranchI, uses 3rd listener
- *       BranchI.b (string)    // second JMenuItem in BranchI, uses 3rd listener
- *   Branch2 (vector)          // fourth listener here, unused listener
- *     Branch2Title (string)   // first string of the vector labels the JMenu
- *     BranchII (vector)       // fifth listener here
- *       BranchII(string)      // if only one element, BranchII is a JMenuItem
- *                             // that uses 5th listener
+ *<BR><BR>
+ * Tree (vector)            // first listener here, unused listener <BR>
+ * -TreeTitle (string)      // first string of the vector labels the JMenu<BR>
+ * -Branch1 (vector)        // second listener here <BR>
+ * --Branch1Title (string)  // first string of the vector labels the JMenu <BR>
+ * --Branch1.a (string)     // first JMenuItem in Branch1, uses 2nd listener<BR>
+ * --BranchI (vector)	    // third listener here <BR>
+ * ---BranchITitle (string) // first string of vector labels the JMenu <BR>
+ * ---BranchI.a (string)    // first JMenuItem in BranchI, uses 3rd listener<BR>
+ * ---BranchI.b (string)    // second JMenuItem in BranchI,uses 3rd listener<BR>
+ * -Branch2 (vector)        // fourth listener here, unused listener <BR>
+ * --Branch2Title (string)  // first string of the vector labels the JMenu <BR>
+ * --BranchII (vector)      // fifth listener here <BR>
+ * ---BranchII(string)      // if only one element, BranchII is a JMenuItem
+ *                             that uses 5th listener <BR><BR>
  * ** NOTICE: Not all listeners are used. Listeners are only used if the JMenu
  *            contains at least one JMenuItem. If the JMenu contains other
  *            JMenus, the listener will not be used.
  *
  * The menu from the above would require five listeners and appear as follows:
- *
+ *<BR><BR>
  *    Tree -> Branch1 -> Branch1.a
  *                       BranchI -> BranchI.a
  *                                  BranchI.b
