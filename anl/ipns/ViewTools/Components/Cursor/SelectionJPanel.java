@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2004/03/09 21:06:47  millermi
+ *  - Added ToolTips to editors for user assistance.
+ *
  *  Revision 1.14  2003/12/30 00:39:38  millermi
  *  - Added Annular selection capabilities.
  *  - Changed SelectionJPanel.CIRCLE to SelectionJPanel.ELLIPSE
@@ -516,41 +519,49 @@ public class SelectionJPanel extends ActiveJPanel
     JButton[] controls = new JButton[8];
     controls[0] = new JButton(BOX);
     controls[0].addActionListener( new ButtonListener() );
+    controls[0].setToolTipText("Shortcut Key: Hold B");
     if( disableBox )
       controls[0].setEnabled(false);
     
     controls[1] = new JButton(ELLIPSE);
     controls[1].addActionListener( new ButtonListener() );
+    controls[1].setToolTipText("Shortcut Key: Hold C");
     if( disableCircle )
       controls[1].setEnabled(false);
     
     controls[2] = new JButton(DOUBLE_WEDGE);
     controls[2].addActionListener( new ButtonListener() );
+    controls[2].setToolTipText("Shortcut Key: Hold D");
     if( disableDblWedge )
       controls[2].setEnabled(false);
     
     controls[3] = new JButton(LINE);
     controls[3].addActionListener( new ButtonListener() );
+    controls[3].setToolTipText("Shortcut Key: Hold L");
     if( disableLine )
       controls[3].setEnabled(false);
     
     controls[4] = new JButton(POINT);
     controls[4].addActionListener( new ButtonListener() );
+    controls[4].setToolTipText("Shortcut Key: Hold P");
     if( disablePoint )
       controls[4].setEnabled(false);
     
     controls[5] = new JButton(RING);
     controls[5].addActionListener( new ButtonListener() );
+    controls[5].setToolTipText("Shortcut Key: Hold R");
     if( disableRing )
       controls[5].setEnabled(false);
     
     controls[6] = new JButton(WEDGE);
     controls[6].addActionListener( new ButtonListener() );
+    controls[6].setToolTipText("Shortcut Key: Hold W");
     if( disableWedge )
       controls[6].setEnabled(false);
     
     controls[7] = new JButton("Clear All");
     controls[7].addActionListener( new ButtonListener() );
+    controls[7].setToolTipText("Shortcut Key: Hold A");
     if( disableAll )
       controls[7].setEnabled(false);
     

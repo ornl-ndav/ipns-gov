@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.28  2004/03/09 21:06:46  millermi
+ *  - Added ToolTips to editors for user assistance.
+ *
  *  Revision 1.27  2004/02/06 23:23:43  millermi
  *  - Changed how editor bounds were stored in the ObjectState,
  *    removed check if visible.
@@ -357,8 +360,8 @@ public class AnnotationOverlay extends OverlayJPanel
  		  "the desired area. Action is the action performed by you, " +
  		  "the user. Result is the consequence of your action.<BR>" +
                   "TextArea>Press Enter>REFRESH WINDOW<BR>" +
-                  "TextArea>Hold Ctrl, Press Arrow Keys>MOVE ANNOTATION<BR>" +
-                  "TextArea>Hold Shift, Press Arrow Keys>MOVE LINE ANCHOR<BR>" +
+                  "TextArea>Hold Ctrl, Press Arrow Keys>MOVE LINE ANCHOR<BR>" +
+                  "TextArea>Hold Shift, Press Arrow Keys>MOVE ANNOTATION<BR>" +
                   "TextArea>Remove All Text, Press Enter/Refresh>REMOVE " +
  		  "ANNOTATION<BR>" +	       
                   "ColorScale>Click Mouse>CHANGE TEXT AND LINE COLOR<BR>" +
@@ -866,10 +869,12 @@ public class AnnotationOverlay extends OverlayJPanel
       JTextField text = new JTextField();
       for( int i = 0; i < notes.size(); i++ )
       { 
-         text = ((Note)notes.elementAt(i)).getTextField();
-         
-         text.addKeyListener( new TextFieldListener() );
-         this.getContentPane().add(text);
+        text = ((Note)notes.elementAt(i)).getTextField();
+        
+        text.addKeyListener( new TextFieldListener() );
+	text.setToolTipText("Shift+Arrow Key=Move Text, " +
+			    "Ctrl+Arrow Key=Move Anchor");
+        this.getContentPane().add(text);
       }
       GraphicsEnvironment ge =
         	   GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -891,6 +896,8 @@ public class AnnotationOverlay extends OverlayJPanel
       notecolor.setNamedColorModel( IndexColorMaker.MULTI_SCALE,true,false );
       notecolor.setEventListening(false);
       notecolor.addMouseListener( new NoteColorListener() );
+      notecolor.setToolTipText("Shift+Click=Text Color Only, " +
+        		       "Ctrl+Click=Line Color Only");
       this.getContentPane().add( notecolor );
       
       JButton refreshbutton = new JButton("Refresh");
@@ -1045,46 +1052,20 @@ public class AnnotationOverlay extends OverlayJPanel
    	{
    	  if( name.equals("Ctrl-UP") )
    	  {
-   	     //if( tempp2.y > 0 )
-   		tempp2.y = tempp2.y - 1;
-   	  }	       
-   	  else if( name.equals("Ctrl-DOWN") )
-   	  {
-   	     //if( tempp2.y < current_bounds.getHeight() )
-   		tempp2.y = tempp2.y + 1;
-          }	       
-   	  else if( name.equals("Ctrl-LEFT") )
-   	  {
-   	     //if( tempp2.x > 0 )
-   		tempp2.x = tempp2.x - 1;
-   	  }
-   	  else if( name.equals("Ctrl-RIGHT") )
-   	  {
-   	     //if( tempp2.x < current_bounds.getWidth() )
-   		tempp2.x = tempp2.x + 1;
-   	  }
-   	  tempnote.setWCP2( pix_to_world.MapTo( new floatPoint2D(
-   						(float)tempp2.x, 
-   						(float)tempp2.y) ) );
-   	}
-   	else if( name.indexOf("Shift") > -1 )
-   	{
-   	  if( name.equals("Shift-UP") )
-   	  {
    	     //if( tempp1.y > 0 )
    		tempp1.y = tempp1.y - 1;
    	  }	       
-   	  else if( name.equals("Shift-DOWN") )
+   	  else if( name.equals("Ctrl-DOWN") )
    	  {
    	     //if( tempp1.y < current_bounds.getHeight() )
    		tempp1.y = tempp1.y + 1;
           }	       
-   	  else if( name.equals("Shift-LEFT") )
+   	  else if( name.equals("Ctrl-LEFT") )
    	  {
    	     //if( tempp1.x > 0 )
    		tempp1.x = tempp1.x - 1;
    	  }
-   	  else if( name.equals("Shift-RIGHT") )
+   	  else if( name.equals("Ctrl-RIGHT") )
    	  {
    	     //if( tempp1.x < current_bounds.getWidth() )
    		tempp1.x = tempp1.x + 1;
@@ -1092,6 +1073,32 @@ public class AnnotationOverlay extends OverlayJPanel
    	  tempnote.setWCP1( pix_to_world.MapTo( new floatPoint2D(
    						(float)tempp1.x, 
    						(float)tempp1.y) ) );
+   	}
+   	else if( name.indexOf("Shift") > -1 )
+   	{
+   	  if( name.equals("Shift-UP") )
+   	  {
+   	     //if( tempp2.y > 0 )
+   		tempp2.y = tempp2.y - 1;
+   	  }	       
+   	  else if( name.equals("Shift-DOWN") )
+   	  {
+   	     //if( tempp2.y < current_bounds.getHeight() )
+   		tempp2.y = tempp2.y + 1;
+          }	       
+   	  else if( name.equals("Shift-LEFT") )
+   	  {
+   	     //if( tempp2.x > 0 )
+   		tempp2.x = tempp2.x - 1;
+   	  }
+   	  else if( name.equals("Shift-RIGHT") )
+   	  {
+   	     //if( tempp2.x < current_bounds.getWidth() )
+   		tempp2.x = tempp2.x + 1;
+   	  }
+   	  tempnote.setWCP2( pix_to_world.MapTo( new floatPoint2D(
+   						(float)tempp2.x, 
+   						(float)tempp2.y) ) );
    	}
    	
    	this_panel.repaint();		
