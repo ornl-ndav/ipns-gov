@@ -40,7 +40,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
     private String title = "", xLabel = "", xUnits = "", yLabel = "",
             yUnits = "";
 
-    private Float minX, maxX, minY, maxY;
+    private Float minX=null, maxX=null, minY=null, maxY=null;
 
     private float xValues[] = new float[1];
 
@@ -92,17 +92,6 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
             float yErrs[]) {
         this(container);
         addPlot(xVals, yVals, yErrs);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#addPlot(float[], float[],
-     *      float[], java.lang.String, int)
-     */
-    public void addPlot(float[] x, float[] y, float[] yerr, String t, int gnum) {
-        setPlotTitle(t);
-        addPlot(x, y, yerr);
     }
 
     /*
@@ -231,7 +220,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
      * 
      * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#setPlotTitle(java.lang.String)
      */
-    public void setPlotTitle(String t) {
+    public void setGraphTitle(String t) {
         title = t;
     }
 
@@ -276,7 +265,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
      * 
      * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#setYScale(float, float)
      */
-    public void setYScale(float min, float max) {
+    public void setYDataRange(float min, float max) {
         minY = new Float(min);
         maxY = new Float(max);
         setY_bounds(minY.floatValue(), maxY.floatValue());
@@ -288,21 +277,34 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
      * 
      * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#setXScale(float, float)
      */
-    public void setXScale(float min, float max) {
+    public void setXDataRange(float min, float max) {
         minX = new Float(min);
         maxX = new Float(max);
         setX_bounds(min, max);
         axisPane.repaint();
     }
 
-    public float mapYFrom(float y) {
+    /* (non-Javadoc)
+     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#yScreen2Data(int)
+     */
+    public float yScreen2Data(float y) {
         return local_transform.MapYFrom(y
                 + local_transform.getDestination().getY1());
     }
 
-    public float mapXFrom(float x) {
+    /* (non-Javadoc)
+     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#xScreen2Data(int)
+     */
+    public float xScreen2Data(float x) {
         return local_transform.MapXFrom(x
                 + local_transform.getDestination().getX1());
+    }
+
+    /* (non-Javadoc)
+     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#getPlotBounds()
+     */
+    public Rectangle getPlotBounds() {
+        return getBounds();
     }
 
     public float getXPoint() {
@@ -369,21 +371,9 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
     /*
      * (non-Javadoc)
      * 
-     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#setXAxisMin(float)
-     */
-    public void setXScaleMin(float x) {
-        if (maxX == null) {
-            maxX = new Float(getXmax());
-        }
-        setXScale(x, maxX.floatValue());
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#getXAxisMin()
      */
-    public float getXScaleMin() {
+    public float getXPlotMin() {
         if (minX == null) {
             minX = new Float(getXmin());
         }
@@ -393,21 +383,9 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
     /*
      * (non-Javadoc)
      * 
-     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#setXAxisMax(float)
-     */
-    public void setXScaleMax(float x) {
-        if (minX == null) {
-            minX = new Float(getXmin());
-        }
-        setXScale(minX.floatValue(), x);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#getXAxisMax()
      */
-    public float getXScaleMax() {
+    public float getXPlotMax() {
         if (maxX == null) {
             maxX = new Float(getXmax());
         }
@@ -417,45 +395,23 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
     /*
      * (non-Javadoc)
      * 
-     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#setYAxisMin(float)
-     */
-    public void setYScaleMin(float y) {
-        if (maxY == null) {
-            maxY = new Float(getYmax());
-        }
-        setYScale(y, maxY.floatValue());
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#getYAxisMin()
      */
-    public float getYScaleMin() {
+    public float getYPlotMin() {
         if (minY == null) {
             minY = new Float(getYmin());
         }
         return minY.floatValue();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#setYAxisMax(float)
-     */
-    public void setYScaleMax(float y) {
-        if (minY == null) {
-            minY = new Float(getYmin());
-        }
-        setYScale(minY.floatValue(), y);
-    }
+
 
     /*
      * (non-Javadoc)
      * 
      * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#getYAxisMax()
      */
-    public float getYScaleMax() {
+    public float getYPlotMax() {
         if (maxY == null) {
             maxY = new Float(getYmax());
         }
@@ -597,7 +553,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
         float g4_y_vals[] = { (float) .3, (float) .1, (float) .4, (float) .2 };
 
         DisplayPanel1D graph = new DisplayPanel1D(cp);
-        graph.setPlotTitle("Test DsiplayPanel1D");
+        graph.setGraphTitle("Test DsiplayPanel1D");
         graph.setXLabel("x label");
         graph.setXUnits("x units");
         graph.setYLabel("y labels");
@@ -607,7 +563,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
         graph.setStroke(graph.strokeType(TRANSPARENT, 0), 0, false);
         graph.setLineWidth(1, 0, false);
         graph.setMarkColor(Color.green, 0, false);
-        graph.addPlot(g1_x_vals, g1_y_vals, null, "TestPlot", 0);
+        graph.addPlot(g1_x_vals, g1_y_vals, null);
         graph.setMarkType(BOX, 0, false);
 
         f.setVisible(true);
@@ -622,6 +578,9 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
      */
     public void autoYScale() {
         autoY_bounds();
+        minY = new Float(getYmin());
+        maxY = new Float(getYmax());
+        axisPane.repaint();
     }
 
     /*
@@ -631,5 +590,22 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
      */
     public void autoXScale() {
         autoX_bounds();
+        minX = new Float(getXmin());
+        maxX = new Float(getXmax());
+        axisPane.repaint();
+    }
+
+    /* (non-Javadoc)
+     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#is_autoXScale()
+     */
+    public boolean is_autoXScale() {
+        return is_autoX_bounds();
+    }
+
+    /* (non-Javadoc)
+     * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#is_autoYScale()
+     */
+    public boolean is_autoYScale() {
+        return is_autoY_bounds();
     }
 }
