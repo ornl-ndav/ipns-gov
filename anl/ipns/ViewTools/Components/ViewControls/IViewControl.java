@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/05/24 17:34:39  dennis
+ *  Changed action event string for ControlSlider and added the
+ *  action event string for ControlCheckbox. (Mike Miller)
+ *
  *  Revision 1.1  2003/05/20 19:44:46  dennis
  *  Initial version of standardized controls for viewers. (Mike Miller)
  *
@@ -53,9 +57,11 @@ public interface IViewControl
   /*
    * These variables are messaging strings for use by action listeners.
    */
-   public static final String IS_CHANGING = "IS_CHANGING";
-   public static final String IS_CHANGED  = "IS_CHANGED";
-   
+   // Used by ControlSlider.java
+   //public static final String SLIDER_CHANGING = "SLIDER_CHANGING";
+   public static final String SLIDER_CHANGED  = "SLIDER_CHANGED";
+   // Used by ControlCheckBox.java
+   public static final String CHECKBOX_CHANGED  = "CHECKBOX_CHANGED";
    
   /**
    * Add a listener to this view control. A listener will be notified
