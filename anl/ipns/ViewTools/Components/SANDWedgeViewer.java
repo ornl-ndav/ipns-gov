@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.24  2004/02/28 00:32:59  millermi
+ * - Added ivc.preserveAspectRatio(true) to prevent image distortion.
+ *
  * Revision 1.23  2004/02/16 05:44:44  millermi
  * - Now uses error functionality provided with theIVirtualArray2D
  *   class.
@@ -665,7 +668,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 			     SelectionJPanel.LINE };
       ivc.disableSelection( disSelect );
       ivc.setColorControlEast(true);
-      //ivc.preserveAspectRatio(true);
+      ivc.preserveAspectRatio(true);
       ivc.addActionListener( new ImageListener() );    
       Box componentholder = new Box(BoxLayout.Y_AXIS);
       componentholder.add( ivc.getDisplayPanel() );
