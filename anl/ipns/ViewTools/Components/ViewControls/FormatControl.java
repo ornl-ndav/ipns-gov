@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2005/03/21 00:53:32  millermi
+ *  - SELECTED_LIST now returned by the getObjectState(default).
+ *    Previously, it was a PROJECT option.
+ *
  *  Revision 1.5  2005/03/20 05:37:00  millermi
  *  - Modified main() to reflect parameter changes to
  *    ControlManager.makeManagerTestWindow().
@@ -185,10 +189,10 @@ public class FormatControl extends ViewControl
   {
     ObjectState state = super.getObjectState(isDefault);
     
+    state.insert( SELECTED_LIST, getSelectedIndexArray() );
     if( !isDefault )
     {
       state.insert( FORMAT_LIST, getFormats() );
-      state.insert( SELECTED_LIST, getSelectedIndexArray() );
       state.insert( TOOL_TIP_LIST, getToolTipArray() );
     }
     
