@@ -560,7 +560,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
         graph.setYUnits("y units");
         graph.setBackground(Color.white);
         graph.setColor(Color.black, 0, false);
-        graph.setStroke(graph.strokeType(TRANSPARENT, 0), 0, false);
+        graph.setStroke(graph.TRANSPARENT, 0, false);
         graph.setLineWidth(1, 0, false);
         graph.setMarkColor(Color.green, 0, false);
         graph.addPlot(g1_x_vals, g1_y_vals, null);
