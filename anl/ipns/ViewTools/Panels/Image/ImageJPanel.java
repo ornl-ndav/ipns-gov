@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2004/01/29 23:26:41  millermi
+ *  - Two-sided no longer ignored for default state.
+ *
  *  Revision 1.22  2004/01/29 08:18:14  millermi
  *  - Updated the getObjectState() to include parameter for specifying
  *    default state.
@@ -252,12 +255,7 @@ public class ImageJPanel extends    CoordJPanel
     ObjectState state = super.getObjectState(isDefault);
     state.insert( COLOR_MODEL, color_model_string );
     state.insert( LOG_SCALE, log_scale );
-    
-    // load these for project specific instances.
-    if( !isDefault )
-    {
-      state.insert( TWO_SIDED, new Boolean(isTwoSided) );
-    }
+    state.insert( TWO_SIDED, new Boolean(isTwoSided) );
     
     return state;
   }
