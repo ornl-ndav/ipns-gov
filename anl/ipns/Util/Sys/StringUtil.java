@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2003/02/06 16:20:46  pfpeterson
+ *  Fixed small bug in getBoolean(StringBuffer) which did not remove
+ *  the parsed portion of the StringBuffer.
+ *
  *  Revision 1.14  2003/02/06 15:22:04  pfpeterson
  *  Pulled out the functionality to determine the next space for StringBuffers
  *  into a private method. Also now understands tabs as spaces.
@@ -538,6 +542,9 @@ public class StringUtil
                                            +temp);
       }
     }
+    sb.delete(0,end);
+    trim(sb);
+
     return val;
   }
 
