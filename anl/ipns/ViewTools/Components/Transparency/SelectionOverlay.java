@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.32  2004/01/30 22:16:13  millermi
+ *  - Changed references of messaging Strings from the IViewControl
+ *    to the respective control that sent the message.
+ *
  *  Revision 1.31  2004/01/29 08:16:28  millermi
  *  - Updated the getObjectState() to include parameter for specifying
  *    default state.
@@ -224,7 +228,6 @@ import DataSetTools.components.View.ObjectState;
 import DataSetTools.components.View.Region.WCRegion;
 import DataSetTools.components.View.Cursor.*; 
 import DataSetTools.components.View.ViewControls.ControlSlider;
-import DataSetTools.components.View.ViewControls.IViewControl;
 import DataSetTools.util.floatPoint2D; 
 import DataSetTools.util.WindowShower;
 
@@ -1050,10 +1053,10 @@ public class SelectionOverlay extends OverlayJPanel
       
       ControlSlider opacityscale = 
 			   new ControlSlider("Selection Opacity Scale");
-      opacityscale.setPrecision(3);
-      opacityscale.setRange(0,100);
-      opacityscale.setMajorTickSpace(20);
-      opacityscale.setMinorTickSpace(5);
+      opacityscale.setStep(.01f);
+      opacityscale.setRange(0f,100f);
+      opacityscale.setMajorTickSpace(.2f);
+      opacityscale.setMinorTickSpace(.05f);
       opacityscale.setValue(opacity*100f);
       opacityscale.addActionListener( new ControlListener() );
       pane.add(opacityscale);
@@ -1091,7 +1094,7 @@ public class SelectionOverlay extends OverlayJPanel
             this_panel.repaint();
           }
 	}
-        else if( message.equals( IViewControl.SLIDER_CHANGED ) )
+        else if( message.equals( ControlSlider.SLIDER_CHANGED ) )
         {
           opacity = ((ControlSlider)ae.getSource()).getValue() / 100f;
           this_panel.repaint();

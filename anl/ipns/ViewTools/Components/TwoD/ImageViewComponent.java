@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.53  2004/01/30 22:16:12  millermi
+ *  - Changed references of messaging Strings from the IViewControl
+ *    to the respective control that sent the message.
+ *
  *  Revision 1.52  2004/01/29 23:43:58  millermi
  *  - Added Dennis's changes to dataChanged(), which fixed refresh
  *    bug.
@@ -1536,7 +1540,7 @@ public class ImageViewComponent implements IViewComponent2D,
     {
       String message = ae.getActionCommand();
         		   // set image log scale when slider stops moving
-      if ( message == IViewControl.SLIDER_CHANGED )
+      if ( message == ControlSlider.SLIDER_CHANGED )
       {
         ControlSlider control = (ControlSlider)ae.getSource();
         logscale = control.getValue();  				    
@@ -1544,7 +1548,7 @@ public class ImageViewComponent implements IViewComponent2D,
         ((ControlColorScale)controls[1]).setLogScale( logscale );
 	((PanViewControl)controls[5]).repaint();
       } 
-      else if ( message == IViewControl.CHECKBOX_CHANGED )
+      else if ( message == ControlCheckboxButton.CHECKBOX_CHANGED )
       { 
         int bpsize = big_picture.getComponentCount();
         
@@ -1606,7 +1610,7 @@ public class ImageViewComponent implements IViewComponent2D,
           }
         }		
       } // end if checkbox
-      else if( message.equals( IViewControl.BUTTON_PRESSED ) )
+      else if( message.equals( ControlCheckboxButton.BUTTON_PRESSED ) )
       {
         if( ae.getSource() instanceof ControlCheckboxButton )
         {
