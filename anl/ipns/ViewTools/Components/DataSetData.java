@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2003/12/16 23:17:07  dennis
+ * Removed methods to get controls.  Combined methods to set x and y
+ * values into one method.
+ *
  * Revision 1.9  2003/11/21 15:33:33  rmikk
  * Notified all listeners when a new data set is set
  *
@@ -192,8 +196,13 @@ public class DataSetData implements IVirtualArray1D
 
     }
 
-  public void setXValues( float[] values, int line_number )
+  public void setXYValues( float[] x_values, 
+                           float[] y_values,
+                           float[] errors,
+                           int     group_id,
+                           int     line_number )
     {
+      System.out.println("DataSetData.setXYValues() is just a stub");
     }
 
 
@@ -211,13 +220,6 @@ public class DataSetData implements IVirtualArray1D
     }
 
 
-
-
-  public void  setYValues( float[] values, int line_number )
-    {
-
-    }
-  
   public float[] getXVals_ofIndex(int index)
   {
      if( index < 0)
@@ -282,6 +284,7 @@ public class DataSetData implements IVirtualArray1D
   {
      return ds.getNum_entries();
   }
+
   public void setAllValues( float value )
   { 
 
@@ -317,17 +320,19 @@ public class DataSetData implements IVirtualArray1D
       return selectedInd.length;
     }
 
-
+/*
    public JComponent[] getSharedControls()
     {
      return null;
     }
+
    public JComponent[] getPrivateControls()
     {
      JComponent[] Res = new JComponent[1];
      
      return new JComponent[0];
     }
+*/
    
    Vector ActListeners = new Vector();
    public void addActionListener( ActionListener listener)
