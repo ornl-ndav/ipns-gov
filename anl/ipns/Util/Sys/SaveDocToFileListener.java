@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2003/10/22 19:57:16  rmikk
+ * Fixed javadoc error
+ *
  * Revision 1.6  2002/11/27 23:12:10  pfpeterson
  * standardized header
  *
@@ -187,7 +190,7 @@ public class SaveDocToFileListener
     /**
      * Sets the name of the file or path that was selected or to start
      * from
-     * @param the currently selected file
+     * @param Filename the currently selected file
      */
     public void setFileName( String Filename){
         filename= Filename;
