@@ -30,6 +30,16 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2003/10/02 20:27:09  dennis
+ * Now draws objects to an offscreen buffer first, then copies
+ * the offscreen buffer to the panel.  If the panel is exposed,
+ * the offscreen buffer is used to redraw the panel, rather
+ * than recalculating and redrawing the 3D objects.  In addition
+ * to speeding up the redraw in the case of expose events,
+ * this also fixes the synchonization problem with the 3D viewer.
+ * When stepping through a sequence of frames, no frames are
+ * missed.
+ *
  * Revision 1.14  2003/03/27 22:10:40  dennis
  * Added methods getObjects() and getAllObjects() to get references
  * to the list of objects displayed in a ThreeD_JPanel.
@@ -88,6 +98,15 @@ public class ThreeD_JPanel extends    CoordJPanel
                                                    // fraction of distance from
                                                    // VRP to COP
 
+  private Image buffer;                            // use an off-screen buffer
+  private int   buffer_width  = -1;                // to draw to and then
+  private int   buffer_height = -1;                // paing by copying the 
+  private Graphics graphics_buffer;                // off-screen buffer to the
+                                                   // CoordJPanel 
+
+  private boolean debug = false;
+
+
 /* --------------------- Default Constructor ------------------------------ */
 /**
  *  Construct a default ThreeD_JPanel with an empty list of ThreeD objects.
@@ -135,6 +154,7 @@ public class ThreeD_JPanel extends    CoordJPanel
         return;
 
       repaint();
+
       while ( !data_painted )           // wait till it's done painting
       try
       {
@@ -147,17 +167,125 @@ public class ThreeD_JPanel extends    CoordJPanel
   }
 
 
+   /**
+    *  This repaint method just calls update() so that the offscreen buffer
+    *  is used for drawing.
+    */
+   public void repaint()
+   {
+     if ( debug )
+       System.out.println("START REPAINT");
+
+     update( getGraphics() );
+   }
+
+   /**
+    *  This update method creates a new off screen buffer, if the buffer 
+    *  doesn't exist, or is of the wrong size, then calls paint(), passing
+    *  in the off screen buffer, and finally draws the off screen buffer
+    *  image to the specified Graphics object g.
+    */
+   public void update( Graphics g )
+   {
+      ElapsedTime timer = null;
+      if ( debug )
+      {
+        timer = new ElapsedTime();
+        timer.reset();
+      }
+
+      if ( !isVisible() )
+        return;
+
+      int width = (int)getWidth();
+      int height = (int)getHeight();
+
+      if ( width <= 10 )
+        return;
+
+      if ( height <= 10 )
+        return;
+
+      // Create an offscreen image and then get its
+      // graphics context
+      if ( buffer == null || width != buffer_width || height != buffer_height )
+      {
+        buffer = createImage( width, height );
+        buffer_width  = width;
+        buffer_height = height;
+        graphics_buffer = buffer.getGraphics();
+      }
+
+      paint( graphics_buffer );          // paint to the off screen buffer 
+                                         // then just draw the offscreen 
+                                         // image onto the screen
+      g.drawImage(buffer, 0, 0, this);
+
+      if ( debug && timer != null )
+        System.out.println("Update screen took: " + timer.elapsed() );
+   }
+
+
+
 /* --------------------------------- paint ------------------------------- */
 /**
- *  Draw all of the graphs.  This function should not be called directly by
+ *  Draw all of the 3D objects.  This function should not be called directly by
  *  the application.  To request drawing the 3D scene, call repaint() if the
  *  drawing can be done asyncronously or call request_painting() if the
  *  application needs to wait for the drawing to complete before advancing.
  *
  *  @param  g   The graphics context to use when painting the scene.
+ *              If g is the graphics buffer, the objects will be projected
+ *              and drawn onto the buffer.  If g is the graphics context for
+ *              this ThreeD_JPanel, the offscreen buffer will be drawn to
+ *              the panel, provided the buffer exists and is valid. 
+ *              If there is no valid buffer, the objects will be projected
+ *              and drawn directly.
  */
   public void paint( Graphics g )
   {
+    if ( !isVisible() )
+      return;
+
+    int width = (int)getWidth();
+    int height = (int)getHeight();
+
+    if ( width <= 10 )                      
+      return;
+
+    if ( height <= 10 )
+      return;
+
+    ElapsedTime timer = null;
+
+    if ( (Object)g != (Object)graphics_buffer )
+    {
+                                              // the system sometimes calls
+                                              // paint directly, if for example 
+                                              // a window is exposed.  Use our
+                                              // buffer, if possible.
+      if ( graphics_buffer != null         && 
+           width           == buffer_width && 
+           height          == buffer_height )
+      {
+        g.drawImage(buffer, 0, 0, this); 
+        return;
+      }
+      else
+        System.out.println("3D JPANEL NOT USING BUFFER!!!!!!" );
+    }
+
+    if ( debug )
+    {
+      if ( (Object)g != (Object)graphics_buffer )
+        System.out.println("paint() called for JPanel, not graphics_buffer");
+      else
+        System.out.println("paint() called for graphics_buffer");
+
+      timer = new ElapsedTime();
+      timer.reset();
+    }
+
     data_painted = true;
     if ( isDoingCrosshair() )                  // if the system redraws this
       stop_crosshair( current_point );         // without our knowledge, 
@@ -168,7 +296,9 @@ public class ThreeD_JPanel extends    CoordJPanel
                                                // user moves the cursor (due
                                                // to XOR drawing).
     super.paint(g);
+
     build_object_list();
+
     if ( all_objects == null )
     {
       g.setColor( Color.white );
@@ -179,6 +309,9 @@ public class ThreeD_JPanel extends    CoordJPanel
     project();
     for ( int i = 0; i < all_objects.length; i++ )
       all_objects[ index[i] ].Draw(g);
+
+    if ( debug && timer != null )
+      System.out.println("actually painting took: " + timer.elapsed() );
   }
 
 /* --------------------------- setViewTran --------------------------- */
@@ -491,6 +624,8 @@ public class ThreeD_JPanel extends    CoordJPanel
 
  public Point project( Vector3D point )
  {
+   System.out.println("Doing projection ...." );
+
    if ( tran3D_used == null || tran2D_used == null || point == null )
    {
      System.out.println("WARNING: transform null in ThreeD_JPanel.project()");
@@ -568,6 +703,9 @@ public class ThreeD_JPanel extends    CoordJPanel
 
   private void project()
   {
+    if ( debug )
+      System.out.println("PROJECT()");
+
     if ( all_objects == null )         // nothing to project
       return;
                                    // can't project using null transforms
@@ -676,7 +814,7 @@ private class DepthComparator implements Serializable,
 
     ViewController v_control = new ViewController();
 //    v_control.setVirtualScreenSize( 10, 10 );
-    v_control.setViewAngle( 50 );
+    v_control.setViewAngle( 120 );
     v_control.addControlledPanel( test );
                                                    // make a list of objects
                                                    // and give them to the
@@ -725,6 +863,7 @@ private class DepthComparator implements Serializable,
 
       test.setColors( "SAMPLE_OBJECTS", colors );
       test.request_painting( 200 );
+      test.repaint();
     }
                                                     // test showing scene
                                                     // from different locations
