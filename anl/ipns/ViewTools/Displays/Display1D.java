@@ -33,6 +33,14 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2005/02/11 23:46:24  millermi
+ * - Added private class ArrayConverter which converts an
+ *   IVirtualArrayList1D to an IVirtualArray2D. This class allows
+ *   graphs to be displayed in a table.
+ * - Added menu items for saving and printing graphs.
+ * - buildPane() now calls validate() and repaint() after rebuilding
+ *   the pane.
+ *
  * Revision 1.5  2004/09/15 21:58:29  millermi
  * - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *   Adding a second log required the boolean parameter to be changed
@@ -59,6 +67,7 @@ package gov.anl.ipns.ViewTools.Displays;
 
 import javax.swing.*;
 import java.util.Vector;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -69,8 +78,11 @@ import javax.swing.text.html.HTMLEditorKit;
 import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.OneD.*;
+import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.Util.Sys.WindowShower;
+import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
+import gov.anl.ipns.Util.Sys.SaveImageActionListener;
 
 /**
  * Simple class to display a 1-dimensional or list of 1-dimensional arrays,
@@ -274,13 +286,23 @@ public class Display1D extends Display
   */
   private void buildPane()
   { 
+    // Clear any existing views, so it can be rebuilt.
+    getContentPane().removeAll();
+    
     if( current_view == GRAPH )
     {
+      // Be sure to remove any windows from other view components.
+      if( ivc != null )
+        ivc.kill();
       ivc = new FunctionViewComponent( (IVirtualArrayList1D)data );
     }
-    if( current_view == TABLE )
+    else if( current_view == TABLE )
     {
-      System.out.println("Table view currently unavailable.");
+      // Be sure to remove any windows from other view components.
+      if( ivc != null )
+        ivc.kill();
+      ivc = new TableViewComponent( ArrayConverter.makeInstance(
+                                       (IVirtualArrayList1D)data) );
     }
     ivc.addActionListener( new ViewCompListener() );    
     
@@ -300,6 +322,10 @@ public class Display1D extends Display
     }
     getContentPane().add(pane);
     addComponentMenuItems();
+    // Repaint the display, this is needed when the menu items are used
+    // the switch between views.
+    validate();
+    repaint();
   }
  
  /*
@@ -311,6 +337,7 @@ public class Display1D extends Display
   private void addToMenubar()
   {
     Vector options           = new Vector();
+    Vector switch_view       = new Vector();
     Vector save_default      = new Vector();
     Vector help              = new Vector();
     Vector display_help      = new Vector();
@@ -324,6 +351,12 @@ public class Display1D extends Display
     options.add(save_default);
       save_default.add("Save User Settings");
       option_listeners.add( new Menu2DListener() ); // listener for user prefs.
+    options.add(switch_view);
+      switch_view.add("View Data As...");
+      switch_view.add("Graph");
+      option_listeners.add( new Menu2DListener() ); // listener for user prefs
+      switch_view.add("Table");
+      option_listeners.add( new Menu2DListener() ); // listener for user prefs
     
     // build help menu
     help.add("Help");
@@ -334,10 +367,36 @@ public class Display1D extends Display
     menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
     
+    // Add image specific menu items.
+    Vector print             = new Vector();
+    Vector save_graph        = new Vector();
+    Vector file_listeners    = new Vector();
+    
+    print.add("Print Graph");
+    save_graph.add("Make JPEG Graph");
+    file_listeners.add( new Menu2DListener() );
+    JMenu file_menu = menu_bar.getMenu(0);
+    file_menu.add( MenuItemMaker.makeMenuItem( print, file_listeners ),
+		   file_menu.getItemCount() - 1 );
+    file_menu.add( MenuItemMaker.makeMenuItem( save_graph, file_listeners ),
+		   file_menu.getItemCount() - 1 );
+    
+    // If view is not currently an image, disable the "Print Image" and
+    // "Make JPEG Image" menu items, since they are Image specific.
+    if( current_view != GRAPH )
+    {
+      file_menu.getItem(2).setEnabled(false);
+      file_menu.getItem(3).setEnabled(false);
+    }
+    
     // Add keyboard shortcuts
-    JMenu option_menu = menu_bar.getMenu(1);
     KeyStroke binding = 
-               KeyStroke.getKeyStroke(KeyEvent.VK_U,InputEvent.ALT_MASK);
+               KeyStroke.getKeyStroke(KeyEvent.VK_P,InputEvent.ALT_MASK);
+    file_menu.getItem(2).setAccelerator(binding);   // Print Image
+    binding = KeyStroke.getKeyStroke(KeyEvent.VK_J,InputEvent.ALT_MASK);
+    file_menu.getItem(3).setAccelerator(binding);   // Make JPEG Image
+    JMenu option_menu = menu_bar.getMenu(1);
+    binding = KeyStroke.getKeyStroke(KeyEvent.VK_U,InputEvent.ALT_MASK);
     option_menu.getItem(0).setAccelerator(binding); // Save User Settings
     JMenu help_menu = menu_bar.getMenu(2);
     binding = KeyStroke.getKeyStroke(KeyEvent.VK_H,InputEvent.ALT_MASK);
@@ -362,17 +421,277 @@ public class Display1D extends Display
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals("Save User Settings") )
+      String message = ae.getActionCommand();
+      if( message.equals("Save User Settings") )
       {
 	getObjectState(IPreserveState.DEFAULT).silentFileChooser( PROP_FILE,
 	                                                          true );
       }
-      else if( ae.getActionCommand().equals("Using Display1D") )
+      else if( message.equals("Using Display1D") )
       {
         help();
       }
+      else if( message.equals("Graph") )
+      {
+        // Check to see if current view is already graph, if not change it.
+        if( current_view != GRAPH )
+	{
+	  // Remove the menu items of the previous view component.
+	  removeComponentMenuItems();
+          current_view = GRAPH;
+	  // Enable the "Print Image" and "Make JPEG Image" menu items.
+          JMenu file_menu = menu_bar.getMenu(0);
+	  file_menu.getItem(2).setEnabled(true);
+	  file_menu.getItem(3).setEnabled(true);
+	  // Rebuild the display with a graph.
+	  buildPane();
+	}
+      }
+      else if( message.equals("Table") )
+      {
+        // Check to see if current view is already graph, if not change it.
+        if( current_view != TABLE )
+	{
+	  // Remove the menu items of the previous view component.
+	  removeComponentMenuItems();
+          current_view = TABLE;
+	  // Disable the "Print Image" and "Make JPEG Image" menu items.
+          JMenu file_menu = menu_bar.getMenu(0);
+	  file_menu.getItem(2).setEnabled(false);
+	  file_menu.getItem(3).setEnabled(false);
+	  // Rebuild the display with a graph.
+	  buildPane();
+	}
+      }
+      // Called when user selects "Print Graph" menu item, only enabled if
+      // view is Graph.
+      else if( ae.getActionCommand().equals("Print Graph") )
+      {
+        // Since pane could be one of two things, determine which one
+	// it is, then determine the image accordingly.
+	Component image;
+	if( pane instanceof SplitPaneWithState )
+	  image = ((SplitPaneWithState)pane).getLeftComponent();
+        else
+	  image = pane;
+	JMenuItem silent_menu = PrintComponentActionListener.getActiveMenuItem(
+	                                "not visible", image );
+	silent_menu.doClick();
+      }
+      // Called when user selects "Make JPEG Image" menu item, only enabled if
+      // view is Image.
+      else if( ae.getActionCommand().equals("Make JPEG Graph") )
+      {
+        // Since pane could be one of two things, determine which one
+	// it is, then determine the image accordingly.
+	Component image;
+	if( pane instanceof SplitPaneWithState )
+	  image = ((SplitPaneWithState)pane).getLeftComponent();
+        else
+	  image = pane;
+        JMenuItem silent_menu = SaveImageActionListener.getActiveMenuItem(
+	                                "not visible", image );
+	silent_menu.doClick();
+      }
     }
-  } 
+  }
+  
+ /*
+  * This class will convert an IVirtualArrayList1D to an IVirtualArray2D.
+  */ 
+  private static class ArrayConverter extends VirtualArray2D
+  {
+    private IVirtualArrayList1D va1D;
+    private int num_rows;
+    private int num_cols;
+   
+   /*
+    * Constructor that calls the VirtualArray2D constructor and initializes
+    * the number of rows and columns.
+    */ 
+    private ArrayConverter( IVirtualArrayList1D oneD, int row, int col )
+    {
+      // Initialize super class.
+      super(row,col);
+      va1D = oneD;
+      // Initialize values.
+      num_rows = row;
+      num_cols = col;
+    }
+    
+   /*
+    * Need make instance since super() needs to be called, but the number
+    * of row/column first needs be calculated. Since super() must be the 
+    * first call, the calculation must be done before hand.
+    */ 
+    public static ArrayConverter makeInstance( IVirtualArrayList1D oneD )
+    {
+      // Do nothing if no valid values are passed in.
+      if( oneD == null )
+      {
+        // If invalid make a 1x1 table.
+        float[] x = {0};
+	float[] y = {0};	
+        return new ArrayConverter(
+	                 new VirtualArrayList1D( new DataArray1D(x,y) ),1,1 );
+      }
+      // Initialize values.
+      int num_col = oneD.getNumGraphs();
+      int num_row = 0;
+      int temp;
+      // Find the maximum number of rows from each column.
+      for( int i = 0; i < num_col; i++ )
+      {
+        // Since number of x values >= number of y values, only need to check
+	// number of x values for each graph.
+        temp = oneD.getXValues(i).length;
+	// find max number of rows.
+	if( temp > num_row )
+	  num_row = temp;
+      }
+      // Assume x and y values will be shown, number of columns is twice
+      // as much as the number of graphs.
+      num_col = num_col*2;
+    
+      return new ArrayConverter( oneD, num_row, num_col );
+    }
+    
+    public String getTitle()
+    {
+      return va1D.getTitle();
+    }
+    
+    public void setTitle( String title )
+    {
+      va1D.setTitle(title);
+    }
+    
+    public AxisInfo getAxisInfo( int axis )
+    {
+      return va1D.getAxisInfo(axis);
+    }
+    
+    public float getDataValue( int row, int col )
+    {
+      // If not a valid row or column, return NaN
+      if( !( isValidRow(row) && isValidColumn(col) ) )
+        return Float.NaN;
+      // Find the graph number corresponding to the column. Since there are
+      // two columns for each graph, take half of the column value.
+      int graph_num = (int)Math.floor(((double)col)/2d);
+      if( graph_num < 0 )
+        return Float.NaN;
+      float[] col_array;
+      // if even, get x values, if odd, get y values.
+      if( graph_num*2 == col )
+        col_array = va1D.getXValues(graph_num);
+      else
+        col_array = va1D.getYValues(graph_num);
+      // If selected column is longer than the row value asked for, give
+      // the row value in the column.
+      if( col_array.length > row )
+        return col_array[row];
+      // If the row requested was outside the length of the column, return NaN.
+      return Float.NaN;
+    }
+    
+    public float[] getColumnValues( int col, int from, int to )
+    {
+      float[] values = new float[Math.abs(to-from)+1];
+      int row_min = from;
+      int row_max = to;
+      if( row_min > row_max )
+      {
+        int temp = row_min;
+	row_min = row_max;
+	row_max = temp;
+      }
+      for( int i = row_min; i < row_max+1; i++ )
+        values[i] = getDataValue( i, col );
+      return values;
+    }
+    
+    public float[] getRowValues( int row, int from, int to )
+    {
+      float[] values = new float[Math.abs(to-from)+1];
+      int col_min = from;
+      int col_max = to;
+      if( col_min > col_max )
+      {
+        int temp = col_min;
+	col_min = col_max;
+	col_max = temp;
+      }
+      for( int i = col_min; i < col_max+1; i++ )
+        values[i] = getDataValue( row, i );
+      return values;
+    }
+    /* -------------------------------- Stubs ------------------------------- */
+    public void setDataValue( int row, int col )
+    {
+      ; // do nothing
+    }
+    
+    public float[][] getErrors()
+    {
+      return null;
+    }
+    
+    public float getErrorValue( int row, int col )
+    {
+      return Float.NaN;
+    }
+    
+    public void setSquareRootErrors( boolean isSet )
+    {
+      ; // do nothing
+    }
+    
+    public void setAllValues(float value)
+    {
+      ; // do nothing
+    }
+    
+    public void setColumnValues( int col, int from, int to )
+    {
+      ; // do nothing
+    }
+    
+    public void setRowValues( int row, int from, int to )
+    {
+      ; // do nothing
+    }
+    
+    public void setRegionValues( float[][] values, int row, int col )
+    {
+      ; // do nothing
+    }
+    
+    public void setAxisInfo( int axiscode, float min, float max,
+                             String label, String units, int scale )
+    {
+      ; // do nothing
+    }
+    
+    public void setAxisInfo(int axiscode, AxisInfo info)
+    {
+      ; // do nothing
+    }
+    
+    private boolean isValidRow(int row)
+    {
+      if( row < 0 || row >= num_rows )
+        return false;
+      return true;
+    }
+    
+    private boolean isValidColumn(int col)
+    {
+      if( col < 0 || col >= num_cols )
+        return false;
+      return true;
+    }
+  }
   
  /*
   * Main program.
