@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2001/08/13 23:35:42  dennis
+ *  Uses RemoteDataRetriever.error_message() to generate string form
+ *  of error message in some cases.
+ *
  *  Revision 1.16  2001/08/09 16:11:00  dennis
  *  ViewManagers are now "listened" to and if the user closes a
  *  ViewManager, it is removed from the list of viewers and the
@@ -407,16 +411,7 @@ public class LiveDataMonitor extends    JPanel
     if ( code == data_manager.NO_CONNECTION )
       return " --> Not Connected";
     
-    if ( code == RemoteDataRetriever.BAD_USER_OR_PASSWORD )
-      return " --> Bad username or password";
-    
-    if ( code == RemoteDataRetriever.SERVER_DOWN )
-      return " --> Server Down";
-    
-    if ( code == RemoteDataRetriever.WRONG_SERVER_TYPE )
-      return " --> Wrong Server Type";
-
-    return " --> ERROR: " + code;
+    return " --> " + RemoteDataRetriever.error_message( code );
   }
 
   /* ------------------------------ SetUpGUI ------------------------------- */
