@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/03/20 05:31:42  millermi
+ *  - Changed registerControl(key,control) to registerControl(control)
+ *    since ViewControls now have key contained within them.
+ *  - Removed key parameter from makeManagerTestWindow() since key
+ *    is now contained within ViewControls.
+ *
  *  Revision 1.1  2005/03/09 22:31:25  millermi
  *  - Initial Version - Allows the linking or sharing of ViewControls.
  *
@@ -76,18 +82,20 @@
    * registering, the newly registered control value will be set to match
    * any controls also registered under that key. All controls registered
    * under the same key will be linked together, when one changes, all change.
+   * If a control has already been registered, it will not be registered
+   * a second time.
    *
-   *  @param  key The category that this control is associated with.
    *  @param  vc  The control that is being shared and linked to similar
    *              controls.
    *  @return Returns true if registration is successful,
    *                  false if not successful.
    */ 
-   public boolean registerControl( String key, IViewControl vc )
+   public boolean registerControl( IViewControl vc )
    {
      // Check for invalid control or invalid key.
-     if( key == null || vc == null )
+     if( vc == null || vc.getSharedKey() == null )
        return false;
+     String key = vc.getSharedKey();
      Vector category = (Vector)ctrl_table.get(key);
      // If key does not yet exist, create a new category vector for this key.
      if( category == null )
@@ -264,16 +272,9 @@
    *  @return A JFrame containing all of the controls plus a ControlCheckbox
    *          to toggle linking of controls.
    */ 
-   public static JFrame makeManagerTestWindow( ViewControl[] controls,
-                                               String[] keys )
+   public static JFrame makeManagerTestWindow( ViewControl[] controls )
    {
-     // Find the least upper bound for length.
-     int temp = controls.length;
-     if( temp > keys.length )
-       temp = keys.length;
-     final int length = temp;
      final ViewControl[] final_controls = controls;
-     final String[] final_keys = keys;
      final ControlManager cm = new ControlManager();
      ControlCheckbox registerControl = new ControlCheckbox("Link Controls");
      // Add listener that will register and unregister controls.
@@ -284,8 +285,8 @@
 	   {
 	     if( ((ControlCheckbox)ae.getSource()).isSelected() )
 	     {
-	       for( int i = 0; i < length; i++ )
-                 cm.registerControl(final_keys[i],final_controls[i]);
+	       for( int i = 0; i < final_controls.length; i++ )
+                 cm.registerControl(final_controls[i]);
 	       System.out.println("********Controls Registered********");
 	       // Display all registered keys.
 	       String[] reg_keys = cm.getRegisteredKeys();
@@ -295,7 +296,7 @@
 	     }
 	     else
 	     {
-	       for( int i = 0; i < length; i++ )
+	       for( int i = 0; i < final_controls.length; i++ )
                  cm.unregisterControl(final_controls[i]);
 	       System.out.println("*******Controls Unregistered*******");
 	       // Display all registered keys.
@@ -311,9 +312,10 @@
      // Build GUI
      final JFrame frame = new JFrame("ControlManager Test");
      frame.getContentPane().setLayout( new GridLayout(0,2) ); // Two columns
-     frame.setBounds(0,0,250,50*length);   // Allow 50 pixels for each control,
+     // Allow 50 pixels for each control
+     frame.setBounds(0,0,250,50*final_controls.length);
      // Add controls to frame.
-     for( int i = 0; i < length; i++ )
+     for( int i = 0; i < final_controls.length; i++ )
        frame.getContentPane().add(final_controls[i]);
      frame.getContentPane().add(registerControl); // add registerControl at end.
      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -331,13 +333,17 @@
      final ControlManager cm = new ControlManager();
      final ControlSlider cs1 = new ControlSlider();
      cs1.setTitle("Slider 1");
+     cs1.setSharedKey("Slider");
      final ControlSlider cs2 = new ControlSlider();
      cs2.setTitle("Slider 2");
      cs2.setValue(20f);
+     cs2.setSharedKey("Slider");
      final ControlCheckbox cc1 = new ControlCheckbox(true);
      cc1.setTitle("Checkbox 1");
+     cc1.setSharedKey("Checkbox");
      final ControlCheckbox cc2 = new ControlCheckbox();
      cc2.setTitle("Checkbox 2");
+     cc2.setSharedKey("Checkbox");
      
      ControlCheckbox registerControl = new ControlCheckbox("Link Controls");
      // Add listener that will register and unregister controls.
@@ -350,10 +356,10 @@
 	     {
 	       // cs1 is reregistered. Testing to make sure it is
 	       // not added redundantly.
-               cm.registerControl("Slider",cs1);
-               cm.registerControl("Slider",cs2);
-               cm.registerControl("Checkbox",cc1);
-               cm.registerControl("Checkbox",cc2);
+               cm.registerControl(cs1);
+               cm.registerControl(cs2);
+               cm.registerControl(cc1);
+               cm.registerControl(cc2);
 	       System.out.println("Number of Registered Sliders: "+
 	                          cm.getControlCount("Slider") );
 	       System.out.println("Number of Registered Checkboxes: "+
