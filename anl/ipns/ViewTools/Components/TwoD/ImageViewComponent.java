@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.56  2004/02/14 03:38:19  millermi
+ *  - renamed addSelection() to addSelectedRegion()
+ *  - converted all WCRegion code to use the Region class instead.
+ *  - removed selectedregions from private data, IVC objectstate no longer
+ *    stores the selected regions, this is done by the selection overlay.
+ *
  *  Revision 1.55  2004/02/06 23:46:07  millermi
  *  - Updated ObjectState and reInit() so shared values
  *    maintain consistency.
@@ -337,13 +343,6 @@ public class ImageViewComponent implements IViewComponent2D,
 {  
   // these variables preserve the state of the ImageViewComponent
  /**
-  * "Selected Regions" - This constant String is a key for referencing the state
-  * information about the selected regions of this view component. The value
-  * that this key references is an array of Regions.
-  */
-  public static final String SELECTED_REGIONS	 = "Selected Regions";
- 
- /**
   * "Precision" - This constant String is a key for referencing the state
   * information about the precision this view component will have. Precision
   * affects the significant digits displayed on the Axis Overlay, among other
@@ -457,10 +456,7 @@ public class ImageViewComponent implements IViewComponent2D,
   // this variable controls the max size of the virtual array to be analyzed.
   private static final int MAXDATASIZE = 1000000000;
   //An object containing our array of data
-  private transient IVirtualArray2D Varray2D;
-  // dynamic list of regions.
-  private transient Stack dynamicregionlist = new Stack();
-  private Region[] selectedregions = new Region[0];   
+  private transient IVirtualArray2D Varray2D;  
   private transient Vector Listeners = null;   
   private transient JPanel big_picture = new JPanel();  
   private transient JPanel background = new JPanel(new BorderLayout());  
@@ -573,14 +569,7 @@ public class ImageViewComponent implements IViewComponent2D,
   public void setObjectState( ObjectState new_state )
   {
     boolean redraw = false;  // if any values are changed, repaint overlay.
-    Object temp = new_state.get(SELECTED_REGIONS);
-    if( temp != null )
-    {
-      selectedregions = (Region[])temp;
-      redraw = true;  
-    }
-    
-    temp = new_state.get(FONT);
+    Object temp = new_state.get(FONT);
     if( temp != null )
     {
       font = (Font)temp;
@@ -722,12 +711,6 @@ public class ImageViewComponent implements IViewComponent2D,
     state.insert( SELECTION_OVERLAY,  
       ((OverlayJPanel)transparencies.elementAt(1)).getObjectState(isDefault) );
     
-    // load these for project specific instances.
-    if( !isDefault )
-    {
-      state.insert( SELECTED_REGIONS, selectedregions );
-    }
-    
     return state;
   }
   /*
@@ -758,23 +741,6 @@ public class ImageViewComponent implements IViewComponent2D,
   public void enableSelection(String[] names)
   {
     ((SelectionOverlay)(transparencies.elementAt(1))).enableSelection( names );
-  }
-  
- /**
-  * This method allows users to add a selection without using the GUI.
-  *
-  *  @param  world_coord_region The region to be added, with defining points
-  *                             in world coord points.
-  *  @see    DataSetTools.components.View.Transparency.SelectionOverlay
-  */
-  public void addSelection( WCRegion world_coord_region )
-  {
-    ((SelectionOverlay)
-        (transparencies.elementAt(1))).addSelectedRegion( world_coord_region );
-    // if selection control is unchecked, turn it on.
-    if( !((ControlCheckboxButton)controls[3]).isSelected() )
-      ((ControlCheckboxButton)controls[3]).doClick();
-    returnFocus();
   } 
   
  // These method are required because this component implements 
@@ -948,40 +914,48 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     return new floatPoint2D(ijp.getCurrent_WC_point());
   }
+  
+ /**
+  * This method allows users to add a selection without removing previous
+  * selections.
+  *
+  *  @param  world_coord_region The array of regions to be added, with defining
+  *                             points in world coord points.
+  *  @see    DataSetTools.components.View.Transparency.SelectionOverlay
+  */
+  public void addSelectedRegion( Region world_coord_region )
+  {
+    Region[] reg = new Region[1];
+    reg[0] = world_coord_region;
+    ((SelectionOverlay)
+        (transparencies.elementAt(1))).addRegions( reg );
+    // if selection control is unchecked, turn it on.
+    if( !((ControlCheckboxButton)controls[3]).isSelected() )
+      ((ControlCheckboxButton)controls[3]).doClick();
+    returnFocus();
+  }
  
  /**
   * This method creates a selected region to be displayed over the imagejpanel
-  * by the selection overlay. Currently, this will replace any previously
-  * selected regions. To prevent this, add..., remove..., and clear... could
-  * be added to allow for appending selections. A stack could be added to
-  * allow for undo and redo. 
+  * by the selection overlay. Any previously selected regions will be erased
+  * by using this method. To maintain previous selections, use
+  * addSelectedRegion(). A stack could be added to allow for undo and redo
+  * of selections. 
   * If null is passed as a parameter, the selections will be cleared.
   *
   *  @param  rgn - array of selected Regions
   */ 
   public void setSelectedRegions( Region[] rgn ) 
   {
-    selectedregions = rgn;
-    dynamicregionlist.clear();
-    //dynamicpointlist.clear();
-    if( selectedregions != null )
+    ((SelectionOverlay)(transparencies.elementAt(1))).clearRegions();
+    if( rgn != null )
     {
-      for( int i = 0; i < selectedregions.length; i++ )
-      {/*
-        // if multiple points, this combines them.
-        if( selectedregions[i] instanceof PointRegion )
-        {
-          for( int i = 0; i < selectedregions.length; i++ )
-            dynamicpointlist.add(selectedregions[i]);	    
-        }
-        else
-	  dynamicregionlist.add( selectedregions[i] );*/
-        dynamicregionlist.push( selectedregions[i] );
-      }
-    }
-    else
-    {
-      ((SelectionOverlay)(transparencies.elementAt(1))).clearSelectedRegions();
+      ((SelectionOverlay)
+          (transparencies.elementAt(1))).addRegions( rgn );
+      // if selection control is unchecked, turn it on.
+      if( !((ControlCheckboxButton)controls[3]).isSelected() )
+        ((ControlCheckboxButton)controls[3]).doClick();
+      returnFocus();
     }
   }
  
@@ -992,21 +966,18 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   public Region[] getSelectedRegions() //keep the same (for now)
   {
-    /*
-    // Since the points are grouped together, if any exist, put them all
-    // in a pointregion. Because no point regions are in the dynamicregionlist,
-    // the PointRegion must be added now.
-    if( dynamicpointlist.size() > 0 )
+    Vector regions = 
+       ((SelectionOverlay)transparencies.elementAt(1)).getRegions();
+    Region[] selectedregions = new Region[regions.size()];
+    for( int i = 0; i < selectedregions.length; i++ )
     {
-      floatPoint2D[] fplist = new floatPoint2D[dynamicpointlist.size()];
-      for( int i = 0; i < dynamicpointlist.size(); i++ )
-	fplist[((floatPoint2D)dynamicpointlist.elementAt(i))];
-      PointRegion allpoints = new PointRegion(fplist);
-      dynamicregionlist.add(allpoints);
-    }*/
-    selectedregions = new Region[dynamicregionlist.size()];
-    for( int i = 0; i < dynamicregionlist.size(); i++ )
-      selectedregions[i] = ((Region)dynamicregionlist.elementAt(i));
+      selectedregions[i] = (Region)regions.elementAt(i);
+      selectedregions[i].setWorldBounds(ijp.getGlobalWorldCoords());
+      //selectedregions[i].setImageBounds(ijp.getImageCoords());
+      selectedregions[i].setImageBounds(new CoordBounds(0,0,
+                                                    Varray2D.getNumRows(),
+						    Varray2D.getNumColumns() ));
+    }
     return selectedregions;
   } 
  
@@ -1021,18 +992,14 @@ public class ImageViewComponent implements IViewComponent2D,
 
     AxisInfo xinfo = Varray2D.getAxisInfo(AxisInfo.X_AXIS);
     AxisInfo yinfo = Varray2D.getAxisInfo(AxisInfo.Y_AXIS);
-
+/*
     ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
-    					       yinfo.getMax(),
-    					       xinfo.getMax(),
-    					       yinfo.getMin() ) );
-
+    					        yinfo.getMax(),
+    					        xinfo.getMax(),
+    					        yinfo.getMin() ) );
+*/
     local_bounds = ijp.getLocalWorldCoords().MakeCopy();
     global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
-    
-    // since data has changed, remove all selections and annotations.
-    ((AnnotationOverlay)(transparencies.elementAt(0))).clearAnnotations();
-    ((SelectionOverlay)(transparencies.elementAt(1))).clearSelectedRegions();
 
     ((PanViewControl)controls[5]).repaint();
     paintComponents( big_picture.getGraphics() );
@@ -1064,6 +1031,16 @@ public class ImageViewComponent implements IViewComponent2D,
     			      pin_Varray.getAxisInfo( AxisInfo.Y_AXIS ) );
         Varray2D.setTitle( pin_Varray.getTitle() );
       }
+      // since new data array, remove all selections and annotations.
+      ((AnnotationOverlay)(transparencies.elementAt(0))).clearAnnotations();
+      ((SelectionOverlay)(transparencies.elementAt(1))).clearRegions();
+
+      AxisInfo xinfo = Varray2D.getAxisInfo(AxisInfo.X_AXIS);
+      AxisInfo yinfo = Varray2D.getAxisInfo(AxisInfo.Y_AXIS);
+      ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
+    					          yinfo.getMax(),
+    					          xinfo.getMax(),
+    					          yinfo.getMin() ) );
     }
     dataChanged();   // call other dataChanged() method to reset the ijp and 
                      // redraw the display.
@@ -1743,125 +1720,6 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     public void actionPerformed( ActionEvent ae )
     {
-      // must set the selected region here
-      Vector regions = 
-	 ((SelectionOverlay)transparencies.elementAt(1)).getSelectedRegions();
-      
-      // if region was added, add the defining points of the last region.
-      if( ae.getActionCommand().equals( SelectionOverlay.REGION_ADDED ) )
-      {
-	WCRegion lastregion = (WCRegion)regions.lastElement();
-        String regiontype = lastregion.getRegionType();
-	floatPoint2D[] wcp = lastregion.getWorldCoordPoints();
-        floatPoint2D[] imagecolrow = new floatPoint2D[wcp.length];
-	
-	// wcp[0] must be on image, but wcp[1] may not always be.
-	// If wcp[1] isn't on the image, move endpoint to edge of image.
-        if( regiontype.equals(SelectionJPanel.LINE) )
-	{
-	  float wcxmin = ijp.getGlobalWorldCoords().getX1();
-	  float wcxmax = ijp.getGlobalWorldCoords().getX2();
-	  // since y max and min were entered in opposite order, switch them.
-	  float wcymax = ijp.getGlobalWorldCoords().getY1();
-	  float wcymin = ijp.getGlobalWorldCoords().getY2();
-	  float slope = (wcp[1].y - wcp[0].y)/(wcp[1].x - wcp[0].x);
-	  // if less than xmin, set wcp1.x = xmin, calculate wcp1.y
-	  if( wcp[1].x < wcxmin ) 
-	  {
-	    // solve equation used to find "slope" for wcp[1].y since all
-	    // other elements are known.
-	    wcp[1].x = wcxmin;
-	    wcp[1].y = slope*(wcp[1].x - wcp[0].x) + wcp[0].y;
-	    
-	  }
-	  // if greater than xmax, set wcp1.x = xmax, calculate wcp1.y
-	  else if( wcp[1].x > wcxmax )
-	  {
-	    // solve equation used to find "slope" for wcp[1].y since all
-	    // other elements are known.
-	    wcp[1].x = wcxmax;
-	    wcp[1].y = slope*(wcp[1].x - wcp[0].x) + wcp[0].y;
-	  }
-	  
-	  // if less than ymin, set wcp1.y = ymin, calculate wcp1.x
-	  if( wcp[1].y < wcymin )
-	  {
-	    // solve equation used to find "slope" for wcp[1].x since all
-	    // other elements are known.
-	    wcp[1].y = wcymin;
-	    wcp[1].x = (wcp[1].y - wcp[0].y)/slope + wcp[0].x;
-	  }
-	  // if greater than ymax, set wcp1.y = ymax, calculate wcp1.x
-	  else if( wcp[1].y > wcymax )
-	  {
-	    // solve equation used to find "slope" for wcp[1].x since all
-	    // other elements are known.
-	    wcp[1].y = wcymax;
-	    wcp[1].x = (wcp[1].y - wcp[0].y)/slope + wcp[0].x;
-	  }
-	    
-          imagecolrow[0] = new floatPoint2D( new Point( 
-	                              ijp.ImageCol_of_WC_x( wcp[0].x ),
-                		      ijp.ImageRow_of_WC_y( wcp[0].y ) ) );
-          imagecolrow[1] = new floatPoint2D( new Point( 
-	                              ijp.ImageCol_of_WC_x( wcp[1].x ),
-                		      ijp.ImageRow_of_WC_y( wcp[1].y ) ) );
-	}
-	else
-	{
-          for( int i = 0; i < imagecolrow.length; i++ )
-          {
-	    imagecolrow[i] = new floatPoint2D( new Point( 
-	                                ijp.ImageCol_of_WC_x( wcp[i].x ),
-        			        ijp.ImageRow_of_WC_y( wcp[i].y ) ) );
-	  /*System.out.println("ImageCoords: " + 
-        		   ijp.ImageCol_of_WC_x( wcp[i].x ) + "/" +
-        		   ijp.ImageRow_of_WC_y( wcp[i].y ) );
-          System.out.println("WorldCoords: " + 
-        		   wcp[i].x + "/" +
-        		   wcp[i].y );*/
-          }
-	}
-        Region selregion;
-        
-        if( regiontype.equals(SelectionJPanel.BOX) )
-          selregion = new BoxRegion( imagecolrow );
-        else if( regiontype.equals(SelectionJPanel.ELLIPSE) )
-          selregion = new EllipseRegion( imagecolrow );
-        else if( regiontype.equals(SelectionJPanel.LINE) )
-          selregion = new LineRegion( imagecolrow );
-        else if( regiontype.equals(SelectionJPanel.POINT) )
-          selregion = new PointRegion( imagecolrow );
-        else if( regiontype.equals(SelectionJPanel.WEDGE) )
-        {
-          int size = imagecolrow.length - 1;
-          imagecolrow[size] = new floatPoint2D( wcp[size].x, wcp[size].y );
-          selregion = new WedgeRegion( imagecolrow );
-        }
-        else if( regiontype.equals(SelectionJPanel.DOUBLE_WEDGE) )
-        {
-          int size = imagecolrow.length - 1;
-          imagecolrow[size] = new floatPoint2D( wcp[size].x, wcp[size].y );
-          selregion = new DoubleWedgeRegion( imagecolrow );
-        }
-        else if( regiontype.equals(SelectionJPanel.RING) )
-        {
-          selregion = new AnnularRegion( imagecolrow );
-        }
-	// else its an invalid region.
-	else
-	  return;
-        dynamicregionlist.push(selregion);
-      //System.out.println("WCP[0]: " + wcp[0].x + wcp[0].y );
-      } // end if( regionadded )
-      else if( ae.getActionCommand().equals(SelectionOverlay.REGION_REMOVED) )
-      {
-	if( dynamicregionlist.size() != 0 )
-	  dynamicregionlist.pop();
-      }
-      else if( ae.getActionCommand().equals(
-	       SelectionOverlay.ALL_REGIONS_REMOVED) )
-	dynamicregionlist.clear();
       sendMessage( ae.getActionCommand() );
     }
   }
