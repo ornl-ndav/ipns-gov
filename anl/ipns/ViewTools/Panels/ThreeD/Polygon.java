@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/03/12 01:12:41  dennis
+ * Moved to ViewTools.Panels.ThreeD
+ *
  * Revision 1.4  2003/10/02 19:35:08  dennis
  * If polygon is "solid" just do fillPolygon.  (Previously, the
  * border of the polygon was also drawn.  Separately drawing the
@@ -40,12 +43,11 @@
  *
  */
 
-package DataSetTools.components.ThreeD;
+package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
 import java.io.*;
-import DataSetTools.math.*;
-import DataSetTools.components.image.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 
 
 /**
