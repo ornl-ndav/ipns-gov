@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.70  2004/04/12 03:40:38  millermi
+ *  - Bug fix: Changed bounds of the setImageBounds() in
+ *    getSelectedRegions() method. Previously, the max bounds
+ *    were one to large (num. rows and num columns).
+ *
  *  Revision 1.69  2004/04/07 01:23:41  millermi
  *  - Added marker overlay, marker control, and static variables for
  *    the control name and ObjectState keys.
@@ -1202,9 +1207,11 @@ public class ImageViewComponent implements IViewComponent2D,
     {
       selectedregions[i] = (Region)regions.elementAt(i);
       selectedregions[i].setWorldBounds(ijp.getGlobalWorldCoords());
-      selectedregions[i].setImageBounds(new CoordBounds(0,0,
-                                                    Varray2D.getNumColumns(),
-						    Varray2D.getNumRows() ));
+      selectedregions[i].setImageBounds(
+                            new CoordBounds( 0,
+			                     0,
+                                             Varray2D.getNumColumns() - 1,
+					     Varray2D.getNumRows() - 1 ) );
     }
     return selectedregions;
   } 
