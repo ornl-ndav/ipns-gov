@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2002/05/31 19:40:08  chatterjee
+ *  Left edge was not getting printed. Fixed now.
+ *
  *  Revision 1.6  2002/05/31 16:31:17  chatterjee
  *  Bug
  *
@@ -106,6 +109,7 @@ public class PrintUtilities implements Printable {
      double h = R.height*xscale;
      if( w > pageFormat.getImageableWidth()) w=pageFormat.getImageableWidth();
      if( h > pageFormat.getImageableHeight()) h=pageFormat.getImageableHeight();
+
 
      //g2d.translate(pageFormat.getImageableX(),pageFormat.getImageableY() );
                    
