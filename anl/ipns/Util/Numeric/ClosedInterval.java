@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/07/23 18:16:53  dennis
+ *  Added comment that ClosedInterval should be immutable.
+ *
  *  Revision 1.4  2001/04/25 22:23:59  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -49,7 +52,7 @@ package DataSetTools.util;
 
 /**
  *  Objects of this class represent a closed interval of floating point values,
- *  [min,max].   
+ *  [min,max].  ClosedInterval objects are immutable.
  */
 
 public class ClosedInterval implements java.io.Serializable {
