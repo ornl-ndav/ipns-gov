@@ -30,6 +30,9 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.8  2004/07/16 19:10:52  dennis
+ *  Fixed improper comparison with Float.NaN
+ *
  *  Revision 1.7  2004/03/12 02:15:48  dennis
  *  Moved to package gov.anl.ipns.MathTools.Functions;
  *
@@ -140,7 +143,7 @@ public final class CurveFit
      }
 
      double error = LinearAlgebra.solve( A, b );
-     if ( error != Double.NaN )             // copy the coefficients to coeff[]
+     if ( !Double.isNaN( error ) )          // copy the coefficients to coeff[]
      {
        for ( int i = 0; i < coeff.length; i++ )
          coeff[i] = b[i];
