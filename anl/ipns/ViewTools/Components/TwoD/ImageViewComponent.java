@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.36  2003/10/29 20:32:57  millermi
+ *  -Added further support for the PanViewControl, including colorscale
+ *   and logscale response.
+ *
  *  Revision 1.35  2003/10/27 08:49:33  millermi
  *  - Added the PanViewControl so users can now pan
  *    the image if it is larger than the viewport.
@@ -1156,6 +1160,8 @@ public class ImageViewComponent implements IViewComponent2D,
       note.getFocus();
     } 
     
+    ((PanViewControl)controls[5]).setImageColorScale( colorscale, isTwoSided );
+    
     //buildViewMenuItems(); 
   } 
   
@@ -1334,7 +1340,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	//System.out.println("Sending SELECTED_CHANGED " + regioninfo );
 	ImageJPanel center = (ImageJPanel)ae.getSource();
 	local_bounds = center.getLocalWorldCoords().MakeCopy();
-	System.out.println("IVC: " + local_bounds.toString() );
+	//System.out.println("IVC: " + local_bounds.toString() );
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
 	((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
 	((PanViewControl)controls[5]).setLocalBounds(local_bounds);
@@ -1349,6 +1355,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	ImageJPanel center = (ImageJPanel)ae.getSource();
 	local_bounds = center.getLocalWorldCoords().MakeCopy();
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
+	((PanViewControl)controls[5]).setGlobalBounds(global_bounds);
+	((PanViewControl)controls[5]).setLocalBounds(local_bounds);
 	//for(int next = 0; next < transparencies.size(); next++ )
 	//   ((OverlayJPanel)transparencies.elementAt(next)).repaint();
 	paintComponents( big_picture.getGraphics() ); 
@@ -1477,7 +1485,9 @@ public class ImageViewComponent implements IViewComponent2D,
           PanViewControl pvc = (PanViewControl)ae.getSource();
           // since the pan view control has a CoordJPanel in it with the
           // same bounds, set its local bounds to the image local bounds.
-          ijp.setLocalWorldCoords( pvc.getLocalBounds() );
+	  CoordBounds temp = pvc.getLocalBounds();
+	  //temp.invertBounds();
+          ijp.setLocalWorldCoords( temp );
           // this method is only here to repaint the image
           ijp.changeLogScale( logscale, true );
           sendMessage(SELECTED_CHANGED);
@@ -1563,6 +1573,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	ijp.setNamedColorModel( colorscale, isTwoSided, true );
 	((ControlColorScale)controls[1]).setColorScale( colorscale, 
 							isTwoSided );
+        ((PanViewControl)controls[5]).setImageColorScale( colorscale,
+	                                                  isTwoSided );
       }
       sendMessage( message );
       paintComponents( big_picture.getGraphics() ); 
