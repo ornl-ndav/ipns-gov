@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.19  2004/08/17 03:53:01  ffr
+ * Bugfix: Make sure we copy the last error bar in setErrorVals
+ *
  * Revision 1.18  2004/03/15 23:53:54  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -117,7 +120,7 @@ public class GraphData implements Serializable
     {
        error_bars = new float[error_vals.length];
        System.arraycopy( error_vals, 0 , 
-                           error_bars, 0, error_vals.length - 1 );
+                           error_bars, 0, error_vals.length );
     }
     else error_bars = null;
   }
