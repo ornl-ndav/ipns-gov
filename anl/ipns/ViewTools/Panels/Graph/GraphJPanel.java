@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.47  2004/11/17 22:22:43  serumb
+ * Mapped the error bar values to log coords for the log axis.
+ *
  * Revision 1.46  2004/11/11 19:50:06  millermi
  * - Added getScaleFactor() so outside classes have access to the
  *   y-axis scale factor.
@@ -1134,8 +1137,18 @@ public boolean is_autoY_bounds()
                           0, n_points); 
         for ( int i = 0; i < n_points ; i++ )
         {
+	  if ( log_scale_y)
+	   {
+	      float min = getPositiveYmin();
+	      float max = getYmax();
+	      LogScaleUtil logger = new LogScaleUtil(min,max);
+	      error_bars_upper[i] = logger.toDest( logger.toSource(y_copy[i]) + error_copy[i] );
+	      error_bars_lower[i] = logger.toDest( logger.toSource(y_copy[i]) - error_copy[i] );
+	   }   
+	  else{						  
            error_bars_upper[i] = y_copy[i] + error_copy[i]; 
            error_bars_lower[i] = y_copy[i] - error_copy[i];
+	  }  
         }
         local_transform.MapYListTo(error_bars_upper); // map errors from WC to
         local_transform.MapYListTo(error_bars_lower); // pixels
