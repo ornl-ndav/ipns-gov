@@ -3,6 +3,9 @@
  *
  * ---------------------------------------------------------------------------
  *  $Log$
+ *  Revision 1.2  2000/11/07 15:31:27  dennis
+ *  Added ATTRIBUTE_CHANGED and FIELD_CHANGED messages.
+ *
  *  Revision 1.1  2000/07/10 22:53:05  dennis
  *  Interfaces for observer/observable communications mechanism
  *
@@ -44,6 +47,8 @@ public interface IObserver
   public static final String POINTED_AT_CHANGED = "POINTED AT CHANGED";
   public static final String HIDDEN_CHANGED     = "HIDDEN CHANGED";
   public static final String GROUPS_CHANGED     = "GROUPS CHANGED";
+  public static final String ATTRIBUTE_CHANGED  = "ATTRIBUTE CHANGED";
+  public static final String FIELD_CHANGED      = "FIELD CHANGED";
  
   /**
    *  The update() method must update the current observer object, based on
