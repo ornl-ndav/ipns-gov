@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2003/09/23 23:14:39  millermi
+ * - Added getObjectState() and setObjectState() to preserve
+ *   state information.
+ *
  * Revision 1.2  2003/08/14 17:06:33  millermi
  * - Controls now contained in a Box instead of a JPanel.
  * - Added spacer JPanel to bottom of the Box, glue did not work well.
@@ -83,7 +87,7 @@ import DataSetTools.components.View.Region.Region;
  * 2D array of floats, in a frame. This class adds further implementation to
  * the ImageFrame2.java class for thorough testing of the ImageViewComponent.
  */
-public class IVCTester extends JFrame
+public class IVCTester extends JFrame implements IPreserveState
 {
   private SplitPaneWithState pane; // complete viewer, includes controls and ijp
   private ImageViewComponent ivc;
@@ -123,9 +127,9 @@ public class IVCTester extends JFrame
   *  @param  title
   */  
   public IVCTester( float[][] array, 
-                      AxisInfo2D xinfo,
-		      AxisInfo2D yinfo,
-		      String title )
+                    AxisInfo2D xinfo,
+		    AxisInfo2D yinfo,
+		    String title )
   {
     VirtualArray2D temp = new VirtualArray2D( array );
     temp.setAxisInfoVA( AxisInfo2D.XAXIS, xinfo.copy() );
@@ -145,6 +149,17 @@ public class IVCTester extends JFrame
     
     setData(temp);
     setVisible(true);
+  }
+  
+  public void setObjectState( ObjectState new_state )
+  {
+    ivc.setObjectState(new_state);
+    //repaint();
+  }
+  
+  public ObjectState getObjectState()
+  {
+    return ivc.getObjectState();
   }
   
  /**
@@ -194,13 +209,12 @@ public class IVCTester extends JFrame
   {  
     setTitle( data.getTitle() );
     ivc = new ImageViewComponent( data );
-    ivc.setColorControlSouth(true);
+    //ivc.setColorControlSouth(true);
     ivc.addActionListener( new ImageListener() );
     Box controls = new Box(BoxLayout.Y_AXIS);
     JComponent[] ctrl = ivc.getSharedControls();
     for( int i = 0; i < ctrl.length; i++ )
       controls.add(ctrl[i]);
-    //controls.add( Box.createVerticalGlue() );
     
     JPanel spacer = new JPanel();
     // the value 60 is an arbitrary value for the average component height
@@ -215,22 +229,8 @@ public class IVCTester extends JFrame
     // get menu items from view component and place it in a menu
     ViewMenuItem[] menus = ivc.getSharedMenuItems();
     for( int i = 0; i < menus.length; i++ )
-    {/*
-      if( menus[i].getItem() instanceof HelpMenu )
-      {
-        if( helpAdded )
-	{
-	  Component[] submenus = menus[i].getItem().getMenuComponents();
-	  for( int j = 0; j < menus[i].getItem().getMenuComponentCount(); j++ )
-	    menu_bar.getMenu(2).add( submenus[j] );
-	}
-	else
-	{
-	  menu_bar.add(menus[i].getItem());
-	  helpAdded = true;
-	}
-      }
-      else*/ if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(
+    {
+      if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(
     	  menus[i].getPath().toLowerCase()) )
     	menu_bar.getMenu(0).add( menus[i].getItem() ); 
       else if( ViewMenuItem.PUT_IN_OPTIONS.toLowerCase().equals(
@@ -299,6 +299,8 @@ public class IVCTester extends JFrame
     			"TestY","TestYUnits", false );
     va2D.setTitle("ImageFrame Test");
     IVCTester im_frame = new IVCTester( va2D );
+    im_frame.getObjectState().reset( ImageViewComponent.LOG_SCALE, 
+                                     new Double(.5) );
     /*
     // test setData() 10 times
     for( int x = 0; x < 20; x++ )
