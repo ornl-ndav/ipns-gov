@@ -30,6 +30,11 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.6  2004/02/07 04:13:55  bouzekc
+ * Made non-abstract, and made protected methods public.  This allows this
+ * class to function as a sort of "factory", adding a large degree of
+ * flexibility to user made file filters.
+ *
  * Revision 1.5  2003/10/30 02:45:41  bouzekc
  * Now implements java.io.FileFilter to be compatible with several File methods.
  *
@@ -63,7 +68,7 @@ import java.util.Vector;
  *  filtered extensions may be lowercase or uppercase, although lowercase is
  *  preferred.
  */
-public abstract class RobustFileFilter extends
+public class RobustFileFilter extends
                                        javax.swing.filechooser.FileFilter 
                                        implements java.io.Serializable, 
                                        java.io.FileFilter
@@ -224,7 +229,7 @@ public abstract class RobustFileFilter extends
    *
    *  @param  desc            The description for this FileFilter.  
    */
-  protected final void setDescription(String desc)
+  public final void setDescription(String desc)
   {
     description = desc;
   }
@@ -238,7 +243,7 @@ public abstract class RobustFileFilter extends
    *                          list of extensions.  A '.' is automatically
    *                          prepended if the extension does not have one.
    */
-  protected final void addExtension(String ext)
+  public final void addExtension(String ext)
   {
     //only add the '.' if it is not there
     if(ext.indexOf('.') < 0)
@@ -257,7 +262,7 @@ public abstract class RobustFileFilter extends
    *                          prepended to each extension if it does not have 
    *                          one.
    */
-  protected final void setExtensionList(Vector extList)
+  public final void setExtensionList(Vector extList)
   {
     String temp;
     //only add the '.' if it is not there
