@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/07/29 22:28:57  dennis
+ *  Added convenience method: getResultsString() to form a multi-line
+ *  string with the list of fitted parameters and error estimates.
+ *
  *  Revision 1.11  2003/07/29 16:08:26  dennis
  *  Put printing of A[k][k], alpha[k][k] and u[k][k],
  *  and sqrt(A[k][k]) into an "if (debug)" block.
@@ -131,6 +135,27 @@ public class MarquardtArrayFitter extends CurveFitter
     super( function, x, y, sigma );
     do_fit( tolerance, max_steps );
   } 
+
+
+  /**
+   *  Return a formatted, multi-line String containing the results of the 
+   *  fitting calculation, with error estimates on the fitted parameters.
+   */
+  public String getResultsString()
+  {
+    StringBuffer result = new StringBuffer();
+    String names[]    = f.getParameterNames();
+    double coefs[]    = f.getParameters();
+    double p_sigmas[] = getParameterSigmas();
+    for ( int i = 0; i < names.length; i++ )
+    {
+      result.append( Format.string(names[i],17)  );
+      result.append( Format.real(coefs[i],20,9) + "  +-" );
+      result.append( Format.real(p_sigmas[i], 20,9) );
+      result.append( "\n" );
+    }
+    return result.toString();
+  }
 
   /**
    *  Get estimates of the standard deviations of the parameters, as
@@ -395,6 +420,9 @@ public class MarquardtArrayFitter extends CurveFitter
   }
 
 
+  /** 
+   *  Main progrm for test purposes only.
+   */
   public static void main( String args[] )
   {
     final int SIZE = 1000;
