@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/11/21 00:43:03  millermi
+ *  - replica of image is now an Image instead of a CoordJPanel.
+ *  - Replaced methods that updated the logscale and colorscale
+ *    with refreshData() since the Image doesn't know about
+ *    these values.
+ *
  *  Revision 1.3  2003/11/18 01:00:54  millermi
  *  - Changed CoordJPanel ObjectState key strings to keep consistent
  *    with changes made to the CoordJPanel.
@@ -52,14 +58,19 @@
  
  package DataSetTools.components.View.ViewControls;
 
+ import java.awt.Image;
  import java.awt.event.ActionListener;
  import java.awt.event.ActionEvent;
+ import java.awt.event.ComponentAdapter;
+ import java.awt.event.ComponentEvent;
  import java.awt.event.MouseAdapter;
  import java.awt.event.MouseEvent;
  import java.awt.Dimension;
+ import java.awt.Rectangle;
  import java.awt.Point;
  import java.awt.Graphics;
  import javax.swing.JFrame;
+ import javax.swing.JPanel;
  import javax.swing.OverlayLayout;
  
  import DataSetTools.components.image.CoordJPanel;
@@ -67,8 +78,6 @@
  import DataSetTools.components.image.CoordBounds;
  import DataSetTools.components.image.CoordTransform;
  import DataSetTools.components.image.ImageJPanel;
- import DataSetTools.components.View.IPreserveState;
- import DataSetTools.components.View.ObjectState;
  import DataSetTools.components.View.Cursor.TranslationJPanel;
  import DataSetTools.components.View.Transparency.TranslationOverlay;
  import DataSetTools.util.floatPoint2D;
@@ -77,29 +86,18 @@
  * This view control is used to "pan" an image. Adding a PanViewControl
  * will cause a thumbnail of the image to appear in the control panel.
  */
-public class PanViewControl extends ViewControl implements IPreserveState
-{
- /**
-  * "Translation Overlay" - This constant String is a key for referencing the
-  * state information about the TranslationOverlay. Because the overlay has 
-  * its own state info, this value is of type ObjectState,
-  * and contains the state of the overlay. 
-  */
-  public static final String TRANSLATION_OVERLAY  = "Translation Overlay";
-  
- /**
-  * "Thumbnail" - This constant String is a key for referencing the
-  * state information about the CoordJPanel "shadowing" the true image.
-  * Because the CoordJPanel has  its own state info, this value is of type
-  * ObjectState, and contains the state info about the bounds of the control. 
-  */
-  public static final String THUMBNAIL = "Thumbnail";
-  
-  private CoordJPanel panel;           // replica of actual image
+public class PanViewControl extends ViewControl
+{  
+  private ThumbnailJPanel panel;       // thumbnail of actual CoordJPanel
+  private Image panel_image;
+  private CoordJPanel actual_cjp;      // reference to actual CoordJPanel
   private TranslationOverlay overlay;  // where the region outline is drawn.
+  private double data_width = 0;
+  private double data_height = 0;
   // local bounds of the panel must be the same as global bounds, thus
   // the local bounds must be saved separately.
-  private CoordBounds local_bounds = new CoordBounds();
+  //private CoordBounds local_bounds = new CoordBounds();
+  //private CoordBounds global_bounds = new CoordBounds();
   
  /**
   * Constructor for creating a thumbnail of the CoordJPanel passed in.
@@ -109,79 +107,23 @@ public class PanViewControl extends ViewControl implements IPreserveState
   public PanViewControl(CoordJPanel cjp)
   {
     super("");
-    panel = cjp;
+    panel = new ThumbnailJPanel();
+    actual_cjp = cjp;
+    refreshData();
     overlay = new TranslationOverlay();
     overlay.addActionListener( new OverlayListener() );
     setGlobalBounds( cjp.getGlobalWorldCoords() );
     setLocalBounds( cjp.getLocalWorldCoords() );
-    panel.setEventListening(false);
-    
+    //panel.setEventListening(false);
     OverlayLayout layout = new OverlayLayout(this);
     setLayout(layout);
     setPreferredSize( new Dimension(0,150) );
     add(overlay);
     add(panel);
     addMouseListener( new PanMouseAdapter() );
+    // this listener will preserve the aspect ratio of the control
+    addComponentListener( new MaintainAspectRatio() );
   } 
-    
- /**
-  * Constructor for creating a thumbnail of the CoordJPanel using state info.
-  *
-  *  @param  cjp The CoordJPanel that will be thumbnailed.
-  *  @param  state The objectstate of this control.
-  */
-  public PanViewControl(CoordJPanel cjp, ObjectState state)
-  {
-    this(cjp);
-    setObjectState(state);
-  }
-  
- /**
-  * This method will set the current state variables of the object to state
-  * variables wrapped in the ObjectState passed in.
-  *
-  *  @param  new_state
-  */
-  public void setObjectState( ObjectState new_state )
-  {
-    boolean redraw = false;  // if any values are changed, repaint overlay.
-    Object temp = new_state.get(TRANSLATION_OVERLAY);
-    if( temp != null )
-    {
-      overlay.setObjectState( (ObjectState)temp );
-      panel.setGlobalWorldCoords( overlay.getGlobalBounds() );
-      local_bounds = overlay.getLocalBounds();
-      redraw = true;  
-    }
-    
-    temp = new_state.get(THUMBNAIL);
-    if( temp != null )
-    {
-      panel.setObjectState( (ObjectState)temp );
-      overlay.setGlobalBounds( panel.getGlobalWorldCoords() );
-      overlay.setLocalBounds( local_bounds );
-      redraw = true;  
-    } 
-    
-    if( redraw )
-      repaint();
-  }
- 
- /**
-  * This method will get the current values of the state variables for this
-  * object. These variables will be wrapped in an ObjectState. Keys will be
-  * put in alphabetic order.
-  *
-  *  @return state of this control.
-  */ 
-  public ObjectState getObjectState()
-  {
-    ObjectState state = new ObjectState();
-    state.insert( TRANSLATION_OVERLAY, overlay.getObjectState() );
-    state.insert( THUMBNAIL, panel.getObjectState() );
-    
-    return state;
-  }
   
  /**
   * Get the local bounds of the thumbnail. These bounds represent the area
@@ -191,7 +133,7 @@ public class PanViewControl extends ViewControl implements IPreserveState
   */ 
   public CoordBounds getLocalBounds()
   {
-    return local_bounds;
+    return overlay.getLocalBounds();
   }  
   
  /**
@@ -202,8 +144,7 @@ public class PanViewControl extends ViewControl implements IPreserveState
   */ 
   public void setLocalBounds( CoordBounds lb )
   {
-    local_bounds = lb.MakeCopy();
-    overlay.setLocalBounds( local_bounds );
+    overlay.setLocalBounds( lb.MakeCopy() );
     repaint();
   }  
   
@@ -215,7 +156,7 @@ public class PanViewControl extends ViewControl implements IPreserveState
   */ 
   public CoordBounds getGlobalBounds()
   {
-    return panel.getGlobalWorldCoords();
+    return overlay.getGlobalBounds();
   } 
   
  /**
@@ -227,38 +168,30 @@ public class PanViewControl extends ViewControl implements IPreserveState
   */ 
   public void setGlobalBounds( CoordBounds gb )
   {
-    panel.initializeWorldCoords( gb.MakeCopy() );
     overlay.setGlobalBounds( gb.MakeCopy() );
+    repaint();
   }
- 
+  
  /**
-  * Since the classes that extend the CoordJPanel are affected by a logscale
-  * factor, this method is used to inform those classes when the logscale has
-  * changed.
-  *
-  *  @param  s The logscale factor.
+  * Call this method to repaint the thumbnail whenever the actual image changes.
+  * This method calls the repaint method, so calling refreshData() will 
+  * correctly update the thumbnail.
   */ 
-  public void setLogScale( double s )
+  public void refreshData()
   {
-    if( panel instanceof ImageJPanel )
-      ((ImageJPanel)panel).changeLogScale( s, true );
-  }
- 
- /**
-  * Since some of the classes that extend the CoordJPanel are affected by a
-  * a colorscale, this method is used to inform those classes when the
-  * colorscale has changed.
-  *
-  *  @param  colorscale The colorscale of the image.
-  *  @param  isTwoSided Is the colorscale two-sided? Yes = true.
-  */ 
-  public void setImageColorScale( String colorscale, boolean isTwoSided )
-  {
-    if( panel instanceof ImageJPanel )
-      ((ImageJPanel)panel).setNamedColorModel(colorscale, isTwoSided, true);
+    setImageDimension();
+    setAspectRatio();
+    if( actual_cjp instanceof ImageJPanel )
+    { 
+      Dimension panel_size = getSize();
+      panel_image = ((ImageJPanel)actual_cjp).getThumbnail( panel_size.width, 
+                                                           panel_size.height ); 
+    }
+    panel.setImage(panel_image);
+    repaint();
   }
 
- /**
+ /*
   * Test program...
   */
   public static void main(String[] args)
@@ -266,26 +199,48 @@ public class PanViewControl extends ViewControl implements IPreserveState
     JFrame f = new JFrame("Test for PanViewControl");
     f.setBounds(0,0,200,200);
     f.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-    CoordJPanel test = new CoordJPanel();
-    CoordTransform globaltf = new CoordTransform( new CoordBounds(0,0,200,200),
-                                                  new CoordBounds(0,0,1,1) );
-    CoordTransform localtf = new CoordTransform( new CoordBounds(10,50,100,100),
-                                                 new CoordBounds(0,0,1,1) );
-    //test.setGlobalWorldCoords( new CoordBounds(0,0,200,200) );
-    //test.setLocalWorldCoords( new CoordBounds(50,50,100,100) );
-    ObjectState teststate = new ObjectState();
-    ObjectState superteststate = new ObjectState();
-    teststate.insert( CoordJPanel.GLOBAL_BOUNDS,
-                      new CoordTransform( globaltf ) );
-    teststate.insert( CoordJPanel.LOCAL_BOUNDS,
-                      new CoordTransform( localtf ) );
-    //test.setObjectState( teststate );
-    superteststate.insert( PanViewControl.THUMBNAIL, teststate );
+    ImageJPanel test = new ImageJPanel();
+    
+    float test_array[][] = new float[500][500];
+    for ( int i = 0; i < 500; i++ )
+      for ( int j = 0; j < 500; j++ )
+        test_array[i][j] = i + j;
+    
+    test.setData(test_array, true);
+
     PanViewControl pvc = new PanViewControl( test );
-    pvc.setObjectState(superteststate);
     f.getContentPane().add(pvc);
     f.setVisible(true);
-    //pvc.setLocalBounds( new CoordBounds(0,0,50,50) );
+  }
+  
+  private void setImageDimension()
+  {
+    if( actual_cjp instanceof ImageJPanel )
+    {
+      data_width = (double)((ImageJPanel)actual_cjp).getNumDataColumns();
+      data_height = (double)((ImageJPanel)actual_cjp).getNumDataRows();
+    }
+  }
+  
+  private void setAspectRatio()
+  { 
+    double aspect_ratio = data_height / data_width;
+    
+    // limit aspect ratio between 2/3 and 3/2
+    if( aspect_ratio < (2f/3f) )
+      aspect_ratio = 2.0/3.0;
+    if( aspect_ratio > (3f/2f) )
+      aspect_ratio = 3.0/2.0;
+     
+    double pan_width = getWidth();
+    double pan_height = pan_width * aspect_ratio;
+    //System.out.println("Aspect Ratio: " + actual_cjp.getHeight() + "/" +
+    //                   actual_cjp.getWidth() );
+    //System.out.println("Pan Width: " + pan_width );
+    //System.out.println("Pan Height: " + pan_height );
+    setMinimumSize( new Dimension( 0, (int)pan_height ) );
+    setPreferredSize( new Dimension( (int)pan_width, (int)pan_height ) );
+    System.out.println("Size: " + getPreferredSize().toString() );
   }
 
  /*
@@ -296,11 +251,11 @@ public class PanViewControl extends ViewControl implements IPreserveState
   {
     public void actionPerformed( ActionEvent ae )
     {
-      String message = ae.getActionCommand(); 
+      String message = ae.getActionCommand(); /*
       if( message.equals( TranslationJPanel.BOUNDS_CHANGED ) )
       {
         local_bounds = overlay.getLocalBounds();
-      }
+      }*/
       send_message(message);
     }
   }
@@ -313,6 +268,49 @@ public class PanViewControl extends ViewControl implements IPreserveState
     public void mouseEntered (MouseEvent e)
     {
       requestFocus();
+    }
+  }
+  
+ /*
+  * The primary purpose of this listener is to keep the aspect ratio of this
+  * control close to that of the actual image.
+  */ 
+  private class MaintainAspectRatio extends ComponentAdapter
+  {
+    public void componentResized( ComponentEvent e )
+    {
+      refreshData();
+    }
+  }
+  
+ /*
+  * This private JPanel is used to hold the image of the thumbnail. A
+  * separate class was required to repaint the image without interferring
+  * with the rest of the PanViewControl.
+  */ 
+  private class ThumbnailJPanel extends JPanel
+  {
+    private Image image = null;
+    public ThumbnailJPanel()
+    {
+      super();
+    }
+    
+    public ThumbnailJPanel(Image i)
+    {
+      super();
+      image = i;
+    }
+    
+    public void paint( Graphics g )
+    {
+      if( image != null )
+        g.drawImage( image, 0, 0, this );
+    }
+    
+    public void setImage( Image i )
+    {
+      image = i;
     }
   }
 }
