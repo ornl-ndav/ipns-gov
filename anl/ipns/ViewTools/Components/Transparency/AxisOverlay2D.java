@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.47  2004/11/12 21:21:31  millermi
+ *  - Tru-log painting of axes now restricted if upper bounds is
+ *    negative (entire interval is negative).
+ *
  *  Revision 1.46  2004/11/12 17:24:27  millermi
  *  - Fixed bug introduced by using local coords to track zooming
  *    instead of axis min/max from getAxisInformation().
@@ -1896,11 +1900,11 @@ public class AxisOverlay2D extends OverlayJPanel
 				       global_bounds.getY2() );
     }
     // If interval is not all positive, do nothing.
-    if( global_bounds.getX1() <= 0 || local_bounds.getX1() <= 0 )
+    if( global_bounds.getX2() <= 0 || local_bounds.getX2() <= 0 )
     {
-      System.out.println("Error - Use of Tru-log calibrations requires an "+
-                         "all-positive interval. Please revise x-axis world "+
-			 "coordinates as an all-positive interval. ("+
+      System.out.println("Error - Use of Tru-log calibrations requires a "+
+                         "positive interval. Please revise x-axis world "+
+			 "coordinates with a positive upper bound. ("+
 			 "AxisOverlay2D)");
       return;
     }
@@ -2064,11 +2068,11 @@ public class AxisOverlay2D extends OverlayJPanel
       global_bounds.invertBounds();
     
     // If interval is not all positive, do nothing.
-    if( global_bounds.getY1() <= 0 || local_bounds.getY1() <= 0 )
+    if( global_bounds.getY2() <= 0 || local_bounds.getY2() <= 0 )
     {
       System.out.println("Error - Use of Tru-log calibrations requires an "+
-                         "all-positive interval. Please revise y-axis world "+
-			 "coordinates as an all-positive interval. ("+
+                         "positive interval. Please revise y-axis world "+
+			 "coordinates with a positive upper bound. ("+
 			 "AxisOverlay2D)");
       return;
     }
