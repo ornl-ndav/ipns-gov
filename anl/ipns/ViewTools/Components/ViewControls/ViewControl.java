@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/05 18:15:59  millermi
+ *  - Removed excess imports.
+ *
  *  Revision 1.4  2003/10/16 05:00:14  millermi
  *  - Fixed java docs errors.
  *
@@ -55,12 +58,12 @@
  
  package DataSetTools.components.View.ViewControls;
 
- import java.awt.event.*;
  import java.awt.GridLayout;
- import javax.swing.border.*;
+ import javax.swing.border.TitledBorder;
+ import javax.swing.border.LineBorder;
  
  import DataSetTools.components.ui.ActiveJPanel;
- import DataSetTools.util.*;
+ import DataSetTools.util.FontUtil;
  
 /**
  * Any class that implements this interface will be used to adjust
@@ -68,61 +71,60 @@
  */
 public abstract class ViewControl extends ActiveJPanel implements IViewControl
 {
-  /* **********************************************
-   *  Messaging Strings used by action listeners.
-   * **********************************************
-   *  Sender                  Message
-   * **********************************************
-   *  ControlSlider           SLIDER_CHANGED
-   *  ControlCheckbox         CHECKBOX_CHANGED
-   * **********************************************
-   * Method data:
-   */
-   private String title;
-   
-   public ViewControl(String con_title)
-   {
-      this.setTitle(con_title); 
-      this.setLayout( new GridLayout(1,1) );
-   }
-      
-  /* *************** Methods implemented by ActiveJPanel *************** */ 
-  /* void addActionListener()
-   * void removeActionListener()
-   * void removeAllActionListeners()
-   * void send_message()
-   */
-       
-  /* *************** Methods included from IViewControl  *************** */ 
-  /* Although the methods addActionListener(),removeActionListener(), and
-   * removeAllActionListeners() are included in the IViewControl,
-   * these methods are implemented by ActiveJPanel, which ViewControl
-   * implements.
-   */
+ /* **********************************************
+  *  Messaging Strings used by action listeners.
+  * **********************************************
+  *  Sender		     Message
+  * **********************************************
+  *  ControlSlider	     SLIDER_CHANGED
+  *  ControlCheckbox	     CHECKBOX_CHANGED
+  * **********************************************
+  * Method data:
+  */
+  private String title;
   
-  /**
-   * Get title of the view control.
-   *
-   *  @return title
-   */
-   public String getTitle()
-   {
-      return title;
-   }
-   
-  /**
-   * Set title of the view control.
-   *
-   *  @param  control_title - title of control
-   */ 
-   public void setTitle(String control_title)
-   {
-      title = control_title;
+  public ViewControl(String con_title)
+  {
+    this.setTitle(con_title); 
+    this.setLayout( new GridLayout(1,1) );
+  }
+     
+ /* *************** Methods implemented by ActiveJPanel *************** */ 
+ /* void addActionListener()
+  * void removeActionListener()
+  * void removeAllActionListeners()
+  * void send_message()
+  */
       
-      TitledBorder border = 
-            new TitledBorder(LineBorder.createBlackLineBorder(),title);
-      border.setTitleFont( FontUtil.BORDER_FONT ); 
-      this.setBorder( border ); 
-   }  
-
+ /* *************** Methods included from IViewControl  *************** */ 
+ /* Although the methods addActionListener(),removeActionListener(), and
+  * removeAllActionListeners() are included in the IViewControl,
+  * these methods are implemented by ActiveJPanel, which ViewControl
+  * implements.
+  */
+ 
+ /**
+  * Get title of the view control.
+  *
+  *  @return title
+  */
+  public String getTitle()
+  {
+    return title;
+  }
+  
+ /**
+  * Set title of the view control.
+  *
+  *  @param  control_title - title of control
+  */ 
+  public void setTitle(String control_title)
+  {
+    title = control_title;
+    
+    TitledBorder border = 
+	  new TitledBorder(LineBorder.createBlackLineBorder(),title);
+    border.setTitleFont( FontUtil.BORDER_FONT ); 
+    this.setBorder( border ); 
+  }  
 }
