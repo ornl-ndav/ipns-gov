@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2003/10/14 22:22:10  dennis
+ *  Fixed javadoc comment so it builds cleanly on jdk 1.4.2
+ *
  *  Revision 1.7  2002/11/27 23:15:47  pfpeterson
  *  standardized header
  *
@@ -69,14 +72,14 @@ public final class Sample
    * such counts from bins in the input histogram that they contain, or 
    * partially overlap.  Also see the method "ResampleBin".
    *
-   * @param   iX[]      Array of bin boundaries for the input histogram.  These
+   * @param   iX        Array of bin boundaries for the input histogram.  These
    *                    can be an arbitrary non-decreasing sequence of X values.
-   * @param   iHist[]   Array of histogram values for the input histogram. The
+   * @param   iHist     Array of histogram values for the input histogram. The
    *                    length of iHist[] must be one less than the length of
    *                    iX[].
-   * @param   nX[]      Array of bin boundaries for the new histogram.  These
+   * @param   nX        Array of bin boundaries for the new histogram.  These
    *                    can be an arbitrary non-decreasing sequence of X values.
-   * @param   nHist[]   Array of histogram values for the new histogram. The
+   * @param   nHist     Array of histogram values for the new histogram. The
    *                    length of nHist[] must be one less than the length of
    *                    nX[].
    */
@@ -242,20 +245,20 @@ public final class Sample
    * This version also accepts an array of error values for the input histogram
    * and calculates a new array of error values for the new histogram.
    *
-   * @param   iX[]      Array of bin boundaries for the input histogram.  These
+   * @param   iX        Array of bin boundaries for the input histogram.  These
    *                    can be an arbitrary non-decreasing sequence of X values.
-   * @param   iHist[]   Array of histogram values for the input histogram. The
+   * @param   iHist     Array of histogram values for the input histogram. The
    *                    length of iHist[] must be one less than the length of
    *                    iX[].
-   * @param   iErr[]    Array of error values for the input histogram. The
+   * @param   iErr      Array of error values for the input histogram. The
    *                    length of iErr[] must be one less than the length of
    *                    iX[].
-   * @param   nX[]      Array of bin boundaries for the new histogram.  These
+   * @param   nX        Array of bin boundaries for the new histogram.  These
    *                    can be an arbitrary non-decreasing sequence of X values
-   * @param   nHist[]   Array of histogram values for the new histogram. The
+   * @param   nHist     Array of histogram values for the new histogram. The
    *                    length of nHist[] must be one less than the length of
    *                    nX[].
-   * @param   nErr[]    Array of error values for the new histogram. The
+   * @param   nErr      Array of error values for the new histogram. The
    *                    length of nHist[] must be one less than the length of
    *                    nX[].
    */
@@ -462,7 +465,7 @@ public final class Sample
    * @param   iBin      the counts in in input bin 
    * @param   nXmin     the left  boundary of the new histogram bins
    * @param   nXmax     the right boundary of the new histogram bins
-   * @param   nHist[]   array of bin count values in another histogram.  The
+   * @param   nHist     array of bin count values in another histogram.  The
    *                    count values MUST have been initialized on input.  This
    *                    function adds counts from the input bin to the values
    *                    initially in the nHist[] bins.
