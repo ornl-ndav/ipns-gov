@@ -32,6 +32,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2003/07/17 20:40:51  serumb
+ * Changed the zoom controls to fit better, and allow more
+ * freedom for the user.
+ *
  * Revision 1.2  2003/07/10 21:46:42  serumb
  * Added controls for zooming on the y axis.
  *
@@ -39,7 +43,8 @@
 package DataSetTools.components.View.ViewControls;
                                                                                                                             
 import DataSetTools.components.ParametersGUI.*;
-                                                                                                                                               
+
+import DataSetTools.components.ui.*;                                                                                                                                               
 import DataSetTools.components.View.*;  // IVirtualArray1D
 import DataSetTools.components.View.OneD.*;
 import DataSetTools.components.View.Transparency.*;  //Axis Overlays
@@ -125,7 +130,7 @@ import javax.swing.event.*;
   private ButtonControl ErrorColor;
   private ButtonControl annotationButton;
   private ButtonControl ZoomButton;
-  private int line_index     = 0;
+  private int line_index     = 1;
   private int linewidth      = 1;
   private JColorChooser choosecolors = new JColorChooser( Color.black );
   private Box leftBox        = new Box( 1 );
@@ -155,6 +160,9 @@ import javax.swing.event.*;
   private StringEntry end_field;
   private StringEntry y_start_field;
   private StringEntry y_end_field;
+  private TextRangeUI x_range; 
+  private TextRangeUI y_range; 
+  private Box vert_box = new Box(1);
   private ControlCheckbox axis_checkbox = new ControlCheckbox( true );
   private ControlCheckbox annotation_checkbox = new ControlCheckbox(  );
 
@@ -169,6 +177,7 @@ import javax.swing.event.*;
     big_picture = display_panel;
 
     buildControls();
+
     main_panel.addViewControl(controlpanel);
   }
 
@@ -182,7 +191,7 @@ import javax.swing.event.*;
     int group_id;
     
     lines = new String[Varray1D.getNumlines(  )];
-                                                                                
+//?
     for( int i = 0; i < Varray1D.getNumlines(  ); i++ ) {
       group_id   = Varray1D.getGroupID( i );
       lines[i]   = "Group ID:" + group_id;
@@ -243,19 +252,25 @@ import javax.swing.event.*;
     LineColor   = new ButtonControl( "Line Color" );
     MarkColor   = new ButtonControl( "Point Marker Color" );
     ErrorColor  = new ButtonControl( "Error Bar Color" );
-                                                                                   
+    
+    axis_checkbox.setText( "Axis Overlay" );
+    annotation_checkbox.setText( "Annotation Overlay" );
+    annotationButton = new ButtonControl( "Edit Annotations" );
+
+    x_range = new TextRangeUI("X Range", 
+                      Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMin(),
+                      Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getMax());
+    y_range = new TextRangeUI("Y Range",Varray1D.getAxisInfo(
+                      AxisInfo2D.YAXIS ).getMin(), Varray1D.getAxisInfo(
+                      AxisInfo2D.YAXIS ).getMax()); 
+
     GridLayout G_lout = new GridLayout( 1, 1 );
-                                                                                   
-    panel1.setLayout( G_lout );
+                                                                                     panel1.setLayout( G_lout );
     panel2.setLayout( G_lout );
     panel3.setLayout( G_lout );
     panel1.add( LineColor.button );
     panel2.add( MarkColor.button );
     panel3.add( ErrorColor.button );
-                                                                                   
-    //box1.add(panel1);
-    //box1.add(panel2);
-    //buttonPanel.add(box1);
                                                                                    
     // the left box is the left side of the control panel
     leftBox.add( labelbox1.theBox );
@@ -275,53 +290,15 @@ import javax.swing.event.*;
     PointMarkerSizeBox   = labelbox5.cbox;
     ErrorBarBox          = labelbox6.cbox;
     ShiftBox             = labelbox7.cbox;
-                                                                                   
-   // boxPanel.setLayout( G_lout );
-   // leftBox.add( box1 );
-   // boxPanel.add( leftBox );
+
     control_box.add(leftBox);
-                                                                                   
-    axis_checkbox.setText( "Axis Overlay" );
-    annotation_checkbox.setText( "Annotation Overlay" );
-    annotationButton = new ButtonControl( "Edit Annotations" );
-                                                                                   
-    FloatFilter my_filter = new FloatFilter(  );
-                                                                                   
-    ZoomButton    = new ButtonControl( "Zoom" );
-    z_begin       = new JLabel( "X Start:" );
-    z_end         = new JLabel( "X End:  " );
-    start_field   = new StringEntry( 8 );
-    end_field     = new StringEntry( 8 );
-    start_field.setStringFilter( my_filter );
-    end_field.setStringFilter( my_filter );
-    yz_begin       = new JLabel( "Y Min:  " );
-    yz_end         = new JLabel( "Y Max:  " );
-    y_start_field   = new StringEntry( 8 );
-    y_end_field     = new StringEntry( 8 );
-    y_start_field.setStringFilter( my_filter );
-    y_end_field.setStringFilter( my_filter );
-                                                                                   
-                                                                                   
-    ZBP.setLayout( G_lout );
-    ZBP.add( ZoomButton.button );
-    z_box.add( ZBP );
-    t_box.add( z_begin );
-    t_box.add( start_field );
-    t1_box.add( z_end );
-    t1_box.add( end_field );
-    t2_box.add( yz_begin );
-    t2_box.add( y_start_field );
-    t3_box.add( yz_end );
-    t3_box.add( y_end_field );
-   
-    T_Box.add( t_box );
-    T_Box.add( t1_box );
-    T_Box.add( t2_box );
-    T_Box.add( t3_box );
+
+    vert_box.add( x_range );
+    vert_box.add( y_range );
+
     TFP.setLayout( G_lout );
-    TFP.add( z_box );
-    TFP.add( T_Box );
-                                                                                   
+    TFP.add( vert_box );
+                                                                               
     rightBox.add( axis_checkbox );
     rightBox.add( annotation_checkbox );
     rightBox.add( annotationButton );
@@ -348,13 +325,12 @@ import javax.swing.event.*;
     axis_checkbox.addActionListener( new ControlListener(  ) );
     annotation_checkbox.addActionListener( new ControlListener(  ) );
     annotationButton.addActionListener( new ControlListener(  ) );
-    ZoomButton.addActionListener( new ControlListener(  ) );
-    start_field.addActionListener( new ControlListener(  ) );
-    end_field.addActionListener( new ControlListener(  ) );
     ShiftBox.addActionListener( new ControlListener(  ) );
-                                                                                 
-                                                                                   
+    x_range.addActionListener( new x_rangeListener(  ) );
+    y_range.addActionListener( new y_rangeListener(  ) );
+    gjp.addActionListener( new ImageListener(  ) );                                                                             
   }
+
   public ViewControlsPanel get_panel() {
     return main_panel;
   }
@@ -369,8 +345,45 @@ import javax.swing.event.*;
   public void close_frame() {
     the_frame.setVisible( false );
   }
+  
+  private class x_rangeListener implements ActionListener {
 
- 
+    public void actionPerformed( ActionEvent ae ) {
+          // System.out.println("Entered: " + x_range.getText() );
+          // System.out.println("Min = " + x_range.getMin() );
+          // System.out.println("Max = " + x_range.getMax() );
+           gjp.setZoom_region(x_range.getMin(),y_range.getMax(),
+                             x_range.getMax(), y_range.getMin());
+
+         }
+  }
+
+  private class y_rangeListener implements ActionListener {
+
+    public void actionPerformed( ActionEvent ae ) {
+         //  System.out.println("Entered: " +y_range.getText() );
+         //  System.out.println("Min = " + y_range.getMin() );
+         //  System.out.println("Max = " + y_range.getMax() );
+          gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
+                              x_range.getMax(), y_range.getMin());
+
+         }
+  }
+ private class ImageListener implements ActionListener {
+    //~ Methods ****************************************************************
+                                                                                             
+    public void actionPerformed( ActionEvent ae ) {
+      String message = ae.getActionCommand(  );
+                                                                                             
+      if( message == CoordJPanel.RESET_ZOOM ) {
+        //System.out.println("Sending SELECTED_CHANGED" );
+        x_range.setMin(Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMin()); 
+        x_range.setMax(Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMax()); 
+        y_range.setMin(Varray1D.getAxisInfo(AxisInfo2D.YAXIS ).getMin()); 
+        y_range.setMax(Varray1D.getAxisInfo(AxisInfo2D.YAXIS ).getMax()); 
+      }
+    }
+ }
   private class ControlListener implements ActionListener {
     //~ Methods ****************************************************************
                                                                                                    
@@ -413,8 +426,8 @@ import javax.swing.event.*;
            annotation pane.
         */
         if( ae.getSource(  ) == annotationButton ) {
-          AnnotationOverlay note = ( AnnotationOverlay )big_picture.getComponent( 
-              big_picture.getComponentCount(  ) - 3 );
+          AnnotationOverlay note = ( AnnotationOverlay )big_picture.getComponent
+                        (big_picture.getComponentCount(  ) - 3 );
 
           note.editAnnotation(  );
 
@@ -422,118 +435,19 @@ import javax.swing.event.*;
           paintComponents( big_picture.getGraphics(  ) );
         }
 
-        /*
-          listens for the zoom button then gets the x start and end positions
-          and zooms on them.
-        */
-        if( ae.getSource(  ) == ZoomButton )
-        {
-          Float Xstart;
-          Float Xend;
-          Float Ystart = new Float(0f);
-          Float Yend = new Float(0f);
-          float Y_max = 0;
-          float Y_min = 0;
-          int Y_max_index = 0;
-          int Y_min_index = 0;
-          int Y_max_graph = 0;
-          int Y_min_graph = 0;
-          String start_string;
-          String end_string;
-          String y_start_string;
-	  String y_end_string;
-          GraphData gd;
-
-          start_string   = start_field.getText(  );
-          end_string     = end_field.getText(  );
-          y_start_string   = y_start_field.getText(  );
-          y_end_string     = y_end_field.getText(  );
-         
-          if(start_string.equals("") || end_string.equals(""))
-            return;
-          
-          Xstart = Float.valueOf(start_string);
-          Xend = Float.valueOf(end_string);
-          if(!(y_start_string.equals("") || y_end_string.equals(""))) {
-            Ystart = Float.valueOf(y_start_string);
-            Yend = Float.valueOf(y_end_string);
-          }
-
-          if( Xstart.floatValue() == Xend.floatValue())
-             return;
-
-          if( Xstart.floatValue() > Xend.floatValue() ) //swap
-          {
-             Float temp;
-             temp = Xstart;
-             Xstart = Xend;
-             Xend = temp;
-          }
-          if( Ystart.floatValue() > Yend.floatValue() ) //swap
-          {
-             Float temp;
-             temp = Ystart;
-             Ystart = Yend;
-             Yend = temp;
-          }
-         /* sets bounds on x range for zoom 
-          if(Xend.floatValue() > Varray1D.getAxisInfo(
-                 AxisInfo2D.XAXIS ).getMax())
-             Xend = new Float(Varray1D.getAxisInfo( AxisInfo2D.XAXIS )
-                    .getMax());
-
-          if(Xstart.floatValue() < Varray1D.getAxisInfo(
-                      AxisInfo2D.XAXIS ).getMin())
-             Xstart = new Float(Varray1D.getAxisInfo( AxisInfo2D.XAXIS )
-                      .getMin());
-          */   
-         //set ymin to the y max of the graph
-          Y_min =  Varray1D.getAxisInfo(AxisInfo2D.YAXIS).getMax();
-        
-          // for loop to get Y_min and Y_max 
-          for(int index = 0; index < gjp.graphs.size(); index ++)
-          {
-            gd = ( GraphData )gjp.graphs.elementAt( index );
-              for(int index2 = 0; index2 < gd.get_y_vals().length; index2++)
-              {
-                if(gd.get_x_vals()[index2] > Xstart.floatValue() && 
-                   gd.get_x_vals()[index2] < Xend.floatValue())
-                {
-                  if( Y_max < gd.get_y_vals()[index2] ){
-                    Y_max_index = index2;
-                    Y_max_graph = index;
-                    Y_max = gd.get_y_vals()[index2];
-                  }
-                  if( Y_min > gd.get_y_vals()[index2] ) {
-                    Y_min_index = index2;
-                    Y_min_graph = index;
-                    Y_min = gd.get_y_vals()[index2]; 
-                  }
-                }
-              }
-          }  
-          if(y_start_string.equals("") && y_end_string.equals("")) {
-              Ystart = new Float( Y_min );
-              Yend =new Float( Y_max );
-          }
-          else if(y_start_string.equals("") || y_end_string.equals("")) 
-            return; 
-                  
-          gjp.setZoom_region(Xstart.floatValue(), Yend.floatValue(),
-                             Xend.floatValue(),Ystart.floatValue()); 
-        }
       } else if( message.equals( "comboBoxChanged" ) ) {
         // System.out.println("action" + LineBox.getSelectedItem());
         // System.out.println("index" + LineBox.getSelectedIndex());
         // System.out.println("source " + ae.getSource());
 
         /* 
-           sets the index for the line selected.
+           gets the index for the line selected. The index is used for the
+           line that is pointed at so 1 is added to the line index for 
+           selected lines.
         */
         if( ae.getSource(  ) == LineBox ) {
-          line_index = LineBox.getSelectedIndex(  );
+          line_index = LineBox.getSelectedIndex(  ) + 1;
 
-          //System.out.println("line index"+line_index);
           GraphData gd = ( GraphData )gjp.graphs.elementAt( line_index );
          
           /*
@@ -544,7 +458,7 @@ import javax.swing.event.*;
                 gjp.strokeType( gjp.DOTTED, line_index ) ) ) {
             LineStyleBox.setSelectedIndex( 2 );
           } else if( 
-            gjp.getStroke( line_index ).equals( 
+           gjp.getStroke( line_index ).equals( 
                 gjp.strokeType( gjp.LINE, line_index ) ) ) {
             LineStyleBox.setSelectedIndex( 0 );
           } else if( 
@@ -730,15 +644,14 @@ import javax.swing.event.*;
           //System.out.println("zoom region:"+ gjp.getZoom_region());
           //CoordBounds data_bound = getGlobalWorldCoords();
           //data_bound.getBounds()
-
           if( ErrorBarBox.getSelectedItem(  ).equals( "None" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues( line_index  ), 0, 
+            gjp.setErrors( Varray1D.getErrorValues( line_index - 1  ), 0, 
                            line_index, true );
           } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Points" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues( line_index  ), 
+            gjp.setErrors( Varray1D.getErrorValues( line_index - 1  ), 
                            gjp.ERROR_AT_POINT, line_index, true );
           } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Top" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues( line_index  ),
+            gjp.setErrors( Varray1D.getErrorValues( line_index - 1 ),
                            gjp.ERROR_AT_TOP, line_index, true );
           }
 
