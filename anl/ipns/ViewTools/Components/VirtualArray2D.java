@@ -25,18 +25,18 @@
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
  *
- * This work was supported by the Intense Pulsed Neutron Source Division
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0218882, and by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
- * For further information, see <http://www.pns.anl.gov/ISAW/>  
+ * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
- *****************************************************************************
- * VirtArray2D implements the IVirtualArray2D interface. 
+ * Modified:
  *
- * Assumptions: All row/column values passed are assumed to be in array
- * format. That is, an M x N array has M rows and N columns, but the rows
- * are numbered 0 - M-1 and the columns are numbered 0 - N-1. 
- *****************************************************************************
+ *  $Log$
+ *  Revision 1.2  2003/05/16 15:01:54  dennis
+ *  Minor fix to java doc comments and added acknowledgement of NSF funding.
+ *
  */
 
 package DataSetTools.components.View;
@@ -48,6 +48,10 @@ import DataSetTools.util.*;
  * This class puts a wrapper around a 2-D array of floats. It can be 
  * used to pass data to viewers and view components. Along with the data,
  * the data attributes are kept within the virtual array.
+ *
+ * Assumptions: All row/column values passed are assumed to be in array
+ * format. That is, an M x N array has M rows and N columns, but the rows
+ * are numbered 0 - M-1 and the columns are numbered 0 - N-1. 
  */
 
 public class VirtualArray2D implements IVirtualArray2D
