@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.33  2004/05/18 03:03:22  millermi
+ *  - Added ability to change opacity on annotations.
+ *  - "Show Line" checkbox now set to the value of show_anchor_line.
+ *
  *  Revision 1.32  2004/05/11 01:32:52  millermi
  *  - Removed unused imports and variables.
  *
@@ -210,6 +214,7 @@ import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Cursor.AnnotationJPanel;
 import gov.anl.ipns.ViewTools.Components.Cursor.LineCursor;
 import gov.anl.ipns.ViewTools.Components.Cursor.Line;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
@@ -278,7 +283,9 @@ public class AnnotationOverlay extends OverlayJPanel
   private Color line_color;		 // annotation arrow color
   private Color text_color;		 // annotation text color
   private transient AnnotationEditor editor;
-  private Rectangle editor_bounds = new Rectangle(0,0,430,265 );
+  private Rectangle editor_bounds = new Rectangle(0,0,430,265 ); 
+  private float opacity = 1.0f; 	 // value [0,1] where 0 is clear, 
+					 // and 1 is solid.
   private Font font;
   private Font default_font;
   private transient CoordTransform pixel_local;
@@ -575,6 +582,22 @@ public class AnnotationOverlay extends OverlayJPanel
     editor.updateNoteList();
     repaint();
   }
+ 
+ /**
+  * This method sets the opaqueness of the annotations. Values will fall in the
+  * interval [0,1], with 1 being opaque, and 0 being transparent. 
+  *
+  *  @param  value - on interval [0,1]
+  */ 
+  public void setOpacity( float value )
+  {
+    if( value > 1 )
+      opacity = 1.0f;
+    else if( value < 0 )
+      opacity = 0;
+    else
+      opacity = value;
+  }
      
  /**
   * This method is called by to inform the overlay that it is no
@@ -597,6 +620,10 @@ public class AnnotationOverlay extends OverlayJPanel
   {  
     Graphics2D g2d = (Graphics2D)g;
     g2d.setFont( font );
+    // Change the opaqueness of the annotations.
+    AlphaComposite ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER,
+        					    opacity );
+    g2d.setComposite(ac);
     
     updateTransform();
     g2d.clipRect( (int)current_bounds.getX(),
@@ -903,27 +930,36 @@ public class AnnotationOverlay extends OverlayJPanel
       // Add a color selector to allow users to change the color of 
       // the annotation.
       ColorSelector colorchooser = new ColorSelector(ColorSelector.SWATCH);
-      colorchooser.addActionListener( new ColorChangeListener() );
+      colorchooser.addActionListener( new AppearanceChangeListener() );
       this.getContentPane().add(colorchooser, BorderLayout.CENTER);
       
+      // Slider that returns values on interval [0,1] in steps of 100.
+      ControlSlider opaque_slider = new ControlSlider(0,1f,100);
+      opaque_slider.setTitle("Change Opacity");
+      opaque_slider.setValue(opacity);
+      opaque_slider.addActionListener( new AppearanceChangeListener() );
       JCheckBox draw_anchor = new JCheckBox("Draw Anchor Line");
-      draw_anchor.setSelected(true);
+      draw_anchor.setSelected(show_anchor_line);
       draw_anchor.addActionListener( new ButtonListener() );
+      // For layout reasons, put both of them into this JPanel.
+      JPanel slider_and_checkbox = new JPanel( new GridLayout(1,2) );
+      slider_and_checkbox.add(opaque_slider);
+      slider_and_checkbox.add(draw_anchor);
       
       JButton help = new JButton("Help");
       help.addActionListener( new ButtonListener() );
-      JPanel checkbox_and_help = new JPanel( new GridLayout(1,2) );
-      checkbox_and_help.add(draw_anchor);
-      checkbox_and_help.add(help);
-      
       JButton closebutton = new JButton("Close");
       closebutton.addActionListener( new ButtonListener() );
+      // For layout reasons, put both of them into this JPanel.
+      JPanel close_and_help = new JPanel( new GridLayout(1,2) );
+      close_and_help.add(closebutton);
+      close_and_help.add(help);
       
       
       // To correct layout issues, put first two rows into one component.
       JPanel comp4 = new JPanel(new GridLayout(2,1));
-      comp4.add(checkbox_and_help);
-      comp4.add(closebutton);
+      comp4.add(slider_and_checkbox);
+      comp4.add(close_and_help);
       this.getContentPane().add(comp4, BorderLayout.SOUTH);
       
       // These commands will create key events for moving the annotation
@@ -1255,48 +1291,11 @@ public class AnnotationOverlay extends OverlayJPanel
    	this_panel.repaint();		
       }     
     } // end KeyAction
-   
-   /*
-    * This class listens to the ColorScaleImage on the AnnotationEditor.
-    * This listener allows for annotation color change.
-    * This listener corresponds to the old color chooser that used
-    * the ColorScaleImage.
-    class NoteColorListener extends MouseAdapter
-    {
-      public void mousePressed( MouseEvent e )
-      {
-   	ColorScaleImage coloreditor = (ColorScaleImage)e.getSource();
-   	Color colorarray[] = IndexColorMaker.getColorTable(
-   			       IndexColorMaker.MULTI_SCALE, 127 );
-   	Color grayarray[] = IndexColorMaker.getColorTable(
-   			       IndexColorMaker.GRAY_SCALE, 127 );
-        int colorindex = (int)coloreditor.ImageValue_at_Cursor();
-   	
-   	if( colorindex > 0 )
-   	{
-   	  colorindex = colorindex - 1;
-   	  if( !e.isControlDown() )	      
-   	    text_color = colorarray[colorindex];
-   	  if( !e.isShiftDown() )
-   	    line_color = colorarray[colorindex];
-   	}
-   	else
-   	{
-   	  colorindex = colorindex + 1;
-   	  colorindex = -colorindex;
-   	  if( !e.isControlDown() )
-   	    text_color = grayarray[colorindex];
-   	  if( !e.isShiftDown() )
-   	    line_color = grayarray[colorindex]; 	  
-   	}
-   	this_panel.repaint();	     
-      }
-    }*/
     
    /*
-    * This class changes the color of annotations.
+    * This class listens for changes in the color and/or opacity of annotations.
     */
-    class ColorChangeListener implements ActionListener
+    class AppearanceChangeListener implements ActionListener
     {
       public void actionPerformed( ActionEvent ae )
       {
@@ -1306,6 +1305,11 @@ public class AnnotationOverlay extends OverlayJPanel
 	  ColorSelector cs = (ColorSelector)ae.getSource();
 	  text_color = cs.getSelectedColor();
 	  line_color = cs.getSelectedColor();
+	  this_panel.repaint();
+	}
+	else if( message.equals( ControlSlider.SLIDER_CHANGED ) )
+	{
+	  opacity = ((ControlSlider)ae.getSource()).getValue();
 	  this_panel.repaint();
 	}
       }
@@ -1330,34 +1334,39 @@ public class AnnotationOverlay extends OverlayJPanel
  	{
  	  isNumeric = false;
  	}
+	
+	// If not numeric, a font type was set.
  	if( !isNumeric )
  	{
- 	  int fontindex = 0;
- 	  while( message.indexOf("Change") < 0 &&
- 		 !(fonts[fontindex].getFamily().equals(message)) &&
- 		 (fontindex < fonts.length - 1) )
- 	  {
- 	    fontindex++;
- 	  }
- 	  if( message.equals("Default") )
+	  // Find the index of the selected item.
+ 	  int fontindex = temp.getSelectedIndex();
+	  // If message contains "Change", ignore event. Event coming from
+	  // "Change ..." item.
+	  if( !(message.indexOf("Change") < 0) )
+	    return; 
+	  // If default font, change back to initial font. This is not done
+	  // automatically. Default represents a different font.
+ 	  else if( message.equals("Default") )
  	  {
  	    font = default_font;
  	    font = font.deriveFont( Font.PLAIN );
  	    font = font.deriveFont( (float)current_fontsize );
  	  }
+	  // Else set the font to the new font.
  	  else
  	  {
  	    font = fonts[fontindex];
  	    font = font.deriveFont( Font.PLAIN );
  	    font = font.deriveFont( (float)current_fontsize );
  	  }
- 	  this_panel.repaint();
  	}
+	// If numeric, a font size was set.
  	else
  	{
+	  // Change the current font size.
  	  font = font.deriveFont( (float)current_fontsize );
- 	  this_panel.repaint();
  	}
+ 	this_panel.repaint();
       }
     } // end ComboBoxListener
 
