@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.33  2003/10/30 17:13:36  serumb
+ * Changed the paint function so that it marks all the points when
+ * the point markers are selected.
+ *
  * Revision 1.32  2003/10/16 15:18:11  serumb
  * Fixed java doc errors.
  *
@@ -1147,7 +1151,7 @@ public boolean is_autoY_bounds()
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = 0; i < n_points - 2; i=i+2 )
+          for ( int i = 0; i < n_points - 1; i++ )
           {
 	     
 	     if ( type == DOT )
@@ -1301,7 +1305,7 @@ public boolean is_autoY_bounds()
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = 0; i < n_points - 2; i=i+2 )
+          for ( int i = 0; i < n_points - 1; i++ )
           {
 	     int x_midpt = ((x_int[i] + x_int[i+1])/2);
 	     if ( type == DOT )
