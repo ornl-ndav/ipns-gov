@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2003/06/17 15:28:58  pfpeterson
+ *  Added split method for breaking a string into a string[].
+ *
  *  Revision 1.16  2003/02/13 20:58:11  pfpeterson
  *  Deprecated fixSeparator and renamed the method to setFileSeparator.
  *
@@ -398,6 +401,37 @@ public class StringUtil
      return -1;
   }
 
+  /**
+   * Method for spliting strings. Defaults to " " if second parameter
+   * is null.
+   */
+  public static String[] split(String string, String spliter){
+    if(string==null || string.length()<=0)
+        return null;
+      
+    if(spliter==null) spliter=" ";
+    int spliter_length=spliter.length();
+
+    int count=1;
+    int index=string.indexOf(spliter);
+    while(index>0){
+      count++;
+      index=string.indexOf(spliter,index+spliter_length);
+    }
+    String[] list=new String[count];
+    
+    int start=0;
+    int end=string.indexOf(spliter);
+    if(end<=start) end=string.length();
+    for( int i=0 ; i<count ; i++ ){
+      list[i]=string.substring(start,end);
+      start=end+spliter_length;
+      end=string.indexOf(spliter,start);
+      if(end<=start) end=string.length();
+    }
+    
+    return list;
+  }
 
   /**
    * Method analogous to String.trim().
