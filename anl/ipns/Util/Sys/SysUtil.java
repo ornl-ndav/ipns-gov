@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2002/11/01 15:46:13  pfpeterson
+ *  Fixed bug where could not find an executable on windows. Also
+ *  added more intelligent debug prints when mode is on.
+ *
  *  Revision 1.3  2002/10/25 22:16:10  pfpeterson
  *  Added print statements for finding executables if
  *  SharedData.DEBUG is true.
@@ -232,25 +236,25 @@ public class SysUtil{
         if(SharedData.DEBUG) System.out.println("Trying next to operator");
 
         // get the class name and repair it
-        String myClassName=klass.getClass().getName();
+        String myClassName=klass.getName();
         myClassName="/"+myClassName.replace('.','/')+".class";
         
         // get the url for the class
-        URL url=klass.getClass().getResource(myClassName);
+        URL url=klass.getResource(myClassName);
         if(url==null) return null;
         String urlStr=url.toString();
-    
         // come up with where blind should be
         if(urlStr!=null){
             urlStr=FilenameUtil.fixSeparator(urlStr);
             urlStr=URLDecoder.decode(urlStr);
-            if(SharedData.DEBUG)
-                System.out.println("File should be at: "+urlStr);
             int from=urlStr.indexOf("/");
-            int to=urlStr.lastIndexOf("/");
+            int to=urlStr.lastIndexOf("/")+1;
+	    if(isOSokay(WINDOWS_ONLY)) from++;
             if(from<to && from>=0){
                 result=urlStr.substring(from,to)+command;
             }
+            if(SharedData.DEBUG)
+                System.out.println("File should be at: "+result);
         }
 
         // confirm that it is there
@@ -321,7 +325,7 @@ public class SysUtil{
             return com;
         }else{     // otherwise return what was sent here and hope for the best
             if(SharedData.DEBUG)
-                System.out.println("Could not find exec: "+command);
+                System.out.println("Could not find exec in PATH: "+command);
             return command;
         }
     }
