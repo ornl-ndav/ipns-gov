@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.32  2004/01/06 17:17:54  serumb
+ *  The Function View Component now maintains graph data
+ *   after a new line is selected.
+ *
  *  Revision 1.31  2003/12/20 07:40:47  millermi
  *  - Changed paintComponents() to newer version in
  *    ImageViewComponent that is more efficient and
@@ -421,8 +425,8 @@ public class FunctionViewComponent implements IViewComponent1D,
   public void dataChanged( IVirtualArray1D pin_varray )  // pin == "passed in"
    {
     Varray1D = pin_varray;
-    //get the complete 2D array of floats from pin_varray
-    gjp.clearData();
+    //get the complete array from pin_varray
+    //gjp.clearData();
 
     DrawSelectedGraphs();
     if(draw_pointed_at)
@@ -596,44 +600,34 @@ public class FunctionViewComponent implements IViewComponent1D,
   }
 
   private int DrawSelectedGraphs() {
-    int num_drawn = 0;
     int draw_count = 0;
-    gjp.clearData();
-    
-    int pointed_at_line = Varray1D.getPointedAtGraph(); 
-   
-    int num_graphs = Varray1D.getNumGraphs();
-    boolean at_max = false;
-   // int i = num_graphs - 1;
-    for(int i=0; i < num_graphs; i++) {
-   // while( !at_max && i >= 0 ) {
-      if( Varray1D.isSelected(i) ) {
-        draw_count++;
-       // if( i == pointed_at_line )
-       //   Draw_GJP( i, draw_count, true );
-       // else
-          Draw_GJP( i, draw_count, false );
 
-        num_drawn++;
-      }
-      //i--;
-      if ( draw_count >= MAX_GRAPHS )
-        at_max = true;
-    }
-    if( DrawPointedAtGraph() )
-      num_drawn++;
+    int num_graphs = Varray1D.getNumGraphs();
+
+      for(int i=0; i < num_graphs && i < MAX_GRAPHS; i++) {
     
-    return num_drawn;
+        if( Varray1D.isSelected(i) ) {
+            draw_count++;
+            Draw_GJP( i, draw_count, false );
+            
+        }
+        
+       }
+
+    if( DrawPointedAtGraph() )
+      draw_count++;
+    
+    return draw_count;
   }
 
   private void Draw_GJP( int index, int graph_num, boolean pointed_at )
   {
        float x[] = Varray1D.getXVals_ofIndex(index);
        float y[] = Varray1D.getYVals_ofIndex(index);
-       gjp.setColor( Color.black, graph_num, false );
+     // gjp.setColor( Color.black, graph_num, false );
        gjp.setData( x, y, graph_num, false );     
-       gjp.setErrors( Varray1D.getErrorVals_ofIndex( index ), 0, 
-                                              graph_num, true);
+     //  gjp.setErrors( Varray1D.getErrorVals_ofIndex( index ), 0, 
+     //                                        graph_num, true);
        if(!draw_pointed_at)
          gjp.setTransparent(true, 0, true);    
 
