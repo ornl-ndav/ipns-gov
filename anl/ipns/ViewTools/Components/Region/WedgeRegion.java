@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/12/18 22:38:00  millermi
+ *  - Tweaked how x/yextent are calculated. Now must have a different
+ *    of more than one to be reset.
+ *
  *  Revision 1.6  2003/12/16 01:42:24  millermi
  *  - made pointchecker protected variable so it could be
  *    used by the DoubleWedgeCursor.
@@ -139,14 +143,14 @@ public class WedgeRegion extends Region
      // since a mapping is done with the imagejpanel, the topleft or bottomright
      // could have been mapped to the side of the image. However, at most
      // one will be affected, so take the maximum extent of the two.
-     if( (bottomright.x - center.x) > xextent )
+     if( (bottomright.x - center.x)-1 > xextent )
      {
        xextent = bottomright.x - center.x; 
        topleft.x = (int)(center.x - xextent); 
      }
      else
        bottomright.x = (int)(center.x + xextent);
-     if( (bottomright.y - center.y) > yextent )
+     if( (bottomright.y - center.y)-1 > yextent )
      {
        yextent = bottomright.y - center.y;
        topleft.y = (int)(center.y - yextent); 

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/12/18 22:38:00  millermi
+ *  - Tweaked how x/yextent are calculated. Now must have a different
+ *    of more than one to be reset.
+ *
  *  Revision 1.1  2003/11/26 18:46:56  millermi
  *  - Renamed ElipseRegion.java to EllipseRegion.java
  *
@@ -84,16 +88,34 @@ public class EllipseRegion extends Region
    }
    
   /**
-   * Get all of the points inside the eliptical region. 
+   * Get all of the points inside the elliptical region. 
    *
-   *  @return array of points included within the eliptical region.
+   *  @return array of points included within the elliptical region.
    */
    public Point[] getSelectedPoints()
    { // needs to be changed.
      Point topleft = new Point( definingpoints[0] );
      Point bottomright = new Point( definingpoints[1] );
-     double xextent = (double)(bottomright.x - topleft.x)/2;
-     double yextent = (double)(bottomright.y - topleft.y)/2;
+     Point pcenter = new Point( definingpoints[2] );
+     double xextent = (double)(pcenter.x - topleft.x);
+     double yextent = (double)(pcenter.y - topleft.y); 
+     // since a mapping is done with the imagejpanel, the topleft or bottomright
+     // could have been mapped to the side of the image. However, at most
+     // one will be affected, so take the maximum extent of the two.
+     if( (bottomright.x - pcenter.x)-1 > xextent )
+     {
+       xextent = bottomright.x - pcenter.x; 
+       topleft.x = (int)(pcenter.x - xextent); 
+     }
+     else
+       bottomright.x = (int)(pcenter.x + xextent);
+     if( (bottomright.y - pcenter.y)-1 > yextent )
+     {
+       yextent = bottomright.y - pcenter.y;
+       topleft.y = (int)(pcenter.y - yextent); 
+     }
+     else
+       bottomright.y = (int)(pcenter.y + yextent);
      floatPoint2D center = new floatPoint2D( (float)(topleft.x + xextent),
                                (float)(topleft.y + yextent) );
      
