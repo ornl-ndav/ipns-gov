@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/11/18 00:58:07  millermi
+ *  - Now implements Serializable
+ *  - Added capabilities for saving the state.
+ *
  *  Revision 1.1  2003/09/23 23:11:14  millermi
  *  - Initial Version - allows preservation of settings after ISAW is exited.
  *  - Allows global variables for resetting at the top level.
@@ -42,8 +46,20 @@
 
  package DataSetTools.components.View;
  
+ import java.util.Vector; 
  import java.util.Hashtable;
  import java.util.Enumeration;
+ import java.io.ObjectOutputStream;
+ import java.io.ObjectInputStream;
+ import java.io.FileOutputStream;
+ import java.io.FileInputStream;
+ import java.io.File;
+ import javax.swing.JFrame;
+ import javax.swing.JFileChooser;
+ import java.awt.event.ActionEvent;
+ import java.awt.event.ActionListener;
+ 
+ import DataSetTools.util.SerializeUtil;
 
 /**
  * This class is used to preserve the state of on object. Similar to Java's
@@ -58,7 +74,7 @@
  * key_name for each field whose state is being preserved. 
  * 
  */ 
-public class ObjectState
+public class ObjectState implements java.io.Serializable
 { 
  /**
   * GLOBAL string constant is a prefix used by any state variable that needs
@@ -68,7 +84,13 @@ public class ObjectState
   * false if GLOBAL is used for inserting.
   */
   public static final String GLOBAL = "Global";
+  public static final String STATE_CHANGED = "State Changed";
   private Hashtable table;
+  private transient ObjectState this_state;
+  private transient JFrame f;
+  private transient String projectsDirectory;
+  private transient JFileChooser fc;
+  private transient Vector listeners;
 
  /**
   * Constructor - Initializes the Hashtable
@@ -76,6 +98,10 @@ public class ObjectState
   public ObjectState()
   {
     table = new Hashtable();
+    this_state = this;
+    f = new JFrame();
+    projectsDirectory = System.getProperty("user.home");
+    listeners = new Vector();
   }
  
  /**
@@ -161,8 +187,78 @@ public class ObjectState
   public int size()
   {
     return table.size();
-  }   
+  }
   
+  public void openFileChooser( boolean isSave )
+  {
+    String title = "";
+    // if projectsDirectory is null, java handles it.
+    fc = new JFileChooser(projectsDirectory);
+    StateFileFilter sff = new StateFileFilter();
+    fc.setFileFilter( sff );
+    //System.out.println("Current: " + fc.getCurrentDirectory().getPath() );
+    
+    if( isSave )
+    {
+      title = "Save State";   
+    }
+    else
+    {
+      title = "Load State";
+    }
+    
+    int result = fc.showDialog(f,title);
+    
+    if( result == JFileChooser.APPROVE_OPTION )
+    {
+      String filename = fc.getSelectedFile().getName();
+      //StateFileFilter sff = new StateFileFilter();
+      filename = sff.appendExtension(filename);
+      //File file = new File(filename);
+      if( title.equals("Save State") )
+      {
+        if( !SerializeUtil.writeObjectToFile( this_state, filename ) )
+        {
+          System.out.println("Error saving state information in " +
+        		     "ObjectState.java. State was not saved!!!" );
+        }
+      }
+      else if( fc.getApproveButtonText().equals("Load State") )
+      {
+        Object temp = SerializeUtil.readObjectFromFile( filename );
+        if( temp == null || !(temp instanceof ObjectState) )
+        {
+          System.out.println("Error loading state information in " +
+        		     "ObjectState.java. State was not loaded!!!" );
+        }
+        else
+        {	  
+          this_state.table = ((ObjectState)temp).table;
+        }
+      }
+    }
+  }
+  
+  /* 
+   * setProjectsDirectory() and getProjectsDirectory() are taken from 
+   * Chris Bouzek's Wizard.java.
+   */
+ /**
+  * Sets the directory for the state save files to go into.
+  */
+  public void setProjectsDirectory( String dir )
+  {
+    projectsDirectory = dir;
+  }
+
+ /**
+  * Gets the directory for the state save files.
+  */
+  public String getProjectsDirectory()
+  {
+    return projectsDirectory;
+  }
+    
  /*
   * This method groups functionality for the insert() and reset() methods, with
   * the ability to replace/reject fields with redundant keys, basically splits
@@ -266,7 +362,7 @@ public class ObjectState
       return true;
     }
   }
-
+  
  /*
   * MAIN - Basic main program to test the ObjectState class
   */
@@ -307,5 +403,35 @@ public class ObjectState
     System.out.println( ostest.get("One.Two.Three.Test") );
     System.out.println( ostest.get("Four.Test") );
     System.out.println( ostest.get("Four.Test2") );
+    System.out.println("Before write...");
+    ostest.openFileChooser(true);
+    
+    System.out.println("Changing Values...");    
+    state4.reset("Test", "test4reset");
+    state4.reset("Test2", "test4.2reset");
+    state3.reset("Test", "test3reset");
+    state2.reset("Test", "test2reset");
+    state1.reset("Test", "test1reset");
+    ostest.reset("Test", "ostestreset");
+    System.out.println( ostest.get("Test") );
+    System.out.println( ostest.get("One.Test") );
+    System.out.println( ostest.get("One.Two.Test") );
+    System.out.println( ostest.get("One.Two.Three.Test") );
+    System.out.println( ostest.get("Four.Test") );
+    System.out.println( ostest.get("Four.Test2") );
+    
+    System.out.println("Before read...");
+    ostest.openFileChooser(false);
+    System.out.println("After read...Restoring values");
+    
+    System.out.println( ostest.get("Test") );
+    System.out.println( ostest.get("One.Test") );
+    System.out.println( ostest.get("One.Two.Test") );
+    System.out.println( ostest.get("One.Two.Three.Test") );
+    System.out.println( ostest.get("Four.Test") );
+    System.out.println( ostest.get("Four.Test2") );
+    
+    System.out.println("Directory: " + ostest.getProjectsDirectory() );
+    System.exit(1);
   }
 } 
