@@ -29,12 +29,16 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.2  2004/03/11 22:17:04  millermi
+ * - Changed package names and replaced SharedData with
+ *   SharedMessages class.
+ *
  * Revision 1.1  2003/10/30 02:10:47  bouzekc
  * Added to CVS.
  *
  *
  */
-package DataSetTools.util;
+package gov.anl.ipns.Util.File;
 
 import java.io.*;
 

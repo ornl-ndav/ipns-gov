@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/03/11 22:13:15  millermi
+ * - Changed package names and replaced SharedData with
+ *   SharedMessages class.
+ *
  * Revision 1.2  2004/01/24 20:57:51  bouzekc
  * Removed unused imports.
  *
@@ -43,7 +47,7 @@
  *
  */
 
-package DataSetTools.util;
+package gov.anl.ipns.Util.Sys;
 
 import java.awt.*;
 

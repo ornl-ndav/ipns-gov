@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/11 22:17:04  millermi
+ *  - Changed package names and replaced SharedData with
+ *    SharedMessages class.
+ *
  *  Revision 1.2  2002/11/27 23:14:07  pfpeterson
  *  standardized header
  *
@@ -39,7 +43,7 @@
  *
  */
 
-package  DataSetTools.dataset;
+package  gov.anl.ipns.Util.File;
 import   java.io.*;
 
 /**

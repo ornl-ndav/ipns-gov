@@ -30,6 +30,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.7  2004/03/11 22:17:04  millermi
+ * - Changed package names and replaced SharedData with
+ *   SharedMessages class.
+ *
  * Revision 1.6  2004/02/07 04:13:55  bouzekc
  * Made non-abstract, and made protected methods public.  This allows this
  * class to function as a sort of "factory", adding a large degree of
@@ -52,7 +56,7 @@
  * Added to CVS.
  *
  */
-package DataSetTools.util;
+package gov.anl.ipns.Util.File;
 
 //import javax.swing.filechooser.FileFilter;
 import java.io.*;

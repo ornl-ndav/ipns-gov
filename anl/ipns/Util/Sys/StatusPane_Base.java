@@ -31,6 +31,10 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.6  2004/03/11 22:13:14  millermi
+ * - Changed package names and replaced SharedData with
+ *   SharedMessages class.
+ *
  * Revision 1.5  2003/12/14 19:18:09  bouzekc
  * Removed unused import statements.
  *
@@ -62,14 +66,12 @@
  * The property names are "Display" and "Clear" 
  *  
 */  
-package Command;  
+package gov.anl.ipns.Util.Sys;  
   
 import javax.swing.*;  
-import java.beans.*;  
-  
-import java.util.*;  
-import IsawGUI.*;  
-import DataSetTools.util.StringUtil;
+import java.beans.*; 
+import javax.swing.text.Document;
+import java.util.*; 
 import javax.swing.border.*;  
   
 /**
@@ -161,7 +163,7 @@ public class StatusPane_Base extends JTextArea
             S = StringUtil.toString(Value);
 
         if( isDisplayable())
-            new Util().appendDoc(getDocument(), S ) ;
+            appendDoc(getDocument(), S ) ;
         else
             System.out.println( S );  
     } 
@@ -172,5 +174,20 @@ public class StatusPane_Base extends JTextArea
      */ 
     public void Clearr(){
         setText(""); 
-    }  
+    } 
+
+    private void appendDoc( Document doc, String S )
+    {
+      if( doc == null )return;
+      int end = doc.getLength();
+
+      try
+      {
+         doc.insertString( end, S + "\n", null );
+      }
+      catch( Exception s )
+      {
+         System.out.println( "Error in StatusPane_Base.appendDoc=" + s );
+      }
+    } 
 }  

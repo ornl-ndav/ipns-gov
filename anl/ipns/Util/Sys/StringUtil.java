@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2004/03/11 22:13:15  millermi
+ *  - Changed package names and replaced SharedData with
+ *    SharedMessages class.
+ *
  *  Revision 1.29  2004/01/30 02:43:04  bouzekc
  *  Added method to pad a String on the left with spaces.
  *
@@ -122,7 +126,7 @@
  *  occur in a String into an array of Strings.
  *
  */ 
-package DataSetTools.util;
+package gov.anl.ipns.Util.Sys;
 
 import java.io.*;
 import java.lang.reflect.Array;
