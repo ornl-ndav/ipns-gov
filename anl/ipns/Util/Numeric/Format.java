@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2002/07/16 22:15:55  pfpeterson
+ *  Added new formatting methods for Strings and StringBuffers.
+ *
  *  Revision 1.2  2001/04/25 22:24:22  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -79,15 +82,14 @@ public class Format
                              int      num_digits, 
                              boolean  use_grouping )
   {
+    if(num_digits>0)
+        f.setMinimumFractionDigits( 1 );
+    else
+        f.setMinimumFractionDigits( 0 );
     f.setMaximumFractionDigits( num_digits );
     f.setGroupingUsed( use_grouping );
 
-    String result = f.format( num );
-
-    while ( result.length() < field_width )
-      result = " " + result;
-
-    return result;
+    return string(f.format(num),field_width,true);
   }
 
   /**
@@ -150,7 +152,84 @@ public class Format
     return real( num, field_width, 0, false );   
   }
 
+  /**
+   * Pad a StringBuffer on the appropriate side.
+   *
+   * @param val         The StringBuffer to format.
+   * @param field_width The total number of spaces to be used for
+   *                    the StringBuffer. If the formatted
+   *                    StringBuffer is larger than the number of
+   *                    spaces provided then the will be used.
+   * @param pad_left    Whether to pad with spaces on the left or
+   *                    right.
+   *
+   * @return A string containing at least the specified number of
+   * characters.
+   */
+  public static String string(StringBuffer val, int field_width,
+                              boolean pad_left){
+      while( val.length()<field_width ){
+          if(pad_left)
+              val.insert(0," ");
+          else
+              val.append(" ");
+      }
+      
+      return val.toString();
+  }
 
+  /**
+   * Pad a String on the appropriate side.
+   *
+   * @param val         The String to format.
+   * @param field_width The total number of spaces to be used for
+   *                    the String. If the formatted String is larger
+   *                    than the number of spaces provided then the
+   *                    will be used.
+   * @param pad_left    Whether to pad with spaces on the left or
+   *                    right.
+   *
+   * @return A string containing at least the specified number of
+   * characters.
+   */
+  public static String string(String val, int field_width, boolean pad_left){
+      return string(new StringBuffer(val),field_width,pad_left);
+  }
+
+  /**
+   * Pad a StringBuffer on the appropriate side.
+   *
+   * @param val         The StringBuffer to format.
+   * @param field_width The total number of spaces to be used for
+   *                    the StringBuffer. If the string is too short,
+   *                    then more spaces will be prepended. If the
+   *                    formatted StringBuffer is larger than the
+   *                    number of spaces provided then the will be
+   *                    used.
+   *
+   * @return A string containing at least the specified number of
+   * characters.
+   */
+  public static String string(StringBuffer val, int field_width ){
+      return string(val,field_width,true);
+  }
+
+  /**
+   * Pad a String on the appropriate side.
+   *
+   * @param val         The String to format.
+   * @param field_width The total number of spaces to be used for
+   *                    the String. If the string is too short, then
+   *                    more spaces will be prepended. If the
+   *                    formatted String is larger than the number of
+   *                    spaces provided then the will be used.
+   *
+   * @return A string containing at least the specified number of
+   * characters.
+   */
+  public static String string(String val, int field_width ){
+      return string(new StringBuffer(val),field_width,true);
+  }
 
   /**
    *  Main program for testing purposes only.
