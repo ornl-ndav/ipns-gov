@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.36  2004/11/05 22:09:55  millermi
+ *  - Removed getLocalLogWorldCoords() method.
+ *
  *  Revision 1.35  2004/07/28 19:36:28  robertsonj
  *  changed the getLocalLogWorldCoords to use the TruLogCoord function
  *  from logScale util.
@@ -644,66 +647,6 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
   {
     SetTransformsToWindowSize();
     return( local_transform.getSource( ) );
-  }
-
-  /* ----------------------- getLocalLogWorldCoords ------------------------ */
-  /**
-   *  Get the region that defines the world coordinate system for the
-   *  zoomed region of the panel.
-   *
-   *  @return A reference to the region in world coordinates that is 
-   *          currently mapped to the full panel by the local transform.
-   */
-  public CoordBounds getLocalLogWorldCoords(double scale )
-  {
-    SetTransformsToWindowSize();
-    CoordBounds b = getGlobalWorldCoords();
-    CoordBounds b2 = local_transform.getSource( );
-    float x1,x2,y1,y2;
-    x1 = b2.getX1();
-    x2 = b2.getX2();
-    y1 = b2.getY1();
-    y2 = b2.getY2();    
-    LogScaleUtil loggerx = new LogScaleUtil(b.getX1(),b.getX2(),
-                                            b.getX1(),b.getX2());
-    LogScaleUtil loggery = new LogScaleUtil(b.getY1(),b.getY2(),
-                                            b.getY1(),b.getY2());
-    b2.setBounds(loggerx.truLogCoord(x1),
-                loggery.truLogCoord(y1),
-                loggerx.truLogCoord(x2),
-                loggery.truLogCoord(y2));
-
-
-    return( b2 );
-  }
-
-  /* ----------------------- getLocalLogWorldCoords ------------------------ */
-  /**
-   *  Get the region that defines the world coordinate system for the
-   *  zoomed region of the panel.
-   *
-   *  @return A reference to the region in world coordinates that is 
-   *          currently mapped to the full panel by the local transform.
-   */
-  public CoordBounds getLocalLogWorldCoords(double scale , float xmin,
-                                            float xmax, float ymin, float ymax)
-  {
-    SetTransformsToWindowSize();
-    CoordBounds b2 = local_transform.getSource( );
-    float x1,x2,y1,y2;
-    x1 = b2.getX1();
-    x2 = b2.getX2();
-    y1 = b2.getY1();
-    y2 = b2.getY2();    
-    LogScaleUtil loggerx = new LogScaleUtil(xmin,xmax,xmin,xmax);
-    LogScaleUtil loggery = new LogScaleUtil(ymin,ymax,ymin,ymax);
-    b2.setBounds(loggerx.truLogCoord(x1),
-                loggery.truLogCoord(y1),
-                loggerx.truLogCoord(x2),
-                loggery.truLogCoord(y2));
-
-
-    return( b2 );
   }
 
   /* ---------------------------- showState ------------------------------ */
