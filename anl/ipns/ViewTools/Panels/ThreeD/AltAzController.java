@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2001/07/25 16:57:55  dennis
+ * Added methods to get the altitude and view angles and to
+ * get the distance.
+ *
  * Revision 1.5  2001/07/04 15:27:18  dennis
  * Angle sliders border and includes "angle" and degrees symbol.
  *
@@ -64,9 +68,11 @@ import DataSetTools.math.*;
 import DataSetTools.util.*;
 
 /**
- *  A ViewController object controls the ViewTransform for one or more
- *  ThreeD_JPanel objects.  Derived classes implement various interfaces to
- *  allow the user to modify the transform.
+ *  An AltAzController object controls the ViewTransform for one or more
+ *  ThreeD_JPanel objects by allowing the user to specify their position 
+ *  relative to the view reference point.  The position is specified by
+ *  sliders controlling the altitude angle, azimuth angle and distance to
+ *  the view reference point.
  */ 
 
 public class AltAzController extends    ViewController
@@ -80,12 +86,29 @@ public class AltAzController extends    ViewController
   JSlider  distance_slider;
 
 
+/* --------------------------- Default Constructor --------------------- */
+/**
+ *  Construct a controller with default values for the viewer position.
+ */
   public AltAzController()
   {
     this( 45, 45, 1, 20, 10 );
   }
 
 
+/* ------------------------------ Constructor -------------------------- */
+/**
+ *  Construct a controller with specified values for the viewer position.
+ *
+ *  @param  altitude      The initial altitude angle from the VRP to the COP
+ *                        in degrees.
+ *  @param  azimuth       The initial azimuth angle from the VRP to the COP
+ *                        in degrees.
+ *  @param  min_distance  The minimum distance on the distace slider.
+ *  @param  max_distance  The maximum distance on the distace slider.
+ *  @param  distance      The initial distance from the VRP to the COP.
+ *
+ */
   public AltAzController( float altitude, 
                           float azimuth, 
                           float min_distance,
@@ -130,6 +153,14 @@ public class AltAzController extends    ViewController
     setView( true );
   }
 
+
+ /* --------------------------- setDistanceRange ------------------------ */
+ /**
+  *  Set a new distance range for the distance slider.
+  *
+  *  @param  min_distance  The minimum distance on the distace slider.
+  *  @param  max_distance  The maximum distance on the distace slider.
+  */
   public void setDistanceRange( float min_distance, float max_distance )
   {
     if ( min_distance > max_distance )
@@ -147,6 +178,12 @@ public class AltAzController extends    ViewController
   }
 
 
+ /* ------------------------------ setDistance -------------------------- */
+ /**
+  *  Set a new distance from the VRP to the COP for the distance slider.
+  *
+  *  @param  distance      The initial distance from the VRP to the COP.
+  */
   public void setDistance( float distance )
   {
     distance = Math.abs(distance);
@@ -155,6 +192,26 @@ public class AltAzController extends    ViewController
     distance_slider.setValue( (int)(DISTANCE_SCALE_FACTOR * distance) );
   }
 
+
+ /* ------------------------------ getDistance -------------------------- */
+ /**
+  *  Get the distance from the VRP to the COP from the distance slider.
+  *
+  *  @return  The current distance from the VRP to the COP.
+  */
+  public float getDistance()
+  {
+    return distance_slider.getValue() / DISTANCE_SCALE_FACTOR;
+  }
+
+
+ /* ---------------------------- setAzimuthAngle ------------------------ */
+ /**
+  *  Set a new azimuth angle from the VRP to the COP for the altitude slider.
+  *
+  *  @param  degrees  The azimuth angle from the VRP to the COP in degrees.
+  *          
+  */
   public void setAzimuthAngle( float degrees )
   {
     if ( degrees > 180 )
@@ -165,6 +222,28 @@ public class AltAzController extends    ViewController
     azimuth_slider.setValue( (int)degrees );
   }
 
+
+ /* ---------------------------- getAzimuthAngle ------------------------ */
+ /** 
+  *  Get the azimuth angle from the VRP to the COP from the altitude slider.
+  *  
+  *  @return The azimuth angle from the VRP to the COP in degrees.
+  * 
+  */
+  public float getAzimuthAngle()
+  {
+    return azimuth_slider.getValue();
+  }
+
+
+
+ /* ---------------------------- setAltitudeAngle ------------------------ */
+ /**
+  *  Set a new altitude angle from the VRP to the COP for the altitude slider.
+  *
+  *  @param  degrees  The altitude angle from the VRP to the COP in degrees.
+  *          
+  */
   public void setAltitudeAngle( float degrees )
   {
     if ( degrees > MAX_ALT_ANGLE )
@@ -175,12 +254,27 @@ public class AltAzController extends    ViewController
     altitude_slider.setValue( (int)degrees );
   }
 
+
+ /* ---------------------------- getAltitudeAngle ------------------------ */
+ /**
+  *  Get the altitude angle from the VRP to the COP from the altitude slider.
+  *
+  *  @return The altitude angle from the VRP to the COP in degrees.
+  *
+  */
+  public float getAltitudeAngle()
+  {
+    return altitude_slider.getValue();
+  }
+
+
 /* -------------------------------------------------------------------------
  *
  *  PRIVATE METHODS 
  *
  */
 
+/* --------------------------------- setView ---------------------------- */
 /**
  *  Calculate the new COP and apply the view controller to change the view
  *  for all of the controlled panels.
