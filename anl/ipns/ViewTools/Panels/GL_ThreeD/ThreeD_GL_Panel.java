@@ -30,6 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/06/15 22:14:41  dennis
+ * Now uses ported versions of gluLookAt(), gluPerspective() and
+ * gluPickMatrix() from the BasicGLU class, instead of the actual
+ * GLU functions.  This was needed since the GLU provided on some
+ * systems did not work with jogl.
+ *
  * Revision 1.4  2004/06/15 16:46:20  dennis
  * Added local implementations of gluLookAt and gluPerspective, since
  * the Mesa GLU crashed with jogl.
@@ -521,9 +527,8 @@ public int[] pickHitList( int x, int y )
      *
      *  @param drawable  The GLDrawable for this canvas.
      */
-    public void init(GLDrawable drawable)
+    public void init( GLDrawable drawable )
     {
-//      canvas.setRenderingThread( Thread.currentThread());
       GL gl = drawable.getGL();
       gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     }
@@ -548,7 +553,6 @@ public int[] pickHitList( int x, int y )
                          int height)
     {
       GL  gl  = drawable.getGL();
-      GLU glu = drawable.getGLU();
 
       gl.glViewport( 0, 0, width, height );
       if ( use_perspective_proj )
@@ -560,14 +564,14 @@ public int[] pickHitList( int x, int y )
           System.out.println("Selection in reshape, x, y = " + pick_x + 
                              ", " + pick_y );
           int viewport[] = { 0, 0, width, height };
-          glu.gluPickMatrix( pick_x, height-pick_y, 1, 1, viewport );
+          BasicGLU.gluPickMatrix( gl, pick_x, height-pick_y, 1, 1, viewport );
         }
 
-//      glu.gluPerspective( view_angle, 
-        gluPerspective( gl, view_angle, 
-                            width/(float)height, 
-                            near_plane, 
-                            far_plane );
+        BasicGLU.gluPerspective( gl, 
+                                 view_angle, 
+                                 width/(float)height, 
+                                 near_plane, 
+                                 far_plane );
       }
       else
       {
@@ -608,7 +612,6 @@ public int[] pickHitList( int x, int y )
     synchronized public void display(GLDrawable drawable)
     {
       GL gl = drawable.getGL();
-      GLU glu = drawable.getGLU();
  
                              // Clean up any old display lists that are no 
                              // longer used, so that OpenGL can free the any 
@@ -660,8 +663,6 @@ public int[] pickHitList( int x, int y )
 
       gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT );
       reshape( drawable, 0, 0, size.width, size.height ); 
-      gl.glMatrixMode(GL.GL_MODELVIEW);
-      gl.glLoadIdentity();
 
       if ( !do_select )     // don't need lighting if doing selection mode
       {
@@ -685,10 +686,9 @@ public int[] pickHitList( int x, int y )
       float vrp_pt[] = vrp.get();
       float vuv_pt[] = vuv.get();
 
-//      glu.gluLookAt(cop_pt[0], cop_pt[1], cop_pt[2],
-      gluLookAt( gl, cop_pt[0], cop_pt[1], cop_pt[2],
-                    vrp_pt[0], vrp_pt[1], vrp_pt[2],
-                    vuv_pt[0], vuv_pt[1], vuv_pt[2] );
+      BasicGLU.gluLookAt( gl, cop_pt[0], cop_pt[1], cop_pt[2],
+                              vrp_pt[0], vrp_pt[1], vrp_pt[2],
+                              vuv_pt[0], vuv_pt[1], vuv_pt[2] );
 
       for ( int i = 0; i < list.length; i++ )
         list[i].Render( drawable );
@@ -707,114 +707,6 @@ public int[] pickHitList( int x, int y )
   }
 
 
-  /**
-   *  Replacement for GLU's gluPerspective, since that crashes on some
-   *  implementations.
-   */
-  public void gluPerspective( GL     gl,
-                              double fovy, 
-                              double aspect, 
-                              double zNear, 
-                              double zFar) 
-  {
-    double xmin, xmax, ymin, ymax;
-
-    ymax = zNear * Math.tan(fovy * Math.PI / 360.0);
-    ymin = -ymax;
-    xmin = ymin * aspect;
-    xmax = ymax * aspect;
-
-    gl.glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
-  }
-
-
-  /**
-   *  Replacement for GLU's gluLookAt since that crashes on some
-   *  implementations.
-   */
-  public void gluLookAt( GL gl,
-                         double eyex,    double eyey,    double eyez, 
-                         double centerx, double centery, double centerz, 
-                         double upx,     double upy,     double upz)
-  {
-    double m[] = new double[16];
-    double x[] = new double[3];
-    double y[] = new double[3];
-    double z[] = new double[3];
-    double mag;
-
-    /* Make rotation matrix */
- 
-    /* Z vector */
-     z[0] = eyex - centerx;
-     z[1] = eyey - centery;
-     z[2] = eyez - centerz;
-     mag = Math.sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2]);
-     if (mag > 0.0) {                     /* mpichler, 19950515 */
-        z[0] /= mag;
-        z[1] /= mag;
-        z[2] /= mag;
-     }
-
-     /* Y vector */
-     y[0] = upx;
-     y[1] = upy;
-     y[2] = upz;
-
-     /* X vector = Y cross Z */
-     x[0] = y[1] * z[2] - y[2] * z[1];
-     x[1] = -y[0] * z[2] + y[2] * z[0];
-     x[2] = y[0] * z[1] - y[1] * z[0];
-
-     /* Recompute Y = Z cross X */
-     y[0] = z[1] * x[2] - z[2] * x[1];
-     y[1] = -z[0] * x[2] + z[2] * x[0];
-     y[2] = z[0] * x[1] - z[1] * x[0];
-
-     /* mpichler, 19950515 */
-     /* cross product gives area of parallelogram, which is < 1.0 for
-      * non-perpendicular unit-length vectors; so normalize x, y here
-      */
-
-     mag = Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
-     if (mag > 0.0) {
-        x[0] /= mag;
-        x[1] /= mag;
-        x[2] /= mag;
-     }
-
-     mag = Math.sqrt(y[0] * y[0] + y[1] * y[1] + y[2] * y[2]);
-     if (mag > 0.0) {
-        y[0] /= mag;
-        y[1] /= mag;
-        y[2] /= mag;
-     }
-
-     m[0+4* 0] = x[0];
-     m[0+4* 1] = x[1];
-     m[0+4* 2] = x[2];
-     m[0+4* 3] = 0.0;
-     m[1+4* 0] = y[0];
-     m[1+4* 1] = y[1];
-     m[1+4* 2] = y[2];
-     m[1+4* 3] = 0.0;
-     m[2+4* 0] = z[0];
-     m[2+4* 1] = z[1];
-     m[2+4* 2] = z[2];
-     m[2+4* 3] = 0.0;
-     m[3+4* 0] = 0.0;
-     m[3+4* 1] = 0.0;
-     m[3+4* 2] = 0.0;
-     m[3+4* 3] = 1.0;
-
-     gl.glMultMatrixd(m);
-
-     /* Translate Eye to Origin */
-     gl.glTranslated(-eyex, -eyey, -eyez);
-  }
-
-
-   
   /* ------------------------ MouseClickHandler --------------------------- */
   /**
    *  This class listens for mouse clicks and then uses pickHitList() to get
