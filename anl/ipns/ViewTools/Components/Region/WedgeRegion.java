@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/10/22 20:26:09  millermi
+ *  - Fixed java doc errors.
+ *
  *  Revision 1.2  2003/08/21 22:41:08  millermi
  *  - Commented out debug statements and removed out code
  *    that was commented out.
@@ -79,7 +82,7 @@ public class WedgeRegion extends Region
    * The only exception is definingpoint[5] which holds angular (in degrees)
    * values.
    *
-   *  @param  definingpoints
+   *  @param  dp - defining points of the wedge
    */ 
    public WedgeRegion( Point[] dp )
    {

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/22 20:26:09  millermi
+ *  - Fixed java doc errors.
+ *
  *  Revision 1.1  2003/08/11 23:40:40  millermi
  *  - Initial Version - Used to pass region info from a
  *    ViewComponent to the viewer. WCRegion is an unrelated
@@ -66,7 +69,7 @@ public class ElipseRegion extends Region
    * The defining points are assumed to be in image values, where
    * the input points are in (x,y) where (x = col, y = row ) form.
    *
-   *  @param  definingpoints
+   *  @param  dp - defining points of an elipse or circle.
    */ 
    public ElipseRegion( Point[] dp )
    {

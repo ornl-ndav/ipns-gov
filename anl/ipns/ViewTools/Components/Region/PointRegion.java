@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/22 20:26:09  millermi
+ *  - Fixed java doc errors.
+ *
  *  Revision 1.1  2003/08/11 23:40:41  millermi
  *  - Initial Version - Used to pass region info from a
  *    ViewComponent to the viewer. WCRegion is an unrelated
@@ -55,9 +58,9 @@ import DataSetTools.components.View.Cursor.SelectionJPanel;
 public class PointRegion extends Region
 {
   /**
-   * Constructor
+   * Constructor takes in an array of Points, each defining a point region.
    *
-   *  @param  definingpoints
+   *  @param  df - defining point regions
    */ 
    public PointRegion( Point[] dp )
    {

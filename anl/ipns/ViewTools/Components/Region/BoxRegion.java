@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/22 20:26:09  millermi
+ *  - Fixed java doc errors.
+ *
  *  Revision 1.1  2003/08/11 23:40:40  millermi
  *  - Initial Version - Used to pass region info from a
  *    ViewComponent to the viewer. WCRegion is an unrelated
@@ -58,7 +61,7 @@ public class BoxRegion extends Region
   /**
    * Constructor - provides basic initialization for all subclasses
    *
-   *  @param  definingpoints
+   *  @param  dp - defining points of the box
    */ 
    public BoxRegion( Point[] dp )
    {

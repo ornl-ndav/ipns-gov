@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/10/22 20:26:09  millermi
+ *  - Fixed java doc errors.
+ *
  *  Revision 1.1  2003/08/26 03:38:19  millermi
  *  - Initial Version - Allows double wedge selected regions to be passed to
  *    the viewer. Restricts wedge angle to 180 degrees.
@@ -75,7 +78,7 @@ public class DoubleWedgeRegion extends Region
    * The only exception is definingpoint[5] which holds angular (in degrees)
    * values.
    *
-   *  @param  definingpoints
+   *  @param  dp - defining points of the DoubleWedge
    */ 
    public DoubleWedgeRegion( Point[] dp )
    {
