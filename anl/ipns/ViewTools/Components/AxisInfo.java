@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/12/20 19:15:59  millermi
+ *  - Corrected java docs statements.
+ *
  *  Revision 1.1  2003/12/18 22:29:58  millermi
  *  - new general version of AxisInfo2D
  *  - Added static variables for LINEAR/LOG, X/Y/Z/W_AXIS,
@@ -71,17 +74,17 @@ public class AxisInfo
   public static final int X_AXIS = 0;
     
  /**
-  * 1 - this int variable defines the use of the x axis.
+  * 1 - this int variable defines the use of the y axis.
   */ 
   public static final int Y_AXIS = 1;
     
  /**
-  * 2 - this int variable defines the use of the x axis.
+  * 2 - this int variable defines the use of the z axis.
   */ 
   public static final int Z_AXIS = 2;
     
  /**
-  * 3 - this int variable defines the use of the x axis.
+  * 3 - this int variable defines the use of the w axis.
   */ 
   public static final int W_AXIS = 3;
  
