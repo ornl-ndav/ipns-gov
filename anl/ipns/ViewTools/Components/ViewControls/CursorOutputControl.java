@@ -31,20 +31,19 @@
  *
  * Modified:
  *
- *  $Log:
+ *  $Log$
+ *  Revision 1.2  2003/10/16 17:06:00  millermi
+ *  - Restructured this control to utilize the ViewControl
+ *    base class.
+ *
  */
 
 package DataSetTools.components.View.ViewControls;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.border.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.lang.Object.*;
+import javax.swing.Box;
+import javax.swing.JFrame;
 
 import DataSetTools.viewer.ViewerState;
-import DataSetTools.util.*;
 import DataSetTools.components.ui.TextValueUI;
 
 /**
@@ -54,10 +53,8 @@ import DataSetTools.components.ui.TextValueUI;
 public class CursorOutputControl extends ViewControl
 {
    private TextValueUI[] TextField;
-   private JPanel cursorPanel = new JPanel();
+   private ViewControl cursorPanel;
    private Box vert_box = new Box(1);
-   private TitledBorder border;
-   private GridLayout G_lout = new GridLayout( 1, 1 );
 
 /**
   *  The Constructor initilizes the values for the cursor output,
@@ -69,7 +66,7 @@ public class CursorOutputControl extends ViewControl
    public CursorOutputControl( String[] name)
    {
      super("");
-
+     cursorPanel = this;
      if (name.length<1) return;
 
      TextField = new TextValueUI[name.length];
@@ -79,14 +76,8 @@ public class CursorOutputControl extends ViewControl
        TextField[i].setEditable(false);
        vert_box.add(TextField[i]);
      }
-
-
-     border = new TitledBorder(LineBorder.createBlackLineBorder(),"Cursor");
-     border.setTitleFont( FontUtil.BORDER_FONT );
-    
-     cursorPanel.setLayout(G_lout);
-     cursorPanel.setBorder(border);
-     cursorPanel.add(vert_box);
+     setTitle("Cursor");
+     add(vert_box);
 
 
    }  
@@ -98,9 +89,7 @@ public class CursorOutputControl extends ViewControl
    */
    public void setBorderTitle(String  title)
    {
-     border.setTitle(title);
-     cursorPanel.setBorder(border);
-     System.out.println(border.getTitle());
+     setTitle(title);
    }
 
   /**
@@ -115,15 +104,19 @@ public class CursorOutputControl extends ViewControl
    {
       TextField[index].setValue(value);
    }
- 
+   
   /**
-   * This function sets the border title.
-   *
-   * @param title The string which holds the title of the border.
-   *
+   * Test purposes only...
    */
-   public JPanel getControlPanel()
+   public static void main( String args[] ) 
    {
-      return cursorPanel;
+     JFrame tester = new JFrame("CursorOutputControl Test");
+     tester.setBounds(0,0,100,200);
+     tester.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+     String[] menu = {"menu1","Menu2","Menu3","Menu4","Menu5"};
+     CursorOutputControl coc = new CursorOutputControl( menu );
+     coc.setBorderTitle("Border");
+     tester.getContentPane().add(coc);
+     tester.setVisible(true);
    }
 } 
