@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/05/11 01:38:44  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.5  2004/04/29 06:44:12  millermi
  *  - Revised the help() panel.
  *
@@ -381,7 +384,6 @@ public class MarkerOverlay extends OverlayJPanel
   private class MarkerEditor extends JFrame
   {
     private MarkerEditor this_editor;
-    private JColorChooser colorchooser = new JColorChooser(Color.black);
     private JComboBox markerlist;
     private JComboBox markertypelist;
     private ButtonGroup resizeable;

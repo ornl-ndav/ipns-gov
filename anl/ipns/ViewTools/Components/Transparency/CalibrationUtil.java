@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/05/11 01:40:13  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.7  2004/03/12 02:49:42  millermi
  *  - Changed package, fixed imports.
  *
@@ -435,9 +438,6 @@ public class CalibrationUtil
          xmin_power--;
        }
        
-            
-       float ratio = 0;
-       int power = 0;
        int step_index = 0;
        float[] steps = {1f,2f,5f};
        int step_power = xmin_power;

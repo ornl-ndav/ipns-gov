@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.35  2004/05/11 01:36:27  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.34  2004/04/16 19:00:33  millermi
  *  - paintLabelsAndUnits() now checks for label and units
  *    that are empty strings.
@@ -740,7 +743,6 @@ public class AxisOverlay2D extends OverlayJPanel
     {
       open_parenthesis = false; // reset and use again.
       StringBuffer ylabel = new StringBuffer("");
-      StringBuffer xlabel = new StringBuffer("");
       if( !component.getAxisInformation(AxisInfo.Y_AXIS).getLabel().equals( 
     	  AxisInfo.NO_LABEL) &&
 	  !component.getAxisInformation(AxisInfo.Y_AXIS).getLabel().equals( 
@@ -934,7 +936,6 @@ public class AxisOverlay2D extends OverlayJPanel
   {
     FontMetrics fontdata = g2d.getFontMetrics();   
     String num = "";
-    int xtick_length = 5;
     
     CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
         					 Format.ENGINEER );
@@ -961,10 +962,7 @@ public class AxisOverlay2D extends OverlayJPanel
     while( (yaxis*yskip/numysteps) < 
            fontdata.getHeight() && yskip < numysteps)
        yskip++;
-    int mult = (int)(numysteps/yskip);
     int rem = numysteps%yskip;
-  //  System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
-  //    		 ") = " + mult + "R" + rem);
 
     for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
     {	
@@ -1075,9 +1073,6 @@ public class AxisOverlay2D extends OverlayJPanel
   //  System.out.println("X ticks = " + numxsteps );	    
       int pixel = 0;
       float A = 0; 
-      int skip = 1;
-      int counter = 0;
-      int maxcounter = 0;
       int tempprec = 3;
       if( xmax/xmin < 10 )
         tempprec = precision;
