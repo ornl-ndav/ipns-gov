@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.20  2004/01/06 23:11:15  serumb
+ * Put in the correct bounds for all log scale util.
+ *
  * Revision 1.19  2004/01/06 22:50:24  serumb
  * Put in the correct bounds for the log scale util.
  *
@@ -469,10 +472,12 @@ import javax.swing.border.*;
           // System.out.println("Min = " + x_range.getMin() );
           // System.out.println("Max = " + x_range.getMax() );
              CoordBounds b = gjp.getLocalWorldCoords();
+             CoordBounds b_log = gjp.getLocalLogWorldCoords(log_scale);
+
              LogScaleUtil loggery = new LogScaleUtil(b.getY1(), b.getY2(),
-                                                     b.getY1(), b.getY2());
+                                    b_log.getY1(), b_log.getY2());
              LogScaleUtil loggerx = new LogScaleUtil(b.getX1(), b.getX2(),
-                                                     b.getX1(), b.getX2());
+                                        b_log.getX1(), b_log.getX2());
            if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
 
              gjp.setZoom_region(loggerx.toSource(x_range.getMin(),
@@ -503,10 +508,12 @@ import javax.swing.border.*;
          //  System.out.println("Min = " + y_range.getMin() );
          //  System.out.println("Max = " + y_range.getMax() );
              CoordBounds b = gjp.getLocalWorldCoords();
+             CoordBounds b_log = gjp.getLocalLogWorldCoords(log_scale);
+
              LogScaleUtil loggery = new LogScaleUtil(b.getY1(), b.getY2(),
-                                                     b.getY1(), b.getY2());
+                                    b_log.getY1(), b_log.getY2());
              LogScaleUtil loggerx = new LogScaleUtil(b.getX1(), b.getX2(),
-                                                     b.getX1(), b.getX2());
+                                    b_log.getX1(), b_log.getX2());
            if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
 
              gjp.setZoom_region(loggerx.toSource(x_range.getMin(),
