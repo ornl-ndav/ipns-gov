@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.46  2005/02/01 03:13:15  millermi
+ * - Fixed x and y range control bounds when log axes are selected.
+ *
  * Revision 1.45  2005/01/10 16:21:37  rmikk
  * Fixed code to get error bars to correspond to spectra
  *
@@ -600,21 +603,29 @@ import javax.swing.border.*;
        }  
        y_lower = range.getY1();
        y_upper = range.getY2();
-	      
+       
+       // If log, make sure y minimum is positive.
        if (gjp.getLogScaleY()){
          if (ymin >  y_lower)
 	      y_lower = ymin;
+         // map to log coords
+	 y_lower = loggery.toSource(y_lower);
+	 y_upper = loggery.toSource(y_upper);
        }
+       // If log, make sure x minimum is positive.
        if (gjp.getLogScaleX()){
 	 if (xmin >  x_lower)
  	      x_lower = xmin;
+         // map to log coords
+	 x_lower = loggerx.toSource(x_lower);
+	 x_upper = loggerx.toSource(x_upper);
        } 
        
-        x_range.setMin(x_lower);
-        x_range.setMax(x_upper);
-        y_range.setMin(y_lower);
-        y_range.setMax(y_upper);
-	
+       x_range.setMin(x_lower);
+       x_range.setMax(x_upper);
+       y_range.setMin(y_lower);
+       y_range.setMax(y_upper);
+
       }	 
       
       else if(message.equals("Cursor Moved")){
