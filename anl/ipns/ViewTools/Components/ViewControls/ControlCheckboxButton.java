@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/01/30 06:36:48  millermi
+ *  - removed code that set color since doClick() does it
+ *
  *  Revision 1.7  2004/01/29 08:20:46  millermi
  *  - Now implements IPreserveState, thus state can now be saved for
  *    all ViewControls. Each control is responsible for detailed
@@ -262,24 +265,13 @@ public class ControlCheckboxButton extends ViewControl
   */
   public void setSelected(boolean isChecked)
   {
-    // use doClick() so action event is sent out.
+    // use doClick() so action event is sent out and text colors are changed.
     // if currently not selected, but wants it to be selected.
     if( !isSelected() && isChecked )
       doClick();
     // if currently selected, but wants it unselected.
     else if( isSelected() && !isChecked )
       doClick();
-    // cbox.setSelected(isChecked);
-    if( cbox.isSelected() )
-    {
-      ((TitledBorder)this.getBorder()).setTitleColor( checkcolor );
-      edit.setEnabled(true);
-    }
-    else
-    {
-      ((TitledBorder)this.getBorder()).setTitleColor( uncheckcolor );  
-      edit.setEnabled(false);
-    }	 
   }
 
  /**
@@ -367,7 +359,6 @@ public class ControlCheckboxButton extends ViewControl
   { 
     public void actionPerformed( ActionEvent ae )
     {
-      this_panel.send_message(CHECKBOX_CHANGED);
       if( cbox.isSelected() )
       {
         ((TitledBorder)this_panel.getBorder()).setTitleColor( checkcolor );
@@ -380,6 +371,7 @@ public class ControlCheckboxButton extends ViewControl
       }
       //System.out.println("Checkbox Listener...");
       this_panel.repaint();
+      this_panel.send_message(CHECKBOX_CHANGED);
     }
   }   
   
