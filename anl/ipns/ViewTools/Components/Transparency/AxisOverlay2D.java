@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/08/14 17:12:46  millermi
+ *  - Edited help() to provide more description.
+ *
  *  Revision 1.11  2003/08/06 13:55:57  dennis
  *  - Added Axis Editor to allow for the addition of grid lines.
  *  - Log calibration display changed. Previously all calibrations
@@ -79,12 +82,15 @@ package DataSetTools.components.View.Transparency;
 
 import javax.swing.*; 
 import java.awt.*;
-import java.awt.event.*;
-import java.util.*; 
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
 import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import DataSetTools.components.View.*;
-import DataSetTools.components.View.TwoD.*;
-import DataSetTools.util.*; 
+import DataSetTools.components.View.TwoD.IAxisAddible2D;
+import DataSetTools.components.View.TwoD.ILogAxisAddible2D;
+import DataSetTools.components.View.TwoD.ImageViewComponent;
+import DataSetTools.util.Format; 
 import java.lang.Math;
 
 public class AxisOverlay2D extends OverlayJPanel 
@@ -163,22 +169,37 @@ public class AxisOverlay2D extends OverlayJPanel
    {
       JFrame helper = new JFrame("Help for Axes Overlay");
       helper.setBounds(0,0,600,400);
-      JTextArea text = new JTextArea("Commands for Axes Overlay\n\n");
-      helper.getContentPane().add(text);
+      JTextArea text = new JTextArea("Description:\n\n");
       text.setEditable(false);
       text.setLineWrap(true);
 
+      text.append("The Axis Overlay provides calibration for data. Most " +
+                  "viewers initially have this overlay on, however, turning " +
+		  "it off provides more room for displaying data. This " +
+		  "overlay may also be used for providing grid lines.\n\n");
+      text.append("Commands for Axes Overlay\n\n");
       text.append("Note:\n" +
                   "- The Axes Overlay has no commands associated with it. " +
                   "Instead, it allows the commands of the underlying image.\n" +
                   "- These commands will NOT work if any other overlay " +
 		  "is checked.\n\n");
-      text.append("Commands for Underlying image\n");
+      text.append("********************************************************\n");
+      text.append("Commands for Underlying image (Without Edit button)\n");
+      text.append("********************************************************\n");
       text.append("Click/Drag/Release MouseButton2>ZOOM IN\n");
       text.append("Click/Drag/Release Mouse w/Shift_Key>ZOOM IN ALTERNATE\n");
       text.append("Double Click Mouse>RESET ZOOM\n");
       text.append("Single Click Mouse>SELECT CURRENT POINT\n\n");
+      text.append("********************************************************\n");
+      text.append("Commands for AxisEditor (Edit button under Axis Overlay)\n");
+      text.append("********************************************************\n");
+      text.append("Use drop-down box to choose GRID OPTIONS for X and/or Y " +
+                  "axis.\n\n");
       
+      JScrollPane scroll = new JScrollPane(text);
+      scroll.setVerticalScrollBarPolicy(
+                                      JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+      helper.getContentPane().add(scroll);
       helper.setVisible(true);
    }
    
