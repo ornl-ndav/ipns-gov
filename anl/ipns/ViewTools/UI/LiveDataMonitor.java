@@ -4,6 +4,14 @@
  *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.5  2001/02/20 23:06:11  dennis
+ *  - Now uses slider to set the delay between auto updates.
+ *  - Also, now uses more elaborate layout of the components
+ *    and has descriptive borders on components.
+ *  - Finally, added methods to get the number and type of
+ *    the DataSets and to get the DataSets from the underlying
+ *    LiveDataManager.  (These are just "wrapper" methods.)
+ *
  *  Revision 1.4  2001/02/16 22:08:00  dennis
  *  Now the main program will get the instrument computer name
  *  or IP address from the command line.
@@ -30,10 +38,14 @@ package DataSetTools.components.ui;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.border.*;
 import java.io.*;
+import java.util.*;
 import DataSetTools.dataset.*;
 import DataSetTools.viewer.*;
 import DataSetTools.retriever.*;
+import DataSetTools.util.*;
 
 /**
  *
@@ -49,11 +61,9 @@ import DataSetTools.retriever.*;
 public class LiveDataMonitor extends    JPanel
                              implements Serializable 
 {
-  TextValueUI      time_widget;  
-  LiveDataManager  data_manager;
-  ViewManager      viewers[] = new ViewManager[0];
-  String           source_name;
-  JCheckBox        checkbox[] = new JCheckBox[0];
+  private LiveDataManager  data_manager;
+  private ViewManager      viewers[] = new ViewManager[0];
+  private JCheckBox        checkbox[] = new JCheckBox[0];
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -65,32 +75,68 @@ public class LiveDataMonitor extends    JPanel
   *                            running the LiveDataServer.
   *
   */
-  public LiveDataMonitor( String data_source_name )
+  public LiveDataMonitor( String data_source_name ) 
   { 
-    setLayout( new FlowLayout() );
-
-    time_widget = new TextValueUI( "Update time(sec)", 30 );
-    time_widget.setLimits( 10, 600 );
-    time_widget.addActionListener( new UpdateTimeListener() );
- 
     data_manager = new LiveDataManager( data_source_name );
-    data_manager.setUpdateInterval( time_widget.getValue() );
-    viewers = new ViewManager[ data_manager.numDataSets() ]; 
-    checkbox = new JCheckBox[ data_manager.numDataSets() ];
- 
+    int num_ds   = data_manager.numDataSets();
+
+                                                       // make lists to save 
+                                                       // references to the 
+                                                       // viewers and "Show" 
+                                                       // checkboxes
+    viewers = new ViewManager[ num_ds ]; 
+    checkbox = new JCheckBox[ num_ds ];
+    setLayout( new GridLayout( 1, 1 ) );
+    Box panel_box = new Box( BoxLayout.Y_AXIS );
+    add( panel_box );
+                                                            // Set up the update
+                                                            // time control
+    JSlider time_slider = new JSlider( JSlider.HORIZONTAL, 0, 600, 60 );
+    time_slider.setMinimumSize( new Dimension(50, 20) );
+    time_slider.setPaintTicks( true );
+    time_slider.setMajorTickSpacing( 60 );
+    time_slider.setMinorTickSpacing( 20 );
+    time_slider.addChangeListener( new UpdateTimeListener() );
+    data_manager.setUpdateInterval( time_slider.getValue() );
+
+    JPanel label_panel  = new JPanel();
+    label_panel.setLayout( new GridLayout( 1, 1 ) );
+    JLabel source_label = new JLabel( data_source_name.toUpperCase() );
+    source_label.setFont( FontUtil.BORDER_FONT );
+    source_label.setMinimumSize( new Dimension(50, 10) );
+    source_label.setHorizontalAlignment( SwingConstants.CENTER );
+    source_label.setHorizontalTextPosition( SwingConstants.CENTER );
+    source_label.setVerticalAlignment( SwingConstants.CENTER );
+    source_label.setVerticalTextPosition( SwingConstants.CENTER );
+    TitledBorder border = new TitledBorder( LineBorder.createBlackLineBorder(),
+                                            "Data Source:" );
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    label_panel.setBorder( border );
+    label_panel.add( source_label );
+    panel_box.add( label_panel );
+
     for ( int i = 0; i < data_manager.numDataSets(); i++ )
     {
+      JPanel panel = new JPanel();               // use a separate "sub" panel
+      panel.setLayout( new FlowLayout() );       // for each possible DataSet 
+      border = new TitledBorder( LineBorder.createBlackLineBorder(),
+                                 "DataSet #" + i );
+      border.setTitleFont( FontUtil.BORDER_FONT );
+      panel.setBorder( border );
+
       DataSet ds = data_manager.getDataSet( i );
-      JLabel  label  = new JLabel( ds + ":");
-      add( label );
+      JLabel  label  = new JLabel( ds.getTitle() + ":");
+      label.setFont( FontUtil.BORDER_FONT );
 
       JButton button = new JButton("Update");
+      button.setFont( FontUtil.LABEL_FONT );
       UpdateButtonListener button_listener = new UpdateButtonListener( i );
       button.addActionListener( button_listener );
 
       checkbox[i] = new JCheckBox( "Show" );
-      if ( i < 2 )
-      {
+      checkbox[i].setFont( FontUtil.LABEL_FONT );
+      if ( i < 2 )                               // by default, on show first
+      {                                          // two DataSets
         viewers[i] = new ViewManager( ds, IViewManager.IMAGE );
         data_manager.setUpdateIgnoreFlag( i, false );
         checkbox[i].setSelected( true );
@@ -101,14 +147,63 @@ public class LiveDataMonitor extends    JPanel
         data_manager.setUpdateIgnoreFlag( i, true );
         checkbox[i].setSelected( false );
       }
+
       ShowCheckboxListener checkbox_listener = new ShowCheckboxListener( i );
       checkbox[i].addActionListener( checkbox_listener );
-      add( checkbox[i] );
 
-      add( button );
+      panel.add( label );                        // Add the components for this
+      panel.add( checkbox[i] );                  // DataSet to the current panel
+      panel.add( button );
+
+      panel_box.add( panel );                    // Add the panel to this
+                                                 // LiveDataMonitor 
     }
 
-    add( time_widget );
+    border = new TitledBorder( LineBorder.createBlackLineBorder(),
+                               "Update Time Interval( 0 - 10 Min )" );
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    time_slider.setBorder( border );
+
+    panel_box.add( time_slider );
+  }
+
+
+/**
+ *  Get the number of distinct DataSets from the current data source.
+ *  The monitors are placed into one DataSet.  Any sample histograms are
+ *  placed into separate DataSets.
+ *
+ *  @return the number of distinct DataSets in this runfile.
+ */
+  public int numDataSets()
+  {
+    return data_manager.numDataSets();
+  }
+
+/**
+ * Get the type of the specified data set from the current data source.
+ * The type is an integer flag that indicates whether the data set contains
+ * monitor data or data from other detectors.
+ */
+
+  public int getType( int data_set_num )
+  {
+    return data_manager.getType( data_set_num );
+  }
+
+
+/**
+ *  Get the specified DataSet from the current data source.
+ *
+ *  @param  data_set_num  The number of the DataSet in this runfile
+ *                        that is to be read from the runfile.  data_set_num
+ *                        must be between 0 and numDataSets()-1
+ *
+ *  @return the requested DataSet.
+ */
+  public DataSet getDataSet( int data_set_num )
+  {
+    return data_manager.getDataSet( data_set_num );
   }
 
 
@@ -120,17 +215,22 @@ public class LiveDataMonitor extends    JPanel
     
   /* ------------------------ UpdateTimeListener -------------------------- */
 
-  private class UpdateTimeListener implements ActionListener
+  private class UpdateTimeListener implements ChangeListener,
+                                              Serializable
   {
-    public void actionPerformed( ActionEvent e )
+    public void stateChanged( ChangeEvent e )
     {
-      data_manager.setUpdateInterval( time_widget.getValue() );
+      JSlider slider = (JSlider)e.getSource();
+
+      if ( !slider.getValueIsAdjusting() )
+        data_manager.setUpdateInterval( slider.getValue() );
     }
   };
 
   /* ----------------------- UpdateButtonListener ------------------------- */
 
-  private class UpdateButtonListener implements ActionListener
+  private class UpdateButtonListener implements ActionListener,
+                                                Serializable
   {
     int     my_index;
 
@@ -157,7 +257,8 @@ public class LiveDataMonitor extends    JPanel
 
   /* ----------------------- ShowCheckboxListener ---------------------- */
 
-  private class ShowCheckboxListener implements ActionListener
+  private class ShowCheckboxListener implements ActionListener,
+                                                Serializable
   {
     int     my_index;
 
@@ -207,8 +308,8 @@ public class LiveDataMonitor extends    JPanel
      String instrument_computer = args[0];
      LiveDataMonitor monitor = new LiveDataMonitor( instrument_computer );
 
-     JFrame frame = new JFrame( instrument_computer );
-     frame.setBounds(0,0,350,150);
+     JFrame frame = new JFrame( "Live Data Monitor" );
+     frame.setBounds( 0, 0, 350, 225 );
      frame.getContentPane().add( monitor );
  
      frame.setVisible( true );
