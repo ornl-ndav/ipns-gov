@@ -6,6 +6,11 @@
  * 
  * ---------------------------------------------------------------------------
  *  $Log$
+ *  Revision 1.4  2000/08/02 20:12:35  dennis
+ *  Added routines to use trapezoidal rule to numerically integrate
+ *  a function, and calculate moments of functions given by tablulated
+ *  data points over an interval [a,b]
+ *
  *  Revision 1.3  2000/07/13 14:27:27  dennis
  *  Removed extra ;
  *
@@ -29,6 +34,8 @@
  */
 
 package DataSetTools.math;
+
+import DataSetTools.util.*;
 
 public final class NumericalAnalysis 
 {
@@ -201,7 +208,7 @@ public final class NumericalAnalysis
 
   /**
     * Do numerical integration of a list of (x,y) points, using the trapezoidal
-    * rule.  The x-values are NOT assumed to evenly spaced, but should at least
+    * rule.  The x-values are NOT assumed to be evenly spaced, but MUST at least
     * be ordered.  There must be the same number of x values as y values. 
     *
     * @param   x_vals  Array of x-coordinates for the list of (x,y) points.
@@ -216,17 +223,211 @@ public final class NumericalAnalysis
 
   public static float TrapIntegrate( float[] x_vals, float[] y_vals )
   {
-    if ( x_vals.length != y_vals.length || x_vals.length < 2 )
+    if ( x_vals.length != y_vals.length )
     {
       System.out.println("ERROR:array length(s) invalid in TrapIntegrate");
       return 0;
     }
+
+    if ( x_vals.length <= 1 )
+      return 0;
  
     double sum = 0;
     for ( int i = 0; i < x_vals.length - 1; i++ )
-      sum += ( x_vals[i+1] - x_vals[i] ) * ( y_vals[i+1] + y_vals[i] ) / 2.0f;
+      sum += ( x_vals[i+1] - x_vals[i] ) * ( y_vals[i+1] + y_vals[i] ) / 2;
 
     return (float)sum; 
+  }
+
+
+  /**
+    * Do numerical integration of a list of (x,y) points, using the trapezoidal
+    * rule, over a specified interval [a,b].  The x-values are NOT assumed 
+    * to be evenly spaced, but MUST at least be ordered.  There must be the 
+    * same number of x values as y values.
+    *
+    * @param   x_vals  Array of x-coordinates for the list of (x,y) points.
+    *                  There MUST be the same number of x values and y values.
+    *
+    * @param   y_vals  Array of y-coordinates for the list of (x,y) points.
+    *                  There MUST be the same number of x values and y values.
+    *
+    * @param   a       The left hand end point of the interval over which
+    *                  the function is integrated.
+    *
+    * @param   b       The right hand end point of the interval over which
+    *                  the function is integrated
+    *
+    * @return  An approximate value for the definite integral of the function
+    *          represented by this collection of (x,y) coordinates over the
+    *          interval [a,b].
+    */
+
+  public static float TrapIntegrate( float[] x_vals, 
+                                     float[] y_vals,
+                                     float   a,
+                                     float   b       )
+  {
+    if ( x_vals.length != y_vals.length )
+    {
+      System.out.println("ERROR:array length(s) invalid in TrapIntegrate");
+      return 0;
+    }
+   
+    if (x_vals.length <= 1 || b <= x_vals[0]  || a >= x_vals[x_vals.length-1])
+      return 0;
+
+    if ( a < x_vals[0] )                 // restrict a, b to tabulated interval
+      a = x_vals[0];
+
+    if ( b > x_vals[x_vals.length-1] )
+      b = x_vals[x_vals.length-1];
+
+                                          // get interval containing a and
+                                          // evaluate y at a
+    int start_i = arrayUtil.get_index_of( a, x_vals );   // a <= x_vals[start]
+    if ( a > x_vals[start_i] )
+      start_i++;
+
+    float y_at_a;
+    if ( a == x_vals[start_i] )
+      y_at_a = y_vals[start_i];
+    else
+      y_at_a = y_vals[start_i-1] +  ( y_vals[start_i] - y_vals[start_i-1] )
+                                 *  ( a               - x_vals[start_i-1] ) /
+                                    ( x_vals[start_i] - x_vals[start_i-1] );
+
+
+                                          // get interval containing b and
+                                          // and evaluate y at b
+    int end_i = arrayUtil.get_index_of( b, x_vals );     // x_vals[end] <= b
+    if ( b < x_vals[end_i] )
+      end_i--;
+
+    float y_at_b;
+    if ( x_vals[end_i] == b )
+      y_at_b = x_vals[end_i];
+    else
+      y_at_b = y_vals[end_i] + ( y_vals[end_i + 1] - y_vals[end_i] )
+                             * ( b                 - x_vals[end_i] ) /
+                               ( x_vals[end_i + 1] - x_vals[end_i] );
+
+                                           // now do the integration, treating
+                                           // the first and last partial 
+                                           // intervals separately 
+    double sum = ( x_vals[start_i] - a ) * ( y_at_a + y_vals[start_i] ) / 2;
+
+    for ( int i = start_i; i < end_i - 1; i++ )
+      sum += ( x_vals[i+1] - x_vals[i] ) * ( y_vals[i+1] + y_vals[i] ) / 2;
+
+    sum += ( b - x_vals[end_i] ) * ( y_vals[end_i] + y_at_b ) / 2; 
+    
+    return (float)sum;
+  }
+
+
+  /**
+    * Calculate 1st, 2nd, 3rd, etc. moments for the given tabulated function 
+    * about the specified center point, using the trapezoidal rule.  The Nth 
+    * moment is calculated by numerically integrating:
+    *
+    *             f(x) * (x - center)**N
+    *
+    * The x-values are NOT assumed to be evenly spaced, but MUST at least be 
+    * ordered.  There must be the same number of x values as y values.
+    *
+    * @param   x_vals  Array of x-coordinates for the list of (x,y) points.
+    *                  There MUST be the same number of x values and y values.
+    *
+    * @param   y_vals  Array of y-coordinates for the list of (x,y) points.
+    *                  There MUST be the same number of x values and y values.
+    *
+    * @param   a       The left hand end point of the interval over which
+    *                  the function is integrated.
+    *
+    * @param   b       The right hand end point of the interval over which
+    *                  the function is integrated
+    * @param   center    The center point about which the moment is calculated.
+    *
+    * @param   moment    Integer specifying which moment is to be calculated.
+    *                    This must be a positive integer.
+    *
+    * @return  An approximate value for the specified moment of the function
+    *          represented by this collection of (x,y) coordinates over the
+    *          interval [a,b].
+    */
+
+  public static float TrapMoment( float[] x_vals,
+                                  float[] y_vals,
+                                  float   a,
+                                  float   b,
+                                  float   center,
+                                  float   moment       )
+  {
+    if ( x_vals.length != y_vals.length )
+    {
+      System.out.println("ERROR:array length(s) invalid in TrapIntegrate");
+      return 0;
+    }
+
+    if (x_vals.length <= 1 || b <= x_vals[0]  || a >= x_vals[x_vals.length-1])
+      return 0;
+
+    if ( a < x_vals[0] )                 // restrict a, b to tabulated interval
+      a = x_vals[0];
+
+    if ( b > x_vals[x_vals.length-1] )
+      b = x_vals[x_vals.length-1];
+
+                                          // get interval containing a and
+                                          // evaluate y at a
+    int start_i = arrayUtil.get_index_of( a, x_vals );   // a <= x_vals[start]
+    if ( a > x_vals[start_i] )
+      start_i++;
+
+    float y_at_a;
+    if ( a == x_vals[start_i] )
+      y_at_a = y_vals[start_i];
+    else
+      y_at_a = y_vals[start_i-1] +  ( y_vals[start_i] - y_vals[start_i-1] )
+                                 *  ( a               - x_vals[start_i-1] ) /
+                                    ( x_vals[start_i] - x_vals[start_i-1] );
+
+
+                                          // get interval containing b and
+                                          // and evaluate y at b
+    int end_i = arrayUtil.get_index_of( b, x_vals );     // x_vals[end] <= b
+    if ( b < x_vals[end_i] )
+      end_i--;
+
+    float y_at_b;
+    if ( x_vals[end_i] == b )
+      y_at_b = x_vals[end_i];
+    else
+      y_at_b = y_vals[end_i] + ( y_vals[end_i + 1] - y_vals[end_i] )
+                             * ( b                 - x_vals[end_i] ) /
+                               ( x_vals[end_i + 1] - x_vals[end_i] );
+
+                                           // now do the integration, treating
+                                           // the first and last partial
+                                           // intervals separately
+
+    float  x   = ( x_vals[start_i] + a ) / 2;
+    double sum = ( x_vals[start_i] - a ) * (( y_at_a + y_vals[start_i] ) / 2)
+                                         *  Math.pow(x-center,moment);
+
+    for ( int i = start_i; i < end_i - 1; i++ )
+    {
+      x = ( x_vals[i+1] + x_vals[i] ) / 2;
+      sum += ( x_vals[i+1] - x_vals[i] ) * (( y_vals[i+1] + y_vals[i] ) / 2) 
+                                         *  Math.pow(x-center,moment);
+    }
+
+    x    = ( b + x_vals[end_i] ) / 2;
+    sum += ( b - x_vals[end_i] ) * (( y_vals[end_i] + y_at_b ) / 2)
+                                 *  Math.pow(x-center,moment);
+
+    return (float)sum;
   }
 
 
