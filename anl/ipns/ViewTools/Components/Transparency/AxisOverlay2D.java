@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/05/22 17:51:05  dennis
+ *  Corrected problem of missing calibratons at beginning and end
+ *  of y-axis and beginning of x-axis. (Mike Miller)
+ *
  *  Revision 1.3  2003/05/16 14:56:12  dennis
  *  Added calibration intervals on the X-Axis when resizing. (Mike Miller)
  *
@@ -100,10 +104,11 @@ public class AxisOverlay2D extends OverlayJPanel
       
       xmin = component.getAxisInfo(true).getMin();
       xmax = component.getAxisInfo(true).getMax();
+      
       // ymin & ymax swapped to adjust for axis standard
       ymax = component.getAxisInfo(false).getMin();
       ymin = component.getAxisInfo(false).getMax();
-      // System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
+      
       // get the dimension of the center panel (imagejpanel)
       // all of these values are returned as floats, losing precision!!!
       int xaxis = (int)( component.getRegionInfo().getWidth() );
@@ -135,7 +140,7 @@ public class AxisOverlay2D extends OverlayJPanel
       float step = values[0];
       float start = values[1];    // the power of the step
       int numxsteps = (int)values[2];         
-      	 
+//      System.out.println("X ticks = " + numxsteps );	 
       int pixel = 0;
       int subpixel = 0;
       /* xaxis represents Pmax - Pmin
@@ -156,8 +161,8 @@ public class AxisOverlay2D extends OverlayJPanel
      	 pixel = (int)( 
      		 (float)xaxis*(A - xmin)/
      		 (xmax-xmin) + xstart);    	 
-     	 //System.out.println("Pixel " + pixel );
-	 //System.out.println("Xmin/Xmax " + xmin + "/" + xmax ); 	 
+//     	 System.out.println("Pixel " + pixel );
+//	 System.out.println("Xmin/Xmax " + xstart + "/" + (xstart + xaxis) ); 	 
        	 subpixel = (int)( 
      		 ( (float)xaxis*(A - xmin - step/2 ) )/
      		 (xmax-xmin) + xstart);      
@@ -185,16 +190,32 @@ public class AxisOverlay2D extends OverlayJPanel
      	    g2d.drawLine( subpixel, yaxis + ystart, 
      		       subpixel, yaxis + ystart + xtick_length-2 );
      	 }
+
+         g2d.drawLine( pixel, yaxis + ystart, 
+     		       pixel, yaxis + ystart + xtick_length );  
 	 
      	 if( steps == (numxsteps - 1) && 
      	     ( xaxis + xstart - pixel) > xaxis/(2*numxsteps) )
      	 { 
-	       g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
-     			     pixel + (pixel - subpixel), 
-     			     yaxis + ystart + xtick_length-2 );
-     	 }
-     	 g2d.drawLine( pixel, yaxis + ystart, 
-     		       pixel, yaxis + ystart + xtick_length );  	
+	    g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
+     		          pixel + (pixel - subpixel), 
+     		          yaxis + ystart + xtick_length-2 );
+	    steps++;
+	    A = (float)steps*step + start;		 
+     	    pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart); 
+	    if( steps%skip == 0 && pixel <= (xstart + xaxis) )
+	    {
+	       num = util.standardize( (step * (float)steps + start) );
+	       exp_index = num.indexOf('E');
+	       
+	       g2d.drawString( num.substring(0,exp_index), pixel - 
+		       fontdata.stringWidth(num.substring(0,exp_index))/2, 
+     	               yaxis + ystart + xtick_length + fontdata.getHeight() );
+	       g2d.drawLine( pixel, yaxis + ystart, 
+     		       pixel, yaxis + ystart + xtick_length );
+	    }
+	         	    
+	 }	
       }
      /*
       * This will display the x label, x units, and common exponent (if not 0).
@@ -216,16 +237,17 @@ public class AxisOverlay2D extends OverlayJPanel
       * Given ysteps in world coordinates, put ticks on y axis starting
       * from top and moving down to the origin
       */
+
       CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
                                                    Format.ENGINEER );
       values = yutil.subDivide();
       float ystep = values[0];
-      float starty = values[1];    // the power of the interval
+      float starty = values[1];
       int numysteps = (int)values[2];
-
+//      System.out.println("Y Start/Step = " + starty + "/" + ystep);
       int ytick_length = 5;     // the length of the tickmark is 5 pixels
-      int ypixel = 0;           // where to place "calibrated" ticks (with #s)
-      int ysubpixel = 0;        // where to place "half" ticks (w/o #'s)
+      int ypixel = 0;           // where to place major ticks
+      int ysubpixel = 0;        // where to place minor ticks
      		    
       float pmin = ystart + yaxis;
       float pmax = ystart;
@@ -235,19 +257,19 @@ public class AxisOverlay2D extends OverlayJPanel
       // yskip is the space between calibrations: 1 = every #, 2 = every other
       
       int yskip = 1;
-      while( (yaxis*yskip/numysteps) < fontdata.getHeight() )
+      while( (yaxis*yskip/numysteps) < fontdata.getHeight() && yskip < numysteps)
          yskip++;
       int mult = (int)(numysteps/yskip);
       int rem = numysteps%yskip;
-      //System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
-      //                   ") = " + mult + "R" + rem);
+//      System.out.println("numysteps/yskip: (" + numysteps + "/" + yskip + 
+//                         ") = " + mult + "R" + rem);
       for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
       {   
      	 a = ysteps * ystep;
      	 
      	 ypixel = (int)( (pmax - pmin) * ( a - amin) /
      			 (ymax - ymin) + pmin);
-     	 //System.out.println("YPixel " + ypixel ); 
+//     	 System.out.println("YPixel " + ypixel ); 
 	 
 	 //System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
      	 
@@ -277,7 +299,7 @@ public class AxisOverlay2D extends OverlayJPanel
      	                  xstart - 1, ypixel - 1 );   
      	 }
 	 // if subpixel is between top and bottom of imagejpanel, draw it 		     	       
-     	 if( ysubpixel < pmin && ysubpixel > pmax )
+     	 if( ysubpixel <= pmin && ysubpixel >= pmax )
      	 {
      	    g2d.drawLine( xstart - (ytick_length - 2), ysubpixel - 1, 
      			  xstart - 1, ysubpixel - 1 );
