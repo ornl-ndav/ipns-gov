@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2004/05/20 03:28:26  millermi
+ *  - Removed unused variables.
+ *
  *  Revision 1.11  2004/03/15 23:53:54  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -481,8 +484,6 @@ public class ControlSlider extends ViewControl
   private void setRangeTransform()
   {
     float_to_int.setSource(new CoordBounds(range.x,0,range.y,1));
-    float float_min = float_to_int.getSource().getX1();
-    float float_max = float_to_int.getSource().getX2();
     float_to_int.setDestination( new CoordBounds(0,0,num_steps,1) );
     slide.setMinimum(0);
     slide.setMaximum(num_steps);
