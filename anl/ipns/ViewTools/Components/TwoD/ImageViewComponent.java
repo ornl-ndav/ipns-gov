@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2003/08/08 00:19:22  millermi
+ *  - Moved initialization of local_bounds and global_bounds
+ *  after ijp.initializeWorldCoords() in constructor. Fixes
+ *  bug that assigned incorrect world coordinates to
+ *  selections and annotations prior to zooming.
+ *
  *  Revision 1.19  2003/08/07 15:53:20  dennis
  *  - Removed debug statements, added comments to getAxisInfo() for
  *    dealing with log axes.
@@ -200,8 +206,6 @@ public class ImageViewComponent implements IViewComponent2D,
       ijp.addComponentListener( comp_listener );
       
       regioninfo = new Rectangle( ijp.getBounds() );
-      local_bounds = ijp.getLocalWorldCoords().MakeCopy();
-      global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
       
       AxisInfo2D xinfo = varr.getAxisInfoVA(AxisInfo2D.XAXIS);
       AxisInfo2D yinfo = varr.getAxisInfoVA(AxisInfo2D.YAXIS);
@@ -210,6 +214,9 @@ public class ImageViewComponent implements IViewComponent2D,
                                                   yinfo.getMax(),      
                                                   xinfo.getMax(),
 						  yinfo.getMin() ) ); 
+      
+      local_bounds = ijp.getLocalWorldCoords().MakeCopy();
+      global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
       
       colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
       // two-sided model
@@ -238,7 +245,7 @@ public class ImageViewComponent implements IViewComponent2D,
       buildViewComponent();    // initializes big_picture to jpanel containing
                                // the background and transparencies
       buildViewControls(); 
-      buildViewMenuItems();  
+      buildViewMenuItems(); 
    }  
    
 // These method are required because this component implements 
@@ -739,12 +746,13 @@ public class ImageViewComponent implements IViewComponent2D,
 	 else if (message == CoordJPanel.ZOOM_IN)
          {
 	    //System.out.println("Sending SELECTED_CHANGED " + regioninfo );
-            sendMessage(SELECTED_CHANGED);
 	    ImageJPanel center = (ImageJPanel)ae.getSource();
 	    local_bounds = center.getLocalWorldCoords().MakeCopy();
 	    global_bounds = center.getGlobalWorldCoords().MakeCopy();
 	    for(int next = 0; next < transparencies.size(); next++ )
 	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
+	    
+            sendMessage(SELECTED_CHANGED);
             //paintComponents( big_picture.getGraphics() );
 	 }
 	 else if (message == CoordJPanel.RESET_ZOOM)
@@ -755,6 +763,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	    global_bounds = center.getGlobalWorldCoords().MakeCopy();
 	    for(int next = 0; next < transparencies.size(); next++ )
 	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
+	    
             sendMessage(SELECTED_CHANGED);
             //paintComponents( big_picture.getGraphics() );
 	 }
