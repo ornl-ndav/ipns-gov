@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/07/14 16:30:41  dennis
+ * Added checkbox to switch the view from a perspective projection to
+ * an orthographic projection.
+ *
  * Revision 1.1  2004/06/18 19:23:08  dennis
  * Moved to ViewControls package
  *
@@ -43,6 +47,7 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ViewControls;
 
 import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -66,10 +71,10 @@ public class AltAzController extends    ViewController
   public static final float ANGLE_SCALE_FACTOR    = 10.0f;
   public static final float DISTANCE_SCALE_FACTOR = 10.0f;
   
-  JSlider  azimuth_slider;
-  JSlider  altitude_slider;
-  JSlider  distance_slider;
-
+  JSlider    azimuth_slider;
+  JSlider    altitude_slider;
+  JSlider    distance_slider;
+  JCheckBox  ortho_checkbox;
 
 /* --------------------------- Default Constructor --------------------- */
 /**
@@ -100,17 +105,18 @@ public class AltAzController extends    ViewController
                           float max_distance,
                           float distance  )
   {
-    setLayout( new GridLayout(3,1) );
+    setLayout( new GridLayout(4,1) );
     TitledBorder border = new TitledBorder(
                              LineBorder.createBlackLineBorder(),"View Control");
     border.setTitleFont( FontUtil.BORDER_FONT );
     setBorder( border );
 
+    SliderChanged slider_listener = new SliderChanged();
     altitude_slider = new JSlider( JSlider.HORIZONTAL, 
                                   -(int)(ANGLE_SCALE_FACTOR*MAX_ALT_ANGLE), 
                                    (int)(ANGLE_SCALE_FACTOR*MAX_ALT_ANGLE), 
                                    0 );
-    altitude_slider.addChangeListener( new SliderChanged() );
+    altitude_slider.addChangeListener( slider_listener );
     border = new TitledBorder( LineBorder.createBlackLineBorder(),"Altitude");
     border.setTitleFont( FontUtil.BORDER_FONT );
     altitude_slider.setBorder( border );
@@ -120,14 +126,14 @@ public class AltAzController extends    ViewController
                                  -(int)(ANGLE_SCALE_FACTOR*MAX_AZI_ANGLE), 
                                   (int)(ANGLE_SCALE_FACTOR*MAX_AZI_ANGLE), 
                                   0 );
-    azimuth_slider.addChangeListener( new SliderChanged() );
+    azimuth_slider.addChangeListener( slider_listener );
     border = new TitledBorder( LineBorder.createBlackLineBorder(),"Azimuth");
     border.setTitleFont( FontUtil.BORDER_FONT );
     azimuth_slider.setBorder( border );
     add( azimuth_slider ); 
 
     distance_slider = new JSlider( JSlider.HORIZONTAL, 1, 20, 10 );
-    distance_slider.addChangeListener( new SliderChanged() );
+    distance_slider.addChangeListener( slider_listener );
     border = new TitledBorder( LineBorder.createBlackLineBorder(),"Distance");
     border.setTitleFont( FontUtil.BORDER_FONT );
     distance_slider.setBorder( border );
@@ -137,6 +143,17 @@ public class AltAzController extends    ViewController
     setDistance( distance );
     setAltitudeAngle( altitude );
     setAzimuthAngle( azimuth );
+
+    ortho_checkbox = new JCheckBox( "Orthographic" );
+    ortho_checkbox.setFont(  FontUtil.BORDER_FONT );
+    ortho_checkbox.addActionListener( new ProjectionTypeListener() );
+    JPanel panel = new JPanel();
+    panel.setLayout( new GridLayout(1,1) );
+    panel.add( ortho_checkbox );
+    border = new TitledBorder( LineBorder.createBlackLineBorder(),"Projection");
+    border.setTitleFont( FontUtil.BORDER_FONT );
+    panel.setBorder( border );
+    add( panel );
   }
 
 
@@ -291,6 +308,9 @@ public class AltAzController extends    ViewController
  *  INTERNAL CLASSES 
  * 
  */
+ 
+/* ---------------------------- SliderChanged ---------------------------- */
+
   private class SliderChanged    implements ChangeListener,
                                             Serializable
   {
@@ -307,6 +327,17 @@ public class AltAzController extends    ViewController
          border.setTitle( "Distance " + getDistance() );
 
        setView();
+     }
+  }
+
+/* ------------------------- ProjectionTypeListener ---------------------- */
+
+  private class ProjectionTypeListener implements ActionListener, Serializable
+  {
+     public void actionPerformed( ActionEvent e )
+     {
+        setPerspective( !ortho_checkbox.isSelected() );
+        setView(); 
      }
   }
 
