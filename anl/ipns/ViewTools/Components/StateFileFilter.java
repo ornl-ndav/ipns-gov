@@ -29,15 +29,18 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.2  2004/03/11 23:35:50  rmikk
+ * Fixed package problems
+ *
  * Revision 1.1  2003/11/18 00:57:31  millermi
  * - Initial Version, created by Chris Bouzek
  * - Added package association.
  *
  *
  */
-package DataSetTools.components.View;
+package gov.anl.ipns.ViewTools.Components;
 
-import DataSetTools.util.RobustFileFilter;
+import gov.anl.ipns.Util.File.RobustFileFilter;
 
 /**
  * Filters out .isv (State) files.
