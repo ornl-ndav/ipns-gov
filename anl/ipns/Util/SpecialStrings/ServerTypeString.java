@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2001/08/10 20:41:40  rmikk
+ *  Fixed error so initialization with a String is possible
+ *
  *  Revision 1.1  2001/08/07 15:54:12  dennis
  *  List of supported server types, passed as parameter to
  *  LoadRemoteData operator.
@@ -67,11 +70,12 @@ public class ServerTypeString  extends     SpecialString
 
      boolean found = false;
      int     i     = 0;
-     while ( i < strings.length )
+     while ( (i < strings.length) && !found )
        if ( strings[i].equals( message ) )
          found = true;
        else
          i++;
+        
 
      if ( !found ) 
        setString( strings[0] );
@@ -92,14 +96,8 @@ public class ServerTypeString  extends     SpecialString
 
   /* ----------------------------- getString ----------------------------- */
   /**
-   *  Get a copy of the String in the specified position in this list
-   *  of Strings.
-   *
-   *  @param   position  The position in the list from which the string is to
-   *                     be obtained.
-   *
-   *  @return  A copy of the String in the given position in the list,
-   *           if the position is valid, or null of the position is not valid.
+
+sition is not valid.
    */
 
   public String getString( int position )
@@ -109,5 +107,9 @@ public class ServerTypeString  extends     SpecialString
      else
        return strings[ position ];
   }
-
+    public static void main( String args[] )
+    {  ServerTypeString STS = new ServerTypeString( 
+                  ServerTypeString.ISAW_FILE_SERVER);
+      System.out.println("OK");
+    }
 }
