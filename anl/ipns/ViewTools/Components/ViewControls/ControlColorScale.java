@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2003/12/23 01:58:32  millermi
+ *  - Adjusted interface package locations since they
+ *    were moved from the TwoD directory
+ *
  *  Revision 1.14  2003/12/20 20:36:25  millermi
  *  - setLogScale() now bounds the logscale value in the
  *    interval [0,1]. Previously, it just assumed it true.
@@ -103,19 +107,20 @@
   
  package DataSetTools.components.View.ViewControls;
  
- import javax.swing.*;
- import javax.swing.event.*;
- import java.awt.event.*;
+ import javax.swing.OverlayLayout;
+ import javax.swing.JFrame;
+ import javax.swing.JPanel;
+ import java.awt.event.ActionListener;
+ import java.awt.event.ActionEvent;
  import java.awt.*;
  
  import DataSetTools.components.image.IndexColorMaker;
  import DataSetTools.components.ui.ColorScaleImage;
  import DataSetTools.components.View.TwoD.ImageViewComponent;
- import DataSetTools.components.View.TwoD.IColorScaleAddible;
- import DataSetTools.components.View.TwoD.ILogAxisAddible;
  import DataSetTools.components.View.VirtualArray2D;
  import DataSetTools.components.View.AxisInfo;
  import DataSetTools.components.View.Transparency.AxisOverlay2D;
+ import DataSetTools.components.View.Transparency.ILogAxisAddible;
  import DataSetTools.components.image.CoordBounds;
  import DataSetTools.util.floatPoint2D;
 

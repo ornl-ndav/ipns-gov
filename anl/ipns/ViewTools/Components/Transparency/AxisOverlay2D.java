@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2003/12/23 01:58:32  millermi
+ *  - Adjusted interface package locations since they
+ *    were moved from the TwoD directory
+ *
  *  Revision 1.22  2003/12/20 21:37:29  millermi
  *  - implemented kill() so editor and help windows are now
  *    disposed when the kill() is called.
@@ -139,8 +143,6 @@ import java.awt.event.ComponentEvent;
 
 import DataSetTools.components.image.*; //ImageJPanel & CoordJPanel
 import DataSetTools.components.View.*;
-import DataSetTools.components.View.TwoD.IAxisAddible;
-import DataSetTools.components.View.TwoD.ILogAxisAddible;
 import DataSetTools.components.View.TwoD.ImageViewComponent;
 import DataSetTools.util.Format;
 import DataSetTools.util.floatPoint2D; 

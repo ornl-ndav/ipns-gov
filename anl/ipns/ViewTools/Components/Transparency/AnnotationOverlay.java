@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2003/12/23 02:00:31  millermi
+ *  - Adjusted interface package locations since they
+ *    were moved from the TwoD directory
+ *
  *  Revision 1.22  2003/12/20 21:37:29  millermi
  *  - implemented kill() so editor and help windows are now
  *    disposed when the kill() is called.
@@ -169,7 +173,6 @@ import javax.swing.event.*;
 import java.awt.image.IndexColorModel;
 
 import DataSetTools.components.View.ObjectState;
-import DataSetTools.components.View.TwoD.IZoomTextAddible;
 import DataSetTools.components.View.Cursor.AnnotationJPanel;
 import DataSetTools.components.View.Cursor.LineCursor;
 import DataSetTools.components.View.Cursor.Line;
