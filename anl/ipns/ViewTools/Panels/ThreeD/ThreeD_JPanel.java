@@ -31,6 +31,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2001/07/12 14:43:39  dennis
+ * Added clear() method to remove all objects.
+ * Private method build_object_list no longer calls repaint()
+ * when the list is emptied.  It now sets tran3D_used to null
+ * so that the objects will be projected and depth sorted when
+ * the scene is painted.
+ *
  * Revision 1.6  2001/07/10 16:31:36  dennis
  * Now uses Hashtable to keep the list of named ThreeD objects, instead
  * of using a Vector.
@@ -89,8 +96,9 @@ public class ThreeD_JPanel extends    CoordJPanel
   private  Tran3D          tran;
   private  Tran3D          tran3D_used  = null;
   private  CoordTransform  tran2D_used  = null;
-  private  boolean         data_painted = false;
-  private  float           clip_factor  = 0.9f;    // relative location of the
+
+  private  volatile boolean data_painted = false;
+  private  float            clip_factor  = 0.9f;   // relative location of the
                                                    // front clipping plane as 
                                                    // fraction of distance from
                                                    // VRP to COP
@@ -123,8 +131,10 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
   public void request_painting( int time_ms )
   {
-      repaint();
+      if ( data_painted )               // nothing to do
+        return;
 
+      repaint();
       while ( !data_painted )           // wait till it's done painting
       try
       {
@@ -335,6 +345,21 @@ public class ThreeD_JPanel extends    CoordJPanel
  }
 
 
+/* --------------------------------- clear -------------------------------- */
+/**
+ *  Remove all of the ThreeD objects from the objects to be handled by
+ *  this panel.  
+ *
+ *  NOTE: The application must call repaint() or request_painting() to 
+ *        redraw the panel after removing the objects.
+ */
+ public void removeObjects()
+ {
+   obj_lists.clear();
+   build_object_list();
+ }
+
+
 
 /* ----------------------------- pickID ----------------------------- */
 /*
@@ -425,7 +450,7 @@ public class ThreeD_JPanel extends    CoordJPanel
    {
      index = null;
      all_objects = null;
-     repaint();
+     data_painted = false;
      return;
    }
 
@@ -454,6 +479,9 @@ public class ThreeD_JPanel extends    CoordJPanel
      index[i] = i;
 
    data_painted = false;
+
+   tran3D_used = null;                     // data will have to be projected
+                                           // and depth sorted again. 
  }
 
 /* ----------------------------- project ------------------------------ */
