@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/03/04 20:57:39  dennis
+ * Removed debug prints.
+ *
  * Revision 1.5  2004/03/04 20:42:07  dennis
  * Now switches between two combo boxes with constant
  * HKL or QXYZ options.  This fixes a bug that occured
@@ -227,15 +230,11 @@ public class HKL_SliceSelector extends     ActiveJPanel
   */
   public void setMode( int mode )
   {  
-    System.out.println("IN setMode() to change labels " + mode );
-
     remove(1);
     if ( mode == ISlicePlaneSelector.HKL_MODE )
       add( hkl_selector );
     else
       add( qxyz_selector );
-
-    System.out.println("DONE with setMode() to change labels " + mode );
   }
 
   /* --------------------------- setSelected ----------------------------- */
@@ -248,7 +247,6 @@ public class HKL_SliceSelector extends     ActiveJPanel
    */
   public void setSelected( int index )
   { 
-    System.out.println("IN setSelected() to highlight a label");
     if ( index >= COMPONENT_1_CONSTANT &&  
          index <= COMPONENT_3_CONSTANT  ) 
     {
@@ -261,7 +259,6 @@ public class HKL_SliceSelector extends     ActiveJPanel
         qxyz_selector.setSelectedIndex( index );
       }
     }
-    System.out.println("DONE with setSelected() to highlight a label");
   }
   
   /* -----------------------------------------------------------------------
