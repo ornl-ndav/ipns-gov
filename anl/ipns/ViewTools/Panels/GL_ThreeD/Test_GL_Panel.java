@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/06/15 16:47:28  dennis
+ * Commented out tests using GLU quadrics, since these crash
+ * with the Mesa GLU.
+ *
  * Revision 1.3  2004/06/02 15:17:52  dennis
  * Added tests of the java font files containing the Hershey font data.
  *
@@ -172,7 +176,7 @@ public class Test_GL_Panel
     tran.setTranslation( new Vector3D( 4,4,4 ) );
     obj.setTransform( tran );
     panel.setObject("Textured Object 2", obj);
-
+/*
     GLU_QuadricObject glu_obj = new GLU_Sphere( 2, 10, 10 );
     glu_obj.setPickID( pick_id++ );
     glu_obj.setColor( white );
@@ -189,13 +193,13 @@ public class Test_GL_Panel
     glu_obj.setNormalType( GLU.GLU_SMOOTH );
     glu_obj.setDrawStyle( GLU.GLU_FILL );
     panel.setObject( "Cylinder", glu_obj );
-    
+*/    
     float z[][] = new float[11][11];
     for ( int row = 0; row < 11; row++ )
       for ( int col = 0; col < 11; col++ )
         z[row][col] = -((row-5)*(row-5)+(col-5)*(col-5)) / 5.0f - 3;
         
-    obj = new HeightField( z, 10, 10 );
+    obj = new HeightField( z, 10, 10, 0, 50 );
     obj.setPickID( pick_id++ );
     obj.setTexture( texture );
     obj.setTransparency( 0.4f );
@@ -225,7 +229,7 @@ public class Test_GL_Panel
 
    
     ThreeD_GL_Panel panel2 = new ThreeD_GL_Panel();
-    obj = new HeightField( z, 10, 10 );
+    obj = new HeightField( z, 10, 10, 0, 50 );
     obj.setPickID( pick_id++ );
     obj.setColor( white );
     obj.setTransparency( 0.4f );
