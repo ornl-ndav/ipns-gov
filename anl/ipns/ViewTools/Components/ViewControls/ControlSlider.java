@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/05 18:14:06  millermi
+ *  - Replaced show()/setVisible(true) with WindowShower.
+ *  - Removed excess imports.
+ *
  *  Revision 1.5  2003/10/16 05:00:14  millermi
  *  - Fixed java docs errors.
  *
@@ -54,14 +58,15 @@
   
  package DataSetTools.components.View.ViewControls;
  
- import javax.swing.*;
- import javax.swing.event.*;
+ import javax.swing.JSlider;
+ import javax.swing.JFrame;
+ import javax.swing.event.ChangeEvent;
+ import javax.swing.event.ChangeListener;
  import java.io.Serializable;
- import java.awt.event.*;
- import java.awt.*;
+ import java.awt.GridLayout;
+ import java.awt.Point;
  
- import DataSetTools.viewer.ViewerState;
- import DataSetTools.util.*;
+ import DataSetTools.util.WindowShower;
 
 /**
  * This class is an ViewControl (ActiveJPanel) with a generic slider for use 
@@ -134,13 +139,13 @@ public class ControlSlider extends ViewControl
     if( new_val <= (float)(range.y/Math.pow(10.0, power))
 	&& new_val >= (float)(range.x/Math.pow(10.0, power)) )
     {
-       value = new_val;
-       slide.setValue((int)((new_val+.05)*Math.pow(10.0, power)));
+      value = new_val;
+      slide.setValue((int)((new_val+.05)*Math.pow(10.0, power)));
     }
     else
-       System.out.println("Invalid Value, must be in range ( " + 
-			  (float)(range.x/Math.pow(10.0, power)) + " , " + 
-			  (float)(range.y/Math.pow(10.0, power)) + " )");
+      System.out.println("Invalid Value, must be in range ( " + 
+        		 (float)(range.x/Math.pow(10.0, power)) + " , " + 
+        		 (float)(range.y/Math.pow(10.0, power)) + " )");
   }
 
  /**
@@ -205,7 +210,7 @@ public class ControlSlider extends ViewControl
     {
       while( (max*(float)Math.pow(10.0, pow)/
              (float)Math.pow(10.0, range_precision - 1)) > 1 )
-         pow--;
+        pow--;
       range.x = (int)(xmin*Math.pow(10.0, pow) + minegator*.5);
       range.y = (int)(xmax*Math.pow(10.0, pow) + maxegator*.5);
       if( pow < 0 )
@@ -259,8 +264,7 @@ public class ControlSlider extends ViewControl
   * This class listens for changes to the slider. With this class,
   * outside classes can listen to see if the component has changed.
   */
-  private class SlideListener implements ChangeListener,
-						Serializable
+  private class SlideListener implements ChangeListener, Serializable
   { 
     public void stateChanged(ChangeEvent e)
     {
@@ -289,7 +293,8 @@ public class ControlSlider extends ViewControl
     slide.setRange(2.3f,20.5f);
     slide.setMajorTickSpace(3);
     slide.setMinorTickSpace(1);
-    frame.show();
+    WindowShower shower = new WindowShower(frame);
+    java.awt.EventQueue.invokeLater(shower);
     
     slide.setValue(13.29f);
     System.out.println("Value: " + slide.getValue());

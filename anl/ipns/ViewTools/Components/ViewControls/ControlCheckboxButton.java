@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/05 18:14:06  millermi
+ *  - Replaced show()/setVisible(true) with WindowShower.
+ *  - Removed excess imports.
+ *
  *  Revision 1.4  2003/12/29 04:17:25  millermi
  *  - Added doClick() method that calls the JCheckbox.doClick().
  *    This will simulate a mouse click.
@@ -56,14 +60,18 @@
   
  package DataSetTools.components.View.ViewControls;
  
- import javax.swing.*;
- import javax.swing.event.*;
- import java.awt.event.*;
- import java.awt.*;
+ import javax.swing.JPanel;
+ import javax.swing.JCheckBox;
+ import javax.swing.JButton;
+ import javax.swing.JFrame;
+ import java.awt.event.ActionEvent;
+ import java.awt.event.ActionListener;
+ import java.awt.GridLayout;
+ import java.awt.Color;
+ import java.awt.BorderLayout;
  import javax.swing.border.TitledBorder;
  
- import DataSetTools.viewer.ViewerState;
- import DataSetTools.util.*;
+ import DataSetTools.util.WindowShower;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a generic checkbox and button
@@ -72,208 +80,209 @@
  */ 
 public class ControlCheckboxButton extends ViewControl
 {
-   private JPanel pane;
-   private JCheckBox cbox;
-   private JButton edit;
-   private Color checkcolor;
-   private Color uncheckcolor;
-   private ControlCheckboxButton this_panel;
-   
-  /**
-   * Default constructor specifies no title but initializes checkbox to be
-   * unchecked.
-   */ 
-   public ControlCheckboxButton()
-   {  
-      super("");
-      pane = new JPanel( new BorderLayout() );
-      cbox = new JCheckBox();
-      pane.add(cbox,"West");
-      cbox.addActionListener( new CheckboxListener() );
-      edit = new JButton("Edit");
-      pane.add(edit,"Center");
-      edit.addActionListener( new ButtonListener() );
-      edit.setEnabled(false);
-      this.add(pane);
-      checkcolor =  ((TitledBorder)this.getBorder()).getTitleColor();
-      uncheckcolor =  ((TitledBorder)this.getBorder()).getTitleColor();
-      this_panel = this;    
-   }
+  private JPanel pane;
+  private JCheckBox cbox;
+  private JButton edit;
+  private Color checkcolor;
+  private Color uncheckcolor;
+  private ControlCheckboxButton this_panel;
   
-  /**
-   * Same functionality as default constructor, only this constructor allows
-   * for title specification of the border.
-   *
-   *  @param  title
-   */ 
-   public ControlCheckboxButton(String title)
-   {
-      this();
-      this.setTitle(title);
-   }
+ /**
+  * Default constructor specifies no title but initializes checkbox to be
+  * unchecked.
+  */ 
+  public ControlCheckboxButton()
+  {  
+    super("");
+    pane = new JPanel( new BorderLayout() );
+    cbox = new JCheckBox();
+    pane.add(cbox,"West");
+    cbox.addActionListener( new CheckboxListener() );
+    edit = new JButton("Edit");
+    pane.add(edit,"Center");
+    edit.addActionListener( new ButtonListener() );
+    edit.setEnabled(false);
+    this.add(pane);
+    checkcolor =  ((TitledBorder)this.getBorder()).getTitleColor();
+    uncheckcolor =  ((TitledBorder)this.getBorder()).getTitleColor();
+    this_panel = this;    
+  }
+ 
+ /**
+  * Same functionality as default constructor, only this constructor allows
+  * for title specification of the border.
+  *
+  *  @param  title
+  */ 
+  public ControlCheckboxButton(String title)
+  {
+    this();
+    this.setTitle(title);
+  }
 
-  /**
-   * Same functionality as default constructor, only this constructor allows
-   * for setSelected(). Use this constructor to create a checkbox that starts
-   * out checked.
-   *
-   *  @param  isChecked
-   */ 
-   public ControlCheckboxButton(boolean isChecked)
-   {
-      this();
-      this.setSelected(isChecked);
-   }   
-   
-  /**
-   * isSelected() tells when the checkbox is checked, true when checked.
-   *
-   *  @return true if checked
-   */  
-   public boolean isSelected()
-   {   
-      return cbox.isSelected();
-   }
-   
-  /**
-   * Set the checkbox to be checked (true) or unchecked (false). If checked,
-   * the button will be enabled, if not, the button is disabled.
-   * The constructor initializes the checkbox to be unchecked unless instructed
-   * otherwise.
-   *
-   *  @param  isChecked
-   */
-   public void setSelected(boolean isChecked)
-   {
-      cbox.setSelected(isChecked);
+ /**
+  * Same functionality as default constructor, only this constructor allows
+  * for setSelected(). Use this constructor to create a checkbox that starts
+  * out checked.
+  *
+  *  @param  isChecked
+  */ 
+  public ControlCheckboxButton(boolean isChecked)
+  {
+    this();
+    this.setSelected(isChecked);
+  }   
+  
+ /**
+  * isSelected() tells when the checkbox is checked, true when checked.
+  *
+  *  @return true if checked
+  */  
+  public boolean isSelected()
+  {   
+    return cbox.isSelected();
+  }
+  
+ /**
+  * Set the checkbox to be checked (true) or unchecked (false). If checked,
+  * the button will be enabled, if not, the button is disabled.
+  * The constructor initializes the checkbox to be unchecked unless instructed
+  * otherwise.
+  *
+  *  @param  isChecked
+  */
+  public void setSelected(boolean isChecked)
+  {
+    cbox.setSelected(isChecked);
+    if( cbox.isSelected() )
+    {
+      ((TitledBorder)this.getBorder()).setTitleColor( checkcolor );
+      edit.setEnabled(true);
+    }
+    else
+    {
+      ((TitledBorder)this.getBorder()).setTitleColor( uncheckcolor );  
+      edit.setEnabled(false);
+    }	 
+  }
+
+ /**
+  * This method sets the text of the button. setText() differs from 
+  * setTitle() in that the setTitle() is the border text, while the 
+  * setText() is the text on the button.
+  *
+  *  @param  text
+  */
+  public void setText( String text )
+  {
+    edit.setText(text);
+  }
+
+ /**
+  * This method gets the text on the button. getText() differs from 
+  * getTitle() in that the getTitle() returns the border text, while the 
+  * getText() is the text on the button.
+  */
+  public String getText()
+  {
+    return edit.getText();
+  }
+  
+ /**
+  * This method sets the color of the titled border text of the control to the 
+  * color specified when the checkbox is checked.
+  *
+  *  @param  checked - color of text when checkbox is checked
+  */
+  public void setTextCheckedColor( Color checked )
+  {
+    checkcolor = checked;
+    if( cbox.isSelected() )
+      ((TitledBorder)this.getBorder()).setTitleColor( checked );
+  }   
+
+ /**
+  * This method sets the color of the titled border text of the control to the 
+  * color specified when the checkbox is unchecked.
+  *
+  *  @param  unchecked - color of text when unchecked
+  */
+  public void setTextUnCheckedColor( Color unchecked )
+  {
+    uncheckcolor = unchecked;
+    if( !cbox.isSelected() )
+      ((TitledBorder)this.getBorder()).setTitleColor( unchecked );
+  } 
+  
+ /**
+  * Acts as an artifical mouse click. Extends the capability of the
+  * JCheckbox.doClick().
+  */
+  public void doClick()
+  {
+    cbox.doClick();
+  }	 
+  
+ /*
+  * CheckboxListener moniters the JCheckBox private data member for the
+  * ControlCheckboxButton class
+  */
+  private class CheckboxListener implements ActionListener
+  { 
+    public void actionPerformed( ActionEvent ae )
+    {
+      this_panel.send_message(CHECKBOX_CHANGED);
       if( cbox.isSelected() )
       {
-         ((TitledBorder)this.getBorder()).setTitleColor( checkcolor );
-	 edit.setEnabled(true);
+        ((TitledBorder)this_panel.getBorder()).setTitleColor( checkcolor );
+        edit.setEnabled(true);
       }
       else
       {
-         ((TitledBorder)this.getBorder()).setTitleColor( uncheckcolor );  
-	 edit.setEnabled(false);
-      }    
-   }
-
-  /**
-   * This method sets the text of the button. setText() differs from 
-   * setTitle() in that the setTitle() is the border text, while the 
-   * setText() is the text on the button.
-   *
-   *  @param  text
-   */
-   public void setText( String text )
-   {
-      edit.setText(text);
-   }
-
-  /**
-   * This method gets the text on the button. getText() differs from 
-   * getTitle() in that the getTitle() returns the border text, while the 
-   * getText() is the text on the button.
-   */
-   public String getText()
-   {
-      return edit.getText();
-   }
-   
-  /**
-   * This method sets the color of the titled border text of the control to the 
-   * color specified when the checkbox is checked.
-   *
-   *  @param  checked - color of text when checkbox is checked
-   */
-   public void setTextCheckedColor( Color checked )
-   {
-      checkcolor = checked;
-      if( cbox.isSelected() )
-         ((TitledBorder)this.getBorder()).setTitleColor( checked );
-   }   
-
-  /**
-   * This method sets the color of the titled border text of the control to the 
-   * color specified when the checkbox is unchecked.
-   *
-   *  @param  unchecked - color of text when unchecked
-   */
-   public void setTextUnCheckedColor( Color unchecked )
-   {
-      uncheckcolor = unchecked;
-      if( !cbox.isSelected() )
-         ((TitledBorder)this.getBorder()).setTitleColor( unchecked );
-   } 
-   
-  /**
-   * Acts as an artifical mouse click. Extends the capability of the
-   * JCheckbox.doClick().
-   */
-   public void doClick()
-   {
-     cbox.doClick();
-   }      
-   
-  /*
-   * CheckboxListener moniters the JCheckBox private data member for the
-   * ControlCheckboxButton class
-   */
-   private class CheckboxListener implements ActionListener
-   { 
-      public void actionPerformed( ActionEvent ae )
-      {
-         this_panel.send_message(CHECKBOX_CHANGED);
-	 if( cbox.isSelected() )
-	 {
-            ((TitledBorder)this_panel.getBorder()).setTitleColor( checkcolor );
-	    edit.setEnabled(true);
-         }
-	 else
-	 {
-            ((TitledBorder)this_panel.getBorder()).setTitleColor(uncheckcolor);
-	    edit.setEnabled(false);
-         }
-	 //System.out.println("Currently selected? " + 
-	 //                 ((ControlCheckbox)cbox.getParent()).isSelected() );
-         this_panel.repaint();
+        ((TitledBorder)this_panel.getBorder()).setTitleColor(uncheckcolor);
+        edit.setEnabled(false);
       }
-   }   
-   
-  /*
-   * ButtonListener moniters the JButton private data member for the
-   * ControlCheckboxButton class
-   */
-   private class ButtonListener implements ActionListener
-   { 
-      public void actionPerformed( ActionEvent ae )
-      {
-         //System.out.println("Button Pressed " + ae.getActionCommand() );
-         this_panel.send_message(BUTTON_PRESSED);
-      }
-   } 
-   
-  /*
-   *  For testing purposes only
-   */
-   public static void main(String[] args)
-   {
-      ControlCheckboxButton check = new ControlCheckboxButton();
-      ControlCheckboxButton check2 = new ControlCheckboxButton(true);
-      JFrame frame = new JFrame();
-      frame.getContentPane().setLayout( new GridLayout(2,1) );
-      frame.setTitle("ControlCheckbox Test");
-      frame.setBounds(0,0,135,120);
-      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      frame.getContentPane().add(check);
-      frame.getContentPane().add(check2);
-      check.setText("myCheckbox");  
-      check.setTitle("test1");
-      check2.setTitle("TEST2");   
-      check.setTextCheckedColor( Color.orange );
-      check.setTextUnCheckedColor( Color.green );
-      frame.setVisible(true);
-      check2.doClick();
-      check.doClick();
-   }
+      //System.out.println("Currently selected? " + 
+      //		 ((ControlCheckbox)cbox.getParent()).isSelected() );
+      this_panel.repaint();
+    }
+  }   
+  
+ /*
+  * ButtonListener moniters the JButton private data member for the
+  * ControlCheckboxButton class
+  */
+  private class ButtonListener implements ActionListener
+  { 
+    public void actionPerformed( ActionEvent ae )
+    {
+      //System.out.println("Button Pressed " + ae.getActionCommand() );
+      this_panel.send_message(BUTTON_PRESSED);
+    }
+  } 
+  
+ /*
+  *  For testing purposes only
+  */
+  public static void main(String[] args)
+  {
+    ControlCheckboxButton check = new ControlCheckboxButton();
+    ControlCheckboxButton check2 = new ControlCheckboxButton(true);
+    JFrame frame = new JFrame();
+    frame.getContentPane().setLayout( new GridLayout(2,1) );
+    frame.setTitle("ControlCheckbox Test");
+    frame.setBounds(0,0,135,120);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.getContentPane().add(check);
+    frame.getContentPane().add(check2);
+    check.setText("myCheckbox");  
+    check.setTitle("test1");
+    check2.setTitle("TEST2");	
+    check.setTextCheckedColor( Color.orange );
+    check.setTextUnCheckedColor( Color.green );
+    WindowShower shower = new WindowShower(frame);
+    java.awt.EventQueue.invokeLater(shower);
+    check2.doClick();
+    check.doClick();
+  }
 }

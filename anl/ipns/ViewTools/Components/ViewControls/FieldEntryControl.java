@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/01/05 18:14:06  millermi
+ *  - Replaced show()/setVisible(true) with WindowShower.
+ *  - Removed excess imports.
+ *
  *  Revision 1.4  2004/01/03 03:01:13  millermi
  *  - getAll*Values() now returns an array with the same number of
  *    elements as there are labels. Previously, the array size was
@@ -71,6 +75,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Hashtable;
 import java.util.Enumeration;
+
+import DataSetTools.util.WindowShower;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with labels and input text fields
@@ -837,7 +843,8 @@ public class FieldEntryControl extends ViewControl
     fec.setSelected( "Every Fifth" );
     fec.setButtonText("Button Text Test");
     tester.getContentPane().add(fec);
-    tester.setVisible(true);
+    WindowShower shower = new WindowShower(tester);
+    java.awt.EventQueue.invokeLater(shower);
     System.out.println("Selected: " + fec.getSelected() );
     fec.setLabel( 2, "Menu20" );
   }

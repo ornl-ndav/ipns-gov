@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/01/05 18:14:06  millermi
+ *  - Replaced show()/setVisible(true) with WindowShower.
+ *  - Removed excess imports.
+ *
  *  Revision 1.9  2003/12/30 23:17:47  millermi
  *  - Added setMaximumSize(200,200) to limit the size of the pan
  *    control to 200 x 200.
@@ -103,6 +107,7 @@
  import DataSetTools.components.View.Cursor.TranslationJPanel;
  import DataSetTools.components.View.Transparency.TranslationOverlay;
  import DataSetTools.util.floatPoint2D;
+ import DataSetTools.util.WindowShower;
  
 /**
  * This view control is used to "pan" an image. Adding a PanViewControl
@@ -216,7 +221,8 @@ public class PanViewControl extends ViewControl
 
     PanViewControl pvc = new PanViewControl( test );
     f.getContentPane().add(pvc);
-    f.setVisible(true);
+    WindowShower shower = new WindowShower(f);
+    java.awt.EventQueue.invokeLater(shower);
   }
   
  /*

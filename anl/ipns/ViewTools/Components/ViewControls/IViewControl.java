@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/01/05 18:14:06  millermi
+ *  - Replaced show()/setVisible(true) with WindowShower.
+ *  - Removed excess imports.
+ *
  *  Revision 1.3  2003/06/13 19:44:05  serumb
  *  Added messages for the LabelCombobox and ButtonControl classes.
  *
@@ -49,7 +53,7 @@
  
  package DataSetTools.components.View.ViewControls;
 
- import java.awt.event.*;
+ import java.awt.event.ActionListener;
  
 /**
  * Any class that implements this interface will be used to adjust
@@ -57,43 +61,41 @@
  */
 public interface IViewControl
 {
-  /*
-   * These variables are messaging strings for use by action listeners.
-   */
-   // Used by ControlSlider.java
-   //public static final String SLIDER_CHANGING = "SLIDER_CHANGING";
-   public static final String SLIDER_CHANGED  = "SLIDER_CHANGED";
-   // Used by ControlCheckBox.java
-   public static final String CHECKBOX_CHANGED  = "CHECKBOX_CHANGED";
-   // Used by LabelCombobox.java
-   public static final String COMBOBOX_CHANGED  = "COMBOBOX_CHANGED";
-   // Used by ButtonControl.java
-   public static final String BUTTON_PRESSED  = "BUTTON_PRESSED";
-   
-  /**
-   * Add a listener to this view control. A listener will be notified
-   * when this control is modified.
-   */
-   public void addActionListener( ActionListener act_listener );
-   
-  /**
-   * Remove a specified listener from this view control.
-   */ 
-   public void removeActionListener( ActionListener act_listener );
+ /*
+  * These variables are messaging strings for use by action listeners.
+  */
+  // Used by ControlSlider.java
+  public static final String SLIDER_CHANGED  = "SLIDER_CHANGED";
+  // Used by ControlCheckBox.java
+  public static final String CHECKBOX_CHANGED  = "CHECKBOX_CHANGED";
+  // Used by LabelCombobox.java
+  public static final String COMBOBOX_CHANGED  = "COMBOBOX_CHANGED";
+  // Used by ButtonControl.java
+  public static final String BUTTON_PRESSED  = "BUTTON_PRESSED";
   
-  /**
-   * Remove all listeners from this view control.
-   */ 
-   public void removeAllActionListeners();
+ /**
+  * Add a listener to this view control. A listener will be notified
+  * when this control is modified.
+  */
+  public void addActionListener( ActionListener act_listener );
   
-  /**
-   * Get title of the view control.
-   */ 
-   public String getTitle();
-   
-  /**
-   * Set title of the view control.
-   */ 
-   public void setTitle(String title);
-   
+ /**
+  * Remove a specified listener from this view control.
+  */ 
+  public void removeActionListener( ActionListener act_listener );
+ 
+ /**
+  * Remove all listeners from this view control.
+  */ 
+  public void removeAllActionListeners();
+ 
+ /**
+  * Get title of the view control.
+  */ 
+  public String getTitle();
+  
+ /**
+  * Set title of the view control.
+  */ 
+  public void setTitle(String title);  
 }

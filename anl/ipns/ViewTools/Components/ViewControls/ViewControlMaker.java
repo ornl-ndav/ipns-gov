@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/01/05 18:14:06  millermi
+ *  - Replaced show()/setVisible(true) with WindowShower.
+ *  - Removed excess imports.
+ *
  *  Revision 1.3  2003/10/16 05:00:15  millermi
  *  - Fixed java docs errors.
  *
@@ -50,9 +54,14 @@
  
  package DataSetTools.components.View.ViewControls;
 
- import javax.swing.*;
- import java.awt.event.*;
+ import javax.swing.JComponent;
+ import javax.swing.JFrame;
+ import javax.swing.JComboBox;
+ import javax.swing.AbstractButton;
+ import java.awt.event.ActionEvent;
+ import java.awt.event.ActionListener;
  
+ import DataSetTools.util.WindowShower;
  
 /**
  * This class is to quickly convert JComponents to ViewControls. However,
@@ -60,62 +69,68 @@
  */
 public class ViewControlMaker extends ViewControl
 {
-   private JComponent component;
-   private ViewControlMaker this_panel;
-   
-   public ViewControlMaker(JComponent comp)
-   {
-      super("");
-      component = comp;
-      this.add(component);
-      if( component instanceof AbstractButton )
-        ((AbstractButton)component).addActionListener( new ActionList() );
-      else if ( component instanceof JComboBox )
-        ((JComboBox)component).addActionListener( new ActionList() );
-      this_panel = this;     
-   }
-      
-  /**
-   * Get component of the view control.
-   *
-   *  @return component
-   */
-   public JComponent getComponent()
-   {
-      return component;
-   }
-   
-  /**
-   * Change component to a new JComponent.
-   *
-   *  @param  c - component
-   */ 
-   public void changeComponent(JComponent c)
-   {
-      component = c;
-   }
-   
-   private class ActionList implements ActionListener
-   {
-      public void actionPerformed( ActionEvent e )
-      {
-         //System.out.println("ActionCommand: " + e.getActionCommand() );
-         this_panel.send_message( e.getActionCommand() );
-      }
-   }  
+  private JComponent component;
+  private ViewControlMaker this_panel;
   
-  /*
-   *  For testing purposes only
-   */
-   public static void main(String[] args)
-   { 
-      String[] list = {"1","2","3"};
-      ViewControlMaker jcb = new ViewControlMaker( new JComboBox(list) );
-      JFrame frame = new JFrame("JComboBox Test");
-      frame.setBounds(0,0,200,200);
-      frame.getContentPane().add(jcb);
-      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      frame.setVisible(true);
-   }
+ /**
+  * Contructor - builds a ViewControl out of the JComponent
+  *
+  *  @param  comp JComponent of the ViewControl
+  */ 
+  public ViewControlMaker(JComponent comp)
+  {
+    super("");
+    component = comp;
+    this.add(component);
+    if( component instanceof AbstractButton )
+      ((AbstractButton)component).addActionListener( new ActionList() );
+    else if ( component instanceof JComboBox )
+      ((JComboBox)component).addActionListener( new ActionList() );
+    this_panel = this;     
+  }
+     
+ /**
+  * Get component of the view control.
+  *
+  *  @return component
+  */
+  public JComponent getComponent()
+  {
+    return component;
+  }
+  
+ /**
+  * Change component to a new JComponent.
+  *
+  *  @param  c - component
+  */ 
+  public void changeComponent(JComponent c)
+  {
+    component = c;
+  }
+  
+  private class ActionList implements ActionListener
+  {
+    public void actionPerformed( ActionEvent e )
+    {
+      //System.out.println("ActionCommand: " + e.getActionCommand() );
+      this_panel.send_message( e.getActionCommand() );
+    }
+  }  
+ 
+ /*
+  *  For testing purposes only
+  */
+  public static void main(String[] args)
+  { 
+    String[] list = {"1","2","3"};
+    ViewControlMaker jcb = new ViewControlMaker( new JComboBox(list) );
+    JFrame frame = new JFrame("JComboBox Test");
+    frame.setBounds(0,0,200,200);
+    frame.getContentPane().add(jcb);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    WindowShower shower = new WindowShower(frame);
+    java.awt.EventQueue.invokeLater(shower);
+  }
 
 }
