@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2002/02/18 16:28:11  dennis
+ *  Added separate control to select the frame by specifying
+ *  the frame number.
+ *
  *  Revision 1.10  2001/08/14 19:20:15  dennis
  *  Fixed documentation format error.
  *
@@ -99,8 +103,11 @@ public class AnimationController extends    ActiveJPanel
   private static final String  STEP_FORWARD  = ">";
   private static final String  RUN_FORWARD   = ">>";
 
-  private TextValueUI      text_box;
-  private String           my_label  = "";
+  private TextValueUI      frame_box;               // show & controls frame 
+  private TextValueUI      value_box;               // shows float value at 
+                                                    // current frame and sets
+                                                    // frame from the value
+  private String           value_label  = "";
   private TitledBorder     border;
   private Thread           run_thread   = null;
                                                     // these are used by
@@ -126,12 +133,16 @@ public class AnimationController extends    ActiveJPanel
      border.setTitleFont( FontUtil.BORDER_FONT );
      setBorder( border );
 
-     setLayout( new GridLayout( 2, 1 ) );
+     setLayout( new GridLayout( 3, 1 ) );
 
-     text_box = new TextValueUI( my_label, frame_number );
-     text_box.setHorizontalAlignment( JTextField.CENTER );
-     text_box.addActionListener( new TextListener() );
-     add(text_box);     
+     frame_box = new TextValueUI( "Frame ", frame_number );
+     frame_box.setHorizontalAlignment( JTextField.CENTER );
+     frame_box.addActionListener( new FrameListener() );
+     value_box = new TextValueUI( value_label, frame_number );
+     value_box.setHorizontalAlignment( JTextField.CENTER );
+     value_box.addActionListener( new ValueListener() );
+     add( frame_box );
+     add( value_box );
 
      JPanel  button_panel = new JPanel();
      button_panel.setLayout( new GridLayout( 1,5 ) );
@@ -188,11 +199,11 @@ public class AnimationController extends    ActiveJPanel
 
   public void setTextLabel( String label )
   {
-    my_label = label;
+    value_label = label;
     if ( frame_values == null )
-      text_box.setLabel( my_label );
+      value_box.setLabel( value_label );
     else
-      text_box.setLabel( "" + frame_number + " " + my_label );
+      value_box.setLabel( value_label );
   }
 
 
@@ -315,7 +326,7 @@ synchronized private void step_backward()
 synchronized private void set_frame( int number )
 {
   if ( frame_values == null )                     // just use any number given
-    text_box.setValue( number );
+    value_box.setValue( number );
 
   else                                            // we must do bounds checking
   {
@@ -330,8 +341,8 @@ synchronized private void set_frame( int number )
       number = 0;
     }
 
-    text_box.setLabel( "" + number + " " + my_label );
-    text_box.setValue( frame_values[ number ] );   // use the frame_value for
+    frame_box.setValue( number );
+    value_box.setValue( frame_values[ number ] );   // use the frame_value for
                                                    // the given frame number
   }
 
@@ -376,18 +387,18 @@ private class ButtonListener implements ActionListener
   }
 }
 
-/* ------------------------------ TextListener ------------------------- */
+/* ------------------------------ ValueListener ------------------------- */
 /*
  *  Process events from the textual display of the frame value.
  *
  */
 
-private class TextListener implements ActionListener
+private class ValueListener implements ActionListener
 {
   public void actionPerformed( ActionEvent e )
   {
     String action = e.getActionCommand();
-    float value = text_box.getValue();
+    float value = value_box.getValue();
 
     if ( frame_values == null )          // no values assigned, just use the
       set_frame( (int)value );           // value as the frame number;
@@ -404,6 +415,25 @@ private class TextListener implements ActionListener
     }
   }
 }
+
+
+/* ------------------------------ FrameListener ------------------------- */
+/*
+ *  Process events from the textual display of the frame value.
+ *
+ */
+
+private class FrameListener implements ActionListener
+{
+  public void actionPerformed( ActionEvent e )
+  {
+    String action   = e.getActionCommand();
+    float frame_num = frame_box.getValue();
+
+    set_frame( (int)frame_num );   
+  }
+}
+
 
 /* --------------------------------- AutoRun ----------------------------- */
 /*
