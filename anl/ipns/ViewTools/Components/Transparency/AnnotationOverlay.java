@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2003/10/02 04:39:21  millermi
+ *  - Added java docs to public static variables.
+ *  - Added constructor for setting ObjectState.
+ *
  *  Revision 1.15  2003/09/24 01:33:39  millermi
  *  - Added static variables to be used as keys by ObjectState
  *  - Added methods setObjectState() and getObjectState() to adjust to
@@ -175,11 +179,48 @@ import DataSetTools.util.floatPoint2D;
 public class AnnotationOverlay extends OverlayJPanel
 {
   // these public variables are used to preserve the annotation state
+ /**
+  * "Notes" - This constant String is a key for referencing the state
+  * information about the annotations currently stored by this overlay. The
+  * value that this key references is a Vector of Note instances. Note is
+  * a private internal class within the AnnotationOverlay. 
+  */
   public static final String NOTES        = "Notes";
+ 
+ /**
+  * "Line Color" - This constant String is a key for referencing the state
+  * information about the color of the line connecting the annotation to the
+  * region of interest. The value that this key references is a Color.
+  */
   public static final String LINE_COLOR   = "Line Color";
+ 
+ /**
+  * "Text Color" - This constant String is a key for referencing the state
+  * information about the color of the annotation text. The value that
+  * this key references is a Color.
+  */
   public static final String TEXT_COLOR   = "Text Color";
+ 
+ /**
+  * "Font" - This constant String is a key for referencing the state
+  * information about the font of the annotation text. The value that
+  * this key references is of type Font.
+  */
   public static final String FONT         = "Font";
+ 
+ /**
+  * "Default Font" - This constant String is a key for referencing the state
+  * information about the initial font of the annotation text. The value that
+  * this key references is of type Font.
+  */
   public static final String DEFAULT_FONT = "Default Font";
+    
+ /**
+  * "Editor Bounds" - This constant String is a key for referencing the state
+  * information about the size and bounds of the Annotation Editor window. 
+  * The value that this key references is a Rectangle. The Rectangle contains
+  * the dimensions for the editor.
+  */
   public static final String EDITOR_BOUNDS  = "Editor Bounds";
   
   private AnnotationJPanel overlay;	 // panel overlaying the center jpanel
@@ -202,7 +243,7 @@ public class AnnotationOverlay extends OverlayJPanel
   * shadows the region specified by the getRegionInfo() of the 
   * IZoomTextAddible interface.
   *
-  *  @param  component - must implement IZoomTextAddible interface
+  *  @param  izta - component must implement IZoomTextAddible interface
   */ 
   public AnnotationOverlay(IZoomTextAddible izta)
   {
@@ -231,6 +272,20 @@ public class AnnotationOverlay extends OverlayJPanel
     pixel_local = new CoordTransform( pixel_map, 
  				      component.getLocalCoordBounds() );
     overlay.requestFocus();	      
+  }
+  
+ /**
+  * Constructor creates OverlayJPanel with a transparent AnnotationJPanel that
+  * shadows the region specified by the getRegionInfo() of the 
+  * IZoomTextAddible interface.
+  *
+  *  @param  izta - component must implement IZoomTextAddible interface
+  *  @param  state - ObjectState this overlay is being set to.
+  */ 
+  public AnnotationOverlay(IZoomTextAddible izta, ObjectState state)
+  {
+    this(izta);
+    setObjectState(state);
   }
 
  /**
