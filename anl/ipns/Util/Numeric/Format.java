@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/06/02 22:07:33  bouzekc
+ *  Added a method to format an int by padding with zeroes
+ *  (rather than spaces).
+ *  Fixed some excessively tabbed comment lines.
+ *
  *  Revision 1.10  2003/05/22 17:53:31  dennis
  *  Fixed method setE().  Previously, zeros were not consistently
  *  returned with the correct precision and in certain circumstances,
@@ -96,7 +101,8 @@ public class Format
    *  values.
    *
    *  @param  num          The number to format
-   *  @param  field_width  The total number of spaces to be used for the number.   *                       If the formatted number does not occupy all of the
+   *  @param  field_width  The total number of spaces to be used for the number.  
+   *                       If the formatted number does not occupy all of the
    *                       spaces, leading blanks will be prepended.
    *                       If more spaces are needed, they will be used.
    *
@@ -325,7 +331,8 @@ public class Format
    *  Format a real number into a string with no grouping symbol.
    *
    *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   *                       If the formatted number does not occupy all of the
+   *  @param field_width   The total number of spaces to be used for the number.   
+   *                       If the formatted number does not occupy all of the
    *                       spaces, leading blanks will be prepended.
    *                       If more spaces are needed, they will be used.
    *  @param num_digits    The number of digits to use after the decimal point.
@@ -394,7 +401,8 @@ public class Format
    *  values.
    *
    *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   *                       If the formatted number does not occupy all of the
+   *  @param field_width   The total number of spaces to be used for the number.   
+   *                       If the formatted number does not occupy all of the
    *                       spaces, leading blanks will be prepended.
    *                       If more spaces are needed, they will be used.
    *
@@ -415,7 +423,8 @@ public class Format
    *  Format an integer into a string.
    *
    *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   *                       If the formatted number does not occupy all of the
+   *  @param field_width   The total number of spaces to be used for the number.   
+   *                       If the formatted number does not occupy all of the
    *                       spaces, leading blanks will be prepended.
    *                       If more spaces are needed, they will be used.
    *  @param use_grouping  Flag indicating whether or not a grouping symbol is
@@ -436,7 +445,8 @@ public class Format
    *  Format an integer into a string with no grouping symbols
    *  
    *  @param num           The number to format
-   *  @param field_width   The total number of spaces to be used for the number.   *                       If the formatted number does not occupy all of the
+   *  @param field_width   The total number of spaces to be used for the number.   
+   *                       If the formatted number does not occupy all of the
    *                       spaces, leading blanks will be prepended.
    *                       If more spaces are needed, they will be used.
    *  
@@ -448,6 +458,33 @@ public class Format
                                 int      field_width )
   {
     return real( num, field_width, 0, false );   
+  }
+
+  /** 
+   *  Format an integer into a string, padded with zeroes,
+   *  with no grouping symbols
+   *  
+   *  @param num           The number to format
+   *  @param field_width   The total number of spaces to be used for the number.   
+   *                       If the formatted number does not occupy all of the
+   *                       spaces, leading blanks will be prepended.
+   *                       If more spaces are needed, they will be used.
+   *  
+   *  @return  A string containing the formatted number with at least the
+   *           specified number of characters.
+   */
+
+  public static String integerPadWithZero( int   num,
+                                           int   field_width )
+  {
+    f.setMinimumFractionDigits( 0 );
+    f.setMaximumFractionDigits( 0 );
+    f.setGroupingUsed( false );
+
+    //basically, kill off everything after the decimal point
+    //with the above work, then format it and give it
+    //to the method that pads with zeroes
+    return stringPadWithZero(f.format(num),field_width,true);
   }
 
   /**
@@ -478,12 +515,39 @@ public class Format
   }
 
   /**
+   * Pad a StringBuffer with zeroes on the appropriate side.
+   *
+   * @param val         The StringBuffer to format.
+   * @param field_width The total number of spaces to be used for
+   *                    the StringBuffer. If the formatted
+   *                    StringBuffer is larger than the number of
+   *                    spaces provided then the will be used.
+   * @param pad_left    Whether to pad with spaces on the left or
+   *                    right.
+   *
+   * @return A string containing at least the specified number of
+   * characters.
+   */
+  public static String stringPadWithZero(StringBuffer val, int field_width,
+                                         boolean pad_left){
+      if(val==null) val=new StringBuffer("");
+      while( val.length()<field_width ){
+          if(pad_left)
+              val.insert(0,"0");
+          else
+              val.append("0");
+      }
+      
+      return val.toString();
+  }
+
+  /**
    * Pad a String on the appropriate side.
    *
    * @param val         The String to format.
    * @param field_width The total number of spaces to be used for
    *                    the String. If the formatted String is larger
-   *                    than the number of spaces provided then the
+   *                    than the number of spaces provided then the 
    *                    will be used.
    * @param pad_left    Whether to pad with spaces on the left or
    *                    right.
@@ -496,6 +560,27 @@ public class Format
       return string(new StringBuffer(""),field_width,pad_left);
     else
       return string(new StringBuffer(val),field_width,pad_left);
+  }
+
+  /**
+   * Pad a String with zeroes on the appropriate side.
+   *
+   * @param val         The String to format.
+   * @param field_width The total number of spaces to be used for
+   *                    the String. If the formatted String is larger
+   *                    than the number of spaces provided then the 
+   *                    will be used.
+   * @param pad_left    Whether to pad with spaces on the left or
+   *                    right.
+   *
+   * @return A string containing at least the specified number of
+   * characters.
+   */
+  public static String stringPadWithZero(String val, int field_width, boolean pad_left){
+    if(val==null)
+      return stringPadWithZero(new StringBuffer(""),field_width,pad_left);
+    else
+      return stringPadWithZero(new StringBuffer(val),field_width,pad_left);
   }
 
   /**
@@ -557,6 +642,8 @@ public class Format
                         Format.setE( 0, -3, 4 ) );
     System.out.println("setE: -100050 = "+ 
                         Format.setE( -100050, 2, 4 ) );  
+    System.out.println("integerPadWithZero 6496 5 spaces = "+ 
+                        Format.integerPadWithZero( 6496, 5 ) );  
   }
 
 }
