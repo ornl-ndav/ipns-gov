@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.17  2004/03/12 01:32:03  rmikk
+ * Fixed package names
+ *
  * Revision 1.16  2003/11/06 01:20:27  serumb
  * Changed the initial size for the point markers to be bigger.
  *
@@ -69,7 +72,7 @@
  *
  */
 
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Graph;
 
 import java.io.*;
 import java.awt.*;
