@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/12 02:08:03  rmikk
+ *  Fixed package names
+ *
  *  Revision 1.8  2004/03/09 17:23:11  millermi
  *  - Overload getDefiningPoints() from base class. This fixes
  *    bug that converted angles to image coordinates.
@@ -69,14 +72,14 @@
  *    the viewer. Restricts wedge angle to 180 degrees.
  *
  */ 
-package DataSetTools.components.View.Region;
+package gov.anl.ipns.ViewTools.Components.Region;
 
 import java.awt.Point;
 import java.util.Vector;
- 
-import DataSetTools.util.floatPoint2D; 
-import DataSetTools.components.image.CoordBounds;
-import DataSetTools.components.View.Cursor.SelectionJPanel;
+
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel;
 
 /**
  * This class is a specific region designated by three points.

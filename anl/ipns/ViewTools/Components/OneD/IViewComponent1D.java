@@ -33,18 +33,21 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/12 02:17:07  rmikk
+ *  Fixed package names
+ *
  *  Revision 1.5  2004/01/23 19:35:30  serumb
  *  Added the GPL.
  *
  */
  
-package DataSetTools.components.View.OneD;
+package gov.anl.ipns.ViewTools.Components.OneD;
 
 import javax.swing.*;
 import java.awt.*;
 import java.lang.*;
 import java.awt.event.*;
-import DataSetTools.components.View.IViewComponent;
+import gov.anl.ipns.ViewTools.Components.IViewComponent;
 /**
  * Any class that implements this interface will interpret and display
  * data in a usable form. Examples include images, tables, and graphs.

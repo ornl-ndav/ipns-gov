@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 02:05:50  rmikk
+ *  Fixed package names
+ *
  *  Revision 1.3  2004/02/14 03:34:56  millermi
  *  - selectedpoints no longer includes point found off the image.
  *  - added toString() method.
@@ -50,15 +53,14 @@
  *    in the shape of a ring.
  *
  */ 
-package DataSetTools.components.View.Region;
+package gov.anl.ipns.ViewTools.Components.Region;
 
 import java.awt.Point;
 import java.util.Vector;
 
-import DataSetTools.util.floatPoint2D;
-import DataSetTools.components.image.CoordBounds;
-import DataSetTools.components.View.Cursor.SelectionJPanel;
-
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel;
 /**
  * The AnnularRegion is used to pass points selected between two
  * circle regions (a ring) (in SelectionOverlay) from the view component

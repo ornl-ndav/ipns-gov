@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 02:12:18  rmikk
+ *  Fixed package names
+ *
  *  Revision 1.3  2003/11/18 01:03:29  millermi
  *  - Now implement serializable to allow saving of state.
  *
@@ -56,7 +59,7 @@
  */ 
 package DataSetTools.components.View.Region;
 
-import DataSetTools.util.floatPoint2D; 
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /**
  * This class groups together the selected region and the bounding world 
