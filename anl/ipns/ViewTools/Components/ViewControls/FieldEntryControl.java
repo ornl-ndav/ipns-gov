@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2004/05/20 03:29:56  millermi
+ *  - Removed unused imports.
+ *
  *  Revision 1.10  2004/05/02 22:45:24  millermi
  *  - Created init() method to factor out common functionality
  *    between the constructors.
@@ -92,13 +95,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JButton;
 import javax.swing.ButtonGroup;
 import java.awt.GridLayout;
-import java.awt.Container;
-import java.awt.Component;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusAdapter;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
