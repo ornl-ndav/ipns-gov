@@ -51,12 +51,27 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    private Font font;
    private LinkedList controls = new LinkedList();
  
-    ButtonGroup line_styles = new ButtonGroup();
-    JComboBox LineBox;
-    String[] lines;
-    JColorChooser colors;
-    JPanel line_styles2;
-    JButton lineColor;	
+   private JPanel panel1 = new JPanel();
+   private JPanel panel2 = new JPanel();
+   private JPanel panel3 = new JPanel();
+
+   private JLabel label1 = new JLabel("Line Selected");
+   private JLabel label2 = new JLabel("Line Style");
+   private JLabel label3 = new JLabel("Line Width");
+
+   private JComboBox LineBox;
+   private JComboBox LineStyleBox;
+   private JComboBox LineWidthBox;
+
+   private String[] lines;
+   private String[] line_type;
+   private String[] line_width;
+
+   private JButton lineColor;
+   private int line_index = 0;
+   private float linewidth = 1;	
+   private JColorChooser colors = new JColorChooser(Color.black);
+
 
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
@@ -70,26 +85,38 @@ public class FunctionViewComponent implements IFunctionComponent1D,
        lines[i] = "Line_"+(i+1);
     } 
     LineBox = new JComboBox(lines);
-    colors = new JColorChooser(Color.black);
 
-    JCheckBox solid = new JCheckBox("Solid");
-    JCheckBox dashed = new JCheckBox("Dashed");
-    JCheckBox dotted = new JCheckBox("Dotted");
-    JCheckBox dash_dot = new JCheckBox("DashDotDot");
-    line_styles.add(solid);
-    line_styles.add(dashed);
-    line_styles.add(dotted);
-    line_styles.add(dash_dot);
-    line_styles2 = new JPanel();
-    
+    line_type = new String[5];
+    line_type[0] = "Solid"; 
+    line_type[1] = "Dashed";     
+    line_type[2] = "Dotted"; 
+    line_type[3] = "Dash Dot Dot"; 
+    line_type[4] = "Transparent";
+    LineStyleBox = new JComboBox(line_type);
+
+    line_width = new String[5];
+    line_width[0] = "1";
+    line_width[1] = "2";
+    line_width[2] = "3";
+    line_width[3] = "4";
+    line_width[4] = "5";
+
+    LineWidthBox = new JComboBox(line_width);
+
+
     lineColor = new JButton("Line Color");
+
+    BoxLayout theBox1 = new BoxLayout(panel1, BoxLayout.X_AXIS);
+    BoxLayout theBox2 = new BoxLayout(panel2, BoxLayout.X_AXIS);
+    BoxLayout theBox3 = new BoxLayout(panel3, BoxLayout.X_AXIS);
+
+    panel1.add(label1);
+    panel1.add(LineBox);
+    panel2.add(label2);
+    panel2.add(LineStyleBox);
+    panel3.add(label3);
+    panel3.add(LineWidthBox);
     
-    //line_styles2.add(line_styles);
-
-  
-     
-
-
       Varray1D = varr; // Get reference to varr
       precision = 4;
       font = FontUtil.LABEL_FONT2;
@@ -108,16 +135,16 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       }
     gjp.setBackground(Color.white);
     gjp.setColor( Color.black, 0, false );
-    gjp.setStroke( gjp.strokeType(gjp.DASHED), 0, false);
+    gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 0, false);
     gjp.setMarkType(Color.blue, gjp.BOX, 0, false);
 
     
     gjp.setColor( Color.red, 1, true );
-    gjp.setStroke( gjp.strokeType(gjp.DOTTED), 1, true);
+    gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 1, true);
 
     
     gjp.setColor( Color.green, 2, false );
-    gjp.setStroke( gjp.strokeType(gjp.LINE), 2, true);
+    gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 2, true);
     gjp.setMarkType(Color.red, gjp.CROSS, 2, true);
 
 
@@ -336,10 +363,20 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       System.out.println("Entering: JComponent[] getPrivateControls()");
       System.out.println("");
 
-           JComponent[] Res = new JComponent[2];
-           Res[0] = (JComponent)LineBox;
-	   Res[1] = (JComponent)lineColor;
-	   //Res[2] = (JComponent)line_styles2;
+           JComponent[] Res = new JComponent[4];
+	   Res[0] = (JComponent) panel1;
+           LineBox.addActionListener(new ControlListener());
+
+	   Res[1] = (JComponent)panel2;	
+	   LineStyleBox.addActionListener(new ControlListener());
+
+	   Res[2] = (JComponent)panel3;
+	   LineWidthBox.addActionListener(new ControlListener());
+
+
+	   Res[3] = (JComponent)lineColor;
+	   lineColor.addActionListener(new ControlListener());
+
            return Res;
 
      // return new JComponent[0];
@@ -517,9 +554,100 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       }      
    }
    
-   	
+   private class ControlListener implements ActionListener
+   {  
+      public void actionPerformed( ActionEvent ae )
+      {
+	//String message = ae.getActionCommand();
+	//System.out.println("Graph sent message " + message );
+        
+	if(message.equals("Line Color"))
+	{
+        
+	   //colors.setPreviewPanel(new JPanel());
+           Color c = colors.showDialog(null, "color chart", Color.black);
+           if (c != null)
+	      gjp.setColor(c,line_index, true);
+	
 
-  
+	
+	}
+	else if(message.equals("comboBoxChanged"))
+	{
+	   // System.out.println("action" + LineBox.getSelectedItem());
+	   // System.out.println("action" + LineBox.getSelectedIndex());
+           if (ae.getSource() == LineBox)
+	      line_index = LineBox.getSelectedIndex();
+
+	   else if (ae.getSource() == LineStyleBox)
+	   {
+	      if (LineStyleBox.getSelectedItem().equals("Solid"))
+	      {
+		gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 
+				line_index, true);
+	      }
+
+	      if (LineStyleBox.getSelectedItem().equals("Dashed"))
+	      {
+		gjp.setStroke( gjp.strokeType(gjp.DASHED,linewidth), 
+				line_index, true);
+	      }
+
+	      if (LineStyleBox.getSelectedItem().equals("Dotted"))
+	      {System.out.println("in dotted if");
+		gjp.setStroke( gjp.strokeType(gjp.DOTTED,linewidth), 
+				line_index, true);
+	      }
+	      if (LineStyleBox.getSelectedItem().equals("Dash Dot Dot"))
+	      {
+		gjp.setStroke( gjp.strokeType(gjp.DASHDOT,linewidth), 
+				line_index, true);
+	      }
+	      if (LineStyleBox.getSelectedItem().equals("Transparent"))
+	      {System.out.println("in here");
+  		gjp.setStroke(gjp.strokeType(gjp.DASHED,0),
+                              line_index, true);
+	      }   
+	   }
+           else if (ae.getSource() == LineWidthBox)
+           {
+               linewidth = LineWidthBox.getSelectedIndex() + 1;
+               
+	      if (LineStyleBox.getSelectedItem().equals("Solid"))
+	      {
+		gjp.setStroke( gjp.strokeType(gjp.LINE,linewidth), 
+				line_index, true);
+	      }
+
+	      if (LineStyleBox.getSelectedItem().equals("Dashed"))
+	      {
+		gjp.setStroke( gjp.strokeType(gjp.DASHED,linewidth), 
+				line_index, true);
+	      }
+
+	      if (LineStyleBox.getSelectedItem().equals("Dotted"))
+	      {System.out.println("in dotted if");
+		gjp.setStroke( gjp.strokeType(gjp.DOTTED,linewidth), 
+				line_index, true);
+	      }
+	      if (LineStyleBox.getSelectedItem().equals("Dash Dot Dot"))
+	      {
+		gjp.setStroke( gjp.strokeType(gjp.DASHDOT,linewidth), 
+				line_index, true);
+	      }
+              if (LineStyleBox.getSelectedItem().equals("Transparent"))
+	      {
+  		gjp.setStroke(gjp.strokeType(gjp.DASHED,0),
+                              line_index, true);
+	      }
+           }
+	}
+
+      }
+   }
+	  
+
+
  
       
   /*
