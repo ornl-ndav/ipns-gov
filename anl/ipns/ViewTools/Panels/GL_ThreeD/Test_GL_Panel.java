@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/06/18 19:57:10  dennis
+ * Imports newly created subpackages
+ *
  * Revision 1.5  2004/06/17 15:33:30  dennis
  * Added 8 "corner" cubes at known locations for testing 3D point
  * location.
@@ -56,6 +59,10 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Textures.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ViewControls.*;
+
 import java.awt.event.*;
 import javax.swing.*;
 import gov.anl.ipns.MathTools.Geometry.*;
