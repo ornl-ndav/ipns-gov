@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2004/02/12 21:53:10  millermi
+ *  - Added method getImageCoords() which returns the image bounds.
+ *
  *  Revision 1.23  2004/01/29 23:26:41  millermi
  *  - Two-sided no longer ignored for default state.
  *
@@ -637,6 +640,16 @@ public float getDataMax()
   return max_data;
 }
 
+/**
+ *  Get the image number of rows/columns wrapped in a CoordBound object to
+ *  allow for mapping to another coordinate system.
+ *
+ *  @return The image transformation.
+ */
+public CoordBounds getImageCoords()
+{
+  return getWorldToImageTransform().getDestination();
+}
 
 /* ---------------------- LocalTransformChanged -------------------------- */
 
