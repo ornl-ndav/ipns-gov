@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/12 00:32:12  rmikk
+ *  Change Package names
+ *
  *  Revision 1.2  2004/01/29 08:16:25  millermi
  *  - Updated the getObjectState() to include parameter for specifying
  *    default state.
@@ -46,7 +49,7 @@
  *
  */
 
- package DataSetTools.components.View;
+ package gov.anl.ipns.ViewTools.Components;
 
 /**
  * This interface is required by any class that uses the ObjectState class
