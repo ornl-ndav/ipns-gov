@@ -28,7 +28,54 @@ public class PrintUtilities implements Printable {
   }
 
   public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
-    if (pageIndex > 0) {
+     int screenResolution = getToolkit().getScreenResolution();
+     double pixelsPerPoint = (double)screenResolution/72d;
+     
+     int keepWidth = getSize().width;
+     int keepHeight = getSize().height;
+     if (pageIndex == 0) 
+     {
+        pageWidth = (int)(pageFormat.geImageableWidth()*pixelsPerPoint);
+        pageHeight = (int)(pageFormat.geImageableHeight()*pixelsPerPoint);
+
+        setSize(pageWidth, pageHeight);
+        Graphics temp = graphics.create();
+        printAll(temp);
+        temp = null;
+
+        int new Height = getPreferredSize().height;
+        int (newHeight%pageHeight ==0)
+        numPages = newHeight/pageHeight + 1;
+
+     }
+
+     else if (pageIndex >= numPages)
+     {
+        return (Printable.NO_SUCH_PAGE);
+     } 
+
+    int newXOrigin = (int) (pageFormat.getImageableX()*pixelsPerPoint);
+    int newYOrigin = (int) (pageFormat.getImageableY()*pixelsPerPoint);
+
+    setSize(pageWidth, pageHeight);
+
+    if(grahics instanceof Graphics2D)
+    {
+       Graphics2D g2d = (Graphics2D)grahics;
+       g2D.scale(1/pixelsPerPoint, i/pixelsPerPoint);
+    } 
+    graphics.translate(newXOrigin, newYOrigin - (pageIndex*pageHeight);
+    graphics.setClip(0,(pageIndex*pageHeight), pageWidth,pageHeight);
+    printAll(graphics);
+    setSize(graphics);
+
+    return(Printable.PAGE_EXISTS);
+
+
+
+
+/*
+   if (pageIndex > 0) {
       return(NO_SUCH_PAGE);
     } else {
       Graphics2D g2d = (Graphics2D)g;
@@ -42,6 +89,9 @@ System.out.println("Inside printutilities x nad y are "+pageFormat.getImageableY
       enableDoubleBuffering(componentToBePrinted);
       return(PAGE_EXISTS);
     }
+
+ */
+
   }
 
   /** The speed and quality of printing suffers dramatically if
