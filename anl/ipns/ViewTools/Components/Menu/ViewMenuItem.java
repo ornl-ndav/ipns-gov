@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/11 23:45:40  rmikk
+ *  Fixed Package names
+ *
  *  Revision 1.5  2004/03/11 15:03:30  millermi
  *  - Replaced equals() and toLowerCase() with equalsIgnoreCase() in
  *    validPath() and main().
@@ -53,14 +56,14 @@
  *
  */
   
- package DataSetTools.components.View.Menu;
+ package gov.anl.ipns.ViewTools.Components.Menu;
  
  import javax.swing.*;
  import java.awt.event.ActionEvent;
  import java.awt.event.ActionListener;
  import java.util.Vector;
  
- import DataSetTools.util.WindowShower;
+ import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
  * ViewMenuItem wraps a JMenuItem with its "path". The path specifies where
