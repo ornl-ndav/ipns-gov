@@ -30,6 +30,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2003/03/07 22:59:50  dennis
+ *  destroy() method now shutsdown the LiveDataManager thread,
+ *  closes any viewers launched from the LiveDataMonitor and
+ *  closes and PartialDS_Selector dialogs.
+ *  Added "listener" to get APPLY and EXIT messages from the
+ *  PartialDS_Selector dialogs.
+ *  Added checkbox for getting partial DataSets.
+ *  Tracks currently specified partial DataSet command and
+ *  uses it in the update process, if the partial DataSet
+ *  check box is selected.
+ *
  *  Revision 1.25  2003/03/04 20:48:29  dennis
  *  Major usability improvements.
  *  Listeners to the Show, Update, Auto and Record controls now
@@ -76,12 +87,14 @@ import DataSetTools.viewer.*;
 import DataSetTools.retriever.*;
 import DataSetTools.util.*;
 import ExtTools.SwingWorker;
+import NetComm.*;
 
 /**
  *
  *  This class is a JPanel that contains a user interface to control a
  *  LiveDataManager, which can periodically update DataSets from a 
- *  LiveDataServer.
+ *  LiveDataServer.  It is "observed" by the Isaw main application, so that
+ *  it can send DataSets to Isaw when the record button is pressed.
  *
  *  @see NetComm.LiveDataServer
  *  @see DataSetTools.retriever.LiveDataRetriever
@@ -90,8 +103,7 @@ import ExtTools.SwingWorker;
 
 public class LiveDataMonitor extends    JPanel
                              implements IObservable,
-                                        Serializable 
-        
+                                        Serializable
 {
   public static final Color  BACKGROUND  = Color.white;
   public static final Color  FOREGROUND  = Color.black;
@@ -105,6 +117,9 @@ public class LiveDataMonitor extends    JPanel
   private ViewManager      viewers[]    = new ViewManager[0];
   private JCheckBox        show_box[]   = new JCheckBox[0];
   private JCheckBox        auto_box[]   = new JCheckBox[0];
+  private JCheckBox        partial_box[]= new JCheckBox[0];
+  private PartialDS_Selector selector[] = new PartialDS_Selector[0];
+  private GetDataCommand     command[]  = new GetDataCommand[0];
   private JButton          button[]     = new JButton[0];
   private JButton          record[]     = new JButton[0];
   private JLabel           ds_label[]   = new JLabel[0];
@@ -151,7 +166,6 @@ public class LiveDataMonitor extends    JPanel
      observers.addIObserver( iobs );
    }
 
-
   /**
    *  Remove the specified object from the list of observers to notify when
    *  this observable object changes.
@@ -164,7 +178,6 @@ public class LiveDataMonitor extends    JPanel
      observers.deleteIObserver( iobs );
    }
 
-
   /**
    *  Remove all objects from the list of observers to notify when this
    *  observable object changes.
@@ -173,7 +186,6 @@ public class LiveDataMonitor extends    JPanel
    {
      observers.deleteIObservers();
    }
-
 
   /**
    *  Notify all observers in the list ( by calling their update(,) method )
@@ -191,75 +203,81 @@ public class LiveDataMonitor extends    JPanel
    }
 
 
+  /**
+   *  Get the number of distinct DataSets from the current data source.
+   *  The monitors are placed into one DataSet.  Any sample histograms are
+   *  placed into separate DataSets.
+   *
+   *  @return the number of distinct DataSets in this runfile.
+   */
+   public int numDataSets()
+   {
+     if ( data_manager != null )
+       return data_manager.numDataSets();
+     else
+       return 0; 
+   }
 
+  /**
+   * Get the type of the specified data set from the current data source.
+   * The type is an integer flag that indicates whether the data set contains
+   * monitor data or data from other detectors.
+   */
+   public int getType( int data_set_num )
+   {
+     if ( data_manager != null )
+       return data_manager.getType( data_set_num );
+     else
+       return Retriever.INVALID_DATA_SET;
+   }
 
-
-
-/**
- *  Get the number of distinct DataSets from the current data source.
- *  The monitors are placed into one DataSet.  Any sample histograms are
- *  placed into separate DataSets.
- *
- *  @return the number of distinct DataSets in this runfile.
- */
-  public int numDataSets()
-  {
-    if ( data_manager != null )
-      return data_manager.numDataSets();
-    else
-      return 0; 
-  }
-
-/**
- * Get the type of the specified data set from the current data source.
- * The type is an integer flag that indicates whether the data set contains
- * monitor data or data from other detectors.
- */
-
-  public int getType( int data_set_num )
-  {
-    if ( data_manager != null )
-      return data_manager.getType( data_set_num );
-    else
-      return Retriever.INVALID_DATA_SET;
-  }
-
-
-/**
- *  Get the specified DataSet from the current data source.
- *
- *  @param  data_set_num  The number of the DataSet in this runfile
- *                        that is to be read from the runfile.  data_set_num
- *                        must be between 0 and numDataSets()-1
- *
- *  @return the requested DataSet.
- */
-
-  public DataSet getDataSet( int data_set_num )
-  {
-    if ( debug_LDM )
+  /**
+   *  Get the specified DataSet from the current data source.
+   *
+   *  @param  data_set_num  The number of the DataSet in this runfile
+   *                        that is to be read from the runfile.  data_set_num
+   *                        must be between 0 and numDataSets()-1
+   *
+   *  @return the requested DataSet.
+   */
+   public DataSet getDataSet( int data_set_num )
+   {
+     if ( debug_LDM )
       System.out.println("LiveDataMonitor.getDataSet("+data_set_num+") called");
 
-    if ( data_manager != null )
-    {
-      DataSet temp_ds = data_manager.getDataSet( data_set_num ); 
-      if ( temp_ds != null )
-        return (DataSet)(temp_ds.clone());
-    }
+     if ( data_manager != null )
+     {
+       DataSet temp_ds = data_manager.getDataSet( data_set_num ); 
+       if ( temp_ds != null )
+         return (DataSet)(temp_ds.clone());
+     }
+     return null;
+   }
 
-    return null;
-  }
 
+  /**
+   *  Close this LiveDataMonitor by breaking the connection to the 
+   *  LiveDataManager, stopping the LiveDataManager thread and removing
+   *  all components from this panel.
+   */
+   public void destroy()
+   {
+     data_manager.removeAllActionListeners();
+     data_manager.stop_eventually(); 
 
-/**
- *
- */
-  public void destroy()
-  {
-    // SHOULD FIRST SHUTDOWN THE data_manager... NOT YET IMPLEMENTED
+     for ( int i = 0; i < viewers.length; i++ )
+     {
+       if ( viewers[i] != null )
+       {
+         viewers[i].destroy();
+         viewers[i] = null;
+       }
+       if ( selector[i] != null )
+         selector[i].dispose();
+     }
 
-    removeAll();                    // get rid of all of the components
-  }
+     removeAll();                    // get rid of all of the components
+   }
 
  /* ------------------------------------------------------------------------
   *
@@ -275,9 +293,12 @@ public class LiveDataMonitor extends    JPanel
 
     if ( num_ds > old_length )
     {                                                         // get more space
-      ViewManager new_viewers[]  = new ViewManager[ num_ds ];
-      JCheckBox   new_show_box[] = new JCheckBox[ num_ds ];
-      JCheckBox   new_auto_box[] = new JCheckBox[ num_ds ];
+      PartialDS_Selector new_selector[] = new PartialDS_Selector[ num_ds ];
+      GetDataCommand     new_command[]  = new GetDataCommand[ num_ds ];
+      ViewManager new_viewers[]     = new ViewManager[ num_ds ];
+      JCheckBox   new_show_box[]    = new JCheckBox[ num_ds ];
+      JCheckBox   new_auto_box[]    = new JCheckBox[ num_ds ];
+      JCheckBox   new_partial_box[] = new JCheckBox[ num_ds ];
       JButton     new_button[]   = new JButton[ num_ds ];
       JButton     new_record[]   = new JButton[ num_ds ];
       JLabel      new_ds_label[] = new JLabel[ num_ds ];
@@ -285,18 +306,24 @@ public class LiveDataMonitor extends    JPanel
 
       for ( int i = 0; i < viewers.length; i++ )             // save the old
       {                                                      // objects
-        new_viewers[i]  = viewers[i];
-        new_show_box[i] = show_box[i];
-        new_auto_box[i] = auto_box[i];
+        new_viewers[i]     = viewers[i];
+        new_show_box[i]    = show_box[i];
+        new_auto_box[i]    = auto_box[i];
+        new_partial_box[i] = partial_box[i];
+        new_selector[i]    = selector[i];
+        new_command[i]     = command[i];
         new_button[i]   = button[i];
         new_record[i]   = record[i];
         new_ds_label[i] = ds_label[i];
         new_panel[i]    = panel[i];
       }
                                                              // shift over to
-      viewers  = new_viewers;                                // the new ones
-      show_box = new_show_box;
-      auto_box = new_auto_box;
+      viewers     = new_viewers;                             // the new ones
+      show_box    = new_show_box;
+      auto_box    = new_auto_box;
+      partial_box = new_partial_box;
+      selector    = new_selector;
+      command     = new_command;
       button   = new_button;
       record   = new_record;
       ds_label = new_ds_label;
@@ -306,6 +333,7 @@ public class LiveDataMonitor extends    JPanel
       for ( int i = old_length; i < viewers.length; i++ )
       {
         viewers[i]  = null;
+        selector[i] = null;
 
         panel[i] = new JPanel();                // use a separate "sub" panel
         panel[i].setLayout( new FlowLayout() ); // for each possible DataSet
@@ -330,6 +358,17 @@ public class LiveDataMonitor extends    JPanel
         AutoCheckboxListener auto_box_listener = new AutoCheckboxListener( i );
         auto_box[i].addActionListener( auto_box_listener );
 
+        partial_box[i] = new JCheckBox( "Partial" );
+        partial_box[i].setFont( FontUtil.BORDER_FONT );
+        partial_box[i].setBackground( BACKGROUND );
+        partial_box[i].setSelected( false );
+        PartialCheckboxListener partial_box_listener = 
+                                            new PartialCheckboxListener( i );
+        partial_box[i].addActionListener( partial_box_listener );
+
+        selector[i] = null;
+        command[i]  = data_manager.getDefaultCommand(i);
+
         button[i] = new JButton("Update");
         button[i].setFont( FontUtil.BORDER_FONT );
         button[i].setBackground( BACKGROUND );
@@ -349,6 +388,7 @@ public class LiveDataMonitor extends    JPanel
         panel[i].add( ds_label[i] );             // Add the components for this
         panel[i].add( show_box[i] );             // DataSet to the current panel
         panel[i].add( auto_box[i] );
+        panel[i].add( partial_box[i] );
         panel[i].add( button[i] );
         panel[i].add( record[i] );
       }
@@ -499,6 +539,37 @@ public class LiveDataMonitor extends    JPanel
   *  INTERNAL CLASSES
   *
   */
+
+  /* ------------------------ PartialDSListener -------------------------- */
+ 
+  private class PartialDSListener implements IObserver
+  {
+    int my_index;
+
+    public PartialDSListener( int index )
+    {
+      my_index = index;
+    }
+
+    public void update( Object pdss, Object reason )
+    {
+      if ( reason instanceof String )
+      {
+        if ( reason.equals( PartialDS_Selector.APPLY ) )
+        {
+          command[my_index] = ((PartialDS_Selector)pdss).getCommand();
+        }
+        else if ( reason.equals( PartialDS_Selector.EXIT ) )
+        {
+          System.out.println("EXIT");
+          partial_box[my_index].setSelected(false);
+          ((PartialDS_Selector)pdss).dispose();
+          selector[my_index] = null;
+        }
+      }
+    }
+  }
+
     
   /* ------------------------ UpdateTimeListener -------------------------- */
 
@@ -540,7 +611,11 @@ public class LiveDataMonitor extends    JPanel
       {
         public Object construct()
         {
-          data_manager.UpdateDataSetNow( my_index );
+          if ( partial_box[my_index].isSelected() )
+            data_manager.UpdateDataSetNow( command[my_index] );
+          else
+            data_manager.UpdateDataSetNow( my_index );
+
           return data_manager.getDataSet( my_index ); // could return anything
         }
 
@@ -735,6 +810,38 @@ public class LiveDataMonitor extends    JPanel
       }
       else
         data_manager.setUpdateIgnoreFlag( my_index, true );
+
+      FixLabels();
+    }
+  }
+
+
+  /* ----------------------- PartialCheckboxListener ---------------------- */
+
+  private class PartialCheckboxListener implements ActionListener,
+                                                   Serializable
+  {
+    int                 my_index;
+
+    public PartialCheckboxListener( int index )
+    {
+      my_index = index;
+    }
+
+    public void actionPerformed( ActionEvent e )
+    {
+      JCheckBox check_box = (JCheckBox)(e.getSource());
+
+      if ( check_box.isSelected() )
+      {
+        selector[my_index] = new PartialDS_Selector( command[my_index] );
+        selector[my_index].addIObserver( new PartialDSListener( my_index ) ); 
+      }
+      else
+      {
+        selector[my_index].dispose();  
+        selector[my_index] = null;
+      }
 
       FixLabels();
     }
