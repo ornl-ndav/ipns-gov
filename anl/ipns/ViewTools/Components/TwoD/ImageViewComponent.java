@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.45  2003/12/20 22:15:18  millermi
+ *  - Now implements kill();
+ *
  *  Revision 1.44  2003/12/20 20:08:55  millermi
  *  - Added ability to clear selections.
  *  - Added axis information for z axis.
@@ -1056,8 +1059,9 @@ public class ImageViewComponent implements IViewComponent2D,
   * created by it before closing.
   */
   public void kill()
-  {
-    ;
+  {    
+    for( int trans = 0; trans < transparencies.size(); trans++ )
+       ((OverlayJPanel)transparencies.elementAt(trans)).kill();
   }
   
  /**
