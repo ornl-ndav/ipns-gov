@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.35  2003/11/21 18:18:41  dennis
+ * Now maintains a 5% border around the automatically calculated
+ * bounds, in the y-direction.
+ *
  * Revision 1.34  2003/11/05 20:44:08  serumb
  * Fix java docs.
  *
@@ -1455,6 +1459,8 @@ private void set_auto_data_bound()
      gd = (GraphData)graphs.elementAt(i);
      auto_data_bound.growBounds( gd.x_vals, gd.y_vals );
    }
+
+   auto_data_bound.scaleBounds( 1.0f, 1.05f );
 }
 
 
