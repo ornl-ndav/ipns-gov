@@ -30,6 +30,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2003/08/14 18:49:13  bouzekc
+ * Now implements Serializable.
+ *
  * Revision 1.2  2003/07/10 16:50:20  bouzekc
  * Now accepts all extensions in the internal extension list,
  * not just the first one.
@@ -55,7 +58,8 @@ import java.util.Vector;
  *  preferred.
  */
 public abstract class RobustFileFilter extends
-                                       javax.swing.filechooser.FileFilter
+                                       javax.swing.filechooser.FileFilter 
+                                       implements java.io.Serializable
 {
   private Vector extensions;
   private String description;
