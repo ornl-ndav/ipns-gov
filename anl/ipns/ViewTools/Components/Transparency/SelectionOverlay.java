@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2003/08/14 22:57:44  millermi
+ *  - ControlSlider for editor now ranging from 0-100 which
+ *    decreased the number of increments in the slider.
+ *
  *  Revision 1.12  2003/08/14 21:48:11  millermi
  *  - Added toFront() to SelectionEditor to display it over the viewer.
  *
@@ -551,9 +555,13 @@ public class SelectionOverlay extends OverlayJPanel
        colorbutton.addActionListener( new ControlListener() );
        pane.add(colorbutton);
        
-       ControlSlider opacityscale = new ControlSlider();
+       ControlSlider opacityscale = 
+                            new ControlSlider("Selection Opacity Scale");
+       opacityscale.setPrecision(3);
+       opacityscale.setRange(0,100);
+       opacityscale.setMajorTickSpace(20);
+       opacityscale.setMinorTickSpace(5);
        opacityscale.setValue(opacity*100f);
-       opacityscale.setTitle("Selection Opacity Scale");
        opacityscale.addActionListener( new ControlListener() );
        pane.add(opacityscale);
 	 
