@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2003/08/11 23:45:23  millermi
+ *  - grouped multiple sendMessage() statements into one statement
+ *    after all if statements.
+ *  - Added static variable ALL_REGIONS_REMOVED for messaging.
+ *
  *  Revision 1.9  2003/08/08 15:54:24  millermi
  *  - Edited Revision 1.8 so it did not exceed 80 characters per line.
  *  - Now uses method getWorldCoordPoints() to access WCRegion class.
@@ -131,6 +136,7 @@ public class SelectionOverlay extends OverlayJPanel
 {
    public static final String REGION_ADDED   = "REGION_ADDED";
    public static final String REGION_REMOVED = "REGION_REMOVED";
+   public static final String ALL_REGIONS_REMOVED = "ALL_REGIONS_REMOVED";
    
    private SelectionJPanel sjp;           // panel overlaying the center jpanel
    private IZoomAddible component;        // component being passed
@@ -375,7 +381,7 @@ public class SelectionOverlay extends OverlayJPanel
 	    if( regions.size() > 0 )
 	    {
 	       regions.clear(); 
-	       sendMessage(REGION_REMOVED);
+	       sendMessage(ALL_REGIONS_REMOVED);
 	    }         
 	 }
 	 // remove the last selection from the vector
@@ -408,7 +414,6 @@ public class SelectionOverlay extends OverlayJPanel
 	       WCRegion boxregion = new WCRegion(SelectionJPanel.BOX, tempwcp);
 	                                      
 	       regions.add( boxregion );
-	       sendMessage(REGION_ADDED);
 	       //System.out.println("Drawing box region" );
 	    }
 	    else if( message.indexOf( SelectionJPanel.CIRCLE ) > -1 )
@@ -428,8 +433,6 @@ public class SelectionOverlay extends OverlayJPanel
 	       WCRegion circleregion = new WCRegion( SelectionJPanel.CIRCLE, 
 	                                             tempwcp );
 	       regions.add( circleregion );
-	       sendMessage(REGION_ADDED);
-	       //System.out.println("Drawing circle region" );
 	    }	    
 	    else if( message.indexOf( SelectionJPanel.LINE ) > -1 )
 	    {
@@ -448,7 +451,6 @@ public class SelectionOverlay extends OverlayJPanel
 	      WCRegion lineregion = new WCRegion( SelectionJPanel.LINE, 
 	                                          tempwcp );
 	      regions.add( lineregion );
-	      sendMessage(REGION_ADDED);
 	    }	    
 	    else if( message.indexOf( SelectionJPanel.POINT ) > -1 )
 	    { 
@@ -460,9 +462,10 @@ public class SelectionOverlay extends OverlayJPanel
 	       np.y += (int)current_bounds.getY();
 	       floatPoint2D[] tempwcp = new floatPoint2D[1];
 	       tempwcp[0] = convertToWorldPoint( np );
+               //System.out.println("tempwcp[0]: "+tempwcp[0].x+tempwcp[0].y );
 	       regions.add( new WCRegion(SelectionJPanel.POINT, tempwcp) );
-	       sendMessage(REGION_ADDED);
 	    }
+	    sendMessage(REGION_ADDED);
 	 }
 	 this_panel.repaint();  // Without this, the newly drawn regions would
 	                        // not appear.
