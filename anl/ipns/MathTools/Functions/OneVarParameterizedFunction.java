@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/06/19 22:21:08  dennis
+ *  Added methods to evaluate the derivative with respect to
+ *  one parameter at a list of x values.
+ *
  *  Revision 1.6  2003/06/17 23:05:36  dennis
  *  The step size for calculating numerical derivatives is now
  *  interpreted as a fractional change, rather than as an
@@ -212,6 +216,23 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
 
       return (f1 - f0) / ( 2*dx ); 
     }
+  }
+
+  // derivatives with respect to
+  // ith parameter at list of x 
+  public float[] get_dFdai( float  x[], int i )
+  {
+    double x_d[] = LinearAlgebra.float2double( x );
+    double derivs[] = get_dFdai( x_d, i );
+    return LinearAlgebra.double2float( derivs ); 
+  }
+
+  public double[] get_dFdai( double x[], int i )
+  {
+    double derivs[] = new double[ x.length ];
+    for ( int k = 0; k < x.length; k++ )
+      derivs[k] = get_dFdai( x[k], i );
+    return derivs;
   }
 
 
