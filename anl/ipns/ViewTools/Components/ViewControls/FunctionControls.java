@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.29  2004/03/12 21:08:46  serumb
+ * Took out references to DataSetData, replaced them with
+ * calls to setAxisInfo from IVirtualArray1D.
+ *
  * Revision 1.28  2004/03/12 03:31:47  dennis
  * Moved to package gov.anl.ipns.ViewTools.Components.ViewControls
  *
@@ -1013,50 +1017,90 @@ import javax.swing.border.*;
 
             if ( LogBox.getSelectedItem( ).equals( "None" ))
             {
+              Varray1D.setAxisInfo(AxisInfo.X_AXIS,
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMin(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMax(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
+                        true);
+              Varray1D.setAxisInfo(AxisInfo.Y_AXIS,
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMin(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMax(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
+                        true);
+
               note.setXAxisLinearOrLog( true );
               note.setYAxisLinearOrLog( true );
               note.setTwoSided(false);
               gjp.setLogScaleX(false);
               gjp.setLogScaleY(false);
-//              Varray1D.set_x_linear(true);
-//              Varray1D.set_y_linear(true);
-  //            ((DataSetData)Varray1D).set_x_linear(true);
-  //            ((DataSetData)Varray1D).set_y_linear(true);
               paintComponents( big_picture.getGraphics(  ) );
             }
             else if( LogBox.getSelectedItem().equals( "X" ))
             {
+              Varray1D.setAxisInfo(AxisInfo.X_AXIS,
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMin(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMax(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
+                        false);
+              Varray1D.setAxisInfo(AxisInfo.Y_AXIS,
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMin(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMax(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
+                        true);
+
               note.setXAxisLinearOrLog( false );
               note.setYAxisLinearOrLog( true );
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(false);
-//              Varray1D.set_x_linear(false);
-  //          ((DataSetData)Varray1D).set_x_linear(false);
               paintComponents( big_picture.getGraphics(  ) );
             }  
             else if( LogBox.getSelectedItem().equals( "Y" ))
             {
+              Varray1D.setAxisInfo(AxisInfo.X_AXIS,
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMin(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMax(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
+                        true);
+              Varray1D.setAxisInfo(AxisInfo.Y_AXIS,
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMin(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMax(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
+                        false);
+
               note.setYAxisLinearOrLog( false );
               note.setXAxisLinearOrLog( true );
               note.setTwoSided(false);
               gjp.setLogScaleY(true);
               gjp.setLogScaleX(false);
-//              Varray1D.set_y_linear(false);
-  //          ((DataSetData)Varray1D).set_y_linear(false);
               paintComponents( big_picture.getGraphics(  ) );
             }  
             else if( LogBox.getSelectedItem().equals( "X and Y" ))
             {
+              Varray1D.setAxisInfo(AxisInfo.X_AXIS,
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMin(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMax(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getLabel(),
+                        Varray1D.getAxisInfo(AxisInfo.X_AXIS).getUnits(),
+                        false);
+              Varray1D.setAxisInfo(AxisInfo.Y_AXIS,
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMin(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getMax(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
+                        Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
+                        false);
+
               note.setXAxisLinearOrLog( false );
               note.setYAxisLinearOrLog( false );
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(true);
-//              Varray1D.set_x_linear(false);
-//              Varray1D.set_y_linear(false);
-  //          ((DataSetData)Varray1D).set_x_linear(false);
-  //          ((DataSetData)Varray1D).set_y_linear(false);
               paintComponents( big_picture.getGraphics(  ) );
 
             }
