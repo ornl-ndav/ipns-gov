@@ -31,6 +31,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2002/04/17 21:33:10  dennis
+ *  Made replace() method more robust.  Now works even if the
+ *  replaced string is contained in the new string.
+ *  Added method replace_token() that only makes replacements if
+ *  the string is bordered by non-alphanumeric characters.
+ *  Added method extract_tokens() that places separate tokens that
+ *  occur in a String into an array of Strings.
+ *
  *  Revision 1.5  2001/08/14 15:14:54  dennis
  *  Fixed documentation.
  *
@@ -54,6 +62,7 @@ package DataSetTools.util;
 
 import java.awt.*;
 import java.io.*;
+import java.util.*;
 
 /**
  *  Provide utilities for fixing file names, parsing command lines, etc.
@@ -116,14 +125,111 @@ public class StringUtil
     int    start;
     String result = in_string;
 
-    while ( result.indexOf( old_chars ) >= 0 )
+    int from_index = 0; 
+    while ( result.indexOf( old_chars, from_index ) >= 0 )
     {
-      start = result.indexOf( old_chars );
+      start = result.indexOf( old_chars, from_index );
       result = result.substring(0, start) + 
                new_chars + 
                result.substring( start + old_chars.length() );
+      from_index = start + new_chars.length();
     }
     return result;
+  }
+
+
+  /* ---------------------------- replace_token --------------------------- */
+  /**
+   *  Replace all occurrences of a specified string by another string, provide
+   *  the occurrence of the string is bordered by non-alphanumeric characters
+   *  or by the ends of the string.  This is to allow replacing occurrence of
+   *  variables such as t, t0, t1, etc. in expressions by other tokens.  If
+   *  the adjacent characters are not checked, just replacing all "t"s  by "x"
+   *  would damage "t0" and "t1". 
+   *
+   *  @param   in_string  the string in which the replacement is to be
+   *                      made.
+   *
+   *  @param   old_chars  the string which is to be replaced.
+   *
+   *  @param   new_chars  the string that replaces old_chars.
+   *
+   *  @return  A new string in which bounded occurences of the old_chars string
+   *           are replaced by the new_chars string.
+   */
+  public static String replace_token( String in_string,
+                                      String old_chars,
+                                      String new_chars )
+  {
+    if (in_string == null || old_chars == null || new_chars == null )
+      return null;
+
+    if ( old_chars.equals( new_chars ) )
+      return in_string;
+
+    int    start;
+    char   right_border;
+    char   left_border;
+    String result = in_string;
+
+    int from_index = 0; 
+    while ( result.indexOf( old_chars, from_index ) >= 0 )
+    {
+
+      start        = result.indexOf( old_chars, from_index );
+
+      if ( start > 0 )
+        left_border  = result.charAt( start-1 );
+      else 
+        left_border = '$'; 
+
+      if ( (start + old_chars.length()) < result.length() )
+        right_border = result.charAt( start + old_chars.length() );
+      else
+        right_border = '$'; 
+
+      if ( !Character.isLetterOrDigit( left_border ) && 
+           !Character.isLetterOrDigit( right_border)  )
+        {
+          result = result.substring(0, start) +
+                   new_chars +
+                   result.substring( start + old_chars.length() );
+          from_index = start + new_chars.length();
+        }
+        else
+          from_index = start + old_chars.length();
+    }
+    return result;
+  }
+
+
+  /* -------------------------- extract_tokens --------------------------- */
+  /**
+   *  Produce an array of string "tokens" that are present in the specified
+   *  string and separated by the specified delimiters.
+   *
+   *  @param   in_string   the string from which the tokens are to be extracted
+   *
+   *  @param   delimiters  the string containing the delimiters, 
+   *                       eg: " ,;:\t\n\r\f"
+   *
+   *  @return  An array of strings containing the tokens 
+   */
+  public static String[] extract_tokens( String in_string,
+                                         String delimiters )
+  {
+    StringTokenizer tokenizer = new StringTokenizer( in_string, delimiters );
+    Vector tokens = new Vector();
+    String token;
+
+    while (tokenizer.hasMoreTokens())
+      tokens.add( tokenizer.nextToken() );
+
+    String list[] = new String[ tokens.size() ];
+    for ( int i = 0; i < list.length; i++ )
+      list[i] = (String)tokens.elementAt(i);
+
+    return list; 
   }
 
   /* ----------------------------- getCommand ------------------------- */
@@ -329,5 +435,22 @@ public class StringUtil
 
     in_str = "\\junk\\\\junk2\\run2.run\\";
     System.out.println( in_str + " translates to " + fixSeparator(in_str) );
+
+                                                  // test token replacement
+    String equation = "x1*x*x+x2*x+x3";
+    System.out.println("equation   = " + equation );
+    String equation1 = replace_token( equation, "x", " t " );
+    System.out.println("equation 1 = " + equation1 );
+    String equation2 = replace_token( equation1, "x1", " a " );
+    System.out.println("equation 2 = " + equation2 );
+    String equation3 = replace_token( equation2, "x2", " b " );
+    System.out.println("equation 3 = " + equation3 );
+    String equation4 = replace_token( equation3, "x3", " c " );
+    System.out.println("equation 4 = " + equation4 );
+
+    System.out.println("Tokens in: X1, x2	total1;  ");
+    String tokens[] = extract_tokens( "X1, x2	total1;  ", " ,;:\t\n\r\f");
+    for ( int i = 0; i < tokens.length; i++ )
+      System.out.println("|"+tokens[i]+"|");
   }
 }
