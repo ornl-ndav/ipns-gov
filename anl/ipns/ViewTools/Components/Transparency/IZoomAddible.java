@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/03/12 02:06:55  serumb
+ *  Changed package and imports.
+ *
  *  Revision 1.1  2003/12/23 01:55:51  millermi
  *  - Moved from TwoD directory to a more logical directory. Now
  *    in the same directory as the class that it provides
@@ -47,9 +50,9 @@
  *
  */
  
-package DataSetTools.components.View.Transparency;
+package gov.anl.ipns.ViewTools.Components.Transparency;
 
-import DataSetTools.components.image.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 
 /**
  * This interface is implemented by view components that utilize overlays 
