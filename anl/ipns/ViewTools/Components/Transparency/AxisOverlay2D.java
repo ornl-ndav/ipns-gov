@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.45  2004/11/12 03:37:36  millermi
+ *  - getAxisInformation() is no longer used to determine the min and
+ *    max of the axis. The getLocalCoordBounds() now controls axis
+ *    min and max.
+ *
  *  Revision 1.44  2004/11/11 19:49:12  millermi
  *  - Reimplemented paintTruLogX() and paintTruLogY() using new transformations.
  *  - Tru log axes now make use of global and local bounds.
@@ -394,10 +399,11 @@ public class AxisOverlay2D extends OverlayJPanel
     addComponentListener( new NotVisibleListener() );
     component = iaa;
     f = iaa.getFont();
-    xmin = component.getAxisInformation(AxisInfo.X_AXIS).getMin();
-    xmax = component.getAxisInformation(AxisInfo.X_AXIS).getMax();
-    ymax = component.getAxisInformation(AxisInfo.Y_AXIS).getMin();
-    ymin = component.getAxisInformation(AxisInfo.Y_AXIS).getMax();
+    CoordBounds local_bounds = component.getLocalCoordBounds();
+    xmin = local_bounds.getX1();
+    xmax = local_bounds.getX2();
+    ymin = local_bounds.getY1();
+    ymax = local_bounds.getY2();
     setPrecision( iaa.getPrecision() );
     setDisplayAxes( DUAL_AXES );
     setXScale( component.getAxisInformation(AxisInfo.X_AXIS).getScale() );
@@ -690,12 +696,21 @@ public class AxisOverlay2D extends OverlayJPanel
     // Reset precision, make sure it is always consistent.
     setPrecision( component.getPrecision() );
     
-    xmin = component.getAxisInformation(AxisInfo.X_AXIS).getMin();
-    xmax = component.getAxisInformation(AxisInfo.X_AXIS).getMax();
+    CoordBounds local_bounds = component.getLocalCoordBounds();
+    // Make sure x1 < x2 and y1 < y2.
+    if( local_bounds.getX1() > local_bounds.getX2() )
+      local_bounds = new CoordBounds( local_bounds.getX2(),
+                                      local_bounds.getY1(),
+				      local_bounds.getX1(),
+				      local_bounds.getY2() );
+    if( local_bounds.getY1() > local_bounds.getY2() )
+      local_bounds.invertBounds();
     
-    // ymin & ymax swapped to adjust for axis standard
-    ymax = component.getAxisInformation(AxisInfo.Y_AXIS).getMin();
-    ymin = component.getAxisInformation(AxisInfo.Y_AXIS).getMax();
+    xmin = local_bounds.getX1();
+    xmax = local_bounds.getX2();
+    
+    ymin = local_bounds.getY1();
+    ymax = local_bounds.getY2();
     
     // get the dimension of the center panel (imagejpanel)
     xaxis = (int)( component.getRegionInfo().getWidth() );
@@ -718,14 +733,10 @@ public class AxisOverlay2D extends OverlayJPanel
     	paintLinearX( g2d );
       // Tru-log axis.
       else if( x_scale == AxisInfo.TRU_LOG )
-      {
     	paintTruLogX(g2d);
-      }
       // Pseudo-log axis.
       else if( x_scale == AxisInfo.PSEUDO_LOG )
-      {
-    	paintLogX( g2d );
-      }
+    	paintPseudoLogX( g2d );
     }
     if( axesdrawn == Y_AXIS || axesdrawn == DUAL_AXES )
     {
@@ -734,14 +745,10 @@ public class AxisOverlay2D extends OverlayJPanel
     	paintLinearY( g2d );
       // Tru-log axis
       else if( y_scale == AxisInfo.TRU_LOG )
-      {
     	paintTruLogY(g2d);
-      }
       // Pseudo-log axis.
       else if( y_scale == AxisInfo.PSEUDO_LOG )
-      {
-    	paintLogY( g2d );
-      }
+    	paintPseudoLogY( g2d );
     }
     super.paint(g);
   } // end of paint()
@@ -1155,7 +1162,7 @@ public class AxisOverlay2D extends OverlayJPanel
   * Draw the x axis with horizontal numbers and ticks spaced logarithmically.
   * This method is for pseudo-log scaling.
   */   
-  private void paintLogX( Graphics2D g2d )
+  private void paintPseudoLogX( Graphics2D g2d )
   {
     // Make sure component is instance of IPseudoLogAxisAddible since
     // this interface defines the method getLogScale() which is needed by
@@ -1487,7 +1494,7 @@ public class AxisOverlay2D extends OverlayJPanel
   * Draw the y axis with horizontal numbers and ticks spaced logarithmically.
   * This method is used for pseudo-log axes.
   */	
-  private void paintLogY( Graphics2D g2d )
+  private void paintPseudoLogY( Graphics2D g2d )
   {
     // Make sure component is instance of IPseudoLogAxisAddible since
     // this interface defines the method getLogScale() which is needed by
