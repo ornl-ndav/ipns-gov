@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.85  2005/03/17 02:08:37  millermi
+ *  - Added checkbox menu item for toggling aspect ratio of the image.
+ *  - Added additional javadocs to getControls() that tell user what
+ *    controls are associated with a given index.
+ *
  *  Revision 1.84  2005/03/09 22:29:47  millermi
  *  - Moved much of the constructor information to dataChanged(va2D).
  *  - Added call to buildViewComponent() in dataChanged() if either
@@ -887,6 +892,8 @@ public class ImageViewComponent implements IViewComponent2D,
     if( temp != null )
     {
       preserveAspectRatio(((Boolean)temp).booleanValue());
+      // Keep menu "Preserve Image Aspect Ratio" consistent with state.
+      menus[1].getItem().setSelected(((Boolean)temp).booleanValue());
       redraw = true;  
     }
    
@@ -994,8 +1001,9 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public void preserveAspectRatio( boolean doPreserve )
   {
-    // If the original data passed in was null, do nothing.
-    if( null_data )
+    // If the original data passed in was null or if the desired option
+    // is already set, do nothing
+    if( null_data || doPreserve == preserve_ratio )
       return;
     // add AspectRatio listener only if one has not been added.
     ComponentListener[] bp_list = getDisplayPanel().getComponentListeners();
@@ -1020,6 +1028,8 @@ public class ImageViewComponent implements IViewComponent2D,
       }
     }
     preserve_ratio = doPreserve;
+    // Keep menu item "Preserve Image Aspect Ratio" consistent.
+    menus[1].getItem().setSelected(preserve_ratio);
     // If image not yet visible, the componentResized() will be called
     // when it is made visible. If image is visible, adjust image now.
     if( getDisplayPanel().isVisible() )
@@ -1528,7 +1538,16 @@ public class ImageViewComponent implements IViewComponent2D,
   }
  
  /**
-  * Returns all of the controls needed by this view component
+  * Returns all of the controls needed by this view component.
+  * Controls are as follows:<BR><BR>
+  * [0] = Intensity Slider<BR>
+  * [1] = Color Scale, No calibrations<BR>
+  * [2] = Cursor Readout<BR>
+  * [3] = Marker Overlay Control<BR>
+  * [4] = Axis Overlay Control<BR>
+  * [5] = Selection Overlay Control<BR>
+  * [6] = Annotation Overlay Control<BR>
+  * [7] = Pan View Control<BR>
   *
   *  @return controls
   */ 
@@ -1919,12 +1938,17 @@ public class ImageViewComponent implements IViewComponent2D,
       position.add("Right of Image (calibrated)");
       position.add("None");
     
-    menus = new ViewMenuItem[2];
+    menus = new ViewMenuItem[3];
     JMenuItem scalemenu = MenuItemMaker.makeMenuItem( colorscale,cs_listener );
     menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, scalemenu ); 
-
+    
+    JCheckBoxMenuItem do_preserve_aspect = new JCheckBoxMenuItem(
+                                             "Preserve Image Aspect Ratio");
+    do_preserve_aspect.addActionListener( new AspectListener() );
+    menus[1] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS,
+                                 do_preserve_aspect );
     JMenuItem helpmenu = MenuItemMaker.getOverlayMenu( new HelpListener() );
-    menus[1] = new ViewMenuItem(ViewMenuItem.PUT_IN_HELP, helpmenu );
+    menus[2] = new ViewMenuItem(ViewMenuItem.PUT_IN_HELP, helpmenu );
   }
   
  /*
@@ -2374,6 +2398,19 @@ public class ImageViewComponent implements IViewComponent2D,
       sendMessage( SELECTED_CHANGED );
     }
   }
+
+ /*
+  * This class listens to the "Preserve Image Aspect Ratio" menu item.
+  * If checked, preserve aspect ratio, if not, don't.
+  */  
+  private class AspectListener implements ActionListener
+  {
+    public void actionPerformed( ActionEvent ae )
+    {
+      JCheckBoxMenuItem preserve = (JCheckBoxMenuItem)ae.getSource();
+      preserveAspectRatio(preserve.isSelected());
+    }
+  }
   
  /*
   * PreserveAspect monitors if the display panel has been resized. If so,
@@ -2420,7 +2457,7 @@ public class ImageViewComponent implements IViewComponent2D,
       }
     }
     
-    JFrame frame = new JFrame("TableViewComponent Test");
+    JFrame frame = new JFrame("ImageViewComponent Test");
     frame.setBounds(0,0,600,300);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     
@@ -2431,11 +2468,11 @@ public class ImageViewComponent implements IViewComponent2D,
     java.awt.EventQueue.invokeLater(shower);
     shower = null;
     
-    JFrame ctrlframe = new JFrame("TVC Controls");
+    JFrame ctrlframe = new JFrame("IVC Controls");
     ctrlframe.setBounds(0,0,300,400);
     ctrlframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     
-    ivc.dataChanged( null );
+    //ivc.dataChanged( null );
     ViewControl[] my_controls = ivc.getControls();
     ctrlframe.getContentPane().setLayout( new javax.swing.BoxLayout(
                                        ctrlframe.getContentPane(),
@@ -2448,6 +2485,5 @@ public class ImageViewComponent implements IViewComponent2D,
       java.awt.EventQueue.invokeLater(shower2);
       shower2 = null;
     }
-    //IVCTester test = new IVCTester( va2D );
   }
 }
