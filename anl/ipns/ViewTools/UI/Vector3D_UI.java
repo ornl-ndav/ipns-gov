@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/01/29 18:15:48  dennis
+ *  Fixed javadoc error.
+ *
  *  Revision 1.2  2004/01/26 20:42:09  dennis
  *  Added constructor that only requires a label.
  *  Now beeps if an invalid vector is requested.
@@ -77,7 +80,7 @@ public class Vector3D_UI extends    JTextField
   *  vector value.  The form of the text is  <label> [ <v0>, <v1>, <v2> ].
   *
   *  @param  label  String to be used for the label for the vector.
-  *  @param  v      the vector to use as the value for this object 
+  *  @param  value  the vector to use as the value for this object 
   *
   */
   public Vector3D_UI( String label, Vector3D value )

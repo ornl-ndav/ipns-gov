@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/29 18:16:22  dennis
+ * Fixed javadoc error.
+ *
  * Revision 1.1  2004/01/24 02:27:01  millermi
  * - Initial Version - This class writes the results from
  *   the SANDWedgeViewer to a file. The file has three
@@ -87,7 +90,8 @@ public class SANDFileWriter
   *
   *  @param  filename Includes path
   *  @param  header   Additional information placed at the top of the file.
-  *  @param  ds       DataSet that contains the Q, Intensity, and Error values.
+  *  @param  data     Data block that contains the Q, Intensity, 
+  *                   and Error values.
   */ 
   public static void makeFile( String filename, String header, Data data )
   {
