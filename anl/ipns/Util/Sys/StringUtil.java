@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2003/02/05 19:30:26  pfpeterson
+ *  Added methods to get a boolean value from a StringBuffer, updated
+ *  some documentation, and made getFloat and getInt explicitly throw
+ *  NumberFormatException (which does not need to be caught).
+ *
  *  Revision 1.12  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -387,8 +392,12 @@ public class StringUtil
    * Method to get the first set of non-whitespace characters and
    * construct a float. The characters (and any separating whitespace)
    * are then removed from the StringBuffer.
+   *
+   * @throws NumberFormatException when there is a problem converting
+   * the portion of the StringBuffer into a Float. This will not
+   * remove that part from the StringBuffer.
    */
-  public static float getFloat(StringBuffer sb){
+  public static float getFloat(StringBuffer sb) throws NumberFormatException{
       float val=0f;
       if(sb.length()<=0) return val; // don't bother if we have an empty string
       
@@ -400,10 +409,14 @@ public class StringUtil
           if(end==-1) end=sb.length();
       }            
       if(end>0){
+        try{
           temp=Float.valueOf(sb.substring(0,end));
-          val=temp.floatValue();
-            sb.delete(0,end);
-            StringUtil.trim(sb);
+        }catch(NumberFormatException e){
+          throw e;
+        }
+        val=temp.floatValue();
+        sb.delete(0,end);
+        StringUtil.trim(sb);
       }
       return val;
   }
@@ -411,8 +424,13 @@ public class StringUtil
   /**
    * Method to get the first nchar characters and construct a
    * float. The characters are then removed from the StringBuffer.
+   *
+   * @throws NumberFormatException when there is a problem converting
+   * the portion of the StringBuffer into a Float. This will not
+   * remove that part from the StringBuffer.
    */
-  public static float getFloat(StringBuffer sb, int nchar){
+  public static float getFloat(StringBuffer sb, int nchar)
+                                                  throws NumberFormatException{
       float val=0f;
 
       // don't bother if we have an empty string
@@ -422,8 +440,12 @@ public class StringUtil
       String sub=sb.substring(0,nchar).trim();
       sb.delete(0,nchar);
       if(sub==null || sub.length()==0) return val;
-      Float temp=Float.valueOf(sub);
-      val=temp.floatValue();
+      try{
+        Float temp=Float.valueOf(sub);
+        val=temp.floatValue();
+      }catch(NumberFormatException e){
+        throw e;
+      }
       return val;
   }
 
@@ -431,8 +453,12 @@ public class StringUtil
    * Method to get the first set of non-whitespace characters and
    * construct an int. The characters (and any separating whitespace)
    * are then removed from the StringBuffer.
+   *
+   * @throws NumberFormatException when there is a problem converting
+   * the portion of the StringBuffer into an Integer. This will not
+   * remove that part from the StringBuffer.
    */
-  public static int getInt(StringBuffer sb){
+  public static int getInt(StringBuffer sb) throws NumberFormatException{
       int val=0;
       if(sb.length()<=0) return val; // don't bother if we have an empty string
       
@@ -445,10 +471,14 @@ public class StringUtil
           if(end==-1) end=sb.length();
       }
       if(end>0){
+        try{
           temp=Integer.valueOf(sb.substring(0,end));
-          val=temp.intValue();
-            sb.delete(0,end);
-            StringUtil.trim(sb);
+        }catch(NumberFormatException e){
+          throw e;
+        }
+        val=temp.intValue();
+        sb.delete(0,end);
+        StringUtil.trim(sb);
       }
       return val;
   }
@@ -456,18 +486,105 @@ public class StringUtil
   /**
    * Method to get the first nchar characters and construct an
    * int. The characters are then removed from the StringBuffer.
+   *
+   * @throws NumberFormatException when there is a problem converting
+   * the portion of the StringBuffer into an Integer. This will not
+   * remove that part from the StringBuffer.
    */
-  public static int getInt(StringBuffer sb, int nchar){
+  public static int getInt(StringBuffer sb, int nchar)
+                                                  throws NumberFormatException{
       int val=0;
 
       // don't bother if we have an empty string
       if(sb.length()<nchar) return val;
       
       // just grab the next nchar characters and make an int
-      Integer temp=Integer.valueOf(sb.substring(0,nchar));
-      val=temp.intValue();
+      try{
+        Integer temp=Integer.valueOf(sb.substring(0,nchar));
+        val=temp.intValue();
+      }catch(NumberFormatException e){
+        throw e;
+      }
       sb.delete(0,nchar);
       return val;
+  }
+
+  /**
+   * Method to get the first set of non-whitespace characters and
+   * construct a boolean. The characters are then removed from the
+   * StringBuffer. Only "true" and "false" will be converted and
+   * everything else will create an exception. This is a case
+   * insensitive method.
+   *
+   * @throws IllegalArgumentException when there is a problem
+   * converting the portion of the StringBuffer into an boolean. This
+   * will not remove that part from the StringBuffer.
+   */
+  public static boolean getBoolean(StringBuffer sb)
+                                               throws IllegalArgumentException{
+    boolean val=false;
+    if(sb.length()<=0) return val; // don't bother if we have an empty string
+      
+
+    // figure out how far to go
+    int end=sb.toString().indexOf(" ");
+    if(end==-1) end=sb.length();
+
+    String temp=null;
+    if(end>0){
+      temp=sb.substring(0,end);
+      if(temp==null || temp.length()<=0)
+        throw new IllegalArgumentException("Cannot convert empty string to "
+                                           +"boolean");
+
+      temp=temp.toLowerCase();
+      if(temp.equals("true")){
+        val=true;
+      }else if(temp.equals("false")){
+        val=false;
+      }else{
+        throw new IllegalArgumentException("Cannot convert string to boolean: "
+                                           +temp);
+      }
+    }
+    return val;
+  }
+
+  /**
+   * Method to get the first nchar characters and construct a
+   * boolean. The characters are then removed from the
+   * StringBuffer. Only "true" and "false" will be converted and
+   * everything else will create an exception. This is a case
+   * insensitive method.
+   *
+   * @throws IllegalArgumentException when there is a problem
+   * converting the portion of the StringBuffer into an boolean. This
+   * will not remove that part from the StringBuffer.
+   */
+  public static boolean getBoolean(StringBuffer sb, int nchar)
+                                               throws IllegalArgumentException{
+    boolean val=false;
+
+    // don't bother if we have an empty string
+    if(sb.length()<nchar) return val;
+      
+    // just grab the next nchar characters and make an int
+    String temp=sb.substring(0,nchar).trim();
+    if( temp==null || temp.length()<=0 )
+      throw new IllegalArgumentException("Cannot convert empty string to "
+                                         +"boolean");
+    temp=temp.toLowerCase();
+    if(temp.equals("true")){
+      val=true;
+    }else if(temp.equals("false")){
+      val=false;
+    }else{
+      throw new IllegalArgumentException("Cannot convert string to boolean: "
+                                         +temp);
+    }
+
+    sb.delete(0,nchar);
+    return val;
   }
 
 
