@@ -34,10 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2003/08/26 03:41:05  millermi
+ *  - Added functionality and help() comments for double wedge selection.
+ *
  *  Revision 1.15  2003/08/21 18:18:17  millermi
  *  - Updated help() to reflect new controls in editor.
  *  - Added capabilities for wedge selection
- *  CV: S----------------------------------------------------------------------
  *
  *  Revision 1.14  2003/08/18 20:52:40  millermi
  *  - Added "Add Selection" controls to SelectionEditor so user no longer
@@ -238,6 +240,8 @@ public class SelectionOverlay extends OverlayJPanel
                   "ADD BOX SELECTION\n");
       text.append("Click/Drag/Release Mouse w/C_Key pressed>" + 
                   "ADD CIRCLE SELECTION\n");
+      text.append("Click/Drag/Release Mouse w/D_Key pressed>" + 
+                  "ADD DOUBLE WEDGE SELECTION\n");
       text.append("Click/Drag/Release Mouse w/L_Key pressed>" + 
                   "ADD LINE SELECTION\n");
       text.append("Click/Drag/Release Mouse w/P_Key pressed>" + 
@@ -450,6 +454,28 @@ public class SelectionOverlay extends OverlayJPanel
            g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
 	               p[4].y - p[3].y, p[5].x, p[5].y);
 	 }
+	 else if( region.equals( SelectionJPanel.DOUBLE_WEDGE ) )
+	 {
+	  /* p[0]   = center pt of circle that arc is taken from
+	   * p[1]   = last mouse point/point at intersection of line and arc
+	   * p[2]   = reflection of p[1]
+	   * p[3]   = top left corner of bounding box around arc's total circle
+	   * p[4]   = bottom right corner of bounding box around arc's circle
+	   * p[5].x = startangle, the directional vector in degrees
+	   * p[5].y = degrees covered by arc.
+	   */
+	   // Since p[5] is not a point, but angular measures, they are a direct
+	   // cast from float to int, no convertion needed.
+	   p[p.length - 1].x = (int)fp[p.length - 1].x;
+	   p[p.length - 1].y = (int)fp[p.length - 1].y;
+	   g2d.drawLine( 2*p[0].x - p[1].x, 2*p[0].y - p[1].y, p[1].x, p[1].y );
+	   g2d.drawLine( 2*p[0].x - p[2].x, 2*p[0].y - p[2].y, p[2].x, p[2].y );
+	   
+           g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
+	               p[4].y - p[3].y, p[5].x, p[5].y);
+           g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
+	               p[4].y - p[3].y, p[5].x + 180, p[5].y);
+	 }
       }
    } // end of paint()
 
@@ -583,7 +609,8 @@ public class SelectionOverlay extends OverlayJPanel
      	   //System.out.println("tempwcp[0]: "+tempwcp[0].x+tempwcp[0].y );
            regions.add( new WCRegion(SelectionJPanel.POINT, tempwcp) );
          }    
-         else if( message.indexOf( SelectionJPanel.WEDGE ) > -1 )
+         else if( message.indexOf( SelectionJPanel.WEDGE ) > -1 &&
+	          message.indexOf( SelectionJPanel.DOUBLE_WEDGE ) == -1 )
          { 
            //System.out.println("Drawing wedge region" );
            // create new point, otherwise regions would be shared.
@@ -605,6 +632,28 @@ public class SelectionOverlay extends OverlayJPanel
 	   }
 	   
            regions.add( new WCRegion(SelectionJPanel.WEDGE, tempwcp) );
+         }   
+         else if( message.indexOf( SelectionJPanel.DOUBLE_WEDGE ) > -1 )
+         { 
+           //System.out.println("Drawing double wedge region" );
+           // create new point, otherwise regions would be shared.
+           Point[] p_array = ( ((DoubleWedgeCursor)
+        	   sjp.get3ptCursor( SelectionJPanel.DOUBLE_WEDGE )).region() );
+           floatPoint2D[] tempwcp = new floatPoint2D[p_array.length];
+           for( int i = 0; i < p_array.length - 1; i++ )
+	   {
+	     p_array[i].x += (int)current_bounds.getX();
+             p_array[i].y += (int)current_bounds.getY();
+             tempwcp[i] = convertToWorldPoint( p_array[i] );
+	   }
+	   // Since these are angles, they do not need transforming
+	   if( p_array.length > 0 )
+	   {
+	     tempwcp[p_array.length - 1] = new floatPoint2D( 
+	                                (float)p_array[p_array.length - 1].x,
+	                                (float)p_array[p_array.length - 1].y );
+	   }
+           regions.add( new WCRegion(SelectionJPanel.DOUBLE_WEDGE, tempwcp) );
          }
 	 else  // no recognized region was added
 	   regionadded = false;
@@ -630,7 +679,7 @@ public class SelectionOverlay extends OverlayJPanel
      public SelectionEditor()
      {
        super("SelectionEditor");
-       this.setBounds(0,0,350,170);
+       this.setBounds(0,0,385,200);
        this_editor = this;
        pane = new Box( BoxLayout.Y_AXIS	);
        // adds buttons for making selections.
