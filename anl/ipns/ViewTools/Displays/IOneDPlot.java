@@ -14,11 +14,11 @@ public interface IOneDPlot {
     /**
      * Add a plot to an existing graph
      * 
-     * @param xVals
+     * @param x
      *            array of x data
-     * @param yVals
+     * @param y
      *            array of y data
-     * @param yErrs
+     * @param yerr
      *            array of y errors, use null for no errors
      */
     public void addPlot(float[] x, float[] y, float[] yerr);
@@ -43,9 +43,9 @@ public interface IOneDPlot {
     /**
      * Set colour of plot gnum
      * 
-     * @param gnum:
+     * @param gnum
      *            plot index
-     * @param col :
+     * @param col 
      *            colour for plot at gnum
      */
     public void setColor(int gnum, Color col);
@@ -159,7 +159,7 @@ public interface IOneDPlot {
     /**
      * Transform x screen coordinate to data coordinate
      * 
-     * @param pixel count from x bound of the axes container
+     * @param  x  pixel count from x bound of the axes container
      * @return
      *            screen coordinate
      */
@@ -168,7 +168,7 @@ public interface IOneDPlot {
     /**
      * Transform y screen coordinate to data coordinate
      * 
-     * @param pixel count from y bound of the axes container
+     * @param  y  pixel count from y bound of the axes container
      * @return
      *            screen coordinate
      */
