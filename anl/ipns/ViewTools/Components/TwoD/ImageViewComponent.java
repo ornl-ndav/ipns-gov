@@ -34,7 +34,9 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.9  2003/06/05 22:15:14  dennis
+ *  Revision 1.10  2003/06/06 18:51:00  dennis
+ *  Added control for editing annotations. (Mike Miller)
+ *
  *   - Added getFocus() call when Selection/AnnotationOverlay checkbox
  *     is selected. (Mike Miller)
  *
@@ -43,7 +45,6 @@
  *   -added SelectionOverlay and its on/off control
  *   -added ControlColorScale to controls
  *   -added AnnotationOverlay and its on/off control
- *
  *
  *  Revision 1.7  2003/05/24 17:33:25  dennis
  *  Added on/of control for Axis Overlay. (Mike Miller)
@@ -112,7 +113,7 @@ public class ImageViewComponent implements IViewComponent2D,
    private Vector transparencies = new Vector();
    private int precision;
    private Font font;
-   private ViewControl[] controls = new ViewControl[5];
+   private ViewControl[] controls = new ViewControl[6];
    private ViewMenuItem[] menus = new ViewMenuItem[1];
    private String colorscale;
    
@@ -509,7 +510,10 @@ public class ImageViewComponent implements IViewComponent2D,
       
       controls[4] = new ControlCheckbox();
       ((ControlCheckbox)controls[4]).setText("Annotation Overlay");
-      controls[4].addActionListener( new ControlListener() );              
+      controls[4].addActionListener( new ControlListener() );  
+      
+      controls[5] = new ViewControlMaker(new JButton("Edit Annotations"));
+      controls[5].addActionListener( new ControlListener() );            
    }
    
   /*
@@ -643,7 +647,14 @@ public class ImageViewComponent implements IViewComponent2D,
 		  note.getFocus();
 	       } 
 	    }  	            
-	 } // end if checkbox	
+	 } // end if checkbox
+	 else if( message.equals("Edit Annotations") )
+	 {
+	    AnnotationOverlay note = (AnnotationOverlay)
+	                       big_picture.getComponent(
+	                       big_picture.getComponentCount() - 4 ); 
+	    note.editAnnotation();
+	 } 	
 	 //repaints overlays accurately	
          paintComponents( big_picture.getGraphics() ); 
       }
