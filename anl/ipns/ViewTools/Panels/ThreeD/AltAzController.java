@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2001/07/04 15:27:18  dennis
+ * Angle sliders border and includes "angle" and degrees symbol.
+ *
  * Revision 1.4  2001/07/03 21:25:38  dennis
  * Added digital readout of degrees & distance on sliders.
  *
@@ -220,9 +223,9 @@ public class AltAzController extends    ViewController
 
        TitledBorder border = (TitledBorder)slider.getBorder();
        if ( slider.equals( azimuth_slider ))
-         border.setTitle( "Azimuth " + slider.getValue() );
+         border.setTitle( "Azimuth \u2220 " + slider.getValue() + "\u00B0" );
        else if ( slider.equals( altitude_slider ))
-         border.setTitle( "Altitude " + slider.getValue() );
+         border.setTitle( "Altitude \u2220 " + slider.getValue() + "\u00B0" );
        else if ( slider.equals( distance_slider ) )
          border.setTitle( "Distance "+slider.getValue()/DISTANCE_SCALE_FACTOR);
 
