@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.66  2005/02/01 03:14:20  millermi
+ *  - Fixed pointed_at messages resetting zoom.
+ *
  *  Revision 1.65  2005/01/11 15:34:09  dennis
  *  Commented out debug print.
  *
@@ -323,14 +326,15 @@ public class FunctionViewComponent implements IViewComponent1D,
     font        = FontUtil.LABEL_FONT2;
     gjp         = new GraphJPanel(  );
    
-    //initialize GraphJPanel with the virtual array
+    //initialize selected graphs
     int num_lines = varr.getNumSelectedGraphs(  );
+    float x[];
+    float y[];
     for( int i = 1; i < num_lines+1; i++ ) {
-       float x[] = Varray1D.getXValues(i-1);
-       float y[] = Varray1D.getYValues(i-1);
+       x = Varray1D.getXValues(i-1);
+       y = Varray1D.getYValues(i-1);
        gjp.setData( x, y, i, false );     
     }
-
     gjp.setBackground( Color.white );
 /*    // set initial line styles
     if( varr.getNumSelectedGraphs(  ) > 1 ) {
@@ -388,6 +392,10 @@ public class FunctionViewComponent implements IViewComponent1D,
       if(draw_pointed_at)
       DrawPointedAtGraph();
       
+    //initialize pointed_at graph
+    int pointed_at_index = Varray1D.getPointedAtGraph();
+    Draw_GJP( pointed_at_index, 0, false );
+    
       mainControls = new FunctionControls(varr, gjp, getDisplayPanel(),this);
       mainControls.get_frame().addWindowListener( new FrameListener() );
     }
@@ -744,11 +752,7 @@ public class FunctionViewComponent implements IViewComponent1D,
 
        if(draw_pointed_at) 
        DrawPointedAtGraph();
-
-       DrawSelectedGraphs(); 
        paintComponents(big_picture.getGraphics());
-       sendMessage("Reset Zoom");
-       
     }
   
   /**
@@ -757,17 +761,17 @@ public class FunctionViewComponent implements IViewComponent1D,
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
    {
     if (Varray1D != pin_varray){
-
-    if (Varray1D.getNumSelectedGraphs() > pin_varray.getNumSelectedGraphs()){
-       gjp.clearData();
-       float[] reset = {0,0.0001f};
-       gjp.setData(reset,reset, 0, false);
-    }
-    Varray1D = pin_varray;
+      if (Varray1D.getNumSelectedGraphs() > pin_varray.getNumSelectedGraphs()){
+        gjp.clearData();
+        float[] reset = {0,0.0001f};
+        gjp.setData(reset,reset, 0, false);
+      }
+      Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
                               // SAME FRAME, so that the frame doesn't move.
-    mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel(),
+      mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel(),
                                         this, mainControls.get_frame() );
+      DrawSelectedGraphs(); 
     } 
     dataChanged();
     transparencies.set(0 ,  new LegendOverlay(this));
@@ -937,8 +941,10 @@ public class FunctionViewComponent implements IViewComponent1D,
 
   private boolean DrawPointedAtGraph() {
     int pointed_at_line = Varray1D.getPointedAtGraph();
+    float[] x_vals = Varray1D.getXValues(pointed_at_line);
+    float[] y_vals = Varray1D.getYValues(pointed_at_line);
     if(pointed_at_line >= 0) {
-      Draw_GJP(pointed_at_line, 0, false);
+      gjp.updatePointedAtGraph(x_vals,y_vals);
       return true;
     }
     return false;
