@@ -30,6 +30,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2003/10/17 02:52:57  bouzekc
+ * Fixed javadoc errors.
+ *
  * Revision 1.3  2003/08/14 18:49:13  bouzekc
  * Now implements Serializable.
  *
@@ -77,7 +80,7 @@ public abstract class RobustFileFilter extends
   /**
    *  Whether the given file is accepted or not by this FileFilter.
    *
-   *  @param                     The File to test acceptance on.
+   *  @param file                The File to test acceptance on.
    * 
    *  @return                    True if file is accepted, false otherwise.
    */
@@ -190,6 +193,10 @@ public abstract class RobustFileFilter extends
    *  File name itself.  This is pretty much only useful if
    *  you want to be sure that your files are being saved with 
    *  the correct extension when you are saving a new File.
+   *
+   *  @param filename The name to append the extension to.
+   *
+   *  @return The filename with the extension appended to it.
    */
   public final String appendExtension(String filename)
   {
@@ -242,7 +249,7 @@ public abstract class RobustFileFilter extends
    *  case before being stored.
    *
    *  @param  extList         The Vector of extensions (Strings) to add to 
-   *                          this FileFilterA '.' is automatically
+   *                          this FileFilter.  A '.' is automatically
    *                          prepended to each extension if it does not have 
    *                          one.
    */
