@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/08/11 23:49:17  millermi
+ *  - Changed help docs from "Double Click" for REMOVE ALL ANNOTATIONS to
+ *    "Single Click"
+ *
  *  Revision 1.11  2003/08/10 19:29:26  millermi
  *  - Fixed minor bug, when default font was selected, fontsize changed to 12 pt.
  *
@@ -221,7 +225,7 @@ public class AnnotationOverlay extends OverlayJPanel
                   "CREATE ANNOTATION\n");
       text.append("After annotation creation, Press Enter>ADD ANNOTATION\n");
       text.append("Double Click Mouse>REMOVE LAST ANNOTATION\n");
-      text.append("Double Click Mouse w/A_Key>REMOVE ALL ANNOTATIONS\n\n");
+      text.append("Single Click Mouse w/A_Key>REMOVE ALL ANNOTATIONS\n\n");
       text.append("AnnotationEditor Commands (Focus>Action>Result)\n");
       text.append("TextArea>Press Enter>REFRESH WINDOW\n");
       text.append("TextArea>Hold Ctrl, Press Arrow Keys>MOVE ANNOTATION\n");
