@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2002/05/29 22:17:30  pfpeterson
+ *  fixSeparator will now change all '' to '/'.
+ *
  *  Revision 1.7  2002/03/06 19:27:19  pfpeterson
  *  Print message in status pane if local version of help is not found.
  *
@@ -84,7 +87,7 @@ public class FilenameUtil
    */
   public static String fixSeparator( String file_name )
   {
-    String separator = File.separator;
+    String separator = "/"; //File.separator;
 
     String result = StringUtil.replace( file_name, "\\\\", separator );
     result = StringUtil.replace( result, "\\", separator );
