@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2005/03/14 18:20:57  serumb
+ *  Fixed eclipse warning.
+ *
  *  Revision 1.9  2005/03/11 19:54:19  serumb
  *  Added method to get the stroke using an integer key that is passed in as
  *  a parameter.
@@ -385,7 +388,7 @@ public BasicStroke strokeType(int key, int graph_num)
     Graphics2D g2d = (Graphics2D)g;
     f.deriveFont(0.1f);
     g2d.setFont(f);
-    FontMetrics fontdata = g2d.getFontMetrics();
+  //  FontMetrics fontdata = g2d.getFontMetrics();
     // System.out.println("Precision = " + precision);
     updateTransform();
     
