@@ -37,16 +37,18 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/18 19:46:24  dennis
+ * Removed import of GL_ThreeD package, no longer needed since
+ * StrokeFont moved to Fonts package.
+ *
  * Revision 1.1  2004/06/02 14:11:29  dennis
  * Hershey Font file for use with OpenGL, generated from plain text form
  * of font data, using the FileStrokeFont class.
- *
  *
  */
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts;
 
-import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.*;
 
 /**
  * This class stores the data for the font: RomanTriplex
