@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/03/23 05:46:55  millermi
+ *  - Removed unnecessary semicolons which caused Eclipse warnings.
+ *
  *  Revision 1.1  2005/03/07 22:04:58  millermi
  *  - Initial version - Class that implements IVirtualArray2D. Values
  *    are generated dynamically based on a formula instead of stored
@@ -201,7 +204,7 @@ public class ArrayGenerator implements IVirtualArray2D
   */
   public void setDataValue( int row, int column, float value )
   {
-    ; // Do nothing since values are not stored, but calculated.
+    // Do nothing since values are not stored, but calculated.
   }
 
  /**
@@ -268,7 +271,7 @@ public class ArrayGenerator implements IVirtualArray2D
   */
   public void setRowValues( float[] values, int row, int start )
   {
-    ; // Do nothing since values are calculated.
+    // Do nothing since values are calculated.
   }	   
    
  /**
@@ -335,7 +338,7 @@ public class ArrayGenerator implements IVirtualArray2D
   */
   public void setColumnValues( float[] values, int column, int start )
   {
-    ; // Do nothing since values are calculated.
+    // Do nothing since values are calculated.
   }
   
  /**
@@ -346,7 +349,7 @@ public class ArrayGenerator implements IVirtualArray2D
   */
   public void setAllValues( float value )
   {
-    ; // Do nothing since values are calculated.
+    // Do nothing since values are calculated.
   }
   
  /**
@@ -447,7 +450,7 @@ public class ArrayGenerator implements IVirtualArray2D
   */
   public void setRegionValues( float[][] values, int row_start, int col_start )
   {
-    ;// Do nothing since values are calculated.
+    // Do nothing since values are calculated.
   }
   
  /**
@@ -505,11 +508,7 @@ public class ArrayGenerator implements IVirtualArray2D
   *
   *  @return error values of the data.
   */
-  public float[][] getErrors()
-  {
-    // if not use_sqrt, return null.
-    return null;
-  }
+  public float[][] getErrors(){ return null; }
   
  /**
   * Use this method to specify whether to use error values that were passed
@@ -518,10 +517,7 @@ public class ArrayGenerator implements IVirtualArray2D
   *  @param  use_sqrt_errs If true, use square-root.
   *                        If false, use set error values if they exist.
   */
-  public void setSquareRootErrors( boolean use_sqrt_errs )
-  {
-    ;
-  }
+  public void setSquareRootErrors( boolean use_sqrt_errs ){}
  
  /**
   * Get an error value for a given row and column. Returns Float.NaN if
