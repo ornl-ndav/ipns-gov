@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.52  2004/04/20 05:35:24  millermi
+ *  - The construction of the big_picture was taken out of
+ *    buildViewComponent and put into the constructor, so it is done
+ *    only once.
+ *
  *  Revision 1.51  2004/04/16 20:24:53  millermi
  *  - Now uses new methods from IVirtualArrayList1D.
  *
@@ -235,6 +240,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   private Point[] selectedset;  //To be returned by getSelectedSet()   
   private transient Vector Listeners   = null;
   private transient JPanel big_picture = new JPanel();
+  private transient JPanel background = new JPanel(new BorderLayout());
   private GraphJPanel gjp;
   private final int MAX_GRAPHS = 20;
  
@@ -308,8 +314,25 @@ public class FunctionViewComponent implements IViewComponent1D,
     global_bounds   = gjp.getGlobalWorldCoords(  ).MakeCopy(  );
 
     Listeners = new Vector(  );
+    // create transparencies
+    AnnotationOverlay top = new AnnotationOverlay( this );
+    top.setVisible( false );  // initialize this overlay to off.
 
-    buildViewComponent( gjp );  // initializes big_picture to jpanel containing
+    AxisOverlay2D bottom = new AxisOverlay2D( this );
+
+    transparencies.add( top );
+    transparencies.add( bottom );  // add the transparency to the vector
+
+    OverlayLayout overlay = new OverlayLayout( big_picture );
+
+    big_picture.setLayout( overlay );
+
+    for( int trans = 0; trans < transparencies.size(  ); trans++ ) {
+      big_picture.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
+    }
+    big_picture.add( background );
+
+    buildViewComponent();  // initializes big_picture to jpanel containing
                                 // the background and transparencies
     DrawSelectedGraphs();
     if(draw_pointed_at)
@@ -816,7 +839,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   private void reInit(){
     mainControls = new FunctionControls(Varray1D, gjp, getDisplayPanel(),
                                         this, mainControls.get_frame() );
-    buildViewComponent(gjp);
+    buildViewComponent();
   }  
     
     
@@ -889,12 +912,10 @@ public class FunctionViewComponent implements IViewComponent1D,
    * This method takes in an graphjpanel and puts it into a borderlayout.
    * Overlays are added to allow for calibration, selection, and annotation.
    */
-  private void buildViewComponent( GraphJPanel panel ) {
+  private void buildViewComponent() {
     setAxisInfo();
     int westwidth  = ( font.getSize(  ) * precision ) + 22;
     int southwidth = ( font.getSize(  ) * 3 ) + 22;
-    // this will be the background for the master panel
-    JPanel background = new JPanel( new BorderLayout(  ) );
 
     JPanel north = new JPanel( new FlowLayout(  ) );
 
@@ -912,31 +933,11 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     west.setPreferredSize( new Dimension( westwidth, 0 ) );
     //Construct the background JPanel
-    background.add( panel, "Center" );
+    background.add( gjp, "Center" );
     background.add( north, "North" );
     background.add( west, "West" );
     background.add( south, "South" );
     background.add( east, "East" );
-
-    AnnotationOverlay top = new AnnotationOverlay( this );
-    top.setVisible( false );  // initialize this overlay to off.
-
-    AxisOverlay2D bottom = new AxisOverlay2D( this );
-
-    transparencies.add( top );
-    transparencies.add( bottom );  // add the transparency to the vector
-
-    JPanel master         = new JPanel(  );
-    OverlayLayout overlay = new OverlayLayout( master );
-
-    master.setLayout( overlay );
-
-    for( int trans = 0; trans < transparencies.size(  ); trans++ ) {
-      master.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
-    }
-    master.add( background );
-
-    big_picture = master;
   }
 
   /*
