@@ -37,6 +37,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/01/07 21:35:05  millermi
+ *  - Added javadoc comments.
+ *  - Removed restriction that destination interval be positive.
+ *
  *  Revision 1.3  2003/10/16 05:00:03  millermi
  *  - Fixed java docs errors.
  *
@@ -64,8 +68,9 @@ public class LogScaleUtil
   private float dest_max;
   
  /**
-  * Constructor - construct intervals 0-limax, and map it to interval 0-lomax.
-  * // destination interval is always positive.
+  * Constructor - construct intervals sourcemin - sourcemax, and map it to
+  * the interval destinationmin - destinationmax.
+  *
   *  @param  smin - the source minimum
   *  @param  smax - the source maximum
   *  @param  dmin - the destination minimum
@@ -89,7 +94,7 @@ public class LogScaleUtil
       float temp = dmin;
       dmin = dmax;
       dmax = temp;
-    }
+    }/*
     // make sure interval is positive
     if( dmax < 0 )
     {
@@ -99,7 +104,7 @@ public class LogScaleUtil
     }
     // if dmax > 0, but dmin < 0
     if( dmin < 0 )
-      dmin = 0;
+      dmin = 0;*/
     dest_min = dmin;
     dest_max = dmax;
   }
@@ -162,7 +167,8 @@ public class LogScaleUtil
   }
  
  /**
-  * This method finds the destination value. 
+  * This method finds the equivalent destination value for the source value
+  * given. 
   * 
   *  @param  source
   *  @param  s - logscale value
@@ -181,11 +187,16 @@ public class LogScaleUtil
     }
     if( source > source_max )
       source = source_max;
-                                       
-    if ( s > 100 )                                // clamp s to [0,100]
+         
+    if ( s < 0 )                               // clamp s to [0,100]
+    {
+      // negate, if -s > 100, let s = 0
+      s = -s;
+      if( s > 100 )
+        s = 0;                              
+    }
+    if ( s > 100 ) 
       s = 100;
-    if ( s < 0 )
-      s = 0;
 
     s = Math.exp(20 * s / 100.0) + 0.1; // map [0,100] exponentially to get 
                                         // scale change that appears more linear
@@ -199,9 +210,9 @@ public class LogScaleUtil
    
   public static void main( String argv[] )
   {
-    float smin   = 10;
+    float smin   = -10;
     float smax = 210f;
-    float dmin   = .01f;
+    float dmin   = -.01f;
     float dmax   = .1200f;
     //float dmin   = 1f;
     //float dest   = 1000f;
