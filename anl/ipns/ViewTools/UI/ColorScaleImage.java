@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.7  2004/03/12 01:53:18  serumb
+ * Changed package and imports.
+ *
  * Revision 1.6  2003/12/23 20:56:30  millermi
  * - Added main() for test purposes.
  *
@@ -51,12 +54,12 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.io.*;
 import java.awt.*;
 import javax.swing.*;
-import DataSetTools.components.image.*;
+import gov.anl.ipns.ViewTools.Panels.Image.*;
 
 /**
  *
