@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2003/07/28 22:23:33  dennis
+ * Minor documentation fix.
+ *
  * Revision 1.1  2003/07/14 22:23:00  dennis
  * Double precision version, ported from original
  * single precision version.
@@ -496,7 +499,7 @@ public class Tran3D_d
       }       
     else
     {
-      double temp[] = new double[4];          // if v1==v2, we must create the
+      double temp[] = new double[4];        // if v1==v2, we must create the
                                             // product in a temporary variable
       for ( row = 0; row < 4; row++ )       // to avoid altering the vector
       {                                     // while we still need the original
