@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2003/10/02 23:10:18  millermi
+ *  - Added java docs to constructor.
+ *
  *  Revision 1.4  2003/09/24 01:34:32  millermi
  *  - Now implements IPreserveState, all classes extending OverlayJPanel
  *    will now preserve state.
@@ -58,51 +61,54 @@ import DataSetTools.components.View.IPreserveState;
 public abstract class OverlayJPanel extends JPanel implements IOverlay,
                                                               IPreserveState
 {
-   public OverlayJPanel()
-   {
-      this.setOpaque(false);        // make the panel "see-through"	
-   }
-   
-  /**
-   * This method will be used to display help information about this overlay.
-   * It should open it's own JFrame with information about the overlay.
-   */ 
-   public static void help()
-   {
-      JFrame helper = new JFrame("Help for Generic Overlay");
-      helper.setBounds(0,0,600,400);
-      JTextArea text = new JTextArea("Commands for Generic Overlay\n\n");
-      helper.getContentPane().add(text);
-      text.setEditable(false);
-      text.setLineWrap(true);
-      text.append("Help information not available for this overlay.\n\n");
-      
-      helper.setVisible(true);
-   }
+ /**
+  * Constructor - sets the opaqueness of the JPanel to false.
+  */
+  public OverlayJPanel()
+  {
+    this.setOpaque(false);	  // make the panel "see-through"      
+  }
   
-  /**
-   * This method requests window focus for the overlay. If focus is wanted
-   * by a private data member of an overlay, this method should be overloaded
-   * to have the data member itself call requestFocus(). 
-   */ 
-   public void getFocus()
-   {
-      this.requestFocus();
-   } 
-   
-  /**
-   * This method will set the current state variables of the object to state
-   * variables wrapped in the ObjectState passed in.
-   *
-   *  @param new_state
-   */
-   public abstract void setObjectState( ObjectState new_state );
+ /**
+  * This method will be used to display help information about this overlay.
+  * It should open it's own JFrame with information about the overlay.
+  */ 
+  public static void help()
+  {
+    JFrame helper = new JFrame("Help for Generic Overlay");
+    helper.setBounds(0,0,600,400);
+    JTextArea text = new JTextArea("Commands for Generic Overlay\n\n");
+    helper.getContentPane().add(text);
+    text.setEditable(false);
+    text.setLineWrap(true);
+    text.append("Help information not available for this overlay.\n\n");
+    
+    helper.setVisible(true);
+  }
+ 
+ /**
+  * This method requests window focus for the overlay. If focus is wanted
+  * by a private data member of an overlay, this method should be overloaded
+  * to have the data member itself call requestFocus(). 
+  */ 
+  public void getFocus()
+  {
+    this.requestFocus();
+  } 
   
-  /**
-   * This method will get the current values of the state variables for this
-   * object. These variables will be wrapped in an ObjectState. Keys will be
-   * put in alphabetic order.
-   */ 
-   public abstract ObjectState getObjectState();
-   
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param new_state
+  */
+  public abstract void setObjectState( ObjectState new_state );
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState. Keys will be
+  * put in alphabetic order.
+  */ 
+  public abstract ObjectState getObjectState();
+  
 }
