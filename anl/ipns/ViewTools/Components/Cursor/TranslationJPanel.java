@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/11/25 23:31:27  millermi
+ *  - convert...() methods now use global_transform directly
+ *    instead of accessing it through a method.
+ *
  *  Revision 1.5  2003/11/25 00:50:53  millermi
  *  - setViewPort() now clips the local bounds if they exceed
  *    the global bounds.
@@ -107,7 +111,8 @@ public class TranslationJPanel extends CoordJPanel
   * also contructed to receive keyboard events.
   */ 
   public TranslationJPanel()
-  {     
+  {    
+    super(); 
     setEventListening(false);
     box = new BoxPanCursor(this);
     requestFocus();
@@ -116,6 +121,18 @@ public class TranslationJPanel extends CoordJPanel
     addMouseMotionListener( new SelectMouseMotionAdapter() );
     addComponentListener( new ResizedListener() );
     addKeyListener( new TranslateKeyAdapter() );
+  }
+  
+ /**
+  * This method must override the parent method inorder to incorporate
+  * sending messages after the object state has been set.
+  *
+  *  @param  state The new state of the JPanel
+  */ 
+  public void setObjectState( ObjectState state )
+  {
+    super.setObjectState(state);
+    send_message(BOUNDS_CHANGED);
   }
   
  /**
@@ -202,18 +219,6 @@ public class TranslationJPanel extends CoordJPanel
   }
   
  /**
-  * This method must override the parent method inorder to incorporate
-  * sending messages after the object state has been set.
-  *
-  *  @param  state The new state of the JPanel
-  */ 
-  public void setObjectState( ObjectState state )
-  {
-    super.setObjectState(state);
-    send_message(BOUNDS_CHANGED);
-  }
-  
- /**
   * Set the bounds for the entire image. This method must be called whenever the
   * global bounds of the CoordJPanel are changed. Also call this method to
   * initialize the global bounds.
@@ -264,8 +269,7 @@ public class TranslationJPanel extends CoordJPanel
   */
   private Point convertToPixelPoint( floatPoint2D fp )
   {
-    CoordTransform pixel_global = getGlobal_transform();
-    floatPoint2D fp2d = pixel_global.MapTo( fp );
+    floatPoint2D fp2d = global_transform.MapTo( fp );
     return new Point( (int)fp2d.x, (int)fp2d.y );
   }
  
@@ -274,8 +278,7 @@ public class TranslationJPanel extends CoordJPanel
   */
   private floatPoint2D convertToWorldPoint( Point p )
   {
-    CoordTransform pixel_global = getGlobal_transform();
-    return pixel_global.MapFrom( new floatPoint2D((float)p.x, (float)p.y) );
+    return global_transform.MapFrom( new floatPoint2D((float)p.x, (float)p.y) );
   }
  
  /*
