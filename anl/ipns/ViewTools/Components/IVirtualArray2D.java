@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/03/12 18:09:52  millermi
+ *  - Updated javadocs for getDataValue().
+ *
  *  Revision 1.10  2004/09/15 21:55:44  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -50,7 +53,7 @@
  *
  *  Revision 1.7  2004/03/12 02:07:59  millermi
  *  - Changed SharedData to SharedMessages.
- *  _ Changed package and fixed imports.
+ *  - Changed package and fixed imports.
  *
  *  Revision 1.6  2004/02/16 05:21:38  millermi
  *  - Added methods getErrors(), setErrors(), setSquareRootErrors(),
@@ -200,7 +203,7 @@ public interface IVirtualArray2D extends IVirtualArray
   *  @param  row     row number of element
   *  @param  column  column number of element
   *  @return If element is found, the float value for that element is returned.
-  *	     If element is not found, zero is returned.
+  *	     If element is not found, Float.NaN is returned.
   */ 
   public float getDataValue( int row, int column );
   
