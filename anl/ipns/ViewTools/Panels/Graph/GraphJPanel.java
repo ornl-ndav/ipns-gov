@@ -35,6 +35,11 @@
  *                   different colors for each graph.
  *
  * $Log$
+ * Revision 1.5  2001/05/07 21:04:21  dennis
+ * Removed the LocalTransformChanged() method, since the
+ * default implementation of this method in CoordJPanel
+ * works.
+ *
  * Revision 1.4  2001/04/23 21:15:10  dennis
  * Added copyright and GPL info at the start of the file.
  *
@@ -486,12 +491,6 @@ public Dimension getPreferredSize()
       }
 
     return new Dimension( cols, rows );
-}
-
-/* -------------------------- LocalTransformChanged ------------------------ */
-protected void LocalTransformChanged()
-{
-  repaint();
 }
 
 
