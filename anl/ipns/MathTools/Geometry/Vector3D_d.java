@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/11/04 18:12:57  dennis
+ * The distance() method now takes a double precision Vector3D_d
+ * as a parameter, rather than a single precision Vector3D.
+ *
  * Revision 1.7  2004/07/23 13:04:42  dennis
  * Added method getCopy() to  get a copy of the array of values defining
  * this vector.  (The get() method gets a reference to the array.)
@@ -405,7 +409,7 @@ public class Vector3D_d
    *
    *  @return   the distance from this 3D vector to the specified vector.
    */
-  public double distance( Vector3D vec )
+  public double distance( Vector3D_d vec )
   {
     double dx = v[0] - vec.v[0];
     double dy = v[1] - vec.v[1];
