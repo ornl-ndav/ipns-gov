@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2005/03/28 05:57:30  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.6  2005/03/20 05:37:00  millermi
  *  - Modified main() to reflect parameter changes to
  *    ControlManager.makeManagerTestWindow().
@@ -59,14 +62,36 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
  import java.awt.*;
  
  import gov.anl.ipns.Util.Sys.WindowShower;
+ import gov.anl.ipns.ViewTools.Components.ObjectState;
 
 /**
- * This class is a ViewControl (ActiveJPanel) with a generic checkbox for use 
- * by ViewComponents. It includes a hook to send out messages when the  
- * checkbox has been checked or unchecked.
+ * This class is a ViewControl (ActiveJPanel) consisting of a JLabel descriptor
+ * and a JComboBox.
  */ 
 public class LabelCombobox extends ViewControl
 {
+  /**
+   * "Label" - This String key refers to the text describing the JComboBox.
+   * This ObjectState key references a String.
+   */
+   public static final String LABEL = "Label";
+  /**
+   * "Fields" - This String key refers to the text that appears in the
+   * JComboBox. This ObjectState key references a String[].
+   */
+   public static final String FIELDS = "Fields";
+  /**
+   * "Selected Index" - This String key refers to index of the item displayed
+   * in the combo box. This ObjectState key references an Integer.
+   */
+   public static final String SELECTED_INDEX = "Selected Index";
+  /**
+   * "Display Border" - This String key refers to whether or not the titled
+   * border provided by the ViewControl class is shown. This ObjectState
+   * key references a Boolean.
+   */
+   public static final String DISPLAY_BORDER = "Display Border";
+   
    private JComboBox cbox;
    private JPanel thepanel = new JPanel();
    private JLabel cboxLabel;
@@ -74,17 +99,21 @@ public class LabelCombobox extends ViewControl
    private Box box2 = new Box(1);
    private FlowLayout f_layout;
    private Box theBox = new Box(0);
+   private String[] fields;
    private boolean ignore_change = false;
  
   /**
-   * constructor 
+   * Constructor - Builds a JComboBox with a label.
+   *
+   *  @param  p_label The label displayed next to the JComboBox.
+   *  @param  fields The String list displayed by the JComboBox.
    */ 
    public LabelCombobox(String p_label, String[] fields)
    {  
       super("");
 
       f_layout = new FlowLayout(0);
- 
+      this.fields = fields;
       cboxLabel = new JLabel(p_label);
       thepanel.setLayout(f_layout);
       thepanel.add(cboxLabel);
@@ -100,6 +129,61 @@ public class LabelCombobox extends ViewControl
       this.add(theBox);
       cbox.addActionListener( new ComboboxListener() ); 
    }
+   
+ /**
+  * Get the current state of the control, either preferences (DEFAULT) or
+  * the entire state (PROJECT).
+  *
+  *  @param  is_default The type of state information requested.
+  *  @return The current state of the control.
+  */
+  public ObjectState getObjectState( boolean is_default )
+  {
+    ObjectState state = super.getObjectState(is_default);
+    state.insert( LABEL, cboxLabel.getText() );
+    state.insert( FIELDS, fields );
+    state.insert( SELECTED_INDEX, new Integer(cbox.getSelectedIndex()) );
+    boolean is_visible = true;
+    if( getBorder() == null )
+      is_visible = false;
+    state.insert( DISPLAY_BORDER, new Boolean(is_visible) );
+    return state;
+  }
+  
+ /**
+  * Set the current state of the control to the state passed in.
+  *
+  *  @param  new_state The new state of this control.
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    // Do nothing if state is null.
+    if( new_state == null )
+      return;
+    Object value = new_state.get(LABEL);
+    if( value != null )
+    {
+      cboxLabel.setText((String)value);
+    }
+    
+    value = new_state.get(FIELDS);
+    if( value != null )
+    {
+      setItemList( (String[])value );
+    }
+    
+    value = new_state.get(SELECTED_INDEX);
+    if( value != null )
+    {
+      setSelectedIndex( ((Integer)value).intValue() );
+    }
+    
+    value = new_state.get(DISPLAY_BORDER);
+    if( value != null )
+    {
+      setBorderVisible( ((Boolean)value).booleanValue() );
+    }
+  }
   
  /**
   * Set the selected index of the combo box.
@@ -116,7 +200,7 @@ public class LabelCombobox extends ViewControl
     if( int_value >= cbox.getItemCount() || int_value < -1 )
       return;
     ignore_change = true;
-    setSelected(int_value);
+    setSelectedIndex(int_value);
     ignore_change = false;
   }
   
@@ -129,36 +213,68 @@ public class LabelCombobox extends ViewControl
   {
     return new Integer(cbox.getSelectedIndex());
   }
+  
+ /**
+  * This method will return an exact copy of a LabelCombobox.
+  *
+  *  @return Copy of the label combo box.
+  */
+  public ViewControl copy()
+  {
+    LabelCombobox clone = new LabelCombobox( cboxLabel.getText(), fields );
+    clone.setObjectState( getObjectState(PROJECT) );
+    return clone;
+  }
+  
+ /**
+  * Use this method to reset the list of Strings displayed by the JComboBox.
+  * If null is passed, all of the items in the JComboBox will be removed.
+  *
+  *  @param  items The items displayed by the JComboBox.
+  */
+  public void setItemList( String[] items )
+  {
+    // Do not send out messages when this method is called.
+    ignore_change = true;
+    cbox.removeAllItems();
+    if( items == null )
+      return;
+    for( int i = 0; i < items.length; i++ )
+    {
+      cbox.addItem(items[i]);
+    }
+    ignore_change = false;
+  }
 
   /**
    * Allows the combo box to be initialized to the index.
    * The constructor initializes the combobox to index 0.
    */
-   public void setSelected(int index)
+   public void setSelectedIndex(int index)
    {
       cbox.setSelectedIndex(index);
      
    }
-  
+   
   /**
-   * Gets the box that the control is put in.
+   * Get the selected index of the JComboBox.
    *
-   * @return Returns and object of type Box.
-   */ 
-   public Box getBox()
-   {
-     return theBox;
-   }  
-  
-  /**
-   * Gets the Combobox.
-   *
-   * @return returns an object of type JComboBox.
+   *  @return The selected index of the JComboBox.
    */
-   public JComboBox getCBox()
+   public int getSelectedIndex()
    {
-     return cbox;
-   }    
+     return cbox.getSelectedIndex();
+   }
+   
+  /**
+   * Get the selected item in the JComboBox.
+   *
+   *  @return The selected item in the JComboBox.
+   */
+   public Object getSelectedItem()
+   {
+     return cbox.getSelectedItem();
+   }   
    
  /*
    * CheckboxListener moniters the JCheckBox private data member for the
@@ -168,12 +284,14 @@ public class LabelCombobox extends ViewControl
    { 
       public void actionPerformed( ActionEvent ae )
       {
-         send_message(COMBOBOX_CHANGED);
          //System.out.println("the selected item is: " + cbox.getSelectedItem())
          // This if statement will prevent VALUE_CHANGED to be sent out when
          // the setControlValue() method is called.
          if( !ignore_change )
+	 {
+           send_message(COMBOBOX_CHANGED);
            send_message( VALUE_CHANGED );
+         }
       }
    }
 
@@ -219,16 +337,20 @@ public class LabelCombobox extends ViewControl
 
       LabelCombobox check = new LabelCombobox("line_type", line_type);
       LabelCombobox check2 = new LabelCombobox("line_width", line_width);
-
+      check.setTitle("test");
+      check.setBorderVisible(false);
+      check.setSelectedIndex(2);
+      LabelCombobox check3 = (LabelCombobox)check.copy();
       JFrame frame = new JFrame();
-      frame.getContentPane().setLayout( new GridLayout(2,1) );
+      frame.getContentPane().setLayout( new GridLayout(0,1) );
       frame.setTitle("LabelCombobox Test");
-      frame.setBounds(0,0,135,120);
+      frame.setBounds(0,0,200,200);
       frame.getContentPane().add(check);
       frame.getContentPane().add(check2);
+      frame.getContentPane().add(check3);
      
       frame.show();
-      
 
+      check.setBorderVisible(true);
    }
 }

@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2005/03/28 05:57:29  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.15  2005/03/20 05:36:59  millermi
  *  - Modified main() to reflect parameter changes to
  *    ControlManager.makeManagerTestWindow().
@@ -346,6 +349,9 @@ public class FieldEntryControl extends ViewControl
   */
   public void setObjectState( ObjectState new_state )
   {
+    // Do nothing if state is null.
+    if( new_state == null )
+      return;
     // call setObjectState of ViewControl, sets title if one exists.
     super.setObjectState( new_state );
     Object temp = new_state.get(RADIO_CHOICE);
@@ -450,6 +456,18 @@ public class FieldEntryControl extends ViewControl
     for( int i = 0; i < values.length; i++ )
       return_values[i+1] = values[i];
     return return_values;
+  }
+  
+ /**
+  * This method will return an exact copy of a FieldEntryControl.
+  *
+  *  @return Copy of the FieldEntryControl.
+  */
+  public ViewControl copy()
+  {
+    FieldEntryControl clone = new FieldEntryControl(text.length);
+    clone.setObjectState( getObjectState(PROJECT) );
+    return clone;
   }
  
  /**
@@ -1078,7 +1096,8 @@ public class FieldEntryControl extends ViewControl
       return;
     }
     JFrame tester = new JFrame("FieldEntryControl Test");
-    tester.setBounds(0,0,150,250);
+    tester.setBounds(0,0,250,250);
+    tester.getContentPane().setLayout( new java.awt.GridLayout(0,2) );
     tester.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     String[] menu = {"MenuOne","MenuTwo","MenuThree","MenuFour","MenuFive"};
     String[] menu2 = {"Menu2","Menu4","Menu6","Menu8","Menu10"};
@@ -1117,6 +1136,7 @@ public class FieldEntryControl extends ViewControl
     fec.setObjectState(state);
     fec.removeRadioChoice("Radio3");
     tester.getContentPane().add(fec);
+    tester.getContentPane().add(fec.copy());
     WindowShower shower = new WindowShower(tester);
     java.awt.EventQueue.invokeLater(shower);
     System.out.println("Selected: " + fec.getSelected() );

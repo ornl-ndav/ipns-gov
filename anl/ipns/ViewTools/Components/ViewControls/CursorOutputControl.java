@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2005/03/28 05:57:28  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.9  2005/03/20 05:36:59  millermi
  *  - Modified main() to reflect parameter changes to
  *    ControlManager.makeManagerTestWindow().
@@ -78,8 +81,9 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 
-import gov.anl.ipns.ViewTools.UI.TextValueUI;
 import gov.anl.ipns.Util.Sys.WindowShower;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.UI.TextValueUI;
 
 /**
   * This class is a ViewControl (ActiveJPanel) with text fields set up for
@@ -87,6 +91,18 @@ import gov.anl.ipns.Util.Sys.WindowShower;
   */
 public class CursorOutputControl extends ViewControl
 {
+ /**
+  * "Labels" - This String key refers to the labels displayed in the
+  * CursorOutputControls. This ObjectState key references a String[n][m]. If
+  * only a 1-D set of names is given, the array is String[n][1].
+  */
+  public static final String LABELS = "Labels";
+ /**
+  * "Values" - This String key refers to the values displayed in the
+  * CursorOutputControls. This ObjectState key references a float[n][m]. If
+  * only a 1-D set of names is given, the array is float[n][1].
+  */
+  public static final String VALUES = "Values";
   private TextValueUI[][] TextField;
   private Box vert_box = new Box(BoxLayout.X_AXIS);
   private boolean ignore_change = false;
@@ -145,6 +161,88 @@ public class CursorOutputControl extends ViewControl
   }
   
  /**
+  * Get the current state of this view control.
+  *
+  *  @param  is_default Use IPreserveState.PROJECT or DEFAULT as a parameter.
+  *  @return If PROJECT, the entire state is returned. If DEFAULT, only
+  *          information related to user preferences is returned.
+  */
+  public ObjectState getObjectState( boolean is_default )
+  {
+    ObjectState state = super.getObjectState(is_default);
+    // Build array of 2-D Strings and values.
+    String[][] labels = new String[TextField.length][TextField[0].length];
+    float[][] values = new float[TextField.length][TextField[0].length];
+    // Go through all of the TextValueUIs and get the label and value for each.
+    for( int row = 0; row < TextField.length; row++ )
+    {
+      for( int col = 0; col < TextField[0].length; col++ )
+      {
+        labels[row][col] = TextField[row][col].getLabel();
+        values[row][col] = TextField[row][col].getValue();
+      }
+    }
+    state.insert( LABELS, labels );
+    state.insert( VALUES, values );
+    return state;
+  }
+  
+ /**
+  * Set the state of this view control.
+  *
+  *  @param  new_state The state that this control should be set to.
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    // If state is null, do nothing.
+    if( new_state == null )
+      return;
+    // Set the title.
+    super.setObjectState(new_state);
+    String[][] labels = null;
+    float[][] values = null;
+    Object value = new_state.get(LABELS);
+    if( value != null )
+    {
+      labels = (String[][])value;
+    }
+    
+    value = new_state.get(VALUES);
+    if( value != null )
+    {
+      values = (float[][])value;
+    }
+    
+    // Since nothing to do, don't waste memory trying to fill values.
+    if( labels == null && values == null )
+      return;
+    // Find the smallest number of rows and columns to prevent index out
+    // of bounds error.
+    int num_rows = TextField.length;
+    if( labels != null && num_rows > labels.length )
+      num_rows = labels.length;
+    if( values != null && num_rows > values.length )
+      num_rows = values.length;
+    int num_cols = TextField[0].length;
+    if( labels != null && num_cols > labels[0].length )
+      num_cols = labels[0].length;
+    if( values != null && num_cols > values[0].length )
+      num_cols = values[0].length;
+    // Go through all of the TextValueUIs and set the label and value if
+    // they exist.
+    for( int row = 0; row < num_rows; row++ )
+    {
+      for( int col = 0; col < num_cols; col++ )
+      {
+        if( labels != null )
+          TextField[row][col].setLabel(labels[row][col]);
+	if( values != null )
+	  TextField[row][col].setValue(values[row][col]);
+      }
+    }
+  }
+  
+ /**
   * Set the most recently changed cursor output to the value specified.
   *
   *  @param  value int[] containing combobox index [0] and selected index [1].
@@ -183,6 +281,25 @@ public class CursorOutputControl extends ViewControl
       for( int col = 0; col < values[0].length; col++ )
         values[row][col] = TextField[row][col].getValue();
     return values;
+  }
+  
+ /**
+  * This method will return an exact copy of a CursorOutputControl.
+  *
+  *  @return Copy of the CursorOutputControl.
+  */
+  public ViewControl copy()
+  {
+    // Make an array of strings that match the number of TextValueUIs.
+    // This will be used in the constructor to create a CursorOutputControl
+    // with the correct number of TextValueUIs.
+    String[][] temp = new String[TextField.length][TextField[0].length];
+    for( int i = 0; i < temp.length; i++ )
+      for( int j = 0; j < temp[0].length; j++ )
+        temp[i][j] = "";
+    CursorOutputControl clone = new CursorOutputControl(temp);
+    clone.setObjectState( getObjectState(PROJECT) );
+    return clone;
   }
 
  /**
@@ -315,7 +432,8 @@ public class CursorOutputControl extends ViewControl
       return;
     }
     JFrame tester = new JFrame("CursorOutputControl Test");
-    tester.setBounds(0,0,400,200);
+    tester.getContentPane().setLayout( new java.awt.GridLayout(1,2) );
+    tester.setBounds(0,0,800,200);
     tester.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     //String[] menu = {"menu1","Menu2","Menu3","Menu4","Menu5"};
     String[][] menu = new String[3][4];
@@ -324,13 +442,14 @@ public class CursorOutputControl extends ViewControl
 	menu[i][j] = "Menu" + Integer.toString(i) + Integer.toString(j);
     CursorOutputControl coc = new CursorOutputControl( menu );
     coc.setTitle("Border");
-    coc.setValue( 0,2,Float.NaN);
+    coc.setValue( 0,2,5f);
     /*
     float[][] values = new float[1][1];
     values[0][0] = 1.1f;
     coc.setControlValue(values);
     */
     tester.getContentPane().add(coc);
+    tester.getContentPane().add(coc.copy());
     WindowShower shower = new WindowShower(tester);
     java.awt.EventQueue.invokeLater(shower);
     shower = null;

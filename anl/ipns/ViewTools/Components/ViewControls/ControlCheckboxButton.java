@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2005/03/28 05:57:25  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.12  2005/03/20 05:36:59  millermi
  *  - Modified main() to reflect parameter changes to
  *    ControlManager.makeManagerTestWindow().
@@ -242,6 +245,9 @@ public class ControlCheckboxButton extends ViewControl
   */
   public void setObjectState( ObjectState new_state )
   {
+    // Do nothing if state is null.
+    if( new_state == null )
+      return;
     super.setObjectState( new_state );
     
     Object temp = new_state.get(SELECTED);
@@ -298,6 +304,18 @@ public class ControlCheckboxButton extends ViewControl
   public Object getControlValue()
   {
     return new Boolean(isSelected());
+  }
+  
+ /**
+  * This method will make an exact copy of the control.
+  *
+  *  @return A new, identical instance of the control.
+  */
+  public ViewControl copy()
+  {
+    ControlCheckboxButton ccb = new ControlCheckboxButton();
+    ccb.setObjectState( getObjectState(PROJECT) );
+    return ccb;
   }
   
  /**
@@ -472,26 +490,27 @@ public class ControlCheckboxButton extends ViewControl
     }
     ControlCheckboxButton check = new ControlCheckboxButton();
     ControlCheckboxButton check2 = new ControlCheckboxButton(true);
-    JFrame frame = new JFrame();
-    frame.getContentPane().setLayout( new GridLayout(2,1) );
-    frame.setTitle("ControlCheckbox Test");
-    frame.setBounds(0,0,135,120);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.getContentPane().add(check);
-    frame.getContentPane().add(check2);
     check.setText("myCheckbox");  
     check.setTitle("test1");
     check2.setTitle("TEST2");	
     check.setTextCheckedColor( Color.orange );
     check.setTextUnCheckedColor( Color.green );
+    JFrame frame = new JFrame();
+    frame.getContentPane().setLayout( new GridLayout(0,1) );
+    frame.setTitle("ControlCheckbox Test");
+    frame.setBounds(0,0,200,200);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.getContentPane().add(check);
+    frame.getContentPane().add(check2);
+    frame.getContentPane().add(check.copy());
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    shower = null;/*
     ObjectState state = new ObjectState();
     state.insert( ControlCheckboxButton.SELECTED, new Boolean(true) );
     System.out.println("Prestate");
     check.setObjectState( state );
     check2.doClick();
-    check.setSelected(false);
+    check.setSelected(false);*/
   }
 }

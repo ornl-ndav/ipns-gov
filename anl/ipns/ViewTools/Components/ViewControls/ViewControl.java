@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/03/28 05:57:31  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.10  2005/03/20 05:29:23  millermi
  *  - Added methods getSharedKey() and setSharedKey() for use with
  *    ControlManager.
@@ -94,6 +97,18 @@
  */
 public abstract class ViewControl extends ActiveJPanel implements IViewControl
 {
+ /**
+  * "Title" - This constant String is a key for referencing the state
+  * information about the title of this view control. This title is usually
+  * displayed via a titled border. This ObjectState key references a String.
+  */
+  public static final String TITLE = "Title";
+ /**
+  * "Shared Key" - This constant String is a key for referencing the state
+  * information about the shared key associated with this view control.
+  * This ObjectState key references a String.
+  */
+  public static final String SHARED_KEY = "Shared Key";
  /* **********************************************
   *  Messaging Strings used by action listeners.
   * **********************************************
@@ -106,14 +121,6 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   */
   private String title;
   private String key = null;
- 
- /**
-  * "Title" - This constant String is a key for referencing the state
-  * information about the title of this view control. This title is usually
-  * displayed via a titled border. The value that this key references is of
-  * type String.
-  */
-  public static final String TITLE = "Title";
   
   public ViewControl(String con_title)
   {
@@ -148,6 +155,8 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   {
     ObjectState state = new ObjectState();
     state.insert( TITLE, new String(title) );
+    if( key != null )
+      state.insert( SHARED_KEY, new String(getSharedKey()) );
     return state;
   }
      
@@ -159,11 +168,18 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   */
   public void setObjectState( ObjectState new_state )
   {
+    // Do nothing if state is null.
+    if( new_state == null )
+      return;
     Object temp = new_state.get(TITLE);
     if( temp != null )
     {
-      title = (String)title;
+      setTitle((String)temp);
     }
+    
+    temp = new_state.get(SHARED_KEY);
+    // Set the shared key even if the value is null.
+    setSharedKey((String)temp);
   }
  
  /**
@@ -218,5 +234,38 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   *
   *  @return Value for this control.
   */
-  abstract public Object getControlValue();  
+  abstract public Object getControlValue();
+  
+ /**
+  * This method will make an exact copy of the control.
+  *
+  *  @return A new, identical instance of the control.
+  */
+  abstract public ViewControl copy();
+  
+ /**
+  * Since the ViewControl class automatically displays a border, use this
+  * to hide the border.
+  *
+  *  @param  isVisible If true, display titled border, else hide it.
+  */
+  public void setBorderVisible( boolean isVisible )
+  {
+    // If display border...
+    if( isVisible )
+    {
+      // Check to see if border already exists. If not, create it.
+      if( getBorder() == null )
+      {
+        // setTitle() automatically creates a titled border.
+        setTitle(getTitle());
+      }
+    }
+    else
+    {
+      // Else set the border to null, in effect making it disappear.
+      setBorder(null);
+    }
+    repaint();
+  }
 }

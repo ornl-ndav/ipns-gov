@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2005/03/28 05:57:30  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.6  2005/03/21 00:53:32  millermi
  *  - SELECTED_LIST now returned by the getObjectState(default).
  *    Previously, it was a PROJECT option.
@@ -71,7 +74,6 @@
  import java.awt.GridLayout;
  
  import gov.anl.ipns.Util.Sys.WindowShower;
- import gov.anl.ipns.ViewTools.Components.IPreserveState;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
 
 /**
@@ -121,6 +123,7 @@ public class FormatControl extends ViewControl
   {  
     super("");
     formats = new JComboBox[1];
+    formats[0] = new JComboBox();
     init();
   }
  
@@ -207,6 +210,9 @@ public class FormatControl extends ViewControl
   */
   public void setObjectState( ObjectState new_state )
   {
+    // Do nothing if state is null.
+    if( new_state == null )
+      return;
     super.setObjectState( new_state );
     boolean redraw = false;
     Object temp = new_state.get(FORMAT_LIST);
@@ -264,6 +270,18 @@ public class FormatControl extends ViewControl
     for( int i = 0; i < values.length; i++ )
       values[i] = getSelectedIndex(i);
     return values;
+  }
+  
+ /**
+  * This method will return an exact copy of a FormatControl.
+  *
+  *  @return Copy of the FormatControl.
+  */
+  public ViewControl copy()
+  {
+    FormatControl clone = new FormatControl();
+    clone.setObjectState( getObjectState(PROJECT) );
+    return clone;
   }
   
  /**
@@ -541,10 +559,10 @@ public class FormatControl extends ViewControl
       return;
     }
     JFrame frame = new JFrame();
-    //frame.getContentPane().setLayout( new GridLayout(2,1) );
+    frame.getContentPane().setLayout( new GridLayout(2,1) );
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setTitle("FormatControl Test");
-    frame.setBounds(0,0,135,120);
+    frame.setBounds(0,0,135,200);
     Object[] listA = {"ListA0","ListA1","ListA2"};
     Object[] listB = {"ListB0","ListB1","ListB2","ListB3"};
     Object[] listC = {"ListC0","ListC1","ListC2","ListC3","ListC4"};
@@ -576,7 +594,7 @@ public class FormatControl extends ViewControl
     Object[] listE = {"ListE0","ListE1","ListE2","ListE3"};
     Object[] listF = {"ListC0","ListF1","ListF2","ListF3","ListF4"};
     
-    ObjectState state = fc.getObjectState(IPreserveState.PROJECT);
+    ObjectState state = fc.getObjectState(PROJECT);
     Vector new_list = new Vector();
     new_list.add(listD);
     new_list.add(listE);
@@ -591,8 +609,9 @@ public class FormatControl extends ViewControl
     fc.setToolTipText(1,"This Should Not Appear");
     fc.setToolTipText(2,"This Should Not Appear");
     fc.setObjectState(state);
-    
+    FormatControl clone = (FormatControl)fc.copy();
     frame.getContentPane().add(fc);
+    frame.getContentPane().add(clone);
     
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);

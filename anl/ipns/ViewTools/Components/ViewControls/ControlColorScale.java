@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2005/03/28 05:57:26  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.28  2005/03/09 22:36:04  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -174,13 +177,13 @@
  
  import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
  import gov.anl.ipns.ViewTools.UI.ColorScaleImage;
- import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
- import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
  import gov.anl.ipns.ViewTools.Components.AxisInfo;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.PseudoLogScaleUtil;
+ import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
  import gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D;
  import gov.anl.ipns.ViewTools.Components.Transparency.IPseudoLogAxisAddible;
+ import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
  import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
  import gov.anl.ipns.Util.Numeric.floatPoint2D;
  import gov.anl.ipns.Util.Sys.WindowShower;
@@ -358,6 +361,9 @@ public class ControlColorScale extends ViewControl
   */
   public void setObjectState( ObjectState new_state )
   {
+    // Do nothing if state is null.
+    if( new_state == null )
+      return;
     super.setObjectState( new_state );
     boolean redraw = false;
     Object temp = new_state.get(COLOR_SCALE);
@@ -423,6 +429,28 @@ public class ControlColorScale extends ViewControl
   public Object getControlValue()
   {
     return getColorScale();
+  }
+  
+ /**
+  * This method will make an exact copy of the control.
+  *
+  *  @return A new, identical instance of the control.
+  */
+  public ViewControl copy()
+  {
+    ControlColorScale ccs;
+    // If basic colorscale, only need colorscale and two sided.
+    if( isBasic )
+    {
+      ccs = new ControlColorScale( getColorScale(), isTwoSided() );
+    }
+    // Else calibrated color scale.
+    else
+    {
+      ccs = new ControlColorScale( component, orientate );
+    }
+    ccs.setObjectState( getObjectState(PROJECT) );
+    return ccs;
   }
  
  /**
@@ -852,16 +880,7 @@ public class ControlColorScale extends ViewControl
     /*ControlColorScale color = 
  		new ControlColorScale(IndexColorMaker.GRAY_SCALE, true);*/ 
     
-    JFrame frame = new JFrame();
-    frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-    frame.getContentPane().setLayout( new GridLayout(1,1) );
-    frame.setTitle("ControlColorScale Test");
-    frame.setBounds(0,0,300,300);
-    frame.getContentPane().add(color);
     color.setTitle("myColorScale");
-    WindowShower shower = new WindowShower(frame);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
     // test state
     ObjectState state = new ObjectState();
     state.insert( COLOR_SCALE, new String(IndexColorMaker.MULTI_SCALE) );
@@ -870,5 +889,16 @@ public class ControlColorScale extends ViewControl
     state.insert( LOG_SCALE, new Double(.5) );
     state.insert( MARKER, new Float(0) );
     color.setObjectState(state);
+    
+    JFrame frame = new JFrame();
+    frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+    frame.getContentPane().setLayout( new GridLayout(1,0) );
+    frame.setTitle("ControlColorScale Test");
+    frame.setBounds(0,0,600,300);
+    frame.getContentPane().add(color);
+    frame.getContentPane().add(color.copy());
+    WindowShower shower = new WindowShower(frame);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
 }

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/03/28 05:57:32  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.3  2005/03/20 19:53:24  millermi
  *  - Added state method getInstance() which now makes the ControlManager
  *    a Singleton class, only one instance can exist, unless a class
@@ -53,6 +56,7 @@
  */
  package gov.anl.ipns.ViewTools.Components.ViewControls;
  
+ import java.awt.Component;
  import java.awt.GridLayout;
  import java.awt.event.ActionEvent;
  import java.awt.event.ActionListener;
@@ -60,6 +64,8 @@
  import java.util.Hashtable;
  import java.util.Vector;
  import javax.swing.JFrame;
+ import javax.swing.JLabel;
+ import javax.swing.JPanel;
  
  import gov.anl.ipns.Util.Sys.SharedMessages;
  import gov.anl.ipns.Util.Sys.WindowShower;
@@ -67,16 +73,20 @@
  * This class allows control values for similar controls to be shared.
  * Controls are registered under a category key. All controls under a
  * key maintain a consistent value, when one is altered, all are altered.
- * This class has no graphical display, it links control values behind
- * the scenes. The viewer is responsible for displaying a list of shared
- * controls. Because this class is intended to be a singleton, use
- * getInstance() to get the control manager.
+ * This class has a graphical display which consists of a copy of the first
+ * control added under each key. The viewer may chose not to use this display
+ * if displaying all shared controls is desired. Because this class is intended
+ * to be a singleton, use getInstance() to get the control manager. No other
+ * constructors are provided.
  */
  public class ControlManager
  {
+   // This will allow only one instance of the ControlManager to exist.
+   private static ControlManager this_manager = null;
    // Registry of all category keys and associated controls list.
    private Hashtable ctrl_table;
-   private static ControlManager this_manager = null;
+   private JPanel shared_ctrls_ui;
+   private JLabel no_ctrls = new JLabel("No controls to display.");
    
   /**
    * This method will prevent multiple instances of the ControlManager from
@@ -93,14 +103,17 @@
      return this_manager;
    }
    
-  /**
-   * Constructor - initializes control registry. Used if a single instance
-   * in not necessary. Currently, its use is restricted to testing for
-   * ViewControls.
+  /*
+   * Constructor - initializes control registry. Prevent anyone from making
+   * an instance of the ControlManager without using getInstance(). This
+   * forces a single instance of the ControlManager.
    */
-   protected ControlManager()
+   private ControlManager()
    {
      ctrl_table = new Hashtable();
+     // Force only one column of controls.
+     shared_ctrls_ui = new JPanel( new GridLayout(0,1) );
+     shared_ctrls_ui.add( no_ctrls );
    }
    
   /**
@@ -116,7 +129,7 @@
    *  @return Returns true if registration is successful,
    *                  false if not successful.
    */ 
-   public boolean registerControl( IViewControl vc )
+   public boolean registerControl( ViewControl vc )
    {
      // Check for invalid control or invalid key.
      if( vc == null || vc.getSharedKey() == null )
@@ -126,18 +139,33 @@
      // If key does not yet exist, create a new category vector for this key.
      if( category == null )
      {
+       // Make copy of control and add it to the shared_ctrls_ui panel
+       // for graphical display. Also add it to the table. This copy will
+       // be used for graphical applications since Java will not allow
+       // one instance to be displayed twice.
+       ViewControl clone = vc.copy();
        category = new Vector();
+       category.add(clone);
        category.add(vc);
        // Add listener to control to monitor when values are changed.
+       clone.addActionListener( new ControlListener() );
        vc.addActionListener( new ControlListener() );
        ctrl_table.put( key, category );
+       // If first control to be added, remove the "No controls to display"
+       // label that was inserted upon creation.
+       if( shared_ctrls_ui.getComponentCount() == 1 )
+         shared_ctrls_ui.remove(no_ctrls);
+       // Add copy of new control.
+       shared_ctrls_ui.add(clone);
+       shared_ctrls_ui.validate();
+       shared_ctrls_ui.repaint();
        // Tell outside programs that registration was successful.
        return true;
      }
      // Else key exists. Now check to see if control is consistent with
      // existing controls.
      Object value1 = vc.getControlValue();
-     Object value2 = ((IViewControl)category.elementAt(0)).getControlValue();
+     Object value2 = ((ViewControl)category.elementAt(0)).getControlValue();
      // Check to see if values are null.
      // Make sure value that is returned is consistent with values that
      // existing controls return.
@@ -173,7 +201,7 @@
    *  @param  vc The ViewControl being registered.
    *  @return True if found and unregistered, false if not found.
    */ 
-   public boolean unregisterControl( IViewControl vc )
+   public boolean unregisterControl( ViewControl vc )
    {
      // Make sure vc is valid.
      if( vc == null )
@@ -183,6 +211,7 @@
      boolean temp = false;
      Object current_key;
      Vector current_element;
+     boolean gui_ctrl_found = false;
      // Go through all Vectors and see if control is registered.
      while( keys.hasMoreElements() )
      {
@@ -192,13 +221,33 @@
        // Try to remove control from current vector. "temp" will keep track
        // whether the control is removed or not for each key.
        temp = current_element.remove(vc);
-       // If current vector is now empty, remove it from the hashtable.
-       if( current_element.size() == 0 )
-         ctrl_table.remove(current_key);
+       // If current vector contains only one control, that is the cloned
+       // control, so remove it from the hashtable.
+       if( current_element.size() == 1 )
+       {
+         ViewControl copy = (ViewControl)current_element.elementAt(0);
+	 // Remove control from shared controls JPanel.
+	 if( copy != null )
+	 {
+	   shared_ctrls_ui.remove(copy);
+	   gui_ctrl_found = true;
+         }
+	 // Remove from the "invisible" registry table.
+	 ctrl_table.remove(current_key);
+       }
        // Since temp is always changing, use foundflag to "remember" if 
        // control is found.
        if( temp == true )
          foundflag = true;
+     }
+     // If a control displayed be the panel was found, repaint the panel.
+     if( gui_ctrl_found )
+     {
+       // If no shared controls exist, readd the "No controls to display" label.
+       if( shared_ctrls_ui.getComponentCount() == 0 )
+         shared_ctrls_ui.add( no_ctrls );
+       shared_ctrls_ui.validate();
+       shared_ctrls_ui.repaint();
      }
      return foundflag;
    }
@@ -247,6 +296,22 @@
      return key_list;
    }
    
+  /**
+   * Get a graphical collection of shared controls displayed in a single
+   * panel. As controls are registered and unregistered, the panel adds
+   * and removes expired controls. All controls displayed are copies,
+   * allowing for multiple display instances of the "same" control. Only a
+   * copy of the first registered control for each key is displayed by
+   * this panel.
+   *
+   *  @return Graphical collection of shared controls displayed in a single
+   *          column.
+   */
+   public JPanel getSharedControlsUI()
+   {
+     return shared_ctrls_ui;
+   }
+   
   /*
    * This class will ensure that controls registered under a common key
    * are kept consistent.
@@ -258,7 +323,7 @@
        // Only do something if message from IViewControl is VALUE_CHANGED
        if( !ae.getActionCommand().equals(IViewControl.VALUE_CHANGED) )
          return;
-       IViewControl vc = (IViewControl)ae.getSource();
+       ViewControl vc = (ViewControl)ae.getSource();
        Object value = vc.getControlValue();
        Enumeration elements = ctrl_table.elements();
        // Using the foundflag assumes the control will only be registered
@@ -279,7 +344,7 @@
 	   {
 	     // Only set value if message did not come from this control.
 	     if( vc != temp.elementAt(i) )
-	       ((IViewControl)temp.elementAt(i)).setControlValue(value);
+	       ((ViewControl)temp.elementAt(i)).setControlValue(value);
 	     //else
 	     //  System.out.println("Same Control ["+i+"]");
 	   }
@@ -353,6 +418,8 @@
    
   /**
    * For testing purposes only...
+   *
+   *  @param  args Input parameters are ignored.
    */
    public static void main( String[] args )
    {
@@ -397,6 +464,7 @@
 	     }
 	     else
 	     {
+	       cm.unregisterControl(cs1);
 	       cm.unregisterControl(cs2);
 	       cm.unregisterControl(cc1);
 	       cm.unregisterControl(cc2);
@@ -428,7 +496,17 @@
      frame.getContentPane().add(cc2);
      frame.getContentPane().add(registerControl);
      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+     
+     // Build frame for displaying the shared controls gui.
+     JFrame frame2 = new JFrame("Shared Controls");
+     frame2.getContentPane().add(cm.getSharedControlsUI());
+     // Allow 50 pixels for each control
+     frame2.setBounds(200,0,200,200);
+     
      WindowShower shower = new WindowShower(frame);
+     java.awt.EventQueue.invokeLater(shower);
+     
+     shower = new WindowShower(frame2);
      java.awt.EventQueue.invokeLater(shower);
      shower = null;
    }

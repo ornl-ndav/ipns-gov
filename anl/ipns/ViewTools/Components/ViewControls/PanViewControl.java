@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2005/03/28 05:57:31  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.19  2005/03/20 05:37:00  millermi
  *  - Modified main() to reflect parameter changes to
  *    ControlManager.makeManagerTestWindow().
@@ -241,12 +244,15 @@ public class PanViewControl extends ViewControl
   */
   public void setObjectState( ObjectState new_state )
   {
+    // Do nothing if state is null.
+    if( new_state == null )
+      return;
     // call setObjectState of ViewControl, sets title if one exists.
     super.setObjectState( new_state );
     Object temp = new_state.get(OVERLAY);
     if( temp != null )
     {
-      overlay.setObjectState(new_state);
+      overlay.setObjectState((ObjectState)temp);
     }
   }
   
@@ -274,6 +280,21 @@ public class PanViewControl extends ViewControl
   public Object getControlValue()
   {
     return getLocalBounds();
+  }
+  
+ /**
+  * This method will make an exact copy of the PanViewControl.
+  *
+  *  @return A new, identical instance of the control.
+  */
+  public ViewControl copy()
+  {
+    PanViewControl clone = new PanViewControl(actual_cjp);/*
+    clone.setGlobalBounds(getGlobalBounds());
+    clone.setLocalBounds(getLocalBounds());
+    clone.enableStretch(isStretchEnabled());*/
+    clone.setObjectState( getObjectState(PROJECT) );
+    return clone;
   }
   
  /**
@@ -567,7 +588,8 @@ public class PanViewControl extends ViewControl
     }
     
     JFrame f = new JFrame("Test for PanViewControl");
-    f.setBounds(0,0,200,200);
+    f.getContentPane().setLayout( new java.awt.GridLayout(2,1) );
+    f.setBounds(0,0,200,400);
     f.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     ImageJPanel2 test = new ImageJPanel2();
     ArrayGenerator test_array = new ArrayGenerator(1000,1000);
@@ -575,7 +597,14 @@ public class PanViewControl extends ViewControl
     test.setData(test_array, true);
 
     PanViewControl pvc = new PanViewControl( test );
+    CoordBounds local = pvc.getGlobalBounds();
+    local.scaleBounds(.5f,.5f);
+    pvc.setLocalBounds(local);
+    pvc.enableStretch(false);
+    PanViewControl pvc2 = (PanViewControl)pvc.copy();
+    pvc2.setTitle("Clone");
     f.getContentPane().add(pvc);
+    f.getContentPane().add(pvc2);
     WindowShower shower = new WindowShower(f);
     java.awt.EventQueue.invokeLater(shower);
     shower = null;

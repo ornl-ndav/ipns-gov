@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/03/28 05:57:32  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.8  2005/03/20 05:37:02  millermi
  *  - Modified main() to reflect parameter changes to
  *    ControlManager.makeManagerTestWindow().
@@ -180,6 +183,20 @@ public class ViewControlMaker extends ViewControl
     }
     // else return null
     return null;
+  }
+  
+ /**
+  * This method is not supported by the ViewControlMaker. Because this class
+  * only knows about a component, it cannot make a copy of that component.
+  * This method will still return a ViewControlMaker, but it will display
+  * the message "ViewControlMaker.copy() unsupported".
+  *
+  *  @return Does not return an exact copy, only an instance. 
+  */
+  public ViewControl copy()
+  {
+    return new ViewControlMaker( 
+             new javax.swing.JLabel("ViewControlMaker.copy() unsupported") );
   }
   
   private class ActionList implements ActionListener

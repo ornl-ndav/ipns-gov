@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/03/28 05:57:25  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.7  2005/03/20 05:36:58  millermi
  *  - Modified main() to reflect parameter changes to
  *    ControlManager.makeManagerTestWindow().
@@ -60,6 +63,7 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
  import java.awt.GridLayout;
  
  import gov.anl.ipns.Util.Sys.WindowShower;
+ import gov.anl.ipns.ViewTools.Components.ObjectState;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a generic button for use 
@@ -68,6 +72,11 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
  */ 
 public class ButtonControl extends ViewControl
 {
+  /**
+   * "Button Text" - This String key refers to the text displayed on the
+   * button. This ObjectState key references a String.
+   */
+   public static final String BUTTON_TEXT = "Button Text";
    private JButton button;
    private transient boolean ignore_change = false;
    private transient boolean button_pressed = false;
@@ -83,6 +92,40 @@ public class ButtonControl extends ViewControl
       button.addActionListener( new ButtonListener() ); 
      
    }
+ 
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault )
+  {
+    ObjectState state = super.getObjectState(isDefault);
+    state.insert( BUTTON_TEXT, new String(button.getText()) );
+    return state;
+  }
+     
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    // Do nothing if state is null.
+    if( new_state == null )
+      return;
+    Object temp = new_state.get(BUTTON_TEXT);
+    if( temp != null )
+    {
+      button.setText((String)temp);
+    }
+  }
   
  /**
   * Since the button holds no value other than a title, this method calls
@@ -112,6 +155,18 @@ public class ButtonControl extends ViewControl
   public Object getControlValue()
   {
     return new Boolean(button_pressed);
+  }
+  
+ /**
+  * This method will make an exact copy of the control.
+  *
+  *  @return A new, identical instance of the control.
+  */
+  public ViewControl copy()
+  {
+    ButtonControl bc = new ButtonControl(button.getText());
+    bc.setObjectState( getObjectState(PROJECT) );
+    return bc;
   }
   
  /**
@@ -189,6 +244,7 @@ public class ButtonControl extends ViewControl
       frame.setTitle("LabelCombobox Test");
       frame.setBounds(0,0,135,120);
       frame.getContentPane().add(button);
+      frame.getContentPane().add(button.copy());
 
       WindowShower shower = new WindowShower(frame);
       java.awt.EventQueue.invokeLater(shower);

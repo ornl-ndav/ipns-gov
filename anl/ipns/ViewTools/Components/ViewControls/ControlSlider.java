@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/03/28 05:57:26  millermi
+ *  - Added copy() which will make an exact copy of the ViewControl.
+ *
  *  Revision 1.14  2005/03/20 05:36:59  millermi
  *  - Modified main() to reflect parameter changes to
  *    ControlManager.makeManagerTestWindow().
@@ -261,6 +264,9 @@ public class ControlSlider extends ViewControl
   */
   public void setObjectState( ObjectState new_state )
   {
+    // Do nothing if state is null.
+    if( new_state == null )
+      return;
     // call setObjectState of ViewControl, sets title if one exists.
     super.setObjectState( new_state );
     // range must be set first.
@@ -297,6 +303,18 @@ public class ControlSlider extends ViewControl
     {
       setMinorTickSpace(((Float)temp).floatValue()); 
     }
+  }
+  
+ /**
+  * This method will make an exact copy of the control.
+  *
+  *  @return A new, identical instance of the control.
+  */
+  public ViewControl copy()
+  {
+    ControlSlider temp = new ControlSlider();
+    temp.setObjectState(getObjectState(PROJECT));
+    return temp;
   }
   
  /**
@@ -569,10 +587,6 @@ public class ControlSlider extends ViewControl
       return;
     }
     ControlSlider slide = new ControlSlider();
-    JFrame frame = new JFrame();
-    frame.setBounds(0,0,150,90);
-    frame.getContentPane().add(slide);
-    frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     slide.setTitle("mySlide");
     //slide.setStep(.001f);
     //slide.setRange(2.3f,20.5f);
@@ -587,6 +601,12 @@ public class ControlSlider extends ViewControl
     state.insert( ControlSlider.STEP, new Float(.001f) );  // step size
     // state.insert( ControlSlider.STEP, new Integer(100) );  // num of steps
     slide.setObjectState( state );
+    JFrame frame = new JFrame();
+    frame.setBounds(0,0,150,150);
+    frame.getContentPane().setLayout( new java.awt.GridLayout(2,0) );
+    frame.getContentPane().add(slide);
+    frame.getContentPane().add(slide.copy());
+    frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
     shower = null;
