@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2005/01/26 22:27:00  millermi
+ *  - Removed public messaging string STATE_CHANGED since it
+ *    was unused.
+ *
  *  Revision 1.9  2004/03/15 23:53:50  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -104,7 +108,6 @@ public class ObjectState implements java.io.Serializable
   * false if GLOBAL is used for inserting.
   */
   public static final String GLOBAL = "Global";
-  public static final String STATE_CHANGED = "State Changed";
   private Hashtable table;
   private transient ObjectState this_state;
   private transient JFrame f;
