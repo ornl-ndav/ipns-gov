@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/06/18 20:35:35  pfpeterson
+ *  Changed calls for NxNodeUtils.Showw(Object) to
+ *  DataSetTools.util.StringUtil.toString(Object)
+ *
  *  Revision 1.6  2003/03/03 16:49:16  pfpeterson
  *  Changed SharedData.status_pane.add(String) to SharedData.addmsg(String)
  *
@@ -54,6 +58,7 @@
 
 
 package DataSetTools.dataset;
+import DataSetTools.util.StringUtil;
 import java.io.*;
 import java.util.*;
 import Command.*;
@@ -350,7 +355,7 @@ public class xml_utils
     dt=dt.substring( dt.lastIndexOf('.')+1);
    
     try
-    {String SS = (new NexIO.NxNodeUtils()).Showw( A.getValue());
+    {String SS = StringUtil.toString( A.getValue());
       if( SS != null)
         if( SS.length() >=1)
           {
@@ -669,8 +674,8 @@ public static void main( String args[])
          else if( c=='g')
            System.out.println(xml_utils.getEndTag(fin));
          else if(c=='A')
-           System.out.println( (new NexIO.NxNodeUtils()).Showw(
-            xml_utils.getNextAttribute(fin)));
+           System.out.println( StringUtil.toString(
+                                             xml_utils.getNextAttribute(fin)));
          else if( c=='a')
             System.out.println(xml_utils.skipAttributes(fin));
          else if( c=='v')

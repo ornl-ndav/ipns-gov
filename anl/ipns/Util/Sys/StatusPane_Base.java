@@ -31,6 +31,10 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.4  2003/06/18 20:34:46  pfpeterson
+ * Changed calls for NxNodeUtils.Showw(Object) to
+ * DataSetTools.util.StringUtil.toString(Object)
+ *
  * Revision 1.3  2002/11/27 23:12:10  pfpeterson
  * standardized header
  *
@@ -64,7 +68,7 @@ import javax.swing.text.*;
 import java.util.*;  
 import IsawGUI.*;  
 import java.lang.*;  
-import NexIO.*;  
+import DataSetTools.util.StringUtil;
 import javax.swing.border.*;  
   
 /**
@@ -153,7 +157,7 @@ public class StatusPane_Base extends JTextArea
                    S = Value.toString();  
         
         if( S == null)  
-            S = (new NxNodeUtils()).Showw( Value);  
+            S = StringUtil.toString(Value);
 
         if( isDisplayable())
             new Util().appendDoc(getDocument(), S ) ;
