@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/03/04 20:51:51  dennis
+ * Now calls setMode() on the hkl_selector to switch labels between
+ * HKL and QXYZ options.
+ * Also, now sets a selected plane into all of the different
+ * selector GUI's when the user changes a selection, instead of
+ * when the tabbed pane is changed.
+ *
  * Revision 1.6  2004/02/10 05:33:03  bouzekc
  * Now uses IsawToolkit.beep().
  *
@@ -81,9 +88,6 @@ public class SlicePlane3D_UI extends    ActiveJPanel
                              implements ISlicePlaneSelector,
                                         Serializable 
 {
-  public  static final int    HKL_MODE  = HKL_SliceSelector.CONSTANT_HKL_MODE;
-  public  static final int    QXYZ_MODE = HKL_SliceSelector.CONSTANT_QXYZ_MODE;
-
   private static final String HKL_TITLE  = "Select HKL Plane";
   private static final String QXYZ_TITLE = "Select Qxyz Plane";
 
@@ -167,7 +171,7 @@ public class SlicePlane3D_UI extends    ActiveJPanel
       label_mode = QXYZ_MODE;
     }
 
-    hkl_selector.setLabels( mode );
+    hkl_selector.setMode( mode );
     tabbed_pane.setTitleAt( 3, tab_title );
     TitledBorder border =
                  new TitledBorder(LineBorder.createBlackLineBorder(), title );
@@ -235,9 +239,13 @@ public class SlicePlane3D_UI extends    ActiveJPanel
   {
     public void stateChanged(ChangeEvent e)
     {
+
+/*  This causes the plane to change when moving off from a particular selector
+    rather than when the user does something.
       ISlicePlaneSelector selector =
                        (ISlicePlaneSelector)tabbed_pane.getSelectedComponent();
       selector.setPlane( old_slice_plane ); 
+*/
     }
   }
 
@@ -252,6 +260,9 @@ public class SlicePlane3D_UI extends    ActiveJPanel
   {
     public void actionPerformed( ActionEvent e )
     {
+      if ( !isShowing() )          // ignor events if the control isn't there
+        return;
+
       if ( tabbed_pane == null )
       {                            // For some reason this was null sometimes
                                    // after the mode concept was added
@@ -275,6 +286,9 @@ public class SlicePlane3D_UI extends    ActiveJPanel
       }
 
       old_slice_plane = new_plane;
+      setPlane( new_plane );                // set the new plane into all of
+                                            // the possible selectors
+
       send_message( ISlicePlaneSelector.PLANE_CHANGED );
     }
   }
