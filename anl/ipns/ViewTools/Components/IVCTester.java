@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2004/01/07 22:35:15  millermi
+ * - main() now sets negative values in the VirtualArray to
+ *   allow for better testing.
+ *
  * Revision 1.10  2003/12/20 03:35:41  millermi
  * - changed comments and code on how Float.NaN is checked.
  *
@@ -390,7 +394,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     float test_array[][] = new float[row][col];
     for ( int i = 0; i < row; i++ )
       for ( int j = 0; j < col; j++ )
-        test_array[i][j] = i + j;
+        test_array[i][j] = i - j;
     VirtualArray2D va2D = new VirtualArray2D( test_array );
     va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
     		        "TestX","TestUnits", true );
