@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/05/22 20:29:52  millermi
+ *  - Added ExcelAdapter to allow copy and paste capabilities.
+ *  - Added method convertToTableRegion() to convert any Region
+ *    to a TableRegion.
+ *
  *  Revision 1.1  2004/05/12 21:38:30  millermi
  *  - New Directory added to Panels directory.
  *  - Initial Version of TableJPanel - This class parallels the
@@ -42,6 +47,8 @@
  */
 package gov.anl.ipns.ViewTools.Panels.Table;
  
+import IsawGUI.ExcelAdapter;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -76,6 +83,7 @@ import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.IVirtualArrayList1D;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.Region.TableRegion;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 
@@ -99,7 +107,9 @@ public class TableJPanel extends ActiveJPanel
   */
   public static final String POINTED_AT_CHANGED = "Pointed At Changed";
   
-  private final float SHIFT_DIVISOR = 4f;
+  private final float SHIFT_DIVISOR = 4f; // 1/SHIFT_DIVISOR controls when
+                                          // the table is shifted to the next
+					  // row and/or column.
   private Point anchor = new Point(); // The beginning of the initial selection.
   private Point extend = null; // The variable end of the initial selection.
   private Point ctrl_anchor = null; // The beginning of an additional selection.
@@ -170,6 +180,8 @@ public class TableJPanel extends ActiveJPanel
     label_color = Color.lightGray;
     selections = new Vector();
     ignore_notify = false;
+    // Add copy and paste ability.
+    new ExcelAdapter( table );
     
     table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
     table.setCellSelectionEnabled( false );
@@ -499,7 +511,250 @@ public class TableJPanel extends ActiveJPanel
     // Note that the (x,y) point is actually stored as (column,row).
     setSelectedCells( p1.y, p2.y, p1.x, p2.x, region.isSelected() );
     table.repaint();
-  } 
+  }
+  
+ /**
+  * This method will take a list of any type of region and convert it
+  * to a list of TableRegions.
+  *
+  *  @param  any_region the list of Regions to be converted to TableRegions.
+  *  @return A list of TableRegions that make up the same region as the
+  *          list of regions passed in.
+  */
+  public static TableRegion[] convertToTableRegions( Region[] any_region )
+  {
+    Vector table_regions = new Vector();
+    Vector other_regions = new Vector();
+    int row_min = Integer.MAX_VALUE;
+    int row_max = 0;
+    int col_min = Integer.MAX_VALUE;
+    int col_max = 0;
+    CoordBounds region_bounds;
+    
+    // Go through the list of regions and separate the TableRegions from the
+    // rest of the regions.
+    for( int i = 0; i < any_region.length; i++ )
+    {
+      // If already a TableRegion, put it directly into the TableRegion list.
+      if( any_region[i] instanceof TableRegion )
+        table_regions.add(any_region[i]);
+      else
+      {
+        region_bounds = any_region[i].getRegionBounds();
+	// Find absolute min and max row and column of all the regions to
+	// reduce the size of the table rows and columns that are looked at.
+	if( row_min > region_bounds.getY1() )
+	  row_min = (int)region_bounds.getY1();
+	if( row_max < region_bounds.getY2() )
+	  row_max = (int)region_bounds.getY2();
+	if( col_min > region_bounds.getX1() )
+	  col_min = (int)region_bounds.getX1();
+	if( col_max < region_bounds.getX2() )
+	  col_max = (int)region_bounds.getX2();
+	// Add the region to the miscellaneous region list for further analysis.
+	other_regions.add(any_region[i]);
+      }
+    }
+    
+    // Convert the vector of misc. regions to an array of regions so the
+    // union of the regions can be calculated.
+    Region[] misc_region = new Region[other_regions.size()];
+    for( int reg_num = 0; reg_num < other_regions.size(); reg_num++ )
+    {
+      misc_region[reg_num] = (Region)other_regions.elementAt(reg_num);
+    }
+    
+    // Get all of the unique points selected by these regions.
+    Point[] misc_point = Region.getRegionUnion(misc_region);
+    
+    // Make grid and mark all of the selected points. Add an extra row that
+    // should be all false, this will cause any remaining bounds in the
+    // bounds_list to be converted to TableRegions.
+    boolean[][] points_grid = new boolean[row_max-row_min+2][col_max-col_min+1];
+    for( int point_index = 0; point_index < misc_point.length; point_index++ )
+      points_grid[misc_point[point_index].y-row_min]
+                 [misc_point[point_index].x-col_min] = true;
+    
+    // Keep a list of CoordBounds that are actively growing. If a bound is
+    // found to have stopped, remove it and convert it to a TableRegion.
+    Vector bounds_list = new Vector();
+    // Analyze the grid row by row.
+    for( int row = 0; row < points_grid.length; row++ )
+    {
+      for( int col = 0; col < points_grid[0].length; col++ )
+      {
+        // First row is special case.
+        if( row == 0 )
+	{
+	  // Only do something is a cell is selected in the first row.
+	  if( points_grid[row][col] )
+	  {
+	    CoordBounds temp_bound = new CoordBounds( (float)col, (float)row,
+	                                       (float)col+.1f, (float)row+.1f );
+	    col++;
+	    // While col is valid and the next cell is selected, increment col.
+	    while( col < points_grid[0].length && points_grid[row][col] )
+	    {
+	      col++;
+	    }
+	    // col is now one past the last true value, decrement col back to
+	    // the last true value.
+	    col--;
+	    temp_bound.setBounds( temp_bound.getX1(), temp_bound.getY1(),
+	                          (float)col+.1f, temp_bound.getY2() );
+	    bounds_list.add(temp_bound);
+	  }
+	}
+	// If not the first row, now check for differences between the current
+	// row and the previous row.
+        else if( points_grid[row-1][col] != points_grid[row][col] )
+	{
+	  // Find the index of the bound that has col in its interval.
+	  int bound_index = getBoundIndex( col, bounds_list );
+	  // If bound_index = -1 and the cell at row,col is selected,
+	  // a new bound must be added.
+	  if( bound_index == -1 && points_grid[row][col] )
+	  {
+	    CoordBounds temp_bound = new CoordBounds( (float)col, (float)row,
+	                                       (float)col+.1f, (float)row+.1f );
+	    col++;
+	    // While col is valid, the next cell is selected, and the next cell
+	    // is not part of an existing bound, increment col.
+	    // This will find the extent of the new bound.
+	    while( col < points_grid[0].length && points_grid[row][col] &&
+	           (getBoundIndex(col,bounds_list) == -1) )
+	    {
+	      col++;
+	    }
+	    // col is now one past the last true value, decrement col back to
+	    // the last true value.
+	    col--;
+	    // Set the extent of the column values for this bound.
+	    temp_bound.setBounds( temp_bound.getX1(), temp_bound.getY1(),
+	                          (float)col+.1f, temp_bound.getY2() );
+	    // Add the bound to the actively changing bound.
+	    bounds_list.add(temp_bound);
+	  }
+	  // If valid index, one of the existing bounds has ended.
+	  else if( bound_index != -1 )
+	  {
+	    // End the bound at bound_index
+	    CoordBounds ending =
+	                    (CoordBounds)bounds_list.elementAt(bound_index);
+	    // The initial row/col and ending column have been set, now set
+	    // the ending row to the current row.
+	    ending.setBounds( ending.getX1(), ending.getY1(),
+	                      ending.getX2(), (float)(row-1)+.1f );
+	    // Remove the ending bound since it is no longer actively growing.
+	    bounds_list.removeElementAt(bound_index);
+	    // Convert the ending bound into a TableRegion and add it to the
+	    // table_regions list.
+            floatPoint2D[] def_pts = new floatPoint2D[2];
+            def_pts[0] = new floatPoint2D( ending.getX1()+(float)col_min,
+	                                   ending.getY1()+(float)row_min);
+            def_pts[1] = new floatPoint2D( ending.getX2()+(float)col_min,
+	                                   ending.getY2()+(float)row_min);
+            table_regions.add( new TableRegion( def_pts, true ) );
+	    
+	    // If the difference did not occur at the beginning of the bound,
+	    // col should be the ending of a new bound that started at the same
+	    // column as "ending".
+	    if( Math.round( ending.getX1()) != col )
+	    {
+	      bounds_list.add( new CoordBounds( ending.getX1(), (float)row,
+	                                 (float)(col-1)+.1f, (float)row+.1f ) );
+	    }
+	    // If difference at beginning column, make sure no other bounds
+	    // were created that make up only part of the ending bounds.
+	    else
+	    {
+	      CoordBounds new_bound = new CoordBounds();
+	      boolean making_bound = false;
+	      boolean col_incremented = false;
+	      while( col < points_grid[0].length && 
+	             getBoundIndex(col,bounds_list) == -1 )
+	      {
+	        // If the points_grid is selected, start or grow the bound.
+	        if( points_grid[row][col] )
+		{
+		  // Set the beginning row and column and mark making_bound
+		  // flag to true.
+		  if( !making_bound )
+		  {
+		    new_bound.setBounds( (float)col, (float)row,
+		                         (float)col+.1f, (float)row+.1f );
+		    making_bound = true;
+		  }
+		  // If started, grow the bound's columns.
+		  else
+		  {
+		    new_bound.setBounds( new_bound.getX1(), new_bound.getY1(),
+		                         (float)col+.1f, new_bound.getY2() );
+		  }
+		}
+		else
+		{
+		  // If bound started, add it to the bounds_list.
+		  if( making_bound )
+		  {
+		    bounds_list.add( new_bound );
+		    making_bound = false;
+		  }
+		}
+		col++;
+		col_incremented = true;
+	      }
+	      
+	      // If col was incremented at all, move it back one so the last
+	      // column value is not skipped.
+	      if( col_incremented )
+	      {
+	        col--;
+		col_incremented = false;
+	      }
+	      // If new_bound was never ended, end now and add to bounds_list.
+	      if( making_bound )
+	      {
+	        bounds_list.add( new_bound );
+	        making_bound = false;
+	      }
+	    }
+	  } // end else if()
+	} // end else if()
+      } // end for( col )
+    } // end for( row )
+    
+    // Convert table_regions vector into a list of TableRegions.
+    TableRegion[] table_region_array = new TableRegion[table_regions.size()];
+    for( int i = 0; i < table_region_array.length; i++ )
+      table_region_array[i] = (TableRegion)table_regions.elementAt(i);
+    
+    return table_region_array;
+  }
+  
+ /*
+  * Given a column number and a Vector list of bounds, find the index of the
+  * bound that has the given column number in its interval.
+  */   
+  private static int getBoundIndex( int col_num, Vector elements )
+  {
+    // make sure there are existing bounds.
+    if( elements.size() <= 0 )
+      return -1;
+    int index = 0;
+    CoordBounds bound = (CoordBounds)elements.elementAt(index);
+    // While the col_num is not in the column bounds and the index is still
+    // valid, increment the index.
+    while( index < elements.size() &&
+        !((CoordBounds)elements.elementAt(index)).onXInterval((float)col_num) )
+      index++;
+    
+    // If while loop terminated because region was not found, return -1.
+    if( index == elements.size() )
+      return -1;
+    else
+      return index;  
+  }
  
  /*
   * Specify a rectangular region to either be selected or deselected.
