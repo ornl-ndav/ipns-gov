@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2003/07/14 13:35:08  dennis
+ * Fixed a java doc comment and added more tests to the main program.
+ *
  * Revision 1.1  2003/06/19 15:39:10  dennis
  * Initial version of utility class that provides basic calculations
  * for direct and reciprocal lattices such as conversion between lattice
@@ -381,7 +384,7 @@ public class lattice_calc
 
   /**
    *  Calculate the material matrix factor, B, from the orientation
-   *  matrix UB, and the rotation B. This is a convenience method to allow
+   *  matrix UB, and the rotation U. This is a convenience method to allow
    *  more efficient calculation of B in the case that U has already been
    *  calculated. The matrix B is represented relative to a right handed
    *  coordinate system with the direct space lattice vector a_ in the x
@@ -520,6 +523,38 @@ public class lattice_calc
      UB = LinearAlgebra.getTranspose( Astar );
      System.out.println( "Parameters (Astar_transpose) = " );
      LinearAlgebra.print( LatticeParamsOfUB(UB) );
+
+     double temp[][] = {  {-0.115425, -0.166643, -0.118645 },
+                          {-0.123538, -0.162548,  0.116026 },
+                          {-0.149326,  0.108474, -0.007203 } };
+     double UB_Art[][] = LinearAlgebra.getTranspose( temp );
+     double params_Art[] = LatticeParamsOfUB(UB_Art);
+     System.out.println("Params from Art's quartz calibration");
+     LinearAlgebra.print( params_Art );
+
+     double RanUB[][] = { {  0.23,   12.23, -91.12 },
+                          { -23.334, 23.12,  54.21 },
+                          { - 3.99, -31.23, 231.34 } };
+     System.out.println("RanUB--------");
+     LinearAlgebra.print( RanUB );
+
+     double RanUBt[][] = LinearAlgebra.getTranspose( RanUB );
+     System.out.println("RanUBt--------");
+     LinearAlgebra.print( RanUBt );
+
+     double ran_prod[][] = LinearAlgebra.mult( RanUB, RanUBt );
+     System.out.println("ran_prod--------");
+     LinearAlgebra.print( ran_prod );
+
+     System.out.println("ran_inv--------");
+     double ran_inv[][] = LinearAlgebra.getInverse( ran_prod );
+     LinearAlgebra.print( ran_inv );
+     
+     double RanU[][]  = getU( RanUB );
+     double RanUt[][] = LinearAlgebra.getInverse(RanU);
+     double prod[][]  = LinearAlgebra.mult( RanU, RanUt );    
+     System.out.println("product of RanU and RanUt is ");
+     LinearAlgebra.print( prod );
    }
 
 }
