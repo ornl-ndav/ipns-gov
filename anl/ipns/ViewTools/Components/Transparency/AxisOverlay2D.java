@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.27  2004/01/07 22:33:29  millermi
+ *  - Removed AxisOverlay2D.getPixelPoint(). Calculation of
+ *    cursor value now done within the ControlColorScale's
+ *    setMarker() method. ColorScaleImage now knows about
+ *    WorldCoordBounds.
+ *
  *  Revision 1.26  2004/01/07 21:56:37  millermi
  *  - Fixed log interval calculation, now that the destination
  *    interval can be negative, minor changes were made.
@@ -566,77 +572,6 @@ public class AxisOverlay2D extends OverlayJPanel
   {
     gridcolor = color;
     this_panel.repaint();
-  }
- 
- /**
-  * This method is used to convert a data value to a pixel value. This method
-  * is ONLY IMPLEMENTED FOR LOGARITHMIC CONVERSION, not linear conversions.
-  *
-  *  @param  value - the value needing to be converted to a point
-  *  @return pixel_pt - the pixel point representing this value.
-  */ 
-  public Point getPixelPoint( float value )
-  {
-    Point pixel_pt = new Point();
-    
-    CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
-						Format.ENGINEER );
-    CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
-        					 Format.ENGINEER );
-    
-    if( !drawXLinear )
-    {
-      LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
-      double logscale = ((ILogAxisAddible)component).getLogScale();
-      pixel_pt.x = (int)logger.toSource(value, logscale);
-    }
-    
-    if( !drawYLinear )
-    {
-      LogScaleUtil logger = new LogScaleUtil( 0, yaxis, ymax, ymin + 1);
-      double logscale = ((ILogAxisAddible)component).getLogScale(); 
-      pixel_pt.y = yaxis - (int)logger.toSource(value, logscale) - 1;
-    }
-    /* this code was to handle both linear and log, but since log is
-     * the only thing needed right now, that is all that will be implemented.
-    // for x axis, either linear or log
-    if( drawXLinear )
-    {
-      float[] values = util.subDivide();
-      float start = values[1];
-      pixel_pt.x = (int)( (float)xaxis*(value + start - xmin)/
-                          (xmax-xmin) + xstart ); 
-    }
-    else
-    {
-      LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
-      double logscale = ((ILogAxisAddible)component).getLogScale();
- 
-      //pixel_pt.x = xstart + (int)logger.toSource(value, logscale);
-      pixel_pt.x = (int)logger.toSource(value, logscale);
-    }
-    
-    // for y axis, either linear or log
-    if( drawYLinear )
-    {
-      float[] values = yutil.subDivide();
-      float starty = values[1];
-      float pmin = ystart + yaxis;
-      float pmax = ystart;
-      float amin = ymin - starty;
-    
-      pixel_pt.y =  (int)( (pmax - pmin) * ( value - amin) /
-          	       (ymax - ymin) + pmin); 
-    }
-    else
-    {
-      LogScaleUtil logger = new LogScaleUtil( 0, yaxis, ymax, ymin + 1);
-      double logscale = ((ILogAxisAddible)component).getLogScale();
-      //pixel_pt.y = ystart + yaxis - (int)logger.toSource(value, logscale); 
-      pixel_pt.y = yaxis - (int)logger.toSource(value, logscale) - 1;
-    }
-    */
-    return pixel_pt;
   }
      
  /**

@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2004/01/07 22:33:29  millermi
+ *  - Removed AxisOverlay2D.getPixelPoint(). Calculation of
+ *    cursor value now done within the ControlColorScale's
+ *    setMarker() method. ColorScaleImage now knows about
+ *    WorldCoordBounds.
+ *
  *  Revision 1.15  2003/12/23 01:58:32  millermi
  *  - Adjusted interface package locations since they
  *    were moved from the TwoD directory
@@ -119,10 +125,12 @@
  import DataSetTools.components.View.TwoD.ImageViewComponent;
  import DataSetTools.components.View.VirtualArray2D;
  import DataSetTools.components.View.AxisInfo;
+ import DataSetTools.components.View.LogScaleUtil;
  import DataSetTools.components.View.Transparency.AxisOverlay2D;
  import DataSetTools.components.View.Transparency.ILogAxisAddible;
  import DataSetTools.components.image.CoordBounds;
  import DataSetTools.util.floatPoint2D;
+ import DataSetTools.util.WindowShower;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with a color scale for use 
@@ -222,15 +230,40 @@ public class ControlColorScale extends ViewControl
   {
     if( !isBasic )
     {
-      Point pix_mark = axis.getPixelPoint(marker);
+      floatPoint2D wc_mark;
+      boolean negate = false;   // true if marker is negative
+      //System.out.println("Marker value1: " + marker );
+      // keep marker positive
+      if( marker < 0 )
+      {
+        marker = -marker;
+	negate = true;
+      }
+      // range will be 0 - axis_max for two-sided data, if marker < 0, negate
+      // it since calibrations are always symmetric.
+      float axis_min = value_info.getMin();
+      float axis_max = value_info.getMax();
+      if( isTwoSided || (axis_min < 0) )
+      {
+	axis_min = 0;
+      }
+      LogScaleUtil logger = new LogScaleUtil( axis_min, axis_max,
+                                              axis_min, axis_max );
+      double logscale = component.getLogScale(); 
+      marker = logger.toSource(marker, logscale);
+      if( negate && isTwoSided )
+        marker = -marker;
       // horizontal, zero out vertical factor
       if( orientate )
- 	pix_mark.y = 0;
+      {
+	wc_mark = new floatPoint2D( marker, 0 );
+      }
       // vertical, zero out horizontal factor
       else
- 	pix_mark.x = 0;
-
-      csi.set_crosshair(pix_mark);
+      {
+        wc_mark = new floatPoint2D( 0, marker );
+      }
+      csi.set_crosshair_WC(wc_mark);
     }
   }
  
@@ -426,7 +459,8 @@ public class ControlColorScale extends ViewControl
     JPanel east = new JPanel(); 
     JPanel south = new JPanel(); 
     JPanel west = new JPanel(); 
-    
+    float axis_min = value_info.getMin();
+    float axis_max = value_info.getMax();
     // if true, horizontal alignment
     if( orientation )
     {
@@ -434,10 +468,16 @@ public class ControlColorScale extends ViewControl
       east.setPreferredSize(new Dimension( 25, 0 ) ); 
       south.setPreferredSize(new Dimension( 0, 35 ) );
       west.setPreferredSize(new Dimension( 25, 0 ) );
-      if( isTwoSided ) 
+      if( isTwoSided )
+      { 
         csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL_DUAL);
+        csi.initializeWorldCoords( new CoordBounds(-axis_max, 0, axis_max, 1) );
+      }
       else
+      {
         csi = new ColorScaleImage(ColorScaleImage.HORIZONTAL_SINGLE);
+        csi.initializeWorldCoords( new CoordBounds(axis_min, 0, axis_max, 1) );
+      }
     }
     // else vertical alignment
     else
@@ -447,9 +487,15 @@ public class ControlColorScale extends ViewControl
       south.setPreferredSize(new Dimension( 0, 10 ) );
       west.setPreferredSize(new Dimension( 60, 0 ) ); 
       if( isTwoSided ) 
+      {
         csi = new ColorScaleImage(ColorScaleImage.VERTICAL_DUAL);
+        csi.initializeWorldCoords( new CoordBounds(0, axis_max, 1, -axis_max) );
+      }
       else
+      {
         csi = new ColorScaleImage(ColorScaleImage.VERTICAL_SINGLE);
+        csi.initializeWorldCoords( new CoordBounds(0, axis_max, 1, axis_min) );
+      }
     }
     csi.setEventListening(false);
     
@@ -526,6 +572,8 @@ public class ControlColorScale extends ViewControl
     frame.setBounds(0,0,300,300);
     frame.getContentPane().add(color);
     color.setTitle("myColorScale");
-    frame.setVisible(true);
+    WindowShower shower = new WindowShower(frame);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
 }
