@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.23  2004/03/17 19:01:12  dennis
+ *  Removed unused variables.
+ *
  *  Revision 1.22  2004/03/11 23:27:16  dennis
  *  Moved to MathTools package
  *
@@ -278,8 +281,6 @@ public final class LinearAlgebra
    * Prints to STDOUT any nXm matrix of doubles
    */
   public static void print(double[][] a){
-    int ay=a[0].length;
-
     for( int i=0 ; i<a.length ; i++ ){
       for( int j=0 ; j<a[i].length ; j++ ){
         System.out.print( Format.real( a[i][j], 15, 7 ) + " ");
@@ -295,8 +296,6 @@ public final class LinearAlgebra
    * Prints to STDOUT any nXm matrix of floats
    */
   public static void print(float[][] a){
-    int ay=a[0].length;
-
     for( int i=0 ; i<a.length ; i++ ){
       for( int j=0 ; j<a[i].length ; j++ ){
         System.out.print( Format.real( a[i][j], 15, 7 ) + " ");
@@ -647,8 +646,6 @@ public final class LinearAlgebra
     double s;                        // s holds the sqrt of the sum of the 
                                      // squares of the last terms in a column 
     double dot_prod;                 // holds the dot product of U with a vector
-
-    double norm;
     int    row,
            col;
     int    n_rows_A = A.length;
