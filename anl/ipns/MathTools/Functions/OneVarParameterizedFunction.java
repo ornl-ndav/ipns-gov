@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2003/06/30 22:36:17  dennis
+ *  Made calculation of derivatives with respect to parameters
+ *  at a collection of x-values, more efficient.
+ *  Fixed error in calculation of derivative with respect to
+ *  paramters at one x-value.
+ *
  *  Revision 1.7  2003/06/19 22:21:08  dennis
  *  Added methods to evaluate the derivative with respect to
  *  one parameter at a list of x values.
@@ -180,42 +186,33 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
     if ( i < 0 || i >= numParameters() )
       return 0;
 
-    double dx = Math.abs( DELTA*x );
-    if ( dx == 0 )
-      dx = DELTA;
-
-    if (parameters.length == 0)           // must be a SumFunction with it's
-    {                                     // own list of parameters 
-      double parameters_copy[] = getParameters();
-      double old_a_val   = parameters_copy[i];
-
-      parameters_copy[i] = old_a_val + dx;
-      setParameters( parameters_copy );
-      double f1 = getValue( x );
-
-      parameters_copy[i] = old_a_val - dx;
-      setParameters( parameters_copy );
-      double f0 = getValue( x );
-
-      parameters_copy[i] = old_a_val;
-      setParameters( parameters_copy );
-
-      return (f1 - f0) / ( 2*dx );
+    // NOTE: While not as efficient as accessing the parameters list directly,
+    // using the get/setParameters() method here will allow this to also work 
+    // in more complicated cases where the function calculates state 
+    // information when it's paramters are set.  For efficiency in those cases
+    // the calling code should use the method  get_dFdai( x[], i ), to allow
+    // the state information to be set only once, and used to evaluate the
+    // derivative at an array of x[] values.
  
-    }
-    else                                  // use our local list of parameters
-    {                                     // for the sake of efficiency
-      double old_a_val = parameters[i];
-      parameters[i] = old_a_val + dx;
-      double f1 = getValue( x );
+    double parameters_copy[] = getParameters();
+    double old_a_val   = parameters_copy[i];
 
-      parameters[i] = old_a_val - dx;
-      double f0 = getValue( x );
+    double da = Math.abs( DELTA * old_a_val );
+    if ( da == 0 )
+      da = DELTA;
 
-      parameters[i] = old_a_val;
+    parameters_copy[i] = old_a_val + da;
+    setParameters( parameters_copy );
+    double f1 = getValue( x );
 
-      return (f1 - f0) / ( 2*dx ); 
-    }
+    parameters_copy[i] = old_a_val - da;
+    setParameters( parameters_copy );
+    double f0 = getValue( x );
+
+    parameters_copy[i] = old_a_val;
+    setParameters( parameters_copy );
+
+    return (f1 - f0) / ( 2*da );
   }
 
   // derivatives with respect to
@@ -230,8 +227,37 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
   public double[] get_dFdai( double x[], int i )
   {
     double derivs[] = new double[ x.length ];
+
+    if ( i < 0 || i >= numParameters() )                 // return all 0's
+    {
+      for ( int k = 0; k < x.length; k++ )
+        derivs[k] = 0;
+      return derivs;
+    }
+
+    double val_1[] = new double[ x.length ];
+    double parameters_copy[] = getParameters();
+    double old_a_val   = parameters_copy[i];
+
+    double da = Math.abs( DELTA * old_a_val );
+    if ( da == 0 )
+      da = DELTA;
+
+    parameters_copy[i] = old_a_val + da;
+    setParameters( parameters_copy );
+
     for ( int k = 0; k < x.length; k++ )
-      derivs[k] = get_dFdai( x[k], i );
+      val_1[k] = getValue( x[k] );
+
+    parameters_copy[i] = old_a_val - da;
+    setParameters( parameters_copy );
+
+    for ( int k = 0; k < x.length; k++ )
+      derivs[k] = (val_1[k] - getValue( x[k] )) / (2*da);
+   
+    parameters_copy[i] = old_a_val;
+    setParameters( parameters_copy );
+
     return derivs;
   }
 
