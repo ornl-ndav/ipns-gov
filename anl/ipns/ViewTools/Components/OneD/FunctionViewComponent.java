@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2003/10/20 23:57:45  serumb
+ *  Now implements IViewComponent.
+ *
  *  Revision 1.24  2003/08/08 21:08:08  serumb
  *  Now un-checks the Function Controls box when Function Controls window
  *  is closed.
@@ -114,7 +117,7 @@ import java.beans.*;
  * is given to the data by way of overlays, which add calibration, selection,
  * and annotation abilities.
  */
-public class FunctionViewComponent implements IFunctionComponent1D,
+public class FunctionViewComponent implements IViewComponent1D,
                                               ActionListener, 
                                               IZoomTextAddible, 
                                               IAxisAddible2D,
@@ -173,7 +176,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
 */
 
     gjp.setBackground( Color.white );
-
     // set initial line styles
     if( varr.getNumlines(  ) > 1 ) {
       gjp.setColor( Color.blue, 2, true );
@@ -212,7 +214,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     mainControls.get_frame().addWindowListener( new FrameListener() );
    // buildViewControls( gjp );
   }
-
   // getAxisInfo(), getRegionInfo(), getTitle(), getPrecision(), getFont() 
   // all required since this component implements IAxisAddible2D
 
@@ -283,6 +284,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    * the Virtual Array
    *
    *  @return title stored in Virtual Array
+   *
    */
   public String getTitle(  ) {
     return Varray1D.getTitle(  );
@@ -405,6 +407,8 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       DrawPointedAtGraph();  
     mainControls = new FunctionControls(pin_varray, gjp, getDisplayPanel(),
                                         this);
+    mainControls.display_controls();
+    control_box.setSelected(true);
 
     //      System.out.println("Value of first element: " + x_array[0] +
     //							y_array[0] );
@@ -563,7 +567,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
 
   private boolean DrawPointedAtGraph() {
     int pointed_at_line = Varray1D.getPointedAtGraph();
-    
     if(pointed_at_line >= 0) {
       Draw_GJP(pointed_at_line, 0, false);
       return true;
@@ -604,8 +607,6 @@ public class FunctionViewComponent implements IFunctionComponent1D,
 
   private void Draw_GJP( int index, int graph_num, boolean pointed_at )
   {
-       if(index == 0 && pointed_at == true)
-         return; 
        float x[] = Varray1D.getXVals_ofIndex(index);
        float y[] = Varray1D.getYVals_ofIndex(index);
        gjp.setColor( Color.black, graph_num, false );
