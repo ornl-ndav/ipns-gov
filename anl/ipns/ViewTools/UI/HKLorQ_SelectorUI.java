@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/12 01:00:00  serumb
+ * Changed package and imports.
+ *
  * Revision 1.3  2004/03/04 20:47:31  dennis
  * Now uses ISlicePlaneSelector.HKL_MODE and ISlicePlaneSelector.QXYZ_MODE
  * rather than locally defined constants for the mode.
@@ -43,13 +46,14 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.util.*;
+//import gov.anl.ipns.Util.*;
+import gov.anl.ipns.MathTools.Geometry.*;
 
 
 /**

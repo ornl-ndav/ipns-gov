@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/03/12 01:02:30  serumb
+ * Changed package and imports.
+ *
  * Revision 1.7  2004/03/04 20:51:51  dennis
  * Now calls setMode() on the hkl_selector to switch labels between
  * HKL and QXYZ options.
@@ -64,16 +67,17 @@
  * one way, using an HKL_SliceSelector.(not complete)
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
-import DataSetTools.math.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.Geometry.*;
+//import gov.anl.ipns.Util.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 import java.io.*;
+import java.lang.Object.*;
 
 /**
  *  This class provides a user interface for specifying a plane in 3D 
@@ -280,7 +284,7 @@ public class SlicePlane3D_UI extends    ActiveJPanel
 
       if ( new_plane == null )              // invalid, so just restore old one
       {                                        
-        IsawToolkit.beep();
+        Toolkit.getDefaultToolkit().beep();
         selector.setPlane( old_slice_plane );
         return;
       }

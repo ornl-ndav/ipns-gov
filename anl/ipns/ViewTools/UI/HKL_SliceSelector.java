@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/03/12 01:01:01  serumb
+ * Changed package and imports.
+ *
  * Revision 1.6  2004/03/04 20:57:39  dennis
  * Removed debug prints.
  *
@@ -66,14 +69,14 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.math.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.Geometry.*;
+//import gov.anl.ipns.Util*;
 
 
 /**
