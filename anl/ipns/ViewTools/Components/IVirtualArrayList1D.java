@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/06/10 23:23:20  serumb
+ *  Added method to get selected indexes.
+ *
  *  Revision 1.3  2004/04/16 20:20:06  millermi
  *  - Removed methods that were specific to DataSets.
  *
@@ -161,6 +164,13 @@ public interface IVirtualArrayList1D extends IVirtualArray
   *  @return Number of drawn graphs
   */   
   public int getNumSelectedGraphs();
+
+ /**
+  *  Returns the indexes of the selected graphs
+  *
+  *  @return an array of selected indexes
+  */
+  public int[] getSelectedIndexes();
 
  /**
   *  Returns the index from the data set of the pointed at graph.

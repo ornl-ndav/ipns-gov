@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/06/10 23:25:10  serumb
+ *  Added method to get selected indexes.
+ *
  *  Revision 1.4  2004/05/11 01:01:50  millermi
  *  - Removed unused variables.
  *
@@ -335,6 +338,26 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
     }
     return counter;
   }
+
+ /**
+  *  Returns the indexes of the selected graphs
+  *
+  *  @return an array of selected indexes
+  */
+  public int[] getSelectedIndexes()
+  {
+    int count = 0;
+    int[] indexes = new int[getNumSelectedGraphs()];
+    for (int i = 0; i < getNumGraphs(); i++)
+    {
+      if( isSelected(i) )
+      {
+        indexes[count] = i;
+        count++;
+      }
+    }
+    return indexes;   
+  }  
 
  /**
   *  Returns the index from the data set of the pointed at graph.
