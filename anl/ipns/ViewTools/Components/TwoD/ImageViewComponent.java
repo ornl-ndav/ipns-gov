@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.71  2004/04/29 06:27:05  millermi
+ *  - Added MarkerOverlay help to list of menu items.
+ *
  *  Revision 1.70  2004/04/12 03:40:38  millermi
  *  - Bug fix: Changed bounds of the setImageBounds() in
  *    getSelectedRegions() method. Previously, the max bounds
@@ -2046,6 +2049,11 @@ public class ImageViewComponent implements IViewComponent2D,
         {
            //System.out.println("SelectionHelpMenu");
            SelectionOverlay.help();  
+        }
+        else if( button.equals("Marker") )
+        {
+           //System.out.println("SelectionHelpMenu");
+           MarkerOverlay.help();  
         }	
      }
   } 
