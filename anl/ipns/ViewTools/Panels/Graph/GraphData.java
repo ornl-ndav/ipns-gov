@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2003/06/06 14:37:15  serumb
+ * added a variable of type BasicStroke for different line styles
+ * added a variable, markcolor, to determine point marker color
+ *
  * Revision 1.5  2002/11/27 23:13:18  pfpeterson
  * standardized header
  *
@@ -49,5 +53,7 @@ public class GraphData implements Serializable
   int    linetype  = 1;
   float  linewidth = 1;
   int    marktype  = 0;
+  Color  markcolor = Color.black;
+  BasicStroke Stroke = new BasicStroke();
 }
 
