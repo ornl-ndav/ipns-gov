@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.80  2005/01/18 23:01:04  millermi
+ *  - Changed setImageBounds in getSelectedRegions() to parallel the
+ *    ImageJPanel transformation.
+ *  - Replaced variables image_bounds and global_bounds with calls to
+ *    getLocalCoordBounds() and getGlobalCoordBounds().
+ *  - SelectedRegionListener no longer passes SelectionOverlay events. Now
+ *    sends out SELECTED_CHANGED when a SelectionOverlay event occurs.
+ *
  *  Revision 1.79  2004/12/05 05:43:08  millermi
  *  - Fixed Eclipse warning.
  *
@@ -661,8 +669,6 @@ public class ImageViewComponent implements IViewComponent2D,
   private transient JPanel background = new JPanel(new BorderLayout());  
   private transient ImageJPanel ijp;
   private transient Rectangle regioninfo;
-  private transient CoordBounds local_bounds;
-  private transient CoordBounds global_bounds;
   private transient Vector transparencies = new Vector();
   private int precision;
   private Font font;
@@ -700,8 +706,6 @@ public class ImageViewComponent implements IViewComponent2D,
       big_picture.add( new JLabel("No data to display as image.") );
       controls = new ViewControl[0];
       menus = new ViewMenuItem[0];
-      local_bounds = new CoordBounds();
-      global_bounds = new CoordBounds();
       return;
     }
     Varray2D = varr; // Get reference to varr
@@ -723,9 +727,6 @@ public class ImageViewComponent implements IViewComponent2D,
 						yinfo.getMax(),      
 						xinfo.getMax(),
 						yinfo.getMin() ) ); 
-    
-    local_bounds = ijp.getLocalWorldCoords().MakeCopy();
-    global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
     
     // two-sided model
     if( ijp.getDataMin() < 0 )
@@ -1255,7 +1256,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public CoordBounds getLocalCoordBounds()
   {
-    return local_bounds;
+    return ijp.getLocalWorldCoords().MakeCopy();
   }
      
  /**
@@ -1266,7 +1267,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public CoordBounds getGlobalCoordBounds()
   {
-    return global_bounds;
+    return ijp.getGlobalWorldCoords().MakeCopy();
   }  
   
  /**
@@ -1380,15 +1381,17 @@ public class ImageViewComponent implements IViewComponent2D,
     Vector regions = 
        ((SelectionOverlay)transparencies.elementAt(1)).getRegions();
     Region[] selectedregions = new Region[regions.size()];
+    // This code will set the world and image bounds. Since only the 
+    // ImageViewComponent knows these bounds, it must set them.
     for( int i = 0; i < selectedregions.length; i++ )
     {
+      ((Region)regions.elementAt(i)).setWorldBounds(ijp.getGlobalWorldCoords());
+      // Image bounds are consistent with those set in ImageJPanel.
+      ((Region)regions.elementAt(i)).setImageBounds( new CoordBounds( 
+                                     0.001f, 0.001f,
+                                     Varray2D.getNumColumns()-0.001f,
+				     Varray2D.getNumRows()-0.001f ) );
       selectedregions[i] = (Region)regions.elementAt(i);
-      selectedregions[i].setWorldBounds(ijp.getGlobalWorldCoords());
-      selectedregions[i].setImageBounds(
-                            new CoordBounds( 0,
-			                     0,
-                                             Varray2D.getNumColumns() - 1,
-					     Varray2D.getNumRows() - 1 ) );
     }
     return selectedregions;
   } 
@@ -1405,11 +1408,9 @@ public class ImageViewComponent implements IViewComponent2D,
         				        0, Varray2D.getNumColumns()-1 );
     ijp.setData(f_array, true);
     
-    local_bounds = ijp.getLocalWorldCoords().MakeCopy();
-    global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
     // this is required since the PanViewControl holds its own bounds.
-    ((PanViewControl)controls[7]).setGlobalBounds(global_bounds);
-    ((PanViewControl)controls[7]).setLocalBounds(local_bounds);
+    ((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
+    ((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
     ((PanViewControl)controls[7]).repaint();
     paintComponents( big_picture.getGraphics() );
   }
@@ -1476,9 +1477,6 @@ public class ImageViewComponent implements IViewComponent2D,
         					    yinfo.getMax(),	 
         					    xinfo.getMax(),
         					    yinfo.getMin() ) ); 
-        
-        local_bounds = ijp.getLocalWorldCoords().MakeCopy();
-        global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
         
         // two-sided model
         if( ijp.getDataMin() < 0 )
@@ -1798,9 +1796,7 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   private void reInit()  
   {
-    ijp.setNamedColorModel(colorscale, isTwoSided, false); 
-    local_bounds = ijp.getLocalWorldCoords().MakeCopy();
-    global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
+    ijp.setNamedColorModel(colorscale, isTwoSided, false);
     
     // make sure logscale and two-sided are consistent
     ((AxisOverlay2D)transparencies.elementAt(2)).setTwoSided(isTwoSided);
@@ -1821,8 +1817,8 @@ public class ImageViewComponent implements IViewComponent2D,
     // give focus to the top overlay
     returnFocus();
     
-    ((PanViewControl)controls[7]).setGlobalBounds(global_bounds);
-    ((PanViewControl)controls[7]).setLocalBounds(local_bounds);
+    ((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
+    ((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
     ((PanViewControl)controls[7]).repaint();
   } 
   
@@ -2006,10 +2002,10 @@ public class ImageViewComponent implements IViewComponent2D,
       int max_height = dim.height - (n_h + s_h);
       int max_width = dim.width - (e_w + w_w);
       // calculate ratio of (rows/columns) or (y/x)
-      int image_row_min = ijp.ImageRow_of_WC_y(local_bounds.getY1());
-      int image_row_max = ijp.ImageRow_of_WC_y(local_bounds.getY2());
-      int image_col_min = ijp.ImageCol_of_WC_x(local_bounds.getX1());
-      int image_col_max = ijp.ImageCol_of_WC_x(local_bounds.getX2());
+      int image_row_min = ijp.ImageRow_of_WC_y(getLocalCoordBounds().getY1());
+      int image_row_max = ijp.ImageRow_of_WC_y(getLocalCoordBounds().getY2());
+      int image_col_min = ijp.ImageCol_of_WC_x(getLocalCoordBounds().getX1());
+      int image_col_max = ijp.ImageCol_of_WC_x(getLocalCoordBounds().getX2());
       int x = image_col_max - image_col_min;
       int y = image_row_max - image_row_min;
       //System.out.println("y/x: " + y + "/" + x);
@@ -2139,20 +2135,16 @@ public class ImageViewComponent implements IViewComponent2D,
       else if (message == CoordJPanel.ZOOM_IN)
       {
 	ImageJPanel center = (ImageJPanel)ae.getSource();
-	local_bounds = center.getLocalWorldCoords().MakeCopy();
-	global_bounds = center.getGlobalWorldCoords().MakeCopy();
-	((PanViewControl)controls[7]).setGlobalBounds(global_bounds);
-	((PanViewControl)controls[7]).setLocalBounds(local_bounds);
+	((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
+	((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
         buildAspectImage();
 	paintComponents( big_picture.getGraphics() );
       }
       else if (message == CoordJPanel.RESET_ZOOM)
       {
 	ImageJPanel center = (ImageJPanel)ae.getSource();
-	local_bounds = center.getLocalWorldCoords().MakeCopy();
-	global_bounds = center.getGlobalWorldCoords().MakeCopy();
-	((PanViewControl)controls[7]).setGlobalBounds(global_bounds);
-	((PanViewControl)controls[7]).setLocalBounds(local_bounds);
+	((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
+	((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
         buildAspectImage();
 	paintComponents( big_picture.getGraphics() );
       }	 
@@ -2297,8 +2289,7 @@ public class ImageViewComponent implements IViewComponent2D,
           PanViewControl pvc = (PanViewControl)ae.getSource();
           // since the pan view control has a CoordJPanel in it with the
           // same bounds, set its local bounds to the image local bounds.
-	  local_bounds = pvc.getLocalBounds();
-          ijp.setLocalWorldCoords( local_bounds );
+          ijp.setLocalWorldCoords( pvc.getLocalBounds() );
           // this method is only here to repaint the image
           ijp.changeLogScale( logscale, true );
 	  buildAspectImage();
@@ -2428,7 +2419,7 @@ public class ImageViewComponent implements IViewComponent2D,
       // If the original data passed in was null, do nothing.
       if( null_data )
         return;
-      sendMessage( ae.getActionCommand() );
+      sendMessage( SELECTED_CHANGED );
     }
   }
   
