@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/03/11 23:33:26  dennis
+ * Moved to package MathTools/Geometry
+ *
  * Revision 1.4  2004/03/03 23:15:22  dennis
  * Added "convenience" constructor to construct a slice plane
  * given specific u,v,n local coordinate vectors.
@@ -48,7 +51,7 @@
  *
  */
 
-package DataSetTools.math;
+package gov.anl.ipns.MathTools.Geometry;
 
 /**
  *  This class represents a plane in 3D as a point that is the origin of 
