@@ -1,14 +1,17 @@
 /*
- * @(#)TextValueUI.java     1.0  2000/05/15  Dennis Mikkelson
+ * @(#)TextValueUI.java
  *
+ *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.2  2001/01/29 21:43:41  dennis
+ *  Now uses CVS version numbers.
+ *
  *  Revision 1.1  2000/07/10 22:18:34  dennis
  *  user interface component, initial version
  *
  *  Revision 1.1  2000/06/12 20:35:13  dennis
  *  Initial revision
- *
  *
  */
 

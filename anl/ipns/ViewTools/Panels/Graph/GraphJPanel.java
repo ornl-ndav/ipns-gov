@@ -1,5 +1,7 @@
 /*
- * @(#)GraphJpanel.java   1.1  2000/04/24  Dennis Mikkelson
+ * @(#)GraphJpanel.java
+ *
+ * Programmer:  Dennis Mikkelson
  *
  * Modified:
  *  1.1  2000/04/24  Dennis Mikkelson
@@ -7,6 +9,9 @@
  *                   different colors for each graph.
  *
  * $Log$
+ * Revision 1.3  2001/01/29 21:39:17  dennis
+ * Now uses CVS version numbers.
+ *
  * Revision 1.2  2000/07/10 22:11:49  dennis
  * 7/10/2000 version, many changes and improvements
  *

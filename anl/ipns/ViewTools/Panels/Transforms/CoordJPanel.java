@@ -1,7 +1,12 @@
 /*
- * @(#)  CoordJPanel.java  1.0  1999/07/25  Dennis Mikkelson
+ * @(#)  CoordJPanel.java
+ *
+ *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.4  2001/01/29 21:39:03  dennis
+ *  Now uses CVS version numbers.
+ *
  *  Revision 1.3  2000/07/10 22:11:46  dennis
  *  7/10/2000 version, many changes and improvements
  *

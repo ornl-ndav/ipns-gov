@@ -1,7 +1,12 @@
 /*
- * @(#)DataSetXConversionsTable  1.0  2000/04/26  Dennis Mikkelson
+ * @(#)DataSetXConversionsTable
+ *
+ * Programmer: Dennis Mikkelson
  *
  * $Log$
+ * Revision 1.3  2001/01/29 21:43:19  dennis
+ * Now uses CVS version numbers.
+ *
  * Revision 1.2  2000/11/10 22:50:56  dennis
  * Changed to work with new Operator hierarchy.
  *

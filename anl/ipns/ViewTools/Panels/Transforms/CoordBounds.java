@@ -1,7 +1,12 @@
 /*
- * @(#) CoordBounds.java  1.0    1998/07/25   Dennis Mikkelson
+ * @(#) CoordBounds.java
+ *
+ * Programmer: Dennis Mikkelson
  *
  * $Log$
+ * Revision 1.3  2001/01/29 21:39:00  dennis
+ * Now uses CVS version numbers.
+ *
  * Revision 1.2  2000/07/10 22:11:45  dennis
  * 7/10/2000 version, many changes and improvements
  *

@@ -1,10 +1,15 @@
 /*
- * @(#)OperatorMenu.java   1.0  2000/05/10  Dennis Mikkelson
+ * @(#)OperatorMenu.java
+ *
+ *  Programmer: Dennis Mikkelson
  *
  *  Provides a method to construct a hierarchical menu for a list of operators,
  *  organized according to the categories of the operators.
  *
  *  $Log$
+ *  Revision 1.2  2001/01/29 21:43:22  dennis
+ *  Now uses CVS version numbers.
+ *
  *  Revision 1.1  2000/11/10 22:55:13  dennis
  *  Class to build hierarchical menus for lists of operators,
  *  based on the operator categories.

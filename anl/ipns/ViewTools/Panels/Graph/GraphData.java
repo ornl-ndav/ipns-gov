@@ -1,7 +1,12 @@
 /*
- * @(#) GraphData.java  1.0    2000/04/25   Dennis Mikkelson
+ * @(#) GraphData.java
+ *
+ * Programmer: Dennis Mikkelson
  *
  * $Log$
+ * Revision 1.3  2001/01/29 21:39:15  dennis
+ * Now uses CVS version numbers.
+ *
  * Revision 1.2  2000/07/10 22:16:59  dennis
  * minor format change to documentation
  *

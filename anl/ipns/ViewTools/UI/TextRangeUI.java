@@ -1,5 +1,7 @@
 /*
- * @(#)TextRangeUI.java     1.02  2000/02/22  Dennis Mikkelson
+ * @(#)TextRangeUI.java
+ *
+ *  Programmer: Dennis Mikkelson
  *
  *  2000/04/28  1.01 Dennis Mikkelson
  *                   Minor refinements, use NumberFormat and setFont()
@@ -9,6 +11,9 @@
  *                   label 
  *
  *  $Log$
+ *  Revision 1.2  2001/01/29 21:43:38  dennis
+ *  Now uses CVS version numbers.
+ *
  *  Revision 1.1  2000/07/10 22:18:33  dennis
  *  user interface component, initial version
  *

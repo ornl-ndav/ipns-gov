@@ -1,8 +1,13 @@
 /*
- * @(#)OutputTable.java  0.1 2000/08/17   Dongfeng Chen
- *                                        Alok Chatterjee
+ * @(#)OutputTable.java 
+ *
+ * Programmer:  Dongfeng Chen
+ *              Alok Chatterjee
  *
  * $Log$
+ * Revision 1.2  2001/01/29 21:43:24  dennis
+ * Now uses CVS version numbers.
+ *
  * Revision 1.1  2000/08/17 19:04:50  dennis
  * Class to display a table of numbers with column headings and a title.
  *

@@ -1,9 +1,14 @@
 /*
- * @(#)TestMenuHandler.java   1.0  2000/05/10  Dennis Mikkelson
+ * @(#)TestMenuHandler.java
+ *
+ *  Programmer:  Dennis Mikkelson
  *
  *  Trivial menu handler class only for testing a menu.
  *
  *  $Log$
+ *  Revision 1.2  2001/01/29 21:43:26  dennis
+ *  Now uses CVS version numbers.
+ *
  *  Revision 1.1  2000/11/10 22:55:46  dennis
  *  Trivial ActionListener to test menus.
  *

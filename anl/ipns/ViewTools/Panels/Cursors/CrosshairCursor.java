@@ -1,7 +1,12 @@
 /*
- * @(#) CrosshairCursor.java  1.0    1998/07/29   Dennis Mikkelson
+ * @(#) CrosshairCursor.java
+ *
+ * Programmer: Dennis Mikkelson
  *
  * $Log$
+ * Revision 1.3  2001/01/29 21:39:12  dennis
+ * Now uses CVS version numbers.
+ *
  * Revision 1.2  2000/07/10 22:11:48  dennis
  * 7/10/2000 version, many changes and improvements
  *

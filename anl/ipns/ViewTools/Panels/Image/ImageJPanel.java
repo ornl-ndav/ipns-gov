@@ -1,7 +1,12 @@
 /*
- * @(#) ImageJPanel.java  1.0    1998/07/29   Dennis Mikkelson
+ * @(#) ImageJPanel.java
+ *
+ *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.6  2001/01/29 21:39:20  dennis
+ *  Now uses CVS version numbers.
+ *
  *  Revision 1.5  2000/12/07 22:32:32  dennis
  *  Added some debug prints
  *

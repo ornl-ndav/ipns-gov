@@ -1,7 +1,12 @@
 /*
- * @(#) IndexColorMaker.java  1.0    1998/07/29   Dennis Mikkelson
+ * @(#) IndexColorMaker.java
+ *
+ *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.5  2001/01/29 21:39:27  dennis
+ *  Now uses CVS version numbers.
+ *
  *  Revision 1.4  2000/11/07 16:09:46  dennis
  *  Refined use of dual +/- color scales.  The zero level is no longer always
  *  mapped to black, since this did not work well with negative gray color
