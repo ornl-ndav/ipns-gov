@@ -31,8 +31,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2002/07/16 14:38:08  dennis
+ *  Now maintain its own one character buffer that is used
+ *  to reset the whitespace character terminating a non-blank
+ *  string, in addition to the stream "mark" that allows
+ *  un-reading the last non-blank string that was read.
+ *
  *  Revision 1.6  2002/07/15 21:42:40  dennis
- *  The whitespace character that terminates a squence of non-blank
+ *  The whitespace character that terminates a sequence of non-blank
  *  characters is now put back in the file when the non-blank sequence
  *  is read.
  *
@@ -74,13 +80,17 @@ import java.io.*;
  */
 public class TextFileReader 
 {
-  public static final String EOF = "End of file";  // string used to construct 
+  public  static final String EOF = "End of file"; // string used to construct 
                                                    // the EOF exception 
-  public static final int    BUFFER_SIZE = 200;    // Maximum number of chars 
+
+  private int                 look_ahead =(int)' ';// One char buffer
+  private int                 pre_mark_ch;         // Saved buffer before mark
+
+  public  static final int    BUFFER_SIZE = 200;   // Maximum number of chars 
                                                    // in a String or one line
-  private BufferedReader     in       = null;
-  private InputStreamReader  reader   = null;
-  private boolean            close_in = true;      // Flag indicating whether
+  private BufferedReader      in       = null;
+  private InputStreamReader   reader   = null;
+  private boolean             close_in = true;     // Flag indicating whether
                                                    // it is our responsibility
                                                    // to close the Reader "in". 
 
@@ -100,6 +110,7 @@ public class TextFileReader
       reader   = new FileReader( file_name );
       in = new BufferedReader( reader );
       in.mark( BUFFER_SIZE );
+      pre_mark_ch = look_ahead;
     }
     catch ( IOException e )
     {
@@ -125,6 +136,7 @@ public class TextFileReader
       reader   = new InputStreamReader( stream );
       in = new BufferedReader( reader );
       in.mark( BUFFER_SIZE );
+      pre_mark_ch = look_ahead;
     }
     catch ( IOException e )
     {
@@ -156,6 +168,7 @@ public class TextFileReader
         in = new BufferedReader( stream );
 
       in.mark( BUFFER_SIZE );
+      pre_mark_ch = look_ahead;
     }
     catch ( IOException e )
     {
@@ -204,11 +217,23 @@ public class TextFileReader
    */
   public String read_line() throws IOException
   {
-    in.mark( BUFFER_SIZE );
-    String s = in.readLine();
-    if ( s == null )
-      throw new IOException( EOF );
-    return s;
+    if ( look_ahead == '\n' )
+    {
+      look_ahead = ' ';
+      return new String("");
+    }
+    else
+    {
+      in.mark( BUFFER_SIZE );
+      pre_mark_ch = look_ahead;
+      String s = in.readLine();
+      if ( s == null )
+        throw new IOException( EOF );
+
+      s = "" + (char)look_ahead + s;
+      look_ahead = ' ';
+      return s;
+    }
   }
  
   /* -------------------------- skip_blanks ---------------------------- */
@@ -223,19 +248,18 @@ public class TextFileReader
    */
   public void skip_blanks() throws IOException
   {
-    int  ch;
-    in.mark(2);
-    ch = in.read(); 
-    while ( Character.isWhitespace( (char)ch ) )
+    in.mark(2);                           // prepare to reset to this position
+    pre_mark_ch = look_ahead;             // at start of a non-blank string
+
+    while ( Character.isWhitespace( (char)look_ahead ) )
     {
+      getc();
       in.mark(2);
-      ch = in.read(); 
+      pre_mark_ch = look_ahead; 
     }
 
-    if ( ch < 0 )                                         // -1 is EOF
+    if ( look_ahead < 0 )                                    // -1 is EOF
       throw new IOException( EOF );
-
-    in.reset();
   }
 
 
@@ -245,9 +269,8 @@ public class TextFileReader
    *  the current position in the file.  If the current position in the
    *  file is a whitespace character, whitespace characters will be skipped
    *  until the first non-whitespace character is encountered.  After reading
-   *  the squences of non-whitespace characters, the file will be left 
-   *  positioned at the first whitespace character following the non-blank
-   *  sequence of characters. 
+   *  the squences of non-whitespace characters, the following whitespace 
+   *  character is read and NOT putback in the stream. 
    *
    *  @return The first non-blank sequence of characters encountered, 
    *          starting from the current position.
@@ -264,20 +287,15 @@ public class TextFileReader
     skip_blanks();
 
     n = 0;
-    ch = in.read(); 
-    while ( !Character.isWhitespace( (char)ch ) && 
-             ch >= 0                            &&         // -1 is EOF
-             n  < BUFFER_SIZE                       )
+    while ( !Character.isWhitespace( (char)look_ahead ) && 
+             look_ahead >= 0                            &&     // -1 is EOF
+             n  < BUFFER_SIZE                            )
     {
-      buffer[n] = (byte)ch;
+      buffer[n] = (byte)look_ahead;
       n++;
-      in.mark(2);
-      ch = in.read();
+      getc();
     }
        
-    if (Character.isWhitespace( (char)ch ))    // put back the whitespace that
-      in.reset();                              // ended the string
-
     if ( n > 0 )
       return new String( buffer, 0, n );
     else
@@ -380,7 +398,9 @@ public class TextFileReader
   public char read_char() throws IOException
   {
     in.mark(2);
-    return (char)(in.read());
+    pre_mark_ch = look_ahead;
+
+    return (char)(getc());
   }
 
   /* ----------------------------- unread ------------------------------ */
@@ -394,6 +414,7 @@ public class TextFileReader
   public void unread() throws IOException
   {
     in.reset();
+    look_ahead = pre_mark_ch; 
   }
 
 
@@ -416,7 +437,15 @@ public class TextFileReader
       in.close();
   }
 
- 
+   
+  private int getc() throws IOException
+  {
+    int temp = look_ahead;
+    look_ahead = in.read();
+    return temp;
+  }
+
+
   /* --------------------------  main  ---------------------------------- */
   /*
    *  Main program for testing purposes only.
@@ -450,6 +479,9 @@ public class TextFileReader
 
       b = f.read_boolean();
       System.out.println("boolean val: " + b );
+      f.unread();
+      b = f.read_boolean();
+      System.out.println("boolean val again: " + b );
       b = f.read_boolean();
       System.out.println("boolean val: " + b );
     
@@ -471,41 +503,42 @@ public class TextFileReader
       f.unread();
       ch = f.read_char();
       System.out.println("char value again is " + ch );
+
+      //f.close();
     }
     catch ( Exception e )
     {
       System.out.println("1: EXCEPTION: " + e );
     }
 
+    try
+    {
+      f_num = f.read_float();
+      System.out.println("A:Read : " + f_num );
 
-    while ( f != null && !f.eof() && f_num != 16 )
+      f_num = f.read_float();
+      System.out.println("A:Read : " + f_num );
+   
+      f.read_line();
+      f_num = f.read_float();
+      System.out.println("A:Read : " + f_num );
+    }
+    catch ( Exception e )
+    {
+      System.out.println("2: EXCEPTION: " + e );
+    }
+
+    while ( f != null && !f.eof() )
     {
       try
       {
         f_num = f.read_float();
-        System.out.println("Read : " + f_num );
+        System.out.println("B:Read : " + f_num );
       }
       catch ( Exception e )
       {
-        System.out.println("2: EXCEPTION: " + e );
+        System.out.println("3: EXCEPTION: " + e );
       }
-    }
-
-    try
-    {
-      f_num = f.read_float();
-      System.out.println("Finally Read: " + f_num );
-      f_num = f.read_float();
-      System.out.println("Finally Read: " + f_num );
-      f.read_line();                                  // skip EOL
-
-      f_num = f.read_float();
-      System.out.println("Finally Read: " + f_num );
-      f.close();
-    }
-    catch ( Exception e )
-    {
-      System.out.println("3: EXCEPTION: " + e );
     }
   }
 } 
