@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2003/10/02 03:32:26  millermi
+ *  - Added string values to java docs for public static strings.
+ *
  *  Revision 1.28  2003/09/24 00:09:46  millermi
  *  - Added static variables to be used as keys by ObjectState
  *  - Added IPreserveState to implementing interfaces along with methods
@@ -212,36 +215,37 @@ public class ImageViewComponent implements IViewComponent2D,
 	                                   IPreserveState
 {
  /**
-  * This constant String is a messaging string sent out by the
-  * ImageViewComponent when the component has been resized.
+  * "COMPONENT_RESIZED" - This constant String is a messaging string sent out
+  * by the ImageViewComponent when the component has been resized.
   */
   public static final String COMPONENT_RESIZED   = "COMPONENT_RESIZED";
   
   // these variables preserve the state of the ImageViewComponent
  /**
-  * This constant String is a key for referencing the state information
-  * about the selected regions of this view component. The value that this
-  * key references is an array of Regions.
+  * "Selected Regions" - This constant String is a key for referencing the state
+  * information about the selected regions of this view component. The value
+  * that this key references is an array of Regions.
   */
   public static final String SELECTED_REGIONS	 = "Selected Regions";
  
  /**
-  * This constant String is a key for referencing the state information
-  * about the action listeners listening to this components. The value that
-  * this key references is a Vector of action listeners. 
+  * "Listeners" - This constant String is a key for referencing the state
+  * information about the action listeners listening to this components. The
+  * value that this key references is a Vector of action listeners. 
   */
   public static final String LISTENERS  	 = "Listeners";
  
  /**
-  * This constant String is a key for referencing the state information
-  * about the precision this view component will have. Precision affects the
-  * significant digits displayed on the Axis Overlay, among other things.
-  * The value that this key references is a primative integer, with value > 0.
+  * "Precision" - This constant String is a key for referencing the state
+  * information about the precision this view component will have. Precision
+  * affects the significant digits displayed on the Axis Overlay, among other
+  * things. The value that this key references is a primative integer, with
+  * value > 0.
   */
   public static final String PRECISION  	 = "Precision";
  
  /**
-  * This constant String is a key for referencing the state information
+  * "Font" - This constant String is a key for referencing the state information
   * about the font used by this view component. This font will also be
   * passed on to overlays, such as the Axis, Annotation, and Selection.
   * The value that this key references is of type Font.
@@ -249,109 +253,110 @@ public class ImageViewComponent implements IViewComponent2D,
   public static final String FONT		 = "Font";
  
  /**
-  * This constant String is a key for referencing the state information
-  * about the color scale used by this view component. The value that this
-  * key references is of type String. These string constants may be found
-  * in IndexColorMaker.java.
+  * "Color Scale" - This constant String is a key for referencing the state
+  * information about the color scale used by this view component. The value
+  * that this key references is of type String. These string constants may be
+  * found in IndexColorMaker.java.
   *
-  * @see IndexColorMaker
+  * @see DataSetTools.components.image.IndexColorMaker
   */
   public static final String COLOR_SCALE	 = "Color Scale";
  
  /**
-  * This constant String is a key for referencing the state information
-  * about one or two-sided data. The value that this key references is of
-  * type boolean. Values are true if two-sided, false if one-sided.
+  * "Two Sided" - This constant String is a key for referencing the state
+  * information about one or two-sided data. The value that this key references
+  * is of type boolean. Values are true if two-sided, false if one-sided.
   */
   public static final String TWO_SIDED  	 = "Two Sided";
  
  /**
-  * This constant String is a key for referencing the state information
-  * about the intensity or log scale value. This value comes from the
-  * intensity slider and is of type float. Values are on the range [0,1].
+  * "Log Scale" - This constant String is a key for referencing the state
+  * information about the intensity or log scale value. This value comes from
+  * the intensity slider and is of type float. Values are on the range [0,1].
   */
   public static final String LOG_SCALE  	 = "Log Scale";
  
  /**
-  * This constant String is a key for referencing the state information
-  * about the preference of a color scale in the control panel. Of type
-  * boolean, if true, an uncalibrated color scale will appear in the control
-  * panel.
+  * "Color Control" - This constant String is a key for referencing the state
+  * information about the preference of a color scale in the control panel. Of
+  * type boolean, if true, an uncalibrated color scale will appear in the
+  * control panel.
   */
   public static final String COLOR_CONTROL       = "Color Control";
  
  /**
-  * This constant String is a key for referencing the state information
-  * about the preference of a color scale placed below the image. Of type
-  * boolean, if true, a calibrated color scale will appear below the image.
+  * "Color Control East" - This constant String is a key for referencing the
+  * state information about the preference of a color scale placed below the
+  * image. Of type boolean, if true, a calibrated color scale will appear below
+  * the image.
   */
   public static final String COLOR_CONTROL_EAST  = "Color Control East";
 
  /**
-  * This constant String is a key for referencing the state information
-  * about the preference of a color scale placed to the right of the image.
-  * Of type boolean, if true, a calibrated color scale will appear to the
-  * right of the image.
+  * "Color Control West" - This constant String is a key for referencing the
+  * state information about the preference of a color scale placed to the right
+  * of the image. Of type boolean, if true, a calibrated color scale will
+  * appear to the right of the image.
   */
   public static final String COLOR_CONTROL_SOUTH = "Color Control West";
  
  /**
-  * This constant String is a key for referencing the state information
-  * about the annotation on/off control. Of type boolean, if true, the
-  * Annotation Overlay control will be turned on, thus turning on the
-  * Annotation Overlay itself.
+  * "Annotation Control" - This constant String is a key for referencing the
+  * state information about the annotation on/off control. Of type boolean,
+  * if true, the Annotation Overlay control will be turned on, thus turning
+  * on the Annotation Overlay itself.
   */
   public static final String ANNOTATION_CONTROL  = "Annotation Control";
 
  /**
-  * This constant String is a key for referencing the state information
-  * about the axis on/off control. Of type boolean, if true, the Axis
-  * Overlay control will be turned on, thus turning on the Axis Overlay
+  * "Axis Control" - This constant String is a key for referencing the state
+  * information about the axis on/off control. Of type boolean, if true, the
+  * Axis Overlay control will be turned on, thus turning on the Axis Overlay
   * itself.
   */
   public static final String AXIS_CONTROL	 = "Axis Control";
 
  /**
-  * This constant String is a key for referencing the state information
-  * about the selection on/off control. Of type boolean, if true, the
-  * Selection Overlay control will be turned on, thus turning on the
-  * Selection Overlay itself.
+  * "Selection Control" - This constant String is a key for referencing the
+  * state information about the selection on/off control. Of type boolean,
+  * if true, the Selection Overlay control will be turned on, thus turning
+  * on the Selection Overlay itself.
   */
   public static final String SELECTION_CONTROL   = "Selection Control";
 
  /**
-  * This constant String is a key for referencing the state information
-  * about the ImageJPanel. Since the ImageJPanel has its own state,
+  * "ImageJPanel" - This constant String is a key for referencing the state
+  * information about the ImageJPanel. Since the ImageJPanel has its own state,
   * this value is of type ObjectState, and contains the state of the
   * ImageJPanel. 
   */
   public static final String IMAGEJPANEL	 = "ImageJPanel";
 
  /**
-  * This constant String is a key for referencing the state information
-  * about the Annotation Overlay. Since the overlay has its own state,
-  * this value is of type ObjectState, and contains the state of the
-  * overlay. 
+  * "AnnotationOverlay" - This constant String is a key for referencing the
+  * state information about the Annotation Overlay. Since the overlay has its
+  * own state, this value is of type ObjectState, and contains the state of
+  * the overlay. 
   */
   public static final String ANNOTATION_OVERLAY  = "AnnotationOverlay";
 
  /**
-  * This constant String is a key for referencing the state information
-  * about the Axis Overlay. Since the overlay has its own state,
+  * "AxisOverlay2D" - This constant String is a key for referencing the state
+  * information about the Axis Overlay. Since the overlay has its own state,
   * this value is of type ObjectState, and contains the state of the
   * overlay.
   */
   public static final String AXIS_OVERLAY_2D	 = "AxisOverlay2D";
 
  /**
-  * This constant String is a key for referencing the state information
-  * about the Selection Overlay. Since the overlay has its own state,
-  * this value is of type ObjectState, and contains the state of the
-  * overlay.
+  * "SelectionOverlay" - This constant String is a key for referencing the
+  * state information about the Selection Overlay. Since the overlay has
+  * its own state, this value is of type ObjectState, and contains the state
+  * of the overlay.
   */
   public static final String SELECTION_OVERLAY   = "SelectionOverlay";
   
-  // this variable controls the size of the virtual array to be analyzed.
+  // this variable controls the max size of the virtual array to be analyzed.
   private static final int MAXDATASIZE = 1000000000;
   private IVirtualArray2D Varray2D;  //An object containing our array of data
   private Stack dynamicregionlist = new Stack(); // dynamic list of regions.
