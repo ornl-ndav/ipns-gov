@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2002/10/31 23:14:37  dennis
+ * Clarified documentation for depth() method.
+ *
  * Revision 1.3  2002/10/29 23:46:49  dennis
  * Added method position() to get the average position of the
  * vertices for the object.
@@ -123,7 +126,8 @@ public static final int INVALID_PICK_ID = -1;
    *  That is, the objects are sorted based on depth and those objects that
    *  are furthest away are drawn first.  This algorithm will not work for
    *  arbitrary scenes, but will work for simple rectangular approximations 
-   *  to detector elements.
+   *  to detector elements.  NOTE: The depth value is on a relative scale with
+   *  the depth value increasing as the point gets closer to the observer.
    *
    *  @return  Returns a depth value that can be used to sort the objects
    *           based on their distance from the observer. 
