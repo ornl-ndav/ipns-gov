@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2001/12/18 23:06:43  pfpeterson
+ *  Fixed a windows bug. A local file should be listed as 'file:///' not 'file://'. It works under linux as well.
+ *
  *  Revision 1.3  2001/12/11 17:54:13  pfpeterson
  *  Added the method 'String helpDir(String helpFile)' which returns the full name of the helpFile to be used. The searchpath is (in order) Help_Directory, $HOME/IsawHelp, $CLASSPATH/IsawHelp, or online.
  *
@@ -194,7 +197,7 @@ public class FilenameUtil
 	if( S == null ){
 	    S = URLDIR+helpFile;
 	}else{ 
-	    S = "file://" + S; 
+	    S = "file:///" + S; 
 	}
 
 
