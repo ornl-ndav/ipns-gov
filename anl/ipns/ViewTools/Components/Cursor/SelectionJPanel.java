@@ -33,9 +33,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/05/29 14:13:22  dennis
+ *  Made three changes (Mike Miller)
+ *    -extends ActiveJPanel not CoordJPanel
+ *    -added messages for actionListeners
+ *    -added double click feature to remove last/all selected
+ *
  *  Revision 1.1  2003/05/24 17:32:20  dennis
  *  Initial version of cursor selection. (Mike Miller)
- *
  *
  */
 
@@ -54,18 +59,20 @@ import DataSetTools.components.image.*;
 /**
  *
  */
-public class SelectionJPanel extends CoordJPanel 
-                                  implements Serializable
+public class SelectionJPanel extends ActiveJPanel
 {
-   private static final String BOX = "box";
-   private static final String CIRCLE = "circle";
-   private static final String ELIPSE = "elipse";
-   private static final String POINT = "point";
-   private Rectangle box_select = null;  
-   private Rectangle circle_select = null;  // different structure needed.
+   public static final String RESET_SELECTED = "RESET_SELECTED";
+   public static final String RESET_LAST_SELECTED = "RESET_LAST_SELECTED";
+   public static final String REGION_SELECTED = "REGION_SELECTED";
+
+   public static final String BOX = "box";
+   public static final String CIRCLE = "circle";
+   public static final String ELIPSE = "elipse";
+   public static final String POINT = "point";
    private BoxCursor box;
    private CircleCursor circle;
    private PointCursor point;
+   private boolean isAdown;   // true if A is pressed (for RESET_SELECTED)
    private boolean isBdown;   // true if B is pressed (for box selection)
    private boolean isCdown;   // true if C is pressed (for circle selection)
    private boolean isEdown;   // true if E is pressed (for eliptical selection)
@@ -74,10 +81,10 @@ public class SelectionJPanel extends CoordJPanel
    private boolean doing_circle;  // true if circle selection started
    private boolean doing_point;   // true if point selection started
    private boolean doing_elipse;  // true if elipse selection started
-   private boolean isOn;      // true if selection control set to on
-  
+   
    public SelectionJPanel()
    { 
+      isAdown = false;
       isBdown = false;
       isCdown = false;
       isEdown = false;
@@ -88,13 +95,17 @@ public class SelectionJPanel extends CoordJPanel
       doing_point = false;
       doing_elipse = false;
       
-      isOn = false;
+  //*********Testing - Remove after KeyListeners are fixed*******************//
+      doing_circle = true;
+  //*************************************************************************//
+      
       box = new BoxCursor(this);
       circle = new CircleCursor(this);
       point = new PointCursor(this);
-      addKeyListener( new SelectKeyAdapter() );
+      
       addMouseListener( new SelectMouseAdapter() );
       addMouseMotionListener( new SelectMouseMotionAdapter() );
+      addKeyListener( new SelectKeyAdapter() );
    }
 
   /* ------------------------ set_box ------------------------------ */
@@ -186,103 +197,114 @@ public class SelectionJPanel extends CoordJPanel
             doing_point = false;
          }
       }      
-   }  
- 
-  /**
-   * Answers the question: "Are selection listeners reacting to keyboard 
-   * and mouse events?"
-   *
-   *  @return isOn
-   */
-   public boolean isOn()
-   {
-      return isOn;
    }
    
-  /**
-   * Turns the selection listeners on/off and the CoordJPanel listeners off/on.
-   */
-   public void toggle()
+   public XOR_Cursor getCursor( String cursor )
    {
-      isOn = !isOn;
+   
+      if( cursor.equals(BOX) )
+         return box;
+      else if( cursor.equals(CIRCLE) )
+         return circle;
+    //else if( cursor.equals(ELIPSE) )          // elipse not implemented
+    //   return elipse; 	 
+      else //( cursor.equals(POINT) )
+         return point;
    }
 
    private class SelectKeyAdapter extends KeyAdapter
    {
       public void keyPressed( KeyEvent e )
       {
-         if( isOn )
-	 {
-            int code = e.getKeyCode();
-	 
-	    if( code == KeyEvent.VK_B )
-	       isBdown = true;
-	    if( code == KeyEvent.VK_C )
-	       isCdown = true;
-	    if( code == KeyEvent.VK_E )
-	       isEdown = true;
-	    if( code == KeyEvent.VK_P )
-	       isPdown = true;	
-	 } 	 	 
+         System.out.println("here in keypressed");
+         int code = e.getKeyCode();
+
+	 if( code == KeyEvent.VK_A )
+	    isAdown = true;	 
+	 if( code == KeyEvent.VK_B )
+	    isBdown = true;
+	 if( code == KeyEvent.VK_C )
+	    isCdown = true;
+	 if( code == KeyEvent.VK_E )
+	    isEdown = true;
+	 if( code == KeyEvent.VK_P )
+	    isPdown = true;		 	 
       }
       
       public void keyReleased( KeyEvent ke )
       {
-         if( isOn )
-	 {
-            int code = ke.getKeyCode();
+         //System.out.println("here in keyreleased");
 	 
-	    if( code == KeyEvent.VK_B )
-	       isBdown = false;
-	    if( code == KeyEvent.VK_C )
-	       isCdown = false;
-	    if( code == KeyEvent.VK_E )
-	       isEdown = false;
-	    if( code == KeyEvent.VK_P )
-	       isPdown = false;  
-	 }             
+         int code = ke.getKeyCode();
+
+	 if( code == KeyEvent.VK_A )
+	    isBdown = false;	 
+	 if( code == KeyEvent.VK_B )
+	    isBdown = false;
+	 if( code == KeyEvent.VK_C )
+	    isCdown = false;
+	 if( code == KeyEvent.VK_E )
+	    isEdown = false;
+	 if( code == KeyEvent.VK_P )
+	    isPdown = false;              
       }
    }
 
    private class SelectMouseAdapter extends MouseAdapter
    {
-/*      public void mouseClicked (MouseEvent e)
+      public void mouseClicked (MouseEvent e)
       {
-      
-      }*/
+         if ( e.getClickCount() == 2 ) 
+	 {
+	    if( isAdown )
+	       send_message(RESET_SELECTED);	
+	    else
+	       send_message(RESET_LAST_SELECTED);
+	 }	        	    
+      }
 
       public void mousePressed (MouseEvent e)
       {
-         if( isOn )
+         System.out.println("here in mousepressed");
+
+         if( isBdown || isCdown || isEdown )
 	 {
-            if( isBdown || isCdown || isEdown )
-	    {
-	    // turn off crosshairs in CoordJPanel, 
-	    // then do one of the following	    
-               if( isBdown )
-	          set_cursor( box, e.getPoint() );
-	       if( isCdown )
-	          set_cursor( circle, e.getPoint() );
-               if( isEdown )
-	          System.out.println("Eliptical Selection");	    	    	    
-            }
-	    if( isPdown )
-	       set_cursor( point, e.getPoint() );
-	 }	       
+	 // turn off crosshairs in CoordJPanel, 
+	 // then do one of the following	    
+            if( isBdown )
+	       set_cursor( box, e.getPoint() );
+	    if( isCdown )
+	       set_cursor( circle, e.getPoint() );
+            if( isEdown )
+	       System.out.println("Eliptical Selection");	    	    	    
+         }
+	 if( isPdown )
+	    set_cursor( point, e.getPoint() );	       
       }
 
       public void mouseReleased(MouseEvent e)
       {
-         if( isOn )
+         System.out.println("here in mousereleased");
+
+         if( doing_box )
 	 {
-            if( doing_box )
-	       stop_cursor( box, e.getPoint() );
-            if( doing_circle )
-	       stop_cursor( circle, e.getPoint() );
-            if( doing_elipse )
-	       System.out.println("Eliptical Selection Complete");
-            if( doing_point )
-	       stop_cursor( point, e.getPoint() );  
+	    stop_cursor( box, e.getPoint() );
+	    send_message(REGION_SELECTED + ">" + BOX);
+         }
+	 if( doing_circle )
+	 {
+	    stop_cursor( circle, e.getPoint() );
+	    send_message(REGION_SELECTED + ">" + CIRCLE);
+         }
+	 if( doing_elipse )
+	 {
+	    System.out.println("Eliptical Selection Complete");
+	    send_message(REGION_SELECTED + ">" + ELIPSE);
+         }
+	 if( doing_point )
+	 {
+	    stop_cursor( point, e.getPoint() ); 
+	    send_message(REGION_SELECTED + ">" + POINT); 
 	 }    
       }
    } 
@@ -291,18 +313,17 @@ public class SelectionJPanel extends CoordJPanel
    {
       public void mouseDragged(MouseEvent e)
       {
-         if( isOn )
-	 {
-	    //System.out.println("Point: " + e.getPoint() );
-            if( doing_box )
-	       set_cursor( box, e.getPoint() );
-            if( doing_circle )
-	       set_cursor( circle, e.getPoint() );
-            if( doing_elipse )
-	       System.out.println("Eliptical Selection");
-            if( doing_point )
-	       set_cursor( point, e.getPoint() );
-	 }
+         //System.out.println("here in mousedragged");
+
+	 //System.out.println("Point: " + e.getPoint() );
+         if( doing_box )
+            set_cursor( box, e.getPoint() );
+         if( doing_circle )
+	    set_cursor( circle, e.getPoint() );
+         if( doing_elipse )
+	    System.out.println("Eliptical Selection");
+         if( doing_point )
+	    set_cursor( point, e.getPoint() );
       }
    }    
    
@@ -318,7 +339,6 @@ public class SelectionJPanel extends CoordJPanel
     f.setBounds(0,0,500,500);
     SelectionJPanel panel = new SelectionJPanel();
     f.getContentPane().add(panel);
-    panel.toggle();
     f.setVisible(true);
   }  
 }
