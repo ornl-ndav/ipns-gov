@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2004/08/11 16:18:03  dennis
+ * Added method setPerspective() so that the project type can be
+ * selected programatically.
+ *
  * Revision 1.4  2004/08/03 23:37:21  dennis
  * Added methods setCOP() and setVRP() that override the
  * corresponding methods from the base class, and update the
@@ -120,6 +124,7 @@ public class AltAzController extends    ViewController
     border.setTitleFont( FontUtil.BORDER_FONT );
     setBorder( border );
 
+    ortho_checkbox = new JCheckBox( "Orthographic" );
     SliderChanged slider_listener = new SliderChanged();
     altitude_slider = new JSlider( JSlider.HORIZONTAL, 
                                   -(int)(ANGLE_SCALE_FACTOR*MAX_ALT_ANGLE), 
@@ -153,7 +158,6 @@ public class AltAzController extends    ViewController
     setAltitudeAngle( altitude );
     setAzimuthAngle( azimuth );
 
-    ortho_checkbox = new JCheckBox( "Orthographic" );
     ortho_checkbox.setFont(  FontUtil.BORDER_FONT );
     ortho_checkbox.addActionListener( new ProjectionTypeListener() );
     JPanel panel = new JPanel();
@@ -294,7 +298,7 @@ public class AltAzController extends    ViewController
    Vector3D diff = new Vector3D( cop );
    diff.subtract( old_cop );
                                            // and shift the VRP the same way
-   Vector3D vrp     = getVRP();
+   Vector3D vrp = getVRP();
    vrp.add( diff );
    super.setVRP( vrp );
 
@@ -305,7 +309,8 @@ public class AltAzController extends    ViewController
 /* -------------------------------- setVRP ------------------------------- */
 /**
  *   Set the point the observer is looking at (i.e. the View Reference Point )
- *   for this view.
+ *   for this view.  The center of projection will be adjusted as well to
+ *   keep the same view direction.
  *
  *   @param  vrp  The new vector to use for the point the observer is looking
  *                at.  
@@ -316,6 +321,19 @@ public class AltAzController extends    ViewController
     setView();                             // new COP is calcuated in setView()
   }
 
+
+/* ---------------------------- setPerspective --------------------------- */
+/**
+ *  Set the projection type for this view.  
+ *
+ *  @param  perspective_flag  If true, make this a perspective projection,
+ *                            otherwise make it an orthographic projection.
+ */
+  public void setPerspective( boolean perspective_flag )
+  {
+    ortho_checkbox.setSelected( !perspective_flag );
+    setView();
+  }
 
 /* -------------------------------------------------------------------------
  *
@@ -344,6 +362,7 @@ public class AltAzController extends    ViewController
    float vrp[] = getVRP().get();
  
    super.setCOP( new Vector3D( x + vrp[0], y + vrp[1], z + vrp[2] ) );
+   super.setPerspective( !ortho_checkbox.isSelected() );
    
    send_message(VIEW_CHANGED);
  }
