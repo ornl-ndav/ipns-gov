@@ -515,7 +515,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	 }
 	 if (message == CoordJPanel.ZOOM_IN)
          {
-	    System.out.println("Sending SELECTED_CHANGED " + regioninfo );
+	    //System.out.println("Sending SELECTED_CHANGED " + regioninfo );
 	    for(int next = 0; next < transparencies.size(); next++ )
 	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
             sendMessage(SELECTED_CHANGED);
