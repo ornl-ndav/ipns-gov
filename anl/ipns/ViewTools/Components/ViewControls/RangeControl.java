@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/03/28 06:36:57  serumb
+ *  Added copy method and main test program.
+ *
  *  Revision 1.1  2005/03/28 05:51:01  serumb
  *  Initial version of a class that wraps a textRangeUI into a ViewControl.
  *
@@ -47,7 +50,7 @@ import java.io.Serializable;
 import java.util.Vector;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-
+import javax.swing.JFrame;
 /**
   * This class is a ViewControl with text fields set up for entering 
   * and displaying ranges.
@@ -173,6 +176,18 @@ public class RangeControl extends ViewControl implements Serializable,
     }
 
  /**
+   * This function makes a 
+   */
+   public ViewControl copy()
+   {
+     String[] spacer = new String[range_field.length];
+
+     RangeControl range = new RangeControl(spacer);
+     range.setObjectState(this.getObjectState(PROJECT));
+   
+     return range;
+   }
+ /**
    * This function sets the min value to be displayed in the range field.
    *
    * @param index an integer value that represents the the value to be set.
@@ -238,8 +253,10 @@ public class RangeControl extends ViewControl implements Serializable,
   
     for(int index = 0; index < ((Vector)value).size(); index++)
     {
-      setMin( index,(float)( ((float[])( ((Vector)value).elementAt(index)) ) [0] ) );
-      setMax( index,(float)( ((float[])( ((Vector)value).elementAt(index)) ) [1] ) );
+      setMin( index,(float)( 
+      ((float[])( ((Vector)value).elementAt(index)) ) [0] ) );
+      setMax( index,(float)( 
+      ((float[])( ((Vector)value).elementAt(index)) ) [1] ) );
     }
     return; 
   }
@@ -273,4 +290,27 @@ public class RangeControl extends ViewControl implements Serializable,
        range_field[i].addActionListener(listener);
      }
    }
+   /**
+     * Main Program for test purposes only.
+     *
+     * @param args inputs are ignored.
+     */
+   public static void main(String[] args)
+   {
+     JFrame frame1 = new JFrame("test copy");
+     RangeControl range = new RangeControl(new String[] {"Xmin", "Xmax",
+                                                         "Ymin", "Ymax"});
+
+     range.setMin(1 , .5f);
+     range.setMin(0 , 2.6f);
+     range.setMax(1 , 6f);
+     range.setMax(0 , 7f);
+
+     frame1.getContentPane().setLayout(new java.awt.GridLayout(1,2));
+     frame1.getContentPane().add(range);
+     frame1.getContentPane().add(range.copy());
+     frame1.pack();
+     frame1.setVisible(true);
+   }
+     
 }  
