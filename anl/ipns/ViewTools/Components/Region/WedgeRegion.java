@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2004/05/11 01:30:48  millermi
+ *  - Removed unused variables.
+ *  - Removed commented code which made line selections part of the
+ *    wedge region.
+ *
  *  Revision 1.16  2004/03/15 23:53:52  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -217,11 +222,6 @@ public class WedgeRegion extends Region
     */
     Point center = floorImagePoint(
                                 world_to_image.MapTo(definingpoints[0]));
-    Point p1 = floorImagePoint(
-                                world_to_image.MapTo(definingpoints[1]));
-    // rp1 is reflection of p1
-    Point rp1 = floorImagePoint(
-                                world_to_image.MapTo(definingpoints[2]));
     Point topleft = floorImagePoint(
                                 world_to_image.MapTo(definingpoints[3]));
     Point bottomright = floorImagePoint(
@@ -235,26 +235,16 @@ public class WedgeRegion extends Region
     float totalangle = definingpoints[5].y + startangle;
     float stopangle = totalangle;
     int p1quad = 0; 
-    // these adjustments are used when for the LineRegion selection near
-    // the end.
-    float p1xadjust = 0;
-    float p1yadjust = 0;
-    float rp1xadjust = 0;
-    float rp1yadjust = 0; 
     // using the startangle, find the quadrant of p1
     if( startangle <= 180 )
     {
       if( startangle <= 90 )
       {
 	p1quad =  1;
-        p1xadjust = -0.5f;
-        p1yadjust = -0.5f;
       }
       else
       {
 	p1quad =  2;
-        p1xadjust = -0.5f;
-        p1yadjust = 0.5f;
       }
     }
     else
@@ -262,14 +252,10 @@ public class WedgeRegion extends Region
       if( startangle < 270 )
       {
 	p1quad =  3;
-        p1xadjust = 0.5f;
-        p1yadjust = 0.5f;
       }
       else
       {
 	p1quad =  4;
-        p1xadjust = 0.5f;
-        p1yadjust = -0.5f;
       }
     } 
     // make sure angle is between 0 and 360  
@@ -283,14 +269,10 @@ public class WedgeRegion extends Region
       if( totalangle <= 90 )
       {
 	rp1quad =  1;
-        rp1xadjust = 0.5f;
-        rp1yadjust = 0.5f;
       }
       else
       {
 	rp1quad =  2;
-        rp1xadjust = 0.5f;
-        rp1yadjust = -0.5f;
       }
     }
     else
@@ -298,14 +280,10 @@ public class WedgeRegion extends Region
       if( totalangle < 270 )
       {
 	rp1quad =  3;
-        rp1xadjust = -0.5f;
-        rp1yadjust = -0.5f;
       }
       else
       {
 	rp1quad =  4;
-        rp1xadjust = -0.5f;
-        rp1yadjust = 0.5f;
       }
     }
     
@@ -436,44 +414,6 @@ public class WedgeRegion extends Region
 	} // end for x
       } // end for y
     } // for quad
-    
-    //System.out.println("Center: (" + (center.x - topleft.x) + "," +
-    //  		 (center.y - topleft.y) + ")");
-    /*
-    // this code uses line regions to select the points along the bounding
-    // lines of the wedge
-    floatPoint2D p1temp = new floatPoint2D( definingpoints[1].x + p1xadjust,
-					    definingpoints[1].y + p1yadjust );
-    // map defining points back to world coords.
-    floatPoint2D[] p1pts = {definingpoints[0],p1temp};
-    LineRegion p1line = new LineRegion( p1pts );
-    p1line.setWorldBounds(world_to_image.getSource());
-    p1line.setImageBounds(world_to_image.getDestination());
-    Point[] p1select = p1line.initializeSelectedPoints();
-    for( int i = 0; i < p1select.length; i++ )
-    {
-      // make sure point is on the image.
-      CoordBounds imagebounds = world_to_image.getDestination();
-      if( imagebounds.onXInterval((float)p1select[i].x) && 
-          imagebounds.onYInterval((float)p1select[i].y) )
-        points.add( new Point( p1select[i] ) );
-    }
-    floatPoint2D rp1temp = new floatPoint2D( definingpoints[2].x + rp1xadjust,
-					     definingpoints[2].y + rp1yadjust );
-    // map defining points back to world coords.
-    floatPoint2D[] rp1pts = {definingpoints[0],rp1temp};
-    LineRegion rp1line = new LineRegion( rp1pts );
-    rp1line.setWorldBounds(world_to_image.getSource());
-    rp1line.setImageBounds(world_to_image.getDestination());
-    Point[] rp1select = rp1line.initializeSelectedPoints();
-    for( int i = 0; i < rp1pts.length; i++ )
-    {
-      // make sure point is on the image.
-      CoordBounds imagebounds = world_to_image.getDestination();
-      if( imagebounds.onXInterval((float)rp1select[i].x) && 
-          imagebounds.onYInterval((float)rp1select[i].y) )
-        points.add( new Point( rp1select[i] ) );
-    }*/
     
     // put the vector of points into an array of points
     selectedpoints = new Point[points.size()];
