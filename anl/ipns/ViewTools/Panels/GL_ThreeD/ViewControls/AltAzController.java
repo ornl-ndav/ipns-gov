@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/07/23 13:09:07  dennis
+ * Fixed bug in calculating view when the View Reference Point
+ * is not at the origin.
+ *
  * Revision 1.2  2004/07/14 16:30:41  dennis
  * Added checkbox to switch the view from a perspective projection to
  * an orthographic projection.
@@ -297,7 +301,7 @@ public class AltAzController extends    ViewController
 
    float vrp[] = getVRP().get();
  
-   setCOP( new Vector3D( x-vrp[0], y-vrp[0], z-vrp[0] ) );
+   setCOP( new Vector3D( x + vrp[0], y + vrp[1], z + vrp[2] ) );
    
    send_message(VIEW_CHANGED);
  }

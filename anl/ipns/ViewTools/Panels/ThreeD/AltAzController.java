@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2004/07/23 13:11:28  dennis
+ * Fixed bug in calculating view when the View Reference Point
+ * is not at the origin.
+ *
  * Revision 1.10  2004/03/15 23:53:55  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -290,7 +294,7 @@ public class AltAzController extends    ViewController
 
    float vrp[] = getVRP().get();
  
-   setCOP( new Vector3D( x-vrp[0], y-vrp[0], z-vrp[0] ) );
+   setCOP( new Vector3D( x + vrp[0], y + vrp[1], z + vrp[2] ) );
 
    apply( reset_zoom );
  }
