@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.9  2004/03/11 22:26:22  serumb
+ * Changed package imports and beep.
+ *
  * Revision 1.8  2004/02/10 05:33:04  bouzekc
  * Now uses IsawToolkit.beep().
  *
@@ -42,15 +45,14 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.awt.*;
 import java.text.*;
 import java.awt.event.*;
 import javax.swing.*;
-import DataSetTools.util.*;
 import java.io.*;
-
+import java.lang.Object.*;
 /**
  * A TextValueI object is an editable JTextField object with a format that 
  * has one  numerical value, in square brackets.  A label may also be applied,
@@ -238,7 +240,7 @@ public class TextValueUI extends    JTextField
     i = str.indexOf( start_char );      // find the start_char and discard the
     if ( i < 0 )                        // preliminary part of the string
     {
-      IsawToolkit.beep();
+      Toolkit.getDefaultToolkit().beep();
       return Float.NaN;
     }
 
@@ -247,7 +249,7 @@ public class TextValueUI extends    JTextField
     i = str.indexOf( end_char );        // find the end_char and discard the
     if ( i < 0 )                        // remaining part of the string
     {
-      IsawToolkit.beep();
+      Toolkit.getDefaultToolkit().beep();
       return Float.NaN;
     }
     str = str.substring(0,i);
@@ -258,7 +260,7 @@ public class TextValueUI extends    JTextField
     }
     catch (Exception e ) 
     { 
-      IsawToolkit.beep();
+      Toolkit.getDefaultToolkit().beep();
       System.out.println("Exception in TextValueUI.findNumber");
       System.out.println("Exception is: " + e );
     }
