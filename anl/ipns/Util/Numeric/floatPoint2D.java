@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/01/06 20:26:51  dennis
+ *  Added method "magnitude()" that calculates the distance from
+ *  the origin to the point.
+ *
  *  Revision 1.7  2004/01/03 02:12:22  millermi
  *  - Added Constructor that takes in a java.awt.Point and converts
  *    it to a floatPoint2D.
@@ -120,6 +124,18 @@ public class floatPoint2D implements java.io.Serializable {
 	this.x = x;
 	this.y = y;
     }	
+
+
+    /**
+     *  Calculate the magnitude of this point, treated as a vector
+     *  from (0,0) to it's coordinates (x,y).
+     *
+     * @return sqrt(x*x+y*y)
+     */
+    public float magnitude()
+    {
+      return (float)Math.sqrt( x*x + y*y ); 
+    }
 
     /**
      * Returns a representation of this point as a string.
