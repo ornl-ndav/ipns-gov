@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2003/08/28 23:04:57  dennis
+ * Default graph now is line joining (0,0) with (1,0.001)
+ *
  * Revision 1.13  2003/07/17 21:50:40  serumb
  * Added if block to check if the Error Values are null.
  *
@@ -69,7 +72,7 @@ import javax.swing.*;
 public class GraphData implements Serializable 
 {
   float  x_vals[]  = { 0, 1 };
-  float  y_vals[]  = { 0, 1 };
+  float  y_vals[]  = { 0, .001f };
 
   public Color  color     = Color.black;
   public int    linetype  = 1;
