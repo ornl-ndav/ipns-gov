@@ -2,6 +2,9 @@
  * @(#)floatPoint2D.java  1999/01/10  Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.4  2000/11/07 15:27:46  dennis
+ *  Minor improvement to documentation.
+ *
  *  Revision 1.3  2000/07/10 22:55:37  dennis
  *  July 10, 2000 version... many changes
  *
@@ -39,8 +42,6 @@ public class floatPoint2D implements java.io.Serializable {
     /**
      * Constructs and initializes a point at the origin 
      * of the coordinate space. 
-     * @param       x   the x coordinate.
-     * @param       y   the y coordinate.
      */
     public floatPoint2D() {
 	this(0.0f, 0.0f);
