@@ -1,7 +1,7 @@
 /*
  * File: ColorScaleImage.java
  *
- * Copyright (C) 2001 Dennis Mikkelson
+ * Copyright (C) 2001-2003 Dennis Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,13 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2003/07/05 19:39:45  dennis
+ * - Altered 2nd constructor to take in integer code instead of
+ *   boolean codes.  These new integer codes allow for specification
+ *   of vertical/horizontal and one-/two-sided color models. (Mike Miller)
+ * - Merged previous log message. (dennis)
+ *
+ *
  * Revision 1.3  2003/06/18 13:40:46  dennis
  * (Mike Miller)
  * - Added constructor and static variables to allow color
@@ -55,8 +62,10 @@ import DataSetTools.components.image.*;
 public class ColorScaleImage extends    ImageJPanel 
                              implements Serializable 
 {
-  public static final boolean HORIZONTAL = true;
-  public static final boolean VERTICAL   = false;
+  public static final int HORIZONTAL_SINGLE = 0; // single color model
+  public static final int HORIZONTAL_DUAL   = 1; // dual color model
+  public static final int VERTICAL_SINGLE   = 2; // single color model
+  public static final int VERTICAL_DUAL     = 3; // dual color model
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -67,34 +76,67 @@ public class ColorScaleImage extends    ImageJPanel
   */
   public ColorScaleImage( )
   { 
-    super();
-    
     float color_scale_data[][] = new float[1][255];
     for ( int i = -127; i <= 127; i++ )
       color_scale_data[0][i+127] = i;
-      
-    setData( color_scale_data, false );
+
+    setData( color_scale_data, false );  
   }
   
-  public ColorScaleImage( boolean orientation )
+ /**
+  *  This constructor allows for four types of color scale images. The four
+  *  types are: HORIZONTAL_SINGLE, HORIZONTAL_DUAL, VERTICAL_SINGLE, and
+  *  VERTICAL_DUAL.
+  * 
+  *  @param  type
+  */
+  public ColorScaleImage( int type  )
   { 
-    super();
+    super(); 
     
-    if( orientation )
+    // Horizontal color scale
+    if( type < 2 )
     {
-      float color_scale_data[][] = new float[1][255];
-      for ( int i = -127; i <= 127; i++ )
-        color_scale_data[0][i+127] = i;
+      // Horizontal with single color model
+      if( type == 0 )
+      {   
+        float color_scale_data[][] = new float[1][127];
+        for ( int i = 0; i < 127; i++ )
+          color_scale_data[0][i] = i;
+      
+        setData( color_scale_data, false );
+      }
+      // Horizontal with dual color model
+      else
+      {
+        float color_scale_data[][] = new float[1][255];
+        for ( int i = -127; i <= 127; i++ )
+          color_scale_data[0][i+127] = i;
 
-      setData( color_scale_data, false );
+        setData( color_scale_data, false );
+      }
     }
+    // Vertical color scale
     else
     {
-      float color_scale_data[][] = new float[255][1];
-      for ( int i = -127; i <= 127; i++ )
-        color_scale_data[i+127][0] = -i;
+      // Verticl with single color model
+      if( type == 2 )
+      {
+        float color_scale_data[][] = new float[127][1];
+        for ( int i = 126; i >= 0; i-- )
+          color_scale_data[i][0] = 126 - i;
 
-      setData( color_scale_data, false );
+        setData( color_scale_data, false );
+      }
+      // Vertical with dual color model
+      else
+      {      
+        float color_scale_data[][] = new float[255][1];
+        for ( int i = -127; i <= 127; i++ )
+          color_scale_data[i+127][0] = -i;
+
+        setData( color_scale_data, false );
+      }
     }      
   }
 
