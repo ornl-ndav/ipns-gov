@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/08/17 01:25:21  millermi
+ *  - Made getFormat() and setFormat() public methods.
+ *  - Fixed bug that caused state to be saved incorrectly.
+ *
  *  Revision 1.1  2004/08/04 18:51:18  millermi
  *  - Initial Version - This control consists of a series of combo boxes
  *    to set multiple format options.
@@ -306,26 +310,14 @@ public class FormatControl extends ViewControl
     formats[combo_box_index].setToolTipText(text);
   }
  
- /*
-  * Find the array index of the combo box that is passed in.
-  */ 
-  private int findIndex( JComboBox cbox )
-  {
-    int index = 0;
-    while( index < formats.length && cbox != formats[index] )
-      index++;
-    // If combo box not found, return -1
-    if( index == formats.length )
-      return -1;
-    // Otherwise combo box is at the current value of index.
-    return index;
-  }
- 
- /*
+ /**
   * Get the labels of the combo boxes in the form of a Vector containing a
   * list of Object[], with each array corresponding to a combo box.
+  *
+  *  @return Vector containing multiple Object[], each corresponding to a
+  *          combo box.
   */ 
-  private Vector getFormats()
+  public Vector getFormats()
   {
     Vector temp = new Vector();
     Object[] item_list;
@@ -334,17 +326,21 @@ public class FormatControl extends ViewControl
       item_list = new Object[formats[i].getItemCount()];
       for( int item = 0; item < formats[i].getItemCount(); item++ )
       {
-        item_list[item] = formats[i].getItemAt(i);
+        item_list[item] = formats[i].getItemAt(item);
       }
       temp.add(item_list);
     }
     return temp;
   }
  
- /*
+ /**
   * This method will create the combo boxes and add listeners to each.
+  * Calling this method will clear/remove any previously existing combo boxes.
+  *
+  *  @param  format_lists Vector containing list of Object[], each corresponding
+  *          to a combo box.
   */ 
-  private void setFormats( Vector format_lists )
+  public void setFormats( Vector format_lists )
   {
     if( format_lists == null )
     {
@@ -373,6 +369,21 @@ public class FormatControl extends ViewControl
     // This will remove any previous combo boxes are replace them with the
     // newly created combo boxes.
     init();
+  }
+ 
+ /*
+  * Find the array index of the combo box that is passed in.
+  */ 
+  private int findIndex( JComboBox cbox )
+  {
+    int index = 0;
+    while( index < formats.length && cbox != formats[index] )
+      index++;
+    // If combo box not found, return -1
+    if( index == formats.length )
+      return -1;
+    // Otherwise combo box is at the current value of index.
+    return index;
   }
   
  /*
@@ -488,7 +499,7 @@ public class FormatControl extends ViewControl
     new_list.add(listD);
     new_list.add(listE);
     new_list.add(listF);
-    state.reset(FormatControl.FORMAT_LIST,new_list);
+    fc.setFormats(new_list);
     // These should have no effect since setting the ObjectState should restore
     // the set indices above.
     fc.setSelectedIndex(0,0);
