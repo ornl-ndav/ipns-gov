@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/06/11 17:54:01  dennis
+ *  Changed from dos to unix text format.
+ *
  *  Revision 1.6  2004/04/09 03:06:56  millermi
  *  - Added default constructor.
  *
