@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/24 21:00:28  bouzekc
+ * Removed unused variables and imports.
+ *
  * Revision 1.1  2003/07/29 20:56:06  bouzekc
  * Added to CVS.
  *
@@ -56,7 +59,6 @@ public class TextWriter {
    */
   public static void writeASCII( File file2Write, String text2Write ) {
     FileWriter fw  = null;
-    PrintWriter pw = null;
     String errFile = StringUtil.setFileSeparator( 
         SharedData.getProperty( "user.dir" ) + "/writeASCII.err" );
 
