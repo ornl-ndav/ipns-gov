@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2001/08/09 16:11:00  dennis
+ *  ViewManagers are now "listened" to and if the user closes a
+ *  ViewManager, it is removed from the list of viewers and the
+ *  checkboxes are un-checked.
+ *
  *  Revision 1.15  2001/08/08 13:59:10  dennis
  *  Added status/error info to label giving host name.
  *  First stage integration of new error messages.
@@ -473,8 +478,10 @@ public class LiveDataMonitor extends    JPanel
       else
         data_manager.setUpdateIgnoreFlag( i, true );
 
-      if ( viewers[i] != null )
+      if ( viewers[i] != null && viewers[i].isVisible()  )
         viewers[i].setDataSet( data_manager.getDataSet(i) );
+      else 
+        viewers[i] = null;
     }
 
     border = new TitledBorder( LineBorder.createBlackLineBorder(),
@@ -512,9 +519,7 @@ public class LiveDataMonitor extends    JPanel
       {
         String cur_title = ds.getTitle();
         if ( !cur_title.equalsIgnoreCase( ds_label[i].getText() ) )
-        {
           ds_label[i].setText( cur_title );
-        } 
       }
       else 
         ds_label[i].setText( "NO DATA SET" );
@@ -563,7 +568,11 @@ public class LiveDataMonitor extends    JPanel
       {
         DataSet ds = data_manager.getDataSet( my_index );
         if ( ds != null )
+        {
           viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+          viewers[my_index].addWindowListener( 
+                                         new ViewManagerListener(my_index));
+        }
       }
 
       data_manager.UpdateDataSetNow( my_index ); 
@@ -623,7 +632,11 @@ public class LiveDataMonitor extends    JPanel
         { 
           DataSet ds = data_manager.getDataSet( my_index );
           if ( ds != null )
-            viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+          {
+           viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+           viewers[my_index].addWindowListener( 
+                                            new ViewManagerListener(my_index));
+          }
         }
         data_manager.UpdateDataSetNow( my_index );
       }
@@ -663,7 +676,11 @@ public class LiveDataMonitor extends    JPanel
         {
           DataSet ds = data_manager.getDataSet( my_index );
           if ( ds != null )
-            viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+          {
+           viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+           viewers[my_index].addWindowListener( 
+                                          new ViewManagerListener(my_index));
+          }
         }
         show_box[ my_index ].setSelected( true );   // Auto update implies 
                                                     // we also show it.
@@ -684,8 +701,31 @@ public class LiveDataMonitor extends    JPanel
   {
     public void actionPerformed( ActionEvent e )
     {
-      System.out.println("DataManagerListener called...");
       SetUpGUI();
+    }
+  }
+
+
+  /* ------------------------ ViewManagerListener -------------------- */
+
+  private class ViewManagerListener extends WindowAdapter
+  {
+    int index;
+    public ViewManagerListener( int index )
+    {
+      this.index = index;
+    }
+
+    public void windowClosing(WindowEvent ev)
+    {
+      if ( index < show_box.length )
+        show_box[ index ].setSelected( false );
+
+      if ( index < auto_box.length )
+        auto_box[ index ].setSelected( false );
+
+      if ( index < viewers.length )
+        viewers [ index ] = null;
     }
   }
 
