@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/06/17 22:12:53  dennis
+ *  Now uses doubles for calculation.
+ *
  *  Revision 1.1  2002/04/11 20:59:09  dennis
  *  Class for Gaussian distribution function of one variable
  *  controlled by parameters giving the peak position, amplitude
@@ -67,9 +70,9 @@ public class Gaussian extends    OneVarParameterizedFunction
    *  @param  amplitude The amplitude of the peak
    *  @param  fwhm      The full width at half max of the peak
    */
-   public Gaussian( float position, float amplitude, float fwhm )
+   public Gaussian( double position, double amplitude, double fwhm )
    {
-     super( "Gaussian", new float[3], new String[3] );
+     super( "Gaussian", new double[3], new String[3] );
      parameter_names[0] = "Position"; 
      parameter_names[1] = "Amplitude";
      parameter_names[2] = "FWHM";
@@ -122,6 +125,8 @@ public class Gaussian extends    OneVarParameterizedFunction
         temp = (x[i]-parameters[0])/sigma;
         vals[i] = parameters[1] * Math.exp(-(temp*temp)/2.0);
       }
+      else
+        vals[i] = 0;
     }
     return vals;
   }
@@ -158,11 +163,11 @@ public class Gaussian extends    OneVarParameterizedFunction
    */
   public float[] getValues( float x[] )
   {
-    float vals[] = new float[x.length];
-    float sigma  = parameters[2] / SIGMA_TO_FWHM;
-    float temp;
-    float x_min  = domain.getStart_x();
-    float x_max  = domain.getEnd_x();
+    float  vals[] = new float[x.length];
+    double sigma  = parameters[2] / SIGMA_TO_FWHM;
+    double temp;
+    float  x_min  = domain.getStart_x();
+    float  x_max  = domain.getEnd_x();
 
     for ( int i = 0; i < x.length; i++ )
     {
@@ -171,6 +176,8 @@ public class Gaussian extends    OneVarParameterizedFunction
         temp = (x[i]-parameters[0])/sigma;
         vals[i] = (float)(parameters[1] * Math.exp(-(temp*temp)/2.0));
       }
+      else
+        vals[i] = 0.0f;
     }
     return vals;
   }

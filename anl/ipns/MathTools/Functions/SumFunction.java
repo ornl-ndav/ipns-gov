@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2002/06/17 22:15:13  dennis
+ *  Now uses doubles for calculation.
+ *
  *  Revision 1.2  2002/04/19 16:53:48  dennis
  *  Added more javadocs.  Also added methods numFunctions() and
  *  getFunction() to allow access to the individual component
@@ -55,9 +58,8 @@ import DataSetTools.viewer.*;
  *  sum of component OneVarParameterizedFunctions.  
  */
 
-public class SumFunction extends    OneVarFunction
-                         implements IOneVarParameterizedFunction,
-                                    Serializable
+public class SumFunction extends    OneVarParameterizedFunction
+                         implements Serializable
 {
   private IOneVarParameterizedFunction functions[];
 
@@ -71,7 +73,7 @@ public class SumFunction extends    OneVarFunction
    */
    public SumFunction( IOneVarParameterizedFunction functions[] )
    {
-     super( "Sum of Functions" );
+     super( "Sum of Functions", null, null );
      if ( functions != null ) 
        this.functions = functions;
      else
@@ -138,15 +140,15 @@ public class SumFunction extends    OneVarFunction
    *  @return  Array containing the combined list of parameter values for
    *           all component functions of this sum function.
    */
-  public float[] getParameters()
+  public double[] getParameters()
   {
-    int n_params = numParameters();
-    float params[] = new float[n_params];
+    int    n_params = numParameters();
+    double params[] = new double[n_params];
 
     int index = 0;
     for ( int i = 0; i < functions.length; i++ )
     {
-      float current_params[] = functions[i].getParameters();
+      double current_params[] = functions[i].getParameters();
       for ( int k = 0; k < current_params.length; k++ ) 
       {
         params[index] = current_params[k];
@@ -170,7 +172,7 @@ public class SumFunction extends    OneVarFunction
    *  @param  parameters  Array containing values to copy into the list of
    *                      parameter values for this function.
    */
-  public void setParameters( float parameters[] )
+  public void setParameters( double parameters[] )
   {
     if ( parameters == null )
       return;
@@ -181,7 +183,7 @@ public class SumFunction extends    OneVarFunction
 
     int i = 0;
     int k = 0;
-    float current_params[] = functions[i].getParameters();  
+    double current_params[] = functions[i].getParameters();  
     for ( int index = 0; index < n_params; index++ )
     {
       if ( k >= current_params.length )
@@ -252,9 +254,10 @@ public class SumFunction extends    OneVarFunction
 
       XScale x_scale = new UniformXScale( -5, 5, 500 );
 
-      float coefficients[] = { 4, -4, 1 };
+      double coefficients[] = { 4, -4, 1 };
       IOneVarParameterizedFunction polynomial = new Polynomial( coefficients );
-      IOneVarParameterizedFunction gaussian = new Gaussian( -2, 25, 2 ); 
+      IOneVarParameterizedFunction gaussian = 
+                               new Gaussian(-2, 25, Gaussian.SIGMA_TO_FWHM_D);
       IOneVarParameterizedFunction functions[] = 
                                   new IOneVarParameterizedFunction[2];
       functions[0] = polynomial; 
@@ -263,5 +266,28 @@ public class SumFunction extends    OneVarFunction
       Data sum_data = new FunctionModel( x_scale, sum, 1 );
       ds.addData_entry( sum_data );
       ViewManager vm = new ViewManager( ds, IViewManager.IMAGE );
+
+      double x = 1;
+      String p_names[] = sum.getParameterNames();
+      double p_vals[]  = sum.getParameters();
+      double p_ders[]  = sum.get_dFda( x );
+      System.out.println("names length = " + p_names.length );
+      System.out.println("ders  length = " + p_ders.length );
+      System.out.println("Function Name: " + sum.getName() ); 
+      System.out.println("Parameter Names, values, derivatives at" + x + " :");
+      for ( int i = 0; i < sum.numParameters(); i++ )
+        System.out.println( p_names[i] + ",    " + 
+                            p_vals [i] + ",    " + 
+                            p_ders [i] );
+
+      System.out.println();
+      System.out.println("Evaluating: ");
+      for ( int i = -3; i < 4; i++ )
+      {
+        x = i;
+        System.out.println("       x = " + x + 
+                           "    f(x) = " + sum.getValue(x) +
+                           "   f'(x) = " + sum.get_dFdx(x) ); 
+      } 
     }
 }

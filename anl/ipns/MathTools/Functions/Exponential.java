@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/06/17 22:11:19  dennis
+ *  Now uses doubles for calculation.
+ *
  *  Revision 1.1  2002/04/17 21:43:13  dennis
  *  Exponential growth/decay function a*exp(b*x)
  *
@@ -57,9 +60,9 @@ public class Exponential extends OneVarParameterizedFunction
    *  @param  a  the initial value  
    *  @param  k  the rate of growth (k>0) or decay (k<0)
    */
-   public Exponential( float a, float k )
+   public Exponential( double a, double k )
    {
-     super( "Exponential", new float[2], new String[2] );
+     super( "Exponential", new double[2], new String[2] );
      parameter_names[0] = "Initial Value"; 
      parameter_names[1] = "Growth Rate";
      parameters[0] = a;
@@ -105,6 +108,8 @@ public class Exponential extends OneVarParameterizedFunction
     { 
       if ( x[i] >= x_min && x[i] <= x_max )
         vals[i] = a * Math.exp( k * x[i] );
+      else
+        vals[i] = 0.0;
     }
     return vals;
   }
@@ -142,13 +147,15 @@ public class Exponential extends OneVarParameterizedFunction
     float vals[] = new float[x.length];
     float x_min  = domain.getStart_x();
     float x_max  = domain.getEnd_x();
-    float a      = parameters[0];
-    float k      = parameters[1]; 
+    double a     = parameters[0];
+    double k     = parameters[1]; 
 
     for ( int i = 0; i < x.length; i++ )
     {
       if ( x[i] >= x_min && x[i] <= x_max )
         vals[i] = (float)(a * Math.exp( k * x[i] ));
+      else
+        vals[i] = 0.0f;
     }
     return vals;
   }

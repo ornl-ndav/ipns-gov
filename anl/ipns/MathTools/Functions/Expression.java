@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/06/17 22:17:35  dennis
+ *  Now uses doubles for calculation.
+ *
  *  Revision 1.1  2002/04/17 21:44:40  dennis
  *  Function described by an expression in terms of an independent
  *  variable, and set of named parameters.
@@ -71,10 +74,10 @@ public class Expression extends OneVarParameterizedFunction
    public Expression( String expression, 
                       String variable_name, 
                       String parameter_names[], 
-                      float  parameter_vals[]  )
+                      double parameter_vals[]  )
    {
      super( "Expression", 
-             new float[ parameter_names.length ], 
+             new double[ parameter_names.length ], 
              new String[ parameter_names.length ] );
 
      for ( int i = 0; i < parameter_names.length; i++ )
@@ -167,7 +170,7 @@ public class Expression extends OneVarParameterizedFunction
       String expression = "a * t * t + b * t + c"; 
       String var_name = "t";
       String param_names[] = { "a", "b", "c" }; 
-      float  param_vals[]  = { 1, -2, 1 };
+      double param_vals[]  = { 1, -2, 1 };
       Expression f = new Expression( expression, 
                                      var_name, 
                                      param_names, 
