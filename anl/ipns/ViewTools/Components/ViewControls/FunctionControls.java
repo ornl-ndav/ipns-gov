@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.50  2005/03/28 05:53:59  serumb
+ * Add methods for data changed and re-initialization also uses the new
+ * class RangeControl.
+ *
  * Revision 1.49  2005/03/14 19:23:37  serumb
  * Added calls for getting the button controls and the combobox controls.
  *
@@ -202,8 +206,7 @@
  */
 package gov.anl.ipns.ViewTools.Components.ViewControls;
 
-//import DataSetTools.components.ParametersGUI.*;
-//import DataSetTools.components.ui.*;
+import java.util.Vector;
 import java.io.Serializable;
 import gov.anl.ipns.ViewTools.UI.*; 
 import gov.anl.ipns.ViewTools.Panels.Transforms.*; 
@@ -218,7 +221,7 @@ import java.awt.event.*;
 
 // Component location and resizing within the big_picture
 import javax.swing.*;
-import javax.swing.border.*;  
+//import javax.swing.border.*;  
 
 /*
  * This class creates the controls and adds them to the control panel.
@@ -229,19 +232,11 @@ import javax.swing.border.*;
   {
 
   /**
-   * "X Range" - This constant String is a key for referencing the State
+   * "Graph Range" - This constant String is a key for referencing the State
    * information about the x range for the graph to be displayed.
    */
-   public static final String X_RANGE = "X Range";
+   public static final String GRAPH_RANGE = "Graph Range";
 
-  /**
-   * "Y Range" - This constant String is a key for referencing the State
-   * information about the y range for the graph to be displayed.
-   */
-   public static final String Y_RANGE = "Y Range";
-   
-
-	  
   private transient IVirtualArrayList1D Varray1D;
   private transient FunctionViewComponent fvc;
   private transient GraphJPanel gjp;
@@ -251,7 +246,6 @@ import javax.swing.border.*;
   private transient JPanel panel2      = new JPanel(  );
   private transient JPanel panel3      = new JPanel(  );
   private transient JPanel RboxPanel   = new JPanel(  );
-  private transient JPanel TFP         = new JPanel(  );
   private transient JPanel controlpanel= new JPanel(  );
   private transient JPanel label_panel = new JPanel(  );
   private transient JPanel z_panel     = new JPanel(  );
@@ -263,15 +257,6 @@ import javax.swing.border.*;
   private transient String label6      = "Error Bars";
   private transient String label7      = "Shift";
   private transient String label8      = "Logarithmic Axis";
-  private transient JComboBox LineBox  = new JComboBox(  );
-  private transient JComboBox LineStyleBox = new JComboBox(  );
-  private transient JComboBox LineWidthBox = new JComboBox(  );
-  private transient JComboBox PointMarkerBox = new JComboBox(  );
-  private transient JComboBox PointMarkerSizeBox = new JComboBox(  );
-  private transient JComboBox ErrorBarBox = new JComboBox(  );
-  private transient JComboBox ShiftBox = new JComboBox(  );
-  private transient JComboBox ShiftFactor = new JComboBox(  );
-  private transient JComboBox LogBox = new JComboBox(  );
   private transient String[] lines;
   private transient int[]  SelGraphDSIndx;
   private transient String[] line_type;
@@ -298,13 +283,10 @@ import javax.swing.border.*;
   private transient LabelCombobox labelbox7;
   private transient LabelCombobox labelbox8;
   private transient LabelCombobox labelbox9;
+
   private transient JLabel control_label;
   private transient Font label_font;
-  private TextRangeUI x_range; 
-  private TextRangeUI y_range;
-  private transient TitledBorder border;
- 
-  private transient Box vert_box = new Box(1);
+  private RangeControl graph_range;
   private transient ControlCheckboxButton axis_checkbox = 
 	            new ControlCheckboxButton(true);
   private transient ControlCheckboxButton annotation_checkbox = 
@@ -317,6 +299,7 @@ import javax.swing.border.*;
   private transient JFrame the_frame;
 
   private transient CursorOutputControl cursor;
+  private transient ViewControl[] control_list;
 
   public static final int FRAME_WIDTH  = 480; 
   public static final int FRAME_HEIGHT = 350; 
@@ -364,24 +347,13 @@ import javax.swing.border.*;
    */
    public void setObjectState( ObjectState new_state )
    {
-      boolean redraw = false;  // if any values change redraw.
-      Object temp = new_state.get(X_RANGE);
+      Object temp = new_state.get(GRAPH_RANGE);
       if ( temp != null)
       {
-        x_range = (TextRangeUI)temp;
-        redraw = true;
+        graph_range.setObjectState((ObjectState)temp);
       }
-
-      temp = new_state.get(Y_RANGE);
-      if ( temp != null)
-      {
-        y_range = (TextRangeUI)temp;
-        redraw = true;
-      }
-
-      if (redraw)      
-        gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
-		                 x_range.getMax(), y_range.getMin() );		
+      graph_range.validate();
+      graph_range.repaint();
    }   
 
   /**
@@ -392,8 +364,7 @@ import javax.swing.border.*;
    public ObjectState getObjectState(boolean isDefault)
    {
      ObjectState state = new ObjectState();
-     state.insert( X_RANGE, (TextRangeUI)x_range);
-     state.insert( Y_RANGE, (TextRangeUI)y_range);
+     state.insert( GRAPH_RANGE, graph_range.getObjectState(isDefault) );
 
      if(! isDefault){
      }
@@ -423,9 +394,9 @@ import javax.swing.border.*;
       }
     }
           
-    //LineBox = new JComboBox(lines);
     labelbox1 = new LabelCombobox( label1, lines );
-                                                                                   
+    labelbox1.setBorderVisible(false);    
+                                                                               
     line_type      = new String[5];
     line_type[0]   = "Solid";
     line_type[1]   = "Dashed";
@@ -433,9 +404,8 @@ import javax.swing.border.*;
     line_type[3]   = "Dash Dot Dot";
     line_type[4]   = "Transparent";
                                                                                    
-    //LineStyleBox = new JComboBox(line_type);
     labelbox2   = new LabelCombobox( label2, line_type );
-                                                                                   
+    labelbox2.setBorderVisible(false);                                                                                   
     line_width      = new String[5];
     line_width[0]   = "1";
     line_width[1]   = "2";
@@ -443,7 +413,7 @@ import javax.swing.border.*;
     line_width[3]   = "4";
     line_width[4]   = "5";
     labelbox3       = new LabelCombobox( label3, line_width );
-                                                                                   
+    labelbox3.setBorderVisible(false);                                                                                   
     mark_types      = new String[6];
     mark_types[0]   = "DOT";
     mark_types[1]   = "PLUS";
@@ -452,8 +422,8 @@ import javax.swing.border.*;
     mark_types[4]   = "CROSS";
     mark_types[5]   = "NO POINT MARKS";
     labelbox4       = new LabelCombobox( label4, mark_types );
-    labelbox4.setSelected( 5 );
-                                                                                   
+    labelbox4.setSelectedIndex( 5 );
+    labelbox4.setBorderVisible(false);                                                                                   
     mark_size      = new String[5];
     mark_size[0]   = "1";
     mark_size[1]   = "2";
@@ -461,20 +431,21 @@ import javax.swing.border.*;
     mark_size[3]   = "4";
     mark_size[4]   = "5";
     labelbox5      = new LabelCombobox( label5, mark_size );
-    labelbox5.setSelected( 1 );
-                                                                                   
+    labelbox5.setSelectedIndex( 1 );
+    labelbox5.setBorderVisible(false);                                                                                   
     bar_types      = new String[3];
     bar_types[1]   = "At Points";
     bar_types[2]   = "At Top";
     bar_types[0]   = "None";
     labelbox6      = new LabelCombobox( label6, bar_types );
-                                                                                   
+    labelbox6.setBorderVisible(false);                                                                                   
     shift_types    = new String[3];
     shift_types[0]   = "Diagonal";
     shift_types[1]   = "Vertical";
     shift_types[2]   = "Overlaid";
     labelbox7      = new LabelCombobox( label7, shift_types );
-    labelbox7.setSelected( 2 );
+    labelbox7.setSelectedIndex( 2 );
+    labelbox7.setBorderVisible(false);
 
     log_placements = new String[4];
     log_placements[0] = "None";
@@ -483,24 +454,32 @@ import javax.swing.border.*;
     log_placements[3] = "X and Y";
     labelbox8      = new LabelCombobox( label8, log_placements );
 
+
     String [] factors      = new String[3];
     factors[0]   = "1";
     factors[1]   = "1.5";
     factors[2]   = "2";
     labelbox9      = new LabelCombobox( "Shift Factors", factors );
-
+    labelbox9.setBorderVisible(false);
    
     LineColor   = new ButtonControl( "Line Color" );
+    LineColor.setBorderVisible(false);
     MarkColor   = new ButtonControl( "Point Marker Color" );
+    MarkColor.setBorderVisible(false);
     MarkColor.getButton().setForeground( Color.red );
     ErrorColor  = new ButtonControl( "Error Bar Color" );
+    ErrorColor.setBorderVisible(false);
     ErrorColor.getButton().setForeground( Color.blue );
     axis_checkbox.setTitle( "Axis Overlay" );
     annotation_checkbox.setTitle( "Annotation Overlay" );
     legend_checkbox.setTitle( "Legend Overlay" );
    
-    x_range = new TextRangeUI("X Range", gjp.getXmin(), gjp.getXmax());
-    y_range = new TextRangeUI("Y Range", gjp.getYmin(), gjp.getYmax()); 
+    String range_string[] = {"X Range","Y Range"};
+    graph_range = new RangeControl(range_string);
+    graph_range.setMin(0, gjp.getXmin());
+    graph_range.setMax(0, gjp.getXmax());
+    graph_range.setMin(1, gjp.getYmin());
+    graph_range.setMax(1, gjp.getYmax());
     String the_string[] = {"X ","Y "};
     cursor = new CursorOutputControl(the_string);
 
@@ -514,46 +493,24 @@ import javax.swing.border.*;
     panel3.add( ErrorColor.getButton() );
                                                                                    
     // the left box is the left side of the control panel
-    leftBox.add( labelbox1.getBox() );
-    leftBox.add( labelbox2.getBox() );
-    leftBox.add( labelbox3.getBox() );
+    leftBox.add( labelbox1 );
+    leftBox.add( labelbox2 );
+    leftBox.add( labelbox3 );
     leftBox.add( panel1 );
-    leftBox.add( labelbox4.getBox() );
-    leftBox.add( labelbox5.getBox() );
+    leftBox.add( labelbox4 );
+    leftBox.add( labelbox5 );
     leftBox.add( panel2 );
-    leftBox.add( labelbox6.getBox() );
+    leftBox.add( labelbox6 );
     leftBox.add( panel3 );
-    leftBox.add( labelbox7.getBox() );
-    leftBox.add( labelbox9.getBox() );
-        
-                                                                                 
-    LineBox              = labelbox1.getCBox();
-    LineStyleBox         = labelbox2.getCBox();
-    LineWidthBox         = labelbox3.getCBox();
-    PointMarkerBox       = labelbox4.getCBox();
-    PointMarkerSizeBox   = labelbox5.getCBox();
-    ErrorBarBox          = labelbox6.getCBox();
-    ShiftBox             = labelbox7.getCBox();
-    ShiftFactor          = labelbox9.getCBox();
-    LogBox               = labelbox8.getCBox();
-    
-   
+    leftBox.add( labelbox7 );
+    leftBox.add( labelbox9 );
+
     control_box.add(leftBox);
-    vert_box.add( x_range );
-    vert_box.add( y_range );
-
-    border = new TitledBorder(LineBorder.createBlackLineBorder(),"Scale");
-    border.setTitleFont( FontUtil.BORDER_FONT );
-
-    TFP.setLayout( G_lout );
-    TFP.setBorder( border );
-    TFP.add( vert_box );
-    
     
     rightBox.add( axis_checkbox );
     rightBox.add( annotation_checkbox );
     rightBox.add( legend_checkbox );
-    rightBox.add( TFP );
+    rightBox.add( graph_range );
     rightBox.add( cursor );
     rightBox.add( labelbox8 );
                                                                               
@@ -565,25 +522,221 @@ import javax.swing.border.*;
     controlpanel.setLayout( G_lout );
     controlpanel.add( control_box );
                                                                                    
-    LineBox.addActionListener( new ControlListener(  ) );
-    LineStyleBox.addActionListener( new ControlListener(  ) );
-    LineWidthBox.addActionListener( new ControlListener(  ) );
-    PointMarkerBox.addActionListener( new ControlListener(  ) );
-    PointMarkerSizeBox.addActionListener( new ControlListener(  ) );
-    ErrorBarBox.addActionListener( new ControlListener(  ) );
+    labelbox1.addActionListener( new ControlListener(  ) );
+    labelbox2.addActionListener( new ControlListener(  ) );
+    labelbox3.addActionListener( new ControlListener(  ) );
+    labelbox4.addActionListener( new ControlListener(  ) );
+    labelbox5.addActionListener( new ControlListener(  ) );
+    labelbox6.addActionListener( new ControlListener(  ) );
     LineColor.addActionListener( new ControlListener(  ) );
     MarkColor.addActionListener( new ControlListener(  ) );
     ErrorColor.addActionListener( new ControlListener(  ) );
     axis_checkbox.addActionListener( new ControlListener(  ) );
     annotation_checkbox.addActionListener( new ControlListener(  ) );
     legend_checkbox.addActionListener( new ControlListener(  ) );
-    ShiftBox.addActionListener( new ControlListener(  ) );
-    ShiftFactor.addActionListener( new ControlListener(  ) );
-    LogBox.addActionListener( new ControlListener(  ) );
-    x_range.addActionListener( new RangeListener(  ) );
-    y_range.addActionListener( new RangeListener(  ) );
+    labelbox7.addActionListener( new ControlListener(  ) );
+    labelbox9.addActionListener( new ControlListener(  ) );
+    labelbox8.addActionListener( new ControlListener(  ) );
+    graph_range.addActionListener( new RangeListener(  ) );
     gjp.addActionListener( new ImageListener(  ) );
     fvc.addActionListener( new ImageListener(  ) ); 
+
+    control_list = new ViewControl[17];
+    control_list[0] = labelbox1;
+    control_list[1] = labelbox2; 
+    control_list[2] = labelbox3;
+    control_list[3] = labelbox4;
+    control_list[4] = labelbox5;
+    control_list[5] = labelbox6;
+    control_list[6] = LineColor;
+    control_list[7] = MarkColor;
+    control_list[8] = ErrorColor; 
+    control_list[9] = labelbox7;
+    control_list[10] = labelbox9;
+    control_list[11] = axis_checkbox;
+    control_list[12] = annotation_checkbox;
+    control_list[13] = legend_checkbox;
+    control_list[14] = graph_range;
+    control_list[15] = cursor;
+    control_list[15] = labelbox8;
+
+  }
+ 
+ /**
+   * This Method updates the control that selects the graph to be modified.
+   * 
+   * @param pin_varray the array containing the graphs
+   */  
+  public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
+  {
+    if (Varray1D != pin_varray)
+    {
+      String group_id;
+      Varray1D = pin_varray;
+      lines = new String[Varray1D.getNumSelectedGraphs(  )];
+      SelGraphDSIndx = new int[Varray1D.getNumSelectedGraphs(  )];
+      int index = 0;
+      for( int i = 0; i < Varray1D.getNumGraphs(  ); i++ ) {
+        if( Varray1D.isSelected(i) )
+        {
+          group_id   = Varray1D.getGraphTitle( i );
+          SelGraphDSIndx[index] = i;
+          lines[index++]   = "Group ID:" + group_id;
+        }
+      }
+
+      labelbox1.setItemList(lines);
+    }
+  }
+  
+  /**
+    * Method to initialize the View Controls.
+    */
+  public void reInit()
+  {
+    // the range control
+      LogScaleUtil loggery = new LogScaleUtil(gjp.getPositiveYmin(),
+                                              gjp.getYmax(),
+                                              gjp.getPositiveYmin(),
+                                              gjp.getYmax());
+      LogScaleUtil loggerx = new LogScaleUtil(gjp.getPositiveXmin(),
+                                              gjp.getXmax(),
+                                              gjp.getPositiveXmin(),
+                                              gjp.getXmax());
+
+      if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
+
+        gjp.setZoom_region( loggerx.toDest(graph_range.getMin(0)),
+                            loggery.toDest(graph_range.getMax(1)),
+                            loggerx.toDest(graph_range.getMax(0)),
+                            loggery.toDest(graph_range.getMin(1)) );
+      }
+      else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
+        gjp.setZoom_region( loggerx.toDest(graph_range.getMin(0)),
+                            graph_range.getMax(1),
+                            loggerx.toDest(graph_range.getMax(0)),
+                            graph_range.getMin(1) );
+      }
+      else
+      gjp.setZoom_region( graph_range.getMin(0), graph_range.getMax(1),
+                          graph_range.getMax(0), graph_range.getMin(1) );
+        
+   /*
+    * sets the line style combo box to the style of the line selected.
+    */
+     
+      line_index = labelbox1.getSelectedIndex(  ) + 1;
+
+      GraphData gd = ( GraphData )gjp.graphs.elementAt( line_index );
+
+     if(
+        gjp.getStroke( line_index ) == (
+            GraphJPanel.DOTTED) ) {
+        labelbox2.setSelectedIndex( 2 );
+      } else if(
+       gjp.getStroke( line_index ) == (
+            GraphJPanel.LINE) ) {
+        labelbox2.setSelectedIndex( 0 );
+      } else if(
+        gjp.getStroke( line_index )==(
+            GraphJPanel.DASHED) ) {
+       labelbox2.setSelectedIndex( 1 );
+      } else if(
+        gjp.getStroke( line_index ) == (
+            GraphJPanel.DASHDOT) ) {
+        labelbox2.setSelectedIndex( 3 );
+      } else if(
+        gjp.getStroke( line_index ) == (
+            GraphJPanel.TRANSPARENT) ) {
+        labelbox2.setSelectedIndex( 4 );
+      }
+     
+      /*
+        sets the line style combo box to the style of the line selected.
+      */
+      if( 
+        gjp.getStroke( line_index ) == ( 
+            GraphJPanel.DOTTED) ) {
+        labelbox2.setSelectedIndex( 2 );
+      } else if( 
+       gjp.getStroke( line_index ) == ( 
+            GraphJPanel.LINE) ) {
+        labelbox2.setSelectedIndex( 0 );
+      } else if( 
+        gjp.getStroke( line_index )==( 
+            GraphJPanel.DASHED) ) {
+        labelbox2.setSelectedIndex( 1 );
+      } else if( 
+        gjp.getStroke( line_index ) == ( 
+            GraphJPanel.DASHDOT) ) {
+        labelbox2.setSelectedIndex( 3 );
+      } else if( 
+        gjp.getStroke( line_index ) == ( 
+            GraphJPanel.TRANSPARENT) ) {
+        labelbox2.setSelectedIndex( 4 );
+      }
+      
+      /*
+        sets the mark size combo box to the mark size of the line selected.
+      */
+      if( gd.marksize == 1 ) {
+        labelbox5.setSelectedIndex( 0 );
+      } else if( gd.marksize == 2 ) {
+        labelbox5.setSelectedIndex( 1 );
+      } else if( gd.marksize == 3 ) {
+        labelbox5.setSelectedIndex( 2 );
+      } else if( gd.marksize == 4 ) {
+        labelbox5.setSelectedIndex( 3 );
+      } else if( gd.marksize == 5 ) {
+        labelbox5.setSelectedIndex( 4 );
+      }
+       /*
+        sets the mark type combo box to the mark type of the line selected.
+      */
+      if( gd.marktype == 0 ) {
+        labelbox4.setSelectedIndex( 5 );
+      } else if( gd.marktype == 1 ) {
+        labelbox4.setSelectedIndex( 0 );
+      } else if( gd.marktype == 2 ) {
+        labelbox4.setSelectedIndex( 1 );
+      } else if( gd.marktype == 3 ) {
+        labelbox4.setSelectedIndex( 2 );
+      } else if( gd.marktype == 4 ) {
+        labelbox4.setSelectedIndex( 3 );
+      } else if( gd.marktype == 5 ) {
+        labelbox4.setSelectedIndex( 4 );
+      }
+       /*
+        sets the line width combo box to the line width 
+        of the line selected.
+      */
+      if( gd.linewidth == 1 ) {
+        labelbox3.setSelectedIndex( 0 );
+      } else if( gd.linewidth == 2 ) {
+        labelbox3.setSelectedIndex( 1 );
+      } else if( gd.linewidth == 3 ) {
+         labelbox3.setSelectedIndex( 2 );
+      } else if( gd.linewidth == 4 ) {
+        labelbox3.setSelectedIndex( 3 );
+      } else if( gd.linewidth == 5 ) {
+        labelbox3.setSelectedIndex( 4 );
+      }
+       /*
+        sets the error bar combo box to the error bar location
+        of the line selected.
+      */
+      if( gd.getErrorLocation(  ) == 0 ) {
+        labelbox6.setSelectedIndex( 0 );
+      } else if( gd.getErrorLocation(  ) == 11 ) {
+        labelbox6.setSelectedIndex( 1 );
+      } else if( gd.getErrorLocation(  ) == 12 ) {
+        labelbox6.setSelectedIndex( 2 );
+      } else if( gd.getErrorLocation(  ) == 13 ) {
+        labelbox6.setSelectedIndex( 3 );
+      }
+       MarkColor.getButton().setForeground( gjp.getMarkColor(line_index) );
+       LineColor.getButton().setForeground( gjp.getColor(line_index) );
+       ErrorColor.getButton().setForeground( gjp.getErrorColor(line_index) );
   }
   
   public ViewControlsPanel get_panel() {
@@ -598,6 +751,16 @@ import javax.swing.border.*;
     the_frame.setVisible( true  );  //display the frame
   }
 
+  /**
+    * Function that returns an Array of View Controls.
+    *
+    * @return ViewControl[] array of controls
+    */ 
+  public ViewControl[] getControlList()
+  {
+    return control_list;
+  }
+  
   public void close_frame() {
     // get the current location and reset the bounds, so that 
     // the frame will reappear in the same place.
@@ -613,10 +776,11 @@ import javax.swing.border.*;
 
   private class RangeListener implements ActionListener {
 
-    public void actionPerformed( ActionEvent ae ) {
-          // System.out.println("Entered: " + x_range.getText() );
-          // System.out.println("Min = " + x_range.getMin() );
-          // System.out.println("Max = " + x_range.getMax() );
+    public void actionPerformed(ActionEvent ae)  {
+          // System.out.println("Entered: " + graph_range.getTitle() );
+          // System.out.println("event " + ae);
+          // System.out.println("Min = " + graph_range.getMin(0) );
+          // System.out.println("Max = " + graph_range.getMax(0) );
       LogScaleUtil loggery = new LogScaleUtil(gjp.getPositiveYmin(),
                                               gjp.getYmax(),
                                               gjp.getPositiveYmin(),
@@ -628,20 +792,20 @@ import javax.swing.border.*;
 
       if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
 
-        gjp.setZoom_region( loggerx.toDest(x_range.getMin()),
-        		    loggery.toDest(y_range.getMax()),
-        		    loggerx.toDest(x_range.getMax()),
-        		    loggery.toDest(y_range.getMin()) );
+        gjp.setZoom_region( loggerx.toDest(graph_range.getMin(0)),
+        		    loggery.toDest(graph_range.getMax(1)),
+        		    loggerx.toDest(graph_range.getMax(0)),
+        		    loggery.toDest(graph_range.getMin(1)) );
       }
       else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) { 
-        gjp.setZoom_region( loggerx.toDest(x_range.getMin()), 
-        		    y_range.getMax(),
-        		    loggerx.toDest(x_range.getMax()),
-        		    y_range.getMin() );
+        gjp.setZoom_region( loggerx.toDest(graph_range.getMin(0)), 
+        		    graph_range.getMax(1),
+        		    loggerx.toDest(graph_range.getMax(0)),
+        		    graph_range.getMin(1) );
       }
       else
-      gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
-        		  x_range.getMax(), y_range.getMin() );
+      gjp.setZoom_region( graph_range.getMin(0), graph_range.getMax(1),
+        		  graph_range.getMax(0), graph_range.getMin(1) );
     }
   }
  
@@ -696,10 +860,10 @@ import javax.swing.border.*;
 	 x_upper = loggerx.toSource(x_upper);
        } 
        
-       x_range.setMin(x_lower);
-       x_range.setMax(x_upper);
-       y_range.setMin(y_lower);
-       y_range.setMax(y_upper);
+       graph_range.setMin(0, x_lower);
+       graph_range.setMax(0, x_upper);
+       graph_range.setMin(1, y_lower);
+       graph_range.setMax(1, y_upper);
 
       }	 
       
@@ -730,7 +894,7 @@ import javax.swing.border.*;
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
 
-      //System.out.println( "action command: " + message );
+      // System.out.println( "action command: " + message );
       //System.out.println( "action event: " + ae.getSource() );
      
       /*
@@ -794,9 +958,9 @@ import javax.swing.border.*;
            listens for the edit annotation button and brings up an edit 
            annotation pane.
         */
-      } else if( message.equals( "comboBoxChanged" ) ) {
-        // System.out.println("action" + LineBox.getSelectedItem());
-        // System.out.println("index" + LineBox.getSelectedIndex());
+      } else if( message.equals( "COMBOBOX_CHANGED" ) ) {
+        // System.out.println("action" + labelbox1.getSelectedItem());
+        // System.out.println("index" + labelbox1.getSelectedIndex());
         // System.out.println("source " + ae.getSource());
 
         /* 
@@ -804,66 +968,66 @@ import javax.swing.border.*;
            line that is pointed at so 1 is added to the line index for 
            selected lines.
         */
-        if( ae.getSource(  ) == LineBox ) {
-          line_index = LineBox.getSelectedIndex(  ) + 1;
-
+        if( ae.getSource(  ) == labelbox1 ) {
+          
+          line_index = labelbox1.getSelectedIndex(  ) + 1;
           GraphData gd = ( GraphData )gjp.graphs.elementAt( line_index );
-         
+     
           /*
             sets the line style combo box to the style of the line selected.
           */
           if( 
             gjp.getStroke( line_index ) == ( 
                 GraphJPanel.DOTTED) ) {
-            LineStyleBox.setSelectedIndex( 2 );
+            labelbox2.setSelectedIndex( 2 );
           } else if( 
            gjp.getStroke( line_index ) == ( 
                 GraphJPanel.LINE) ) {
-            LineStyleBox.setSelectedIndex( 0 );
+            labelbox2.setSelectedIndex( 0 );
           } else if( 
             gjp.getStroke( line_index )==( 
                 GraphJPanel.DASHED) ) {
-            LineStyleBox.setSelectedIndex( 1 );
+            labelbox2.setSelectedIndex( 1 );
           } else if( 
             gjp.getStroke( line_index ) == ( 
                 GraphJPanel.DASHDOT) ) {
-            LineStyleBox.setSelectedIndex( 3 );
+            labelbox2.setSelectedIndex( 3 );
           } else if( 
             gjp.getStroke( line_index ) == ( 
                 GraphJPanel.TRANSPARENT) ) {
-            LineStyleBox.setSelectedIndex( 4 );
+            labelbox2.setSelectedIndex( 4 );
           }
           
           /*
             sets the mark size combo box to the mark size of the line selected.
           */
           if( gd.marksize == 1 ) {
-            PointMarkerSizeBox.setSelectedIndex( 0 );
+            labelbox5.setSelectedIndex( 0 );
           } else if( gd.marksize == 2 ) {
-            PointMarkerSizeBox.setSelectedIndex( 1 );
+            labelbox5.setSelectedIndex( 1 );
           } else if( gd.marksize == 3 ) {
-            PointMarkerSizeBox.setSelectedIndex( 2 );
+            labelbox5.setSelectedIndex( 2 );
           } else if( gd.marksize == 4 ) {
-            PointMarkerSizeBox.setSelectedIndex( 3 );
+            labelbox5.setSelectedIndex( 3 );
           } else if( gd.marksize == 5 ) {
-            PointMarkerSizeBox.setSelectedIndex( 4 );
+            labelbox5.setSelectedIndex( 4 );
           }
 
           /*
             sets the mark type combo box to the mark type of the line selected.
           */
           if( gd.marktype == 0 ) {
-            PointMarkerBox.setSelectedIndex( 5 );
+            labelbox4.setSelectedIndex( 5 );
           } else if( gd.marktype == 1 ) {
-            PointMarkerBox.setSelectedIndex( 0 );
+            labelbox4.setSelectedIndex( 0 );
           } else if( gd.marktype == 2 ) {
-            PointMarkerBox.setSelectedIndex( 1 );
+            labelbox4.setSelectedIndex( 1 );
           } else if( gd.marktype == 3 ) {
-            PointMarkerBox.setSelectedIndex( 2 );
+            labelbox4.setSelectedIndex( 2 );
           } else if( gd.marktype == 4 ) {
-            PointMarkerBox.setSelectedIndex( 3 );
+            labelbox4.setSelectedIndex( 3 );
           } else if( gd.marktype == 5 ) {
-            PointMarkerBox.setSelectedIndex( 4 );
+            labelbox4.setSelectedIndex( 4 );
           }
 
           /*
@@ -871,15 +1035,15 @@ import javax.swing.border.*;
             of the line selected.
           */
           if( gd.linewidth == 1 ) {
-            LineWidthBox.setSelectedIndex( 0 );
+            labelbox3.setSelectedIndex( 0 );
           } else if( gd.linewidth == 2 ) {
-            LineWidthBox.setSelectedIndex( 1 );
+            labelbox3.setSelectedIndex( 1 );
           } else if( gd.linewidth == 3 ) {
-            LineWidthBox.setSelectedIndex( 2 );
+            labelbox3.setSelectedIndex( 2 );
           } else if( gd.linewidth == 4 ) {
-            LineWidthBox.setSelectedIndex( 3 );
+            labelbox3.setSelectedIndex( 3 );
           } else if( gd.linewidth == 5 ) {
-            LineWidthBox.setSelectedIndex( 4 );
+            labelbox3.setSelectedIndex( 4 );
           }
 
           /*
@@ -887,48 +1051,48 @@ import javax.swing.border.*;
             of the line selected.
           */
           if( gd.getErrorLocation(  ) == 0 ) {
-            ErrorBarBox.setSelectedIndex( 0 );
+            labelbox6.setSelectedIndex( 0 );
           } else if( gd.getErrorLocation(  ) == 11 ) {
-            ErrorBarBox.setSelectedIndex( 1 );
+            labelbox6.setSelectedIndex( 1 );
           } else if( gd.getErrorLocation(  ) == 12 ) {
-            ErrorBarBox.setSelectedIndex( 2 );
+            labelbox6.setSelectedIndex( 2 );
           } else if( gd.getErrorLocation(  ) == 13 ) {
-            ErrorBarBox.setSelectedIndex( 3 );
+            labelbox6.setSelectedIndex( 3 );
           }
 
-            MarkColor.getButton().setForeground( gjp.getMarkColor(line_index) );
-            LineColor.getButton().setForeground( gjp.getColor(line_index) );
-            ErrorColor.getButton().setForeground( gjp.getErrorColor(line_index) );
+           MarkColor.getButton().setForeground( gjp.getMarkColor(line_index) );
+           LineColor.getButton().setForeground( gjp.getColor(line_index) );
+           ErrorColor.getButton().setForeground( gjp.getErrorColor(line_index) );
           
         /*
           Sets the appropriate line style
         */
-        } else if( ae.getSource(  ) == LineStyleBox ) {
-          if( LineStyleBox.getSelectedItem(  ).equals( "Solid" ) ) {
+        } else if( ae.getSource(  ) == labelbox2 ) {
+          if( labelbox2.getSelectedItem(  ).equals( "Solid" ) ) {
             gjp.setTransparent(false, line_index, false);
             gjp.setStroke( 
               GraphJPanel.LINE, line_index, true );
           }
 
-          if( LineStyleBox.getSelectedItem(  ).equals( "Dashed" ) ) {
+          if( labelbox2.getSelectedItem(  ).equals( "Dashed" ) ) {
             gjp.setTransparent(false, line_index, false);
             gjp.setStroke( 
               GraphJPanel.DASHED, line_index, true );
           }
 
-          if( LineStyleBox.getSelectedItem(  ).equals( "Dotted" ) ) {
+          if( labelbox2.getSelectedItem(  ).equals( "Dotted" ) ) {
             gjp.setTransparent(false, line_index, false);
             gjp.setStroke( 
               GraphJPanel.DOTTED, line_index, true );
           }
 
-          if( LineStyleBox.getSelectedItem(  ).equals( "Dash Dot Dot" ) ) {
+          if( labelbox2.getSelectedItem(  ).equals( "Dash Dot Dot" ) ) {
              gjp.setTransparent(false, line_index, false);
              gjp.setStroke( 
               GraphJPanel.DASHDOT, line_index, true );  
           }
 
-          if( LineStyleBox.getSelectedItem(  ).equals( "Transparent" ) ) {
+          if( labelbox2.getSelectedItem(  ).equals( "Transparent" ) ) {
              gjp.setTransparent(true, line_index, true);
              gjp.setStroke( 
               GraphJPanel.TRANSPARENT, line_index, true );
@@ -937,27 +1101,27 @@ import javax.swing.border.*;
         /*
            sets the appropriate line width
         */
-        } else if( ae.getSource(  ) == LineWidthBox ) {
-          linewidth = LineWidthBox.getSelectedIndex(  ) + 1;
+        } else if( ae.getSource(  ) == labelbox3 ) {
+          linewidth = labelbox3.getSelectedIndex(  ) + 1;
 
           gjp.setLineWidth( linewidth, line_index, true );
 
-          if( LineStyleBox.getSelectedItem(  ).equals( "Solid" ) ) {
+          if( labelbox2.getSelectedItem(  ).equals( "Solid" ) ) {
             gjp.setStroke( 
               GraphJPanel.LINE, line_index, true );
           }
 
-          if( LineStyleBox.getSelectedItem(  ).equals( "Dashed" ) ) {
+          if( labelbox2.getSelectedItem(  ).equals( "Dashed" ) ) {
             gjp.setStroke( 
               GraphJPanel.DASHED, line_index, true );
           }
 
-          if( LineStyleBox.getSelectedItem(  ).equals( "Dotted" ) ) {
+          if( labelbox2.getSelectedItem(  ).equals( "Dotted" ) ) {
             gjp.setStroke( 
               GraphJPanel.DOTTED, line_index, true );
           }
 
-          if( LineStyleBox.getSelectedItem(  ).equals( "Dash Dot Dot" ) ) {
+          if( labelbox2.getSelectedItem(  ).equals( "Dash Dot Dot" ) ) {
             gjp.setStroke( 
               GraphJPanel.DASHDOT, line_index, true );
           }
@@ -966,19 +1130,19 @@ import javax.swing.border.*;
           point marker type.
         */  
 
-        } else if( ae.getSource(  ) == PointMarkerBox ) {
-          if( PointMarkerBox.getSelectedItem(  ).equals( "DOT" ) ) {
+        } else if( ae.getSource(  ) == labelbox4 ) {
+          if( labelbox4.getSelectedItem(  ).equals( "DOT" ) ) {
             gjp.setMarkType( GraphJPanel.DOT, line_index, true );
-          } else if( PointMarkerBox.getSelectedItem(  ).equals( "PLUS" ) ) {
+          } else if( labelbox4.getSelectedItem(  ).equals( "PLUS" ) ) {
             gjp.setMarkType( GraphJPanel.PLUS, line_index, true );
-          } else if( PointMarkerBox.getSelectedItem(  ).equals( "STAR" ) ) {
+          } else if( labelbox4.getSelectedItem(  ).equals( "STAR" ) ) {
             gjp.setMarkType( GraphJPanel.STAR, line_index, true );
-          } else if( PointMarkerBox.getSelectedItem(  ).equals( "BOX" ) ) {
+          } else if( labelbox4.getSelectedItem(  ).equals( "BOX" ) ) {
             gjp.setMarkType( GraphJPanel.BOX, line_index, true );
-          } else if( PointMarkerBox.getSelectedItem(  ).equals( "CROSS" ) ) {
+          } else if( labelbox4.getSelectedItem(  ).equals( "CROSS" ) ) {
             gjp.setMarkType( GraphJPanel.CROSS, line_index, true );
           } else if( 
-            PointMarkerBox.getSelectedItem(  ).equals( "NO POINT MARKS" ) ) {
+            labelbox4.getSelectedItem(  ).equals( "NO POINT MARKS" ) ) {
             gjp.setMarkType( 0, line_index, true );
           }
 
@@ -986,16 +1150,16 @@ import javax.swing.border.*;
           Listens for a point marker size  change and sets the appropriate
           point marker size.
         */  
-        } else if( ae.getSource(  ) == PointMarkerSizeBox ) {
-          if( PointMarkerSizeBox.getSelectedItem(  ).equals( "1" ) ) {
+        } else if( ae.getSource(  ) == labelbox5 ) {
+          if( labelbox5.getSelectedItem(  ).equals( "1" ) ) {
             gjp.setMarkSize( 1, line_index, true );
-          } else if( PointMarkerSizeBox.getSelectedItem(  ).equals( "2" ) ) {
+          } else if( labelbox5.getSelectedItem(  ).equals( "2" ) ) {
             gjp.setMarkSize( 2, line_index, true );
-          } else if( PointMarkerSizeBox.getSelectedItem(  ).equals( "3" ) ) {
+          } else if( labelbox5.getSelectedItem(  ).equals( "3" ) ) {
             gjp.setMarkSize( 3, line_index, true );
-          } else if( PointMarkerSizeBox.getSelectedItem(  ).equals( "4" ) ) {
+          } else if( labelbox5.getSelectedItem(  ).equals( "4" ) ) {
             gjp.setMarkSize( 4, line_index, true );
-          } else if( PointMarkerSizeBox.getSelectedItem(  ).equals( "5" ) ) {
+          } else if( labelbox5.getSelectedItem(  ).equals( "5" ) ) {
             gjp.setMarkSize( 4, line_index, true );
           }
 
@@ -1003,19 +1167,21 @@ import javax.swing.border.*;
           Listens for a error bar change and sets the appropriate
           error bar location.
         */  
-        } else if( ae.getSource(  ) == ErrorBarBox ) {
+        } else if( ae.getSource(  ) == labelbox6 ) {
           //System.out.println("zoom region:"+ gjp.getZoom_region());
           //CoordBounds data_bound = getGlobalWorldCoords();
           //data_bound.getBounds()
-          if( ErrorBarBox.getSelectedItem(  ).equals( "None" ) ) {
-           
-            gjp.setErrors( Varray1D.getErrorValues( SelGraphDSIndx[line_index - 1]  ), 0, 
+          if( labelbox6.getSelectedItem(  ).equals( "None" ) ) {
+            gjp.setErrors( Varray1D.getErrorValues
+                  ( SelGraphDSIndx[line_index - 1]  ), 0, 
                            line_index, true );
-          } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Points" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues( SelGraphDSIndx[line_index - 1]  ), 
+          } else if( labelbox6.getSelectedItem(  ).equals( "At Points" ) ) {
+            gjp.setErrors( Varray1D.getErrorValues
+                  ( SelGraphDSIndx[line_index - 1]  ), 
                            GraphJPanel.ERROR_AT_POINT, line_index, true );
-          } else if( ErrorBarBox.getSelectedItem(  ).equals( "At Top" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues( SelGraphDSIndx[line_index - 1] ),
+          } else if( labelbox6.getSelectedItem(  ).equals( "At Top" ) ) {
+            gjp.setErrors( Varray1D.getErrorValues
+                  ( SelGraphDSIndx[line_index - 1] ),
                            GraphJPanel.ERROR_AT_TOP, line_index, true );
           }
 
@@ -1023,19 +1189,19 @@ import javax.swing.border.*;
           Listens for a line shift change and sets the appropriate
           line /shift.
         */  
-        } else if( ae.getSource( ) == ShiftBox) {
-            if ( ShiftBox.getSelectedItem( ).equals( "Diagonal" ))
+        } else if( ae.getSource( ) == labelbox7) {
+            if ( labelbox7.getSelectedItem( ).equals( "Diagonal" ))
               { 
                 gjp.setMultiplotOffsets((int)(20 * shift_factor),
                                         (int)( 20 * shift_factor));
                 gjp.repaint();
               } 
-            else if( ShiftBox.getSelectedItem( ).equals( "Vertical" ))
+            else if( labelbox7.getSelectedItem( ).equals( "Vertical" ))
               {
                 gjp.setMultiplotOffsets(0,(int)(20 * shift_factor));
                 gjp.repaint();
               }
-            else if( ShiftBox.getSelectedItem( ).equals( "Overlaid" ))
+            else if( labelbox7.getSelectedItem( ).equals( "Overlaid" ))
               {
                 gjp.setMultiplotOffsets(0,0);
                 gjp.repaint();
@@ -1044,21 +1210,21 @@ import javax.swing.border.*;
               gjp.setMultiplotOffsets(0,0);
               gjp.repaint();
             }
-        } else if( ae.getSource( ) == ShiftFactor) {
-            if (ShiftFactor.getSelectedItem( ).equals( "1" ))
+        } else if( ae.getSource( ) == labelbox9) {
+            if (labelbox9.getSelectedItem( ).equals( "1" ))
             shift_factor = 1;
-            if (ShiftFactor.getSelectedItem( ).equals( "1.5" ))
+            if (labelbox9.getSelectedItem( ).equals( "1.5" ))
             shift_factor = 1.5f;
-            if (ShiftFactor.getSelectedItem( ).equals( "2" ))
+            if (labelbox9.getSelectedItem( ).equals( "2" ))
             shift_factor = 2;
             
-            ShiftBox.setSelectedItem(ShiftBox.getSelectedItem());
+            labelbox7.setSelectedIndex(labelbox7.getSelectedIndex());
 
-        } else if( ae.getSource( ) == LogBox) {
+        } else if( ae.getSource( ) == labelbox8) {
             AxisOverlay2D note = (AxisOverlay2D)big_picture.getComponent(
                                  big_picture.getComponentCount() - 2);
 
-            if ( LogBox.getSelectedItem( ).equals( "None" ))
+            if ( labelbox8.getSelectedItem( ).equals( "None" ))
             {
               Varray1D.setAxisInfo(AxisInfo.X_AXIS,
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMin(),
@@ -1080,7 +1246,7 @@ import javax.swing.border.*;
               gjp.setLogScaleY(false);
               fvc.paintComponents(  );
             }
-            else if( LogBox.getSelectedItem().equals( "X" ))
+            else if( labelbox8.getSelectedItem().equals( "X" ))
             {
               Varray1D.setAxisInfo(AxisInfo.X_AXIS,
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMin(),
@@ -1102,7 +1268,7 @@ import javax.swing.border.*;
               gjp.setLogScaleY(false);
               fvc.paintComponents(  );
             }  
-            else if( LogBox.getSelectedItem().equals( "Y" ))
+            else if( labelbox8.getSelectedItem().equals( "Y" ))
             {
               Varray1D.setAxisInfo(AxisInfo.X_AXIS,
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMin(),
@@ -1124,7 +1290,7 @@ import javax.swing.border.*;
               gjp.setLogScaleX(false);
               fvc.paintComponents(  );
             }  
-            else if( LogBox.getSelectedItem().equals( "X and Y" ))
+            else if( labelbox8.getSelectedItem().equals( "X and Y" ))
             {
               Varray1D.setAxisInfo(AxisInfo.X_AXIS,
                         Varray1D.getAxisInfo(AxisInfo.X_AXIS).getMin(),
@@ -1152,10 +1318,10 @@ import javax.swing.border.*;
 	    // ranges (log sets min to least positive number in negative)
             AxisInfo xinfo = fvc.getAxisInformation(AxisInfo.X_AXIS);
             AxisInfo yinfo = fvc.getAxisInformation(AxisInfo.Y_AXIS);
-	    x_range.setMin(xinfo.getMin());
-	    x_range.setMax(xinfo.getMax());
-	    y_range.setMin(yinfo.getMin());
-	    y_range.setMax(yinfo.getMax());
+	    graph_range.setMin(0, xinfo.getMin());
+	    graph_range.setMax(0, xinfo.getMax());
+	    graph_range.setMin(1, yinfo.getMin());
+	    graph_range.setMax(1, yinfo.getMax());
           }  
       } 
         /* 
@@ -1256,12 +1422,5 @@ import javax.swing.border.*;
   }  
 
 }
-
-
-
-
-
-
- 
 
 
