@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/01/24 21:55:03  bouzekc
+ *  Is now the superclass for all filters except RobustFileFilter in this
+ *  directory.
+ *
  *  Revision 1.5  2004/01/24 21:07:22  bouzekc
  *  Added javadocs.
  *
@@ -84,8 +88,8 @@ public class StringFilter implements StringFilterer {
         return true;
     }
     
-   /**
-	 * This simply returns the inString.
+	/**
+	 * Utility to return the inString turned into upper case.
 	 *
 	 * @param offs Unused.
 	 * @param inString The String to change to uppercase.
@@ -94,6 +98,10 @@ public class StringFilter implements StringFilterer {
 	 * @return inString changed to uppercase.
 	 */
     public String modifyString(int offs, String inString, String curString){
-        return inString;
+    	if( this.getClass(  ) == StringFilter.class ) {
+          return inString;
+    	} else {
+    		return inString.toUpperCase(  );
+    	}
     }
 }
