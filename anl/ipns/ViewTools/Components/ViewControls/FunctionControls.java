@@ -31,8 +31,8 @@
  * Modified:
  *
  * $Log$
- * Revision 1.16  2003/11/06 01:23:40  serumb
- * Set the point marker size box to the corect value.
+ * Revision 1.17  2003/11/06 01:37:50  serumb
+ * Set the initial colors for the error bar and point marker buttons.
  *
  * Revision 1.15  2003/11/05 17:49:51  serumb
  * Changed the cursor output strings to X and Y.
@@ -331,7 +331,9 @@ import javax.swing.border.*;
    
     LineColor   = new ButtonControl( "Line Color" );
     MarkColor   = new ButtonControl( "Point Marker Color" );
+    MarkColor.button.setForeground( Color.red );
     ErrorColor  = new ButtonControl( "Error Bar Color" );
+    ErrorColor.button.setForeground( Color.blue );
     axis_checkbox.setTitle( "Axis Overlay" );
     annotation_checkbox.setTitle( "Annotation Overlay" );
    
