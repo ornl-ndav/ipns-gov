@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.51  2004/04/16 20:24:53  millermi
+ *  - Now uses new methods from IVirtualArrayList1D.
+ *
  *  Revision 1.50  2004/03/15 23:53:51  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -270,22 +273,22 @@ public class FunctionViewComponent implements IViewComponent1D,
      
 
     //initialize GraphJPanel with the virtual array
-    int num_lines = varr.getNumlines(  );
+    int num_lines = varr.getNumSelectedGraphs(  );
     for( int i = 1; i < num_lines+1; i++ ) {
-       float x[] = Varray1D.getXVals_ofIndex(i-1);
-       float y[] = Varray1D.getYVals_ofIndex(i-1);
+       float x[] = Varray1D.getXValues(i-1);
+       float y[] = Varray1D.getYValues(i-1);
        gjp.setData( x, y, i, false );     
     }
 
     gjp.setBackground( Color.white );
 /*    // set initial line styles
-    if( varr.getNumlines(  ) > 1 ) {
+    if( varr.getNumSelectedGraphs(  ) > 1 ) {
       gjp.setColor( Color.blue, 2, true );
       gjp.setStroke( gjp.strokeType( gjp.LINE, 2 ), 2, true );
       gjp.setLineWidth( linewidth, 2, false );
     }
 
-    if( varr.getNumlines(  ) > 2 ) {
+    if( varr.getNumSelectedGraphs(  ) > 2 ) {
       gjp.setColor( Color.green, 3, false );
       gjp.setStroke( gjp.strokeType( gjp.LINE, 3 ), 3, true );
       gjp.setLineWidth( linewidth, 3, false );
@@ -471,7 +474,7 @@ public class FunctionViewComponent implements IViewComponent1D,
        xmax = gjp.getXmax();
        ymin = gjp.getYmin();
        ymax = gjp.getYmax();
-   
+     
 
     if( axis == AxisInfo.X_AXIS) {
       if(gjp.getLogScaleX() == true) { 
@@ -655,7 +658,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    {
     if (Varray1D != pin_varray){
 
-    if (Varray1D.getNumlines() > pin_varray.getNumlines()){
+    if (Varray1D.getNumSelectedGraphs() > pin_varray.getNumSelectedGraphs()){
        gjp.clearData();
        float[] reset = {0,0.0001f};
        gjp.setData(reset,reset, 0, false);
@@ -824,7 +827,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     int num_graphs = Varray1D.getNumGraphs();
 
       for(int i=0; i < num_graphs && 
-                  Varray1D.getNumlines() < MAX_GRAPHS; i++) {
+                  Varray1D.getNumSelectedGraphs() < MAX_GRAPHS; i++) {
     
         if( Varray1D.isSelected(i) ) {
             draw_count++;
@@ -842,8 +845,8 @@ public class FunctionViewComponent implements IViewComponent1D,
 
   private void Draw_GJP( int index, int graph_num, boolean pointed_at )
   {
-       float x[] = Varray1D.getXVals_ofIndex(index);
-       float y[] = Varray1D.getYVals_ofIndex(index);
+       float x[] = Varray1D.getXValues(index);
+       float y[] = Varray1D.getYValues(index);
      // gjp.setColor( Color.black, graph_num, false );
        gjp.setData( x, y, graph_num, false );     
      //  gjp.setErrors( Varray1D.getErrorVals_ofIndex( index ), 0, 
