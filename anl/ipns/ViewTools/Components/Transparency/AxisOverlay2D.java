@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/06/17 13:22:14  dennis
+ *  - Updated help menu. No functional changes made. (Mike Miller)
+ *
  *  Revision 1.5  2003/06/09 22:33:33  dennis
  *  - Added static method help() to display commands via the HelpMenu.
  *    (Mike Miller)
@@ -101,15 +104,16 @@ public class AxisOverlay2D extends OverlayJPanel
       text.setEditable(false);
       text.setLineWrap(true);
 
-      text.append("The Axes Overlay has no commands associated with it. " +
-                  "Instead, it allows the commands of the underlying image. ");
-      text.append("These commands will NOT work if any other overlay " +
+      text.append("Note:\n" +
+                  "- The Axes Overlay has no commands associated with it. " +
+                  "Instead, it allows the commands of the underlying image.\n" +
+                  "- These commands will NOT work if any other overlay " +
 		  "is checked.\n\n");
       text.append("Commands for Underlying image\n");
       text.append("Click/Drag/Release MouseButton2>ZOOM IN\n");
       text.append("Click/Drag/Release Mouse w/Shift_Key>ZOOM IN ALTERNATE\n");
       text.append("Double Click Mouse>RESET ZOOM\n");
-      text.append("Single Click Mouse>CURRENT POINT\n\n");
+      text.append("Single Click Mouse>SELECT CURRENT POINT\n\n");
       
       helper.setVisible(true);
    }
