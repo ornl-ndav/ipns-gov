@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/03/12 00:31:21  serumb
+ * Changed package and imports
+ *
  * Revision 1.5  2004/03/03 23:20:03  dennis
  * Increased default values for the slice dimensions and step size.
  *
@@ -48,9 +51,8 @@
  * and resolution of a rectangular slab in 3D.
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
-import DataSetTools.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
