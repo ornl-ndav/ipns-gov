@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/12/05 06:03:44  millermi
+ *  - Fixed Eclipse warnings.
+ *
  *  Revision 1.9  2004/08/18 05:28:26  millermi
  *  - Removed private method setSelectedCells(Point,Point,boolean)
  *    and replaced all calls to this method with calls to
@@ -140,7 +143,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
@@ -160,8 +162,6 @@ import java.awt.event.MouseMotionAdapter;
 import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
-import gov.anl.ipns.ViewTools.Components.IVirtualArray;
-import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.Region.PointRegion;
@@ -327,8 +327,6 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 				     // if setSelectedRegions() is called.
   private boolean do_clear;  // This will prevent a region from being added
                              // when the unselectAll() method is called.
-  private Point initial_column; // Initial column selected for drag & drop
-  private Point current_column; // Current column selected for drag & drop
   private String max_row_label; // Max width of any row label String.
   private boolean disable_auto_position; // disable setPointedAt() cell tracer.
   private boolean move_column_called; // was moveColumn() called to move column
@@ -1011,7 +1009,6 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     // Place the selected cell in the upper-lefthand corner of the Viewport,
     // when possible.
     Rectangle cell = table.getCellRect(0,0,true);
-    Rectangle viewport = scroll.getViewport().getViewRect();
     int x_pos = cell.width * col_row_pt.x;
     int y_pos = cell.height * col_row_pt.y;
     scroll.getViewport().setViewPosition( new Point(x_pos,y_pos) );
@@ -1556,7 +1553,6 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     if( elements.size() <= 0 )
       return -1;
     int index = 0;
-    CoordBounds bound = (CoordBounds)elements.elementAt(index);
     // While the col_num is not in the column bounds and the index is still
     // valid, increment the index.
     while( index < elements.size() &&

@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/12/05 06:05:57  millermi
+ *  - Fixed Eclipse warnings.
+ *
  *  Revision 1.2  2004/08/17 20:55:28  millermi
  *  - setValueAt() no longer edits the IVirtualArray2D. Code must be
  *    uncommented to restore this functionality.
@@ -48,9 +51,7 @@ package gov.anl.ipns.ViewTools.Panels.Table;
 import javax.swing.JFrame;
 import javax.swing.table.TableModel;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.event.TableModelListener;
 
-import gov.anl.ipns.ViewTools.Components.IVirtualArray;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
