@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/10 23:37:27  millermi
+ *  - Changed IViewComponent interface, no longer
+ *    distinguish between private and shared controls/
+ *    menu items.
+ *  - Combined private and shared controls/menu items.
+ *
  *  Revision 1.2  2003/10/21 21:58:40  millermi
  *  - Removed setPointedAt() and getPointedAt() since not
  *    all extending interfaces will use these methods in
@@ -54,6 +60,7 @@ import java.awt.Point;
 import java.awt.event.ActionListener;
 
 import DataSetTools.components.View.Menu.ViewMenuItem;
+import DataSetTools.components.View.ViewControls.ViewControl;
 
 /**
  * Any class that implements this interface will interpret and display
@@ -106,22 +113,12 @@ public interface IViewComponent
  /**
   * Return controls needed by the component.
   */ 
-  public JComponent[] getSharedControls();
-
- /**
-  * Currently unused and unimplemented...
-  */   
-  public JComponent[] getPrivateControls();
-
+  public ViewControl[] getControls();
+  
  /**
   * Return view menu items needed by the component.
   */   
-  public ViewMenuItem[] getSharedMenuItems();
-  
- /**
-  * Currently unused and unimplemented...
-  */
-  public ViewMenuItem[] getPrivateMenuItems();
+  public ViewMenuItem[] getMenuItems();
   
  /**
   * This method is called by the viewer to inform the view component

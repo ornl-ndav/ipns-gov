@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/10 23:37:28  millermi
+ *  - Changed IViewComponent interface, no longer
+ *    distinguish between private and shared controls/
+ *    menu items.
+ *  - Combined private and shared controls/menu items.
+ *
  *  Revision 1.7  2004/01/08 23:55:08  rmikk
  *  Added Save and Print image utilities to the File menu item
  *  Eliminate the EXIT_ON_CLOSE settings for the JFrames
@@ -86,7 +92,7 @@ public class ViewerSim
 { 
    private IViewComponent2D ivc;
    private ViewMenuItem[] menus;
-   private JComponent[] controls;
+   private ViewControl[] controls;
 
   /**
    * Constructor reads in an IViewComponent2D and gets the controls and menu
@@ -97,8 +103,8 @@ public class ViewerSim
    public ViewerSim( IViewComponent2D comp )
    {
       ivc = comp;
-      menus = ivc.getSharedMenuItems();
-      controls = ivc.getSharedControls();
+      menus = ivc.getMenuItems();
+      controls = ivc.getControls();
       ivc.addActionListener( new IVCListener() );
    }
   

@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.47  2004/03/10 23:37:28  millermi
+ *  - Changed IViewComponent interface, no longer
+ *    distinguish between private and shared controls/
+ *    menu items.
+ *  - Combined private and shared controls/menu items.
+ *
  *  Revision 1.46  2004/03/10 19:37:28  serumb
  *  Added commands to remove overlay controls in the kill method.
  *
@@ -721,33 +727,22 @@ public class FunctionViewComponent implements IViewComponent1D,
     Listeners.removeAllElements(  );
   }
 
-  public JComponent[] getSharedControls(  ) {
-    JComponent[] jcontrols = new JComponent[controls.size(  )];
-
-    for( int i = 0; i < controls.size(  ); i++ ) {
-      jcontrols[i] = ( JComponent )controls.get( i );
-    }
-
-    return jcontrols;
-  }
-
-  public JComponent[] getPrivateControls(  ) {
-    //System.out.println("Entering: JComponent[] getPrivateControls()");
+  public ViewControl[] getControls(  ) {
     //System.out.println("");
-   JPanel[] Res = new JPanel[3];
-
+   ViewControl[] Res = new ViewControl [2];
+   /*
    JPanel test_p = new JPanel();
    JLabel test_l = new JLabel("Graph View");
    test_p.add(test_l);
    Res[0] = test_p;
-
-   Res[1] = control_box;
-   ((ControlCheckbox)Res[1]).setText("Function Controls");
-   ((ControlCheckbox)Res[1]).addActionListener( new ControlListener() );
+   */
+   Res[0] = control_box;
+   ((ControlCheckbox)Res[0]).setText("Function Controls");
+   ((ControlCheckbox)Res[0]).addActionListener( new ControlListener() );
     
-   Res[2] = new ControlCheckbox(true);
-   ((ControlCheckbox)Res[2]).setText("Show Pointed At");
-   ((ControlCheckbox)Res[2]).addActionListener( new ControlListener() );
+   Res[1] = new ControlCheckbox(true);
+   ((ControlCheckbox)Res[1]).setText("Show Pointed At");
+   ((ControlCheckbox)Res[1]).addActionListener( new ControlListener() );
    
    // Res[0]   =  mainControls.get_panel().getPanel();
 
@@ -756,15 +751,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     // return new JComponent[0];
   }
 
-  public ViewMenuItem[] getSharedMenuItems(  ) {
-    //System.out.println( "Entering: ViewMenuItem[] getSharedMenuItems()" );
-   // System.out.println( "" );
-
-    return new ViewMenuItem[0];
-  }
-
-  public ViewMenuItem[] getPrivateMenuItems(  ) {
-    //System.out.println( "Entering: ViewMenuItem[] getPrivateMenuItems()" );
+  public ViewMenuItem[] getMenuItems(  ) {
     //System.out.println( "" );
 
     return new ViewMenuItem[0];
@@ -998,7 +985,7 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     cpain.setLayout( new BoxLayout( cpain, BoxLayout.Y_AXIS ) );
 
-    JComponent[] controls = fvc.getSharedControls(  );
+    JComponent[] controls = fvc.getControls(  );
 
     for( int i = 0; i < controls.length; i++ ) {
       cpain.add( controls[i] );

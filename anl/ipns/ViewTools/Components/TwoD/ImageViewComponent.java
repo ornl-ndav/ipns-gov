@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.62  2004/03/10 23:37:28  millermi
+ *  - Changed IViewComponent interface, no longer
+ *    distinguish between private and shared controls/
+ *    menu items.
+ *  - Combined private and shared controls/menu items.
+ *
  *  Revision 1.61  2004/03/10 17:38:49  millermi
  *  - Added cursor readout for the current pointed-at position
  *    in x,y world coordinates. The control was added to the
@@ -1216,20 +1222,9 @@ public class ImageViewComponent implements IViewComponent2D,
   *
   *  @return controls
   */ 
-  public JComponent[] getSharedControls()
+  public ViewControl[] getControls()
   {    
     return controls;
-  }
- 
- /**
-  * This method is here to fulfill the implementation required by the
-  * IViewComponent2D interface.
-  */ 
-  public JComponent[] getPrivateControls()
-  {
-    System.out.println("***Currently unimplemented***");
-     
-    return new JComponent[0];
   }
  
  /**
@@ -1237,16 +1232,9 @@ public class ImageViewComponent implements IViewComponent2D,
   *
   *  @return menus;
   */ 
-  public ViewMenuItem[] getSharedMenuItems()
+  public ViewMenuItem[] getMenuItems()
   {
     return menus;
-  }
-  
-  public ViewMenuItem[] getPrivateMenuItems()
-  {
-    System.out.println("***Currently unimplemented***");
-     
-    return new ViewMenuItem[0];
   }
   
  /**

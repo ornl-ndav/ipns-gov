@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.17  2004/03/10 23:37:27  millermi
+ * - Changed IViewComponent interface, no longer
+ *   distinguish between private and shared controls/
+ *   menu items.
+ * - Combined private and shared controls/menu items.
+ *
  * Revision 1.16  2004/02/27 23:58:23  millermi
  * - Added "New Data" to File menu to test if data is updated
  *   when new data is passed into the ImageViewComponent
@@ -146,6 +152,7 @@ import DataSetTools.components.image.*;
 import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.Transparency.SelectionOverlay;
 import DataSetTools.components.View.Region.Region;
+import DataSetTools.components.View.ViewControls.ViewControl;
 import DataSetTools.components.View.ViewControls.ControlSlider;
 import DataSetTools.components.View.ViewControls.PanViewControl;
 import DataSetTools.util.SharedData;
@@ -332,7 +339,7 @@ public class IVCTester extends JFrame implements IPreserveState,
       ivc = new ImageViewComponent( data );
       ivc.addActionListener( new ImageListener() );
       Box controls = new Box(BoxLayout.Y_AXIS);
-      JComponent[] ctrl = ivc.getSharedControls();
+      ViewControl[] ctrl = ivc.getControls();
       Dimension preferred_size;
       for( int i = 0; i < ctrl.length; i++ )
       {
@@ -352,7 +359,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     				    image_holder,
     				    controls, .75f );
       // get menu items from view component and place it in a menu
-      ViewMenuItem[] menus = ivc.getSharedMenuItems();
+      ViewMenuItem[] menus = ivc.getMenuItems();
       for( int i = 0; i < menus.length; i++ )
       {
     	if( ViewMenuItem.PUT_IN_FILE.toLowerCase().equals(

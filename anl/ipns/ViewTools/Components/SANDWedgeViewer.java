@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.29  2004/03/10 23:37:27  millermi
+ * - Changed IViewComponent interface, no longer
+ *   distinguish between private and shared controls/
+ *   menu items.
+ * - Combined private and shared controls/menu items.
+ *
  * Revision 1.28  2004/03/10 21:08:20  millermi
  * - Added menu item for saving image as a JPEG.
  *
@@ -702,7 +708,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     	  			    componentholder,
         			    buildControls(), .75f );
       // get menu items from view component and place it in a menu
-      ViewMenuItem[] menus = ivc.getSharedMenuItems();
+      ViewMenuItem[] menus = ivc.getMenuItems();
       for( int i = 0; i < menus.length; i++ )
       {
         if( ViewMenuItem.PUT_IN_FILE.equalsIgnoreCase(
@@ -777,7 +783,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     file.add("File");
     file_listeners.add( new WVListener() ); // listener for file
     file.add(load_data);
-      load_data.add("Load Runfile");
+      load_data.add("Load S(Qx,Qy)");
       file_listeners.add( new WVListener() ); // listener for load data
     file.add(load_menu);
       load_menu.add("Open Project");
@@ -867,7 +873,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         			      "Image Controls");
     ivc_border.setTitleFont( FontUtil.BORDER_FONT ); 
     ivc_controls.setBorder( ivc_border );
-    ViewControl[] ivc_ctrl = (ViewControl[])ivc.getSharedControls();
+    ViewControl[] ivc_ctrl = ivc.getControls();
     for( int i = 0; i < ivc_ctrl.length; i++ )
     {
       // don't add cursor read out.
@@ -1185,11 +1191,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals("Load Runfile") )
+      if( ae.getActionCommand().equals("Load S(Qx,Qy)") )
       {
         JFileChooser fc = new JFileChooser(projectsDirectory);
         fc.setFileFilter( new DataFileFilter() );
-        int result = fc.showDialog(new JFrame(),"Load Runfile");
+        int result = fc.showDialog(new JFrame(),"Load S(Qx,Qy)");
      
         if( result == JFileChooser.APPROVE_OPTION )
         {
