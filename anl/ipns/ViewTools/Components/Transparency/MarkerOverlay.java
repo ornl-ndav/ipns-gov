@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/04/23 17:29:05  millermi
+ *  - Replaced code for color chooser with the new ColorSelector class.
+ *
  *  Revision 1.3  2004/04/07 20:43:00  millermi
  *  - Now uses string and intcode list from Marker class to construct
  *    the combo box.
@@ -53,10 +56,6 @@ package gov.anl.ipns.ViewTools.Components.Transparency;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.colorchooser.AbstractColorChooserPanel;
-import javax.swing.colorchooser.ColorSelectionModel;
 import javax.swing.text.html.HTMLEditorKit;
 import java.util.Vector;
 import java.util.Enumeration;
@@ -67,6 +66,7 @@ import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 
@@ -377,7 +377,7 @@ public class MarkerOverlay extends OverlayJPanel
     {
       this_editor = this;
       setTitle("Marker Editor");
-      this_editor.setBounds(0,0,435,330);
+      this_editor.setBounds(0,0,435,350);
       getContentPane().setLayout( new GridLayout(1,1) );
       setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
       // initialize the marker types array, First value is a label, then copy
@@ -498,14 +498,12 @@ public class MarkerOverlay extends OverlayJPanel
       chooserborder.setTitleFont(
                           gov.anl.ipns.ViewTools.UI.FontUtil.BORDER_FONT ); 
       chooser.setBorder( chooserborder );
-      // get the color selection part of the colorchooser
-      AbstractColorChooserPanel[] acc = colorchooser.getChooserPanels();
-      colorchooser.getSelectionModel().addChangeListener(
-                                          new ColorChangedListener() );
+      ColorSelector color_selector = new ColorSelector( ColorSelector.SWATCH );
+      color_selector.addActionListener( new ColorChangedListener() );
       JButton close = new JButton("Close");
       close.addActionListener( new ButtonListener() );
       // build chooser panel, with label, JColorChooser, and close button.
-      chooser.add(acc[0], BorderLayout.NORTH);
+      chooser.add(color_selector, BorderLayout.NORTH);
       chooser.add(close, BorderLayout.CENTER);
       JPanel upper_ctrls = new JPanel( new GridLayout(3,1) );
       upper_ctrls.add(line1controls);
@@ -523,11 +521,11 @@ public class MarkerOverlay extends OverlayJPanel
       this_editor.repaint();
     }
     
-    private class ColorChangedListener implements ChangeListener
+    private class ColorChangedListener implements ActionListener
     {
-      public void stateChanged( ChangeEvent ce )
+      public void actionPerformed( ActionEvent ae )
       {
-        Color newcolor = colorchooser.getSelectionModel().getSelectedColor();
+        Color newcolor = ((ColorSelector)ae.getSource()).getSelectedColor();
 	int index = markerlist.getSelectedIndex();
 	// if "All Markers"
 	if( index == 0 )
@@ -728,6 +726,8 @@ public class MarkerOverlay extends OverlayJPanel
     display.getContentPane().add(container);
     display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     display.setBounds(0,0,500,500);
+    
+    mo.editMarker();
     
     // show the display tester
     WindowShower shower = new WindowShower(display);
