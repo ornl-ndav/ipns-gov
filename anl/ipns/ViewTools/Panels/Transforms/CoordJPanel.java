@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.27  2003/11/18 00:55:03  millermi
+ *  - ObjectState now saves the local and global CoordBounds
+ *    instead of the CoordTransforms.
+ *  - Changed ObjectState keys LOCAL_TRANSFORM, GLOBAL_TRANSFORM
+ *    to LOCAL_BOUNDS, GLOBAL_BOUNDS to reflect change above.
+ *
  *  Revision 1.26  2003/10/17 16:05:18  millermi
  *  - Now implements IPreserveState which includes the
  *    implementation of setObjectState() and getObjectState().
@@ -162,18 +168,18 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
   public static final String VERTICAL_SCROLL   = "Vertical Scroll";
   
  /**
-  * "Global Transform" - This constant String is a key for referencing the
+  * "Global Bounds" - This constant String is a key for referencing the
   * state information about the world and pixel coordinates for the initial
-  * panel. The value referenced by this key is of type CoordTransform.
+  * panel. The value referenced by this key is of type CoordBounds.
   */
-  public static final String GLOBAL_TRANSFORM  = "Global Transform";
+  public static final String GLOBAL_BOUNDS  = "Global Bounds";
   
  /**
-  * "Local Transform" - This constant String is a key for referencing the state
+  * "Local Bounds" - This constant String is a key for referencing the state
   * information about the CoordTransform of the zoom region. The value
-  * referenced by this key is of type CoordTransform.
+  * referenced by this key is of type CoordBounds.
   */
-  public static final String LOCAL_TRANSFORM   = "Local Transform";
+  public static final String LOCAL_BOUNDS   = "Local Bounds";
   
  /**
   * "Current Point" - This constant String is a key for referencing the state
@@ -281,17 +287,17 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
       redraw = true;  
     }
     
-    temp = new_state.get(GLOBAL_TRANSFORM);
+    temp = new_state.get(GLOBAL_BOUNDS);
     if( temp != null )
     {
-      global_transform = (CoordTransform)temp; 
+      setGlobalWorldCoords( (CoordBounds)temp );
       redraw = true;  
     } 
     
-    temp = new_state.get(LOCAL_TRANSFORM); 
+    temp = new_state.get(LOCAL_BOUNDS); 
     if( temp != null )
     {
-      local_transform = (CoordTransform)temp;
+      setLocalWorldCoords( (CoordBounds)temp );
       redraw = true;  
     } 	
     
@@ -331,9 +337,9 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
     ObjectState state = new ObjectState();
     state.insert( CURRENT_POINT, new Point(current_point) );
     state.insert( EVENT_LISTENING, new Boolean(isListening) );
-    state.insert( GLOBAL_TRANSFORM, new CoordTransform( global_transform ) );
+    state.insert( GLOBAL_BOUNDS, getGlobalWorldCoords().MakeCopy() );
     state.insert( HORIZONTAL_SCROLL, new Boolean(h_scroll) );
-    state.insert( LOCAL_TRANSFORM, new CoordTransform( local_transform ) );
+    state.insert( LOCAL_BOUNDS, getLocalWorldCoords().MakeCopy() );
     if( preferred_size != null )
       state.insert( PREFERRED_SIZE, new Dimension(preferred_size) );
     state.insert( VERTICAL_SCROLL, new Boolean(v_scroll) );
