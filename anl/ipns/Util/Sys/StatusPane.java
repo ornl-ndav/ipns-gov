@@ -31,6 +31,9 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.9  2003/12/14 19:18:09  bouzekc
+ * Removed unused import statements.
+ *
  * Revision 1.8  2003/07/09 14:58:26  rmikk
  * The Scroll pane is now positioned to the last line of text that
  * was entered and also works with threads without locking
@@ -72,10 +75,6 @@ import javax.swing.*;
 import java.beans.*;  
 import java.awt.*;  
 import javax.swing.text.*;  
-import java.util.*;  
-import IsawGUI.*;  
-import java.lang.*;  
-import NexIO.*;  
 import javax.swing.border.*;  
 import javax.swing.event.*;
   

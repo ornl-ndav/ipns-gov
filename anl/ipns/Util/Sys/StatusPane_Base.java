@@ -31,6 +31,9 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.5  2003/12/14 19:18:09  bouzekc
+ * Removed unused import statements.
+ *
  * Revision 1.4  2003/06/18 20:34:46  pfpeterson
  * Changed calls for NxNodeUtils.Showw(Object) to
  * DataSetTools.util.StringUtil.toString(Object)
@@ -64,10 +67,8 @@ package Command;
 import javax.swing.*;  
 import java.beans.*;  
   
-import javax.swing.text.*;  
 import java.util.*;  
 import IsawGUI.*;  
-import java.lang.*;  
 import DataSetTools.util.StringUtil;
 import javax.swing.border.*;  
   
