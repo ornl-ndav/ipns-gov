@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2003/08/08 18:29:49  serumb
+ * Updates x and y range values when message is recieved.
+ *
  * Revision 1.7  2003/08/06 19:33:19  serumb
  * Added controls for adding grid lines.
  *
@@ -105,6 +108,7 @@ import javax.swing.event.*;
   {
 
   private IVirtualArray1D Varray1D;
+  private FunctionViewComponent fvc;
   private GraphJPanel gjp;
   private JPanel big_picture = new JPanel();
 
@@ -189,9 +193,10 @@ import javax.swing.event.*;
   private JFrame the_frame = new JFrame( "ISAW Function View Controls" );
   
   public FunctionControls(IVirtualArray1D varr, GraphJPanel graph_j_panel,
-                         JPanel display_panel) {
+                         JPanel display_panel, FunctionViewComponent FVC) {
     main_panel = new ViewControlsPanel();
     Varray1D = varr;
+    fvc = FVC;
     gjp = graph_j_panel;
     big_picture = display_panel;
     buildControls();
@@ -358,9 +363,11 @@ import javax.swing.event.*;
     annotation_checkbox.addActionListener( new ControlListener(  ) );
     ShiftBox.addActionListener( new ControlListener(  ) );
     LogBox.addActionListener( new ControlListener(  ) );
-    log_slider.addActionListener( new ControlListener( ) );                         x_range.addActionListener( new x_rangeListener(  ) );
+    log_slider.addActionListener( new ControlListener( ) );
+    x_range.addActionListener( new x_rangeListener(  ) );
     y_range.addActionListener( new y_rangeListener(  ) );
-    gjp.addActionListener( new ImageListener(  ) ); 
+    gjp.addActionListener( new ImageListener(  ) );
+    fvc.addActionListener( new ImageListener(  ) ); 
   }
   
   public double getLogScale()
@@ -455,19 +462,38 @@ import javax.swing.event.*;
                                                                                              
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
-             
       CoordBounds b = gjp.getLocalWorldCoords();
       LogScaleUtil loggery = new LogScaleUtil(b.getY1(), b.getY2(),
                                               b.getY1(), b.getY2());
       LogScaleUtil loggerx = new LogScaleUtil(b.getX1(), b.getX2(),
                                               b.getX1(), b.getX2());
       if( message.equals("Reset Zoom")  ) {
-        x_range.setMin(Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMin()); 
-        x_range.setMax(Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMax()); 
-        y_range.setMin(Varray1D.getAxisInfo(AxisInfo2D.YAXIS ).getMin()); 
-        y_range.setMax(Varray1D.getAxisInfo(AxisInfo2D.YAXIS ).getMax()); 
+          if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
+             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getX1());
+             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getX2());
+             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getY2());
+             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getY1());
+           }
+           else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
+             x_range.setMin(gjp.getLocalWorldCoords().getX1());
+             x_range.setMax(gjp.getLocalWorldCoords().getX2());
+             y_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getY2());
+             y_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getY1());
+           }
+           else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
+             x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getX1());
+             x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getX2());
+             y_range.setMin(gjp.getLocalWorldCoords().getY2());
+             y_range.setMax(gjp.getLocalWorldCoords().getY1());
+           }
+           else {
+             x_range.setMin(gjp.getLocalWorldCoords().getX1());
+             x_range.setMax(gjp.getLocalWorldCoords().getX2());
+             y_range.setMin(gjp.getLocalWorldCoords().getY2());
+             y_range.setMax(gjp.getLocalWorldCoords().getY1());
+           }
       }
-      if(message.equals("Zoom In")) {
+      else if(message.equals("Zoom In")) {
            if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
              x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getX1());
              x_range.setMax(gjp.getLocalLogWorldCoords(gjp.getScale()).getX2());
@@ -934,7 +960,7 @@ import javax.swing.event.*;
     JFrame f = new JFrame( "ISAW Function View Controls" );
     
     FunctionControls fcontrols = new FunctionControls(Varray1D, graph_panel,
-                                                      main_panel);                   
+                                                      main_panel, fvc);                   
     fcontrols.display_controls();
    // f.setBounds( 0, 0, 580, 330 );
 
