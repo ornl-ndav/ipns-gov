@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2002/11/07 16:31:40  pfpeterson
+ *  Added new constant for telling viewers to close.
+ *
  *  Revision 1.4  2001/04/25 22:24:27  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -72,6 +75,7 @@ import java.io.*;
 
 public interface IObserver
 {
+  public static final String CLOSE_VIEWERS      = "CLOSE VIEWERS";
   public static final String DESTROY            = "DESTROY";
   public static final String DATA_REORDERED     = "DATA_REORDERED";
   public static final String DATA_DELETED       = "DATA_DELETED";
