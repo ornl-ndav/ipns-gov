@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2001/08/10 19:49:28  dennis
+ *  Added method commandPresent() to check whether or not a specified
+ *  single command with no argument occurs in an argument list.
+ *
  *  Revision 1.3  2001/08/10 14:54:46  dennis
  *  Added methods to find the nth occurence of a string and to find
  *  arguments for commands of the form "-<letter><argument>" on a
@@ -184,6 +188,31 @@ public class StringUtil
       s += " " + args[i];
 
     return getCommand( n, command, s );
+  }
+
+  /* --------------------------- commandPresent -------------------------- */
+  /**
+   *  Determine whether or not the specified string occurs in the array 
+   *  of strings.
+   *
+   *  @param  args  The array of strings containing commands and arguments
+   *                with space between successive command-argument pairs or
+   *                individual commands without arguments
+   */
+  public static boolean commandPresent( String command, String args[] )
+  {
+    if ( args == null || args.length == 0 )
+      return false;
+  
+    String s = args[0];
+    for ( int i = 1; i < args.length; i++ )
+      s += " " + args[i];
+
+    if ( s.indexOf( command ) >= 0 )
+      return true;
+    else
+      return false;
+      
   }
 
 
