@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.40  2004/02/27 20:24:41  serumb
+ *  Removed unecessary print statments.
+ *
  *  Revision 1.39  2004/02/20 19:11:57  serumb
  *  Fixed the way the axes info was being set.
  *
@@ -431,14 +434,15 @@ public class FunctionViewComponent implements IViewComponent1D,
                                           .getY2(  ) ));
   }
   else
-  gjp.initializeWorldCoords( 
-      new CoordBounds( 
-        xmin, ymin,
-        xmax, ymax) );
+  {
+    gjp.initializeWorldCoords( 
+        new CoordBounds( 
+          xmin, ymin,
+          xmax, ymax) );
+  }
  
- 
-    AxisInfo xinfo = getAxisInformation( AxisInfo.X_AXIS );
-    AxisInfo yinfo = getAxisInformation( AxisInfo.Y_AXIS );
+   // AxisInfo xinfo = getAxisInformation( AxisInfo.X_AXIS );
+   // AxisInfo yinfo = getAxisInformation( AxisInfo.Y_AXIS );
 
   }
  
@@ -449,7 +453,6 @@ public class FunctionViewComponent implements IViewComponent1D,
        xmax = gjp.getXmax();
        ymin = gjp.getYmin();
        ymax = gjp.getYmax();
- //System.out.println("xmin"+xmin+"xmax"+xmax);
    
 
     if( axis == AxisInfo.X_AXIS) {
@@ -467,13 +470,7 @@ public class FunctionViewComponent implements IViewComponent1D,
       }
       else
       {
-/*        System.out.println("local" + "min" +gjp.getLocalWorldCoords(  )
-                              .getX1(  ) + "max" + 
-        gjp.getLocalWorldCoords(  ).getX2(  ));
-      gjp.setLocalWorldCoords(new CoordBounds(
-         xmin, ymax,
-         xmax, ymin) );
-*/
+
       return new AxisInfo( 
         gjp.getLocalWorldCoords(  ).getX1(  ),
         gjp.getLocalWorldCoords(  ).getX2(  ),
