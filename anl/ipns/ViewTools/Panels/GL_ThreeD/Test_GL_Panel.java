@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/01 03:48:30  dennis
+ * Now includes test of StrokeText class.  Also now just adds
+ * individual graphical objects, not lists of objects.  This was
+ * changed to help track down a problem with pick ids.
+ *
  * Revision 1.1  2004/05/28 20:51:16  dennis
  * Initial (test) version of classes for displaying and picking
  * 3D objects using OpenGL from Java, built on the "jogl" system.
@@ -63,15 +68,19 @@ public class Test_GL_Panel
     obj_2.setPickID( pick_id++ );
     obj_3.setPickID( pick_id++ );
 
-    GL_Shape objects[] = { obj_0, obj_1, obj_2, obj_3 };
-    panel.setObjects( "Ojects", objects );
+    panel.setObject( "Object 0", obj_0 );
+    panel.setObject( "Object 1", obj_1 );
+    panel.setObject( "Object 2", obj_2 );
+    panel.setObject( "Object 3", obj_3 );
     
     float red[]   = {0.9f, 0.4f, 0.4f};
-//    float green[] = {0.4f, 0.9f, 0.4f};
+    float green[] = {0.4f, 0.9f, 0.4f};
     float blue[]  = {0.4f, 0.4f, 0.9f};
     float white[] = {1,1,1};
     float gray[]  = {0.4f, 0.4f, 0.4f};
 
+    GL_Shape obj = null;
+/*
     obj_0.setTransparency(1);
     for ( int i = 1; i < 4; i++ )
     {
@@ -79,9 +88,8 @@ public class Test_GL_Panel
       objects[i].setColor( red );
     }
 
-    GL_Shape obj = null;
     IThreeD_GL_Object obj_list[]= new IThreeD_GL_Object[1];
-/*    int size = 10;
+    int size = 10;
    
     for ( int i = -size; i <= size; i++ )
       for ( int j = -size; j <= size; j++ )
@@ -113,8 +121,7 @@ public class Test_GL_Panel
                          new Vector3D( 3,4,5 ) );
     obj.setTransform( tran );
     obj.setColor( blue );
-    obj_list[0] = obj;
-    panel.setObjects("Moved Object", obj_list);
+    panel.setObject("Moved Object", obj);
 
     byte image[] = { -1, -1,  0,  
                       0, -1, -1,
@@ -132,8 +139,7 @@ public class Test_GL_Panel
     obj.setPickID( pick_id++ );
     obj.setColor( gray );
     obj.setTexture( texture );
-    obj_list[0] = obj;
-    panel.setObjects("Textured Object", obj_list);
+    panel.setObject("Textured Object", obj);
 
     byte image1[] = { -1,0,0, 0,-1,0, 0,0,-1, -1,-1,-1 };
     Texture1D texture1 = new Texture1D( image1, 4 );
@@ -157,11 +163,10 @@ public class Test_GL_Panel
     obj.setPickID( pick_id++ );
     obj.setColor( white );
     obj.setTexture( texture2 );
-    obj_list[0] = obj;
     tran = new Tran3D();
     tran.setTranslation( new Vector3D( 4,4,4 ) );
     obj.setTransform( tran );
-    panel.setObjects("Textured Object 2", obj_list);
+    panel.setObject("Textured Object 2", obj);
 
     GLU_QuadricObject glu_obj = new GLU_Sphere( 2, 10, 10 );
     glu_obj.setPickID( pick_id++ );
@@ -169,8 +174,7 @@ public class Test_GL_Panel
     glu_obj.setTexture( texture );
     glu_obj.setNormalType( GLU.GLU_SMOOTH );
     glu_obj.setDrawStyle( GLU.GLU_FILL );
-    obj_list[0] = glu_obj;
-    panel.setObjects( "Sphere", obj_list );
+    panel.setObject( "Sphere", glu_obj );
 
     glu_obj = new GLU_Cylinder( 2, 3, 4, 10, 10 );
     glu_obj.setPickID( pick_id++ );
@@ -179,8 +183,7 @@ public class Test_GL_Panel
     glu_obj.setTexture( texture2 );
     glu_obj.setNormalType( GLU.GLU_SMOOTH );
     glu_obj.setDrawStyle( GLU.GLU_FILL );
-    obj_list[0] = glu_obj;
-    panel.setObjects( "Cylinder", obj_list );
+    panel.setObject( "Cylinder", glu_obj );
     
     float z[][] = new float[11][11];
     for ( int row = 0; row < 11; row++ )
@@ -192,8 +195,7 @@ public class Test_GL_Panel
     obj.setTexture( texture );
     obj.setTransparency( 0.4f );
     obj.setColor( white );
-    obj_list[0] = obj;
-    panel.setObjects( "Surface", obj_list );
+    panel.setObject( "Surface", obj );
 
     frame.getContentPane().add( panel.getDisplayComponent());
 
@@ -224,13 +226,32 @@ public class Test_GL_Panel
     obj.setTransparency( 0.4f );
     Texture2D texture3 = new Texture2D( image, n_rows, n_cols );
     obj.setTexture( texture3 );
-    obj_list[0] = obj;
-    panel2.setObjects("Surface_in_panel_2",obj_list );
+    panel2.setObject("Surface_in_panel_2",obj );
 
     obj_3 = new Cube( 1, 1, 0, 1 );
     obj_3.setPickID( pick_id++ );
     obj_3.setColor( red );
     panel2.setObject("Cube_in_panel_2", obj_3 );
+
+    StrokeFont font = new FileStrokeFont( "/home/dennis/FONT_DATA/romans.txf");
+//  StrokeFont font = new FileStrokeFont( "/home/dennis/FONT_DATA/gothgrt.txf");
+    StrokeText text;
+    text = new StrokeText( "Text in x, y plane, +x direction", font );
+    text.setColor( red );
+    text.setAlignment( StrokeText.HORIZ_RIGHT, StrokeText.VERT_HALF );
+    panel2.setObject("x axis", text );
+
+    text = new StrokeText( "Text in y, z plane, +y direction", font );
+    text.setOrientation( new Vector3D(0,1,0), new Vector3D(0,0,1) );
+    text.setColor( green );
+    text.setAlignment( StrokeText.HORIZ_CENTER, StrokeText.VERT_HALF );
+    panel2.setObject("y axis", text );
+
+    text = new StrokeText( "Text in z, x plane, +z direction", font );
+    text.setOrientation( new Vector3D(0,0,1), new Vector3D(1,0,0) );
+    text.setColor( blue );
+    text.setAlignment( StrokeText.HORIZ_CENTER, StrokeText.VERT_HALF );
+    panel2.setObject("z axis", text );
 
     c_listener = new ViewControlListener(panel2);
     panel2.setCOP(cop);
