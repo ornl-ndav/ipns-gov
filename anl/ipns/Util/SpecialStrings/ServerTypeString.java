@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2003/10/21 21:08:15  dennis
+ *  Cleaned up javadocs.
+ *
  *  Revision 1.3  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -54,57 +57,81 @@ public class ServerTypeString  extends     SpecialString
    static private final String strings[] = { LIVE_DATA_SERVER,
                                              ISAW_FILE_SERVER,
                                              NDS_FILE_SERVER   };
+
+   /* ------------------------- constructor ---------------------------- */
+   /**
+    *  Construct a ServerTypeString object with the type LIVE_DATA_SERVER.
+    */
    public ServerTypeString( )
    {
      this( "" );
    }
 
-   public ServerTypeString( String message )
+   /* ------------------------- constructor ---------------------------- */
+   /**
+    *  Construct a ServerTypeString object with the given string.
+    *
+    *  @param type  The type of the server.  The string be one of the
+    *               type codes defined in this class: 
+    *               LIVE_DATA_SERVER, ISAW_FILE_SERVER, NDS_FILE_SERVER.
+    *               If is is not one of these, the type LIVE_DATA_SERVER
+    *               is used by default.
+    */
+   public ServerTypeString( String type )
    {
-     super( message );
+     super( type );
 
      boolean found = false;
      int     i     = 0;
      while ( (i < strings.length) && !found )
-       if ( strings[i].equals( message ) )
+       if ( strings[i].equals( type ) )
          found = true;
        else
          i++;
         
-
      if ( !found ) 
        setString( strings[0] );
    }
 
   /* --------------------------- num_strings ------------------------------ */
   /**
-   *  Get the number of Strings contained in this list of Strings.
+   *  Get the number of possible type Strings contained for a ServerTypeString.
    *
    *  @return  the number of Strings in the list of Strings.
    */
-
-  public int num_strings()
-  {
+   public int num_strings()
+   {
      return strings.length; 
-  }
+   }
 
 
   /* ----------------------------- getString ----------------------------- */
   /**
-
-sition is not valid.
+   *  Get the string code at the specified position in the list of possible
+   *  Strings.
+   *
+   *  @param  position  The index of the type code string to return
+   *
+   *  @return The type code string in the specified position in the list of
+   *          Strings.
    */
-
-  public String getString( int position )
-  {
+   public String getString( int position )
+   {
      if ( position < 0 || position >= strings.length )
        return null;
      else
        return strings[ position ];
-  }
+   }
+
+
+  /** -------------------------- main -------------------------------- */
+  /*
+   *  simple test program
+   */
     public static void main( String args[] )
-    {  ServerTypeString STS = new ServerTypeString( 
-                  ServerTypeString.ISAW_FILE_SERVER);
+    {
+       ServerTypeString STS = 
+            new ServerTypeString( ServerTypeString.ISAW_FILE_SERVER);
       System.out.println("OK");
     }
 }
