@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2003/12/23 20:59:15  millermi
+ *  - Fixed bug introduced in makeImage() that restricted temp > 0,
+ *    now changed to temp > -(LOG_TABLE_SIZE-1) so negative values
+ *    also show.
+ *
  *  Revision 1.20  2003/11/21 00:39:12  millermi
  *  - Added method getThumbnail() to get a replica of the
  *    image displayed by the ImageJPanel
@@ -706,8 +711,8 @@ protected void LocalTransformChanged()
         temp = data[y][x] * scale_factor;
 	if( temp > LOG_TABLE_SIZE - 1 )
 	  temp = LOG_TABLE_SIZE - 1;
-        else if( temp < 0 )
-	  temp = 0;
+        else if( temp < -(LOG_TABLE_SIZE - 1) )
+	  temp = -(LOG_TABLE_SIZE - 1);
 	
 	if ( temp >= 0 )
           pix[index++] = (byte)(zero_index + log_scale[(int)temp]);
