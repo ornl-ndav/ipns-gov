@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.81  2005/01/19 21:00:20  millermi
+ *  - Removed sendMessage(SELECTED_CHANGED) from addSelectedRegion()
+ *    and setSelectedRegion() since the SelectedRegionListener
+ *    now sends out the message.
+ *
  *  Revision 1.80  2005/01/18 23:01:04  millermi
  *  - Changed setImageBounds in getSelectedRegions() to parallel the
  *    ImageJPanel transformation.
@@ -1337,7 +1342,7 @@ public class ImageViewComponent implements IViewComponent2D,
     if( !((ControlCheckboxButton)controls[5]).isSelected() )
       ((ControlCheckboxButton)controls[5]).doClick();
     returnFocus();
-    sendMessage(SELECTED_CHANGED);
+    // SelectedRegionListener will send out SELECTED_CHANGED message.
   }
  
  /**
@@ -1364,8 +1369,8 @@ public class ImageViewComponent implements IViewComponent2D,
       if( !((ControlCheckboxButton)controls[5]).isSelected() )
         ((ControlCheckboxButton)controls[5]).doClick();
       returnFocus();
-      sendMessage(SELECTED_CHANGED);
     }
+    // SelectedRegionListener will send out SELECTED_CHANGED message.
   }
  
  /**
