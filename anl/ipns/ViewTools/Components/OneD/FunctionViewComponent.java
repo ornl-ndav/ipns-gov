@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.42  2004/03/09 20:08:48  serumb
+ *  Changed the Data Changed method so when a graph is removed
+ *  the graph data is cleared.
+ *
  *  Revision 1.41  2004/03/09 17:28:37  serumb
  *  Fixed the problem that had to do with drawing selected graphs.
  *
@@ -249,8 +253,8 @@ public class FunctionViewComponent implements IViewComponent1D,
    
 
     //initialize the pointed at graph to 0
-       float x1[] = {0};
-       float y1[] = {0};
+       float x1[] = {0,.000001f};
+       float y1[] = {0.000001f};
        gjp.setData( x1, y1, 0, false );     
      
 
@@ -639,6 +643,10 @@ public class FunctionViewComponent implements IViewComponent1D,
   public void dataChanged( IVirtualArray1D pin_varray )  // pin == "passed in"
    {
     if (Varray1D != pin_varray){
+
+    if (Varray1D.getNumlines() > pin_varray.getNumlines())
+       gjp.clearData();
+
     Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
                               // SAME FRAME, so that the frame doesn't move.
