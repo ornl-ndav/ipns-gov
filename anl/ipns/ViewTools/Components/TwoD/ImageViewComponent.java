@@ -1,7 +1,7 @@
 /*
  * File: ImageViewComponent.java
  *
- * Copyright (C) 2003, Mike Miller
+ * Copyright (C) 2003-2004, Mike Miller
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.75  2004/08/13 02:50:00  millermi
+ *  - Now implements IMarkerAddible interface, requiring the methods
+ *    removeMarker() and removeAllMarkers() to be added.
+ *
  *  Revision 1.74  2004/08/06 18:49:50  millermi
  *  - Added setColorScale(), now called when menu items are used to change
  *    the colorscale.
@@ -443,6 +447,7 @@ import gov.anl.ipns.ViewTools.Components.Region.*;
 public class ImageViewComponent implements IViewComponent2D, 
            /*for IAxisAddible2D*/          IColorScaleAddible,
            /*for Selection/Annotation*/    IZoomTextAddible,
+	                                   IMarkerAddible,
 	                                   IPreserveState,
 					   Serializable
 { 
@@ -943,7 +948,8 @@ public class ImageViewComponent implements IViewComponent2D,
     
     return state;
   }
-  
+
+ // ------ add/removeMarker() methods satifsy IMarkerAddible interface ------ 
  /**
   * Add a marker to be displayed on the image. The marker is best used for
   * programmatic highlighting, such as peaks. Use annotations to write text
@@ -959,6 +965,34 @@ public class ImageViewComponent implements IViewComponent2D,
     if( null_data )
       return;
     ((MarkerOverlay)(transparencies.elementAt(3))).addMarker(mark);
+  }
+  
+ /**
+  * Remove mark from the list of markers, causing it to no longer
+  * appear on the image. Any marker that is removed will only appear on
+  * the image if it is re-added using addMarker().
+  *
+  *  @param  mark The marker to be removed.
+  */
+  public void removeMarker( Marker mark )
+  {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
+    ((MarkerOverlay)(transparencies.elementAt(3))).removeMarker(mark);
+  }
+  
+ /**
+  * Remove all markers from the MarkerOverlay, causing no markers to appear
+  * on the image. Any marker that is removed will only appear on the image
+  * if it is re-added using addMarker().
+  */
+  public void removeAllMarkers()
+  {
+    // If the original data passed in was null, do nothing.
+    if( null_data )
+      return;
+    ((MarkerOverlay)(transparencies.elementAt(3))).clearMarkers();
   }
   
  /**
