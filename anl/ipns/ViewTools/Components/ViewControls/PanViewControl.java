@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/11/25 23:33:18  millermi
+ *  - Bug Fix - panel_size in refreshData is set to the
+ *    size of the containing panel and not the size of
+ *    the whole PanViewControl.
+ *
  *  Revision 1.5  2003/11/21 01:27:29  millermi
  *  - Removed println() statements.
  *  - Fixed bug that caused image to be repainted over the cursor.
@@ -187,7 +192,7 @@ public class PanViewControl extends ViewControl
     setAspectRatio();
     if( actual_cjp instanceof ImageJPanel )
     { 
-      Dimension panel_size = getSize();
+      Dimension panel_size = panel.getSize();
       panel_image = ((ImageJPanel)actual_cjp).getThumbnail( panel_size.width, 
                                                            panel_size.height ); 
     }
