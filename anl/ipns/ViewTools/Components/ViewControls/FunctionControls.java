@@ -32,6 +32,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2003/07/30 20:54:24  serumb
+ * Added control slider for the log scale, and a combobox to set
+ * axies logarithmic.
+ *
  * Revision 1.3  2003/07/17 20:40:51  serumb
  * Changed the zoom controls to fit better, and allow more
  * freedom for the user.
@@ -50,7 +54,7 @@ import DataSetTools.components.View.OneD.*;
 import DataSetTools.components.View.Transparency.*;  //Axis Overlays
 import DataSetTools.components.View.ViewControls.*;
                                                                                                                                                
-import DataSetTools.components.image.*;  //GraphJPanel & ImageJPanel & CoordJPanel
+import DataSetTools.components.image.*;//GraphJPanel & ImageJPanel & CoordJPanel
                                                                                                                                                
 import DataSetTools.dataset.*;
                                                                                                                                                
@@ -88,11 +92,12 @@ import javax.swing.event.*;
  * This class creates the controls and adds them to the control panel.
  */
 
-  public class FunctionControls {
+  public class FunctionControls
+  {
 
   private IVirtualArray1D Varray1D;
   private GraphJPanel gjp;
-  private JPanel big_picture;
+  private JPanel big_picture = new JPanel();
 
   private JPanel panel1      = new JPanel(  );
   private JPanel panel2      = new JPanel(  );
@@ -111,6 +116,7 @@ import javax.swing.event.*;
   private String label5      = "Point Marker Size";
   private String label6      = "Error Bars";
   private String label7      = "Shift";
+  private String label8      = "Logarithmic Axis";
   private JComboBox LineBox  = new JComboBox(  );
   private JComboBox LineStyleBox = new JComboBox(  );
   private JComboBox LineWidthBox = new JComboBox(  );
@@ -118,6 +124,7 @@ import javax.swing.event.*;
   private JComboBox PointMarkerSizeBox = new JComboBox(  );
   private JComboBox ErrorBarBox = new JComboBox(  );
   private JComboBox ShiftBox = new JComboBox(  );
+  private JComboBox LogBox = new JComboBox(  );
   private String[] lines;
   private String[] line_type;
   private String[] line_width;
@@ -125,6 +132,7 @@ import javax.swing.event.*;
   private String[] mark_size;
   private String[] bar_types;
   private String[] shift_types;
+  private String[] log_placements;
   private ButtonControl LineColor;
   private ButtonControl MarkColor;
   private ButtonControl ErrorColor;
@@ -150,6 +158,7 @@ import javax.swing.event.*;
   private LabelCombobox labelbox5;
   private LabelCombobox labelbox6;
   private LabelCombobox labelbox7;
+  private LabelCombobox labelbox8;
   private JLabel z_begin;
   private JLabel z_end;
   private JLabel yz_begin;
@@ -165,17 +174,17 @@ import javax.swing.event.*;
   private Box vert_box = new Box(1);
   private ControlCheckbox axis_checkbox = new ControlCheckbox( true );
   private ControlCheckbox annotation_checkbox = new ControlCheckbox(  );
-
+  private ControlSlider log_slider;
+  private double log_scale = 10;
   private ViewControlsPanel main_panel;
   private JFrame the_frame = new JFrame( "ISAW Function View Controls" );
   
   public FunctionControls(IVirtualArray1D varr, GraphJPanel graph_j_panel,
-                          JPanel display_panel) {
+                         JPanel display_panel) {
     main_panel = new ViewControlsPanel();
     Varray1D = varr;
     gjp = graph_j_panel;
     big_picture = display_panel;
-
     buildControls();
 
     main_panel.addViewControl(controlpanel);
@@ -191,7 +200,7 @@ import javax.swing.event.*;
     int group_id;
     
     lines = new String[Varray1D.getNumlines(  )];
-//?
+
     for( int i = 0; i < Varray1D.getNumlines(  ); i++ ) {
       group_id   = Varray1D.getGroupID( i );
       lines[i]   = "Group ID:" + group_id;
@@ -248,7 +257,16 @@ import javax.swing.event.*;
     shift_types[2]   = "Overlaid";
     labelbox7      = new LabelCombobox( label7, shift_types );
     labelbox7.setSelected( 2 );
-                                                                                   
+
+    log_placements = new String[4];
+    log_placements[0] = "None";
+    log_placements[1] = "X";
+    log_placements[2] = "Y";
+    log_placements[3] = "X and Y";
+    labelbox8      = new LabelCombobox( label8, log_placements );
+
+
+   
     LineColor   = new ButtonControl( "Line Color" );
     MarkColor   = new ButtonControl( "Point Marker Color" );
     ErrorColor  = new ButtonControl( "Error Bar Color" );
@@ -259,13 +277,18 @@ import javax.swing.event.*;
 
     x_range = new TextRangeUI("X Range", 
                       Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMin(),
-                      Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getMax());
+                      Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMax());
     y_range = new TextRangeUI("Y Range",Varray1D.getAxisInfo(
                       AxisInfo2D.YAXIS ).getMin(), Varray1D.getAxisInfo(
                       AxisInfo2D.YAXIS ).getMax()); 
 
+    log_slider = new ControlSlider();
+    log_slider.setTitle("Log Scale Slider");
+    log_slider.setValue(10.0f);
+
     GridLayout G_lout = new GridLayout( 1, 1 );
-                                                                                     panel1.setLayout( G_lout );
+
+    panel1.setLayout( G_lout );
     panel2.setLayout( G_lout );
     panel3.setLayout( G_lout );
     panel1.add( LineColor.button );
@@ -290,6 +313,7 @@ import javax.swing.event.*;
     PointMarkerSizeBox   = labelbox5.cbox;
     ErrorBarBox          = labelbox6.cbox;
     ShiftBox             = labelbox7.cbox;
+    LogBox               = labelbox8.cbox;
 
     control_box.add(leftBox);
 
@@ -304,7 +328,9 @@ import javax.swing.event.*;
     rightBox.add( annotationButton );
     rightBox.add( TFP );
     rightBox.add( labelbox7 );
-                                                                                   
+    rightBox.add( labelbox8 );
+    rightBox.add( log_slider );
+                                                                              
     RboxPanel.setLayout(G_lout);
     RboxPanel.add(rightBox);
                                                                                    
@@ -326,9 +352,15 @@ import javax.swing.event.*;
     annotation_checkbox.addActionListener( new ControlListener(  ) );
     annotationButton.addActionListener( new ControlListener(  ) );
     ShiftBox.addActionListener( new ControlListener(  ) );
-    x_range.addActionListener( new x_rangeListener(  ) );
+    LogBox.addActionListener( new ControlListener(  ) );
+    log_slider.addActionListener( new ControlListener( ) );                         x_range.addActionListener( new x_rangeListener(  ) );
     y_range.addActionListener( new y_rangeListener(  ) );
-    gjp.addActionListener( new ImageListener(  ) );                                                                             
+    gjp.addActionListener( new ImageListener(  ) ); 
+  }
+  
+  public double getLogScale()
+  {
+    return log_scale;
   }
 
   public ViewControlsPanel get_panel() {
@@ -337,7 +369,7 @@ import javax.swing.event.*;
 
   public void display_controls() {
 
-    the_frame.setBounds( 600, 0, 580, 330 );
+    the_frame.setBounds( 600, 0, 510, 380 );
     the_frame.getContentPane().add( (JComponent)main_panel.getPanel() );
 
     the_frame.setVisible( true  );  //display the frame
@@ -345,7 +377,7 @@ import javax.swing.event.*;
   public void close_frame() {
     the_frame.setVisible( false );
   }
-  
+
   private class x_rangeListener implements ActionListener {
 
     public void actionPerformed( ActionEvent ae ) {
@@ -364,23 +396,31 @@ import javax.swing.event.*;
          //  System.out.println("Entered: " +y_range.getText() );
          //  System.out.println("Min = " + y_range.getMin() );
          //  System.out.println("Max = " + y_range.getMax() );
+
           gjp.setZoom_region( x_range.getMin(), y_range.getMax(),
                               x_range.getMax(), y_range.getMin());
 
          }
   }
+
  private class ImageListener implements ActionListener {
     //~ Methods ****************************************************************
+
                                                                                              
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
-                                                                                             
-      if( message == CoordJPanel.RESET_ZOOM ) {
-        //System.out.println("Sending SELECTED_CHANGED" );
+
+      if( message.equals("Reset Zoom")  ) {
         x_range.setMin(Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMin()); 
         x_range.setMax(Varray1D.getAxisInfo(AxisInfo2D.XAXIS ).getMax()); 
         y_range.setMin(Varray1D.getAxisInfo(AxisInfo2D.YAXIS ).getMin()); 
         y_range.setMax(Varray1D.getAxisInfo(AxisInfo2D.YAXIS ).getMax()); 
+      }
+      if(message.equals("Zoom In")) {
+           x_range.setMin(gjp.getLocalWorldCoords().getX1()); 
+           x_range.setMax(gjp.getLocalWorldCoords().getX2()); 
+           y_range.setMin(gjp.getLocalWorldCoords().getY2()); 
+           y_range.setMax(gjp.getLocalWorldCoords().getY1());
       }
     }
  }
@@ -397,7 +437,12 @@ import javax.swing.event.*;
          listens for the color buttons and displays a color chooser
          and sets the object to the appropriate color.
      */  
-      if( message.equals( "BUTTON_PRESSED" ) ) {
+      if ( message.equals("SLIDER_CHANGED") ) {
+        log_scale = log_slider.getValue();
+        gjp.setLogScale((float)log_scale, true);
+        paintComponents( big_picture.getGraphics(  ) );
+      }
+      else if( message.equals( "BUTTON_PRESSED" ) ) {
         if( ae.getSource(  ) == LineColor ) {
           Color c = choosecolors.showDialog( null, "color chart", Color.black );
 
@@ -657,7 +702,7 @@ import javax.swing.event.*;
 
         /* 
           Listens for a line shift change and sets the appropriate
-          line shift.
+          line /shift.
         */  
         } else if( ae.getSource( ) == ShiftBox) {
             if ( ShiftBox.getSelectedItem( ).equals( "Diagonal" ))
@@ -679,8 +724,54 @@ import javax.swing.event.*;
               gjp.setMultiplotOffsets(0,0);
               gjp.repaint();
             }
-          } 
-         
+        } else if( ae.getSource( ) == LogBox) {
+            AxisOverlay2D note = (AxisOverlay2D)big_picture.getComponent(
+                                 big_picture.getComponentCount() - 2);
+
+            if ( LogBox.getSelectedItem( ).equals( "None" ))
+            {
+              note.setXAxisLinearOrLog( true );
+              note.setYAxisLinearOrLog( true );
+              note.setTwoSided(false);
+              gjp.setLogScaleX(false);
+              gjp.setLogScaleY(false);
+              ((DataSetData)Varray1D).set_x_linear(true);
+              ((DataSetData)Varray1D).set_y_linear(true);
+              paintComponents( big_picture.getGraphics(  ) );
+            }
+            else if( LogBox.getSelectedItem().equals( "X" ))
+            {
+              note.setXAxisLinearOrLog( false );
+              note.setYAxisLinearOrLog( true );
+              note.setTwoSided(false);
+              gjp.setLogScaleX(true);
+              gjp.setLogScaleY(false);
+              ((DataSetData)Varray1D).set_x_linear(false);
+              paintComponents( big_picture.getGraphics(  ) );
+            }  
+            else if( LogBox.getSelectedItem().equals( "Y" ))
+            {
+              note.setYAxisLinearOrLog( false );
+              note.setXAxisLinearOrLog( true );
+              note.setTwoSided(false);
+              gjp.setLogScaleY(true);
+              gjp.setLogScaleX(false);
+              ((DataSetData)Varray1D).set_y_linear(false);
+              paintComponents( big_picture.getGraphics(  ) );
+            }  
+            else if( LogBox.getSelectedItem().equals( "X and Y" ))
+            {
+              note.setXAxisLinearOrLog( false );
+              note.setYAxisLinearOrLog( false );
+              note.setTwoSided(false);
+              gjp.setLogScaleX(true);
+              gjp.setLogScaleY(true);
+              ((DataSetData)Varray1D).set_x_linear(false);
+              ((DataSetData)Varray1D).set_y_linear(false);
+              paintComponents( big_picture.getGraphics(  ) );
+
+            }
+          }  
       } 
         /* 
           Listens for an overlay change and sets the appropriate overlay.
@@ -688,11 +779,10 @@ import javax.swing.event.*;
       else if( message.equals( "CHECKBOX_CHANGED" ) ) {
         ControlCheckbox control = ( ControlCheckbox )ae.getSource(  );
         int bpsize              = big_picture.getComponentCount(  );
-
         if( control.getText(  ).equals( "Annotation Overlay" ) ) {
 
-          AnnotationOverlay note = ( AnnotationOverlay )big_picture.getComponent( 
-              big_picture.getComponentCount(  ) - 3 );
+          AnnotationOverlay note = ( AnnotationOverlay )big_picture.getComponent
+                  ( big_picture.getComponentCount(  ) - 3 );
 
           if( !control.isSelected(  ) ) {
             note.setVisible( false );
@@ -765,17 +855,18 @@ import javax.swing.event.*;
                                                       main_panel);                   
     fcontrols.display_controls();
    // f.setBounds( 0, 0, 580, 330 );
-                                                                                   
+
    // Container c = f.getContentPane(  );
-                                                                                   
+
    // c.add( ((JComponent)fcontrols.get_panel(  ).getPanel()) );
-                                                                                  
+
    // f.show(  );  //display the frame
   }  
    private void paintComponents( Graphics g ) {
     //big_picture.revalidate();
     for( int i = big_picture.getComponentCount(  ); i > 0; i-- ) {
       if( big_picture.getComponent( i - 1 ).isVisible(  ) ) {
+        if (g != null)
         big_picture.getComponent( i - 1 ).update( g );
       }
     }
