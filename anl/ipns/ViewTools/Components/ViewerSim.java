@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/12 03:36:47  millermi
+ *  - Changed package, fixed imports.
+ *
  *  Revision 1.8  2004/03/10 23:37:28  millermi
  *  - Changed IViewComponent interface, no longer
  *    distinguish between private and shared controls/
@@ -69,7 +72,7 @@
  *
  */
 
- package DataSetTools.components.View;
+ package gov.anl.ipns.ViewTools.Components;
  
  import javax.swing.*;
  import java.awt.Point;
@@ -77,11 +80,11 @@
  import java.awt.Container;
  import java.awt.Rectangle;
  
- import DataSetTools.components.View.ViewControls.*;
- import DataSetTools.components.View.TwoD.*;
- import DataSetTools.components.View.Menu.*;
- import DataSetTools.components.View.Region.Region;
- import DataSetTools.components.View.Transparency.SelectionOverlay;
+ import gov.anl.ipns.ViewTools.Components.ViewControls.*;
+ import gov.anl.ipns.ViewTools.Components.TwoD.*;
+ import gov.anl.ipns.ViewTools.Components.Menu.*;
+ import gov.anl.ipns.ViewTools.Components.Region.Region;
+ import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
 
 /**
  * This class is a mock viewer to test basic functionality of any 
@@ -122,8 +125,8 @@ public class ViewerSim
       window.setJMenuBar(menu_bar);       
  
       JMenu fileMenu    = new JMenu("File");
-      DataSetTools.viewer.SaveImageActionListener.setUpMenuItem(fileMenu,DispPanel);
-      DataSetTools.viewer.PrintComponentActionListener.setUpMenuItem(fileMenu,DispPanel);
+      //DataSetTools.viewer.SaveImageActionListener.setUpMenuItem(fileMenu,DispPanel);
+      //DataSetTools.viewer.PrintComponentActionListener.setUpMenuItem(fileMenu,DispPanel);
      
       if( menus.length > 0 )
       {
