@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2003/10/14 16:22:12  dennis
+ *  Fixed bug in trim( StringBuffer ) method.  Now checks that string is
+ *  still non-empty while removing characters.
+ *
  *  Revision 1.20  2003/07/07 14:10:17  bouzekc
  *  Smarter parsing in getNumOccurrences().
  *
@@ -503,11 +507,11 @@ public class StringUtil
       if(sb.length()<=0) return;
 
       // trim leading whitespace
-      while(Character.isWhitespace(sb.charAt(0))){
+      while( sb.length()>0 && Character.isWhitespace(sb.charAt(0))){
           sb.deleteCharAt(0);
       }
       // trim trailing whitespace
-      while(Character.isWhitespace(sb.charAt(sb.length()-1))){
+      while(sb.length()>0 && Character.isWhitespace(sb.charAt(sb.length()-1))){
           sb.deleteCharAt(sb.length()-1);
       }
   }  
@@ -890,6 +894,15 @@ public class StringUtil
     vector.add(new int[]{1,2,3});
     System.out.println(toString(vector));
     System.out.println(toString(new int[]{5,76,22,0,1,2,3}));
+
+
+    StringBuffer sb = new StringBuffer("  NON-EMPTY STRING   ");
+    StringUtil.trim( sb );
+    System.out.println( "Non-empty, trimmed = :" + sb.toString() + ":" ); 
+
+    sb = new StringBuffer("    ");
+    StringUtil.trim( sb );
+    System.out.println( "Empty, trimmed = :" + sb.toString() + ":" ); 
   }
 
 }
