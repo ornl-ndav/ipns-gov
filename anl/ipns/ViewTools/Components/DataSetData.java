@@ -49,10 +49,14 @@ public class DataSetData implements IVirtualArray1D
           return minx;
        
         float [] xvals;
-
+        minx = 0;
+        maxx = 1;
         xvals = getXValues(0);
-	minx =  xvals[0];
-        maxx =  xvals[0];
+        if (xvals != null)
+        {
+ 	 minx =  xvals[0];
+         maxx =  xvals[0];
+        } 
 	for (int line=0; line < getNumlines(); line++)
         {xvals = getXValues(line);
            for (int i=1; i < getNumPoints(line); i++)
@@ -77,11 +81,15 @@ public class DataSetData implements IVirtualArray1D
           return miny;
 
 	float [] yvals;
+        miny = 0;
+        maxy = 1;
 
 	yvals = getYValues(0);
-        miny =  yvals[0];
-        maxy =  yvals[0];
-
+        if( yvals != null)
+        {
+          miny =  yvals[0];
+          maxy =  yvals[0];
+        }
 	for (int line=0; line < getNumlines(); line++)
 	{ yvals = getYValues(line);
            for (int i=1; i < yvals.length; i++)
