@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2003/08/29 23:12:09  millermi
+ *  - dataChanged() now sets the title and AxisInfo if the array
+ *    is of the same size.
+ *
  *  Revision 1.25  2003/08/26 03:41:48  millermi
  *  - Added functionality to private class SelectedRegionListener to
  *    handle double wedge selections.
@@ -522,6 +526,11 @@ public class ImageViewComponent implements IViewComponent2D,
           pin_Varray.getNumColumns() == Varray2D.getNumColumns() )
       {
 	Varray2D.setRegionValues(f_array,0,0);
+	Varray2D.setAxisInfoVA( AxisInfo2D.XAXIS,
+	                        pin_Varray.getAxisInfoVA( AxisInfo2D.XAXIS ) );
+	Varray2D.setAxisInfoVA( AxisInfo2D.YAXIS,
+	                        pin_Varray.getAxisInfoVA( AxisInfo2D.YAXIS ) );
+	Varray2D.setTitle( pin_Varray.getTitle() );
       }
       else
       {
