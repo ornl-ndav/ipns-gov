@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.11  2003/04/09 16:47:51  pfpeterson
+ *  Created a debug flag and moved a print statement to depend on it.
+ *
  *  Revision 1.10  2003/03/19 21:33:45  dennis
  *  Added method BestFitMatrix( M, q, r ) that calculates the best
  *  least squares approximation for a matrix M mapping a list of vectors
@@ -76,6 +79,7 @@ import DataSetTools.util.*;
  */
 public final class LinearAlgebra 
 {
+  public static final boolean DEBUG=false;
   /*
    * Don't let anyone instantiate this class.
    */
@@ -599,7 +603,7 @@ public final class LinearAlgebra
                                           // factored the original q matrix to
                                           // Q*q, with the altered "q" matrix
                                           // being the factor R. 
-    System.out.println("Done with QR_fact");                 
+    if(DEBUG) System.out.println("Done with QR_fact");                 
                                           // Now solve for the best fit entries
                                           // in each row of matrix M
     for ( int row = 0; row < n; row++ )  
