@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2001/08/08 13:59:10  dennis
+ *  Added status/error info to label giving host name.
+ *  First stage integration of new error messages.
+ *
  *  Revision 1.14  2001/06/08 22:40:36  dennis
  *  Made this implement IObservable, and added "record" button to
  *  send a DataSet to any observers.
@@ -129,13 +133,14 @@ public class LiveDataMonitor extends    JPanel
   public static final Color  FOREGROUND = Color.black;
   private String           data_source_name = "";
   private LiveDataManager  data_manager = null;
-  private ViewManager      viewers[]  = new ViewManager[0];
-  private JCheckBox        show_box[] = new JCheckBox[0];
-  private JCheckBox        auto_box[] = new JCheckBox[0];
-  private JButton          button[]   = new JButton[0];
-  private JButton          record[]   = new JButton[0];
-  private JLabel           ds_label[] = new JLabel[0];
-  private JPanel           panel[]    = new JPanel[0];
+  private JLabel           status_label = new JLabel();
+  private ViewManager      viewers[]    = new ViewManager[0];
+  private JCheckBox        show_box[]   = new JCheckBox[0];
+  private JCheckBox        auto_box[]   = new JCheckBox[0];
+  private JButton          button[]     = new JButton[0];
+  private JButton          record[]     = new JButton[0];
+  private JLabel           ds_label[]   = new JLabel[0];
+  private JPanel           panel[]      = new JPanel[0];
   private IObserverList    observers;
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
@@ -156,10 +161,11 @@ public class LiveDataMonitor extends    JPanel
     data_manager.addActionListener( new DataManagerListener() );
     int num_ds   = data_manager.numDataSets();
 
-    if ( num_ds == 0 )
-    { setLayout( new GridLayout( 1, 1 ) );
-      JLabel error_label = new JLabel( data_source_name + "  HAS NO DATA SETS");
-      add( error_label );
+    if ( num_ds <= 0 )
+    { 
+      setLayout( new GridLayout( 1, 1 ) );
+      status_label.setText( data_source_name + "  HAS NO DATA SETS");
+      add( status_label );
     }
 
     observers = new IObserverList();
@@ -236,7 +242,7 @@ public class LiveDataMonitor extends    JPanel
     if ( data_manager != null )
       return data_manager.numDataSets();
     else
-      return 0;
+      return LiveDataManager.NO_DATA_MANAGER; 
   }
 
 /**
@@ -381,6 +387,33 @@ public class LiveDataMonitor extends    JPanel
   }
  
 
+  /* ------------------------------ ErrorMessage --------------------------- */
+
+  private String ErrorMessage()
+  {
+    if ( data_manager == null )
+      return " --> " + LiveDataManager.NO_DATA_MANAGER;
+
+    int code = data_manager.numDataSets();
+
+    if ( code >= 0 )
+      return " --> has " + code + " DataSets";       
+ 
+    if ( code == data_manager.NO_CONNECTION )
+      return " --> Not Connected";
+    
+    if ( code == RemoteDataRetriever.BAD_USER_OR_PASSWORD )
+      return " --> Bad username or password";
+    
+    if ( code == RemoteDataRetriever.SERVER_DOWN )
+      return " --> Server Down";
+    
+    if ( code == RemoteDataRetriever.WRONG_SERVER_TYPE )
+      return " --> Wrong Server Type";
+
+    return " --> ERROR: " + code;
+  }
+
   /* ------------------------------ SetUpGUI ------------------------------- */
 
   synchronized private void SetUpGUI()
@@ -411,22 +444,22 @@ public class LiveDataMonitor extends    JPanel
 
     JPanel label_panel  = new JPanel();
     label_panel.setLayout( new GridLayout( 1, 1 ) );
-    JLabel source_label = new JLabel( data_source_name.toUpperCase() );
-    source_label.setFont( FontUtil.BORDER_FONT );
-    source_label.setMinimumSize( new Dimension(50, 10) );
-    source_label.setPreferredSize( new Dimension(50, 10) );
-    source_label.setHorizontalAlignment( SwingConstants.CENTER );
-    source_label.setHorizontalTextPosition( SwingConstants.CENTER );
-    source_label.setVerticalAlignment( SwingConstants.CENTER );
-    source_label.setVerticalTextPosition( SwingConstants.CENTER );
-    source_label.setBackground( BACKGROUND );
-    source_label.setForeground( FOREGROUND );
+    status_label.setText( data_source_name.toUpperCase() + ErrorMessage() );
+    status_label.setFont( FontUtil.BORDER_FONT );
+    status_label.setMinimumSize( new Dimension(50, 10) );
+    status_label.setPreferredSize( new Dimension(50, 10) );
+    status_label.setHorizontalAlignment( SwingConstants.CENTER );
+    status_label.setHorizontalTextPosition( SwingConstants.CENTER );
+    status_label.setVerticalAlignment( SwingConstants.CENTER );
+    status_label.setVerticalTextPosition( SwingConstants.CENTER );
+    status_label.setBackground( BACKGROUND );
+    status_label.setForeground( FOREGROUND );
     TitledBorder border = new TitledBorder( LineBorder.createBlackLineBorder(),
                                             "Data Source:" );
     border.setTitleFont( FontUtil.BORDER_FONT );
     border.setTitleColor( FOREGROUND );
     label_panel.setBorder( border );
-    label_panel.add( source_label );
+    label_panel.add( status_label );
     label_panel.setBackground( BACKGROUND );
     panel_box.add( label_panel );
 
@@ -441,7 +474,7 @@ public class LiveDataMonitor extends    JPanel
         data_manager.setUpdateIgnoreFlag( i, true );
 
       if ( viewers[i] != null )
-          viewers[i].setDataSet( data_manager.getDataSet(i) );
+        viewers[i].setDataSet( data_manager.getDataSet(i) );
     }
 
     border = new TitledBorder( LineBorder.createBlackLineBorder(),
@@ -475,11 +508,16 @@ public class LiveDataMonitor extends    JPanel
     for ( int i = 0; i < num_labels; i++ )
     {
       DataSet ds = data_manager.getDataSet( i );
-      String cur_title = ds.getTitle();
-      if ( !cur_title.equalsIgnoreCase( ds_label[i].getText() ) )
+      if ( ds != null )
       {
-        ds_label[i].setText( cur_title );
+        String cur_title = ds.getTitle();
+        if ( !cur_title.equalsIgnoreCase( ds_label[i].getText() ) )
+        {
+          ds_label[i].setText( cur_title );
+        } 
       }
+      else 
+        ds_label[i].setText( "NO DATA SET" );
     } 
   }
 
@@ -524,7 +562,8 @@ public class LiveDataMonitor extends    JPanel
           !viewers[ my_index ].isVisible() )    // make another viewer
       {
         DataSet ds = data_manager.getDataSet( my_index );
-        viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+        if ( ds != null )
+          viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
       }
 
       data_manager.UpdateDataSetNow( my_index ); 
@@ -583,7 +622,8 @@ public class LiveDataMonitor extends    JPanel
             !viewers[ my_index ].isVisible() )    // make another viewer
         { 
           DataSet ds = data_manager.getDataSet( my_index );
-          viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+          if ( ds != null )
+            viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
         }
         data_manager.UpdateDataSetNow( my_index );
       }
@@ -622,7 +662,8 @@ public class LiveDataMonitor extends    JPanel
             !viewers[ my_index ].isVisible() )    // make another viewer
         {
           DataSet ds = data_manager.getDataSet( my_index );
-          viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
+          if ( ds != null )
+            viewers[my_index] = new ViewManager( ds, IViewManager.IMAGE );
         }
         show_box[ my_index ].setSelected( true );   // Auto update implies 
                                                     // we also show it.
