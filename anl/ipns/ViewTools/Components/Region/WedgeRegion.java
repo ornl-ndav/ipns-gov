@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2003/12/16 01:42:24  millermi
+ *  - made pointchecker protected variable so it could be
+ *    used by the DoubleWedgeCursor.
+ *
  *  Revision 1.5  2003/12/13 01:16:03  millermi
  *  - Lines bounding wedge now use the LineRegion class
  *    to find all points on the boundary consistently.
@@ -92,6 +96,7 @@ import DataSetTools.components.View.Cursor.SelectionJPanel;
  */ 
 public class WedgeRegion extends Region
 {
+  protected boolean[][] pointchecker = new boolean[0][0];
   /**
    * Constructor - uses Region's constructor to set the defining points.
    * The defining points are assumed to be in image values, where
@@ -160,8 +165,11 @@ public class WedgeRegion extends Region
      // will not be added.
      // Since some rounding has occurred, add 2 to each dimension of the array,
      // one as a lower cushion and one for an upper cushion.
-     boolean[][] pointchecker = 
-                 new boolean[(int)(xextent*2)+2][(int)(yextent*2)+2];
+     // Since this value is now a protected variable, if it is set correctly
+     // by an outside source, use the array given.
+     if( !( pointchecker.length == (xextent*2+2) && 
+         pointchecker[0].length == yextent*2+2 ) )
+       pointchecker = new boolean[(int)(xextent*2)+2][(int)(yextent*2)+2];
      int startangle = definingpoints[5].x;
      int totalangle = definingpoints[5].y + startangle;
      int stopangle = totalangle;
