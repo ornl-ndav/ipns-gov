@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2003/11/21 00:31:31  millermi
+ * - Minor improvements, working to get PanViewControl updated
+ *   when divider is resized.
+ *
  * Revision 1.4  2003/11/18 00:59:20  millermi
  * - Now implements Serializable, requiring many private variables
  *   to be made transient.
@@ -81,6 +85,8 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+ import java.awt.event.ComponentAdapter;
+ import java.awt.event.ComponentEvent;
 import java.io.Serializable;
 
 import DataSetTools.components.View.TwoD.ImageViewComponent;
@@ -90,6 +96,7 @@ import DataSetTools.components.image.*;
 import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.Transparency.SelectionOverlay;
 import DataSetTools.components.View.Region.Region;
+import DataSetTools.components.View.ViewControls.PanViewControl;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -115,7 +122,6 @@ public class IVCTester extends JFrame implements IPreserveState,
   public IVCTester( IVirtualArray2D iva )
   {
     data = new VirtualArray2D(1,1);
-    
     menu_bar = new JMenuBar();
     setJMenuBar(menu_bar);
     state = new ObjectState();
@@ -245,19 +251,21 @@ public class IVCTester extends JFrame implements IPreserveState,
     ivc.addActionListener( new ImageListener() );
     Box controls = new Box(BoxLayout.Y_AXIS);
     JComponent[] ctrl = ivc.getSharedControls();
+    Dimension preferred_size;
     for( int i = 0; i < ctrl.length; i++ )
+    {
       controls.add(ctrl[i]);
-    
+    }
     JPanel spacer = new JPanel();
     // the value 60 is an arbitrary value for the average component height
-    spacer.setPreferredSize(new Dimension(0,(this.getHeight() - 
-                                             (ctrl.length*60) ) ) );
+    //spacer.setPreferredSize(new Dimension(0,(this.getHeight() - 
+    //                                         (ctrl.length*60) ) ) );
+    spacer.setPreferredSize( new Dimension(0, 10000) );
     controls.add(spacer);
-    
+    controls.addComponentListener( new ResizedPaneListener() );
     pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
                                   ivc.getDisplayPanel(),
 			          controls, .75f );
-    
     // get menu items from view component and place it in a menu
     ViewMenuItem[] menus = ivc.getSharedMenuItems();
     for( int i = 0; i < menus.length; i++ )
@@ -340,7 +348,16 @@ public class IVCTester extends JFrame implements IPreserveState,
       }
     }
   }
-
+ /*  Problem is that when this resizes, the PanViewControl's new preferredSize
+  *  is not set until after the repaint;
+  private class ResizedPaneListener extends ComponentAdapter
+  {
+    public void componentResized( ComponentEvent e )
+    {
+      repaint();
+    }  
+  }*/
+  
  /*
   * Testing purposes only
   */
