@@ -6,6 +6,9 @@
  * 
  * ---------------------------------------------------------------------------
  *  $Log$
+ *  Revision 1.3  2000/07/13 14:27:27  dennis
+ *  Removed extra ;
+ *
  *  Revision 1.2  2000/07/10 22:25:13  dennis
  *  July 10, 2000 version... many changes
  *
@@ -96,7 +99,7 @@ public final class NumericalAnalysis
     if ( i < x_vals.length )                      // partial bin, if needed
     {
       sum += y_vals[i-1] * ( b - x_vals[i-1] ) /
-                    (x_vals[i] - x_vals[i-1]);;
+                    (x_vals[i] - x_vals[i-1]);
     }
 
     return (float)sum;
