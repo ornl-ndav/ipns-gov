@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.23  2004/01/30 22:29:23  millermi
+ * - Added new messaging String paths when listened for by action
+ *   listeners.
+ *
  * Revision 1.22  2004/01/09 21:12:46  serumb
  * Fixed problem with x and y range when in
  * log axes.
@@ -679,7 +683,7 @@ import javax.swing.border.*;
          listens for the color buttons and displays a color chooser
          and sets the object to the appropriate color.
      */  
-      if ( message.equals("SLIDER_CHANGED") ) {
+      if ( message.equals(ControlSlider.SLIDER_CHANGED) ) {
         if (LogBox.getSelectedIndex() != 0 )
         {
           log_scale = log_slider.getValue();
@@ -1035,7 +1039,7 @@ import javax.swing.border.*;
         /* 
           Listens for an overlay change and sets the appropriate overlay.
         */  
-      else if( message.equals( "CHECKBOX_CHANGED" ) ) {
+      else if( message.equals( ControlCheckboxButton.CHECKBOX_CHANGED ) ) {
         ControlCheckboxButton control = 
                               ( ControlCheckboxButton )ae.getSource(  );
         int bpsize              = big_picture.getComponentCount(  );

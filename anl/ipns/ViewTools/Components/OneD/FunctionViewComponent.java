@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.38  2004/01/30 22:29:23  millermi
+ *  - Added new messaging String paths when listened for by action
+ *    listeners.
+ *
  *  Revision 1.37  2004/01/30 19:10:49  serumb
  *  Fixed index out of bounds exception.
  *
@@ -997,7 +1001,7 @@ public class FunctionViewComponent implements IViewComponent1D,
 
      // System.out.println( "action command: " + message );
      // System.out.println( "action event: " + ae );
-      if( message.equals( "CHECKBOX_CHANGED" ) ) {
+      if( message.equals( ControlCheckbox.CHECKBOX_CHANGED ) ) {
         ControlCheckbox control = ( ControlCheckbox )ae.getSource(  );
         
         if( control.getText(  ).equals( "Function Controls" ) ) {
