@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2003/06/13 14:42:26  dennis
+ *  - Added isListening to mouseEntered() method. (Mike Miller)
+ *
  *  Revision 1.18  2003/06/10 00:02:02  dennis
  *  Merged changes from version 1.16 with Mike Miller's changes
  *  that were made on top of version 1.15.
@@ -847,10 +850,13 @@ class CoordMouseAdapter extends MouseAdapter
 
   public void mouseEntered (MouseEvent e)
   {
-    requestFocus();                // so we can also move cursor with arrow
-                                   // keys
-    Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
-    //###### setCursor( cursor );
+    if ( isListening )
+    {
+      requestFocus();                // so we can also move cursor with arrow
+                                     // keys
+      Cursor cursor = new Cursor( Cursor.CROSSHAIR_CURSOR );
+      //###### setCursor( cursor );
+    }
   }
 };
 
