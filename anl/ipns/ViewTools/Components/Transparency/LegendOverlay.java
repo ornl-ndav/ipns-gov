@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/06/23 16:10:36  serumb
+ *  Changed if statment to check the length of the graphs array
+ *  is > 0 instead of null.
+ *
  *  Revision 1.2  2004/06/17 22:36:27  serumb
  *  Added controls to move the legend by holding the control key
  *  and pressing a directional key while the legend editor is open.
@@ -421,8 +425,9 @@ public class LegendOverlay extends OverlayJPanel
       this.setBounds(editor_bounds);
       this.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
       
-      if (!(graphs == null))
-         labelField.setText(graphs[0]);
+      //if (!(graphs == null))
+      if(graphs.length > 0) 
+        labelField.setText(graphs[0]);
 
       selectedLineBox = new LabelCombobox("Graph", graphs);
       selectedLineBox.addActionListener( new ControlListener() );
