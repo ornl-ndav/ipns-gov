@@ -3,6 +3,9 @@
  *
  * ---------------------------------------------------------------------------
  *  $Log$
+ *  Revision 1.2  2000/07/31 16:20:32  dennis
+ *  addIObserver() now only adds the observer if it's not already there.
+ *
  *  Revision 1.1  2000/07/10 22:53:06  dennis
  *  Interfaces for observer/observable communications mechanism
  *
@@ -43,14 +46,16 @@ public class IObserverList implements Serializable
 
   /**
    *  Add the specified object to the list of observers to notify when an 
-   *  observable object changes.
+   *  observable object changes, provided the object is NOT already in the
+   *  list of observers.
    *  
    *  @param  iobs   The observer object that is to be notified.
    *
    */
    public void addIObserver( IObserver iobs )
    {
-     observers.addElement( iobs );
+     if ( observers.indexOf( iobs ) < 0 )    // only add the observer if it's 
+       observers.addElement( iobs );         // NOT already there.
    }
 
   /**
