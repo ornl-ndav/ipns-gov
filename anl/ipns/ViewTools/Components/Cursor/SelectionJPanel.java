@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/12/18 22:37:14  millermi
+ *  - Removed code which restricts selections on the border of the image.
+ *
  *  Revision 1.11  2003/12/11 17:12:42  millermi
  *  - Now restricts selection if any of the defining points
  *    are outside of the viewport.
@@ -450,7 +453,7 @@ public class SelectionJPanel extends ActiveJPanel
   /*
    * This method is used to restrict the point to the bounds of the 
    * selectionjpanel.
-   */ 
+   * 
    private boolean containsPoint( Point p )
    {
      Dimension panelsize = getSize();
@@ -464,7 +467,7 @@ public class SelectionJPanel extends ActiveJPanel
        return false;
      
      return true;
-   }
+   }*/
 
   /*
    * Tells the SelectMouseAdapter is any keys are pressed.
@@ -626,34 +629,34 @@ public class SelectionJPanel extends ActiveJPanel
      {
        //System.out.println("here in mousereleased");
        Point current = e.getPoint();
-       boolean validpoint = containsPoint( current );
+       //boolean validpoint = containsPoint( current );
        String message = REGION_SELECTED;
        if( doing_box )
        {
          stop_cursor( box, current );
          isBdown = false;
-         if( validpoint )
+         //if( validpoint )
 	   message += ">" + BOX;
        }
        else if( doing_circle )
        {
          stop_cursor( circle, current );
          isCdown = false;
-         if( validpoint )
+         //if( validpoint )
 	   message += ">" + CIRCLE;
        }
        else if( doing_line )
        {
          stop_cursor( line, current );
          isLdown = false;
-         if( validpoint )
+         //if( validpoint )
 	   message += ">" + LINE;
        }
        else if( doing_point )
        {
          stop_cursor( point, current ); 
          isPdown = false;
-         if( validpoint )
+         //if( validpoint )
 	   message += ">" + POINT; 
        }  
        else if( doing_wedge )
@@ -666,7 +669,7 @@ public class SelectionJPanel extends ActiveJPanel
 	 else
 	 {
 	   isWdown = false;
-           if( validpoint )
+           //if( validpoint )
 	     message += ">" + WEDGE;
 	 }
 	 firstRun = !firstRun; 
@@ -681,7 +684,7 @@ public class SelectionJPanel extends ActiveJPanel
 	 else
 	 {
 	   isDdown = false;
-           if( validpoint )
+           //if( validpoint )
 	     message += ">" + DOUBLE_WEDGE;
 	 }
 	 firstRun = !firstRun; 
