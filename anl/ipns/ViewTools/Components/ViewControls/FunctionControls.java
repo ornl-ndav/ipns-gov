@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2003/11/06 01:23:40  serumb
+ * Set the point marker size box to the corect value.
+ *
  * Revision 1.15  2003/11/05 17:49:51  serumb
  * Changed the cursor output strings to X and Y.
  *
@@ -302,6 +305,7 @@ import javax.swing.border.*;
     mark_size[3]   = "4";
     mark_size[4]   = "5";
     labelbox5      = new LabelCombobox( label5, mark_size );
+    labelbox5.setSelected( 1 );
                                                                                    
     bar_types      = new String[3];
     bar_types[1]   = "At Points";
