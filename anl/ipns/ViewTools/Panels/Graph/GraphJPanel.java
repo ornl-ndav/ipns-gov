@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.30  2003/08/29 18:55:31  serumb
+ * Added methods for getting the line, error bar, and point marker colors.
+ *
  * Revision 1.29  2003/08/07 15:18:32  serumb
  * Changed paint method so transparent lines are not drawn.
  *
@@ -379,6 +382,61 @@ public class GraphJPanel extends    CoordJPanel
     return true;
   }
 
+/* ----------------------------- getMarkColor --------------------------------*/
+/**
+ *  Set the mark color for the specified graph.  
+ *
+ *  @param  graph_num  the index of the graph whose color is gotten.
+ *                     The index must be at least zero and less than the
+ *                     number of graphs currently held in this GraphJPanel.  
+ *                     If the graph_num is not valid, this method has no 
+ *                     effect and returns black.
+ **/
+  public Color getMarkColor( int graph_num )
+  {
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
+      return Color.black;
+
+    GraphData gd = (GraphData)graphs.elementAt( graph_num );
+    return gd.markcolor;
+  }
+
+/* ----------------------------- getColor --------------------------------*/
+/**
+ *  Set the mark color for the specified graph.  
+ *
+ *  @param  graph_num  the index of the graph whose color is gotten.
+ *                     The index must be at least zero and less than the
+ *                     number of graphs currently held in this GraphJPanel.  
+ *                     If the graph_num is not valid, this method has no 
+ *                     effect and returns black.
+ **/
+  public Color getColor( int graph_num )
+  {
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
+      return Color.black;
+
+    GraphData gd = (GraphData)graphs.elementAt( graph_num );
+    return gd.color;
+  }
+/* ----------------------------- getErrorColor --------------------------------*/
+/**
+ *  Set the mark color for the specified graph.  
+ *
+ *  @param  graph_num  the index of the graph whose color is gotten.
+ *                     The index must be at least zero and less than the
+ *                     number of graphs currently held in this GraphJPanel.  
+ *                     If the graph_num is not valid, this method has no 
+ *                     effect and returns black.
+ **/
+  public Color getErrorColor( int graph_num )
+  {
+    if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
+      return Color.black;
+
+    GraphData gd = (GraphData)graphs.elementAt( graph_num );
+    return gd.errorcolor;
+  }
 
 /*------------------------------ setStroke --------------------------------*/
 /**
