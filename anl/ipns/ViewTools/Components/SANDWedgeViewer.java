@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.27  2004/03/10 17:39:42  millermi
+ * - Cursor readout control from ImageViewComponent is
+ *   filtered out of the controls.
+ *
  * Revision 1.26  2004/03/10 16:30:23  millermi
  * - Added filename to header of Results Files.
  * - Focus now returned to the ImageViewComponent after
@@ -227,6 +231,7 @@ import DataSetTools.components.View.Cursor.SelectionJPanel;
 import DataSetTools.components.View.ViewControls.CursorOutputControl;
 import DataSetTools.components.View.ViewControls.FieldEntryControl;
 import DataSetTools.components.View.ViewControls.PanViewControl;
+import DataSetTools.components.View.ViewControls.ViewControl;
 import DataSetTools.util.TextFileReader;
 import DataSetTools.util.RobustFileFilter;
 import DataSetTools.util.floatPoint2D;
@@ -851,10 +856,13 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         			      "Image Controls");
     ivc_border.setTitleFont( FontUtil.BORDER_FONT ); 
     ivc_controls.setBorder( ivc_border );
-    JComponent[] ivc_ctrl = ivc.getSharedControls();
+    ViewControl[] ivc_ctrl = (ViewControl[])ivc.getSharedControls();
     for( int i = 0; i < ivc_ctrl.length; i++ )
     {
-      ivc_controls.add(ivc_ctrl[i]);
+      // don't add cursor read out.
+      if( !ivc_ctrl[i].getTitle().equals(
+               ImageViewComponent.CURSOR_READOUT_NAME) )
+        ivc_controls.add(ivc_ctrl[i]);
     }
     // if resized, adjust container size for the pan view control.
     ivc_controls.addComponentListener( new ResizedControlListener() );
