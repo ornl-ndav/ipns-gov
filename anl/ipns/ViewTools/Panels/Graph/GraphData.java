@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.20  2005/03/11 19:49:41  serumb
+ * Added get and set Object State methods and changed Basic Stroke variable
+ * to use an integer key.
+ *
  * Revision 1.19  2004/08/17 03:53:01  ffr
  * Bugfix: Make sure we copy the last error bar in setErrorVals
  *
@@ -83,26 +87,196 @@ package gov.anl.ipns.ViewTools.Panels.Graph;
 
 import java.io.*;
 import java.awt.*;
+import gov.anl.ipns.ViewTools.Components.*;
 
-public class GraphData implements Serializable 
+public class GraphData implements Serializable,
+                                  IPreserveState 
 {
-  float  x_vals[]  = { 0, 1 };
-  float  y_vals[]  = { 0, .001f };
+
+ /**
+  * "Line Color" - This constant String is a key for referencing the State
+  * information about the graph color for the graphs when they are displayed
+  * in the GraphJPanel.
+  */
+ public static final String LINE_COLOR = "Line Color";
+
+ /**
+  * "Line Width" - This constant String is a key for referencing the State
+  * information about line width for the graphs that are displayed in the 
+  * GraphJPanel.
+  */
+ public static final String LINE_WIDTH = "Line Width";
+
+ /**
+   * "Line Type" - This Constant String is a key for referencing the State
+   * information about the line type for the graphs displayed 
+   * in the GraphJPanel.
+   */
+ public static final String LINE_TYPE = "Line Type";
+
+ /**
+  * "Mark Type" - This Constant String is a key for referencing the State
+  * information about the point markers for the graphs displayed in the 
+  * GraphJPanel.
+  */
+ public static final String MARK_TYPE = "Mark Type";
+ 
+ /**
+  * "Mark Color" - This Constant String is a key for referencing the State
+  * information about the color of the markers displayed
+  * in the GraphJPanel.
+  */
+ public static final String MARK_COLOR = "Mark Color";
+
+ /** 
+  * "Mark Size" - This Constant String is a key for referencing the State
+  * information about the size of the markers displayed in the 
+  * GraphJPanel.
+  */
+ public static final String MARK_SIZE = "Mark Size";
+
+ /**
+  * "Stroke" - This Constant String is a key for referencing the State
+  * information about the stroke used to display the graphs in the 
+  * GraphJPanel.
+  */
+// public static final String STROKE = "Stroke";
+
+ /**
+  * "Transparent" - This Constant String is a key for referencing the State
+  * information to determine if the line should be drawn in the GraphJPanel.
+  */
+ public static final String TRANSPARENT = "Transparent";
+
+ /**
+  * "Error Color" - This Constant String is a key for referencing the State
+  * information about the color of the error bars displayed in the 
+  * GraphJPanel.
+  */
+ public static final String ERROR_COLOR = "Error Color";
+
+ /**
+  * "Error Location" - This Constant String is a key for referencing the State
+  * information about where the error bars are to be displayed in the 
+  * GraphJPanel.
+  */
+ public static final String ERROR_LOCATION = "Error Location";
+ 
+ 
+  transient float   x_vals[]  = { 0, 1 };
+  transient float   y_vals[]  = { 0, .001f };
 
   public Color  color     = Color.black;
-  public int    linetype  = 1;
+  public int    linetype  = 8;
   public float  linewidth = 1;
   public int    marktype  = 0;
   public Color  markcolor = Color.red;
   public int    marksize  = 2;
-  public BasicStroke Stroke = new BasicStroke(1);
+//  public BasicStroke Stroke = new BasicStroke(1);
   public boolean transparent = false;
   public Color  errorcolor = Color.blue;
 
-  private float[] error_bars = null;
-  private int errors = 0;
+  private transient float[] error_bars = null;
+  private transient int errors = 0;
 
   // public methods
+
+ // setState() and getState() are required by IPreserveState interface
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
+  public void setObjectState( ObjectState new_state )
+  {
+    boolean redraw = false;  // if any values change redraw.
+
+    Object temp = new_state.get(LINE_COLOR);
+    if ( temp != null)
+    {
+      color = (Color)temp;
+      redraw = true;
+    }
+
+    temp = new_state.get(LINE_WIDTH);
+    if ( temp != null)
+    {
+      linewidth = ((Float)temp).floatValue();
+      redraw = true;
+    }
+
+    temp = new_state.get(LINE_TYPE);
+    if ( temp != null)
+    {
+      linetype = ((Integer)temp).intValue();	    
+      redraw = true;
+    }
+
+    temp = new_state.get(MARK_TYPE);
+    if ( temp != null)
+    {
+      marktype = ((Integer)temp).intValue();
+      redraw = true;
+    }
+
+    temp = new_state.get(MARK_COLOR);
+    if ( temp != null)
+    {
+      markcolor = (Color)temp;
+    }
+
+/*    temp = new_state.get(STROKE);
+    if ( temp != null)
+    {
+      Stroke = (BasicStroke)temp;
+      redraw = true;
+    }*/
+
+    temp = new_state.get(TRANSPARENT);
+    if ( temp != null)
+    {
+      transparent = ((Boolean)temp).booleanValue();
+      redraw = true;
+    }
+    
+    temp = new_state.get(ERROR_COLOR);
+    if ( temp != null)
+    {
+      errorcolor = (Color)temp;
+      redraw = true;
+    }
+
+    temp = new_state.get(ERROR_LOCATION);
+    if ( temp != null)
+    {
+      errors = ((Integer)temp).intValue();
+      redraw = true;
+    }    
+   
+  }
+
+ /**
+   * This method will get the current values of the state variables for this
+   * object. These variables will be wrapped in an ObjectState. Keys will be
+   * put in alphabetic order.
+   */
+  public ObjectState getObjectState(boolean isDefault)
+  {
+   ObjectState state = new ObjectState();
+   state.insert(ERROR_COLOR, (Color)errorcolor);
+   state.insert(ERROR_LOCATION, new Integer(errors));
+   state.insert(LINE_COLOR, (Color)color);
+   state.insert(LINE_TYPE, new Integer(linetype));
+   state.insert(LINE_WIDTH, new Float(linewidth));
+   state.insert(MARK_COLOR, (Color)markcolor);
+   state.insert(MARK_SIZE, new Integer(marksize));
+   state.insert(MARK_TYPE, new Integer(marktype));
+//   state.insert(STROKE, Stroke);
+   state.insert(TRANSPARENT, new Boolean(transparent));
+
+   return state;
+  }   
 /*--------------------------- setErrorVals ----------------------------------*/
 /**
   *  Sets the location and the error values from the values passed in.
