@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.69  2004/04/07 01:23:41  millermi
+ *  - Added marker overlay, marker control, and static variables for
+ *    the control name and ObjectState keys.
+ *
  *  Revision 1.68  2004/04/05 03:07:41  millermi
  *  - BUG FIX: Fixed problem where selected regions did not
  *    appear in the correct spot for non-square data. The
@@ -424,6 +428,12 @@ public class ImageViewComponent implements IViewComponent2D,
   public static final String COLOR_SCALE_NAME = "Color Scale";
   
  /**
+  * "Marker Overlay" - use this static String to verify that the title of
+  * the ViewControl returned is that of the marker overlay control.
+  */
+  public static final String MARKER_OVERLAY_NAME = "Marker Overlay";
+  
+ /**
   * "Axis Overlay" - use this static String to verify that the title of
   * the ViewControl returned is that of the axis overlay control.
   */
@@ -527,6 +537,13 @@ public class ImageViewComponent implements IViewComponent2D,
   public static final String AXIS_CONTROL	 = "Axis Control";
 
  /**
+  * "Marker Control" - This constant String is a key for referencing the state
+  * information about the control that operates the marker overlay. The value
+  * this key references is of type ObjectState.
+  */
+  public static final String MARKER_CONTROL	 = "Marker Control";
+
+ /**
   * "Selection Control" - This constant String is a key for referencing the
   * state information about the control that operates the selection overlay.
   * The value this key references is of type ObjectState.
@@ -558,6 +575,14 @@ public class ImageViewComponent implements IViewComponent2D,
   public static final String AXIS_OVERLAY_2D	 = "AxisOverlay2D";
 
  /**
+  * "MarkerOverlay" - This constant String is a key for referencing the state
+  * information about the Marker Overlay. Since the overlay has its own state,
+  * this value is of type ObjectState, and contains the state of the
+  * overlay.
+  */
+  public static final String MARKER_OVERLAY	 = "MarkerOverlay";
+
+ /**
   * "SelectionOverlay" - This constant String is a key for referencing the
   * state information about the Selection Overlay. Since the overlay has
   * its own state, this value is of type ObjectState, and contains the state
@@ -585,7 +610,7 @@ public class ImageViewComponent implements IViewComponent2D,
   private transient Vector transparencies = new Vector();
   private int precision;
   private Font font;
-  private transient ViewControl[] controls = new ViewControl[7];
+  private transient ViewControl[] controls = new ViewControl[8];
   private transient ViewMenuItem[] menus = new ViewMenuItem[2];
   private String colorscale;
   private boolean isTwoSided = true;
@@ -650,17 +675,19 @@ public class ImageViewComponent implements IViewComponent2D,
     nextup.setRegionColor(Color.magenta);
     nextup.addActionListener( new SelectedRegionListener() );
     AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
+    MarkerOverlay marker_overlay = new MarkerOverlay(this);
     
     // add the transparencies to the transparencies vector
     transparencies.clear();
     transparencies.add(top);
     transparencies.add(nextup);
-    transparencies.add(bottom_overlay); 
+    transparencies.add(bottom_overlay);
+    transparencies.add(marker_overlay); 
     
     OverlayLayout overlay = new OverlayLayout(big_picture);
     big_picture.setLayout(overlay);
     for( int trans = 0; trans < transparencies.size(); trans++ )
-       big_picture.add((OverlayJPanel)transparencies.elementAt(trans));
+      big_picture.add((OverlayJPanel)transparencies.elementAt(trans));
     big_picture.add(background);
     
     Listeners = new Vector();
@@ -766,6 +793,14 @@ public class ImageViewComponent implements IViewComponent2D,
       ((OverlayJPanel)transparencies.elementAt(2)).setObjectState( 
 					      (ObjectState)temp );
       redraw = true;  
+    } 
+    
+    temp = new_state.get(MARKER_OVERLAY);
+    if( temp != null )
+    {
+      ((OverlayJPanel)transparencies.elementAt(3)).setObjectState( 
+					      (ObjectState)temp );
+      redraw = true;  
     }  
     
     temp = new_state.get(SELECTION_OVERLAY);
@@ -779,11 +814,18 @@ public class ImageViewComponent implements IViewComponent2D,
     temp = new_state.get(ANNOTATION_CONTROL);
     if( temp != null )
     {
-      ((ControlCheckboxButton)controls[5]).setObjectState((ObjectState)temp);
+      ((ControlCheckboxButton)controls[6]).setObjectState((ObjectState)temp);
       redraw = true;  
     }  	
     
     temp = new_state.get(AXIS_CONTROL);
+    if( temp != null )
+    {
+      ((ControlCheckboxButton)controls[4]).setObjectState((ObjectState)temp);
+      redraw = true;  
+    }  	
+    
+    temp = new_state.get(MARKER_CONTROL);
     if( temp != null )
     {
       ((ControlCheckboxButton)controls[3]).setObjectState((ObjectState)temp);
@@ -793,7 +835,7 @@ public class ImageViewComponent implements IViewComponent2D,
     temp = new_state.get(SELECTION_CONTROL);
     if( temp != null )
     {
-      ((ControlCheckboxButton)controls[4]).setObjectState((ObjectState)temp);
+      ((ControlCheckboxButton)controls[5]).setObjectState((ObjectState)temp);
       redraw = true;  
     }
     
@@ -821,11 +863,11 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     ObjectState state = new ObjectState();
     state.insert( ANNOTATION_CONTROL,
-              ((ControlCheckboxButton)controls[5]).getObjectState(isDefault) );
+              ((ControlCheckboxButton)controls[6]).getObjectState(isDefault) );
     state.insert( ANNOTATION_OVERLAY, 
       ((OverlayJPanel)transparencies.elementAt(0)).getObjectState(isDefault) );
     state.insert( AXIS_CONTROL, 
-              ((ControlCheckboxButton)controls[3]).getObjectState(isDefault) );
+              ((ControlCheckboxButton)controls[4]).getObjectState(isDefault) );
     state.insert( AXIS_OVERLAY_2D,  
       ((OverlayJPanel)transparencies.elementAt(2)).getObjectState(isDefault) );
     state.insert( COLOR_CONTROL, new Boolean(addColorControl) );
@@ -836,14 +878,32 @@ public class ImageViewComponent implements IViewComponent2D,
     state.insert( IMAGEJPANEL, ijp.getObjectState(isDefault) );
     state.insert( LOG_SCALE_SLIDER, 
       ((ControlSlider)controls[0]).getObjectState(isDefault) );
+    state.insert( MARKER_CONTROL, 
+              ((ControlCheckboxButton)controls[3]).getObjectState(isDefault) );
+    state.insert( MARKER_OVERLAY,  
+      ((OverlayJPanel)transparencies.elementAt(3)).getObjectState(isDefault) );
     state.insert( PRECISION, new Integer(precision) );
     state.insert( SELECTION_CONTROL,
-              ((ControlCheckboxButton)controls[4]).getObjectState(isDefault) );
+              ((ControlCheckboxButton)controls[5]).getObjectState(isDefault) );
     state.insert( SELECTION_OVERLAY,  
       ((OverlayJPanel)transparencies.elementAt(1)).getObjectState(isDefault) );
     state.insert( PRESERVE_ASPECT_RATIO, new Boolean(preserve_ratio) );
     
     return state;
+  }
+  
+ /**
+  * Add a marker to be displayed on the image. The marker is best used for
+  * programmatic highlighting, such as peaks. Use annotations to write text
+  * or interactively mark. Remember, marks of the same type, color, and size
+  * can be grouped into one marker.
+  *
+  *  @param  mark The marker or list of markers with the same attributes that
+  *               will be displayed on the image.
+  */
+  public void addMarker( Marker mark )
+  {
+    ((MarkerOverlay)(transparencies.elementAt(3))).addMarker(mark);
   }
   
  /**
@@ -1097,8 +1157,8 @@ public class ImageViewComponent implements IViewComponent2D,
     ((SelectionOverlay)
         (transparencies.elementAt(1))).addRegions( reg );
     // if selection control is unchecked, turn it on.
-    if( !((ControlCheckboxButton)controls[4]).isSelected() )
-      ((ControlCheckboxButton)controls[4]).doClick();
+    if( !((ControlCheckboxButton)controls[5]).isSelected() )
+      ((ControlCheckboxButton)controls[5]).doClick();
     returnFocus();
     sendMessage(SELECTED_CHANGED);
   }
@@ -1121,8 +1181,8 @@ public class ImageViewComponent implements IViewComponent2D,
       ((SelectionOverlay)
           (transparencies.elementAt(1))).addRegions( rgn );
       // if selection control is unchecked, turn it on.
-      if( !((ControlCheckboxButton)controls[4]).isSelected() )
-        ((ControlCheckboxButton)controls[4]).doClick();
+      if( !((ControlCheckboxButton)controls[5]).isSelected() )
+        ((ControlCheckboxButton)controls[5]).doClick();
       returnFocus();
       sendMessage(SELECTED_CHANGED);
     }
@@ -1161,9 +1221,9 @@ public class ImageViewComponent implements IViewComponent2D,
     local_bounds = ijp.getLocalWorldCoords().MakeCopy();
     global_bounds = ijp.getGlobalWorldCoords().MakeCopy();
     // this is required since the PanViewControl holds its own bounds.
-    ((PanViewControl)controls[6]).setGlobalBounds(global_bounds);
-    ((PanViewControl)controls[6]).setLocalBounds(local_bounds);
-    ((PanViewControl)controls[6]).repaint();
+    ((PanViewControl)controls[7]).setGlobalBounds(global_bounds);
+    ((PanViewControl)controls[7]).setLocalBounds(local_bounds);
+    ((PanViewControl)controls[7]).repaint();
     paintComponents( big_picture.getGraphics() );
   }
  
@@ -1404,9 +1464,9 @@ public class ImageViewComponent implements IViewComponent2D,
     // give focus to the top overlay
     returnFocus();
     
-    ((PanViewControl)controls[6]).setGlobalBounds(global_bounds);
-    ((PanViewControl)controls[6]).setLocalBounds(local_bounds);
-    ((PanViewControl)controls[6]).repaint();
+    ((PanViewControl)controls[7]).setGlobalBounds(global_bounds);
+    ((PanViewControl)controls[7]).setLocalBounds(local_bounds);
+    ((PanViewControl)controls[7]).repaint();
   } 
   
  /*
@@ -1501,22 +1561,26 @@ public class ImageViewComponent implements IViewComponent2D,
     String[] cursorlabels = {"X","Y"};
     controls[2] = new CursorOutputControl(cursorlabels);
     controls[2].setTitle(CURSOR_READOUT_NAME);
-    // Control that turns axis overlay on/off
+    // Control that turns marker overlay on/off
     controls[3] = new ControlCheckboxButton(true);
-    controls[3].setTitle(AXIS_OVERLAY_NAME);
+    controls[3].setTitle(MARKER_OVERLAY_NAME);
     controls[3].addActionListener( new ControlListener() );
-    // Control that turns selection overlay on/off
-    controls[4] = new ControlCheckboxButton();  // initially unchecked
-    controls[4].setTitle(SELECTION_OVERLAY_NAME);
+    // Control that turns axis overlay on/off
+    controls[4] = new ControlCheckboxButton(true);
+    controls[4].setTitle(AXIS_OVERLAY_NAME);
     controls[4].addActionListener( new ControlListener() );
-    // Control that turns annotation overlay on/off
+    // Control that turns selection overlay on/off
     controls[5] = new ControlCheckboxButton();  // initially unchecked
-    controls[5].setTitle(ANNOTATION_OVERLAY_NAME);
+    controls[5].setTitle(SELECTION_OVERLAY_NAME);
     controls[5].addActionListener( new ControlListener() );
-    // Control that displays a thumbnail of the image
-    controls[6] = new PanViewControl(ijp);
-    controls[6].setTitle(PAN_NAME);
+    // Control that turns annotation overlay on/off
+    controls[6] = new ControlCheckboxButton();  // initially unchecked
+    controls[6].setTitle(ANNOTATION_OVERLAY_NAME);
     controls[6].addActionListener( new ControlListener() );
+    // Control that displays a thumbnail of the image
+    controls[7] = new PanViewControl(ijp);
+    controls[7].setTitle(PAN_NAME);
+    controls[7].addActionListener( new ControlListener() );
   }
   
  /*
@@ -1713,8 +1777,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	ImageJPanel center = (ImageJPanel)ae.getSource();
 	local_bounds = center.getLocalWorldCoords().MakeCopy();
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
-	((PanViewControl)controls[6]).setGlobalBounds(global_bounds);
-	((PanViewControl)controls[6]).setLocalBounds(local_bounds);
+	((PanViewControl)controls[7]).setGlobalBounds(global_bounds);
+	((PanViewControl)controls[7]).setLocalBounds(local_bounds);
         buildAspectImage();
 	paintComponents( big_picture.getGraphics() );
       }
@@ -1723,8 +1787,8 @@ public class ImageViewComponent implements IViewComponent2D,
 	ImageJPanel center = (ImageJPanel)ae.getSource();
 	local_bounds = center.getLocalWorldCoords().MakeCopy();
 	global_bounds = center.getGlobalWorldCoords().MakeCopy();
-	((PanViewControl)controls[6]).setGlobalBounds(global_bounds);
-	((PanViewControl)controls[6]).setLocalBounds(local_bounds);
+	((PanViewControl)controls[7]).setGlobalBounds(global_bounds);
+	((PanViewControl)controls[7]).setLocalBounds(local_bounds);
         buildAspectImage();
 	paintComponents( big_picture.getGraphics() );
       }	 
@@ -1747,7 +1811,7 @@ public class ImageViewComponent implements IViewComponent2D,
         logscale = control.getValue();
         ijp.changeLogScale( logscale, true );
         ((ControlColorScale)controls[1]).setLogScale( logscale );
-	((PanViewControl)controls[6]).repaint();
+	((PanViewControl)controls[7]).repaint();
       } 
       else if ( message == ControlCheckboxButton.CHECKBOX_CHANGED )
       { 
@@ -1757,8 +1821,20 @@ public class ImageViewComponent implements IViewComponent2D,
         {
           ControlCheckboxButton control = 
                 		      (ControlCheckboxButton)ae.getSource();
+          if( control.getTitle().equals(MARKER_OVERLAY_NAME) )
+          {
+            // if control is unchecked, don't show the overlay.
+	    if( !control.isSelected() )
+            {
+              ((MarkerOverlay)transparencies.elementAt(3)).setVisible(false);
+            }
+            else
+            {
+              ((MarkerOverlay)transparencies.elementAt(3)).setVisible(true);
+            }
+          }// end of if( axis overlay control ) 
           // if this control turns on/off the axis overlay...
-          if( control.getTitle().equals(AXIS_OVERLAY_NAME) )
+          else if( control.getTitle().equals(AXIS_OVERLAY_NAME) )
           {	
             JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
             if( !control.isSelected() )
@@ -1835,6 +1911,12 @@ public class ImageViewComponent implements IViewComponent2D,
             select.editSelection();
             select.getFocus();
           }
+          else if( ccb.getTitle().equals(MARKER_OVERLAY_NAME) )
+          {
+            MarkerOverlay mark = (MarkerOverlay)
+			              transparencies.elementAt(3); 
+            mark.editMarker();
+          }
         }	
       }
       // This message is sent by the pan view control when the viewable
@@ -1878,7 +1960,7 @@ public class ImageViewComponent implements IViewComponent2D,
         buildViewComponent();
         
         // this control turns on/off the axis overlay...
-        ControlCheckboxButton control = (ControlCheckboxButton)controls[3];
+        ControlCheckboxButton control = (ControlCheckboxButton)controls[4];
 	int bpsize = big_picture.getComponentCount();
         JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
 	if( !control.isSelected() )
@@ -1897,7 +1979,7 @@ public class ImageViewComponent implements IViewComponent2D,
         addColorControlSouth = true;
 	addColorControl = false;
         buildViewComponent();
-        ((ControlCheckboxButton)controls[3]).setSelected(true);
+        ((ControlCheckboxButton)controls[4]).setSelected(true);
         ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
       }
       else if( message.equals("Right of Image (calibrated)") )
@@ -1907,7 +1989,7 @@ public class ImageViewComponent implements IViewComponent2D,
         addColorControlSouth = false;
 	addColorControl = false;
         buildViewComponent();
-        ((ControlCheckboxButton)controls[3]).setSelected(true);
+        ((ControlCheckboxButton)controls[4]).setSelected(true);
         ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
       }
       else if( message.equals("None") )
@@ -1917,7 +1999,7 @@ public class ImageViewComponent implements IViewComponent2D,
         addColorControlSouth = false;
 	addColorControl = false;
         buildViewComponent();
-        ((ControlCheckboxButton)controls[3]).setSelected(true);
+        ((ControlCheckboxButton)controls[4]).setSelected(true);
         ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
       }
       // else change color scale.
@@ -1927,7 +2009,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	ijp.setNamedColorModel( colorscale, isTwoSided, true );
 	((ControlColorScale)controls[1]).setColorScale( colorscale, 
 							isTwoSided );        
-	((PanViewControl)controls[6]).repaint();
+	((PanViewControl)controls[7]).repaint();
       }
       sendMessage( message );
       background.validate();
