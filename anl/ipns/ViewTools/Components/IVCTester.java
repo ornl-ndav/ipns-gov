@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2003/12/17 20:28:50  millermi
+ * - Removed references to ImageViewComponent.COMPONENT_RESIZED.
+ *   This was originally added to refresh the ImageViewCompoennt,
+ *   but recent changes have fixed this problem without requiring
+ *   this reference.
+ *
  * Revision 1.7  2003/12/12 06:13:00  millermi
  * - Introduced variables for row/column sizes in main(),
  *   this makes testing various sizes less tedious.
@@ -297,9 +303,7 @@ public class IVCTester extends JFrame implements IPreserveState,
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals(ImageViewComponent.COMPONENT_RESIZED) )
-        repaint();
-      else if( ae.getActionCommand().equals("New") )
+      if( ae.getActionCommand().equals("New") )
       {
         //ivc = new ImageViewComponent( data );
 	remove(pane);
