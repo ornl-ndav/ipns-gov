@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2003/05/20 19:41:42  dennis
+ * Added method removeAllActionListeners(). (Mike Miller)
+ *
  * Revision 1.2  2002/11/27 23:13:34  pfpeterson
  * standardized header
  *
@@ -99,6 +102,14 @@ public class ActiveJPanel extends JPanel
     listeners.remove( listener );
   }
 
+ /* ---------------------- removeAllActionListener ----------------------- */
+ /**
+  * Method to remove all listeners from this ActiveJPanel.
+  */ 
+  public void removeAllActionListeners()
+  {
+    listeners.removeAllElements();
+  }
 
 /* -------------------------- send_message ------------------------------- */
 /**
