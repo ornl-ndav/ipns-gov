@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2002/04/11 21:17:06  dennis
+ *  Fixed documentation for get_index_of() method.
+ *  interpolate() method now includes the endpoints in the
+ *  special cases that are filtered out.
+ *
  *  Revision 1.15  2002/03/18 21:15:49  dennis
  *  The reverse() method now just returns if the array is null.
  *
@@ -139,8 +144,10 @@ public class arrayUtil
    *  @param  x       The value to find
    *  @parma  x_vals  The array of x values IN INCREASING ORDER.
    *
-   *  @return The last index, i, for which  x_vals[i] <= x.  If x_vals[i] > x
-   *          for all indices, or if the array is empty, this returns -1.
+   *  @return The last index, i, for which  x_vals[i] <= x, provided that
+   *          x is between x_vals[0] and x_vals[x_vals.length-1].  
+   *          If the array is empty or if x is outside of the interval from
+   *          x_vals[0] to x_vals[x_vals.length-1], this returns -1.
    */
    
    public static int get_index_of( float x, float x_vals[] )
@@ -253,10 +260,10 @@ public class arrayUtil
  */
 public static float interpolate( float x_value, float x[], float y[] )
 {
-  if ( x_value < x[0] )
+  if ( x_value <= x[0] )
     return y[0];
 
-  if ( x_value > x[x.length-1] )
+  if ( x_value >= x[x.length-1] )
     if ( x.length <= y.length )
       return y[ x.length - 1 ];
     else
