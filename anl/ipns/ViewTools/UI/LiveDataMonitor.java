@@ -4,6 +4,9 @@
  *  Programmer: Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.2  2001/02/15 23:18:05  dennis
+ *  This version now works, using a default flow layout
+ *
  *  Revision 1.1  2001/02/15 22:52:10  dennis
  *  Initial form of class for monitoring data from a
  *  remote LiveDataServer object.
@@ -48,7 +51,8 @@ public class LiveDataMonitor extends    JPanel
     data_manager = new LiveDataManager( data_source_name );
     data_manager.setUpdateInterval( time_widget.getValue() );
     viewers = new ViewManager[ data_manager.numDataSets() ]; 
-     
+    checkbox = new JCheckBox[ data_manager.numDataSets() ];
+ 
     for ( int i = 0; i < data_manager.numDataSets(); i++ )
     {
       DataSet ds = data_manager.getDataSet( i );
@@ -60,7 +64,7 @@ public class LiveDataMonitor extends    JPanel
       button.addActionListener( button_listener );
       add( button );
 
-      checkbox[i] = new JCheckBox( "Auto" );
+      checkbox[i] = new JCheckBox( "Show" );
       if ( i < 2 )
       {
         viewers[i] = new ViewManager( ds, IViewManager.IMAGE );
