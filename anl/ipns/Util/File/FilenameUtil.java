@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2003/03/11 16:14:14  pfpeterson
+ *  fixCase(String) now tries both all upper and all lower after not
+ *  finding the specified file. Also shortened names for imported
+ *  packages.
+ *
  *  Revision 1.15  2003/03/05 20:52:12  pfpeterson
  *  Changed SharedData.status_pane.add(String) to SharedData.addmsg(String)
  *
@@ -143,6 +148,7 @@ public class FilenameUtil
   {
     boolean opened_ok = true;
 
+    // try the provided file name
     File file = new File ( file_name );
     if ( file.exists() )
       return file_name;
@@ -150,15 +156,26 @@ public class FilenameUtil
     String name = InstrumentType.getFileName( file_name );
     String path = InstrumentType.getPath( file_name );
     char   first_char = name.charAt(0);
+
+    // try the other case
     if ( Character.isUpperCase( first_char ) )
       file_name = path + name.toLowerCase();
     else
       file_name = path + name.toUpperCase();
-
     file = new File ( file_name );
     if ( file.exists() )
       return file_name;
 
+    // try the other other case
+    if ( Character.isUpperCase( first_char ) )
+      file_name = path + name.toUpperCase();
+    else
+      file_name = path + name.toLowerCase();
+    file = new File ( file_name );
+    if ( file.exists() )
+      return file_name;
+
+    // failed so return null
     return null;
   }
 
@@ -172,7 +189,7 @@ public class FilenameUtil
      */
     public static String docDir( String docFile ){
 	String S=System.getProperty("Docs_Directory");
-        char pathSep = java.io.File.separatorChar;
+        char pathSep = File.separatorChar;
 	  if( S == null ){
 	      S=System.getProperty("ISAW_HOME");
 	  }
@@ -181,7 +198,7 @@ public class FilenameUtil
 	      return null; // do nothing
 	  }
 	  S=S.trim();
-	  S=DataSetTools.util.StringUtil.fixSeparator(S);
+	  S=StringUtil.setFileSeparator(S);
 	  if( S.charAt( S.length()-1 ) != pathSep ){
 	      S=S+pathSep;
 	  }
@@ -225,10 +242,10 @@ public class FilenameUtil
 
 	// fix the string up and check that helpFile exists there
 	if(S != null ){
-	    S = DataSetTools.util.StringUtil.fixSeparator(S);
+	    S = StringUtil.setFileSeparator(S);
 	    if( S.length()<1 ){ S=null; 
 	    }else if("\\/".indexOf(S.charAt(S.length()-1))<0){
-		S=S+java.io.File.separator; }
+		S=S+File.separator; }
 
 	    if( new File(S+helpFile).exists()){
 	    }else{ S=null; }
@@ -241,14 +258,14 @@ public class FilenameUtil
 	    S=System.getProperty("user.dir").trim();
 	    if( S.length()>0 ){
 		if( "\\/".indexOf(S.charAt(S.length()-1)) < 0 ){
-		    S=S+java.io.File.separator;
+		    S=S+File.separator;
 		}
 	    }
-	    S=DataSetTools.util.StringUtil.fixSeparator(S);
-	    if(!new File(S+"IsawHelp"+java.io.File.separator+helpFile).exists()){
+	    S=StringUtil.setFileSeparator(S);
+	    if(!new File(S+"IsawHelp"+File.separator+helpFile).exists()){
 		S=null;
 	    }else{ 
-		S=S+"IsawHelp"+java.io.File.separator;
+		S=S+"IsawHelp"+File.separator;
 	    }
 	}
 
@@ -262,16 +279,16 @@ public class FilenameUtil
 	    String CP = System.getProperty("java.class.path").replace( '\\','/');
 	    int s, t ;
             for( s = 0; (s < CP.length()) && (S == null); s++){
-		t = CP.indexOf( java.io.File.pathSeparator, s+1);
+		t = CP.indexOf( File.pathSeparator, s+1);
 		if( t < 0){ t = CP.length(); }
 		S = CP.substring(s,t) .trim();
 		if( S.length() > 0 ){
-		    if ( S.charAt( S.length() -1) != java.io.File.separatorChar){ 
-			S = S + java.io.File.separator;
+		    if ( S.charAt( S.length() -1) != File.separatorChar){ 
+			S = S + File.separator;
 		    }
 		}
-		if(new File(S+"IsawHelp"+java.io.File.separator+helpFile).exists()){
-		    S= S + "IsawHelp"+java.io.File.separator+helpFile;
+		if(new File(S+"IsawHelp"+File.separator+helpFile).exists()){
+		    S= S + "IsawHelp"+File.separator+helpFile;
 		}else{
 		    S = null;
 		}
