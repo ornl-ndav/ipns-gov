@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2003/02/19 23:17:58  dennis
+ *  Changed read_line() to fill look_ahead "buffer" with next character
+ *  in file.  This fixes a bug where eof() was not detected when reading
+ *  a sequence of entire lines.
+ *
  *  Revision 1.11  2003/02/18 00:31:50  dennis
  *  Now uses null character (char)0, as default value for look_ahead
  *  buffer.  However, the null character is not returned by any of the
@@ -258,7 +263,7 @@ public class TextFileReader
   {
     if ( look_ahead == '\n' )
     {
-      look_ahead = 0;
+      look_ahead = in.read();
       return new String("");
     }
     else
@@ -272,8 +277,8 @@ public class TextFileReader
       if ( look_ahead != 0 )                       // don't keep null chars
         s = "" + (char)look_ahead + s;
  
-      look_ahead = 0;                              // set look_ahead to null
-                                                   // at the end of a line.
+      look_ahead = in.read();                      // set look_ahead to next 
+                                                   // character, or -1 if eof() 
       return s;
     }
   }
@@ -654,6 +659,21 @@ public class TextFileReader
     char           ch    = 0;
     boolean        b     = false;
     TextFileReader f     = null;
+
+    try
+    {
+      f = new TextFileReader( "lines.dat" );
+
+      while ( !f.eof() )
+      {
+        line = f.read_line();
+        System.out.println(line);
+      }
+    }
+    catch ( Exception e )
+    {
+      System.out.println("1: EXCEPTION: " + e );
+    }
 
     try
     {
