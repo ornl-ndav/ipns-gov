@@ -31,13 +31,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2005/03/23 22:02:28  dennis
+ *  Reformated for legibility.
+ *
  *  Revision 1.12  2004/06/22 15:55:21  robertsonj
  *  The printerDialog now remembers the last printer chosen and sets itself
  *  to that printer automatically.  it will only remember during one session
  *  of ISAW.  When you start Isaw again it will revert back to the system
  *  default printer.
  *
- * 	Revision 1.12  2004/06/22 robertsonj
+ *  Revision 1.12  2004/06/22 robertsonj
  *  The last chosen printer is now the printer that is selected for printing.
  * 
  *  Revision 1.11  2004/05/27 19:14:10  robertsonj
@@ -88,108 +91,140 @@ import javax.swing.RepaintManager;
  *  7/99 Marty Hall, http://www.apl.jhu.edu/~hall/java/
  *  May be freely used or adapted.
  */
+
 //getting nullpointerexceptions at save and load.  do something about this.
+
 public class PrintUtilities implements Printable {
+
   private Component componentToBePrinted;
   private static Properties myProperties = new Properties();
   private FileOutputStream bw;
   private FileInputStream br;
+
   public static void printComponent(Component c) {
     new PrintUtilities(c).print();
-
-	
   }
   
   public PrintUtilities(Component componentToBePrinted) {
     this.componentToBePrinted = componentToBePrinted;
-    //create a file outputstream/fileinputstream to save and load the properties file
-	try{bw = new FileOutputStream("properties.dat");
-		br = new FileInputStream("properties.dat");
-	}catch(IOException io){
-		System.out.println("IO Exception: " + io );
-	}
-	//make sure there is something in the properties file before trying to load data from it
-	try{
-		if (br.available() != 0){
-		myProperties.load(br);
-		}
-		}catch(IOException io1){
-			System.out.println("IO Exception: " + io1);
-		}
-    //componentToBePrinted.validate();
-    //componentToBePrinted.show();
-
-
+    // create a file outputstream/fileinputstream to save and load the 
+    // properties file
+    try
+    {  
+       bw = new FileOutputStream("properties.dat");
+       br = new FileInputStream("properties.dat");
+    }
+    catch(IOException io)
+    {
+      System.out.println("IO Exception: " + io );
+    }
+    // make sure there is something in the properties file before trying 
+    // to load data from it
+    try
+    {
+      if (br.available() != 0)
+	myProperties.load(br);
+    }
+    catch(IOException io1)
+    {
+      System.out.println("IO Exception: " + io1);
+    }
+    // componentToBePrinted.validate();
+    // componentToBePrinted.show();
   }
   
-  public void print() {
-
-  
+  public void print() 
+  {
     PrinterJob printJob = PrinterJob.getPrinterJob();
-    //String printerName = "houdini HP LaserJet 4000 PS in A140";
+    // String printerName = "houdini HP LaserJet 4000 PS in A140";
 	
-	
-	
-    //PageFormat newFormat = printJob.defaultPage();
-	HashPrintRequestAttributeSet aset2 = new HashPrintRequestAttributeSet();
-	//docflavor in order to use the printservicelookup to get the available printers 
-	//so we can make sure that the printer is installed before trying to print to it
-	DocFlavor myFormat = DocFlavor.SERVICE_FORMATTED.PRINTABLE;
-	PrintService[] services =
-		PrintServiceLookup.lookupPrintServices(myFormat, aset2);
-		//find the printer that matches the printer you have saved in the the properties file
-	if (!(myProperties.isEmpty())){
-		for (int i = 0; i < services.length; i++ ){
-			if(myProperties.getProperty("IsawDefaultPrinter").equals(services[i].getName()))
-			{try{printJob.setPrintService(services[i]);	
-				}catch(PrinterException pe1){
-					System.out.println("Error Printing : " + pe1);
-				}
-			}
-		}	
+    // PageFormat newFormat = printJob.defaultPage();
+    HashPrintRequestAttributeSet aset2 = new HashPrintRequestAttributeSet();
+
+    // docflavor in order to use the printservicelookup to get the available 
+    // printers so we can make sure that the printer is installed before 
+    // trying to print to it
+    DocFlavor myFormat = DocFlavor.SERVICE_FORMATTED.PRINTABLE;
+    PrintService[] services =
+                       PrintServiceLookup.lookupPrintServices(myFormat, aset2);
+
+    // find the printer that matches the printer you have saved in the 
+    // properties file
+    if (!(myProperties.isEmpty()))
+    {
+      for (int i = 0; i < services.length; i++ )
+      {
+        if ( myProperties.getProperty("IsawDefaultPrinter").
+                                       equals(services[i].getName()))
+        {
+           try
+           {
+             printJob.setPrintService(services[i]);	
+           }
+           catch(PrinterException pe1)
+           {
+             System.out.println("Error Printing : " + pe1);
+           }
+        }
+      }	
     }	
     printJob.setPrintable(this);
-    if (printJob.printDialog(aset2)){
-	try {//System.out.println("aft dialog pageFormat="+newFormat.getOrientation()); 
-		printJob.print(aset2);
-		}catch(PrinterException pe) {
-		System.out.println("Error printing: " + pe);
-		}
+    if (printJob.printDialog(aset2))
+    {
+      try
+      { 
+        // System.out.println("aft dialog pageFormat=" + 
+        //                     newFormat.getOrientation()); 
+        printJob.print(aset2);
+      }
+      catch(PrinterException pe) 
+      {
+        System.out.println("Error printing: " + pe);
+      }
     }
-    
-      PrintService myService = printJob.getPrintService();
-      //sets the last printer you used into the properties file and saves it there for later use
-      setDefaultPrinterProperty("IsawDefaultPrinter", myService.getName(), bw);
+    PrintService myService = printJob.getPrintService();
+
+    // set the last printer you used into the properties file and save it 
+    // there for later use
+    setDefaultPrinterProperty("IsawDefaultPrinter", myService.getName(), bw);
  }
 
 
-  public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
-    //System.out.println("in print pageFormat="+pageFormat.getOrientation()+","+
-    //    pageFormat.LANDSCAPE+","+pageFormat.PORTRAIT); 
+  public int print(Graphics g, PageFormat pageFormat, int pageIndex) 
+  {
+   // System.out.println("in print pageFormat="+pageFormat.getOrientation()+","+
+   //                     pageFormat.LANDSCAPE+","+pageFormat.PORTRAIT); 
 	
-    if (pageIndex > 0) {
+    if (pageIndex > 0) 
       return(NO_SUCH_PAGE);
-    } else {
+    else 
+    {
       Graphics2D g2d = (Graphics2D)g;
        
       Rectangle R = componentToBePrinted.getBounds();
-      //Font F= componentToBePrinted.getFont();
-     // int fSize= F.getSize();
-      int dpi= componentToBePrinted.getToolkit().getScreenResolution();
-      double xscale,yscale;
+      // Font F = componentToBePrinted.getFont();
+      // int fSize = F.getSize();
+      int dpi = componentToBePrinted.getToolkit().getScreenResolution();
+      double xscale,
+             yscale;
+
       xscale = (double)(pageFormat.getImageableWidth())/(R.width);
       yscale=(double)(pageFormat.getImageableHeight())/(R.height);
+
       if(yscale < xscale) 
          xscale= yscale; 
+
       g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
       g2d.scale(xscale ,xscale); 
-     double w=R.width*xscale;
-     double h = R.height*xscale;
-     if( w > pageFormat.getImageableWidth()) w=pageFormat.getImageableWidth();
-     if( h > pageFormat.getImageableHeight()) h=pageFormat.getImageableHeight();
 
+      double w = R.width*xscale;
+      double h = R.height*xscale;
+      if ( w > pageFormat.getImageableWidth() ) 
+         w = pageFormat.getImageableWidth();
+      if ( h > pageFormat.getImageableHeight() ) 
+         h = pageFormat.getImageableHeight();
 
-     //g2d.translate(pageFormat.getImageableX(),pageFormat.getImageableY() );
+      // g2d.translate(pageFormat.getImageableX(),pageFormat.getImageableY() );
                    
       disableDoubleBuffering(componentToBePrinted);
       componentToBePrinted.paint(g2d);
@@ -203,22 +238,26 @@ public class PrintUtilities implements Printable {
    *  So this turns if off globally.
    *  @see #enableDoubleBuffering(Component)
    */
-  public static void disableDoubleBuffering(Component c) {
+  public static void disableDoubleBuffering(Component c) 
+  {
     RepaintManager currentManager = RepaintManager.currentManager(c);
     currentManager.setDoubleBufferingEnabled(false);
   }
 
   /** Re-enables double buffering globally. */
   
-  public static void enableDoubleBuffering(Component c) {
+  public static void enableDoubleBuffering(Component c) 
+  {
     RepaintManager currentManager = RepaintManager.currentManager(c);
     currentManager.setDoubleBufferingEnabled(true);
   }
-  public static void setDefaultPrinterProperty(String name, String value, FileOutputStream bw){
-  	 myProperties.setProperty(name, value);
-  	 myProperties.save(bw,name);
+
+  public static void setDefaultPrinterProperty( String           name, 
+                                                String           value, 
+                                                FileOutputStream bw )
+  {
+    myProperties.setProperty(name, value);
+    myProperties.save(bw,name);
   }
 
 }
-
-
