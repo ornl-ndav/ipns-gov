@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.20  2004/04/05 03:11:21  millermi
+ * - Moved WindowShower code out of constructer and into main(),
+ *   causing the IVCTester not to be displayed by default.
+ *
  * Revision 1.19  2004/03/15 23:53:49  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -219,10 +223,6 @@ public class IVCTester extends JFrame implements IPreserveState,
     
     setData(iva);
     ivc.addActionListener( new IVCListener() );
-    // display IVCTester
-    WindowShower shower = new WindowShower(this);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
   }
 
  /**
@@ -255,10 +255,6 @@ public class IVCTester extends JFrame implements IPreserveState,
     setBounds(0,0,700,500);
     
     setData(temp);
-    // display IVCTester
-    WindowShower shower = new WindowShower(this);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
   }
     
  /**
@@ -473,7 +469,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     		        "TestX","TestUnits", true );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
     			"TestY","TestYUnits", false );
-    va2D.setTitle("ImageFrame Test");
+    va2D.setTitle("IVCTester");
     ObjectState state = new ObjectState();
     ObjectState sliderstate = new ObjectState();
     sliderstate.insert(ControlSlider.SLIDER_VALUE, new Float(20) );
@@ -482,6 +478,10 @@ public class IVCTester extends JFrame implements IPreserveState,
                   
     IVCTester im_frame = new IVCTester( va2D );
     im_frame.setObjectState(state);
+    // display IVCTester
+    WindowShower shower = new WindowShower(im_frame);
+    java.awt.EventQueue.invokeLater(shower);
+    shower = null;
     /*
     // test setData() 10 times
     for( int x = 0; x < 20; x++ )
