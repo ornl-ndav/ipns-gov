@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2003/06/09 22:36:54  dennis
+ *  - Added setEventListening(false) method call for ColorScaleImage to
+ *    ignore keyboard/mouse events. (Mike Miller)
+ *
  *  Revision 1.1  2003/05/29 14:25:27  dennis
  *  Initial version, displays the possible colors of the ImageViewComponent.
  *  (Mike Miller)
@@ -81,6 +85,7 @@ public class ControlColorScale extends ViewControl
       super("");
       this.setLayout( new GridLayout(1,1) );
       csi = new ColorScaleImage();
+      csi.setEventListening(false);
       this.add(csi);
       colorscheme = colorscale; 
       csi.setNamedColorModel( colorscale, true );   
