@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2002/07/12 18:36:17  dennis
+ *  Now returns NULL if users specifies <= 0 steps on the XScale.
+ *  Viewers using this must trap this and use a default XScale
+ *  appropriate to the viewer.
+ *
  *  Revision 1.3  2002/03/18 21:40:16  dennis
  *  Constructor now checks that the min and max values are valid.
  *
@@ -127,8 +132,9 @@ public class XScaleChooserUI extends    ActiveJPanel
  /**
   *  Return an X scale specified by the user.
   *
-  *  @return  an X scale generated from the x range and number of steps
-  *           specified by the user.
+  *  @return  If the number of steps specified is > 0, return an X scale 
+  *           generated from the x range and number of steps specified by 
+  *           the user, otherwise, return null.
   *
   */
  public XScale getXScale()
@@ -138,15 +144,10 @@ public class XScaleChooserUI extends    ActiveJPanel
     float x_max = x_range_ui.getMax();
     int num_x;
 
-    if ( num_steps <= 0 )                 // just use a single point, the
-    {                                     // center of the interval
-      x_min = (x_min + x_max) / 2;
-      x_max = x_min;
-      num_x = 1;
-    }
-    else
-      num_x = num_steps + 1;
+    if ( num_steps <= 0 )                  // invalid, application should use
+      return null;                         // it's default XScale
 
+    num_x = num_steps + 1;                 // build uniform XScale as specified
     return ( new UniformXScale( x_min, x_max, num_x ) );
   }
 
