@@ -4,6 +4,9 @@
  *  Comparator function to allow sorting of 2D points
  *
  *  $Log$
+ *  Revision 1.3  2000/11/07 15:37:33  dennis
+ *  Removed "implements Comparator" for compatibility with JDK 1.1.8 on Mac.
+ *
  *  Revision 1.2  2000/10/10 20:19:19  dennis
  *  Log message was missing?  This class implements a comparator function for
  *  sorting points.
@@ -21,7 +24,7 @@ import java.util.*;
  */
 
 public class Compare_floatPoint2D_X extends    Object
-                                    implements Comparator
+// #####NOT IN JAVA 1.1                        implements Comparator
 {
 
   /**
