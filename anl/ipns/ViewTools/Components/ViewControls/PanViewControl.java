@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2003/12/20 04:42:50  millermi
+ *  - changed super.repaint() in refreshData() to update(). This
+ *    was needed to consistently paint the overlay over the image.
+ *
  *  Revision 1.7  2003/12/17 20:32:26  millermi
  *  - made refreshData() private, now is called by the repaint()
  *    method which is overloaded.
@@ -227,7 +231,10 @@ public class PanViewControl extends ViewControl
       if( panel_image != null )
       {
         panel.setImage(panel_image);
-        super.repaint();
+	// have to use update so Overlay is always displayed over the image.
+	if( getGraphics() != null )
+	  update( getGraphics() );
+        //super.repaint();
       }
     }
     else
