@@ -31,6 +31,9 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.4  2002/06/28 13:31:50  rmikk
+ * Eliminated commented out code
+ *
  * Revision 1.3  2002/01/25 19:41:26  pfpeterson
  * Use the script filter to show only iss files. Also remembers the last item and
  * defaults to the Script_Path directory.
@@ -106,7 +109,8 @@ public class OpenFileToDocListener  implements ActionListener , PropertyChangeLi
      /** Saves the contents of the file selected to the document and notifies any  the   
       *listeners of filename used  
      */  
-     public void actionPerformed( ActionEvent evt){  
+     public void actionPerformed( ActionEvent evt)
+       {  
 	 final JFileChooser fc=new JFileChooser() ;  
 	 if( filename != null)   
 	     fc.setCurrentDirectory(new File(filename));
@@ -127,17 +131,7 @@ public class OpenFileToDocListener  implements ActionListener , PropertyChangeLi
 	     DataSetTools.util.SharedData.status_pane.add("Choose and input file");
 	     return;
 	 }
-	 /* OLD METHOD
-	    int state  ;   
-	    if( filename != null )  
-	    fc.setSelectedFile( new File(filename));  
-	    
-	    state = fc.showOpenDialog( null ) ;   
-	    if( state != JFileChooser.APPROVE_OPTION )  
-	    return ;   
-	    
-	    File SelectedFile = fc.getSelectedFile() ;   
-	    filename  = SelectedFile.toString() ; */
+
 	    
 	 try{  
 	     doc.remove( doc.getStartPosition().getOffset(), doc.getLength());  
