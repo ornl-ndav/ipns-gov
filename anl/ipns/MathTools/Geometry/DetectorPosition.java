@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2004/03/11 23:44:51  dennis
+ *  Moved to package MathTools.Geometry.
+ *  Copied constants for Greek phi & theta used in toString() from
+ *  FontUtil, to avoid dependence on ViewTools
+ *
  *  Revision 1.12  2003/06/23 15:49:02  dennis
  *  Increased number of decimal places displayed in toString()
  *  method.
@@ -52,11 +57,10 @@
  *  toString() method now uses greek characters from DataSetTools.util.FontUtil.
  *
  */
-package  DataSetTools.math;
+package gov.anl.ipns.MathTools.Geometry;
 
 import java.io.*;
 import java.text.*;
-import DataSetTools.util.*;
 
 /**
  * DetectorPosition represents the position of a neutron detector relative to
@@ -213,6 +217,9 @@ public class DetectorPosition extends    Position3D
    */
   public String toString()
   {
+     String PHI   = "\u03c6";
+     String THETA = "\u03b8";
+
      float cyl_coords[] = getCylindricalCoords();
 
      NumberFormat f = NumberFormat.getInstance();
@@ -225,9 +232,9 @@ public class DetectorPosition extends    Position3D
      String cyl_angle = f.format( cyl_coords[1] * 180.0/Math.PI );
      f.setMaximumFractionDigits( 4 );
      String z     = f.format( cyl_coords[2] );
-     String string = "2" + FontUtil.THETA + "=" + scat_ang +
+     String string = "2" + THETA + "=" + scat_ang +
                      ":r="  + r +
-                     "," + FontUtil.PHI + "=" + cyl_angle +
+                     "," + PHI + "=" + cyl_angle +
                      ",z=" + z;
      return string;
   }
