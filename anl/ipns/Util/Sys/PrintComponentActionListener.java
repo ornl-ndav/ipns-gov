@@ -31,10 +31,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2002/05/30 23:05:05  chatterjee
+ *  Closed the comment lines.
+ *
  *  Revision 1.1  2002/05/30 22:55:44  chatterjee
  *  ActionListener for print requests from the viewers
  *
-
+*/
 
 package DataSetTools.viewer;
 import java.awt.event.*;
