@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2003/06/25 21:34:36  serumb
+ *  Added setZoom_region method.
+ *
  *  Revision 1.20  2003/06/18 13:39:43  dennis
  *  (Mike Miller)
  *  - Removed isListening from CoordComponentAdapter private class.
@@ -225,7 +228,23 @@ public class CoordJPanel extends    ActiveJPanel
   {
     return zoom_region;
   }
+  
+  /* ----------------------- setZoom_region ----------------------------- */
+  public void setZoom_region(float x1, float y1, float x2, float y2)
+  {
+    if ( ( x1 == x2 ) || ( y1 == y2 ) )         // ignore degenerate region
+    {
+      SetZoomRegionToWindowSize();
+      return;
+    }
 
+    send_message( ZOOM_IN );
+
+    SetTransformsToWindowSize();
+
+    local_transform.setSource(x1, y1, x2, y2 );
+  
+  }
 
   /* ---------------------- getCurrent_pixel_point ----------------------- */
   /**
