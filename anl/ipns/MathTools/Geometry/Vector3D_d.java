@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2004/07/14 16:24:38  dennis
+ * Added convenience method, distance(v), to calculate the distance from
+ * the current vector to the specified vector, v.
+ *
  * Revision 1.5  2004/04/02 15:15:12  dennis
  * Added constructor to make double precision Vector3D_d from
  * single precision Vector3D
@@ -367,6 +371,23 @@ public class Vector3D_d
   public double length()
   {
     return Math.sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
+  }
+
+  /*--------------------------- distance ------------------------------*/
+  /** 
+   *  Calculate the distance from of this 3D vector to the specified
+   *  3D vector.
+   *
+   *  @param    vec   The other vector 
+   *
+   *  @return   the distance from this 3D vector to the specified vector.
+   */
+  public double distance( Vector3D vec )
+  {
+    double dx = v[0] - vec.v[0];
+    double dy = v[1] - vec.v[1];
+    double dz = v[2] - vec.v[2];
+    return Math.sqrt( dx * dx + dy * dy + dz * dz );
   }
 
   /*--------------------------- normalize ------------------------------*/
