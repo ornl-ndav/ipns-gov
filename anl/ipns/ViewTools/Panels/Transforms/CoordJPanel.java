@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2001/05/07 21:02:40  dennis
+ *  Added implementation for the method LocalTransformChanged()
+ *  that was previously abstract.  This slightly simplified the
+ *  GraphJPanel and ThreeD_JPanel classes.
+ *
  *  Revision 1.6  2001/04/23 21:14:55  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -78,8 +83,8 @@ abstract public class CoordJPanel extends    JPanel
   protected boolean         CJP_handle_arrow_keys;
   private   Rubberband      rb_box;
   private   Rubberband      crosshair_cursor;
-  private   CoordTransform  global_transform;
-            CoordTransform  local_transform;
+  protected CoordTransform  global_transform;
+  protected CoordTransform  local_transform;
   protected Point           current_point = new Point(0,0);
   protected CoordJPanel     this_panel;
   
@@ -336,7 +341,10 @@ public boolean isDoingBox()
 
 /* ------------------------- LocalTransformChanged ------------------------ */
 
-  abstract protected void LocalTransformChanged();
+protected void LocalTransformChanged()
+{
+  repaint();
+}
 
 
 /* -----------------------------------------------------------------------
