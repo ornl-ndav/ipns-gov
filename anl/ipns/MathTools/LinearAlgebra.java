@@ -35,6 +35,11 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.10  2003/03/19 21:33:45  dennis
+ *  Added method BestFitMatrix( M, q, r ) that calculates the best
+ *  least squares approximation for a matrix M mapping a list of vectors
+ *  q to a list of vectors r.
+ *
  *  Revision 1.9  2003/02/06 21:27:32  dennis
  *  Add code for finding inverse of 2x2 matrix.  Fixed potential problem
  *  in inverse method.
@@ -551,6 +556,65 @@ public final class LinearAlgebra
     return U; 
   }
 
+  /* -------------------------- BestFitMatrix ---------------------------- */
+  /**
+   *  Calculate and return the matrix M that most nearly maps the vectors in
+   *  the list q to the vectors in the list r.  This performs least squares
+   *  fitting of the coefficients in the matrix M, as is needed when refining
+   *  the orientation matrix for SCD data proccessing. Specifically, M will
+   *  be calculated to be the matrix that best fits the equations  Mqi=ri
+   *  for vectors qi, ri, i=0,...,k-1, where k is the number of data vectors.
+   *
+   *  @param  M      The n X m matrix that maps vector q[i][*] to 
+   *                 vector r[i][*].  The componets of M are set by this
+   *                 method, but the storage for M must be properly allocated
+   *                 by the calling code.
+   *  @param  q      This is the list of vector q data points.  Each row of
+   *                 the 2-dimensional array q is assumed to be a vector of
+   *                 size m.  There must be the same number of q vectors, as
+   *                 of r vectors.  Specifically, q must be of size k x m.
+   *  @param  r      This is the list of vector r data points.  Each row of
+   *                 the 2-dimensional array r is assumed to be a vector of
+   *                 size n.  There must be the same number of r vectors, as
+   *                 q vectors.  Specifically, r must be of size k x n.
+   *                  
+   *  @return On completion, the best fit matrix will have been entered in
+   *  paramter M and the return value will be the square root of the sum of 
+   *  the squares of the residual errors. NOTE: The values stored in M, q and
+   *  r will be altered, so if the calling code needs their original values,
+   *  it is responsible for saving copies of the original data.
+   */
+  public static double BestFitMatrix(double M[][], double q[][], double r[][])
+  {
+    double residual = 0;                  // sum of squares of residual errors
+    double error    = 0;                  // residual error from one row of M.
+    int k = q.length;
+    int n = M.length;
+    int m = M[0].length;
+    double b[] = new double[k];           // Temporary storage for right hand
+                                          // side of least squares problem
+                                          // NOTE: The entries in q form the
+    double Q[][] = QR_factorization( q ); // coefficient matrix for the least
+                                          // squares fitting. After this, we've
+                                          // factored the original q matrix to
+                                          // Q*q, with the altered "q" matrix
+                                          // being the factor R. 
+    System.out.println("Done with QR_fact");                 
+                                          // Now solve for the best fit entries
+                                          // in each row of matrix M
+    for ( int row = 0; row < n; row++ )  
+    {
+      for ( int i = 0; i < k; i++ )
+        b[i] = r[i][row];
+
+      error = QR_solve( q, Q, b );
+      residual += error * error;
+      for ( int col = 0; col < m; col++ )   // copy result to row of solution M
+        M[row][col] = b[col];
+    }
+
+    return Math.sqrt(residual);
+  } 
 
   /* ---------------------- HouseholderTransform --------------------------- */
   /**
@@ -567,6 +631,8 @@ public final class LinearAlgebra
       if ( u == null || y == null || u.length != y.length )
       {
         System.out.println("ERROR: Invalid vectors in Householder Tranform");
+        System.out.println("u.length = " + u.length );
+        System.out.println("y.length = " + y.length );
         return;
       }
 
