@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2003/10/17 16:05:18  millermi
+ *  - Now implements IPreserveState which includes the
+ *    implementation of setObjectState() and getObjectState().
+ *    With these two methods, state information can
+ *    be preserved.
+ *
  *  Revision 1.25  2003/10/15 23:34:32  dennis
  *  Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -98,6 +104,8 @@ import javax.swing.*;
 import DataSetTools.util.*;
 import DataSetTools.components.ui.*;
 import DataSetTools.components.View.LogScaleUtil;
+import DataSetTools.components.View.IPreserveState;
+import DataSetTools.components.View.ObjectState;
 
 /**
  *  This class is a base class for panels that have a "world" coordinate
@@ -106,13 +114,90 @@ import DataSetTools.components.View.LogScaleUtil;
  *  full size crosshair cursor for pointing and a rubberband box for zooming
  *  are provided.
  */
-public class CoordJPanel extends    ActiveJPanel 
-                                  implements Serializable
+public class CoordJPanel extends ActiveJPanel implements Serializable,
+                                                         IPreserveState
 {
+ /**
+  * "Zoom In" - This constant String is a messaging string sent out
+  * by the CoordJPanel whenever the box cursor is used to zoom in on a region.
+  */
   public static final String ZOOM_IN      = "Zoom In";
+  
+ /**
+  * "Reset Zoom" - This constant String is a messaging string sent out
+  * by the CoordJPanel whenever the image is reset to original size. 
+  */
   public static final String RESET_ZOOM   = "Reset Zoom";
-  public static final String CURSOR_MOVED = "Cursor Moved";
+  
+ /**
+  * "Cursor Moved" - This constant String is a messaging string sent out
+  * by the CoordJPanel whenever the current point changes.
+  */
+  public static final String CURSOR_MOVED      = "Cursor Moved";
 
+  // these variables preserve state for the CoordJPanel
+ /**
+  * "Zoom Region" - This constant String is a key for referencing the state
+  * information about the pixel bounds of the zoomed region. The value
+  * referenced by this key is of type Rectangle.
+  */
+  public static final String ZOOM_REGION       = "Zoom Region";
+  
+ /**
+  * "Horizontal Scroll" - This constant String is a key for referencing the
+  * state information about the horizontal preferred size of the panel.
+  * If true, this will use automatic scroll bars if the horizontal dimension
+  * exceeds the window. Only set this true if the CoordJPanel is contained in
+  * a JScrollPane. The value referenced by this key is a primative boolean.
+  */
+  public static final String HORIZONTAL_SCROLL = "Horizontal Scroll";
+  
+ /**
+  * "Vertical Scroll" - This constant String is a key for referencing the state
+  * information about the vertical preferred size of the panel.
+  * If true, this will use automatic scroll bars if the vertical dimension
+  * exceeds the window. Only set this true if the CoordJPanel is contained in
+  * a JScrollPane. The value referenced by this key is a primative boolean.
+  */
+  public static final String VERTICAL_SCROLL   = "Vertical Scroll";
+  
+ /**
+  * "Global Transform" - This constant String is a key for referencing the
+  * state information about the world and pixel coordinates for the initial
+  * panel. The value referenced by this key is of type CoordTransform.
+  */
+  public static final String GLOBAL_TRANSFORM  = "Global Transform";
+  
+ /**
+  * "Local Transform" - This constant String is a key for referencing the state
+  * information about the CoordTransform of the zoom region. The value
+  * referenced by this key is of type CoordTransform.
+  */
+  public static final String LOCAL_TRANSFORM   = "Local Transform";
+  
+ /**
+  * "Current Point" - This constant String is a key for referencing the state
+  * information about the currently selected point.  The value referenced
+  * by this key is of type Point.
+  */
+  public static final String CURRENT_POINT     = "Current Point";
+  
+ /**
+  * "Event Listening" - This constant String is a key for referencing the state
+  * information about whether this panel listens to mouse/key events. The value
+  * referenced by this key is a primative boolean and is true if listening.
+  */
+  public static final String EVENT_LISTENING   = "Event Listening";
+  
+ /**
+  * "Preferred Size" - This constant String is a key for referencing the state
+  * information about the preferred size of this panel. Preferred size is set
+  * by my_setPreferredSize(). The value referenced by this key is of type
+  * Dimension.
+  */
+  public static final String PREFERRED_SIZE    = "Preferred Size";
+  
+  
   private Rectangle zoom_region   = null;     // current zoom_region
   private boolean doing_crosshair = false;    // flags used by several device
   private boolean doing_box       = false;    // adapter classes to control
@@ -158,15 +243,105 @@ public class CoordJPanel extends    ActiveJPanel
     SetZoomRegionToWindowSize();
     this_panel = this;
 
-    set_crosshair( current_point );      // ##############
+    set_crosshair( current_point );
     stop_crosshair( current_point );
 
-    set_box( current_point );            // ##############
+    set_box( current_point );
     stop_box( current_point, false );
     CJP_handle_arrow_keys = true;
   }
 
-
+  /**
+   * This method will set the current state variables of the object to state
+   * variables wrapped in the ObjectState passed in.
+   *
+   *  @param  new_state
+   */
+  public void setObjectState( ObjectState new_state )
+  {
+    boolean redraw = false;  // if any values are changed, repaint.
+    Object temp = new_state.get(ZOOM_REGION);
+    if( temp != null )
+    {
+      zoom_region = (Rectangle)temp;
+      redraw = true;  
+    }
+    
+    temp = new_state.get(HORIZONTAL_SCROLL);
+    if( temp != null )
+    {
+      h_scroll = ((Boolean)temp).booleanValue();
+      redraw = true;  
+    }  
+    
+    temp = new_state.get(VERTICAL_SCROLL);
+    if( temp != null )
+    {
+      v_scroll = ((Boolean)temp).booleanValue();
+      redraw = true;  
+    }
+    
+    temp = new_state.get(GLOBAL_TRANSFORM);
+    if( temp != null )
+    {
+      global_transform = (CoordTransform)temp; 
+      redraw = true;  
+    } 
+    
+    temp = new_state.get(LOCAL_TRANSFORM); 
+    if( temp != null )
+    {
+      local_transform = (CoordTransform)temp;
+      redraw = true;  
+    } 	
+    
+    temp = new_state.get(CURRENT_POINT);
+    if( temp != null )
+    {
+      current_point = (Point)temp;
+      redraw = true;  
+    }   
+    
+    temp = new_state.get(EVENT_LISTENING);
+    if( temp != null )
+    {
+      isListening = ((Boolean)temp).booleanValue();
+      redraw = true;  
+    }	
+    
+    temp = new_state.get(PREFERRED_SIZE);
+    if( temp != null )
+    {
+      preferred_size = (Dimension)temp;
+      redraw = true;  
+    } 
+    // may need changing
+    if( redraw )
+      repaint();
+   
+  } 
+ 
+  /**
+   * This method will get the current values of the state variables for this
+   * object. These variables will be wrapped in an ObjectState. Keys will be
+   * put in alphabetic order.
+   */ 
+  public ObjectState getObjectState()
+  {
+    ObjectState state = new ObjectState();
+    state.insert( CURRENT_POINT, new Point(current_point) );
+    state.insert( EVENT_LISTENING, new Boolean(isListening) );
+    state.insert( GLOBAL_TRANSFORM, new CoordTransform( global_transform ) );
+    state.insert( HORIZONTAL_SCROLL, new Boolean(h_scroll) );
+    state.insert( LOCAL_TRANSFORM, new CoordTransform( local_transform ) );
+    if( preferred_size != null )
+      state.insert( PREFERRED_SIZE, new Dimension(preferred_size) );
+    state.insert( VERTICAL_SCROLL, new Boolean(v_scroll) );
+    state.insert( ZOOM_REGION, new Rectangle( zoom_region ) );
+    
+    return state;
+  }
+  
   /* ------------------------- setEventListening -------------------- */
   /**
    *  Set flag to control whether or not this component responds to events
@@ -441,8 +616,10 @@ public class CoordJPanel extends    ActiveJPanel
     x2 = b2.getX2();
     y1 = b2.getY1();
     y2 = b2.getY2();    
-    LogScaleUtil loggerx = new LogScaleUtil(b.getX1(),b.getX2(),b.getX1(),b.getX2());
-    LogScaleUtil loggery = new LogScaleUtil(b.getY1(),b.getY2(),b.getY1(),b.getY2());
+    LogScaleUtil loggerx = new LogScaleUtil(b.getX1(),b.getX2(),
+                                            b.getX1(),b.getX2());
+    LogScaleUtil loggery = new LogScaleUtil(b.getY1(),b.getY2(),
+                                            b.getY1(),b.getY2());
     b2.setBounds(loggerx.toDest(x1, scale),
                 loggery.toDest(y1, scale),
                 loggerx.toDest(x2, scale),
@@ -853,9 +1030,15 @@ public static void main(String[] args)
   {
     JFrame f = new JFrame("Test for CoordJPanel");
     f.setBounds(0,0,500,500);
+    f.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
     CoordJPanel panel = new CoordJPanel();
     f.getContentPane().add(panel);
     f.setVisible(true);
+    
+    ObjectState os = panel.getObjectState();
+    //os.reset(PREFERRED_SIZE, new Dimension(300,100));
+    os.reset(EVENT_LISTENING, new Boolean(false));
+    panel.setObjectState(os);
   }
 
 
