@@ -32,6 +32,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/12 17:54:28  rmikk
+ * Fixed package names.
+ * Fixed JMenuBar "File" Jmenu search algorithm
+ *
  * Revision 1.3  2004/03/12 17:21:13  hammonds
  * Moved from DataSetTools.viewer to gov.anl.ipns.Util.Sys
  *
@@ -54,7 +58,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.awt.image.*;
 import java.awt.*;
-/*import DataSetTools.util.*;*/
 import java.io.*;
 
 public class SaveImageActionListener implements ActionListener{
@@ -68,8 +71,20 @@ public class SaveImageActionListener implements ActionListener{
   
  public static void setUpMenuItem(JMenuBar jmb, Component comp )
  {
-   setUpMenuItem( jmb.getMenu( DataSetTools.viewer.DataSetViewer.FILE_MENU_ID ),
-                  comp);
+   if( jmb == null)
+     return;
+    
+   for( int i=0; i< jmb.getMenuCount();i++){
+      JMenu jm = jmb.getMenu(i);
+      if( jm.getText().equals("File")){
+         setUpMenuItem( jm, comp);
+         return;
+        }
+      }
+    JMenu jm = new JMenu("File");
+    jmb.add(jm);
+    setUpMenuItem( jm, comp);
+   
  }
 
   /**
@@ -127,13 +142,13 @@ public class SaveImageActionListener implements ActionListener{
        if( !javax.imageio.ImageIO.write( bimg, "jpg",
         			  (OutputStream)fout ) )
        {
-         SharedData.addmsg( " no appropriate writer is found");
+         SharedMessages.addmsg( " no appropriate writer is found");
          return; 
        }
        fout.close();
      }
      catch( Exception ss){
-       SharedData.addmsg( "Image Save Error:"+ss.toString());
+       SharedMessages.addmsg( "Image Save Error:"+ss.toString());
      }
    }
  

@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/12 17:54:03  rmikk
+ *  Fixed package names.
+ *  Fixed JMenuBar "File" Jmenu search algorithm
+ *
  *  Revision 1.5  2004/03/12 17:21:14  hammonds
  *  Moved from DataSetTools.viewer to gov.anl.ipns.Util.Sys
  *
@@ -77,7 +81,19 @@ public void actionPerformed( ActionEvent evt)
 printHelper.print();
 }
 public static void setUpMenuItem(JMenuBar jmb, Component comp )
-{setUpMenuItem(jmb.getMenu( DataSetTools.viewer.DataSetViewer.FILE_MENU_ID ),comp);
+{if( jmb == null)
+     return;
+    
+   for( int i=0; i< jmb.getMenuCount();i++){
+      JMenu jm = jmb.getMenu(i);
+      if( jm.getText().equals("File")){
+         setUpMenuItem( jm, comp);
+         return;
+        }
+      }
+    JMenu jm = new JMenu("File");
+    jmb.add(jm);
+    setUpMenuItem( jm, comp);
 }
 
 /**
