@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.25  2004/07/16 19:05:22  dennis
+ *  Fixed improper comparison with Float.NaN
+ *
  *  Revision 1.24  2004/04/20 18:22:43  dennis
  *  Added some validity checks to BestFitMatrix.  Now does most
  *  calculations in a try...catch block.
@@ -775,7 +778,7 @@ public final class LinearAlgebra
           b[i] = r[i][row];
 
         error = QR_solve( q, Q, b );
-        if ( error == Double.NaN )
+        if ( Double.isNaN( error ) )
         {
           System.out.println("Singular matrix, in LinearAlgebra.BestFitMatrix");
           return Double.NaN;
