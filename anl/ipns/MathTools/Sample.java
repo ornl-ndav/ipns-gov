@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/03/11 22:02:01  dennis
+ *  Changed package to java gov.anl.ipns.MathTools.Statistics
+ *
  *  Revision 1.8  2003/10/14 22:22:10  dennis
  *  Fixed javadoc comment so it builds cleanly on jdk 1.4.2
  *
@@ -43,9 +46,9 @@
  *
  */
 
-package DataSetTools.math;
+package  gov.anl.ipns.MathTools;
 
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Numeric.*;
 
 /**
  *  Histogram and function resampling and rebinning operations

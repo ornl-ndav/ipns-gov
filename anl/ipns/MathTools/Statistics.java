@@ -30,12 +30,15 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.5  2004/03/11 21:57:31  dennis
+ *  Changed package to java gov.anl.ipns.MathTools.Statistics
+ *
  *  Revision 1.4  2002/11/27 23:15:47  pfpeterson
  *  standardized header
  *
  */
 
-package DataSetTools.math;
+package gov.anl.ipns.MathTools;
 
 /**
  *  Class that provides basic statistics operations as static methods. 
@@ -97,4 +100,9 @@ public final class Statistics
     return parameters;
   }
   
+  public static void main( String args[] )
+  {
+    System.out.println("Empty Main");
+  }
+
 }
