@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/12/16 01:45:08  millermi
+ *  - Changed way selected points are calculated, now uses
+ *    two WedgeRegion instances to calculate the points
+ *    in the region.
+ *
  *  Revision 1.2  2003/10/22 20:26:09  millermi
  *  - Fixed java doc errors.
  *
@@ -108,204 +113,58 @@ public class DoubleWedgeRegion extends Region
      Point p1 = new Point( definingpoints[1] );
      Point rp1 = new Point( definingpoints[2] );
      Point topleft = new Point( definingpoints[3] );
-     Point bottomright = new Point( definingpoints[4] );
-     double xextent = (double)(bottomright.x - topleft.x)/2;
-     double yextent = (double)(bottomright.y - topleft.y)/2;
-     // p1 will always be before rp1 when tracing unit circle counterclockwise
-     // if degrees covered by arc are negative, circle is missing a wedge. 
-     boolean counterclockwise = true;
-     if( definingpoints[5].y < 0 )
-       counterclockwise = false;
-     //square the extents for comparison later
-     xextent = Math.pow(xextent,2);
-     yextent = Math.pow(yextent,2);
-     
-     Vector points = new Vector();
-     int pointangle = 0;
-     int arcangle = definingpoints[5].y;
-	     
-     // upper and lower slope is determined by p1 & rp1, midslope is per point
-     float upperslope = 0;
-     float lowerslope = 0;
-     float midslope   = 0;  
-     
-     int p1quad = 0;  // the quadrant p1 is in, normal unit circle quadrants.
-     if( p1.x > center.x )
+     Point bottomright = new Point( definingpoints[4] );     
+     double xextent = (double)(center.x - topleft.x);
+     double yextent = (double)(center.y - topleft.y); 
+     // since a mapping is done with the imagejpanel, the topleft or bottomright
+     // could have been mapped to the side of the image. However, at most
+     // one will be affected, so take the maximum extent of the two.
+     if( (bottomright.x - center.x) > xextent )
      {
-       if( p1.y <= center.y )
-         p1quad = 1;
-       else
-         p1quad = 4;
+       xextent = bottomright.x - center.x; 
+       topleft.x = (int)(center.x - xextent); 
      }
      else
+       bottomright.x = (int)(center.x + xextent);
+     if( (bottomright.y - center.y) > yextent )
      {
-       if( p1.y < center.y )
-         p1quad = 2;
-       else
-         p1quad = 3;
-     }
-     
-     int rp1quad = 0; // quadrant rp1 is in
-     if( rp1.x > center.x )
-     {
-       if( rp1.y <= center.y )
-         rp1quad = 1;
-       else
-         rp1quad = 4;
+       yextent = bottomright.y - center.y;
+       topleft.y = (int)(center.y - yextent); 
      }
      else
-     {
-       if( rp1.y < center.y )
-         rp1quad = 2;
-       else
-         rp1quad = 3;
-     }
-        
-     // this code will avoid slope of 0 or +/- infinity
-     float numerator = p1.y - center.y;
-     float denominator = p1.x - center.x;
-     if( denominator == 0 )
-       denominator = -.01f;
-     lowerslope = numerator/denominator;
-     //System.out.println("Num/Denom: " + numerator + "/" + denominator);
+       bottomright.y = (int)(center.y + yextent);
      
-     numerator = rp1.y - center.y;
-     denominator = rp1.x - center.x;
-     if( denominator == 0 )
-       denominator = -.01f;
-     if( Math.abs(numerator) == 0 )
-     {
-       if( lowerslope < 0 && denominator > 0 )
-         numerator = -0;
-       else
-         numerator = 0;
-     }
-     upperslope = numerator/denominator;
+     WedgeRegion wedge1 = new WedgeRegion(definingpoints);
+     Point[] selected_pts_wedge1 = wedge1.getSelectedPoints();
      
-     // If slope > 800, it was infinity, however, +/- infinity are next to each
-     // other. For convenience, if number is infinity (>800), match the signs
-     if( lowerslope > 800 && upperslope < 0 )
-       lowerslope = -lowerslope; 
-     else if( lowerslope < -800 && upperslope > 0 )
-       lowerslope = -lowerslope; 
-      
-     if( upperslope > 800 && lowerslope < 0 )
-       upperslope = -upperslope; 
-     else if( upperslope < -800 && lowerslope > 0 )
-       upperslope = -upperslope; 
+     Point[] defpt2 = new Point[definingpoints.length];
+     defpt2[0] = new Point( definingpoints[0] );
+     defpt2[1] = new Point( 2*center.x - p1.x, 2*center.y - p1.y );
+     defpt2[2] = new Point( 2*center.x - rp1.x, 2*center.y - rp1.y );
+     defpt2[3] = new Point( definingpoints[3] );
+     defpt2[4] = new Point( definingpoints[4] );
+     if( (definingpoints[5].x + 180) >= 360 )
+       defpt2[5] = new Point( definingpoints[5].x - 180, definingpoints[5].y );
+     else
+       defpt2[5] = new Point( definingpoints[5].x + 180, definingpoints[5].y );
      
-     //System.out.println("Low/Mid/Upper " + lowerslope + "/" + midslope +
-     //                   "/" + upperslope ); 
+     WedgeRegion wedge2 = new WedgeRegion(defpt2);
+     wedge2.pointchecker = wedge1.pointchecker;
+     Point[] selected_pts_wedge2 = wedge2.getSelectedPoints();
+     int total_num_pts = selected_pts_wedge1.length +
+                         selected_pts_wedge2.length;
      
-     if( lowerslope > upperslope )
-     {
-       float temp = lowerslope;
-       lowerslope = upperslope;
-       upperslope = temp;
-     }
+     selectedpoints = new Point[total_num_pts];
+     for( int i = 0; i < selected_pts_wedge1.length; i++ )
+       selectedpoints[i] = new Point(selected_pts_wedge1[i]);
+     Point temp;
+     // this increment value is used to avoid gaps in the array when
+     // duplicate points are bypassed and not added to the selectedpoints array.
+     int inc = 0;
+     for( int j = 0; j < selected_pts_wedge2.length; j++ )
+       selectedpoints[selected_pts_wedge1.length + j] = 
+                                 new Point(selected_pts_wedge2[j]);
      
-     if( counterclockwise )
-     {
-       //System.out.println("CounterClockwise");
-       // using formula for elipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
-       // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
-       for( int y = topleft.y; y <= bottomright.y; y++ )
-         for( int x = topleft.x; x <= bottomright.x; x++ )
-         {
-           double dist = Math.pow((x - center.x),2)/xextent + 
-	                 Math.pow((y - center.y),2)/yextent;
-	   //System.out.println("(" + x + "," + y + ")..." + dist ); 
-	   if( dist <= 1 )
-	   {
-             numerator = y - center.y;
-             if( numerator == 0 )
-               numerator = .01f;
-             denominator = x - center.x;
-             if( denominator == 0 )
-               denominator = -.01f;
-     	     midslope = numerator/denominator;
-	  // System.out.println("Low/Mid/Upper " + lowerslope + "/" + midslope +
-	  //                    "/" + upperslope ); 
-	     if( Math.abs(arcangle) > 90 &&
-	         (lowerslope*upperslope >= 0 ) )
-	     {
-	       if( (midslope <= lowerslope) ||
-	           (midslope >= upperslope) )
-	         points.add( new Point( x, y ) );
-	     } 
-	     // if upper and lower are opposite sign
-	     else if( (lowerslope*upperslope < 0 ) )
-	     { 
-	       // if wedge starts in quad 2 and ends in quad 3
-	       // rp1quad == 1 && p1quad == 4 taken care of by clockwise code.
-	       if( p1quad == 2 && rp1quad == 3 )
-	       {
-	         if( midslope >= lowerslope &&
-	             midslope <= upperslope )
-	           points.add( new Point( x, y ) );
-	       }
-	       else
-	       {
-	         if( midslope <= lowerslope ||
-	             midslope >= upperslope )
-	           points.add( new Point( x, y ) );
-	       }
-	     }
-	     // most generic case
-	     else if( midslope >= lowerslope &&
-	         midslope <= upperslope )
-	       points.add( new Point( x, y ) );
-	      
-	   }
-         } 
-     }
-     else //( !counterclockwise )
-     {
-       //System.out.println("Clockwise");
-       // using formula for elipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
-       // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
-       for( int y = topleft.y; y <= bottomright.y; y++ )
-         for( int x = topleft.x; x <= bottomright.x; x++ )
-         {
-           double dist = Math.pow((x - center.x),2)/xextent + 
-	                 Math.pow((y - center.y),2)/yextent;
-	   //System.out.println("(" + x + "," + y + ")..." + dist );
-	   if( dist <= 1 )
-	   {
-             numerator = y - center.y;
-             if( numerator == 0 )
-               numerator = .01f;
-             denominator = x - center.x;
-             if( denominator == 0 )
-               denominator = -.01f;
-     	     midslope = numerator/denominator;
-	     
-	     // if arc > 90 degrees and both lower and upper are pos or neg. 
-	     if( Math.abs(arcangle) > 90 &&
-	         (lowerslope*upperslope >= 0 ) )
-	     {
-	       if( (midslope <= lowerslope) ||
-	           (midslope >= upperslope) )
-	         points.add( new Point( x, y ) );
-	     }     
-	     else if( ( lowerslope > 0 && upperslope < 0 ) ||
-	         ( lowerslope < 0 && upperslope > 0 ) )
-	     { 
-	       if( (midslope >= lowerslope) &&
-	           (midslope <= upperslope) )
-	         points.add( new Point( x, y ) );
-	     }
-	     else if( midslope >= lowerslope &&
-	         midslope <= upperslope )
-	       points.add( new Point( x, y ) );
-	      
-	   }
-         } 
-     }
-     // put the vector of points into an array of points
-     selectedpoints = new Point[points.size()];
-     for( int i = 0; i < points.size(); i++ )
-         selectedpoints[i] = (Point)points.elementAt(i);
      return selectedpoints;
    }
 }
