@@ -32,12 +32,15 @@
  *   Prentice Hall, 1997 )
  *
  *  $Log$
+ *  Revision 1.3  2004/03/12 00:14:09  rmikk
+ *  Fixed Package names
+ *
  *  Revision 1.2  2002/11/27 23:13:18  pfpeterson
  *  standardized header
  *
  */
 
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Cursors;
 
 import java.awt.*;
 import java.io.*;
