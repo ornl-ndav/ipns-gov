@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2003/07/25 14:48:36  dennis
+ *  Now implements IZoomTextAddible. (Needed to work with new heirarchy
+ *  of interfaces for overlays.)
+ *
  *  Revision 1.14  2003/07/17 20:38:54  serumb
  *  Implemented the dataChanged methods, and added methods for
  *  drawing the graphs.
@@ -54,24 +58,18 @@
 package DataSetTools.components.View.OneD;
 
 import DataSetTools.components.ParametersGUI.*;
-
 import DataSetTools.components.View.*;  // IVirtualArray1D
 import DataSetTools.components.View.Transparency.*;  //Axis Overlays
 import DataSetTools.components.View.ViewControls.*;
-
-import DataSetTools.components.image.*;  //GraphJPanel & ImageJPanel & CoordJPanel
-
+import DataSetTools.components.View.TwoD.*;
+import DataSetTools.components.image.*;  //GraphJPanel & CoordJPanel
 import DataSetTools.dataset.*;
-
 import DataSetTools.math.*;
-
 import DataSetTools.util.*;  //floatPoint2D FloatFilter
 
 // component changes
 
-
 import java.applet.Applet;
-
 import java.awt.*;
 import java.awt.Rectangle;
 import java.awt.color.ColorSpace;
@@ -81,17 +79,12 @@ import java.awt.event.*;
 import java.awt.event.ComponentAdapter.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.*;
-
 import java.io.Serializable;
-
 import java.lang.*;
 import java.lang.Object.*;
-
 import java.util.*;
-
 import javax.swing.*;
 import javax.swing.event.*;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.*;
 
@@ -101,7 +94,10 @@ import java.beans.*;
  * and annotation abilities.
  */
 public class FunctionViewComponent implements IFunctionComponent1D,
-  ActionListener, DataSetTools.components.View.TwoD.IAxisAddible2D {
+                                              ActionListener, 
+                                              IZoomTextAddible, 
+                                              IAxisAddible2D 
+{
   private IVirtualArray1D Varray1D;  //An object containing our array of data
   private Point[] selectedset;  //To be returned by getSelectedSet()   
   private Vector Listeners   = null;
