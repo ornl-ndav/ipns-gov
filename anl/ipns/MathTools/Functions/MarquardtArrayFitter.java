@@ -35,6 +35,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2003/07/29 16:08:26  dennis
+ *  Put printing of A[k][k], alpha[k][k] and u[k][k],
+ *  and sqrt(A[k][k]) into an "if (debug)" block.
+ *
  *  Revision 1.10  2003/07/28 22:19:20  dennis
  *  Improved second method of estimating the standard deviations for
  *  the parameters.
@@ -378,13 +382,16 @@ public class MarquardtArrayFitter extends CurveFitter
     System.out.println("After fit ..............................");
     System.out.println("n_steps = " + n_steps );
     System.out.println("lamda = " + lamda );
-    System.out.println("A[k][k],    Alpha[k][k],   u[k][k] =");
-    for ( int k = 0; k < n_params; k++ )
-      System.out.println(""+A[k][k]+", " + Alpha[k][k] +", " + u[k][k] );
-    System.out.println("root_diag = " );
-    for ( int k = 0; k < n_params; k++ )
-      System.out.print(" "+root_diag[k]);
-    System.out.println();
+    if ( debug )
+    {
+      System.out.println("A[k][k],    Alpha[k][k],   u[k][k] =");
+      for ( int k = 0; k < n_params; k++ )
+        System.out.println(""+A[k][k]+", " + Alpha[k][k] +", " + u[k][k] );
+      System.out.println("root_diag = " );
+      for ( int k = 0; k < n_params; k++ )
+        System.out.print(" "+root_diag[k]);
+      System.out.println();
+    }
   }
 
 
