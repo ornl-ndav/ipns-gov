@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2004/01/08 21:07:33  millermi
+ * - Fixed bug introduced when world coord conversion took place.
+ *
  * Revision 1.11  2004/01/08 20:14:46  millermi
  * - Made viewing selection info available.
  * - Selection defining points stored in attributes now
@@ -821,9 +824,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       attributes[1] = (float)Format.round((double)wc_center.y, 5);
       attributes[2] = (float)Format.round((double)major_radius, 5);
       attributes[3] = (float)Format.round((double)minor_radius, 5);
+      float image_radius = def_pts[1].x - center.x;
                                       // The following end_point calculation
                                       // may need to be changed ###############
-      end_point = new floatPoint2D( center.x + major_radius, center.y );
+      end_point = new floatPoint2D( center.x + image_radius, center.y );
     }
     else if( region instanceof AnnularRegion )
     {
@@ -842,7 +846,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       // tranform from image to world coords
       floatPoint2D wc_center = world_image_tran.MapTo(center);
       float inner_radius = world_image_tran.MapXTo(def_pts[2].x) - wc_center.x;
-      float outer_radius = world_image_tran.MapYTo(def_pts[4].y) - wc_center.y;
+      float outer_radius = world_image_tran.MapYTo(def_pts[4].x) - wc_center.x;
       // keep radii positive.
       inner_radius = Math.abs(inner_radius);
       outer_radius = Math.abs(outer_radius);
@@ -851,9 +855,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       attributes[1] = (float)Format.round((double)wc_center.y, 5);
       attributes[2] = (float)Format.round((double)inner_radius, 5);
       attributes[3] = (float)Format.round((double)outer_radius, 5);
+      float image_radius = def_pts[4].x - center.x;
                                       // The following end_point calculation
                                       // needs to be changed ###############
-      end_point = new floatPoint2D( center.x + outer_radius, center.y );
+      end_point = new floatPoint2D( center.x + image_radius, center.y );
     }
     // should never get to this else, we have an invalid Region.
     else
