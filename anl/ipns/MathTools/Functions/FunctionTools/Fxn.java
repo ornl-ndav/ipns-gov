@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2003/10/20 16:32:01  rmikk
+ * Fixed javadoc error
+ *
  * Revision 1.2  2002/11/27 23:14:36  pfpeterson
  * standardized header
  *
@@ -73,7 +76,7 @@ public abstract class Fxn  //make a one time set only
 *@throws ArrayIndexOutOfBoundsException  For the variable x<P>
 *@throws  ArithmeticException  If a division by zero occurs or 0^0 or ..<P>
 */
- public abstract double vall(double x[],int ndat);
+ public abstract double vall(double x[],int ndata);
 
 
 }
