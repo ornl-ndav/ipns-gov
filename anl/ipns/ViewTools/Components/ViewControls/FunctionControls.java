@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.19  2004/01/06 22:50:24  serumb
+ * Put in the correct bounds for the log scale util.
+ *
  * Revision 1.18  2003/12/18 22:42:13  millermi
  * - This file was involved in generalizing AxisInfo2D to
  *   AxisInfo. This change was made so that the AxisInfo
@@ -531,11 +534,13 @@ import javax.swing.border.*;
                                                                                              
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
+      CoordBounds b_log = gjp.getLocalLogWorldCoords(log_scale);
       CoordBounds b = gjp.getLocalWorldCoords();
       LogScaleUtil loggery = new LogScaleUtil(b.getY1(), b.getY2(),
-                                              b.getY1(), b.getY2());
+                                              b_log.getY1(), b_log.getY2());
       LogScaleUtil loggerx = new LogScaleUtil(b.getX1(), b.getX2(),
-                                              b.getX1(), b.getX2());
+                                              b_log.getX1(), b_log.getX2());
+      
       if( message.equals("Reset Zoom")  ) {
           if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
              x_range.setMin(gjp.getLocalLogWorldCoords(gjp.getScale()).getX1());
@@ -588,12 +593,16 @@ import javax.swing.border.*;
              y_range.setMax(gjp.getLocalWorldCoords().getY1());
            }
       }
+
+
       else if(message.equals("Cursor Moved")){ 
+
          if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
              cursor.setValue(0,loggerx.toDest(gjp.getCurrent_WC_point().x,
                                                                 log_scale));
              cursor.setValue(1,loggery.toDest(gjp.getCurrent_WC_point().y,
                                                                 log_scale));
+
            }
            else if(gjp.getLogScaleX() == false && gjp.getLogScaleY() == true) {
              cursor.setValue(0,gjp.getCurrent_WC_point().x);
@@ -608,7 +617,10 @@ import javax.swing.border.*;
            else {
              cursor.setValue(0,gjp.getCurrent_WC_point().x);
              cursor.setValue(1,gjp.getCurrent_WC_point().y);
+
            } 
+         
+         
       }
     }
  }
