@@ -2,6 +2,9 @@
  * @(#)ClosedInterval.java  2000/10/19  Dennis Mikkelson
  *
  *  $Log$
+ *  Revision 1.2  2000/11/17 23:38:18  dennis
+ *  Minor change to format of output in toString() method.
+ *
  *  Revision 1.1  2000/11/07 16:31:25  dennis
  *  Specify a closed interval [a,b] that can degenerate to one point.
  *
@@ -103,6 +106,6 @@ public class ClosedInterval implements java.io.Serializable {
    */
   public String toString() 
   {
-    return "[" + min + "," + max + "]";
+    return "["+min+","+max+"]";
   }
 }
