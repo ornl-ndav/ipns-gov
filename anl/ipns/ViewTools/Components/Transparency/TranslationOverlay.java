@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/01/29 08:16:28  millermi
+ *  - Updated the getObjectState() to include parameter for specifying
+ *    default state.
+ *  - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *    use by getObjectState()
+ *
  *  Revision 1.6  2004/01/03 04:36:13  millermi
  *  - help() now uses html tool kit to display text.
  *  - Replaced all setVisible(true) with WindowShower.
@@ -168,6 +174,7 @@ public class TranslationOverlay extends OverlayJPanel
     helper.getContentPane().add(scroll);
     WindowShower shower = new WindowShower(helper);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
  
  /**
@@ -259,15 +266,17 @@ public class TranslationOverlay extends OverlayJPanel
  
  /**
   * This method will get the current values of the state variables for this
-  * object. These variables will be wrapped in an ObjectState. Keys will be
-  * put in alphabetic order.
+  * object. These variables will be wrapped in an ObjectState.
   *
-  *  @return state of this overlay.
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
   */ 
-  public ObjectState getObjectState()
+  public ObjectState getObjectState( boolean isDefault )
   {
     ObjectState state = new ObjectState();
-    state.insert( TRANSLATION_JPANEL, tjp.getObjectState() );
+    state.insert( TRANSLATION_JPANEL, tjp.getObjectState(isDefault) );
     
     return state;
   }

@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.31  2004/01/29 08:16:28  millermi
+ *  - Updated the getObjectState() to include parameter for specifying
+ *    default state.
+ *  - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *    use by getObjectState()
+ *
  *  Revision 1.30  2004/01/07 17:54:33  millermi
  *  - Fixed javadoc errors
  *
@@ -401,6 +407,7 @@ public class SelectionOverlay extends OverlayJPanel
     helper.getContentPane().add(scroll);
     WindowShower shower = new WindowShower(helper);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
   
  /**
@@ -447,16 +454,25 @@ public class SelectionOverlay extends OverlayJPanel
  
  /**
   * This method will get the current values of the state variables for this
-  * object. These variables will be wrapped in an ObjectState. Keys will be
-  * put in alphabetic order.
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
   */ 
-  public ObjectState getObjectState()
+  public ObjectState getObjectState( boolean isDefault )
   {
     ObjectState state = new ObjectState();
-    state.insert( SELECTED_REGIONS, regions );
     state.insert( SELECTION_COLOR, reg_color );
     state.insert( OPACITY, new Float(opacity) );
     state.insert( EDITOR_BOUNDS, editor_bounds );
+    
+    // load these for project specific instances.
+    if( !isDefault )
+    {
+      state.insert( SELECTED_REGIONS, regions );
+    }
     
     return state;
   }
@@ -494,6 +510,7 @@ public class SelectionOverlay extends OverlayJPanel
       editor = new SelectionEditor();
       WindowShower shower = new WindowShower(editor);
       java.awt.EventQueue.invokeLater(shower);
+      shower = null;
       editor.toFront();
     }
   }

@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/01/29 08:16:25  millermi
+ *  - Updated the getObjectState() to include parameter for specifying
+ *    default state.
+ *  - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *    use by getObjectState()
+ *
  *  Revision 1.1  2003/09/23 23:13:20  millermi
  *  - Initial Version - this interface is required by classes using an
  *    ObjectState to preserve state information.
@@ -50,6 +56,20 @@
 public interface IPreserveState
 { 
  /**
+  * "true" - This variable is used as a parameter for the getObjectState()
+  * method. Use this variable if the state returned is to store user
+  * preferences, those things common from project to project.
+  */
+  public static final boolean DEFAULT = true;
+  
+ /**
+  * "false" - This variable is used as a parameter for the getObjectState()
+  * method. Use this variable if the state returned is to project specific
+  * preferences, things such as image selections.
+  */
+  public static final boolean PROJECT = false;
+
+ /**
   * This method will set the current state variables of the object to state
   * variables wrapped in the ObjectState passed in.
   *
@@ -60,6 +80,10 @@ public interface IPreserveState
  /**
   * This method will get the current values of the state variables for this
   * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  is_default True if default state, use static variable.
+  *  @return if true, the selective default state, else the state for with
+  *          all possible saved values.
   */ 
-  public ObjectState getObjectState();
+  public ObjectState getObjectState( boolean is_default );
 }

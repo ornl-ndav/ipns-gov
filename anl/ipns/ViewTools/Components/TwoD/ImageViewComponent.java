@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.51  2004/01/29 08:16:25  millermi
+ *  - Updated the getObjectState() to include parameter for specifying
+ *    default state.
+ *  - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *    use by getObjectState()
+ *
  *  Revision 1.50  2004/01/07 06:47:39  millermi
  *  - New float Region parameters have been updated.
  *
@@ -683,34 +689,43 @@ public class ImageViewComponent implements IViewComponent2D,
  
  /**
   * This method will get the current values of the state variables for this
-  * object. These variables will be wrapped in an ObjectState. Keys will be
-  * put in alphabetic order.
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
   */ 
-  public ObjectState getObjectState()
+  public ObjectState getObjectState( boolean isDefault )
   {
     ObjectState state = new ObjectState();
     state.insert( ANNOTATION_CONTROL, new Boolean( 
                          ((ControlCheckboxButton)controls[4]).isSelected() ) );
     state.insert( ANNOTATION_OVERLAY, 
-	       ((OverlayJPanel)transparencies.elementAt(0)).getObjectState() );
+      ((OverlayJPanel)transparencies.elementAt(0)).getObjectState(isDefault) );
     state.insert( AXIS_CONTROL, new Boolean( 
                          ((ControlCheckboxButton)controls[2]).isSelected() ) );
     state.insert( AXIS_OVERLAY_2D,  
-	       ((OverlayJPanel)transparencies.elementAt(2)).getObjectState() );
+      ((OverlayJPanel)transparencies.elementAt(2)).getObjectState(isDefault) );
     state.insert( COLOR_CONTROL, new Boolean(addColorControl) );
     state.insert( COLOR_CONTROL_EAST, new Boolean(addColorControlEast) );
     state.insert( COLOR_CONTROL_SOUTH, new Boolean(addColorControlSouth) );
     state.insert( COLOR_SCALE, new String(colorscale) );
     state.insert( FONT, font );
-    state.insert( IMAGEJPANEL, ijp.getObjectState() );
+    state.insert( IMAGEJPANEL, ijp.getObjectState(isDefault) );
     state.insert( LOG_SCALE, new Double(logscale) );
     state.insert( PRECISION, new Integer(precision) );
-    state.insert( SELECTED_REGIONS, selectedregions );
     state.insert( SELECTION_CONTROL, new Boolean( 
                          ((ControlCheckboxButton)controls[3]).isSelected() ) );
     state.insert( SELECTION_OVERLAY,  
-	       ((OverlayJPanel)transparencies.elementAt(1)).getObjectState() );
-    state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+      ((OverlayJPanel)transparencies.elementAt(1)).getObjectState(isDefault) );
+    
+    // load these for project specific instances.
+    if( !isDefault )
+    {
+      state.insert( SELECTED_REGIONS, selectedregions );
+      state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+    }
     
     return state;
   }

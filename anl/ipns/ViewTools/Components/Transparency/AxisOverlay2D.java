@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.28  2004/01/29 08:16:27  millermi
+ *  - Updated the getObjectState() to include parameter for specifying
+ *    default state.
+ *  - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *    use by getObjectState()
+ *
  *  Revision 1.27  2004/01/07 22:33:29  millermi
  *  - Removed AxisOverlay2D.getPixelPoint(). Calculation of
  *    cursor value now done within the ControlColorScale's
@@ -382,6 +388,7 @@ public class AxisOverlay2D extends OverlayJPanel
     helper.getContentPane().add(scroll);
     WindowShower shower = new WindowShower(helper);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
   
  /**
@@ -470,10 +477,14 @@ public class AxisOverlay2D extends OverlayJPanel
  
  /**
   * This method will get the current values of the state variables for this
-  * object. These variables will be wrapped in an ObjectState. Keys will be
-  * put in alphabetic order.
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
   */ 
-  public ObjectState getObjectState()
+  public ObjectState getObjectState( boolean isDefault )
   {
     ObjectState state = new ObjectState();
     state.insert( AXES_DISPLAYED, new Integer(axesdrawn) );
@@ -484,8 +495,13 @@ public class AxisOverlay2D extends OverlayJPanel
     state.insert( GRID_DISPLAY_X, new Integer(gridxdisplay) );
     state.insert( GRID_DISPLAY_Y, new Integer(gridydisplay) );
     state.insert( PRECISION, new Integer(precision) );
-    state.insert( TWO_SIDED, new Boolean(isTwoSided) );
     state.insert( EDITOR_BOUNDS, editor_bounds );
+    
+    // load these for project specific instances.
+    if( !isDefault )
+    {
+      state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+    }
     
     return state;
   }
@@ -559,6 +575,7 @@ public class AxisOverlay2D extends OverlayJPanel
       editor = new AxisEditor();
       WindowShower shower = new WindowShower(editor);
       java.awt.EventQueue.invokeLater(shower);
+      shower = null;
       editor.toFront();
     }
   }

@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2004/01/29 08:16:27  millermi
+ *  - Updated the getObjectState() to include parameter for specifying
+ *    default state.
+ *  - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *    use by getObjectState()
+ *
  *  Revision 1.24  2004/01/03 04:36:12  millermi
  *  - help() now uses html tool kit to display text.
  *  - Replaced all setVisible(true) with WindowShower.
@@ -358,6 +364,7 @@ public class AnnotationOverlay extends OverlayJPanel
     helper.getContentPane().add(scroll);
     WindowShower shower = new WindowShower(helper);
     java.awt.EventQueue.invokeLater(shower);
+    shower = null;
   }
    
   /**
@@ -418,18 +425,27 @@ public class AnnotationOverlay extends OverlayJPanel
   
   /**
    * This method will get the current values of the state variables for this
-   * object. These variables will be wrapped in an ObjectState. Keys will be
-   * put in alphabetic order.
+   * object. These variables will be wrapped in an ObjectState.
+   *
+   *  @param  isDefault Should selective state be returned, that used to store
+   *			user preferences common from project to project?
+   *  @return if true, the default state containing user preferences,
+   *	      if false, the entire state, suitable for project specific saves.
    */ 
-   public ObjectState getObjectState()
+   public ObjectState getObjectState( boolean isDefault )
    {
      ObjectState state = new ObjectState();
-     state.insert( NOTES, notes );
      state.insert( LINE_COLOR, line_color );
      state.insert( TEXT_COLOR, text_color );
      state.insert( FONT, font );
      state.insert( DEFAULT_FONT, default_font );
      state.insert( EDITOR_BOUNDS, editor_bounds );
+    
+     // load these for project specific instances.
+     if( !isDefault )
+     {
+       state.insert( NOTES, notes );
+     }
      
      return state;
    }
@@ -493,6 +509,7 @@ public class AnnotationOverlay extends OverlayJPanel
       editor = new AnnotationEditor();
       WindowShower shower = new WindowShower(editor);
       java.awt.EventQueue.invokeLater(shower);
+      shower = null;
       editor.toFront();
     }
   }
@@ -769,6 +786,7 @@ public class AnnotationOverlay extends OverlayJPanel
       this.setLocation(place);
       WindowShower shower = new WindowShower(this);
       java.awt.EventQueue.invokeLater(shower);
+      shower = null;
       text.grabFocus();		
     }
  	  

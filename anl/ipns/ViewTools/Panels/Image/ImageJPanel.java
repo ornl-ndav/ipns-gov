@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2004/01/29 08:18:14  millermi
+ *  - Updated the getObjectState() to include parameter for specifying
+ *    default state.
+ *  - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *    use by getObjectState()
+ *
  *  Revision 1.21  2003/12/23 20:59:15  millermi
  *  - Fixed bug introduced in makeImage() that restricted temp > 0,
  *    now changed to temp > -(LOG_TABLE_SIZE-1) so negative values
@@ -233,15 +239,25 @@ public class ImageJPanel extends    CoordJPanel
  
  /**
   * This method will get the current values of the state variables for this
-  * object. These variables will be wrapped in an ObjectState. Keys will be
-  * put in alphabetic order.
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *		       user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *	     if false, the entire state, suitable for project specific saves.
   */ 
-  public ObjectState getObjectState()
+  public ObjectState getObjectState( boolean isDefault )
   {
-    ObjectState state = super.getObjectState(); //get ObjectState of CoordJPanel
+    //get ObjectState of CoordJPanel
+    ObjectState state = super.getObjectState(isDefault);
     state.insert( COLOR_MODEL, color_model_string );
     state.insert( LOG_SCALE, log_scale );
-    state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+    
+    // load these for project specific instances.
+    if( !isDefault )
+    {
+      state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+    }
     
     return state;
   }

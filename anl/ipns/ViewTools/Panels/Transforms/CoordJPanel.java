@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2004/01/29 08:18:14  millermi
+ *  - Updated the getObjectState() to include parameter for specifying
+ *    default state.
+ *  - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *    use by getObjectState()
+ *
  *  Revision 1.28  2004/01/09 20:31:31  serumb
  *  Added a method getLocalLogWorldCoords with
  *  parameters for x min and max and y min and max.
@@ -333,21 +339,30 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
  
   /**
    * This method will get the current values of the state variables for this
-   * object. These variables will be wrapped in an ObjectState. Keys will be
-   * put in alphabetic order.
+   * object. These variables will be wrapped in an ObjectState. 
+   *
+   *  @param  isDefault Should selective state be returned, that used to store
+   *			user preferences common from project to project?
+   *  @return if true, the default state containing user preferences,
+   *	      if false, the entire state, suitable for project specific saves.
    */ 
-  public ObjectState getObjectState()
+  public ObjectState getObjectState( boolean isDefault )
   {
     ObjectState state = new ObjectState();
-    state.insert( CURRENT_POINT, new Point(current_point) );
     state.insert( EVENT_LISTENING, new Boolean(isListening) );
-    state.insert( GLOBAL_BOUNDS, getGlobalWorldCoords().MakeCopy() );
     state.insert( HORIZONTAL_SCROLL, new Boolean(h_scroll) );
-    state.insert( LOCAL_BOUNDS, getLocalWorldCoords().MakeCopy() );
     if( preferred_size != null )
       state.insert( PREFERRED_SIZE, new Dimension(preferred_size) );
     state.insert( VERTICAL_SCROLL, new Boolean(v_scroll) );
-    state.insert( ZOOM_REGION, new Rectangle( zoom_region ) );
+    
+    // load these for project specific instances.
+    if( !isDefault )
+    {
+      state.insert( CURRENT_POINT, new Point(current_point) );
+      state.insert( GLOBAL_BOUNDS, getGlobalWorldCoords().MakeCopy() );
+      state.insert( LOCAL_BOUNDS, getLocalWorldCoords().MakeCopy() );
+      state.insert( ZOOM_REGION, new Rectangle( zoom_region ) );
+    }
     
     return state;
   }
@@ -1073,7 +1088,7 @@ public static void main(String[] args)
     f.getContentPane().add(panel);
     f.setVisible(true);
     
-    ObjectState os = panel.getObjectState();
+    ObjectState os = panel.getObjectState(IPreserveState.PROJECT);
     //os.reset(PREFERRED_SIZE, new Dimension(300,100));
     os.reset(EVENT_LISTENING, new Boolean(false));
     panel.setObjectState(os);

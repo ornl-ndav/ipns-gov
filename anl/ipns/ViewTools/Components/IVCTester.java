@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2004/01/29 08:16:25  millermi
+ * - Updated the getObjectState() to include parameter for specifying
+ *   default state.
+ * - Added static variables DEFAULT and PROJECT to IPreserveState for
+ *   use by getObjectState()
+ *
  * Revision 1.11  2004/01/07 22:35:15  millermi
  * - main() now sets negative values in the VirtualArray to
  *   allow for better testing.
@@ -122,6 +128,7 @@ import DataSetTools.components.containers.SplitPaneWithState;
 import DataSetTools.components.View.Transparency.SelectionOverlay;
 import DataSetTools.components.View.Region.Region;
 import DataSetTools.components.View.ViewControls.PanViewControl;
+import DataSetTools.util.SharedData;
 
 /**
  * Simple class to display an image, specified by an IVirtualArray2D or a 
@@ -150,7 +157,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     menu_bar = new JMenuBar();
     setJMenuBar(menu_bar);
     state = new ObjectState();
-    state.setProjectsDirectory("/home/mike");
+    state.setProjectsDirectory(SharedData.getProperty("Data_Directory"));
     // build File menu 
     Vector file = new Vector();
     Vector new_menu = new Vector();
@@ -213,16 +220,31 @@ public class IVCTester extends JFrame implements IPreserveState,
     setData(temp);
     setVisible(true);
   }
-  
+    
+ /**
+  * This method will set the current state variables of the object to state
+  * variables wrapped in the ObjectState passed in.
+  *
+  *  @param  new_state
+  */
   public void setObjectState( ObjectState new_state )
   {
     ivc.setObjectState(new_state);
     //repaint();
   }
   
-  public ObjectState getObjectState()
+ /**
+  * This method will get the current values of the state variables for this
+  * object. These variables will be wrapped in an ObjectState.
+  *
+  *  @param  isDefault Should selective state be returned, that used to store
+  *                    user preferences common from project to project?
+  *  @return if true, the default state containing user preferences,
+  *          if false, the entire state, suitable for project specific saves.
+  */ 
+  public ObjectState getObjectState( boolean isDefault )
   {
-    return ivc.getObjectState();
+    return ivc.getObjectState(isDefault);
   }
   
  /**
@@ -332,12 +354,12 @@ public class IVCTester extends JFrame implements IPreserveState,
       }
       else if( ae.getActionCommand().equals("Save State") )
       {
-        state = ivc.getObjectState();
+        state = ivc.getObjectState(IPreserveState.PROJECT);
 	state.openFileChooser(true);
       }
       else if( ae.getActionCommand().equals("Load State") )
       {
-        state = ivc.getObjectState();
+        state = ivc.getObjectState(IPreserveState.PROJECT);
 	state.openFileChooser(false);
 	setObjectState(state);
       }
@@ -402,8 +424,8 @@ public class IVCTester extends JFrame implements IPreserveState,
     			"TestY","TestYUnits", false );
     va2D.setTitle("ImageFrame Test");
     IVCTester im_frame = new IVCTester( va2D );
-    im_frame.getObjectState().reset( ImageViewComponent.LOG_SCALE, 
-                                     new Double(.5) );
+    im_frame.getObjectState(IPreserveState.PROJECT).reset( 
+                        ImageViewComponent.LOG_SCALE, new Double(.5) );
     /*
     // test setData() 10 times
     for( int x = 0; x < 20; x++ )
