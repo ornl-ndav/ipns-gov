@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.28  2004/03/12 03:31:47  dennis
+ * Moved to package gov.anl.ipns.ViewTools.Components.ViewControls
+ *
  * Revision 1.27  2004/03/12 02:55:56  millermi
  * - Changed package, fixed most of the imports.
  *
@@ -126,6 +129,8 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
 
 //import DataSetTools.components.ParametersGUI.*;
 //import DataSetTools.components.ui.*;
+import gov.anl.ipns.ViewTools.UI.*; 
+import gov.anl.ipns.ViewTools.Panels.Transforms.*; 
 import gov.anl.ipns.ViewTools.Components.*;  // IVirtualArray1D
 import gov.anl.ipns.ViewTools.Components.OneD.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;  //Axis Overlays
@@ -1013,8 +1018,10 @@ import javax.swing.border.*;
               note.setTwoSided(false);
               gjp.setLogScaleX(false);
               gjp.setLogScaleY(false);
-              ((DataSetData)Varray1D).set_x_linear(true);
-              ((DataSetData)Varray1D).set_y_linear(true);
+//              Varray1D.set_x_linear(true);
+//              Varray1D.set_y_linear(true);
+  //            ((DataSetData)Varray1D).set_x_linear(true);
+  //            ((DataSetData)Varray1D).set_y_linear(true);
               paintComponents( big_picture.getGraphics(  ) );
             }
             else if( LogBox.getSelectedItem().equals( "X" ))
@@ -1024,7 +1031,8 @@ import javax.swing.border.*;
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(false);
-              ((DataSetData)Varray1D).set_x_linear(false);
+//              Varray1D.set_x_linear(false);
+  //          ((DataSetData)Varray1D).set_x_linear(false);
               paintComponents( big_picture.getGraphics(  ) );
             }  
             else if( LogBox.getSelectedItem().equals( "Y" ))
@@ -1034,7 +1042,8 @@ import javax.swing.border.*;
               note.setTwoSided(false);
               gjp.setLogScaleY(true);
               gjp.setLogScaleX(false);
-              ((DataSetData)Varray1D).set_y_linear(false);
+//              Varray1D.set_y_linear(false);
+  //          ((DataSetData)Varray1D).set_y_linear(false);
               paintComponents( big_picture.getGraphics(  ) );
             }  
             else if( LogBox.getSelectedItem().equals( "X and Y" ))
@@ -1044,8 +1053,10 @@ import javax.swing.border.*;
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(true);
-              ((DataSetData)Varray1D).set_x_linear(false);
-              ((DataSetData)Varray1D).set_y_linear(false);
+//              Varray1D.set_x_linear(false);
+//              Varray1D.set_y_linear(false);
+  //          ((DataSetData)Varray1D).set_x_linear(false);
+  //          ((DataSetData)Varray1D).set_y_linear(false);
               paintComponents( big_picture.getGraphics(  ) );
 
             }
@@ -1098,7 +1109,7 @@ import javax.swing.border.*;
  */
 
    public static void main( String[] args ) {
-
+/*
     DataSet[] DSS = ( new IsawGUI.Util(  ) ).loadRunfile( 
            "/IPNShome/serumb/ISAW/SampleRuns/GPPD12358.RUN" );    
    
@@ -1131,6 +1142,7 @@ import javax.swing.border.*;
     FunctionControls fcontrols = new FunctionControls(Varray1D, graph_panel,
                                                       main_panel, fvc); 
     fcontrols.display_controls();
+*/
   }  
 
    private void paintComponents( Graphics g ) {
