@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2004/08/04 23:06:11  dennis
+ * No longer includes empty hit records in list of hit records.
+ * Now controls swapping the back buffer: setAutoSwapBufferMode(false)
+ * so buffers are not swapped when rendering for GL Select mode.
+ * Put some more debug prints in if (debug) statements.
+ * Removed some redundant calls to set glMatrixMode(), etc.
+ *
  * Revision 1.14  2004/08/04 16:04:43  dennis
  * Added main program to test basic functionality.
  *
@@ -123,15 +130,15 @@ import net.java.games.jogl.util.*;
 
 public class ThreeD_GL_Panel implements Serializable
 {
-  private boolean       debug = true;
+  private static boolean debug = false;
 
-  private static Vector old_list_ids = null;
+  private static Vector  old_list_ids = null;
 
-  private GLCanvas      canvas;
+  private GLCanvas       canvas;
 
-  private Color         background = Color.BLACK;
+  private Color          background = Color.BLACK;
 
-  private Hashtable     obj_lists     = null;   // Hastable storing, object[]
+  private Hashtable      obj_lists     = null;  // Hastable storing, object[]
                                                 // lists referenced by name
 
   private IThreeD_GL_Object picked_object = null;   // last object picked
@@ -183,7 +190,7 @@ public class ThreeD_GL_Panel implements Serializable
         System.out.println("capabilites = " + capabilities );
 
       canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
-//      canvas.setAutoSwapBufferMode(false);
+      canvas.setAutoSwapBufferMode(false);
       canvas.addGLEventListener(new Renderer());
     }
     catch (Exception e)
@@ -194,6 +201,8 @@ public class ThreeD_GL_Panel implements Serializable
     obj_lists = new Hashtable();
     old_list_ids = new Vector();
 
+    if ( debug )
+      canvas.addMouseListener( new MouseClickHandler() );
   }
 
 
@@ -404,16 +413,23 @@ public HitRecord[] pickHitList( int x, int y )
   canvas.display();         // this will cause Renderer.display(drawable) to be
                             // called with the correct drawable, GL and thread
 
-  int hits[] = new int[6*n_hits];
+  int hits[] = new int[ HIT_BUFFER_SIZE ];
   hit_buffer.get( hits );
 
-  HitRecord hit_recs[] = new HitRecord[n_hits];
+  Vector    hit_list = new Vector();
+  HitRecord hit_rec;
   int start = 0;
-  for ( int i = 0; i < hit_recs.length; i++ )
+  for ( int i = 0; i < n_hits; i++ )
   {
-    hit_recs[i] = new HitRecord( hits, start );
+    hit_rec = new HitRecord( hits, start );
+    if ( hit_rec.numNames() > 0 )
+      hit_list.add( hit_rec );
     start += hits[ start ] + 3;
   }
+
+  HitRecord hit_recs[] = new HitRecord[ hit_list.size() ];
+  for ( int i = 0; i < hit_recs.length; i++ )
+    hit_recs[i] = (HitRecord)hit_list.elementAt(i);
 
   return hit_recs;
 }
@@ -706,6 +722,11 @@ public float[] pickedWorldCoordinates( int x, int y )
                          int width,
                          int height)
     {
+      if ( debug )
+        System.out.println("reshape called: persp = " + use_perspective_proj +
+                           ", select = " + do_select +
+                           ", locate = " + do_locate );
+
       GL  gl  = drawable.getGL();
 
       gl.glViewport( 0, 0, width, height );
@@ -733,8 +754,8 @@ public float[] pickedWorldCoordinates( int x, int y )
         float half_w = half_h * width/(float)height;
         gl.glOrtho( -half_w, half_w, -half_h, half_h, near_plane, far_plane );
       }
-    
-      gl.glFlush();
+
+      gl.glMatrixMode(GL.GL_MODELVIEW);
     }
 
 
@@ -758,6 +779,10 @@ public float[] pickedWorldCoordinates( int x, int y )
      */
     synchronized public void display(GLDrawable drawable)
     {
+      if ( debug )
+        System.out.println("display called: persp = " + use_perspective_proj +
+                           ", select = " + do_select +
+                           ", locate = " + do_locate );
       GL gl = drawable.getGL();
  
                              // Clean up any old display lists that are no 
@@ -765,7 +790,6 @@ public float[] pickedWorldCoordinates( int x, int y )
                              // resources used by the lists.  We do this here, 
                              // to be sure that we have a valid "gl", run from
                              // the correct thread.
-                             //
       int old_lists[] = ChangeOldLists( GL_Shape.INVALID_LIST_ID );
       if ( old_lists != null )
         for ( int i = 0; i < old_lists.length; i++ )
@@ -773,20 +797,21 @@ public float[] pickedWorldCoordinates( int x, int y )
 
                              // return quickly if the the region is degenerate
                              // or if the list of objects is empty
-                             //
       Dimension size = drawable.getSize();
       if ( size.width <= 0 || size.height <= 0 )
       {
-        System.out.println("ERROR: Drawable has zero area");
+        if ( debug )
+          System.out.println("ERROR: Drawable has zero area");
         return;
       }
       if ( drawable instanceof GLCanvas && !((GLCanvas)drawable).isShowing() )
       {
-        System.out.println("ERROR: Drawable not visible yet");
+        if ( debug )
+          System.out.println("ERROR: Drawable not visible yet");
         return;
       }
-
-      if ( do_locate )
+                                      // if just locating 3D point, get the
+      if ( do_locate )                // projection info, unproject, and return
       {
         float depths[] = new float[1];
         gl.glReadPixels( cur_x, size.height-cur_y, 
@@ -796,13 +821,8 @@ public float[] pickedWorldCoordinates( int x, int y )
                          depths ); 
         float cur_z = depths[0];
 
-        gl.glMatrixMode( GL.GL_PROJECTION );
-        gl.glPushMatrix();
-        gl.glLoadIdentity();
         int    viewport[] = new int[4];  
         gl.glGetIntegerv( GL.GL_VIEWPORT, viewport ); 
-        reshape(drawable, viewport[0], viewport[1], viewport[2], viewport[3]);
-
         double model_view_mat[] = new double[16];
         double projection_mat[] = new double[16];
         gl.glGetDoublev( GL.GL_MODELVIEW_MATRIX, model_view_mat ); 
@@ -818,16 +838,18 @@ public float[] pickedWorldCoordinates( int x, int y )
         world_coords[2] = (float)world_z[0];
 
         do_locate = false;
-        gl.glPopMatrix();
         return;
       }
-
+                                          // At this point we'll clear and draw 
+                                          // all of the objects in our list,
+                                          // if the list is not empty.
       IThreeD_GL_Object list[] = getAllObjects();
 
       gl.glClearColor( background.getRed()/256.0f, 
                        background.getGreen()/256.0f,
                        background.getBlue()/256.0f,
                        0.0f);
+
       if ( list == null || list.length == 0 )
       {
         if ( debug )
@@ -836,9 +858,12 @@ public float[] pickedWorldCoordinates( int x, int y )
         gl.glFlush();
         return; 
       }
+                                          // Finally we're ready to draw, either
+                                          // to actually display, or for 
+                                          // OpenGL selection to pick objects.
 
-      if ( do_select )                     // get ready to do the drawing 
-      {                                    // in select mode, not render mode
+      if ( do_select )                    // Get ready to do the drawing 
+      {                                   // in select mode, not render mode.
         n_hits = 0;
         for ( int i = 0; i < HIT_BUFFER_SIZE; i++ )
           hit_buffer.put( i, 0 );
@@ -851,7 +876,6 @@ public float[] pickedWorldCoordinates( int x, int y )
 
       gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT );
       reshape( drawable, 0, 0, size.width, size.height ); 
-      gl.glMatrixMode(GL.GL_MODELVIEW);
       gl.glLoadIdentity();
 
       if ( !do_select )                    // only need lighting for actual
@@ -889,17 +913,17 @@ public float[] pickedWorldCoordinates( int x, int y )
         else
           list[i].Render( drawable );
 
-      gl.glFlush();
-
       if ( do_select )                            // switch back to render mode
       {                                           // to get the number of hits
         n_hits = gl.glRenderMode( GL.GL_RENDER );
-        n_hits--;                                 // #### this should not be
-                                                  // needed, but it seems we
-                                                  // are getting an extra hit
         do_select = false; 
         if ( debug )
           System.out.println("n_hits = " + n_hits );
+      }
+      else
+      {                           // we only get here if we actually did a new
+        gl.glFlush();             // drawing (not locate, not select), so now
+        canvas.swapBuffers();     // we can swap the buffers
       }
     }
   }
@@ -926,7 +950,6 @@ public float[] pickedWorldCoordinates( int x, int y )
            System.out.println("World Coordinates " + wc[0] + 
                                               ", " + wc[1] +
                                               ", " + wc[2] );
-
            // Test object selection ......
 
            HitRecord hitlist[] = pickHitList( x, y );           
@@ -949,6 +972,7 @@ public float[] pickedWorldCoordinates( int x, int y )
       ThreeD_GL_Panel panel = new ThreeD_GL_Panel();
       JFrame frame = new JFrame( "ThreeD_GL_Panel" );
       frame.setSize(500,500);
+      frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
       frame.getContentPane().add( panel.getDisplayComponent() );
                      
                                                      // add objects and show 
