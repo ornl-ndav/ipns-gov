@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/06/13 19:44:05  serumb
+ *  Added messages for the LabelCombobox and ButtonControl classes.
+ *
  *  Revision 1.2  2003/05/24 17:34:39  dennis
  *  Changed action event string for ControlSlider and added the
  *  action event string for ControlCheckbox. (Mike Miller)
@@ -62,6 +65,10 @@ public interface IViewControl
    public static final String SLIDER_CHANGED  = "SLIDER_CHANGED";
    // Used by ControlCheckBox.java
    public static final String CHECKBOX_CHANGED  = "CHECKBOX_CHANGED";
+   // Used by LabelCombobox.java
+   public static final String COMBOBOX_CHANGED  = "COMBOBOX_CHANGED";
+   // Used by ButtonControl.java
+   public static final String BUTTON_PRESSED  = "BUTTON_PRESSED";
    
   /**
    * Add a listener to this view control. A listener will be notified
