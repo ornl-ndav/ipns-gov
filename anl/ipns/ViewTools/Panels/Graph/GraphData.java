@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2003/06/16 23:20:32  dennis
+ * Initializes the stroke field with a new BasicStroke(1).
+ *
  * Revision 1.7  2003/06/13 19:47:29  serumb
  * Added a variable for point marker size and initialized the mark color to red.
  *
@@ -58,6 +61,6 @@ public class GraphData implements Serializable
   public int    marktype  = 0;
   public Color  markcolor = Color.red;
   public int    marksize  = 1;
-  public BasicStroke Stroke;
+  public BasicStroke Stroke = new BasicStroke(1);
 }
 
