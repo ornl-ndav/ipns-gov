@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/19 20:27:46  millermi
+ *  - Now extends IPreserveState, thus requiring all view components
+ *    to have methods get/setObjectState().
+ *
  *  Revision 1.5  2004/03/15 23:53:50  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -71,7 +75,7 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.*;
  * Any class that implements this interface will interpret and display
  * data in a usable form. Examples include images, tables, and graphs.
  */
-public interface IViewComponent
+public interface IViewComponent extends IPreserveState
 {
  /*
   * These variables are messaging strings for use by action listeners.
