@@ -3,9 +3,13 @@ import DataSetTools.dataset.*;
 import javax.swing.*;
 import java.awt.event.*;
 
+
+
 public class DataSetData implements IVirtualArray1D
   {
-    DataSet ds;
+     public DataSet ds;
+  
+ 
    
     int[]  selectedInd ;
    float maxy;
@@ -206,5 +210,6 @@ public class DataSetData implements IVirtualArray1D
     {
 
     }
+
 
   }
