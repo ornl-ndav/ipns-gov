@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.38  2003/11/18 22:32:42  millermi
+ *  - Added functionality to allow cursor events to be
+ *    traced by the ControlColorScale.
+ *
  *  Revision 1.37  2003/11/18 00:58:43  millermi
  *  - Now implements Serializable, requiring many private variables
  *    to be made transient.
@@ -1345,6 +1349,21 @@ public class ImageViewComponent implements IViewComponent2D,
 
       if (message == CoordJPanel.CURSOR_MOVED)
       {
+        // If calibrated color scales are included, this will cause the
+	// current point to be traced by those color scales.
+        if( addColorControlSouth )
+	{
+	  JPanel south = (JPanel)background.getComponent(3);
+	  ControlColorScale cs = (ControlColorScale)south.getComponent(1);
+	  cs.setMarker( ijp.ImageValue_at_Cursor() );
+	}
+        if( addColorControlEast )
+	{
+	  ControlColorScale east = 
+	           (ControlColorScale)background.getComponent(4);
+	  east.setMarker( ijp.ImageValue_at_Cursor() );
+	}
+	
 	sendMessage(POINTED_AT_CHANGED);
       }
       else if (message == CoordJPanel.ZOOM_IN)
@@ -1679,7 +1698,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	dynamicregionlist.clear();
       sendMessage( ae.getActionCommand() );
     }
-  }   
+  }
      
  /*
   * MAIN - Basic main program to test an ImageViewComponent object

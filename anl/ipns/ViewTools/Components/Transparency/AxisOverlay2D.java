@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2003/11/18 22:32:41  millermi
+ *  - Added functionality to allow cursor events to be
+ *    traced by the ControlColorScale.
+ *
  *  Revision 1.18  2003/11/18 01:00:17  millermi
  *  - Made non-save dependent private variables transient.
  *
@@ -123,7 +127,8 @@ import DataSetTools.components.View.*;
 import DataSetTools.components.View.TwoD.IAxisAddible2D;
 import DataSetTools.components.View.TwoD.ILogAxisAddible2D;
 import DataSetTools.components.View.TwoD.ImageViewComponent;
-import DataSetTools.util.Format; 
+import DataSetTools.util.Format;
+import DataSetTools.util.floatPoint2D; 
 import java.lang.Math;
 
 /**
@@ -539,6 +544,77 @@ public class AxisOverlay2D extends OverlayJPanel
   }
  
  /**
+  * This method is used to convert a data value to a pixel value. This method
+  * is ONLY IMPLEMENTED FOR LOGARITHMIC CONVERSION, not linear conversions.
+  *
+  *  @param  value - the value needing to be converted to a point
+  *  @return pixel_pt - the pixel point representing this value.
+  */ 
+  public Point getPixelPoint( float value )
+  {
+    Point pixel_pt = new Point();
+    
+    CalibrationUtil util = new CalibrationUtil( xmin, xmax, precision, 
+						Format.ENGINEER );
+    CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
+        					 Format.ENGINEER );
+    
+    if( !drawXLinear )
+    {
+      LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
+      double logscale = ((ILogAxisAddible2D)component).getLogScale();
+      pixel_pt.x = (int)logger.toSource(value, logscale);
+    }
+    
+    if( !drawYLinear )
+    {
+      LogScaleUtil logger = new LogScaleUtil( 0, yaxis, ymax, ymin + 1);
+      double logscale = ((ILogAxisAddible2D)component).getLogScale(); 
+      pixel_pt.y = yaxis - (int)logger.toSource(value, logscale) - 1;
+    }
+    /* this code was to handle both linear and log, but since log is
+     * the only thing needed right now, that is all that will be implemented.
+    // for x axis, either linear or log
+    if( drawXLinear )
+    {
+      float[] values = util.subDivide();
+      float start = values[1];
+      pixel_pt.x = (int)( (float)xaxis*(value + start - xmin)/
+                          (xmax-xmin) + xstart ); 
+    }
+    else
+    {
+      LogScaleUtil logger = new LogScaleUtil( 0, xaxis,xmin, xmax + 1);
+      double logscale = ((ILogAxisAddible2D)component).getLogScale();
+ 
+      //pixel_pt.x = xstart + (int)logger.toSource(value, logscale);
+      pixel_pt.x = (int)logger.toSource(value, logscale);
+    }
+    
+    // for y axis, either linear or log
+    if( drawYLinear )
+    {
+      float[] values = yutil.subDivide();
+      float starty = values[1];
+      float pmin = ystart + yaxis;
+      float pmax = ystart;
+      float amin = ymin - starty;
+    
+      pixel_pt.y =  (int)( (pmax - pmin) * ( value - amin) /
+          	       (ymax - ymin) + pmin); 
+    }
+    else
+    {
+      LogScaleUtil logger = new LogScaleUtil( 0, yaxis, ymax, ymin + 1);
+      double logscale = ((ILogAxisAddible2D)component).getLogScale();
+      //pixel_pt.y = ystart + yaxis - (int)logger.toSource(value, logscale); 
+      pixel_pt.y = yaxis - (int)logger.toSource(value, logscale) - 1;
+    }
+    */
+    return pixel_pt;
+  }
+ 
+ /**
   * This method creates tick marks and numbers for this transparency.
   * These graphics will overlay onto a jpanel.
   *
@@ -913,11 +989,6 @@ public class AxisOverlay2D extends OverlayJPanel
        int numxsteps = values.length;	     
   //   System.out.println("X ticks = " + numxsteps );	     
        int pixel = 0;
-       /* xaxis represents Pmax - Pmin
-       float Pmin = start;
-       float Pmax = start + xaxis;
-       float Amin = xmin;
-       */
        float A = 0; 
        int skip = 1;
        int counter = 0;
