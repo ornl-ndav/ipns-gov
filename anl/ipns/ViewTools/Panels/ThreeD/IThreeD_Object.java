@@ -31,9 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2001/05/23 17:31:43  dennis
+ * Added clipping using front clipping plane between COP and VRP
+ *
  * Revision 1.1  2001/05/08 21:04:50  dennis
  * Interface for objects that can be drawn by a ThreeD_JPanel.
- *
  *
  */
 
@@ -73,8 +75,13 @@ public static final int INVALID_PICK_ID = -1;
    *
    *  @param  window_tran  The 2D transform that maps the virtual viewing
    *                       screen to the pixel coordinates for a window.
+   *
+   *  @param  front_clip   The distance from the virtual viewing screen 
+   *                       (at the VRP) to the front clipping plane.  
    */
-  public void Project( Tran3D projection, CoordTransform window_tran );
+  public void Project( Tran3D         projection, 
+                       CoordTransform window_tran,
+                       float          front_clip   );
 
 
   /**

@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2001/05/23 17:31:48  dennis
+ * Added clipping using front clipping plane between COP and VRP
+ *
  * Revision 1.1  2001/05/08 21:05:45  dennis
  * Abstract base class for Polygons, Polylines, etc., that can be
  * drawn by a ThreeD_JPanel.
@@ -102,21 +105,36 @@ abstract public class ThreeD_Object implements IThreeD_Object
    *
    *  @param  window_tran  The 2D transform that maps the virtual viewing
    *                       screen to the pixel coordinates for a window.
+   *
+   *  @param  front_clip   The distance from the virtual viewing screen 
+   *                       (at the VRP) to the front clipping plane.   
    */
-  public void Project( Tran3D projection, CoordTransform window_tran )
+  public void Project( Tran3D         projection, 
+                       CoordTransform window_tran,
+                       float          front_clip )
   {
     if ( vertices == null || vertices.length == 0 )
     {
       System.out.println( "Error: no vertices in ThreeD_Object.Project()" );
+      return;
     }
 
+    if ( projection == null || window_tran == null )
+    {
+      System.out.println( "Error: no transform in ThreeD_Object.Project()" );
+      return;
+    }
+    
     Vector3D point = new Vector3D();
     float    coords[];
     float    sum = 0;
+    clipped = false;
 
     for ( int i = 0; i < vertices.length; i++ )        // project each vertex
     { 
       projection.apply_to( vertices[i], point );
+      if ( point.get()[2] >= front_clip )
+        clipped = true;
       point.standardize();
 
       coords = point.get();
@@ -132,8 +150,6 @@ abstract public class ThreeD_Object implements IThreeD_Object
     bounding_box.setBounds( x, y );
     if ( bounding_box.intersect( window_tran.getSource() ) == null )
       clipped = true;
-    else
-      clipped = false;
 
     window_tran.MapTo( x, y );
   }

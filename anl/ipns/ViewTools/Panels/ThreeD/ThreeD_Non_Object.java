@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2001/05/23 17:31:46  dennis
+ * Added clipping using front clipping plane between COP and VRP
+ *
  * Revision 1.1  2001/05/09 21:06:26  dennis
  * "Dummy" 3D object to use as a place holder in a list of
  * IThreeD_Objects.  This object is invisible and it methods
@@ -63,7 +66,9 @@ public class ThreeD_Non_Object implements IThreeD_Object
   /**
    *  This has no effect. 
    */
-  public void Project( Tran3D projection, CoordTransform window_tran )
+  public void Project( Tran3D         projection,   
+                       CoordTransform window_tran,
+                       float          front_clip  )
   {
   }
 
