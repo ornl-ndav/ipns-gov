@@ -30,6 +30,9 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.4  2003/03/14 20:48:27  dennis
+ *  Clarified options on the rebin combo box.
+ *
  *  Revision 1.3  2003/03/07 22:53:15  dennis
  *  Now implements IObservable.
  *  Now gets initial values for the rebin factor and
@@ -87,12 +90,12 @@ public class PartialDS_Selector implements IObservable
   private IObserverList  observers; 
 
   private final String rebin_option_list[] = { "No Rebinning",
-                                               "Combine 2 Bins",
-                                               "Combine 5 Bins",
-                                               "Combine 10 Bins",
-                                               "Combine 20 Bins",
-                                               "Combine 50 Bins",
-                                               "Combine 100 Bins",
+                                               "Combine 2 Adjacent Bins",
+                                               "Combine 5 Adjacent Bins",
+                                               "Combine 10 Adjacent Bins",
+                                               "Combine 20 Adjacent Bins",
+                                               "Combine 50 Adjacent Bins",
+                                               "Combine 100 Adjacent Bins",
                                                "Total Counts"     };
   private final int rebin_code[] = { 1,2,5,10,20,50,100,Integer.MAX_VALUE };
 
