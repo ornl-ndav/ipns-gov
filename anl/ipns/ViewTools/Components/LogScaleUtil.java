@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/07/29 16:44:08  robertsonj
+ *  added some comments and javadocs
+ *
  *  Revision 1.8  2004/07/28 19:37:51  robertsonj
  *  added truLogScale which scales numbers to a logarithmic scale
  *  added truLogCoord which is the invers of truLogScale
@@ -277,12 +280,25 @@ public class LogScaleUtil
 public float returna(float num){
 	return (dest_max - dest_min)/((float)Math.log(dest_max/dest_min));
 }
+
+/**
+  * This method maps a single linear number into a single logrithmic number.
+  *@param num
+  *  @return  a number scaled logrithmically.
+  */
 public float truLogScale(float num){
 	float returnvalue = 0;
 	float a = (dest_max - dest_min)/((float)Math.log(dest_max/dest_min));
 	returnvalue = a*(float)Math.log(num/dest_min);
 	return returnvalue;
 }
+
+/**
+  * This method maps a single log scale number into a single linear number
+  * @param num
+  *
+  *  @return  a linear scaled number.
+  */
 public float truLogCoord(float num)
 {   
 
