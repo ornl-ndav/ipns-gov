@@ -31,6 +31,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2002/08/05 19:00:32  pfpeterson
+ *  Added reading of fixed format text files. Most of the original
+ *  methods were cloned with a new parameter specifying how many
+ *  characters to read. Also updated the documentation across the
+ *  entire file.
+ *
  *  Revision 1.8  2002/08/02 15:28:40  dennis
  *  skip_blanks now sets mark with larger buffer size limit.
  *
@@ -85,6 +91,8 @@ public class TextFileReader
 {
   public  static final String EOF = "End of file"; // string used to construct 
                                                    // the EOF exception 
+  public  static final String EOL = "End of line"; // string used to construct
+                                                   // the end-of-line exception
 
   private int                 look_ahead =(int)' ';// One char buffer
   private int                 pre_mark_ch;         // Saved buffer before mark
@@ -286,12 +294,10 @@ public class TextFileReader
   public String read_String() throws IOException
   {
     byte buffer[] = new byte[BUFFER_SIZE];
-    int  ch;
     int  n = 0;
 
     skip_blanks();
 
-    n = 0;
     while ( !Character.isWhitespace( (char)look_ahead ) && 
              look_ahead >= 0                            &&     // -1 is EOF
              n  < BUFFER_SIZE                            )
@@ -307,6 +313,37 @@ public class TextFileReader
       throw new IOException( EOF );
   }
 
+    /**
+     * Read a sequence of characters from the file, starting at the
+     * current position in the file. This is intended for use with
+     * fixed format files.
+     *
+     * @param n_char The number of characters to read in.
+     *
+     * @return A String consisting of the specified number of characters.
+     *
+     * @throws IOException with the message TextFileReader.EOF, if the
+     *         end of the file has been reached or TextFileReader.EOL
+     *         if the end of the line has been reached.
+     */
+    public String read_String(int n_char) throws IOException{
+        byte buffer[]=new byte[n_char];
+        int chr=(int)' ';
+
+        in.mark( BUFFER_SIZE );
+        for( int i=0 ; i<n_char ; i++ ){
+            chr=getc();
+            if(chr=='\n'){
+                throw new IOException( EOL );
+            }else if(chr>=0){
+                buffer[i]=(byte)chr;
+            }else{
+                throw new IOException(EOF);
+            }
+        }
+        return new String(buffer,0,n_char);
+    }
+
   /* -------------------------- read_int ---------------------------- */
   /**
    *  Read a sequence of non-whitespace characters from the file, starting at
@@ -317,12 +354,38 @@ public class TextFileReader
    *          characters in the file.
    *
    *  @throws IOException with the message TextFileReader.EOF, if the end
-   *          of file has been reached, or a NumberFormatException, if the
-   *          characters don't represent an int.
+   *          of file has been reached.
+   *
+   *  @throws NumberFormatException if the characters don't represent
+   *          an int.
    */
   public int read_int() throws IOException, NumberFormatException
   {
     String s = read_String();
+    int val = (new Integer( s )).intValue();
+    return val;
+  }
+
+  /**
+   *  Read a sequence of characters from the file, starting at the
+   *  current position in the file and construct an int value from the
+   *  the characters, if possible.
+   *
+   *  @param n_char The number of characters to read in.
+   *
+   *  @return The int value represented by the next sequence of
+   *          characters in the file.
+   *
+   *  @throws IOException with the message TextFileReader.EOF, if the
+   *          end of the file has been reached or TextFileReader.EOL
+   *          if the end of the line has been reached.
+   *
+   *  @throws NumberFormatException if the characters don't represent
+   *          an int.
+   */
+  public int read_int(int n_char) throws IOException, NumberFormatException{
+    String s = read_String(n_char);
+    s        = s.trim();
     int val = (new Integer( s )).intValue();
     return val;
   }
@@ -337,12 +400,37 @@ public class TextFileReader
    *          characters in the file.
    *
    *  @throws IOException with the message TextFileReader.EOF, if the end
-   *          of file has been reached, or a NumberFormatException, if the
-   *          characters don't represent a float.
+   *          of file has been reached.
+   *  @throws NumberFormatException if the characters don't represent
+   *          a float.
    */
   public float read_float() throws IOException, NumberFormatException
   {
     String s = read_String();
+    float val = (new Float( s )).floatValue();
+    return val;
+  }
+
+  /**
+   *  Read a sequence of characters from the file, starting at the
+   *  current position in the file and construct a float value from
+   *  the the characters, if possible.
+   *
+   *  @param n_char The number of characters to read in.
+   *
+   *  @return The float value represented by the next sequence of
+   *          characters in the file.
+   *
+   *  @throws IOException with the message TextFileReader.EOF, if the
+   *          end of the file has been reached or TextFileReader.EOL
+   *          if the end of the line has been reached.
+   *
+   *  @throws NumberFormatException, if the characters don't represent
+   *          a float.
+   */
+  public float read_float(int n_char) throws IOException, NumberFormatException{
+    String s = read_String(n_char);
+    s        = s.trim();
     float val = (new Float( s )).floatValue();
     return val;
   }
@@ -358,12 +446,39 @@ public class TextFileReader
    *          characters in the file.
    *
    *  @throws IOException with the message TextFileReader.EOF, if the end
-   *          of file has been reached, or a NumberFormatException, if the
-   *          characters don't represent a double.
+   *          of file has been reached.
+   *
+   *  @throws NumberFormatException if the characters don't represent
+   *          a double.
    */
   public double read_double() throws IOException, NumberFormatException
   {
     String s = read_String();
+    double val = (new Double( s )).doubleValue();
+    return val;
+  }
+
+  /**
+   *  Read a sequence of characters from the file, starting at the
+   *  current position in the file and construct a double value from
+   *  the the characters, if possible.
+   *
+   *  @param n_char The number of characters to read in.
+   *
+   *  @return The double value represented by the next sequence of
+   *          characters in the file.
+   *
+   *  @throws IOException with the message TextFileReader.EOF, if the
+   *          end of the file has been reached or TextFileReader.EOL
+   *          if the end of the line has been reached.
+   *
+   *  @throws NumberFormatException if the characters don't represent
+   *          a double.
+   */
+  public double read_double(int n_char) throws IOException,
+                                               NumberFormatException{
+    String s = read_String(n_char);
+    s        = s.trim();
     double val = (new Double( s )).doubleValue();
     return val;
   }
@@ -386,6 +501,30 @@ public class TextFileReader
   public boolean read_boolean() throws IOException
   {
     String s = read_String();
+    boolean val = (new Boolean( s )).booleanValue();
+    return val;
+  }
+
+  /**
+   *  Read a sequence of characters from the file, starting at the
+   *  current position in the file and construct a boolean value from
+   *  the the characters.
+   *
+   *  @param n_char The number of characters to read in.
+   *
+   *  @return The boolean value represented by the next sequence of
+   *          characters in the file.  The value is "true" if the
+   *          sequence of non-blank characters matches "true" ignoring
+   *          case and is false otherwise.
+   *
+   *  @throws IOException with the message TextFileReader.EOF, if the
+   *          end of the file has been reached or TextFileReader.EOL
+   *          if the end of the line has been reached.
+   */
+  public boolean read_boolean(int n_char) throws IOException
+  {
+    String s = read_String(n_char);
+    s        = s.trim();
     boolean val = (new Boolean( s )).booleanValue();
     return val;
   }
@@ -487,8 +626,7 @@ public class TextFileReader
       f.unread();
       b = f.read_boolean();
       System.out.println("boolean val again: " + b );
-      b = f.read_boolean();
-      System.out.println("boolean val: " + b );
+      f.read_line();
     
       f_num = f.read_float();
       System.out.println("float value is " + f_num );
@@ -502,12 +640,12 @@ public class TextFileReader
       i_num = f.read_int();
       System.out.println("int value again is " + i_num );
 
-      f.skip_blanks();
-      ch = f.read_char();
-      System.out.println("char value is " + ch );
-      f.unread();
-      ch = f.read_char();
-      System.out.println("char value again is " + ch );
+      /*f.skip_blanks();
+        ch = f.read_char();
+        System.out.println("char value is " + ch );
+        f.unread();
+        ch = f.read_char();
+        System.out.println("char value again is " + ch );*/
 
       //f.close();
     }
@@ -533,6 +671,26 @@ public class TextFileReader
       System.out.println("2: EXCEPTION: " + e );
     }
 
+    try{
+        f.read_line();
+        //f.read_char();
+        String str=f.read_String(8);
+        System.out.println("FORMATTED: "+str);
+        f.unread();
+        str=f.read_String(8);
+        System.out.println("FORMATTED AGAIN: "+str);
+        f.unread();
+        int i=f.read_int(2);
+        System.out.print("FORMATTED YET AGAIN: "+i);
+        double d=f.read_double(5);
+        System.out.print(" "+d);
+        float fl=f.read_float(4);
+        System.out.println(" "+fl);
+        f.read_line();
+    }catch( Exception e ){
+        System.out.println("3: EXCEPTION: " + e );
+    }
+
     while ( f != null && !f.eof() )
     {
       try
@@ -542,7 +700,7 @@ public class TextFileReader
       }
       catch ( Exception e )
       {
-        System.out.println("3: EXCEPTION: " + e );
+        System.out.println("4: EXCEPTION: " + e );
       }
     }
   }
