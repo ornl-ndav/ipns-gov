@@ -34,12 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2004/03/12 00:15:43  rmikk
+ *  Fixed Package Names
+ *
  *  Revision 1.2  2002/11/27 23:13:18  pfpeterson
  *  standardized header
  *
  */
 
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Cursors;
 
 import javax.swing.*;
 import java.io.*;

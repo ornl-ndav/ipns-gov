@@ -28,12 +28,15 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.7  2004/03/12 00:16:37  rmikk
+ * Fixed Package Names
+ *
  * Revision 1.6  2002/11/27 23:13:18  pfpeterson
  * standardized header
  *
  */
 
-package DataSetTools.components.image;
+package gov.anl.ipns.ViewTools.Panels.Cursors;
 
 import javax.swing.*;
 import java.io.*;
