@@ -7,7 +7,7 @@ import java.awt.event.*;
 
 public class DataSetData implements IVirtualArray1D
   {
-     public DataSet ds;
+     private DataSet ds;
   
  
    
@@ -115,7 +115,8 @@ public class DataSetData implements IVirtualArray1D
       if( line_number >= getNumlines())
         return null;
 
-      float[] x = ds.getData_entry( selectedInd[line_number]).getX_scale().getXs();
+      float[] x = ds.getData_entry( selectedInd[line_number]).getX_scale().
+                  getXs();
       return x;
 
     }
@@ -128,7 +129,7 @@ public class DataSetData implements IVirtualArray1D
 
 
 
- public float[] getYValues( int line_number )
+  public float[] getYValues( int line_number )
     {
       if( line_number < 0)
         return null;
@@ -142,25 +143,25 @@ public class DataSetData implements IVirtualArray1D
 
 
 
- public void setYValues( float[] values, int line_number )
+  public void setYValues( float[] values, int line_number )
     {
 
     }
 
+  public float [] getErrorValues( int line_number )
+  {
+     return ds.getData_entry( selectedInd[line_number]).getErrors( );
+  }
 
+  public int getGroupID( int line_number )
+  {
+     return ds.getData_entry( selectedInd[line_number]).getGroup_ID( );
+  }
 
+  public void setAllValues( float value )
+  { 
 
-
-
-
-
-
-
-    public void setAllValues( float value )
-
-    {
-
-    }
+  }
 
 
 
@@ -170,14 +171,14 @@ public class DataSetData implements IVirtualArray1D
  /** Returns the number of x values in the line line_number
  */
   public int getNumPoints( int line_number)
-    {
-      if( line_number < 0)
+  {
+    if( line_number < 0)
          return 0;
-     if( line_number >= getNumlines())
+    if( line_number >= getNumlines())
         return 0;
-     return ds.getData_entry( selectedInd[ line_number]).getX_scale().getNum_x();
+    return ds.getData_entry( selectedInd[ line_number]).getX_scale().getNum_x();
 
-     }
+  }
 
   public int getNumlines()
     { 
