@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/01/30 19:26:18  dennis
+ *  Fix parse error when there was no trailing space after last number.
+ *  Added extra spaces in output text to improve legibility.
+ *
  *  Revision 1.3  2004/01/29 18:15:48  dennis
  *  Fixed javadoc error.
  *
@@ -174,10 +178,10 @@ public class Vector3D_UI extends    JTextField
   {
     NumberFormat f = NumberFormat.getInstance();
     f.setGroupingUsed( false );
-    setText( label + " " +
-             START + " " + f.format( value.get()[0]) + 
-             SEPARATOR   + f.format( value.get()[1]) + 
-             SEPARATOR   + f.format( value.get()[2]) + 
+    setText( label     + " " +
+             START     + " " + f.format( value.get()[0]) + 
+             SEPARATOR + " " + f.format( value.get()[1]) + 
+             SEPARATOR + " " + f.format( value.get()[2]) + 
              " " + END );
   }
 
@@ -188,30 +192,47 @@ public class Vector3D_UI extends    JTextField
    */
   private void parse_text()
   {
-    String  str   = getText();            // start the split after the "[" char
+    boolean ok = true;
+
+    String  str   = getText();            // start after the '[' char
     int     index = str.indexOf( START );
     if ( index < 0 )
+      ok = false;
+    else
+    {
+      str = str.substring( index+1 );
+
+      index = str.indexOf( END );        // discard ']' and any following chars
+      if ( index < 0 )
+        ok = false;
+      else
+      {
+        str = str.substring( 0, index ); // make sure there is something left
+        if ( str.length() <= 0 )
+          ok = false;
+      }
+    }
+
+    if ( !ok )
     {
       show_text();
       Toolkit.getDefaultToolkit().beep();
       return;
     }
-    str = str.substring( index+1 );
 
-    String regexp_tokens = "[\\s"+SEPARATOR+"]";
+    String regexp_tokens = "["+SEPARATOR+"]";
     String[] result = str.split(regexp_tokens);
 
     Float   Float_NaN = new Float(Float.NaN);
     float   temp[]    = new float[3];
-    boolean ok = true;
     int     i  = 0;
   
-    if ( result.length >= 4 )              // could be valid entries 
+    if ( result.length >= 3 )              // could be valid entries 
       while ( i < 3 && ok )                // so try to extract them
       {
         try 
         {
-          Float Float_val = new Float( result[i+1] );
+          Float Float_val = new Float( result[i] );
           if ( Float_val.equals(Float_NaN) )
             ok = false;
           else
