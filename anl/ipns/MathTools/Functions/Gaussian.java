@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/12 01:59:00  dennis
+ *  Moved to package gov.anl.ipns.MathTools.Functions
+ *
  *  Revision 1.3  2002/11/27 23:14:24  pfpeterson
  *  standardized header
  *
@@ -43,11 +46,9 @@
  *
  */
 
-package  DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
 
 import java.io.*;
-import DataSetTools.math.*;
-import DataSetTools.dataset.*;
 
 /**
  * This class implements a Gaussian distribution model of a peak as a 

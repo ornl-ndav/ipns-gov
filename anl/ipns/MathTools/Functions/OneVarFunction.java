@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2004/03/12 01:54:45  dennis
+ *  Moved to package gov.anl.ipns.MathTools.Functions
+ *
  *  Revision 1.7  2003/10/17 15:41:53  dennis
  *  Fixed javadocs to build cleanly with jdk 1.4.2
  *
@@ -62,10 +65,10 @@
  *
  */
 
-package DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
 
-import DataSetTools.math.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.*;
+import gov.anl.ipns.Util.Numeric.*;
 
 /**
  *  This is an abstract base class for functions of one variable that can

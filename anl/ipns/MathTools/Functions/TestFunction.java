@@ -30,11 +30,16 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2004/03/12 02:04:36  dennis
+ * Moved to package gov.anl.ipns.MathTools.Functions
+ *
  * Revision 1.3  2002/11/27 23:15:47  pfpeterson
  * standardized header
  *
  */
-package DataSetTools.math;
+package gov.anl.ipns.MathTools.Functions;
+
+import  gov.anl.ipns.MathTools.*;
 
 import java.io.*;
 

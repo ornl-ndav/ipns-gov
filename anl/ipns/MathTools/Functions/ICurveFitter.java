@@ -28,12 +28,15 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2004/03/12 02:05:40  dennis
+ * Moved to package gov.anl.ipns.MathTools.Functions
+ *
  * Revision 1.2  2002/11/27 23:14:24  pfpeterson
  * standardized header
  *
  */
 
-package DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
 
 public interface ICurveFitter
 {

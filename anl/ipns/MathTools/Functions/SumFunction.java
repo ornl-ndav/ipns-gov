@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/12 02:02:15  dennis
+ *  Moved to package gov.anl.ipns.MathTools.Functions
+ *
  *  Revision 1.4  2002/11/27 23:14:24  pfpeterson
  *  standardized header
  *
@@ -48,12 +51,9 @@
  *
  */
 
-package  DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
 
 import java.io.*;
-import DataSetTools.math.*;
-import DataSetTools.dataset.*;
-import DataSetTools.viewer.*;
 
 /**
  *  This class represents new OneVarParameterizedFunctions defined as the
@@ -252,6 +252,7 @@ public class SumFunction extends    OneVarParameterizedFunction
   */
     public static void main(String[] args)
     {
+/*
       DataSet ds = new DataSet( "Sample Sum", "Initial Version" );
 
       XScale x_scale = new UniformXScale( -5, 5, 500 );
@@ -291,5 +292,6 @@ public class SumFunction extends    OneVarParameterizedFunction
                            "    f(x) = " + sum.getValue(x) +
                            "   f'(x) = " + sum.get_dFdx(x) ); 
       } 
+*/
     }
 }

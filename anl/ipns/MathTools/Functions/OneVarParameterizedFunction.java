@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2004/03/12 01:56:38  dennis
+ *  Moved to package gov.anl.ipns.MathTools.Functions
+ *
  *  Revision 1.9  2003/07/14 14:02:05  dennis
  *  Changed the offset used for calculation of numerical approximation
  *  to the derivative.  Now set to DELTA = 1.0e-5 if it was set less
@@ -73,10 +76,10 @@
  *  by a list of parameters.
  */
 
-package DataSetTools.functions;
+package gov.anl.ipns.MathTools.Functions;
 
-import DataSetTools.math.*;
-import DataSetTools.util.*;
+import gov.anl.ipns.MathTools.*;
+import gov.anl.ipns.Util.Numeric.*;
 
 /**
  *  This is an abstract base class for parameterized functions of one 
