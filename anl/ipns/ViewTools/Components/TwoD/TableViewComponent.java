@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2005/03/17 01:28:48  millermi
+ *  - Changed ImageJPanel to ImageJPanel2. When the PanViewControl was
+ *    switched over to the ImageJPanel2, passing it an ImageJPanel caused
+ *    it not to appear.
+ *  - Removed public static final Strings for POINTED_AT_CHANGED and
+ *    SELECTED_CHANGED since these are defined by IViewComponent.
+ *  - Removed "Predecimal" option from FormatControl since it served
+ *    very little useful purpose.
+ *  - TableViewComponent now remains in a stable state if null is passed
+ *    in for data. Previously, errors occurred.
+ *
  *  Revision 1.6  2004/12/05 05:46:15  millermi
  *  - Fixed Eclipse warnings.
  *
@@ -71,7 +82,7 @@ import javax.swing.SwingConstants;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
-import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel;
+import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2;
 import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 import gov.anl.ipns.ViewTools.Panels.Table.TableJPanel;
 import gov.anl.ipns.ViewTools.Panels.Table.TableModelMaker;
@@ -92,19 +103,6 @@ import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
  */
 public class TableViewComponent implements IViewComponent2D, IPreserveState
 {
- /**
-  * This messaging String is sent out to all listeners when the pointed-at
-  * cell is changed.
-  */
-  public static final String POINTED_AT_CHANGED =
-                                           TableJPanel.POINTED_AT_CHANGED;
- 
- /**
-  * This messaging String is sent out to all listeners when a selection
-  * has been completed (mouse dragged, then released).
-  */
-  public static final String SELECTED_CHANGED = TableJPanel.SELECTED_CHANGED;
- 
  /**
   * "Thumbnail Colorscale Changed" - This messaging String is sent out to all
   * listeners when the thumbnail colorscale has been changed.
@@ -147,7 +145,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   private ViewControl[] controls;
   private ViewMenuItem[] menus;
   private IVirtualArray2D varray;
-  private ImageJPanel ijp; // For use exclusively by the PanViewControl.
+  private ImageJPanel2 ijp; // For use exclusively by the PanViewControl.
   private String colorscale; // Colorscale of the ijp.
   private boolean setVisibleLocationCalled = false; // This is needed to ignore
                                            // messages sent out by the tjp when
@@ -170,13 +168,15 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     varray = array;
     tjp = new TableJPanel( TableModelMaker.getModel(varray) );
     tjp.setColumnAlignment( SwingConstants.RIGHT );
-    // Initialize the ImageJPanel so it may be used by the PanViewControl.
-    ijp = new ImageJPanel();
-    //Make ijp correspond to the data in f_array
-    ijp.setData(varray.getRegionValues( 0, varray.getNumRows()-1,
-    				        0, varray.getNumColumns()-1), true);
+    // Initialize the ImageJPanel2 so it may be used by the PanViewControl.
+    ijp = new ImageJPanel2();
+    // Make sure data is valid.
+    if( varray != null )
+    {
+      //Make ijp correspond to the data in f_array
+      ijp.setData(varray, true);
+    }
     colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
-    
     tjp.addActionListener( new TableListener() );
     Listeners = new Vector();
     menus = null;
@@ -423,6 +423,9 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   */
   public void setThumbnailColorScale( String color_scale )
   {
+    // If data is null, no data to display.
+    if( varray == null )
+      return;
     colorscale = color_scale;
     boolean isTwoSided = false;
     if( ijp.getDataMin() < 0 )
@@ -451,11 +454,10 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   */
   private void buildControls()
   {
-    // If no data to display, no controls are necessary.
+    // If no data to display, only build FormatControl.
     if( varray == null )
     {
-      controls = new ViewControl[0];
-      return;
+      controls = new ViewControl[1];
     }
     else
       controls = new ViewControl[2];
@@ -463,22 +465,28 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     // ******* controls[0] *******
     // Build the combo boxes with format options.
     Vector options = new Vector();
-    Object[] alignment = {"Alignment","Left","Center","Right"};
+    Object[] alignment = {"Alignment","Left","Center","Right"};/*
     Object[] predecimal = {"Predecimal Digits","Unlimited","0","1","2","3","4",
-                           "5","6","7","8","9","10"};
+                           "5","6","7","8","9","10"};*/
     Object[] postdecimal = {"Postdecimal Digits","Unlimited","0","1","2","3",
                             "4","5","6","7","8","9","10"};
     options.add(alignment);
-    options.add(predecimal);
+    //options.add(predecimal);
     options.add(postdecimal);
     controls[0] = new FormatControl(options);
     controls[0].addActionListener( new ControlListener() );
     controls[0].setTitle(FORMAT_CONTROL);
-    ((FormatControl)controls[0]).setToolTipText(0,"Table Text Alignment");
+    ((FormatControl)controls[0]).setToolTipText(0,"Table Text Alignment");/*
     ((FormatControl)controls[0]).setToolTipText(1,"Number of digits before "+
+                                                  "decimal.");*/
+    ((FormatControl)controls[0]).setToolTipText(1,"Number of digits after "+
                                                   "decimal.");
-    ((FormatControl)controls[0]).setToolTipText(2,"Number of digits after "+
-                                                  "decimal.");
+    
+    // If no data to display, do not build PanViewControl
+    if( varray == null )
+    {
+      return;
+    }
     
     // ******* controls[1] *******
     controls[1] = new PanViewControl(ijp);
@@ -523,6 +531,9 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
         sendMessage(POINTED_AT_CHANGED);
       else if( message.equals(TableJPanel.VIEWPORT_CHANGED) )
       {
+	// If varray was null, PanViewControl was never created, so do nothing.
+	if( controls.length <= 1 )
+	  return;
         // When the PanViewControl's viewport is moved, the setVisibleLocation()
 	// is called, causing this message to be sent. If this is the case,
 	// ignore the message.
@@ -538,7 +549,6 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
 	  viewport.width = varray.getNumColumns() + viewport.width + 1;
 	if( viewport.height < 0 )
 	  viewport.height = varray.getNumRows() + viewport.height + 1;
-	
 	((PanViewControl)controls[1]).setLocalBounds(
 	                   new CoordBounds( viewport.x, viewport.y,
 			                    viewport.x+viewport.width,
@@ -585,15 +595,15 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
 	    tjp.setColumnAlignment( SwingConstants.RIGHT );
 	    tjp.repaint();
 	  }
-	}
+	}/* --- Removed predecimal option ---
 	// Changes to predecimal digits displayed occurred.
 	else if( changed_index == 1 )
 	{
 	  // Subtract two since two entries exist in list before numbers.
 	  tjp.setNumberFormat( (select_index-2), (fc.getSelectedIndex(2)-2) );
-	}
+	}*/
 	// Changes to postdecimal digits displayed occurred.
-	else if( changed_index == 2 )
+	else if( changed_index == 1 )
 	{
 	  // Subtract two since two entries exist in list before numbers.
 	  tjp.setNumberFormat( (fc.getSelectedIndex(1)-2), (select_index-2) );
