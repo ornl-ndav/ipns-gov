@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2002/07/08 20:14:18  dennis
+ *  toString() method now uses greek characters from DataSetTools.util.FontUtil.
+ *
  *  Revision 1.7  2001/08/16 02:38:32  dennis
  *  getAveragePosition() calculates average position by averaging the
  *  components of the positions in spherical coordinates.  It also
@@ -56,6 +59,7 @@ package  DataSetTools.math;
 
 import java.io.*;
 import java.text.*;
+import DataSetTools.util.*;
 
 /**
  * DetectorPosition represents the position of a neutron detector relative to
@@ -179,13 +183,9 @@ public class DetectorPosition extends    Position3D
      String cyl_angle = f.format( cyl_coords[1] * 180.0/Math.PI );
      f.setMaximumFractionDigits( 3 );
      String z     = f.format( cyl_coords[2] );
-                                                    // upper case theta: \u0398
-                                                    // lower case theta: \u03b8
-                                                    // upper case phi:   \u03a6
-                                                    // lower case phi:   \u03c6
-     String string = "2\u03b8" +"=" + scat_ang +
+     String string = "2" + FontUtil.THETA + "=" + scat_ang +
                      ":r="  + r +
-                     ","+"\u03c6" +"=" + cyl_angle +
+                     "," + FontUtil.PHI + "=" + cyl_angle +
                      ",z=" + z;
      return string;
   }
