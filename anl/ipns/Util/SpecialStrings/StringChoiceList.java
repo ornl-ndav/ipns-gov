@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2001/11/27 18:38:18  dennis
+ *     1. Set the string value to the first in the list
+ *     2. Added "some" tests for null lists. (Ruth)
+ *
  *  Revision 1.2  2001/11/12 21:53:13  dennis
  *  Added Construtor that takes a list of strings. (Ruth)
  *
@@ -60,26 +64,28 @@ public class StringChoiceList extends    SpecialString
                                                       // replace this with
                                                       // their own list.
 
-  /* ---------------------------- Default Constructor -------------------- */
+  /* ---------------------------- Constructor --------------------------- */
   /**
    *  Make a StringChoiceList object with a default choice.
    */
   public StringChoiceList( )
   {
     super( "" );
+    setString("");
   }
 
-  /* -------------------------- Constructor ----------------------------- */
-  /**
-   *  Make a StringChoiceList from a specified list of strings.
-   *
-   *  @param list  The list of strings to use for this choice list.
-   */
-  public StringChoiceList( String[]  list)
-  {
-    super("");
-    strings = list;
-  }
+  /** This constructor sets the list of strings without subclassing
+  */
+   public StringChoiceList( String[]  list)
+    {super("");
+     if( list == null)
+       strings = new String[0];
+     else
+       strings = list;
+     
+     setString("");
+     
+     }
  
   
   /* ---------------------------- setString ----------------------------- */
