@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2003/08/08 19:05:30  serumb
+ *  Show Pointed at is selected as defult.
+ *
  *  Revision 1.22  2003/08/08 18:28:17  serumb
  *  Sends message to function controls letting it know to update x and y
  *  range info.
@@ -135,7 +138,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   private int linewidth      = 1;
   private int line_index     = 0;
   private FunctionControls mainControls;
-  private boolean draw_pointed_at = false;
+  private boolean draw_pointed_at = true;
   private boolean isLinear = true;
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
@@ -481,7 +484,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    ((ControlCheckbox)Res[1]).setText("Function Controls");
    ((ControlCheckbox)Res[1]).addActionListener( new ControlListener() );
     
-   Res[2] = new ControlCheckbox(false);
+   Res[2] = new ControlCheckbox(true);
    ((ControlCheckbox)Res[2]).setText("Show Pointed At");
    ((ControlCheckbox)Res[2]).addActionListener( new ControlListener() );
    
