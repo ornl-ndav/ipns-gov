@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2004/01/21 17:42:06  bouzekc
+ *  Now uses Java 1.4's split() method for this class's split() method.
+ *
  *  Revision 1.24  2003/12/18 13:09:30  rmikk
  *  Added a new method, toString( object, boolean), which displays ALL the
  *    members of an array or Collection if the second argument is true.
@@ -491,35 +494,36 @@ public class StringUtil
   }
 
   /**
-   * Method for spliting strings. Defaults to " " if second parameter
-   * is null.
+   * Method for splitting strings. Defaults to " " if second parameter
+   * is null.  Now uses Java 1.4's split() method.
    */
-  public static String[] split(String string, String spliter){
-    if(string==null || string.length()<=0)
+  public static String[] split(String string, String splitter){
+    /*if(string==null || string.length()<=0)
         return null;
       
-    if(spliter==null) spliter=" ";
-    int spliter_length=spliter.length();
+    if(splitter==null) splitter=" ";
+    int splitter_length=splitter.length();
 
     int count=1;
-    int index=string.indexOf(spliter);
+    int index=string.indexOf(splitter);
     while(index>0){
       count++;
-      index=string.indexOf(spliter,index+spliter_length);
+      index=string.indexOf(splitter,index+splitter_length);
     }
     String[] list=new String[count];
     
     int start=0;
-    int end=string.indexOf(spliter);
+    int end=string.indexOf(splitter);
     if(end<=start) end=string.length();
     for( int i=0 ; i<count ; i++ ){
       list[i]=string.substring(start,end);
-      start=end+spliter_length;
-      end=string.indexOf(spliter,start);
+      start=end+splitter_length;
+      end=string.indexOf(splitter,start);
       if(end<=start) end=string.length();
     }
     
-    return list;
+    return list;*/
+    return string.split( splitter );
   }
 
   /**
