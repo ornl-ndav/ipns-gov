@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/01/26 18:20:38  dennis
+ * Added ThreePointSliceSelector to tabbed pane.
+ * Added getPlane() method.
+ *
  * Revision 1.1  2004/01/24 23:34:57  dennis
  * Panel with a tabbed pane, providing different ways
  * of specifying a plane.  Currently only supports
@@ -61,9 +65,10 @@ import java.io.*;
 public class SlicePlane3D_UI extends    ActiveJPanel
                              implements Serializable 
 {
-  private SlicePlane3D slice_plane;
+  private SlicePlane3D old_slice_plane;
   private JTabbedPane  tabbed_pane;
-  private HKL_SliceSelector hkl_slice_selector;
+  private HKL_SliceSelector       hkl_slice_selector;
+  private ThreePointSliceSelector three_point_slice_selector;
 
   /*-------------------------- default constructor ----------------------- */
   /**
@@ -73,13 +78,17 @@ public class SlicePlane3D_UI extends    ActiveJPanel
   {
     hkl_slice_selector = new HKL_SliceSelector();
     hkl_slice_selector.addActionListener( new PaneListener() );
-    slice_plane = hkl_slice_selector.getPlane();
+    SlicePlane3D slice_plane = hkl_slice_selector.getPlane();
+
+    three_point_slice_selector = new ThreePointSliceSelector();
+    three_point_slice_selector.addActionListener( new PaneListener() );
+    three_point_slice_selector.setPlane( slice_plane );
      
     tabbed_pane = new JTabbedPane();
     tabbed_pane.setFont( FontUtil.LABEL_FONT );
     tabbed_pane.addTab( "HKLC", hkl_slice_selector );
     tabbed_pane.addTab( "NC", new JPanel() );
-    tabbed_pane.addTab( "CPP", new JPanel() );
+    tabbed_pane.addTab( "CPP", three_point_slice_selector );
     tabbed_pane.addTab( "NCP", new JPanel() );
     tabbed_pane.addChangeListener( new TabListener() );
 
@@ -92,14 +101,31 @@ public class SlicePlane3D_UI extends    ActiveJPanel
     add( tabbed_pane );
   }
 
+  /* ---------------------------- getPlane ------------------------------ */
+  /**
+   *  Get the currently selected plane, or null if no plane is properly
+   *  specified.
+   *
+   *  @return the currently selected plane, or null if not properly specified.
+   */
+  public SlicePlane3D getPlane()
+  {
+    ISlicePlaneSelector selector =
+                      (ISlicePlaneSelector)tabbed_pane.getSelectedComponent();
+    return selector.getPlane();
+  }
 
-  /*------------------------------ toString ------------------------------ */
+  /* ----------------------------- toString ------------------------------ */
   /**
    *  Return a string form of this plane.
    */
   public String toString()
   {
-    return slice_plane.toString();
+    SlicePlane3D plane = getPlane();
+    if ( plane != null )
+      return plane.toString();
+    else
+      return "NO PLANE SELECTED";
   }
 
   /* -----------------------------------------------------------------------
@@ -116,29 +142,30 @@ public class SlicePlane3D_UI extends    ActiveJPanel
   {
     public void stateChanged(ChangeEvent e)
     {
-      System.out.println("Selection changed to " + 
-                          tabbed_pane.getSelectedIndex() );
+      ISlicePlaneSelector selector =
+                       (ISlicePlaneSelector)tabbed_pane.getSelectedComponent();
+      selector.setPlane( old_slice_plane ); 
     }
   }
 
   /* -------------------------- PaneListener --------------------------- */
   /*
-   *  Listen to the individual panes, and get get the new plane selected by
+   *  Listen to the individual panes, and get the new plane selected by
    *  the current tabbed pane.
    */
   private class PaneListener implements ActionListener,
                                         Serializable
   {
-     public void actionPerformed( ActionEvent e )
-     {
-       ISlicePlaneSelector selector = 
-                       (ISlicePlaneSelector)tabbed_pane.getSelectedComponent();
-       slice_plane = selector.getPlane();
-       System.out.println("in SlicePlane3D_UI.PaneListener");
-       System.out.println("Send message " + ISlicePlaneSelector.PLANE_CHANGED);
-       System.out.println("new plane = " + slice_plane );
-       send_message( ISlicePlaneSelector.PLANE_CHANGED );
-     }
+    public void actionPerformed( ActionEvent e )
+    {
+      ISlicePlaneSelector selector = 
+                      (ISlicePlaneSelector)tabbed_pane.getSelectedComponent();
+      old_slice_plane = selector.getPlane();
+      System.out.println("in SlicePlane3D_UI.PaneListener... NEW PLANE");
+      System.out.println("Send message " + ISlicePlaneSelector.PLANE_CHANGED);
+      System.out.println("new plane = " + old_slice_plane );
+      send_message( ISlicePlaneSelector.PLANE_CHANGED );
+    }
   }
 
 
