@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.28  2004/01/09 20:31:31  serumb
+ *  Added a method getLocalLogWorldCoords with
+ *  parameters for x min and max and y min and max.
+ *
  *  Revision 1.27  2003/11/18 00:55:03  millermi
  *  - ObjectState now saves the local and global CoordBounds
  *    instead of the CoordTransforms.
@@ -634,6 +638,34 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
     return( b2 );
   }
 
+  /* ----------------------- getLocalLogWorldCoords ------------------------ */
+  /**
+   *  Get the region that defines the world coordinate system for the
+   *  zoomed region of the panel.
+   *
+   *  @return A reference to the region in world coordinates that is 
+   *          currently mapped to the full panel by the local transform.
+   */
+  public CoordBounds getLocalLogWorldCoords(double scale , float xmin,
+                                            float xmax, float ymin, float ymax)
+  {
+    SetTransformsToWindowSize();
+    CoordBounds b = getGlobalWorldCoords();
+    CoordBounds b2 = local_transform.getSource( );
+    float x1,x2,y1,y2;
+    x1 = b2.getX1();
+    x2 = b2.getX2();
+    y1 = b2.getY1();
+    y2 = b2.getY2();    
+    LogScaleUtil loggerx = new LogScaleUtil(xmin,xmax,xmin,xmax);
+    LogScaleUtil loggery = new LogScaleUtil(ymin,ymax,ymin,ymax);
+    b2.setBounds(loggerx.toDest(x1, scale),
+                loggery.toDest(y1, scale),
+                loggerx.toDest(x2, scale),
+                loggery.toDest(y2, scale));
+
+    return( b2 );
+  }
 
   /* ---------------------------- showState ------------------------------ */
   /**
