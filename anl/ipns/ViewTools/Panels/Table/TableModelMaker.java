@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/08/17 20:55:28  millermi
+ *  - setValueAt() no longer edits the IVirtualArray2D. Code must be
+ *    uncommented to restore this functionality.
+ *
  *  Revision 1.1  2004/08/04 18:49:27  millermi
  *  - Initial Version - This class is used to convert IVirtualArrays
  *    into TableModels.
@@ -146,11 +150,35 @@ public class TableModelMaker
     
     public void setValueAt( Object float_value, int row, int column )
     {
+      return;
+     /*
+      * The code below will change values in the VirtualArray when this
+      * method is called. However, since this class assumes the data is NOT
+      * editable, this method currently does not edit the VirtualArray.
+      * To have this method edit the VirtualArray, uncomment this code and
+      * remove the return statement above.
+      *
       // Make sure iva is not null.
       if( iva == null )
         return;
-      float value = ((Float)float_value).floatValue();
-      iva.setDataValue(row,column,value);
+      float value; 
+      if( float_value instanceof Number )
+      {
+        value = ((Number)float_value).floatValue();
+        iva.setDataValue(row,column,value);
+      }
+      else if( float_value instanceof String )
+      {
+        try
+	{
+	  value = Float.parseFloat( (String)float_value );
+          iva.setDataValue(row,column,value);
+	}
+	catch( NumberFormatException nfe ) { return; }
+      }
+      // Otherwise do nothing.
+      *
+      */
     }
     
    /*
