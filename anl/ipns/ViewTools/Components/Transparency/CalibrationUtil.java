@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2003/05/22 17:48:44  dennis
+ *  Adjusted starting position returned by subDivid() to start
+ *  at xmin when applicable. (Mike Miller)
+ *
  *  Revision 1.2  2003/05/16 14:57:09  dennis
  *  Added acknowledgement of NSF funding.
  *
@@ -136,7 +140,9 @@ public class CalibrationUtil
   /* Now find the first grid point in the specified interval. */
 
       start = xmin;
-      if ( start >= 0.0 )
+      if( start%step == 0 )
+         ; // keep start = xmin
+      else if ( start >= 0.0 )
 	 start = start - ((start%step ) - step );
       else
       {
@@ -204,7 +210,7 @@ public class CalibrationUtil
       System.out.println("TestStep = " + testvalue[0] );
       System.out.println("TestStart = " + testvalue[1] );  
       
-      testcal = new CalibrationUtil( 60000f, 432000f );
+      testcal = new CalibrationUtil( 50000f, 432000f );
       
       testvalue = testcal.subDivide();
       
