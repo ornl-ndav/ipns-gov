@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2001/07/23 16:13:16  dennis
+ *  Fixed error: no longer using "==" for String comparison.
+ *
  *  Revision 1.8  2001/05/09 21:12:15  dennis
  *  Removed unneeded debug print.
  *
@@ -118,31 +121,31 @@ public class IndexColorMaker implements Serializable
     byte green[] = new byte [ num_colors ];
     byte blue[]  = new byte [ num_colors ];
 
-    if (scale_type == GRAY_SCALE)
+    if (scale_type.equals( GRAY_SCALE ))
       BuildGrayScale( red, green, blue );
 
-    else if (scale_type == NEGATIVE_GRAY_SCALE )
+    else if (scale_type.equals( NEGATIVE_GRAY_SCALE ))
       BuildNegativeGrayScale( red, green, blue );
 
-    else if (scale_type == GREEN_YELLOW_SCALE )
+    else if (scale_type.equals( GREEN_YELLOW_SCALE ))
       BuildGreenYellowScale( red, green, blue );
 
-    else if (scale_type == HEATED_OBJECT_SCALE )
+    else if (scale_type.equals( HEATED_OBJECT_SCALE ))
       BuildHeatedObjectScale( red, green, blue );
 
-    else if (scale_type == HEATED_OBJECT_SCALE_2 )
+    else if (scale_type.equals( HEATED_OBJECT_SCALE_2 ))
       BuildHeatedObjectScale2( red, green, blue );
 
-    else if (scale_type == RAINBOW_SCALE )
+    else if (scale_type.equals( RAINBOW_SCALE ))
       BuildRainbowScale( red, green, blue );
 
-    else if (scale_type == OPTIMAL_SCALE )
+    else if (scale_type.equals( OPTIMAL_SCALE ))
       BuildOptimalScale( red, green, blue );
 
-    else if (scale_type == MULTI_SCALE )
+    else if (scale_type.equals( MULTI_SCALE ))
       BuildMultiScale( red, green, blue );
 
-    else if (scale_type == SPECTRUM_SCALE )
+    else if (scale_type.equals( SPECTRUM_SCALE ))
       BuildSpectrumScale( red, green, blue );
 
     else
@@ -200,53 +203,54 @@ public class IndexColorMaker implements Serializable
     byte green[]   = new byte [ 2*num_colors+1 ];
     byte blue[]    = new byte [ 2*num_colors+1 ];
 
-    if (scale_type == GRAY_SCALE)
+    if (scale_type.equals( GRAY_SCALE ))
     {
       BuildGrayScale( p_red, p_green, p_blue ); 
       BuildHeatedObjectScale( m_red, m_green, m_blue ); 
     }
-    else if (scale_type == NEGATIVE_GRAY_SCALE )
+    else if (scale_type.equals( NEGATIVE_GRAY_SCALE ))
     {
       BuildNegativeGrayScale( p_red, p_green, p_blue ); 
       BuildNegativeHeatedObjectScale( m_red, m_green, m_blue ); 
     }
-    else if (scale_type == GREEN_YELLOW_SCALE ) 
+    else if (scale_type.equals( GREEN_YELLOW_SCALE )) 
     {
       BuildGreenYellowScale( p_red, p_green, p_blue ); 
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
-    else if (scale_type == HEATED_OBJECT_SCALE ) 
+    else if (scale_type.equals( HEATED_OBJECT_SCALE )) 
     {
       BuildHeatedObjectScale( p_red, p_green, p_blue ); 
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
-    else if (scale_type == HEATED_OBJECT_SCALE_2 ) 
+    else if (scale_type.equals( HEATED_OBJECT_SCALE_2 )) 
     {
       BuildHeatedObjectScale2( p_red, p_green, p_blue ); 
       BuildGrayScale( m_red, m_green, m_blue ); 
     } 
-    else if (scale_type == RAINBOW_SCALE )
+    else if (scale_type.equals( RAINBOW_SCALE ))
     {
       BuildRainbowScale( p_red, p_green, p_blue ); 
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
-    else if (scale_type == OPTIMAL_SCALE )
+    else if (scale_type.equals( OPTIMAL_SCALE ))
     {
       BuildOptimalScale( p_red, p_green, p_blue ); 
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
-    else if (scale_type == MULTI_SCALE )
+    else if (scale_type.equals( MULTI_SCALE ))
     {
       BuildMultiScale( p_red, p_green, p_blue ); 
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
-    else if (scale_type == SPECTRUM_SCALE )
+    else if (scale_type.equals( SPECTRUM_SCALE ))
     {
       BuildSpectrumScale( p_red, p_green, p_blue ); 
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
     else                           // by default, use HEATED OBJECT/GRAY SCALE
     {
+      System.out.println("Using default color scale");
       BuildHeatedObjectScale( p_red, p_green, p_blue );
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
