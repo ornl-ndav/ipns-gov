@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2002/07/16 22:42:16  dennis
+ *  Added methods to format values using scientific notation.
+ *
  *  Revision 1.3  2002/07/16 22:15:55  pfpeterson
  *  Added new formatting methods for Strings and StringBuffers.
  *
@@ -53,7 +56,9 @@ import java.text.*;
 
 public class Format 
 {
-  static NumberFormat f =  NumberFormat.getInstance();
+  static NumberFormat  f          =  NumberFormat.getInstance();
+  static DecimalFormat sciFormatf = new DecimalFormat( "0.######E0" );
+  static DecimalFormat sciFormatd = new DecimalFormat( "0.###############E0" );
 
   /*
    * Don't instantiate this class, just use the methods provided.
@@ -111,6 +116,51 @@ public class Format
   {
     return real( num, field_width, num_digits, false );    
   }
+
+
+  /**
+   *  Format a real number into a string using scientific notation,
+   *  with six digits after the decimal, appropriate for single precision
+   *  values. 
+   *
+   *  @param num           The number to format
+   *  @param field_width   The total number of spaces to be used for the number.   *                       If the formatted number does not occupy all of the
+   *                       spaces, leading blanks will be prepended.
+   *                       If more spaces are needed, they will be used.
+   *
+   *  @return  A string containing the formatted number with at least the
+   *           specified number of characters.
+   */
+
+  static public String singleExp( double   num,
+                                  int      field_width )
+  {
+    String result = sciFormatf.format( num );
+    return string( result, field_width, true );
+  }
+
+
+  /**
+   *  Format a real number into a string using scientific notation,
+   *  with fifteen digits after the decimal, appropriate for double precision
+   *  values.
+   *
+   *  @param num           The number to format
+   *  @param field_width   The total number of spaces to be used for the number.   *                       If the formatted number does not occupy all of the
+   *                       spaces, leading blanks will be prepended.
+   *                       If more spaces are needed, they will be used.
+   *
+   *  @return  A string containing the formatted number with at least the
+   *           specified number of characters.
+   */
+
+  static public String doubleExp( double   num,
+                                  int      field_width )
+  {
+    String result = sciFormatd.format( num );
+    return string( result, field_width, true );
+  }
+
 
 
   /**
