@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/03/14 19:21:44  serumb
+ *  Changed public variables to private and added methods to get them.
+ *
  *  Revision 1.4  2005/03/09 22:36:09  millermi
  *  - Added methods get/setControlValue() and messaging of VALUE_CHANGED
  *    to enable controls to be linked.
@@ -60,13 +63,13 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
  */ 
 public class LabelCombobox extends ViewControl
 {
-   public JComboBox cbox;
+   private JComboBox cbox;
    private JPanel thepanel = new JPanel();
    private JLabel cboxLabel;
    private Box box1 = new Box(1);
    private Box box2 = new Box(1);
    private FlowLayout f_layout;
-   public Box theBox = new Box(0);
+   private Box theBox = new Box(0);
    private boolean ignore_change = false;
  
   /**
@@ -132,6 +135,27 @@ public class LabelCombobox extends ViewControl
       cbox.setSelectedIndex(index);
      
    }
+  
+  /**
+   * Gets the box that the control is put in.
+   *
+   * @return Returns and object of type Box.
+   */ 
+   public Box getBox()
+   {
+     return theBox;
+   }  
+  
+  /**
+   * Gets the Combobox.
+   *
+   * @return returns an object of type JComboBox.
+   */
+   public JComboBox getCBox()
+   {
+     return cbox;
+   }    
+   
  /*
    * CheckboxListener moniters the JCheckBox private data member for the
    * ControlCheckbox class
