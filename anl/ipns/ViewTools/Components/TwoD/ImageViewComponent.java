@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.34  2003/10/23 05:49:51  millermi
+ *  - Uncommented code that makes use of the ObjectState
+ *    information from the ImageJPanel. Prior to now,
+ *    the ImageJPanel did not preserve ObjectState.
+ *
  *  Revision 1.33  2003/10/21 00:48:40  millermi
  *  - Added kill() to keep consistent with new IViewComponent.
  *
@@ -545,7 +550,7 @@ public class ImageViewComponent implements IViewComponent2D,
     temp = new_state.get(IMAGEJPANEL);
     if( temp != null )
     {
-      //ijp.setObjectState( (ObjectState)temp );
+      ijp.setObjectState( (ObjectState)temp );
       redraw = true;  
     } 
     
@@ -622,7 +627,7 @@ public class ImageViewComponent implements IViewComponent2D,
     state.insert( COLOR_CONTROL_SOUTH, new Boolean(addColorControlSouth) );
     state.insert( COLOR_SCALE, new String(colorscale) );
     state.insert( FONT, font );
-    //state.insert( IMAGEJPANEL, ijp.getState() );
+    state.insert( IMAGEJPANEL, ijp.getObjectState() );
     state.insert( LOG_SCALE, new Double(logscale) );
     state.insert( PRECISION, new Integer(precision) );
     state.insert( SELECTED_REGIONS, selectedregions );
