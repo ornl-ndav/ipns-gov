@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2003/10/17 23:01:47  millermi
+ *  - Removed private class Note. Note is now a public
+ *    class inside the package.
+ *
  *  Revision 1.17  2003/10/16 05:00:05  millermi
  *  - Fixed java docs errors.
  *
@@ -750,108 +754,7 @@ public class AnnotationOverlay extends OverlayJPanel
       }
     }	    
   } // end of MiniViewer
-    
- /*
-  * This class creates an internal datastructure to easily group a string,
-  * its location to be displayed, and the bounds it was created in.
-  */
-  private class Note
-  {
-     private JTextField textfield; // actual note being drawn
-     private Line arrow;	   // location to draw this note (p1, p2)
-     private CoordBounds scale;    // the bounds of the overlay when this 
- 				   // note was created
-     private floatPoint2D wcp1;    // the world coordinate associated with p1
-     private floatPoint2D wcp2;    // the world coordinate associated with p2
-    /*
-     * This constructor takes in five parameters, a string text which is 
-     * the actual message, a line which has a beginning point at the region
-     * of interest and an ending point where the annotation will be drawn, a
-     * rectangle which represents the bounds in which this annotation was 
-     * created, and two world points, corresponding to the world values
-     * referred to by p1 and p2 of the line.
-     */ 
-     public Note(String t, Line l, CoordBounds s, floatPoint2D wc_p1,
- 						floatPoint2D wc_p2 )
-     {
- 	textfield = new JTextField(t);
- 	arrow = new Line(l.getP1(), l.getP2());
-        scale = s;
-        wcp1 = new floatPoint2D( wc_p1 );
-        wcp2 = new floatPoint2D( wc_p2 );
-     }
-    
-    /*
-     * @return the actual note itself
-     */ 
-     public String getText()
-     {
- 	return textfield.getText();
-     }
      
-    /*
-     * @return the location the annotation will be drawn at.
-     */ 
-     public Point getLocation()
-     {
- 	return arrow.getP2();
-     }
-    
-    /*
-     * @return the rectangle bounds this annotation was created in.
-     */ 
-     public CoordBounds getScale()
-     {
- 	return scale;
-     }
-    
-    /*
-     * @return the textfield containing the string. A textfield was chosen
-     *         instead of just a string because when editing is allowed,
-     *         a textfield will be required anyways.
-     */ 
-     public JTextField getTextField()
-     {
- 	return textfield;
-     }
-    
-    /*
-     * @return the line representing the arrow from p1 ( the point near
-     *         the intended area ) to p2 ( the location of the annotation ).
-     *         This also allows the paint to draw a line from p1 to p2. 
-     */ 
-     public Line getLine()
-     {
- 	return arrow;
-     }
-    
-    /*
-     * @return the world coordinate point p1 refers to.
-     */ 
-     public floatPoint2D getWCP1()
-     {
- 	return wcp1;
-     } 
-     
-     public void setWCP1( floatPoint2D p1 )
-     {
- 	wcp1 = p1;
-     }
- 	 
-    /*
-     * @return the world coordinate point p2 refers to.
-     */ 
-     public floatPoint2D getWCP2()
-     {
- 	return wcp2;
-     }
-     
-     public void setWCP2( floatPoint2D p2 )
-     {
- 	wcp2 = p2;
-     }
-  } // end of Note
- 
  /*
   * This viewer contains everything for editing annotations. All of its
   * listeners are self-contained.
