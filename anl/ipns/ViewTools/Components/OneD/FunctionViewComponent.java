@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2003/08/05 23:24:31  serumb
+ *  Now check for linear and log axes.
+ *
  *  Revision 1.17  2003/07/31 16:50:34  serumb
  *  Draw the pointed at line to the correct zoomed region.
  *
@@ -201,11 +204,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
   // all required since this component implements IAxisAddible2D
 
   /**
-   * This method returns the info about the specified axis.
-   *
-   *  @param  isX
-   *  @return If isX = true, return info about x axis.
-   *          If isX = false, return info about y axis.
+   * This method initializes the world coords.
    */
   public void setAxisInfo() {
     AxisInfo2D xinfo = getAxisInfo( AxisInfo2D.XAXIS );
@@ -215,10 +214,20 @@ public class FunctionViewComponent implements IFunctionComponent1D,
       new CoordBounds( 
         xinfo.getMin(  ), yinfo.getMax(  ),
         xinfo.getMax(  ), yinfo.getMin(  ) ) );
-  } 
+  }
+ 
   public AxisInfo2D getAxisInfo( boolean isX ) {
     // if true, return x info
     if( isX) {
+      if(gjp.getLogScaleX() == true) {
+        return new AxisInfo2D( 
+        gjp.getLocalLogWorldCoords(gjp.getScale() ).getX1(  ),
+        gjp.getLocalLogWorldCoords(gjp.getScale() ).getX2(  ),
+        Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getLabel(  ),
+        Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getUnits(  ),
+        Varray1D.getAxisInfo( AxisInfo2D.XAXIS ).getIsLinear(  ) );
+      }
+      else
       return new AxisInfo2D( 
         gjp.getLocalWorldCoords(  ).getX1(  ),
         gjp.getLocalWorldCoords(  ).getX2(  ),
@@ -228,6 +237,15 @@ public class FunctionViewComponent implements IFunctionComponent1D,
     }
 
     // if false return y info
+    if(gjp.getLogScaleY() == true) {
+      return new AxisInfo2D( 
+      gjp.getLocalLogWorldCoords(gjp.getScale() ).getY1(  ),
+      gjp.getLocalLogWorldCoords(gjp.getScale() ).getY2(  ),
+      Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getLabel(  ),
+      Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getUnits(  ),
+      Varray1D.getAxisInfo( AxisInfo2D.YAXIS ).getIsLinear(  ) );
+    }
+    else
     return new AxisInfo2D( 
       gjp.getLocalWorldCoords(  ).getY1(  ),
       gjp.getLocalWorldCoords(  ).getY2(  ),
@@ -618,6 +636,7 @@ public class FunctionViewComponent implements IFunctionComponent1D,
    * Overlays are added to allow for calibration, selection, and annotation.
    */
   private void buildViewComponent( GraphJPanel panel ) {
+    setAxisInfo();
     int westwidth  = ( font.getSize(  ) * precision ) + 22;
     int southwidth = ( font.getSize(  ) * 3 ) + 22;
     // this will be the background for the master panel
