@@ -34,6 +34,18 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2003/08/06 13:54:49  dennis
+ *  - Control for AxisOverlay2D changed from ControlCheckbox to a
+ *    ControlCheckboxButton.
+ *  - Removed creation of overlays from buildViewComponent(),
+ *    now in constructor.
+ *  - Transparencies vector now in built in constructor.
+ *  - Combined checkbox and button controls for annotation overlay
+ *    into one ControlCheckboxButton control.
+ *  - Uncommented code that adjusts the selection overlay color
+ *    depending on the color scale used to view the image.
+ *    (Mike Miller)
+ *
  *  Revision 1.17  2003/07/25 14:37:55  dennis
  *  - Now also implements IZoomTextAddible so that selection and annotation
  *  overlays may be added. (Mike Miller)
@@ -146,7 +158,7 @@ public class ImageViewComponent implements IViewComponent2D,
    private Vector transparencies = new Vector();
    private int precision;
    private Font font;
-   private ViewControl[] controls = new ViewControl[6];
+   private ViewControl[] controls = new ViewControl[5];
    private ViewMenuItem[] menus = new ViewMenuItem[2];
    private String colorscale;
    private boolean isTwoSided = true;
@@ -194,7 +206,21 @@ public class ImageViewComponent implements IViewComponent2D,
       else
          isTwoSided = false;
       ijp.setNamedColorModel(colorscale, isTwoSided, false); 
+      /*
+      //create transparencies
+      AnnotationOverlay top = new AnnotationOverlay(this);
+      top.setVisible(false);      // initialize this overlay to off.
+      SelectionOverlay nextup = new SelectionOverlay(this);
+      nextup.setVisible(false);   // initialize this overlay to off.
+      nextup.setRegionColor(Color.magenta);
+      AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
       
+      // add the transparencies to the transparencies vector
+      transparencies.clear();
+      transparencies.add(top);
+      transparencies.add(nextup);
+      transparencies.add(bottom_overlay); 
+      */
       Listeners = new Vector();
       buildViewComponent();    // initializes big_picture to jpanel containing
                                // the background and transparencies
@@ -617,12 +643,14 @@ public class ImageViewComponent implements IViewComponent2D,
       nextup.setVisible(false);   // initialize this overlay to off.
       nextup.setRegionColor(Color.magenta);
       AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
+      //bottom_overlay.setVisible(false);
       
       // add the transparencies to the transparencies vector
+      transparencies.clear();
       transparencies.add(top);
       transparencies.add(nextup);
       transparencies.add(bottom_overlay); 
-
+      
       	  
       // create master panel and
       //  add background and transparency to the master layout
@@ -653,20 +681,20 @@ public class ImageViewComponent implements IViewComponent2D,
                                           isTwoSided );
       controls[1].setTitle("Color Scale");
       
-      controls[2] = new ControlCheckbox(true);
-      ((ControlCheckbox)controls[2]).setText("Axis Overlay");
+      controls[2] = new ControlCheckboxButton(true);
+      ((ControlCheckboxButton)controls[2]).setTitle("Axis Overlay");
       controls[2].addActionListener( new ControlListener() );
     
       controls[3] = new ControlCheckbox();
       ((ControlCheckbox)controls[3]).setText("Selection Overlay");
       controls[3].addActionListener( new ControlListener() );
       
-      controls[4] = new ControlCheckbox();
-      ((ControlCheckbox)controls[4]).setText("Annotation Overlay");
+      controls[4] = new ControlCheckboxButton();
+      ((ControlCheckboxButton)controls[4]).setTitle("Annotation Overlay");
       controls[4].addActionListener( new ControlListener() );  
       
-      controls[5] = new ViewControlMaker(new JButton("Edit Annotations"));
-      controls[5].addActionListener( new ControlListener() );            
+      //controls[5] = new ViewControlMaker(new JButton("Edit Annotations"));
+      //controls[5].addActionListener( new ControlListener() );            
    }
    
   /*
@@ -729,6 +757,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	            ((ImageJPanel)center).getLocalWorldCoords().MakeCopy();
 	    global_bounds = 
 	            ((ImageJPanel)center).getGlobalWorldCoords().MakeCopy();
+            paintComponents( big_picture.getGraphics() );
 	 }
 	 if (message == CoordJPanel.RESET_ZOOM)
          {
@@ -736,6 +765,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	    for(int next = 0; next < transparencies.size(); next++ )
 	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
             sendMessage(SELECTED_CHANGED);
+            paintComponents( big_picture.getGraphics() );
 	 }
       }      
    }
@@ -758,66 +788,89 @@ public class ImageViewComponent implements IViewComponent2D,
 	    ((ControlColorScale)controls[1]).setLogScale( logscale );
          } 
          else if ( message == IViewControl.CHECKBOX_CHANGED )
-         {
-	    ControlCheckbox control = (ControlCheckbox)ae.getSource();
+         { 
 	    int bpsize = big_picture.getComponentCount();
-	    // if this control turns on/off the axis overlay...
-	    if( control.getText().equals("Axis Overlay") )
-	    {	    
-	       JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
-               if( !control.isSelected() )
-	       {
-	          big_picture.getComponent(bpsize - 2).setVisible(false); 
-		                                                 // axis overlay
+	    
+	    if( ae.getSource() instanceof ControlCheckboxButton )
+	    {
+	      ControlCheckboxButton control = 
+	                                  (ControlCheckboxButton)ae.getSource();
+	      // if this control turns on/off the axis overlay...
+	      if( control.getTitle().equals("Axis Overlay") )
+	      {	    
+	        JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
+                if( !control.isSelected() )
+	        {                                                // axis overlay
+		 ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(false);
 	          back.getComponent(1).setVisible(false);        // north
 	          back.getComponent(2).setVisible(false);        // west
 	          back.getComponent(3).setVisible(false);        // south
 	          back.getComponent(4).setVisible(false);        // east
-	       }
-	       else
-	       {	       
+	          //System.out.println("visible..." + 
+		   //((AxisOverlay2D)transparencies.elementAt(2)).isVisible() );
+	        }
+	        else
+	        { 	       
 	          back.getComponent(1).setVisible(true);
                   back.getComponent(2).setVisible(true);
 	          back.getComponent(3).setVisible(true);
 	          back.getComponent(4).setVisible(true);
-	          big_picture.getComponent(bpsize - 2).setVisible(true);    
-	       }
-	    }// end of if( axis overlay control ) 
-	    // if this control turns on/off the selection overlay...
-	    else if( control.getText().equals("Selection Overlay") )
-	    { 
-	       SelectionOverlay select = (SelectionOverlay)
-	                       big_picture.getComponent(
-	                       big_picture.getComponentCount() - 3 ); 
-               if( !control.isSelected() )
-	          select.setVisible(false);
-	       else
-	       {
-	          select.setVisible(true); 
-		  select.getFocus();
-	       }
-	    } 
-	    else if( control.getText().equals("Annotation Overlay") )
-	    { 
-	       AnnotationOverlay note = (AnnotationOverlay)
+	          ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(true);
+	        }
+	      }// end of if( axis overlay control ) 
+	      else if( control.getTitle().equals("Annotation Overlay") )
+	      {
+	        AnnotationOverlay note = (AnnotationOverlay)
 	                       big_picture.getComponent(
 	                       big_picture.getComponentCount() - 4 ); 
-               if( !control.isSelected() )
+                if( !control.isSelected() )
 	          note.setVisible(false);
-	       else
-	       {
+	        else
+	        {
 	          note.setVisible(true);
 		  note.getFocus();
-	       } 
-	    }  	            
-	 } // end if checkbox
-	 else if( message.equals("Edit Annotations") )
-	 {
-	    AnnotationOverlay note = (AnnotationOverlay)
+	        } 	      
+	      }
+	    }
+	    else if( ae.getSource() instanceof ControlCheckbox )
+	    {
+	      ControlCheckbox control = (ControlCheckbox)ae.getSource();
+	      // if this control turns on/off the selection overlay...
+	      if( control.getText().equals("Selection Overlay") )
+	      { 
+	        SelectionOverlay select = (SelectionOverlay)
 	                       big_picture.getComponent(
-	                       big_picture.getComponentCount() - 4 ); 
-	    note.editAnnotation();
-	 } 	
+	                       big_picture.getComponentCount() - 3 ); 
+                if( !control.isSelected() )
+	          select.setVisible(false);
+	        else
+	        {
+	          select.setVisible(true); 
+		  select.getFocus();
+	        }
+	      } 
+	    } 	            
+	 } // end if checkbox
+	 else if( message.equals( IViewControl.BUTTON_PRESSED ) )
+	 {
+	   if( ae.getSource() instanceof ControlCheckboxButton )
+	   {
+	     ControlCheckboxButton ccb = (ControlCheckboxButton)ae.getSource();
+	     if( ccb.getTitle().equals("Axis Overlay") )
+	     {
+	       AxisOverlay2D axis = (AxisOverlay2D)big_picture.getComponent(
+	                            big_picture.getComponentCount() - 2 );
+	       axis.editGridLines();
+	     }
+	     else if( ccb.getTitle().equals("Annotation Overlay") )
+	     {
+	       AnnotationOverlay note = (AnnotationOverlay)
+	                         big_picture.getComponent(
+	                         big_picture.getComponentCount() - 4 ); 
+	       note.editAnnotation();
+	     }
+	   }	   
+	 }
 	 //repaints overlays accurately	
 	 sendMessage( message );
          paintComponents( big_picture.getGraphics() ); 
@@ -839,7 +892,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	 sendMessage( colorscale );
 	 //System.out.println("ViewComponent Color Scheme = " + 
 	 //                  ae.getActionCommand() );
-	 /*
+	 
 	 SelectionOverlay so = (SelectionOverlay)big_picture.getComponent(
 	      big_picture.getComponentCount() - 3 );
 	 
@@ -860,7 +913,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	 else if( colorscale.equals(IndexColorMaker.MULTI_SCALE) )
 	    so.setRegionColor(Color.pink);
 	 else //if( colorscale.equals(IndexColorMaker.SPECTRUM_SCALE) )
-	    so.setRegionColor(Color.white);*/
+	    so.setRegionColor(Color.white);
 	      
 	 paintComponents( big_picture.getGraphics() ); 
       }
@@ -917,8 +970,8 @@ public class ImageViewComponent implements IViewComponent2D,
       VirtualArray2D va2D = new VirtualArray2D(row, col); 
       va2D.setAxisInfoVA( AxisInfo2D.XAXIS, 0f, 10000f, 
         		 "TestX","TestUnits", true );
-      va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, 1000f, 
-        		  "TestY","TestYUnits", true );
+      va2D.setAxisInfoVA( AxisInfo2D.YAXIS, 0f, 1500f, 
+        		  "TestY","TestYUnits", false );
       va2D.setTitle("Main Test");
       //Fill the 2D array with the function x*y
       for(int i = 0; i < row; i++)
