@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2004/04/02 03:37:27  bouzekc
+ *  Is now kinder to users by trimming out any trailing or leading
+ *  semicolons or commas.
+ *
  *  Revision 1.8  2004/03/11 23:00:11  rmikk
  *  Added the correct package name to all java files
  *
@@ -123,6 +127,17 @@ public static int[] ToArray( String string_list )
 
                                    // make a tokenizer for the non-blank string
   boolean         getDelim=true;
+  instring = instring.trim(  );
+      
+  //help our users out by catching non-tokenizable stuff
+  //and fixing it
+  while( instring.startsWith( "," ) || instring.startsWith( ";" ) ) {
+    instring = instring.substring( 1, instring.length(  ) ).trim(  );
+  }
+  while( instring.endsWith( "," ) || instring.endsWith( ";" ) ) {
+    instring = instring.substring( 0, instring.length(  ) - 1 ).trim(  );
+  }
+  
   StringTokenizer t = new StringTokenizer(instring, ",:", getDelim);
   
   int new_list[];
