@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2004/04/20 04:14:54  millermi
+ *  - Fixed java doc error.
+ *
  *  Revision 1.1  2004/04/16 20:21:27  millermi
  *  - Initial Version - Object taken in by the VirtualArrayList1D
  *    class.
@@ -141,7 +144,7 @@ public class DataArray1D
  /**
   * Set whether or not the data will be the pointed-at graph.
   *
-  *  @param  selected True if graph is pointed-at, false if not.
+  *  @param  pointedAt True if graph is pointed-at, false if not.
   */ 
   public void setPointedAt( boolean pointedAt )
   {
