@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/04/09 03:06:56  millermi
+ *  - Added default constructor.
+ *
  *  Revision 1.5  2004/03/17 20:26:50  dennis
  *  Fixed @see tag that was broken when view components, math and
  *  util were moved to gov package.
@@ -128,6 +131,18 @@ public class AxisInfo
   private String axislabel;
   private String axisunits;  
   private boolean islinear;
+  
+ /**
+  * Default Constructor: initializes axis information
+  */
+  public AxisInfo()
+  {	 
+    axismin = 0;
+    axismax = 1f;
+    axislabel = NO_LABEL;
+    axisunits = NO_UNITS;
+    islinear = LINEAR;
+  }
   
  /**
   * Constructor: initializes axis information
