@@ -34,11 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2003/08/14 21:49:00  millermi
+ *  - Replaced "for" loop to repaint transparencies with paintComponents() in
+ *    private class ImageListener. This updates grid lines in a desirable way.
+ *  - Edited Revision 1.22 comments, one comment was left unfinished.
+ *
  *  Revision 1.22  2003/08/14 17:07:27  millermi
  *  - Changed control of Selection Overlay from ControlCheckbox to
  *    ControlCheckboxButton.
- *  - Implementing dataChanged()...still in progress...need to get selections
- *    to change data.
+ *  - Implementing dataChanged(IVArray) to handle different sized arrays.
  *  - Changed menus from specialized class instances to an instance of
  *    MenuItemMaker.java.
  *  - Moved construction of big_picture from buildViewComponent to constructor.
@@ -860,39 +864,39 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    private class ImageListener implements ActionListener
    {
-      public void actionPerformed( ActionEvent ae )
-      {
-         String message = ae.getActionCommand();     
-         //System.out.println("Image sent message " + message );
+     public void actionPerformed( ActionEvent ae )
+     {
+       String message = ae.getActionCommand();     
+       //System.out.println("Image sent message " + message );
 
-         if (message == CoordJPanel.CURSOR_MOVED)
-         {
-	    //System.out.println("Sending POINTED_AT_CHANGED" );
-            sendMessage(POINTED_AT_CHANGED);
-	 }
-	 else if (message == CoordJPanel.ZOOM_IN)
-         {
-	    //System.out.println("Sending SELECTED_CHANGED " + regioninfo );
-	    ImageJPanel center = (ImageJPanel)ae.getSource();
-	    local_bounds = center.getLocalWorldCoords().MakeCopy();
-	    global_bounds = center.getGlobalWorldCoords().MakeCopy();
-	    for(int next = 0; next < transparencies.size(); next++ )
-	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
-	    
-            sendMessage(SELECTED_CHANGED);
-	 }
-	 else if (message == CoordJPanel.RESET_ZOOM)
-         {
-	    //System.out.println("Sending SELECTED_CHANGED" );
-	    ImageJPanel center = (ImageJPanel)ae.getSource();
-	    local_bounds = center.getLocalWorldCoords().MakeCopy();
-	    global_bounds = center.getGlobalWorldCoords().MakeCopy();
-	    for(int next = 0; next < transparencies.size(); next++ )
-	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
-	    
-            sendMessage(SELECTED_CHANGED);
-	 }
-      }      
+       if (message == CoordJPanel.CURSOR_MOVED)
+       {
+    	 //System.out.println("Sending POINTED_AT_CHANGED" );
+    	 sendMessage(POINTED_AT_CHANGED);
+       }
+       else if (message == CoordJPanel.ZOOM_IN)
+       {
+    	 //System.out.println("Sending SELECTED_CHANGED " + regioninfo );
+    	 ImageJPanel center = (ImageJPanel)ae.getSource();
+    	 local_bounds = center.getLocalWorldCoords().MakeCopy();
+    	 global_bounds = center.getGlobalWorldCoords().MakeCopy();
+    	 //for(int next = 0; next < transparencies.size(); next++ )
+    	 //   ((OverlayJPanel)transparencies.elementAt(next)).repaint();
+    	 paintComponents( big_picture.getGraphics() ); 
+    	 sendMessage(SELECTED_CHANGED);
+       }
+       else if (message == CoordJPanel.RESET_ZOOM)
+       {
+    	 //System.out.println("Sending SELECTED_CHANGED" );
+    	 ImageJPanel center = (ImageJPanel)ae.getSource();
+    	 local_bounds = center.getLocalWorldCoords().MakeCopy();
+    	 global_bounds = center.getGlobalWorldCoords().MakeCopy();
+    	 //for(int next = 0; next < transparencies.size(); next++ )
+    	 //   ((OverlayJPanel)transparencies.elementAt(next)).repaint();
+    	 paintComponents( big_picture.getGraphics() ); 
+    	 sendMessage(SELECTED_CHANGED);
+       }
+     }     
    }
    
   /*
