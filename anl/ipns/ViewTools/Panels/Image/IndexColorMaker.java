@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2002/07/17 15:18:38  dennis
+ *  Removed informational print.
+ *
  *  Revision 1.11  2002/07/15 16:54:18  pfpeterson
  *  Uses 'Heat 1' as default.
  *
@@ -256,7 +259,6 @@ public class IndexColorMaker implements Serializable
     }
     else                           // by default, use HEATED OBJECT/GRAY SCALE
     {
-      System.out.println("Using default color scale");
       BuildHeatedObjectScale( p_red, p_green, p_blue );
       BuildGrayScale( m_red, m_green, m_blue ); 
     }
