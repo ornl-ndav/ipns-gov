@@ -30,8 +30,8 @@
  * Modified:
  *
  * $Log$
- * Revision 1.18  2003/07/02 17:13:23  serumb
- * Added a method to make a line transparent.
+ * Revision 1.19  2003/07/02 19:53:38  serumb
+ * Fixed problem with error bar location while zooming.
  *
  * Revision 1.17  2003/06/30 21:57:25  dennis
  * Removed shift by "first_index" that was improperly added.
@@ -126,6 +126,7 @@ public class GraphJPanel extends    CoordJPanel
   public static final int TRANSPARENT  = 10;
   public static final int ERROR_AT_POINT  = 11;
   public static final int ERROR_AT_TOP    = 12;
+  
 /* --------------------- Default Constructor ------------------------------ */
 
   public GraphJPanel()
@@ -252,6 +253,8 @@ public class GraphJPanel extends    CoordJPanel
 /**
  *  Set the error color for the specified graph.  
  *
+ *  @param  color      the color of the error bars
+ *
  *  @param  graph_num  the index of the graph whose color is set.
  *                     The index must be at least zero and less than the
  *                     number of graphs currently held in this GraphJPanel.  
@@ -278,6 +281,8 @@ public class GraphJPanel extends    CoordJPanel
 /* ----------------------------- setColor -------------------------------- */
 /**
  *  Set the color for the specified graph.  
+ *
+ *  @param  color      the color of the error bars
  *
  *  @param  graph_num  the index of the graph whose color is set.
  *                     The index must be at least zero and less than the
@@ -306,6 +311,8 @@ public class GraphJPanel extends    CoordJPanel
 /* ----------------------------- setMarkColor -------------------------------- */
 /**
  *  Set the color for the specified graph.  
+ *
+ *  @param  color      the color of the error bars
  *
  *  @param  graph_num  the index of the graph whose color is set.
  *                     The index must be at least zero and less than the
@@ -478,7 +485,6 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
 
     return true;
  }
-
 
 /* --------------------------- setMultiPlotOffsets ------------------------ */
 /**
@@ -752,9 +758,7 @@ public boolean is_autoY_bounds()
       }
       y_copy = new float[ n_points ];
       System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
-
-      local_transform.MapTo( x_copy, y_copy );         // map from WC to pixels
-      
+  
       float error_bars_upper[] = null;
       float error_bars_lower[] = null;
       if ( gd.getErrorVals() != null )
@@ -765,9 +769,10 @@ public boolean is_autoY_bounds()
 
         for ( int i = 0; i < n_points; i++ )
         {
-           error_bars_upper[i] = gd.y_vals[i] + gd.getErrorVals()[i]; 
-           error_bars_lower[i] = gd.y_vals[i] - gd.getErrorVals()[i];
+           error_bars_upper[i] = y_copy[i] + gd.getErrorVals()[i]; 
+           error_bars_lower[i] = y_copy[i] - gd.getErrorVals()[i];
         }
+        local_transform.MapTo( x_copy, y_copy );       // map from WC to pixels
         local_transform.MapYListTo(error_bars_upper);
         local_transform.MapYListTo(error_bars_lower);
       }
@@ -1029,10 +1034,10 @@ public boolean is_autoY_bounds()
           Line2D.Float line3 = new Line2D.Float();
           int size = 1;
           int loc = gd.getErrorLocation();
-          int x_val = getZoom_region().x;
-          int y_val = getZoom_region().y;
-          int x_width = getZoom_region().width;
-          int y_height = getZoom_region().height;
+        //  int x_val = getZoom_region().x;
+        //  int y_val = getZoom_region().y;
+        //  int x_width = getZoom_region().width;
+        //  int y_height = getZoom_region().height;
 
 	  g2.setStroke(new BasicStroke(1));
 	  g2.setColor( gd.errorcolor );
