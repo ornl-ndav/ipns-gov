@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2003/11/06 01:20:27  serumb
+ * Changed the initial size for the point markers to be bigger.
+ *
  * Revision 1.15  2003/10/21 00:49:23  serumb
  * Fixed javadoc error.
  *
@@ -82,7 +85,7 @@ public class GraphData implements Serializable
   public float  linewidth = 1;
   public int    marktype  = 0;
   public Color  markcolor = Color.red;
-  public int    marksize  = 1;
+  public int    marksize  = 2;
   public BasicStroke Stroke = new BasicStroke(1);
   public boolean transparent = false;
   public Color  errorcolor = Color.blue;
