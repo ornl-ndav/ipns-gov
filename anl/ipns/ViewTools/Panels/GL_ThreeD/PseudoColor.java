@@ -30,18 +30,16 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/15 22:15:14  dennis
+ * Removed unused import.
+ *
  * Revision 1.1  2004/05/28 20:51:15  dennis
  * Initial (test) version of classes for displaying and picking
  * 3D objects using OpenGL from Java, built on the "jogl" system.
  *
- *
  */
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
-
-import java.awt.*;
-
-
  
 public class PseudoColor
 {
