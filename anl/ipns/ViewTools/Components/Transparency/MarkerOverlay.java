@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/04/29 06:44:12  millermi
+ *  - Revised the help() panel.
+ *
  *  Revision 1.4  2004/04/23 17:29:05  millermi
  *  - Replaced code for color chooser with the new ColorSelector class.
  *
@@ -152,8 +155,23 @@ public class MarkerOverlay extends OverlayJPanel
     textpane.setEditorKit( new HTMLEditorKit() );
     String text = "<H1>Description:</H1><P>" +
                   "The Marker Overlay is used to add on-screen markers " +
- 		  "to emphasize important points on the display.</P>" +
-                  "<H2>Commands for Marker Overlay</H2>";
+ 		  "to emphasize important points on the display. Each " +
+		  "viewer will define how markers can be specified. " +
+		  "MARKERS ARE NOT INTERACTIVELY SET, to interactively " +
+		  "add marks to a display, use the AnnotationOverlay.</P>" +
+                  "<H2>Commands for Marker Overlay</H2>" +
+		  "<i>First, select the marker(s) of interest. All other " +
+		  "operations after this point will affect the specified " +
+		  "marker.</i><br>" +
+		  "<b>Marker Types:</b> Select the visual appearance of the " +
+		  "marker.<br>" +
+		  "<b>Resize Marker on Zoom:</b> Do you want the markers to " +
+		  "stay the same size (disabled), or grow (enabled) when a " +
+		  "zoom on the image occurs?<br>" +
+		  "<b>Adjust Marker Size:</b> Allows you to choose the marker "+
+		  "size.<br>" +
+		  "<b>Select New Color:</b> Select the color of the current " +
+		  "marker.";
     textpane.setText(text);
     JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
