@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2002/07/08 20:08:34  dennis
+ *  Added string constants for some commonly used special symbols, Angstrom,
+ *  inverse Angstrom, delta, theta, phi, lamda and pi.
+ *
  *  Revision 1.3  2001/04/25 22:24:20  dennis
  *  Added copyright and GPL info at the start of the file.
  *
@@ -47,14 +51,35 @@
 package DataSetTools.util;
 
 import java.awt.*;
+import javax.swing.*;
 
 /**
- *  Provide common set of fonts to use for borders, labels, etc. to keep the
- *  font's uniform across different parts of an application
+ *  Provide common set of fonts to use for borders, labels, special symbols,
+ *  etc. to keep the fonts uniform across different parts of an application
  */
 
 public class FontUtil
 {
+  // Special symbols:
+
+  public static final String ANGSTROM     = "\u00c5";
+  public static final String INV_ANGSTROM = "Inv("+ANGSTROM+")";
+
+  public static final String DELTA        = "\u03b4";
+  public static final String THETA        = "\u03b8";
+  public static final String LAMBDA       = "\u03bb";
+  public static final String PI           = "\u03c0";
+  public static final String PHI          = "\u03c6";
+
+  public static final String DELTA_UC     = "\u0394";
+  public static final String THETA_UC     = "\u0398";
+  public static final String LAMBDA_UC    = "\u039b";
+  public static final String PI_UC        = "\u03a0";
+  public static final String PHI_UC       = "\u03a6";
+    
+
+  // default fonts for borders, labels, etc.:
+
   static public final Font LABEL_FONT  = new Font("SansSerif", Font.PLAIN, 10);
   static public final Font BORDER_FONT = new Font("SansSerif", Font.BOLD,   9);
   static public final Font MONO_FONT   = new Font("Monospaced", Font.PLAIN,12);
@@ -63,5 +88,26 @@ public class FontUtil
    * Don't instantiate this class, just use the Fonts provided.
    */
   private FontUtil() {}
+
+  public static void main( String args[] )
+  {
+    JFrame   f       = new JFrame( "Font Test" );
+    JTextArea display = new JTextArea();
+
+    display.append("\n");
+
+    display.append( " " + ANGSTROM + " " + INV_ANGSTROM + "\n");
+
+    display.append( " " + DELTA  + " " + DELTA_UC  + "\n");
+    display.append( " " + THETA  + " " + THETA_UC  + "\n");
+    display.append( " " + LAMBDA + " " + LAMBDA_UC + "\n");
+    display.append( " " + PI     + " " + PI_UC     + "\n");
+    display.append( " " + PHI    + " " + PHI_UC    + "\n");
+
+    f.getContentPane().add( display );
+    f.getContentPane().setLayout( new GridLayout(1,1) );
+    f.setSize( 100, 200 );
+    f.show();
+  }
 
 }
