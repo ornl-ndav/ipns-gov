@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.27  2004/01/21 17:48:32  bouzekc
+ *  Backwards-compatible with previous version; if the splitter for split()
+ *  is null, it is treated as a space separator.
+ *
  *  Revision 1.26  2004/01/21 17:43:24  bouzekc
  *  Removed unused local variables and unused imports.
  *
@@ -523,6 +527,10 @@ public class StringUtil
     }
     
     return list;*/
+    if( splitter == null ) {
+      splitter = " ";
+    }
+    
     return string.split( splitter );
   }
 
