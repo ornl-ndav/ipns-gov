@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2003/08/05 23:19:19  serumb
+ *  Added method getLocalLogCoords to get the coord bounds that have been
+ *  scaled.
+ *
  *  Revision 1.22  2003/07/25 16:53:01  serumb
  *  Adjusted methods so that zoom messages are sent after
  *  the transformations have been made.
@@ -86,6 +90,7 @@ import javax.swing.*;
 
 import DataSetTools.util.*;
 import DataSetTools.components.ui.*;
+import DataSetTools.components.View.LogScaleUtil;
 
 /**
  *  This class is a base class for panels that have a "world" coordinate
@@ -409,6 +414,34 @@ public class CoordJPanel extends    ActiveJPanel
   {
     SetTransformsToWindowSize();
     return( local_transform.getSource( ) );
+  }
+
+  /* ----------------------- getLocalLogWorldCoords ------------------------ */
+  /**
+   *  Get the region that defines the world coordinate system for the
+   *  zoomed region of the panel.
+   *
+   *  @return A reference to the region in world coordinates that is 
+   *          currently mapped to the full panel by the local transform.
+   */
+  public CoordBounds getLocalLogWorldCoords(double scale )
+  {
+    SetTransformsToWindowSize();
+    CoordBounds b = getGlobalWorldCoords();
+    CoordBounds b2 = local_transform.getSource( );
+    float x1,x2,y1,y2;
+    x1 = b2.getX1();
+    x2 = b2.getX2();
+    y1 = b2.getY1();
+    y2 = b2.getY2();    
+    LogScaleUtil loggerx = new LogScaleUtil(b.getX1(),b.getX2(),b.getX1(),b.getX2());
+    LogScaleUtil loggery = new LogScaleUtil(b.getY1(),b.getY2(),b.getY1(),b.getY2());
+    b.setBounds(loggerx.toDest(x1, scale),
+                loggery.toDest(y1, scale),
+                loggerx.toDest(x2, scale),
+                loggery.toDest(y2, scale));
+
+    return( b );
   }
 
 
