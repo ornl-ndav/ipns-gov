@@ -34,6 +34,22 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2003/08/14 17:07:27  millermi
+ *  - Changed control of Selection Overlay from ControlCheckbox to
+ *    ControlCheckboxButton.
+ *  - Implementing dataChanged()...still in progress...need to get selections
+ *    to change data.
+ *  - Changed menus from specialized class instances to an instance of
+ *    MenuItemMaker.java.
+ *  - Moved construction of big_picture from buildViewComponent to constructor.
+ *    buildViewComponent now only builds the background JPanel. This is useful
+ *    when calling buildViewComponent multiple times.
+ *  - Added returnFocus() to improve focus transition between overlays. When
+ *    overlays are checked and unchecked, sometimes the focus is lost. This
+ *    fixes most instances.
+ *  - Added menu option to switch between color scales. Now south/east/control
+ *    color scales can be controlled by Options>Color Scale>Display Position
+ *
  *  Revision 1.21  2003/08/11 23:42:48  millermi
  *  - Changed getSelectedSet() to getSelectedRegions() which now
  *    returns an array of Regions.
@@ -143,14 +159,13 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.io.Serializable;
 import java.awt.*;
-import java.lang.*;
 import java.awt.event.*;
-import java.awt.Rectangle.*;
-import java.util.*; 
+import java.util.Vector; 
+import java.util.Stack; 
 import java.awt.font.FontRenderContext;
 
-import DataSetTools.util.*; 
-import DataSetTools.math.*;
+import DataSetTools.util.floatPoint2D;
+import DataSetTools.util.FontUtil;
 import DataSetTools.components.image.*;
 import DataSetTools.components.View.Cursor.SelectionJPanel;
 import DataSetTools.components.View.Transparency.*;
@@ -159,10 +174,6 @@ import DataSetTools.components.View.ViewControls.*;
 import DataSetTools.components.View.Menu.*;
 import DataSetTools.components.View.Region.*;
 import DataSetTools.components.ui.ColorScaleMenu;
-
-// Component location and resizing within the big_picture
-import java.awt.event.ComponentAdapter.*;
-import java.awt.geom.*;
 
 /**
  * This class allows the user to view data in the form of an image. Meaning
@@ -179,13 +190,11 @@ public class ImageViewComponent implements IViewComponent2D,
    private static final int MAXDATASIZE = 1000000000;
    private IVirtualArray2D Varray2D;  //An object containing our array of data
    private Stack dynamicregionlist = new Stack(); // dynamic list of regions.
-   //private Vector dynamicpointlist = new Vector(); // dynamic list of wcps.
    private Region[] selectedregions = new Region[0];   
    private Vector Listeners = null;   
-   private JPanel big_picture = new JPanel();    
+   private JPanel big_picture = new JPanel();  
+   private JPanel background = new JPanel(new BorderLayout());  
    private ImageJPanel ijp;
-   // for component size and location adjustments
-   //private ComponentAltered comp_listener;
    private Rectangle regioninfo;
    private CoordBounds local_bounds;
    private CoordBounds global_bounds;
@@ -260,8 +269,13 @@ public class ImageViewComponent implements IViewComponent2D,
       transparencies.add(nextup);
       transparencies.add(bottom_overlay); 
       
+      OverlayLayout overlay = new OverlayLayout(big_picture);
+      big_picture.setLayout(overlay);
+      for( int trans = 0; trans < transparencies.size(); trans++ )
+         big_picture.add((OverlayJPanel)transparencies.elementAt(trans));
+      big_picture.add(background);
+      
       Listeners = new Vector();
-      //soregion = null;
       buildViewComponent();    // initializes big_picture to jpanel containing
                                // the background and transparencies
       buildViewControls(); 
@@ -493,8 +507,17 @@ public class ImageViewComponent implements IViewComponent2D,
       //get the complete 2D array of floats from pin_Varray
       float[][] f_array = pin_Varray.getRegionValues( 0, MAXDATASIZE, 
                                                       0, MAXDATASIZE );
-
-      ijp.setData(f_array, true);
+      if( pin_Varray.getNumRows() == Varray2D.getNumRows() &&
+          pin_Varray.getNumColumns() == Varray2D.getNumColumns() )
+      {
+	Varray2D.setRegionValues(f_array,0,0);
+      }
+      else
+      {
+        Varray2D = new VirtualArray2D( f_array );
+      }
+      ijp.setData(Varray2D.getRegionValues( 0, MAXDATASIZE, 
+                                            0, MAXDATASIZE ), true);
       paintComponents( big_picture.getGraphics() );  
    }
    
@@ -593,8 +616,9 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    public void setColorControlEast( boolean isOn )
    {
-      addColorControlEast = isOn;
-      buildViewComponent();
+     ((ControlColorScale)controls[1]).setVisible(false);
+     addColorControlEast = isOn;
+     buildViewComponent();
    }
    
   /**
@@ -603,8 +627,9 @@ public class ImageViewComponent implements IViewComponent2D,
    */   
    public void setColorControlSouth( boolean isOn )
    {
-      addColorControlSouth = isOn;
-      buildViewComponent();
+     ((ControlColorScale)controls[1]).setVisible(false);
+     addColorControlSouth = isOn;
+     buildViewComponent();
    }
    
   /*
@@ -637,12 +662,33 @@ public class ImageViewComponent implements IViewComponent2D,
    
    private void paintComponents( Graphics g )
    {
-      for( int i = big_picture.getComponentCount(); i > 0; i-- )
-      {
+     if( g != null )
+     {
+       for( int i = big_picture.getComponentCount(); i > 0; i-- )
+       {
          if( big_picture.getComponent( i - 1 ).isVisible() )
-	    big_picture.getComponent( i - 1 ).update(g);
-      }
-      big_picture.getParent().getParent().getParent().getParent().repaint();
+	   big_picture.getComponent( i - 1 ).update(g);
+       }
+     }
+     Component temppainter = big_picture;
+     while( temppainter.getParent() != null )
+       temppainter = temppainter.getParent();
+     temppainter.repaint();
+     //big_picture.getParent().getParent().getParent().getParent().repaint();
+   }
+   
+   private void returnFocus()
+   {		
+     AnnotationOverlay note = (AnnotationOverlay)transparencies.elementAt(0); 
+     SelectionOverlay select = (SelectionOverlay)transparencies.elementAt(1); 
+     AxisOverlay2D axis = (AxisOverlay2D)transparencies.elementAt(2);
+     
+     if( note.isVisible() )
+       note.getFocus(); 
+     else if(select.isVisible() )
+       select.getFocus();
+     else if(axis.isVisible() )
+       axis.getFocus();   
    }
    
   /*
@@ -654,7 +700,7 @@ public class ImageViewComponent implements IViewComponent2D,
       int westwidth = font.getSize() * precision + 22;
       int southwidth = font.getSize() * 3 + 9;
       // this will be the background for the master panel
-      JPanel background = new JPanel(new BorderLayout());
+      background.removeAll();
       
       JPanel north = new JPanel();
       north.setPreferredSize(new Dimension( 0, 25 ) );
@@ -702,7 +748,7 @@ public class ImageViewComponent implements IViewComponent2D,
       	  
       // create master panel and
       //  add background and transparency to the master layout
-      
+      /*
       JPanel master = new JPanel();
       OverlayLayout overlay = new OverlayLayout(master);
       master.setLayout(overlay);
@@ -711,6 +757,8 @@ public class ImageViewComponent implements IViewComponent2D,
       master.add(background);
 
       big_picture = master;
+      */ 
+      //big_picture.add(background);
    }
    
   /*
@@ -725,37 +773,64 @@ public class ImageViewComponent implements IViewComponent2D,
       logscale = ((ControlSlider)controls[0]).getValue();	       	    
       controls[0].addActionListener( new ControlListener() );
                  
-      controls[1] = new ControlColorScale(IndexColorMaker.HEATED_OBJECT_SCALE_2,
-                                          isTwoSided );
+      controls[1] = new ControlColorScale(colorscale, isTwoSided );
       controls[1].setTitle("Color Scale");
       
       controls[2] = new ControlCheckboxButton(true);
       ((ControlCheckboxButton)controls[2]).setTitle("Axis Overlay");
       controls[2].addActionListener( new ControlListener() );
     
-      controls[3] = new ControlCheckbox();
-      ((ControlCheckbox)controls[3]).setText("Selection Overlay");
+      controls[3] = new ControlCheckboxButton();  // initially unchecked
+      ((ControlCheckboxButton)controls[3]).setTitle("Selection Overlay");
       controls[3].addActionListener( new ControlListener() );
       
-      controls[4] = new ControlCheckboxButton();
+      controls[4] = new ControlCheckboxButton();  // initially unchecked
       ((ControlCheckboxButton)controls[4]).setTitle("Annotation Overlay");
-      controls[4].addActionListener( new ControlListener() );  
-      
-      //controls[5] = new ViewControlMaker(new JButton("Edit Annotations"));
-      //controls[5].addActionListener( new ControlListener() );            
+      controls[4].addActionListener( new ControlListener() );          
    }
    
   /*
    * This method constructs the menu items required by the ImageViewComponent
    */   
    private void buildViewMenuItems()
-   {
-      menus[0] = new ViewMenuItem("Options", 
-                                  new ColorScaleMenu( new ColorListener() ));
-      menus[0].addActionListener( new MenuListener() );
-      
-      menus[1] = new ViewMenuItem("Options", new HelpMenu(new HelpListener()));
-      menus[1].addActionListener( new MenuListener() );
+   {  
+     Vector colorscale = new Vector();
+     Vector position = new Vector();
+     Vector choices = new Vector();
+     colorscale.add("Color Scale");
+     colorscale.add(choices);
+       choices.add("Scales");
+       choices.add(IndexColorMaker.HEATED_OBJECT_SCALE);
+       choices.add(IndexColorMaker.HEATED_OBJECT_SCALE_2);
+       choices.add(IndexColorMaker.GRAY_SCALE);
+       choices.add(IndexColorMaker.NEGATIVE_GRAY_SCALE);
+       choices.add(IndexColorMaker.GREEN_YELLOW_SCALE);
+       choices.add(IndexColorMaker.RAINBOW_SCALE);
+       choices.add(IndexColorMaker.OPTIMAL_SCALE);
+       choices.add(IndexColorMaker.MULTI_SCALE);
+       choices.add(IndexColorMaker.SPECTRUM_SCALE);
+     colorscale.add(position);
+       position.add("Display Position");
+       position.add("Control Panel");
+       position.add("Below Image (calibrated)");
+       position.add("Right of Image (calibrated)");
+       position.add("None");
+     
+     JMenuItem scalemenu = MenuItemMaker.makeMenuItem( colorscale,
+     						      new ColorListener() );
+     menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, scalemenu ); 
+     				
+     //menus[0].addActionListener( new MenuListener() );
+     
+     Vector overlayhelp = new Vector();
+     overlayhelp.add("Overlays");
+       overlayhelp.add("Annotation");
+       overlayhelp.add("Axis");
+       overlayhelp.add("Selection");
+     JMenuItem helpmenu = MenuItemMaker.makeMenuItem( overlayhelp,
+     						      new HelpListener() );
+     menus[1] = new ViewMenuItem(ViewMenuItem.PUT_IN_HELP, helpmenu );
+     //menus[1].addActionListener( new MenuListener() );
    }
    
   //***************************Assistance Classes******************************
@@ -805,7 +880,6 @@ public class ImageViewComponent implements IViewComponent2D,
 	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
 	    
             sendMessage(SELECTED_CHANGED);
-            //paintComponents( big_picture.getGraphics() );
 	 }
 	 else if (message == CoordJPanel.RESET_ZOOM)
          {
@@ -817,7 +891,6 @@ public class ImageViewComponent implements IViewComponent2D,
 	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
 	    
             sendMessage(SELECTED_CHANGED);
-            //paintComponents( big_picture.getGraphics() );
 	 }
       }      
    }
@@ -878,11 +951,6 @@ public class ImageViewComponent implements IViewComponent2D,
                 if( !control.isSelected() )
 		{
 	          note.setVisible(false);
-	          SelectionOverlay select = (SelectionOverlay)
-	                       big_picture.getComponent(
-	                       big_picture.getComponentCount() - 3 ); 
-		  if(select.isVisible() )
-		    select.getFocus();
 	        }
 		else
 	        {
@@ -890,31 +958,22 @@ public class ImageViewComponent implements IViewComponent2D,
 		  note.getFocus();
 	        } 	      
 	      }
-	    }
-	    else if( ae.getSource() instanceof ControlCheckbox )
-	    {
-	      ControlCheckbox control = (ControlCheckbox)ae.getSource();
-	      // if this control turns on/off the selection overlay...
-	      if( control.getText().equals("Selection Overlay") )
-	      { 
+	      else if( control.getTitle().equals("Selection Overlay") )
+	      {
+	        // if this control turns on/off the selection overlay...
 	        SelectionOverlay select = (SelectionOverlay)
-	                       big_picture.getComponent(
-	                       big_picture.getComponentCount() - 3 ); 
+	        	     big_picture.getComponent(
+	        	     big_picture.getComponentCount() - 3 ); 
                 if( !control.isSelected() )
 		{
 	          select.setVisible(false);
-	          AnnotationOverlay note = (AnnotationOverlay)
-	                       big_picture.getComponent(
-	                       big_picture.getComponentCount() - 4 ); 
-	          if( note.isVisible() )
-		    note.getFocus();
 		}
 		else
 	        {
 	          select.setVisible(true); 
 		  select.getFocus();
 	        }
-	      } 
+	      }
 	    } 	            
 	 } // end if checkbox
 	 else if( message.equals( IViewControl.BUTTON_PRESSED ) )
@@ -934,11 +993,21 @@ public class ImageViewComponent implements IViewComponent2D,
 	                         big_picture.getComponent(
 	                         big_picture.getComponentCount() - 4 ); 
 	       note.editAnnotation();
+	       note.getFocus();
+	     }
+	     else if( ccb.getTitle().equals("Selection Overlay") )
+	     {
+	       SelectionOverlay select = (SelectionOverlay)
+	                       big_picture.getComponent(
+	                       big_picture.getComponentCount() - 3 ); 
+	       select.editSelection();
+	       select.getFocus();
 	     }
 	   }	   
 	 }
 	 //repaints overlays accurately	
 	 sendMessage( message );
+	 returnFocus();
          paintComponents( big_picture.getGraphics() ); 
       }
    } 
@@ -948,41 +1017,86 @@ public class ImageViewComponent implements IViewComponent2D,
    */  
    private class ColorListener implements ActionListener
    {
-      public void actionPerformed( ActionEvent ae )
-      {
-         colorscale = ae.getActionCommand();
-         ijp.setNamedColorModel( colorscale, isTwoSided, true );
-	 ((ControlColorScale)controls[1]).setColorScale( colorscale, 
-	                                                 isTwoSided );
-         
-	 sendMessage( colorscale );
-	 //System.out.println("ViewComponent Color Scheme = " + 
-	 //                  ae.getActionCommand() );
-	 
-	 SelectionOverlay so = (SelectionOverlay)big_picture.getComponent(
-	      big_picture.getComponentCount() - 3 );
-	 
-	 if( colorscale.equals(IndexColorMaker.GRAY_SCALE) )
-	    so.setRegionColor(Color.red);
-	 else if( colorscale.equals(IndexColorMaker.NEGATIVE_GRAY_SCALE) )
-	    so.setRegionColor(Color.red);
-	 else if( colorscale.equals(IndexColorMaker.GREEN_YELLOW_SCALE) )
-	    so.setRegionColor(Color.red);
-	 else if( colorscale.equals(IndexColorMaker.HEATED_OBJECT_SCALE) )
-	    so.setRegionColor(Color.green);
-	 else if( colorscale.equals(IndexColorMaker.HEATED_OBJECT_SCALE_2) )
-	    so.setRegionColor(Color.magenta);
-	 else if( colorscale.equals(IndexColorMaker.RAINBOW_SCALE) )
-	    so.setRegionColor(Color.white);
-	 else if( colorscale.equals(IndexColorMaker.OPTIMAL_SCALE) )
-	    so.setRegionColor(Color.green);   
-	 else if( colorscale.equals(IndexColorMaker.MULTI_SCALE) )
-	    so.setRegionColor(Color.pink);
-	 else //if( colorscale.equals(IndexColorMaker.SPECTRUM_SCALE) )
-	    so.setRegionColor(Color.white);
-	      
-	 paintComponents( big_picture.getGraphics() ); 
-      }
+     public void actionPerformed( ActionEvent ae )
+     {
+       String message = ae.getActionCommand();
+       // these determine which color scale is to be viewed.
+       if( message.equals("Control Panel") )
+       {
+         ((ControlColorScale)controls[1]).setVisible(true);
+	 addColorControlEast = false;
+	 addColorControlSouth = false;
+	 buildViewComponent();
+       }
+       else if( message.equals("Below Image (calibrated)") )
+       {
+         ((ControlColorScale)controls[1]).setVisible(false);
+	 addColorControlEast = false;
+	 addColorControlSouth = true;
+	 buildViewComponent();
+	 ((ControlCheckboxButton)controls[2]).setSelected(true);
+	 ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
+	 big_picture.setVisible(false);
+	 big_picture.setVisible(true);
+       }
+       else if( message.equals("Right of Image (calibrated)") )
+       {
+         ((ControlColorScale)controls[1]).setVisible(false);
+	 addColorControlEast = true;
+	 addColorControlSouth = false;
+	 buildViewComponent();
+	 ((ControlCheckboxButton)controls[2]).setSelected(true);
+	 ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
+	 big_picture.setVisible(false);
+	 big_picture.setVisible(true);
+       }
+       else if( message.equals("None") )
+       {
+         ((ControlColorScale)controls[1]).setVisible(false);
+	 addColorControlEast = false;
+	 addColorControlSouth = false;
+	 buildViewComponent();
+	 ((ControlCheckboxButton)controls[2]).setSelected(true);
+	 ((OverlayJPanel)transparencies.elementAt(2)).setVisible(true);
+	 big_picture.setVisible(false);
+	 big_picture.setVisible(true);
+       }
+       // else its a color scale choice.
+       else
+       {
+    	 colorscale = message;
+    	 ijp.setNamedColorModel( colorscale, isTwoSided, true );
+         ((ControlColorScale)controls[1]).setColorScale( colorscale, 
+        						 isTwoSided );
+       }
+       sendMessage( message );
+       //System.out.println("ViewComponent Color Scheme = " + 
+       //		   ae.getActionCommand() );
+       /*
+       SelectionOverlay so = (SelectionOverlay)big_picture.getComponent(
+            big_picture.getComponentCount() - 3 );
+
+       if( colorscale.equals(IndexColorMaker.GRAY_SCALE) )
+          so.setRegionColor(Color.red);
+       else if( colorscale.equals(IndexColorMaker.NEGATIVE_GRAY_SCALE) )
+          so.setRegionColor(Color.red);
+       else if( colorscale.equals(IndexColorMaker.GREEN_YELLOW_SCALE) )
+          so.setRegionColor(Color.red);
+       else if( colorscale.equals(IndexColorMaker.HEATED_OBJECT_SCALE) )
+          so.setRegionColor(Color.green);
+       else if( colorscale.equals(IndexColorMaker.HEATED_OBJECT_SCALE_2) )
+          so.setRegionColor(Color.magenta);
+       else if( colorscale.equals(IndexColorMaker.RAINBOW_SCALE) )
+          so.setRegionColor(Color.white);
+       else if( colorscale.equals(IndexColorMaker.OPTIMAL_SCALE) )
+          so.setRegionColor(Color.green);   
+       else if( colorscale.equals(IndexColorMaker.MULTI_SCALE) )
+          so.setRegionColor(Color.pink);
+       else //if( colorscale.equals(IndexColorMaker.SPECTRUM_SCALE) )
+          so.setRegionColor(Color.white);
+       */     
+       paintComponents( big_picture.getGraphics() ); 
+     }
    }
 
   /*
@@ -998,9 +1112,9 @@ public class ImageViewComponent implements IViewComponent2D,
 	    //System.out.println("AnnotationHelpMenu");
 	    AnnotationOverlay.help();
 	 }
-	 else if( button.equals("Axes") )
+	 else if( button.equals("Axis") )
 	 {
-	    //System.out.println("AxesHelpMenu");
+	    //System.out.println("AxisHelpMenu");
 	    AxisOverlay2D.help();
 	 }
 	 else if( button.equals("Selection") )
@@ -1013,16 +1127,16 @@ public class ImageViewComponent implements IViewComponent2D,
 
   /*
    * This class relays the message sent out by the ViewMenuItem.
-   */  
+   * 
    private class MenuListener implements ActionListener
    {
       public void actionPerformed( ActionEvent ae )
       {
          sendMessage( ae.getActionCommand() );
-	 //System.out.println("VCPath = " + 
-	 //                  ae.getActionCommand() );
+	 System.out.println("VCPath = " + 
+	                   ae.getActionCommand() );
       }
-   }   
+   }*/ 
 
   /*
    * This class relays the message sent out by the SelectionOverlay whenever
@@ -1124,12 +1238,14 @@ public class ImageViewComponent implements IViewComponent2D,
         	va2D.setDataValue(i, j, i*j); //put float into va2D
           }
       }
-
+      
+      IVCTester test = new IVCTester( va2D );
+      /*
       //Construct an ImageViewComponent with array2D
       ImageViewComponent ivc = new ImageViewComponent(va2D);
       ivc.setColorControlEast(true);
       ivc.setColorControlSouth(true);
       ViewerSim viewer = new ViewerSim(ivc);
-      viewer.show();	
+      viewer.show();*/	
    }
 }
