@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2003/05/02 19:19:17  dennis
+ *  Added method niceGrid(n) to calculate a list of roughly n values in the
+ *  interval, that are multiples of powers of .1, .2, .25 or .5.  These
+ *  values are useful for axis labels, contour levels, etc.
+ *
  *  Revision 1.6  2002/11/27 23:23:49  pfpeterson
  *  standardized header
  *
@@ -136,7 +141,8 @@ public class ClosedInterval implements java.io.Serializable {
    *                        ClosedInterval.
    *
    * @return  A closed interval representing the intersection of this interval
-   *          with the specified interval, or null if the intersection is empty.
+   *          with the specified interval, or null if the intersection is 
+   *          empty.
    */
    public ClosedInterval intersect( ClosedInterval interval )
    {
@@ -151,6 +157,128 @@ public class ClosedInterval implements java.io.Serializable {
 
      return new ClosedInterval( intersection_min, intersection_max );
    }
+
+
+  /**
+   *  Get a list of grid points that are essentially contained in the
+   *  given interval and have a "nice" decimal representation.  The values 
+   *  returned are multiples of .1, .2, .25, .5 or 1 and are intended to be
+   *  used to calibrate axes, find suitable values for calculating contour
+   *  levels, etc.  NOTE: The grid points returned may be beyond the 
+   *  endpoints of the interval by as much as 0.01% of the size of the 
+   *  interval.
+   *
+   *  @param min_grids  The minimun number of grids points that should be 
+   *                    used.  This can be set to 0 if the default number of
+   *                    grid points is ok.  If more grid points are requested
+   *                    the step sizes will be repeatedly reduced until the
+   *                    number of grid points is at least the requested value.
+   *                    Due to rounding errors, the first or last grid point
+   *                    may be omitted, so this condition may not be exactly
+   *                    met.  
+   *
+   * @return a list uniformly spaced floats that are "essentially" in this
+   *         interval and have a "nice" decimal representation.
+   */
+   public float[] niceGrid( int min_grids)
+   {
+      if ( min >= max )     // degenerate case, return just one point
+      {
+        float[] values = {min};
+        return values;
+      }
+
+      final double TOL = 0.0001;  // grid points will be included if they are
+                                  // within this fraction of the total inteval
+                                  // length of either of the endpoints.
+
+      double xmin = min;          // use doubles for calculation
+      double xmax = max;
+      double s_diff;
+      int    i_power;
+      double start;
+      double step;
+
+      s_diff = xmax - xmin;      // s_diff is guaranteed to be positive
+
+   // express the length of the interval in the form  s_diff * 10^ipower
+   // where s_diff is in the interval [1., 10.)
+      i_power = 0;
+      while ( s_diff >= 10.0 )
+      {
+         s_diff /= 10.0;
+         i_power++;
+      }
+      while ( s_diff < 1.0 )
+      {
+         s_diff *= 10.0;
+         i_power--;
+      }
+
+   // choose a step size to give a "reasonable" number of subdivisions
+   // over an interval of length b-a.
+
+      if ( s_diff <= 1.2 )
+         step = .1;
+      else if ( s_diff <= 2.0 )
+         step = .2;
+      else if ( s_diff <= 2.5 )
+         step = .25;
+      else if ( s_diff <= 5.0 )
+         step = .5;
+      else
+         step = 1.0;
+
+      while ( s_diff / step < min_grids )      // reduce step size, if needed
+      {                                        // to get enough grid points.
+        double normalized_step = step;         // get a normalized step size
+        int    power_of_10 = 0;                // between .1 and 1.
+        while ( normalized_step < .1 )
+        {
+          normalized_step *= 10;
+          power_of_10++;
+        }
+        if ( Math.abs( normalized_step - .25 ) > .01 )
+          step /= 2;                           // if we aren't dealing with
+                                               // a multiple of 0.25, just
+                                               // divide step size by 2.
+        else                                   // else use multiple of .1
+          step = .1 / Math.pow( 10, power_of_10 );
+      }
+
+      step *= Math.pow( 10.0, i_power );
+
+   // find the first grid point in the specified interval.
+
+      start = xmin;
+      long n = Math.round( start/step );
+      if ( Math.abs(n*step-start) < (xmax-xmin)*TOL )    // xmin is basically
+                                                         // a multiple of step
+        start  = n * step;                               // so just use nearest
+                                                         // multiple of step.
+      else
+      {
+        n = (long)Math.floor( start/step );
+        start = (n+1) * step;
+      }
+
+   // calculate and return the actual division points
+   // use points out to "essentially" the endpoint, xmax
+
+      int num_points = 1 + (int)Math.round( (xmax - start)/step );
+
+                                             // discard the last point if it's
+                                             // too far out of the interval
+      if ( start + (num_points-1)*step - xmax > (xmax-xmin)*TOL )
+        num_points--;
+
+      float[] values = new float[num_points];
+      for ( int i = 0; i < values.length; i++ )
+        values[i] = (float)(start + i * step);
+
+      return values;
+   }
+
 
  
   /**
@@ -182,6 +310,13 @@ public class ClosedInterval implements java.io.Serializable {
 
     if ( i3.intersect( i1 ) == null )
       System.out.println("Empty intersection is null");
+
+    float nice_pts[];
+
+    System.out.println("Nice Grids on " + i3 );
+    nice_pts = i3.niceGrid( 25 );
+    for ( int i = 0; i < nice_pts.length; i++ )
+      System.out.println(""+nice_pts[i] );
   }
 
 }
