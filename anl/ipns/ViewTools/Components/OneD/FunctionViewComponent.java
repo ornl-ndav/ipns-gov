@@ -57,7 +57,7 @@ import DataSetTools.util.*;  //floatPoint2D FloatFilter
 import java.applet.Applet;
 
 import java.awt.*;
-import java.awt.Rectangle.*;
+import java.awt.Rectangle;
 import java.awt.event.*;
 
 // Component location and resizing within the big_picture
