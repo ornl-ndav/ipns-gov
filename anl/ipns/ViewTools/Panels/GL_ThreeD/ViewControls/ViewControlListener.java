@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/08/04 23:01:47  dennis
+ * Now checks that the event source is an IViewController before
+ * casting the event source to an IViewController.
+ *
  * Revision 1.2  2004/08/03 23:33:40  dennis
  * Now always sets perspective on/off flag, without checking
  * the elapsed time.
@@ -78,6 +82,7 @@ public class ViewControlListener implements ActionListener
   private float           min_time = MIN_TIME;    
   private ThreeD_GL_Panel panel;
 
+
   /**
    *  Construct a ViewControlListener for the specified panel.
    */
@@ -86,6 +91,7 @@ public class ViewControlListener implements ActionListener
     panel = my_panel;
     timer = new ElapsedTime();
   } 
+
 
   /**
    *  Set a new minimum time between update requests.  Values outside of the
@@ -99,6 +105,7 @@ public class ViewControlListener implements ActionListener
       min_time = new_min_time;
   }
 
+
   /**
    *  The actionPerformed method gets the newly specified view parameters from
    *  the ViewControl, sets them for the ThreeD_GL_Panel and requests that the
@@ -106,6 +113,13 @@ public class ViewControlListener implements ActionListener
    */
   public void actionPerformed( ActionEvent e )
   {
+    if ( ! (e.getSource() instanceof IViewController) )
+    {
+      System.out.println("ERROR: ViewControllerListener event came from ");
+      System.out.println("object that does not implement IViewController.");
+      return;
+    }
+
     IViewController controller = (IViewController)e.getSource();
     boolean  perspective_onoff = controller.isPerspective();
     panel.setPerspective( perspective_onoff );
@@ -114,12 +128,6 @@ public class ViewControlListener implements ActionListener
       return;
     timer.reset();
 
-    if ( ! (e.getSource() instanceof IViewController) )
-    {
-      System.out.println("ERROR: ViewControllerListener event came from ");
-      System.out.println("object that does not implement IViewController.");
-      return;
-    }
     Vector3D cop = controller.getCOP();
     Vector3D vrp = controller.getVRP();
     Vector3D vuv = controller.getVUV();
