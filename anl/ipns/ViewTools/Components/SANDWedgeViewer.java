@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2004/01/03 04:40:23  millermi
+ * - help() now uses html toolkit
+ * - replaced setVisible(true) with WindowShower.
+ * - Added code for world-to-image transform, however transform
+ *   is not currently being used.
+ *
  * Revision 1.7  2003/12/30 00:39:37  millermi
  * - Added Annular selection capabilities.
  * - Changed SelectionJPanel.CIRCLE to SelectionJPanel.ELLIPSE
@@ -92,6 +98,7 @@ import java.io.IOException;
 import java.io.EOFException;
 import javax.swing.border.TitledBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.text.html.HTMLEditorKit;
 
 import DataSetTools.components.View.TwoD.ImageViewComponent;
 import DataSetTools.components.View.OneD.FunctionViewComponent;
@@ -108,6 +115,8 @@ import DataSetTools.components.View.ViewControls.PanViewControl;
 import DataSetTools.util.TextFileReader;
 import DataSetTools.util.RobustFileFilter;
 import DataSetTools.util.floatPoint2D;
+import DataSetTools.util.SharedData;
+import DataSetTools.util.WindowShower;
 // these imports are for putting data into a dataset, then into DataSetData.
 import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.Data;
@@ -165,8 +174,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private transient IVirtualArray2D data;
   private transient JMenuBar menu_bar;
   private DataSet data_set;
-  private String projectsDirectory = System.getProperty("Data_Directory");
+  private String projectsDirectory = SharedData.getProperty("Data_Directory");
   private transient SANDEditor editor = new SANDEditor();
+  private CoordTransform world_image_tran = new CoordTransform();
 
  /**
   * Construct a frame with no data to start with. This constructor will be
@@ -272,28 +282,34 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   {
     helper = new JFrame("Introduction to the SAND Wedge Viewer");
     helper.setBounds(0,0,600,400);
-    JTextArea text = new JTextArea("Description:\n\n");
-    text.setEditable(false);
-    text.setLineWrap(true);
-
-    text.append("The SAND Wedge Viewer (SWV) in an interactive analysis tool." +
+    JEditorPane textpane = new JEditorPane();
+    textpane.setEditable(false);
+    textpane.setEditorKit( new HTMLEditorKit() );
+    String text = "<H1>Description:</H1> <P>" + 
+                "The SAND Wedge Viewer (SWV) in an interactive analysis tool." +
         	" SWV features the ability to make three selections: Wedge, " +
     		"Double Wedge, and Ellipse. Although other selections are " +
     		"available, they have no affect in this viewer. Once a " +
     		"selection is made on the image, the graph will display " +
-		"the values per hit as a function of distance.\n\n");
-    text.append("Commands for SWV\n\n");
-    text.append("Note:\n" +
+		"the values per hit as a function of distance.</P>" + 
+		"<H2>Commands for SWV</H2>" +
+                "<P>Note:<BR>" +
         	"Detailed commands can be found under the Overlay help " +
-        	"menu.\n\n");
-    
-    JScrollPane scroll = new JScrollPane(text);
+        	"menu.</P>";
+    textpane.setText(text);
+    JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
         			    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    helper.setVisible(true);
+    WindowShower shower = new WindowShower(helper);
+    java.awt.EventQueue.invokeLater(shower);
   }
-  
+ 
+ /**
+  * This method loads a 200 x 200 data array from the file specified.
+  *
+  *  @param  filename Filename of the data file being loaded.
+  */ 
   public void loadData( String filename )
   {
     int NUM_ROWS = 200;
@@ -343,11 +359,17 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
           col++;
       } // end while
     }
+    // either end of file or no file found
     catch( IOException e1 )
     {
+      // done reading file
       if( e1.getMessage().equals("End of file") )
       {
-        // done reading file
+	// set the source of the world_image transform
+        // y min/max are swapped since IVC swaps them.
+        world_image_tran.setDestination( qxmin, qymax, qxmax, qymin );
+	world_image_tran.setSource( 0.001f, 0.001f, array[0].length-0.001f,
+				    array.length-0.001f );
         VirtualArray2D va2D = new VirtualArray2D( array );
         va2D.setAxisInfo( AxisInfo.X_AXIS, qxmin, qxmax, 
     		            "Qx","X Units", true );
@@ -360,9 +382,9 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         va2D.setTitle("SAND Wedge Viewer");
 	setData( va2D );
       }
+      // no file to be read, display file not found on empty jpanel.
       else
       {
-        // no file to be read, display file not found on empty jpanel.
         VirtualArray2D nullarray = null;
         this.setData(nullarray);
         ((JComponent)pane.getLeftComponent()).add( 
@@ -425,7 +447,10 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   {
     setData( new VirtualArray2D(array) );
   }
-  
+ 
+ /**
+  * This method sets the directory where data files can be found.
+  */ 
   public void setDataDirectory( String path )
   {
     projectsDirectory = path;
@@ -439,6 +464,18 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   private void init( IVirtualArray2D iva )
   {
     setTitle("SAND Wedge Viewer");
+    if( iva != null )
+    {
+      AxisInfo xinfo = iva.getAxisInfo( AxisInfo.X_AXIS );
+      AxisInfo yinfo = iva.getAxisInfo( AxisInfo.Y_AXIS );
+      // y min/max are swapped since IVC swaps them.
+      world_image_tran.setDestination( new CoordBounds( xinfo.getMin(),
+						        yinfo.getMax(),      
+						        xinfo.getMax(),
+						        yinfo.getMin() ) );
+      world_image_tran.setSource( 0.001f, 0.001f, iva.getNumColumns()-0.001f,
+				    iva.getNumRows()-0.001f );
+    }
     data = new VirtualArray2D(1,1);
     buildMenubar();
     
@@ -470,7 +507,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 			     SelectionJPanel.LINE };
       ivc.disableSelection( disSelect );
       ivc.setColorControlEast(true);
-      //ivc.addActionListener( new WVListener() );
+      //ivc.preserveAspectRatio(true);
       ivc.addActionListener( new ImageListener() ); 
       fvc = new FunctionViewComponent( new DataSetData( data_set ) );   
       Box componentholder = new Box(BoxLayout.Y_AXIS);
@@ -521,6 +558,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         }
       }
     }
+    // no data, build an empty split pane.
     else
     {
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
@@ -568,7 +606,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     help_listeners.add( new WVListener() );
     help.add( swv_help );
       swv_help.add("SAND Wedge Viewer");
-      help_listeners.add( new WVListener() );
+      help_listeners.add( new WVListener() );  // listener for SAND helper
     
     menu_bar.add( MenuItemMaker.makeMenuItem(file,file_listeners) ); 
     menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
@@ -581,7 +619,6 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       option_menu.getItem(0).setEnabled(false);
       option_menu.getItem(1).setEnabled(false);
     }
-    //menu_bar.add(new JMenu("Help"));
   }
   
  /*
@@ -589,8 +626,21 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   */ 
   private Box buildControls()
   {
+    // box that contains all of the controls.
     Box controls = new Box(BoxLayout.Y_AXIS);
-    
+    // add button to open sand editor
+    JPanel sand_controls = new JPanel(); 
+    TitledBorder sand_border = 
+    		     new TitledBorder(LineBorder.createBlackLineBorder(),
+        			      "SAND Selection Controls");
+    sand_border.setTitleFont( FontUtil.BORDER_FONT );
+    sand_controls.setBorder( sand_border );
+    JButton createbutton = new JButton("Manual Selection");
+    createbutton.addActionListener( new WVListener() );
+    sand_controls.add(createbutton);
+    controls.add(sand_controls);
+
+    // add imageviewcomponent controls
     Box ivc_controls = new Box(BoxLayout.Y_AXIS);
     TitledBorder ivc_border = 
     		     new TitledBorder(LineBorder.createBlackLineBorder(),
@@ -602,8 +652,19 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     {
       ivc_controls.add(ivc_ctrl[i]);
     }
+    // if resized, adjust container size for the pan view control.
     ivc_controls.addComponentListener( new ResizedControlListener() );
+    if( ivc_ctrl.length != 0 )
+    {
+      controls.add(ivc_controls);
+    }
     
+    // add spacer between ivc controls and fvc controls
+    JPanel spacer = new JPanel();
+    spacer.setPreferredSize( new Dimension(0, 10000) );
+    controls.add(spacer);
+    
+    // add functionviewcomponent controls if any exist
     Box fvc_controls = new Box(BoxLayout.Y_AXIS); 
     TitledBorder fvc_border = 
     		     new TitledBorder(LineBorder.createBlackLineBorder(),
@@ -616,36 +677,17 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     {
       fvc_controls.add(fvc_ctrl[i]);
     }
-    
-    if( ivc_ctrl.length != 0 )
-    {
-      controls.add(ivc_controls);
-    }
-    
-    JPanel spacer = new JPanel();
-    spacer.setPreferredSize( new Dimension(0, 10000) );
-    controls.add(spacer);
-    
-    JPanel sand_controls = new JPanel(); 
-    TitledBorder sand_border = 
-    		     new TitledBorder(LineBorder.createBlackLineBorder(),
-        			      "SAND Selection Controls");
-    sand_border.setTitleFont( FontUtil.BORDER_FONT );
-    sand_controls.setBorder( sand_border );
-    JButton createbutton = new JButton("Specify Selection");
-    createbutton.addActionListener( new WVListener() );
-    sand_controls.add(createbutton);
-    controls.add(sand_controls);
-    
     if( fvc_ctrl.length != 0 )
     {
       controls.add(fvc_controls);
     }
+    
     return controls;
   }
 
  /*
   *                 **************Integrate*******************
+  * This method does the calculations that produce the graph.
   */
   private void integrate( Region region )
   {   
@@ -808,7 +850,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   }
  
  /*
-  * This method only works for uniform bins.
+  * This method efficiently finds what bin to put data in.
   */ 
   private int binarySearch(  float[] x_values, float dist )
   { 
@@ -874,10 +916,11 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       {
         help();
       }
-      else if( ae.getActionCommand().equals("Specify Selection") )
+      else if( ae.getActionCommand().equals("Manual Selection") )
       {
         editor.setCurrentPoint( ivc.getPointedAt() );
-	editor.setVisible(true);
+	WindowShower shower = new WindowShower(editor);
+        java.awt.EventQueue.invokeLater(shower);
       }
     }
   }
@@ -937,24 +980,14 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       Component[] controls = control_box.getComponents();
       for( int ctrl = 0; ctrl < controls.length; ctrl++ )
       {
-        height += ((JComponent)controls[ctrl]).getHeight() + 4;
+        height += ((JComponent)controls[ctrl]).getHeight();
       }
+      height += 20; // this is to adjust for spaces in between components.
       if( control_box.getHeight() < height )
       {
-        control_box.setSize( new Dimension( width, height ) );
-        /*        
-	Component temp2 = ((Container)
-	    pane.getRightComponent()).getComponent(2);
-	((Container)pane.getRightComponent()).remove(2);
-
-        Component temp1 = ((Container)
-	    pane.getRightComponent()).getComponent(1);
-	((Container)pane.getRightComponent()).remove(1);
-	
-	((Container)pane.getRightComponent()).add(temp1,1);
-	((Container)pane.getRightComponent()).add(temp2,2);
-	*/                                                      
+        control_box.setSize( new Dimension( width, height ) );     
       }
+      control_box.validate();
     }  
   } 
  
@@ -976,7 +1009,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
   }
 
  /*
-  *
+  * This class is called by the Manual Selection button. It allows users to
+  * enter/edit selections via field entries instead of using the GUI.
   */
   private class SANDEditor extends JFrame
   {
@@ -988,7 +1022,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     private Box rightpane;
     private SANDEditor this_editor;
     
-    public SANDEditor()
+    protected SANDEditor()
     {
       this_editor = this;
       this_editor.setTitle("SAND Wedge Editor");
@@ -1056,20 +1090,26 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     * This method will set the current world coord point, displayed by the
     * x[] y[] cursor readout.
     */ 
-    public void setCurrentPoint( floatPoint2D current_pt )
+    protected void setCurrentPoint( floatPoint2D current_pt )
     {
       coc.setValue( 0, current_pt.x );
       coc.setValue( 1, current_pt.y );
       this_editor.repaint();
     }
     
-    public void selectionChanged()
+   /*
+    * called when a selection is added/removed
+    */ 
+    protected void selectionChanged()
     {
       buildComboBox();
       rightpane.validate();
       this_editor.repaint();
     }
-    
+   
+   /*
+    * This will rebuild the combobox each time a selection is added/removed
+    */ 
     private void buildComboBox()
     {  
       if( ivc != null )
@@ -1107,7 +1147,7 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
    /*
     * This class listeners for messages send by the editor.
     */ 
-    class EditorListener implements ActionListener
+    private class EditorListener implements ActionListener
     {
       public void actionPerformed( ActionEvent ae )
       {
@@ -1116,7 +1156,12 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
         if( message.equals(FieldEntryControl.BUTTON_PRESSED) )
         {
 	  float[] values = radiofec.getAllFloatValues();
-	  
+	  // make sure no values are invalid
+	  for( int i = 0; i < values.length; i++ )
+	  {
+	    if( Float.isNaN(values[i]) )
+	      return;
+	  }
      /* ***********************Defining Points for Ellipse**********************
       * def_pts[0]   = top left corner of bounding box around arc's total circle
       * def_pts[1]   = bottom right corner of bounding box around arc's circle
@@ -1251,8 +1296,15 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
       * def_pts[4]   = bottom right corner of bounding box of outer circle
       **************************************************************************
       */
-	  if( radiofec.getSelected().equals(SelectionJPanel.RING) )
+	  else if( radiofec.getSelected().equals(SelectionJPanel.RING) )
 	  {
+	    // if inner radius larger than outer radius, swap them
+	    if( values[2] > values[3] )
+	    {
+	      float temp = values[2];
+	      values[2] = values[3];
+	      values[3] = temp;
+	    }
 	    // since ivc y values are swapped, y values for topleft and
 	    // bottomright are also swapped.
 	    floatPoint2D[] wc_pts = new floatPoint2D[5];
@@ -1268,9 +1320,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
 	    wc_pts[4] = new floatPoint2D( (values[0] + values[3]),
 	                                  (values[1] - values[3]) );
 	    ivc.addSelection( new WCRegion( SelectionJPanel.RING, wc_pts ) );
-	  }
-	  
-        }
+	  }	  
+        } // end if (BUTTON_PRESSED)
         else if( message.equals("Close") )
         {
 	  this_editor.setVisible(false);
@@ -1330,7 +1381,8 @@ public class SANDWedgeViewer extends JFrame implements IPreserveState,
     SANDWedgeViewer wedgeviewer = new SANDWedgeViewer();
     if( args.length > 0 )
       wedgeviewer.loadData( args[0] );
-    wedgeviewer.setVisible(true);
+    WindowShower shower = new WindowShower(wedgeviewer);
+    java.awt.EventQueue.invokeLater(shower);
   }
 
 }
