@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.44  2004/12/08 22:03:48  serumb
+ * Set the x and y range controls on zoom and reset zoom.
+ *
  * Revision 1.43  2004/11/12 03:34:03  millermi
  * - Reversed min/max for y-scale to reflect changed to
  *   fvc.getAxisInformation().
@@ -570,28 +573,44 @@ import javax.swing.border.*;
        xmax = gjp.getXmax();
        ymin = gjp.getPositiveYmin();
        ymax = gjp.getYmax();
-
+       
        LogScaleUtil loggery = new LogScaleUtil(ymin,ymax,ymin,ymax);
        LogScaleUtil loggerx = new LogScaleUtil(xmin,xmax,xmin,xmax); 
 
       if( message.equals("Reset Zoom") || message.equals("Zoom In") ) {
-        if(gjp.getLogScaleX() == true) {
-          x_range.setMin(gjp.getPositiveXmin());
-          x_range.setMax(gjp.getXmax());
-        }
-        else {
-          x_range.setMin(gjp.getXmin());
-          x_range.setMax(gjp.getXmax());
-        }
-        if(gjp.getLogScaleY() == true) {
-          y_range.setMin(gjp.getPositiveYmin());
-          y_range.setMax(gjp.getYmax());
-        }
-        else {
-          y_range.setMin(gjp.getYmin());
-          y_range.setMax(gjp.getYmax());
-        }
-      }
+      
+       float x_lower, x_upper, y_lower, y_upper;	      
+       CoordBounds range = gjp.getLocalWorldCoords();
+       if (range.getY1() > range.getY2())
+	       range.invertBounds();
+       if (range.getX1() > range.getX2())
+       {        
+         x_lower = range.getX2();
+         x_upper = range.getX1();
+       }
+       else{
+         x_lower = range.getX1();
+         x_upper = range.getX2();
+       }  
+       y_lower = range.getY1();
+       y_upper = range.getY2();
+	      
+       if (gjp.getLogScaleY()){
+         if (ymin >  y_lower)
+	      y_lower = ymin;
+       }
+       if (gjp.getLogScaleX()){
+	 if (xmin >  x_lower)
+ 	      x_lower = xmin;
+       } 
+       
+        x_range.setMin(x_lower);
+        x_range.setMax(x_upper);
+        y_range.setMin(y_lower);
+        y_range.setMax(y_upper);
+	
+      }	 
+      
       else if(message.equals("Cursor Moved")){
          if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
              cursor.setValue(0,loggerx.toSource(gjp.getCurrent_WC_point().x));
