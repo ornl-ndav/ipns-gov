@@ -34,12 +34,23 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2003/08/07 15:53:20  dennis
+ *  - Removed debug statements, added comments to getAxisInfo() for
+ *    dealing with log axes.
+ *  - getAxisInfo() no longer allows log scaling for image axes.
+ *  - Uncommented code in constructor for overlays, removed code
+ *    from buildViewComponent().
+ *  - Added static variable COMPONENT_RESIZED
+ *  - Added sendMessage(COMPONENT_RESIZED) to inform listeners when
+ *    the imagejpanel is resized.
+ *    (Mike Miller)
+ *
  *  Revision 1.18  2003/08/06 13:54:49  dennis
  *  - Control for AxisOverlay2D changed from ControlCheckbox to a
  *    ControlCheckboxButton.
  *  - Removed creation of overlays from buildViewComponent(),
  *    now in constructor.
- *  - Transparencies vector now in built in constructor.
+ *  - Transparencies vector now is built in constructor.
  *  - Combined checkbox and button controls for annotation overlay
  *    into one ControlCheckboxButton control.
  *  - Uncommented code that adjusts the selection overlay color
@@ -92,7 +103,7 @@
  *   -added AnnotationOverlay and its on/off control
  *
  *  Revision 1.7  2003/05/24 17:33:25  dennis
- *  Added on/of control for Axis Overlay. (Mike Miller)
+ *  Added on/off control for Axis Overlay. (Mike Miller)
  * 
  *  Revision 1.6  2003/05/22 13:05:58  dennis
  *  Now returns menu items to place in menu bar.
@@ -145,6 +156,8 @@ public class ImageViewComponent implements IViewComponent2D,
            /*for IAxisAddible2D*/          IColorScaleAddible,
            /*for Selection/Annotation*/    IZoomTextAddible
 {
+   public static final String COMPONENT_RESIZED = "COMPONENT_RESIZED";
+   
    private IVirtualArray2D Varray2D;  //An object containing our array of data
    private Point[] selectedset; //To be returned by getSelectedSet()   
    private Vector Listeners = null;   
@@ -206,7 +219,7 @@ public class ImageViewComponent implements IViewComponent2D,
       else
          isTwoSided = false;
       ijp.setNamedColorModel(colorscale, isTwoSided, false); 
-      /*
+      
       //create transparencies
       AnnotationOverlay top = new AnnotationOverlay(this);
       top.setVisible(false);      // initialize this overlay to off.
@@ -220,7 +233,7 @@ public class ImageViewComponent implements IViewComponent2D,
       transparencies.add(top);
       transparencies.add(nextup);
       transparencies.add(bottom_overlay); 
-      */
+      
       Listeners = new Vector();
       buildViewComponent();    // initializes big_picture to jpanel containing
                                // the background and transparencies
@@ -260,7 +273,11 @@ public class ImageViewComponent implements IViewComponent2D,
 // IColorScaleAddible which extends ILogAxisAddible2D which extends 
 // IAxisAddible2D
   /**
-   * This method returns the info about the specified axis. 
+   * This method returns the info about the specified axis. Currently, axes
+   * for the image can only be viewed in linear form. If log axes are required,
+   * FunctionViewComponent does this and may provide code to implement this.
+   * The getAxisInfo method will need to call getLocalLogWorldCoords() in
+   * CoordJPanel.java if the log axes are needed.
    * 
    *  @param  isX
    *  @return If isX = true, return info about x axis.
@@ -270,17 +287,19 @@ public class ImageViewComponent implements IViewComponent2D,
    {
       // if true, return x info
       if( isX )
+      {
          return new AxisInfo2D( ijp.getLocalWorldCoords().getX1(),
 	               ijp.getLocalWorldCoords().getX2(),
 		       Varray2D.getAxisInfoVA(AxisInfo2D.XAXIS).getLabel(),
 		       Varray2D.getAxisInfoVA(AxisInfo2D.XAXIS).getUnits(),
-		       Varray2D.getAxisInfoVA(AxisInfo2D.XAXIS).getIsLinear() );
+		       AxisOverlay2D.LINEAR );
+      }
       // if false return y info
       return new AxisInfo2D( ijp.getLocalWorldCoords().getY1(),
 	               ijp.getLocalWorldCoords().getY2(),
 		       Varray2D.getAxisInfoVA(AxisInfo2D.YAXIS).getLabel(),
 		       Varray2D.getAxisInfoVA(AxisInfo2D.YAXIS).getUnits(),
-		       Varray2D.getAxisInfoVA(AxisInfo2D.YAXIS).getIsLinear() );
+		       AxisOverlay2D.LINEAR );
    }
    
   /**
@@ -334,8 +353,8 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    public CoordBounds getLocalCoordBounds()
    {
-      //return local_bounds;
-      return ijp.getLocalWorldCoords().MakeCopy();
+      return local_bounds;
+      //return ijp.getLocalWorldCoords().MakeCopy();
    }
       
   /**
@@ -344,8 +363,8 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    public CoordBounds getGlobalCoordBounds()
    {
-      //return global_bounds;
-      return ijp.getGlobalWorldCoords().MakeCopy();
+      return global_bounds;
+      //return ijp.getGlobalWorldCoords().MakeCopy();
    }  
    
   /**
@@ -368,17 +387,11 @@ public class ImageViewComponent implements IViewComponent2D,
    */
    public void setPointedAt( Point pt )
    {
-      System.out.println("Entering: void setPointedAt( Point pt )");
-      System.out.println("X value = " + pt.getX() );
-      System.out.println("Y value = " + pt.getY() );
-      
       //Type cast Point pt  into  floatPoint2D fpt
       floatPoint2D fpt = new floatPoint2D( (float)pt.x, (float)pt.y );
       
       //set the cursor position on ImageJPanel
       ijp.setCurrent_WC_point( fpt ); 
-      
-      System.out.println("");
    }
   
   /**
@@ -408,16 +421,11 @@ public class ImageViewComponent implements IViewComponent2D,
    */ 
    public void dataChanged( IVirtualArray2D pin_Varray ) // pin == "passed in"
    {
-      System.out.println("Now in void dataChanged(VirtualArray2D pin_Varray)");
-
       //get the complete 2D array of floats from pin_Varray
-      float[][] f_array = Varray2D.getRegionValues( 0, 1000000, 0, 1000000 );
+      float[][] f_array = pin_Varray.getRegionValues( 0, 1000000, 
+                                                      0, 1000000 );
 
       ijp.setData(f_array, true);  
-      
-      System.out.println("Value of first element: " + f_array[0][0] );
-      System.out.println("Thank you for notifying us");
-      System.out.println("");
    }
   
   /**
@@ -428,8 +436,6 @@ public class ImageViewComponent implements IViewComponent2D,
    */ 
    public Point[] getSelectedSet() //keep the same (for now)
    {
-      System.out.println("Entering: Point[] getSelectedSet()");
-      System.out.println("");
       return selectedset;
    }
    
@@ -477,7 +483,6 @@ public class ImageViewComponent implements IViewComponent2D,
    
    public JComponent[] getPrivateControls()
    {
-      System.out.println("Entering: JComponent[] getPrivateControls()");
       System.out.println("***Currently unimplemented***");
       
       return new JComponent[0];
@@ -495,7 +500,6 @@ public class ImageViewComponent implements IViewComponent2D,
    
    public ViewMenuItem[] getPrivateMenuItems()
    {
-      System.out.println("Entering: JMenuItems[] getPrivateMenuItems()");
       System.out.println("***Currently unimplemented***");
       
       return new ViewMenuItem[0];
@@ -635,22 +639,7 @@ public class ImageViewComponent implements IViewComponent2D,
       background.add(north, "North");
       background.add(west, "West");
       background.add(south, "South");
-      background.add(east, "East" );      
-      
-      AnnotationOverlay top = new AnnotationOverlay(this);
-      top.setVisible(false);      // initialize this overlay to off.
-      SelectionOverlay nextup = new SelectionOverlay(this);
-      nextup.setVisible(false);   // initialize this overlay to off.
-      nextup.setRegionColor(Color.magenta);
-      AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
-      //bottom_overlay.setVisible(false);
-      
-      // add the transparencies to the transparencies vector
-      transparencies.clear();
-      transparencies.add(top);
-      transparencies.add(nextup);
-      transparencies.add(bottom_overlay); 
-      
+      background.add(east, "East" ); 
       	  
       // create master panel and
       //  add background and transparency to the master layout
@@ -722,6 +711,7 @@ public class ImageViewComponent implements IViewComponent2D,
          //System.out.println("Component Resized");
 	 Component center = e.getComponent();
 	 regioninfo = new Rectangle( center.getLocation(), center.getSize() );
+	 sendMessage(COMPONENT_RESIZED);
 	 /*
 	 System.out.println("Location = " + center.getLocation() );
 	 System.out.println("Size = " + center.getSize() );
@@ -746,26 +736,27 @@ public class ImageViewComponent implements IViewComponent2D,
 	    //System.out.println("Sending POINTED_AT_CHANGED" );
             sendMessage(POINTED_AT_CHANGED);
 	 }
-	 if (message == CoordJPanel.ZOOM_IN)
+	 else if (message == CoordJPanel.ZOOM_IN)
          {
 	    //System.out.println("Sending SELECTED_CHANGED " + regioninfo );
-	    for(int next = 0; next < transparencies.size(); next++ )
-	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
             sendMessage(SELECTED_CHANGED);
 	    ImageJPanel center = (ImageJPanel)ae.getSource();
-	    local_bounds = 
-	            ((ImageJPanel)center).getLocalWorldCoords().MakeCopy();
-	    global_bounds = 
-	            ((ImageJPanel)center).getGlobalWorldCoords().MakeCopy();
-            paintComponents( big_picture.getGraphics() );
+	    local_bounds = center.getLocalWorldCoords().MakeCopy();
+	    global_bounds = center.getGlobalWorldCoords().MakeCopy();
+	    for(int next = 0; next < transparencies.size(); next++ )
+	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
+            //paintComponents( big_picture.getGraphics() );
 	 }
-	 if (message == CoordJPanel.RESET_ZOOM)
+	 else if (message == CoordJPanel.RESET_ZOOM)
          {
 	    //System.out.println("Sending SELECTED_CHANGED" );
+	    ImageJPanel center = (ImageJPanel)ae.getSource();
+	    local_bounds = center.getLocalWorldCoords().MakeCopy();
+	    global_bounds = center.getGlobalWorldCoords().MakeCopy();
 	    for(int next = 0; next < transparencies.size(); next++ )
 	       ((OverlayJPanel)transparencies.elementAt(next)).repaint();
             sendMessage(SELECTED_CHANGED);
-            paintComponents( big_picture.getGraphics() );
+            //paintComponents( big_picture.getGraphics() );
 	 }
       }      
    }
