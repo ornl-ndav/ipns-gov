@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2004/06/01 22:51:25  dennis
+ * Now includes main program that writes the font data to a java
+ * source file, so that fonts can be used without needing the
+ * original text file containing the font data.
+ *
  * Revision 1.1  2004/06/01 03:43:29  dennis
  * Initial version of classes for drawing strings as sequences of
  * line segments, using the "Hershey" fonts.
@@ -39,6 +44,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 import  gov.anl.ipns.Util.File.*;
+import  java.io.*;
 
 /**
  *  A FileStrokeFont object loads the low-level font data from a file 
@@ -102,4 +108,103 @@ public class FileStrokeFont extends StrokeFont
      }
   }
 
+
+  public static void main( String args[] )
+  {
+    if ( args.length < 3 )
+      System.out.println("ERROR: need input file, output path and output " +
+                         "font name as parameters" );
+
+    FileStrokeFont font = new FileStrokeFont( args[0] );
+
+    PrintStream ps = null;
+    try
+    {
+      File out_file      = new File( args[1]+args[2]+".java" );
+      OutputStream os = new FileOutputStream( out_file );
+      ps = new PrintStream( os );
+    }
+    catch ( Exception e )
+    {
+      System.out.println("WARNING: Couldn't open output file: " + args[1] );
+    }
+
+    ps.println("package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;");
+    ps.println();
+    ps.println("public class " + args[2] + " extends StrokeFont");
+    ps.println("{");
+                                            // dump out the char_start array
+    ps.println(" private static short my_char_start[] = {");
+    for ( int i = 0; i < font.num_chars; i++ )
+    {
+      ps.print(" " + font.char_start[i] );
+      if ( i < font.num_chars - 1 )
+        ps.print( "," );
+      if ( i > 0 && i % 13 == 0 )
+        ps.println();
+    }
+    ps.println(" };");
+    ps.println();
+
+                                             // dump out the char_width array
+    ps.println(" private static short my_char_width[] = {");
+    for ( int i = 0; i < font.num_chars; i++ )
+    {
+      ps.print(" " + font.char_width[i] );
+      if ( i < font.num_chars - 1 )
+        ps.print( "," );
+      if ( i > 0 && i % 18 == 0 )
+        ps.println();
+    }
+    ps.println(" };");
+    ps.println();
+
+                                             // dump out the font_x array
+    int n_points = font.font_x.length;
+    ps.println(" private static short my_font_x[] = {");
+    for ( int i = 0; i < n_points; i++ )
+    {
+      ps.print(" " + font.font_x[i] );
+      if ( i < n_points - 1 )
+        ps.print( "," );
+      if ( i > 0 && i % 18 == 0 )
+        ps.println();
+    }
+    ps.println(" };");
+    ps.println();
+
+                                             // dump out the font_x array
+    ps.println(" private static short my_font_y[] = {");
+    for ( int i = 0; i < n_points; i++ )
+    {
+      ps.print(" " + font.font_y[i] );
+      if ( i < n_points - 1 )
+        ps.print( "," );
+      if ( i > 0 && i % 18 == 0 )
+        ps.println();
+    }
+    ps.println(" };");
+    ps.println();
+                                            // now make the constructor
+    ps.println("  public " + args[2] + "()");
+    ps.println("  {");
+    ps.println("    num_chars       = " + font.num_chars +";" );
+    ps.println("    first_char_code = " + font.first_char_code +";" );
+    ps.println("    left_edge       = " + font.left_edge + ";" );
+    ps.println("    top    = " + font.top + ";" );
+    ps.println("    cap    = " + font.cap + ";" );
+    ps.println("    half   = " + font.half + ";" );
+    ps.println("    base   = " + font.base + ";" );
+    ps.println("    bottom = " + font.bottom + ";" );
+    ps.println("    char_start = my_char_start;" );
+    ps.println("    char_width = my_char_width;" );
+    ps.println("    font_x     = my_font_x;" );
+    ps.println("    font_y     = my_font_y;" );
+    ps.println("  }");
+
+    ps.println("}");
+    ps.println();
+ 
+    ps.close();
+  }
 }
