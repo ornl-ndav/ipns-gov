@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2004/06/17 19:23:14  dennis
+ * Code to locate a point in 3D now pushes the projection matrix stack,
+ * computes the projection matrix and pops the projection matrix
+ * stack when it's done.  This makes sure that the projection matrix
+ * used for calculating the 3D coordinates is the same as is currently
+ * specified for the 3D display (not one used in the selection process.)
+ *
  * Revision 1.6  2004/06/17 15:32:28  dennis
  * Added initial implementation of code to locate 3D world coordinate
  * point given a pixel position.  Currently this only works the second
@@ -587,8 +594,6 @@ public float[] getPixelWorldCoordinates( int x, int y )
                          int width,
                          int height)
     {
-      System.out.println("**** reshape called with x,y,width,height = " +
-                          x + ", " + y + ", " + width + ", " + height ); 
       GL  gl  = drawable.getGL();
 
       gl.glViewport( 0, 0, width, height );
@@ -596,8 +601,6 @@ public float[] getPixelWorldCoordinates( int x, int y )
       gl.glLoadIdentity();
       if ( do_select )
       {
-        System.out.println("Selection in reshape, x, y = " + cur_x + 
-                           ", " + cur_y );
         int viewport[] = { 0, 0, width, height };
         BasicGLU.gluPickMatrix( gl, cur_x, height-cur_y, 1, 1, viewport );
       }
@@ -620,25 +623,8 @@ public float[] getPixelWorldCoordinates( int x, int y )
       }
     
       gl.glFlush();
-
-        double model_view_mat[] = new double[16];
-        double projection_mat[] = new double[16];
-        int    viewport[] = new int[4];
-        gl.glGetDoublev( GL.GL_MODELVIEW_MATRIX, model_view_mat );
-        gl.glGetDoublev( GL.GL_PROJECTION_MATRIX, projection_mat );
-        gl.glGetIntegerv( GL.GL_VIEWPORT, viewport );
-
-        float cur_z = -1;
-        double world_x[] = new double[1];
-        double world_y[] = new double[1];
-        double world_z[] = new double[1];
-        System.out.println("UnProject called from reshape ****************");
-        BasicGLU.gluUnProject( cur_x, height-cur_y, cur_z,
-                               model_view_mat, projection_mat, viewport,
-                               world_x, world_y, world_z );
-        System.out.println("END UnProject called from reshape ***************");
-
     }
+
 
     /* ---------------------- displayChanged --------------------------- */
     /**
@@ -684,8 +670,6 @@ public float[] getPixelWorldCoordinates( int x, int y )
 
       if ( do_locate )
       {
-        System.out.println("Locate in GL Panel Number --------" + panel_id );
-        System.out.println( "cur_x, cur_y = " + cur_x + ", " + cur_y );
         float depths[] = new float[1];
         gl.glReadPixels( cur_x, size.height-cur_y, 
                          1, 1, 
@@ -693,29 +677,30 @@ public float[] getPixelWorldCoordinates( int x, int y )
                          GL.GL_FLOAT,
                          depths ); 
         float cur_z = depths[0];
-        System.out.println("Current depth = " + cur_z );
+
+        gl.glMatrixMode( GL.GL_PROJECTION );
+        gl.glPushMatrix();
+        gl.glLoadIdentity();
+        int    viewport[] = new int[4];  
+        gl.glGetIntegerv( GL.GL_VIEWPORT, viewport ); 
+        reshape(drawable, viewport[0], viewport[1], viewport[2], viewport[3]);
 
         double model_view_mat[] = new double[16];
         double projection_mat[] = new double[16];
-        int    viewport[] = new int[4];  
         gl.glGetDoublev( GL.GL_MODELVIEW_MATRIX, model_view_mat ); 
         gl.glGetDoublev( GL.GL_PROJECTION_MATRIX, projection_mat ); 
-        gl.glGetIntegerv( GL.GL_VIEWPORT, viewport ); 
         double world_x[] = new double[1];
         double world_y[] = new double[1];
         double world_z[] = new double[1];
         BasicGLU.gluUnProject( cur_x, size.height-cur_y, cur_z, 
                                model_view_mat, projection_mat, viewport,
                                world_x, world_y, world_z );
-        System.out.println("WORLD COORDS = " + world_x[0] + ", "
-                                             + world_y[0] + ", "
-                                             + world_z[0]  );
         world_coords[0] = (float)world_x[0];
         world_coords[1] = (float)world_y[0];
         world_coords[2] = (float)world_z[0];
 
-        System.out.println("Resetting do_locate flag");
         do_locate = false;
+        gl.glPopMatrix();
         return;
       }
 
@@ -735,8 +720,6 @@ public float[] getPixelWorldCoordinates( int x, int y )
 
       if ( do_select )
       {
-        System.out.println("Rendering in selection mode ++++++++++");
-        System.out.println( "cur_x, cur_y = " + cur_x + ", " + cur_y );
         n_hits = 0;
         for ( int i = 0; i < HIT_BUFFER_SIZE; i++ )
           hit_buffer.put( i, 0 );
@@ -786,9 +769,7 @@ public float[] getPixelWorldCoordinates( int x, int y )
 
       if ( do_select )
       {
-        System.out.println("Selection in GL Panel Number " + panel_id );
         n_hits = gl.glRenderMode( GL.GL_RENDER );
-        System.out.println("Resetting do_select flag");
         do_select = false; 
         System.out.println("n_hits = " + n_hits );
       }
