@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/08/13 03:41:29  millermi
+ *  - Added VIEWPORT_POSITION ObjectState key to save the visible
+ *    area of the table for any Project saves.
+ *
  *  Revision 1.6  2004/08/05 08:59:36  millermi
  *  - Added method getValueAt() to get value in original TableModel.
  *  - Number Formatter now formats Strings containing numeric values.
@@ -246,6 +250,14 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   * an array of TableRegions.
   */ 
   public static final String TABLE_SELECTIONS = "Table Selections";
+  
+ /**
+  * "Viewport Position" - This String key is used to preserve state information
+  * about what portion of the table was visible in the viewport at the
+  * time of the ObjectState save. The value this key references is of type
+  * Rectangle.
+  */
+  public static final String VIEWPORT_POSITION = "Viewport Position";
  
  /**
   * "Column Mobility" - This String key is used to preserve state information
@@ -467,6 +479,13 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       redraw = true;  
     }
     
+    temp = new_state.get(VIEWPORT_POSITION);
+    if( temp != null )
+    {
+      setVisibleLocation( ((Rectangle)temp).getLocation() );
+      redraw = true;  
+    }
+    
     temp = new_state.get(COLUMN_MOBILITY);
     if( temp != null )
     {
@@ -523,6 +542,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       state.insert( COLUMN_LABELS, getColumnLabels() );
       state.insert( POINTED_AT_CELL, getPointedAtCell() );
       state.insert( TABLE_SELECTIONS, getSelectedRegions() );
+      state.insert( VIEWPORT_POSITION, getVisibleRectangle() );
     }
     
     return state;
@@ -2365,6 +2385,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     testable.enableMoveColumn(false);
     testable.setNumberFormat(2,2);
     testable.setColumnAlignment(SwingConstants.CENTER);
+    testable.setVisibleLocation(new Point(18,20));
     testable.setObjectState(state);
     /*
     System.out.println("Table Size: [rows = "+testable.getRowCount()+", "+
