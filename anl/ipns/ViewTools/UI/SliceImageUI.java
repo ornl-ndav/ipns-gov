@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2004/01/27 23:27:15  dennis
+ * Added min/max bounds on values that can be entered.
+ *
  * Revision 1.2  2004/01/27 20:40:47  dennis
  * Added method to set the slice width, height, thickness, etc.
  * Improved format of String returned by toString().
@@ -59,6 +62,16 @@ public class SliceImageUI extends    ActiveJPanel
 {
   public static final String VALUE_CHANGED = "Value Changed";
 
+  /**
+   *  Smallest value allowed for width, height, thickness or step.
+   */
+  public static final float  MIN_VAL = 1.0E-10f;
+
+  /**
+   *  Largest value allowed for width, height, thickness or step.
+   */
+  public static final float  MAX_VAL = 1.0E+20f;
+
   private TextValueUI  step_ui;
   private TextValueUI  width_ui;
   private TextValueUI  height_ui;
@@ -75,6 +88,11 @@ public class SliceImageUI extends    ActiveJPanel
     width_ui     = new TextValueUI( "Width "    , 2     );
     height_ui    = new TextValueUI( "Height "   , 2     );
     thickness_ui = new TextValueUI( "Thickness ", 0.01f );
+
+    step_ui.setLimits( MIN_VAL, MAX_VAL );
+    width_ui.setLimits( MIN_VAL, MAX_VAL );
+    height_ui.setLimits( MIN_VAL, MAX_VAL );
+    thickness_ui.setLimits( MIN_VAL, MAX_VAL );
 
     TitledBorder border =
                  new TitledBorder(LineBorder.createBlackLineBorder(), title );
