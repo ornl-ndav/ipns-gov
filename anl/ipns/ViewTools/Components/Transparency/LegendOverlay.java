@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/03/28 06:00:40  serumb
+ *  Now uses new methods for instances of labelComboBox.
+ *
  *  Revision 1.11  2005/03/14 19:25:20  serumb
  *  Added call to get the combobox instead of using the public variable.
  *
@@ -643,7 +646,7 @@ public BasicStroke strokeType(int key, int graph_num)
           String message = e.getActionCommand();
           if( message.equals("Change Label") )
           {
-            graphs[selectedLineBox.getCBox().getSelectedIndex()] = 
+            graphs[selectedLineBox.getSelectedIndex()] = 
                                                 labelField.getText();
             this_panel.repaint();
 	    
@@ -669,7 +672,7 @@ public BasicStroke strokeType(int key, int graph_num)
           String message = e.getActionCommand();
           if( message.equals("COMBOBOX_CHANGED") )
           {
-             labelField.setText(graphs[selectedLineBox.getCBox().getSelectedIndex()]);        
+             labelField.setText(graphs[selectedLineBox.getSelectedIndex()]);        
           }  
         }
         else if( e.getSource() instanceof ControlCheckbox )
