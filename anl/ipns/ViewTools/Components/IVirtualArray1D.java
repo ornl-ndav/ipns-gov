@@ -94,14 +94,6 @@ public interface IVirtualArray1D
    */
    public float[] getXValues( int line_number );
    
-  /**
-   * Set values for a portion or all of a row.
-   * The "from" and "to" values must be direct array reference, i.e.
-   * because the array positions start at zero, not one, this must be
-   * accounted for. If the array passed in exceeds the bounds of the array, 
-   * set values for array elements and ignore extra values.
-   */
-   public void setXValues( float[] values ,int line_num);
    
   /**
    * Get values for a portion or all of a column.
@@ -113,13 +105,14 @@ public interface IVirtualArray1D
    public float[] getYValues( int line_number );
    
   /**
-   * Set values for a portion or all of a column.
-   * The "from" and "to" values must be direct array reference, i.e.
-   * because the array positions start at zero, not one, this must be
-   * accounted for. If the array passed in exceeds the bounds of the array, 
-   * set values for array elements and ignore extra values.
+   * Set values for one tabulated function together with it's error
+   * estimates.
    */
-   public void setYValues( float[] values, int line_num);
+   public void setXYValues( float[] x_values, 
+                            float[] y_values, 
+                            float[] errors,
+                            int group_id,
+                            int line_num);
    
   /**
    * Get vertical error values for a line in the graph..
@@ -131,12 +124,8 @@ public interface IVirtualArray1D
    */
    public int getGroupID( int line_number );
 
-   
-
    //**/get axisinfo 2d
    public AxisInfo2D  getAxisInfo( boolean x_axis);
-
-
      
   /**
    * Set all values in the array to a value. This method will usually
@@ -158,9 +147,6 @@ public interface IVirtualArray1D
 
    public float[] getXVals_ofIndex(int index);
    public float[] getYVals_ofIndex(int index);
-
-   public JComponent[] getSharedControls();
-   public JComponent[] getPrivateControls();
    
    public void addActionListener( ActionListener listener);
    public void removeActionListener( ActionListener listener);
