@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2004/03/11 23:07:21  rmikk
+ *  Add the correct package name to all files
+ *
  *  Revision 1.6  2004/03/11 07:39:45  bouzekc
  *  Added a getStrings() method that returns a Vector representation of the
  *  internal String array.
@@ -47,7 +50,7 @@
  *
  */
 
-package DataSetTools.util;
+package gov.anl.ipns.Util.SpecialStrings;
 
 import java.io.*;
 import java.util.Vector;

@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2004/03/11 23:07:21  rmikk
+ *  Add the correct package name to all files
+ *
  *  Revision 1.5  2004/01/24 20:59:01  bouzekc
  *  Removed unused variables in main().
  *
@@ -40,7 +43,7 @@
  *  standardized header
  *
  */
-package DataSetTools.util;
+package gov.anl.ipns.Util.SpecialStrings;
 
 import java.io.*;
 

@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2004/03/11 23:07:21  rmikk
+ *  Add the correct package name to all files
+ *
  *  Revision 1.4  2004/01/24 20:54:24  bouzekc
  *  Removed unused imports.
  *
@@ -38,7 +41,7 @@
  *
  */
 
-package DataSetTools.util;
+package gov.anl.ipns.Util.SpecialStrings;
 
 /**
  * The StringList interface provides an interface that represents an ordered

@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2004/03/11 23:07:21  rmikk
+ *  Add the correct package name to all files
+ *
  *  Revision 1.3  2003/12/15 02:20:38  bouzekc
  *  Removed unused imports.
  *
@@ -41,7 +44,7 @@
  *  Added to CVS.
  *
  */
-package DataSetTools.util;
+package gov.anl.ipns.Util.SpecialStrings;
 
 
 /**
