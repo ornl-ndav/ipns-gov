@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2003/10/02 19:35:08  dennis
+ * If polygon is "solid" just do fillPolygon.  (Previously, the
+ * border of the polygon was also drawn.  Separately drawing the
+ * border is no longer needed for filled polygons.)
+ *
  * Revision 1.3  2002/11/27 23:12:53  pfpeterson
  * standardized header
  *
@@ -103,12 +108,10 @@ private int type = SOLID;
      }
 
      g.setColor( color );
-     g.drawPolygon( xtemp, ytemp, xtemp.length );  // always draw border,
-                                                   // since it cheap and helps
-                                                   // prevent thin polygons
-                                                   // from disappearing
      if ( type == SOLID )
        g.fillPolygon( xtemp, ytemp, xtemp.length );      
+     else
+       g.drawPolygon( xtemp, ytemp, xtemp.length ); 
   }
 
 }
