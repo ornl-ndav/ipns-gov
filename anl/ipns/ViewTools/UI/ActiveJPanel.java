@@ -28,6 +28,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2004/03/11 22:33:22  serumb
+ * Changed package.
+ *
  * Revision 1.4  2004/02/04 18:16:50  dennis
  * Fixed spelling error in comment.
  *
@@ -39,7 +42,7 @@
  *
  */
 
-package DataSetTools.components.ui;
+package gov.anl.ipns.ViewTools.UI;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -47,8 +50,8 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.io.*;
-import DataSetTools.dataset.*;
-import DataSetTools.util.*;
+//import DataSetTools.dataset.*;
+//import DataSetTools.util.*;
 
 /**
  *  This class is a base class for panels that group one or more components 
