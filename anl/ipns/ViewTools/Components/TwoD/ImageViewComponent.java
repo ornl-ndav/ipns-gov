@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.60  2004/03/10 16:17:09  millermi
+ *  - Made returnFocus() a public method.
+ *  - Added getDisplayPanel().requestFocus() to end of
+ *    returnFocus() if no overlays are visible.
+ *
  *  Revision 1.59  2004/03/09 16:30:36  millermi
  *  - Added title to PanViewControl
  *  - Made all titles of controls static Strings to allow easy
@@ -1326,11 +1331,11 @@ public class ImageViewComponent implements IViewComponent2D,
     temppainter.repaint();
   }
  
- /*
-  * This method is needed so that keyboard events from the overlays
-  * are recognized after controls are given focus.
+ /**
+  * This method is will give focus to the correct overlay so that keyboard
+  * events are recognized after controls are given focus.
   */ 
-  private void returnFocus()
+  public void returnFocus()
   {	       
     AnnotationOverlay note = (AnnotationOverlay)transparencies.elementAt(0); 
     SelectionOverlay select = (SelectionOverlay)transparencies.elementAt(1); 
@@ -1342,6 +1347,8 @@ public class ImageViewComponent implements IViewComponent2D,
       select.getFocus();
     else if(axis.isVisible() )
       axis.getFocus();   
+    else
+      getDisplayPanel().requestFocus();
   }
  
  /*
