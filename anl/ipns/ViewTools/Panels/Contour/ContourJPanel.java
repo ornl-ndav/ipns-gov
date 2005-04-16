@@ -10,6 +10,7 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
 
 import java.awt.Color;
@@ -27,7 +28,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       IPreserveState
 {
    /** Holds the data that is being drwn on this panel. */
-   //private IVirtualArray2D data2D;
+   private IVirtualArray2D data2D;
    /**
     * Holds information which contours to draw (i.e. at which 'heights' will 
     * slices be taken from the surface and drawn as contours)
@@ -50,7 +51,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          throw new IllegalArgumentException(
                    "A null IVirtualArray2D was passed to the constructor " +
                    "for a ContourJPanel.");
-      //this.data2D = data2D;
+      this.data2D = data2D;
       this.setBackground(Color.WHITE);
    }
    
@@ -108,54 +109,70 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public void paint(Graphics g)
    {
+      stop_box( current_point, false );   // if the system redraws this without
+
+      stop_crosshair( current_point );    // our knowlege, we've got to get rid
+                                          // of the cursors, or the old position
+                                          // will be drawn rather than erased
+                                          // when the user moves the cursor (due
+                                          // to XOR drawing).
       super.paint(g);
-      //CoordBounds panelBounds = getGlobalWorldCoords();
       
-      Vector contourPts;
-      floatPoint2D curPt1,curPt2;
+      //holds the contour points found
+        Vector contourPts;
+      //references a start and end point in 'contourPts'
+        floatPoint2D curPt1,curPt2;
+      //first to extract the array of data to use
+        float[][] arr = data2D.getRegionValues(0, 
+                                               data2D.getNumRows()-1, 
+                                               0,
+                                               data2D.getNumColumns()-1);
+      if (arr==null)
+      {
+         System.out.println("Warning:  A null array of data was found in " +
+                            "ContourJPanel.paint(....).  Thus, the data " +
+                            "could not be plotted.");
+         return;
+      }
+        
+      //set the local transforms to map a rectangular region to the 
+      //entire panel
+        SetTransformsToWindowSize();
+      //set the region being mapped from to be the dimesions of the array
+        local_transform.setSource(new CoordBounds(0,0,arr[0].length,arr.length));
+      
+      //for each level draw the contour
       for (int i=0; i<levels.getNumLevels(); i++)
       {
-         System.out.println("  Looking at level "+i+" with value "+levels.getLevelAt(i));
-         
-         //this the array used when finding contours
-           float[][] arrToUse;
-         //first to make an array of data
-           float[][] arr = getTestDataArr();
-         //Uncomment this to see how the actual array works
-           arrToUse = arr;
-         //Uncomment this to see how the method getRegionValue works
-         ///*
-           VirtualArray2D virtualArray = new VirtualArray2D(arr);
-           arrToUse = virtualArray.
-                         getRegionValues(0, 
-                                         virtualArray.getNumRows()-1, 
-                                         0,
-                                         virtualArray.getNumColumns()-1);
-         //*/
-           printArray(arrToUse);
-         
          //now to get the contours
-           contourPts = Contour2D.contour(arrToUse,levels.getLevelAt(i));
+           contourPts = Contour2D.contour(arr,levels.getLevelAt(i));
          
-         //Now to draw the contour lines on the panel
-           System.out.println("    contourPts.size()="+contourPts.size());
-           for (int j=0; (j+1)<contourPts.size(); j+=2)
+         //this holds the x points describing where each contour line 
+         //segment should be drawn.  The units are in terms of row/column and 
+         //the numbers are in the order p1_start, p1_end, p2_start, p2_end ....
+           float[] xrcVals = new float[contourPts.size()];
+         //the same as above except this stores y values
+           float[] yrcVals = new float[contourPts.size()];
+           
+         //now to fill the arrays
+           for (int j=0; j<contourPts.size(); j++)
            {
-              //for these floatPoint2D objects
-              //  x is the column number
-              //  y is the row number
               curPt1 = (floatPoint2D)contourPts.elementAt(j);
-              curPt2 = (floatPoint2D)contourPts.elementAt(j+1);
-             
-              System.out.println("      about to draw a line from ("+
-                                 (int)curPt1.x+", "+(int)curPt1.y+") to ("+
-                                 (int)curPt2.x+", "+(int)curPt2.y+")");
-            
-              g.drawLine((int)(10*curPt1.x),
-                         (int)(10*curPt1.y),
-                         (int)(10*curPt2.x),
-                         (int)(10*curPt2.y));
+              xrcVals[j] = curPt1.x;
+              yrcVals[j] = curPt1.y;
            }
+         
+         //now to transform the points from row/column coordinates to 
+         //pixel coordinates
+            local_transform.MapXListTo(xrcVals);
+            local_transform.MapYListTo(yrcVals);
+         
+         //now to draw the lines with the new pixel coordinates
+           for (int j=0; (j+1)<contourPts.size(); j+=2)
+              g.drawLine((int)xrcVals[j],
+                         (int)(yrcVals[j]),
+                         (int)(xrcVals[j+1]),
+                         (int)(yrcVals[j+1]));
       }
    }
    
@@ -182,13 +199,13 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    private static float[][] getTestDataArr()
    {
-      float xMin = 0;
+      float xMin = -10;
       float xMax = 10;
-      int numXSteps = 10;
+      int numXSteps = 40;
       
-      float yMin = 0;
+      float yMin = -10;
       float yMax = 10;
-      int numYSteps = 10;
+      int numYSteps = 40;
       
       
       float deltaX = (xMax-xMin)/numXSteps;
@@ -198,8 +215,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       for (int i=0; i<dataArr.length; i++)
          for (int j=0; j<dataArr[i].length; j++)
          {
-            dataArr[i][j] = (xMin+deltaX*i)+(yMin+deltaY*j);
-            System.out.println("f("+(xMin+deltaX*i)+", "+(yMin+deltaY*j)+") = "+dataArr[i][j]);
+            dataArr[i][j] = (xMin+deltaX*i)*(xMin+deltaX*i)+(yMin+deltaY*j)*(yMin+deltaY*j);
+            //System.out.println("f("+(xMin+deltaX*i)+", "+(yMin+deltaY*j)+") = "+dataArr[i][j]);
          }
       
       return dataArr;
@@ -220,9 +237,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public static void main(String[] args)
    {
-      //for now the VirtualArray2D to use is generated using getTestDataArr() 
-      //automatically inside the paint method
-      ContourJPanel panel = new ContourJPanel(getTestData(), 0, 20, 20);
+      ContourJPanel panel = new ContourJPanel(getTestData(), 0, 100, 10);
       JFrame frame = new JFrame("ContourJPanel test");
          frame.setSize(200,200);
          frame.getContentPane().add(panel);
