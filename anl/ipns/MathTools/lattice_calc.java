@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2005/04/20 21:24:02  dennis
+ * Modified LatticeParamsOfG() and LatticeParamsOfUB() to return
+ * null if the matrix is singular.
+ *
  * Revision 1.4  2004/03/15 23:53:48  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -328,14 +332,18 @@ public class lattice_calc
    *
    *  @return   An array containing the six lattice parameters,
    *            a, b, c, alpha, beta, gamma and the unit cell volume in 
-   *            positions 0..6.  The angles are in degrees.
+   *            positions 0..6.  The angles are in degrees.  If the matrix
+   *            is singular, return null.
    */
    static public double[] LatticeParamsOfUB( double UB[][] )
    {
      double UBt[][] = LinearAlgebra.getTranspose( UB );
      double Gstar[][] = LinearAlgebra.mult( UBt, UB );
      double G[][] = LinearAlgebra.getInverse( Gstar );
-     return LatticeParamsOfG( G );
+     if ( G == null )
+       return null;
+     else
+       return LatticeParamsOfG( G );
    }
 
   /**
@@ -349,13 +357,16 @@ public class lattice_calc
    *               The matrix B must have the reciprocal space vectors
    *               a*, b*, c*, divided by 2 PI, as columns.
    *
-   *  @return the factor U.
+   *  @return the factor U.  If the UB matrix is singular, return null
    */ 
    static public double[][] getU( double UB[][] )
    {
      double UBt[][] = LinearAlgebra.getTranspose( UB );
      double Gstar[][] = LinearAlgebra.mult( UBt, UB );
      double G[][] = LinearAlgebra.getInverse( Gstar );
+     if ( G == null )
+       return null;
+     
      double lat_params[] = LatticeParamsOfG( G );      
      double A[][] = A_matrix( lat_params );        // note: B is the transpose 
                                                    //       of Astar, so B is
@@ -439,6 +450,7 @@ public class lattice_calc
      double Aunit[][] = A_unit( a, b, c, alpha, beta, gamma );
      double G[][]     = G_matrix( a, b, c, alpha, beta, gamma );
      double Ginverse[][] = LinearAlgebra.getInverse( G );
+     
      double Astar[][] = LinearAlgebra.mult( Ginverse, A );
      double TwoPI_Astar[][] = new double[3][3];
      for ( int i = 0; i < 3; i++ )
