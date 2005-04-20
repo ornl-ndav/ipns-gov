@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2005/04/20 21:53:17  dennis
+ *  Improved documentation.  Now emphasizes angles returned and specified
+ *  in radians.
+ *
  *  Revision 1.15  2004/03/19 17:24:26  dennis
  *  Removed unused variables
  *
@@ -105,6 +109,10 @@ public class Position3D implements Serializable,
                                   // origin to the point.  This angle is in
                                   // radians. 
 
+  /**
+   *  Default constructor that makes a Position3D object representing a point
+   *  at the origin.
+   */
   public Position3D()
   {
     sph_radius    = 0;
@@ -114,6 +122,9 @@ public class Position3D implements Serializable,
 
   /**
    *  Copy constructor
+   *
+   *  @param  position  The Position3D object from which the position
+   *                    information is obtained.
    */
   public Position3D( Position3D position )
   {
@@ -124,6 +135,9 @@ public class Position3D implements Serializable,
 
   /**
    *  Construct a Position3D object from a Vector3D object.
+   *
+   *  @param  vector  The Vector3D object from which the position information
+   *                  is obtained.
    */
   public Position3D( Vector3D vector )
   {
@@ -137,6 +151,10 @@ public class Position3D implements Serializable,
   /**
    *  Specify the position as a triple of values, (x, y, z) in Cartesian
    *  coordinates.
+   *
+   *  @param  x  The x-coordinate.
+   *  @param  y  The y-coordinate.
+   *  @param  z  The z-coordinate.
    */
   public void setCartesianCoords( float x, float y, float z )
   {
@@ -165,8 +183,12 @@ public class Position3D implements Serializable,
   }
    
   /**
-   *  Specify the position as a triple of values, (r, theata, phi) in spherical 
-   *  polar coordinates.
+   *  Specify the position as a triple of values, (r, theta, phi) in spherical 
+   *  polar coordinates.  Angles must be specified in radians.
+   *
+   *  @param sph_radius     The radius in spherical coordinates.
+   *  @param azimuth_angle  The azimuthal angle in radians.
+   *  @param polar_angle    The polar angle in radians.
    */
   public void setSphericalCoords( float sph_radius, 
                                   float azimuth_angle, 
@@ -178,8 +200,8 @@ public class Position3D implements Serializable,
   }
 
   /**
-   *  Get the position as a triple of values, (r, theata, phi) in spherical
-   *  polar coordinates.
+   *  Get the position as a triple of values, (r, theta, phi) in spherical
+   *  polar coordinates.  Angles are specified in radians.
    *
    *  @return  Returns the values of the radius, azimuth angle and polar angle
    *           in positions 0, 1 and 2 respectively, of an array of floats.
@@ -194,36 +216,15 @@ public class Position3D implements Serializable,
   }
 
   /**
-   *  Get the distance of the position from the origin.
+   *  Specify the position as a triple of values, (r, theta, z) in cylindrical 
+   *  coordinates.  The azimuth angle must be specified in radians.
+   *
+   *  @param cyl_radius     The clindrical coordinate "r".
+   *  @param azimuth_angle  The cylindrical coordinate theta, in radians.
+   *  @param z              The cylindrical coordinate z.
    */
-  public float getDistance()
-  {
-    return sph_radius;
-  }
-
-  /**
-   * Determine the distance between this and the given Position3D
-   */
-  public float distance(Position3D pos){
-    float[] mycoords  = this.getCartesianCoords();
-    float[] hiscoords = pos.getCartesianCoords();
-    double diff;
-    double distance=0.;
-
-    for( int i=0 ; i<3 ; i++ ){
-      diff=(double)(mycoords[i]-hiscoords[i]);
-      distance=distance+diff*diff;
-    }
-
-    return (float)Math.sqrt(distance);
-  }
-
-  /**
-   *  Specify the position as a triple of values, (r, theata, z) in cylindrical 
-   *  coordinates.
-   */
-  public void setCylindricalCoords( float cyl_radius, 
-                                    float azimuth_angle, 
+  public void setCylindricalCoords( float cyl_radius,
+                                    float azimuth_angle,
                                     float z              )
   {
     this.sph_radius    = (float)Math.sqrt( cyl_radius*cyl_radius + z*z );
@@ -232,8 +233,8 @@ public class Position3D implements Serializable,
   }
 
   /**
-   *  Get the position as a triple of values, (r, theata, z) in cylindrical 
-   *  coordinates.
+   *  Get the position as a triple of values, (r, theta, z) in cylindrical 
+   *  coordinates.  The azimuth angle is specified in radians.
    *
    *  @return  Returns the values of the radius, azimuth angle and z value in 
    *           positions 0, 1 and 2 respectively, of an array of floats.
@@ -245,6 +246,39 @@ public class Position3D implements Serializable,
     coords[1] = azimuth_angle;
     coords[2] = sph_radius * (float)Math.cos( polar_angle );
     return coords;
+  }
+
+  /**
+   *  Get the distance of the position from the origin.
+   *
+   *  @return the distance from this position to the origin.
+   */
+  public float getDistance()
+  {
+    return sph_radius;
+  }
+
+  /**
+   * Determine the distance between this and another Position3D.
+   *
+   * @param pos  The other Position3D object
+   *
+   * @return  The straight line distance between the current
+   *          Position3D and the other specified Position3D object.
+   */
+  public float distance(Position3D pos)
+  {
+    float[] mycoords  = this.getCartesianCoords();
+    float[] hiscoords = pos.getCartesianCoords();
+    double diff;
+    double distance=0.;
+
+    for( int i=0 ; i<3 ; i++ ){
+      diff=(double)(mycoords[i]-hiscoords[i]);
+      distance=distance+diff*diff;
+    }
+
+    return (float)Math.sqrt(distance);
   }
 
   /**
@@ -305,6 +339,9 @@ public class Position3D implements Serializable,
   /**
    *  Print the position in Cartesian, Cylindrical and Sphereical coords
    *  for debugging purposes.
+   *
+   *  @param title  A String title to place before the values printed
+   *                for this position.
    */
   public void PrintPoint( String title )
   {
@@ -328,6 +365,9 @@ public class Position3D implements Serializable,
   /**
    *  Form a string giving the position of the detector in cylindrical 
    *  coordinates.
+   *
+   *  @return A string containing a formtted version of the detector
+   *          position in cylindrical coordinates.
    */
   public String toString()
   {
@@ -353,6 +393,8 @@ public class Position3D implements Serializable,
   /**
    *  Make a new Position3D object that contains the same data as the current
    *  one.
+   *
+   *  @return a new Position3D object with values copied from this Position3D
    */
   public Object clone()
   {
@@ -391,7 +433,7 @@ public class Position3D implements Serializable,
  /** Implements the IXmlIO interface so a Detector Position can read itself
   *
   * @param stream  the InStream to which the data is written
-
+  *
   * @return true if successful otherwise false<P>
   *
   * NOTE: This routine assumes the begin tag has been completely read.  It reads
