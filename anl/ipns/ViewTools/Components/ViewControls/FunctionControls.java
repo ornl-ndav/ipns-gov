@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.51  2005/04/20 21:25:06  dennis
+ * Removed unused imports.
+ *
  * Revision 1.50  2005/03/28 05:53:59  serumb
  * Add methods for data changed and re-initialization also uses the new
  * class RangeControl.
@@ -206,9 +209,7 @@
  */
 package gov.anl.ipns.ViewTools.Components.ViewControls;
 
-import java.util.Vector;
 import java.io.Serializable;
-import gov.anl.ipns.ViewTools.UI.*; 
 import gov.anl.ipns.ViewTools.Panels.Transforms.*; 
 import gov.anl.ipns.ViewTools.Components.*;  // IVirtualArrayList1D
 import gov.anl.ipns.ViewTools.Components.OneD.*;
