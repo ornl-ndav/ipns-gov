@@ -10,8 +10,12 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
+import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
+import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
+import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -21,6 +25,17 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+/* TODO List
+ * 1.  Compare drawing the lines based on the points located at pixel 
+ *     corners or pixel centers.
+ * 2.  Label the contour lines (or use line types).
+ * 3.  Figure out how to color the lines and possibly use colored regions.
+ *     (for now don't worry about filling colored regions)
+ *     Can look at it as an image with the contours overlayed on top of it 
+ *     and each pixel is given a color depending on if it is betweeen certain 
+ *     levels.
+ * 4.  Algorithm for finding how to chain the segments found together.
+ */
 /**
  * 
  */
@@ -33,7 +48,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * Holds information which contours to draw (i.e. at which 'heights' will 
     * slices be taken from the surface and drawn as contours)
     */
-   private Levels          levels;
+   private Contours levels;
    
    /**
     * Private constructor used to initialize the 
@@ -82,7 +97,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                         int numLevels) throws IllegalArgumentException
    {
       this(data2D);
-      this.levels = new UniformLevels(minValue,maxValue,numLevels);
+      this.levels = new UniformContours(minValue,maxValue,numLevels);
    }
    
    /**
@@ -101,7 +116,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                         float[] levels) throws IllegalArgumentException
    {
       this(data2D);
-      this.levels = new NonUniformLevels(levels);
+      this.levels = new NonUniformContours(levels);
    }
    
    /**
@@ -118,18 +133,15 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                                           // to XOR drawing).
       super.paint(g);
       
-      //holds the contour points found
-        Vector contourPts;
-      //references a start and end point in 'contourPts'
-        floatPoint2D curPt1,curPt2;
       //first to extract the array of data to use
         float[][] arr = data2D.getRegionValues(0, 
                                                data2D.getNumRows()-1, 
-                                               0,
+                                               0, 
                                                data2D.getNumColumns()-1);
       if (arr==null)
       {
-         System.out.println("Warning:  A null array of data was found in " +
+         System.out.println("Warning:  A null array of data was found " +
+                            "from the IVirtualArray2D in " +
                             "ContourJPanel.paint(....).  Thus, the data " +
                             "could not be plotted.");
          return;
@@ -138,32 +150,53 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //set the local transforms to map a rectangular region to the 
       //entire panel
         SetTransformsToWindowSize();
-      //set the region being mapped from to be the dimesions of the array
-        local_transform.setSource(new CoordBounds(0,0,arr[0].length,arr.length));
-      
+      //now to make a transform that maps from row/column to the world 
+      //coordinates of the entire panel.  The row/col is mapped to the 
+      //location on the ENTIRE panel because the ALL of the data in the 
+      //array needs to be mapped to ALL of the panel (not just a small 
+      //region which is what 'local_transform' describes).
+        CoordTransform rcToGlobal = 
+           new CoordTransform(new CoordBounds(0,0,arr[0].length,arr.length),
+                              global_transform.getSource());
+
+      //this holds the contour points found
+        Vector contourPts;
+      //references an element in 'contourPts'
+        floatPoint2D curPt;
+      //this will hold the x points describing where each contour line segment 
+      //that should be drawn.  The units will be in terms of row/column and 
+      //the numbers are in the order p1_start, p1_end, p2_start, p2_end ....
+          float[] xrcVals;
+      //the same as above except this stores y values
+          float[] yrcVals;
+        
       //for each level draw the contour
       for (int i=0; i<levels.getNumLevels(); i++)
       {
          //now to get the contours
            contourPts = Contour2D.contour(arr,levels.getLevelAt(i));
          
-         //this holds the x points describing where each contour line 
-         //segment should be drawn.  The units are in terms of row/column and 
-         //the numbers are in the order p1_start, p1_end, p2_start, p2_end ....
-           float[] xrcVals = new float[contourPts.size()];
-         //the same as above except this stores y values
-           float[] yrcVals = new float[contourPts.size()];
-           
+         //now to create space for the arrays
+           xrcVals = new float[contourPts.size()];
+           yrcVals = new float[contourPts.size()];
+               
          //now to fill the arrays
            for (int j=0; j<contourPts.size(); j++)
            {
-              curPt1 = (floatPoint2D)contourPts.elementAt(j);
-              xrcVals[j] = curPt1.x;
-              yrcVals[j] = curPt1.y;
+              curPt = (floatPoint2D)contourPts.elementAt(j);
+              xrcVals[j] = curPt.x;
+              yrcVals[j] = curPt.y;
            }
          
-         //now to transform the points from row/column coordinates to 
-         //pixel coordinates
+         //now to transform the points from row/column to the world 
+         //coordinates on the panel
+           rcToGlobal.MapXListTo(xrcVals);
+           rcToGlobal.MapYListTo(yrcVals);
+           
+         //now to transform the points from the world coordinates to 
+         //pixel coordinates.  Here 'local_transform' is used because 
+         //if the user zooms in on the data, 'local_transform' is modified 
+         //to reflect viewing a smaller subsection of the panel.
             local_transform.MapXListTo(xrcVals);
             local_transform.MapYListTo(yrcVals);
          
@@ -197,7 +230,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * Generates a float[][] for the data for the function 
     * f(x,y) = x+y
     */
-   private static float[][] getTestDataArr()
+   public static float[][] getTestDataArr()
    {
       float xMin = -10;
       float xMax = 10;
@@ -211,12 +244,14 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       float deltaX = (xMax-xMin)/numXSteps;
       float deltaY = (yMax-yMin)/numYSteps;
       
+      float x,y; //holds the values of x and y
       float[][] dataArr = new float[numXSteps][numYSteps];
       for (int i=0; i<dataArr.length; i++)
          for (int j=0; j<dataArr[i].length; j++)
          {
-            dataArr[i][j] = (xMin+deltaX*i)*(xMin+deltaX*i)+(yMin+deltaY*j)*(yMin+deltaY*j);
-            //System.out.println("f("+(xMin+deltaX*i)+", "+(yMin+deltaY*j)+") = "+dataArr[i][j]);
+            x = (xMin+deltaX*i);
+            y = (yMin+deltaY*j);
+            dataArr[i][j] = x*x+y*y-5;
          }
       
       return dataArr;
@@ -226,7 +261,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * Generates a IVirtualArray2D for the data for the function 
     * f(x,y) = x+y
     */
-   private static IVirtualArray2D getTestData()
+   public static IVirtualArray2D getTestData()
    {
       return new VirtualArray2D(getTestDataArr());
    }
@@ -237,84 +272,21 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public static void main(String[] args)
    {
-      ContourJPanel panel = new ContourJPanel(getTestData(), 0, 100, 10);
+      float[] levels = new float[5];
+         levels[0] = 0;
+         levels[1] = 10;
+         levels[2] = 2;
+         levels[3] = 7;
+         levels[4] = 12.2332f;
+      ContourJPanel panel = new ContourJPanel(getTestData(), 0, 200, 20);
+      //ContourJPanel panel = new ContourJPanel(getTestData(),levels);
+         panel.setPreserveAspectRatio(false);
       JFrame frame = new JFrame("ContourJPanel test");
          frame.setSize(200,200);
          frame.getContentPane().add(panel);
          frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
       frame.setVisible(true);
    }
-   
-   /**Internal Classes Used to Determine the Height of Levels on the Surface**/
-   private abstract class Levels
-   {
-      private int numLevels;
-      
-      public Levels(int numLevels) throws IllegalArgumentException
-      {
-         if (numLevels<=0)
-            throw new IllegalArgumentException(
-                      "ContourJPanel$Levels(int numLevels) 'numLevels' " +
-                      "cannot be non-negative but 'numLevels'="+numLevels+
-                      "was passed to the constructor.");
-         this.numLevels = numLevels;
-      }
-      
-      public int getNumLevels() { return numLevels; }
-      public abstract float getLevelAt(int i);
-   }
-   
-      private class UniformLevels extends Levels
-      {
-         private float minValue;
-         private float delta;
-         
-         public UniformLevels(float minValue,
-                              float maxValue,
-                              int numLevels) throws IllegalArgumentException
-         {
-            super(numLevels);
-            
-            if (minValue>maxValue)
-               throw new IllegalArgumentException(
-                         "ContourJPanel$UniformLevels(float minValue, " +
-                         "float maxValue, int numLevels) was improperly " +
-                         "given 'minValue' and 'maxValue' such that " +
-                         "'minValue'>'maxValue'");
-            
-            this.minValue = minValue;
-            this.delta = (maxValue-minValue)/numLevels;
-         }
-
-         public float getLevelAt(int i)
-         {
-            return minValue+i*delta;
-         }
-      }
-   
-      private class NonUniformLevels extends Levels
-      {
-         private float[] levels;
-         
-         public NonUniformLevels(float[] levels) throws IllegalArgumentException
-         {
-            super((levels!=null)?levels.length:0);
-            if (levels==null)
-               throw new IllegalArgumentException(
-                           "ContourJPanel$NonUniformLevels(float[] levels) " +
-                           "was given a null parameter 'levels'");
-            this.levels = levels;
-         }
-
-         public float getLevelAt(int i)
-         {
-            if (i>=0 && i<levels.length)
-               return levels[i];
-            else
-               return Float.NaN;
-         }
-      }
-   /**End of the Classes for Determining the Height of Levels*****************/
 }
 
 /*--------------------------Unused Code-------------------------*/
