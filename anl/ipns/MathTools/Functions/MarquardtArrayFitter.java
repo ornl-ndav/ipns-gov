@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/04/22 16:51:25  dennis
+ *  Moved three remaining debug prints into "if (debug)" statement.
+ *
  *  Revision 1.14  2004/03/19 17:24:26  dennis
  *  Removed unused variables
  *
@@ -413,11 +416,12 @@ public class MarquardtArrayFitter extends CurveFitter
                                                 lamda );
     }
 
-    System.out.println("After fit ..............................");
-    System.out.println("n_steps = " + n_steps );
-    System.out.println("lamda = " + lamda );
     if ( debug )
     {
+      System.out.println("After fit ..............................");
+      System.out.println("n_steps = " + n_steps );
+      System.out.println("lamda = " + lamda );
+      System.out.println("........................................");
       System.out.println("A[k][k],    Alpha[k][k],   u[k][k] =");
       for ( int k = 0; k < n_params; k++ )
         System.out.println(""+A[k][k]+", " + Alpha[k][k] +", " + u[k][k] );
