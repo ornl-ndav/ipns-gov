@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.53  2005/05/06 16:47:58  serumb
+ * Fixed java doc error.
+ *
  * Revision 1.52  2005/03/11 19:52:01  serumb
  * Added get and set Object State methods and changed get and set Stroke
  * methods to use an integer key as a paremeter.
@@ -675,7 +678,7 @@ public class GraphJPanel extends    CoordJPanel
 /**
  *  Set the Stroke for the particular line in the graph.  
  *
- *  @param  theStroke  the basic stroke type for a graph
+ *  @param  strokeType the basic stroke type for a graph.
  *
  *  @param  graph_num  the index of the graph.
  *                     The index must be at least zero and less than the
