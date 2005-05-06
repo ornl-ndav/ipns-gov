@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/05/06 21:13:25  millermi
+ *  - Added methods for converting between coordinate systems.
+ *  - get/setPointedAt() parameter is now in terms of world coordinates
+ *    instead of (column,row) coordinates.
+ *
  *  Revision 1.7  2005/03/17 01:28:48  millermi
  *  - Changed ImageJPanel to ImageJPanel2. When the PanViewControl was
  *    switched over to the ImageJPanel2, passing it an ImageJPanel caused
@@ -87,10 +92,12 @@ import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 import gov.anl.ipns.ViewTools.Panels.Table.TableJPanel;
 import gov.anl.ipns.ViewTools.Panels.Table.TableModelMaker;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 import gov.anl.ipns.ViewTools.Components.Region.*;
+import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
@@ -165,21 +172,11 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   */
   public TableViewComponent( IVirtualArray2D array )
   {
-    varray = array;
-    tjp = new TableJPanel( TableModelMaker.getModel(varray) );
-    tjp.setColumnAlignment( SwingConstants.RIGHT );
     // Initialize the ImageJPanel2 so it may be used by the PanViewControl.
     ijp = new ImageJPanel2();
-    // Make sure data is valid.
-    if( varray != null )
-    {
-      //Make ijp correspond to the data in f_array
-      ijp.setData(varray, true);
-    }
     colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
-    tjp.addActionListener( new TableListener() );
     Listeners = new Vector();
-    menus = null;
+    dataChanged(array);
     buildControls();
     buildMenu();
   }
@@ -304,25 +301,28 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   
  /**
   * This method is a notification to the view component that the selected
-  * point has changed. This assumes that fpt follows (x = column, y = row).
+  * point (cell) has changed. This assumes that fpt is in world coordinates.
   *
-  *  @param  fpt - current cell specified as a (x=column,y=row) floatPoint2D.
+  *  @param  fpt - current cell specified in (x,y) world coordinates.
   */ 
   public void setPointedAt( floatPoint2D fpt )
   {
-    tjp.setPointedAtCell( fpt.toPoint() );
+    // If null, do nothing.
+    if( fpt == null )
+      return;
+    tjp.setPointedAtCell( getColumnRowAtWorldCoords(fpt) );
   }
  
  /**
   * Get the current pointed-at cell. The pointed-at cell has a highlighted
-  * border. The current cell is specified by a Point with form
-  * (x = column, y = row).
+  * border. The current cell is specified by a floatPoint2D in world
+  * coordinates.
   *
-  *  @return The current point as a Point (x = column, y = row).
+  *  @return The current point in world coordinates.
   */ 
   public floatPoint2D getPointedAt()
   {
-    return new floatPoint2D(tjp.getPointedAtCell());
+    return getWorldCoordsAtColumnRow(tjp.getPointedAtCell());
   }
 
  /**
@@ -383,10 +383,24 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   public void dataChanged(IVirtualArray2D array)
   {
     varray = array;
+    // Make sure data is valid.
+    if( varray != null )
+    {
+      //Make ijp correspond to the data in f_array
+      ijp.setData(varray, true);
+      AxisInfo xinfo = varray.getAxisInfo(AxisInfo.X_AXIS);
+      AxisInfo yinfo = varray.getAxisInfo(AxisInfo.Y_AXIS);
+    
+      ijp.initializeWorldCoords( new CoordBounds( xinfo.getMin(),
+    						  yinfo.getMax(),      
+    						  xinfo.getMax(),
+    						  yinfo.getMin() ) );
+    }
     tjp = null;
     tjp = new TableJPanel( TableModelMaker.getModel(varray) );
+    tjp.setColumnAlignment( SwingConstants.RIGHT );
     tjp.addActionListener( new TableListener() );
-    buildControls();
+    dataChanged();
   }
   
  /**
@@ -433,6 +447,68 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     ijp.setNamedColorModel( colorscale, isTwoSided, true );
     ((PanViewControl)controls[1]).repaint();
     sendMessage(THUMBNAIL_COLOR_SCALE_CHANGED);
+  }
+ 
+ /*
+  * Here are methods to translate between coordinate systems.
+  */ 
+ /**
+  * Get the (x = column, y = row) "image coordinate" point of the image at
+  * the "pixel coordinate" point given. This method will map pixel values
+  * to image column/row values.
+  *
+  *  @param  pixel_pt The pixel value (x=row,y=column) of the image.
+  *  @return The "Image Coordinate" value of pixel_pt.
+  */
+  public Point getColumnRowAtPixel( Point pixel_pt )
+  {
+    return new Point( ijp.ImageCol_of_PixelCol(pixel_pt.y),
+                      ijp.ImageRow_of_PixelRow(pixel_pt.x) );
+  }
+   
+ /**
+  * Get the (x = column, y = row) "image coordinate" point of the image at
+  * the "world coordinate" point given. This method will map world coordinate
+  * values (defined by AxisInfo) to image column/row values.
+  *
+  *  @param  wc_pt The world coordinate value (x-axis,y-axis) of the image.
+  *  @return The "Image Coordinate" value of wc_pt.
+  */
+  public Point getColumnRowAtWorldCoords( floatPoint2D wc_pt )
+  {
+    return new Point( ijp.ImageCol_of_WC_x(wc_pt.x),
+                      ijp.ImageRow_of_WC_y(wc_pt.y) );
+  }
+  
+ /**
+  * Get the (x-axis, y-axis) "world coordinate" point of the image at
+  * the "pixel coordinate" point given. This method will map pixel values
+  * to world coordinate x-axis/y-axis values.
+  *
+  *  @param  pixel_pt The pixel value (x=row,y=column) of the image.
+  *  @return The "World Coordinate" value of pixel_pt.
+  */
+  public floatPoint2D getWorldCoordsAtPixel( Point pixel_pt )
+  {
+    return getWorldCoordsAtColumnRow( getColumnRowAtPixel(pixel_pt) );
+  }
+   
+ /**
+  * Get the (x-axis,y-axis) "world coordinate" value of the
+  * (x = column, y = row) "image coordinate" point given.
+  * This method will map image column/row values to world coordinate
+  * values (defined by AxisInfo).
+  *
+  *  @param  col_row_pt The image coordinate value (column,row) of the image.
+  *  @return The "World Coordinate" point of col_row_pt.
+  */
+  public floatPoint2D getWorldCoordsAtColumnRow( Point col_row_pt )
+  {
+    CoordBounds imagebounds = ijp.getImageCoords();
+    CoordBounds wcbounds = ijp.getGlobalWorldCoords();
+    CoordTransform image_to_wc = new CoordTransform( imagebounds, wcbounds );
+    return new floatPoint2D( image_to_wc.MapXTo(col_row_pt.x),
+                             image_to_wc.MapYTo(col_row_pt.y) );
   }
   
  /*
@@ -695,15 +771,14 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     def_pts4[1] = new floatPoint2D(2f,12f);
     reg[3] = new TableRegion( def_pts4, false );
     
-    //tvc.setPointedAt(new floatPoint2D(3f,5f));
     //tvc.setThumbnailColorScale( IndexColorMaker.MULTI_SCALE );
     ObjectState state = tvc.getObjectState(IPreserveState.PROJECT);
     tvc.setThumbnailColorScale( IndexColorMaker.MULTI_SCALE );
-    tvc.setPointedAt(new floatPoint2D(8f,10f));
     tvc.setObjectState(state);
     tvc.setSelectedRegions(reg);
     tvc.setSelectedRegions( tvc.getSelectedRegions() );
-    // Set Pointed-At cell to (column=3, row=5)
+    tvc.setPointedAt(new floatPoint2D(.2f,.5f));
+    System.out.println("Testing Pointed At (.2,.5): "+tvc.getPointedAt());
     frame.getContentPane().add(tvc.getDisplayPanel());
     WindowShower shower = new WindowShower(frame);
     java.awt.EventQueue.invokeLater(shower);
