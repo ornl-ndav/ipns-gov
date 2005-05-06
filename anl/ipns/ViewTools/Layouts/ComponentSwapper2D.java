@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/05/06 21:15:22  millermi
+ *  - Modified linking of components due to change in TableViewComponent.
+ *
  *  Revision 1.1  2005/03/28 05:54:04  millermi
  *  - Initial Version - This is a building block in the new viewer
  *    structure.
@@ -115,6 +118,7 @@
      // Available views: TABLE, IMAGE
      super(new String[]{TABLE,IMAGE}, va2D, view_type );
      setVisibleControls(control_scheme);
+     current_component = (IViewComponent2D)getViewComponent();
    }
    
   /**
@@ -133,6 +137,7 @@
      // Available views: TABLE, IMAGE
      super(new String[]{TABLE,IMAGE}, va2D, view_type );
      setVisibleControls(visible_controls);
+     current_component = (IViewComponent2D)getViewComponent();
    }
   
   /*
@@ -260,29 +265,14 @@
        current_component = new_view;
        return;
      }
-     // If switching from image to table...
-     if( current_component instanceof ImageViewComponent )
-     {
-       // Need to convert world coordinates to table row/column coordinates.
-       // This point is in world coords.
-       floatPoint2D row_col = current_component.getPointedAt();
-       row_col = new floatPoint2D(((ImageViewComponent)
-                         current_component).getColumnRowAtWorldCoords(row_col));
-       new_view.setPointedAt(row_col);
-       //new_view.setSelectedRegions(current_component.getSelectedRegions());
-     }
-     // If switching from table to image...
-     else //if( current_component instanceof TableViewComponent )
-     {
-       // Need to convert table column/row coordinates to world coordinates.
-       // This point is in column/row coords.
-       floatPoint2D wcpt = current_component.getPointedAt();
-       wcpt = new floatPoint2D(((ImageViewComponent)
-                                  new_view).getWorldCoordsAtColumnRow(
-				                  wcpt.toPoint()));
-       new_view.setPointedAt(wcpt);
-       //new_view.setSelectedRegions(current_component.getSelectedRegions());
-     }
+     // If linkComponents() called on same component, do nothing.
+     else if( current_component == new_view )
+       return;
+     // Transfer current pointed at from old component to new component.
+     new_view.setPointedAt(current_component.getPointedAt());
+     current_component = null;
+     // Update the current component.
+     current_component = new_view;
    }
    
   /**
@@ -305,7 +295,7 @@
      }
      ignore_change = true;
      if( action.equals(IViewComponent.POINTED_AT_CHANGED) )
-     {
+     {/*
        // Since Image and TableViewComponents do not return pointed-at in
        // the same coordinate system, convert the table column-row point
        // to an image world coordinate.
@@ -328,9 +318,11 @@
 	                                (floatPoint2D)ave.getNewValue()) );
          ((IViewComponent2D)getViewComponent()).setPointedAt(col_row);
        }
-       else
+       else*/
          ((IViewComponent2D)getViewComponent()).
             setPointedAt((floatPoint2D)ave.getNewValue());
+       System.out.println("New Pointed At: "+
+                   ((IViewComponent2D)getViewComponent()).getPointedAt() );
      }
      else if( action.equals(IViewComponent.SELECTED_CHANGED) )
      {/*

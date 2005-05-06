@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/05/06 21:15:22  millermi
+ *  - Modified linking of components due to change in TableViewComponent.
+ *
  *  Revision 1.1  2005/03/28 05:54:03  millermi
  *  - Initial Version - This is a building block in the new viewer
  *    structure.
@@ -499,18 +502,21 @@
            current_tracker.setObjectState(state);
          }
        }
-       // Reconstruct the display.
-       buildPanel();
-       // This method is defined by extending classes. It will pass any
-       // information from the old view component to the newly visible
-       // view component.
-       linkComponents();
        // Tell listeners that the menu list has changed. Give the old list
        // and the new list.
        sendActionValue( new ActionValueEvent( this, VIEW_TYPE_CHANGED,
 					      previous_view, visible_view ) );
+       // Reconstruct the display.
+       buildPanel();
        validate();
        repaint();
+       // linkComponents() is defined by extending classes. It will pass any
+       // information from the old view component to the newly visible
+       // view component. This method must be put run from the EventQueue
+       // to allow the new component to be painted before the linking occurs.
+       java.awt.EventQueue.invokeLater( new Runnable(){
+           public void run(){ linkComponents(); }
+	 } );
        return;
      }
      // If view_type not an available view, print error message.
