@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/05/07 00:12:13  millermi
+ *  - Fixed javadoc error.
+ *
  *  Revision 1.1  2005/03/28 05:54:07  millermi
  *  - Initial Version - This is a building block in the new viewer
  *    structure.
@@ -127,7 +130,7 @@
    * Use this method to see if the String for the ComponentSwapper is a valid
    * String registered in ViewerEnum.
    *
-   *  @param  swapper The String constant for the ComponentSwapper.
+   *  @param  layout The String constant for the ComponentSwapper.
    *  @return True if found, false if not. If null parameter is passed in,
    *          false is returned.
    */
