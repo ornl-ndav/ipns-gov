@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2005/05/07 00:19:50  millermi
+ *  - Fixed javadoc errors.
+ *
  *  Revision 1.15  2005/03/28 05:57:26  millermi
  *  - Added copy() which will make an exact copy of the ViewControl.
  *
@@ -320,7 +323,7 @@ public class ControlSlider extends ViewControl
  /**
   * Set the slider position, same functionality as setValue().
   *
-  *  @param  Float value for slider position.
+  *  @param  value Float value for slider position.
   */
   public void setControlValue(Object value)
   {

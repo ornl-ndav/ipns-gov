@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/05/07 00:19:47  millermi
+ *  - Fixed javadoc errors.
+ *
  *  Revision 1.10  2005/03/28 05:57:25  millermi
  *  - Added copy() which will make an exact copy of the ViewControl.
  *
@@ -238,8 +241,8 @@ public class ControlCheckbox extends ViewControl
  /**
   * Similar functionality as setSelected(), controls checkbox.
   *
-  *  @param  Boolean value that determines whether the checkbox is checked
-  *          (true) or unchecked (false).
+  *  @param  value Boolean value that determines whether the checkbox is
+  *          checked (true) or unchecked (false).
   */
   public void setControlValue(Object value)
   {

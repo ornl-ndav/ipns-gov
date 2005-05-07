@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/05/07 00:19:49  millermi
+ *  - Fixed javadoc errors.
+ *
  *  Revision 1.4  2005/03/28 05:57:32  millermi
  *  - Added copy() which will make an exact copy of the ViewControl.
  *
@@ -359,7 +362,6 @@
    * ViewControl.setControlValue().
    *
    *  @param  controls - ViewControls to be displayed in the JFrame.
-   *  @param  keys - The String keys that each control is registered under.
    *  @return A JFrame containing all of the controls plus a ControlCheckbox
    *          to toggle linking of controls.
    */ 

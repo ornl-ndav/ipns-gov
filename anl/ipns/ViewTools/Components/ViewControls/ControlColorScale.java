@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2005/05/07 00:19:48  millermi
+ *  - Fixed javadoc errors.
+ *
  *  Revision 1.29  2005/03/28 05:57:26  millermi
  *  - Added copy() which will make an exact copy of the ViewControl.
  *
@@ -410,7 +413,7 @@ public class ControlColorScale extends ViewControl
  /**
   * Set the color scheme of the colorscale.
   *
-  *  @param  String representing the color scheme.
+  *  @param  value String representing the color scheme.
   */
   public void setControlValue(Object value)
   {
