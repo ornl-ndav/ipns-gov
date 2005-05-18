@@ -69,7 +69,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
         dP1DPrecision = 4;
         axisPane = new AxisOverlay2D(this);
         axisPane.setLayout(null);
-//        axisPane.setOpaque(true);
+        axisPane.setOpaque(true);
         axisPane.add(this);
         _container.add(axisPane);
         addActionListener(this);
@@ -362,7 +362,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
      * @see gov.anl.ipns.ViewTools.Components.Transparency.IOverlayAddible#getRegionInfo()
      */
     public Rectangle getRegionInfo() {
-        int w = 2 * _container.getWidth() / 3, h = 2 * _container.getHeight() / 3;
+        int w =  _container.getWidth()-80, h = _container.getHeight()-100;
         setBounds(xOffset, yOffset, w, h);
         regionInfo = new Rectangle(xOffset, yOffset, w, h);
         return regionInfo;

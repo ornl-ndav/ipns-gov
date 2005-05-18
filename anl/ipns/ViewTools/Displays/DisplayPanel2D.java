@@ -65,7 +65,7 @@ public class DisplayPanel2D extends ImageJPanel implements IColorScaleAddible,
         dP2DPrecision = 4;
 
         axisPane = new AxisOverlay2D(this);
-//        axisPane.setOpaque(true);
+        axisPane.setOpaque(true);
         axisPane.setLayout(null);
         axisPane.add(this);
         _container.add(axisPane);
@@ -151,7 +151,7 @@ public class DisplayPanel2D extends ImageJPanel implements IColorScaleAddible,
      */
     public Rectangle getRegionInfo() {
         // Calculate new bounds from _container container's current bounds.
-        int w = 2 * _container.getWidth() / 3, h = 2 * _container.getHeight() / 3;
+        int w =  _container.getWidth()-80, h =_container.getHeight()-100;
         setBounds(xOffset, yOffset, w, h);
         regionInfo = new Rectangle(xOffset, yOffset, w, h);
         return regionInfo;
