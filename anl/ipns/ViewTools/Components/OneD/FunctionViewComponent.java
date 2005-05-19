@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.71  2005/05/19 21:47:35  serumb
+ *  Fixed index out of bounds exception in the reInit() Method and
+ *  changed the pointed at to not be displayed initially.
+ *
  *  Revision 1.70  2005/03/28 05:58:52  serumb
  *  Now uses new methods from function controls for data changed and for
  *  initializing the controls with the ObjectState.
@@ -360,7 +364,7 @@ public class FunctionViewComponent implements IViewComponent1D,
  // private transient LinkedList controls = new LinkedList(  );
  // private int linewidth      = 1;
   private FunctionControls mainControls;
-  private boolean draw_pointed_at = true;
+  private boolean draw_pointed_at = false;
   private ControlCheckbox control_box = new ControlCheckbox(false);
 
   /**
@@ -1002,7 +1006,7 @@ public class FunctionViewComponent implements IViewComponent1D,
 
    Res[1] = new ViewMenuItem (ViewMenuItem.PUT_IN_OPTIONS, 
 		   new JCheckBoxMenuItem("Show Pointed At"));
-   ((JCheckBoxMenuItem)Res[1].getItem()).setState(true);
+   ((JCheckBoxMenuItem)Res[1].getItem()).setState(false);
    (Res[1]).addActionListener( new ControlListener() );
 
    return Res;
@@ -1075,10 +1079,27 @@ public class FunctionViewComponent implements IViewComponent1D,
     return false;
   }
   private void reInit(){
-      mainControls.reInit();
-    //mainControls = new FunctionControls(Varray1D, gjp, getDisplayPanel(),
-    //                                    this, mainControls.get_frame() );
-    buildViewComponent();
+
+    if( Varray1D.getNumGraphs(  ) > 0 )
+    {
+      if( Varray1D.getNumSelectedGraphs(  ) > 0 )
+      {
+        buildViewComponent();  // initializes big_picture to jpanel containing
+                                  // the background and transparencies
+        DrawSelectedGraphs();
+        if(draw_pointed_at)
+        DrawPointedAtGraph();
+
+        mainControls.reInit();
+      }
+    }
+    else
+    {
+      JPanel no_graph = new JPanel();
+      no_graph.add( new JLabel("No Graphs to Display") );
+      big_picture.add( no_graph );
+    }
+
   }  
     
     
