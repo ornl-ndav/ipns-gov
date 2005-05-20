@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.72  2005/05/20 16:41:09  serumb
+ *  Only draws the pointed at graph if no graphs are selected.
+ *
  *  Revision 1.71  2005/05/19 21:47:35  serumb
  *  Fixed index out of bounds exception in the reInit() Method and
  *  changed the pointed at to not be displayed initially.
@@ -442,6 +445,17 @@ public class FunctionViewComponent implements IViewComponent1D,
       }
       big_picture.add( background );
       
+      if(Varray1D.getNumSelectedGraphs() > 0)
+      {
+        draw_pointed_at = false;
+      }
+      else
+      {
+        draw_pointed_at = true;
+      }
+
+System.out.println("pointed at " + draw_pointed_at);
+
       DrawSelectedGraphs();
       if(draw_pointed_at)
       DrawPointedAtGraph();
@@ -1006,7 +1020,7 @@ public class FunctionViewComponent implements IViewComponent1D,
 
    Res[1] = new ViewMenuItem (ViewMenuItem.PUT_IN_OPTIONS, 
 		   new JCheckBoxMenuItem("Show Pointed At"));
-   ((JCheckBoxMenuItem)Res[1].getItem()).setState(false);
+   ((JCheckBoxMenuItem)Res[1].getItem()).setState(draw_pointed_at);
    (Res[1]).addActionListener( new ControlListener() );
 
    return Res;
