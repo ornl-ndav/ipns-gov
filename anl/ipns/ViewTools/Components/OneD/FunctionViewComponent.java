@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.73  2005/05/24 17:32:04  serumb
+ *  Removed unneeded print statement.
+ *
  *  Revision 1.72  2005/05/20 16:41:09  serumb
  *  Only draws the pointed at graph if no graphs are selected.
  *
@@ -453,8 +456,6 @@ public class FunctionViewComponent implements IViewComponent1D,
       {
         draw_pointed_at = true;
       }
-
-System.out.println("pointed at " + draw_pointed_at);
 
       DrawSelectedGraphs();
       if(draw_pointed_at)
