@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/05/25 20:28:39  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.10  2005/03/28 05:57:28  millermi
  *  - Added copy() which will make an exact copy of the ViewControl.
  *
@@ -75,8 +80,6 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.event.MouseMotionListener;
-import java.util.Vector;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -426,9 +429,7 @@ public class CursorOutputControl extends ViewControl
 	    }
 	  }
 	} );
-      WindowShower shower = new WindowShower(frame);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(frame);
       return;
     }
     JFrame tester = new JFrame("CursorOutputControl Test");
@@ -450,8 +451,6 @@ public class CursorOutputControl extends ViewControl
     */
     tester.getContentPane().add(coc);
     tester.getContentPane().add(coc.copy());
-    WindowShower shower = new WindowShower(tester);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(tester);
   }
 } 

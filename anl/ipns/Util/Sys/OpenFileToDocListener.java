@@ -31,6 +31,11 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.11  2005/05/25 20:28:26  dennis
+ * Now calls convenience method WindowShower.show() to show
+ * the window, instead of instantiating a WindowShower object
+ * and adding it to the event queue.
+ *
  * Revision 1.10  2004/03/11 23:26:28  millermi
  * - Made all methods of DocumentIO static.
  * - Listener classes using DocumentIO now call static methods.
@@ -216,7 +221,8 @@ public class OpenFileToDocListener
         JButton B = new JButton( "Open");  
         B.addActionListener( new OpenFileToDocListener(SS.getDocument(),null));
         F.getContentPane().add( B, BorderLayout.NORTH);  
-        F.show(); F.validate();  
+        WindowShower.show(F); 
+        F.validate();  
     }  
 }  
 

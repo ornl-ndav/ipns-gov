@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/05/25 20:28:48  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.11  2005/01/10 16:16:51  dennis
  *  Removed empty statement(s).
  *
@@ -2572,8 +2577,6 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     testable.moveColumn(26,20); // Test error checking.
     */
     frame.getContentPane().add(testable);
-    WindowShower shower = new WindowShower(frame);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(frame);
   }
 }

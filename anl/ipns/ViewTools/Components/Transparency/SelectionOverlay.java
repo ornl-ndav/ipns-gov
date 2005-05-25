@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.40  2005/05/25 20:28:33  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.39  2005/01/20 23:05:52  millermi
  *  - Added super.paint(g) to paint method.
  *
@@ -438,9 +443,7 @@ public class SelectionOverlay extends OverlayJPanel
     scroll.setVerticalScrollBarPolicy(
  				    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    WindowShower shower = new WindowShower(helper);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(helper);
   }
   
  /**
@@ -543,9 +546,7 @@ public class SelectionOverlay extends OverlayJPanel
       editor_bounds = editor.getBounds();
       editor.dispose();
       editor = new SelectionEditor();
-      WindowShower shower = new WindowShower(editor);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(editor);
       editor.toFront();
     }
   }

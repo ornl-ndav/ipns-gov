@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2005/05/25 20:28:44  dennis
+ * Now calls convenience method WindowShower.show() to show
+ * the window, instead of instantiating a WindowShower object
+ * and adding it to the event queue.
+ *
  * Revision 1.7  2005/03/09 23:13:02  millermi
  * - Uncommented and reimplemented dataChanged(IVirtualArrayList1D).
  *   Functionality for dataChanged() is currently untested.
@@ -221,9 +226,7 @@ public class Display1D extends Display
     scroll.setVerticalScrollBarPolicy(
         			    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    WindowShower shower = new WindowShower(helper);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(helper);
   }
   
  /**
@@ -749,9 +752,7 @@ public class Display1D extends Display
     Display1D display = new Display1D(va1D,Display1D.GRAPH,Display1D.CTRL_ALL);
     
     // Class that "correctly" draws the display.
-    WindowShower shower = new WindowShower(display);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(display);
   }
 
 }

@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.87  2005/05/25 20:28:35  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.86  2005/03/21 00:39:38  millermi
  *  - setPointedAt() now calls set_crosshair_WC() so the crosshairs
  *    are displayed when a new pointed at is set.
@@ -2498,9 +2503,7 @@ public class ImageViewComponent implements IViewComponent2D,
     ImageViewComponent ivc = new ImageViewComponent(va2D);
     frame.getContentPane().add(ivc.getDisplayPanel());
     
-    WindowShower shower = new WindowShower(frame);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(frame);
     
     JFrame ctrlframe = new JFrame("IVC Controls");
     ctrlframe.setBounds(0,0,300,400);
@@ -2515,9 +2518,7 @@ public class ImageViewComponent implements IViewComponent2D,
       ctrlframe.getContentPane().add( my_controls[i] );
     if( my_controls.length > 0 )
     {
-      WindowShower shower2 = new WindowShower(ctrlframe);
-      java.awt.EventQueue.invokeLater(shower2);
-      shower2 = null;
+      WindowShower.show(ctrlframe);
     }
   }
 }

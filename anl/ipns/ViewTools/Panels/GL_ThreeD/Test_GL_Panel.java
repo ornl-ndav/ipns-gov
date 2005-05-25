@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2005/05/25 20:28:47  dennis
+ * Now calls convenience method WindowShower.show() to show
+ * the window, instead of instantiating a WindowShower object
+ * and adding it to the event queue.
+ *
  * Revision 1.7  2004/07/14 16:42:20  dennis
  * Added test of Polymarker() shape.
  *
@@ -65,6 +70,7 @@ import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Textures.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ViewControls.*;
+import gov.anl.ipns.Util.Sys.WindowShower;
 
 import java.awt.event.*;
 import javax.swing.*;
@@ -233,7 +239,7 @@ public class Test_GL_Panel
          System.exit(0);
        }
     });
-    frame.show();
+    WindowShower.show(frame);
 
     JFrame f = new JFrame( "Controller for GL Window" );
     f.setBounds(0,0,200,200);
@@ -346,7 +352,7 @@ public class Test_GL_Panel
     frame = new JFrame("Window 2");
     frame.setSize(500, 500);
     frame.getContentPane().add( panel2.getDisplayComponent());
-    frame.show();
+    WindowShower.show(frame);
     panel2.Draw();
   }
 }

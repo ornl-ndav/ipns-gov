@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/05/25 20:28:36  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.8  2005/05/06 21:13:25  millermi
  *  - Added methods for converting between coordinate systems.
  *  - get/setPointedAt() parameter is now in terms of world coordinates
@@ -719,9 +724,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     public void actionPerformed( ActionEvent ae )
     {
       helper = TableJPanel.help();
-      WindowShower shower = new WindowShower(helper);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(helper);
     }
   }
  
@@ -780,9 +783,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     tvc.setPointedAt(new floatPoint2D(.2f,.5f));
     System.out.println("Testing Pointed At (.2,.5): "+tvc.getPointedAt());
     frame.getContentPane().add(tvc.getDisplayPanel());
-    WindowShower shower = new WindowShower(frame);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(frame);
     
     JFrame ctrlframe = new JFrame("TVC Controls");
     ctrlframe.setBounds(0,0,300,400);
@@ -794,10 +795,6 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     for( int i = 0; i < my_controls.length; i++ )
       ctrlframe.getContentPane().add( my_controls[i] );
     if( my_controls.length > 0 )
-    {
-      WindowShower shower2 = new WindowShower(ctrlframe);
-      java.awt.EventQueue.invokeLater(shower2);
-      shower2 = null;
-    }
+      WindowShower.show(ctrlframe); 
   }
 }

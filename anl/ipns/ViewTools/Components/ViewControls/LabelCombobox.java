@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/05/25 20:28:42  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.7  2005/03/28 05:57:30  millermi
  *  - Added copy() which will make an exact copy of the ViewControl.
  *
@@ -316,9 +321,7 @@ public class LabelCombobox extends ViewControl
 	controls[2].setSharedKey("Combobox");
       
         JFrame frame = ControlManager.makeManagerTestWindow( controls );
-        WindowShower shower = new WindowShower(frame);
-        java.awt.EventQueue.invokeLater(shower);
-        shower = null;
+        WindowShower.show(frame);
         return;
       }
       String[] line_type = new String[5];
@@ -349,7 +352,7 @@ public class LabelCombobox extends ViewControl
       frame.getContentPane().add(check2);
       frame.getContentPane().add(check3);
      
-      frame.show();
+      WindowShower.show(frame);
 
       check.setBorderVisible(true);
    }

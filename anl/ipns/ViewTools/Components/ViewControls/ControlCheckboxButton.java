@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/05/25 20:28:37  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.14  2005/05/07 00:19:47  millermi
  *  - Fixed javadoc errors.
  *
@@ -486,9 +491,7 @@ public class ControlCheckboxButton extends ViewControl
       controls[2].setSharedKey("CheckboxButton");
       
       JFrame frame = ControlManager.makeManagerTestWindow( controls );
-      WindowShower shower = new WindowShower(frame);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(frame);
       return;
     }
     ControlCheckboxButton check = new ControlCheckboxButton();
@@ -506,9 +509,8 @@ public class ControlCheckboxButton extends ViewControl
     frame.getContentPane().add(check);
     frame.getContentPane().add(check2);
     frame.getContentPane().add(check.copy());
-    WindowShower shower = new WindowShower(frame);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;/*
+    WindowShower.show(frame);
+    /*
     ObjectState state = new ObjectState();
     state.insert( ControlCheckboxButton.SELECTED, new Boolean(true) );
     System.out.println("Prestate");

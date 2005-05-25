@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.50  2005/05/25 20:28:29  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.49  2005/01/24 22:30:38  millermi
  *  - Added code to truLog axis paint methods to include painting
  *    of the units and label.
@@ -476,9 +481,7 @@ public class AxisOverlay2D extends OverlayJPanel
     scroll.setVerticalScrollBarPolicy(
  				    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    WindowShower shower = new WindowShower(helper);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(helper);
   }
   
  /**
@@ -666,9 +669,8 @@ public class AxisOverlay2D extends OverlayJPanel
       editor_bounds = editor.getBounds(); 
       editor.dispose();
       editor = new AxisEditor();
-      WindowShower shower = new WindowShower(editor);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(editor);
+
       editor.toFront();
     }
   }

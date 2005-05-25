@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2005/05/25 20:28:44  dennis
+ * Now calls convenience method WindowShower.show() to show
+ * the window, instead of instantiating a WindowShower object
+ * and adding it to the event queue.
+ *
  * Revision 1.3  2004/09/15 21:58:29  millermi
  * - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *   Adding a second log required the boolean parameter to be changed
@@ -115,8 +120,6 @@ public class Display1DExample
     Display1D display = new Display1D(va1D,Display1D.GRAPH,Display1D.CTRL_ALL);
     
     // Class that "correctly" draws the display.
-    WindowShower shower = new WindowShower(display);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(display);
   }
 }

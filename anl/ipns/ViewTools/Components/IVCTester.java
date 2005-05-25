@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.26  2005/05/25 20:28:28  dennis
+ * Now calls convenience method WindowShower.show() to show
+ * the window, instead of instantiating a WindowShower object
+ * and adding it to the event queue.
+ *
  * Revision 1.25  2005/03/09 22:25:05  millermi
  * - Added capability to test ImageViewComponent with the ArrayGenerator.
  *
@@ -543,9 +548,7 @@ public class IVCTester extends JFrame implements IPreserveState,
     IVCTester im_frame = new IVCTester( va2D );
     im_frame.setObjectState(state);
     // display IVCTester
-    WindowShower shower = new WindowShower(im_frame);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(im_frame);
   }
 
 }

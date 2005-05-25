@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/05/25 20:28:43  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.2  2005/03/28 06:36:57  serumb
  *  Added copy method and main test program.
  *
@@ -44,7 +49,6 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
 import gov.anl.ipns.ViewTools.UI.TextRangeUI;
 import gov.anl.ipns.ViewTools.Components.*;
 
-import java.lang.*;
 import java.awt.event.*;
 import java.io.Serializable;
 import java.util.Vector;

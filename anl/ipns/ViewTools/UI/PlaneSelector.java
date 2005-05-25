@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2005/05/25 20:28:50  dennis
+ * Now calls convenience method WindowShower.show() to show
+ * the window, instead of instantiating a WindowShower object
+ * and adding it to the event queue.
+ *
  * Revision 1.4  2005/01/10 16:16:52  dennis
  * Removed empty statement(s).
  *
@@ -52,6 +57,7 @@ import java.awt.*;
 import java.util.*;
 import java.awt.event.*;
 
+import gov.anl.ipns.Util.Sys.WindowShower;
 
 /**
 *  This class is a button that pops a JFrame to allow for selecting planes in
@@ -124,7 +130,7 @@ public class PlaneSelector extends JButton  implements ActionListener{
 
 
        jf.setSize( 400,600);
-       jf.show();
+       WindowShower.show(jf);
        showing = true;
        jf.invalidate();
 
@@ -658,11 +664,9 @@ public class PlaneSelector extends JButton  implements ActionListener{
        ps.addPlaneChangeListener( act);
        
        jf.validate();
-       jf.show();
-
+       WindowShower.show(jf);
 
       }//main
-
 
 }
 

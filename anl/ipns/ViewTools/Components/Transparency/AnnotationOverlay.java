@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.36  2005/05/25 20:28:28  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.35  2005/01/20 23:05:51  millermi
  *  - Added super.paint(g) to paint method.
  *
@@ -404,9 +409,7 @@ public class AnnotationOverlay extends OverlayJPanel
     scroll.setVerticalScrollBarPolicy(
  				    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    WindowShower shower = new WindowShower(helper);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(helper);
   }
    
   /**
@@ -556,9 +559,7 @@ public class AnnotationOverlay extends OverlayJPanel
       editor_bounds = editor.getBounds();
       editor.dispose();
       editor = new AnnotationEditor();
-      WindowShower shower = new WindowShower(editor);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(editor);
       editor.toFront();
     }
   }
@@ -882,9 +883,8 @@ public class AnnotationOverlay extends OverlayJPanel
       place.x = place.x + (int)viewer.getLocation().getX();
       place.y = place.y + (int)viewer.getLocation().getY();
       this.setLocation(place);
-      WindowShower shower = new WindowShower(this);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(this);
+
       text.grabFocus();		
     }
  	  

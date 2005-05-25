@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2005/05/25 20:28:33  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.12  2005/03/28 06:00:40  serumb
  *  Now uses new methods for instances of labelComboBox.
  *
@@ -281,9 +286,7 @@ public class LegendOverlay extends OverlayJPanel
     scroll.setVerticalScrollBarPolicy(
                                     JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    WindowShower shower = new WindowShower(helper);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(helper);
   }
 
 
@@ -302,9 +305,8 @@ public class LegendOverlay extends OverlayJPanel
       editor_bounds = editor.getBounds(); 
       editor.dispose();
       editor = new LegendEditor(graphs);
-      WindowShower shower = new WindowShower(editor);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(editor);
+
       editor.toFront();
     }
   }

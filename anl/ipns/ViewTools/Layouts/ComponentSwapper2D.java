@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/05/25 20:28:45  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.2  2005/05/06 21:15:22  millermi
  *  - Modified linking of components due to change in TableViewComponent.
  *
@@ -55,7 +60,6 @@
  import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
- import gov.anl.ipns.ViewTools.Components.Region.Region;
  import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
  import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
  import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;

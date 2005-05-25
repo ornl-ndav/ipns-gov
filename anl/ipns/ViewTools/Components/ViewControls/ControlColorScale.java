@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.31  2005/05/25 20:28:38  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.30  2005/05/07 00:19:48  millermi
  *  - Fixed javadoc errors.
  *
@@ -900,8 +905,6 @@ public class ControlColorScale extends ViewControl
     frame.setBounds(0,0,600,300);
     frame.getContentPane().add(color);
     frame.getContentPane().add(color.copy());
-    WindowShower shower = new WindowShower(frame);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(frame);
   }
 }

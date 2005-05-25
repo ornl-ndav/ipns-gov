@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/05/25 20:28:49  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.3  2004/12/05 06:05:57  millermi
  *  - Fixed Eclipse warnings.
  *
@@ -220,8 +225,6 @@ public class TableModelMaker
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.getContentPane().add( 
              new TableJPanel(TableModelMaker.getModel(va,labels)) );
-    WindowShower shower = new WindowShower(frame);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(frame);
   }
 }

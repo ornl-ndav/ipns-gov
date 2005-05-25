@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/05/25 20:28:37  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.8  2005/03/28 05:57:25  millermi
  *  - Added copy() which will make an exact copy of the ViewControl.
  *
@@ -228,9 +233,7 @@ public class ButtonControl extends ViewControl
 	  } );
       
       JFrame frame = ControlManager.makeManagerTestWindow( controls );
-      WindowShower shower = new WindowShower(frame);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(frame);
       return;
     }
       String name = "button";
@@ -246,10 +249,7 @@ public class ButtonControl extends ViewControl
       frame.getContentPane().add(button);
       frame.getContentPane().add(button.copy());
 
-      WindowShower shower = new WindowShower(frame);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
-      
-
+      WindowShower.show(frame);
+ 
    }
 }

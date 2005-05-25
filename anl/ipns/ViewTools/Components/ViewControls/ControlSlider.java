@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2005/05/25 20:28:39  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.16  2005/05/07 00:19:50  millermi
  *  - Fixed javadoc errors.
  *
@@ -584,9 +589,7 @@ public class ControlSlider extends ViewControl
       controls[2].setSharedKey("Slider");
       
       JFrame frame = ControlManager.makeManagerTestWindow( controls );
-      WindowShower shower = new WindowShower(frame);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(frame);
       return;
     }
     ControlSlider slide = new ControlSlider();
@@ -610,9 +613,7 @@ public class ControlSlider extends ViewControl
     frame.getContentPane().add(slide);
     frame.getContentPane().add(slide.copy());
     frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-    WindowShower shower = new WindowShower(frame);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(frame);
     System.out.println("Major: " + slide.getMajorTickSpace() );
     System.out.println("Minor: " + slide.getMinorTickSpace() );
   }

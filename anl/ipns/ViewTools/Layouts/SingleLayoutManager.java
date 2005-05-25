@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/05/25 20:28:46  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.1  2005/03/28 05:54:06  millermi
  *  - Initial Version - This is a building block in the new viewer
  *    structure.
@@ -54,7 +59,6 @@
  import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
  import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
  import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
- import gov.anl.ipns.ViewTools.UI.ActionValueListener;
 
 /**
  * This class is responsible for displaying a single ComponentSwapper.

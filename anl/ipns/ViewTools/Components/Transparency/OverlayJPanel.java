@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2005/05/25 20:28:33  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.9  2004/03/12 02:42:41  serumb
  *  Changed package and imports.
  *
@@ -108,9 +113,7 @@ public abstract class OverlayJPanel extends JPanel implements IOverlay,
     scroll.setVerticalScrollBarPolicy(
         			    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    WindowShower shower = new WindowShower(helper);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(helper);
   }
  
  /**

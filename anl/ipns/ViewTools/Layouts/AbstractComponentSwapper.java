@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/05/25 20:28:45  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.2  2005/05/06 21:15:22  millermi
  *  - Modified linking of components due to change in TableViewComponent.
  *
@@ -65,7 +70,6 @@
  import gov.anl.ipns.ViewTools.Components.IVirtualArray;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
- import gov.anl.ipns.ViewTools.Components.IViewComponent;
  import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
  import gov.anl.ipns.ViewTools.UI.ActionValueJPanel;
  import gov.anl.ipns.ViewTools.UI.ActionValueEvent;
@@ -848,8 +852,6 @@
      frame.setJMenuBar(menu_bar);
      frame.getContentPane().add(ics);
      // Class that "correctly" draws the display.
-     WindowShower shower = new WindowShower(frame);
-     java.awt.EventQueue.invokeLater(shower);
-     shower = null;
+     WindowShower.show(frame);
    }
  }

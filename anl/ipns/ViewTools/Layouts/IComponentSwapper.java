@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/05/25 20:28:46  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.1  2005/03/28 05:54:06  millermi
  *  - Initial Version - This is a building block in the new viewer
  *    structure.
@@ -41,12 +46,9 @@
  */
  package gov.anl.ipns.ViewTools.Layouts;
  
- import java.beans.PropertyChangeListener;
- 
  import gov.anl.ipns.ViewTools.Components.IPreserveState;
  import gov.anl.ipns.ViewTools.Components.IViewComponent;
  import gov.anl.ipns.ViewTools.Components.IVirtualArray;
- import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
  import gov.anl.ipns.ViewTools.UI.ActionValueListener;
 

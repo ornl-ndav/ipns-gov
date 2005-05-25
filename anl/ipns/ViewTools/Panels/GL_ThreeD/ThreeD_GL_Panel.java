@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.18  2005/05/25 20:28:47  dennis
+ * Now calls convenience method WindowShower.show() to show
+ * the window, instead of instantiating a WindowShower object
+ * and adding it to the event queue.
+ *
  * Revision 1.17  2005/03/06 23:32:38  dennis
  * Added a pixel_depth_scale_factor that can be set from
  * IsawProps.dat to allow the user to specify a non-standard
@@ -132,6 +137,7 @@ import java.util.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ViewControls.*;
+import gov.anl.ipns.Util.Sys.WindowShower;
 import DataSetTools.util.*;
 import net.java.games.jogl.*;
 import net.java.games.jogl.util.*;
@@ -1025,7 +1031,7 @@ public float[] pickedWorldCoordinates( int x, int y )
       Cube cube2 =  new Cube( 0, 0, 1.5f, 1 );
       cube2.setPickID( 1010101 );
       panel.setObject( "Cube 2", cube2 );     
-      frame.show();
+      WindowShower.show(frame);
 
       panel.getDisplayComponent().addMouseListener( 
                                   panel.new MouseClickHandler() );
@@ -1035,7 +1041,7 @@ public float[] pickedWorldCoordinates( int x, int y )
       c_frame.getContentPane().add( controller );
       controller.addActionListener( new ViewControlListener( panel ) );
       c_frame.setSize(200,200);
-      c_frame.show();
+      WindowShower.show(c_frame);
    }
 
 }

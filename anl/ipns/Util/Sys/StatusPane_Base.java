@@ -31,6 +31,11 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.8  2005/05/25 20:28:27  dennis
+ * Now calls convenience method WindowShower.show() to show
+ * the window, instead of instantiating a WindowShower object
+ * and adding it to the event queue.
+ *
  * Revision 1.7  2004/08/17 21:06:52  dennis
  * Now just uses the append() method to add new messages, rather than
  * appendDoc() that was a workaround for problems with earlier versions
@@ -75,7 +80,6 @@ package gov.anl.ipns.Util.Sys;
   
 import javax.swing.*;  
 import java.beans.*; 
-import javax.swing.text.Document;
 import java.util.*; 
 import javax.swing.border.*;  
   

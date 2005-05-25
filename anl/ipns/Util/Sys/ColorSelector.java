@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/05/25 20:28:26  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.2  2005/01/10 16:13:16  dennis
  *  Removed unused imports.
  *
@@ -184,9 +189,7 @@ public class ColorSelector extends ActiveJPanel
     display.setBounds(0,0,450,300);
     
     // show the display tester
-    WindowShower shower = new WindowShower(display);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(display);
   } // end main
   
  /*

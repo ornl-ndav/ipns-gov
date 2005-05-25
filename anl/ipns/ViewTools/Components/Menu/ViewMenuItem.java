@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/05/25 20:28:28  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.7  2004/07/29 13:32:59  rmikk
  *  Fixed an off by one error
  *  All paths are now valid
@@ -301,8 +306,6 @@ public class ViewMenuItem
         optionsMenu.add( item[i].getItem() ); 	  
     }
     
-    WindowShower shower = new WindowShower(window);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(window);
   }
 }

@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/05/25 20:28:45  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.1  2005/03/28 05:54:05  millermi
  *  - Initial Version - This is a building block in the new viewer
  *    structure.
@@ -849,9 +854,7 @@
          // Let new view manager listen to current view manager.
 	 addActionValueListener(cvm);
 	 
-	 WindowShower window_shower = new WindowShower( cvm );
-         EventQueue.invokeLater( window_shower );
-         window_shower = null;
+	 WindowShower.show( cvm );
 	 // Consider adding window listener, which will remove listener when
 	 // window is closing.
        }
@@ -944,10 +947,8 @@
    public static void main( String args[] )
    {
      ComponentViewManager cvm = new ComponentViewManager();
-     WindowShower window_shower = new WindowShower( cvm );
-     EventQueue.invokeLater( window_shower );
-     window_shower = null;
-     
+     WindowShower.show( cvm );
+
      // build my 2-D data
      int row = 400;
      int col = 500;

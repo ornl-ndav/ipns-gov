@@ -33,6 +33,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2005/05/25 20:28:44  dennis
+ * Now calls convenience method WindowShower.show() to show
+ * the window, instead of instantiating a WindowShower object
+ * and adding it to the event queue.
+ *
  * Revision 1.10  2004/12/05 05:55:40  millermi
  * - Fixed Eclipse warnings.
  *
@@ -318,9 +323,7 @@ public class Display2D extends Display
     scroll.setVerticalScrollBarPolicy(
         			    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
-    WindowShower shower = new WindowShower(helper);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(helper);
   }
   
  /**
@@ -685,9 +688,7 @@ public class Display2D extends Display
     Display2D display = new Display2D(va2D,Display2D.TABLE,Display2D.CTRL_ALL);
     
     // Class that "correctly" draws the display.
-    WindowShower shower = new WindowShower(display);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(display);
   }
 
 }

@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2005/05/25 20:28:38  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.5  2005/05/07 00:19:49  millermi
  *  - Fixed javadoc errors.
  *
@@ -59,7 +64,6 @@
  */
  package gov.anl.ipns.ViewTools.Components.ViewControls;
  
- import java.awt.Component;
  import java.awt.GridLayout;
  import java.awt.event.ActionEvent;
  import java.awt.event.ActionListener;
@@ -505,11 +509,7 @@
      // Allow 50 pixels for each control
      frame2.setBounds(200,0,200,200);
      
-     WindowShower shower = new WindowShower(frame);
-     java.awt.EventQueue.invokeLater(shower);
-     
-     shower = new WindowShower(frame2);
-     java.awt.EventQueue.invokeLater(shower);
-     shower = null;
+     WindowShower.show(frame);
+     WindowShower.show(frame2);
    }
  } // End of ControlManager

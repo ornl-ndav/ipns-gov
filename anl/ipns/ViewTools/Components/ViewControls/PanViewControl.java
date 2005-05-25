@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2005/05/25 20:28:42  dennis
+ *  Now calls convenience method WindowShower.show() to show
+ *  the window, instead of instantiating a WindowShower object
+ *  and adding it to the event queue.
+ *
  *  Revision 1.20  2005/03/28 05:57:31  millermi
  *  - Added copy() which will make an exact copy of the ViewControl.
  *
@@ -581,9 +586,7 @@ public class PanViewControl extends ViewControl
       JFrame frame = ControlManager.makeManagerTestWindow( controls );
       frame.setBounds(0,0,450,500);
       
-      WindowShower shower = new WindowShower(frame);
-      java.awt.EventQueue.invokeLater(shower);
-      shower = null;
+      WindowShower.show(frame);
       return;
     }
     
@@ -605,8 +608,6 @@ public class PanViewControl extends ViewControl
     pvc2.setTitle("Clone");
     f.getContentPane().add(pvc);
     f.getContentPane().add(pvc2);
-    WindowShower shower = new WindowShower(f);
-    java.awt.EventQueue.invokeLater(shower);
-    shower = null;
+    WindowShower.show(f);
   }
 }
