@@ -28,6 +28,13 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2005/05/25 18:08:26  dennis
+ * Replaced direct call to .show() method for window,
+ * since .show() is deprecated in java 1.5.
+ * Now calls WindowShower.show() to create a runnable
+ * that is run from the Swing thread and sets the
+ * visibility of the window true.
+ *
  * Revision 1.4  2004/03/12 00:48:19  dennis
  * moved to package MathTools.Functions.FunctionTools
  *
@@ -47,6 +54,7 @@ package gov.anl.ipns.MathTools.Functions.FunctionTools;
 import java.awt.*;
 import java.applet.Applet;
 //import java.security.*;
+import gov.anl.ipns.Util.Sys.WindowShower;
 
 public class Demo extends Applet implements java.awt.event.ActionListener
   {TextField Rule,x[],Res; 
@@ -155,11 +163,10 @@ public class Demo extends Applet implements java.awt.event.ActionListener
 public static void main(String args[])
  {Frame F; Demo D;
   F=new Frame("Fxn");  F.setSize(600,400);
-
   
   D=new Demo();D.setSize( 580,380);D.init();F.add(D);  D.start(); 
-D.invalidate(); F.invalidate();
-F.show();
+  D.invalidate(); F.invalidate();
+  WindowShower.show(F);
   }
 
 

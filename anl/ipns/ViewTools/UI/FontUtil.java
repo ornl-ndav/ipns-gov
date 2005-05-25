@@ -30,6 +30,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/05/25 18:07:18  dennis
+ *  Replaced direct call to .show() method for window,
+ *  since .show() is deprecated in java 1.5.
+ *  Now calls WindowShower.show() to create a runnable
+ *  that is run from the Swing thread and sets the
+ *  visibility of the window true.
+ *
  *  Revision 1.8  2004/03/11 23:01:00  serumb
  *  Changed package.
  *
@@ -50,6 +57,7 @@
 
 package gov.anl.ipns.ViewTools.UI;
 
+import gov.anl.ipns.Util.Sys.WindowShower;
 import java.awt.*;
 import javax.swing.*;
 
@@ -182,7 +190,7 @@ public class FontUtil
     f.getContentPane().add( display );
     f.getContentPane().setLayout( new GridLayout(1,1) );
     f.setSize( 200, 500 );
-    f.show();
+    WindowShower.show(f);
   }
 
 }
