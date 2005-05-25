@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2005/05/25 16:09:58  dennis
+ * Added convenience static method 'show', that constructs
+ * a WindowShower object for a specified window and adds
+ * it to the event queue.
+ *
  * Revision 1.3  2004/03/11 22:13:15  millermi
  * - Changed package names and replaced SharedData with
  *   SharedMessages class.
@@ -55,7 +60,11 @@ import java.awt.*;
    *  Runnable class to show a window using the event thread, AFTER it has
    *  been completely built.  This is the recommended way to show a window
    *  or JFrame in Swing.  Specifically, to actually display a window or
-   *  JFrame, the following sequence of steps should be used:
+   *  JFrame, either use the convenience static method 'show' as follows:
+   *
+   *   WindowShower.show( window );
+   *
+   *  OR use the following sequence of steps:
    *  
    *   First, construct a new WindowShower, passing in the component to be 
    *          shown.
@@ -72,9 +81,22 @@ import java.awt.*;
      private Window window;
 
 
+     /**
+      *  Convenience method to request that the specified window be shown
+      *  later from the event thread.
+      *
+      *  @param  window  The Window or JFrame to be shown later.
+      */
+     public static void show( Window window )
+     {
+        EventQueue.invokeLater( new WindowShower( window ) );
+     }
+
+
      private WindowShower()
      {
      }
+
  
      /**
       *  Construct a WindowShower runnable, for the specified Window (or
@@ -90,12 +112,14 @@ import java.awt.*;
        this.window = window;
      }
 
+
      /**
       *  The run method will be called later by the event thread to actually
       *  show the window (or JFrame).
       */
      public void run() 
      {
-       window.show();
+       window.setVisible( true );
      }
+
    }
