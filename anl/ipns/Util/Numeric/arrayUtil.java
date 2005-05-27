@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2005/05/27 03:57:29  dennis
+ *  Fixed javadoc error.
+ *
  *  Revision 1.20  2004/04/02 15:10:26  dennis
  *  Uncommented use of "Comparator" and "SortOnX()" method to sort
  *  floatPoint2D objects on their X components.  This had been commented
@@ -293,8 +296,6 @@ public static float SignedAbsSum( float x[] )
  *  (Not implemented in Java 1.1 version. )
  *
  *  @param  points   The array of 2D points to sort.
- *
- *  @return interpolated y value at the specified x value
  */
 public static void SortOnX( floatPoint2D points[] )
 {
