@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2005/06/01 21:25:18  dennis
+ *  Removed setTitle() method from this interface, since it inherits
+ *  the method from IVirtualArray.
+ *
  *  Revision 1.5  2004/09/15 21:55:45  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -91,13 +95,6 @@ public interface IVirtualArrayList1D extends IVirtualArray
   *  @return The x values for the graph specified.
   */
   public float[] getXValues( int graph_number );
-  
- /**
-  * Set the title of the virtual array.
-  *
-  *  @param  title New title of the virtual array.
-  */
-  public void setTitle( String title );
   
  /**
   * Get the y values of a line, gived the index of the line.
