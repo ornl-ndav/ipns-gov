@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/06/01 22:18:58  dennis
+ *  Now implements setAxisInfo( axis, info ).
+ *
  *  Revision 1.8  2005/01/10 16:16:50  dennis
  *  Removed empty statement(s).
  *
@@ -297,6 +300,23 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
     else if(axis == AxisInfo.Y_AXIS)
       yinfo = new AxisInfo(min,max,label,units, scale);
   }
+
+ /**
+  * Sets the attributes of the data array within a AxisInfo wrapper.
+  * This method will take in an integer to determine which axis
+  * info is being altered.
+  * 
+  *  @param  axis Must be AxisInfo.X_AXIS (0), AxisInfo.Y_AXIS (1).
+  *  @param  info The axis info object associated with the axis specified.
+  */
+  public void setAxisInfo( int axis, AxisInfo info )
+  {
+    if(axis == AxisInfo.X_AXIS)
+      xinfo = info.copy();
+    else if(axis == AxisInfo.Y_AXIS)
+      yinfo = info.copy();
+  }
+
  
  /**
   * Gets the attributes of the data array within an AxisInfo wrapper.
