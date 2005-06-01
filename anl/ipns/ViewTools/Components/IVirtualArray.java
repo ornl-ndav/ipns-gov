@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/06/01 22:20:52  dennis
+ *  Moved setAxisInfo( axis, info ) to this interface, from the
+ *  IVirtualArray2D interface, since all virtual arrays should
+ *  implement this.
+ *
  *  Revision 1.4  2004/03/17 20:26:50  dennis
  *  Fixed @see tag that was broken when view components, math and
  *  util were moved to gov package.
@@ -104,4 +109,19 @@ public interface IVirtualArray
   *  @see    gov.anl.ipns.ViewTools.Components.AxisInfo
   */
   public AxisInfo getAxisInfo( int axis );
+
+
+ /**
+  * Sets the attributes of the data array within a AxisInfo wrapper.
+  * This method will take in an integer to determine which axis
+  * info is being altered.
+  * 
+  *  @param  axis Use AxisInfo.X_AXIS (0), AxisInfo.Y_AXIS (1),
+                      AxisInfo.Z_AXIS (3), AxisInfo.W_Axis (4),
+                  as appropriate, depending on the dimensionality of
+                  the data for the specific implementing class.
+  *  @param  info The axis info object associated with the axis specified.
+  */
+  public void setAxisInfo( int axis, AxisInfo info );
+
 }
