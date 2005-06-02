@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/06/02 13:51:08  dennis
+ *  Removed construction of new String object in copy() method.
+ *  Since Strings are immutable, they can be shared, so it is not
+ *  necessary to construct a new String.
+ *
  *  Revision 1.8  2004/09/15 21:55:45  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -238,8 +243,7 @@ public class AxisInfo
   */
   public AxisInfo copy()
   {
-    return new AxisInfo( axismin, axismax, new String(axislabel), 
-			 new String(axisunits), scale );
+    return new AxisInfo( axismin, axismax, axislabel, axisunits, scale );
   }
 
  /**
