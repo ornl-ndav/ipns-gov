@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.88  2005/06/02 22:31:21  dennis
+ *  Modified to only use IVirtualArray2D methods after creating a
+ *  VirtualArray2D object.
+ *
  *  Revision 1.87  2005/05/25 20:28:35  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -2475,7 +2479,7 @@ public class ImageViewComponent implements IViewComponent2D,
     int row = 200;
 
     //Make a sample 2D array
-    VirtualArray2D va2D = new VirtualArray2D(row, col); 
+    IVirtualArray2D va2D = new VirtualArray2D(row, col); 
     va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
         	       "TestX","TestUnits", AxisInfo.LINEAR );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/06/02 22:31:21  dennis
+ *  Modified to only use IVirtualArray2D methods after creating a
+ *  VirtualArray2D object.
+ *
  *  Revision 1.11  2005/01/18 23:11:00  millermi
  *  - Listeners that previously listened for events from the
  *    SelectionOverlay now listen for the SELECTED_CHANGED event
@@ -216,7 +220,7 @@ public class ViewerSim
       int col = 250;
       int row = 250;	
       //Make a sample 2D array
-      VirtualArray2D va2D = new VirtualArray2D(row, col); 
+      IVirtualArray2D va2D = new VirtualArray2D(row, col); 
       va2D.setAxisInfo( AxisInfo.X_AXIS, .001f, .1f, 
                            "TestX","TestUnits", AxisInfo.LINEAR );
       va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, -1f, 

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.32  2005/06/02 22:31:23  dennis
+ *  Modified to only use IVirtualArray2D methods after creating a
+ *  VirtualArray2D object.
+ *
  *  Revision 1.31  2005/05/25 20:28:38  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -188,6 +192,7 @@
  import gov.anl.ipns.ViewTools.Components.AxisInfo;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.PseudoLogScaleUtil;
+ import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
  import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
  import gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D;
  import gov.anl.ipns.ViewTools.Components.Transparency.IPseudoLogAxisAddible;
@@ -861,7 +866,7 @@ public class ControlColorScale extends ViewControl
     int col = 250;
     int row = 250;    
     //Make a sample 2D array
-    VirtualArray2D va2D = new VirtualArray2D(row, col); 
+    IVirtualArray2D va2D = new VirtualArray2D(row, col); 
     va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, .0001f, 
  			 "TestX","TestUnits", AxisInfo.LINEAR );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, .001f, 

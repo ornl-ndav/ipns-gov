@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2005/06/02 22:31:21  dennis
+ *  Modified to only use IVirtualArray2D methods after creating a
+ *  VirtualArray2D object.
+ *
  *  Revision 1.10  2005/05/25 20:28:33  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -748,7 +752,7 @@ public class MarkerOverlay extends OverlayJPanel
     for ( int i = 0; i < row; i++ )
       for ( int j = 0; j < col; j++ )
         test_array[i][j] = i - j;
-    VirtualArray2D va2D = new VirtualArray2D( test_array );
+    IVirtualArray2D va2D = new VirtualArray2D( test_array );
     va2D.setAxisInfo( AxisInfo.X_AXIS, -100f, 100f, 
     		        "TestX","TestUnits", AxisInfo.LINEAR );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, -200f, 200f, 
