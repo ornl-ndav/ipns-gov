@@ -34,6 +34,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2005/06/02 21:19:41  kramer
+ *  Modified the editTable(....) method so that if it is called to insert a
+ *  null field, it will immediately return false.
+ *
+ *  Corrected the indentation of the editTable(...) method (tab spaces were
+ *  used instead of spaces).
+ *
+ *  Modified the javadocs for the reset(....) method to reflect the changes
+ *  made to the editTable(....) method.
+ *
  *  Revision 1.12  2005/03/14 20:50:56  millermi
  *  - Added private method getGlobal() which will recursively find
  *    all instances of a key if GLOBAL option is used.
@@ -244,7 +254,15 @@ public class ObjectState implements java.io.Serializable
   *
   *  @param  key
   *  @param  field
-  *  @return true - if reset successful, false - if key not found
+  *  @return <ul>
+  *            <li>
+  *              true - if reset successful
+  *            </li>
+  *            <li>
+  *              false - if <code>key</code> was not found or 
+  *                      if <code>field</code> was <code>null</code>
+  *            </li>
+  *          </ul>
   */ 
   public boolean reset( Object key, Object field )
   {
@@ -455,6 +473,10 @@ public class ObjectState implements java.io.Serializable
   */ 
   private boolean editTable( Object key, Object field, boolean allow_replace )
   {
+    //first ensure that the field is not null
+    if (field == null)
+       return false;
+     
     // Ensure key is a String.
     if( key instanceof String )
     {
@@ -464,8 +486,8 @@ public class ObjectState implements java.io.Serializable
       // If period exists, let skey = preperiod, nextkey = postperiod string.
       if( period_index > 0 )
       {
-	nextkey = skey.substring(period_index + 1);
-	skey = skey.substring(0,period_index);
+         nextkey = skey.substring(period_index + 1);
+         skey = skey.substring(0,period_index);
       }
       //System.out.println(skey + " " + temp_key);
       // if null, no period found, skey is the key registered in table.
@@ -473,9 +495,9 @@ public class ObjectState implements java.io.Serializable
       if( nextkey == null )
       {
         // reset() called, replace value.
-	if( allow_replace )
+        if( allow_replace )
         {
-	  // If the key is found in the hashtable, replace the old value.
+           // If the key is found in the hashtable, replace the old value.
           if( get(skey) != null )
           {
             table.put(skey,field);
@@ -484,54 +506,54 @@ public class ObjectState implements java.io.Serializable
           return false;
         }
         // else insert() method called.
-	Object temp = table.put(skey,field);
-	// if temp != null, then the key already existed. Temp contains the old
-	// field that key referenced.
-	if( temp != null && !allow_replace)
-	{
-	  table.put(skey, temp); // reset the key to its original field.
+        Object temp = table.put(skey,field);
+        // if temp != null, then the key already existed. Temp contains the old
+        // field that key referenced.
+        if( temp != null && !allow_replace)
+        {
+           table.put(skey, temp); // reset the key to its original field.
       /*
       System.out.println("Unable to assign key the this field, key already " +
 			 "in use."); */
-	  return false;
-	}
-	return true;
+           return false;
+        }
+        return true;
       } // end if nextkey == null
       else if( skey.equals(GLOBAL) )
       {
         // If reset() called...
         if( allow_replace )
-	{
-	  // If nextkey is a key in the hashtable...
+        {
+          // If nextkey is a key in the hashtable...
           if( get(nextkey) != null )
           {
             // replace the existing value.
-	    table.put(nextkey,field);
-	    Enumeration e = table.elements();
-	    Object temp_entry;
-	    // Create new key "GLOBAL.nextkey"
-	    String jointkey = new String(skey.concat(".").concat(nextkey));
-	    // go through this level and find all ObjectStates, then
-	    // pass (reset) the global variable down to all lower levels.
-	    while( e.hasMoreElements() )
-	    {
-	      temp_entry = e.nextElement();
-	      if( temp_entry instanceof ObjectState )
-	        ((ObjectState)temp_entry).reset( jointkey, field );
-	    }
+            table.put(nextkey,field);
+            Enumeration e = table.elements();
+            Object temp_entry;
+            // Create new key "GLOBAL.nextkey"
+            String jointkey = new String(skey.concat(".").concat(nextkey));
+            // go through this level and find all ObjectStates, then
+            // pass (reset) the global variable down to all lower levels.
+            while( e.hasMoreElements() )
+            {
+               temp_entry = e.nextElement();
+               if( temp_entry instanceof ObjectState )
+                  ((ObjectState)temp_entry).reset( jointkey, field );
+            }
             return true;
           }
           return false;	  
-	}
-	// if !allow_replace, do nothing. Don't want to insert global variables
-	return false;
+        }
+        // if !allow_replace, do nothing. Don't want to insert global variables
+        return false;
       } // end if skey.equals(GLOBAL)
       // Else, have case: Level1.Level2.Level3...LevelN.key, need to get
       // through levels to find key.
       else
       {
-	Object nextstate = get( skey );
-	// Get next level, Must be ObjectState, if not, something is wrong.
+         Object nextstate = get( skey );
+         // Get next level, Must be ObjectState, if not, something is wrong.
         if( nextstate instanceof ObjectState )
           ((ObjectState)nextstate).editTable( nextkey, field, allow_replace );
         else
@@ -545,20 +567,20 @@ public class ObjectState implements java.io.Serializable
     {
       if( allow_replace )
       {
-	if( get(key) != null )
-	{
-	  table.put(key,field);
-	  return true;
-	}
-	return false;
+         if( get(key) != null )
+         {
+            table.put(key,field);
+            return true;
+         }
+         return false;
       }
       Object temp = table.put(key,field);
       // if temp != null, then the key already existed. Temp contains the old
       // field that key referenced.
       if( temp != null && !allow_replace)
       {
-	table.put(key, temp); // reset the key to its original field.
-	return false;
+         table.put(key, temp); // reset the key to its original field.
+         return false;
       }
       return true;
     }
