@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.89  2005/06/04 23:11:24  rmikk
+ *  Fixed it so that when data is changed with a virtual array argument
+ *    everything is reinitialized always.  My virtual arrays may indicate a
+ *    drastic change in axes, labels, etc. but the virtual array is the same.
+ *
  *  Revision 1.88  2005/06/02 22:31:21  dennis
  *  Modified to only use IVirtualArray2D methods after creating a
  *  VirtualArray2D object.
@@ -1461,8 +1466,8 @@ public class ImageViewComponent implements IViewComponent2D,
       return;
     }
     // compare references, if not the same, reinitialize the virtual array.
-    if( pin_Varray != Varray2D )
-    {
+    if( true )//pin_Varray=Varray2D
+    { 
       Varray2D = pin_Varray;
       // If IVC was initialized with null data, initialize variables that
       // would have been initialized in the constructor, had the data been
