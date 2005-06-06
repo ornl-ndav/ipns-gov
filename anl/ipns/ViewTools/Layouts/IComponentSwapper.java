@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/06/06 20:39:28  kramer
+ *  Added CONTOUR as a possible view.
+ *
  *  Revision 1.2  2005/05/25 20:28:46  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -78,11 +81,13 @@
    * IViewComponent display type for any given ComponentSwapper.
    */
    public static final String IMAGE = "Image";
+   public static final String CONTOUR = "Contour";
   /**
    * List of all available views for any ComponentSwapper. If a view is added,
    * it should be added to this list.
    */
-   public static final String[] total_views = new String[]{TABLE,GRAPH,IMAGE};
+   public static final String[] total_views = 
+                                    new String[]{TABLE,GRAPH,IMAGE,CONTOUR};
   // ----------------------------Display Schemes-----------------------------
   /**
    * 0 - This variable is a ViewControl display scheme for any given
