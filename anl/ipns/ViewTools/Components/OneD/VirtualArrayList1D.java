@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2005/06/06 20:13:52  kramer
+ *  Fixed indentation problems.
+ *
  *  Revision 1.9  2005/06/01 22:18:58  dennis
  *  Now implements setAxisInfo( axis, info ).
  *
@@ -128,56 +131,56 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
       DataArray1D temp_array;
       for( int i = 0; i < graph_data.size(); i++ )
       {
-    	// Remove any element that is not a DataArray1D
-    	if( !(graph_data.elementAt(i) instanceof DataArray1D) )
-    	  graph_data.remove(i);
+        // Remove any element that is not a DataArray1D
+        if( !(graph_data.elementAt(i) instanceof DataArray1D) )
+          graph_data.remove(i);
         else
-	{
+        {
           temp_array = (DataArray1D)graph_data.elementAt(i);
-	  // set the pointed-at index if none have been set
-	  if( temp_array.isPointedAt() )
-	  {
-	    if( !pointed_at_specified )
-	    {
-	      pointed_at_index = i;
-	      pointed_at_specified = true;
-	    }
-	    else
-	      temp_array.setPointedAt(false);
-	  }
-	  // find x and y range
-	  if( temp_array.isSelected() )
-	  {
-    	    xmin = Float.POSITIVE_INFINITY;
-    	    xmax = Float.NEGATIVE_INFINITY;
-    	    ymin = Float.POSITIVE_INFINITY;
-    	    ymax = Float.NEGATIVE_INFINITY;
-	    float[] xtemp = temp_array.getXArray();
-	    float[] ytemp = temp_array.getYArray();
-	    for( int index = 0; index < ytemp.length; index++ )
-	    {
-	      // find x range
-	      if( xtemp[index] > xmax )
-	        xmax = xtemp[index];
-	      if( xtemp[index] < xmin )
-	        xmin = xtemp[index];
-	      // find y range
-	      if( ytemp[index] > ymax )
-	        ymax = ytemp[index];
-	      if( ytemp[index] < ymin )
-	        ymin = ytemp[index];
-	    }
-	    // check for histogram case (x length = y length + 1)
-	    if( xtemp.length > ytemp.length )
-	    {
-	      // find x range
-	      if( xtemp[xtemp.length - 1] > xmax )
-	        xmax = xtemp[xtemp.length - 1];
-	      if( xtemp[xtemp.length - 1] < xmin )
-	        xmin = xtemp[xtemp.length - 1];
-	    } // end if
-	  } // end if
-	} // end else
+          // set the pointed-at index if none have been set
+          if( temp_array.isPointedAt() )
+          {
+             if( !pointed_at_specified )
+             {
+                pointed_at_index = i;
+                pointed_at_specified = true;
+             }
+             else
+                temp_array.setPointedAt(false);
+          }
+          // find x and y range
+          if( temp_array.isSelected() )
+          {
+             xmin = Float.POSITIVE_INFINITY;
+             xmax = Float.NEGATIVE_INFINITY;
+             ymin = Float.POSITIVE_INFINITY;
+             ymax = Float.NEGATIVE_INFINITY;
+             float[] xtemp = temp_array.getXArray();
+             float[] ytemp = temp_array.getYArray();
+             for( int index = 0; index < ytemp.length; index++ )
+             {
+                // find x range
+                if( xtemp[index] > xmax )
+                   xmax = xtemp[index];
+                if( xtemp[index] < xmin )
+                   xmin = xtemp[index];
+                // find y range
+                if( ytemp[index] > ymax )
+                   ymax = ytemp[index];
+                if( ytemp[index] < ymin )
+                   ymin = ytemp[index];
+             }
+             // check for histogram case (x length = y length + 1)
+             if( xtemp.length > ytemp.length )
+             {
+                // find x range
+                if( xtemp[xtemp.length - 1] > xmax )
+                   xmax = xtemp[xtemp.length - 1];
+                if( xtemp[xtemp.length - 1] < xmin )
+                   xmin = xtemp[xtemp.length - 1];
+             } // end if
+          } // end if
+        } // end else
       } // end for
       graphs = graph_data;
       xinfo = new AxisInfo( xmin, xmax, AxisInfo.NO_LABEL, AxisInfo.NO_UNITS,
@@ -264,18 +267,18 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
   *  @param  graph_num
   */
   public void setXYValues( float[] x_values, 
-			   float[] y_values, 
-			   float[] errors,
-			   String graph_title,
-			   int graph_num )
+                           float[] y_values, 
+                           float[] errors,
+                           String graph_title,
+                           int graph_num )
   {
     // create new entry with new arrays but old selected/pointed-at info
     DataArray1D temp = ((DataArray1D)graphs.elementAt(graph_num));
     // add new entry
     graphs.insertElementAt( new DataArray1D( x_values, y_values, errors,
                                              graph_title, temp.isSelected(),
-					     temp.isPointedAt() ),
-			    graph_num + 1 );
+                                             temp.isPointedAt() ),
+                                            graph_num + 1 );
     // remove old entry
     graphs.remove(graph_num);
   }
@@ -293,7 +296,7 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
   *  @param  scale Is axis LINEAR, TRU_LOG, PSEUDO_LOG?
   */
   public void setAxisInfo( int axis, float min, float max,
-			   String label, String units, int scale )
+                           String label, String units, int scale )
   {
     if(axis == AxisInfo.X_AXIS)
       xinfo = new AxisInfo(min,max,label,units, scale);
