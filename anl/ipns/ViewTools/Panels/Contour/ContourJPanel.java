@@ -386,7 +386,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * Generates a IVirtualArray2D for the data for the function 
     * f(x,y) = x+y
     */
-   private static IVirtualArray2D getTestData()
+   public static IVirtualArray2D getTestData()
    {
       return new VirtualArray2D(getTestDataArr());
    }
