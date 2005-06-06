@@ -27,4 +27,9 @@ public class NonUniformContours extends Contours
       else
          return Float.NaN;
    }
+   
+   public float[] getLevels()
+   {
+      return levels;
+   }
 }
