@@ -1,4 +1,3 @@
-
 /*
  * File: FieldEntryControl.java
  *
@@ -35,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2005/06/06 20:24:10  kramer
+ *  Added javadocs.
+ *
  *  Revision 1.17  2005/05/25 20:28:40  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -121,21 +123,42 @@ import javax.swing.JTextField;
 import javax.swing.JRadioButton;
 import javax.swing.JButton;
 import javax.swing.ButtonGroup;
+import javax.swing.text.Document;
+
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
+import gov.anl.ipns.Util.StringFilter.StringFilter;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 
 /**
  * This class is a ViewControl (ActiveJPanel) with labels and input text fields
- * set up for the user to input values. Currently, input for this control is
- * limited to either ALL NUMERIC or ALL STRING. Since the radio button labels
+ * set up for the user to input values. Since the radio button labels
  * are used as keys, no setLabel() method is available. Instead, a
  * removeRadioChoice() and addRadioChoice() must be done.
+ * <p>
+ * The methods {@link #getFloatValue(int) getFloatValue(int)} and 
+ * {@link #getAllFloatValues() getAllFloatValues()} can be used to obtain 
+ * the data from the text fields on this ViewControl.  Then, before 
+ * processing the data, it can be analyzed to make sure that the data is 
+ * numeric.  If a given value is not numeric the specified methods will return 
+ * <code>Float.NaN</code>.  Otherwise the actual value is returned.
+ * <p>
+ * However, filters can also be applied to any or all of the text fields on 
+ * the ViewControl using the methods 
+ * {@link #enableFilter(StringFilter, int) enableFilter(StringFilter, int)} 
+ * and 
+ * {@link #enableAllFilters(StringFilter[]) enableAllFilters(StringFilter[])}.
+ * Notice that each textfield can be given its own filter.  As a result, 
+ * one text field might only accept integers while another might only 
+ * accept floats.  Also, if a filter is enabled on a textfield, the user is 
+ * physically not allowed to enter an invalid value in the textfield.
  */
 public class FieldEntryControl extends ViewControl
 {
@@ -190,7 +213,7 @@ public class FieldEntryControl extends ViewControl
   */
   public static final String SELECTED_RADIO_CHOICE = "Selected Radio Choice";
   
-  private JTextField[][] text;
+  private FilteredTextField[][] text;
   private transient Box all_fields = new Box( BoxLayout.Y_AXIS );
   private transient Box all_radios = new Box( BoxLayout.Y_AXIS );
   private transient ButtonGroup radioChoices = new ButtonGroup();
@@ -301,18 +324,18 @@ public class FieldEntryControl extends ViewControl
     // If no names in the list, do nothing.
     if (name.length < 1) return;
     setLayout( new GridLayout(1,1) );
-    text = new JTextField[name.length][2];
+    text = new FilteredTextField[name.length][2];
     // For each name, add two JTextFields, the first acts as a label, the
     // second acts as a place to enter values. 
     for(int i = 0; i < name.length; i++)
     { 
-      text[i][0] = new JTextField(name[i],10);
+      text[i][0] = new FilteredTextField(name[i],10);
       text[i][0].setEditable(false);
       text[i][0].setFocusable(false);
       if( values.length > i )
-        text[i][1] = new JTextField(values[i],10);
+        text[i][1] = new FilteredTextField(values[i],10);
       else
-        text[i][1] = new JTextField("",10);
+        text[i][1] = new FilteredTextField("",10);
       Box fieldholder = new Box(BoxLayout.X_AXIS);
       fieldholder.add(text[i][0]);
       fieldholder.add(text[i][1]);
@@ -339,7 +362,9 @@ public class FieldEntryControl extends ViewControl
     state.insert( FIELD_WIDTH, new Integer(text[0][1].getColumns()) );
     state.insert( RADIO_CHOICE, radiotable );
     state.insert( BUTTON_TEXT, new String(enter.getText()) );
-    state.insert( SELECTED_RADIO_CHOICE, getSelected() );
+    String selectedLabel = getSelected();
+    if (selectedLabel!=null)
+      state.insert( SELECTED_RADIO_CHOICE, selectedLabel );
     // only save values in the editable textfields if a project save.
     if( !isDefault )
       state.insert( FIELD_VALUES, getAllStringValues() );
@@ -665,12 +690,17 @@ public class FieldEntryControl extends ViewControl
   */
   public float[] getAllFloatValues()
   {
-    // this will reduce the array size to the number of labels.
-    // if a String, then this is a key to another array.
-    Object temp_key = radiotable.get( getSelected() );
-    while( temp_key instanceof String )
-      temp_key = radiotable.get(temp_key);
-    String[] labellist = (String[])temp_key;
+    String[] labellist = null;
+    String selectedRadio = getSelected();
+    if (selectedRadio!=null)
+    {
+       // this will reduce the array size to the number of labels.
+       // if a String, then this is a key to another array.
+       Object temp_key = radiotable.get( selectedRadio );
+       while( temp_key instanceof String )
+          temp_key = radiotable.get(temp_key);
+       labellist = (String[])temp_key;
+    }
     float[] values;
     if( labellist != null )
     {
@@ -704,12 +734,17 @@ public class FieldEntryControl extends ViewControl
   */
   public String[] getAllStringValues()
   {
-    // this will reduce the array size to the number of labels.
-    // if a String, then this is a key to another array.
-    Object temp_key = radiotable.get( getSelected() );
-    while( temp_key instanceof String )
-      temp_key = radiotable.get(temp_key);
-    String[] labellist = (String[])temp_key;
+    String[] labellist = null;
+    String selectedRadio = getSelected();
+    if (selectedRadio!=null)
+    {
+       // this will reduce the array size to the number of labels.
+       // if a String, then this is a key to another array.
+       Object temp_key = radiotable.get( selectedRadio );
+       while( temp_key instanceof String )
+          temp_key = radiotable.get(temp_key);
+       labellist = (String[])temp_key;
+    }
     String[] values;
     if( labellist != null )
     {
@@ -850,7 +885,7 @@ public class FieldEntryControl extends ViewControl
       {
         all_fields.add(all_radios,0);
         radioChoices.setSelected(rad.getModel(),true);
-	rad.doClick();
+        rad.doClick();
         validate();
         radio_added = true;
       }
@@ -1019,6 +1054,352 @@ public class FieldEntryControl extends ViewControl
     all_fields.validate();
   }
   
+  /**
+   * Under some situations, a graphical component could be created that 
+   * uses an object of this type but does not want the "Enter" button 
+   * attached to it.  This method can be used to remove the "Enter" 
+   * button from this graphical component.
+   * <p>
+   * Note:  Currently, if the "Enter" button is removed, it cannot be 
+   *        added back onto the gui.
+   */
+  public void removeButton()
+  {
+     all_fields.remove(enter);
+     all_fields.validate();
+  }
+  
+  /**
+   * Used to attach the given filter to the editable textfield specified by the 
+   * given index.  Note:  If <code>index</code> is invalid, nothing is done.
+   * 
+   * @param filter The filter to attach to the textfield.  If this is 
+   *               <code>null</code>, the textfield will instead have 
+   *               filtering disabled.
+   * @param index  The index specifying which textfield to attach the 
+   *               filter to.
+   *               <ul>
+   *                 <li>
+   *                   If 'n' is the number of textfields on this 
+   *                   component that the user can use to enter information, 
+   *                   then <code>index</code> must be in the range [0,n) to 
+   *                   be valid.
+   *                 </li>
+   *               </ul>
+   */
+  public void enableFilter(StringFilter filter, int index)
+  {
+     if (index>=0 && index<text.length)
+        text[index][1].enableFilter(filter);
+  }
+  
+  /**
+   * Used to attach filters to all of the editable textfields on this 
+   * component.
+   * 
+   * @param filters The filters to attach to the textfields.
+   *                <ul>
+   *                  <li>
+   *                    If <code>filters==null</code> filtering is 
+   *                    disabled for every textfield on this component.
+   *                  </li>
+   *                  <li>
+   *                    Otherwise, the ith filter in the array is attached to 
+   *                    the ith textfield on the component.  Here, indexing 
+   *                    starts at 0 as usual.  Thus, the first textfield on the 
+   *                    component is textfield 0.  
+   *                  </li>
+   *                  <li>
+   *                    Note:  If this array contains fewer filters than there 
+   *                    are textfields, nothing is done to the extra 
+   *                    textfields.  Also, if this array contains more 
+   *                    filters than there are textfields, the extra filters 
+   *                    are ignored.
+   *                  </li>
+   *                  <li>
+   *                    Also, using <code>null</code> for a filter has the 
+   *                    effect of disabeling filtering for the corresponding 
+   *                    textfield.
+   *                  </li>
+   *                </ul>
+   */
+  public void enableAllFilters(StringFilter[] filters)
+  {
+     if (filters==null)
+     {
+        disableAllFilters();
+        return;
+     }
+     
+     int min = filters.length;
+     if (text.length<filters.length)
+        min = text.length;
+     
+     for (int i=0; i<min; i++)
+        if (i<filters.length && i<text.length)
+           text[i][1].enableFilter( filters[i] );
+  }
+  
+  /**
+   * Used to disable filtering on the editable textfield identified by the 
+   * given index.  Note:  If <code>index</code> is invalid, nothing is done.
+   * 
+   * @param index  The index specifying which textfield onto which filtering 
+   *               is disabled.
+   *               <ul>
+   *                 <li>
+   *                   If 'n' is the number of textfields on this 
+   *                   component that the user can use to enter information, 
+   *                   then <code>index</code> must be in the range [0,n) to 
+   *                   be valid.
+   *                 </li>
+   *               </ul>
+   */
+  public void disableFilter(int index)
+  {
+     if (index>=0 && index<text.length)
+        text[index][1].disableFilter();
+  }
+  
+  /**
+   * Used to disable filtering for each editable textfield on this 
+   * component.
+   */
+  public void disableAllFilters()
+  {
+     for (int i=0; i<text.length; i++)
+        disableFilter(i);
+  }
+  
+  /**
+   * Used to retrieve the filter used to filter the textfield specified by 
+   * the given index.
+   * 
+   * @param index  The index specifying which textfield to attach the 
+   *               filter to.  
+   *               <ul>
+   *                 <li>
+   *                   If 'n' is the number of textfields on this 
+   *                   component that the user can use to enter information, 
+   *                   then <code>index</code> must be in the range [0,n) 
+   *                   to be valid.
+   *                 </li>
+   *               </ul>
+   * @return       If <code>index</code> is valid, the filter used to filter 
+   *               the textfield specified by <code>index</code> is 
+   *               returned.  Note:  If the specified textfield does not 
+   *               have filtering enabled, <code>null</code> as the filter.
+   *               <ul>
+   *                 <li>
+   *                   If <code>index</code> is invalid, <code>null</code> is 
+   *                   returned.
+   *                 </li>
+   *               </ul>
+   */
+  public StringFilter getFilter(int index)
+  {
+     if (index>=0 && index<text.length)
+        return text[index][1].getFilter();
+     else
+        return null;
+  }
+  
+  /**
+   * Used to get all of the filters used to filter each editable textfield 
+   * on this component.
+   * 
+   * @return An array of the filters used to filter each textfield on this 
+   *         component.  Note:  If the ith element of this array is 
+   *         <code>null</code> then the ith editable textfield on this 
+   *         component does not have filtering enabled (here normal indexing 
+   *         -- starting at 0 -- is used).
+   */
+  public StringFilter[] getAllFilters()
+  {
+     StringFilter[] filterArr = new StringFilter[text.length];
+     for (int i=0; i<text.length; i++)
+        filterArr[i] = getFilter(i);
+     return filterArr;
+  }
+  
+  /**
+   * This class defines a special type of JTextField that can have a filter 
+   * applied to it.  With this field, the user cannot enter text that does 
+   * not pass the filter tests (aka if the filter is designed to filter 
+   * integers, the user cannot enter "a" as the text).
+   * <p>
+   * Notice that this class exactly the same constructors as the 
+   * {@link JTextField JTextField} class.  Thus, <code>FilteredTextField</code>
+   * objects are constructed in exactly the same way as 
+   * {@link JTextField JTextField} objects.  However, after the 
+   * <code>FilteredTextField</code> is constructed, the 
+   * {@link #enableFilter(StringFilter) enableFilter(StringFilter)} method 
+   * can be used to assign a filter to the textfield.  By default, a 
+   * <code>FilteredTextField</code> object does not use any filters 
+   * initialy.
+   */
+  private class FilteredTextField extends JTextField implements KeyListener
+  {
+     /** The filter used to test if the entered text is valid. */
+     private StringFilter filter = null;
+     
+     /**
+      * Constructs a <code>FilteredTextField</code> object exactly as 
+      * the constructor 
+      * {@link JTextField#JTextField() JTextField.JTextField()} would 
+      * construct a {@link JTextField JTextField}.  In addition, this 
+      * object is initially configured not to use filtering.  Use the 
+      * {@link #enableFilter(StringFilter) enableFilter(StringFilter)} to 
+      * install a filter.
+      */
+     public FilteredTextField()
+     {
+        super();
+     }
+     
+     /**
+      * Constructs a <code>FilteredTextField</code> object exactly as 
+      * the constructor 
+      * {@link JTextField#JTextField(int) JTextField.JTextField(int)} would 
+      * construct a {@link JTextField JTextField}.  In addition, this 
+      * object is initially configured not to use filtering.  Use the 
+      * {@link #enableFilter(StringFilter) enableFilter(StringFilter)} to 
+      * install a filter.
+      */
+     public FilteredTextField(int columns)
+     {
+        super(columns);
+     }
+     
+     /**
+      * Constructs a <code>FilteredTextField</code> object exactly as 
+      * the constructor 
+      * {@link JTextField#JTextField(java.lang.String) 
+      * JTextField.JTextField(String)} would 
+      * construct a {@link JTextField JTextField}.  In addition, this 
+      * object is initially configured not to use filtering.  Use the 
+      * {@link #enableFilter(StringFilter) enableFilter(StringFilter)} to 
+      * install a filter.
+      */
+     public FilteredTextField(String text)
+     {
+        super(text);
+     }
+     
+     /**
+      * Constructs a <code>FilteredTextField</code> object exactly as 
+      * the constructor 
+      * {@link JTextField#JTextField(java.lang.String, int) 
+      * JTextField.JTextField(String, int)} would 
+      * construct a {@link JTextField JTextField}.  In addition, this 
+      * object is initially configured not to use filtering.  Use the 
+      * {@link #enableFilter(StringFilter) enableFilter(StringFilter)} to 
+      * install a filter.
+      */
+     public FilteredTextField(String text, int columns)
+     {
+        super(text, columns);
+     }
+     
+     /**
+      * Constructs a <code>FilteredTextField</code> object exactly as 
+      * the constructor 
+      * {@link JTextField#JTextField(javax.swing.text.Document, 
+      * java.lang.String, int) JTextField.JTextField(Document, String, int)} 
+      * would construct a {@link JTextField JTextField}.  In addition, this 
+      * object is initially configured not to use filtering.  Use the 
+      * {@link #enableFilter(StringFilter) enableFilter(StringFilter)} to 
+      * install a filter.
+      */
+     public FilteredTextField(Document doc, String text, int columns)
+     {
+        super(doc, text, columns);
+     }
+     
+     /**
+      * Causes this textfield to use the specified filter to filter the 
+      * text entered.  Note:  If <code>filter</code> is <code>null</code> 
+      * the textfield will stop filtering text.
+      * 
+      * @param filter The filter used to filter the text entered in this 
+      *               textfield.
+      */
+     public void enableFilter(StringFilter filter)
+     {
+        this.filter = filter;
+        if (filter!=null)
+           addKeyListener(this);
+        else
+           removeKeyListener(this);
+     }
+     
+     /**
+      * Causes this textfield to stop using filters to filter the text that 
+      * the user enters.  As a result, anything the user enters is 
+      * considered ok.
+      */
+     public void disableFilter()
+     {
+        enableFilter(null);
+     }
+     
+     /**
+      * Returns the filter used to filter the text that the user enters.
+      * 
+      * @return The filter that is used to filter the text that the user 
+      *         enters.  A return value of <code>null</code> is used to 
+      *         specify that this textfield is not using any filters to 
+      *         filter the text.
+      */
+     public StringFilter getFilter()
+     {
+        return filter;
+     }
+     
+     /**
+      * Used to determine if this textfield currently filters text.
+      * 
+      * @return True if this textfield filters text and false if it doesn't.  
+      *         <p>
+      *         Note:  If this method returns <code>false</code>, 
+      *         the {@link #getFilter() getFilter()} method will return 
+      *         <code>null</code> (the converse is also true).
+      */
+     public boolean doesFiltering()
+     {
+        return (filter!=null);
+     }
+     
+     /**
+      * Implemented for the {@link KeyListener KeyListener} interface.  
+      * This method does nothing.
+      */
+     public void keyPressed(KeyEvent e) {}
+     
+     /**
+      * Every time a new character is added to the text in this textfield, 
+      * this method is invoked.  It checks to see if the newly added 
+      * character still makes the entered text valid after being filtered.  
+      * If it is, nothing is done.  However, if the text is invalid, the 
+      * newly added character is deleted.
+      */
+     public void keyReleased(KeyEvent e)
+     {
+        if (doesFiltering())
+        {
+           String curText = getText();
+           if (!filter.isOkay(0,curText,""))
+              setText(curText.substring(0,curText.length()-1));
+        }
+     }
+     
+     /**
+      * Implemented for the {@link KeyListener KeyListener} interface.  
+      * This method does nothing.
+      */
+     public void keyTyped(KeyEvent e){}
+  }
+  
  /*
   * This class listens for a radiobutton selection. Once the selection is
   * made, change the labels to the corresponding radio button.
@@ -1053,7 +1434,7 @@ public class FieldEntryControl extends ViewControl
         // This if statement will prevent VALUE_CHANGED to be sent out when
         // the setControlValue() method is called.
         if( !ignore_change )
-	  send_message(VALUE_CHANGED);
+           send_message(VALUE_CHANGED);
       }
     }
   }
