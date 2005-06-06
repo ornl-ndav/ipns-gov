@@ -32,4 +32,14 @@ public class UniformContours extends Contours
    {
       return minValue+i*delta;
    }
+   
+   public float getMin()
+   {
+      return minValue;
+   }
+   
+   public float getMax()
+   {
+      return getLevelAt(getNumLevels());
+   }
 }
