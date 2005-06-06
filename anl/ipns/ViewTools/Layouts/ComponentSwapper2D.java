@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/06/06 20:40:20  kramer
+ *  Added support for viewing data as a contour view (using a ContourJPanel).
+ *
  *  Revision 1.3  2005/05/25 20:28:45  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -48,24 +51,25 @@
  *
  */
  package gov.anl.ipns.ViewTools.Layouts;
- 
- import java.awt.event.ActionEvent;
- import java.awt.event.ActionListener;
- 
- import gov.anl.ipns.Util.Numeric.floatPoint2D;
- import gov.anl.ipns.Util.Sys.SharedMessages;
- import gov.anl.ipns.ViewTools.Components.AxisInfo;
- import gov.anl.ipns.ViewTools.Components.IViewComponent;
- import gov.anl.ipns.ViewTools.Components.IVirtualArray;
- import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
- import gov.anl.ipns.ViewTools.Components.ObjectState;
- import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
- import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
- import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
- import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
- import gov.anl.ipns.ViewTools.Components.ViewControls.IColorScaleAddible;
- import gov.anl.ipns.ViewTools.UI.ActionValueEvent;
- 
+
+import gov.anl.ipns.Util.Sys.SharedMessages;
+import gov.anl.ipns.ViewTools.Components.AxisInfo;
+import gov.anl.ipns.ViewTools.Components.IViewComponent;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
+import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
+import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
+import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
+import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
+import gov.anl.ipns.ViewTools.Components.ViewControls.IColorScaleAddible;
+import gov.anl.ipns.ViewTools.UI.ActionValueEvent;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+  
 /**
  * This ComponentSwapper supports view components that accept IVirtualArray2Ds.
  * Currently, the view components that accept IVirtualArray2Ds are limited to
@@ -120,7 +124,7 @@
                               int control_scheme )
    {
      // Available views: TABLE, IMAGE
-     super(new String[]{TABLE,IMAGE}, va2D, view_type );
+     super(new String[]{TABLE,IMAGE,CONTOUR}, va2D, view_type );
      setVisibleControls(control_scheme);
      current_component = (IViewComponent2D)getViewComponent();
    }
@@ -139,7 +143,7 @@
                               int[] visible_controls )
    {
      // Available views: TABLE, IMAGE
-     super(new String[]{TABLE,IMAGE}, va2D, view_type );
+     super(new String[]{TABLE,IMAGE,CONTOUR}, va2D, view_type );
      setVisibleControls(visible_controls);
      current_component = (IViewComponent2D)getViewComponent();
    }
@@ -250,6 +254,16 @@
                               new TableViewComponent((IVirtualArray2D)data) );
        // Add listener to view component so swapper can pass action events
        // to listeners of this swapper.
+       current_tracker.getViewComp().addActionListener(new ComponentListener());
+     }
+     // If ContourViewComponent requested...
+     else if ( view_type.equals(CONTOUR) )
+     {
+       // Create new tracker
+       current_tracker = new ComponentTracker(
+                              new ContourViewComponent((IVirtualArray2D)data));
+       // Add listener to view component so swapper can pass action events
+       // to listeners of this swapper
        current_tracker.getViewComp().addActionListener(new ComponentListener());
      }
    }
