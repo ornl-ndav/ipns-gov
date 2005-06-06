@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/06/06 14:33:05  dennis
+ *  Removed method declaration, setAxisInfo( i, axis_info ), since that
+ *  method was moved to the IVirtualArray class.
+ *
  *  Revision 1.11  2005/03/12 18:09:52  millermi
  *  - Updated javadocs for getDataValue().
  *
@@ -119,16 +123,6 @@ public interface IVirtualArray2D extends IVirtualArray
   */
   public void setAxisInfo( int axis, float min, float max,
 			   String label, String units, int scale ); 
-  
- /**
-  * Sets the attributes of the data array within a AxisInfo wrapper.
-  * This method will take in an integer to determine which axis
-  * info is being altered.
-  * 
-  *  @param  axis Use AxisInfo.X_AXIS (0) or AxisInfo.Y_AXIS (1).
-  *  @param  info The axis info object associated with the axis specified.
-  */
-  public void setAxisInfo( int axis, AxisInfo info );
   
  /*
   ***************************************************************************
