@@ -15,8 +15,8 @@ public abstract class Contours
       if (numLevels<=0)
          throw new IllegalArgumentException(
                    "ContourJPanel$Levels(int numLevels) 'numLevels' " +
-                   "cannot be non-negative but 'numLevels'="+numLevels+
-                   "was passed to the constructor.");
+                   "must be positive.  However, 'numLevels'="+numLevels+
+                   " was passed to the constructor.");
       this.numLevels = numLevels;
    }
    
