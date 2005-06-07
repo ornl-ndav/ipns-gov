@@ -233,7 +233,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
               //function at this point
               int xIndex = (int)curPt.x;
               int yIndex = (int)curPt.y;
-              if ( xIndex>=0 && yIndex>=0 && yIndex<arr[xIndex].length && 
+              if ( xIndex>=0 && xIndex<arr.length && 
+                   yIndex>=0 && yIndex<arr[xIndex].length && 
                    xIndex+1<arr.length && yIndex<arr[xIndex+1].length)
               {
                  float Fx = arr[xIndex+1][yIndex] - arr[xIndex][yIndex];
@@ -311,6 +312,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
            }
            
          //now to draw a box around the data
+         //This is for testing purposes
+         /*
            float delta = 1/2f;
            float[] xCorners = new float[2];
              xCorners[0] = delta;
@@ -331,6 +334,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                         (int)yCorners[0],
                         (int)(xCorners[1]-xCorners[0]),
                         (int)(yCorners[1]-yCorners[0]));
+         */
       }
    }
    
