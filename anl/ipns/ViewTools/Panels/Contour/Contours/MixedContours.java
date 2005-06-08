@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/06/08 22:10:57  kramer
+ * Modified the constructors to only have UniformContours and/or
+ * NonUniformContours objects as parameters and added new javadocs.
+ *
  * Revision 1.1  2005/06/08 17:27:18  kramer
+ *
  * This class represents a union of UniformContours and NonUniformContours
  * in that it holds a collection of uniformly spaced contour levels in
  * addition to a collection of manually specified contour levels.
@@ -53,93 +58,133 @@ public class MixedContours extends Contours
    private NonUniformContours extraLevels;
    
    /**
-    * Create a set of contours that are only uniformly spaced.
+    * Creates a collection of uniformly spaced contour levels.
     * 
-    * @param minValue  The "elevation" of the lowest contour level.
-    * @param maxValue  The "elevation" of the hightest contour level.
-    * @param numLevels The number of contour levels in the set.  Note:  To 
-    *                  calculate the contour levels, there needs to be at 
-    *                  least 2 contour levels.
-    * @throws IllegalArgumentException If <code>minValue>maxValue</code> or 
-    *                                  <code>numLevels<2</code>.
+    * @param uniformLevels Represents the uniformly spaced contour levels.  
+    *                      If this is <code>null</code>, the method 
+    *                      {@link #getLevelAt(int) getLevelAt(int)} will 
+    *                      always return {@link Float#NaN Float.NaN}.
     */
-   public MixedContours(float minValue, float maxValue, int numLevels)
+   public MixedContours(UniformContours uniformLevels)
    {
-      super(numLevels);
-      this.uniformLevels = new UniformContours(minValue,maxValue,numLevels);
+      super((uniformLevels!=null)?uniformLevels.getNumLevels():1);
+      this.uniformLevels = uniformLevels;
       this.extraLevels = null;
    }
    
    /**
-    * Create a collection of uniformly spaced and manually entered contour 
-    * levels.
+    * Creates a collection of both manually entered and uniformly spaced 
+    * contour levels where the collection does not contain any duplicate 
+    * contour levels.
     * 
-    * @param minValue  The "elevation" of the lowest contour level.
-    * @param maxValue  The "elevation" of the hightest contour level.
-    * @param numLevels The number of contour levels in the set.  Note:  To 
-    *                  calculate the contour levels, there needs to be at 
-    *                  least 2 contour levels.
-    * @param levels    The values of the contour levels.
+    * @param uniformLevels Represents the uniformly spaced contour levels.  
+    *                      If this is <code>null</code>, this constructor 
+    *                      is identical to the constructor 
+    *                      {@link #MixedContours(NonUniformContours) 
+    *                      MixedContours(NonUniformContours)}.
+    * 
+    * @param manualLevels Represents the manually entered contour levels.
+    *                     If this is <code>null</code>, this constructor 
+    *                     is identical to the constructor 
+    *                     {@link #MixedContours(UniformContours) 
+    *                     MixedContours(UniformContours)}.
     */
-   public MixedContours(float minValue, float maxValue, int numLevels, 
-                        float[] levels)
+   public MixedContours(UniformContours uniformLevels, 
+         NonUniformContours manualLevels)
    {
-      //initially start with 'numLevels' number of levels which 
-      //correspond to the uniformly spaced contour levels.  Next, the 
-      //manually specified levels will be checked, counted, and added to 
-      //the number of levels.
-      super(numLevels);
-      this.uniformLevels = new UniformContours(minValue,maxValue,numLevels);
-      
-      if (levels!=null)
-      {
-         //find all of the levels that are not represented as a uniformly 
-         //spaced contour level
-         float[] realLevels = new float[levels.length];
-         int numOk = 0;
-         for (int i=0; i<levels.length; i++)
-            if (!this.uniformLevels.isLevelCovered(levels[i]))
-               realLevels[numOk++] = levels[i];
-            
-         //if the array can be "trimmed" trim it
-         float[] newArray;
-         if (numOk<realLevels.length)
-         {
-            newArray = new float[numOk];
-            System.arraycopy(realLevels,0,newArray,0,numOk);
-         }
-         else
-            newArray = realLevels;
-         
-         //now make the NonUniformContours object to represent these levels
-         if (newArray.length>0)
-            this.extraLevels = new NonUniformContours(newArray);
-         else
-            this.extraLevels = null;
-         
-         //now to set the new number of levels
-         setNumLevels(newArray.length+numLevels);
-      }
-      else
-         throw new IllegalArgumentException(
-                      "Error:  MixedContours(float minValue, float maxValue, "+
-                      "int numLevels, float[] levels) was given 'levels'=null");
+      this(uniformLevels, manualLevels, false);
    }
    
    /**
-    * Create a collection of only manually specified contour levels.
+    * Creates a collection of both manually entered and uniformly spaced 
+    * contour levels.
     * 
-    * @param levels The values of the contour levels.
-    * @throws IllegalArgumentException If <code>levels</code> is 
-    *                                  <code>null</code> or if 
-    *                                  <code>levels.length==0</code>.
+    * @param uniformLevels Represents the uniformly spaced contour levels.
+    *                      If this is <code>null</code>, this constructor 
+    *                      is identical to the constructor 
+    *                      {@link #MixedContours(NonUniformContours) 
+    *                      MixedContours(NonUniformContours)}.
+    * 
+    * @param manualLevels Represents the manually entered contour levels.
+    *                     If this is <code>null</code>, this constructor 
+    *                     is identical to the constructor 
+    *                     {@link #MixedContours(UniformContours) 
+    *                     MixedContours(UniformContours)}.
+    * 
+    * @param ignoreRepeats If true, the collection of contour levels will 
+    *                      not contain any duplicate levels.  If false, it 
+    *                      may contain duplicates (in the case where the 
+    *                      a manually entered level is the same as one of the 
+    *                      uniformly spaced contour levels).
     */
-   public MixedContours(float[] levels)
+   public MixedContours(UniformContours uniformLevels, 
+                        NonUniformContours manualLevels, 
+                        boolean ignoreRepeats)
    {
-      super((levels!=null)?levels.length:1);
-      this.uniformLevels = null;
-      this.extraLevels = new NonUniformContours(levels);
+      //for now just tell the super class there is one level
+      super(1);
+      this.uniformLevels = uniformLevels;
+      this.extraLevels = manualLevels;
+      
+      //records the number of levels that will be used
+      int numLevels = 0;
+      if (this.uniformLevels!=null)
+      {
+         //include the number of uniform contour levels
+         numLevels += this.uniformLevels.getNumLevels();
+         
+         if (this.extraLevels!=null)
+         {
+            if (ignoreRepeats)
+               numLevels += this.extraLevels.getNumLevels();
+            else
+            {
+               //alias 'this.extraLevels' actual levels
+               float[] levels = this.extraLevels.getLevels();
+            
+               //If one of the levels in 'extraLevels' 
+               //is already in 'uniformLevels' it is ignored.
+               //This stores the actual levels that will be used.
+               float[] actualLevels = new float[levels.length];
+               //find the unique levels
+               int numOk = 0;
+               for (int i=0; i<levels.length; i++)
+                  if (!this.uniformLevels.isLevelCovered(levels[i]))
+                     actualLevels[numOk++] = levels[i];
+              
+               //change 'this.extraLevels' if it needs changing
+               if (numOk==0)
+                  this.extraLevels = null;
+               else if (numOk<actualLevels.length)
+               {
+                  System.arraycopy(actualLevels,0,actualLevels,0,numOk);
+                  this.extraLevels = new NonUniformContours(actualLevels);
+               }
+            
+               //now add the new contour levels to the count
+               numLevels += numOk;
+            }
+         }
+      }
+      if (numLevels>0)
+         setNumLevels(numLevels);
    }
+   
+   /**
+    * Creates a collection of contour levels that only uses manually 
+    * specified contour levels.
+    * 
+    * @param manualLevels Represents the manually represented contour levels.
+    *                     If this is <code>null</code>, the method 
+    *                     {@link #getLevelAt(int) getLevelAt(int)} will 
+    *                     always return {@link Float#NaN Float.NaN}.
+    */
+   public MixedContours(NonUniformContours manualLevels)
+   {
+      super((manualLevels!=null)?manualLevels.getNumLevels():1);
+      this.uniformLevels = null;
+      this.extraLevels = manualLevels;
+   }   
    
    /**
     * Get the <code>ith</code> contour level.
