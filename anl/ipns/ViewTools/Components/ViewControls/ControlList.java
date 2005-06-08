@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/06/08 21:51:12  kramer
+ * Added the method isEmpty() which is used to determine if the control's
+ * list is empty.
+ *
  * Revision 1.2  2005/06/06 20:18:07  kramer
+ *
  * Added javadocs.
  *
  * Revision 1.1  2005/06/03 16:02:42  kramer
@@ -412,6 +417,16 @@ public class ControlList extends ViewControl
    }
    
    //-----------------------------=[ Extra methods ]=------------------------//
+   /**
+    * Used to determine if this control's list of values is empty.
+    * 
+    * @return True if the list is empty and false if it isn't.
+    */
+   public boolean isEmpty()
+   {
+      return getMyModel().isEmpty();
+   }
+   
    /**
     * Used to specify which filter is used to limit the type of data the user 
     * can add to the list.
