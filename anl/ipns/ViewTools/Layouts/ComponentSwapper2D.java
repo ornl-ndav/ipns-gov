@@ -34,7 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/06/08 21:48:58  kramer
+ *  Modified the main() method to use data that is designed to test the
+ *  ContourViewComponent.
+ *
  *  Revision 1.4  2005/06/06 20:40:20  kramer
+ *
  *  Added support for viewing data as a contour view (using a ContourJPanel).
  *
  *  Revision 1.3  2005/05/25 20:28:45  dennis
@@ -52,20 +57,19 @@
  */
  package gov.anl.ipns.ViewTools.Layouts;
 
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.IViewComponent;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
-import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
 import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
 import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
 import gov.anl.ipns.ViewTools.Components.ViewControls.IColorScaleAddible;
 import gov.anl.ipns.ViewTools.UI.ActionValueEvent;
-import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -410,16 +414,23 @@ import java.awt.event.ActionListener;
    */
    public static void main( String args[] )
    {
-     // build my 2-D data
-     int row = 200;
-     int col = 180;
-     float test_array[][] = new float[row][col];
-     for ( int i = 0; i < row; i++ )
-       for ( int j = 0; j < col; j++ )
-     	 test_array[i][j] = i - j;
+     /*
+      // build my 2-D data
+      int row = 200;
+      int col = 180;
+      float test_array[][] = new float[row][col];
+      for ( int i = 0; i < row; i++ )
+        for ( int j = 0; j < col; j++ )
+      	 test_array[i][j] = i - j;
      
-     // Put 2-D data into a VirtualArray2D wrapper
-     IVirtualArray2D va2D = new VirtualArray2D( test_array );
+      // Put 2-D data into a VirtualArray2D wrapper
+      IVirtualArray2D va2D = new VirtualArray2D( test_array );
+     */
+      
+     //For now the ContourViewComponent's test data is used so that the 
+     //ContourView can be tested.
+     IVirtualArray2D va2D = ContourViewComponent.getTestData(41,51,3.0,4.0);
+     
      // Give meaningful range, labels, units, and linear or log display method.
      va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
      			 "TestX","TestUnits", AxisInfo.LINEAR );
