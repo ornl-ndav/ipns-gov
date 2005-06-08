@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/06/08 22:12:52  kramer
+ * Made the error messages that this class's constructor generates more
+ * user friendly.
+ *
  * Revision 1.3  2005/06/08 17:19:55  kramer
+ *
  * Added the GNU header, added javadocs, and added a method setNumLevels()
  * which is used by subclasses if the levels are modified.
  *
@@ -62,9 +67,8 @@ public abstract class Contours
    {
       if (numLevels<=0)
          throw new IllegalArgumentException(
-                   "ContourJPanel$Levels(int numLevels) 'numLevels' " +
-                   "must be positive.  However, 'numLevels'="+numLevels+
-                   " was passed to the constructor.");
+                   "The number of levels must be positive.  However, the " +
+                   "number of levels given was "+numLevels);
       this.numLevels = numLevels;
    }
    
