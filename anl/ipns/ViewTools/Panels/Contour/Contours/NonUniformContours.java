@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/06/08 22:09:37  kramer
+ * Made the error messages encapsulated in IllegalArgumentExceptions thrown
+ * by the constructor more user friendly.
+ *
  * Revision 1.3  2005/06/08 17:22:02  kramer
+ *
  * Added the GNU header, added javadocs, and modified the constructor so
  * that if the array given to it is null, it calls super(1) (so that the
  * superclass doesn't complain, instead this class throws an Exception).
@@ -61,9 +66,8 @@ public class NonUniformContours extends Contours
    {
       super((levels!=null)?levels.length:1);
       if (levels==null)
-         throw new IllegalArgumentException(
-                     "ContourJPanel$NonUniformLevels(float[] levels) " +
-                     "was given a null parameter 'levels'");
+         throw new IllegalArgumentException("No contours levels have been " +
+                                            "manually entered");
       this.levels = levels;
    }
 
