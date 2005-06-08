@@ -113,34 +113,37 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    
    public void setObjectState(ObjectState new_state)
    {
-      //TODO Implement this
+      
    }
 
    public ObjectState getObjectState(boolean is_default)
    {
-      return new ObjectState();
+      ObjectState state = new ObjectState();
+       
+      return state;
    }
 
    public void setPointedAt(floatPoint2D fpt)
    {
-      // TODO Implement this
+      if (fpt==null)
+         return;
+      
+      if (getPointedAt().equals(fpt))
+         return;
+      contourPanel.set_crosshair_WC(fpt);
    }
 
    public floatPoint2D getPointedAt()
    {
-      // TODO Auto-generated method stub
-      return null;
+      return new floatPoint2D(contourPanel.getCurrent_WC_point());
    }
 
    public void setSelectedRegions(Region[] rgn)
    {
-      // TODO Auto-generated method stub
-
    }
 
    public Region[] getSelectedRegions()
    {
-      // TODO Auto-generated method stub
       return null;
    }
 
@@ -236,18 +239,6 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       dataArray[iPeak+2][jPeak+1] =  6.0f;
       dataArray[iPeak+2][jPeak+2] =  4.0f;
       
-      /*
-      dataArray[iPeak-1][jPeak-1] =  4.0f;
-      dataArray[iPeak-1][jPeak  ] =  6.0f;
-      dataArray[iPeak-1][jPeak+1] =  4.0f;
-      dataArray[iPeak  ][jPeak-1] =  6.0f;
-      dataArray[iPeak  ][jPeak  ] = 10.0f;
-      dataArray[iPeak  ][jPeak+1] =  6.0f;
-      dataArray[iPeak+1][jPeak-1] =  4.0f;
-      dataArray[iPeak+1][jPeak  ] =  6.0f;
-      dataArray[iPeak+1][jPeak+1] =  4.0f;
-      */
-      
       return new VirtualArray2D(dataArray);
    }
    
@@ -289,8 +280,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                equals(ControlCheckbox.CHECKBOX_CHANGED))
          {
             contourPanel.setPreserveAspectRatio(aspectRatio.isSelected());
-            //contourPanel.repaint();
-            contourPanel.revalidate();
+            contourPanel.repaint();
          }
       }
    }
@@ -488,6 +478,41 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
          return (int)uniformControls.getFloatValue(2);
       }
       
+      private UniformContours getEnteredUniformContours(String[] errMsg)
+      {
+         if (errMsg==null)
+            System.err.println("Warning:  ContourViewComponent#" +
+                               "TabbedContourControl." +
+                               "getEnteredUniformContours() was given " +
+                               "a null error message array.  Error messages " +
+                               "will not be able to be generated.");
+         else if (errMsg.length < 1)
+            System.err.println("Warning:  ContourViewComponent#"+
+                               "TabbedContourControl." +
+                               "getEnteredUniformContours() was given " +
+                               "an error message array with an invalid " +
+                               "length (i.e. less than 1).");
+         
+         float min = getEnteredLowestLevel();
+         float max = getEnteredHighestLevel();
+         int numLevels = getEnteredNumLevels();
+         
+         UniformContours contours = null;
+         try
+         {
+            contours = new UniformContours(min, max, numLevels);
+            if (errMsg!=null && errMsg.length>0)
+               errMsg[0] = null;
+         }
+         catch (IllegalArgumentException e)
+         {
+            contours = null;
+            if (errMsg!=null && errMsg.length>0)
+               errMsg[0] = e.getMessage();
+         }
+         return contours;
+      }
+      
       private float[] getEnteredLevels()
       {
          Object[] obArr = (Object[])manualControls.getControlValue();
@@ -523,31 +548,84 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
             return validArr;
       }
       
+      private NonUniformContours getEnteredNonUniformContours(String[] errMsg)
+      {
+         if (errMsg==null)
+            System.err.println("Warning:  ContourViewComponent#" +
+                               "TabbedContourControl." +
+                               "getEnteredNonUniformContours() was given " +
+                               "a null error message array.  Error messages " +
+                               "will not be able to be generated.");
+         else if (errMsg.length < 1)
+            System.err.println("Warning:  ContourViewComponent#"+
+                               "TabbedContourControl." +
+                               "getEnteredNonUniformContours() was given " +
+                               "an error message array with an invalid " +
+                               "length (i.e. less than 1).");
+            
+         float[] levels = getEnteredLevels();
+         
+         NonUniformContours contours = null;
+         try
+         {
+            contours = new NonUniformContours(levels);
+            if (errMsg!=null && errMsg.length>=0)
+               errMsg[0] = null;
+         }
+         catch (IllegalArgumentException e)
+         {
+            contours = null;
+            if (errMsg!=null && errMsg.length>=0)
+               errMsg[0] = e.getMessage();
+         }
+         return contours;
+      }
+      
       public void actionPerformed(ActionEvent event)
       {
          if (event.getActionCommand().equals(FieldEntryControl.BUTTON_PRESSED))
          {
-            float min = getEnteredLowestLevel();
-            float max = getEnteredHighestLevel();
-            int numLevels = getEnteredNumLevels();
-            contourPanel.setContours(new UniformContours(min, max, numLevels));
+            String[] errMsg = new String[1];
+            UniformContours contours = getEnteredUniformContours(errMsg);
+            if (contours!=null)
+               contourPanel.setContours(contours);
+            else
+            {
+               if (errMsg[0]!=null)
+                  SharedData.addmsg(errMsg[0]);
+            }
          }
          else if (event.getActionCommand().equals(ControlList.SUBMIT_PRESSED))
          {
-            float[] validArr = getEnteredLevels();
-            if (validArr!=null)
-               contourPanel.setContours(new NonUniformContours(validArr));
+            String[] errMsg = new String[1];
+            NonUniformContours contours = getEnteredNonUniformContours(errMsg);
+            if (contours!=null)
+               contourPanel.setContours(contours);
+            else
+            {
+               if (errMsg[0]!=null)
+                  SharedData.addmsg(errMsg[0]);
+            }
          }
          else if (event.getActionCommand().equals(IViewControl.BUTTON_PRESSED))
          {
-            float min = getEnteredLowestLevel();
-            float max = getEnteredHighestLevel();
-            int numLevels = getEnteredNumLevels();
-            float[] levels = getEnteredLevels();
-            Contours con = new MixedContours(min,max,numLevels,levels);
-            for (int i=0; i<con.getNumLevels(); i++)
-               System.out.println("level["+i+"]="+con.getLevelAt(i));
-            contourPanel.setContours(con);
+            String[] uniformErrMsg = new String[1];
+            UniformContours uniformControls = 
+               getEnteredUniformContours(uniformErrMsg);
+            
+            String[] nonuniformErrMsg = new String[2];
+            NonUniformContours nonuniformControls = 
+               getEnteredNonUniformContours(nonuniformErrMsg);
+            
+            if (uniformControls==null && uniformErrMsg[0]!=null)
+                  SharedData.addmsg(uniformErrMsg[0]);
+            
+            if (nonuniformControls==null && !manualControls.isEmpty() && 
+                     nonuniformErrMsg[0]!=null)
+                  SharedData.addmsg(nonuniformErrMsg[0]);
+               
+            contourPanel.setContours(new MixedContours(uniformControls,
+                                                       nonuniformControls));
          }
       }
    }
