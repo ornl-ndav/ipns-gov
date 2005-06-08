@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/06/08 22:07:47  kramer
+ * Made the error messages for user friendly.
+ *
  * Revision 1.3  2005/06/08 17:24:52  kramer
+ *
  * Added the GNU header and javadocs.  Also, the methods getMin() and
  * getMax() were changed to getLowestLevel() and getHighestLevel().  Next,
  * the constructor now throws an exception if 'numLevels' is less than 2.
@@ -75,16 +79,12 @@ public class UniformContours extends Contours
       
       if (minValue>maxValue)
          throw new IllegalArgumentException(
-                   "ContourJPanel$UniformLevels(float minValue, " +
-                   "float maxValue, int numLevels) was improperly " +
-                   "given 'minValue' and 'maxValue' such that " +
-                   "'minValue'>'maxValue'");
+                   "The value of the lowest contour level cannot be " +
+                   "greater than the level of the highest contour level.");
       if (numLevels<2)
          throw new IllegalArgumentException(
-                   "ContourJPanel$UniformLevels(float minValue, " +
-                   "float maxValue, int numLevels) was given 'numLevels'="+
-                   numLevels+".  However, 'numLevels' must be greater than " +
-                   "or equal to 2.");
+                   "The number of levels must be greater than or equal to " +
+                   "2.  However, the number of levels given was "+numLevels);
       
       this.minValue = minValue;
       this.delta = (maxValue-minValue)/(getNumLevels()-1);
