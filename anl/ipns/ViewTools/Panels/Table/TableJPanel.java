@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2005/06/08 18:44:18  dennis
+ *  Fixed javadoc error.
+ *
  *  Revision 1.12  2005/05/25 20:28:48  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -1009,8 +1012,8 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   * This method is comparable to a setVisibleRectangle() method, only the size
   * of the viewport has already been determined.
   *
-  *  @return The column/row point specifying which cell will appear in the
-  *          upper left-hand corner of the viewport.
+  *  @param  col_row_pt  The column/row point specifying which cell will appear 
+  *                      in the upper left-hand corner of the viewport.
   */ 
   public void setVisibleLocation( Point col_row_pt )
   {
