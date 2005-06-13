@@ -34,7 +34,20 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2005/06/13 19:56:27  kramer
+ *  Modified the setControlValue(Object) method so that if the first element
+ *  of the String array given to the method is 'null' the method does not
+ *  look for the currently selected radio button but instead sets the values
+ *  of the currently displayed textfields.
+ *
+ *  Also, on June 6, 2005 changes were made that were not logged.  Mainly,
+ *  the FilteredTextField inner class was made that is a JTextField with a
+ *  StringFilter on it.  The textfields used on this ViewControl were
+ *  changed to FilteredTextFields.  Furthermore, methods were added to
+ *  add and remove filters to any textfield on the ViewControl.
+ *
  *  Revision 1.18  2005/06/06 20:24:10  kramer
+ *
  *  Added javadocs.
  *
  *  Revision 1.17  2005/05/25 20:28:40  dennis
@@ -451,9 +464,12 @@ public class FieldEntryControl extends ViewControl
     String[] values = (String[])value;
     // First value is the selected radio button.
     // Make sure radiolabel exists.
-    if( !radiotable.containsKey( values[0] ) )
-      return;
-    setSelected(values[0]);
+    if (values[0]!=null)
+    {
+      if( !radiotable.containsKey( values[0] ) )
+        return;
+      setSelected(values[0]);
+    }
     int min_length = values.length;
     // Let min_length be the smallest value between the String[] and number of
     // field entries.
