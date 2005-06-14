@@ -33,7 +33,16 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/06/14 21:19:15  kramer
+ * Added methods to set the selected tab (given its index or the ViewControl
+ * on the tab).
+ *
+ * Also added javadocs that pointed out that currently only ViewControl
+ * objects can be added to the tabbed pane (this is because they are
+ * inherently Components).
+ *
  * Revision 1.1  2005/06/13 19:40:42  kramer
+ *
  * This is a ViewControl that contains a number of other ViewControls in
  * it in a tabbed pane.
  *
@@ -61,6 +70,16 @@ import javax.swing.WindowConstants;
  * tab.  However, the {@link #getControlValue(int) getControlValue(int)} 
  * method can be used to get the control value of a ViewControl on any 
  * tab.
+ * <p>
+ * Notice that this ViewControl can only add other 
+ * {@link gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl 
+ * ViewControl} objects to the tabbed pane.  It cannot add 
+ * {@link gov.anl.ipns.ViewTools.Components.ViewControls.IViewControl 
+ * IViewControl} objects to the tabbed pane.  This is because an object 
+ * must be a {@link java.awt.Component Component} to be added to the 
+ * tabbed pane.  A ViewControl is an object that implements IViewControl 
+ * and is a Component.  Thus, it can be used as an IViewControl and can be 
+ * added to the tabbed pane.
  */
 public class TabbedViewControl extends ViewControl
 {
@@ -386,7 +405,8 @@ public class TabbedViewControl extends ViewControl
     * @param control The ViewControl whose tab's index is to be located.
     * @return The index of the tab that contains the ViewControl 
     *         <code>control</code>.  Note:  If <code>control</code> is 
-    *         <code>null</code> or if no tabs contain <code>control</code>.
+    *         <code>null</code> or if no tabs contain <code>control</code>
+    *         -1 is returned.
     */
    public int getIndexForViewControl(ViewControl control)
    {
@@ -450,6 +470,31 @@ public class TabbedViewControl extends ViewControl
    public int getNumTabs()
    {
       return tabPane.getTabCount();
+   }
+   
+   /**
+    * Makes the tab with the given index the selected tab.  Note:  If 
+    * the index given is invalid, nothing is done.
+    * 
+    * @param index The index of the tab which will become the selected tab.
+    */
+   public void setSelectedTab(int index)
+   {
+      if (index>=0 && index<getNumTabs())
+         tabPane.setSelectedIndex(index);
+   }
+   
+   /**
+    * Makes the tab with the given ViewControl the selected tab.  Note:  If 
+    * <code>control</code> is <code>null</code> or if no tabs contain 
+    * <code>control</code>, nothing is done.
+    * 
+    * @param control The ViewControl which identifies the tab to become the 
+    *                selected tab.
+    */
+   public void setSelectedTab(ViewControl control)
+   {
+      setSelectedTab(getIndexForViewControl(control));
    }
    
    /**
