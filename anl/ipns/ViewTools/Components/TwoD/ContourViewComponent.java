@@ -18,25 +18,19 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.ButtonControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckbox;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlList;
 import gov.anl.ipns.ViewTools.Components.ViewControls.FieldEntryControl;
-import gov.anl.ipns.ViewTools.Components.ViewControls.IViewControl;
+import gov.anl.ipns.ViewTools.Components.ViewControls.TabbedViewControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
-import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.MixedContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
 import java.util.Vector;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 
 import DataSetTools.util.SharedData;
 
@@ -56,7 +50,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    private ContourJPanel contourPanel;
    private ViewControl[] controls;
    
-   private TabbedContourControl tabContour;
+   private TabbedViewControl tabControl;
    private ControlCheckbox aspectRatio;
    
    public ContourViewComponent(IVirtualArray2D arr)
@@ -242,391 +236,295 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       return new VirtualArray2D(dataArray);
    }
    
-   private void initControls(float minValue, float maxValue, int numLevels, 
-         float[] levels, boolean useManualLevels)
+   private FieldEntryControl generateUniformControls(float minValue,
+         float maxValue,
+         int numLevels)
    {
+      /*
+       * These are the controls used to enter a range for the contour levels
+       * The min, max, and number of contours are entered and uniformly 
+       * spaced contours are calculated
+       */
+      String[] minMaxNames = 
+         new String[]{"Minimum", "Maximum", "Number of Levels"};
+      float[] minMaxValues = {minValue, maxValue, numLevels};
+      FieldEntryControl uniformControls = 
+         new FieldEntryControl(minMaxNames, minMaxValues);
+      //set the title (this title will show up in the tabbed pane 
+      //               that this control will be added to)
+      uniformControls.setTitle("Uniform Contours");
+      //set the last value again because its really an int
+      uniformControls.setValue(2,numLevels);
+      uniformControls.setButtonText("Redraw");
+      //enable filtering so that the user can only enter valid data types
+      uniformControls.enableFilter(new FloatFilter(),0);
+      uniformControls.enableFilter(new FloatFilter(),1);
+      uniformControls.enableFilter(new IntegerFilter(),2);
+      //add the action listener for this control
+      uniformControls.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            reloadUniformContourControls();
+         }
+      });
 
-      tabContour = new TabbedContourControl(minValue, maxValue, numLevels, 
-                        levels);
-      if (useManualLevels)
-         tabContour.setVisibleControls(
-               TabbedContourControl.NONUNIFORM_CONTROLS_VISIBLE);
+      return uniformControls;
+   }
+
+   private ControlList generateManualControls(float[] levels)
+   {
+      /*
+       * These are the controls used to manually enter the contour levels.
+       */
+      ControlList manualControls = 
+         new ControlList("Manually Enter Contours",
+               new FloatFilter());
+      //possibly set the initial values in the list
+      if (levels!=null)
+      {
+         Vector vec = new Vector(levels.length);
+         for (int i=0; i<levels.length; i++)
+            vec.add(""+levels[i]);
+         manualControls.setControlValue(vec);
+      }
+      //set the title (this title will show up in the tabbed pane 
+      //               that this control will be added to)
+      manualControls.setTitle("Manual Contours");
+      manualControls.setSubmitButtonText("Redraw");
+      //add an action listener to this control
+      manualControls.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            if (event.getActionCommand().equals(ControlList.SUBMIT_PRESSED))
+               reloadNonUniformContourControls();
+         }
+      });
+
+      return manualControls;
+   }
+   
+   public ControlCheckbox generateAspectRatioCheckbox()
+   {
       /*
        * This is the control used to specify if the aspect ratio should 
        * be preserved.
        */
       aspectRatio = new ControlCheckbox();
       aspectRatio.setText("Preserve Aspect Ratio");
-      aspectRatio.addActionListener(new RedrawListener());
-
-
-      //ControlCheckbox manualBox = 
-      //   new ControlCheckbox("Manually enter contour levels");
-      //manualBox.setSelected(false);
-
-      //these are the controls used to manually specify the levels to use
-      //TODO:  Implement these controls
-
-      controls = new ViewControl[2];
-      controls[0] = tabContour;
-      controls[1] = aspectRatio;
-   }
-   
-   private class RedrawListener implements ActionListener
-   {
-      public void actionPerformed(ActionEvent event)
+      aspectRatio.addActionListener(new ActionListener()
       {
-         if (event.getActionCommand().
-               equals(ControlCheckbox.CHECKBOX_CHANGED))
+         public void actionPerformed(ActionEvent event)
          {
-            contourPanel.setPreserveAspectRatio(aspectRatio.isSelected());
-            contourPanel.repaint();
+            reloadAspectRatioControls();
          }
-      }
+      });
+      
+      return aspectRatio;
    }
    
-   private class TabbedContourControl 
-                                 extends ViewControl 
-                                    implements ActionListener
+   public ButtonControl generateRedrawBothButton()
    {
-      public static final String UNIFORM_CONTROL_KEY = "Uniform Control Key";
-      public static final String NONUNIFORM_CONTROL_KEY = "Manual Control Key";
-      public static final String REDRAW_BOTH_BUTTON_KEY = 
-                                    "Redraw Both Button Key";
-      
-      private final ObjectState default_uniform_control_state = 
-         generateUniformControls(default_min,
-                                 default_max,
-                                 default_num_levels).getObjectState(false);
-      private final ObjectState default_nonuniform_control_state = 
-         generateManualControls(default_manual_levels).getObjectState(false);
-      private final ObjectState default_redraw_both_button_state = 
-         generateRedrawBothButton().getObjectState(false);
-      
-      public static final int UNIFORM_CONTROLS_VISIBLE = 0;
-      public static final int NONUNIFORM_CONTROLS_VISIBLE = 1;
-      
-      private FieldEntryControl uniformControls;
-      private ControlList manualControls;
-      private ButtonControl redrawBothButton;
-      private JTabbedPane tabbedPane;
-      
-      public TabbedContourControl(float minValue, float maxValue, int numLevels,
-                                  float[] levels)
-      {
-         super("Contour Level Specification");
-         setBorderVisible(true);
-         
-         uniformControls = generateUniformControls(minValue,maxValue,numLevels);
-         manualControls = generateManualControls(levels);
-         redrawBothButton = generateRedrawBothButton();
-         
-         setLayout(new BorderLayout());
-         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-          tabbedPane.addTab("Uniform Contours", uniformControls);
-          tabbedPane.addTab("Manual Contours", manualControls);
-         add(tabbedPane, BorderLayout.CENTER);
-         
-         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-          bottomPanel.add(new JLabel("Using both contour specifications:"));
-          bottomPanel.add(redrawBothButton);
-         add(bottomPanel, BorderLayout.SOUTH);
-      }
-      
-      private FieldEntryControl generateUniformControls(float minValue,
-                                                        float maxValue,
-                                                        int numLevels)
-      {
-         /*
-          * These are the controls used to enter a range for the contour levels
-          * The min, max, and number of contours are entered and uniformly 
-          * spaced contours are calculated
-          */
-          String[] minMaxNames = 
-                      new String[]{"Minimum", "Maximum", "Number of Levels"};
-          float[] minMaxValues = {minValue, maxValue, numLevels};
-          FieldEntryControl uniformControls = 
-             new FieldEntryControl(minMaxNames, minMaxValues);
-          //set the last value again because its really an int
-           uniformControls.setValue(2,numLevels);
-          uniformControls.addActionListener(this);
-          uniformControls.setButtonText("Redraw");
-          //enable filtering so that the user can only enter valid data types
-           uniformControls.enableFilter(new FloatFilter(),0);
-           uniformControls.enableFilter(new FloatFilter(),1);
-           uniformControls.enableFilter(new IntegerFilter(),2);
-           
-          return uniformControls;
-      }
-      
-      private ControlList generateManualControls(float[] levels)
-      {
-         /*
-          * These are the controls used to manually enter the contour levels.
-          */
-          manualControls = new ControlList("Manually Enter Contours",
-                                           new FloatFilter());
-          if (levels!=null)
+      ButtonControl control = new ButtonControl("Redraw");
+       control.setBorderVisible(false);
+       control.addActionListener(new ActionListener()
+       {
+          public void actionPerformed(ActionEvent event)
           {
-             Vector vec = new Vector(levels.length);
-             for (int i=0; i<levels.length; i++)
-                vec.add(""+levels[i]);
-             manualControls.setControlValue(vec);
+             reloadAllContourControls();
           }
-          manualControls.setSubmitButtonText("Redraw");
-          manualControls.addActionListener(this);
-          
-          return manualControls;
-      }
+       });
+      return control;
+   }
+   
+   private void initControls(float minValue, float maxValue, int numLevels, 
+         float[] levels, boolean useManualLevels)
+   {
+      FieldEntryControl uniformControls = generateUniformControls(minValue, 
+                                                                  maxValue, 
+                                                                  numLevels);
+      ControlList manualControls = generateManualControls(levels);
       
-      public ButtonControl generateRedrawBothButton()
-      {
-         ButtonControl control = new ButtonControl("Redraw");
-          control.setBorderVisible(false);
-          control.addActionListener(this);
-         return control;
-      }
-      
-      public void setControlValue(Object value)
-      {
-         if ( (value == null) || !(value instanceof Contours) )
-            return;
-         
-         if (value instanceof UniformContours)
-         {
-            UniformContours con = (UniformContours)value;
-            uniformControls.setValue(0,con.getLowestLevel());
-            uniformControls.setValue(1,con.getHighestLevel());
-            uniformControls.setValue(2,con.getNumLevels());
-         }
-         else if (value instanceof NonUniformContours)
-         {
-            float[] levels = ((NonUniformContours)value).getLevels();
-            Vector vec = new Vector(levels.length);
-            for (int i=0; i<levels.length; i++)
-               vec.add(""+levels[i]);
-            manualControls.setControlValue(vec);
-         }
-      }
+      Vector viewControlVec = new Vector();
+        viewControlVec.add(uniformControls);
+        viewControlVec.add(manualControls);
+        
+      tabControl = new TabbedViewControl("", viewControlVec);
+      if (useManualLevels)
+         tabControl.setSelectedTab(manualControls);
 
-      public Object getControlValue()
-      {
-         Component sel = tabbedPane.getSelectedComponent();
-         if (sel==null)
-            return null;
-         else if (sel.equals(uniformControls))
-            return uniformControls.getControlValue();
-         else if (sel.equals(manualControls))
-            return manualControls.getControlValue();
-         else
-            return null;
-      }
-
-      public ViewControl copy()
-      {
-         TabbedContourControl copy = 
-            new TabbedContourControl(default_min,
-                                     default_max,
-                                     default_num_levels,
-                                     default_manual_levels);
-         copy.setObjectState(this.getObjectState(false));
-         return copy;
-      }
+      controls = new ViewControl[3];
+      controls[0] = tabControl;
+      controls[1] = generateRedrawBothButton();
+      controls[2] = generateAspectRatioCheckbox();
+   }
+   
+   private FieldEntryControl getUniformControls()
+   {
+      return (FieldEntryControl)tabControl.getViewControlAt(0);
+   }
+   
+   private ControlList getNonUniformControls()
+   {
+      return (ControlList)tabControl.getViewControlAt(1);
+   }
+   
+   private UniformContours getEnteredUniformContours(String[] errMsg)
+   {
+      if (errMsg==null)
+         System.err.println("Warning:  ContourViewComponent#" +
+                            "TabbedContourControl." +
+                            "getEnteredUniformContours() was given " +
+                            "a null error message array.  Error messages " +
+                            "will not be able to be generated.");
+      else if (errMsg.length < 1)
+         System.err.println("Warning:  ContourViewComponent#"+
+                            "TabbedContourControl." +
+                            "getEnteredUniformContours() was given " +
+                            "an error message array with an invalid " +
+                            "length (i.e. less than 1).");
       
-      public ObjectState getObjectState( boolean isDefault )
-      {
-         ObjectState state = super.getObjectState(isDefault);
-          state.insert(UNIFORM_CONTROL_KEY, 
-                       uniformControls.getObjectState(isDefault));
-          state.insert(NONUNIFORM_CONTROL_KEY, 
-                       manualControls.getObjectState(isDefault));
-         return state;
-      }
+      FieldEntryControl uniformControls = getUniformControls();
+      float min = uniformControls.getFloatValue(0);
+      float max = uniformControls.getFloatValue(1);
+      int numLevels = (int)uniformControls.getFloatValue(2);
       
-      public void setObjectState( ObjectState state )
+      UniformContours contours = null;
+      try
       {
-         Object val = state.get(UNIFORM_CONTROL_KEY);
-         if (val!=null)
-            uniformControls.setObjectState((ObjectState)val);
-         
-         val = state.get(NONUNIFORM_CONTROL_KEY);
-         if (val!=null)
-            manualControls.setObjectState((ObjectState)val);
+         contours = new UniformContours(min, max, numLevels);
+         if (errMsg!=null && errMsg.length>0)
+            errMsg[0] = null;
       }
-      
-      //----------------------=[ Extra Methods ]=-----------------------------
-      public void setVisibleControls(int code)
+      catch (IllegalArgumentException e)
       {
-         if (code==UNIFORM_CONTROLS_VISIBLE)
-            tabbedPane.setSelectedComponent(uniformControls);
-         else if (code==NONUNIFORM_CONTROLS_VISIBLE)
-            tabbedPane.setSelectedComponent(manualControls);
+         contours = null;
+         if (errMsg!=null && errMsg.length>0)
+            errMsg[0] = e.getMessage();
       }
-      
-      private float getEnteredLowestLevel()
+      return contours;
+   }
+   
+   private float[] getEnteredLevels()
+   {
+      Object[] obArr = (Object[])getNonUniformControls().getControlValue();
+      float[] floatArr = new float[obArr.length];
+      int numValid = 0;
+      for (int i=0; i<obArr.length; i++)
       {
-         return uniformControls.getFloatValue(0);
-      }
-      
-      private float getEnteredHighestLevel()
-      {
-         return uniformControls.getFloatValue(1);
-      }
-      
-      private int getEnteredNumLevels()
-      {
-         return (int)uniformControls.getFloatValue(2);
-      }
-      
-      private UniformContours getEnteredUniformContours(String[] errMsg)
-      {
-         if (errMsg==null)
-            System.err.println("Warning:  ContourViewComponent#" +
-                               "TabbedContourControl." +
-                               "getEnteredUniformContours() was given " +
-                               "a null error message array.  Error messages " +
-                               "will not be able to be generated.");
-         else if (errMsg.length < 1)
-            System.err.println("Warning:  ContourViewComponent#"+
-                               "TabbedContourControl." +
-                               "getEnteredUniformContours() was given " +
-                               "an error message array with an invalid " +
-                               "length (i.e. less than 1).");
-         
-         float min = getEnteredLowestLevel();
-         float max = getEnteredHighestLevel();
-         int numLevels = getEnteredNumLevels();
-         
-         UniformContours contours = null;
          try
          {
-            contours = new UniformContours(min, max, numLevels);
-            if (errMsg!=null && errMsg.length>0)
-               errMsg[0] = null;
+            floatArr[numValid++] = Float.parseFloat(obArr[i].toString());
          }
-         catch (IllegalArgumentException e)
+         catch (NumberFormatException e)
          {
-            contours = null;
-            if (errMsg!=null && errMsg.length>0)
-               errMsg[0] = e.getMessage();
+            SharedData.addmsg("warning:  The contour level "+
+                               obArr[i].toString()+" is not a proper " +
+                               "floating point number and will be " +
+                               "ignored");
          }
-         return contours;
       }
       
-      private float[] getEnteredLevels()
+      float[] validArr;
+      if (numValid<obArr.length)
       {
-         Object[] obArr = (Object[])manualControls.getControlValue();
-         float[] floatArr = new float[obArr.length];
-         int numValid = 0;
-         for (int i=0; i<obArr.length; i++)
-         {
-            try
-            {
-               floatArr[numValid++] = Float.parseFloat(obArr[i].toString());
-            }
-            catch (NumberFormatException e)
-            {
-               SharedData.addmsg("warning:  The contour level "+
-                                  obArr[i].toString()+" is not a proper " +
-                                  "floating point number and will be " +
-                                  "ignored");
-            }
-         }
-         
-         float[] validArr;
-         if (numValid<obArr.length)
-         {
-            validArr = new float[numValid];
-            System.arraycopy(floatArr,0,validArr,0,numValid);
-         }
-         else
-            validArr = floatArr;
-         
-         if (validArr.length==0)
-            return null;
-         else
-            return validArr;
+         validArr = new float[numValid];
+         System.arraycopy(floatArr,0,validArr,0,numValid);
       }
+      else
+         validArr = floatArr;
       
-      private NonUniformContours getEnteredNonUniformContours(String[] errMsg)
-      {
-         if (errMsg==null)
-            System.err.println("Warning:  ContourViewComponent#" +
-                               "TabbedContourControl." +
-                               "getEnteredNonUniformContours() was given " +
-                               "a null error message array.  Error messages " +
-                               "will not be able to be generated.");
-         else if (errMsg.length < 1)
-            System.err.println("Warning:  ContourViewComponent#"+
-                               "TabbedContourControl." +
-                               "getEnteredNonUniformContours() was given " +
-                               "an error message array with an invalid " +
-                               "length (i.e. less than 1).");
-            
-         float[] levels = getEnteredLevels();
+      if (validArr.length==0)
+         return null;
+      else
+         return validArr;
+   }
+   
+   private NonUniformContours getEnteredNonUniformContours(String[] errMsg)
+   {
+      if (errMsg==null)
+         System.err.println("Warning:  ContourViewComponent#" +
+                            "TabbedContourControl." +
+                            "getEnteredNonUniformContours() was given " +
+                            "a null error message array.  Error messages " +
+                            "will not be able to be generated.");
+      else if (errMsg.length < 1)
+         System.err.println("Warning:  ContourViewComponent#"+
+                            "TabbedContourControl." +
+                            "getEnteredNonUniformContours() was given " +
+                            "an error message array with an invalid " +
+                            "length (i.e. less than 1).");
          
-         NonUniformContours contours = null;
-         try
-         {
-            contours = new NonUniformContours(levels);
-            if (errMsg!=null && errMsg.length>=0)
-               errMsg[0] = null;
-         }
-         catch (IllegalArgumentException e)
-         {
-            contours = null;
-            if (errMsg!=null && errMsg.length>=0)
-               errMsg[0] = e.getMessage();
-         }
-         return contours;
-      }
+      float[] levels = getEnteredLevels();
       
-      public void actionPerformed(ActionEvent event)
+      NonUniformContours contours = null;
+      try
       {
-         if (event.getActionCommand().equals(FieldEntryControl.BUTTON_PRESSED))
-         {
-            String[] errMsg = new String[1];
-            UniformContours contours = getEnteredUniformContours(errMsg);
-            if (contours!=null)
-               contourPanel.setContours(contours);
-            else
-            {
-               if (errMsg[0]!=null)
-                  SharedData.addmsg(errMsg[0]);
-            }
-         }
-         else if (event.getActionCommand().equals(ControlList.SUBMIT_PRESSED))
-         {
-            String[] errMsg = new String[1];
-            NonUniformContours contours = getEnteredNonUniformContours(errMsg);
-            if (contours!=null)
-               contourPanel.setContours(contours);
-            else
-            {
-               if (errMsg[0]!=null)
-                  SharedData.addmsg(errMsg[0]);
-            }
-         }
-         else if (event.getActionCommand().equals(IViewControl.BUTTON_PRESSED))
-         {
-            String[] uniformErrMsg = new String[1];
-            UniformContours uniformControls = 
-               getEnteredUniformContours(uniformErrMsg);
-            
-            String[] nonuniformErrMsg = new String[2];
-            NonUniformContours nonuniformControls = 
-               getEnteredNonUniformContours(nonuniformErrMsg);
-            
-            if (uniformControls==null && uniformErrMsg[0]!=null)
-                  SharedData.addmsg(uniformErrMsg[0]);
-            
-            if (nonuniformControls==null && !manualControls.isEmpty() && 
-                     nonuniformErrMsg[0]!=null)
-                  SharedData.addmsg(nonuniformErrMsg[0]);
-               
-            contourPanel.setContours(new MixedContours(uniformControls,
-                                                       nonuniformControls));
-         }
+         contours = new NonUniformContours(levels);
+         if (errMsg!=null && errMsg.length>=0)
+            errMsg[0] = null;
       }
+      catch (IllegalArgumentException e)
+      {
+         contours = null;
+         if (errMsg!=null && errMsg.length>=0)
+            errMsg[0] = e.getMessage();
+      }
+      return contours;
+   }
+   
+   private void reloadAspectRatioControls()
+   {
+      contourPanel.setPreserveAspectRatio(aspectRatio.isSelected());
+      contourPanel.repaint();
+   }
+   
+   private void reloadUniformContourControls()
+   {
+      String[] errMsg = new String[1];
+      UniformContours contours = getEnteredUniformContours(errMsg);
+      if (contours!=null)
+         contourPanel.setContours(contours);
+      else
+      {
+         if (errMsg[0]!=null)
+            SharedData.addmsg(errMsg[0]);
+      }
+   }
+   
+   private void reloadNonUniformContourControls()
+   {
+      String[] errMsg = new String[1];
+      NonUniformContours contours = getEnteredNonUniformContours(errMsg);
+      if (contours!=null)
+         contourPanel.setContours(contours);
+      else
+      {
+         if (errMsg[0]!=null)
+            SharedData.addmsg(errMsg[0]);
+      }
+   }
+   
+   private void reloadAllContourControls()
+   {
+      String[] uniformErrMsg = new String[1];
+      UniformContours uniformControls = 
+         getEnteredUniformContours(uniformErrMsg);
+      
+      String[] nonuniformErrMsg = new String[2];
+      NonUniformContours nonuniformControls = 
+         getEnteredNonUniformContours(nonuniformErrMsg);
+      
+      if (uniformControls==null && uniformErrMsg[0]!=null)
+            SharedData.addmsg(uniformErrMsg[0]);
+      
+      if (nonuniformControls==null && 
+            !getNonUniformControls().isEmpty() && 
+               nonuniformErrMsg[0]!=null)
+            SharedData.addmsg(nonuniformErrMsg[0]);
+         
+      contourPanel.setContours(new MixedContours(uniformControls,
+                                                 nonuniformControls));
    }
 }
