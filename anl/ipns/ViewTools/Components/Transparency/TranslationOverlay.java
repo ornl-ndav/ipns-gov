@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2005/06/14 13:59:51  kramer
+ *  Added setXORMode(Color.gray) in the paint() method so that the pane
+ *  cursor is XOR rendered in the same way the other cursors are.
+ *
  *  Revision 1.16  2005/05/25 20:28:34  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -100,6 +104,7 @@
 
 package gov.anl.ipns.ViewTools.Components.Transparency;
 
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.Graphics;
 import java.awt.GridLayout;
@@ -231,6 +236,7 @@ public class TranslationOverlay extends OverlayJPanel
   public void paint(Graphics g)
   {
     super.paint(g);
+    g.setXORMode(Color.gray);
     g.drawRect( (int)viewport.getX1(), (int)viewport.getY1(),
                 (int)viewport.getX2() - (int)viewport.getX1(),
 		(int)viewport.getY2() - (int)viewport.getY1() );
