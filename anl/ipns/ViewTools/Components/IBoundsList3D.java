@@ -29,7 +29,16 @@
  * number DMR-0218882.
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ *  Modified:
+ *
+ *  $Log$
+ *  Revision 1.2  2005/06/14 14:20:38  cjones
+ *  Added 'Modified' line and package statements.
+ * 
  */
+ 
+package gov.anl.ipns.ViewTools.Components; 
 
 import gov.anl.ipns.MathTools.Geometry.Vector3D;
 

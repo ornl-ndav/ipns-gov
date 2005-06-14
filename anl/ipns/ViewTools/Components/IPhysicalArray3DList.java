@@ -29,7 +29,16 @@
  * number DMR-0218882.
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ *  Modified:
+ *
+ *  $Log$
+ *  Revision 1.2  2005/06/14 14:20:41  cjones
+ *  Added 'Modified' line and package statements.
+ * 
  */
+ 
+package gov.anl.ipns.ViewTools.Components; 
 
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.MathTools.Geometry.Vector3D;
@@ -79,11 +88,12 @@ public interface IPhysicalArray3DList extends ISparseArray3DList, IBoundsList3D
   *  @param  y_axis  The direction of rotated Y axis.
   *  @param  values  Values over all frames for
   *                  given point.
-  *  @return The point index number for the data point.
+  *  @throws IndexOutOfBoundsException If index range goes outside 
+  *          of valid range of indices: 0...getNumPoints().
   *  @throws IllegalArgumentException If given values array is 
   *          smaller than specified range.
   */
-  public int set( int point_index, Vector3D point, 
+  public void set( int point_index, Vector3D point, 
                   Vector3D extents, 
                   Vector3D x_axis, 
                   Vector3D y_axis, 
@@ -98,14 +108,14 @@ public interface IPhysicalArray3DList extends ISparseArray3DList, IBoundsList3D
   *  @param  extents The extents for x, y, and z.
   *  @param  x_axis  The direction of rotated X axis.
   *  @param  y_axis  The direction of rotated Y axis.
-  *  @return The point index number for the data point.
+  *  @throws IndexOutOfBoundsException If index range goes outside 
+  *          of valid range of indices: 0...getNumPoints().
   */
-  public int set( int point_index, Vector3D point,
+  public void set( int point_index, Vector3D point,
                   Vector3D extents, 
                   Vector3D x_axis, 
                   Vector3D y_axis);
 	
-  
  /**
   * Get minimum distance from the origin for each
   * direction x, y, and z. The distance is deterimined

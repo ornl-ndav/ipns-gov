@@ -29,7 +29,16 @@
  * number DMR-0218882.
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ *  Modified:
+ *
+ *  $Log$
+ *  Revision 1.2  2005/06/14 14:20:40  cjones
+ *  Added 'Modified' line and package statements.
+ * 
  */
+
+package gov.anl.ipns.ViewTools.Components; 
 
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.MathTools.Geometry.Vector3D;
@@ -77,9 +86,10 @@ public interface IPhysicalArray3D extends ISparseArray3D, IBoundsList3D
   *  @param  x_axis  The direction of rotated X axis.
   *  @param  y_axis  The direction of rotated Y axis.
   *  @param  value   Value that element will be set to.
-  *  @return The index number for the data point.
+  *  @throws IndexOutOfBoundsException If index range goes outside 
+  *          of valid range of indices: 0...getNumPoints().
   */
-  public int set( int index, Vector3D point,
+  public void set( int index, Vector3D point,
                   Vector3D extents, 
                   Vector3D x_axis, 
                   Vector3D y_axis, 
@@ -94,9 +104,10 @@ public interface IPhysicalArray3D extends ISparseArray3D, IBoundsList3D
   *  @param  extents The extents for x, y, and z.
   *  @param  x_axis  The direction of rotated X axis.
   *  @param  y_axis  The direction of rotated Y axis.
-  *  @return The index number for the data point.
+  *  @throws IndexOutOfBoundsException If index range goes outside 
+  *          of valid range of indices: 0...getNumPoints().
   */
-  public int set( int index, Vector3D point,
+  public void set( int index, Vector3D point,
                   Vector3D extents, 
                   Vector3D x_axis, 
                   Vector3D y_axis);
