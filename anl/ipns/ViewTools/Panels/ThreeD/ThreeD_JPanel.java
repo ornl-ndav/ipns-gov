@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.22  2005/06/14 23:35:17  dennis
+ * Now checks that the graphics object is not null in update()
+ * and paint() methods.
+ *
  * Revision 1.21  2004/05/06 18:58:48  dennis
  * The setObject() method now makes a new list containing references
  * to the 3D objects and stores the new list in it's hash table.
@@ -187,7 +191,7 @@ public class ThreeD_JPanel extends    CoordJPanel
         timer.reset();
       }
 
-      if ( !isVisible() )
+      if ( !isVisible() || g == null )
         return;
 
       int width = (int)getWidth();
@@ -236,7 +240,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
   public void paint( Graphics g )
   {
-    if ( !isVisible() )
+    if ( !isVisible() || g == null )
       return;
 
     int width = (int)getWidth();
