@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2005/06/15 14:23:19  kramer
+ * Fixed a malformed @see javadoc tag.
+ *
  * Revision 1.4  2005/06/08 22:07:47  kramer
+ *
  * Made the error messages for user friendly.
  *
  * Revision 1.3  2005/06/08 17:24:52  kramer
@@ -96,7 +100,7 @@ public class UniformContours extends Contours
     * @param i The index referencing the contour level whose "elevation" is 
     *          to be returned.  This should be in the range 
     *          [0,{@link Contours#getNumLevels() Contours.getNumLevels()}).
-    * @see {@link Contours#getLevelAt(int) Contours.getLevelAt(int)}.
+    * @see Contours#getLevelAt(int)
     */
    public float getLevelAt(int i)
    {
