@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2005/06/15 14:26:05  kramer
+ * Fixed a @param javadoc tag that didn't state the name of the parameter.
+ *
  * Revision 1.4  2005/06/08 22:09:37  kramer
+ *
  * Made the error messages encapsulated in IllegalArgumentExceptions thrown
  * by the constructor more user friendly.
  *
@@ -74,9 +78,9 @@ public class NonUniformContours extends Contours
    /**
     * Get the value of the <code>ith</code> contour level.
     * 
-    * @param The index of the contour level to reference.  For <code>i</code> 
-    *        to be valid, it must be in the range 
-    *        [0,{@link Contours#getNumLevels() Contours.getNumLevels()}).
+    * @param i The index of the contour level to reference.  For <code>i</code> 
+    *          to be valid, it must be in the range 
+    *          [0,{@link Contours#getNumLevels() Contours.getNumLevels()}).
     * @return The value of the <code>ith</code> contour level or 
     *         {@link Float#NaN Float.NaN} if <code>i</code> is invalid.
     * @see Contours#getLevelAt(int)
