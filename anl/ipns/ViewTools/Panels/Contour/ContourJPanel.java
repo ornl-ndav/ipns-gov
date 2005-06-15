@@ -1,8 +1,43 @@
 /*
- * Created on Apr 12, 2005
+ * File: ContourJPanel.java
  *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * Copyright (C) 2005, Dominic Kramer
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Primary   Dominic Kramer <kramerd@uwstout.edu>
+ * Contact:  Student Developer, University of Wisconsin-Stout
+ *           
+ * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
+ *           Department of Mathematics, Statistics and Computer Science
+ *           University of Wisconsin-Stout
+ *           Menomonie, WI 54751, USA
+ *
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0218882, and by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ * Modified:
+ * $Log$
+ * Revision 1.7  2005/06/15 21:38:31  kramer
+ * Added the GNU GPL preamble to the file.  Also, now when the user zooms
+ * in on a region, the contour labels are drawn in the region (most of the
+ * time).  Some fixes still need to be done.
+ *
  */
 package gov.anl.ipns.ViewTools.Panels.Contour;
 
@@ -198,6 +233,18 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //this stores the square of the minimum gradient
         float minGradSqr;
         
+      //these are the minimum and maximum x and y indices in the array 
+      //that can be accessed and still be in the current view window
+      //(all of the data may not be in the view window if the user has 
+      // zoomed in on some portion of the data).  Note that the values are 
+      // inclusize (i.e. arr[xMaxIndex][yMaxIndex] can legally be accessed).
+        int xMinIndex = getXIndexFromPixel(0, rcToGlobal, arr.length);
+        int xMaxIndex = getXIndexFromPixel(getWidth(), rcToGlobal, arr.length);
+        
+        int yMinIndex = getYIndexFromPixel(0, rcToGlobal, arr[0].length);
+        int yMaxIndex = getYIndexFromPixel(getHeight(), rcToGlobal, 
+                                           arr[0].length);
+        
       //for each level draw the contour
       for (int i=0; i<levels.getNumLevels(); i++)
       {
@@ -235,7 +282,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
               int yIndex = (int)curPt.y;
               if ( xIndex>=0 && xIndex<arr.length && 
                    yIndex>=0 && yIndex<arr[xIndex].length && 
-                   xIndex+1<arr.length && yIndex<arr[xIndex+1].length)
+                   xIndex+1<arr.length && yIndex<arr[xIndex+1].length && 
+                   xIndex>=xMinIndex && xIndex<xMaxIndex &&
+                   yIndex>=yMinIndex && yIndex<yMaxIndex)
               {
                  float Fx = arr[xIndex+1][yIndex] - arr[xIndex][yIndex];
                  if ( yIndex+1<arr[xIndex].length )
@@ -336,6 +385,48 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                         (int)(yCorners[1]-yCorners[0]));
          */
       }
+   }
+   
+   private int getXIndexFromPixel(float px, CoordTransform rcToGlobal, 
+                                  int maxIndex)
+   {
+      //map the pixel value from pixel to world coordinates
+      //(using the local_transform transformation)
+      //then using the rcToGlobal transformation, map the pixel coordinate 
+      //to the correct column
+      float pseudoIndex = rcToGlobal.MapXFrom(local_transform.MapXFrom(px));
+      return getValidIndex(pseudoIndex, maxIndex);
+   }
+
+   private int getYIndexFromPixel(float px, CoordTransform rcToGlobal, 
+                                  int maxIndex)
+   {
+      //map the pixel value from pixel to world coordinates
+      //(using the local_transform transformation)
+      //then using the rcToGlobal transformation, map the pixel coordinate 
+      //to the correct row
+      float pseudoIndex = rcToGlobal.MapYFrom(local_transform.MapYFrom(px));
+      return getValidIndex(pseudoIndex, maxIndex);
+   }
+
+   private int getValidIndex(float pseudoIndex, int maxIndex)
+   {
+      //check if the index found is already an integer.
+      //if it isn't round up
+      int index;
+      if ( (pseudoIndex-(int)pseudoIndex)==0 )
+         index = (int)pseudoIndex;
+      else
+         index = (int)pseudoIndex+1;
+      
+      //if the index is out of bounds 
+      //change it so that it is back in bounds
+      if (index<0)
+         index = 0;
+      else if (index>=maxIndex)
+         index = maxIndex-1;
+
+      return index;
    }
    
    /**
