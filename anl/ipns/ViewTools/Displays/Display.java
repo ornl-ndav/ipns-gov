@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2005/06/15 21:25:13  rmikk
+ * No longer destroys the whole program when exit is selected from the
+ *   File Menu
+ *
  * Revision 1.12  2005/02/11 23:42:42  millermi
  * - Made removal of menu items more robust. See code for
  *   removeComponentMenuItems() for more details.
@@ -422,7 +426,7 @@ abstract public class Display extends JFrame implements IPreserveState,
       {
 	this_viewer.dispose();
 	System.gc();
-	System.exit(0);
+	//System.exit(0);
       }
     }
   }
