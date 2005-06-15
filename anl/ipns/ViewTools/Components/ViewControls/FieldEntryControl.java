@@ -34,7 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2005/06/15 14:19:34  kramer
+ *  Modified the method enableFilter(StringFilter) in the inner class
+ *  FilteredTextField to use 'this.addKeyListener(...)' and
+ *  'this.removeKeyListener(....)' so that the specific methods of
+ *  java.awt.Component (and not the enclosing class) are used.
+ *
  *  Revision 1.19  2005/06/13 19:56:27  kramer
+ *
  *  Modified the setControlValue(Object) method so that if the first element
  *  of the String array given to the method is 'null' the method does not
  *  look for the currently selected radio button but instead sets the values
@@ -1344,9 +1351,12 @@ public class FieldEntryControl extends ViewControl
      {
         this.filter = filter;
         if (filter!=null)
-           addKeyListener(this);
+           this.addKeyListener(this);
         else
-           removeKeyListener(this);
+           this.removeKeyListener(this);
+        //Note:  this.<method name> is explicitly used here to ensure that 
+        //       the method from this inner class's superclass is used and 
+        //       not the method from the enclosing class
      }
      
      /**
