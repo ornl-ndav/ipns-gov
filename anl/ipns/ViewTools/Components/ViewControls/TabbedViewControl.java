@@ -1,5 +1,5 @@
 /*
- * File: TabbedViewComponent.java
+ * File: TabbedViewControl.java
  *
  * Copyright (C) 2005, Dominic Kramer
  *
@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/06/16 13:49:25  kramer
+ * Added methods to get the selected tab and to get the ViewControl on the
+ * selected tab.
+ *
  * Revision 1.2  2005/06/14 21:19:15  kramer
+ *
  * Added methods to set the selected tab (given its index or the ViewControl
  * on the tab).
  *
@@ -495,6 +500,27 @@ public class TabbedViewControl extends ViewControl
    public void setSelectedTab(ViewControl control)
    {
       setSelectedTab(getIndexForViewControl(control));
+   }
+   
+   /**
+    * Used to determine which tab is selected.
+    * 
+    * @return The index of the selected tab or -1 if no tabs are selected.
+    */
+   public int getSelectedTab()
+   {
+      return tabPane.getSelectedIndex();
+   }
+   
+   /**
+    * Used to get the ViewControl located on the selected tab.
+    * 
+    * @return The ViewControl on the selected tab or <code>null</code> if 
+    *         no tabs are selected.
+    */
+   public ViewControl getSelectedViewControl()
+   {
+      return getViewControlAt(getSelectedTab());
    }
    
    /**
