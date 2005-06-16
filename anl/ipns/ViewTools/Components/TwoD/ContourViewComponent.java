@@ -1,29 +1,55 @@
 /*
- * Created on Apr 11, 2005
+ * File: ContourViewComponent.java
  *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
+ * Copyright (C) 2005, Dominic Kramer
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Primary   Dominic Kramer <kramerd@uwstout.edu>
+ * Contact:  Student Developer, University of Wisconsin-Stout
+ *           
+ * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
+ *           Department of Mathematics, Statistics and Computer Science
+ *           University of Wisconsin-Stout
+ *           Menomonie, WI 54751, USA
+ *
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0218882, and by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ * Modified:
+ * $Log$
+ * Revision 1.6  2005/06/16 13:45:31  kramer
+ * Modified to use the CompositeContourControl as the control for entering
+ * the levels to plot.
+ *
  */
 package gov.anl.ipns.ViewTools.Components.TwoD;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
-import gov.anl.ipns.Util.StringFilter.FloatFilter;
-import gov.anl.ipns.Util.StringFilter.IntegerFilter;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
-import gov.anl.ipns.ViewTools.Components.ViewControls.ButtonControl;
+import gov.anl.ipns.ViewTools.Components.ViewControls.CompositeContourControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckbox;
-import gov.anl.ipns.ViewTools.Components.ViewControls.ControlList;
-import gov.anl.ipns.ViewTools.Components.ViewControls.FieldEntryControl;
-import gov.anl.ipns.ViewTools.Components.ViewControls.TabbedViewControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
-import gov.anl.ipns.ViewTools.Panels.Contour.Contours.MixedContours;
-import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
-import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,39 +58,43 @@ import java.util.Vector;
 
 import javax.swing.JPanel;
 
-import DataSetTools.util.SharedData;
-
 /**
  * 
  */
 public class ContourViewComponent implements IViewComponent2D, Serializable
 {
-   private static final float   default_min = 0;
-   private static final float   default_max = 10;
-   private static final int     default_num_levels = 11;
-   private static final float[] default_manual_levels = new float[0];
+   public static final String CONTOUR_CONTROLS_KEY = "Contour controls key";
+   public static final String ASPECT_RATIO_KEY = "Aspect ratio key";
    
-   private IVirtualArray2D dataArray;
+   private static final boolean DEFAULT_PRESERVE_ASPECT_RATIO = false;
+   
+   public static final float   DEFAULT_LOWEST_CONTOUR = 0;
+   public static final float   DEFAULT_HIGHEST_CONTOUR = 10;
+   public static final int     DEFAULT_NUM_CONTOURS = 11;
+   public static final float[] DEFAULT_MANUAL_LEVELS = new float[0];
+   
    /** The Vector of ActionListener associated with this component. */
    private Vector listenerVec;
    private ContourJPanel contourPanel;
    private ViewControl[] controls;
    
-   private TabbedViewControl tabControl;
+   private CompositeContourControl contourControl;
    private ControlCheckbox aspectRatio;
    
    public ContourViewComponent(IVirtualArray2D arr)
    {
-      this.dataArray = arr;
       this.listenerVec = new Vector();
       this.contourPanel = new ContourJPanel(arr,
-                                            default_min,
-                                            default_max,
-                                            default_num_levels);
+                                            DEFAULT_LOWEST_CONTOUR,
+                                            DEFAULT_HIGHEST_CONTOUR,
+                                            DEFAULT_NUM_CONTOURS);
       
       //now to build the controls
-        initControls(default_min, default_max, default_num_levels, 
-                      default_manual_levels, false);
+        initControls(DEFAULT_LOWEST_CONTOUR, 
+                     DEFAULT_HIGHEST_CONTOUR, 
+                     DEFAULT_NUM_CONTOURS, 
+                     DEFAULT_MANUAL_LEVELS, 
+                     false);
    }
    
    public ContourViewComponent(IVirtualArray2D arr, 
@@ -75,7 +105,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       
       //now to build the controls
         initControls(minValue, maxValue, numLevels, 
-                      default_manual_levels, false);
+                      DEFAULT_MANUAL_LEVELS, false);
    }
    
    public ContourViewComponent(IVirtualArray2D arr, 
@@ -85,7 +115,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       this.contourPanel = new ContourJPanel(arr,levels);
       
       //now to build the controls
-        initControls(default_min, default_max, default_num_levels,
+        initControls(DEFAULT_LOWEST_CONTOUR, DEFAULT_HIGHEST_CONTOUR, DEFAULT_NUM_CONTOURS,
                       levels, true);
    }
    
@@ -105,15 +135,31 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       setObjectState(state);
    }
    
-   public void setObjectState(ObjectState new_state)
+   public void setObjectState(ObjectState state)
    {
+      if (state==null)
+         return;
       
+      Object val = state.get(CONTOUR_CONTROLS_KEY);
+      if (val!=null)
+         contourControl.setObjectState((ObjectState)val);
+      
+      val = state.get(ASPECT_RATIO_KEY);
+      if (val!=null)
+         aspectRatio.setSelected( ((Boolean)val).booleanValue() ); 
    }
 
    public ObjectState getObjectState(boolean is_default)
    {
       ObjectState state = new ObjectState();
-       
+        state.insert(CONTOUR_CONTROLS_KEY, 
+                     contourControl.getObjectState(is_default));
+        
+        boolean useAspectRatio = DEFAULT_PRESERVE_ASPECT_RATIO;
+        if (!is_default)
+           useAspectRatio = aspectRatio.isSelected();
+        
+        state.insert(ASPECT_RATIO_KEY, new Boolean(useAspectRatio));
       return state;
    }
 
@@ -236,74 +282,9 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       return new VirtualArray2D(dataArray);
    }
    
-   private FieldEntryControl generateUniformControls(float minValue,
-         float maxValue,
-         int numLevels)
-   {
-      /*
-       * These are the controls used to enter a range for the contour levels
-       * The min, max, and number of contours are entered and uniformly 
-       * spaced contours are calculated
-       */
-      String[] minMaxNames = 
-         new String[]{"Minimum", "Maximum", "Number of Levels"};
-      float[] minMaxValues = {minValue, maxValue, numLevels};
-      FieldEntryControl uniformControls = 
-         new FieldEntryControl(minMaxNames, minMaxValues);
-      //set the title (this title will show up in the tabbed pane 
-      //               that this control will be added to)
-      uniformControls.setTitle("Uniform Contours");
-      //set the last value again because its really an int
-      uniformControls.setValue(2,numLevels);
-      uniformControls.setButtonText("Redraw");
-      //enable filtering so that the user can only enter valid data types
-      uniformControls.enableFilter(new FloatFilter(),0);
-      uniformControls.enableFilter(new FloatFilter(),1);
-      uniformControls.enableFilter(new IntegerFilter(),2);
-      //add the action listener for this control
-      uniformControls.addActionListener(new ActionListener()
-      {
-         public void actionPerformed(ActionEvent event)
-         {
-            reloadUniformContourControls();
-         }
-      });
+   
 
-      return uniformControls;
-   }
-
-   private ControlList generateManualControls(float[] levels)
-   {
-      /*
-       * These are the controls used to manually enter the contour levels.
-       */
-      ControlList manualControls = 
-         new ControlList("Manually Enter Contours",
-               new FloatFilter());
-      //possibly set the initial values in the list
-      if (levels!=null)
-      {
-         Vector vec = new Vector(levels.length);
-         for (int i=0; i<levels.length; i++)
-            vec.add(""+levels[i]);
-         manualControls.setControlValue(vec);
-      }
-      //set the title (this title will show up in the tabbed pane 
-      //               that this control will be added to)
-      manualControls.setTitle("Manual Contours");
-      manualControls.setSubmitButtonText("Redraw");
-      //add an action listener to this control
-      manualControls.addActionListener(new ActionListener()
-      {
-         public void actionPerformed(ActionEvent event)
-         {
-            if (event.getActionCommand().equals(ControlList.SUBMIT_PRESSED))
-               reloadNonUniformContourControls();
-         }
-      });
-
-      return manualControls;
-   }
+   
    
    public ControlCheckbox generateAspectRatioCheckbox()
    {
@@ -324,207 +305,25 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       return aspectRatio;
    }
    
-   public ButtonControl generateRedrawBothButton()
-   {
-      ButtonControl control = new ButtonControl("Redraw");
-       control.setBorderVisible(false);
-       control.addActionListener(new ActionListener()
-       {
-          public void actionPerformed(ActionEvent event)
-          {
-             reloadAllContourControls();
-          }
-       });
-      return control;
-   }
+   
    
    private void initControls(float minValue, float maxValue, int numLevels, 
          float[] levels, boolean useManualLevels)
    {
-      FieldEntryControl uniformControls = generateUniformControls(minValue, 
-                                                                  maxValue, 
-                                                                  numLevels);
-      ControlList manualControls = generateManualControls(levels);
-      
-      Vector viewControlVec = new Vector();
-        viewControlVec.add(uniformControls);
-        viewControlVec.add(manualControls);
-        
-      tabControl = new TabbedViewControl("", viewControlVec);
-      if (useManualLevels)
-         tabControl.setSelectedTab(manualControls);
+      contourControl = 
+         new CompositeContourControl(contourPanel, 
+                                     minValue, maxValue, numLevels, 
+                                     levels, 
+                                     false);
 
-      controls = new ViewControl[3];
-      controls[0] = tabControl;
-      controls[1] = generateRedrawBothButton();
-      controls[2] = generateAspectRatioCheckbox();
-   }
-   
-   private FieldEntryControl getUniformControls()
-   {
-      return (FieldEntryControl)tabControl.getViewControlAt(0);
-   }
-   
-   private ControlList getNonUniformControls()
-   {
-      return (ControlList)tabControl.getViewControlAt(1);
-   }
-   
-   private UniformContours getEnteredUniformContours(String[] errMsg)
-   {
-      if (errMsg==null)
-         System.err.println("Warning:  ContourViewComponent#" +
-                            "TabbedContourControl." +
-                            "getEnteredUniformContours() was given " +
-                            "a null error message array.  Error messages " +
-                            "will not be able to be generated.");
-      else if (errMsg.length < 1)
-         System.err.println("Warning:  ContourViewComponent#"+
-                            "TabbedContourControl." +
-                            "getEnteredUniformContours() was given " +
-                            "an error message array with an invalid " +
-                            "length (i.e. less than 1).");
-      
-      FieldEntryControl uniformControls = getUniformControls();
-      float min = uniformControls.getFloatValue(0);
-      float max = uniformControls.getFloatValue(1);
-      int numLevels = (int)uniformControls.getFloatValue(2);
-      
-      UniformContours contours = null;
-      try
-      {
-         contours = new UniformContours(min, max, numLevels);
-         if (errMsg!=null && errMsg.length>0)
-            errMsg[0] = null;
-      }
-      catch (IllegalArgumentException e)
-      {
-         contours = null;
-         if (errMsg!=null && errMsg.length>0)
-            errMsg[0] = e.getMessage();
-      }
-      return contours;
-   }
-   
-   private float[] getEnteredLevels()
-   {
-      Object[] obArr = (Object[])getNonUniformControls().getControlValue();
-      float[] floatArr = new float[obArr.length];
-      int numValid = 0;
-      for (int i=0; i<obArr.length; i++)
-      {
-         try
-         {
-            floatArr[numValid++] = Float.parseFloat(obArr[i].toString());
-         }
-         catch (NumberFormatException e)
-         {
-            SharedData.addmsg("warning:  The contour level "+
-                               obArr[i].toString()+" is not a proper " +
-                               "floating point number and will be " +
-                               "ignored");
-         }
-      }
-      
-      float[] validArr;
-      if (numValid<obArr.length)
-      {
-         validArr = new float[numValid];
-         System.arraycopy(floatArr,0,validArr,0,numValid);
-      }
-      else
-         validArr = floatArr;
-      
-      if (validArr.length==0)
-         return null;
-      else
-         return validArr;
-   }
-   
-   private NonUniformContours getEnteredNonUniformContours(String[] errMsg)
-   {
-      if (errMsg==null)
-         System.err.println("Warning:  ContourViewComponent#" +
-                            "TabbedContourControl." +
-                            "getEnteredNonUniformContours() was given " +
-                            "a null error message array.  Error messages " +
-                            "will not be able to be generated.");
-      else if (errMsg.length < 1)
-         System.err.println("Warning:  ContourViewComponent#"+
-                            "TabbedContourControl." +
-                            "getEnteredNonUniformContours() was given " +
-                            "an error message array with an invalid " +
-                            "length (i.e. less than 1).");
-         
-      float[] levels = getEnteredLevels();
-      
-      NonUniformContours contours = null;
-      try
-      {
-         contours = new NonUniformContours(levels);
-         if (errMsg!=null && errMsg.length>=0)
-            errMsg[0] = null;
-      }
-      catch (IllegalArgumentException e)
-      {
-         contours = null;
-         if (errMsg!=null && errMsg.length>=0)
-            errMsg[0] = e.getMessage();
-      }
-      return contours;
+      controls = new ViewControl[2];
+      controls[0] = contourControl;
+      controls[1] = generateAspectRatioCheckbox();
    }
    
    private void reloadAspectRatioControls()
    {
       contourPanel.setPreserveAspectRatio(aspectRatio.isSelected());
       contourPanel.repaint();
-   }
-   
-   private void reloadUniformContourControls()
-   {
-      String[] errMsg = new String[1];
-      UniformContours contours = getEnteredUniformContours(errMsg);
-      if (contours!=null)
-         contourPanel.setContours(contours);
-      else
-      {
-         if (errMsg[0]!=null)
-            SharedData.addmsg(errMsg[0]);
-      }
-   }
-   
-   private void reloadNonUniformContourControls()
-   {
-      String[] errMsg = new String[1];
-      NonUniformContours contours = getEnteredNonUniformContours(errMsg);
-      if (contours!=null)
-         contourPanel.setContours(contours);
-      else
-      {
-         if (errMsg[0]!=null)
-            SharedData.addmsg(errMsg[0]);
-      }
-   }
-   
-   private void reloadAllContourControls()
-   {
-      String[] uniformErrMsg = new String[1];
-      UniformContours uniformControls = 
-         getEnteredUniformContours(uniformErrMsg);
-      
-      String[] nonuniformErrMsg = new String[2];
-      NonUniformContours nonuniformControls = 
-         getEnteredNonUniformContours(nonuniformErrMsg);
-      
-      if (uniformControls==null && uniformErrMsg[0]!=null)
-            SharedData.addmsg(uniformErrMsg[0]);
-      
-      if (nonuniformControls==null && 
-            !getNonUniformControls().isEmpty() && 
-               nonuniformErrMsg[0]!=null)
-            SharedData.addmsg(nonuniformErrMsg[0]);
-         
-      contourPanel.setContours(new MixedContours(uniformControls,
-                                                 nonuniformControls));
    }
 }
