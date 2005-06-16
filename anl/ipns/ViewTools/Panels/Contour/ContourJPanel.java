@@ -33,7 +33,16 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.8  2005/06/16 16:07:41  kramer
+ * Now this class will more reliably drawn the contour labels inside the
+ * zoomed region when the user zooms in on the plot.  The only time the
+ * labels aren't drawn is when the user zooms to a point where none of the
+ * endpoints of the contour's line segments are inside the panel.
+ *
+ * Also, javadocs have been added.
+ *
  * Revision 1.7  2005/06/15 21:38:31  kramer
+ *
  * Added the GNU GPL preamble to the file.  Also, now when the user zooms
  * in on a region, the contour labels are drawn in the region (most of the
  * time).  Some fixes still need to be done.
@@ -62,6 +71,8 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import DataSetTools.util.SharedData;
+
 /* TODO List
  * 1.  Compare drawing the lines based on the points located at pixel 
  *     corners or pixel centers.
@@ -74,7 +85,9 @@ import javax.swing.WindowConstants;
  * 4.  Algorithm for finding how to chain the segments found together.
  */
 /**
- * 
+ * This is a special type of panel with zooming and cursor capabilities such 
+ * that given an array of data in an <code>IVirtualArray2D</code> a 
+ * contour plot of the data can be generated.
  */
 public class ContourJPanel extends CoordJPanel implements Serializable,
       IPreserveState
@@ -196,10 +209,16 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                                                data2D.getNumColumns()-1);
       if (arr==null)
       {
-         System.out.println("Warning:  A null array of data was found " +
-                            "from the IVirtualArray2D in " +
-                            "ContourJPanel.paint(....).  Thus, the data " +
-                            "could not be plotted.");
+         SharedData.addmsg("Warning:  A null array of data was found " +
+                           "from the IVirtualArray2D in " +
+                           "ContourJPanel.paint(....).  Thus, the data " +
+                           "could not be plotted.");
+         return;
+      }
+      else if (arr.length==0) //return because there is no data to draw
+      {
+         SharedData.addmsg("Warning:  The array given to the ContourJPanel " +
+                           "was empty.  Thus, no data has been plotted.");
          return;
       }
         
@@ -220,8 +239,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //references an element in 'contourPts'
         floatPoint2D curPt;
       //this will hold the x points describing where each contour line segment 
-      //that should be drawn.  The units will be in terms of row/column and 
-      //the numbers are in the order p1_start, p1_end, p2_start, p2_end ....
+      //that should be drawn.  The units will initially be in terms of 
+      //row/column and will be converted to world coordinates and then 
+      //pixel coordinates.  The numbers are in the order 
+      //p1_start, p1_end, p2_start, p2_end ....
         float[] xrcVals;
       //the same as above except this stores y values
         float[] yrcVals;
@@ -238,12 +259,38 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //(all of the data may not be in the view window if the user has 
       // zoomed in on some portion of the data).  Note that the values are 
       // inclusize (i.e. arr[xMaxIndex][yMaxIndex] can legally be accessed).
-        int xMinIndex = getXIndexFromPixel(0, rcToGlobal, arr.length);
-        int xMaxIndex = getXIndexFromPixel(getWidth(), rcToGlobal, arr.length);
+        int xMinIndex = getXIndexFromPixel(0, rcToGlobal, arr.length, true);
+        int xMaxIndex = getXIndexFromPixel(getWidth(), rcToGlobal, 
+                                           arr.length, false);
         
-        int yMinIndex = getYIndexFromPixel(0, rcToGlobal, arr[0].length);
+        int yMinIndex = getYIndexFromPixel(0, rcToGlobal, arr[0].length, true);
         int yMaxIndex = getYIndexFromPixel(getHeight(), rcToGlobal, 
-                                           arr[0].length);
+                                           arr[0].length, false);
+        
+        //if the min is greater than the max, the user has zoomed in too 
+        //much.  Then flip the two so that the ordering is correct.
+        int temp;
+        if (xMinIndex>xMaxIndex)
+        {
+           temp = xMinIndex;
+           xMinIndex = xMaxIndex;
+           xMaxIndex = temp;
+        }
+        if (yMinIndex>yMaxIndex)
+        {
+           temp = yMinIndex;
+           yMinIndex = yMaxIndex;
+           yMaxIndex = yMinIndex;
+        }
+        
+        /* For testing purposes
+        System.out.println("----------------------------");
+        System.out.println("xMinIndex="+xMinIndex);
+        System.out.println("xMaxIndex="+xMaxIndex);
+        System.out.println("yMinIndex="+yMinIndex);
+        System.out.println("yMaxIndex="+yMaxIndex);
+        System.out.println("----------------------------");
+        */
         
       //for each level draw the contour
       for (int i=0; i<levels.getNumLevels(); i++)
@@ -252,7 +299,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
            minGradIndex = 0;
            minGradSqr = Float.MAX_VALUE;
          
-         //now to get the contours
+         //now to get the contours.  The 'Contour2D.contour()' method does 
+         //the work of calculating the points on the contour level.  
+         //The code in this class does the work of graphically 
+         //displaying these points.
            contourPts = Contour2D.contour(arr,levels.getLevelAt(i));
          
          //now to create space for the arrays
@@ -277,20 +327,22 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                */
               
               //now to determine the square of the gradient of the
-              //function at this point
+              //function at this point.  The point with the gradient 
+              //closest to 0 is the point that is farthest away from the 
+              //contour level above and below the current contour level.
               int xIndex = (int)curPt.x;
               int yIndex = (int)curPt.y;
-              if ( xIndex>=0 && xIndex<arr.length && 
-                   yIndex>=0 && yIndex<arr[xIndex].length && 
-                   xIndex+1<arr.length && yIndex<arr[xIndex+1].length && 
-                   xIndex>=xMinIndex && xIndex<xMaxIndex &&
+              if ( xIndex>=xMinIndex && xIndex<xMaxIndex && 
                    yIndex>=yMinIndex && yIndex<yMaxIndex)
               {
                  float Fx = arr[xIndex+1][yIndex] - arr[xIndex][yIndex];
-                 if ( yIndex+1<arr[xIndex].length )
+                 if ( (yIndex+1)<arr[xIndex].length )
                  {
                     float Fy = arr[xIndex][yIndex+1] - arr[xIndex][yIndex];
                     float gradSqr = Fx*Fx+Fy*Fy;
+                    //if this gradient is as smaller or smaller than the 
+                    //current minimum, record it.  The point recorded will 
+                    //be used later when rendering the contour's label
                     if (gradSqr<=minGradSqr)
                     {
                        minGradSqr = gradSqr;
@@ -311,16 +363,12 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          //to reflect viewing a smaller subsection of the panel.
             local_transform.MapXListTo(xrcVals);
             local_transform.MapYListTo(yrcVals);
-         
-         /* For Testing purposes
-         //first set the line color for this level
-         //for now this just for testing purposes
-           g.setColor(new Color((new Random()).nextInt()));
-         */
             
          //now to draw the lines with the new pixel coordinates
            for (int j=0; (j+1)<contourPts.size(); j+=2)
            {
+              //if this or the next index corresponds to the index of the 
+              //point with the smallest gradient draw the contour label
               if (j==minGradIndex || (j+1)==minGradIndex)
               {
                  float avX = xrcVals[j];
@@ -329,6 +377,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                  if (j+1 < xrcVals.length && 
                      j+1 < yrcVals.length)
                  {
+                    //now to find the average of the points
                     avX = (float)(avX/2.0 + xrcVals[j+1]/2.0);
                     avY = (float)(avY/2.0 + yrcVals[j+1]/2.0);
                     
@@ -336,81 +385,136 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                     angle = (float)Math.atan((yrcVals[j+1]-avY)/
                                              (xrcVals[j+1]-avX));
                  }
+                 
                  //render the label for this level of the contour
+                 //Note:  the transformations are stated in reverse order 
+                 //       because when the graphics are drawn, the 
+                 //       transformations are done in the opposite order 
+                 //       they are given.
                  AffineTransform trans = g.getTransform();
-                 //double xTrans = trans.getTranslateX();
-                 //double yTrans = trans.getTranslateY();
-                 //System.out.println("xTrans = "+xTrans+"\nyTrans = "+yTrans);
-                 //g.translate(-xTrans, -yTrans);
-                 g.translate(avX, avY);
-                 g.rotate(angle);
-                 g.translate(-avX, -avY);
-                 //g.translate(xTrans, yTrans);
-                 g.drawString(""+levels.getLevelAt(i),
-                               (int)(avX),
-                               (int)(avY));
+                   g.translate(avX, avY);
+                   g.rotate(angle);
+                   g.translate(-avX, -avY);
+                   g.drawString(""+levels.getLevelAt(i),
+                                (int)(avX),
+                                (int)(avY));
                  g.setTransform(trans);
               }
-              //else
-              {
-                 g.drawLine((int)(xrcVals[j]),
-                       (int)(yrcVals[j]),
-                       (int)(xrcVals[j+1]),
-                       (int)(yrcVals[j+1]));
-              }
+              
+               //For testing purposes to show the endpoints of the line
+               //segment drawn
+               /*
+               int radius = 5;
+                
+               g.setColor(Color.GREEN);
+               g.drawOval((int)(xrcVals[j])-radius,
+                          (int)(yrcVals[j])-radius, radius, radius);
+                 
+               g.setColor(Color.RED);
+               g.drawOval((int)(xrcVals[j+1])-radius,
+                          (int)(yrcVals[j+1])-radius, radius, radius);
+                 
+               g.setColor(Color.BLACK);
+               */
+                 
+               g.drawLine((int)(xrcVals[j]),
+                          (int)(yrcVals[j]),
+                          (int)(xrcVals[j+1]),
+                          (int)(yrcVals[j+1]));
            }
-           
-         //now to draw a box around the data
-         //This is for testing purposes
-         /*
-           float delta = 1/2f;
-           float[] xCorners = new float[2];
-             xCorners[0] = delta;
-             xCorners[1] = data2D.getNumRows()-1+delta;
-           float[] yCorners = new float[2];
-             yCorners[0] = delta;
-             yCorners[1] = data2D.getNumColumns()-1+delta;
-           //again transform the points from row/column to world
-           //coordinates
-             rcToGlobal.MapXListTo(xCorners);
-             rcToGlobal.MapYListTo(yCorners);
-           //then map the world coordinates to the 'local_transform'
-           //(i.e. the region the user is viewing)
-             local_transform.MapXListTo(xCorners);
-             local_transform.MapYListTo(yCorners);
-           //draw the box
-             g.drawRect((int)xCorners[0],
-                        (int)yCorners[0],
-                        (int)(xCorners[1]-xCorners[0]),
-                        (int)(yCorners[1]-yCorners[0]));
-         */
       }
    }
    
+   /**
+    * Given an index in an array of data, the transformation
+    * <code>rcToGlobal</code> maps the index to world coordinates, and the 
+    * transformation <code>local_transform</code> maps this new point to 
+    * pixel coordinates.  Given a pixel point, this method finds the 
+    * closest index that would be mapped to a pixel point closest to this 
+    * given pixel point.  For this method, the pixel point is assumed to 
+    * correspond to the x value of a two dimenstional coordinate point.  
+    * Note:  The index is forced to be in the range [0, maxIndex).
+    * 
+    * @param px The given x pixel point.
+    * @param rcToGlobal The transformation that maps indices to world 
+    *                   coordinates.
+    * @param maxIndex The smallest positive invalid index.  If this parameter 
+    *                 is 5, then the indexes, 0, 1, 2, 3, and 4 are valid 
+    *                 indices and 5 is the first invalid index.
+    * @param roundUp True if this method should round up to the nearest 
+    *                index and false if it should round down to the nearest 
+    *                index.
+    * @return The closest valid index that is mapped backward from the pixel 
+    *         point <code>px</code>.
+    */
    private int getXIndexFromPixel(float px, CoordTransform rcToGlobal, 
-                                  int maxIndex)
+                                  int maxIndex, boolean roundUp)
    {
       //map the pixel value from pixel to world coordinates
       //(using the local_transform transformation)
       //then using the rcToGlobal transformation, map the pixel coordinate 
       //to the correct column
       float pseudoIndex = rcToGlobal.MapXFrom(local_transform.MapXFrom(px));
-      return getValidIndex(pseudoIndex, maxIndex);
+      return getValidIndex(pseudoIndex, maxIndex, roundUp);
    }
 
+   /**
+    * Given an index in an array of data, the transformation
+    * <code>rcToGlobal</code> maps the index to world coordinates, and the 
+    * transformation <code>local_transform</code> maps this new point to 
+    * pixel coordinates.  Given a pixel point, this method finds the 
+    * closest index that would be mapped to a pixel point closest to this 
+    * given pixel point.  For this method, the pixel point is assumed to 
+    * correspond to the y value of a two dimenstional coordinate point.  
+    * Note:  The index is forced to be in the range [0, maxIndex).
+    * 
+    * @param px The given y pixel point.
+    * @param rcToGlobal The transformation that maps indices to world 
+    *                   coordinates.
+    * @param maxIndex The smallest positive invalid index.  If this parameter 
+    *                 is 5, then the indexes, 0, 1, 2, 3, and 4 are valid 
+    *                 indices and 5 is the first invalid index.
+    * @param roundUp True if this method should round up to the nearest 
+    *                index and false if it should round down to the nearest 
+    *                index.
+    * @return The closest valid index that is mapped backward from the pixel 
+    *         point <code>px</code>.
+    */
    private int getYIndexFromPixel(float px, CoordTransform rcToGlobal, 
-                                  int maxIndex)
+                                  int maxIndex, boolean roundUp)
    {
       //map the pixel value from pixel to world coordinates
       //(using the local_transform transformation)
       //then using the rcToGlobal transformation, map the pixel coordinate 
       //to the correct row
       float pseudoIndex = rcToGlobal.MapYFrom(local_transform.MapYFrom(px));
-      return getValidIndex(pseudoIndex, maxIndex);
+      return getValidIndex(pseudoIndex, maxIndex, roundUp);
    }
-
-   private int getValidIndex(float pseudoIndex, int maxIndex)
+   
+   /**
+    * Given a floating point number, this method gets the closest 
+    * corresponding index.  The index is forced to be in the range 
+    * [0,maxIndex).
+    * 
+    * @param pseudoIndex The floating point number close to an index.
+    * @param maxIndex The smallest positive invalid index.  If this parameter 
+    *                 is 5, then the indexes, 0, 1, 2, 3, and 4 are valid 
+    *                 indices and 5 is the first invalid index.
+    * @param roundUp True if this method should round up to the nearest 
+    *                index and false if it should round down to the nearest 
+    *                index.
+    * @return The closest valid index to the given floating point 'pseudo' 
+    *         index either rounded up or down.
+    */
+   private int getValidIndex(float pseudoIndex, int maxIndex, boolean roundUp)
    {
+      int index;
+      if (roundUp)
+         index = (int)Math.ceil(pseudoIndex);
+      else
+         index = (int)Math.floor(pseudoIndex);
+      
+      /*
       //check if the index found is already an integer.
       //if it isn't round up
       int index;
@@ -418,6 +522,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          index = (int)pseudoIndex;
       else
          index = (int)pseudoIndex+1;
+      */
       
       //if the index is out of bounds 
       //change it so that it is back in bounds
@@ -454,11 +559,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    {
       float xMin = 0;
       float xMax = 10;
-      int numXSteps = 20;
+      int numXSteps = 100;
       
       float yMin = 0;
       float yMax = 10;
-      int numYSteps = 20;
+      int numYSteps = 100;
       
       
       float deltaX = (xMax-xMin)/numXSteps;
