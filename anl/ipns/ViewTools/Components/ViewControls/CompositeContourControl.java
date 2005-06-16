@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/06/16 13:57:03  kramer
+ * Modified the getControlValue() method to use the methods
+ * getEnteredUniformContours() and getEnteredNonUniformContours().
+ *
  * Revision 1.1  2005/06/15 16:33:45  kramer
+ *
  * This control contains controls for manually entering contour levels or
  * for entering the min, max, and number of contour levels to specify the
  * conditions used to determine uniformly spaced contour levels.
@@ -51,6 +56,7 @@ import gov.anl.ipns.Util.StringFilter.IntegerFilter;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
+import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.MixedContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
@@ -188,52 +194,16 @@ public class CompositeContourControl extends ViewControl
       if (selControl==null)
          return null;
       
+      String[] errMsg = new String[1];
+      Contours contours = null;
       if (selControl instanceof FieldEntryControl)
-      {
-         //then the control for uniform contours is selected
-         FieldEntryControl uniformControls = (FieldEntryControl)selControl;
-           float min = uniformControls.getFloatValue(0);
-           float max = uniformControls.getFloatValue(1);
-           int numLevels = (int)uniformControls.getFloatValue(2);
-           
-         return new UniformContours(min, max, numLevels);
-      }
+         contours = getEnteredUniformContours(errMsg);
       else if (selControl instanceof ControlList)
-      {
-         //then the control for manually entered contours is selected
-         ControlList levelList = (ControlList)selControl;
-         
-           //now to get the array of values listed on the ViewControl
-           Object[] levels = (Object[])levelList.getControlValue();
-           
-           //now to extract the values in the list that are actually floats
-           float[] rawLevels = new float[levels.length];
-           int numOk = 0; //holds the number of floats found
-           float curVal;  //holds the current float found
-           for (int i=0; i<levels.length; i++)
-              if ( !Float.isNaN(curVal=parseFloat(levels[i])) )
-                 rawLevels[numOk++] = curVal;
-              
-           //if some of the values were not float trim the extra space out 
-           //of the float array
-           System.arraycopy(rawLevels,0,rawLevels,0,numOk);
-              
-         return new NonUniformContours(rawLevels);
-      }
+         contours = getEnteredNonUniformContours(errMsg);
       
-      return null;
-   }
-   
-   private float parseFloat(Object val)
-   {
-      try
-      {
-         return Float.parseFloat(val.toString());
-      }
-      catch (NumberFormatException e)
-      {
-         return Float.NaN;
-      }
+      if (errMsg[0]!=null)
+         SharedData.addmsg(errMsg[0]);
+      return contours;
    }
    
    public ObjectState getObjectState(boolean isDefault)
