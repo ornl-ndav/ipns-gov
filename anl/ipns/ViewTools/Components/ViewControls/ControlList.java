@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/06/16 13:57:58  kramer
+ * Added javadocs.
+ *
  * Revision 1.3  2005/06/08 21:51:12  kramer
+ *
  * Added the method isEmpty() which is used to determine if the control's
  * list is empty.
  *
@@ -192,9 +196,9 @@ public class ControlList extends ViewControl
    private FieldEntryControl entryControl;
    /**
     * This contains the "Add" button.  When this button is clicked, the value 
-    * written in the text field of the {@link #entryControl entryControl} 
+    * written in the text field of the {@link #entryControl entryControl}  
     * object is added {@link #list list}.  This variable is saved in this 
-    * classe's object state.
+    * class's object state.
     */
    private ButtonControl addButton;
    /**
@@ -291,6 +295,13 @@ public class ControlList extends ViewControl
    }
    
    //-----------=[ Methods from the abstract superclass ]=-------------------//
+   /**
+    * Used to set the value that this ViewControl holds and displays.
+    * 
+    * @param value This can either be a Vector (of any Object) or an Object 
+    *              array.  The elements of the Vector or array are added 
+    *              directly to this ViewControl's displayed list.
+    */
    public void setControlValue(Object value)
    {
       if ( value != null )
