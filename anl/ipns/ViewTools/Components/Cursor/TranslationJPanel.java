@@ -33,6 +33,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2005/06/17 20:18:40  kramer
+ *  Added 'requestFocus()' at the end of each mouseEntered(), mouseMoved(), ..
+ *  methods.  This allows the pan view to be moved using the arrow keys.
+ *  However, a better solution should be found.  For some reason at the
+ *  start of these methods the PanViewControl has focus but by the end it
+ *  has lost focus (possibly the drawing of the large image steals focus).
+ *
  *  Revision 1.12  2005/03/21 23:26:29  millermi
  *  - Added ObjectState key STRETCH_ENABLED which required
  *    getObjectState to be added to the class to override the
@@ -526,6 +533,8 @@ public class TranslationJPanel extends CoordJPanel
         restoreBounds(false);
         setViewPort(restore);
       }
+      
+      requestFocus();
     }
     
     public void mousePressed (MouseEvent e)
@@ -714,7 +723,9 @@ public class TranslationJPanel extends CoordJPanel
         } // end if translated
 	if( ignore_stretch )
 	  translated = true;
-      } // end if contains point    
+      } // end if contains point
+      
+      requestFocus();
     } // end mouseDragged()
     
    /*
@@ -789,6 +800,8 @@ public class TranslationJPanel extends CoordJPanel
       {
         this_panel.setCursor( new Cursor(Cursor.W_RESIZE_CURSOR) );
       }
+      
+      requestFocus();
     } // end of mouseMoved()
   } // end class
 
@@ -799,7 +812,8 @@ public class TranslationJPanel extends CoordJPanel
   {
     public void keyPressed( KeyEvent e )
     {
-      int code = e.getKeyCode();     
+      int code = e.getKeyCode();
+      
       Rectangle cursor_bounds = box.region(); // bounds of cursor
       Rectangle this_bounds = getBounds();    // bounds of entire jpanel
       Point corner = cursor_bounds.getLocation();
@@ -855,6 +869,8 @@ public class TranslationJPanel extends CoordJPanel
         }
         send_message(BOUNDS_MOVED);
       }
+      
+      requestFocus();
     }
   }
  
