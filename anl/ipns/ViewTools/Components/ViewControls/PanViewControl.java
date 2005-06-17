@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2005/06/17 20:15:28  kramer
+ *  Modified so that when ImageJPanel2.getThumbnail() method is called the
+ *  thumbnail is forced to be redrawn (by giving the method
+ *  'forceRedraw=true').  This fixes the problem that if the color scale is
+ *  changed on the image it doesn't change on the thumbnail.  However, a
+ *  better solution should be found.
+ *
  *  Revision 1.21  2005/05/25 20:28:42  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -429,7 +436,7 @@ public class PanViewControl extends ViewControl
       // control affects the aspect ratio of the image. Don't need to
       // alter the image size according to the aspect ratio.
       panel_image = ((ImageJPanel2)actual_cjp).getThumbnail( panel_size.width, 
-                            panel_size.height );
+                            panel_size.height, true );
       if( panel_image != null )
       {
         panel.setImage(panel_image);
