@@ -30,6 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.54  2005/06/17 19:22:08  kramer
+ * Made the method to get a BasicStroke object that is used to draw lines of
+ * different types (i.e. solid, dotted, ....) in this class public and
+ * static.  That way other viewer can draw lines of different type in a
+ * consistent way.
+ *
  * Revision 1.53  2005/05/06 16:47:58  serumb
  * Fixed java doc error.
  *
@@ -778,11 +784,15 @@ public BasicStroke strokeType(int key, int graph_num)
        return new BasicStroke();
 
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
+    return createStroke(key, gd.linewidth);
+}
 
+public static BasicStroke createStroke(int key, float linewidth)
+{
     if (key == DASHED)
     {   
        float dash1[] = {10.0f};
-       BasicStroke dashed = new BasicStroke(gd.linewidth, 
+       BasicStroke dashed = new BasicStroke(linewidth, 
                                        BasicStroke.CAP_SQUARE, 
                                        BasicStroke.JOIN_BEVEL, 
                                        10.0f, dash1, 0.0f);
@@ -791,21 +801,21 @@ public BasicStroke strokeType(int key, int graph_num)
     else if (key == DOTTED)
     { 
        float dots1[] = {0,6,0,6};
-       BasicStroke dotted = new BasicStroke(gd.linewidth, BasicStroke.CAP_ROUND,
-				            BasicStroke.JOIN_BEVEL,
-				            0, dots1, 0);
+       BasicStroke dotted = new BasicStroke(linewidth, BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_BEVEL,
+                        0, dots1, 0);
        return dotted;
     }
     else if (key == LINE)
     {
-       BasicStroke stroke = new BasicStroke(gd.linewidth);
+       BasicStroke stroke = new BasicStroke(linewidth);
        return stroke;
     }
     else if (key ==DASHDOT)
     {
        float[] dash2 = {6.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f};
-       BasicStroke dashdot = new BasicStroke(gd.linewidth, BasicStroke.CAP_BUTT,
-				BasicStroke.JOIN_BEVEL, 10.0f, dash2, 0.0f);
+       BasicStroke dashdot = new BasicStroke(linewidth, BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL, 10.0f, dash2, 0.0f);
        return dashdot;
     }
     else if (key == TRANSPARENT)
@@ -813,14 +823,13 @@ public BasicStroke strokeType(int key, int graph_num)
        //float clear[] = {0.0f, 1000.0f};
        BasicStroke transparent = new BasicStroke(0.0f);
        return transparent;
-    }   	
+    }    
     else 
     {
        System.out.println("ERROR: no Stroke of this type, default is returned");
        return new BasicStroke();
     }
 }
-
 
 /*-------------------------- setLineWidth ---------------------------------*/
 /**
