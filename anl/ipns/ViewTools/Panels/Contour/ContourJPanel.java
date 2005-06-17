@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.10  2005/06/17 19:25:18  kramer
+ * Added functionality to set the line style of, if labels are drawn for,
+ * and the number of significant digits for each contour level.
+ *
  * Revision 1.9  2005/06/16 19:47:05  kramer
+ *
  * Added support to enable/disable contour labels and to specify the
  * number of significant digits the contour labels are rounded to (and if
  * they are even rounded).
@@ -61,9 +66,11 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
+import gov.anl.ipns.ViewTools.Panels.Contour.Contours.ContourLevelMetaData;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
+import gov.anl.ipns.ViewTools.Panels.Graph.GraphJPanel;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
@@ -73,7 +80,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.io.Serializable;
-import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -100,11 +107,21 @@ import DataSetTools.util.SharedData;
 public class ContourJPanel extends CoordJPanel implements Serializable,
       IPreserveState
 {
-   /**
-    * Holds the default number of significant digits that the 
-    * contour labels are rounded to.
-    */
-   private static int DEFAULT_NUM_SIG_DIGITS = 5;
+   public static final int SOLID = GraphJPanel.LINE;
+   public static final int DASHED = GraphJPanel.DASHED;
+   public static final int DASHED_DOTTED = GraphJPanel.DASHDOT;
+   public static final int DOTTED = GraphJPanel.DOTTED;
+   
+   public static final int     DEFAULT_LINE_STYLE   = SOLID;
+   public static final boolean DEFAULT_SHOW_LABEL   = true;
+   public static final int     DEFAULT_NUM_SIG_DIGS = 3;
+   
+   private static final int[] DEFAULT_LINE_STYLE_ARR = 
+                                       new int[] {DEFAULT_LINE_STYLE};
+   private static final boolean[] DEFAULT_SHOW_LABEL_ARR = 
+                                       new boolean[] {DEFAULT_SHOW_LABEL};
+   private static final int[] DEFAULT_NUM_SIG_DIGS_ARR = 
+                                       new int[] {DEFAULT_NUM_SIG_DIGS};
    
    /** Holds the data that is being drwn on this panel. */
    private IVirtualArray2D data2D;
@@ -114,14 +131,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    private Contours levels;
    
-   /** Records if contour labels should be drawn or not. */
-   private boolean showLabels;
-   /**
-    * Records the number of significant digits that the contour 
-    * labels are rounded to.  Note:  0 is used to represent 
-    * not rounding the labels.
-    */
-   private int numSigDigits;
+   private int[] lineStyles;
+   private boolean[] showLabels;
+   private int[] numSigDigs;
    
    /**
     * Private constructor used to initialize the 
@@ -142,8 +154,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       this.data2D = data2D;
       this.setBackground(Color.WHITE);
       
-      this.showLabels = true;
-      this.numSigDigits = DEFAULT_NUM_SIG_DIGITS;
+      this.lineStyles = DEFAULT_LINE_STYLE_ARR;
+      this.showLabels = DEFAULT_SHOW_LABEL_ARR;
+      this.numSigDigs = DEFAULT_NUM_SIG_DIGS_ARR;
    }
    
    /**
@@ -230,67 +243,72 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       reRender();
    }
    
-   /**
-    * Used to determine if the contour lines should be labeled.
-    * 
-    * @return True if the contour lines should be labeled and 
-    *         false if they shouldn't be.
-    */
-   public boolean getLabelsEnabled()
+   public int[] getLineStyles()
+   {
+      return lineStyles;
+   }
+   
+   public void setLineStyles(int[] lineStyles)
+   {
+      if (lineStyles==null || lineStyles.length==0)
+         this.lineStyles = DEFAULT_LINE_STYLE_ARR;
+      else
+         this.lineStyles = lineStyles;
+      
+      reRender();
+   }
+   
+   public void setLineStyles(int lineStyle)
+   {
+      setLineStyles(new int[] {lineStyle});
+   }
+   
+   public boolean[] getShowLabels()
    {
       return showLabels;
    }
    
-   /**
-    * Used to set if the contour lines should be labeled.  This 
-    * method also immediately redraws the contour graph.
-    * 
-    * @param on True if the contour lines should be labeled and 
-    *           false if they shouldn't be labeled.
-    */
-   public void setLabelsEnabled(boolean on)
+   public void setShowLabels(boolean[] showLabels)
    {
-      showLabels = on;
-      reRender();
-   }
-   
-   /**
-    * Get the number of significant digits that the contour labels 
-    * are rounded to.  Notice that contour labels must be enabled 
-    * for the labels to be visible.
-    * 
-    * @see #setLabelsEnabled(boolean)
-    * 
-    * @return The number of significant digits that the contour 
-    *         labels are rounded to.  If the labels aren't being 
-    *         rounded, 0 is returned.
-    */
-   public int getNumSigDigits()
-   {
-      return numSigDigits;
-   }
-   
-   /**
-    * Set the number of significant digits that the contour labels 
-    * are rounded to.  Notice that contour labels must be enabled 
-    * for the labels to be visible.  This method also immediately 
-    * redraws the contour graph.
-    * 
-    * @see #setLabelsEnabled(boolean)
-    * 
-    * @param degree The number of significant digits that the 
-    *               contour labels are rounded to.  If this value 
-    *               is 0 or negative, the rounding of the 
-    *               contour labels will be disabled.
-    */
-   public void setNumSigDigits(int degree)
-   {
-      if (degree<=0)
-         numSigDigits = 0;
+      if (showLabels==null || showLabels.length==0)
+         this.showLabels = DEFAULT_SHOW_LABEL_ARR;
       else
-         numSigDigits = degree;
+         this.showLabels = showLabels;
       
       reRender();
+   }
+   
+   public void setShowLabelEvery(int num)
+   {
+      if (num<=0)
+         setShowLabels(DEFAULT_SHOW_LABEL_ARR);
+      else
+      {
+         boolean[] arr = new boolean[num];
+         Arrays.fill(arr, false);
+         arr[num-1] = true;
+         setShowLabels(arr);
+      }
+   }
+   
+   public int[] getNumSigDigits()
+   {
+      return numSigDigs;
+   }
+   
+   public void setNumSigDigits(int[] numSigDigs)
+   {
+      if (numSigDigs==null)
+         this.numSigDigs = DEFAULT_NUM_SIG_DIGS_ARR;
+      else
+         this.numSigDigs = numSigDigs;
+      
+      reRender();
+   }
+   
+   public void setNumSigDigits(int numSigDigs)
+   {
+      setNumSigDigits(new int[] {numSigDigs});
    }
    
    /**
@@ -408,11 +426,24 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
         */
         
       //for each level draw the contour
+      //the following levels are 'sticky'.  In other words if they are 
+      //defined for one level but not the next, the values from the previous 
+      //level stick
+        //the line style
+          int lineSytle = DEFAULT_LINE_STYLE;
+        //if labels should be displayed
+          boolean showLabel = DEFAULT_SHOW_LABEL;
+        //the number of significant digits
+          int numSigDigits = DEFAULT_NUM_SIG_DIGS;
       for (int i=0; i<levels.getNumLevels(); i++)
       {
          //first to initialize the variables used to draw this level
            minGradIndex = 0;
            minGradSqr = Float.MAX_VALUE;
+           //now to get this level's meta data
+             lineSytle = lineStyles[i%lineStyles.length];
+             showLabel = showLabels[i%showLabels.length];
+             numSigDigits = numSigDigs[i%numSigDigs.length];
          
          //now to get the contours.  The 'Contour2D.contour()' method does 
          //the work of calculating the points on the contour level.  
@@ -485,7 +516,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
               //if this or the next index corresponds to the index of the 
               //point with the smallest gradient draw the contour label
               //if labels are enabled
-              if ( showLabels && (j==minGradIndex || (j+1)==minGradIndex) )
+              if ( showLabel && (j==minGradIndex || (j+1)==minGradIndex) )
               {
                  float avX = xrcVals[j];
                  float avY = yrcVals[j];
@@ -543,7 +574,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                  
                g.setColor(Color.BLACK);
                */
-                 
+               
+               //now to set the line style
+               g.setStroke(GraphJPanel.createStroke(lineSytle, 1));
+              
+               //and finally now to draw the line
                g.drawLine((int)(xrcVals[j]),
                           (int)(yrcVals[j]),
                           (int)(xrcVals[j+1]),
@@ -732,6 +767,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          levels[4] = 12.2332f;
       ContourJPanel panel = new ContourJPanel(getTestData(), 0, 200, 20);
       //ContourJPanel panel = new ContourJPanel(getTestData(),levels);
+         panel.setLineStyles(new int[] {SOLID, DASHED, DASHED});
+         panel.setShowLabels(new boolean[]{true, false, false});
+         panel.setNumSigDigits(new int[]{3,0,0});
          panel.setPreserveAspectRatio(false);
       JFrame frame = new JFrame("ContourJPanel test");
          frame.setSize(200,200);
@@ -792,4 +830,118 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       
       labelFormatter.applyPattern(pattern.toString());
    }
+   
+   /**
+    * Holds the default number of significant digits that the 
+    * contour labels are rounded to.
+    /
+   public static int DEFAULT_NUM_SIG_DIGITS = 5;
+   /**
+    * Holds the default value describing if labels are drawn by default.
+    /
+   public static boolean DEFAULT_SHOW_LABELS = true;
+   
+   /** Records if contour labels should be drawn or not. /
+   private boolean showLabels;
+   /**
+    * Records the number of significant digits that the contour 
+    * labels are rounded to.  Note:  0 is used to represent 
+    * not rounding the labels.
+    /
+   private int numSigDigits;
+   
+   this.showLabels = DEFAULT_SHOW_LABELS;
+   this.numSigDigits = DEFAULT_NUM_SIG_DIGITS;
+      
+   /**
+    * Used to determine if the contour lines should be labeled.
+    * 
+    * @return True if the contour lines should be labeled and 
+    *         false if they shouldn't be.
+    /
+   public boolean getLabelsEnabled()
+   {
+      return showLabels;
+   }
+   
+   /**
+    * Used to set if the contour lines should be labeled.  This 
+    * method also immediately redraws the contour graph.
+    * 
+    * @param on True if the contour lines should be labeled and 
+    *           false if they shouldn't be labeled.
+    /
+   public void setLabelsEnabled(boolean on)
+   {
+      showLabels = on;
+      reRender();
+   }
+   
+   /**
+    * Get the number of significant digits that the contour labels 
+    * are rounded to.  Notice that contour labels must be enabled 
+    * for the labels to be visible.
+    * 
+    * @see #setLabelsEnabled(boolean)
+    * 
+    * @return The number of significant digits that the contour 
+    *         labels are rounded to.  If the labels aren't being 
+    *         rounded, 0 is returned.
+    /
+   public int getNumSigDigits()
+   {
+      return numSigDigits;
+   }
+   
+   /**
+    * Set the number of significant digits that the contour labels 
+    * are rounded to.  Notice that contour labels must be enabled 
+    * for the labels to be visible.  This method also immediately 
+    * redraws the contour graph.
+    * 
+    * @see #setLabelsEnabled(boolean)
+    * 
+    * @param degree The number of significant digits that the 
+    *               contour labels are rounded to.  If this value 
+    *               is 0 or negative, the rounding of the 
+    *               contour labels will be disabled.
+    /
+   public void setNumSigDigits(int degree)
+   {
+      if (degree<=0)
+         numSigDigits = 0;
+      else
+         numSigDigits = degree;
+      
+      reRender();
+   }
+   
+   public ContourLevelMetaData[] getContourMetaData()
+   {
+      return levelMetaData;
+   }
+   
+   public void setContourMetaData(ContourLevelMetaData[] metaData)
+   {
+      if (metaData==null)
+      {
+         levelMetaData = DEFAULT_LEVEL_META_DATA;
+         return;
+      }
+      
+      levelMetaData = metaData;
+   }
+   
+            ContourLevelMetaData[] metaData = new ContourLevelMetaData[4];
+           metaData[0] = 
+              new ContourLevelMetaData(ContourLevelMetaData.SOLID, true, 5);
+           metaData[1] = 
+              new ContourLevelMetaData(ContourLevelMetaData.DASHED, false, 4);
+           metaData[2] = 
+              new ContourLevelMetaData(ContourLevelMetaData.DASHED_DOTTED, 
+                                       false, 3);
+           metaData[3] = 
+              new ContourLevelMetaData(ContourLevelMetaData.DOTTED, true, 2);
+
+
 */
