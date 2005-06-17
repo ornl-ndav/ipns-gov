@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/06/17 19:48:53  kramer
+ * Removed the unused import to ContourLevelMetaData (which I never checked
+ * into cvs because it was not needed).
+ *
  * Revision 1.3  2005/06/17 19:28:29  kramer
+ *
  * Added an inner class 'ContourLevelControl' that would contain controls
  * to specify the line type, number of significant digits for, and if labels
  * are drawn on a particular contour level.  Currently, this class is
@@ -63,7 +68,6 @@ import gov.anl.ipns.Util.StringFilter.IntegerFilter;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
-import gov.anl.ipns.ViewTools.Panels.Contour.Contours.ContourLevelMetaData;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.MixedContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
