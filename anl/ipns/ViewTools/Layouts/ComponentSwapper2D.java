@@ -34,7 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2005/06/17 20:11:58  kramer
+ *  Modified the main() method to test how labels are drawn when zooming as
+ *  the image resolution is increased.
+ *
  *  Revision 1.5  2005/06/08 21:48:58  kramer
+ *
  *  Modified the main() method to use data that is designed to test the
  *  ContourViewComponent.
  *
@@ -430,6 +435,10 @@ import java.awt.event.ActionListener;
      //For now the ContourViewComponent's test data is used so that the 
      //ContourView can be tested.
      IVirtualArray2D va2D = ContourViewComponent.getTestData(41,51,3.0,4.0);
+       //the data in the IVirtualArray2D below shows how increasing the 
+       //resolution increases the number of times the user can zoom and 
+       //still sees labels
+     //IVirtualArray2D va2D = ContourViewComponent.getTestData(80,90,3.0,4.0);
      
      // Give meaningful range, labels, units, and linear or log display method.
      va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
