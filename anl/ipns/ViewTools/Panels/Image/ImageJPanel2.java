@@ -31,6 +31,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/06/17 20:10:35  kramer
+ *  Modified the getThumbnail() method by adding a 'forceRedraw' parameter
+ *  that can force the redraw of the thumbnail.  This fixes the problem of
+ *  the thumbnail not changing after the color scale changes on the big
+ *  image.  This procedure works but a more efficient solution should be
+ *  found.
+ *
  *  Revision 1.1  2005/03/07 16:58:42  millermi
  *  - New Version of ImageJPanel based on IVirtualArray2D. This version
  *    eliminates image size limitations presented by Java.
@@ -549,11 +556,11 @@ public class ImageJPanel2 extends    CoordJPanel
   *  @param  height The desired height of the thumbnail.
   *  @return A thumbnail of the Image.
   */ 
-  public Image getThumbnail(int width, int height)
+  public Image getThumbnail(int width, int height, boolean forceRedraw)
   {
     Image thumbnail;
     // If thumbnail_image exists, scale it down the the desired size.
-    if( thumbnail_image != null )
+    if( thumbnail_image != null && !forceRedraw)
     {
       if( width == 0 || height == 0 )
         thumbnail = thumbnail_image.getScaledInstance( 100, 100,
