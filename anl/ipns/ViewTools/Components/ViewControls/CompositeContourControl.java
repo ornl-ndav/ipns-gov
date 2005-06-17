@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/06/17 19:28:29  kramer
+ * Added an inner class 'ContourLevelControl' that would contain controls
+ * to specify the line type, number of significant digits for, and if labels
+ * are drawn on a particular contour level.  Currently, this class is
+ * commented out but it might be needed at some time.
+ *
  * Revision 1.2  2005/06/16 13:57:03  kramer
+ *
  * Modified the getControlValue() method to use the methods
  * getEnteredUniformContours() and getEnteredNonUniformContours().
  *
@@ -56,6 +63,7 @@ import gov.anl.ipns.Util.StringFilter.IntegerFilter;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
+import gov.anl.ipns.ViewTools.Panels.Contour.Contours.ContourLevelMetaData;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.MixedContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
@@ -523,4 +531,107 @@ public class CompositeContourControl extends ViewControl
       contourPanel.setContours(new MixedContours(uniformControls,
                                                  nonuniformControls));
    }
+   
+   /*
+   private class ContourLevelControl extends ViewControl
+   {
+      private LabelCombobox styleBox;
+      private ControlCheckbox showLabelCheckBox;
+      private FieldEntryControl roundedToField;
+      
+      public ContourLevelControl(String title)
+      {
+         super(title);
+         
+         
+         String[] styles = new String[4];
+          styles[getIndexForStyle(ContourLevelMetaData.SOLID)] = 
+             "Solid";
+          styles[getIndexForStyle(ContourLevelMetaData.DASHED)] = 
+             "Dashed";
+          styles[getIndexForStyle(ContourLevelMetaData.DASHED_DOTTED)] = 
+             "Dashed-Dotted";
+          styles[getIndexForStyle(ContourLevelMetaData.DOTTED)] = 
+             "Dotted";
+         
+         styleBox = new LabelCombobox("Style", styles);
+           styleBox.setSelectedIndex(ContourLevelMetaData.DEFAULT_LINE_STYLE);
+         
+         showLabelCheckBox = 
+            new ControlCheckbox(ContourLevelMetaData.DEFAULT_SHOW_LABEL);
+         
+         roundedToField = 
+            new FieldEntryControl(new String[]{"# Significant digits"}, 
+                                  new int[]{});
+           roundedToField.enableFilter(new IntegerFilter(), 0);
+           
+         setLayout(new FlowLayout(FlowLayout.CENTER));
+         add(styleBox);
+         add(new JLabel("Show label"));
+         add(roundedToField);
+      }
+      
+      private int getIndexForStyle(int style)
+      {
+         switch (style)
+         {
+            case ContourLevelMetaData.SOLID:
+               return 0;
+            case ContourLevelMetaData.DASHED:
+               return 1;
+            case ContourLevelMetaData.DASHED_DOTTED:
+               return 2;
+            case ContourLevelMetaData.DOTTED:
+               return 3;
+            default:
+               return -1;
+         }
+      }
+      
+      private int getStyleForIndex(int index)
+      {
+         switch (index)
+         {
+            case 0:
+               return ContourLevelMetaData.SOLID;
+            case 1:
+               return ContourLevelMetaData.DASHED;
+            case 2:
+               return ContourLevelMetaData.DASHED_DOTTED;
+            case 3:
+               return ContourLevelMetaData.DOTTED;
+            default:
+               return -1;
+         }
+      }
+      
+      public void setControlValue(Object value)
+      {
+         if ( value==null )
+            return;
+         
+         if ( !(value instanceof ContourLevelMetaData) )
+            return;
+         
+         ContourLevelMetaData metaData = (ContourLevelMetaData)value;
+           styleBox.setSelectedIndex(getIndexForStyle(metaData.getLineStyle()));
+           showLabelCheckBox.setSelected(metaData.getShowLabel());
+           roundedToField.setValue(0, metaData.getNumSigDigits());
+      }
+
+      public Object getControlValue()
+      {
+         return new ContourLevelMetaData(
+                       getStyleForIndex(styleBox.getSelectedIndex()), 
+                       showLabelCheckBox.isSelected(), 
+                       (int)roundedToField.getFloatValue(0));
+      }
+
+      public ViewControl copy()
+      {
+         return null;
+      }
+      
+   }
+   */
 }
