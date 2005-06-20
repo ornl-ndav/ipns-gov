@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2005/06/20 14:41:13  dennis
+ * Turned of "Preserve Aspect Ratio" by default.
+ *
  * Revision 1.11  2005/05/25 20:28:44  dennis
  * Now calls convenience method WindowShower.show() to show
  * the window, instead of instantiating a WindowShower object
@@ -397,7 +400,7 @@ public class Display2D extends Display
     {
       ivc = new ImageViewComponent( (IVirtualArray2D)data );
       ((ImageViewComponent)ivc).setColorControlEast(true);
-      ((ImageViewComponent)ivc).preserveAspectRatio(true);
+//    ((ImageViewComponent)ivc).preserveAspectRatio(true);
       if( colorscale != null )
         ((ImageViewComponent)ivc).setColorScale(colorscale);
     }
