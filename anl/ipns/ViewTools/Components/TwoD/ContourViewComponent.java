@@ -33,7 +33,19 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.8  2005/06/22 22:16:37  kramer
+ * Added javadocs and rearranged the code to make it easier to read.
+ *
+ * Modified the default values specified in this class so that this class,
+ * the CompositeContourControl class, and the ContourJPanel class all
+ * have their defaults linked.
+ *
+ * Added controls to allow the user to enable/disable labels and label
+ * formatting.  Added controls to allow the user to enable/disable
+ * certain lines with their styles.
+ *
  * Revision 1.7  2005/06/17 19:33:26  kramer
+ *
  * Modified to have controls for specifying the line style for a group of
  * 4 lines (this pattern is repeated as the contours are rendered).  Also,
  * controls for the specifying the num of significant digits as well as
@@ -48,7 +60,6 @@
 package gov.anl.ipns.ViewTools.Components.TwoD;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
-import gov.anl.ipns.Util.StringFilter.IntegerFilter;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
@@ -56,8 +67,8 @@ import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.ViewControls.CompositeContourControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckbox;
-import gov.anl.ipns.ViewTools.Components.ViewControls.FieldEntryControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.LabelCombobox;
+import gov.anl.ipns.ViewTools.Components.ViewControls.SpinnerControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
 
@@ -66,36 +77,60 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Vector;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.WindowConstants;
 
 /**
- * 
+ * This class is used to create a contour plot of a three dimensional set 
+ * of data.  The following features are supported:
+ * <ul>
+ *   <li> Uniformly spaced contour levels </li>
+ *   <li> Manually entered contour levels </li>
+ *   <li> Contour labels </li>
+ *   <li> Formatting labels to a specified number of significant figures </li>
+ *   <li> Contour line styles (solid, dashed, dashed-dotted, or dotted).
+ * </ul>
  */
 public class ContourViewComponent implements IViewComponent2D, Serializable
 {
    public static final String CONTOUR_CONTROLS_KEY = "Contour controls key";
    public static final String ASPECT_RATIO_KEY = "Aspect ratio key";
    
-   private static final boolean DEFAULT_PRESERVE_ASPECT_RATIO = false;
+   public static final int     DEFAULT_LINE_STYLE   = 
+      ContourJPanel.DEFAULT_LINE_STYLE;
+   public static final boolean DEFAULT_SHOW_LABEL   = 
+      ContourJPanel.DEFAULT_SHOW_LABEL;
+   public static final int     DEFAULT_NUM_SIG_DIGS = 
+      ContourJPanel.DEFAULT_NUM_SIG_DIGS;
+   public static final boolean DEFAULT_PRESERVE_ASPECT_RATIO = 
+      ContourJPanel.DEFAULT_PRESERVE_ASPECT_RATIO;
    
-   public static final float   DEFAULT_LOWEST_CONTOUR = 0;
-   public static final float   DEFAULT_HIGHEST_CONTOUR = 10;
-   public static final int     DEFAULT_NUM_CONTOURS = 11;
-   public static final float[] DEFAULT_MANUAL_LEVELS = new float[0];
+   public static final float   DEFAULT_LOWEST_CONTOUR = 
+      CompositeContourControl.DEFAULT_LOWEST_CONTOUR;
+   public static final float   DEFAULT_HIGHEST_CONTOUR =  
+      CompositeContourControl.DEFAULT_HIGHEST_CONTOUR;
+   public static final int     DEFAULT_NUM_CONTOURS = 
+      CompositeContourControl.DEFAULT_NUM_CONTOURS;
+   public static final float[] DEFAULT_MANUAL_LEVELS = 
+      CompositeContourControl.DEFAULT_MANUAL_LEVELS;
    
-   /*
-   private static final int SOLID_INDEX = 0;
-   private static final int DASHED_INDEX = 1;
-   private static final int DASHED_DOTTED_INDEX = 2;
-   private static final int DOTTED_INDEX = 3;
-   private static final int SOLID_DASHED_INDEX = 4;
-   private static final int SOLID_DASHED_DASHEDDOTTED_DOTTED = 5;
-   */
+   public static final boolean DEFAULT_ENABLE_LABEL_FORMATTING = true;
+   public static final int DEFAULT_LABEL_EVERY_N_LINES = 1;
+   public static final int[] DEFAULT_STYLES = {DEFAULT_LINE_STYLE, 
+                                               DEFAULT_LINE_STYLE, 
+                                               DEFAULT_LINE_STYLE, 
+                                               DEFAULT_LINE_STYLE};
+   public static final boolean[] DEFAULT_ENABLE_STYLE_ARR = {false, 
+                                                             false, 
+                                                             false};
    
    /** The Vector of ActionListener associated with this component. */
    private Vector listenerVec;
@@ -104,25 +139,36 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    
    private CompositeContourControl contourControl;
    private ControlCheckbox aspectRatio;
-   //private LabelCombobox lineStyleComboBox;
    private LineStyleControl lineStyleControl;
-   private FieldEntryControl labelEveryNthField;
-   private FieldEntryControl numSigDigField;
+   private ControlCheckbox enableLabelsCheckbox;
+   private SpinnerControl labelEveryNth;
+   private ControlCheckbox enableSigFigs;
+   private SpinnerControl numSigFigs;
    
+   
+//-------------------------=[ Constructors ]=---------------------------------//
    public ContourViewComponent(IVirtualArray2D arr)
    {
       this.listenerVec = new Vector();
-      this.contourPanel = new ContourJPanel(arr,
-                                            DEFAULT_LOWEST_CONTOUR,
-                                            DEFAULT_HIGHEST_CONTOUR,
-                                            DEFAULT_NUM_CONTOURS);
+      this.contourPanel = 
+         new ContourJPanel(arr, 
+                           DEFAULT_LOWEST_CONTOUR, 
+                           DEFAULT_HIGHEST_CONTOUR, 
+                           DEFAULT_NUM_CONTOURS);
       
       //now to build the controls
         initControls(DEFAULT_LOWEST_CONTOUR, 
                      DEFAULT_HIGHEST_CONTOUR, 
                      DEFAULT_NUM_CONTOURS, 
                      DEFAULT_MANUAL_LEVELS, 
-                     false);
+                     false,
+                     DEFAULT_PRESERVE_ASPECT_RATIO, 
+                     DEFAULT_STYLES, 
+                     DEFAULT_ENABLE_STYLE_ARR, 
+                     DEFAULT_SHOW_LABEL, 
+                     DEFAULT_LABEL_EVERY_N_LINES, 
+                     DEFAULT_ENABLE_LABEL_FORMATTING,
+                     DEFAULT_NUM_SIG_DIGS);
    }
    
    public ContourViewComponent(IVirtualArray2D arr, 
@@ -133,7 +179,14 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       
       //now to build the controls
         initControls(minValue, maxValue, numLevels, 
-                      DEFAULT_MANUAL_LEVELS, false);
+                      DEFAULT_MANUAL_LEVELS, false,
+                      DEFAULT_PRESERVE_ASPECT_RATIO, 
+                      DEFAULT_STYLES, 
+                      DEFAULT_ENABLE_STYLE_ARR, 
+                      DEFAULT_SHOW_LABEL, 
+                      DEFAULT_LABEL_EVERY_N_LINES, 
+                      DEFAULT_ENABLE_LABEL_FORMATTING,
+                      DEFAULT_NUM_SIG_DIGS);
    }
    
    public ContourViewComponent(IVirtualArray2D arr, 
@@ -147,7 +200,14 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                      DEFAULT_HIGHEST_CONTOUR, 
                      DEFAULT_NUM_CONTOURS,
                      levels, 
-                     true);
+                     true,
+                     DEFAULT_PRESERVE_ASPECT_RATIO, 
+                     DEFAULT_STYLES, 
+                     DEFAULT_ENABLE_STYLE_ARR, 
+                     DEFAULT_SHOW_LABEL, 
+                     DEFAULT_LABEL_EVERY_N_LINES, 
+                     DEFAULT_ENABLE_LABEL_FORMATTING,
+                     DEFAULT_NUM_SIG_DIGS);
    }
    
    public ContourViewComponent(IVirtualArray2D arr, 
@@ -165,7 +225,10 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       this(arr,levels);
       setObjectState(state);
    }
+//-------------------------=[ End constructors ]=-----------------------------//
    
+   
+//---------=[ Methods mplemented for the IViewComponent2D interface ]=--------//
    public void setObjectState(ObjectState state)
    {
       if (state==null)
@@ -266,12 +329,601 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    public void kill()
    {
    }
+//-------=[ End methods mplemented for the IViewComponent2D interface ]=------//
 
-   public static void main(String[] args)
+
+//------------=[ Methods used to generate the controls ]=---------------------//
+   /**
+    * Called to instatiate all of the controls used with this view 
+    * component.
+    * 
+    * @param minValue  This is used to describe how to generate uniformly 
+    *                  spaced contour levels.  It is the value of the lowest 
+    *                  contour level
+    * @param maxValue  This is used to describe ho to generate unformly 
+    *                  spaced contour levels.  It is the value of the highest 
+    *                  uniform contour level.
+    * @param numLevels This is used to describe how to generate uniformly 
+    *                  spaced contour levels.  It specifies the number of 
+    *                  contour levels in the group of uniformly spaced 
+    *                  contour levels.
+    * @param levels    This is the list of manually entered contour levels.
+    * @param useManualLevels If true the controls used to enter the manually 
+    *                        entered contours levels will initially have the 
+    *                        focus.  If false the controls used to enter 
+    *                        the data to generate the uniformly spaced 
+    *                        contour levels will have focus.
+    */
+   private void initControls(float minValue, float maxValue, int numLevels, 
+                             float[] levels, boolean useManualLevels, 
+                             boolean preserveAspectRatio, 
+                             int[] styles, boolean[] stylesEnabled, 
+                             boolean enableLabels, int everyNthLineLabeled, 
+                             boolean enbaleLabelFormatting, int numSigFig)
    {
+      controls = new ViewControl[7];
+      controls[0] = generateContourControls(minValue, maxValue, numLevels, 
+                                            levels, useManualLevels);
+      controls[1] = generateAspectRatioCheckbox(preserveAspectRatio);
+      controls[2] = generateLineStyleControl(styles, stylesEnabled);
+      controls[3] = generateEnableLabelsCheckbox(enableLabels);
+      controls[4] = generateLabelEveryNthSpinner(everyNthLineLabeled);
+      controls[5] = generateEnableSigFigs(enbaleLabelFormatting);
+      controls[6] = generateNumSigFigSpinner(numSigFig);
    }
    
-   public static IVirtualArray2D getTestData(int Nx, int Ny, 
+   public CompositeContourControl generateContourControls(
+                                                    float minValue, 
+                                                    float maxValue, 
+                                                    int numLevels, 
+                                                    float[] levels, 
+                                                    boolean showManualControls)
+   {
+      contourControl = 
+         new CompositeContourControl(contourPanel, 
+                                     minValue, maxValue, numLevels, 
+                                     levels, 
+                                     false);
+      return contourControl;
+   }
+   
+   public ControlCheckbox generateAspectRatioCheckbox(boolean selected)
+   {
+      /*
+       * This is the control used to specify if the aspect ratio should 
+       * be preserved.
+       */
+      aspectRatio = new ControlCheckbox(selected);
+      aspectRatio.setText("Preserve Aspect Ratio");
+      aspectRatio.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            contourPanel.setPreserveAspectRatio(aspectRatio.isSelected());
+            contourPanel.reRender();
+         }
+      });
+      
+      return aspectRatio;
+   }
+   
+   public LineStyleControl generateLineStyleControl(int[] styles, 
+                                                    boolean[] stylesEnabled)
+   {
+      lineStyleControl = new LineStyleControl(styles, stylesEnabled);
+      return lineStyleControl;
+   }
+   
+   public ControlCheckbox generateEnableLabelsCheckbox(boolean enable)
+   {
+      enableLabelsCheckbox = new ControlCheckbox(enable);
+        enableLabelsCheckbox.setText("Enable line labels");
+        enableLabelsCheckbox.addActionListener(new ActionListener()
+        {
+           public void actionPerformed(ActionEvent event)
+           {
+              if (event.getActionCommand().
+                     equals(ControlCheckbox.CHECKBOX_CHANGED))
+              {
+                 boolean selected = enableLabelsCheckbox.isSelected();
+                 
+                 labelEveryNth.setEnabled(selected);
+                 if (selected)
+                    labelEveryNth.doClick();
+                 else
+                    contourPanel.setShowLabels(new boolean[] {false});
+              }
+           }
+        });
+      return enableLabelsCheckbox;
+   }
+   
+   public SpinnerControl generateLabelEveryNthSpinner(int initialValue)
+   {
+      int min = 1;
+      int max = 100;
+      int stepSize = 1;
+      if (initialValue<min || initialValue>max)
+         initialValue = min;
+      
+      labelEveryNth = 
+         new SpinnerControl("Label every ", 
+                            new SpinnerNumberModel(initialValue, 
+                                                   min, max, stepSize), 
+                            new Integer(initialValue));
+        labelEveryNth.addActionListener(new ActionListener()
+        {
+           public void actionPerformed(ActionEvent event)
+           {
+              if (event.getActionCommand().
+                    equals(SpinnerControl.SPINNER_CHANGED))
+                 contourPanel.setShowLabelEvery(
+                                 ((Integer)labelEveryNth.getControlValue()).
+                                                            intValue());
+           }
+        });
+     return labelEveryNth;
+   }
+   
+   public ControlCheckbox generateEnableSigFigs(boolean enable)
+   {
+      enableSigFigs = new ControlCheckbox(enable);
+        enableSigFigs.setText("Enable Number Formatting");
+        enableSigFigs.addActionListener(new ActionListener()
+        {
+           public void actionPerformed(ActionEvent event)
+           {
+              if (event.getActionCommand().
+                    equals(ControlCheckbox.CHECKBOX_CHANGED))
+              {
+                 boolean selected = enableSigFigs.isSelected();
+                 
+                 numSigFigs.setEnabled(selected);
+                 if (selected)
+                    numSigFigs.doClick();
+                 else
+                    contourPanel.setNumSigDigits(-1);
+              }
+           }
+        });
+     return enableSigFigs;
+   }
+   
+   public SpinnerControl generateNumSigFigSpinner(int initialValue)
+   {
+      int min = 1;
+      int max = 19;
+      int stepSize = 1;
+      if (initialValue<min || initialValue>max)
+         initialValue = min;
+      
+      numSigFigs = 
+         new SpinnerControl("Number of significant figures ", 
+                               new SpinnerNumberModel(initialValue, min,  
+                                                      max, stepSize), 
+                               new Integer(initialValue));
+        numSigFigs.addActionListener(new ActionListener()
+        {
+           public void actionPerformed(ActionEvent event)
+           {
+              if (event.getActionCommand().
+                    equals(SpinnerControl.SPINNER_CHANGED))
+                 contourPanel.setNumSigDigits(
+                                 ((Integer)numSigFigs.getControlValue()).
+                                                         intValue());
+           }
+        });
+     return numSigFigs;
+   }
+// -----------=[ End methods used to generate the controls ]=-----------------//
+   
+   
+//--------------------=[ Custom controls ]=-----------------------------------//
+   /**
+    * Controls used to choose the line style for a set of lines.  Currently, 
+    * there are four line styles (solid, dashed, dashed-dotted, or dotted).  
+    * Thus, this control has options for choosing the line style for a set 
+    * of four lines.  It also contains controls for disabling certain lines.  
+    * For example, perhaps the pattern, solid-dashed-dashed, is supposed to 
+    * be used to generate the line styles.  Then, the fourth line would be 
+    * disabled so that only the first three styles specified are used.
+    */
+   private class LineStyleControl extends ViewControl
+   {
+      /**
+       * "Styles" - This static constant String is a key for referencing 
+       * the styles that are displayed on this control.  Each style is 
+       * identified by an integer code 
+       * (see {@link ContourJPanel ContourJPanel}).  
+       * The value that this key references is an int[].
+       */
+      private final String STYLES_KEY = "Styles";
+      
+      /**
+       * Specifies the number controls for line styles that this ViewControl 
+       * will contain.  Currently, there are only four line styles (solid, 
+       * dashed, dashed-dotted, and dotted).  Thus, the value of this field 
+       * is 4.
+       */
+      private final int NUM_STYLE_CONTROLS = 4;
+      
+      /**
+       * Each element in this array is a ViewControl that contains a combobox 
+       * that contains the possible styles to associate to a given line.  
+       * There is one such control for each of the lines in the group 
+       * of lines displayed on this control.
+       * <p>
+       * The length of this array is equal to <code>NUM_STYLE_CONTROLS</code>.
+       */
+      private LabelCombobox[] styleComboBoxes;
+      /**
+       * Each element in this array is a ViewControl that is a checkbox that 
+       * specifies if the given line should be enabled or disabled.  If a 
+       * line is disabled, its corresponding style specification is ignored.  
+       * <p>
+       * The length of this array is equal to <code>NUM_STYLE_CONTROLS</code>.
+       */
+      private ControlCheckbox[] enableBoxes;
+      
+      /**
+       * Constructs this ViewControl.
+       * 
+       * @param styles The initially selected styles for each of the 
+       *               controls on this ViewControl.  The length of this 
+       *               array should equal 
+       *               {@link #getNumOfStyles() getNumOfStyles()}.  If it 
+       *              is too short, {@link ContourViewComponent#DEFAULT_STYLES 
+       *              DEFAULT_STYLES} is used.  If it is too long, the extra 
+       *              elements are ignored.
+       * @param linesEnabled The ith element of this array specifies if the 
+       *                     (i+1)th control for a line style should be 
+       *                     enabled.  That is, the control for the first 
+       *                     line style is enabled by default and cannot be 
+       *                     changed.  This array specifies if the rest of 
+       *                     the line styles controls should be enabled or 
+       *                     not.  Therefore, the length of this array should 
+       *                     equal <code>{@link #getNumOfStyles() 
+       *                     getNumOfStyles()}-1</code>.  If it is too short, 
+       *                     {@link 
+       *                     ContourViewComponent#DEFAULT_ENABLE_STYLE_ARR 
+       *                     DEFAULT_ENABLE_STYLE_ARR} is used.  If it is 
+       *                     too long, the extra elements are ignored.
+       */
+      public LineStyleControl(int[] styles, boolean[] linesEnabled)
+      {
+         super("Line styles");
+         
+         if (styles==null || linesEnabled.length<NUM_STYLE_CONTROLS)
+            styles = DEFAULT_STYLES;
+         if (linesEnabled==null || linesEnabled.length<(NUM_STYLE_CONTROLS-1))
+            linesEnabled = DEFAULT_ENABLE_STYLE_ARR;
+         
+         styleComboBoxes = new LabelCombobox[NUM_STYLE_CONTROLS];
+         for (int i=0; i<styleComboBoxes.length; i++)
+         {
+           styleComboBoxes[i] = constructStyleBox(i);
+           styleComboBoxes[i].setSelectedIndex(getIndexForStyle(styles[i]));
+         }
+         
+         String enableText = "Enable ";
+         enableBoxes = new ControlCheckbox[NUM_STYLE_CONTROLS];
+         for (int i=0; i<enableBoxes.length; i++)
+         {
+            enableBoxes[i] = new ControlCheckbox();
+            enableBoxes[i].setText(enableText);
+            enableBoxes[i].addActionListener(
+                              new CheckBoxListener(enableBoxes[i], 
+                                                   styleComboBoxes[i]));
+            if (i==0)
+            {
+               enableBoxes[i].setSelected(true);
+               enableBoxes[i].setEnabled(false);
+            }
+            else
+               enableBoxes[i].setSelected(linesEnabled[i-1]);
+            enableBoxes[i].send_message(ControlCheckbox.CHECKBOX_CHANGED);
+         }
+         
+         JButton drawButton = new JButton("Redraw");
+           drawButton.addActionListener(new DrawListener());
+           
+         JPanel stylePanel = new JPanel(); 
+           BoxLayout layout = new BoxLayout(stylePanel, BoxLayout.Y_AXIS);
+           stylePanel.setLayout(layout);
+           JPanel curPanel;
+           for (int i=0; i<styleComboBoxes.length; i++)
+           {
+              curPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+                curPanel.add(enableBoxes[i]);
+                curPanel.add(styleComboBoxes[i]);
+              stylePanel.add(curPanel);
+           }
+           
+         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+           buttonPanel.add(drawButton);
+           
+         setLayout(new BorderLayout());
+           add(stylePanel, BorderLayout.CENTER);
+           add(buttonPanel, BorderLayout.SOUTH);
+      }
+      
+      /**
+       * Used to construct a combobox containing options for selecting the 
+       * one of the possible line styles.
+       * 
+       * @param index Used to produce the label that is placed in front 
+       *              of the combobox.
+       * @return A combobox containing the possible styles for a line.
+       */
+      private LabelCombobox constructStyleBox(int index)
+      {
+         String[] styles = new String[NUM_STYLE_CONTROLS];
+           styles[getIndexForStyle(ContourJPanel.SOLID)] = 
+                                                    "solid";
+           styles[getIndexForStyle(ContourJPanel.DASHED)] = 
+                                                    "dashed";
+           styles[getIndexForStyle(ContourJPanel.DASHED_DOTTED)] = 
+                                                    "dahsed dotted";
+           styles[getIndexForStyle(ContourJPanel.DOTTED)] = 
+                                                    "dotted";
+         return new LabelCombobox("Line "+(index+1),styles);
+      }
+      
+      /**
+       * Each combobox in the array <code>styleComboBoxes</code>, has its 
+       * contents listed in the same order.  Moreover, each of the 
+       * contents of the combobox correspond to a certain line style.  
+       * Given the line style, this method returns the index of the entry 
+       * in one of the comboboxes that corresponds to this style.
+       * 
+       * @param style An integer identifying a line style (see 
+       *              {@link ContourJPanel ContourJPanel}).
+       * @return The index of the item in an one of the comboboxes from 
+       *         the array <code>styleComboBoxes</code> that 
+       *         corresponds to the specified style.  Note:  If 
+       *         <code>style</code> is invalid, -1 is returned.
+       */
+      private int getIndexForStyle(int style)
+      {
+         switch (style)
+         {
+            case ContourJPanel.SOLID:
+               return 0;
+            case ContourJPanel.DASHED:
+               return 1;
+            case ContourJPanel.DASHED_DOTTED:
+               return 2;
+            case ContourJPanel.DOTTED:
+               return 3;
+            default:
+               return -1;
+         }
+      }
+      
+      /**
+       * Each combobox in the array <code>styleComboBoxes</code>, has its 
+       * contents listed in the same order.  Moreover, each of the 
+       * contents of the combobox correspond to a certain line style.  
+       * Given the index of an item in one of these comboboxes, this method 
+       * returns the style specified at that index.
+       * 
+       * @param index The index of the item in an one of the comboboxes from 
+       *              the array <code>styleComboBoxes</code>. 
+       * @return The style associated with the given index from any one of 
+       *         the comboboxes from the array <code>styleComboBoxes</code>.  
+       *         Note:  If <code>index</code> is invalid, -1 is returned.
+       */
+      private int getStyleForIndex(int index)
+      {
+         switch (index)
+         {
+            case 0:
+               return ContourJPanel.SOLID;
+            case 1:
+               return ContourJPanel.DASHED;
+            case 2:
+               return ContourJPanel.DASHED_DOTTED;
+            case 3:
+               return ContourJPanel.DOTTED;
+            default:
+               return -1;
+         }
+      }
+      
+      /**
+       * Used to set the line styles displayed for the set of lines 
+       * described in this control.
+       * 
+       * @param value An int[] where each element specifies a line style 
+       *              (see {@link ContourJPanel ContourJPanel}).  The first  
+       *              element from this array and is used to set the style 
+       *              for the first line.  Each elements is read until the 
+       *              end of this array is reached or until there are no 
+       *              more lines to adjust.
+       */
+      public void setControlValue(Object value)
+      {
+         if (value==null)
+            return;
+         
+         if ( !(value instanceof int[]) ) 
+            return;
+         
+         int[] styles = (int[])value;
+         int min = Math.min(styles.length, styleComboBoxes.length);
+         for (int i=0; i<min; i++)
+            styleComboBoxes[i].setSelectedIndex(getIndexForStyle(styles[i]));
+      }
+      
+      /**
+       * Used to get the styles associated with each line described in this 
+       * control.
+       * 
+       * @return An int[] where the ith element of the array describes the 
+       *         line style of the ith line on this control.  
+       *         (see {@link ContourJPanel ContourJPanel}).
+       */
+      public Object getControlValue()
+      {
+         int[] styles = new int[styleComboBoxes.length];
+         for (int i=0; i<styleComboBoxes.length; i++)
+            styles[i] = getStyleForIndex(styleComboBoxes[i].getSelectedIndex());
+         return styles;
+      }
+      
+      /**
+       * Used to get the state of this control.  This state contains the 
+       * styles selected and if lines are enabled or not.
+       * 
+       * @param isDefault If true the default configuration is returned.
+       *                  If false the current configuration is returned.
+       */
+      public ObjectState getObjectState(boolean isDefault)
+      {
+         ObjectState state = super.getObjectState(isDefault);
+           if (isDefault)
+              state.insert(STYLES_KEY, DEFAULT_STYLES);
+           else
+              state.insert(STYLES_KEY, (int[])getControlValue());
+         return state;
+      }
+      
+      /**
+       * Used to set the state of this control (i.e. set which styles are 
+       * selected and if certain lines are enabled or not).
+       * 
+       * @param state Encapsulates which styles are selected and which lines 
+       *              are enabled.
+       */
+      public void setObjectState(ObjectState state)
+      {
+         if (state==null)
+            return;
+         
+         Object val = state.get(STYLES_KEY);
+         if (val!=null)
+            setControlValue((int[])val);
+      }
+
+      /**
+       * Used to get a copy of this control.
+       * 
+       * @return A deep copy of this control.
+       */
+      public ViewControl copy()
+      {
+         LineStyleControl copy = 
+            new LineStyleControl((int[])getControlValue(), getEnabledLines());
+         copy.setObjectState(this.getObjectState(false));
+         return copy;
+      }
+      
+      /**
+       * Used to determine which lines are enabled.
+       * 
+       * @return An array where the ith element in the array has a value 
+       *         <code>true</code> if the ith line on this control is 
+       *         enabled.  If the value is <code>false</code> the line is not 
+       *         enabled.
+       */
+      public boolean[] getEnabledLines()
+      {
+         boolean[] b = new boolean[enableBoxes.length];
+         for (int i=0; i<b.length; i++)
+            b[i] = enableBoxes[i].isSelected();
+         return b;
+      }
+      
+      /**
+       * Used to determine the number of possible line styles.  If there are 
+       * <code>n</code> styles, then there are controls on this ViewControl 
+       * to specify a pattern of styles for a set of <code>n</code> lines.
+       * 
+       * @return The number of possible line styles.
+       */
+      public int getNumOfStyles()
+      {
+         return NUM_STYLE_CONTROLS;
+      }
+      
+      /**
+       * Used to listen to the checkboxes being checked.  A checkbox being 
+       * checked or not reflects if its corresponding line is enabled or not.
+       */
+      private class CheckBoxListener implements ActionListener
+      {
+         /** The checkbox that is being listened to. */
+         private ControlCheckbox checkBox;
+         /** The checkbox's corresponding combobox (on line styles). */
+         private LabelCombobox comboBox;
+         
+         /**
+          * Creates a listener to listen to the given checkbox that 
+          * corresponds to the given combobox.
+          * 
+          * @param checkBox The checkbox to listen to.
+          * @param comboBox The combobox that corresponds to the checkbox.
+          */
+         public CheckBoxListener(ControlCheckbox checkBox, 
+                                 LabelCombobox comboBox)
+         {
+            this.checkBox = checkBox;
+            this.comboBox = comboBox;
+         }
+         
+         /**
+          * Invoked when the checkbox is checked or unchecked.  Depending if 
+          * it is checked or unchecked, <code>comboBox</code> is enabled or 
+          * disabled.
+          */
+         public void actionPerformed(ActionEvent event)
+         {
+            if (event.getActionCommand().
+                  equals(ControlCheckbox.CHECKBOX_CHANGED))
+               comboBox.setEnabled(checkBox.isSelected());
+         }
+      }
+      
+      /**
+       * Used to listen to the 'Draw' button being pressed.
+       */
+      private class DrawListener implements ActionListener
+      {
+         /**
+          * Invoked when the 'Draw' button is pressed.  This updates the 
+          * contour view to reflect the new line styles.
+          */
+         public void actionPerformed(ActionEvent event)
+         {
+            int counter = 0;
+            for (int i=0; i<enableBoxes.length; i++)
+               if (enableBoxes[i].isSelected())
+                  counter++;
+            
+            int[] currentStyles = new int[counter];
+            int j = 0;
+            for (int i=0; i<NUM_STYLE_CONTROLS; i++)
+               if (enableBoxes[i].isSelected())
+                  currentStyles[j++] = 
+                     getStyleForIndex(styleComboBoxes[i].getSelectedIndex());
+               
+            contourPanel.setLineStyles(currentStyles);
+         }
+      }
+   }
+//--------------------=[ End custom controls ]=-------------------------------//
+   
+   
+//----------------=[ Methods used to test this class ]=-----------------------//
+   /**
+    * Creates a VirtualArray2D of test data that contains a peak.
+    * 
+    * @param Nx The number of columns in the array.  A good value is 41.
+    * @param Ny The number of rows in the array.  A good value is 51.
+    * @param xRange The x range.  A good value is 3.0.
+    * @param yRange The y range.  A good value is 4.0.
+    */
+   public static VirtualArray2D getTestData(int Nx, int Ny, 
                                              double xRange, double yRange)
    {
       float[][] dataArray = new float[Nx][Ny];
@@ -321,49 +973,51 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       return new VirtualArray2D(dataArray);
    }
    
-   
-
-   public CompositeContourControl generateContourControls(
-                                                    float minValue, 
-                                                    float maxValue, 
-                                                    int numLevels, 
-                                                    float[] levels, 
-                                                    boolean showManualControls)
+   /**
+    * Testbed.  Displays this view along with its controls.
+    * 
+    * @param args Unused.
+    */
+   public static void main(String[] args)
    {
-      contourControl = 
-         new CompositeContourControl(contourPanel, 
-                                     minValue, maxValue, numLevels, 
-                                     levels, 
-                                     false);
-      return contourControl;
-   }
-   
-   public ControlCheckbox generateAspectRatioCheckbox()
-   {
-      /*
-       * This is the control used to specify if the aspect ratio should 
-       * be preserved.
-       */
-      aspectRatio = new ControlCheckbox();
-      aspectRatio.setText("Preserve Aspect Ratio");
-      aspectRatio.addActionListener(new ActionListener()
-      {
-         public void actionPerformed(ActionEvent event)
-         {
-            contourPanel.setPreserveAspectRatio(aspectRatio.isSelected());
-            contourPanel.reRender();
-         }
-      });
+      VirtualArray2D arr = getTestData(41,51,3.0,4.0);
+      ContourViewComponent contour = new ContourViewComponent(arr);
       
-      return aspectRatio;
+      JFrame frame = new JFrame("ContourViewComponent Test");
+        JPanel controlPanel = new JPanel();
+        Box box = new Box(BoxLayout.Y_AXIS);
+        ViewControl[] controls = contour.getControls();
+        for (int i=0; i<controls.length; i++)
+           box.add(controls[i]);
+        controlPanel.add(box);
+        
+        JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+          pane.setLeftComponent(contour.getDisplayPanel());
+          pane.setRightComponent(controlPanel);
+          pane.setDividerLocation(500);
+        
+        frame.getContentPane().add(pane);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.pack();
+      frame.setVisible(true);
    }
+//----------------=[ End methods used to test this class ]=-------------------//
    
-   public LineStyleControl generateLineStyleControl()
-   {
-      return new LineStyleControl(contourPanel);
-   }
    
+   
+   
+   
+   
+   //------------------=[ Unused code ]=----------------------------------
    /*
+   
+   private static final int SOLID_INDEX = 0;
+   private static final int DASHED_INDEX = 1;
+   private static final int DASHED_DOTTED_INDEX = 2;
+   private static final int DOTTED_INDEX = 3;
+   private static final int SOLID_DASHED_INDEX = 4;
+   private static final int SOLID_DASHED_DASHEDDOTTED_DOTTED = 5;
+   
    public LabelCombobox generateLineStyleComboBox()
    {
       String[] styles = new String[6];
@@ -416,199 +1070,4 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       return lineStyleComboBox;
    }
    */
-   
-   public FieldEntryControl generateLabelEveryNthField()
-   {
-      labelEveryNthField = new FieldEntryControl(new String[]{"Label every "}, 
-                                                 new int[] {1});
-        labelEveryNthField.enableFilter(new IntegerFilter(), 0);
-        labelEveryNthField.setButtonText("Draw");
-        labelEveryNthField.addActionListener(new ActionListener()
-        {
-           public void actionPerformed(ActionEvent event)
-           {
-              contourPanel.setShowLabelEvery((int)labelEveryNthField.getFloatValue(0));
-           }
-        });
-     return labelEveryNthField;
-   }
-   
-   public FieldEntryControl generateNumSigFigField()
-   {
-      numSigDigField = 
-         new FieldEntryControl(new String[] {"Number of significant digits"}, 
-                               new int[] {ContourJPanel.DEFAULT_NUM_SIG_DIGS});
-        numSigDigField.enableFilter(new IntegerFilter(), 0);
-        numSigDigField.setButtonText("Draw");
-        numSigDigField.addActionListener(new ActionListener()
-        {
-           public void actionPerformed(ActionEvent event)
-           {
-              contourPanel.setNumSigDigits((int)numSigDigField.getFloatValue(0));
-           }
-        });
-     return numSigDigField;
-   }
-   
-   private void initControls(float minValue, float maxValue, int numLevels, 
-         float[] levels, boolean useManualLevels)
-   {
-      controls = new ViewControl[5];
-      controls[0] = generateContourControls(minValue, maxValue, numLevels, 
-                                            levels, useManualLevels);
-      controls[1] = generateAspectRatioCheckbox();
-      controls[2] = generateLineStyleControl();
-      controls[3] = generateLabelEveryNthField();
-      controls[4] = generateNumSigFigField();
-   }
-   
-   private class LineStyleControl extends ViewControl implements ActionListener
-   {
-      private final String STYLES_KEY = "Styles";
-      
-      private final int[] DEFAULT_STYLES = new int[] {ContourJPanel.SOLID, 
-                                                      ContourJPanel.SOLID, 
-                                                      ContourJPanel.SOLID, 
-                                                      ContourJPanel.SOLID};
-      
-      private ContourJPanel contourPanel;
-      private LabelCombobox[] styleComboBoxes;
-      private int[] currentStyles;
-      
-      public LineStyleControl(ContourJPanel panel)
-      {
-         super("Line styles");
-         
-         contourPanel = panel;
-         
-         styleComboBoxes = new LabelCombobox[4];
-         for (int i=0; i<styleComboBoxes.length; i++)
-           styleComboBoxes[i] = constructStyleBox(i);
-         
-         currentStyles = new int[styleComboBoxes.length];
-         Arrays.fill(currentStyles, ContourJPanel.SOLID);
-         
-         JButton drawButton = new JButton("Draw");
-           drawButton.addActionListener(this);
-           
-         JPanel stylePanel = new JPanel(); 
-           BoxLayout layout = new BoxLayout(stylePanel, BoxLayout.Y_AXIS);
-           stylePanel.setLayout(layout);
-           for (int i=0; i<styleComboBoxes.length; i++)
-              stylePanel.add(styleComboBoxes[i]);
-           
-         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-           buttonPanel.add(drawButton);
-           
-         setLayout(new BorderLayout());
-           add(stylePanel, BorderLayout.CENTER);
-           add(buttonPanel, BorderLayout.SOUTH);
-      }
-      
-      private LabelCombobox constructStyleBox(int index)
-      {
-         String[] styles = new String[4];
-           styles[getIndexForStyle(ContourJPanel.SOLID)] = 
-                                                    "solid";
-           styles[getIndexForStyle(ContourJPanel.DASHED)] = 
-                                                    "dashed";
-           styles[getIndexForStyle(ContourJPanel.DASHED_DOTTED)] = 
-                                                    "dahsed dotted";
-           styles[getIndexForStyle(ContourJPanel.DOTTED)] = 
-                                                    "dotted";
-         return new LabelCombobox("Line "+(index+1),styles);
-      }
-      
-      private int getIndexForStyle(int style)
-      {
-         switch (style)
-         {
-            case ContourJPanel.SOLID:
-               return 0;
-            case ContourJPanel.DASHED:
-               return 1;
-            case ContourJPanel.DASHED_DOTTED:
-               return 2;
-            case ContourJPanel.DOTTED:
-               return 3;
-            default:
-               return -1;
-         }
-      }
-      
-      private int getStyleForIndex(int index)
-      {
-         switch (index)
-         {
-            case 0:
-               return ContourJPanel.SOLID;
-            case 1:
-               return ContourJPanel.DASHED;
-            case 2:
-               return ContourJPanel.DASHED_DOTTED;
-            case 3:
-               return ContourJPanel.DOTTED;
-            default:
-               return -1;
-         }
-      }
-      
-      public void setControlValue(Object value)
-      {
-         if (value==null)
-            return;
-         
-         if ( !(value instanceof int[]) ) 
-            return;
-         
-         int[] styles = (int[])value;
-         int min = Math.min(styles.length, styleComboBoxes.length);
-         for (int i=0; i<min; i++)
-            styleComboBoxes[i].setSelectedIndex(getIndexForStyle(styles[i]));
-      }
-      
-      public Object getControlValue()
-      {
-         int[] styles = new int[styleComboBoxes.length];
-         for (int i=0; i<styleComboBoxes.length; i++)
-            styles[i] = getStyleForIndex(styleComboBoxes[i].getSelectedIndex());
-         return styles;
-      }
-      
-      public ObjectState getObjectState(boolean isDefault)
-      {
-         ObjectState state = super.getObjectState(isDefault);
-           if (isDefault)
-              state.insert(STYLES_KEY, DEFAULT_STYLES);
-           else
-              state.insert(STYLES_KEY, (int[])getControlValue());
-         return state;
-      }
-      
-      public void setObjectState(ObjectState state)
-      {
-         if (state==null)
-            return;
-         
-         Object val = state.get(STYLES_KEY);
-         if (val!=null)
-            setControlValue((int[])val);
-      }
-
-      public ViewControl copy()
-      {
-         LineStyleControl copy = new LineStyleControl(contourPanel);
-         copy.setObjectState(this.getObjectState(false));
-         return copy;
-      }
-      
-      public void actionPerformed(ActionEvent event)
-      {
-         for (int i=0; i<styleComboBoxes.length; i++)
-            currentStyles[i] = 
-               getStyleForIndex(styleComboBoxes[i].getSelectedIndex());
-         
-         contourPanel.setLineStyles(currentStyles);
-      }
-   }
 }
