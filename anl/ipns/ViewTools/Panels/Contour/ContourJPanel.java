@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.12  2005/06/22 22:24:53  kramer
+ * Removed unused code, added javadocs, changed the default values in this
+ * class so that they more logically relate to the default values in the
+ * ContourViewComponent and CompositeContourControl classes, and made the
+ * contour labels more compact.
+ *
  * Revision 1.11  2005/06/17 19:48:22  kramer
+ *
  * Removed the unused import to ContourLevelMetaData (which I never checked
  * into cvs because it was not needed).
  *
@@ -111,21 +118,35 @@ import DataSetTools.util.SharedData;
 public class ContourJPanel extends CoordJPanel implements Serializable,
       IPreserveState
 {
+   /** Identifies a line style as a solid line. */
    public static final int SOLID = GraphJPanel.LINE;
+   /** Identifies a line style as a dashed line. */
    public static final int DASHED = GraphJPanel.DASHED;
+   /** Identifies a line style as a dashed-dotted line. */
    public static final int DASHED_DOTTED = GraphJPanel.DASHDOT;
+   /** Identifies a lines style as a dotted line. */
    public static final int DOTTED = GraphJPanel.DOTTED;
    
+   /**
+    * The default line style used to render contour lines.
+    * Its value is <code>SOLID</code>.
+    */
    public static final int     DEFAULT_LINE_STYLE   = SOLID;
+   /**
+    * Specifies if contour labels are shown by default.  
+    * Its value is <code>true</code>.
+    */
    public static final boolean DEFAULT_SHOW_LABEL   = true;
+   /**
+    * Specifies the default number of significant figures the contour 
+    * labels are rounded to.  Its value is <code>3</code>.
+    */
    public static final int     DEFAULT_NUM_SIG_DIGS = 3;
-   
-   private static final int[] DEFAULT_LINE_STYLE_ARR = 
-                                       new int[] {DEFAULT_LINE_STYLE};
-   private static final boolean[] DEFAULT_SHOW_LABEL_ARR = 
-                                       new boolean[] {DEFAULT_SHOW_LABEL};
-   private static final int[] DEFAULT_NUM_SIG_DIGS_ARR = 
-                                       new int[] {DEFAULT_NUM_SIG_DIGS};
+   /**
+    * Specifies if by default the aspect ratio should be preserved when 
+    * drawing the contour levels.  Its value is <code>false</code>.
+    */
+   public static final boolean DEFAULT_PRESERVE_ASPECT_RATIO = false;
    
    /** Holds the data that is being drwn on this panel. */
    private IVirtualArray2D data2D;
@@ -135,8 +156,14 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    private Contours levels;
    
+   /** Describes the line styles used to render the contour levels. */
    private int[] lineStyles;
+   /** Describes which contour levels are rendered with labels. */
    private boolean[] showLabels;
+   /**
+    * Describes the number of significant figures each contour level's 
+    * label is formatted to (and if there is even any formatting done).
+    */
    private int[] numSigDigs;
    
    /**
@@ -158,9 +185,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       this.data2D = data2D;
       this.setBackground(Color.WHITE);
       
-      this.lineStyles = DEFAULT_LINE_STYLE_ARR;
-      this.showLabels = DEFAULT_SHOW_LABEL_ARR;
-      this.numSigDigs = DEFAULT_NUM_SIG_DIGS_ARR;
+      setLineStyles(DEFAULT_LINE_STYLE);
+      setShowAllLabels(DEFAULT_SHOW_LABEL);
+      setNumSigDigits(DEFAULT_NUM_SIG_DIGS);
+      
+      setPreserveAspectRatio(DEFAULT_PRESERVE_ASPECT_RATIO);
    }
    
    /**
@@ -247,69 +276,188 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       reRender();
    }
    
+   /**
+    * Used to get the line styles that a given contour line is rendered as.  
+    * The first contour line rendered uses the line style of the first 
+    * element of the array returned.  The second line uses the second 
+    * element of the array etc.  When the end of the array is reached, 
+    * reading starts over from the start of the array.
+    * 
+    * @return An array of integers each designating a line style
+    * 
+    * @see #SOLID
+    * @see #DASHED
+    * @see #DASHED_DOTTED
+    * @see #DOTTED
+    */
    public int[] getLineStyles()
    {
       return lineStyles;
    }
    
+   /**
+    * Used to get the line styles that a given contour line is rendered as.  
+    * The first contour line rendered uses the line style of the first 
+    * element of the array given.  The second line uses the second 
+    * element of the array etc.  When the end of the array is reached, 
+    * reading starts over from the start of the array.
+    * 
+    * @param lineStyles An array of integers each designating a line style
+    * 
+    * @see #SOLID
+    * @see #DASHED
+    * @see #DASHED_DOTTED
+    * @see #DOTTED
+    */
    public void setLineStyles(int[] lineStyles)
    {
       if (lineStyles==null || lineStyles.length==0)
-         this.lineStyles = DEFAULT_LINE_STYLE_ARR;
+         setLineStyles(DEFAULT_LINE_STYLE);
       else
          this.lineStyles = lineStyles;
       
       reRender();
    }
    
+   /**
+    * Configures this renderer to draw each line with the line style given.
+    * 
+    * @param lineStyle Designates the line style to render each of the 
+    *                  contour lines as.
+    * 
+    * @see #SOLID
+    * @see #DASHED
+    * @see #DASHED_DOTTED
+    * @see #DOTTED
+    */
    public void setLineStyles(int lineStyle)
    {
       setLineStyles(new int[] {lineStyle});
    }
    
+   /**
+    * Used to determine which contour lines have labels rendered.  The first 
+    * contour line rendered uses labels if and only if the first element 
+    * in the array returned is 'true'.  The second contour line uses the 
+    * second element in the array etc.  When the end of the array is 
+    * reached, reading starts over from the start of the array.
+    * 
+    * @return The array of booleans which describe which contour lines are 
+    *         drawn with labels.
+    */
    public boolean[] getShowLabels()
    {
       return showLabels;
    }
    
+   /**
+    * Used to set which contour lines have labels rendered.  The first 
+    * contour line rendered uses labels if and only if the first element 
+    * in the array given is 'true'.  The second contour line uses the 
+    * second element in the array etc.  When the end of the array is 
+    * reached, reading starts over from the start of the array.
+    * 
+    * @param showLabels The array of booleans which describe which 
+    *                   contour lines are drawn with labels.
+    */
    public void setShowLabels(boolean[] showLabels)
    {
       if (showLabels==null || showLabels.length==0)
-         this.showLabels = DEFAULT_SHOW_LABEL_ARR;
+         setShowAllLabels(DEFAULT_SHOW_LABEL);
       else
          this.showLabels = showLabels;
       
       reRender();
    }
    
+   /**
+    * Used to specify if all or none of the contour levels are rendered 
+    * with their labels drawn.
+    * 
+    * @param b True if all contour levels should be rendered with their 
+    *          labels drawn and false if none of the contour levels should 
+    *          be rendered with their labels drawn.
+    */
+   public void setShowAllLabels(boolean b)
+   {
+      setShowLabels(new boolean[] {b});
+   }
+   
+   /**
+    * Used to specify that a uniform sequence of contour lines should have 
+    * their labels drawn.  In other words, if contour line 1 is the first 
+    * contour line drawn, then the contour lines, 
+    * <code>1, 1+num, 1+2*num, 1+3*num, ....</code> are the only lines 
+    * drawn with labels.
+    * 
+    * @param num Specifies the multiple of the contour lines that are drawn 
+    *            with labels.
+    */
    public void setShowLabelEvery(int num)
    {
       if (num<=0)
-         setShowLabels(DEFAULT_SHOW_LABEL_ARR);
+         setShowAllLabels(DEFAULT_SHOW_LABEL);
       else
       {
          boolean[] arr = new boolean[num];
          Arrays.fill(arr, false);
-         arr[num-1] = true;
+         arr[0] = true;
          setShowLabels(arr);
       }
    }
    
+   /**
+    * Used to get the number of significant figures that the contour levels 
+    * are rounded to.
+    * 
+    * @return The first contour level rendered has its label rounded to the 
+    *         number of figures as specified by the first element in this 
+    *         array.  The second contour level similarly uses the second 
+    *         element of this array etc.  When, the end of the array is 
+    *         reached, reading starts over at the start of the array.  
+    *         Note:  A nonpositive number designates that the contour 
+    *                labels should not be formatted.
+    */
    public int[] getNumSigDigits()
    {
       return numSigDigs;
    }
    
+   /**
+    * Used to set the number of significant figures a contour label is 
+    * rounded to.  When the contours are rendered, the first contour drawn 
+    * uses the number of significant figures as specified by the first 
+    * value in this array.  The next contour rendered uses the second element 
+    * in the array etc.  When, the end of the array is reached, the contour 
+    * starts over using the start of the array.
+    * <p>
+    * Note:  In the array, a nonpositive number designates that the label 
+    *        should not be formatted.  Otherwise, a positive number 
+    *        designates that the label should be formatted to the specified 
+    *        number of significant figures.
+    * 
+    * @param numSigDigs Holds the number of significant digits used when 
+    *                   rendering the contour's labels.
+    */
    public void setNumSigDigits(int[] numSigDigs)
    {
       if (numSigDigs==null)
-         this.numSigDigs = DEFAULT_NUM_SIG_DIGS_ARR;
+         setNumSigDigits(DEFAULT_NUM_SIG_DIGS);
       else
          this.numSigDigs = numSigDigs;
       
       reRender();
    }
    
+   /**
+    * Used to set all of the contour levels to render their labels using 
+    * the specified number of significant figures.
+    * 
+    * @param numSigDigs The number of significant figures that each contour 
+    *                   label is rounded to.  A nonpositive number 
+    *                   designates that the contour levels should not have 
+    *                   their labels formatted.
+    */
    public void setNumSigDigits(int numSigDigs)
    {
       setNumSigDigits(new int[] {numSigDigs});
@@ -419,15 +567,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
            yMinIndex = yMaxIndex;
            yMaxIndex = yMinIndex;
         }
-        
-        /* For testing purposes
-        System.out.println("----------------------------");
-        System.out.println("xMinIndex="+xMinIndex);
-        System.out.println("xMaxIndex="+xMaxIndex);
-        System.out.println("yMinIndex="+yMinIndex);
-        System.out.println("yMaxIndex="+yMaxIndex);
-        System.out.println("----------------------------");
-        */
         
       //for each level draw the contour
       //the following levels are 'sticky'.  In other words if they are 
@@ -556,6 +695,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                                                   numSigDigits);
                    else
                       label = ""+levels.getLevelAt(i);
+                   //trim any extra whitespaces
+                   label = label.trim();
                    
                    g.drawString(label,
                                 (int)(avX),
@@ -563,22 +704,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                  g.setTransform(trans);
               }
               
-               //For testing purposes to show the endpoints of the line
-               //segment drawn
-               /*
-               int radius = 5;
-                
-               g.setColor(Color.GREEN);
-               g.drawOval((int)(xrcVals[j])-radius,
-                          (int)(yrcVals[j])-radius, radius, radius);
-                 
-               g.setColor(Color.RED);
-               g.drawOval((int)(xrcVals[j+1])-radius,
-                          (int)(yrcVals[j+1])-radius, radius, radius);
-                 
-               g.setColor(Color.BLACK);
-               */
-               
                //now to set the line style
                g.setStroke(GraphJPanel.createStroke(lineSytle, 1));
               
@@ -680,16 +805,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       else
          index = (int)Math.floor(pseudoIndex);
       
-      /*
-      //check if the index found is already an integer.
-      //if it isn't round up
-      int index;
-      if ( (pseudoIndex-(int)pseudoIndex)==0 )
-         index = (int)pseudoIndex;
-      else
-         index = (int)pseudoIndex+1;
-      */
-      
       //if the index is out of bounds 
       //change it so that it is back in bounds
       if (index<0)
@@ -782,170 +897,3 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       frame.setVisible(true);
    }
 }
-
-/*--------------------------Unused Code-------------------------*/
-/*
-   private CoordTransform createImageToWindowTransform()
-   {
-      //this will set the superclass's transformations to align with 
-      //the size of this JPanel
-        SetTransformsToWindowSize();
-      CoordBounds panelCoords = getGlobal_transform().getSource();
-      float epsilon = 0.001f;
-      CoordBounds imageCoords = 
-                     new CoordBounds(epsilon, 
-                                     epsilon, 
-                                     data2D.getNumRows()-epsilon, 
-                                     data2D.getNumColumns()-epsilon);
-      return new CoordTransform(panelCoords,imageCoords);
-   }
-   
-   private void makeImage()
-   {
-      //if the panel is not visible return
-      if (!isVisible())
-         return;
-      
-   }
-   
-   public int getRoundingDegree()
-   {
-      String pattern = labelFormatter.toPattern();
-      if (pattern.equals(ANY_NUM_SYMBOL))
-         return -1;
-      else
-      {
-         int dotIndex = pattern.indexOf(DECIMAL_SYMBOL);
-         if (dotIndex==-1)
-            return -1;
-         return pattern.length()-1-dotIndex;
-      }
-   }
-   
-   public void setRoundingDegree(int degree)
-   {
-      StringBuffer pattern = new StringBuffer(ANY_NUM_SYMBOL);
-      if (degree>=0)
-      {
-         pattern.append(DECIMAL_SYMBOL); //signifies that there should be a decimal point
-         for (int i=0; i<degree; i++)
-            pattern.append(ANY_NUM_SYMBOL);
-      }
-      
-      labelFormatter.applyPattern(pattern.toString());
-   }
-   
-   /**
-    * Holds the default number of significant digits that the 
-    * contour labels are rounded to.
-    /
-   public static int DEFAULT_NUM_SIG_DIGITS = 5;
-   /**
-    * Holds the default value describing if labels are drawn by default.
-    /
-   public static boolean DEFAULT_SHOW_LABELS = true;
-   
-   /** Records if contour labels should be drawn or not. /
-   private boolean showLabels;
-   /**
-    * Records the number of significant digits that the contour 
-    * labels are rounded to.  Note:  0 is used to represent 
-    * not rounding the labels.
-    /
-   private int numSigDigits;
-   
-   this.showLabels = DEFAULT_SHOW_LABELS;
-   this.numSigDigits = DEFAULT_NUM_SIG_DIGITS;
-      
-   /**
-    * Used to determine if the contour lines should be labeled.
-    * 
-    * @return True if the contour lines should be labeled and 
-    *         false if they shouldn't be.
-    /
-   public boolean getLabelsEnabled()
-   {
-      return showLabels;
-   }
-   
-   /**
-    * Used to set if the contour lines should be labeled.  This 
-    * method also immediately redraws the contour graph.
-    * 
-    * @param on True if the contour lines should be labeled and 
-    *           false if they shouldn't be labeled.
-    /
-   public void setLabelsEnabled(boolean on)
-   {
-      showLabels = on;
-      reRender();
-   }
-   
-   /**
-    * Get the number of significant digits that the contour labels 
-    * are rounded to.  Notice that contour labels must be enabled 
-    * for the labels to be visible.
-    * 
-    * @see #setLabelsEnabled(boolean)
-    * 
-    * @return The number of significant digits that the contour 
-    *         labels are rounded to.  If the labels aren't being 
-    *         rounded, 0 is returned.
-    /
-   public int getNumSigDigits()
-   {
-      return numSigDigits;
-   }
-   
-   /**
-    * Set the number of significant digits that the contour labels 
-    * are rounded to.  Notice that contour labels must be enabled 
-    * for the labels to be visible.  This method also immediately 
-    * redraws the contour graph.
-    * 
-    * @see #setLabelsEnabled(boolean)
-    * 
-    * @param degree The number of significant digits that the 
-    *               contour labels are rounded to.  If this value 
-    *               is 0 or negative, the rounding of the 
-    *               contour labels will be disabled.
-    /
-   public void setNumSigDigits(int degree)
-   {
-      if (degree<=0)
-         numSigDigits = 0;
-      else
-         numSigDigits = degree;
-      
-      reRender();
-   }
-   
-   public ContourLevelMetaData[] getContourMetaData()
-   {
-      return levelMetaData;
-   }
-   
-   public void setContourMetaData(ContourLevelMetaData[] metaData)
-   {
-      if (metaData==null)
-      {
-         levelMetaData = DEFAULT_LEVEL_META_DATA;
-         return;
-      }
-      
-      levelMetaData = metaData;
-   }
-   
-            ContourLevelMetaData[] metaData = new ContourLevelMetaData[4];
-           metaData[0] = 
-              new ContourLevelMetaData(ContourLevelMetaData.SOLID, true, 5);
-           metaData[1] = 
-              new ContourLevelMetaData(ContourLevelMetaData.DASHED, false, 4);
-           metaData[2] = 
-              new ContourLevelMetaData(ContourLevelMetaData.DASHED_DOTTED, 
-                                       false, 3);
-           metaData[3] = 
-              new ContourLevelMetaData(ContourLevelMetaData.DOTTED, true, 2);
-
-
-*/
