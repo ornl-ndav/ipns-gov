@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2005/06/22 22:21:32  kramer
+ * Added the sort(Comparator) method which is used to sort the items in
+ * the list.
+ *
  * Revision 1.4  2005/06/16 13:57:58  kramer
+ *
  * Added javadocs.
  *
  * Revision 1.3  2005/06/08 21:51:12  kramer
@@ -64,6 +69,8 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
@@ -436,6 +443,41 @@ public class ControlList extends ViewControl
    public boolean isEmpty()
    {
       return getMyModel().isEmpty();
+   }
+   
+   /**
+    * Sorts the items displayed in the list.  This method uses the 
+    * <code>java.util.Arrays.sort(Object[], Comparator)</code> method 
+    * which gaurantees <code>n*log(n)</code> performance.
+    * <p>
+    * Also, as stated in the description of the 
+    * <code>java.util.Arrays.sort(Object[], Comparator)</code> method, 
+    * <code>comp.compare(ob1, ob2)</code> must <b>not</b> throw a 
+    * <code>ClassCastException</code> for any Objects in the list 
+    * for this method to work.
+    * 
+    * @param comp This is the object that is used to compare any two objects 
+    *             in the list.  The comparator to use depends on the objects 
+    *             that were added to the list.  For example, if Strings were 
+    *             added to the list, use a Comparator that compares Strings 
+    *             (i.e. check if one String is "greater than" another String).
+    */
+   public void sort(Comparator comp)
+   {
+      //'comp' must be non-null for comparisons to be made
+      if (comp==null)
+         return;
+      
+      //if the list is empty there is nothing to sort
+      if (isEmpty())
+         return;
+      
+      //get the list of values and sort it
+      //the Java API gaurantees that the Arrays.sort() method used 
+      //has n*log(n) performance
+      Object[] values = (Object[])getControlValue();
+      Arrays.sort(values, comp);
+      setControlValue(values);
    }
    
    /**
