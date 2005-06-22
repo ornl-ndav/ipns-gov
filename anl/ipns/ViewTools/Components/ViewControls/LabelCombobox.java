@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2005/06/22 22:22:01  kramer
+ *  Added the setEnabled(boolean enabled) method.
+ *
  *  Revision 1.8  2005/05/25 20:28:42  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -280,6 +283,18 @@ public class LabelCombobox extends ViewControl
    {
      return cbox.getSelectedItem();
    }   
+   
+   /**
+    * Set if this control should be enabled or not.
+    * 
+    * @param enabled True if this control should be enabled 
+    *                and false if it shouldn't be.
+    */
+   public void setEnabled(boolean enabled)
+   {
+      super.setEnabled(enabled);
+      cbox.setEnabled(enabled);
+   }
    
  /*
    * CheckboxListener moniters the JCheckBox private data member for the
