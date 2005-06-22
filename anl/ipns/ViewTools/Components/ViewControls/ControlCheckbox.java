@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2005/06/22 22:20:44  kramer
+ *  Added the setEnabled(boolean) method.
+ *
  *  Revision 1.12  2005/05/25 20:28:37  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -306,6 +309,18 @@ public class ControlCheckbox extends ViewControl
     // if currently selected, but wants it unselected.
     else if( isSelected() && !isChecked )
       doClick();	 
+  }
+  
+  /**
+   * Sets the checkbox to be either enabled or disabled.
+   * 
+   * @param enabled True if the checkbox should be enabled and false 
+   *                if it shouldn't be.
+   */
+  public void setEnabled(boolean enabled)
+  {
+     super.setEnabled(enabled);
+     cbox.setEnabled(enabled);
   }
 
  /**
