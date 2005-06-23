@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.9  2005/06/23 21:02:52  kramer
+ * Made this class now use the ControlCheckboxSpinner and
+ * ControlCheckboxCombobox ViewControls as the controls for the
+ * contour labels and label formatting.
+ *
  * Revision 1.8  2005/06/22 22:16:37  kramer
+ *
  * Added javadocs and rearranged the code to make it easier to read.
  *
  * Modified the default values specified in this class so that this class,
@@ -67,7 +73,8 @@ import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.ViewControls.CompositeContourControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckbox;
-import gov.anl.ipns.ViewTools.Components.ViewControls.LabelCombobox;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckboxCombobox;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckboxSpinner;
 import gov.anl.ipns.ViewTools.Components.ViewControls.SpinnerControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
@@ -140,10 +147,8 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    private CompositeContourControl contourControl;
    private ControlCheckbox aspectRatio;
    private LineStyleControl lineStyleControl;
-   private ControlCheckbox enableLabelsCheckbox;
-   private SpinnerControl labelEveryNth;
-   private ControlCheckbox enableSigFigs;
-   private SpinnerControl numSigFigs;
+   private ControlCheckboxSpinner labelControl;
+   private ControlCheckboxSpinner sigFigControl;
    
    
 //-------------------------=[ Constructors ]=---------------------------------//
@@ -359,17 +364,15 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                              boolean preserveAspectRatio, 
                              int[] styles, boolean[] stylesEnabled, 
                              boolean enableLabels, int everyNthLineLabeled, 
-                             boolean enbaleLabelFormatting, int numSigFig)
+                             boolean enableFormatting, int numSigFig)
    {
-      controls = new ViewControl[7];
+      controls = new ViewControl[5];
       controls[0] = generateContourControls(minValue, maxValue, numLevels, 
                                             levels, useManualLevels);
       controls[1] = generateAspectRatioCheckbox(preserveAspectRatio);
       controls[2] = generateLineStyleControl(styles, stylesEnabled);
-      controls[3] = generateEnableLabelsCheckbox(enableLabels);
-      controls[4] = generateLabelEveryNthSpinner(everyNthLineLabeled);
-      controls[5] = generateEnableSigFigs(enbaleLabelFormatting);
-      controls[6] = generateNumSigFigSpinner(numSigFig);
+      controls[3] = generateLabelControls(enableLabels, everyNthLineLabeled);
+      controls[4] = generateSigFigControls(enableFormatting, numSigFig);
    }
    
    public CompositeContourControl generateContourControls(
@@ -414,31 +417,8 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       return lineStyleControl;
    }
    
-   public ControlCheckbox generateEnableLabelsCheckbox(boolean enable)
-   {
-      enableLabelsCheckbox = new ControlCheckbox(enable);
-        enableLabelsCheckbox.setText("Enable line labels");
-        enableLabelsCheckbox.addActionListener(new ActionListener()
-        {
-           public void actionPerformed(ActionEvent event)
-           {
-              if (event.getActionCommand().
-                     equals(ControlCheckbox.CHECKBOX_CHANGED))
-              {
-                 boolean selected = enableLabelsCheckbox.isSelected();
-                 
-                 labelEveryNth.setEnabled(selected);
-                 if (selected)
-                    labelEveryNth.doClick();
-                 else
-                    contourPanel.setShowLabels(new boolean[] {false});
-              }
-           }
-        });
-      return enableLabelsCheckbox;
-   }
-   
-   public SpinnerControl generateLabelEveryNthSpinner(int initialValue)
+   public ControlCheckboxSpinner generateLabelControls(boolean enable, 
+                                                       int initialValue)
    {
       int min = 1;
       int max = 100;
@@ -446,50 +426,35 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       if (initialValue<min || initialValue>max)
          initialValue = min;
       
-      labelEveryNth = 
-         new SpinnerControl("Label every ", 
-                            new SpinnerNumberModel(initialValue, 
-                                                   min, max, stepSize), 
-                            new Integer(initialValue));
-        labelEveryNth.addActionListener(new ActionListener()
-        {
-           public void actionPerformed(ActionEvent event)
-           {
-              if (event.getActionCommand().
-                    equals(SpinnerControl.SPINNER_CHANGED))
-                 contourPanel.setShowLabelEvery(
-                                 ((Integer)labelEveryNth.getControlValue()).
-                                                            intValue());
-           }
-        });
-     return labelEveryNth;
+      labelControl = 
+         new ControlCheckboxSpinner("Labels", enable, "Label every", 
+               new SpinnerNumberModel(initialValue, min, max, stepSize), 
+                  new Integer(DEFAULT_LABEL_EVERY_N_LINES), 
+                     new Integer(initialValue));
+      labelControl.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            String mssg = event.getActionCommand();
+            if (mssg.equals(SpinnerControl.SPINNER_CHANGED) || 
+                  mssg.equals(ControlCheckbox.CHECKBOX_CHANGED))
+            {
+               if (labelControl.isChecked())
+                  contourPanel.setShowLabelEvery((
+                     (Integer)labelControl.getSpinnerValue()).
+                        intValue());
+               else
+                  contourPanel.setShowAllLabels(false);
+            }
+         }
+      });
+      labelControl.send_message(ControlCheckbox.CHECKBOX_CHANGED);
+      
+      return labelControl;
    }
    
-   public ControlCheckbox generateEnableSigFigs(boolean enable)
-   {
-      enableSigFigs = new ControlCheckbox(enable);
-        enableSigFigs.setText("Enable Number Formatting");
-        enableSigFigs.addActionListener(new ActionListener()
-        {
-           public void actionPerformed(ActionEvent event)
-           {
-              if (event.getActionCommand().
-                    equals(ControlCheckbox.CHECKBOX_CHANGED))
-              {
-                 boolean selected = enableSigFigs.isSelected();
-                 
-                 numSigFigs.setEnabled(selected);
-                 if (selected)
-                    numSigFigs.doClick();
-                 else
-                    contourPanel.setNumSigDigits(-1);
-              }
-           }
-        });
-     return enableSigFigs;
-   }
-   
-   public SpinnerControl generateNumSigFigSpinner(int initialValue)
+   public ControlCheckboxSpinner generateSigFigControls(boolean enable, 
+                                                        int initialValue)
    {
       int min = 1;
       int max = 19;
@@ -497,23 +462,31 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       if (initialValue<min || initialValue>max)
          initialValue = min;
       
-      numSigFigs = 
-         new SpinnerControl("Number of significant figures ", 
-                               new SpinnerNumberModel(initialValue, min,  
-                                                      max, stepSize), 
-                               new Integer(initialValue));
-        numSigFigs.addActionListener(new ActionListener()
+      sigFigControl = 
+         new ControlCheckboxSpinner("Significant Figures", enable, 
+               "Number of significant figures", 
+               new SpinnerNumberModel(initialValue, min, max, stepSize), 
+               new Integer(DEFAULT_NUM_SIG_DIGS), new Integer(initialValue));
+      sigFigControl.addActionListener(new ActionListener()
         {
            public void actionPerformed(ActionEvent event)
            {
-              if (event.getActionCommand().
-                    equals(SpinnerControl.SPINNER_CHANGED))
-                 contourPanel.setNumSigDigits(
-                                 ((Integer)numSigFigs.getControlValue()).
-                                                         intValue());
+              String mssg = event.getActionCommand();
+              if (mssg.equals(SpinnerControl.SPINNER_CHANGED) || 
+                    mssg.equals(ControlCheckbox.CHECKBOX_CHANGED))
+              {
+                 if (sigFigControl.isChecked())
+                    contourPanel.setNumSigDigits(
+                          ((Integer)sigFigControl.getSpinnerValue()).
+                             intValue());
+                 else
+                    contourPanel.setNumSigDigits(-1);
+              }
            }
         });
-     return numSigFigs;
+      sigFigControl.send_message(ControlCheckbox.CHECKBOX_CHANGED);
+      
+      return sigFigControl;
    }
 // -----------=[ End methods used to generate the controls ]=-----------------//
    
@@ -555,15 +528,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
        * <p>
        * The length of this array is equal to <code>NUM_STYLE_CONTROLS</code>.
        */
-      private LabelCombobox[] styleComboBoxes;
-      /**
-       * Each element in this array is a ViewControl that is a checkbox that 
-       * specifies if the given line should be enabled or disabled.  If a 
-       * line is disabled, its corresponding style specification is ignored.  
-       * <p>
-       * The length of this array is equal to <code>NUM_STYLE_CONTROLS</code>.
-       */
-      private ControlCheckbox[] enableBoxes;
+      private ControlCheckboxCombobox[] styleBoxes;
       
       /**
        * Constructs this ViewControl.
@@ -593,58 +558,50 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       {
          super("Line styles");
          
+         //verify the inputs
          if (styles==null || linesEnabled.length<NUM_STYLE_CONTROLS)
             styles = DEFAULT_STYLES;
          if (linesEnabled==null || linesEnabled.length<(NUM_STYLE_CONTROLS-1))
             linesEnabled = DEFAULT_ENABLE_STYLE_ARR;
          
-         styleComboBoxes = new LabelCombobox[NUM_STYLE_CONTROLS];
-         for (int i=0; i<styleComboBoxes.length; i++)
-         {
-           styleComboBoxes[i] = constructStyleBox(i);
-           styleComboBoxes[i].setSelectedIndex(getIndexForStyle(styles[i]));
-         }
+         //construct comboboxes that allow the user to select the line style
+         styleBoxes = new ControlCheckboxCombobox[NUM_STYLE_CONTROLS];
+         for (int i=0; i<NUM_STYLE_CONTROLS; i++)
+            styleBoxes[i] = constructStyleBox(i, 
+                                              isChecked(i, linesEnabled), 
+                                              styles[i]);
          
-         String enableText = "Enable ";
-         enableBoxes = new ControlCheckbox[NUM_STYLE_CONTROLS];
-         for (int i=0; i<enableBoxes.length; i++)
-         {
-            enableBoxes[i] = new ControlCheckbox();
-            enableBoxes[i].setText(enableText);
-            enableBoxes[i].addActionListener(
-                              new CheckBoxListener(enableBoxes[i], 
-                                                   styleComboBoxes[i]));
-            if (i==0)
-            {
-               enableBoxes[i].setSelected(true);
-               enableBoxes[i].setEnabled(false);
-            }
-            else
-               enableBoxes[i].setSelected(linesEnabled[i-1]);
-            enableBoxes[i].send_message(ControlCheckbox.CHECKBOX_CHANGED);
-         }
+         //disable the ability to turn off the first line
+         styleBoxes[0].setCheckboxEnabled(false);
          
+         //make the redraw button and attach it to a panel
          JButton drawButton = new JButton("Redraw");
            drawButton.addActionListener(new DrawListener());
-           
-         JPanel stylePanel = new JPanel(); 
-           BoxLayout layout = new BoxLayout(stylePanel, BoxLayout.Y_AXIS);
-           stylePanel.setLayout(layout);
-           JPanel curPanel;
-           for (int i=0; i<styleComboBoxes.length; i++)
-           {
-              curPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                curPanel.add(enableBoxes[i]);
-                curPanel.add(styleComboBoxes[i]);
-              stylePanel.add(curPanel);
-           }
-           
          JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
            buttonPanel.add(drawButton);
            
+         //add the comboboxes to their own panel
+         JPanel stylePanel = new JPanel(); 
+           BoxLayout layout = new BoxLayout(stylePanel, BoxLayout.Y_AXIS);
+           stylePanel.setLayout(layout);
+           for (int i=0; i<styleBoxes.length; i++)
+              stylePanel.add(styleBoxes[i]);
+           
+         //add the panels to this control
          setLayout(new BorderLayout());
            add(stylePanel, BorderLayout.CENTER);
            add(buttonPanel, BorderLayout.SOUTH);
+      }
+      
+      private boolean isChecked(int index, boolean[] enableLines)
+      {
+         if (index<0 || index>=enableLines.length)
+            return false;
+         
+         if (index==0)
+            return true;
+         
+         return enableLines[index];
       }
       
       /**
@@ -655,7 +612,9 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
        *              of the combobox.
        * @return A combobox containing the possible styles for a line.
        */
-      private LabelCombobox constructStyleBox(int index)
+      private ControlCheckboxCombobox constructStyleBox(int index, 
+                                                        boolean isChecked, 
+                                                        int style)
       {
          String[] styles = new String[NUM_STYLE_CONTROLS];
            styles[getIndexForStyle(ContourJPanel.SOLID)] = 
@@ -666,7 +625,11 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                                                     "dahsed dotted";
            styles[getIndexForStyle(ContourJPanel.DOTTED)] = 
                                                     "dotted";
-         return new LabelCombobox("Line "+(index+1),styles);
+         ControlCheckboxCombobox combobox = 
+            new ControlCheckboxCombobox("", isChecked, 
+                                        "Line "+(index+1), styles);
+            combobox.setSelectedIndex(getIndexForStyle(style));
+         return combobox;
       }
       
       /**
@@ -750,9 +713,9 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
             return;
          
          int[] styles = (int[])value;
-         int min = Math.min(styles.length, styleComboBoxes.length);
+         int min = Math.min(styles.length, styleBoxes.length);
          for (int i=0; i<min; i++)
-            styleComboBoxes[i].setSelectedIndex(getIndexForStyle(styles[i]));
+            styleBoxes[i].setSelectedIndex(getIndexForStyle(styles[i]));
       }
       
       /**
@@ -765,9 +728,9 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
        */
       public Object getControlValue()
       {
-         int[] styles = new int[styleComboBoxes.length];
-         for (int i=0; i<styleComboBoxes.length; i++)
-            styles[i] = getStyleForIndex(styleComboBoxes[i].getSelectedIndex());
+         int[] styles = new int[styleBoxes.length];
+         for (int i=0; i<styleBoxes.length; i++)
+            styles[i] = getStyleForIndex(styleBoxes[i].getSelectedIndex());
          return styles;
       }
       
@@ -828,9 +791,9 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
        */
       public boolean[] getEnabledLines()
       {
-         boolean[] b = new boolean[enableBoxes.length];
+         boolean[] b = new boolean[styleBoxes.length];
          for (int i=0; i<b.length; i++)
-            b[i] = enableBoxes[i].isSelected();
+            b[i] = styleBoxes[i].isChecked();
          return b;
       }
       
@@ -847,44 +810,6 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       }
       
       /**
-       * Used to listen to the checkboxes being checked.  A checkbox being 
-       * checked or not reflects if its corresponding line is enabled or not.
-       */
-      private class CheckBoxListener implements ActionListener
-      {
-         /** The checkbox that is being listened to. */
-         private ControlCheckbox checkBox;
-         /** The checkbox's corresponding combobox (on line styles). */
-         private LabelCombobox comboBox;
-         
-         /**
-          * Creates a listener to listen to the given checkbox that 
-          * corresponds to the given combobox.
-          * 
-          * @param checkBox The checkbox to listen to.
-          * @param comboBox The combobox that corresponds to the checkbox.
-          */
-         public CheckBoxListener(ControlCheckbox checkBox, 
-                                 LabelCombobox comboBox)
-         {
-            this.checkBox = checkBox;
-            this.comboBox = comboBox;
-         }
-         
-         /**
-          * Invoked when the checkbox is checked or unchecked.  Depending if 
-          * it is checked or unchecked, <code>comboBox</code> is enabled or 
-          * disabled.
-          */
-         public void actionPerformed(ActionEvent event)
-         {
-            if (event.getActionCommand().
-                  equals(ControlCheckbox.CHECKBOX_CHANGED))
-               comboBox.setEnabled(checkBox.isSelected());
-         }
-      }
-      
-      /**
        * Used to listen to the 'Draw' button being pressed.
        */
       private class DrawListener implements ActionListener
@@ -896,16 +821,16 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
          public void actionPerformed(ActionEvent event)
          {
             int counter = 0;
-            for (int i=0; i<enableBoxes.length; i++)
-               if (enableBoxes[i].isSelected())
+            for (int i=0; i<styleBoxes.length; i++)
+               if (styleBoxes[i].isChecked())
                   counter++;
             
             int[] currentStyles = new int[counter];
             int j = 0;
             for (int i=0; i<NUM_STYLE_CONTROLS; i++)
-               if (enableBoxes[i].isSelected())
+               if (styleBoxes[i].isChecked())
                   currentStyles[j++] = 
-                     getStyleForIndex(styleComboBoxes[i].getSelectedIndex());
+                     getStyleForIndex(styleBoxes[i].getSelectedIndex());
                
             contourPanel.setLineStyles(currentStyles);
          }
@@ -1002,72 +927,4 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       frame.setVisible(true);
    }
 //----------------=[ End methods used to test this class ]=-------------------//
-   
-   
-   
-   
-   
-   
-   //------------------=[ Unused code ]=----------------------------------
-   /*
-   
-   private static final int SOLID_INDEX = 0;
-   private static final int DASHED_INDEX = 1;
-   private static final int DASHED_DOTTED_INDEX = 2;
-   private static final int DOTTED_INDEX = 3;
-   private static final int SOLID_DASHED_INDEX = 4;
-   private static final int SOLID_DASHED_DASHEDDOTTED_DOTTED = 5;
-   
-   public LabelCombobox generateLineStyleComboBox()
-   {
-      String[] styles = new String[6];
-        styles[SOLID_INDEX] = "all solid";
-        styles[DASHED_INDEX] = "all dashed";
-        styles[DASHED_DOTTED_INDEX] = "all dahsed dotted";
-        styles[DOTTED_INDEX] = "all dotted";
-        styles[SOLID_DASHED_INDEX] = "solid; dashed";
-        styles[SOLID_DASHED_DASHEDDOTTED_DOTTED] = 
-                                     "solid; dashed dotted; dotted";
-      lineStyleComboBox = new LabelCombobox("Line style", styles);
-        lineStyleComboBox.addActionListener(new ActionListener()
-        {
-           private final int[] SOLID_ARR = new int[] {ContourJPanel.SOLID};
-           private final int[] DASHED_ARR = new int[] {ContourJPanel.DASHED};
-           private final int[] DASHED_DOTTED_ARR = new int[] {ContourJPanel.DASHED_DOTTED};
-           private final int[] DOTTED_ARR = new int[] {ContourJPanel.DOTTED};
-           private final int[] SOLID__DASHED_ARR = new int[] {ContourJPanel.SOLID, ContourJPanel.DASHED};
-           private final int[] SOLID__DASHED_DOTTED__DOTTED_ARR = new int[] {ContourJPanel.SOLID, ContourJPanel.DASHED_DOTTED, ContourJPanel.DOTTED};
-           
-           public void actionPerformed(ActionEvent event)
-           {
-              int index = lineStyleComboBox.getSelectedIndex();
-              int[] lineStyleArr = SOLID_ARR;
-              switch (index)
-              {
-                 case SOLID_INDEX:
-                    lineStyleArr = SOLID_ARR;
-                    break;
-                 case DASHED_INDEX:
-                    lineStyleArr = DASHED_ARR;
-                    break;
-                 case DASHED_DOTTED_INDEX:
-                    lineStyleArr = DASHED_DOTTED_ARR;
-                    break;
-                 case DOTTED_INDEX:
-                    lineStyleArr = DOTTED_ARR;
-                    break;
-                 case SOLID_DASHED_INDEX:
-                    lineStyleArr = SOLID__DASHED_ARR;
-                    break;
-                 case SOLID_DASHED_DASHEDDOTTED_DOTTED:
-                    lineStyleArr = SOLID__DASHED_DOTTED__DOTTED_ARR;
-                    break;
-              }
-              
-              contourPanel.setLineStyles(lineStyleArr);
-           }
-        });
-      return lineStyleComboBox;
-   }
-   */
 }
