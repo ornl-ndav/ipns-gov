@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.13  2005/06/23 20:53:32  kramer
+ * Made the setPreserveAspectRatio() method overriden so that the image
+ * would be immediately redrawn to reflect the change.
+ *
  * Revision 1.12  2005/06/22 22:24:53  kramer
+ *
  * Removed unused code, added javadocs, changed the default values in this
  * class so that they more logically relate to the default values in the
  * ContourViewComponent and CompositeContourControl classes, and made the
@@ -469,6 +474,20 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public void reRender()
    {
       repaint();
+   }
+   
+   /**
+    * Used to set if the aspect ratio should be preserved or not.  This 
+    * method also redraws the image so that it reflects the new state of 
+    * the aspect ratio.
+    * 
+    * @param preserve True if the aspect ratio should be preserved and 
+    *                 false if it shouldn't be preserved.
+    */
+   public void setPreserveAspectRatio(boolean preserve)
+   {
+      super.setPreserveAspectRatio(preserve);
+      setLocalWorldCoords(getLocalWorldCoords());
    }
    
    /**
