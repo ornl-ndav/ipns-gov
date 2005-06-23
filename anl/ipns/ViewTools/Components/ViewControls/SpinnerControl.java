@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/06/23 20:56:00  kramer
+ * Added the methods isEditable() and getDefaultValue() used to see if the
+ * spinner on the control is editable and to get its default value.
+ *
  * Revision 1.1  2005/06/22 22:32:31  kramer
+ *
  * This is a type of ViewControl that has a JLabel and JSpinner on it.  It
  * can be used to restrict the user to enter a value from a specified
  * range.  Any object (such as a Date or an integer) can be used as the
@@ -264,6 +269,20 @@ public class SpinnerControl extends ViewControl implements ChangeListener
    }
    
    /**
+    * This control's spinner has a textfield next to it that displays the 
+    * spinner's current value.  This method is used to see if this 
+    * textfield is directly editable by the user.
+    * 
+    * @return True if this control's textfield can be directly edited by the 
+    *         user and false if it can't be.
+    */
+   public boolean isEditable()
+   {
+      return ((JSpinner.DefaultEditor)spinner.getEditor()).
+                                         getTextField().isEditable();
+   }
+   
+   /**
     * Used to get the text of the label on this ViewControl.
     * 
     * @return This control's label's text.  If the label is not visible, 
@@ -343,6 +362,16 @@ public class SpinnerControl extends ViewControl implements ChangeListener
       
       label.setEnabled(enable);
       spinner.setEnabled(enable);
+   }
+   
+   /**
+    * Used to get the spinner's default value.
+    * 
+    * @return The spinner's default value.
+    */
+   public Object getDefaultValue()
+   {
+      return DEFAULT_SPINNER_VALUE;
    }
    
    //----=[ Implemented for the ChangeListener interface ]=--------
