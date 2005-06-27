@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/06/27 02:11:10  dennis
+ *  Added convenience method to skip comment lines beginning with a
+ *  specified character.
+ *
  *  Revision 1.14  2004/03/11 22:17:04  millermi
  *  - Changed package names and replaced SharedData with
  *    SharedMessages class.
@@ -290,6 +294,7 @@ public class TextFileReader
     }
   }
  
+
   /* -------------------------- skip_blanks ---------------------------- */
   /**
    *  Skip whitespace characters in the file, starting at the current 
@@ -362,6 +367,8 @@ public class TextFileReader
       throw new IOException( EOF );
   }
 
+
+  /* -------------------------- read_String ---------------------------- */
     /**
      * Read a sequence of characters from the file, starting at the
      * current position in the file. This is intended for use with
@@ -395,6 +402,7 @@ public class TextFileReader
         return new String(buffer,0,n_char);
     }
 
+
   /* -------------------------- read_int ---------------------------- */
   /**
    *  Read a sequence of non-whitespace characters from the file, starting at
@@ -417,6 +425,8 @@ public class TextFileReader
     return val;
   }
 
+
+  /* -------------------------- read_int ---------------------------- */
   /**
    *  Read a sequence of characters from the file, starting at the
    *  current position in the file and construct an int value from the
@@ -441,6 +451,7 @@ public class TextFileReader
     return val;
   }
 
+
   /* -------------------------- read_float ---------------------------- */
   /**
    *  Read a sequence of non-whitespace characters from the file, starting at
@@ -462,6 +473,8 @@ public class TextFileReader
     return val;
   }
 
+
+  /* -------------------------- read_float ---------------------------- */
   /**
    *  Read a sequence of characters from the file, starting at the
    *  current position in the file and construct a float value from
@@ -509,6 +522,8 @@ public class TextFileReader
     return val;
   }
 
+
+  /* -------------------------- read_double ---------------------------- */
   /**
    *  Read a sequence of characters from the file, starting at the
    *  current position in the file and construct a double value from
@@ -598,6 +613,7 @@ public class TextFileReader
     return (char)(getc());
   }
 
+
   /* ----------------------------- unread ------------------------------ */
   /**
    *  Put the last float, double, int, boolean, char or String read from 
@@ -630,6 +646,22 @@ public class TextFileReader
 
     if ( in != null && close_in ) 
       in.close();
+  }
+
+
+  /* ---------------------- SkipLinesStartingWith ------------------------ */
+  /**
+   *  Skip lines that begin with a certaing string, such as "#"
+   * 
+   *  @param  skip_string  The tag at the start of the line, indicating
+   *                       that it should be skipped.
+   */
+  public void SkipLinesStartingWith( String skip_string ) throws IOException
+  {
+    while ( read_line().startsWith( skip_string ) )
+      ;  // empty loop
+
+    unread();
   }
 
    
