@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.10  2005/06/28 16:09:36  kramer
+ * Added support for modifying the background color or contour line color,
+ * and for specifying the color scale (and intensity) used to color the
+ * contour lines.  Currently, the latter is incomplete and the controls do
+ * not appear on the GUI.
+ *
  * Revision 1.9  2005/06/23 21:02:52  kramer
+ *
  * Made this class now use the ControlCheckboxSpinner and
  * ControlCheckboxCombobox ViewControls as the controls for the
  * contour labels and label formatting.
@@ -66,23 +73,31 @@
 package gov.anl.ipns.ViewTools.Components.TwoD;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ColorControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.CompositeContourControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckbox;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckboxCombobox;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckboxSpinner;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlColorScale;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.ViewTools.Components.ViewControls.SpinnerControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
+import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.Serializable;
 import java.util.Vector;
 
@@ -119,6 +134,8 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       ContourJPanel.DEFAULT_NUM_SIG_DIGS;
    public static final boolean DEFAULT_PRESERVE_ASPECT_RATIO = 
       ContourJPanel.DEFAULT_PRESERVE_ASPECT_RATIO;
+   public static final Color DEFAULT_BACKGROUND_COLOR = 
+      ContourJPanel.DEFAULT_BACKGROUND_COLOR;
    
    public static final float   DEFAULT_LOWEST_CONTOUR = 
       CompositeContourControl.DEFAULT_LOWEST_CONTOUR;
@@ -139,6 +156,11 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                                                              false, 
                                                              false};
    
+   public static final String DEFAULT_COLOR_SCALE = 
+      IndexColorMaker.HEATED_OBJECT_SCALE_2;
+   public static final boolean DEFAULT_IS_DOUBLE_SIDED = false;
+   public static final Color DEFAULT_CONTOUR_COLOR = Color.BLACK;
+   
    /** The Vector of ActionListener associated with this component. */
    private Vector listenerVec;
    private ContourJPanel contourPanel;
@@ -149,7 +171,10 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    private LineStyleControl lineStyleControl;
    private ControlCheckboxSpinner labelControl;
    private ControlCheckboxSpinner sigFigControl;
-   
+   private ControlColorScale colorscale;
+   private ControlSlider intensitySlider;
+   private ColorControl backgroundControl;
+   private ColorControl contourColors;
    
 //-------------------------=[ Constructors ]=---------------------------------//
    public ContourViewComponent(IVirtualArray2D arr)
@@ -160,6 +185,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                            DEFAULT_LOWEST_CONTOUR, 
                            DEFAULT_HIGHEST_CONTOUR, 
                            DEFAULT_NUM_CONTOURS);
+      this.contourPanel.addComponentListener(new ResizeListener());
       
       //now to build the controls
         initControls(DEFAULT_LOWEST_CONTOUR, 
@@ -173,7 +199,11 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                      DEFAULT_SHOW_LABEL, 
                      DEFAULT_LABEL_EVERY_N_LINES, 
                      DEFAULT_ENABLE_LABEL_FORMATTING,
-                     DEFAULT_NUM_SIG_DIGS);
+                     DEFAULT_NUM_SIG_DIGS, 
+                     DEFAULT_COLOR_SCALE, 
+                     DEFAULT_IS_DOUBLE_SIDED, 
+                     DEFAULT_BACKGROUND_COLOR, 
+                     DEFAULT_CONTOUR_COLOR);
    }
    
    public ContourViewComponent(IVirtualArray2D arr, 
@@ -191,7 +221,11 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                       DEFAULT_SHOW_LABEL, 
                       DEFAULT_LABEL_EVERY_N_LINES, 
                       DEFAULT_ENABLE_LABEL_FORMATTING,
-                      DEFAULT_NUM_SIG_DIGS);
+                      DEFAULT_NUM_SIG_DIGS, 
+                      DEFAULT_COLOR_SCALE, 
+                      DEFAULT_IS_DOUBLE_SIDED, 
+                      DEFAULT_BACKGROUND_COLOR, 
+                      DEFAULT_CONTOUR_COLOR);
    }
    
    public ContourViewComponent(IVirtualArray2D arr, 
@@ -212,7 +246,11 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                      DEFAULT_SHOW_LABEL, 
                      DEFAULT_LABEL_EVERY_N_LINES, 
                      DEFAULT_ENABLE_LABEL_FORMATTING,
-                     DEFAULT_NUM_SIG_DIGS);
+                     DEFAULT_NUM_SIG_DIGS, 
+                     DEFAULT_COLOR_SCALE, 
+                     DEFAULT_IS_DOUBLE_SIDED, 
+                     DEFAULT_BACKGROUND_COLOR, 
+                     DEFAULT_CONTOUR_COLOR);
    }
    
    public ContourViewComponent(IVirtualArray2D arr, 
@@ -364,15 +402,92 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                              boolean preserveAspectRatio, 
                              int[] styles, boolean[] stylesEnabled, 
                              boolean enableLabels, int everyNthLineLabeled, 
-                             boolean enableFormatting, int numSigFig)
+                             boolean enableFormatting, int numSigFig, 
+                             String colorScale, boolean isDoubleSided, 
+                             Color backgroundColor, Color contourColor)
    {
-      controls = new ViewControl[5];
+      controls = new ViewControl[7];
+      //controls[0] = generateIntensityControls();
+      //controls[1] = generateColorScaleControls(colorScale, isDoubleSided);
       controls[0] = generateContourControls(minValue, maxValue, numLevels, 
                                             levels, useManualLevels);
       controls[1] = generateAspectRatioCheckbox(preserveAspectRatio);
       controls[2] = generateLineStyleControl(styles, stylesEnabled);
       controls[3] = generateLabelControls(enableLabels, everyNthLineLabeled);
       controls[4] = generateSigFigControls(enableFormatting, numSigFig);
+      controls[5] = generateBackgroundControls(backgroundColor);
+      controls[6] = generateLineColorControl(contourColor);
+   }
+   
+   private ColorControl generateLineColorControl(Color color)
+   {
+      contourColors = new ColorControl("Line Color", 
+                                       color, 
+                                       ColorSelector.TABBED);
+      contourColors.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            if (event.getActionCommand().equals(ColorControl.COLOR_CHANGED))
+            {
+               contourPanel.setColorScale(contourColors.getSelectedColor());
+               contourPanel.reRender();
+            }
+         }
+      });
+      contourColors.send_message(ColorControl.COLOR_CHANGED);
+      return contourColors;
+   }
+   
+   private ColorControl generateBackgroundControls(Color color)
+   {
+      backgroundControl = new ColorControl("Background Color", 
+                                           color, 
+                                           ColorSelector.TABBED);
+      backgroundControl.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            if (event.getActionCommand().equals(ColorControl.COLOR_CHANGED))
+            {
+               contourPanel.setBackgroundColor(
+                     backgroundControl.getSelectedColor());
+               contourPanel.reRender();
+            }
+         }
+      });
+      backgroundControl.send_message(ColorControl.COLOR_CHANGED);
+      return backgroundControl;
+   }
+   
+   private ControlSlider generateIntensityControls()
+   {
+      intensitySlider = new ControlSlider("Intensity Slider");
+      intensitySlider.setValue(0);
+      intensitySlider.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            //TODO:  Implement the code in ContourJPanel to allow 
+            //       changes to the intensity
+            //intensitySilder.getValue();
+            //contourPanel.changeLogScale(intensitySlider.getValue(), true);
+         }
+      });
+      return intensitySlider;
+   }
+   
+   //TODO:  THIS METHOD HAS BEEN MODIFIED TO DISPLAY ONLY BLACK LINES
+   //       CHANGE IT SO THAT COLORSCALES WORK
+   //IT SHOULD BE FIXED NOW
+   private ControlColorScale generateColorScaleControls(String scale, 
+                                                        boolean isDoubleSided)
+   {
+      colorscale = 
+         new ControlColorScale(scale, isDoubleSided);
+      colorscale.setTitle("Color Scale");
+      contourPanel.setColorScale(scale, isDoubleSided);
+      return colorscale;
    }
    
    public CompositeContourControl generateContourControls(
@@ -837,7 +952,16 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       }
    }
 //--------------------=[ End custom controls ]=-------------------------------//
-   
+
+//-------------------=[ Listens to changes in this component ]=---------------//
+   private class ResizeListener extends ComponentAdapter
+   {
+      public void componentResized(ComponentEvent event)
+      {
+         contourPanel.reRender();
+      }
+   }
+// ----------------=[ End listens to changes in this component ]=-------------//
    
 //----------------=[ Methods used to test this class ]=-----------------------//
    /**
@@ -852,7 +976,6 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                                              double xRange, double yRange)
    {
       float[][] dataArray = new float[Nx][Ny];
-      
       double xstep = 2.0*xRange/(Nx-1);
       double ystep = 2.0*yRange/(Ny-1);
       
@@ -893,6 +1016,10 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       for (int i=0; i<dataArray.length; i++)
          for (int j=0; j<dataArray[i].length; j++)
             dataArray[i][j] = i+j;
+      
+      for (int i=0; i<Nx; i++)
+         for (int j=0; j<Ny; j++)
+            dataArray[i][j] = i*i+j*j;
       */
       
       return new VirtualArray2D(dataArray);
