@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/06/28 22:19:46  kramer
+ * Added a label to the view control which can be used to describe what
+ * color the button on this control is supposed to modify.
+ *
  * Revision 1.1  2005/06/28 16:05:54  kramer
+ *
  * This is a ViewControl that allows the user to select a color to use.
  * The selected color is displayed on a button on this control and when the
  * button is pressed a color chooser is displayed.
@@ -54,6 +59,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -67,17 +73,25 @@ public class ColorControl extends ViewControl
    public static final String COLOR_CHANGED = ColorSelector.COLOR_CHANGED;
    
    public static final String COLOR_KEY = "Color";
+   public static final String LABEL_KEY = "Label";
    
    public static final Color DEFAULT_COLOR = Color.GRAY;
+   public static final String DEFAULT_LABEL_TEXT = "";
    
    private ColorfulButton colorButton;
    private ColorSelector colorSelector;
    private JFrame selectorFrame;
+   private JLabel label;
    
+   public ColorControl(String con_title, Color initialColor, int colorModel)
+   {
+      this(con_title, "", initialColor, colorModel);
+   }
    /**
     * @param con_title
     */
-   public ColorControl(String con_title, Color initialColor, int colorModel)
+   public ColorControl(String con_title, String labelText, 
+                       Color initialColor, int colorModel)
    {
       super(con_title);
       
@@ -117,8 +131,14 @@ public class ColorControl extends ViewControl
       //to open the color selector frame
       colorButton = new ColorfulButton(colorSelector.getSelectedColor());
        colorButton.addActionListener(new ButtonListener());
-      
-      add(colorButton);
+       
+      //create the label that is placed next to the button
+      label = new JLabel(labelText);
+       
+      //add the components to the control
+      setLayout(new BorderLayout());
+       add(label, BorderLayout.WEST);
+       add(colorButton, BorderLayout.CENTER);
    }
 
    public void setControlValue(Object value)
@@ -139,9 +159,15 @@ public class ColorControl extends ViewControl
       ObjectState state = super.getObjectState(isDefault);
       
       if (isDefault)
+      {
          state.insert(COLOR_KEY, DEFAULT_COLOR);
+         state.insert(LABEL_KEY, DEFAULT_LABEL_TEXT);
+      }
       else
+      {
          state.insert(COLOR_KEY, getSelectedColor());
+         state.insert(LABEL_KEY, label.getText());
+      }
       
       return state;
    }
@@ -154,11 +180,16 @@ public class ColorControl extends ViewControl
       Object val = state.get(COLOR_KEY);
       if (val!=null)
          setSelectedColor((Color)val);
+      
+      val = state.get(LABEL_KEY);
+      if (val!=null)
+         label.setText((String)val);
    }
 
    public ViewControl copy()
    {
       ColorControl copy = new ColorControl(getTitle(), 
+                                           getLabelText(), 
                                            getSelectedColor(), 
                                            colorSelector.getModel());
       copy.setObjectState(getObjectState(false));
@@ -177,7 +208,27 @@ public class ColorControl extends ViewControl
       
       colorButton.setColor(color);
    }
-
+   
+   public String getLabelText()
+   {
+      return label.getText();
+   }
+   
+   public void setLabelText(String text)
+   {
+      label.setText(text);
+   }
+   
+   public void enableLabel(String text)
+   {
+      setLabelText(text);
+   }
+   
+   public void disableLabel()
+   {
+      setLabelText("");
+   }
+   
    public static void main(String[] args)
    {
       ColorControl control = new ColorControl("Color Control", 
