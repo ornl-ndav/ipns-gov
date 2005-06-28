@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.6  2005/06/28 16:20:54  kramer
+ * Fixed what was basically an 'off by one error' with the getLevelAt()
+ * method and added the main() method to test this class.
+ *
  * Revision 1.5  2005/06/15 14:23:19  kramer
+ *
  * Fixed a malformed @see javadoc tag.
  *
  * Revision 1.4  2005/06/08 22:07:47  kramer
@@ -124,7 +129,7 @@ public class UniformContours extends Contours
     */
    public float getHighestLevel()
    {
-      return getLevelAt(getNumLevels());
+      return getLevelAt(getNumLevels()-1);
    }
    
    /**
@@ -152,5 +157,16 @@ public class UniformContours extends Contours
       }
       else
          return false;
+   }
+   
+   public static void main(String[] args)
+   {
+      UniformContours contours = new UniformContours(0, 10, 11);
+      System.out.println("Constructor used:  UniformContours(0, 10, 11)");
+      System.out.println("getNumLevels() = "+contours.getNumLevels());
+      System.out.println("getLowestLevel() = "+contours.getLowestLevel());
+      System.out.println("getHighestLevel() = "+contours.getHighestLevel());
+      for (int i=0; i<contours.getHighestLevel(); i++)
+         System.out.println("  levels["+i+"] = "+contours.getLevelAt(i));
    }
 }
