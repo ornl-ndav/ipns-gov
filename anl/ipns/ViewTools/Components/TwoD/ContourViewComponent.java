@@ -33,7 +33,16 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.11  2005/06/28 22:23:19  kramer
+ * Changed some of the controls to ViewMenuItems.  Now there are menu items
+ * for setting the aspect ratio, contour line color or colorscale, and
+ * setting if the colorscale is double sided or not.  Also, added a
+ * control to change the background color (this is useful because with some
+ * colorscales some contour levels are hard to see).  The code for some of
+ * the old controls has commented out.
+ *
  * Revision 1.10  2005/06/28 16:09:36  kramer
+ *
  * Added support for modifying the background color or contour line color,
  * and for specifying the color scale (and intensity) used to color the
  * contour lines.  Currently, the latter is incomplete and the controls do
@@ -77,6 +86,7 @@ import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
+import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ColorControl;
@@ -84,8 +94,6 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.CompositeContourControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckbox;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckboxCombobox;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckboxSpinner;
-import gov.anl.ipns.ViewTools.Components.ViewControls.ControlColorScale;
-import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.ViewTools.Components.ViewControls.SpinnerControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
@@ -104,8 +112,11 @@ import java.util.Vector;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
@@ -165,16 +176,28 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    private Vector listenerVec;
    private ContourJPanel contourPanel;
    private ViewControl[] controls;
+   private ViewMenuItem[] menuItems;
    
+   //Used with the ViewControls
    private CompositeContourControl contourControl;
-   private ControlCheckbox aspectRatio;
    private LineStyleControl lineStyleControl;
    private ControlCheckboxSpinner labelControl;
    private ControlCheckboxSpinner sigFigControl;
+   private ColorControl backgroundControl;
+   
+   /* Currently these are not used as ViewControl
    private ControlColorScale colorscale;
    private ControlSlider intensitySlider;
-   private ColorControl backgroundControl;
+   
+   //these are used as menu items
    private ColorControl contourColors;
+   private ControlCheckbox aspectRatio;
+   */
+   
+   //Used with the ViewMenuItems
+   private JCheckBoxMenuItem aspectRatioItem;
+   private ColorControl contourColorItem;
+   private JCheckBoxMenuItem isDoubleSidedItem;
    
 //-------------------------=[ Constructors ]=---------------------------------//
    public ContourViewComponent(IVirtualArray2D arr)
@@ -204,6 +227,10 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                      DEFAULT_IS_DOUBLE_SIDED, 
                      DEFAULT_BACKGROUND_COLOR, 
                      DEFAULT_CONTOUR_COLOR);
+        //and build the menu items
+          initMenuItems(DEFAULT_CONTOUR_COLOR, DEFAULT_COLOR_SCALE, 
+                        DEFAULT_IS_DOUBLE_SIDED, false, 
+                        DEFAULT_PRESERVE_ASPECT_RATIO);
    }
    
    public ContourViewComponent(IVirtualArray2D arr, 
@@ -283,7 +310,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       
       val = state.get(ASPECT_RATIO_KEY);
       if (val!=null)
-         aspectRatio.setSelected( ((Boolean)val).booleanValue() ); 
+         aspectRatioItem.setSelected( ((Boolean)val).booleanValue() ); 
    }
 
    public ObjectState getObjectState(boolean is_default)
@@ -294,7 +321,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
         
         boolean useAspectRatio = DEFAULT_PRESERVE_ASPECT_RATIO;
         if (!is_default)
-           useAspectRatio = aspectRatio.isSelected();
+           useAspectRatio = aspectRatioItem.isSelected();
         
         state.insert(ASPECT_RATIO_KEY, new Boolean(useAspectRatio));
       return state;
@@ -366,7 +393,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
 
    public ViewMenuItem[] getMenuItems()
    {
-      return new ViewMenuItem[0];
+      return menuItems;
    }
 
    public void kill()
@@ -374,6 +401,105 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    }
 //-------=[ End methods mplemented for the IViewComponent2D interface ]=------//
 
+//----------=[ Methods used to generate the menu items ]=---------------------//
+   private void initMenuItems(Color lineColor, String colorScale, 
+                              boolean isDoubleSided, boolean useColorScale, 
+                              boolean preserveAspectRatio)
+   {
+      //make the controls for the line colors
+      //first make the controls to select if the scale should be double 
+      //sided
+      isDoubleSidedItem = 
+        new JCheckBoxMenuItem("Is Double Sided");
+      isDoubleSidedItem.setSelected(isDoubleSided);
+      final ActionListener doubleSidedListener = new ActionListener()
+      {
+         private String colorScale = 
+            IndexColorMaker.HEATED_OBJECT_SCALE_2;
+         
+         public void actionPerformed(ActionEvent event)
+         {
+            if ( !(event.getSource() instanceof JCheckBoxMenuItem) )
+               colorScale = event.getActionCommand();
+               
+            contourPanel.setColorScale(colorScale, 
+                                       isDoubleSidedItem.isSelected());
+            contourPanel.reRender();
+         }
+      };
+      isDoubleSidedItem.addActionListener(doubleSidedListener);
+      
+      //second make the controls for the color scales
+       //make the listener that will listen to changes to the color scale
+       ActionListener colorListener = new ActionListener()
+       {
+          public void actionPerformed(ActionEvent event)
+          {
+             doubleSidedListener.actionPerformed(event);
+          }
+       };
+       //make the menu that will list the color scale options
+       ViewMenuItem colorscaleMenu = 
+          new ViewMenuItem(ViewMenuItem.PUT_IN_OPTIONS, 
+                           MenuItemMaker.getColorScaleMenu(colorListener));
+       
+       //make the item that will allow one color to be selected for the 
+       //contour lines
+       contourColorItem = new ColorControl("", " Solid Color ", 
+                                                        DEFAULT_CONTOUR_COLOR,
+                                                        ColorSelector.TABBED);
+       contourColorItem.setBorderVisible(false);
+       contourColorItem.addActionListener(new ActionListener()
+       {
+          public void actionPerformed(ActionEvent event)
+          {
+             if (event.getActionCommand().equals(ColorControl.COLOR_CHANGED))
+             {
+                contourPanel.setColorScale(contourColorItem.getSelectedColor());
+                contourPanel.reRender();
+             }
+          }
+       });
+       
+       //make sure that the right color or color scale is applied to the 
+       //image
+       if (useColorScale)
+          contourPanel.setColorScale(colorScale, 
+                                     isDoubleSidedItem.isSelected());
+       else
+       {
+          contourColorItem.setSelectedColor(lineColor);
+          contourPanel.setColorScale(contourColorItem.getSelectedColor());
+       }
+       
+       //make the menu that will hold the two items made
+       JMenu lineColorMenu = new JMenu("Line Colors");
+         lineColorMenu.add(contourColorItem);
+         lineColorMenu.add(new JSeparator());
+         lineColorMenu.add(colorscaleMenu.getItem());
+         lineColorMenu.add(isDoubleSidedItem);
+     
+     //make the control for the aspect ratio
+     aspectRatioItem = 
+        new JCheckBoxMenuItem("Preserve Aspect Ratio");
+     aspectRatioItem.setSelected(preserveAspectRatio);
+       aspectRatioItem.addActionListener(new ActionListener()
+       {
+          public void actionPerformed(ActionEvent event)
+          {
+             contourPanel.setPreserveAspectRatio(
+                                     aspectRatioItem.isSelected());
+             contourPanel.reRender();
+          }
+       });
+       
+     menuItems = new ViewMenuItem[2];
+       menuItems[0] = new ViewMenuItem(ViewMenuItem.PUT_IN_OPTIONS, 
+                                       lineColorMenu);
+       menuItems[1] = new ViewMenuItem(ViewMenuItem.PUT_IN_OPTIONS, 
+                                       aspectRatioItem);
+   }
+//---------=[ End methods used to generate the menu items ]=------------------//
 
 //------------=[ Methods used to generate the controls ]=---------------------//
    /**
@@ -406,19 +532,20 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                              String colorScale, boolean isDoubleSided, 
                              Color backgroundColor, Color contourColor)
    {
-      controls = new ViewControl[7];
+      controls = new ViewControl[5];
       //controls[0] = generateIntensityControls();
       //controls[1] = generateColorScaleControls(colorScale, isDoubleSided);
       controls[0] = generateContourControls(minValue, maxValue, numLevels, 
                                             levels, useManualLevels);
-      controls[1] = generateAspectRatioCheckbox(preserveAspectRatio);
-      controls[2] = generateLineStyleControl(styles, stylesEnabled);
-      controls[3] = generateLabelControls(enableLabels, everyNthLineLabeled);
-      controls[4] = generateSigFigControls(enableFormatting, numSigFig);
-      controls[5] = generateBackgroundControls(backgroundColor);
-      controls[6] = generateLineColorControl(contourColor);
+      //controls[1] = generateAspectRatioCheckbox(preserveAspectRatio);
+      controls[1] = generateLineStyleControl(styles, stylesEnabled);
+      controls[2] = generateLabelControls(enableLabels, everyNthLineLabeled);
+      controls[3] = generateSigFigControls(enableFormatting, numSigFig);
+      controls[4] = generateBackgroundControls(backgroundColor);
+      //controls[6] = generateLineColorControl(contourColor);
    }
    
+   /*
    private ColorControl generateLineColorControl(Color color)
    {
       contourColors = new ColorControl("Line Color", 
@@ -438,12 +565,13 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       contourColors.send_message(ColorControl.COLOR_CHANGED);
       return contourColors;
    }
+   */
    
    private ColorControl generateBackgroundControls(Color color)
    {
       backgroundControl = new ColorControl("Background Color", 
-                                           color, 
-                                           ColorSelector.TABBED);
+                                           " Background Color      ", 
+                                           color, ColorSelector.TABBED);
       backgroundControl.addActionListener(new ActionListener()
       {
          public void actionPerformed(ActionEvent event)
@@ -460,6 +588,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       return backgroundControl;
    }
    
+   /*
    private ControlSlider generateIntensityControls()
    {
       intensitySlider = new ControlSlider("Intensity Slider");
@@ -489,6 +618,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       contourPanel.setColorScale(scale, isDoubleSided);
       return colorscale;
    }
+   */
    
    public CompositeContourControl generateContourControls(
                                                     float minValue, 
@@ -505,12 +635,13 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       return contourControl;
    }
    
+   /*
    public ControlCheckbox generateAspectRatioCheckbox(boolean selected)
    {
       /*
        * This is the control used to specify if the aspect ratio should 
        * be preserved.
-       */
+       /
       aspectRatio = new ControlCheckbox(selected);
       aspectRatio.setText("Preserve Aspect Ratio");
       aspectRatio.addActionListener(new ActionListener()
@@ -524,6 +655,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       
       return aspectRatio;
    }
+   */
    
    public LineStyleControl generateLineStyleControl(int[] styles, 
                                                     boolean[] stylesEnabled)
@@ -1055,3 +1187,61 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    }
 //----------------=[ End methods used to test this class ]=-------------------//
 }
+
+
+/*
+JMenu colorScaleMenu = new JMenu("Line colors");
+ colorScaleMenu.add(new JMenuItem(IndexColorMaker.HEATED_OBJECT_SCALE));
+ colorScaleMenu.add(new JMenuItem(IndexColorMaker.HEATED_OBJECT_SCALE_2));
+ colorScaleMenu.add(new JMenuItem(IndexColorMaker.GRAY_SCALE));
+ colorScaleMenu.add(new JMenuItem(IndexColorMaker.NEGATIVE_GRAY_SCALE));
+ colorScaleMenu.add(new JMenuItem(IndexColorMaker.GREEN_YELLOW_SCALE));
+ colorScaleMenu.add(new JMenuItem(IndexColorMaker.RAINBOW_SCALE));
+ colorScaleMenu.add(new JMenuItem(IndexColorMaker.OPTIMAL_SCALE));
+ colorScaleMenu.add(new JMenuItem(IndexColorMaker.MULTI_SCALE));
+ colorScaleMenu.add(new JMenuItem(IndexColorMaker.SPECTRUM_SCALE));
+ //add a listener to the menu
+ colorScaleMenu.addActionListener(new ActionListener()
+ {
+    public void actionPerformed(ActionEvent event)
+    {
+       contourPanel.setColorScale(event.getActionCommand(), true);
+    }
+ });
+
+ViewMenuItem[] menuArr = new ViewMenuItem[1];
+ menuArr[0] = new ViewMenuItem(ViewMenuItem.PUT_IN_EDIT, 
+                               colorScaleMenu);
+ 
+return menuArr;
+*/
+/*
+Vector colorVec = new Vector(10);
+  colorVec.add("Line Colors");
+  colorVec.add(IndexColorMaker.HEATED_OBJECT_SCALE);
+  colorVec.add(IndexColorMaker.HEATED_OBJECT_SCALE_2);
+  colorVec.add(IndexColorMaker.GRAY_SCALE);
+  colorVec.add(IndexColorMaker.NEGATIVE_GRAY_SCALE);
+  colorVec.add(IndexColorMaker.GREEN_YELLOW_SCALE);
+  colorVec.add(IndexColorMaker.RAINBOW_SCALE);
+  colorVec.add(IndexColorMaker.OPTIMAL_SCALE);
+  colorVec.add(IndexColorMaker.MULTI_SCALE);
+  colorVec.add(IndexColorMaker.SPECTRUM_SCALE);
+Vector colorListenerVec = new Vector(1);
+  colorListenerVec.add(new ActionListener()
+  {
+     public void actionPerformed(ActionEvent event)
+     {
+        contourPanel.setColorScale(event.getActionCommand(), true);
+     }
+  });
+  
+ViewMenuItem[] menuArr = new ViewMenuItem[1];
+  menuArr[0] = new ViewMenuItem(ViewMenuItem.PUT_IN_EDIT, 
+                                MenuItemMaker.
+                                   makeMenuItem(colorVec, 
+                                                colorListenerVec));
+  
+return menuArr;
+*/
+
