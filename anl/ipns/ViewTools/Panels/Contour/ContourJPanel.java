@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.14  2005/06/28 16:11:36  kramer
+ * Added support for specifing the background color and the colors used to
+ * draw the contour lines (a single color, an array of colors, or a
+ * color scale are currently supported).
+ *
  * Revision 1.13  2005/06/23 20:53:32  kramer
+ *
  * Made the setPreserveAspectRatio() method overriden so that the image
  * would be immediately redrawn to reflect the change.
  *
@@ -87,6 +93,8 @@ import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
 import gov.anl.ipns.ViewTools.Panels.Graph.GraphJPanel;
+import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2;
+import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
@@ -153,6 +161,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public static final boolean DEFAULT_PRESERVE_ASPECT_RATIO = false;
    
+   public static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
+   
+   public static final Color[] DEFAULT_COLOR_SCALE = new Color[] {Color.BLACK};
+   
    /** Holds the data that is being drwn on this panel. */
    private IVirtualArray2D data2D;
    /**
@@ -170,6 +182,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * label is formatted to (and if there is even any formatting done).
     */
    private int[] numSigDigs;
+   
+   private Color[] colorScale;
    
    /**
     * Private constructor used to initialize the 
@@ -195,6 +209,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       setNumSigDigits(DEFAULT_NUM_SIG_DIGS);
       
       setPreserveAspectRatio(DEFAULT_PRESERVE_ASPECT_RATIO);
+      setColorScale(DEFAULT_COLOR_SCALE);
+      setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
    }
    
    /**
@@ -469,6 +485,65 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
    
    /**
+    * Contour levels can be drawn using different colors depending on ther 
+    * "elevation".  This method returns the colors used to determine the 
+    * colors to use for an elevation.
+    * 
+    * @return The array of colors used to determine what color to draw the 
+    *         contour lines.  The contour line of lowest elevation is 
+    *         drawn using the color specified by the first element of this 
+    *         array.  The contour line of highest elevation is drawn using 
+    *         the color specified by the last element of this array.
+    */
+   public Color[] getColorScale()
+   {
+      return colorScale;
+   }
+   
+   public void setColorScale(String scaleType, boolean doubleSided)
+   {
+      if (scaleType==null)
+         return;
+    
+      int numColors = 256;
+      if (doubleSided)
+         this.colorScale = 
+            IndexColorMaker.getDualColorTable(scaleType, numColors);
+      else
+         this.colorScale = 
+            IndexColorMaker.getColorTable(scaleType, numColors);
+   }
+   
+   public void setColorScale(Color[] colors)
+   {
+      if (colors==null || colors.length<1)
+         return;
+      
+      this.colorScale = colors;
+   }
+   
+   public void setColorScale(Color color)
+   {
+      if (color==null)
+         return;
+      
+      this.colorScale = new Color[] {color};
+   }
+   
+   public Color getBackgroundColor()
+   {
+      return getBackground();
+   }
+   
+   public void setBackgroundColor(Color color)
+   {
+      if (color==null)
+         return;
+      
+      setBackground(color);
+   }
+   
+   /**
     * Used to force the contour graph to be redrawn.
     */
    public void reRender()
@@ -488,6 +563,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    {
       super.setPreserveAspectRatio(preserve);
       setLocalWorldCoords(getLocalWorldCoords());
+      reRender();
    }
    
    /**
@@ -723,9 +799,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                  g.setTransform(trans);
               }
               
+               //now to set the line color
+               g.setColor(getColorForLevel(levels.getLevelAt(i)));
                //now to set the line style
                g.setStroke(GraphJPanel.createStroke(lineSytle, 1));
-              
+               
                //and finally now to draw the line
                g.drawLine((int)(xrcVals[j]),
                           (int)(yrcVals[j]),
@@ -733,6 +811,47 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                           (int)(yrcVals[j+1]));
            }
       }
+   }
+   
+   /*
+   private Color fixColors(Color c1, Color c2, int delta)
+   {
+      //get the color's 'coordinates'
+      //think of a color as a point in R^3 
+      //three dimensional space
+      int red1 = c1.getRed();
+      int red2 = c2.getRed();
+      
+      int green1 = c1.getGreen();
+      int green2 = c2.getGreen();
+      
+      int blue1 = c1.getBlue();
+      int blue2 = c2.getBlue();
+      
+      //find the distance between the points
+      double distance = Math.sqrt( (red1-red2)*(red1-red2) + 
+                                   (green1-green2)*(green1-green2) +
+                                   (blue1-blue2)*(blue1-blue2) );
+      double deltaD = Math.sqrt(3)*Math.abs(delta);
+      
+      Color newColor;
+      if (distance<deltaD)
+         newColor = new Color(red1-delta, green1-delta, blue1-delta);
+      else
+         newColor = c1;
+      
+      return newColor;
+   }
+   */
+   
+   private Color getColorForLevel(float height)
+   {
+      float max = levels.getHighestLevel();
+      float min = levels.getLowestLevel();
+      
+      float a = (colorScale.length-1)/(max-min); 
+      
+      return colorScale[(int)(a*height - a*min)];
    }
    
    /**
@@ -909,6 +1028,16 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          panel.setShowLabels(new boolean[]{true, false, false});
          panel.setNumSigDigits(new int[]{3,0,0});
          panel.setPreserveAspectRatio(false);
+         panel.setColorScale(new Color[] {Color.RED,
+                                          Color.ORANGE, 
+                                          Color.YELLOW, 
+                                          Color.GREEN, 
+                                          Color.CYAN, 
+                                          Color.BLUE, 
+                                          Color.MAGENTA, 
+                                          Color.PINK,
+                                          Color.GRAY, 
+                                          Color.BLACK});
       JFrame frame = new JFrame("ContourJPanel test");
          frame.setSize(200,200);
          frame.getContentPane().add(panel);
