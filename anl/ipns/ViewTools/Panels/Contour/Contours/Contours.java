@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2005/06/28 16:12:58  kramer
+ * Added the non-abstract toString() method.  Also, the abstract methods
+ * getLowestLevel() and getHighestLevel() were added.
+ *
  * Revision 1.4  2005/06/08 22:12:52  kramer
+ *
  * Made the error messages that this class's constructor generates more
  * user friendly.
  *
@@ -93,6 +98,50 @@ public abstract class Contours
    }
    
    /**
+    * Used to get a readout describing the contours levels 
+    * encapsulated by this <code>Contours</code> object.  
+    * The readout returned is designed for debugging purposes.
+    * 
+    * @return A String describing this <code>Contours</code> object.
+    */
+   public String toString()
+   {
+      StringBuffer buffer = new StringBuffer();
+      //Display an introduction
+      buffer.append("Displaying a ");
+      buffer.append(getClass().getName());
+      buffer.append(" object\n");
+      buffer.append("--------------------\n");
+      
+      //Display the metadata about the object
+      buffer.append("  MetaData:\n");
+      buffer.append("    Number of contour levels:  ");
+        int numLevels = getNumLevels();
+      buffer.append(numLevels);
+      buffer.append("\n");
+      
+      buffer.append("    Lowest contour level:  ");
+      buffer.append(getLowestLevel());
+      buffer.append("\n");
+      
+      buffer.append("    Highest contour level:  ");
+      buffer.append(getHighestLevel());
+      buffer.append("\n");
+      buffer.append("  --------------------\n");
+      
+      //Display the actual levels
+      for (int i=0; i<numLevels; i++)
+      {
+         buffer.append("    level[");
+         buffer.append(i);
+         buffer.append("] = ");
+         buffer.append(getLevelAt(i));
+         buffer.append("\n");
+      }
+      return buffer.toString();
+   }
+   
+   /**
     * Get the value of the <code>ith</code> contour level.  If you think of 
     * contour plot of a given set of data as if it were a topological map, 
     * this method would return the elevation on the <code>ith</code> 
@@ -109,4 +158,18 @@ public abstract class Contours
     * @return The "elevation" of the <code>ith</code> contour level.
     */
    public abstract float getLevelAt(int i);
+   
+   /**
+    * Get the "elevation" of the lowest contour level.
+    * 
+    * @return The value of the lowest contour level.
+    */
+   public abstract float getLowestLevel();
+   
+   /**
+    * Get the "elevation" of the highest contour level.
+    * 
+    * @return The value of the highest contour level.
+    */
+   public abstract float getHighestLevel();
 }
