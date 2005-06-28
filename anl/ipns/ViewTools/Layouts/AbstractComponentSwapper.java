@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/06/28 18:29:29  kramer
+ *  Modified the getSwapperMenuItems() method so that the ViewMenuItem array
+ *  returned has its menu items configured so that the items to display the
+ *  table, image, or contour view are placed in a 'View' menu.
+ *
+ *  Modified the testFrame() method so that the 'View' menu is added to the
+ *  frame.
+ *
  *  Revision 1.3  2005/05/25 20:28:45  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -413,9 +421,17 @@
    */ 
    public ViewMenuItem[] getSwapperMenuItems()
    {
-     JMenu swap_menu = new JMenu("Display as...");
-     JMenuItem temp = new JMenuItem();
-     boolean valid_menu;
+     //get the current IViewComponent's menu items
+     ViewMenuItem[] vcm = getViewComponent().getMenuItems();
+     //make an array to hold all of these items plus all of the items to 
+     //switch to a different IViewComponent (a different view)
+     ViewMenuItem[] menu_items = 
+        new ViewMenuItem[vcm.length+available_views.length];
+     
+     //for each available view, test if it is valid and if so add it to the 
+     //array of menu items to return
+     JMenuItem temp;
+     int numValid = 0;
      for( int i = 0; i < available_views.length; i++ )
      {
        if( isAvailableViewType(available_views[i]) )
@@ -424,24 +440,25 @@
          // Set the action command to the view type.
          temp.setActionCommand( available_views[i] );
          temp.addActionListener( new SwapListener() );
-         swap_menu.add(temp);
+         menu_items[i] = new ViewMenuItem(ViewMenuItem.PUT_IN_VIEW, temp);
+         numValid++;
        }
        else
        {
          SharedMessages.addmsg("ERROR in AbstractComponentSwapper."+
-	                       "getSwapperMenuItems() - Unsupported "+
-			       "view type code ["+available_views[i]+
-			       "]. Please add definition to this method.");
+                          "getSwapperMenuItems() - Unsupported "+
+                "view type code ["+available_views[i]+
+                "]. Please add definition to this method.");
        }
      }
      
-     ViewMenuItem swap_views = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS,
-                                                 swap_menu );
-     ViewMenuItem[] vcm = getViewComponent().getMenuItems();
-     ViewMenuItem[] menu_items = new ViewMenuItem[vcm.length+1];
-     menu_items[0] = swap_views;
      // Copy array of view component menu items to swapper menu items.
-     System.arraycopy(vcm,0,menu_items,1,vcm.length);
+     System.arraycopy(vcm,0,menu_items,numValid,vcm.length);
+     
+     //if there were invalid view types the array 'menu_items' will be 
+     //have empty spaces.  This will remove those spaces
+     if (numValid+vcm.length<menu_items.length)
+        System.arraycopy(menu_items,0,menu_items,0,numValid+vcm.length);
      return menu_items;
    }
    
@@ -824,6 +841,7 @@
      JMenuBar menu_bar = new JMenuBar();
      menu_bar.add( new JMenu("File") );
      menu_bar.add( new JMenu("Edit") );
+     menu_bar.add( new JMenu("View") );
      menu_bar.add( new JMenu("Options") );
      menu_bar.add( new JMenu("Help") );
      ViewMenuItem[] items = ics.getSwapperMenuItems();
@@ -837,13 +855,17 @@
        {
          menu_bar.getMenu(1).add(items[i].getItem());
        }
-       else if( items[i].getPath().equals(ViewMenuItem.PUT_IN_OPTIONS) )
+       else if ( items[i].getPath().equals(ViewMenuItem.PUT_IN_VIEW) )
        {
          menu_bar.getMenu(2).add(items[i].getItem());
        }
-       else if( items[i].getPath().equals(ViewMenuItem.PUT_IN_HELP) )
+       else if( items[i].getPath().equals(ViewMenuItem.PUT_IN_OPTIONS) )
        {
          menu_bar.getMenu(3).add(items[i].getItem());
+       }
+       else if( items[i].getPath().equals(ViewMenuItem.PUT_IN_HELP) )
+       {
+         menu_bar.getMenu(4).add(items[i].getItem());
        }
      }
      JFrame frame = new JFrame("ComponentSwapperTest");
