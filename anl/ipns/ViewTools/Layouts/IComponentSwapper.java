@@ -34,7 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/06/28 18:26:34  kramer
+ *  Added javadocs to the CONTOUR field.
+ *
  *  Revision 1.3  2005/06/06 20:39:28  kramer
+ *
  *  Added CONTOUR as a possible view.
  *
  *  Revision 1.2  2005/05/25 20:28:46  dennis
@@ -81,6 +85,10 @@
    * IViewComponent display type for any given ComponentSwapper.
    */
    public static final String IMAGE = "Image";
+   /**
+    * "Contour" - This variable specifies the ContourViewComponent as an 
+    * IViewComponent display type for any given ComponentSwapper.
+    */
    public static final String CONTOUR = "Contour";
   /**
    * List of all available views for any ComponentSwapper. If a view is added,
