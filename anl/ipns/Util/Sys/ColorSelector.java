@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/06/28 16:03:15  kramer
+ *  Added the methods setSelectedColor() and getModel().
+ *
  *  Revision 1.3  2005/05/25 20:28:26  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -107,6 +110,7 @@ public class ColorSelector extends ActiveJPanel
   
   private JColorChooser colorchooser;
   private Color current_color;
+  private int current_model;
   
  /**
   * Constructor - Specify the color model and get a JPanel containing that
@@ -132,6 +136,20 @@ public class ColorSelector extends ActiveJPanel
     return current_color;
   }
   
+  /**
+   * Used to set the currently selected color of the current color chooser.
+   *
+   * @param color The new color that will be selected.  If this parameter 
+   *              is <code>null</code>, nothing is done.
+   */
+  public void setSelectedColor(Color color)
+  {
+     if (color==null)
+        return;
+     
+     colorchooser.setColor(color);
+  }
+  
  /**
   * This method will set the model that will be displayed. This method
   * does not need to be called unless the chooser model type needs to be
@@ -143,6 +161,9 @@ public class ColorSelector extends ActiveJPanel
   */ 
   public void setModel( int chooser_model )
   {
+    //store the model identifier
+    current_model = chooser_model;
+     
     // remove all components on this color selector.
     removeAll();
     // get the color selection part of the colorchooser
@@ -161,6 +182,18 @@ public class ColorSelector extends ActiveJPanel
       selectors.add( "RGB", acc[2] );
       add(selectors);
     }
+  }
+  
+  /**
+   * This method is used to determine the model that will be displayed 
+   * for selecting the color.
+   * 
+   * @return Integer code that specifies which graphical element(s) will 
+   *         be displayed to allow the user to select a color.
+   */
+  public int getModel()
+  {
+     return current_model;
   }
  
  /*
