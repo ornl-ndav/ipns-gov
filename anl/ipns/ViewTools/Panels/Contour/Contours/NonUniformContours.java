@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.7  2005/06/28 18:55:37  kramer
+ * Because Float.MIN_VALUE is the smallest positive float, the
+ * getHighestLevel() would sometimes return incorrect results.  This was
+ * fixed.
+ *
  * Revision 1.6  2005/06/28 16:20:00  kramer
+ *
  * Implemented the methods getHighestLevel() and getLowestLevel().
  *
  * Revision 1.5  2005/06/15 14:26:05  kramer
@@ -129,7 +135,7 @@ public class NonUniformContours extends Contours
     */
    public float getHighestLevel()
    {
-      float max = Float.MIN_VALUE;
+      float max = -1*Float.MAX_VALUE;
       for (int i=0; i<levels.length; i++)
          if (levels[i]>max)
             max = levels[i];
