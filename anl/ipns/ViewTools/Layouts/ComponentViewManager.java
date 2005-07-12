@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/07/12 16:50:47  kramer
+ *  Modified the main method to use test data that can be used to test the
+ *  ContourViewComponent.
+ *
  *  Revision 1.2  2005/05/25 20:28:45  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -79,6 +83,7 @@
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
  import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
+import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
  import gov.anl.ipns.ViewTools.Components.ViewControls.ControlManager;
  import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
  import gov.anl.ipns.ViewTools.UI.ActionValueJFrame;
@@ -965,7 +970,8 @@
        }
      
      // Put 2-D data into a VirtualArray2D wrapper
-     IVirtualArray2D va2D = new VirtualArray2D( test_array );
+     //IVirtualArray2D va2D = new VirtualArray2D( test_array );
+     IVirtualArray2D va2D = ContourViewComponent.getTestData(41, 51, 3.0, 4.0);
      // Give meaningful range, labels, units, and linear or log display method.
      va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
      			 "TestX","TestUnits", AxisInfo.LINEAR );
