@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.6  2005/07/12 16:58:20  kramer
+ * Added comments and modified this class to use the OrderedContours class
+ * to create a set of both uniformly and non-uniformly spaced contour levels.
+ *
  * Revision 1.5  2005/06/22 22:19:50  kramer
+ *
  * Added javadocs, removed unused code, and modified the default values
  * used so that they more evenly link with the defaults specified in the
  * ContourViewComponent and ContourJPanel classes.  Also, when the user
@@ -75,8 +80,8 @@ import gov.anl.ipns.Util.StringFilter.IntegerFilter;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
-import gov.anl.ipns.ViewTools.Panels.Contour.Contours.MixedContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
+import gov.anl.ipns.ViewTools.Panels.Contour.Contours.OrderedContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
 
 import java.awt.BorderLayout;
@@ -488,13 +493,19 @@ public class CompositeContourControl extends ViewControl
       }
       else
       {
+         //get the tabbed pane's ObjectState of ObjectStates
          ObjectState tabState = tabControl.getObjectState(isDefault);
+         //get the state for the control used to enter uniform contours 
+         //(at index 0 of the tabbed pane)
          state.insert(UNIFORM_CONTROL_STATE_KEY, 
                          tabState.get(
                             TabbedViewControl.VIEW_CONTROL_STATE_AT+0));
+         //get the state for the control used to enter nonuniform contours
+         //(at index 1 of the tabbed pane)
          state.insert(NONUNIFORM_CONTROL_STATE_KEY, 
                          tabState.get(
                             TabbedViewControl.VIEW_CONTROL_STATE_AT+1));
+         //get the state for the button
          state.insert(REDRAW_BUTON_STATE_KEY, 
                          redrawBothButton.getObjectState(isDefault));
       }
@@ -516,6 +527,9 @@ public class CompositeContourControl extends ViewControl
    {
       if (state==null)
          return;
+      
+      //set the state that the superclass maintains
+      super.setObjectState(state);
       
       //first to set the ObjectState of the ViewControls in the tabbed pane
          //this will hold the state information for the ViewControls in the 
@@ -843,6 +857,7 @@ public class CompositeContourControl extends ViewControl
          if (errMsg!=null && errMsg.length>=0)
             errMsg[0] = e.getMessage();
       }
+      
       return contours;
    }
    
@@ -908,9 +923,8 @@ public class CompositeContourControl extends ViewControl
                nonuniformErrMsg[0]!=null)
             SharedData.addmsg(nonuniformErrMsg[0]);
       
-      contourPanel.setContours(new MixedContours(uniformControls,
-                                                 nonuniformControls,
-                                                 true, 
-                                                 false));
+      contourPanel.setContours(new OrderedContours(uniformControls,
+                                                   nonuniformControls,
+                                                   false));
    }
 }
