@@ -33,7 +33,21 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.15  2005/07/12 16:47:27  kramer
+ * -Added javadocs and comments.
+ * -Implemented the IPreserveState interface.  Also, in addition to the
+ *  'normal' objects stored in the state, the Class of the Contours object
+ *  being displayed is stored so that the correct Contours object can be
+ *  constructed when the setObjectState() method is invoked.
+ * -Implemented the getGlobalWCBounds() which uses the getAxisInfo() method
+ *  of the IVirtualArray2D to correctly set the world coordinates of the
+ *  panel.  However, to get zooming and viewer synchronization to both
+ *  work, this class resets the 'local_transforms' 'source' to be the
+ *  world coordinates of the entire panel whenever the zoom is reset.
+ *  However, this seems to affect the way the aspect ratio is preserved.
+ *
  * Revision 1.14  2005/06/28 16:11:36  kramer
+ *
  * Added support for specifing the background color and the colors used to
  * draw the contour lines (a single color, an array of colors, or a
  * color scale are currently supported).
@@ -86,14 +100,15 @@ package gov.anl.ipns.ViewTools.Panels.Contour;
 
 import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
 import gov.anl.ipns.ViewTools.Panels.Graph.GraphJPanel;
-import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2;
 import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
@@ -102,6 +117,8 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -129,7 +146,7 @@ import DataSetTools.util.SharedData;
  * contour plot of the data can be generated.
  */
 public class ContourJPanel extends CoordJPanel implements Serializable,
-      IPreserveState
+                                                          IPreserveState
 {
    /** Identifies a line style as a solid line. */
    public static final int SOLID = GraphJPanel.LINE;
@@ -140,11 +157,83 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    /** Identifies a lines style as a dotted line. */
    public static final int DOTTED = GraphJPanel.DOTTED;
    
+//--------------------------=[ ObjectState keys ]=----------------------------//
+   /**
+    * "Contours class" - This static constant String is a key used for 
+    * referencing the particular class that the <code>Contours</code> 
+    * object used in this class is an instance of.  The value that this 
+    * key references is a <code>Class</code> object.  
+    */
+   public static final String CONTOURS_CLASS_KEY = "Contours class";
+   /**
+    * "Contours" - This static constant String is a key used for 
+    * referencing the state information of the <code>Contours</code> object 
+    * which encapsulates the contour levels that this class renders.  The 
+    * value that this key references is an <code>ObjectState</code> of a 
+    * <code>Contours</code> object.
+    */
+   public static final String CONTOURS_KEY = "Contours";
+   /**
+    * "Line styles" - This static constant String is a key used for 
+    * referencing the which line styles are used when rendering the 
+    * contour levels.  The value that this key references is an 
+    * int array where each integer is a code specifying a line style.  
+    * <p>
+    * If <code>styleArr</code> is a reference to the array of line 
+    * styles, then the <code>ith</code> contour line is rendered with 
+    * the line style specified by element at index 
+    * <code>i%(styleArr.length)</code> in the array.
+    */
+   public static final String LINE_STYLES_KEY = "Line styles";
+   /**
+    * "Show labels" - This static constant String is a key used for 
+    * referencing which contour labels are given labels as they are 
+    * rendered.  The value that this key references is a boolean 
+    * array.  Each element in the array is either <code>true</code> if 
+    * the label should be displayed and <code>false</code> if it 
+    * shouldn't be.
+    * <p>
+    * If <code>labelArr</code> is a reference to the array specifying 
+    * which contour lines have labels, then the <code>ith</code> contour 
+    * line is given a label if the element in the array at index 
+    * <code>i%(labelArr.length)</code> is <code>true</code>.  If the 
+    * element is <code>false</code>, the contour level is not given a 
+    * label.
+    */
+   public static final String SHOW_LABEL_KEY = "Show labels";
+   /**
+    * "Num of significant figures" - This static constant String is a key 
+    * used for referencing the number of significant figures that that the 
+    * contour labels are rounded to.  The value that this key references is 
+    * an integer.
+    */
+   public static final String NUM_SIG_FIGS_KEY = "Num of significant figures";
+   /**
+    * "Color scale" - This static constant String is a key used for 
+    * referencing the array of colors used to determine which color to 
+    * render a particular contour line.  The value that this key 
+    * references is an array of <code>Color</code> objects.
+    */
+   public static final String COLOR_SCALE_KEY = "Color scale";
+   /**
+    * "Background color" - This static constant String is a key used for 
+    * referencing the background color of the image.  The value that this 
+    * key references is a <code>Color</code> object.
+    */
+   public static final String BACKGROUND_COLOR_KEY = "Background color";
+//------------------------=[ End ObjectState keys ]=--------------------------//
+   
+//------------------------=[ Default field values ]=--------------------------//
+   /**
+    * The default class that the <code>Contours</code> object used in this 
+    * class is an instance of.
+    */
+   public static final Class DEFAULT_CONTOURS_CLASS = UniformContours.class;
    /**
     * The default line style used to render contour lines.
     * Its value is <code>SOLID</code>.
     */
-   public static final int     DEFAULT_LINE_STYLE   = SOLID;
+   public static final int DEFAULT_LINE_STYLE   = SOLID;
    /**
     * Specifies if contour labels are shown by default.  
     * Its value is <code>true</code>.
@@ -154,17 +243,22 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * Specifies the default number of significant figures the contour 
     * labels are rounded to.  Its value is <code>3</code>.
     */
-   public static final int     DEFAULT_NUM_SIG_DIGS = 3;
+   public static final int DEFAULT_NUM_SIG_DIGS = 3;
    /**
     * Specifies if by default the aspect ratio should be preserved when 
     * drawing the contour levels.  Its value is <code>false</code>.
     */
    public static final boolean DEFAULT_PRESERVE_ASPECT_RATIO = false;
-   
+   /** The display's default background color. */
    public static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
-   
+   /**
+    * The default array of colors that is used to determine what color 
+    * to draw a color line of a given height.
+    */
    public static final Color[] DEFAULT_COLOR_SCALE = new Color[] {Color.BLACK};
+//----------------------=[ End default field values ]=------------------------//
    
+//------------------------------=[ Fields ]=----------------------------------//
    /** Holds the data that is being drwn on this panel. */
    private IVirtualArray2D data2D;
    /**
@@ -172,6 +266,22 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * slices be taken from the surface and drawn as contours)
     */
    private Contours levels;
+   /**
+    * Boolean flag that marks if the contour graph has been drawn yet or not.  
+    * <p>
+    * Its initial value is 'true' and whenever the zoom is reset its value is 
+    * reset to 'true' otherwise it is 'false'.  The paint() method uses this 
+    * value to determine if it should set the source (call setSource()) on the 
+    * local transform (local_transform) (if 'true') or do nothing with the 
+    * locl transform (if 'false').
+    * <p>
+    * <b>
+    * Currently, this seems to be a way to get the contour graph to 
+    * support <i>both</i> zooming and have the correct world coordinates set.  
+    * However, there may be a better solution.
+    * </b>
+    */
+   private boolean firstPaint;
    
    /** Describes the line styles used to render the contour levels. */
    private int[] lineStyles;
@@ -181,16 +291,22 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * Describes the number of significant figures each contour level's 
     * label is formatted to (and if there is even any formatting done).
     */
-   private int[] numSigDigs;
-   
+   private int[] numSigFigs;
+   /**
+    * The array of colors that are referenced when determining which 
+    * color to draw a contour line of a given height.
+    */
    private Color[] colorScale;
+//----------------------------=[ End fields ]=--------------------------------//
    
+//---------------------------=[ Constructors ]=-------------------------------//
    /**
     * Private constructor used to initialize the 
     * {@link IVirtualArray2D IVirtualArray2D} {@link #data2D data2D} and 
     * set up some of the general properties of the panel.
     * 
-    * @param data2D
+    * @param data2D The {@link IVirtualArray2D IVirtualArray2D} whose data 
+    *               is plotted.
     * 
     * @throws IllegalArgumentException iff <code>data2D</code> is 
     *                                  <code>null</code>.
@@ -202,8 +318,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                    "A null IVirtualArray2D was passed to the constructor " +
                    "for a ContourJPanel.");
       this.data2D = data2D;
-      this.setBackground(Color.WHITE);
       
+      //configure the way the contour image is drawn
       setLineStyles(DEFAULT_LINE_STYLE);
       setShowAllLabels(DEFAULT_SHOW_LABEL);
       setNumSigDigits(DEFAULT_NUM_SIG_DIGS);
@@ -211,6 +327,25 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       setPreserveAspectRatio(DEFAULT_PRESERVE_ASPECT_RATIO);
       setColorScale(DEFAULT_COLOR_SCALE);
       setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
+      
+      //set that the contour image has not been drawn yet
+      this.firstPaint = true;
+      //listen to changes in zooming
+      addActionListener(new ActionListener()
+      {
+         /**
+          * Called whenever an 'event' corresponding to 
+          * this panel has occured (i.e. the panel was 
+          * zoomed, the zoom was reset, etc).
+          */
+         public void actionPerformed(ActionEvent event)
+         {
+            //if the zoom was rest act like the contour image 
+            //has never been drawn yet
+            if (event.getActionCommand().equals(RESET_ZOOM))
+               firstPaint = true;
+         }
+      });
    }
    
    /**
@@ -261,6 +396,131 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       this(data2D);
       this.levels = new NonUniformContours(levels);
    }
+//-------------------------=[ End constructors ]=-----------------------------//
+   
+//-----------=[ Methods implemented for the IPreserveState interface ]=-------//
+   /**
+    * Used to get the state information for this contour image plotter.  
+    * The state information contains information such as which contour lines 
+    * are drawn, their line styles, which lines have labels, the number of 
+    * significant figures displayed on the labels, etc.  These properties 
+    * can be accessed by keys which are the 
+    * <code>public static final String</code> fields of this class.
+    * 
+    * @param isDefault If true the default state of this contour plotter is 
+    *                  returned.  If false the current state is returned.
+    * @return The state of this contour plotter.
+    */
+   public ObjectState getObjectState(boolean isDefault)
+   {
+      ObjectState state = super.getObjectState(isDefault);
+        //first set the state of the Contours that this class renders
+        state.insert(CONTOURS_KEY, levels.getObjectState(isDefault));
+        
+        //then set the state information for everything else
+        if (isDefault)
+        {
+           //store the Contours object's specific class so that the 
+           //specific Contours subclass can be created later
+           state.insert(CONTOURS_CLASS_KEY, DEFAULT_CONTOURS_CLASS);
+           
+           state.insert(LINE_STYLES_KEY, new int[]{ DEFAULT_LINE_STYLE });
+           state.insert(SHOW_LABEL_KEY, new boolean[]{ DEFAULT_SHOW_LABEL });
+           state.insert(NUM_SIG_FIGS_KEY, new int[]{ DEFAULT_NUM_SIG_DIGS });
+           state.insert(COLOR_SCALE_KEY, DEFAULT_COLOR_SCALE);
+           state.insert(BACKGROUND_COLOR_KEY, DEFAULT_BACKGROUND_COLOR);
+        }
+        else
+        {
+           //set the class of the contours object so that the specific 
+           //contours object can be constructed later in setObjectState(....)
+           //In other words, a Contours object has many subclasses and storing  
+           //the class helps ensure that the correct subclass is used
+           state.insert(CONTOURS_CLASS_KEY, levels.getClass());
+           
+           state.insert(LINE_STYLES_KEY, lineStyles);
+           state.insert(SHOW_LABEL_KEY, showLabels);
+           state.insert(NUM_SIG_FIGS_KEY, numSigFigs);
+           state.insert(COLOR_SCALE_KEY, colorScale);
+           state.insert(BACKGROUND_COLOR_KEY, getBackgroundColor());
+        }
+      return state;
+   }
+   
+   /**
+    * Used to set the state of this contour plotter.  The state contains 
+    * information such as which contour lines are drawn, their line styles, 
+    * which lines have labels, the number of significant figures displayed 
+    * on the labels, etc.  These settings can be set using keys which are the 
+    * <code>public static final String</code> fields of this class.
+    * 
+    * @param state An encapsulation of the state information for this 
+    *              contour plotter.
+    */
+   public void setObjectState(ObjectState state)
+   {
+      //if the state is 'null' leave
+      if (state==null)
+         return;
+      
+      //set the state that the superclass maintains
+      super.setObjectState(state);
+      
+      //first, try to make sure that the Contours object is the right type 
+      //(i.e. the right subclass)
+      Object val = state.get(CONTOURS_CLASS_KEY);
+      if ( (val != null) && (val instanceof Class) )
+      {
+         try
+         {
+            //create a new instance that is the correct subclass
+            levels = (Contours)((Class)val).newInstance();
+         }
+         catch (Exception e)
+         {
+            //if something goes wrong leave 'levels' the way it is 
+            //and just inform the user
+            SharedData.addmsg("Warning:  the specific contour levels " +
+                              "used could not be recreated");
+            System.out.println("contours class = "+((Class)val).getName());
+            e.printStackTrace();
+         }
+      }
+      
+      //set the state for the Contours rendered by this class
+      val = state.get(CONTOURS_KEY);
+      if ( (val != null) && (val instanceof ObjectState) )
+         levels.setObjectState((ObjectState)val);
+         
+      //set the line styles
+      val = state.get(LINE_STYLES_KEY);
+      if ( (val != null) && (val instanceof int[]) )
+         setLineStyles((int[])val);
+      
+      //set which labels are displayed
+      val = state.get(SHOW_LABEL_KEY);
+      if ( (val != null) && (val instanceof boolean[]) )
+         setShowLabels((boolean[])val);
+      
+      //set the number of significant figures for each level
+      val = state.get(NUM_SIG_FIGS_KEY);
+      if ( (val != null) && (val instanceof int[]) )
+         setNumSigDigits((int[])val);
+      
+      //set the color scale
+      val = state.get(COLOR_SCALE_KEY);
+      if ( (val != null) && (val instanceof Color[]) )
+         setColorScale((Color[])val);
+      
+      //set the background color
+      val = state.get(BACKGROUND_COLOR_KEY);
+      if ( (val != null) && (val instanceof Color) )
+         setBackgroundColor((Color)val);
+      
+      //redraw the image
+      reRender();
+   }
+//--------=[ End methods implemented for the IPreserveState interface ]=------//
    
    /**
     * Use this method to change the data that is being displayed on the 
@@ -441,7 +701,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public int[] getNumSigDigits()
    {
-      return numSigDigs;
+      return numSigFigs;
    }
    
    /**
@@ -465,7 +725,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       if (numSigDigs==null)
          setNumSigDigits(DEFAULT_NUM_SIG_DIGS);
       else
-         this.numSigDigs = numSigDigs;
+         this.numSigFigs = numSigDigs;
       
       reRender();
    }
@@ -485,7 +745,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
    
    /**
-    * Contour levels can be drawn using different colors depending on ther 
+    * Contour levels can be drawn using different colors depending on their 
     * "elevation".  This method returns the colors used to determine the 
     * colors to use for an elevation.
     * 
@@ -500,6 +760,19 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       return colorScale;
    }
    
+   /**
+    * Contour levels can be drawn using different colors depending on their 
+    * "elevation".  This method is used to set the scale used to determine 
+    * which color to render a contour line with.
+    * 
+    * @param scaleType A String describing the range of colors to use.  
+    *                  This String must be one of the fields from the 
+    *                  {@link IndexColorMaker IndexColorMaker} class.
+    * @param doubleSided If true negative and positive "elevations" will be 
+    *                    drawn with different colors.  If false, a negative 
+    *                    "elevation" will be drawn with the same color as 
+    *                    its positive version.
+    */
    public void setColorScale(String scaleType, boolean doubleSided)
    {
       if (scaleType==null)
@@ -507,48 +780,67 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     
       int numColors = 256;
       if (doubleSided)
-         this.colorScale = 
-            IndexColorMaker.getDualColorTable(scaleType, numColors);
+         setColorScale(IndexColorMaker.getDualColorTable(scaleType, numColors));
       else
-         this.colorScale = 
-            IndexColorMaker.getColorTable(scaleType, numColors);
+         setColorScale(IndexColorMaker.getColorTable(scaleType, numColors));
    }
    
+   /**
+    * Contour levels can be drawn using different colors depending on their 
+    * "elevation".  This method is used to set the scale used to determine 
+    * which color to render a contour level with.
+    * 
+    * @param colors The array of colors used to determine which color to 
+    *               render a contour level with.  The lowest contour level 
+    *               is drawn using the color specified by the first element 
+    *               of this array.  The highest contour level is drawn 
+    *               using the color specified by the last element of this 
+    *               array.  The other elevations are colored using the 
+    *               elements between the first and last elements in the 
+    *               array.
+    */
    public void setColorScale(Color[] colors)
    {
       if (colors==null || colors.length<1)
          return;
       
       this.colorScale = colors;
+      reRender();
    }
    
+   /**
+    * Used to specify that all of the contour lines should be drawn using 
+    * the same line color.
+    * 
+    * @param color The line color used when drawing the contour lines.
+    */
    public void setColorScale(Color color)
    {
-      if (color==null)
-         return;
-      
-      this.colorScale = new Color[] {color};
+      setColorScale(new Color[] {color});
    }
    
+   /**
+    * Used to get the background color drawn behind all of the contor levels.
+    * 
+    * @return This panel's background color.
+    */
    public Color getBackgroundColor()
    {
       return getBackground();
    }
    
+   /**
+    * Used to set the background color drawn behind all of the contour levels.
+    * 
+    * @param color This panel's new background color.
+    */
    public void setBackgroundColor(Color color)
    {
       if (color==null)
          return;
       
       setBackground(color);
-   }
-   
-   /**
-    * Used to force the contour graph to be redrawn.
-    */
-   public void reRender()
-   {
-      repaint();
+      reRender();
    }
    
    /**
@@ -562,8 +854,16 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public void setPreserveAspectRatio(boolean preserve)
    {
       super.setPreserveAspectRatio(preserve);
-      setLocalWorldCoords(getLocalWorldCoords());
+      //setLocalWorldCoords(getLocalWorldCoords());
       reRender();
+   }
+   
+   /**
+    * Used to force the contour graph to be redrawn.
+    */
+   public void reRender()
+   {
+      repaint();
    }
    
    /**
@@ -605,14 +905,34 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //set the local transforms to map a rectangular region to the 
       //entire panel
         SetTransformsToWindowSize();
+      //get the CoordBounds object that encapsulates the bounds of 
+      //the panel in world coordinates
+        CoordBounds wcBounds = getGlobalWCBounds();
       //now to make a transform that maps from row/column to the world 
       //coordinates of the entire panel.  The row/col is mapped to the 
       //location on the ENTIRE panel because the ALL of the data in the 
       //array needs to be mapped to ALL of the panel (not just a small 
       //region which is what 'local_transform' describes).
-        CoordTransform rcToGlobal = 
-           new CoordTransform(new CoordBounds(0,0,arr[0].length,arr.length),
-                              global_transform.getSource());
+        float delta = 0.001f;
+        CoordTransform rcToWC = 
+             new CoordTransform(
+                                new CoordBounds(delta, 
+                                                delta, 
+                                                data2D.getNumColumns()-delta, 
+                                                data2D.getNumRows()-delta
+                                               ),
+                                wcBounds
+                               );
+        //if this is the first time the contour image is being painted 
+        //set the local_transform to have its input region be the output 
+        //region of 'rcToWC'.  After the contour image is drawn the user can 
+        //zoom in and the superclass handles setting the source (input) of 
+        //local_transform to be the correct subset of the entire panel.
+        if (firstPaint)
+        {
+           local_transform.setSource(wcBounds);
+           firstPaint = false;
+        }
 
       //this holds the contour points found
         Vector contourPts;
@@ -639,12 +959,12 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //(all of the data may not be in the view window if the user has 
       // zoomed in on some portion of the data).  Note that the values are 
       // inclusize (i.e. arr[xMaxIndex][yMaxIndex] can legally be accessed).
-        int xMinIndex = getXIndexFromPixel(0, rcToGlobal, arr.length, true);
-        int xMaxIndex = getXIndexFromPixel(getWidth(), rcToGlobal, 
+        int xMinIndex = getXIndexFromPixel(0, rcToWC, arr.length, true);
+        int xMaxIndex = getXIndexFromPixel(getWidth(), rcToWC, 
                                            arr.length, false);
         
-        int yMinIndex = getYIndexFromPixel(0, rcToGlobal, arr[0].length, true);
-        int yMaxIndex = getYIndexFromPixel(getHeight(), rcToGlobal, 
+        int yMinIndex = getYIndexFromPixel(0, rcToWC, arr[0].length, true);
+        int yMaxIndex = getYIndexFromPixel(getHeight(), rcToWC, 
                                            arr[0].length, false);
         
         //if the min is greater than the max, the user has zoomed in too 
@@ -681,7 +1001,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
            //now to get this level's meta data
              lineSytle = lineStyles[i%lineStyles.length];
              showLabel = showLabels[i%showLabels.length];
-             numSigDigits = numSigDigs[i%numSigDigs.length];
+             numSigDigits = numSigFigs[i%numSigFigs.length];
          
          //now to get the contours.  The 'Contour2D.contour()' method does 
          //the work of calculating the points on the contour level.  
@@ -709,7 +1029,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                *        center of the boxes.  Adding 1/2f shifts the point 
                *        from the corner to the center.
                */
-              
+                 
               //now to determine the square of the gradient of the
               //function at this point.  The point with the gradient 
               //closest to 0 is the point that is farthest away from the 
@@ -738,8 +1058,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          
          //now to transform the points from row/column to the world 
          //coordinates on the panel
-           rcToGlobal.MapXListTo(xrcVals);
-           rcToGlobal.MapYListTo(yrcVals);
+           rcToWC.MapXListTo(xrcVals);
+           rcToWC.MapYListTo(yrcVals);
            
          //now to transform the points from the world coordinates to 
          //pixel coordinates.  Here 'local_transform' is used because 
@@ -813,37 +1133,28 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       }
    }
    
-   /*
-   private Color fixColors(Color c1, Color c2, int delta)
+   /**
+    * Used to get the rectangular box that describes the bounds of the 
+    * entire panel in terms of the world coordinate system.
+    * 
+    * @return An encapsulation of the world coordinate bounds of the entire 
+    *         panel.
+    */
+   private CoordBounds getGlobalWCBounds()
    {
-      //get the color's 'coordinates'
-      //think of a color as a point in R^3 
-      //three dimensional space
-      int red1 = c1.getRed();
-      int red2 = c2.getRed();
+      AxisInfo xInfo = this.data2D.getAxisInfo(AxisInfo.X_AXIS);
+      AxisInfo yInfo = this.data2D.getAxisInfo(AxisInfo.Y_AXIS);
       
-      int green1 = c1.getGreen();
-      int green2 = c2.getGreen();
-      
-      int blue1 = c1.getBlue();
-      int blue2 = c2.getBlue();
-      
-      //find the distance between the points
-      double distance = Math.sqrt( (red1-red2)*(red1-red2) + 
-                                   (green1-green2)*(green1-green2) +
-                                   (blue1-blue2)*(blue1-blue2) );
-      double deltaD = Math.sqrt(3)*Math.abs(delta);
-      
-      Color newColor;
-      if (distance<deltaD)
-         newColor = new Color(red1-delta, green1-delta, blue1-delta);
-      else
-         newColor = c1;
-      
-      return newColor;
+      return new CoordBounds(xInfo.getMin(), yInfo.getMax(), 
+                             xInfo.getMax(), yInfo.getMin());
    }
-   */
    
+   /**
+    * Used to look at the "elevation" of a particular contour level and 
+    * find the color that should be used when drawing the contour level.
+    * 
+    * @param height The "elevation" of the contour line in question.
+    */
    private Color getColorForLevel(float height)
    {
       float max = levels.getHighestLevel();
@@ -954,23 +1265,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
    
    /**
-    * Temporary method used to print the contents of a float[][] array.
-    */
-   private static void printArray(float[][] arr)
-   {
-      System.out.println("About to display an array");
-      System.out.println("-------------------------");
-      for (int i=0; i<arr.length; i++)
-      {
-         for (int j=0; j<arr[i].length; j++)
-            System.out.print(""+arr[i][j]+" ");
-         System.out.println();
-      }
-      System.out.println("-------------------------");
-      System.out.println("Finished displaying an array");
-   }
-
-   /**
     * Generates a float[][] for the data for the function 
     * f(x,y) = x+y
     */
@@ -1045,3 +1339,72 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       frame.setVisible(true);
    }
 }
+
+//----------------------------=[ Unused code ]=-------------------------------//
+/*
+/**
+ * Temporary method used to print the contents of a float[][] array.
+ *
+private static void printArray(float[][] arr)
+{
+   System.out.println("About to display an array");
+   System.out.println("-------------------------");
+   for (int i=0; i<arr.length; i++)
+   {
+      for (int j=0; j<arr[i].length; j++)
+         System.out.print(""+arr[i][j]+" ");
+      System.out.println();
+   }
+   System.out.println("-------------------------");
+   System.out.println("Finished displaying an array");
+}
+
+/**
+    * The default state for the <code>Contours</code> that are rendered by 
+    * this class.  Its value is the <code>ObjectState</code> returned from 
+    * the <code>getObjectState()</code> method invoked on a 
+    * <code>UniformContours</code> object where the parameter 
+    * <code>isDefault=true</code> is given to the 
+    * <code>getObjectState()</code> method.
+    /
+   public static final ObjectState DEFAULT_CONTOURS_STATE = 
+      (new UniformContours(UniformContours.DEFAULT_MIN_VALUE, 
+                           (UniformContours.DEFAULT_NUM_LEVELS-1)*
+                                                UniformContours.DEFAULT_DELTA, 
+                           UniformContours.DEFAULT_NUM_LEVELS)).
+                              getObjectState(true);
+   
+*/
+
+/*
+private Color fixColors(Color c1, Color c2, int delta)
+{
+   //get the color's 'coordinates'
+   //think of a color as a point in R^3 
+   //three dimensional space
+   int red1 = c1.getRed();
+   int red2 = c2.getRed();
+   
+   int green1 = c1.getGreen();
+   int green2 = c2.getGreen();
+   
+   int blue1 = c1.getBlue();
+   int blue2 = c2.getBlue();
+   
+   //find the distance between the points
+   double distance = Math.sqrt( (red1-red2)*(red1-red2) + 
+                                (green1-green2)*(green1-green2) +
+                                (blue1-blue2)*(blue1-blue2) );
+   double deltaD = Math.sqrt(3)*Math.abs(delta);
+   
+   Color newColor;
+   if (distance<deltaD)
+      newColor = new Color(red1-delta, green1-delta, blue1-delta);
+   else
+      newColor = c1;
+   
+   return newColor;
+}
+*/
+
+//--------------------------=[ End unused code ]=-----------------------------//
