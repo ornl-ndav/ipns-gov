@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.6  2005/07/12 16:39:07  kramer
+ * Reorganized the code and added comments and javadoc statements.
+ * Implemented the IPreserveState interface and made basic implementations
+ * of the getObjectState() and setObjectState() methods to maintain the
+ * number of contour levels.
+ *
  * Revision 1.5  2005/06/28 16:12:58  kramer
+ *
  * Added the non-abstract toString() method.  Also, the abstract methods
  * getLowestLevel() and getHighestLevel() were added.
  *
@@ -50,15 +57,42 @@
  */
 package gov.anl.ipns.ViewTools.Panels.Contour.Contours;
 
+import gov.anl.ipns.ViewTools.Components.IPreserveState;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+
 /**
  * Encapsulates the basic information needed to use a set of contour lines 
  * needed to generate a contour plot of some data.
  */
-public abstract class Contours
+public abstract class Contours implements IPreserveState
 {
+//--------------------------=[ ObjectState keys ]=----------------------------//
+   /**
+    * "Number of levels" - This static constant String is a key 
+    * for referencing the number of contour levels stored in this 
+    * collection of contour levels.  The value that this key 
+    * references is an <code>Integer</code> object.
+    */
+   public static final String NUM_LEVELS_KEY = "Number of levels";
+//-----------------------=[ End objectState keys ]=---------------------------//
+   
+//------------------------=[ Default field values ]=--------------------------//
+   /**
+    * The default number of contour levels for a collection of 
+    * contour levels.  The value of this field is <code>2</code>.  
+    * The value is <code>2</code> because a collection of uniformly spaced 
+    * contour levels would expect to have at least <code>2</code> contour 
+    * levels.
+    */
+   public static final int DEFAULT_NUM_LEVELS = 2;
+//----------------------=[ End default field values ]=------------------------//
+   
+//------------------------------=[ Fields ]=----------------------------------//
    /** The number of contour levels. */
    private int numLevels;
+//-----------------------------=[ End fields ]=-------------------------------//
    
+//---------------------------=[ Constructors ]=-------------------------------//
    /**
     * Create a Contours object that corresponds to a set of 
     * <code>numLevels</code> contour lines.
@@ -76,7 +110,9 @@ public abstract class Contours
                    "number of levels given was "+numLevels);
       this.numLevels = numLevels;
    }
+//--------------------------=[ End constructors ]=----------------------------//
    
+//---------------------=[ Subclass convience methods ]=-----------------------//
    /**
     * Used to determine the number of contours lines that this set of 
     * contour lines contains.
@@ -142,6 +178,51 @@ public abstract class Contours
    }
    
    /**
+    * Used to get the state information for this <code>Contours</code> 
+    * object.  Because this class describes the abstract information 
+    * needed to describe a set of contour levels, the only piece of 
+    * information saved in the state is the number of contour levels.  
+    * Subclasses need to override this method to include more specific 
+    * state information.
+    * 
+    * @param isDefault If true the default state for this 
+    *                  <code>Contours</code> object is returned.  
+    *                  If false the current state is returned.
+    * @return This <code>Contours</code> object's state.
+    */
+   public ObjectState getObjectState(boolean isDefault)
+   {
+      ObjectState state = new ObjectState();
+        if (isDefault)
+           state.insert(NUM_LEVELS_KEY, new Integer(DEFAULT_NUM_LEVELS));
+        else
+           state.insert(NUM_LEVELS_KEY, new Integer(numLevels));
+      return state;
+   }
+   
+   /**
+    * Used to set the state information for this <code>Contours</code> 
+    * object.  The only information that is saved in the state is the 
+    * number of contour levels in this collection of contour levels.
+    * 
+    * @param state An encapsulation of the state information for this 
+    *              <code>Contours</code> object.
+    */
+   public void setObjectState(ObjectState state)
+   {
+      //if the state is 'null' leave
+      if (state==null)
+         return;
+      
+      //set the number of levels
+      Object val = state.get(NUM_LEVELS_KEY);
+      if ( (val != null) && (val instanceof Integer) )
+         setNumLevels(((Integer)val).intValue());
+   }
+//-------------------=[ End subclass convience methods ]=---------------------//
+   
+//---------------------------=[ Abstract methods ]=---------------------------//
+   /**
     * Get the value of the <code>ith</code> contour level.  If you think of 
     * contour plot of a given set of data as if it were a topological map, 
     * this method would return the elevation on the <code>ith</code> 
@@ -172,4 +253,5 @@ public abstract class Contours
     * @return The value of the highest contour level.
     */
    public abstract float getHighestLevel();
+//-------------------------=[ End abstract methods ]=-------------------------//
 }
