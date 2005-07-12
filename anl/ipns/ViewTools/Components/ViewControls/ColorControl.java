@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/07/12 17:00:40  kramer
+ * Added javadocs.  Also, now when the user wants to select a color, the
+ * color selector displayed has "Ok", "Cancel", and "Reset" options.
+ *
  * Revision 1.3  2005/06/29 18:48:38  kramer
+ *
  * Added javadocs.
  *
  * Revision 1.2  2005/06/28 22:19:46  kramer
@@ -55,11 +60,13 @@ import gov.anl.ipns.ViewTools.Components.ObjectState;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -117,20 +124,15 @@ public class ColorControl extends ViewControl
     */
    private ColorfulButton colorButton;
    /**
-    * This is the panel that contains the controls that allows the user 
-    * to select a color.
+    * The label that is located next to the button on this control.
     */
-   private ColorSelector colorSelector;
+   private JLabel label;
    /**
     * The frame that holds the controls to allow the user to select a 
     * color.  This frame is displayed when this control's button is 
     * pressed.
     */
-   private JFrame selectorFrame;
-   /**
-    * The label that is located next to the button on this control.
-    */
-   private JLabel label;
+   private ColorSelectorFrame selectorFrame;
 //------------=[ End omponents used with this control ]=----------------------//
    
 //-----------------------=[ Constructors ]=-----------------------------------//
@@ -172,42 +174,19 @@ public class ColorControl extends ViewControl
    {
       super(con_title);
       
-      //create the graphical element used to select the color
-      this.colorSelector = new ColorSelector(colorModel);
-        this.colorSelector.setSelectedColor(initialColor);
-        this.colorSelector.addActionListener(new ColorChangeListener());
-      
-      //create the frame that the color selector is placed on
-      this.selectorFrame = new JFrame();
-        //the window should not close but instead should hide
-        this.selectorFrame.setDefaultCloseOperation(
-              WindowConstants.HIDE_ON_CLOSE);
-        //add the components to the content pane
-          //add the color selector
-        this.selectorFrame.getContentPane().setLayout(new BorderLayout());
-          this.selectorFrame.getContentPane().add(this.colorSelector, 
-                                                BorderLayout.CENTER);
-          //add the 'close' button
-        JPanel buttonpanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-          JButton closeButton = new JButton("Close");
-            closeButton.addActionListener(new ActionListener()
-            {
-               public void actionPerformed(ActionEvent event)
-               {
-                  selectorFrame.setVisible(false);
-               }
-            });
-          buttonpanel.add(closeButton);
-        this.selectorFrame.getContentPane().add(buttonpanel, 
-                                                BorderLayout.SOUTH);
-        //resize the window and make sure its not visible
-        this.selectorFrame.pack();
-        this.selectorFrame.setVisible(false);
+      //create the frame that contains the color selector
+      this.selectorFrame = new ColorSelectorFrame("Select a color", 
+                                                  initialColor, 
+                                                  colorModel);
+        this.selectorFrame.addActionListener(new ColorChangeListener());
+        this.selectorFrame.
+           setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
       
       //create the button that is used to display the selected color and 
       //to open the color selector frame
-      colorButton = new ColorfulButton(colorSelector.getSelectedColor());
-       colorButton.addActionListener(new ButtonListener());
+      this.colorButton = 
+         new ColorfulButton(this.selectorFrame.getSelectedColor());
+        this.colorButton.addActionListener(new ButtonListener());
        
       //create the label that is placed next to the button
       label = new JLabel(labelText);
@@ -287,6 +266,9 @@ public class ColorControl extends ViewControl
       if (state==null)
          return;
       
+      //set the state that the superclass maintains
+      super.setObjectState(state);
+      
       Object val = state.get(COLOR_KEY);
       if (val!=null)
          setSelectedColor((Color)val);
@@ -306,7 +288,7 @@ public class ColorControl extends ViewControl
       ColorControl copy = new ColorControl(getTitle(), 
                                            getLabelText(), 
                                            getSelectedColor(), 
-                                           colorSelector.getModel());
+                                           selectorFrame.getSelectionModel());
       copy.setObjectState(getObjectState(false));
       return copy;
    }
@@ -440,9 +422,9 @@ public class ColorControl extends ViewControl
        */
       public void actionPerformed(ActionEvent event)
       {
-         if (event.getActionCommand().equals(ColorSelector.COLOR_CHANGED))
+         if (event.getActionCommand().equals(ColorSelectorFrame.COLOR_CHANGED))
          {
-            colorButton.setColor(colorSelector.getSelectedColor());
+            colorButton.setColor(selectorFrame.getSelectedColor());
             repaint();
             send_message(COLOR_CHANGED);
          }
@@ -677,5 +659,374 @@ public class ColorControl extends ViewControl
          }
       }
    }
+
+   /**
+    * This is a <code>JFrame</code> that contains a <code>ColorSelector</code> 
+    * that is used to allow the user to select a color.  This frame contains 
+    * three buttons, "Ok", "Cancel", and "Reset" to allow the user to select 
+    * a color and then 'roll back' to the previously selected color if 
+    * he/she wants to.
+    */
+   private class ColorSelectorFrame extends JFrame implements ActionListener
+   {
+      /**
+       * This is the message that is sent out to listeners when the 
+       * currently selected color changes.
+       */
+      public static final String COLOR_CHANGED = "Color changed";
+      
+      /** This is the text displayed on the "Ok" button. */
+      private static final String OK_TEXT = "Ok";
+      /** This is the text displayed on the "Cancel" button. */
+      private static final String CANCEL_TEXT = "Cancel";
+      /** This is the text displayed on the "Reset" button. */
+      private static final String RESET_TEXT = "Reset";
+      
+      /**
+       * This is the color selector that actually allows the user to 
+       * select a color.
+       */
+      private ColorSelector selector;
+      /**
+       * The <code>Vector</code> of <code>ActionListeners</code> that are 
+       * listening to when the selected color has changed.
+       */
+      private Vector listeners;
+      /**
+       * Stores the previously selected color.  This is used to allow the 
+       * user to 'roll back' to the previously selected color.
+       */
+      private Color previousColor;
+      /**
+       * This listener potentially listens to all 
+       * <code>ColorSelector.COLOR_CHANGED</code> messages sent out by the 
+       * color selector.  It then relays the messages to the listeners of 
+       * this object.  This listener can be told to listen or not listen to 
+       * the messages.
+       */
+      private ContinuousListener contListener;
+      
+      /**
+       * Constructs a <code>ColorSelectorFrame</code> with the given title.  
+       * The color selector initially has the given color selected and 
+       * the given model describes which controls should be displayed to 
+       * allow the user to select a color.
+       * 
+       * @param title The frame's title.
+       * @param initialColor The color that is initially selected by 
+       *                     the color selector.
+       * @param model Either 
+       *              {@link ColorSelector#SWATCH ColorSelector.SWATCH}, 
+       *              {@link ColorSelector#BLEND ColorSelector.BLEND}, 
+       *              {@link ColorSelector#SLIDER ColorSelector.SLIDER}, or 
+       *              {@link ColorSelector#TABBED ColorSelector.TABBED}.  
+       *              This code describes which graphical element(s) to 
+       *              display on the selector to allow the user to 
+       *              select a color.
+       */
+      public ColorSelectorFrame(String title, Color initialColor, int model)
+      {
+         super(title);
+         
+         //create the vector of ActionListeners
+         this.listeners = new Vector();
+         
+         //create the color selector
+         this.selector = new ColorSelector(model);
+         this.selector.setSelectedColor(initialColor);
+         
+         //create the listener that will listen directly to the color selector
+         this.contListener = new ContinuousListener(true);
+         this.selector.addActionListener(contListener);
+         
+         //set the previous color to be the current color
+         this.previousColor = initialColor;
+         
+         //create the panel containing the "Ok", "Cancel", and "Reset" buttons
+         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+           //create the buttons
+           JButton okButton = new JButton(OK_TEXT);
+             okButton.addActionListener(this);
+           JButton cancelButton = new JButton(CANCEL_TEXT);
+             cancelButton.addActionListener(this);
+           JButton resetButton = new JButton(RESET_TEXT);
+             resetButton.addActionListener(this);
+           //add the buttons to the panel
+           buttonPanel.add(okButton);
+           buttonPanel.add(cancelButton);
+           buttonPanel.add(resetButton);
+           
+         //add the components to the frame
+         Container contentPane = getContentPane();
+           contentPane.setLayout(new BorderLayout());
+           contentPane.add(this.selector, BorderLayout.CENTER);
+           contentPane.add(buttonPanel, BorderLayout.SOUTH);
+           
+         //resize the frame to the best fit
+         pack();
+      }
+      
+      /**
+       * Used to get the currently selected color.
+       * 
+       * @return The currently selected color.
+       */
+      public Color getSelectedColor()
+      {
+         return selector.getSelectedColor();
+      }
+      
+      /**
+       * Used to determine which graphical element(s) are displayed on the 
+       * frame to allow the user to select a color.
+       * 
+       * @return Either {@link ColorSelector#SWATCH ColorSelector.SWATCH}, 
+       *         {@link ColorSelector#BLEND ColorSelector.BLEND}, 
+       *         {@link ColorSelector#SLIDER ColorSelector.SLIDER}, 
+       *         or {@link ColorSelector#TABBED ColorSelector.TABBED}.
+       */
+      public int getSelectionModel()
+      {
+         return selector.getModel();
+      }
+      
+      /**
+       * Used to determine if {@link #COLOR_CHANGED COLOR_CHANGED} messages 
+       * are being sent out every time the user selects a different color 
+       * in the color selector or only when the user presses the "Ok" 
+       * button.
+       * 
+       * @return True if a {@link #COLOR_CHANGED COLOR_CHANGED} message is 
+       *         sent out every time the user selects a different color.  
+       *         False if the messages are only sent out when the user 
+       *         pressed the "Ok" button.
+       */
+      public boolean isNotifyingContinuously()
+      {
+         return contListener.isListening();
+      }
+      
+      /**
+       * Used to set if {@link #COLOR_CHANGED COLOR_CHANGED} messages should 
+       * be sent out as soon as the user selects a different color in the 
+       * color selector, or if they should only be sent out when the "Ok" 
+       * button is pressed.
+       * 
+       * @param listen True if a {@link #COLOR_CHANGED COLOR_CHANGED} 
+       *               message should be sent out every time the user 
+       *               selects a different color.  False if the messages 
+       *               should only be sent out when the user pressed the 
+       *               "Ok" button.
+       */
+      public void setIsNotifyingContinuously(boolean listen)
+      {
+         contListener.setIsLIstening(listen);
+      }
+      
+      /**
+       * Used to add a listener to this frame.
+       * 
+       * @param listener The listener that wants to listen to changes in the 
+       *                 color selection.
+       */
+      public void addActionListener(ActionListener listener)
+      {
+         if (listener==null || listeners.contains(listener))
+            return;
+         
+         listeners.add(listener);
+      }
+      
+      /**
+       * Used to remove a listener from this frame.
+       * 
+       * @param listener The listener that wants to stop listening to changes 
+       *                 in the color selection.
+       */
+      public void removeActionListener(ActionListener listener)
+      {
+         if (listener==null)
+            return;
+         
+         listeners.remove(listener);
+      }
+      
+      /**
+       * Invoked when any of the buttons on this frame are pressed.
+       * 
+       * @param event Encapsulates which button was pressed.
+       */
+      public void actionPerformed(ActionEvent event)
+      {
+         if (event.getActionCommand().equals(RESET_TEXT))
+            resetSelectedColor();
+         else if (event.getActionCommand().equals(OK_TEXT))
+         {
+            if (!getSelectedColor().equals(this.previousColor))
+               notifyListeners();
+            
+            this.previousColor = getSelectedColor();
+            close();
+         }
+         else if (event.getActionCommand().equals(CANCEL_TEXT))
+         {
+            resetSelectedColor();
+            close();
+         }
+      }
+      
+      /**
+       * Used to reset the currently selected color to be the previously 
+       * selected color.  The previously selected color is unchanged.  
+       * Therefore, after calling this method, the selected color and 
+       * previously selected color are the same.
+       */
+      private void resetSelectedColor()
+      {
+         selector.setSelectedColor(this.previousColor);
+      }
+      
+      /**
+       * Used to send the {@link #COLOR_CHANGED COLOR_CHANGED} message 
+       * to all of this frame's <code>ActionListeners</code>.
+       */
+      private void notifyListeners()
+      {
+         for (int i=0; i<listeners.size(); i++)
+            ((ActionListener)listeners.elementAt(i)).
+               actionPerformed(new ActionEvent(this,0,COLOR_CHANGED));
+      }
+      
+      /**
+       * Used to close this frame.  Depending on which value was given to 
+       * the <code>setDefaultCloseOperation()</code> method, this method 
+       * will either, dispose this frame, exit, or make this frame invisible.
+       */
+      private void close()
+      {
+         int closeOp = getDefaultCloseOperation();
+         if (closeOp==DISPOSE_ON_CLOSE)
+            dispose();
+         else if (closeOp==EXIT_ON_CLOSE)
+            System.exit(0);
+         else if (closeOp==HIDE_ON_CLOSE)
+            setVisible(false);
+      }
+      
+      /**
+       * Used to listen to all of the 
+       * {@link ColorSelector#COLOR_CHANGED ColorSelector.COLOR_CHANGED} 
+       * messages sent from the enclosing class's <code>ColorSelector</code> 
+       * and relay them to the listeners of the enclosing class.  
+       * This listener has the functionality to respond to or ignore these 
+       * messages.
+       */
+      private class ContinuousListener implements ActionListener
+      {
+         /**
+          * Describes if this listener should listen to or 
+          * ignore the messages it recieves. 
+          */
+         private boolean listen;
+         
+         /**
+          * Constructs this listen to either listen to or ignore the 
+          * messages it recieves.
+          * 
+          * @param listen If true the listener will listen to the messages 
+          *               it recieves.  If false, it will ignore the 
+          *               messages it recieves.
+          */
+         public ContinuousListener(boolean listen)
+         {
+            this.listen = listen;
+         }
+         
+         /**
+          * Used to determine if this listener is listening to or 
+          * ignoring the messages it recieves.
+          * 
+          * @return True if this listener is listening to the messages it 
+          *         recieves.  False if it is ignoring the messages.
+          */
+         public boolean isListening()
+         {
+            return this.listen;
+         }
+         
+         /**
+          * Used to set if this listener should listen to or ignore the 
+          * messages it recieves.
+          * 
+          * @param listen True if this listener should listen to the 
+          *               messages it recieves.  False if it should 
+          *               ignore the messages it recieves.
+          */
+         public void setIsLIstening(boolean listen)
+         {
+            this.listen = listen;
+         }
+         
+         /**
+          * Invoked when this listener recieves a message.  If this 
+          * listener is set to listen to these messages, it will send 
+          * a {@link ColorControl#COLOR_CHANGED ColorControl.COLOR_CHANGED} 
+          * message to all listeners of the enclosing class.  Otherwise, 
+          * it will ignore the message.
+          */
+         public void actionPerformed(ActionEvent event)
+         {
+            if (isListening())
+               notifyListeners();
+         }
+      }
+   }
 }
 //-----------------------=[ End inner class ]=--------------------------------//
+
+
+/*  Unused code
+
+   /**
+    * This is the panel that contains the controls that allows the user 
+    * to select a color.
+    /
+   private ColorSelector colorSelector;
+   
+   private JFrame selectorFrame;
+
+
+      //create the graphical element used to select the color
+      this.colorSelector = new ColorSelector(colorModel);
+        this.colorSelector.setSelectedColor(initialColor);
+        this.colorSelector.addActionListener(new ColorChangeListener());
+      
+      //create the frame that the color selector is placed on
+      this.selectorFrame = new JFrame();
+        //the window should not close but instead should hide
+        this.selectorFrame.setDefaultCloseOperation(
+              WindowConstants.HIDE_ON_CLOSE);
+        //add the components to the content pane
+          //add the color selector
+        this.selectorFrame.getContentPane().setLayout(new BorderLayout());
+          this.selectorFrame.getContentPane().add(this.colorSelector, 
+                                                BorderLayout.CENTER);
+          //add the 'close' button
+        JPanel buttonpanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+          JButton closeButton = new JButton("Close");
+            closeButton.addActionListener(new ActionListener()
+            {
+               public void actionPerformed(ActionEvent event)
+               {
+                  selectorFrame.setVisible(false);
+               }
+            });
+          buttonpanel.add(closeButton);
+        this.selectorFrame.getContentPane().add(buttonpanel, 
+                                                BorderLayout.SOUTH);
+        //resize the window and make sure its not visible
+        this.selectorFrame.pack();
+        this.selectorFrame.setVisible(false);
+      
+
+*/
