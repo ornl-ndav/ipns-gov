@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.6  2005/07/12 16:54:46  kramer
+ * Now the setObjectState() method calls super.setObjectState() to set the
+ * state that the superclass maintains.
+ *
  * Revision 1.5  2005/06/22 22:21:32  kramer
+ *
  * Added the sort(Comparator) method which is used to sort the items in
  * the list.
  *
@@ -412,6 +417,9 @@ public class ControlList extends ViewControl
    {
       if (state==null)
          return;
+      
+      //set the state that the superclass maintains
+      super.setObjectState(state);
       
       Object curVal = state.get(LIST_VALUES_KEY);
       if (curVal!=null)

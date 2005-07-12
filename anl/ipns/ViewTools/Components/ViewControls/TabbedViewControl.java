@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/07/12 16:54:46  kramer
+ * Now the setObjectState() method calls super.setObjectState() to set the
+ * state that the superclass maintains.
+ *
  * Revision 1.3  2005/06/16 13:49:25  kramer
+ *
  * Added methods to get the selected tab and to get the ViewControl on the
  * selected tab.
  *
@@ -311,6 +316,9 @@ public class TabbedViewControl extends ViewControl
    {
       if (state==null)
          return;
+      
+      //set the state that the superclass maintains
+      super.setObjectState(state);
       
       Object curVal;
       int tabCount = tabPane.getTabCount();

@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/07/12 16:54:46  kramer
+ * Now the setObjectState() method calls super.setObjectState() to set the
+ * state that the superclass maintains.
+ *
  * Revision 1.2  2005/06/23 20:56:00  kramer
+ *
  * Added the methods isEditable() and getDefaultValue() used to see if the
  * spinner on the control is editable and to get its default value.
  *
@@ -221,6 +226,9 @@ public class SpinnerControl extends ViewControl implements ChangeListener
    {
       if (state==null)
          return;
+      
+      //set the state that the superclass maintains
+      super.setObjectState(state);
       
       Object val = state.get(SPINNER_VALUE);
       if (val!=null)

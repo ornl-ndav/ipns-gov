@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/07/12 16:54:46  kramer
+ * Now the setObjectState() method calls super.setObjectState() to set the
+ * state that the superclass maintains.
+ *
  * Revision 1.1  2005/06/23 21:07:28  kramer
+ *
  * This is a generic type of control that has a checkbox and a ViewControl
  * placed side by side.  When the checkbox is selected/deselected the
  * ViewControl becomes enabled/disabled.
@@ -206,6 +211,9 @@ public class CheckedControl extends ViewControl
    {
       if (state==null)
          return;
+      
+      //set the state that the superclass maintains
+      super.setObjectState(state);
       
       Object val = state.get(CHECKBOX_STATE_KEY);
       if (val!=null)
