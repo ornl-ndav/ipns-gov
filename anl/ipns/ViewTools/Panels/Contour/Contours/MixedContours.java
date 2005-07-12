@@ -33,7 +33,15 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2005/07/12 16:36:04  kramer
+ * Made this class an abstract class and now the classes OrderedContours and
+ * NonUniformContours extend this class (previously, these two classes were
+ * encapsulated in this class).  This was done so that the methods for the
+ * IPreserveState interface could be implemented specifically by the
+ * subclasses of this class.
+ *
  * Revision 1.4  2005/06/28 16:18:46  kramer
+ *
  * Modified to use the new getLowestLevel() and getHighestLevel() methods
  * from the Contours class.  Also, the constructors have been modified so
  * that the only constructor is one that takes both a
@@ -61,15 +69,100 @@
  */
 package gov.anl.ipns.ViewTools.Panels.Contour.Contours;
 
-import java.util.Arrays;
-
 /**
  * Represents a collection of uniformly spaced contour levels unioned with 
- * a collection of manually specified contour levels.
+ * a collection of manually specified contour levels.  Subclasses must 
+ * define exactly how this union is defined and stored.
  */
-public class MixedContours extends Contours
+public abstract class MixedContours extends Contours
 {
-   /** Holds the mixed contour levels. */
+//------------------------------=[ Fields ]=----------------------------------//
+   /**
+    * Flag indicating if this collection of contour levels are 
+    * in ascending order.
+    */
+   private boolean isOrdered;
+   /**
+    * Flag indicating if duplicate contour levels should be represented 
+    * in this collection of contour levels twice or once.
+    * <ul>
+    *   <li>
+    *     If true, a contour level may be represented multiple times in 
+    *     this collection of contour levels (if for example it is 
+    *     represented in each collection of contour levels that is part 
+    *     of the union of contour levels that this class represents).
+    *   </li>
+    *   <li>
+    *     If false, a contour level will be represented at most once in 
+    *     this collection of contour levels.
+    *   </li>
+    * </ul>
+    */
+   private boolean ignoreRepeats;
+//----------------------------=[ End fields ]=--------------------------------//
+
+//---------------------------=[ Constructors ]=-------------------------------//
+   /**
+    * Creates an abstract description of this union of contour levels.
+    * 
+    * @param numLevels The number of contour levels in this collection of 
+    *                  contour levels.
+    * @param isOrdered Indicates if this collection of contour levels is 
+    *                  arranged in ascending order.
+    * @param ignoreRepeats Indicates if duplicate contour levels in this 
+    *                      collection of contour levels are only represented 
+    *                      once in the collection.
+    */
+   public MixedContours(int numLevels, 
+                        boolean isOrdered, boolean ignoreRepeats)
+   {
+      super(numLevels);
+      this.isOrdered = isOrdered;
+      this.ignoreRepeats = ignoreRepeats;
+   }
+//-------------------------=[ End constructors ]=-----------------------------//
+   
+//---------------------=[ Subclass convience methods ]=-----------------------//
+   /**
+    * Used to determine if this collection of contour levels is arranged in 
+    * ascending order or not.
+    * 
+    * @return True if this collection is arranged in ascending order and 
+    *         false if no order has been done.
+    */
+   public boolean getIsOrdered()
+   {
+      return isOrdered;
+   }
+   
+   /**
+    * Used to determine if duplicate contour levels in this collection of 
+    * contour levels are only represented once in this collection of contour 
+    * levels.
+    * 
+    * @return <ul>
+    *           <li>
+    *             True if a contour level may be represented multiple times 
+    *             in this collection of contour levels (if for example it is 
+    *             represented in each collection of contour levels that is part 
+    *             of the union of contour levels that this class represents).
+    *           </li>
+    *           <li>
+    *             False if a contour level will be represented at most once 
+    *             in this collection of contour levels.
+    *           </li>
+    *         </ul>
+    */
+   public boolean getAreRepeatsIgnored()
+   {
+      return ignoreRepeats;
+   }
+//-------------------=[ End subclass convience methods ]=---------------------//
+}
+
+/* Unused Code
+ * 
+   /** Holds the mixed contour levels. /
    private Contours contours;
    
    /**
@@ -85,7 +178,7 @@ public class MixedContours extends Contours
     * @param ignoreRepeats If true, the elements in the list could repeat.  
     *                      If false, every element in the list will be 
     *                      unique.
-    */
+    /
    public MixedContours(UniformContours uniformContours, 
                         NonUniformContours nonuniformContours, 
                         boolean order, boolean ignoreRepeats)
@@ -113,7 +206,7 @@ public class MixedContours extends Contours
     * @param i The index of the contour level to retrieve.  For <code>i</code> 
     *          to be valid, it must be in the range 
     *          <code>[0,getNumLevels())</code>.
-    */
+    /
    public float getLevelAt(int i)
    {
       return contours.getLevelAt(i);
@@ -123,7 +216,7 @@ public class MixedContours extends Contours
     * Get the "elevation" of the lowest contour level.
     * 
     * @return The value of the lowest contour level.
-    */
+    /
    public float getLowestLevel()
    {
       return contours.getLowestLevel();
@@ -133,368 +226,9 @@ public class MixedContours extends Contours
     * Get the "elevation" of the highest contour level.
     * 
     * @return The value of the highest contour level.
-    */
+    /
    public float getHighestLevel()
    {
       return contours.getHighestLevel();
    }
-   
-   /**
-    * This class is used to fuse a <code>UniformContours</code> and 
-    * <code>NonUniformContours</code> object together to form a set of 
-    * nonuniform contour levels sorted in increasing order.
-    */
-   private class OrderedContours extends Contours
-   {
-      /** This is the union of the uniform and nonuniform contour levels. */
-      private float[] levels;
-      
-      /**
-       * Creates an OrderedContours object with the parameters as 
-       * specified.  Notice:  <code>uniformContours</code> cannot be 
-       * <code>null</code>.  However, <code>nonuniformContours</code> can 
-       * be.  In this case, the levels will precisely be uniformly spaced 
-       * contour levels.
-       * 
-       * @param uniformContours Encapsulates the uniformlly spaced contour 
-       *                        levels.
-       * @param nonuniformContours Encapsulates the nonuniformlly spaced 
-       *                           contour levels.
-       * @param ignoreRepeats Suppose the raw list of contour levels is 
-       *                      {-1.2, 1.0, 2.0, 2.0, 3.5, 5}.  If this 
-       *                      parameter is true then the list used is 
-       *                      exactly this list.  If this parameter is 
-       *                      false, the extra 2.0 will be ignored.  Thus, 
-       *                      the list that would be used is 
-       *                      {-1.2, 1.0, 2.0, 3.5, 5}.
-       * @throws IllegalArgumentException  If <code>uniformContours</code> 
-       *                                   is <code>null</code> or 
-       *                                   if the total number of levels 
-       *                                   in the 
-       *                                   <code>UniformContours</code> and 
-       *                                   <code>NonUniformContours</code>  
-       *                                   is 0.
-       */
-      public OrderedContours(UniformContours uniformContours, 
-                             NonUniformContours nonuniformContours, 
-                             boolean ignoreRepeats)
-      {
-         //the number of contour levels will be set later
-         //for now tell the superclass there is one level to make it happy
-         super(1);
-         
-         //get the nonuniform contour levels
-         float[] nonUniformLevels;
-         if (nonuniformContours!=null)
-            nonUniformLevels = nonuniformContours.getLevels();
-         else
-            nonUniformLevels = new float[0];
-         
-         //verify that the UniformContours specified is valid
-         if (uniformContours==null)
-            throw new IllegalArgumentException(
-                         "error:  no values were specified to be used " +
-                         "to construct the uniform contour levels");
-         
-         //create an array to store all of the levels
-         levels = new float[uniformContours.getNumLevels()+
-                               nonUniformLevels.length];
-         if (levels.length==0)
-            throw new IllegalArgumentException(
-                         "error:  no data was entered to allow " +
-                         "any contour levels to be plotteds");
-         
-         //copy the uniform contour levels into 'levels'
-         for (int i=0; i<uniformContours.getNumLevels(); i++)
-            levels[i] = uniformContours.getLevelAt(i);
-         
-         //now copy the array specifying the nonuniform contour levels into 
-         //the array 'levels'
-         System.arraycopy(nonUniformLevels, 0, 
-                          levels, uniformContours.getNumLevels(), 
-                          nonUniformLevels.length);
-         
-         //sort the levels
-         Arrays.sort(levels);
-         
-         //if repeats are not supposed to be ignored, do some work to 
-         //remove the repeats
-         if (!ignoreRepeats)
-         {
-            //make a place to put the values that are unique
-             float[] levelCopy = new float[levels.length];
-            //the number of unique values
-             int numUnique = 0;
-            //the previous value used
-             float prevVal = Float.NaN;
-            for (int i=0; i<levels.length; i++)
-            {
-               //only include the current element in the list 
-               //if it is different from the previous one
-               if (levels[i]!=prevVal)
-                  levelCopy[numUnique++] = levels[i];
-               
-               prevVal = levels[i];
-            }
-            
-            //if there are less unique elements in the array then there 
-            //are total elements in the array, some of the non-unique elements 
-            //were removed.  Then pack the array because there are 'blanks' 
-            //at the end of the array
-            if (numUnique!=levels.length)
-            {
-               float[] packedArr = new float[numUnique];
-               System.arraycopy(levelCopy, 0, packedArr, 0, packedArr.length);
-               this.levels = packedArr;
-            }
-         }
-         
-         //set the number of contour levels
-         setNumLevels(levels.length);
-      }
-      
-      /**
-       * Gets the specified contour level.
-       * 
-       * @param i The index of the contour level whose value is to be 
-       *          retrieved.  For <code>i</code> to be valid it must be 
-       *          in the range <code>[0,getNumLevels())</code>
-       */
-      public float getLevelAt(int i)
-      {
-         return levels[i];
-      }
-      
-      /**
-       * Get the "elevation" of the lowest contour level.
-       * 
-       * @return The value of the lowest contour level.
-       */
-      public float getLowestLevel()
-      {
-         //because the list of contours is ordered, the first element 
-         //in the list is the smallest one
-         return getLevelAt(0);
-      }
-      
-      /**
-       * Get the "elevation" of the highest contour level.
-       * 
-       * @return The value of the highest contour level.
-       */
-      public float getHighestLevel()
-      {
-         //because the list of contours is ordered, the last element 
-         //in the list is the largest one
-         return getLevelAt(getNumLevels()-1);
-      }
-   }
-   
-   /**
-    * Represents a collection of uniformly spaced contour lines and 
-    * manually specified contour lines such that the collection is 
-    * not ordered.
-    */
-   private class UnorderedContours extends Contours
-   {
-      /** Holds all of the uniformly spaced contour levels. */
-      private UniformContours uniformLevels;
-      /** Holds all of the manually specified contour levels. */
-      private NonUniformContours extraLevels;
-   
-      /**
-       * Creates a collection of uniformly spaced contour levels.
-       * 
-       * @param uniformLevels Represents the uniformly spaced contour levels.  
-       *                      If this is <code>null</code>, the method 
-       *                      {@link #getLevelAt(int) getLevelAt(int)} will 
-       *                      always return {@link Float#NaN Float.NaN}.
-       */
-      public UnorderedContours(UniformContours uniformLevels)
-      {
-         super((uniformLevels!=null)?uniformLevels.getNumLevels():1);
-         this.uniformLevels = uniformLevels;
-         this.extraLevels = null;
-      }
-   
-      /**
-       * Creates a collection of both manually entered and uniformly spaced 
-       * contour levels where the collection does not contain any duplicate 
-       * contour levels.
-       * 
-       * @param uniformLevels Represents the uniformly spaced contour levels.  
-       *                      If this is <code>null</code>, this constructor 
-       *                      is identical to the constructor 
-       *                      {@link #MixedContours(NonUniformContours) 
-       *                      MixedContours(NonUniformContours)}.
-       * 
-       * @param manualLevels Represents the manually entered contour levels.
-       *                     If this is <code>null</code>, this constructor 
-       *                     is identical to the constructor 
-       *                     {@link #MixedContours(UniformContours) 
-       *                     MixedContours(UniformContours)}.
-       */
-      public UnorderedContours(UniformContours uniformLevels, 
-                               NonUniformContours manualLevels)
-      {
-         this(uniformLevels, manualLevels, false);
-      }
-   
-      /**
-       * Creates a collection of both manually entered and uniformly spaced 
-       * contour levels.
-       * 
-       * @param uniformLevels Represents the uniformly spaced contour levels.
-       *                      If this is <code>null</code>, this constructor 
-       *                      is identical to the constructor 
-       *                      {@link #MixedContours(NonUniformContours) 
-       *                      MixedContours(NonUniformContours)}.
-       * 
-       * @param manualLevels Represents the manually entered contour levels.
-       *                     If this is <code>null</code>, this constructor 
-       *                     is identical to the constructor 
-       *                     {@link #MixedContours(UniformContours) 
-       *                     MixedContours(UniformContours)}.
-       * 
-       * @param ignoreRepeats If true, the collection of contour levels will 
-       *                      not contain any duplicate levels.  If false, it 
-       *                      may contain duplicates (in the case where the 
-       *                      a manually entered level is the same as one of the 
-       *                      uniformly spaced contour levels).
-       */
-      public UnorderedContours(UniformContours uniformLevels, 
-                               NonUniformContours manualLevels, 
-                               boolean ignoreRepeats)
-      {
-         //for now just tell the super class there is one level
-         super(1);
-         this.uniformLevels = uniformLevels;
-         this.extraLevels = manualLevels;
-      
-         //records the number of levels that will be used
-         int numLevels = 0;
-         if (this.uniformLevels!=null)
-         {
-            //include the number of uniform contour levels
-            numLevels += this.uniformLevels.getNumLevels();
-         
-            if (this.extraLevels!=null)
-            {
-               if (ignoreRepeats)
-                  numLevels += this.extraLevels.getNumLevels();
-               else
-               {
-                  //alias 'this.extraLevels' actual levels
-                  float[] levels = this.extraLevels.getLevels();
-            
-                  //If one of the levels in 'extraLevels' 
-                  //is already in 'uniformLevels' it is ignored.
-                  //This stores the actual levels that will be used.
-                  float[] actualLevels = new float[levels.length];
-                  //find the unique levels
-                  int numOk = 0;
-                  for (int i=0; i<levels.length; i++)
-                     if (!this.uniformLevels.isLevelCovered(levels[i]))
-                        actualLevels[numOk++] = levels[i];
-              
-                  //change 'this.extraLevels' if it needs changing
-                  if (numOk==0)
-                     this.extraLevels = null;
-                  else if (numOk<actualLevels.length)
-                  {
-                     System.arraycopy(actualLevels,0,actualLevels,0,numOk);
-                     this.extraLevels = new NonUniformContours(actualLevels);
-                  }
-            
-                  //now add the new contour levels to the count
-                  numLevels += numOk;
-               }
-            }
-         }
-         if (numLevels>0)
-            setNumLevels(numLevels);
-      }
-   
-      /**
-       * Creates a collection of contour levels that only uses manually 
-       * specified contour levels.
-       * 
-       * @param manualLevels Represents the manually represented contour levels.
-       *                     If this is <code>null</code>, the method 
-       *                     {@link #getLevelAt(int) getLevelAt(int)} will 
-       *                     always return {@link Float#NaN Float.NaN}.
-       */
-      public UnorderedContours(NonUniformContours manualLevels)
-      {
-         super((manualLevels!=null)?manualLevels.getNumLevels():1);
-         this.uniformLevels = null;
-         this.extraLevels = manualLevels;
-      }   
-   
-      /**
-       * Get the <code>ith</code> contour level.
-       * 
-       * @param i The index of the contour level to reference.  For 
-       *          <code>i</code> to be valid it must be in the range 
-       *          [0,{@link Contours#getNumLevels() Contours.getNumLevels()}).
-       * 
-       * @return The contour level referenced by the given index <code>i</code> 
-       *         or {@link Float#NaN Float.NaN} if <code>i</code> is invalid.
-       * 
-       * @see Contours#getLevelAt(int)
-       */
-      public float getLevelAt(int i)
-      {
-         //first check if the index is valid
-         if (i<0 || i>=getNumLevels())
-            return Float.NaN;
-      
-         if (uniformLevels==null && extraLevels!=null)
-            return extraLevels.getLevelAt(i);
-         else if (uniformLevels!=null && extraLevels==null)
-            return uniformLevels.getLevelAt(i);
-         else if (uniformLevels!=null && extraLevels!=null)
-         {
-            if (i<uniformLevels.getNumLevels())
-               return uniformLevels.getLevelAt(i);
-            else
-            {
-               int newIndex = i-uniformLevels.getNumLevels();
-               return extraLevels.getLevelAt(newIndex);
-            }
-         }
-         else
-            return Float.NaN;
-      }
-   
-      /**
-       * Get the "elevation" of the lowest contour level.
-       * 
-       * @return The value of the lowest contour level.
-       */
-      public float getLowestLevel()
-      {
-         float min = Float.MAX_VALUE;
-         float curVal;
-         for (int i=0; i<getNumLevels(); i++)
-            if ( (curVal=getLevelAt(i)) < min)
-               min = curVal;
-         return min;
-      }
-   
-      /**
-       * Get the "elevation" of the highest contour level.
-       * 
-       * @return The value of the highest contour level.
-       */
-      public float getHighestLevel()
-      {
-         float max = Float.MIN_VALUE;
-         float curVal;
-         for (int i=0; i<getNumLevels(); i++)
-            if ( (curVal=getLevelAt(i)) > max)
-               max = curVal;
-         return max;
-      }
-   }
-}
+*/
