@@ -33,6 +33,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/07/19 19:23:24  cjones
+ *  Added methods for setting ArrayID
+ *
  *  Revision 1.1  2005/07/19 15:48:08  cjones
  *  Added 3D Array implementations.
  * 
@@ -87,6 +90,8 @@ public class PhysicalArray3DList implements IPhysicalArray3DList
   // Edges
   private float[] maxedges;
   private float[] minedges;
+
+  private int array_id = 0;
  
  /**
   * Constructor that intializes array for data points,
@@ -227,6 +232,28 @@ public class PhysicalArray3DList implements IPhysicalArray3DList
     bounds.setOrientation(point_index, x_axis, y_axis);
     
     updateMaxMinEdges(point_index);
+  }
+
+ /**
+  * Set the Array ID. This is a user-specified indentification
+  * number for the entire data array.
+  *
+  *	@param	id Array ID number.
+  */ 
+  public void setArrayID( int id )
+  {
+    array_id = id;
+  }
+  
+ /**
+  * Get the Array ID. This is a user-specified indentification
+  * number for the entire data array.
+  *
+  *	@return	The array ID number.
+  */ 
+  public int getArrayID( )
+  {
+    return array_id;
   }
   
  /**
