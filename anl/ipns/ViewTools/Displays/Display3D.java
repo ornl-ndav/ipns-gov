@@ -33,6 +33,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/07/19 16:48:01  cjones
+ *  Display3D will now force heavyweight popup menus to allow
+ *  menus to appear on top of heavyweight components.
+ *
  *  Revision 1.1  2005/07/19 15:57:00  cjones
  *  Added Display3D Viewer.
  * 
@@ -80,6 +84,8 @@ public class Display3D extends Display
   public Display3D( IPhysicalArray3D[] iva, int view_code, int include_ctrls )
   {
     super(iva[0], view_code, include_ctrls);
+    makeHeavyWeightPopup();
+
     datalist = iva;
     setTitle("Display3D");
     
@@ -189,8 +195,20 @@ public class Display3D extends Display
       help_listeners.add( new Menu3DListener() );  // listener for D2D helper
     menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
-    
-    
+  }
+
+  /*
+   * Force popup menus to be heavyweight.
+   */
+  private void makeHeavyWeightPopup()
+  {
+    JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+  	
+    for(int i = 0; i < menu_bar.getMenuCount(); i++)
+    {
+      menu_bar.getMenu(i).
+         getPopupMenu().setLightWeightPopupEnabled(false);
+    }
   }
   
  /*
