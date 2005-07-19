@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.16  2005/07/19 18:53:57  kramer
+ * Added javadocs.  Also, now this class supports using a logarithmic scale
+ * to determine the color to draw a specific contour line with.
+ *
  * Revision 1.15  2005/07/12 16:47:27  kramer
+ *
  * -Added javadocs and comments.
  * -Implemented the IPreserveState interface.  Also, in addition to the
  *  'normal' objects stored in the state, the Class of the Contours object
@@ -104,6 +109,7 @@ import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.PseudoLogScaleUtil;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
@@ -222,6 +228,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public static final String BACKGROUND_COLOR_KEY = "Background color";
 //------------------------=[ End ObjectState keys ]=--------------------------//
+
+//------------------------=[ Private constants ]=-----------------------------//
+   private final int LOG_TABLE_SIZE = 60000;
+   private final int NUM_POSITIVE_COLORS = 127;
+//----------------------=[ End private constants ]=---------------------------//
    
 //------------------------=[ Default field values ]=--------------------------//
    /**
@@ -241,9 +252,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public static final boolean DEFAULT_SHOW_LABEL   = true;
    /**
     * Specifies the default number of significant figures the contour 
-    * labels are rounded to.  Its value is <code>3</code>.
+    * labels are rounded to.  Its value is <code>4</code>.
     */
-   public static final int DEFAULT_NUM_SIG_DIGS = 3;
+   public static final int DEFAULT_NUM_SIG_DIGS = 4;
    /**
     * Specifies if by default the aspect ratio should be preserved when 
     * drawing the contour levels.  Its value is <code>false</code>.
@@ -282,6 +293,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * </b>
     */
    private boolean firstPaint;
+   
+   private PseudoLogScaleUtil logScaler;
+   private double logScale;
    
    /** Describes the line styles used to render the contour levels. */
    private int[] lineStyles;
@@ -327,6 +341,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       setPreserveAspectRatio(DEFAULT_PRESERVE_ASPECT_RATIO);
       setColorScale(DEFAULT_COLOR_SCALE);
       setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
+      
+      //create the log scaler used to scale the colors of the lines drawn
+      this.logScaler = new PseudoLogScaleUtil(0, (float)LOG_TABLE_SIZE, 
+                                              0, (float)NUM_POSITIVE_COLORS);
+      setLogScale(0);
       
       //set that the contour image has not been drawn yet
       this.firstPaint = true;
@@ -859,11 +878,54 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
    
    /**
+    * Used to get the logscale factor that is used in the logarithmic 
+    * mapping that is used to determine the color of the contour lines 
+    * as they are drawn.
+    * 
+    * @return The factor that describes how closely the contour levels are 
+    *         mapped to the max value (if the logscale is close to 100), or 
+    *         how closely the contour levels are mapped to the min value 
+    *         (if the logscale is close to 0).
+    */
+   public double getLogScale()
+   {
+      return logScale;
+   }
+   
+   /**
+    * Used to set the logscale factor that is used in the logarithmic 
+    * mapping that is used to determine the color of the contour lines 
+    * as they are drawn.
+    * 
+    * @param logScale The factor that describes how closely the contour 
+    *                 levels are mapped to the max value (if 'logScale' 
+    *                 is close to 100), or how closely the contour levels 
+    *                 are mapped to the min value (if 'logScale' is close 
+    *                 to 0).
+    */
+   public void setLogScale(double logScale)
+   {
+      this.logScale = logScale;
+   }
+   
+   /**
     * Used to force the contour graph to be redrawn.
     */
    public void reRender()
    {
       repaint();
+   }
+   
+   /**
+    * Used to get a reference to the data onto which the contour lines being 
+    * drawn are based.
+    * 
+    * @return A reference to the <code>IVirtualArray2D</code> that this 
+    *         <code>ContourJPanel</code> is using.
+    */
+   public IVirtualArray2D getData()
+   {
+      return data2D;
    }
    
    /**
@@ -984,7 +1046,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
         }
         
       //for each level draw the contour
-      //the following levels are 'sticky'.  In other words if they are 
+      //the following values are 'sticky'.  In other words if they are 
       //defined for one level but not the next, the values from the previous 
       //level stick
         //the line style
@@ -1007,7 +1069,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          //the work of calculating the points on the contour level.  
          //The code in this class does the work of graphically 
          //displaying these points.
-           contourPts = Contour2D.contour(arr,levels.getLevelAt(i));
+           contourPts = Contour2D.contour(arr, levels.getLevelAt(i));
          
          //now to create space for the arrays
            xrcVals = new float[contourPts.size()];
@@ -1151,18 +1213,42 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    
    /**
     * Used to look at the "elevation" of a particular contour level and 
-    * find the color that should be used when drawing the contour level.
+    * find the color that should be used when drawing the contour level.  
+    * This method incorportates the current logarithmic scaling factor when 
+    * determining the color.
     * 
     * @param height The "elevation" of the contour line in question.
+    * 
+    * @see #setLogScale(double)
+    * @see #getLogScale()
     */
    private Color getColorForLevel(float height)
    {
-      float max = levels.getHighestLevel();
-      float min = levels.getLowestLevel();
+      //get the logarithmic scale factor to use
+        double scale = getLogScale();
       
-      float a = (colorScale.length-1)/(max-min); 
+      //logarithmically adjust the height given
+        height = logScaler.toDest(height, scale);
+      //get the max and min such that they correspond to the new 
+      //mapped logarithmic region
+        float max = logScaler.toDest(levels.getHighestLevel(), scale);
+        float min = logScaler.toDest(levels.getLowestLevel(), scale);
       
-      return colorScale[(int)(a*height - a*min)];
+      //a mapping (or function) y = ax + b is used to map the interval 
+      //[max, min] to the interval [0, colorScale.length-1]
+        float a = (colorScale.length-1)/(max-min);
+        float b = -1*a*min;
+      
+      //the value of the function is the index in 
+      //the colorscale array of colors
+        int index = (int)(a*height+b);
+      //if the index is out of bounds pull it back in
+        if (index < 0)
+           index = 0;
+        else if (index >= colorScale.length)
+           index = colorScale.length - 1;
+        
+      return colorScale[index];
    }
    
    /**
@@ -1322,6 +1408,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          panel.setShowLabels(new boolean[]{true, false, false});
          panel.setNumSigDigits(new int[]{3,0,0});
          panel.setPreserveAspectRatio(false);
+         panel.setColorScale("Test", false);
+         /*
          panel.setColorScale(new Color[] {Color.RED,
                                           Color.ORANGE, 
                                           Color.YELLOW, 
@@ -1332,6 +1420,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                                           Color.PINK,
                                           Color.GRAY, 
                                           Color.BLACK});
+         */
       JFrame frame = new JFrame("ContourJPanel test");
          frame.setSize(200,200);
          frame.getContentPane().add(panel);
