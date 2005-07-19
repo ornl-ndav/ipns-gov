@@ -33,14 +33,13 @@
  *  Modified:
  *
  *  $Log$
- *  Revision 1.2  2005/06/14 14:20:40  cjones
- *  Added 'Modified' line and package statements.
+ *  Revision 1.3  2005/07/19 15:48:05  cjones
+ *  Added 3D Array implementations.
  * 
  */
 
 package gov.anl.ipns.ViewTools.Components; 
 
-import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.MathTools.Geometry.Vector3D;
 
 /**
@@ -111,7 +110,23 @@ public interface IPhysicalArray3D extends ISparseArray3D, IBoundsList3D
                   Vector3D extents, 
                   Vector3D x_axis, 
                   Vector3D y_axis);
-	
+  
+ /**
+  * Set the Array ID. This is a user-specified indentification
+  * number for the entire data array.
+  *
+  *	@param	id Array ID number.
+  */ 
+  public void setArrayID( int id );
+  
+ /**
+  * Get the Array ID. This is a user-specified indentification
+  * number for the entire data array.
+  *
+  *	@return	The array ID number.
+  */ 
+  public int getArrayID( );
+    
  /**
   * Get minimum distance from the origin for each
   * direction x, y, and z. The distance is deterimined

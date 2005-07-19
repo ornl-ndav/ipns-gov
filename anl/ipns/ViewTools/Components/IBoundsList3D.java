@@ -33,8 +33,8 @@
  *  Modified:
  *
  *  $Log$
- *  Revision 1.2  2005/06/14 14:20:38  cjones
- *  Added 'Modified' line and package statements.
+ *  Revision 1.3  2005/07/19 15:48:05  cjones
+ *  Added 3D Array implementations.
  * 
  */
  

@@ -33,14 +33,13 @@
  *  Modified:
  *
  *  $Log$
- *  Revision 1.2  2005/06/14 14:20:46  cjones
- *  Added 'Modified' line and package statements.
+ *  Revision 1.3  2005/07/19 15:48:07  cjones
+ *  Added 3D Array implementations.
  * 
  */
  
 package gov.anl.ipns.ViewTools.Components; 
 
-import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.MathTools.Geometry.Vector3D;
 
 /**
