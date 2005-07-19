@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/07/19 19:00:43  kramer
+ * Added javadocs and modified the main method to test the
+ * set/getObjectState() methods.
+ *
  * Revision 1.2  2005/07/12 16:54:46  kramer
+ *
  * Now the setObjectState() method calls super.setObjectState() to set the
  * state that the superclass maintains.
  *
@@ -46,18 +51,34 @@
  */
 package gov.anl.ipns.ViewTools.Components.ViewControls;
 
+import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
 
 /**
+ * This is a <code>ViewControl</code> that has a checkbox, label, and 
+ * another "sub" <code>ViewControl</code> placed side-by-side.  When, the 
+ * checkbox is checked/unchecked the sub <code>ViewControl</code> is 
+ * enabled/disabled.
+ * <p>
+ * This control is designed to be used by components that have certain 
+ * functionality that is only available if the user selects to have the 
+ * functionality available.  In this case, the user would check the 
+ * checkbox, and the <code>ViewControl</code> to control the component's 
+ * functionality would be enabled.  Otherwise, the <code>ViewControl</code> 
+ * would be disabled because it would not be applicable.
  */
 public class CheckedControl extends ViewControl
 {
@@ -356,13 +377,50 @@ public class CheckedControl extends ViewControl
     */
    public static void main(String[] args)
    {
-      Integer defaultSpinVal = new Integer(0);
+      final String STORE_TEXT = "Store ObjectState";
+      final String LOAD_TEXT = "Load ObjectState";
+      final Integer defaultSpinVal = new Integer(0);
       
-      CheckedControl control = 
-         new CheckedControl("Title", true, "Some label", 
-               new SpinnerControl("", 
-                     new SpinnerNumberModel(defaultSpinVal.intValue(),0,10,1), 
-                        defaultSpinVal));
+      final ViewControl subControl = 
+         new FieldEntryControl(new String[] {"a", "b", "c", "d", "e"});
+      //   new ColorControl("", Color.BLUE, ColorSelector.TABBED);
+      //   new SpinnerControl("", 
+      //      new SpinnerNumberModel(defaultSpinVal.intValue(),0,10,1), 
+      //         defaultSpinVal);
+      
+      final CheckedControl control = 
+         new CheckedControl("Title", true, "Some label", subControl);
+      
+      ActionListener stateListener = new ActionListener()
+      {
+         ObjectState state = new ObjectState();
+         
+         public void actionPerformed(ActionEvent event)
+         {
+            String actionCommand = event.getActionCommand();
+            
+            if (actionCommand.equals(STORE_TEXT))
+               state = control.getObjectState(false);
+            else if (actionCommand.equals(LOAD_TEXT))
+               control.setObjectState(state);
+            else
+               System.out.println("Unrecognized ActionCommand:  "+
+                                   actionCommand);
+         }
+      };
+      
+      JFrame stateFrame = new JFrame();
+        stateFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        Container pane = stateFrame.getContentPane();
+          pane.setLayout(new FlowLayout(FlowLayout.LEFT));
+          JButton storeButton = new JButton(STORE_TEXT);
+            storeButton.addActionListener(stateListener);
+        pane.add(storeButton);
+          JButton loadButton = new JButton(LOAD_TEXT);
+            loadButton.addActionListener(stateListener);
+        pane.add(loadButton);
+      stateFrame.pack();
+      stateFrame.setVisible(true);
       
       JFrame frame = new JFrame("CheckedControl Demo");
         frame.getContentPane().add(control);
