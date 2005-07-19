@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/07/19 18:51:13  kramer
+ *  Added the method isValidColorScaleName(String) which tests the validity
+ *  of the given colorscale name.
+ *
  *  Revision 1.14  2004/03/11 23:50:45  rmikk
  *  Fixed Package names
  *
@@ -63,6 +67,29 @@ public class IndexColorMaker implements Serializable
   public static final String MULTI_SCALE           = "Multi";
   public static final String SPECTRUM_SCALE        = "Spectrum";
 
+  /**
+   * Used to test if the given color scale is valid.  In other words, this
+   * method tests if this class knows about the colorscale given.  If this
+   * class does know about this colorscale, the methods in this class can be
+   * used with the colorscale to convert the colorscale into a
+   * <code>Color[]</code> or <code>IndexColorModel</code>.
+   *
+   * @param scale_type The new colorcale to analyze.
+   * @return True if the given colorscale is valid and
+   *         false otherwise.
+   */
+  public static boolean isValidColorScaleName(String scale_type)
+  {
+     return ( scale_type.equals(GRAY_SCALE) ||
+              scale_type.equals(NEGATIVE_GRAY_SCALE) ||
+              scale_type.equals(GREEN_YELLOW_SCALE) ||
+              scale_type.equals(HEATED_OBJECT_SCALE) ||
+              scale_type.equals(HEATED_OBJECT_SCALE_2) ||
+              scale_type.equals(RAINBOW_SCALE) ||
+              scale_type.equals(OPTIMAL_SCALE) ||
+              scale_type.equals(MULTI_SCALE) ||
+              scale_type.equals(SPECTRUM_SCALE) );
+  }
 
   /**
    *  Get an indexed color model for a pseudo color scale to be used with an
