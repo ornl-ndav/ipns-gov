@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.33  2005/07/19 18:56:50  kramer
+ *  Now this class uses the isValidColorScaleName() method to test if a
+ *  colorscale is valid or not.
+ *
  *  Revision 1.32  2005/06/02 22:31:23  dennis
  *  Modified to only use IVirtualArray2D methods after creating a
  *  VirtualArray2D object.
@@ -549,15 +553,7 @@ public class ControlColorScale extends ViewControl
   public void setColorScale( String colorscale, boolean doublesided )
   {
     // Make sure scheme is a valid option.
-    if( !( colorscale.equals(IndexColorMaker.GRAY_SCALE) ||
-           colorscale.equals(IndexColorMaker.NEGATIVE_GRAY_SCALE) ||
-           colorscale.equals(IndexColorMaker.GREEN_YELLOW_SCALE) ||
-	   colorscale.equals(IndexColorMaker.HEATED_OBJECT_SCALE) ||
-	   colorscale.equals(IndexColorMaker.HEATED_OBJECT_SCALE_2) ||
-	   colorscale.equals(IndexColorMaker.RAINBOW_SCALE) ||
-	   colorscale.equals(IndexColorMaker.OPTIMAL_SCALE) ||
-	   colorscale.equals(IndexColorMaker.MULTI_SCALE) ||
-	   colorscale.equals(IndexColorMaker.SPECTRUM_SCALE) ) )
+    if( !IndexColorMaker.isValidColorScaleName(colorscale) )
       return;
     colorscheme = colorscale;
     isTwoSided = doublesided;
