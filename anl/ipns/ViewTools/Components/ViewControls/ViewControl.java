@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/07/19 18:55:30  kramer
+ *  Added support for the ObjectState to maintain if this control has its
+ *  border displayed.
+ *
  *  Revision 1.11  2005/03/28 05:57:31  millermi
  *  - Added copy() which will make an exact copy of the ViewControl.
  *
@@ -109,6 +113,13 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   * This ObjectState key references a String.
   */
   public static final String SHARED_KEY = "Shared Key";
+  /**
+   * "Display Border" - This constant String is a key for referencing the 
+   * state information that describes if this <code>ViewControl's</code> 
+   * border is visible or not.  The value that this key references is a 
+   * <code>Boolean</code>.
+   */
+  public static final String DISPLAY_BORDER = "Display Border";
  /* **********************************************
   *  Messaging Strings used by action listeners.
   * **********************************************
@@ -157,6 +168,7 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
     state.insert( TITLE, new String(title) );
     if( key != null )
       state.insert( SHARED_KEY, new String(getSharedKey()) );
+    state.insert( DISPLAY_BORDER, new Boolean(!(getBorder()==null)) );
     return state;
   }
      
@@ -180,6 +192,10 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
     temp = new_state.get(SHARED_KEY);
     // Set the shared key even if the value is null.
     setSharedKey((String)temp);
+    
+    temp = new_state.get(DISPLAY_BORDER);
+    if ( (temp != null) && (temp instanceof Boolean) )
+       setBorderVisible( ((Boolean)temp).booleanValue() ); 
   }
  
  /**
