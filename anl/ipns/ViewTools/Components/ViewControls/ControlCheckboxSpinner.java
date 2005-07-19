@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/07/19 18:59:27  kramer
+ * Added javadocs.
+ *
  * Revision 1.2  2005/06/23 20:58:18  kramer
+ *
  * Made this class extend CheckedControl which does most of this class's
  * work now.
  *
@@ -52,10 +56,22 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 /**
- * 
+ * This is a control that has a checkbox with a spinner next to it.  When, 
+ * the checkbox is checked/unchecked the spinner is enabled/disabled.
  */
 public class ControlCheckboxSpinner extends CheckedControl
 {
+   /**
+    * Creates the control with a label based on the specified parameters.
+    * 
+    * @param con_title The title of the control.
+    * @param isChecked <code>True</code> if the control should have its 
+    *                  checkbox checked and false if it shouldn't.
+    * @param label The label displayed on the control.
+    * @param model The model that handles the values maintained by the spinner.
+    * @param defaultVal The spinner's default value.
+    * @param initialVal The spinner's initial value.
+    */
    public ControlCheckboxSpinner(String con_title, 
                                  boolean isChecked, String label, 
                                  SpinnerModel model, Object defaultVal, 
@@ -65,6 +81,16 @@ public class ControlCheckboxSpinner extends CheckedControl
             generateSpinner(model, defaultVal, initialVal));
    }
    
+   /**
+    * Creates the control without a label or title based on the specified 
+    * parameters.
+    * 
+    * @param isChecked <code>True</code> if the control should have its 
+    *                  checkbox checked and false if it shouldn't.
+    * @param model The model that handles the values maintained by the spinner.
+    * @param defaultVal The spinner's default value.
+    * @param initialVal The spinner's initial value.
+    */
    public ControlCheckboxSpinner(boolean isChecked, 
                                  SpinnerModel model, Object defaultVal, 
                                  Object initialVal)
@@ -72,6 +98,16 @@ public class ControlCheckboxSpinner extends CheckedControl
       super(isChecked, generateSpinner(model, defaultVal, initialVal));
    }
    
+   /**
+    * Used to generate a <code>SpinnerControl</code> with the given 
+    * parameters.
+    * 
+    * @param model The model that handles the values maintained by the spinner.
+    * @param defaultVal The spinner's default value.
+    * @param initialVal The spinner's initial value.
+    * @return A <code>SpinnerCode</code> with the given model, default 
+    *         value, and initial value.
+    */
    private static SpinnerControl generateSpinner(SpinnerModel model, 
                                                  Object defaultVal, 
                                                  Object initialVal)
