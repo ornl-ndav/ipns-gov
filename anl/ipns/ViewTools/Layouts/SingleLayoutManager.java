@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/07/20 17:29:47  kramer
+ *  Modified the getSharedControls() method to support the
+ *  ContourViewComponent.  Currently, the colorscale intensity control is
+ *  shared.
+ *
  *  Revision 1.2  2005/05/25 20:28:46  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -56,6 +61,7 @@
  import gov.anl.ipns.ViewTools.Components.IVirtualArrayList1D;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
+import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
  import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
  import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
  import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
@@ -270,6 +276,17 @@
        shared[0].setSharedKey("Format");
        swapper.setVisibleControls( new int[]{1} );
        return shared;
+     }
+     else if ( ivc instanceof ContourViewComponent )
+     {
+        ViewControl[] shared = new ViewControl[1];
+          shared[0] = controls[0];
+          shared[0].setSharedKey("Intensity");
+        //this is the list of indices of controls that 
+        //should be visible from the array 'ivc.getControls()'
+        int[] indices = new int[] {1,2,3,4,5,6};
+        swapper.setVisibleControls(indices);
+        return shared;
      }
      else
      {
