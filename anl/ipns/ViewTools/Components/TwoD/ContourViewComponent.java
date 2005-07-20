@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.14  2005/07/20 17:24:46  kramer
+ * Added javadocs for all of the fields.  Removed the redundant field
+ * DEFAULT_CONTOUR_COLOR (it repeats DEFAULT_LINE_COLOR).  Updated the
+ * method setPreserveAspectRatio() to call setPreserveAspectRatio() on the
+ * ContourJPanel.
+ *
  * Revision 1.13  2005/07/19 19:02:33  kramer
+ *
  * -Reorganized the code
  * -Now the ObjectState works so that the
  *  state of the viewer can be stored to
@@ -177,40 +184,134 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
 {
 //------------------------=[ ObjectState keys ]=------------------------------//
    //keys for panels
-     //ObjectState
+   /**
+    * "Contour panel key" - This static constant String is a key used for 
+    * referencing the state information for the <code>ContourJPanel</code> 
+    * used by this component.  The value that this key references is an 
+    * <code>ObjectState</cdoe> of a <code>ContourJPanel</code>.
+    */
    public static final String CONTOUR_PANEL_KEY = "Contour panel key";
-     //ObjectState
+   /**
+    * "Axis overlay key" - This static constant String is a key used for 
+    * referencig the state information for the <code>AxisOverlay2D</code> 
+    * used by this component to display the axes.  The value that this key 
+    * references is an <code>ObjectState</code> of a 
+    * <code>AxisOverlay2D</code> object.
+    */
    public static final String AXIS_OVERLAY_KEY = "Axis overlay key";
    
    //keys for ViewMenuItems
-     //Boolean
+   /**
+    * "Aspect ratio key" - This static constant String is a key used for 
+    * referencing whether or not the aspect ratio is currently preserved for 
+    * this component.  The value that this key references is a 
+    * <code>Boolean</code>.
+    */
    public static final String ASPECT_RATIO_KEY = "Aspect ratio key";
-     //ObjectState
+   /**
+    * "Solid color key" - This static constant String is a key used for 
+    * referencing the state information about the <code>ColorControl</code> 
+    * that is used to make the contour lines colored with a solid color.  
+    * The value that this key references is an <code>ObjectState</code> of 
+    * a <code>ColorControl</code> object.
+    */
    public static final String SOLID_COLOR_KEY = "Solid color key";
-     //Boolean
+   /**
+    * "Is double sided key" - This static constant String is a key used for 
+    * referencing whether or not this component should use a double-sided 
+    * named colorscale when it uses a colorscale to determine the color to 
+    * render the contour lines with.  The value that this key references is 
+    * a <code>Boolean</code> object.
+    */
    public static final String IS_DOUBLE_SIDED_KEY = "Is double sided key";
    
    //keys for ViewControls
-     //ObjectState
+   /**
+    * "Intensity slider key" - This static constant String is a key used for 
+    * referencing the state information about the control that controls the 
+    * intensity of the colorscale that is used to determine the color to 
+    * render the contour lines with.  The value that this key references is 
+    * an <code>ObjectState</code> of a <code>ControlSlider</code> object.
+    */
    public static final String INTENSITY_SLIDER_KEY = "Intensity slider key";
-     //ObjectState
+   /**
+    * "Control color scale key" - This static constant String is a key used 
+    * for referencing the state information for the 
+    * <code>ControlColorScale</code> that is used to display the colorscale 
+    * that is currently being used to determine the color to orender the 
+    * contour lines.  The value that this key references is an 
+    * <code>ObjectState</code> of a <code>ControlColorScale</code> object.
+    */
    public static final String CONTROL_COLOR_SCALE_KEY = 
                                                   "Control color scale key";
-     //ObjectState
+   /**
+    * "Contour controls key" - This static constant String is a key used 
+    * for referencing the state information for the control that is used to 
+    * enter the contour levels that should be rendered.  The value that 
+    * this key references is an <code>ObjectState</code> of a 
+    * <code>CompositeContourControl</code> object.
+    */
    public static final String CONTOUR_CONTROLS_KEY = "Contour controls key";
-     //ObjectState
+   /**
+    * "Line styles key" - This static constant String is a key used for 
+    * referencing the state information for the control that is used to 
+    * enter the line styles used when rendering the contour levels.  The 
+    * value that this key references is an <code>ObjectState</code> of a 
+    * <code>LineStyleControl</code> object.
+    */
    public static final String LINE_STYLES_KEY = "Line styles key";
-     //ObjectState
+   /**
+    * "Line labels key" - This static constant String is a key used for 
+    * referencing the state information for the control that is used to 
+    * specify if the contour lines should be labeled and which contour lines 
+    * should be labeled.  The value that this key references is an 
+    * <code>ObjectState</code> of a <code>ControlCheckboxSpinner</code> 
+    * object.
+    */
    public static final String LINE_LABELS_KEY = "Line labels key";
-     //ObjectState
+   /**
+    * "Number of significant figures key" - This static constant String is a 
+    * key used for referencing the state informatino for the control that is 
+    * used to specify if contour label should be formatted and, if so, the 
+    * number of significant figures the contour labels are rounded to.  The 
+    * value that this key references is an <code>ObjectState</code> of an 
+    * <code>ControlCheckboxSpinner</code> object.
+    */
    public static final String NUM_SIG_FIGS_KEY = 
                                         "Number of significant figures key";
-     //ObjectState
+   /**
+    * "Background color key" - This static constant String is a key used for 
+    * referencing the state information for the control that is used to 
+    * specify the background color of this component.  The value that this 
+    * key references is an <code>ObjectState</code> of a 
+    * <code>ColorControl</code> object.
+    */
    public static final String BACKGROUND_COLOR_KEY = "Background color key";
    
    //keys for general data
-     //String
-   //TODO Determine if this is needed
+   /**
+    * "Current color or colorscale key" - This component has separate 
+    * controls for specifying the solid color or named colorscale that is 
+    * used to determine the color used when rendering the contour lines.  
+    * However, this component either uses the solid color or colorscale at 
+    * any particular time.  Both specifications cannot be used at the same 
+    * time.  This static constant String records which of these 
+    * specifications is currently being used.
+    * <p>
+    * The value that this key references has two possible values:
+    * <ul>
+    *   <li>
+    *     If the value is a <code>Color</code>, then this key references the 
+    *     solid color that is currently being used to render the contour 
+    *     lines.
+    *   </li>
+    *     If the value is a <code>String</code>, then this key references 
+    *     the named colorscale that is currently being used to render the 
+    *     contour lines.
+    *   <li>
+    *   </li>
+    * </ul>
+    */
    public static final String CURRENT_COLOR_OR_COLORSCALE_KEY = 
                                           "Current color or colorscale key";
    
@@ -220,16 +321,48 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
 //--------------------=[ Default field values ]=------------------------------//
    
    //------------=[ Defaults borrowed from ContourJPanel ]=-----------------//
-   public static final int     DEFAULT_LINE_STYLE   = 
-      ContourJPanel.DEFAULT_LINE_STYLE;
+   /**
+    * Specifies if contour line labels will be displayed by default.  The 
+    * value of this field is the same as the value of the field 
+    * {@link ContourJPanel#DEFAULT_SHOW_LABEL 
+    * ContourJPanel.DEFAULT_SHOW_LABEL}.
+    */
    public static final boolean DEFAULT_SHOW_LABEL   = 
       ContourJPanel.DEFAULT_SHOW_LABEL;
+   /**
+    * Specifies if contour line labels will be formatted to a specified 
+    * number of significant figures by default (if contour line labels 
+    * are being displayed).  The value of this field is the same as the value 
+    * of the field 
+    * {@link ContourJPanel#DEFAULT_NUM_SIG_DIGS 
+    * ContourJPanel.DEFAULT_NUM_SIG_DIGS}.
+    */
    public static final int     DEFAULT_NUM_SIG_DIGS = 
       ContourJPanel.DEFAULT_NUM_SIG_DIGS;
+   /**
+    * Specifies if the aspect ratio will be preserved when displaying the 
+    * contour plot by default.  The value of this field is the same as the 
+    * value of the field 
+    * {@link ContourJPanel#DEFAULT_PRESERVE_ASPECT_RATIO 
+    * ContourJPanel.DEFAULT_PRESERvE_ASPEcT_RATIO}.
+    */
    public static final boolean DEFAULT_PRESERVE_ASPECT_RATIO = 
       ContourJPanel.DEFAULT_PRESERVE_ASPECT_RATIO;
+   /**
+    * Specifies the default background color for this component.  The value 
+    * of this field is the same as the value of the field 
+    * {@link ContourJPanel#DEFAULT_BACKGROUND_COLOR 
+    * ContourJPanel.DEFAULT_BACGROUND_COLOR}.
+    */
    public static final Color DEFAULT_BACKGROUND_COLOR = 
       ContourJPanel.DEFAULT_BACKGROUND_COLOR;
+   /**
+    * Specifies the default solid color that the contour lines will be 
+    * rendered using.  If the field {@link ContourJPanel#DEFAULT_COLOR_SCALE 
+    * ContourJPanel.DEFAULT_COLOR_SCALE} has at least one element, this 
+    * field's value is the value of that element.  Otherwise, this field's 
+    * value is <code>Color.BLACK</code>
+    */
    public static final Color DEFAULT_LINE_COLOR;
       static
       {
@@ -239,63 +372,190 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
          else
             DEFAULT_LINE_COLOR = arr[0];
       }
+   /**
+    * Specifies the default line styles that will be used when rendering the 
+    * contour lines.  The value of this field is a four element array where 
+    * each element has the value {@link ContourJPanel#DEFAULT_LINE_STYLE 
+    * ContourJPanel.DEFAULT_LINE_STYLE}.
+    */
+   public static final int[] DEFAULT_STYLES = 
+      {ContourJPanel.DEFAULT_LINE_STYLE, 
+       ContourJPanel.DEFAULT_LINE_STYLE, 
+       ContourJPanel.DEFAULT_LINE_STYLE, 
+       ContourJPanel.DEFAULT_LINE_STYLE};
    //----------=[ End defaults borrowed from ContourJPanel ]=---------------//
    
    
    //--------=[ Defaults borrowed from CompositeContourControl ]=-----------//
+   /**
+    * Specifies the default value of the lowest contour level used when 
+    * specifying a collection of uniformlly spaced contour levels.   
+    * The value of this field is the same as the value of the field 
+    * {@link CompositeContourControl#DEFAULT_LOWEST_CONTOUR 
+    * CompositeContourControl.DEFAULT_LOWEST_CONTOUR}.
+    */
    public static final float   DEFAULT_LOWEST_CONTOUR = 
       CompositeContourControl.DEFAULT_LOWEST_CONTOUR;
+   /**
+    * Specifies the default value of the highest contour level used when 
+    * specifying a collection of uniformlly spaced contour levels.  
+    * The value of this field is the same as the value of the field 
+    * {@link CompositeContourControl#DEFAULT_HIGHEST_CONTOUR 
+    * CompositeContourControl.DEFAULT_HIGHEST_CONTOUR}.
+    */
    public static final float   DEFAULT_HIGHEST_CONTOUR =  
       CompositeContourControl.DEFAULT_HIGHEST_CONTOUR;
+   /**
+    * Specifies the default number of contour levels used when specifying a 
+    * collection of uniformlly spaced contour levels.  The value of this 
+    * field is the same as the value of the field 
+    * {@link CompositeContourControl#DEFAULT_NUM_CONTOURS 
+    * CompositeContourControl.DEFAULT_NUM_CONTOURS}.
+    */
    public static final int     DEFAULT_NUM_CONTOURS = 
       CompositeContourControl.DEFAULT_NUM_CONTOURS;
+   /**
+    * Specifies the default manually entered contour levels used when 
+    * specifying a collection of non-uniformly spaced contour levels.  The 
+    * value of ths field is the same  as the value of the field 
+    * {@link CompositeContourControl#DEFAULT_MANUAL_LEVELS 
+    * CompositeContourControl.DEFAULT_MANUAL_LEVELS}.
+    */
    public static final float[] DEFAULT_MANUAL_LEVELS = 
       CompositeContourControl.DEFAULT_MANUAL_LEVELS;
    //------=[ End defaults borrowed from CompositeContourControl ]=---------//
    
    
    //-----------------=[ Defaults unique to this class ]=-------------------//
+   /**
+    * Specifies if contour line labeling will be enabled by default.  
+    * The value of this field is <code>true</code>.
+    */
    public static final boolean DEFAULT_ENABLE_LABEL_FORMATTING = true;
+   /**
+    * Specifies that every <code>nth</code> contour line will be labeled by 
+    * default.  The value of this field is <code>1</code>.
+    */
    public static final int DEFAULT_LABEL_EVERY_N_LINES = 1;
-   public static final int[] DEFAULT_STYLES = {DEFAULT_LINE_STYLE, 
-                                               DEFAULT_LINE_STYLE, 
-                                               DEFAULT_LINE_STYLE, 
-                                               DEFAULT_LINE_STYLE};
+   /**
+    * Specifies which extra line styles will be enabled by default.  The 
+    * value of this field is a three element array where each element has the 
+    * value <code>false</code>.  This means that only the standard line 
+    * style will be enabled (it is always enabled).  The rest of the 
+    * extra line styles will be disabled.
+    */
    public static final boolean[] DEFAULT_ENABLE_STYLE_ARR = {false, 
                                                              false, 
                                                              false};
-   
+   /**
+    * Specifies the default named colorscale used to determine the colors 
+    * to render the contour lines with.  The value of this field is 
+    * {@link IndexColorMaker#HEATED_OBJECT_SCALE_2 
+    * IndexColorMaker.HEATED_OBJECT_SCALE_2}.
+    */
    public static final String DEFAULT_COLOR_SCALE = 
       IndexColorMaker.HEATED_OBJECT_SCALE_2;
+   /**
+    * Specifies if the named colorscales used to determine the colors to 
+    * render the contour lines with should be a double-sided contour scale 
+    * by default.  The value of this field is <code>false</code>.
+    */
    public static final boolean DEFAULT_IS_DOUBLE_SIDED = false;
-   public static final Color DEFAULT_CONTOUR_COLOR = Color.BLACK;
    //-----------------=[ Defaults unique to this class ]=-------------------//
    
 //------------------=[ End default field values ]=----------------------------//
 
    
 //----------------------------=[ Fields ]=------------------------------------//
+   /**
+    * The panel that contains the <code>ContourJPanel</code> and 
+    * all of the transparencies.
+    */
    private JPanel layerPanel;
    /** The Vector of ActionListener associated with this component. */
    private Vector listenerVec;
+   /** The panel that does the work of rendering the contour plot. */
    private ContourJPanel contourPanel;
+   /**
+    * The array of <code>ViewControls</code> that are used to 
+    * control this component. 
+    */
    private ViewControl[] controls;
+   /**
+    * The array of <code>ViewMenuItems</code> that are used to control 
+    * this component.
+    */
    private ViewMenuItem[] menuItems;
+   /**
+    * Used to maintain if the <code>ContourJPanel</code> is currently 
+    * using a solid color or a named colorscale to color the contour lines.  
+    * In addition, the actual color or colorscale is maintained by this 
+    * object.
+    */
    private ColorOrColorScale colorOrColorscale;
+   /**
+    * The Vector of transparencies that are placed on top of the 
+    * <code>ContourJPanel</code> to give it more functionality.  This 
+    * Vector is a Vector of <code>OverlayJPanel</code> objects.
+    */
    private Vector transparencies;
    
    //Used with the ViewControls
+   /**
+    * This is the <code>ViewControl</code> that is used to specify the 
+    * uniformly spaced or non-uniformly spaced contour lines 
+    * (or a combination of the two) to be rendered.
+    */
    private CompositeContourControl contourControl;
+   /**
+    * This is the <code>ViewControl</code> that is used to specify the 
+    * linestyles that should be used when rendering the contour lines.
+    */
    private LineStyleControl lineStyleControl;
+   /**
+    * This is the <code>ViewControl</code> that is used to specify if 
+    * contour line labels should be enabled, and, if so, what multiple of 
+    * lines should be labeled (for example, every 4th line).
+    */
    private ControlCheckboxSpinner labelControl;
+   /**
+    * This is the <code>ViewControl</code> that is used to specify if 
+    * contoru line labels should be formatted (if contour line labels are 
+    * enabled), and, if so, the number of significant figures the contour 
+    * line labels are rounded to.
+    */
    private ControlCheckboxSpinner sigFigControl;
+   /**
+    * This is the <code>ViewControl</code> that is used to specify the 
+    * background color of this component.
+    */
    private ColorControl backgroundControl;
+   /**
+    * This is the <code>ViewControl</code> that graphically displays the 
+    * current colorscale used to color the contour lines.
+    */
    private ControlColorScale controlColorscale;
+   /**
+    * This is the <code>ViewControl</code> that is used to control the 
+    * intensity of the colorscale that is used to color the contour lines.
+    */
    private ControlSlider intensitySlider;
    
    //Used with the ViewMenuItems
+   /**
+    * This is the menu item that is used to specify if the contour plot 
+    * should be rendered with its aspect ratio preserved or not.
+    */
    private JCheckBoxMenuItem aspectRatioItem;
+   /**
+    * This is the menu item that is used to specify the solid color to 
+    * use when coloring the contour lines.
+    */
    private ColorControl contourColorItem;
+   /**
+    * This is the menu item that is used to specify if the named color scale 
+    * used to color the contour lines should be double-sided or not.
+    */
    private JCheckBoxMenuItem isDoubleSidedItem;
 //--------------------------=[ End fields ]=----------------------------------//
   
@@ -310,7 +570,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
         initFields(v2D, contourPanel);
       
       //and build the menu items
-        initMenuItems(DEFAULT_CONTOUR_COLOR, DEFAULT_COLOR_SCALE, 
+        initMenuItems(DEFAULT_LINE_COLOR, DEFAULT_COLOR_SCALE, 
                       DEFAULT_IS_DOUBLE_SIDED, useColorScale, 
                       DEFAULT_PRESERVE_ASPECT_RATIO);
         
@@ -330,7 +590,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
                      DEFAULT_COLOR_SCALE, 
                      DEFAULT_IS_DOUBLE_SIDED, 
                      DEFAULT_BACKGROUND_COLOR, 
-                     DEFAULT_CONTOUR_COLOR);
+                     DEFAULT_LINE_COLOR);
    }
    
    public ContourViewComponent(IVirtualArray2D arr)
@@ -568,7 +828,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
            AxisOverlay2D axes = new AxisOverlay2D(this);
 //TODO For now the AxisOverlay2D is not visible because it does not work.
 //     Fix it.
-             axes.setVisible(false);
+             axes.setVisible(true);
              axes.setDisplayAxes(AxisOverlay2D.DUAL_AXES);
            this.transparencies.add(axes);
          
@@ -593,6 +853,9 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
          
          //paint all of the components
          paintComponents();
+         
+         this.layerPanel.revalidate();
+         this.layerPanel.repaint();
       }
    }
 
@@ -857,13 +1120,21 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
    
    public boolean getPreserveAspectRatio()
    {
+      if (aspectRatioItem==null)
+         return DEFAULT_PRESERVE_ASPECT_RATIO;
+      
       return aspectRatioItem.isSelected();
    }
    
    public void setPreserveAspectRatio(boolean isSelected)
    {
-      aspectRatioItem.setSelected(!isSelected);
-      aspectRatioItem.doClick();
+      //update the menu item to be either selected or deselected
+      if (aspectRatioItem!=null)
+        aspectRatioItem.setSelected(isSelected);
+      
+      //update the ContourJPanel
+        contourPanel.setPreserveAspectRatio(isSelected);
+        contourPanel.reRender();
    }
 //-----------=[ End getter/setter methods for the menu items ]=---------------//
    
@@ -1036,7 +1307,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
         //make the item that will allow one color to be selected for the 
         //contour lines
         contourColorItem = new ColorControl("", " Solid Color ", 
-                                            DEFAULT_CONTOUR_COLOR,
+                                            DEFAULT_LINE_COLOR,
                                             ColorSelector.TABBED);
         contourColorItem.setSelectedColor(lineColor);
         contourColorItem.setBorderVisible(false);
@@ -1085,9 +1356,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
         {
            public void actionPerformed(ActionEvent event)
            {
-              contourPanel.setPreserveAspectRatio(
-                                      aspectRatioItem.isSelected());
-              contourPanel.reRender();
+              setPreserveAspectRatio(aspectRatioItem.isSelected());
            }
         });
         setPreserveAspectRatio(preserveAspectRatio);
