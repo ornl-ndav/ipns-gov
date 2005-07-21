@@ -1,5 +1,5 @@
 /*
- * File: AbstractComponentSwapper.java
+ * File: ComponentSwapper.java
  *
  * Copyright (C) 2005, Mike Miller
  *
@@ -34,7 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2005/07/21 13:00:50  dennis
+ *  Fixed file name in docs.
+ *
  *  Revision 1.6  2005/06/17 20:11:58  kramer
+ *
  *  Modified the main() method to test how labels are drawn when zooming as
  *  the image resolution is increased.
  *
