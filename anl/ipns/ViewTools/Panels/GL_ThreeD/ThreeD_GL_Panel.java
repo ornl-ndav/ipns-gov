@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.19  2005/07/21 13:20:54  dennis
+ * Removed dependency on DataSetTools by:
+ * 1. Now gets PixelDepthScale property directly from System
+ *    properties, instead of from SharedData.getProperty()
+ * 2. Now sends messages using gov's  SharedMessages.addmsg()
+ *    rather than SharedData.
+ *
  * Revision 1.18  2005/05/25 20:28:47  dennis
  * Now calls convenience method WindowShower.show() to show
  * the window, instead of instantiating a WindowShower object
@@ -134,11 +141,12 @@ import javax.swing.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+
 import gov.anl.ipns.MathTools.Geometry.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ViewControls.*;
-import gov.anl.ipns.Util.Sys.WindowShower;
-import DataSetTools.util.*;
+import gov.anl.ipns.Util.Sys.*;
+
 import net.java.games.jogl.*;
 import net.java.games.jogl.util.*;
 
@@ -230,7 +238,7 @@ public class ThreeD_GL_Panel implements Serializable
       canvas.addMouseListener( new MouseClickHandler() );
 
     String depth_scale_prop = 
-                            SharedData.getProperty(PIXEL_DEPTH_SCALE_PROPERTY);
+                            System.getProperty(PIXEL_DEPTH_SCALE_PROPERTY);
     if ( depth_scale_prop != null )
     try
     {  
@@ -240,15 +248,15 @@ public class ThreeD_GL_Panel implements Serializable
       if ( scale_f > 0 )
       {
         pixel_depth_scale_factor = scale_f; 
-        System.out.println("Using non-standard " + PIXEL_DEPTH_SCALE_PROPERTY +
-                           ": " + pixel_depth_scale_factor + 
-                           " from IsawProps.dat" );
+        SharedMessages.addmsg("Using non-standard " +PIXEL_DEPTH_SCALE_PROPERTY+
+                              ": " + pixel_depth_scale_factor + 
+                              " from System properties" );
       }
     }
     catch ( NumberFormatException e )
     {
-      SharedData.addmsg( "Warning: invalid number " + depth_scale_prop + 
-                         " in " + PIXEL_DEPTH_SCALE_PROPERTY );
+      SharedMessages.addmsg( "Warning: invalid number " + depth_scale_prop + 
+                             " in " + PIXEL_DEPTH_SCALE_PROPERTY );
     }
   }
 
