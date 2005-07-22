@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/07/22 19:45:12  cjones
+ *  Separated 3D components into one base object and two functional objects,
+ *  one for data with frames and one for data without frames. Also, added features
+ *  and tweaked functionality.
+ *
  *  Revision 1.1  2005/07/19 15:56:37  cjones
  *  Added components for Display3D.
  * 
@@ -41,7 +46,7 @@
 package gov.anl.ipns.ViewTools.Components.ThreeD;
 
 import gov.anl.ipns.ViewTools.Components.IViewComponent;
-import gov.anl.ipns.ViewTools.Components.IPhysicalArray3D;
+import gov.anl.ipns.ViewTools.Components.IPointList3D;
 
 /**
  * Any class that implements this interface will interpret and display
@@ -51,9 +56,9 @@ public interface IViewComponent3D extends IViewComponent
 {  
  /**
   * This method is invoked to notify the view component when the 
-  * IPhysicalArray3D of data has changed. 
+  * IPointList3D of data has changed. 
   *
   *  @param  v3D - virtual array of data
   */ 
-  public void dataChanged(IPhysicalArray3D[] v3D);
+  public void dataChanged(IPointList3D[] v3D);
 }

@@ -1,5 +1,5 @@
 /*
- * File:  DetectorScene.java
+ * File:  DetectorSceneFrames.java
  *
  * Copyright (C) 2005, Chad Jones
  *
@@ -33,13 +33,11 @@
  *  Modified:
  *
  *  $Log$
- *  Revision 1.2  2005/07/22 19:45:09  cjones
+ *  Revision 1.1  2005/07/22 19:45:12  cjones
  *  Separated 3D components into one base object and two functional objects,
  *  one for data with frames and one for data without frames. Also, added features
  *  and tweaked functionality.
  *
- *  Revision 1.1  2005/07/19 15:56:34  cjones
- *  Added components for Display3D.
  * 
  */
  
@@ -56,29 +54,26 @@ import SSG_Tools.Cameras.*;
 
 import SSG_Tools.Appearance.*;
 import SSG_Tools.SSG_Nodes.*;
-import SSG_Tools.SSG_Nodes.Shapes.*;
 import SSG_Tools.SSG_Nodes.Shapes.Shape;
-import SSG_Tools.SSG_Nodes.Groups.*;
-import SSG_Tools.SSG_Nodes.Groups.Transforms.*;
 
-import gov.anl.ipns.ViewTools.Components.IPhysicalArray3D;
-import gov.anl.ipns.ViewTools.Components.PhysicalArray3D;
+import gov.anl.ipns.ViewTools.Components.IPhysicalArray3DList;
+import gov.anl.ipns.ViewTools.Components.PhysicalArray3DList;
 import gov.anl.ipns.ViewTools.Components.LogScaleColorModel;
 
 /**
  * This class is used to draw a 3D scene consisting of detector groups.  Each
- * IPhysicalArray3D that is fed into the constructor represents a collection of
- * detector pixels, which will be drawn as solid boxes using the physical 
+ * IPhysicalArray3DList that is fed into the constructor represents a collection 
+ * of detector pixels, which will be drawn as solid boxes using the physical 
  * information stored in the array.  The detectors will be given the ID of 
  * the array, and each pixel within an array will be given its index as its
  * ID.
  * 
- * Each pixel has a single value that is used to color the pixel
+ * Each pixel has an associate list of values that is used to color the pixel
  * when a color model is given.
  */
-public class DetectorScene extends DetectorSceneBase
+public class DetectorSceneFrames extends DetectorSceneBase
 {
-  private IPhysicalArray3D[] points;
+  private IPhysicalArray3DList[] points;
                           
 
   /* --------------------------- Constructor --------------------------- */
@@ -89,7 +84,7 @@ public class DetectorScene extends DetectorSceneBase
    *
    *    @param pa3D Arrays containing position, extent, and orientation data.
    */
-  public DetectorScene(IPhysicalArray3D[] pa3D)
+  public DetectorSceneFrames(IPhysicalArray3DList[] pa3D)
   {
     super();
     
@@ -105,7 +100,6 @@ public class DetectorScene extends DetectorSceneBase
     
     addSceneCircle();
     addLineAxes();
-    
   }
 
  /**
@@ -115,21 +109,24 @@ public class DetectorScene extends DetectorSceneBase
   *  @param model This object is used to map the data value to a 
   *               color within the table.
   */
-  public void applyColor(LogScaleColorModel model)
+  public void applyColor(int frame, LogScaleColorModel model)
   {
     for ( int det = 0; det < points.length; det++ )
     {
       if(points[det] != null)
-      {
-        Group detector = (Group)getChild(det);
-    	
-        for( int i = 0; i < detector.numChildren(); i++)
+      { 
+        if(frame >= 0 && frame < points[det].getNumFrames())
         {
-      	  // From DetectorGroup, get Transform. From Transform, get Shape
-          Shape box = (Shape)((Group)detector.getChild(i)).getChild(0);
-          float value = points[det].getValue(i);
-          box.setAppearance( new Appearance(
-        	                 new Material( model.getColor(value) ) ) );
+          Group detector = (Group)getChild(det);
+    	
+          for( int i = 0; i < detector.numChildren(); i++)
+          {
+      	    //From DetectorGroup, get Transform. From Transform, get Shape
+            Shape box = (Shape)((Group)detector.getChild(i)).getChild(0);
+            float value = points[det].getValue(i, frame);
+            box.setAppearance( new Appearance(
+                               new Material( model.getColor(value) ) ) );
+          }
         }
       }
     }
@@ -147,39 +144,45 @@ public class DetectorScene extends DetectorSceneBase
   	int detectorsize = 100;
   	int numdetectors = 2;
   	
-  	IPhysicalArray3D[] data = new IPhysicalArray3D[numdetectors];
+  	IPhysicalArray3DList[] data = new IPhysicalArray3DList[numdetectors];
 
     // Create 2 square panels
     // PANEL 1
-    data[0] = new PhysicalArray3D(detectorsize);
+  	float[] time_vals = {1.5f, 2.6f, 3.6f, 5.2f };
+  	DataSetTools.dataset.XScale time = new DataSetTools.dataset.VariableXScale(time_vals);
+  	
+    data[0] = new PhysicalArray3DList(detectorsize, time);
     for(int i = 0; i < 10; i++)
       for(int j = 0; j < 10; j++)
       {
+      	float[] vals = { j*30+i*10-150, j*30+i*10-145, j*30+i*10-140, j*30+i*10-135 }; 
       	data[0].set(i*10+j, // Index
       			  new Vector3D(i*50, j*50, 700), // 3D Coordinates
                   new Vector3D(11, 13, 12),  // Box volume
                   new Vector3D(1, 0, 0), // Orientation (X-Axis)
 				  new Vector3D(0, 1, 0), // Orientation (Y-Axis)
-				  j*30+i*10-150); // Value
+				  vals); // Value
       }
   	data[0].setArrayID(0);  // Panel ID
     
     // PANEL 2
-    data[1] = new PhysicalArray3D(detectorsize);
+    data[1] = new PhysicalArray3DList(detectorsize, time);
     for(int i = 0; i < 10; i++)
       for(int j = 0; j < 10; j++)
       {
+      	float[] vals = { j*30+i*10+750, j*30+i*10+755, j*30+i*10+760, j*30+i*10+765 }; 
+      	
         data[1].set(i*10+j, // Index
 			      new Vector3D(i*50, j*50, -200), // 3D Coordinates
                   new Vector3D(9, 10, 9), // Box Volume
                   new Vector3D(4, 0, -2), // Orientation (X-Axis)
 				  new Vector3D(1, 1, 2),  // Orientation (Y-Axis)
-				  j*30+i*10+750); // Value
+				  vals); // Value
       }
     data[1].setArrayID(1); // Panel ID
   
     // Make Scene
-    DetectorScene scene = new DetectorScene(data);
+    DetectorSceneFrames scene = new DetectorSceneFrames(data);
 
     // Make JoglPanel to render scene
     final JoglPanel demo = new JoglPanel( scene );

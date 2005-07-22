@@ -1,5 +1,5 @@
 /*
- * File: SceneViewComponent.java
+ * File: SceneFramesViewComponent.java
  *
  * Copyright (C) 2005, Chad Jones
  *
@@ -33,42 +33,42 @@
  *  Modified:
  *
  *  $Log$
- *  Revision 1.2  2005/07/22 19:45:13  cjones
+ *  Revision 1.1  2005/07/22 19:45:13  cjones
  *  Separated 3D components into one base object and two functional objects,
  *  one for data with frames and one for data without frames. Also, added features
  *  and tweaked functionality.
  *
- *  Revision 1.1  2005/07/19 15:56:38  cjones
- *  Added components for Display3D.
- * 
+ *
  */
  
 package gov.anl.ipns.ViewTools.Components.ThreeD;
 
 import SSG_Tools.Viewers.*;
 
-import gov.anl.ipns.ViewTools.Components.ThreeD.DetectorScene;
+import gov.anl.ipns.ViewTools.Components.ThreeD.DetectorSceneFrames;
 
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 
+import gov.anl.ipns.ViewTools.Components.ViewControls.FrameController;
+
 /**
  * This object displays data in a three dimensional viewer. Data is given as a 
- * IPhysicalArray3D[] and all data points are drawn to a color based on their 
- * value. The positions, extents, and orientations give each point its place 
- * and shape in space.
+ * IPhysicalArray3DList[] and all data points are drawn to a color based on their 
+ * value and current frame. The positions, extents, and orientations give each point 
+ * its place and shape in space.
  * 
- * Controls are created to handle camera and data colors. A printout of
+ * Controls are created to handle camera, data colors, and frames. A printout of
  * selected data appears under these controls.
  * 
  * This component uses a JOGL (Java OpenGL) based panel to render the scene.
  */
-public class SceneViewComponent extends ViewComponent3D
+public class SceneFramesViewComponent extends ViewComponent3D
 {  
-  
   private float min_value, max_value;
+  private float[] time_vals;
   
   /**
    * Constructor.  Takes array of physical location information and 
@@ -76,7 +76,7 @@ public class SceneViewComponent extends ViewComponent3D
    *  
    *   @param arrays The data that will be put into the scene
    */
-  public SceneViewComponent( IPhysicalArray3D[] arrays )
+  public SceneFramesViewComponent( IPhysicalArray3DList[] arrays )
   {
   	super(arrays);
 
@@ -120,8 +120,12 @@ public class SceneViewComponent extends ViewComponent3D
   public void ColorAndDraw()
   {
   	if(varrays != null && joglpane != null)
-  	{
-  	  ((DetectorScene)joglpane.getScene()).applyColor(colormodel);
+  	{  	  
+  	  int frame = 0;
+  	  if(controls != null)
+  	  	frame = ((FrameController)getControl(FRAME_CONTROL_NAME)).getFrameNumber();
+  	  		
+  	  ((DetectorSceneFrames)joglpane.getScene()).applyColor(frame, colormodel);
   	  joglpane.Draw();
   	}
   }
@@ -154,15 +158,21 @@ public class SceneViewComponent extends ViewComponent3D
       return;
     }
    
-    varrays = (IPhysicalArray3D[])arrays;
+    varrays = (IPhysicalArray3DList[])arrays;
    
     // Set min_value and max_value
     findDataRange();
     colormodel.setDataRange(min_value, max_value);
     
+    for(int i = 0; i < varrays.length; i++)
+      if(varrays[i] != null) 
+      {
+        time_vals = ((IPhysicalArray3DList)varrays[i]).getFrames();
+        break;
+      }
+    
     // Create scene and place in rendering panel
-    DetectorScene scene = new DetectorScene(
-    					   (IPhysicalArray3D[])varrays );
+    DetectorSceneFrames scene = new DetectorSceneFrames( (IPhysicalArray3DList[])varrays );
     
     joglpane = new JoglPanel( scene );
     
@@ -172,7 +182,7 @@ public class SceneViewComponent extends ViewComponent3D
     
     joglpane.getDisplayComponent().addMouseListener( 
             new PickHandler( joglpane ));
-
+    
     ColorAndDraw();
   }
   
@@ -186,34 +196,36 @@ public class SceneViewComponent extends ViewComponent3D
   *              representing current color scale.
   * controls[2]: ColorControl - Change background color.
   * controls[3]: AltAzController - Controls camera
-  * controls[4]: CursorOutputControl - The 3D
+  * controls[4]: FrameController - Move through frames.
+  * controls[5]: CursorOutputControl - The 3D
   *              coordinates of mouse click.
-  * controls[5]: CursorOutputControl - The IDs
+  * controls[6]: CursorOutputControl - The IDs
   *              for detector and pixel selected.
-  * 
   */
   private void buildControls()
   {
-      controls = new ViewControl[6]; 
-      
-      // Control that adjusts the color intensity
-      controls[0] = createIntensityControl();
-      
-      // Control that displays uncalibrated color scale
-      controls[1] = createColorScaleControl();
-      
-      // Background color
-      controls[2] = createBackgroundControl();
-      
-      // Control that handles camera position
-      controls[3] = createCamControl();
-      
-      // Picked point
-      controls[4] = createPointOutputControl();
-      
-      // Picked pixel and detector
-      controls[5] = createIDOutputControl();
-      
+    controls = new ViewControl[7]; 
+    
+    // Control that adjusts the color intensity
+    controls[0] = createIntensityControl();
+    
+    // Control that displays uncalibrated color scale
+    controls[1] = createColorScaleControl();
+    
+    // Background color
+    controls[2] = createBackgroundControl();
+    
+    // Control that handles camera position
+    controls[3] = createCamControl();
+    
+    // Control Frames
+    controls[4] = createFrameControl(time_vals, 100);
+    
+    // Picked point
+    controls[5] = createPointOutputControl();
+    
+    // Picked pixel and detector
+    controls[6] = createIDOutputControl();
   }
   
  /*
@@ -247,13 +259,14 @@ public class SceneViewComponent extends ViewComponent3D
     for(int arr = 0; arr < varrays.length; arr++)
     {
       if(varrays[arr] != null)
-        for(int i = 0; i < varrays[arr].getNumPoints(); i++)
-        {
-          value = ((IPhysicalArray3D)varrays[arr]).getValue(i);
+        for(int pt = 0; pt < varrays[arr].getNumPoints(); pt++)
+          for(int frame = 0; frame < ((IPhysicalArray3DList)varrays[arr]).getNumFrames(); frame++)
+          {
+            value = ((IPhysicalArray3DList)varrays[arr]).getValue(pt, frame);
         
-          if(value > max) max = value;
-          if(value < min) min = value;
-        }
+            if(value > max) max = value;
+            if(value < min) min = value;
+          }
     }
     
     max_value = max;
