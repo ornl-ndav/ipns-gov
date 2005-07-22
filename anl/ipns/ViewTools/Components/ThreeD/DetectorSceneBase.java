@@ -33,6 +33,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/07/22 21:39:48  cjones
+ *  Adjusted the colored lines for the axes.
+ *
  *  Revision 1.1  2005/07/22 19:45:11  cjones
  *  Separated 3D components into one base object and two functional objects,
  *  one for data with frames and one for data without frames. Also, added features
@@ -208,7 +211,7 @@ public class DetectorSceneBase extends Group
    */
   public void addSceneCircle()
   {
-  	Circle circle = new Circle(diameter/1.7f, 35);
+  	Circle circle = new Circle(diameter/1.7f, 55);
   
   	circle.setAppearance( new Appearance( new Material(Color.WHITE)) );
   	
@@ -224,9 +227,8 @@ public class DetectorSceneBase extends Group
   
   /**
    * This method draws lines to represent the axes of
-   * the scene.  The long red line along the x-axis represents the incoming
-   * beam.  The up blue line is along the z-axis, and the side green line is
-   * along the y-axis.
+   * the scene.  Red for x-axis, green for y-axis, and
+   * blue for z-axis.
    */
   public void addLineAxes()
   {
@@ -234,19 +236,19 @@ public class DetectorSceneBase extends Group
                                                           new Vector3D( 0,1,0 ),
                                                           new Vector3D( center ) );
   	
-    Line incoming = new Line( new Vector3D(0,0,0), new Vector3D(-1.f*diameter, 0, 0));
-  	incoming.setAppearance( new Appearance( new Material(Color.RED)) );
-    trans.addChild(incoming);
+    Line xaxis = new Line( new Vector3D(0,0,0), new Vector3D(diameter/4.f, 0, 0));
+  	xaxis.setAppearance( new Appearance( new Material(Color.RED)) );
+    trans.addChild(xaxis);
 
   
-  	Line up = new Line( new Vector3D(0,0,0), new Vector3D(0, 0, diameter/4.f));
-  	up.setAppearance( new Appearance( new Material(Color.BLUE)) );
-    trans.addChild(up);
+  	Line zaxis = new Line( new Vector3D(0,0,0), new Vector3D(0, 0, diameter/4.f));
+  	zaxis.setAppearance( new Appearance( new Material(Color.BLUE)) );
+    trans.addChild(zaxis);
 
     
-  	Line side = new Line( new Vector3D(0,0,0), new Vector3D(0, diameter/4.f, 0));
-  	side.setAppearance( new Appearance( new Material(Color.GREEN)) );
-    trans.addChild(side);
+  	Line yaxis = new Line( new Vector3D(0,0,0), new Vector3D(0, diameter/4.f, 0));
+  	yaxis.setAppearance( new Appearance( new Material(Color.GREEN)) );
+    trans.addChild(yaxis);
     
     addChild(trans);  	
   }
