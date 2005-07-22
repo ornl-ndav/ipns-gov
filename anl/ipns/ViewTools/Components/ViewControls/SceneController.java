@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2005/07/22 19:46:24  cjones
+ * Cleaned up code. Added a FrameController that uses AnimationController to
+ * handle frames in a scene.
+ *
  * Revision 1.1  2005/07/14 14:09:11  cjones
  * Added camera controls for 3D scene.
  *
