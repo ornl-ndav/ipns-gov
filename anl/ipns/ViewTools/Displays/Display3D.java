@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/07/22 19:47:45  cjones
+ *  Display3D can now accept IPhysicalArray3D[] or IPhysicalArray3DList[]
+ *  as data input.  If the list version is given, a frame controller will
+ *  be added to the controls.
+ *
  *  Revision 1.2  2005/07/19 16:48:01  cjones
  *  Display3D will now force heavyweight popup menus to allow
  *  menus to appear on top of heavyweight components.
@@ -60,26 +65,29 @@ import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.IPhysicalArray3D;
 
 /**
- * Display 3D scene of detectors.  This class will render scattered points
- * in the shape of boxes with given position, size, and orientation.  The data
- * should be passed as an array of IPhysicalArray3Ds.
+ * This object displays a 3D scene of detectors.  The class will render scattered
+ * points in the shape of boxes with given position, size, and orientation.  The 
+ * data should be passed as an array of IPhysicalArray3D or IPhysicalArray3DList.
  * 
- * Side controls can be set on/off in the constructor.  Only one view component
- * is available at this time.
+ * Side controls can be set on/off in the constructor. If the data is given
+ * as IPhysicalArray3DList[], an extra control for controlling frames will
+ * be given.
  */
 public class Display3D extends Display
 {
-  private IPhysicalArray3D[] datalist;
+  private IPointList3D[] datalist;
   
  /**
-  * Construct a frame with the specified data. Currently, there is only
-  * one view component to render the data, which will be represented
-  * using a 3D scene with colored boxes for each point.
+  * Construct a 3D display frame with the specified data. This constructor
+  * is intended for data points with single values. Side panel controls can
+  * be enabled or disabled.
   *  
-  *  @param  iva Array of Three-dimensional physical array.
-  *  @param  view_code Code for which view component is to be used to
-  *                    display the data.
-  *  @param  include_ctrls If true, controls to manipulate image will be added.
+  *  @param  iva           Array of Three-dimensional points with physical 
+  *                        volume information.
+  *  @param  view_code     Code for which view component is to be used to
+  *                        display the data.
+  *  @param  include_ctrls Code for which controls will be given to 
+   *                        manipulate the scene.
   */
   public Display3D( IPhysicalArray3D[] iva, int view_code, int include_ctrls )
   {
@@ -92,6 +100,30 @@ public class Display3D extends Display
     addToMenubar();
     buildPane();
   }
+  
+  /**
+  * Construct a 3D display frame with the specified data. This constructor
+  * is intended for data points with lists values. Side panel controls can
+  * be enabled or disabled.
+   *  
+   *  @param  iva           Array of 3D dimensional points with lists of data 
+   *                        values and physical volume information.
+   *  @param  view_code     Code for which view component is to be used to
+   *                        display the data.
+   *  @param  include_ctrls Code for which controls will be given to 
+   *                        manipulate the scene.
+   */
+   public Display3D( IPhysicalArray3DList[] iva, int view_code, int include_ctrls )
+   {
+     super(iva[0], view_code, include_ctrls);
+     makeHeavyWeightPopup();
+
+     datalist = iva;
+     setTitle("Display3D");
+     
+     addToMenubar();
+     buildPane();
+   }
   
  /**
   * This method sets the ObjectState of this viewer to a previously saved
@@ -116,7 +148,7 @@ public class Display3D extends Display
   */
   public ObjectState getObjectState( boolean isDefault )
   {
-    return new ObjectState();
+    return null;
   }
   
  /**
@@ -129,16 +161,35 @@ public class Display3D extends Display
     ((IViewComponent3D)ivc).dataChanged(values);
   }
   
+ /**
+  * This method takes in a virtual array and updates the scene. 
+  *
+  *  @param  values
+  */ 
+  public void dataChanged( IPhysicalArray3DList[] values )
+  { 
+    ((IViewComponent3D)ivc).dataChanged(values);
+  }
+  
   
  /*
   * This method builds the content pane of the frame.
+  * 
+  * It will check the type of data and pick the view component
+  * accordingly.
   */
   private void buildPane()
   { 
     // Clear any existing views, so it can be rebuilt.
     getContentPane().removeAll();
     
-    ivc = new SceneViewComponent((IPhysicalArray3D[])datalist);
+    // Does data have frames or not.
+    if(datalist instanceof IPhysicalArray3D[])
+    	ivc = new SceneViewComponent((IPhysicalArray3D[])datalist);
+    else if(datalist instanceof IPhysicalArray3DList[])
+    	ivc = new SceneFramesViewComponent((IPhysicalArray3DList[])datalist);
+    else
+    	return;
   
     Box view_comp_controls = buildControlPanel();
     // if user wants controls, and controls exist, display them in a splitpane.
@@ -197,9 +248,9 @@ public class Display3D extends Display
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
   }
 
-  /*
-   * Force popup menus to be heavyweight.
-   */
+ /*
+  * Force popup menus to be heavyweight.
+  */
   private void makeHeavyWeightPopup()
   {
     JPopupMenu.setDefaultLightWeightPopupEnabled(false);
