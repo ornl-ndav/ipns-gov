@@ -33,6 +33,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/07/22 21:42:54  cjones
+ *  Added functionality for Orthographic Checkbox
+ *
  *  Revision 1.1  2005/07/22 19:45:14  cjones
  *  Separated 3D components into one base object and two functional objects,
  *  one for data with frames and one for data without frames. Also, added features
@@ -719,12 +722,25 @@ public abstract class ViewComponent3D implements IViewComponent3D
   {
     public void actionPerformed(ActionEvent e)
     {
+      // View Change
       if(joglpane != null && cam_controller != null) 
       {
-      	Camera view = joglpane.getCamera();
+      	if(e.getActionCommand().equals(SceneController.VIEW_CHANGED))
+      	{
+      	  Camera view = joglpane.getCamera();
       	
-        view.setCOP(cam_controller.getCOP());
-        joglpane.Draw();
+          view.setCOP(cam_controller.getCOP());
+          joglpane.Draw();
+      	}
+      	
+      	// Orthographic Checkbox Chage
+      	else if(e.getActionCommand().equals(SceneController.PERSPECTIVE_CHANGED))
+      	{
+      	  if(cam_controller.isPerspective())
+      	    joglpane.setCamera(new PerspectiveCamera(joglpane.getCamera()));
+      	  else
+      	    joglpane.setCamera(new OrthographicCamera(joglpane.getCamera()));
+      	}
       }
     }
   }

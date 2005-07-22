@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2005/07/22 21:43:00  cjones
+ * Added functionality for Orthographic Checkbox
+ *
  * Revision 1.2  2005/07/22 19:46:24  cjones
  * Cleaned up code. Added a FrameController that uses AnimationController to
  * handle frames in a scene.
@@ -56,7 +59,8 @@ public class SceneController extends    ViewControl
                                         implements Serializable,
                                         ISceneController 
 {
-  public static final String VIEW_CHANGED = "View Changed";
+  public static final String VIEW_CHANGED        = "View Changed";
+  public static final String PERSPECTIVE_CHANGED = "Perspective Changed";
 
   private Vector3D vrp,
                    cop,

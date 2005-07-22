@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2005/07/22 21:42:59  cjones
+ * Added functionality for Orthographic Checkbox
+ *
  * Revision 1.2  2005/07/22 19:46:23  cjones
  * Cleaned up code. Added a FrameController that uses AnimationController to
  * handle frames in a scene.
@@ -349,7 +352,8 @@ public class AltAzController extends    SceneController
 
 /* ---------------------------- setPerspective --------------------------- */
 /**
- *  Set the projection type for this view.  
+ *  Set the projection type for this view and send a message to listeners
+ *  that the perspective has been toggled.
  *
  *  @param  perspective_flag  If true, make this a perspective projection,
  *                            otherwise make it an orthographic projection.
@@ -358,6 +362,8 @@ public class AltAzController extends    SceneController
   {
     ortho_checkbox.setSelected( !perspective_flag );
     setView();
+    
+    send_message(PERSPECTIVE_CHANGED);
   }
 
 /* -------------------------------------------------------------------------
