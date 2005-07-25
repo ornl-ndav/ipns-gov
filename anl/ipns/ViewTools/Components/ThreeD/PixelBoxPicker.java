@@ -28,6 +28,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/07/25 21:27:54  cjones
+ *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
+ *  the value of the selected pixel is now displayed with the Pixel Info, and
+ *  updates on frame changes.
+ *
  *  Revision 1.1  2005/07/19 15:56:38  cjones
  *  Added components for Display3D.
  *
@@ -60,6 +65,7 @@ public class PixelBoxPicker extends MouseAdapter
    private HitRecord closestHit;
    private Vector3D point;
    private int detectorid, pixelid;
+   private float pixelval;
 
    /**
     * Constructor. Makes PixelBoxPicker
@@ -114,11 +120,13 @@ public class PixelBoxPicker extends MouseAdapter
           int name = closestHit.lastName();
           Node node = Node.getNodeWithID( name );
           detectorid = pixelid = -1;
+          pixelval = 0;
           while( node != null)
           {
             if(node instanceof PixelBox && pixelid == -1) 
             {
               pixelid = ((PixelBox)node).getPixelID();
+              pixelval = ((PixelBox)node).getValue();
               System.out.println( "Pixel = " + pixelid );
             }
                         
@@ -147,6 +155,16 @@ public class PixelBoxPicker extends MouseAdapter
     public int getPixelID()
     {
       return pixelid;
+    }
+    
+   /**
+    * Returns Pixel Value.
+    *
+    *   @return Pixel Value if hit
+    */
+    public float getPixelValue()
+    {
+      return pixelval;
     }
     
    /**

@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/07/25 21:27:54  cjones
+ *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
+ *  the value of the selected pixel is now displayed with the Pixel Info, and
+ *  updates on frame changes.
+ *
  *  Revision 1.1  2005/07/22 19:45:12  cjones
  *  Separated 3D components into one base object and two functional objects,
  *  one for data with frames and one for data without frames. Also, added features
@@ -55,6 +60,7 @@ import SSG_Tools.Cameras.*;
 import SSG_Tools.Appearance.*;
 import SSG_Tools.SSG_Nodes.*;
 import SSG_Tools.SSG_Nodes.Shapes.Shape;
+import SSG_Tools.SSG_Nodes.Shapes.PixelBox;
 
 import gov.anl.ipns.ViewTools.Components.IPhysicalArray3DList;
 import gov.anl.ipns.ViewTools.Components.PhysicalArray3DList;
@@ -122,8 +128,10 @@ public class DetectorSceneFrames extends DetectorSceneBase
           for( int i = 0; i < detector.numChildren(); i++)
           {
       	    //From DetectorGroup, get Transform. From Transform, get Shape
-            Shape box = (Shape)((Group)detector.getChild(i)).getChild(0);
             float value = points[det].getValue(i, frame);
+            
+            PixelBox box = (PixelBox)((Group)detector.getChild(i)).getChild(0);
+            box.setValue(value);
             box.setAppearance( new Appearance(
                                new Material( model.getColor(value) ) ) );
           }
@@ -219,7 +227,8 @@ public class DetectorSceneFrames extends DetectorSceneBase
            ((GLCanvas)demo.getDisplayComponent()).display();
          }
        });
-   
+
+    
     JPanel test = new JPanel();
     test.setSize(500, 500);
     test.setLayout( new GridLayout() );

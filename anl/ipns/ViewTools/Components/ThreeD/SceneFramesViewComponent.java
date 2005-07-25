@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/07/25 21:27:55  cjones
+ *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
+ *  the value of the selected pixel is now displayed with the Pixel Info, and
+ *  updates on frame changes.
+ *
  *  Revision 1.1  2005/07/22 19:45:13  cjones
  *  Separated 3D components into one base object and two functional objects,
  *  one for data with frames and one for data without frames. Also, added features
@@ -44,12 +49,11 @@
 package gov.anl.ipns.ViewTools.Components.ThreeD;
 
 import SSG_Tools.Viewers.*;
+import javax.swing.JMenu;
 
 import gov.anl.ipns.ViewTools.Components.ThreeD.DetectorSceneFrames;
 
 import gov.anl.ipns.ViewTools.Components.*;
-import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
-import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 
 import gov.anl.ipns.ViewTools.Components.ViewControls.FrameController;
@@ -127,6 +131,23 @@ public class SceneFramesViewComponent extends ViewComponent3D
   	  		
   	  ((DetectorSceneFrames)joglpane.getScene()).applyColor(frame, colormodel);
   	  joglpane.Draw();
+  	  
+  	  if(controls != null)
+  	  {
+  	  	int detectorid = (int)((CursorOutputControl)getControl(ID_OUTPUT_NAME)).getValue(0);
+  	  	int pixelid = (int)((CursorOutputControl)getControl(ID_OUTPUT_NAME)).getValue(1);
+  	  	float value = 0;
+  	  	
+  	  	for(int i = 0; i < varrays.length; i ++)
+  	  	  if(varrays[i] != null && ((IPhysicalArray3DList)varrays[i]).getArrayID() == detectorid)
+  	  	  {
+  	  	    value = ((IPhysicalArray3DList)varrays[i]).getValue(pixelid, frame);
+  	  	    break;
+  	  	  }
+  	  	  
+  	  	setPixelValueOutput(value);
+  	  	  	
+  	  }
   	}
   }
    
@@ -196,15 +217,16 @@ public class SceneFramesViewComponent extends ViewComponent3D
   *              representing current color scale.
   * controls[2]: ColorControl - Change background color.
   * controls[3]: AltAzController - Controls camera
-  * controls[4]: FrameController - Move through frames.
-  * controls[5]: CursorOutputControl - The 3D
+  * controls[4]: Turns arcball on/off
+  * controls[5]: FrameController - Move through frames.
+  * controls[6]: CursorOutputControl - The 3D
   *              coordinates of mouse click.
-  * controls[6]: CursorOutputControl - The IDs
+  * controls[7]: CursorOutputControl - The IDs
   *              for detector and pixel selected.
   */
   private void buildControls()
   {
-    controls = new ViewControl[7]; 
+    controls = new ViewControl[8]; 
     
     // Control that adjusts the color intensity
     controls[0] = createIntensityControl();
@@ -218,14 +240,17 @@ public class SceneFramesViewComponent extends ViewComponent3D
     // Control that handles camera position
     controls[3] = createCamControl();
     
+    // Control that handles turning on/off MouseArcBall
+    controls[4] = createArcBallControl();
+    
     // Control Frames
-    controls[4] = createFrameControl(time_vals, 100);
+    controls[5] = createFrameControl(time_vals, 100);
     
     // Picked point
-    controls[5] = createPointOutputControl();
+    controls[6] = createPointOutputControl();
     
     // Picked pixel and detector
-    controls[6] = createIDOutputControl();
+    controls[7] = createIDOutputControl();
   }
   
  /*
@@ -234,13 +259,9 @@ public class SceneFramesViewComponent extends ViewComponent3D
   * menus[0]: Options->ColorScaleMenu - Changes
   *           the color scale.
   */
-  private void buildMenu()
+  protected void buildMenu()
   {
-    menus = new ViewMenuItem[1];
-    
-    menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS,
-                 MenuItemMaker.getColorScaleMenu( new ColorChangedListener()) );
-                 
+  	super.buildMenu();          
   }
    
  /*

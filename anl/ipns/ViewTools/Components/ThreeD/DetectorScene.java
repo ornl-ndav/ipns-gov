@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/07/25 21:27:53  cjones
+ *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
+ *  the value of the selected pixel is now displayed with the Pixel Info, and
+ *  updates on frame changes.
+ *
  *  Revision 1.2  2005/07/22 19:45:09  cjones
  *  Separated 3D components into one base object and two functional objects,
  *  one for data with frames and one for data without frames. Also, added features
@@ -126,8 +131,10 @@ public class DetectorScene extends DetectorSceneBase
         for( int i = 0; i < detector.numChildren(); i++)
         {
       	  // From DetectorGroup, get Transform. From Transform, get Shape
-          Shape box = (Shape)((Group)detector.getChild(i)).getChild(0);
           float value = points[det].getValue(i);
+          
+          PixelBox box = (PixelBox)((Group)detector.getChild(i)).getChild(0);
+          box.setValue(value);
           box.setAppearance( new Appearance(
         	                 new Material( model.getColor(value) ) ) );
         }

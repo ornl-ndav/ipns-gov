@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/07/25 21:27:56  cjones
+ *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
+ *  the value of the selected pixel is now displayed with the Pixel Info, and
+ *  updates on frame changes.
+ *
  *  Revision 1.2  2005/07/22 21:42:54  cjones
  *  Added functionality for Orthographic Checkbox
  *
@@ -50,9 +55,11 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+
 import java.util.Vector;
 
 import SSG_Tools.Viewers.*;
+import SSG_Tools.Viewers.Controls.MouseArcBall;
 import SSG_Tools.Cameras.*;
 
 import gov.anl.ipns.Util.Sys.ColorSelector;
@@ -61,6 +68,7 @@ import gov.anl.ipns.ViewTools.Components.ThreeD.PixelBoxPicker;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 import gov.anl.ipns.ViewTools.Components.ThreeD.IViewComponent3D;
+import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 
@@ -86,6 +94,13 @@ public abstract class ViewComponent3D implements IViewComponent3D
   * the ViewControl returned is the AltAzController from the control panel.
   */
   public static final String ALTAZ_NAME = "Camera Position";
+  
+  /**
+   * "ArcBall" - use this static String to verify that the title of
+   * the ViewControl returned is the ControlCheckbox that toggles
+   * MouseArcBall on/off.
+   */
+   public static final String ARCBALL_NAME = "ArcBall";
   
  /**
   * "Intensity Slider" - use this static String to verify that the title of
@@ -117,7 +132,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
   * the ViewControl returned is the CursorOutputControl that displays
   * point ids from the control panel.
   */
-  public static final String ID_OUTPUT_NAME = "Point IDs";
+  public static final String ID_OUTPUT_NAME = "Pixel Info";
    
  /**
   * "Frame Controller" - use this static String to verify that the title of
@@ -144,6 +159,8 @@ public abstract class ViewComponent3D implements IViewComponent3D
   protected IPointList3D[] varrays;
   
   /* -- Controllers -- */
+  private MouseArcBall arc_ball;
+  private ControlCheckbox toggle_arcball;
   private AltAzController cam_controller;
   private CursorOutputControl point_output_control;
   private CursorOutputControl id_output_control;
@@ -154,6 +171,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
   private JPanel holder;  
   private float[] pointClicked;
   private int DetectorID, PixelID;
+  private float pointval;
   
   private Vector Listeners;
   
@@ -337,6 +355,8 @@ public abstract class ViewComponent3D implements IViewComponent3D
   	  holder.removeAll();
   	  holder = null;
   	}
+  	
+  	varrays = null;
   }
   
  /*
@@ -352,6 +372,41 @@ public abstract class ViewComponent3D implements IViewComponent3D
       listener.actionPerformed( new ActionEvent( this, 0, message ) );
     }
   }
+  
+  /* --------------- MENU BAR -------------------------------------- */
+  
+  /*
+   * Build the menu items for this component.
+   * 
+   * menus[0]: Options->ColorScaleMenu - Changes
+   *           the color scale.
+   */
+   protected void buildMenu()
+   {
+     menus = new ViewMenuItem[2];
+         
+     menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS,
+                  MenuItemMaker.getColorScaleMenu( new ColorChangedListener()) );
+     
+     OverlayMenuListener overlay_listener = new OverlayMenuListener();     
+     JMenu overlay = new JMenu("Guides");
+       JCheckBoxMenuItem tmp = new JCheckBoxMenuItem("Circle");
+       tmp.setActionCommand("Circle");
+       tmp.setState(true);
+       tmp.addItemListener(overlay_listener);
+       overlay.add(tmp);
+       
+       tmp = new JCheckBoxMenuItem("Axis");
+       tmp.setActionCommand("Axis");
+       tmp.setState(true);
+       tmp.addItemListener(overlay_listener);
+       overlay.add(tmp);
+     
+     menus[1] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, overlay );
+     
+     ((JMenu)menus[1].getItem()).setEnabled(false);
+                  
+   }
    
   /* --------------- CONTROL CREATION METHODS ---------------------- */
   
@@ -469,6 +524,34 @@ public abstract class ViewComponent3D implements IViewComponent3D
   }
   
   /**
+   * Create and return a ControlCheckbox for toggling ArcBall mouse 
+   * movement control on or off. When enabled, the Pixel Picking is
+   * disabled.
+   * 
+   * The name of this control is ARCBALL_NAME
+   * 
+   * @return ControlCheckbox for toggling ArcBall
+   */
+  protected ControlCheckbox createArcBallControl()
+  {
+  	toggle_arcball = new ControlCheckbox(ARCBALL_NAME);
+  	toggle_arcball.setText("Toggle ArcBall");
+  	
+    if(joglpane != null)
+    {
+      arc_ball = new MouseArcBall(joglpane);
+      
+      arc_ball.setEnabled(false);
+      
+      toggle_arcball.addActionListener( new ToggleArcBallListener() );
+      
+      joglpane.getDisplayComponent().addMouseListener( new CameraChangeHandler() );
+    }
+ 
+    return toggle_arcball;
+  }
+  
+  /**
    * Create and return a ControlColorScale that will display the
    * currently selected color scale.
    * 
@@ -520,7 +603,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
   protected CursorOutputControl createIDOutputControl()
   {  	
     // Picked point
-  	String[] pixellabels = {"Detector","Pixel"};
+  	String[] pixellabels = {"Detector", "Pixel", "Value"};
     id_output_control = new CursorOutputControl(pixellabels);
     
     id_output_control.setTitle(ID_OUTPUT_NAME);
@@ -632,6 +715,26 @@ public abstract class ViewComponent3D implements IViewComponent3D
       point_output_control.repaint();
     }
   }
+  
+  /**
+   * Set the value for the 3d point that has been clicked
+   *
+   *  @param  value The value of pixel
+   */
+   public void setPixelValueOutput( float value )
+   {
+     // If data is null, no data to display.
+     if( varrays == null )
+       return;
+       
+     pointval = value;
+     
+     if(point_output_control != null)
+     {
+       id_output_control.setValue( 2, pointval ); 
+       point_output_control.repaint();
+     }
+   }
  
  /**
   * Set the IDs for the pixel and detector that have been clicked. -1 will be
@@ -639,8 +742,9 @@ public abstract class ViewComponent3D implements IViewComponent3D
   *
   *  @param  detector The ID of the detector that has been selected.
   *  @param  pixel    The ID of the pixel that has been selected.
+  *  @param  value    The value of the pixel.
   */
-  public void setPixelClickOutput( int detector, int pixel )
+  public void setPixelClickOutput( int detector, int pixel, float value )
   {
     // If data is null, no data to display.
     if( varrays == null )
@@ -648,11 +752,13 @@ public abstract class ViewComponent3D implements IViewComponent3D
       
     PixelID = pixel;
     DetectorID = detector;
+    pointval = value;
     
     if(id_output_control != null)
     {
       id_output_control.setValue( 0, detector ); 
       id_output_control.setValue( 1, pixel );
+      id_output_control.setValue( 2, pointval );
       id_output_control.repaint();
     }
   }
@@ -676,11 +782,14 @@ public abstract class ViewComponent3D implements IViewComponent3D
     
     public void mouseClicked (MouseEvent e)
     {
-      super.mouseClicked(e);
-      setPointClickOutput(get3DPoint());
-      setPixelClickOutput(getDetectorID(), getPixelID());
+      if(toggle_arcball == null || toggle_arcball.isSelected() == false)
+      {
+        super.mouseClicked(e);
+        setPointClickOutput(get3DPoint());
+        setPixelClickOutput(getDetectorID(), getPixelID(), getPixelValue());
       
-      sendMessage(SELECTED_POINT_CHANGED);
+        sendMessage(SELECTED_POINT_CHANGED);
+      }
     }
   }
   
@@ -690,7 +799,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
   * menu item to handle changse to the color scale display in the
   * control panel.
   */ 
-  protected class ColorChangedListener implements ActionListener
+  private class ColorChangedListener implements ActionListener
   {
     public void actionPerformed( ActionEvent ae )
     {
@@ -698,6 +807,65 @@ public abstract class ViewComponent3D implements IViewComponent3D
     }
   }
    
+ /*
+  * Handles menu changes to overlay selections
+  */
+  private class OverlayMenuListener implements ItemListener {
+     public void itemStateChanged(ItemEvent e) {
+         JCheckBoxMenuItem target = (JCheckBoxMenuItem) e.getSource();
+         String actionCommand = target.getActionCommand();
+         if (actionCommand.equals("Circle"))
+         {
+           //System.out.println("Circle toggle");
+           if(target.getState())
+           	((DetectorSceneBase)joglpane.getScene()).addSceneCircle();
+           else
+           	((DetectorSceneBase)joglpane.getScene()).removeSceneCircle();
+         }
+         else if (actionCommand.equals("Axis"))
+         {
+           //System.out.println("Axis toggle");
+           if(target.getState())
+           	((DetectorSceneBase)joglpane.getScene()).addLineAxes();
+           else
+           	((DetectorSceneBase)joglpane.getScene()).removeLineAxes();
+         }
+         
+         ColorAndDraw();
+       }
+     }
+  
+ /*
+  * Listeners for changes to arcball toggler
+  */
+  private class ToggleArcBallListener implements ActionListener 
+  {
+     public void actionPerformed(ActionEvent e) {
+         ControlCheckbox target = (ControlCheckbox) e.getSource();
+         
+         arc_ball.setEnabled(target.isSelected());
+     }
+  }
+  
+  /*
+   * Updates AltAzController when ArcBall is finished moving
+   */
+  private class CameraChangeHandler extends MouseAdapter
+  {
+    public void mouseReleased( MouseEvent e )
+    {
+      if(joglpane != null && cam_controller != null && arc_ball != null)
+      {
+      	if(toggle_arcball != null && toggle_arcball.isSelected())
+      	{
+          Camera view = joglpane.getCamera();
+        	
+          /* AltAzController Should be Updated Here */
+      	}
+      }
+    }
+  }
+  
   /*
    *  This listens for changes to background color
    */

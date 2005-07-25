@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/07/25 21:27:54  cjones
+ *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
+ *  the value of the selected pixel is now displayed with the Pixel Info, and
+ *  updates on frame changes.
+ *
  *  Revision 1.2  2005/07/22 21:39:48  cjones
  *  Adjusted the colored lines for the axes.
  *
@@ -87,11 +92,14 @@ import gov.anl.ipns.ViewTools.Components.PhysicalArray3D;
 public class DetectorSceneBase extends Group
 { 
   private float diameter = 0;
+  private float circle_radius = 0;
   
   protected boolean compileDisplayList = true;   
   
-  protected boolean changeBackground = false; 
+  private boolean changeBackground = false; 
   private Color backgroundColor;
+  private Group scene_circle;
+  private Group scene_axes;
   
   private float[] max_point = new float[3], min_point = new float[3];
   private float[] center = new float[3];
@@ -174,7 +182,7 @@ public class DetectorSceneBase extends Group
       // Use critial extents to set bounding box information
       float[] minexts = bounds_list.getMinExtents().get();
       float[] maxexts = bounds_list.getMaxExtents().get();
-              
+      
       // Update bounding box
       for(int i = 0; i < 3; i++)
       {
@@ -187,13 +195,13 @@ public class DetectorSceneBase extends Group
       center[1] = (min_point[1] + max_point[1])/2;
       center[2] = (min_point[2] + max_point[2])/2;
       
+      /// Update the radius of the scene circle
+      Vector3D plane_high = new Vector3D(bbox_high[0], bbox_high[1], 0);
+      circle_radius = plane_high.distance(new Vector3D(bbox_low[0], bbox_low[1], 0))/2.0f;
+      
       // Update scene's diameter
-      if(Math.abs(bbox_high[0]-bbox_low[0]) > diameter) 
-          diameter = Math.abs(bbox_high[0]-bbox_low[0]);
-      if(Math.abs(bbox_high[1]-bbox_low[1]) > diameter) 
-          diameter = Math.abs(bbox_high[1]-bbox_low[1]);
-      if(Math.abs(bbox_high[2]-bbox_low[2]) > diameter) 
-          diameter = Math.abs(bbox_high[2]-bbox_low[2]);
+      Vector3D high_point = new Vector3D(bbox_high);
+      diameter = high_point.distance(new Vector3D(bbox_low));
       
     }
     else detector = new DetectorGroup(-1);
@@ -201,6 +209,8 @@ public class DetectorSceneBase extends Group
      //THIS NEEDS TO BE CHANGED TO A UNIQUE ID
     detector.setPickID(10000*id+1);
     addChild(detector);
+    
+    compileDisplayList = true;
   }
   
   /**
@@ -211,7 +221,9 @@ public class DetectorSceneBase extends Group
    */
   public void addSceneCircle()
   {
-  	Circle circle = new Circle(diameter/1.7f, 55);
+  	scene_circle = new Group();
+  	
+  	Circle circle = new Circle(circle_radius, 55);
   
   	circle.setAppearance( new Appearance( new Material(Color.WHITE)) );
   	
@@ -221,8 +233,21 @@ public class DetectorSceneBase extends Group
     
     trans.addChild(circle);
     
-    addChild(trans);
-  	
+    scene_circle.addChild(trans);
+    
+    addChild(scene_circle);
+    
+    compileDisplayList = true;
+  }
+  
+  /**
+   * Removes the circle guide from the scene.
+   */
+  public void removeSceneCircle()
+  {
+    removeChild(scene_circle); 
+    
+    compileDisplayList = true;
   }
   
   /**
@@ -232,6 +257,8 @@ public class DetectorSceneBase extends Group
    */
   public void addLineAxes()
   {
+  	scene_axes = new Group();
+  	
   	OrientationTransform trans = new OrientationTransform(new Vector3D( 1,0,0 ), 
                                                           new Vector3D( 0,1,0 ),
                                                           new Vector3D( center ) );
@@ -250,7 +277,21 @@ public class DetectorSceneBase extends Group
   	yaxis.setAppearance( new Appearance( new Material(Color.GREEN)) );
     trans.addChild(yaxis);
     
-    addChild(trans);  	
+    scene_axes.addChild(trans);  	
+    
+    addChild(scene_axes);
+    
+    compileDisplayList = true;
+  }
+  
+  /**
+   * Removes the line axis guide from the scene.
+   */
+  public void removeLineAxes()
+  {
+    removeChild(scene_axes); 
+    
+    compileDisplayList = true;
   }
   
   /**
