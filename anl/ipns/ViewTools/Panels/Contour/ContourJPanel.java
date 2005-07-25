@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.17  2005/07/25 20:14:36  kramer
+ * Added a method to generate the row/column to world coordinate
+ * transformation.  Also, added methods to get the row or column in the
+ * array of data given an x or y pixel location.
+ *
  * Revision 1.16  2005/07/19 18:53:57  kramer
+ *
  * Added javadocs.  Also, now this class supports using a logarithmic scale
  * to determine the color to draw a specific contour line with.
  *
@@ -111,6 +117,7 @@ import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.PseudoLogScaleUtil;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
+import gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
@@ -862,6 +869,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       reRender();
    }
    
+   /*
    /**
     * Used to set if the aspect ratio should be preserved or not.  This 
     * method also redraws the image so that it reflects the new state of 
@@ -869,13 +877,14 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * 
     * @param preserve True if the aspect ratio should be preserved and 
     *                 false if it shouldn't be preserved.
-    */
+    /
    public void setPreserveAspectRatio(boolean preserve)
    {
       super.setPreserveAspectRatio(preserve);
       //setLocalWorldCoords(getLocalWorldCoords());
       reRender();
    }
+   */
    
    /**
     * Used to get the logscale factor that is used in the logarithmic 
@@ -928,6 +937,34 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       return data2D;
    }
    
+   public int getRowForY(float y)
+   {
+      CoordTransform rcToWC = getRowColumnToWC();
+      
+      int row = (int)(rcToWC.MapYFrom(y));
+      int maxRows = getData().getNumRows() - 1;
+      if (row < 0)
+         row = 0;
+      else if (row > maxRows)
+         row = maxRows;
+      
+      return row;
+   }
+   
+   public int getColumnForX(float x)
+   {
+      CoordTransform rcToWC = getRowColumnToWC();
+      
+      int col = (int)(rcToWC.MapXFrom(x));
+      int maxCols = getData().getNumColumns() - 1;
+      if (col < 0)
+         col = 0;
+      else if (col > maxCols)
+         col = maxCols;
+      
+      return col;
+   }
+   
    /**
     * Does the actual work of painting the contour lines on the panel.
     */
@@ -975,16 +1012,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //location on the ENTIRE panel because the ALL of the data in the 
       //array needs to be mapped to ALL of the panel (not just a small 
       //region which is what 'local_transform' describes).
-        float delta = 0.001f;
-        CoordTransform rcToWC = 
-             new CoordTransform(
-                                new CoordBounds(delta, 
-                                                delta, 
-                                                data2D.getNumColumns()-delta, 
-                                                data2D.getNumRows()-delta
-                                               ),
-                                wcBounds
-                               );
+        CoordTransform rcToWC = getRowColumnToWC();
         //if this is the first time the contour image is being painted 
         //set the local_transform to have its input region be the output 
         //region of 'rcToWC'.  After the contour image is drawn the user can 
@@ -1195,6 +1223,27 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       }
    }
    
+   private CoordTransform getRowColumnToWC()
+   {
+      //get the CoordBounds object that encapsulates the bounds of 
+      //the panel in world coordinates
+        CoordBounds wcBounds = getGlobalWCBounds();
+      //now to make a transform that maps from row/column to the world 
+      //coordinates of the entire panel.  The row/col is mapped to the 
+      //location on the ENTIRE panel because the ALL of the data in the 
+      //array needs to be mapped to ALL of the panel (not just a small 
+      //region which is what 'local_transform' describes).
+        float delta = 0.001f;
+      return new CoordTransform(
+                                new CoordBounds(delta, 
+                                                delta, 
+                                                data2D.getNumColumns()-delta, 
+                                                data2D.getNumRows()-delta
+                                               ),
+                                wcBounds
+                               );
+   }
+   
    /**
     * Used to get the rectangular box that describes the bounds of the 
     * entire panel in terms of the world coordinate system.
@@ -1402,13 +1451,22 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          levels[2] = 2;
          levels[3] = 7;
          levels[4] = 12.2332f;
-      ContourJPanel panel = new ContourJPanel(getTestData(), 0, 200, 20);
+      IVirtualArray2D v2d = ContourViewComponent.getTestData(51,51,3,4);
+      ContourJPanel panel = new ContourJPanel(v2d, 0, 10, 11);
+         //initialize the panel's world coordinates
+         AxisInfo xInfo = v2d.getAxisInfo(AxisInfo.X_AXIS);
+         AxisInfo yInfo = v2d.getAxisInfo(AxisInfo.Y_AXIS);
+         
+         panel.initializeWorldCoords(new CoordBounds(xInfo.getMin(), 
+                                                     yInfo.getMax(), 
+                                                     xInfo.getMax(), 
+                                                     yInfo.getMin()));
       //ContourJPanel panel = new ContourJPanel(getTestData(),levels);
          panel.setLineStyles(new int[] {SOLID, DASHED, DASHED});
          panel.setShowLabels(new boolean[]{true, false, false});
          panel.setNumSigDigits(new int[]{3,0,0});
-         panel.setPreserveAspectRatio(false);
-         panel.setColorScale("Test", false);
+         panel.setPreserveAspectRatio(true);
+         panel.setColorScale(IndexColorMaker.HEATED_OBJECT_SCALE_2, false);
          /*
          panel.setColorScale(new Color[] {Color.RED,
                                           Color.ORANGE, 
