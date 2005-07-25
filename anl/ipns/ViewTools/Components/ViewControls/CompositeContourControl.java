@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.7  2005/07/25 20:22:40  kramer
+ * Modified the javadocs to link to the new ContourViewComponent (which has
+ * been moved).
+ *
  * Revision 1.6  2005/07/12 16:58:20  kramer
+ *
  * Added comments and modified this class to use the OrderedContours class
  * to create a set of both uniformly and non-uniformly spaced contour levels.
  *
@@ -98,7 +103,7 @@ import DataSetTools.util.SharedData;
 
 /**
  * This ViewControl was designed specifically for the 
- * {@link gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent 
+ * {@link gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent 
  * ContourViewComponent}.  It ha a control for specifying the data used to 
  * calculate uniformly spaced contor levels to draw, and a control used to 
  * specify manually entered contour levels to draw.  The controls are placed 
