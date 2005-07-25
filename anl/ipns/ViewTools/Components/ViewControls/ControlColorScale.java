@@ -34,7 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.34  2005/07/25 20:19:41  kramer
+ *  Now the ColorScaleListener checks if it has recieved a COLORSCALE_CHANGED
+ *  message before typcasting the events source to a IColorScaleAddible.
+ *
  *  Revision 1.33  2005/07/19 18:56:50  kramer
+ *
  *  Now this class uses the isValidColorScaleName() method to test if a
  *  colorscale is valid or not.
  *
@@ -843,12 +848,12 @@ public class ControlColorScale extends ViewControl
     public void actionPerformed( ActionEvent e )
     {
       String message = e.getActionCommand(); 
-      IColorScaleAddible temp = (IColorScaleAddible)e.getSource();
       if( message.equals( IColorScaleAddible.COLORSCALE_CHANGED ) )
       {
+        IColorScaleAddible temp = (IColorScaleAddible)e.getSource();
         // Update the logscale factor.
         setLogScale(temp.getLogScale());
-	// Set the color scheme for the colorscale.
+        // Set the color scheme for the colorscale.
         setColorScale( temp.getColorScale(), isTwoSided );
       }
     }
