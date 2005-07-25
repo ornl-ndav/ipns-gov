@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2005/07/25 20:51:03  kramer
+ *  Modified the imports so that the new ContourViewComponent (from the
+ *  package gov.anl.ipns.ViewTools.Components.TwoD.Contour package) is used.
+ *
  *  Revision 1.7  2005/07/21 13:00:50  dennis
  *  Fixed file name in docs.
  *
@@ -73,10 +77,10 @@ import gov.anl.ipns.ViewTools.Components.IViewComponent;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
-import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
 import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
 import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
+import gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent;
 import gov.anl.ipns.ViewTools.Components.ViewControls.IColorScaleAddible;
 import gov.anl.ipns.ViewTools.UI.ActionValueEvent;
 

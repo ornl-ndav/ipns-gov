@@ -34,7 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/07/25 20:51:04  kramer
+ *  Modified the imports so that the new ContourViewComponent (from the
+ *  package gov.anl.ipns.ViewTools.Components.TwoD.Contour package) is used.
+ *
  *  Revision 1.3  2005/07/20 17:29:47  kramer
+ *
  *  Modified the getSharedControls() method to support the
  *  ContourViewComponent.  Currently, the colorscale intensity control is
  *  shared.
@@ -51,20 +56,20 @@
  */
  package gov.anl.ipns.ViewTools.Layouts;
  
- import javax.swing.JPanel;
- import javax.swing.JLabel;
-
  import gov.anl.ipns.Util.Sys.SharedMessages;
- import gov.anl.ipns.ViewTools.Components.IViewComponent;
- import gov.anl.ipns.ViewTools.Components.IVirtualArray;
- import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
- import gov.anl.ipns.ViewTools.Components.IVirtualArrayList1D;
- import gov.anl.ipns.ViewTools.Components.ObjectState;
- import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
-import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
- import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
- import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
- import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
+import gov.anl.ipns.ViewTools.Components.IViewComponent;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
+import gov.anl.ipns.ViewTools.Components.IVirtualArrayList1D;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
+import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
+import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
+import gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
  * This class is responsible for displaying a single ComponentSwapper.

@@ -34,7 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/07/25 20:51:03  kramer
+ *  Modified the imports so that the new ContourViewComponent (from the
+ *  package gov.anl.ipns.ViewTools.Components.TwoD.Contour package) is used.
+ *
  *  Revision 1.3  2005/07/12 16:50:47  kramer
+ *
  *  Modified the main method to use test data that can be used to test the
  *  ContourViewComponent.
  *
@@ -50,44 +55,43 @@
  */
  package gov.anl.ipns.ViewTools.Layouts;
  
- import java.awt.EventQueue;
- import java.awt.GridLayout;
- import java.awt.event.ActionEvent;
- import java.awt.event.ActionListener;
- import java.awt.event.ComponentAdapter;
- import java.awt.event.ComponentEvent;
- import java.awt.event.KeyEvent;
- import java.awt.event.InputEvent;
- import java.awt.event.WindowAdapter;
- import java.awt.event.WindowEvent;
- import java.awt.event.WindowListener;
- import java.util.Enumeration;
- import java.util.Hashtable;
- import javax.swing.JCheckBoxMenuItem;
- import javax.swing.JFrame;
- import javax.swing.JLabel;
- import javax.swing.JMenu;
- import javax.swing.JMenuBar;
- import javax.swing.JMenuItem;
- import javax.swing.JPanel;
- import javax.swing.KeyStroke;
- 
  import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
- import gov.anl.ipns.Util.Sys.SaveImageActionListener;
- import gov.anl.ipns.Util.Sys.SharedMessages;
- import gov.anl.ipns.Util.Sys.WindowShower;
- import gov.anl.ipns.ViewTools.Components.AxisInfo;
- import gov.anl.ipns.ViewTools.Components.IPreserveState;
- import gov.anl.ipns.ViewTools.Components.IVirtualArray;
- import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
- import gov.anl.ipns.ViewTools.Components.ObjectState;
- import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
- import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
-import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
- import gov.anl.ipns.ViewTools.Components.ViewControls.ControlManager;
- import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
- import gov.anl.ipns.ViewTools.UI.ActionValueJFrame;
- import gov.anl.ipns.ViewTools.UI.ActionValueEvent;
+import gov.anl.ipns.Util.Sys.SaveImageActionListener;
+import gov.anl.ipns.Util.Sys.SharedMessages;
+import gov.anl.ipns.Util.Sys.WindowShower;
+import gov.anl.ipns.ViewTools.Components.AxisInfo;
+import gov.anl.ipns.ViewTools.Components.IPreserveState;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
+import gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ControlManager;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
+import gov.anl.ipns.ViewTools.UI.ActionValueEvent;
+import gov.anl.ipns.ViewTools.UI.ActionValueJFrame;
+
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.Enumeration;
+import java.util.Hashtable;
+
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 /**
  * This class displays an IComponentLayoutManager and its menu items.
@@ -971,7 +975,7 @@ import gov.anl.ipns.ViewTools.Components.TwoD.ContourViewComponent;
      
      // Put 2-D data into a VirtualArray2D wrapper
      //IVirtualArray2D va2D = new VirtualArray2D( test_array );
-     IVirtualArray2D va2D = ContourViewComponent.getTestData(41, 51, 3.0, 4.0);
+     IVirtualArray2D va2D = ContourViewComponent.getTestData(51, 51, 3.0, 4.0);
      // Give meaningful range, labels, units, and linear or log display method.
      va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
      			 "TestX","TestUnits", AxisInfo.LINEAR );
