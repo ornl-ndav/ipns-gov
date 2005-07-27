@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/07/27 20:36:43  cjones
+ *  Added menu item that allows the user to choose between different shapes
+ *  for the pixels. Also, in frames view, user can change the time between
+ *  frame steps.
+ *
  *  Revision 1.2  2005/07/25 21:27:55  cjones
  *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
  *  the value of the selected pixel is now displayed with the Pixel Info, and
@@ -49,7 +54,6 @@
 package gov.anl.ipns.ViewTools.Components.ThreeD;
 
 import SSG_Tools.Viewers.*;
-import javax.swing.JMenu;
 
 import gov.anl.ipns.ViewTools.Components.ThreeD.DetectorSceneFrames;
 
@@ -150,6 +154,15 @@ public class SceneFramesViewComponent extends ViewComponent3D
   	  }
   	}
   }
+  
+ /**
+  * This method is called whenever the view component needs to update 
+  * the detector pixels to have the currentShapeType.
+  */
+  public void changeShape()
+  {
+  	((DetectorSceneFrames)joglpane.getScene()).changeShape(currentShapeType);
+  }
    
  /**
   * This method is invoked to notify the view component when the data
@@ -158,7 +171,7 @@ public class SceneFramesViewComponent extends ViewComponent3D
   */
   public void dataChanged()
   {
-    dataChanged(varrays);
+    ColorAndDraw();
   }
   
  /**
@@ -170,7 +183,12 @@ public class SceneFramesViewComponent extends ViewComponent3D
   */ 
   public void dataChanged(IPointList3D[] arrays)
   { 
-    joglpane = null;
+  	if(joglpane != null)
+  	{
+  	  joglpane.setScene(null);
+  	  joglpane.setCamera(null);
+      joglpane = null;
+  	}
    
     // Make sure data is valid. 
     if( arrays == null )
@@ -193,13 +211,13 @@ public class SceneFramesViewComponent extends ViewComponent3D
       }
     
     // Create scene and place in rendering panel
-    DetectorSceneFrames scene = new DetectorSceneFrames( (IPhysicalArray3DList[])varrays );
+    DetectorSceneFrames scene = new DetectorSceneFrames( 
+    		                          (IPhysicalArray3DList[])varrays, 
+    		                           currentShapeType );
     
     joglpane = new JoglPanel( scene );
     
     joglpane.setCamera( scene.makeCamera() );
-    joglpane.enableLighting( true );
-    joglpane.enableHeadlight( true );
     
     joglpane.getDisplayComponent().addMouseListener( 
             new PickHandler( joglpane ));

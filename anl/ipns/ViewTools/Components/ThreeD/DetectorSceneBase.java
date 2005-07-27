@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/07/27 20:36:33  cjones
+ *  Added menu item that allows the user to choose between different shapes
+ *  for the pixels. Also, in frames view, user can change the time between
+ *  frame steps.
+ *
  *  Revision 1.3  2005/07/25 21:27:54  cjones
  *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
  *  the value of the selected pixel is now displayed with the Pixel Info, and
@@ -66,7 +71,7 @@ import SSG_Tools.Cameras.*;
 
 import SSG_Tools.SSG_Nodes.*;
 import SSG_Tools.SSG_Nodes.Shapes.*;
-import SSG_Tools.SSG_Nodes.Shapes.Shape;
+import SSG_Tools.SSG_Nodes.SimpleShapes.*;
 import SSG_Tools.SSG_Nodes.Groups.*;
 import SSG_Tools.SSG_Nodes.Groups.Transforms.*;
 
@@ -91,6 +96,24 @@ import gov.anl.ipns.ViewTools.Components.PhysicalArray3D;
  */
 public class DetectorSceneBase extends Group
 { 
+  /**
+   * This represents the 3D box pixel shape.
+   */
+  public static int BOX = 1;
+  
+  /**
+   * This represents the 2D rectangle pixel shape.
+   */
+  public static int RECTANGLE = 2;
+  
+  /**
+   * This represents the 1D dot pixel shape.
+   */
+  public static int DOT = 3;
+  
+  protected boolean sceneCircleOn = false;
+  protected boolean axisLinesOn = false;
+	
   private float diameter = 0;
   private float circle_radius = 0;
   
@@ -102,14 +125,14 @@ public class DetectorSceneBase extends Group
   private Group scene_axes;
   
   private float[] max_point = new float[3], min_point = new float[3];
-  private float[] center = new float[3];
+  private float[] center = {0.f, 0.f, 0.f};
   private float[] bbox_low = new float[3], bbox_high = new float[3];
                          
 
   /* --------------------------- Constructor --------------------------- */
   /**
    *  Constructor. Initalizes the base scene.  To add objects, use
-   *  addDetector()
+   *  addDetector(). The center is assumed to be at the origin.
    */
   public DetectorSceneBase()
   {
@@ -131,52 +154,77 @@ public class DetectorSceneBase extends Group
    * point_list and bounds_list should coorrespond, e.g. a point at index 1 in point_list
    * will have its bounds information at index 1 in bounds_list.  The bounds list should
    * have equal or more entries than point_list, but excess indices in bounds_list will
-   * be ignored.  The volume bounding box and center point are recalculated for each
-   * detector added.
+   * be ignored.  The volume bounding box is recalculated for each
+   * detector added.  The center is assumed to be at the origin.
    * 
    * @param id			Detector id.
+   * @param shapteType  The type of shape that each pixel will be drawn as. 
+   *                    Default is BOX.
    * @param point_list  An array of 3D points. Each point represents a pixel of the
    *                    Detector.
    * @param bounds_list An array of bounds information for each point in point_list.
    *                    This defines the shape of each pixel.
    */
-  public void addDetector(int id, IPointList3D point_list, IBoundsList3D bounds_list)
+  public void addDetector(int id, int shapeType,
+  		                  IPointList3D point_list, IBoundsList3D bounds_list)
   {
     Group detector;    
     float[] extents, base, up, position;
+    SimpleShape shape;
             
     if(point_list != null && bounds_list != null)
     {
       detector = new DetectorGroup(id);
       	
       for ( int i = 0; i < point_list.getNumPoints(); i++ )
-      {            
-        // Use extents to give size of box         
-        extents = bounds_list.getExtents(i).get();
-        Shape box = new PixelBox( i,
-        							extents[0], extents[1], extents[2] );
-      
-        // THIS NEEDS TO BE CHANGED TO UNIQUE ID
-        box.setPickID( 2+id*100+i );
+      {                                      
+        if(shapeType == DOT)
+        {
+          extents = bounds_list.getExtents(i).get();
+          Vector3D[] pts = new Vector3D[1];
+          pts[0] = point_list.getPoint(i);
+          
+          shape = new PixelPolymarker(i, pts, Color.WHITE);
+          ((PixelPolymarker)shape).setSize((int)extents[0]);
+          ((PixelPolymarker)shape).setType(PixelPolymarker.DOT);
+        }
         
-        // Use position and orientation to place the box in space.
-        base = bounds_list.getOrientation(i)[0].get();
-        up   = bounds_list.getOrientation(i)[1].get();
-        position = point_list.getPoint(i).get();
-        OrientationTransform trans = 
-            new OrientationTransform(new Vector3D( base ), new Vector3D( up ),
-                                     new Vector3D( position ) );
+        else if(shapeType == RECTANGLE)
+        {
+          extents = bounds_list.getExtents(i).get();
+          Vector3D width = bounds_list.getOrientation(i)[0];
+          width.normalize();
+          width.multiply(extents[0]);
+          Vector3D height = bounds_list.getOrientation(i)[1];
+          height.normalize();
+          height.multiply(extents[1]);
+           
+          shape = new PixelParallelogram(i, point_list.getPoint(i),
+                    width, height,
+    				Color.WHITE);
+        }
         
+        else
+        {
+          shape = new PixelPositionedBox(i, point_list.getPoint(i),
+        		                                bounds_list.getOrientation(i)[0],
+        		                                bounds_list.getOrientation(i)[1],
+                                                bounds_list.getExtents(i),
+												Color.WHITE);
+        }
+
         // Use max point to find center
+        position = point_list.getPoint(i).get();
         for(int j = 0; j < 3; j++) 
         {
           if(position[j] > max_point[j]) max_point[j] = position[j];
           if(position[j] < min_point[j]) min_point[j] = position[j];
         }
-                                                 
-        trans.setPickID( Node.INVALID_PICK_ID );
-        trans.addChild( box );
-        detector.addChild( trans );
+                  
+        // THIS NEEDS TO BE CHANGED TO UNIQUE ID
+        shape.setPickID( 2+id*100+i );
+        
+        detector.addChild( shape );
       }
       
       // Use critial extents to set bounding box information
@@ -191,9 +239,11 @@ public class DetectorSceneBase extends Group
       }
       
       // Update center
+      /*
       center[0] = (min_point[0] + max_point[0])/2;
       center[1] = (min_point[1] + max_point[1])/2;
       center[2] = (min_point[2] + max_point[2])/2;
+      */
       
       /// Update the radius of the scene circle
       Vector3D plane_high = new Vector3D(bbox_high[0], bbox_high[1], 0);
@@ -238,6 +288,7 @@ public class DetectorSceneBase extends Group
     addChild(scene_circle);
     
     compileDisplayList = true;
+    sceneCircleOn = true;
   }
   
   /**
@@ -248,6 +299,7 @@ public class DetectorSceneBase extends Group
     removeChild(scene_circle); 
     
     compileDisplayList = true;
+    sceneCircleOn = false;
   }
   
   /**
@@ -282,6 +334,7 @@ public class DetectorSceneBase extends Group
     addChild(scene_axes);
     
     compileDisplayList = true;
+    axisLinesOn = true;
   }
   
   /**
@@ -292,6 +345,7 @@ public class DetectorSceneBase extends Group
     removeChild(scene_axes); 
     
     compileDisplayList = true;
+    axisLinesOn = false;
   }
   
   /**
@@ -432,7 +486,7 @@ public class DetectorSceneBase extends Group
     
     for(int i = 0; i < data.length; i++)
     {
-      scene.addDetector(data[i].getArrayID(), data[i], data[i]);
+      scene.addDetector(BOX, data[i].getArrayID(), data[i], data[i]);
     }
 
     // Make JoglPanel to render scene

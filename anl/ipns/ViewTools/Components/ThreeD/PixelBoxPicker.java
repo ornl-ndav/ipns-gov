@@ -28,6 +28,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/07/27 20:36:37  cjones
+ *  Added menu item that allows the user to choose between different shapes
+ *  for the pixels. Also, in frames view, user can change the time between
+ *  frame steps.
+ *
  *  Revision 1.2  2005/07/25 21:27:54  cjones
  *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
  *  the value of the selected pixel is now displayed with the Pixel Info, and
@@ -47,7 +52,6 @@ import  gov.anl.ipns.MathTools.Geometry.Vector3D;
 import SSG_Tools.Viewers.*;
 import SSG_Tools.SSG_Nodes.*;
 import SSG_Tools.SSG_Nodes.Util.*;
-import SSG_Tools.SSG_Nodes.Shapes.PixelBox;
 import SSG_Tools.SSG_Nodes.Groups.DetectorGroup;
 
 /* ------------------------ PixelBoxPicker --------------------------- */
@@ -123,10 +127,10 @@ public class PixelBoxPicker extends MouseAdapter
           pixelval = 0;
           while( node != null)
           {
-            if(node instanceof PixelBox && pixelid == -1) 
+            if(node instanceof IPixelShape && pixelid == -1) 
             {
-              pixelid = ((PixelBox)node).getPixelID();
-              pixelval = ((PixelBox)node).getValue();
+              pixelid = ((IPixelShape)node).getPixelID();
+              pixelval = ((IPixelShape)node).getValue();
               System.out.println( "Pixel = " + pixelid );
             }
                         

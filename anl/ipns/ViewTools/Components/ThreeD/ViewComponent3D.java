@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/07/27 20:36:44  cjones
+ *  Added menu item that allows the user to choose between different shapes
+ *  for the pixels. Also, in frames view, user can change the time between
+ *  frame steps.
+ *
  *  Revision 1.3  2005/07/25 21:27:56  cjones
  *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
  *  the value of the selected pixel is now displayed with the Pixel Info, and
@@ -95,12 +100,12 @@ public abstract class ViewComponent3D implements IViewComponent3D
   */
   public static final String ALTAZ_NAME = "Camera Position";
   
-  /**
-   * "ArcBall" - use this static String to verify that the title of
-   * the ViewControl returned is the ControlCheckbox that toggles
-   * MouseArcBall on/off.
-   */
-   public static final String ARCBALL_NAME = "ArcBall";
+ /**
+  * "ArcBall" - use this static String to verify that the title of
+  * the ViewControl returned is the ControlCheckbox that toggles
+  * MouseArcBall on/off.
+  */
+  public static final String ARCBALL_NAME = "ArcBall";
   
  /**
   * "Intensity Slider" - use this static String to verify that the title of
@@ -148,6 +153,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
   
   /* -- Data that will be used by ViewComponents -- */
   protected JoglPanel joglpane;
+  protected int currentShapeType = DetectorSceneBase.BOX;
   
   protected LogScaleColorModel colormodel;
   protected String colorscale;
@@ -322,6 +328,12 @@ public abstract class ViewComponent3D implements IViewComponent3D
   abstract public void ColorAndDraw();
   
  /**
+  * This method is called whenever the view component needs to update 
+  * the detector pixels to have the currentShapeType.
+  */
+  abstract public void changeShape();
+  
+ /**
   * This method is invoked to notify the view component when the data
   * has changed within the same array. It redraws new scene.
   */
@@ -380,32 +392,51 @@ public abstract class ViewComponent3D implements IViewComponent3D
    * 
    * menus[0]: Options->ColorScaleMenu - Changes
    *           the color scale.
+   * menus[1]: Options->Guides - turns guide markers on/off
+   * menus[2]: Options->Pixel Shapes - changes
+   *           shape of detector pixels.
+   * menus[3]: Set time step between frames.
    */
    protected void buildMenu()
    {
-     menus = new ViewMenuItem[2];
+     menus = new ViewMenuItem[4];
          
      menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS,
                   MenuItemMaker.getColorScaleMenu( new ColorChangedListener()) );
      
      OverlayMenuListener overlay_listener = new OverlayMenuListener();     
-     JMenu overlay = new JMenu("Guides");
+     JMenu guides = new JMenu("Guides");
        JCheckBoxMenuItem tmp = new JCheckBoxMenuItem("Circle");
        tmp.setActionCommand("Circle");
        tmp.setState(true);
        tmp.addItemListener(overlay_listener);
-       overlay.add(tmp);
+       guides.add(tmp);
        
        tmp = new JCheckBoxMenuItem("Axis");
        tmp.setActionCommand("Axis");
        tmp.setState(true);
        tmp.addItemListener(overlay_listener);
-       overlay.add(tmp);
+       guides.add(tmp);
      
-     menus[1] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, overlay );
+     menus[1] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, guides);
      
-     ((JMenu)menus[1].getItem()).setEnabled(false);
-                  
+     
+     Vector shapelistener = new Vector();     
+     Vector shapes = new Vector();
+     shapes.add("Pixel Shapes");
+       shapes.add("Dot");
+       shapes.add("Rectangle");
+       shapes.add("Box");
+     shapelistener.add(new ShapeChangedListener());
+     
+     menus[2] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS,
+            MenuItemMaker.makeMenuItem( shapes, shapelistener) );
+     
+     
+     JMenuItem frame_step_time = new JMenuItem("Set step time...");
+     frame_step_time.addActionListener(new FrameTimeStepListener());
+     
+     menus[3] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, frame_step_time );                  
    }
    
   /* --------------- CONTROL CREATION METHODS ---------------------- */
@@ -796,7 +827,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
  /**
   * This listens for messages sent out by the ViewMenuItems of
   * this view component. This must be added to the color scale
-  * menu item to handle changse to the color scale display in the
+  * menu item to handle changes to the color scale display in the
   * control panel.
   */ 
   private class ColorChangedListener implements ActionListener
@@ -807,6 +838,33 @@ public abstract class ViewComponent3D implements IViewComponent3D
     }
   }
    
+  /**
+   * This listens for messages sent out by the ViewMenuItems of
+   * this view component. This must be added to the shape
+   * menu item to handle changes to the pixel shape.
+   */ 
+   private class ShapeChangedListener implements ActionListener
+   {
+     public void actionPerformed( ActionEvent ae )
+     {
+       String type = ae.getActionCommand();
+       int oldType = currentShapeType;
+       
+       if(type == "Box")
+       	currentShapeType = DetectorSceneBase.BOX;
+       else if(type == "Rectangle")
+       	currentShapeType = DetectorSceneBase.RECTANGLE;
+       else if(type == "Dot")
+       	currentShapeType = DetectorSceneBase.DOT;
+       else
+       	currentShapeType = DetectorSceneBase.BOX;
+       
+       if(oldType != currentShapeType) changeShape();
+       
+       ColorAndDraw();
+     }
+   }
+  
  /*
   * Handles menu changes to overlay selections
   */
@@ -834,6 +892,29 @@ public abstract class ViewComponent3D implements IViewComponent3D
          ColorAndDraw();
        }
      }
+
+  /*
+   * If user wishes to set custom time step.
+   */
+  private class FrameTimeStepListener implements ActionListener
+  {
+    public void actionPerformed(ActionEvent e) {
+ 	  if(frame_control != null)
+  	  {
+  	    String s = (String)JOptionPane.showInputDialog(
+              "How many milliseconds between frame steps?",
+              "100");
+  	    
+  	    if( s != null && s.length() > 0)
+  	    {
+  	      try {
+  	        int time = (Integer.valueOf(s)).intValue();
+  	        frame_control.setStep_time(time);
+  	      } catch(NumberFormatException ex) {}
+  	    }
+  	  }
+  	}
+  }
   
  /*
   * Listeners for changes to arcball toggler

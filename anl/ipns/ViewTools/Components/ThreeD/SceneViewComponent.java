@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/07/27 20:36:44  cjones
+ *  Added menu item that allows the user to choose between different shapes
+ *  for the pixels. Also, in frames view, user can change the time between
+ *  frame steps.
+ *
  *  Revision 1.3  2005/07/25 21:27:55  cjones
  *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
  *  the value of the selected pixel is now displayed with the Pixel Info, and
@@ -50,15 +55,11 @@
  
 package gov.anl.ipns.ViewTools.Components.ThreeD;
 
-import javax.swing.JMenu;
-
 import SSG_Tools.Viewers.*;
 
 import gov.anl.ipns.ViewTools.Components.ThreeD.DetectorScene;
 
 import gov.anl.ipns.ViewTools.Components.*;
-import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
-import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 
 /**
@@ -132,6 +133,15 @@ public class SceneViewComponent extends ViewComponent3D
   	  joglpane.Draw();
   	}
   }
+  
+ /**
+  * This method is called whenever the view component needs to update 
+  * the detector pixels to have the currentShapeType.
+  */
+  public void changeShape()
+  {
+  	((DetectorScene)joglpane.getScene()).changeShape(currentShapeType);
+  }
    
  /**
   * This method is invoked to notify the view component when the data
@@ -140,7 +150,7 @@ public class SceneViewComponent extends ViewComponent3D
   */
   public void dataChanged()
   {
-    dataChanged(varrays);
+    ColorAndDraw();
   }
   
  /**
@@ -152,7 +162,12 @@ public class SceneViewComponent extends ViewComponent3D
   */ 
   public void dataChanged(IPointList3D[] arrays)
   { 
-    joglpane = null;
+  	if(joglpane != null)
+  	{
+  	  joglpane.setScene(null);
+  	  joglpane.setCamera(null);
+      joglpane = null;
+  	}
    
     // Make sure data is valid. 
     if( arrays == null )
@@ -168,14 +183,12 @@ public class SceneViewComponent extends ViewComponent3D
     colormodel.setDataRange(min_value, max_value);
     
     // Create scene and place in rendering panel
-    DetectorScene scene = new DetectorScene(
-    					   (IPhysicalArray3D[])varrays );
+    DetectorScene scene = new DetectorScene( (IPhysicalArray3D[])varrays, 
+    		                                  currentShapeType );
     
     joglpane = new JoglPanel( scene );
     
     joglpane.setCamera( scene.makeCamera() );
-    joglpane.enableLighting( true );
-    joglpane.enableHeadlight( true );
     
     joglpane.getDisplayComponent().addMouseListener( 
             new PickHandler( joglpane ));
@@ -230,6 +243,8 @@ public class SceneViewComponent extends ViewComponent3D
   protected void buildMenu()
   {
   	super.buildMenu();
+  	
+    menus[3].getItem().setVisible(false);
   }
    
  /*

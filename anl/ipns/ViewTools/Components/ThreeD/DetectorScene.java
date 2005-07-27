@@ -33,6 +33,11 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/07/27 20:36:31  cjones
+ *  Added menu item that allows the user to choose between different shapes
+ *  for the pixels. Also, in frames view, user can change the time between
+ *  frame steps.
+ *
  *  Revision 1.3  2005/07/25 21:27:53  cjones
  *  Added support for MouseArcBall and a control checkbox to toggle it. Also,
  *  the value of the selected pixel is now displayed with the Pixel Info, and
@@ -62,7 +67,7 @@ import SSG_Tools.Cameras.*;
 import SSG_Tools.Appearance.*;
 import SSG_Tools.SSG_Nodes.*;
 import SSG_Tools.SSG_Nodes.Shapes.*;
-import SSG_Tools.SSG_Nodes.Shapes.Shape;
+import SSG_Tools.SSG_Nodes.SimpleShapes.SimpleShape;
 import SSG_Tools.SSG_Nodes.Groups.*;
 import SSG_Tools.SSG_Nodes.Groups.Transforms.*;
 
@@ -92,9 +97,12 @@ public class DetectorScene extends DetectorSceneBase
    *  Each 3d point will be given a box.  The orientation and volume of box
    *  is also contained within the physical arrays.
    *
-   *    @param pa3D Arrays containing position, extent, and orientation data.
+   *   @param pa3D       Arrays containing position, extent, and 
+   *                     orientation data.
+   *   @param shapeType  The type of shape to draw for all the given
+   *                     detectors' pixels.
    */
-  public DetectorScene(IPhysicalArray3D[] pa3D)
+  public DetectorScene(IPhysicalArray3D[] pa3D, int shapeType)
   {
     super();
     
@@ -105,17 +113,43 @@ public class DetectorScene extends DetectorSceneBase
       if(points[det] != null) id = points[det].getArrayID();
       else id = -1;
       
-      addDetector(id, points[det], points[det]);
+      addDetector(id, shapeType, points[det], points[det]);
     }
     
     addSceneCircle();
     addLineAxes();
+  }
+  
+  
+  /**
+   * This method changes all of the detectors' pixels
+   * to be of the given shape type.  The scene is cleared
+   * and reconstructed.
+   * 
+   * @param shapeType The type of shape to use as defined
+   *                  by DetectorSceneBase.
+   */
+  public void changeShape(int shapeType)
+  {
+    Clear();
     
+    for(int det = 0, id = 0; det < points.length; det++)
+    {
+      if(points[det] != null) id = points[det].getArrayID();
+      else id = -1;
+      
+      addDetector(id, shapeType, points[det], points[det]);
+    }
+    
+    if(sceneCircleOn) addSceneCircle();
+    if(axisLinesOn) addLineAxes();
   }
 
  /**
   * This method updates the colors of each pixel to reflect changes
-  * in the color table.
+  * in the color table.  It assumes the detectors are the first
+  * items added to the group and that there is a detector group
+  * for each element of the data array.
   * 
   *  @param model This object is used to map the data value to a 
   *               color within the table.
@@ -126,17 +160,16 @@ public class DetectorScene extends DetectorSceneBase
     {
       if(points[det] != null)
       {
-        Group detector = (Group)getChild(det);
+        DetectorGroup detector = (DetectorGroup)getChild(det);
     	
         for( int i = 0; i < detector.numChildren(); i++)
         {
       	  // From DetectorGroup, get Transform. From Transform, get Shape
           float value = points[det].getValue(i);
           
-          PixelBox box = (PixelBox)((Group)detector.getChild(i)).getChild(0);
-          box.setValue(value);
-          box.setAppearance( new Appearance(
-        	                 new Material( model.getColor(value) ) ) );
+          SimpleShape shape = (SimpleShape)detector.getChild(i);
+          shape.setColor( model.getColor(value) );
+          ((IPixelShape)shape).setValue(value);
         }
       }
     }
@@ -186,7 +219,7 @@ public class DetectorScene extends DetectorSceneBase
     data[1].setArrayID(1); // Panel ID
   
     // Make Scene
-    DetectorScene scene = new DetectorScene(data);
+    DetectorScene scene = new DetectorScene(data, BOX);
 
     // Make JoglPanel to render scene
     final JoglPanel demo = new JoglPanel( scene );
