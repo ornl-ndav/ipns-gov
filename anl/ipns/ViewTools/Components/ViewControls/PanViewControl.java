@@ -34,7 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2005/07/28 15:50:20  kramer
+ *  Modified to support ContourJPanels.  The refreshData() and
+ *  setImageDimension() methods were modified to identify a ContourJPanel and
+ *  invoke the correct methods to get a thumbnail and the image's dimensions.
+ *
  *  Revision 1.22  2005/06/17 20:15:28  kramer
+ *
  *  Modified so that when ImageJPanel2.getThumbnail() method is called the
  *  thumbnail is forced to be redrawn (by giving the method
  *  'forceRedraw=true').  This fixes the problem that if the color scale is
@@ -139,27 +145,30 @@
  
  package gov.anl.ipns.ViewTools.Components.ViewControls;
 
- import java.awt.Component;
- import java.awt.Image;
- import java.awt.event.ActionListener;
- import java.awt.event.ActionEvent;
- import java.awt.event.ComponentAdapter;
- import java.awt.event.ComponentEvent;
- import java.awt.event.MouseAdapter;
- import java.awt.event.MouseEvent;
- import java.awt.Dimension;
- import java.awt.Graphics;
- import javax.swing.JFrame;
- import javax.swing.JPanel;
- import javax.swing.OverlayLayout;
- 
- import gov.anl.ipns.ViewTools.Panels.Transforms.*;
- import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2;
- import gov.anl.ipns.ViewTools.Components.ObjectState;
- import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
- import gov.anl.ipns.ViewTools.Components.Transparency.TranslationOverlay;
- import gov.anl.ipns.ViewTools.Components.TwoD.ArrayGenerator;
  import gov.anl.ipns.Util.Sys.WindowShower;
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.Cursor.TranslationJPanel;
+import gov.anl.ipns.ViewTools.Components.Transparency.TranslationOverlay;
+import gov.anl.ipns.ViewTools.Components.TwoD.ArrayGenerator;
+import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
+import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
+
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.OverlayLayout;
  
 /**
  * This view control is used to "pan" an image. Adding a PanViewControl
@@ -429,33 +438,45 @@ public class PanViewControl extends ViewControl
   {
     setImageDimension();
     setAspectRatio();
+    
+    boolean validPanel = false;
     if( actual_cjp instanceof ImageJPanel2 )
     { 
+      validPanel = true;
       Dimension panel_size = panel.getSize();
       // Since panel is in the PanViewControl, the aspect ratio of the
       // control affects the aspect ratio of the image. Don't need to
       // alter the image size according to the aspect ratio.
       panel_image = ((ImageJPanel2)actual_cjp).getThumbnail( panel_size.width, 
                             panel_size.height, true );
-      if( panel_image != null )
-      {
-        panel.setImage(panel_image);
-	// have to use update so Overlay is always displayed over the image.
-	if( getGraphics() != null && isShowing() )
-	  update( getGraphics() );
-        // Go up to the top-most level and repaint everything. This will
-	// draw the overlay on the image correctly.
-	Component temppainter = this;
-        while( temppainter.getParent() != null )
-          temppainter = temppainter.getParent();
-        // This prevents an infinite loop, since this method is called in the
-	// repaint() method.
-	if( temppainter != this )
-	  temppainter.repaint();
-      }
+    }
+    else if ( actual_cjp instanceof ContourJPanel )
+    {
+       validPanel = true;
+       Dimension panel_size = panel.getSize();
+       panel_image = 
+          ((ContourJPanel)actual_cjp).getThumbnail(panel_size.width,
+                                                   panel_size.height);
     }
     else
-      super.repaint();
+       super.repaint();
+    
+    if( validPanel && (panel_image != null) )
+    {
+      panel.setImage(panel_image);
+      // have to use update so Overlay is always displayed over the image.
+      if( getGraphics() != null && isShowing() )
+        update( getGraphics() );
+      // Go up to the top-most level and repaint everything. This will
+      // draw the overlay on the image correctly.
+      Component temppainter = this;
+      while( temppainter.getParent() != null )
+        temppainter = temppainter.getParent();
+      // This prevents an infinite loop, since this method is called in the
+      // repaint() method.
+      if( temppainter != this )
+        temppainter.repaint();
+    }
   }
   
  /*
@@ -467,6 +488,11 @@ public class PanViewControl extends ViewControl
     {
       data_width = (double)((ImageJPanel2)actual_cjp).getNumDataColumns();
       data_height = (double)((ImageJPanel2)actual_cjp).getNumDataRows();
+    }
+    else if ( actual_cjp instanceof ContourJPanel )
+    {
+       data_width = ((ContourJPanel)actual_cjp).getData().getNumColumns();
+       data_height = ((ContourJPanel)actual_cjp).getData().getNumRows();
     }
   }
  
@@ -573,48 +599,48 @@ public class PanViewControl extends ViewControl
   */
   public static void main(String[] args)
   {
-    // If cm is passed in, test with control manager.
-    if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
-    {
-      ImageJPanel2 test = new ImageJPanel2();
-      ArrayGenerator test_array = new ArrayGenerator(1000,1000);
-      test.setData(test_array, true);
-      ViewControl[] controls = new ViewControl[3];
-      controls[0] = new PanViewControl( test );
-      controls[0].setTitle("Pan1");
-      controls[0].setSharedKey("Pan");
-      controls[1] = new PanViewControl( test );
-      controls[1].setTitle("Pan2");
-      controls[1].setSharedKey("Pan");
-      controls[2] = new PanViewControl( test );
-      controls[2].setTitle("Pan3");
-      controls[2].setSharedKey("Pan");
-      
-      JFrame frame = ControlManager.makeManagerTestWindow( controls );
-      frame.setBounds(0,0,450,500);
-      
-      WindowShower.show(frame);
-      return;
-    }
-    
-    JFrame f = new JFrame("Test for PanViewControl");
-    f.getContentPane().setLayout( new java.awt.GridLayout(2,1) );
-    f.setBounds(0,0,200,400);
-    f.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-    ImageJPanel2 test = new ImageJPanel2();
-    ArrayGenerator test_array = new ArrayGenerator(1000,1000);
-    
-    test.setData(test_array, true);
+     // If cm is passed in, test with control manager.
+     if( args.length > 0 && args[0].equalsIgnoreCase("cm") )
+     {
+       ImageJPanel2 test = new ImageJPanel2();
+       ArrayGenerator test_array = new ArrayGenerator(1000,1000);
+       test.setData(test_array, true);
+       ViewControl[] controls = new ViewControl[3];
+       controls[0] = new PanViewControl( test );
+       controls[0].setTitle("Pan1");
+       controls[0].setSharedKey("Pan");
+       controls[1] = new PanViewControl( test );
+       controls[1].setTitle("Pan2");
+       controls[1].setSharedKey("Pan");
+       controls[2] = new PanViewControl( test );
+       controls[2].setTitle("Pan3");
+       controls[2].setSharedKey("Pan");
 
-    PanViewControl pvc = new PanViewControl( test );
-    CoordBounds local = pvc.getGlobalBounds();
-    local.scaleBounds(.5f,.5f);
-    pvc.setLocalBounds(local);
-    pvc.enableStretch(false);
-    PanViewControl pvc2 = (PanViewControl)pvc.copy();
-    pvc2.setTitle("Clone");
-    f.getContentPane().add(pvc);
-    f.getContentPane().add(pvc2);
-    WindowShower.show(f);
+       JFrame frame = ControlManager.makeManagerTestWindow( controls );
+       frame.setBounds(0,0,450,500);
+
+       WindowShower.show(frame);
+       return;
+     }
+
+     JFrame f = new JFrame("Test for PanViewControl");
+     f.getContentPane().setLayout( new java.awt.GridLayout(2,1) );
+     f.setBounds(0,0,200,400);
+     f.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+     ImageJPanel2 test = new ImageJPanel2();
+     ArrayGenerator test_array = new ArrayGenerator(1000,1000);
+
+     test.setData(test_array, true);
+
+     PanViewControl pvc = new PanViewControl( test );
+     CoordBounds local = pvc.getGlobalBounds();
+     local.scaleBounds(.5f,.5f);
+     pvc.setLocalBounds(local);
+     pvc.enableStretch(false);
+     PanViewControl pvc2 = (PanViewControl)pvc.copy();
+     pvc2.setTitle("Clone");
+     f.getContentPane().add(pvc);
+     f.getContentPane().add(pvc2);
+     WindowShower.show(f);
   }
 }
