@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/07/28 15:36:40  kramer
+ * Modified this class's listeners to invoke setter methods instead of
+ * directly 'setting values'.  Also, the setter methods have been modified
+ * to update the graphical elements when a value is set on the element.
+ *
  * Revision 1.1  2005/07/25 20:52:58  kramer
+ *
  * Initial checkin.  This is a module of the ContourViewComponent that is
  * responsible for handling the ViewMenus that are located on the component.
  *
@@ -214,6 +220,8 @@ public class ContourMenuHandler extends ContourChangeHandler
                //the String that identifies the colorscale
                colorScale = event.getActionCommand();
             }
+            else
+               setIsDoubleSidedColorScale(getIsDoubleSidedColorScale());
            
             colorScaleNameChanged(colorScale);
          }
@@ -254,7 +262,7 @@ public class ContourMenuHandler extends ContourChangeHandler
          {
             if (event.getActionCommand().equals(ColorControl.COLOR_CHANGED))
             {
-               colorChanged(contourColorItem.getSelectedColor());
+               setLineColor(contourColorItem.getSelectedColor());
             }
          }
       });
@@ -411,6 +419,7 @@ public class ContourMenuHandler extends ContourChangeHandler
    
    public void setIsDoubleSidedColorScale(boolean doubleSided)
    {
+      isDoubleSidedItem.setSelected(doubleSided);
       isDoubleSidedChanged(doubleSided);
    }
    
@@ -425,16 +434,10 @@ public class ContourMenuHandler extends ContourChangeHandler
    public void setPreserveAspectRatio(boolean isSelected)
    {
       //update the menu item to be either selected or deselected
-      if (aspectRatioItem!=null)
+      if (aspectRatioItem != null)
         aspectRatioItem.setSelected(isSelected);
       
       preserveAspectRatioChanged(isSelected);
-      
-      /*
-      //update the ContourJPanel
-        getContourPanel().setPreserveAspectRatio(isSelected);
-        getContourPanel().reRender();
-      */
    }
    
    public Color getLineColor()
@@ -453,8 +456,6 @@ public class ContourMenuHandler extends ContourChangeHandler
       contourColorItem.setSelectedColor(color);
       colorChanged(color);
    }
-   
-   
 //-----------=[ End getter/setter methods for the menu items ]=---------------//
    
 
@@ -466,12 +467,12 @@ public class ContourMenuHandler extends ContourChangeHandler
       aspectRatioItem = 
          new JCheckBoxMenuItem("Preserve Aspect Ratio");
       aspectRatioItem.addActionListener(new ActionListener()
-            {
+      {
          public void actionPerformed(ActionEvent event)
          {
             setPreserveAspectRatio(aspectRatioItem.isSelected());
          }
-            });
+      });
       setPreserveAspectRatio(preserveAspectRatio);
 
       return aspectRatioItem;
