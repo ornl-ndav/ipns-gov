@@ -33,7 +33,16 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/07/28 22:56:18  kramer
+ * Made all of the '*changed()' methods (ex. 'colorChanged()',
+ * 'displayChanged()' ....) final.  Modified all of the 'change*()' methods
+ * (ex. 'changeColor()', 'changeDisplay()' ....) to also call
+ * 'this.change*()' (ex. 'changeColor()' calls 'this.changeColor()' ....).
+ * Also, the 'propertyChanged()' method no longer calls
+ * 'this.connector.propertyChanged()' (it was causing infinite loops).
+ *
  * Revision 1.1  2005/07/25 20:40:15  kramer
+ *
  * Initial checkin.  This class is an abstract implementation of a
  * PropertyChangeHandler.  It contains the keys for and convience methods to
  * listen to/notify modules of changes to the shared data between various
@@ -115,39 +124,47 @@ public abstract class ContourChangeHandler implements PropertyChangeHandler,
    
 //--------=[ Methods invoked to specify that a property has changed ]=--------//
    //call these methods after changing one of the shared properties
-   public void colorScaleNameChanged(String colorscale)
+   public final void colorScaleNameChanged(String colorscale)
    {
-      propertyChanged(COLORSCALE_NAME, colorscale);
+      this.changeColorScaleName(colorscale);
+      connector.propertyChanged(COLORSCALE_NAME, colorscale, this);
    }
    
-   public void colorChanged(Color color)
+   public final void colorChanged(Color color)
    {
-      propertyChanged(CONTOUR_COLOR, color);
+      this.changeColor(color);
+      connector.propertyChanged(CONTOUR_COLOR, color, this);
    }
    
-   public void isDoubleSidedChanged(boolean isDoubleSided)
+   public final void isDoubleSidedChanged(boolean isDoubleSided)
    {
-      propertyChanged(IS_DOUBLE_SIDED, new Boolean(isDoubleSided));
+      this.changeIsDoubleSided(isDoubleSided);
+      connector.propertyChanged(IS_DOUBLE_SIDED, new Boolean(isDoubleSided), 
+                                this);
    }
    
-   public void colorScaleLocationChanged(String location)
+   public final void colorScaleLocationChanged(String location)
    {
-      propertyChanged(COLORSCALE_LOCATION, location);
+      this.changeColorScaleLocation(location);
+      connector.propertyChanged(COLORSCALE_LOCATION, location, this);
    }
    
-   public void intensityChanged(double intensity)
+   public final void intensityChanged(double intensity)
    {
-      propertyChanged(INTENSITY, new Double(intensity));
+      this.changeIntensity(intensity);
+      connector.propertyChanged(INTENSITY, new Double(intensity), this);
    }
    
-   public void displayChanged()
+   public final void displayChanged()
    {
-      propertyChanged(DISPLAY, null);
+      this.changeDisplay();
+      connector.propertyChanged(DISPLAY, null, this);
    }
    
-   public void preserveAspectRatioChanged(boolean preserve)
+   public final void preserveAspectRatioChanged(boolean preserve)
    {
-      propertyChanged(ASPECT_RATIO, new Boolean(preserve));
+      this.changeAspectRatio(preserve);
+      connector.propertyChanged(ASPECT_RATIO, new Boolean(preserve), this);
    }
 //------=[ End methods invoked to specify that a property has changed ]=------//
 
@@ -187,7 +204,7 @@ public abstract class ContourChangeHandler implements PropertyChangeHandler,
       else if (property.equals(ASPECT_RATIO))
          changeAspectRatio( ((Boolean)value).booleanValue() );
       
-      connector.propertyChanged(property, value, this);
+      //this.connector.propertyChanged(property, value, this);
    }
 //---------------------=[ End convience methods ]=----------------------------// 
 }
