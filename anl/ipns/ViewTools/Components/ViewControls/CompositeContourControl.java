@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.8  2005/07/28 15:46:35  kramer
+ * -Changed all occurences of SharedData to SharedMessages.  Now this class
+ *  does not use any class from the DataSetTools.* packages.
+ * -Now when the contour specifications are changed a CONTOURS_CHANGED
+ *  message is sent to all listeners.
+ *
  * Revision 1.7  2005/07/25 20:22:40  kramer
+ *
  * Modified the javadocs to link to the new ContourViewComponent (which has
  * been moved).
  *
@@ -82,6 +89,7 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
 
 import gov.anl.ipns.Util.StringFilter.FloatFilter;
 import gov.anl.ipns.Util.StringFilter.IntegerFilter;
+import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
@@ -99,8 +107,6 @@ import java.util.Vector;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import DataSetTools.util.SharedData;
-
 /**
  * This ViewControl was designed specifically for the 
  * {@link gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent 
@@ -111,6 +117,8 @@ import DataSetTools.util.SharedData;
  */
 public class CompositeContourControl extends ViewControl
 {
+   public static final String CONTOURS_CHANGED = "Contours changed";
+   
    //------------------------=[ ObjectState keys ]=----------------------------
    /**
     * "Uniform contour state" - This static constant String is used to 
@@ -229,9 +237,9 @@ public class CompositeContourControl extends ViewControl
             }
             catch (Exception e)
             {
-               SharedData.addmsg("Warning:  A non floating-point numbers was " +
-                              "found in the list of contour levels to " +
-                              "display");
+               SharedMessages.addmsg("Warning:  A non floating-point " +
+                                     "number was found in the list of " +
+                                     "contour levels to display");
             }
          }
          return fArr;
@@ -470,7 +478,7 @@ public class CompositeContourControl extends ViewControl
          contours = getEnteredNonUniformContours(errMsg);
       
       if (errMsg[0]!=null)
-         SharedData.addmsg(errMsg[0]);
+         SharedMessages.addmsg(errMsg[0]);
       return contours;
    }
    
@@ -795,10 +803,10 @@ public class CompositeContourControl extends ViewControl
          }
          catch (NumberFormatException e)
          {
-            SharedData.addmsg("warning:  The contour level "+
-                               obArr[i].toString()+" is not a proper " +
-                               "floating point number and will be " +
-                               "ignored");
+            SharedMessages.addmsg("warning:  The contour level " + 
+                                  obArr[i].toString()+" is not a proper " +
+                                  "floating point number and will be " +
+                                  "ignored");
          }
       }
       
@@ -877,11 +885,14 @@ public class CompositeContourControl extends ViewControl
       String[] errMsg = new String[1];
       UniformContours contours = getEnteredUniformContours(errMsg);
       if (contours!=null)
+      {
          contourPanel.setContours(contours);
+         send_message(CONTOURS_CHANGED);
+      }
       else
       {
          if (errMsg[0]!=null)
-            SharedData.addmsg(errMsg[0]);
+            SharedMessages.addmsg(errMsg[0]);
       }
    }
    
@@ -896,11 +907,14 @@ public class CompositeContourControl extends ViewControl
       String[] errMsg = new String[1];
       NonUniformContours contours = getEnteredNonUniformContours(errMsg);
       if (contours!=null)
+      {
          contourPanel.setContours(contours);
+         send_message(CONTOURS_CHANGED);
+      }
       else
       {
          if (errMsg[0]!=null)
-            SharedData.addmsg(errMsg[0]);
+            SharedMessages.addmsg(errMsg[0]);
       }
    }
    
@@ -921,15 +935,16 @@ public class CompositeContourControl extends ViewControl
          getEnteredNonUniformContours(nonuniformErrMsg);
       
       if (uniformControls==null && uniformErrMsg[0]!=null)
-            SharedData.addmsg(uniformErrMsg[0]);
+            SharedMessages.addmsg(uniformErrMsg[0]);
       
       if (nonuniformControls==null && 
             !getNonUniformControls().isEmpty() && 
                nonuniformErrMsg[0]!=null)
-            SharedData.addmsg(nonuniformErrMsg[0]);
+            SharedMessages.addmsg(nonuniformErrMsg[0]);
       
       contourPanel.setContours(new OrderedContours(uniformControls,
                                                    nonuniformControls,
                                                    false));
+      send_message(CONTOURS_CHANGED);
    }
 }
