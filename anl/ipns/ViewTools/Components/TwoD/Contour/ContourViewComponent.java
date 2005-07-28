@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/07/28 23:06:29  kramer
+ * There was a problem where the ContourJPanel's and PanViewControl's
+ * displays were not in sync.  Some commented code that failed to solve this
+ * problem was removed from this class.  Instead the problem appears to have
+ * been solved by modifying the ContourJPanel class.
+ *
  * Revision 1.2  2005/07/28 15:41:53  kramer
+ *
  * The ContourControlHandler has support for a PanViewControl.  Currently,
  * however, sometimes when the ContourViewComponent is made, the thumbnail
  * image or the large display is not displayed.  There are a couple
@@ -192,29 +199,19 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                                              center, 
                                              contourPanel, 
                                              useColorScale);
-        
-//TODO  This is here to make the thumbnail and contour panel to be displayed 
-//      otherwise one is blank when the viewer is started
-//      However, this code doesn't always work.
-//        AxisInfo xInfo = v2D.getAxisInfo(AxisInfo.X_AXIS);
-//        AxisInfo yInfo = v2D.getAxisInfo(AxisInfo.Y_AXIS);
-//        contourPanel.initializeWorldCoords(new CoordBounds(xInfo.getMin(), 
-//              yInfo.getMax(), 
-//              xInfo.getMax(), 
-//              yInfo.getMin()));
-        
-      //and build the controls
-        controlHandler = new ContourControlHandler(connector, 
-                                                   center, 
-                                                   contourPanel, 
-                                                   useManualLevels);
-        
+
       //and the layout
         layoutHandler = new ContourLayoutHandler(connector, 
                                                  center, 
                                                  contourPanel, 
                                                  this, 
                                                  v2D);
+        
+      //and build the controls
+        controlHandler = new ContourControlHandler(connector, 
+                                                   center, 
+                                                   contourPanel, 
+                                                   useManualLevels);
         
       //and make the object that will record if a solid color or 
       //colorscale name is currently being used to color the coontour lines
@@ -223,14 +220,14 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                                                          contourPanel, 
                                                          useColorScale);
       
-      dataChanged(v2D);
       
-//TODO This is here to make the thumbnail and contour panel to be displayed 
-//     otherwise one is blank when the viewer is started
-//     However, this code doesn't always work.
-//      contourPanel.invalidateThumbnail();
-//      controlHandler.reinit(v2D);
-//      contourPanel.send_message(ContourJPanel.RESET_ZOOM);
+      //because the ContourMenuHandler is made first, the color it specifies 
+      //for the contour lines is overriden by the other modules (the 
+      //control and layout handlers).  So restore the menu handler's 
+      //specification
+        menuHandler.setLineColor(menuHandler.getLineColor());
+        
+      dataChanged(v2D);
    }
    
    public ContourViewComponent(IVirtualArray2D arr)
@@ -355,9 +352,6 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       
       layoutHandler.changeDisplay();
       layoutHandler.displayChanged();
-      
-      layoutHandler.getContourPanel().send_message(ContourJPanel.RESET_ZOOM);
-      controlHandler.changeDisplay();
    }
 
    public void dataChanged()
