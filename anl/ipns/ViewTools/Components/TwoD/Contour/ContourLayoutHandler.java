@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/07/28 15:33:21  kramer
+ * Changed calls from changeDisplay() (which repaints the display) to
+ * displayChanged() (which tells all listeners to repaint the display).
+ * As a result, the new PanViewControl is repainted as the main window is
+ * repainted.
+ *
  * Revision 1.1  2005/07/25 20:48:21  kramer
+ *
  * Initial checkin.  This is the module of the ContourViewComponent that is
  * responsible for working with the ContourJPanel and overlays on the
  * ContourViewComponent.
@@ -220,7 +227,7 @@ public class ContourLayoutHandler extends ContourChangeHandler
          contourPanel.changeData(v2D);
          
          //paint all of the components
-         changeDisplay();
+         displayChanged();
          
          this.layerPanel.revalidate();
          this.layerPanel.repaint();
@@ -279,13 +286,13 @@ public class ContourLayoutHandler extends ContourChangeHandler
       if (ccs != null)
          ccs.setColorScale(colorscale, isDoubleSided);
          
-      changeDisplay();
+      displayChanged();
    }
    
    public void changeColor(Color color)
    {
       getContourPanel().setColorScale(color);
-      changeDisplay();
+      displayChanged();
    }
    
    public void changeIsDoubleSided(boolean isDoubleSided)
@@ -302,7 +309,7 @@ public class ContourLayoutHandler extends ContourChangeHandler
          control.setColorScale(colorscale, isDoubleSided);
       }
       
-      changeDisplay();
+      displayChanged();
    }
    
    public void changeColorScaleLocation(String location)
@@ -333,7 +340,7 @@ public class ContourLayoutHandler extends ContourChangeHandler
          this.partitionPanel.adjustPreferredSizes(0, 0, 100, 0);
       }
          
-      changeDisplay();
+      displayChanged();
    }
    
    public void changeIntensity(double intensity)
@@ -342,13 +349,13 @@ public class ContourLayoutHandler extends ContourChangeHandler
       ControlColorScale scale = getVisibleColorScale();
       if (scale != null)
          scale.setLogScale(intensity);
-      changeDisplay();
+      displayChanged();
    }
    
    public void changeAspectRatio(boolean preserve)
    {
       setPreserveAspectRatio(preserve);
-      changeDisplay();
+      displayChanged();
    }
 //------=[ End methods implemented for the ContourChangeHandler class ]=------//
    
@@ -648,7 +655,7 @@ public class ContourLayoutHandler extends ContourChangeHandler
    {
       public void componentResized(ComponentEvent event)
       {
-         changeDisplay();
+         displayChanged();
       }
    }
 
@@ -670,7 +677,7 @@ public class ContourLayoutHandler extends ContourChangeHandler
          
          if (command.equals(ContourJPanel.ZOOM_IN) || 
                command.equals(ContourJPanel.RESET_ZOOM))
-            changeDisplay();
+            displayChanged();
       }
    }
 //-------------------------=[ End listeners ]=--------------------------------//
