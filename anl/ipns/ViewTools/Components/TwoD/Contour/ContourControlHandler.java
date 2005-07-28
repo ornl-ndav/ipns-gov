@@ -33,7 +33,16 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/07/28 15:28:11  kramer
+ * -Added support for a PanViewControl (added a method to create the control
+ *  and added a custom listener for the control).
+ * -Modified all of the controls listeners so that when they are invoked, the
+ *  listeners invoke the appropriate setter methods.
+ * -Modified the setter methods to update the gui elements and invoke the
+ *  correct *changed() method (i.e. colorChanged() or displayChanged() ....)
+ *
  * Revision 1.1  2005/07/25 20:46:00  kramer
+ *
  * Initial checkin.  This is a module of the ContourViewComponent that is
  * responsible for handling the various ViewControls on the component.
  *
@@ -53,6 +62,7 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckboxCombobox;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlCheckboxSpinner;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlColorScale;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
+import gov.anl.ipns.ViewTools.Components.ViewControls.PanViewControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.SpinnerControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
@@ -307,7 +317,7 @@ public class ContourControlHandler extends ContourChangeHandler
     * intensity of the colorscale that is used to color the contour lines.
     */
    private ControlSlider intensitySlider;
-   
+   private PanViewControl panControl;
    
    private ViewControl[] controls;
 //---------------------------=[ End fields ]=---------------------------------//
@@ -379,15 +389,18 @@ public class ContourControlHandler extends ContourChangeHandler
       //now to connect to the PropertyChangeConnector
       getPropertyConnector().addHandler(this);
       
-      controls = new ViewControl[7];
+      controls = new ViewControl[8];
       controls[0] = generateIntensityControls();
       controls[1] = generateColorScaleControls(colorScale, isDoubleSided);
       controls[2] = generateContourControls(minValue, maxValue, numLevels, 
-                                            levels, useManualLevels);
+                                                levels, useManualLevels);
       controls[3] = generateLineStyleControl(styles, stylesEnabled);
       controls[4] = generateLabelControls(enableLabels, everyNthLineLabeled);
       controls[5] = generateSigFigControls(enableFormatting, numSigFig);
       controls[6] = generateBackgroundControls(backgroundColor);
+      controls[7] = generatePanViewControl();
+      
+      getContourPanel().addActionListener(new PanelListener());
    }
 //------------------------=[ End constructors ]=------------------------------//
    
@@ -395,7 +408,13 @@ public class ContourControlHandler extends ContourChangeHandler
 //--------=[ Methods implemented for the ContourChangeHandler class ]=--------//
    public void reinit(IVirtualArray2D v2d)
    {
-      //nothing has to be done if a new virtual array is given
+      //if the data has changed, make sure that the thumbnail is invalidated
+      //so that when it is requested, a new thumbnail based on the new data 
+      //is returned (and not a cached copy based on the old data)
+        getContourPanel().invalidate();
+//TODO Check if this is needed
+//      this.panControl.validate();
+//      this.panControl.repaint();
    }
    
    public void changeColorScaleName(String colorscale)
@@ -431,6 +450,17 @@ public class ContourControlHandler extends ContourChangeHandler
    public void changeIsDoubleSided(boolean isDoubleSided)
    {
       this.controlColorscale.setColorScale(getColorScale(), isDoubleSided);
+   }
+   
+   public void changeDisplay()
+   {
+      if (this.panControl != null)
+      {
+         //when the display is updated the only ViewControl that needs to 
+         //updated is the PanViewControl
+         this.panControl.validate();
+         this.panControl.repaint();
+      }
    }
 //------=[ End methods implemented for the ContourChangeHandler class ]=------//
 
@@ -524,12 +554,16 @@ public class ContourControlHandler extends ContourChangeHandler
    public void setColorScale(Color color)
    {
       changeColor(color);
+      colorChanged(color);
    }
    
    public void setColorScale(String colorscale, boolean isDoubleSided)
    {
       changeColorScaleName(colorscale);
+      colorScaleNameChanged(colorscale);
+      
       changeIsDoubleSided(isDoubleSided);
+      isDoubleSidedChanged(isDoubleSided);
    }
    
    public Contours getActiveContours()
@@ -562,6 +596,8 @@ public class ContourControlHandler extends ContourChangeHandler
          return;
       
       lineStyleControl.setEnabledLineStyles(styles);
+      getContourPanel().setLineStyles(styles);
+      displayChanged();
    }
    
    public boolean getIsLabelEnabled()
@@ -578,6 +614,7 @@ public class ContourControlHandler extends ContourChangeHandler
          return;
       
       labelControl.setChecked(enable);
+      displayChanged();
    }
    
    public int getLabelEvery()
@@ -594,6 +631,8 @@ public class ContourControlHandler extends ContourChangeHandler
          return;
       
       labelControl.setSpinnerValue(new Integer(nthLine));
+      getContourPanel().setShowLabelEvery(nthLine);
+      displayChanged();
    }
    
    public boolean getIsLabelFormattingEnabled()
@@ -610,6 +649,7 @@ public class ContourControlHandler extends ContourChangeHandler
          return;
       
       sigFigControl.setChecked(enable);
+      displayChanged();
    }
    
    public int getNumSigFigs()
@@ -626,6 +666,8 @@ public class ContourControlHandler extends ContourChangeHandler
          return;
       
       sigFigControl.setSpinnerValue(new Integer(num));
+      getContourPanel().setNumSigDigits(num);
+      displayChanged();
    }
    
    public Color getBackgroundColor()
@@ -642,11 +684,15 @@ public class ContourControlHandler extends ContourChangeHandler
          return;
       
       backgroundControl.setSelectedColor(color);
+      getContourPanel().setBackgroundColor(color);
+      displayChanged();
    }
    
    public void setIntensity(double intensity)
    {
       changeIntensity(intensity);
+      intensityChanged(intensity);
+      displayChanged();
    }
    
    public double getColorScaleIntensity()
@@ -671,9 +717,7 @@ public class ContourControlHandler extends ContourChangeHandler
          {
             if (event.getActionCommand().equals(ColorControl.COLOR_CHANGED))
             {
-               getContourPanel().setBackgroundColor(
-                     backgroundControl.getSelectedColor());
-               getContourPanel().reRender();
+               setBackgroundColor(backgroundControl.getSelectedColor());
             }
          }
       });
@@ -691,7 +735,7 @@ public class ContourControlHandler extends ContourChangeHandler
       {
          public void actionPerformed(ActionEvent event)
          {
-            intensityChanged(intensitySlider.getValue());
+            setIntensity(intensitySlider.getValue());
          }
       });
       return intensitySlider;
@@ -725,6 +769,15 @@ public class ContourControlHandler extends ContourChangeHandler
                                      minValue, maxValue, numLevels, 
                                      levels, 
                                      false);
+      contourControl.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            if (event.getActionCommand().
+                  equals(CompositeContourControl.CONTOURS_CHANGED))
+               displayChanged();
+         }
+      });
       return contourControl;
    }
    
@@ -758,11 +811,10 @@ public class ContourControlHandler extends ContourChangeHandler
                   mssg.equals(ControlCheckbox.CHECKBOX_CHANGED))
             {
                if (labelControl.isChecked())
-                  getContourPanel().setShowLabelEvery((
-                     (Integer)labelControl.getSpinnerValue()).
-                        intValue());
+                  setLabelEvery( ( (Integer)labelControl.getSpinnerValue() ).
+                                   intValue() );
                else
-                  getContourPanel().setShowAllLabels(false);
+                  setLabelEvery(-1);
             }
          }
       });
@@ -794,11 +846,10 @@ public class ContourControlHandler extends ContourChangeHandler
                     mssg.equals(ControlCheckbox.CHECKBOX_CHANGED))
               {
                  if (sigFigControl.isChecked())
-                    getContourPanel().setNumSigDigits(
-                          ((Integer)sigFigControl.getSpinnerValue()).
-                             intValue());
+                    setNumSigFigs(((Integer)sigFigControl.getSpinnerValue()).
+                                  intValue());
                  else
-                    getContourPanel().setNumSigDigits(-1);
+                    setNumSigFigs(-1);
               }
            }
         });
@@ -806,7 +857,48 @@ public class ContourControlHandler extends ContourChangeHandler
       
       return sigFigControl;
    }
+   
+   private PanViewControl generatePanViewControl()
+   {
+      this.panControl = new PanViewControl(getContourPanel());
+      this.panControl.setTitle("Panning tool");
+      this.panControl.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            String message = event.getActionCommand();
+            if (message.equals(PanViewControl.BOUNDS_CHANGED) || 
+                  message.equals(PanViewControl.BOUNDS_MOVED) || 
+                     message.equals(PanViewControl.BOUNDS_RESIZED))
+            {
+               getContourPanel().
+                  setLocalWorldCoords(panControl.getLocalBounds());
+               displayChanged();
+            }
+         }
+      });
+      return this.panControl;
+   }
 //--------------=[ End methods used to generate the controls ]=---------------//
+
+   
+//--------------------------=[ Listeners ]=-----------------------------------//
+   private class PanelListener implements ActionListener
+   {
+      public void actionPerformed(ActionEvent event)
+      {
+         String message = event.getActionCommand();
+         if (message.equals(ContourJPanel.ZOOM_IN) || 
+               message.equals(ContourJPanel.RESET_ZOOM))
+         {
+            ContourJPanel contourPanel = getContourPanel();
+            panControl.setGlobalBounds(contourPanel.getGlobalWorldCoords());
+            panControl.setLocalBounds(contourPanel.getLocalWorldCoords());
+            panControl.repaint();
+         }
+      }
+   }
+//------------------------=[ End listeners ]=---------------------------------//
    
    
 //--------------------=[ Custom controls ]=-----------------------------------//
@@ -1238,7 +1330,7 @@ public class ContourControlHandler extends ContourChangeHandler
                   currentStyles[j++] = 
                      getStyleForIndex(styleBoxes[i].getSelectedIndex());
                
-            getContourPanel().setLineStyles(currentStyles);
+            setLineStyles(currentStyles);
          }
       }
    }
