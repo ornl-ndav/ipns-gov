@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/07/28 15:43:11  kramer
+ * Added some needed imports.
+ *
  * Revision 1.3  2005/07/19 19:00:43  kramer
+ *
  * Added javadocs and modified the main method to test the
  * set/getObjectState() methods.
  *
@@ -51,12 +55,10 @@
  */
 package gov.anl.ipns.ViewTools.Components.ViewControls;
 
-import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -64,7 +66,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.WindowConstants;
 
 /**
