@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.8  2005/07/28 23:09:03  kramer
+ * Removed an unnecessary System.out.println() statement.
+ *
  * Revision 1.7  2005/07/12 16:31:27  kramer
+ *
  * Added code comments and javadocs.  Added methods for the IPreserveState
  * interface (which the superclass (Contours) implements directly).  Added
  * a constructor that has parameters:  the lowest contour level, the number
@@ -195,8 +199,6 @@ public class UniformContours extends Contours
     */
    public ObjectState getObjectState(boolean isDefault)
    {
-      System.out.println("UniformContours:  inside getObjectState()");
-      
       //get the superclass's state
       ObjectState state = super.getObjectState(isDefault);
         //store the height of the lowest contour level and the 
