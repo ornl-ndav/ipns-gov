@@ -34,7 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/07/28 15:52:04  kramer
+ *  Modified to make the ContourViewComponent's new PanViewControl a visible
+ *  control.
+ *
  *  Revision 1.4  2005/07/25 20:51:04  kramer
+ *
  *  Modified the imports so that the new ContourViewComponent (from the
  *  package gov.anl.ipns.ViewTools.Components.TwoD.Contour package) is used.
  *
@@ -289,7 +294,7 @@ import javax.swing.JPanel;
           shared[0].setSharedKey("Intensity");
         //this is the list of indices of controls that 
         //should be visible from the array 'ivc.getControls()'
-        int[] indices = new int[] {1,2,3,4,5,6};
+        int[] indices = new int[] {1,2,3,4,5,6,7};
         swapper.setVisibleControls(indices);
         return shared;
      }
