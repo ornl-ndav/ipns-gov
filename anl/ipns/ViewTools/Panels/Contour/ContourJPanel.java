@@ -33,7 +33,24 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.19  2005/07/28 23:17:13  kramer
+ * -Now if the labels or number of significant figures is changed the
+ *  thumbnail is not invalidated (this reduces the number of times the
+ *  thumbnail needs to be redrawn because the labels are not shown in the
+ *  thumbnail anyway).
+ * -Added comments to the getThumbnail() method and modified it to paint the
+ *  entire thumbnail the same color as the panel's background before it
+ *  starts drawing the thumbnail.  This seems to fix the problem that was
+ *  occuring where there was a black stripe in the thumbnail.  However, it
+ *  is an expensive solution.
+ * -Now the thumbnail is not valid if the big image has been drawn yet.  This
+ *  fixes the problem where the big image and thumbnail were out of sync.
+ * -Modified the setter methods to not invalidate the thumbnail unless the
+ *  value given to the setter method actually changes the value already saved.
+ *  This reduces the number of times the thumbnail needs to be redrawn.
+ *
  * Revision 1.18  2005/07/28 15:58:46  kramer
+ *
  * -Changed all occurences of SharedData to SharedMessages.  Now this class
  *  does not use any class from the DataSetTools.* packages.
  * -Added the getThumbnail() and invalidateThumbnail() methods.
@@ -579,9 +596,12 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public void changeData(IVirtualArray2D arr)
    {
-      data2D = arr;
-      invalidateThumbnail();
-      reRender();
+      if (this.data2D != arr)
+      {
+         data2D = arr;
+         invalidateThumbnail();
+         reRender();
+      }
    }
    
    /**
@@ -602,8 +622,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public void setContours(Contours levels)
    {
-      this.levels = levels;
-      invalidateThumbnail();
+      if (this.levels != levels)
+      {
+         this.levels = levels;
+         invalidateThumbnail();
+      }
    }
    
    /**
@@ -644,9 +667,26 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       if (lineStyles==null || lineStyles.length==0)
          setLineStyles(DEFAULT_LINE_STYLE);
       else
-         this.lineStyles = lineStyles;
-      
-      invalidateThumbnail();
+      {
+         boolean equal = false;
+         if (this.lineStyles != null)
+         {
+            equal = (this.lineStyles == lineStyles) && 
+                    (this.lineStyles.length == lineStyles.length);
+            if (equal)
+            {
+               int i = 0;
+               while ( equal && (i<lineStyles.length) )
+                  equal = (this.lineStyles[i] == lineStyles[i]);
+            }
+         }
+         
+         if (!equal)
+         {
+            this.lineStyles = lineStyles;
+            invalidateThumbnail();
+         }
+      }
    }
    
    /**
@@ -697,7 +737,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       else
          this.showLabels = showLabels;
       
-      invalidateThumbnail();
+      //Note:  If the labels are modified the thumbnail does not have to 
+      //       be invalidated because the thumbnail doesn't show the labels
+      //invalidateThumbnail();
    }
    
    /**
@@ -776,7 +818,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       else
          this.numSigFigs = numSigDigs;
       
-      invalidateThumbnail();
+      //Note:  If the number of significant figures are modified the 
+      //       thumbnail does not have to be invalidated because the 
+      //       thumbnail doesn't show the labels and thus does not 
+      //       reflect the number of significant figures being used
+      //invalidateThumbnail();
    }
    
    /**
@@ -832,8 +878,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          setColorScale(IndexColorMaker.getDualColorTable(scaleType, numColors));
       else
          setColorScale(IndexColorMaker.getColorTable(scaleType, numColors));
-      
-      invalidateThumbnail();
    }
    
    /**
@@ -855,9 +899,24 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       if (colors==null || colors.length<1)
          return;
       
-      this.colorScale = colors;
+      boolean equal = false;
+      if (this.colorScale != null)
+      {
+         equal = (this.colorScale == colors) && 
+                 (this.colorScale.length == colors.length);
+         if (equal)
+         {
+            int i = 0;
+            while ( equal && (i<colors.length) )
+               equal = (this.colorScale[i] == colors[i]);
+         }
+      }
       
-      invalidateThumbnail();
+      if (!equal)
+      {
+         this.colorScale = colors;
+         invalidateThumbnail();
+      }
    }
    
    /**
@@ -891,9 +950,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       if (color==null)
          return;
       
-      setBackground(color);
-      
-      invalidateThumbnail();
+      if (!getBackground().equals(color))
+      {
+         setBackground(color);
+         invalidateThumbnail();
+      }
    }
    
    /*
@@ -998,45 +1059,51 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public Image getThumbnail(int width, int height)
    {
       //the thumbnail is chached because it is expensive to create it
-      //check if there is a cached thumbnail to return
-       if (isThumbnailValid(width, height))
-          return this.thumbnail;
+      //check if there is a valid cached thumbnail to return
+        if (isThumbnailValid(width, height))
+           return this.thumbnail;
       
-       //validate the width and height
+      //correct the width and height if they are invalid
         if (width <= 0)
            width = 100;
         if (height <= 0)
            height = 100;
        
-      //otherwise it has to be recreated
-       BufferedImage image = 
-          new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-      
-       /*
-      //we want to create a thumbnail of the entire panel so change the 
-      //local bounds to correspond to the entire panel.  Then, change them 
-      //back after the thumbnail is made
-       //save the local bounds
-         CoordBounds oldBounds = getLocalWorldCoords();
-       //set the local bounds to correspond to the entire panel
-         setLocalWorldCoords(getGlobalWorldCoords());
+      //create a new blank thumbnail
+        BufferedImage image = 
+           new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        
+      //TODO This forces the background color of the image to correspond to 
+      //     the background of the panel.  This is here because the draw() 
+      //     method sometimes leaves a black stripe on the right side of the 
+      //     thumbnail.  This is not very efficient and thus a better 
+      //     solution should be found
+        int rgb = getBackgroundColor().getRGB();
+        for (int x=0; x<width; x++)
+           for (int y=0; y<height; y++)
+              image.setRGB(x, y, rgb);
+        
+      //the following variables are effected by the painting of the 
+      //thumbnail and need to be reverted when the painting is complete
+        //when the thumbnail is painted, the variable holding whether 
+        //or not the main image was painted should not be affected
+          boolean firstPaintCopy = this.firstPaint;
+        //labels are momentarily disabled in the thumbnail image
+          boolean[] labelBackup = getShowLabels();
+          setShowLabels(new boolean[] {false});
+        //the local transform is momentarily modified to reflect the 
+        //size of the thumbnail and not the entire panel
+          CoordTransform localBackup = this.local_transform;
+          local_transform = 
+             new CoordTransform(getGlobalWorldCoords(), 
+                                new CoordBounds(0, 0, width, height));
+      //now draw the thumbnail
+        draw(image.createGraphics());
        
-       //draw the image
-         draw(image.createGraphics());
-       
-       //restore the old bounds
-         setLocalWorldCoords(oldBounds);
-       */
-       
-       boolean[] labelBackup = getShowLabels();
-       setShowLabels(new boolean[] {false});
-       CoordTransform localBackup = local_transform;
-       local_transform = new CoordTransform(getGlobalWorldCoords(), 
-                                            new CoordBounds(0, 0, 
-                                                            width, height));
-       draw(image.createGraphics());
-       local_transform = localBackup;
-       setShowLabels(labelBackup);
+      //now revert all of the saved variables back
+        this.local_transform = localBackup;
+        setShowLabels(labelBackup);
+        this.firstPaint = firstPaintCopy;
          
       //cache the image made
         this.thumbnail = image;
@@ -1064,7 +1131,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       
       //call the superclass to draw into the given Graphics2D
         super.paint(g);
-      
+        
       //first to extract the array of data to use
         float[][] arr = data2D.getRegionValues(0, 
                                                data2D.getNumRows()-1, 
@@ -1091,7 +1158,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //set the local transforms to map a rectangular region to the 
       //entire panel
 //        SetTransformsToWindowSize();
-      //now to make a transform that maps from row/column to the world 
+      //now to get the transform that maps from row/column to the world 
       //coordinates of the entire panel.  The row/col is mapped to the 
       //location on the ENTIRE panel because the ALL of the data in the 
       //array needs to be mapped to ALL of the panel (not just a small 
@@ -1309,6 +1376,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                           (int)(yrcVals[j+1]));
            }
       }
+      
+      g.setBackground(getBackgroundColor());
    }
    
    private CoordTransform getRowColumnToWC()
@@ -1494,14 +1563,24 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    
    private boolean isThumbnailValid(int width, int height)
    {
-      if ( (width<=0) || (height<=0) )
-         return true;
+      //if the main image hasn't been painted yet the thumbnail is invalid
+      if (this.firstPaint)
+         return false;
       
+      //if the width or height for the newly requested thumbnail are invalid 
+      //the thumbnail is invalid
+      if ( (width<=0) || (height<=0) )
+         return false;
+      
+      //if the thumbnail is 'null' then it doesn't exist yet and is 
+      //therefore invalid
       if (this.thumbnail == null)
          return false;
       
+      //otherwise the thumbnail is only valid if the current thumbnail's 
+      //width and height correspond to the newly requested width and height
       return ( (this.thumbnail.getWidth()==width) && 
-                  (this.thumbnail.getHeight()==height) );
+               (this.thumbnail.getHeight()==height) );
    }
    
    /**
