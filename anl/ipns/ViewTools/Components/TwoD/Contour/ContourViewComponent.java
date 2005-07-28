@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/07/28 15:41:53  kramer
+ * The ContourControlHandler has support for a PanViewControl.  Currently,
+ * however, sometimes when the ContourViewComponent is made, the thumbnail
+ * image or the large display is not displayed.  There are a couple
+ * attempts in the code to fix this problem (but none completely work yet).
+ *
  * Revision 1.1  2005/07/25 20:55:04  kramer
+ *
  * Initial checkin.  This is the redesigned ContourViewComponent that has
  * its work divided between several modules (the ContourControlHandler,
  * ContourMenuHandler, ContourColorScaleHandler, and ContourLayoutHandler)
@@ -133,9 +140,13 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Layouts.ComponentViewManager;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
 
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 /**
@@ -182,6 +193,16 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                                              contourPanel, 
                                              useColorScale);
         
+//TODO  This is here to make the thumbnail and contour panel to be displayed 
+//      otherwise one is blank when the viewer is started
+//      However, this code doesn't always work.
+//        AxisInfo xInfo = v2D.getAxisInfo(AxisInfo.X_AXIS);
+//        AxisInfo yInfo = v2D.getAxisInfo(AxisInfo.Y_AXIS);
+//        contourPanel.initializeWorldCoords(new CoordBounds(xInfo.getMin(), 
+//              yInfo.getMax(), 
+//              xInfo.getMax(), 
+//              yInfo.getMin()));
+        
       //and build the controls
         controlHandler = new ContourControlHandler(connector, 
                                                    center, 
@@ -203,6 +224,13 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
                                                          useColorScale);
       
       dataChanged(v2D);
+      
+//TODO This is here to make the thumbnail and contour panel to be displayed 
+//     otherwise one is blank when the viewer is started
+//     However, this code doesn't always work.
+//      contourPanel.invalidateThumbnail();
+//      controlHandler.reinit(v2D);
+//      contourPanel.send_message(ContourJPanel.RESET_ZOOM);
    }
    
    public ContourViewComponent(IVirtualArray2D arr)
@@ -326,6 +354,10 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       layoutHandler.reinit(v2D);
       
       layoutHandler.changeDisplay();
+      layoutHandler.displayChanged();
+      
+      layoutHandler.getContourPanel().send_message(ContourJPanel.RESET_ZOOM);
+      controlHandler.changeDisplay();
    }
 
    public void dataChanged()
@@ -446,6 +478,21 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    public static void main(String[] args)
    {
       ComponentViewManager.main(args);
+      
+      JButton exitButton = new JButton("Exit");
+        exitButton.addActionListener(new ActionListener()
+        {
+           public void actionPerformed(ActionEvent event)
+           {
+              System.exit(0);
+           }
+        });
+      
+      JFrame exitFrame = new JFrame("Exit");
+        exitFrame.getContentPane().setLayout(new FlowLayout(FlowLayout.CENTER));
+        exitFrame.getContentPane().add(exitButton);
+        exitFrame.pack();
+      exitFrame.setVisible(true);
    }
 //----------------=[ End methods used to test this class ]=-------------------//
 }
