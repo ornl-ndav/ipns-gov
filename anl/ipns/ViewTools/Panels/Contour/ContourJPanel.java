@@ -33,7 +33,18 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.18  2005/07/28 15:58:46  kramer
+ * -Changed all occurences of SharedData to SharedMessages.  Now this class
+ *  does not use any class from the DataSetTools.* packages.
+ * -Added the getThumbnail() and invalidateThumbnail() methods.
+ * -Changed the paint() method to a private 'draw()' method.  Now, when the
+ *  paint() method or getThumbnail() method is invoked, this draw() method
+ *  is invoked (and given the corresponding Graphics2D to draw into).
+ * -Modified all setter methods to not call reRender() and instead call
+ *  invalidateThumbnail() if applicable.
+ *
  * Revision 1.17  2005/07/25 20:14:36  kramer
+ *
  * Added a method to generate the row/column to world coordinate
  * transformation.  Also, added methods to get the row or column in the
  * array of data given an x or y pixel location.
@@ -111,6 +122,7 @@ package gov.anl.ipns.ViewTools.Panels.Contour;
 
 import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
@@ -127,20 +139,24 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Vector;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.WindowConstants;
-
-import DataSetTools.util.SharedData;
 
 /* TODO List
  * 1.  Compare drawing the lines based on the points located at pixel 
@@ -303,6 +319,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    
    private PseudoLogScaleUtil logScaler;
    private double logScale;
+   private BufferedImage thumbnail;
    
    /** Describes the line styles used to render the contour levels. */
    private int[] lineStyles;
@@ -372,6 +389,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                firstPaint = true;
          }
       });
+      
+      //invalidate the thumbnail so that when a thumbnail of the plot is 
+      //requested, the thumbnail will be generated at that time instead of 
+      //now
+      invalidateThumbnail();
    }
    
    /**
@@ -506,8 +528,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          {
             //if something goes wrong leave 'levels' the way it is 
             //and just inform the user
-            SharedData.addmsg("Warning:  the specific contour levels " +
-                              "used could not be recreated");
+            SharedMessages.addmsg("Warning:  the specific contour levels " +
+                                  "used could not be recreated");
             System.out.println("contours class = "+((Class)val).getName());
             e.printStackTrace();
          }
@@ -558,6 +580,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public void changeData(IVirtualArray2D arr)
    {
       data2D = arr;
+      invalidateThumbnail();
       reRender();
    }
    
@@ -580,7 +603,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public void setContours(Contours levels)
    {
       this.levels = levels;
-      reRender();
+      invalidateThumbnail();
    }
    
    /**
@@ -623,7 +646,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       else
          this.lineStyles = lineStyles;
       
-      reRender();
+      invalidateThumbnail();
    }
    
    /**
@@ -674,7 +697,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       else
          this.showLabels = showLabels;
       
-      reRender();
+      invalidateThumbnail();
    }
    
    /**
@@ -753,7 +776,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       else
          this.numSigFigs = numSigDigs;
       
-      reRender();
+      invalidateThumbnail();
    }
    
    /**
@@ -809,6 +832,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          setColorScale(IndexColorMaker.getDualColorTable(scaleType, numColors));
       else
          setColorScale(IndexColorMaker.getColorTable(scaleType, numColors));
+      
+      invalidateThumbnail();
    }
    
    /**
@@ -831,7 +856,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          return;
       
       this.colorScale = colors;
-      reRender();
+      
+      invalidateThumbnail();
    }
    
    /**
@@ -866,7 +892,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          return;
       
       setBackground(color);
-      reRender();
+      
+      invalidateThumbnail();
    }
    
    /*
@@ -882,6 +909,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    {
       super.setPreserveAspectRatio(preserve);
       //setLocalWorldCoords(getLocalWorldCoords());
+      
+      invalidateThumbnail();
       reRender();
    }
    */
@@ -915,6 +944,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public void setLogScale(double logScale)
    {
       this.logScale = logScale;
+      invalidateThumbnail();
    }
    
    /**
@@ -965,13 +995,65 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       return col;
    }
    
+   public Image getThumbnail(int width, int height)
+   {
+      //the thumbnail is chached because it is expensive to create it
+      //check if there is a cached thumbnail to return
+       if (isThumbnailValid(width, height))
+          return this.thumbnail;
+      
+       //validate the width and height
+        if (width <= 0)
+           width = 100;
+        if (height <= 0)
+           height = 100;
+       
+      //otherwise it has to be recreated
+       BufferedImage image = 
+          new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+      
+       /*
+      //we want to create a thumbnail of the entire panel so change the 
+      //local bounds to correspond to the entire panel.  Then, change them 
+      //back after the thumbnail is made
+       //save the local bounds
+         CoordBounds oldBounds = getLocalWorldCoords();
+       //set the local bounds to correspond to the entire panel
+         setLocalWorldCoords(getGlobalWorldCoords());
+       
+       //draw the image
+         draw(image.createGraphics());
+       
+       //restore the old bounds
+         setLocalWorldCoords(oldBounds);
+       */
+       
+       boolean[] labelBackup = getShowLabels();
+       setShowLabels(new boolean[] {false});
+       CoordTransform localBackup = local_transform;
+       local_transform = new CoordTransform(getGlobalWorldCoords(), 
+                                            new CoordBounds(0, 0, 
+                                                            width, height));
+       draw(image.createGraphics());
+       local_transform = localBackup;
+       setShowLabels(labelBackup);
+         
+      //cache the image made
+        this.thumbnail = image;
+        
+      return this.thumbnail;
+   }
+   
    /**
     * Does the actual work of painting the contour lines on the panel.
     */
    public void paint(Graphics gr)
    {
-      Graphics2D g = (Graphics2D)gr;
-      
+      draw((Graphics2D)gr);
+   }
+   
+   private void draw(Graphics2D g)
+   {
       stop_box( current_point, false );   // if the system redraws this without
 
       stop_crosshair( current_point );    // our knowlege, we've got to get rid
@@ -979,50 +1061,56 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                                           // will be drawn rather than erased
                                           // when the user moves the cursor (due
                                           // to XOR drawing).
-      super.paint(g);
+      
+      //call the superclass to draw into the given Graphics2D
+        super.paint(g);
       
       //first to extract the array of data to use
         float[][] arr = data2D.getRegionValues(0, 
                                                data2D.getNumRows()-1, 
                                                0, 
                                                data2D.getNumColumns()-1);
-      if (arr==null)
-      {
-         SharedData.addmsg("Warning:  A null array of data was found " +
-                           "from the IVirtualArray2D in " +
-                           "ContourJPanel.paint(....).  Thus, the data " +
-                           "could not be plotted.");
-         return;
-      }
-      else if (arr.length==0) //return because there is no data to draw
-      {
-         SharedData.addmsg("Warning:  The array given to the ContourJPanel " +
-                           "was empty.  Thus, no data has been plotted.");
-         return;
-      }
+        
+      //check that there is valid data to work with
+        if (arr==null)
+        {
+           SharedMessages.addmsg("Warning:  A null array of data was " +
+                                 "found from the IVirtualArray2D in " +
+                                 "ContourJPanel.paint(....).  Thus, the " +
+                                 "data could not be plotted.");
+           return;
+        }
+        else if (arr.length==0) //return because there is no data to draw
+        {
+           SharedMessages.addmsg("Warning:  The array given to the " +
+                                 "ContourJPanel was empty.  Thus, no data " +
+                                 "has been plotted.");
+           return;
+        }
         
       //set the local transforms to map a rectangular region to the 
       //entire panel
-        SetTransformsToWindowSize();
-      //get the CoordBounds object that encapsulates the bounds of 
-      //the panel in world coordinates
-        CoordBounds wcBounds = getGlobalWCBounds();
+//        SetTransformsToWindowSize();
       //now to make a transform that maps from row/column to the world 
       //coordinates of the entire panel.  The row/col is mapped to the 
       //location on the ENTIRE panel because the ALL of the data in the 
       //array needs to be mapped to ALL of the panel (not just a small 
       //region which is what 'local_transform' describes).
         CoordTransform rcToWC = getRowColumnToWC();
-        //if this is the first time the contour image is being painted 
-        //set the local_transform to have its input region be the output 
-        //region of 'rcToWC'.  After the contour image is drawn the user can 
-        //zoom in and the superclass handles setting the source (input) of 
-        //local_transform to be the correct subset of the entire panel.
-        if (firstPaint)
-        {
-           local_transform.setSource(wcBounds);
-           firstPaint = false;
-        }
+      //if this is the first time the contour image is being painted 
+      //set the local_transform to have its input region be the output 
+      //region of 'rcToWC'.  After the contour image is drawn the user can 
+      //zoom in and the superclass handles setting the source (input) of 
+      //local_transform to be the correct subset of the entire panel.
+       if (firstPaint)
+       {
+          //if the drawing should act like the panel hasn't been painted yet
+          //set the source of the local transform to be the CoordBounds 
+          //object that encapsulates the bounds of the entire panel
+          //(in world coordinates)
+          local_transform.setSource(getGlobalWCBounds());
+          firstPaint = false;
+       }
 
       //this holds the contour points found
         Vector contourPts;
@@ -1399,6 +1487,23 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       return index;
    }
    
+   public void invalidateThumbnail()
+   {
+      this.thumbnail = null;
+   }
+   
+   private boolean isThumbnailValid(int width, int height)
+   {
+      if ( (width<=0) || (height<=0) )
+         return true;
+      
+      if (this.thumbnail == null)
+         return false;
+      
+      return ( (this.thumbnail.getWidth()==width) && 
+                  (this.thumbnail.getHeight()==height) );
+   }
+   
    /**
     * Generates a float[][] for the data for the function 
     * f(x,y) = x+y
@@ -1452,7 +1557,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          levels[3] = 7;
          levels[4] = 12.2332f;
       IVirtualArray2D v2d = ContourViewComponent.getTestData(51,51,3,4);
-      ContourJPanel panel = new ContourJPanel(v2d, 0, 10, 11);
+      final ContourJPanel panel = new ContourJPanel(v2d, 0, 10, 11);
          //initialize the panel's world coordinates
          AxisInfo xInfo = v2d.getAxisInfo(AxisInfo.X_AXIS);
          AxisInfo yInfo = v2d.getAxisInfo(AxisInfo.Y_AXIS);
@@ -1484,6 +1589,30 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          frame.getContentPane().add(panel);
          frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
       frame.setVisible(true);
+      
+      
+      final JButton thumbnailButton = new JButton("New thumbnail");
+      final JLabel thumbnailLabel = new JLabel(new ImageIcon());
+      thumbnailButton.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            panel.invalidateThumbnail();
+            Image image = panel.getThumbnail(100, 100);
+            thumbnailLabel.setIcon(new ImageIcon(image));
+         }
+      });
+      
+      JFrame thumbnailPane = new JFrame("Thumbnail");
+        thumbnailPane.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        thumbnailPane.getContentPane().setLayout(new BorderLayout());
+        thumbnailPane.getContentPane().add(thumbnailButton, 
+                                           BorderLayout.NORTH);
+        thumbnailPane.getContentPane().add(thumbnailLabel, 
+                                           BorderLayout.CENTER);
+        thumbnailPane.setSize(200, 200);
+      thumbnailPane.setVisible(true);
+        
    }
 }
 
