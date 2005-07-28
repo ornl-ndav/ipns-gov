@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/07/28 23:01:29  kramer
+ * Changed the reinit() method to invoke on the ContourJPanel the method
+ * invalidateThumbnail() ( instead of invalidate() ).  This was a typo.
+ *
  * Revision 1.2  2005/07/28 15:28:11  kramer
+ *
  * -Added support for a PanViewControl (added a method to create the control
  *  and added a custom listener for the control).
  * -Modified all of the controls listeners so that when they are invoked, the
@@ -411,7 +416,7 @@ public class ContourControlHandler extends ContourChangeHandler
       //if the data has changed, make sure that the thumbnail is invalidated
       //so that when it is requested, a new thumbnail based on the new data 
       //is returned (and not a cached copy based on the old data)
-        getContourPanel().invalidate();
+        getContourPanel().invalidateThumbnail();
 //TODO Check if this is needed
 //      this.panControl.validate();
 //      this.panControl.repaint();
@@ -877,6 +882,7 @@ public class ContourControlHandler extends ContourChangeHandler
             }
          }
       });
+      
       return this.panControl;
    }
 //--------------=[ End methods used to generate the controls ]=---------------//
@@ -894,7 +900,7 @@ public class ContourControlHandler extends ContourChangeHandler
             ContourJPanel contourPanel = getContourPanel();
             panControl.setGlobalBounds(contourPanel.getGlobalWorldCoords());
             panControl.setLocalBounds(contourPanel.getLocalWorldCoords());
-            panControl.repaint();
+            //panControl.repaint();
          }
       }
    }
