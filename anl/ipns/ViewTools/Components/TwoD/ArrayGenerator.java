@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/07/28 15:16:44  kramer
+ *  Modified the getRegionValues() method.  Previously if the field
+ *  'dataArray' was 'null' it was filled with data without being instantiated
+ *  (causing a NullPointerException).  Now if 'dataArray' is 'null' a new
+ *  float[][] is instantiated.
+ *
  *  Revision 1.2  2005/03/23 05:46:55  millermi
  *  - Removed unnecessary semicolons which caused Eclipse warnings.
  *
@@ -422,6 +428,7 @@ public class ArrayGenerator implements IVirtualArray2D
       if( dataArray != null )
         return dataArray;
       // Build the dataArray.
+      float[][] dataArray = new float[num_rows][num_columns];
       for( int row = 0; row < num_rows; row++ )
         for( int col = 0; col < num_columns; col++ )
    	  dataArray[row][col] = getDataValue(row,col);
