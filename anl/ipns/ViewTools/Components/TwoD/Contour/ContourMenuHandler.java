@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/07/29 15:32:52  kramer
+ * Now when the user selects to use a solid/colorscale to color the contour
+ * lines, the controls for the ControlColorScale are disabled/enabled.
+ *
  * Revision 1.2  2005/07/28 15:36:40  kramer
+ *
  * Modified this class's listeners to invoke setter methods instead of
  * directly 'setting values'.  Also, the setter methods have been modified
  * to update the graphical elements when a value is set on the element.
@@ -159,6 +164,7 @@ public class ContourMenuHandler extends ContourChangeHandler
     * used to color the contour lines should be double-sided or not.
     */
    private JCheckBoxMenuItem isDoubleSidedItem;
+   private JMenu colorscaleControlMenu;
 //---------------------------=[ End fields ]=---------------------------------//
    
    
@@ -189,6 +195,25 @@ public class ContourMenuHandler extends ContourChangeHandler
       
       //now to connect to the PropertyChangeConnector
       getPropertyConnector().addHandler(this);
+      
+      //make the menu items that allow the location of the colorscale to 
+      //be specified
+        //this will listen to when the item are selected
+        MoveColorScaleListener locationListener = new MoveColorScaleListener();
+        JMenuItem controlPanelItem = new JMenuItem(CONTROL_PANEL_LOCATION);
+          controlPanelItem.addActionListener(locationListener);
+        JMenuItem belowItem = new JMenuItem(BELOW_IMAGE_LOCATION);
+          belowItem.addActionListener(locationListener);
+        JMenuItem rightItem = new JMenuItem(RIGHT_IMAGE_LOCATION);
+          rightItem.addActionListener(locationListener);
+        JMenuItem noneItem = new JMenuItem(NONE_LOCATION);
+          noneItem.addActionListener(locationListener);
+      
+      colorscaleControlMenu = new JMenu("Display Position");
+        colorscaleControlMenu.add(controlPanelItem);
+        colorscaleControlMenu.add(belowItem);
+        colorscaleControlMenu.add(rightItem);
+        colorscaleControlMenu.add(noneItem);
       
       //make the controls for the line colors
       //first make the controls to select if the scale should be double sided
@@ -273,26 +298,6 @@ public class ContourMenuHandler extends ContourChangeHandler
          colorScaleNameChanged(colorScale);
       else
          colorChanged(lineColor);
-     
-      //make the menu items that allow the location of the colorscale to 
-      //be specified
-        //this will listen to when the item are selected
-        MoveColorScaleListener locationListener = new MoveColorScaleListener();
-        JMenuItem controlPanelItem = new JMenuItem(CONTROL_PANEL_LOCATION);
-          controlPanelItem.addActionListener(locationListener);
-        JMenuItem belowItem = new JMenuItem(BELOW_IMAGE_LOCATION);
-          belowItem.addActionListener(locationListener);
-        JMenuItem rightItem = new JMenuItem(RIGHT_IMAGE_LOCATION);
-          rightItem.addActionListener(locationListener);
-        JMenuItem noneItem = new JMenuItem(NONE_LOCATION);
-          noneItem.addActionListener(locationListener);
-      
-      JMenu positionMenu = new JMenu("Display Position");
-        positionMenu.add(controlPanelItem);
-        positionMenu.add(belowItem);
-        positionMenu.add(rightItem);
-        positionMenu.add(noneItem);
-      
       
       //make the menu that will hold the two items made
       JMenu lineColorMenu = new JMenu("Line Colors");
@@ -300,7 +305,7 @@ public class ContourMenuHandler extends ContourChangeHandler
         lineColorMenu.add(new JSeparator());
         lineColorMenu.add(colorscaleMenu.getItem());
         lineColorMenu.add(isDoubleSidedItem);
-        lineColorMenu.add(positionMenu);
+        lineColorMenu.add(colorscaleControlMenu);
      
     //create the array of menu items
     menuItems = new ViewMenuItem[2];
@@ -323,11 +328,13 @@ public class ContourMenuHandler extends ContourChangeHandler
    public void changeColorScaleName(String colorscale)
    {
       isDoubleSidedItem.setEnabled(true);
+      this.colorscaleControlMenu.setEnabled(true);
    }
 
    public void changeColor(Color color)
    {
       isDoubleSidedItem.setEnabled(false);
+      this.colorscaleControlMenu.setEnabled(false);
    }
 
    public void changeIsDoubleSided(boolean isDoubleSided)
