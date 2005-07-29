@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.9  2005/07/29 15:40:32  kramer
+ * Removed some unnecessary System.out.println() statements.
+ *
  * Revision 1.8  2005/07/28 23:09:03  kramer
+ *
  * Removed an unnecessary System.out.println() statement.
  *
  * Revision 1.7  2005/07/12 16:31:27  kramer
@@ -228,8 +232,6 @@ public class UniformContours extends Contours
     */
    public void setObjectState(ObjectState state)
    {
-      System.out.println("UniformContours:  inside setObjectState()");
-      
       //if the state is 'null' do nothing
       if (state==null)
          return;

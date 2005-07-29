@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.9  2005/07/29 15:40:33  kramer
+ * Removed some unnecessary System.out.println() statements.
+ *
  * Revision 1.8  2005/07/12 16:33:14  kramer
+ *
  * Reorganized the code, added comments, and javadoc statements.
  * Implemented the methods for the IPreserveState interface (which the
  * superclass (Contours) implements directly).
@@ -149,8 +153,6 @@ public class NonUniformContours extends Contours
     */
    public ObjectState getObjectState(boolean isDefault)
    {
-      System.out.println("NonUniformContours:  inside getObjectState()");
-      
       //get the superclass's state
       ObjectState state = super.getObjectState(isDefault);
         //store the contour levels
@@ -176,8 +178,6 @@ public class NonUniformContours extends Contours
     */
    public void setObjectState(ObjectState state)
    {
-      System.out.println("NonUniformContours:  inside setObjectState()");
-      
       //if the state is 'null' do nothing
       if (state==null)
          return;
@@ -189,10 +189,6 @@ public class NonUniformContours extends Contours
       Object val = state.get(CONTOUR_LEVELS_KEY);
       if ( (val != null) && (val instanceof float[]) )
          this.levels = (float[])val;
-      
-      System.out.println("  set the levels to:");
-      for (int i=0; i<this.levels.length; i++)
-         System.out.println("    levels["+i+"] = "+this.levels[i]);
    }
    
    /**
