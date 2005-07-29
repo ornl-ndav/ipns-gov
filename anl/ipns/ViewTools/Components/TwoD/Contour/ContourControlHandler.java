@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/07/29 15:25:53  kramer
+ * Now this class stores the state of the PanViewControl in its ObjectState.
+ *
  * Revision 1.3  2005/07/28 23:01:29  kramer
+ *
  * Changed the reinit() method to invoke on the ContourJPanel the method
  * invalidateThumbnail() ( instead of invalidate() ).  This was a typo.
  *
@@ -158,6 +162,7 @@ public class ContourControlHandler extends ContourChangeHandler
     * <code>ColorControl</code> object.
     */
    public static final String BACKGROUND_COLOR_KEY = "Background color key";
+   public static final String PAN_VIEW_CONTROL_KEY = "PanViewControl key";
 //---------------------=[ End ObjectState keys ]=-----------------------------//
    
    
@@ -520,6 +525,10 @@ public class ContourControlHandler extends ContourChangeHandler
       val = state.get(BACKGROUND_COLOR_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
          backgroundControl.setObjectState((ObjectState)val);
+      
+      val = state.get(PAN_VIEW_CONTROL_KEY);
+      if ( (val != null) && (val instanceof ObjectState) )
+         panControl.setObjectState((ObjectState)val);
    }
 
    public ObjectState getObjectState(boolean is_default)
@@ -540,6 +549,8 @@ public class ContourControlHandler extends ContourChangeHandler
                    sigFigControl.getObjectState(is_default));
       state.insert(BACKGROUND_COLOR_KEY, 
                    backgroundControl.getObjectState(is_default));
+      state.insert(PAN_VIEW_CONTROL_KEY, 
+                   panControl.getObjectState(is_default));
       return state;
    }
 //---------=[ End methods implemented for the IPreserveState interface ]=-----//
