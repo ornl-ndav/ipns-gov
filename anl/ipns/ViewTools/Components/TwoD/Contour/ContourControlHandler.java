@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2005/07/29 22:42:49  kramer
+ * This class contains controls with checkboxes that enable/disable contour
+ * line labels and label formating.  These checkboxes were not working but
+ * are now fixed.
+ *
  * Revision 1.4  2005/07/29 15:25:53  kramer
+ *
  * Now this class stores the state of the PanViewControl in its ObjectState.
  *
  * Revision 1.3  2005/07/28 23:01:29  kramer
@@ -630,6 +636,12 @@ public class ContourControlHandler extends ContourChangeHandler
          return;
       
       labelControl.setChecked(enable);
+      
+      if (!enable)
+         getContourPanel().setShowAllLabels(false);
+      else
+         getContourPanel().setShowLabelEvery(getLabelEvery());
+      
       displayChanged();
    }
    
@@ -646,9 +658,14 @@ public class ContourControlHandler extends ContourChangeHandler
       if (labelControl==null)
          return;
       
-      labelControl.setSpinnerValue(new Integer(nthLine));
-      getContourPanel().setShowLabelEvery(nthLine);
-      displayChanged();
+      if (nthLine < 0)
+         setIsLabelEnabled(false);
+      else
+      {
+         labelControl.setSpinnerValue(new Integer(nthLine));
+         getContourPanel().setShowLabelEvery(nthLine);
+         displayChanged();
+      }
    }
    
    public boolean getIsLabelFormattingEnabled()
@@ -665,6 +682,12 @@ public class ContourControlHandler extends ContourChangeHandler
          return;
       
       sigFigControl.setChecked(enable);
+      
+      int numSigFigs = -1;
+      if (enable)
+         numSigFigs = getNumSigFigs();
+         
+      getContourPanel().setNumSigDigits(numSigFigs);
       displayChanged();
    }
    
@@ -681,9 +704,14 @@ public class ContourControlHandler extends ContourChangeHandler
       if (sigFigControl==null)
          return;
       
-      sigFigControl.setSpinnerValue(new Integer(num));
-      getContourPanel().setNumSigDigits(num);
-      displayChanged();
+      if (num < 0)
+         setIsLabelFormattingEnabled(false);
+      else
+      {
+         sigFigControl.setSpinnerValue(new Integer(num));
+         getContourPanel().setNumSigDigits(num);
+         displayChanged();
+      }
    }
    
    public Color getBackgroundColor()
