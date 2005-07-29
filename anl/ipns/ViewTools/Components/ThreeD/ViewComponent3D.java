@@ -33,6 +33,17 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/07/29 20:52:52  cjones
+ *  Multiple pixels can now be selected through either mouse clicks or
+ *  a side control list.  A single click will select a single pixel and a
+ *  double click will select the entire detector of pixels.  Holding shift
+ *  while clicking will add selection to current selected pixels, while holding
+ *  ctrl will remove the selection.
+ *
+ *  A ControlList has been added to the view controls that will display
+ *  selected pixels, as well as give options for adding and removing
+ *  selections.
+ *
  *  Revision 1.4  2005/07/27 20:36:44  cjones
  *  Added menu item that allows the user to choose between different shapes
  *  for the pixels. Also, in frames view, user can change the time between
@@ -68,6 +79,8 @@ import SSG_Tools.Viewers.Controls.MouseArcBall;
 import SSG_Tools.Cameras.*;
 
 import gov.anl.ipns.Util.Sys.ColorSelector;
+import gov.anl.ipns.Util.StringFilter.StringFilter;
+
 import gov.anl.ipns.ViewTools.Components.ThreeD.PixelBoxPicker;
 
 import gov.anl.ipns.ViewTools.Components.*;
@@ -138,6 +151,13 @@ public abstract class ViewComponent3D implements IViewComponent3D
   * point ids from the control panel.
   */
   public static final String ID_OUTPUT_NAME = "Pixel Info";
+  
+  /**
+   * "Selected List" - use this static String to verify that the title of
+   * the ViewControl returned is the ControlList that displays
+   * point ids for all selected points.
+   */
+   public static final String SELECTED_LIST_NAME = "Selected List";
    
  /**
   * "Frame Controller" - use this static String to verify that the title of
@@ -171,6 +191,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
   private CursorOutputControl point_output_control;
   private CursorOutputControl id_output_control;
   private ControlColorScale color_scale_control;
+  private ControlList selected_list_control;
   private ColorControl background_control;
   private FrameController frame_control;
   
@@ -629,7 +650,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
   * 
   * The name of this controller is ID_OUTPUT_NAME
   * 
-  *  @return The output control for selected point ids.
+  *  @return The output control for currently selected point ids.
   */
   protected CursorOutputControl createIDOutputControl()
   {  	
@@ -641,6 +662,52 @@ public abstract class ViewComponent3D implements IViewComponent3D
     
     return id_output_control;
   }
+  
+  /**
+   * Create and return a ControlList that will display
+   * the Detector ID and Pixel ID for all selected points in the
+   * joglpane scene.  A PickHandler mouse handler object must
+   * be added the joglpane for this to update correctly.
+   * 
+   * The name of this controller is SELECTED_LIST_NAME
+   * 
+   *  @return The output control for selected points.
+   */
+   protected ControlList createSelectedListControl()
+   {  	
+     // Selected points
+   	 selected_list_control = new ControlList("Det # Pixel #", new StringFilter());
+   	 selected_list_control.setEntryBoxLabel("Det# Pixel#");
+   	 
+   	 // This is needed so that the list will expand larger than a single line
+     selected_list_control.setPreferredSize( new Dimension(0, 30000) );
+     
+     selected_list_control.addActionListener(new SelectedListChangedListener());
+     
+     // Update list whenever selection has changed by the mouse
+     addActionListener(new ActionListener()
+     		  {
+                public void actionPerformed(ActionEvent event)
+                {
+                  if (event.getActionCommand().equals(SELECTED_POINT_CHANGED))
+                  {
+                    String[] selected = ((DetectorSceneBase)joglpane.getScene()).
+					                     getFormattedSelectedIDs();
+                    
+                    if(selected == null)
+                    	selected_list_control.setControlValue(new Vector());
+                    else
+                      selected_list_control.setControlValue(selected);
+                    
+                    selected_list_control.repaint();
+                  }
+                }
+              });
+     
+     selected_list_control.setTitle(SELECTED_LIST_NAME);
+     
+     return selected_list_control;
+   }
   
  /**
   * Create and return a FrameController to handle stepping through
@@ -668,6 +735,18 @@ public abstract class ViewComponent3D implements IViewComponent3D
   }
   
  /* ----------------------- METHODS FOR CONTROLS -----------------------------*/
+  
+ /**
+  * This method will cause the selected items within the scene to blink
+  * the a certain color.
+  */
+  public void blinkSelected()
+  {
+  	((DetectorSceneBase)joglpane.getScene()).colorSelected(Color.WHITE);
+    joglpane.Draw();
+    
+    ColorAndDraw();
+  }
   
  /**
   * Get the colorscale of the data values.
@@ -800,7 +879,16 @@ public abstract class ViewComponent3D implements IViewComponent3D
    * This handles mouse clicks to the JoglPanel scene. It takes the
    * closest selected pixel and extracts the pixel id and detector id
    * for that point.  It then updates the control outputs if they are
-   * enabled.
+   * enabled. 
+   * 
+   * A single click will change the current Scene's selected pixels
+   * to the pixel that was clicked.  A double click will change
+   * the current Scene's selected pixels to all the pixels within
+   * the detector that was clicked.  Holding shift and performing
+   * one of the two specified clicks will add (union) that selection with
+   * current selection.  Holding ctrl and performing one of the two
+   * specified clicks will remove (subtract) that selection from the
+   * current selection.
    * 
    * This must be added to the mousehandler for the joglpane!
    **/
@@ -816,12 +904,118 @@ public abstract class ViewComponent3D implements IViewComponent3D
       if(toggle_arcball == null || toggle_arcball.isSelected() == false)
       {
         super.mouseClicked(e);
-        setPointClickOutput(get3DPoint());
-        setPixelClickOutput(getDetectorID(), getPixelID(), getPixelValue());
-      
+        
+        if(e.getModifiersEx() != InputEvent.SHIFT_DOWN_MASK &&
+           e.getModifiersEx() != InputEvent.CTRL_DOWN_MASK)
+          	((DetectorSceneBase)joglpane.getScene()).clearSelected();
+        
+        if(e.getClickCount() == 1)
+        {
+          setPointClickOutput(get3DPoint());
+          setPixelClickOutput(getDetectorID(), getPixelID(), getPixelValue());
+          
+          if(e.getModifiersEx() == InputEvent.CTRL_DOWN_MASK)
+            ((DetectorSceneBase)joglpane.getScene()).
+		       removeSelectedPixel(getPixelPickID());
+          else
+          	((DetectorSceneBase)joglpane.getScene()).
+		       addSelectedPixel(getPixelPickID());
+
+          blinkSelected();
+        }
+        else if(e.getClickCount() == 2)
+        {          	
+          if(e.getModifiersEx() == InputEvent.CTRL_DOWN_MASK)
+          	((DetectorSceneBase)joglpane.getScene()).
+		      removeSelectedDetector(getDetectorPickID());
+          else 
+          	((DetectorSceneBase)joglpane.getScene()).
+		      addSelectedDetector(getDetectorPickID());
+          
+          blinkSelected();
+        }
+        
         sendMessage(SELECTED_POINT_CHANGED);
       }
     }
+  }
+  
+  
+  /*
+   * Listens for add and remove messages from the selected list
+   */
+  private class SelectedListChangedListener implements ActionListener
+  {
+    public void actionPerformed(ActionEvent event)
+    {
+      // ITEM ADDED TO LIST
+      if (event.getActionCommand().equals(ControlList.ITEM_ADDED))
+      {
+       	String value = selected_list_control.getEntryBoxValue();
+       	value.trim();
+        String[] ids = value.split("[ ]");
+        
+         // If user enters in form "Det: # Pixel: #"
+         if(ids.length == 4 
+         		&& ids[0].equalsIgnoreCase("Det:")
+          		&& ids[2].equalsIgnoreCase("Pixel:"))
+         {
+           try {
+             ((DetectorSceneBase)joglpane.getScene()).
+	           addSelectedPixel(Integer.valueOf(ids[1]).intValue(),
+		        		        Integer.valueOf(ids[3]).intValue());
+           } catch(NumberFormatException ex) {}
+        }
+            
+        // If user enters form "# #"
+        else if(ids.length == 2)
+        {
+          try {
+            ((DetectorSceneBase)joglpane.getScene()).
+		      addSelectedPixel(Integer.valueOf(ids[0]).intValue(),
+		        		       Integer.valueOf(ids[1]).intValue());
+          } catch(NumberFormatException ex) {}
+        }
+            
+        // Generate list and refresh
+        String[] selected_pixels = ((DetectorSceneBase)joglpane.getScene()).
+                                       getFormattedSelectedIDs();
+        if(selected_pixels == null)
+          selected_list_control.setControlValue(new Vector());
+        else
+          selected_list_control.setControlValue(selected_pixels);
+        
+        blinkSelected();
+      }
+      
+      // ITEM REMOVED FROM LIST
+      else if (event.getActionCommand().equals(ControlList.ITEM_REMOVED))
+      {
+         Object tmpvalues = selected_list_control.getControlValue();                  
+         Object[] selected = (Object[])tmpvalues;
+            
+         int[] detids = new int[selected.length];
+         int[] pixelids = new int[selected.length];
+         for(int i = 0; i < selected.length; i++)
+         {
+           String value = selected[i].toString();
+           String[] ids = value.split("[ ]");
+              
+           detids[i] = Integer.valueOf(ids[1]).intValue();
+           pixelids[i] = Integer.valueOf(ids[3]).intValue();
+         }
+            
+         ((DetectorSceneBase)joglpane.getScene()).
+	       retainSelectedPixels(detids, pixelids);
+
+         String[] selected_pixels = ((DetectorSceneBase)joglpane.getScene()).
+                                       getFormattedSelectedIDs();
+         if(selected_pixels == null)
+           selected_list_control.setControlValue(new Vector());
+         else
+           selected_list_control.setControlValue(selected_pixels);
+       }
+     }
   }
   
  /**

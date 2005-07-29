@@ -33,6 +33,17 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/07/29 20:52:50  cjones
+ *  Multiple pixels can now be selected through either mouse clicks or
+ *  a side control list.  A single click will select a single pixel and a
+ *  double click will select the entire detector of pixels.  Holding shift
+ *  while clicking will add selection to current selected pixels, while holding
+ *  ctrl will remove the selection.
+ *
+ *  A ControlList has been added to the view controls that will display
+ *  selected pixels, as well as give options for adding and removing
+ *  selections.
+ *
  *  Revision 1.4  2005/07/27 20:36:44  cjones
  *  Added menu item that allows the user to choose between different shapes
  *  for the pixels. Also, in frames view, user can change the time between
@@ -211,11 +222,12 @@ public class SceneViewComponent extends ViewComponent3D
   *              coordinates of mouse click.
   * controls[6]: CursorOutputControl - The IDs
   *              for detector and pixel selected.
-  * 
+  * controls[7]: ControlList - Shows all selected
+  *              pixels with options to add/remove.
   */
   private void buildControls()
   {
-      controls = new ViewControl[7]; 
+      controls = new ViewControl[8]; 
       
       // Control that adjusts the color intensity
       controls[0] = createIntensityControl();
@@ -237,6 +249,9 @@ public class SceneViewComponent extends ViewComponent3D
       
       // Picked pixel and detector
       controls[6] = createIDOutputControl();
+      
+      // All selected pixel and detector
+      controls[7] = createSelectedListControl();
       
   }
   
