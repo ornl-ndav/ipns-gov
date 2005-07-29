@@ -33,6 +33,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/07/29 20:48:21  cjones
+ *  The base DetectorScene now contains methods for selecting and unselecting
+ *  pixels. Selected pixels can then be set to a given color.
+ *
  *  Revision 1.4  2005/07/27 20:36:33  cjones
  *  Added menu item that allows the user to choose between different shapes
  *  for the pixels. Also, in frames view, user can change the time between
@@ -58,6 +62,9 @@ package gov.anl.ipns.ViewTools.Components.ThreeD;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.TreeSet;
+import java.util.TreeMap;
+import java.util.Iterator;
 
 import javax.swing.*;
 
@@ -88,11 +95,15 @@ import gov.anl.ipns.ViewTools.Components.PhysicalArray3D;
  * assigned the given ids and each pixel within the a detector will assume its
  * index within the points array as its id.
  * 
- * The volume bounding box and center point are calculated as each detector is added.
+ * The volume bounding box is calculated as each detector is added, and the center
+ * is assumed to be at the origin, <0,0,0>.
  * Once all detectors are added, makeCamera can be called to create a camera that will
  * view the volume from an adjusted distance along away from the scene.  In addition,
  * addSceneCircle will encompose the volume with a 2d circle, and addLineAxes will 
  * draw coordinate axes at the center of the scene.
+ * 
+ * The user may add/remove pixels from a set to specify whether they have been
+ * selected or not.  The selected pixels can then be colored with a given color.
  */
 public class DetectorSceneBase extends Group
 { 
@@ -124,6 +135,9 @@ public class DetectorSceneBase extends Group
   private Group scene_circle;
   private Group scene_axes;
   
+  private TreeMap detectorid_map;
+  private TreeSet selected_pixels; 
+  
   private float[] max_point = new float[3], min_point = new float[3];
   private float[] center = {0.f, 0.f, 0.f};
   private float[] bbox_low = new float[3], bbox_high = new float[3];
@@ -137,6 +151,9 @@ public class DetectorSceneBase extends Group
   public DetectorSceneBase()
   {
     setPickID( Node.INVALID_PICK_ID );       // set a PickID for the root, for testing
+    
+    detectorid_map = new TreeMap();
+    selected_pixels = new TreeSet(); 
            
     // Init min's
     bbox_low[0] = bbox_low[1] = bbox_low[2] = 
@@ -225,6 +242,9 @@ public class DetectorSceneBase extends Group
         shape.setPickID( 2+id*100+i );
         
         detector.addChild( shape );
+        
+        detectorid_map.put(new Integer(id), detector);
+        
       }
       
       // Use critial extents to set bounding box information
@@ -405,6 +425,211 @@ public class DetectorSceneBase extends Group
   {
     backgroundColor = background;
     changeBackground = true;
+  }
+  
+  /**
+   * Return all of the selected pixels in an array of
+   * strings.  Each string is formatted as follows: 
+   *   "Det <detector_user_id> Pixel <pixel_user_id>"
+   * where detector_user_id is an integer representing
+   * the id given to the detector when it was added and
+   * the pixel_user_id is the index to the pixel within
+   * the detector. 
+   *
+   * @return An array of formatted strings, one
+   *         for each selected pixel.
+   */
+  public String[] getFormattedSelectedIDs()
+  {
+  	if(selected_pixels.size() <= 0) return null;
+  	
+  	String[] output = new String[selected_pixels.size()];
+  	
+  	int i =0;
+    for(Iterator it = selected_pixels.iterator(); it.hasNext(); i++)
+    {
+      int pickid = ((Integer)it.next()).intValue();
+      SimpleShape pixel = (SimpleShape)Node.getNodeWithID(pickid);
+      DetectorGroup det = (DetectorGroup)pixel.getParent();
+      int pixelid = ((IPixelShape)pixel).getPixelID();
+      int detid = det.getDetectorID();
+     
+      output[i] = new String("Det: " + detid + " Pixel: " + pixelid);
+    }
+    
+    return output;
+  }
+  
+ /**
+  * This will intersect the set of given selected pixels with the
+  * current selected pixels.  The lists of ids must match in 
+  * length, where every index represents correspondings ids within
+  * the two arrays.
+  * 
+  * @param det_ids    The detector ids as given when the detector
+  *                        was added.
+  * @param pixel_ids  The pixel ids within the detector id.
+  */
+  public void retainSelectedPixels(int[] det_ids, 
+  		                           int[] pixel_ids)
+  {
+  	if(det_ids.length != pixel_ids.length)
+      return;
+  	
+  	TreeSet tmpset = new TreeSet();
+  	
+  	for(int i = 0; i < det_ids.length; i++)
+  	{
+  	  DetectorGroup det = (DetectorGroup)
+	        detectorid_map.get(new Integer(det_ids[i]));
+  	  
+  	  if(det != null && det.getDetectorID() == det_ids[i] && 
+  	  	 pixel_ids[i] < det.numChildren())
+  	    tmpset.add(new Integer(det.getChild(pixel_ids[i]).getPickID()));
+  	}
+  	
+  	selected_pixels.retainAll(tmpset);
+  }
+  
+ /**
+  * This method adds the pixel found within the specified ids
+  * to the set of selected pixels.  The first id represents
+  * the id number given to the detector when it was added (ie,
+  * the user id) and the second id represents the pixels index
+  * within that detector.
+  * 
+  * @param detid   The detector id number.
+  * @param pixelid The pixel id number within the detector.
+  */
+  public void addSelectedPixel(int detid, int pixelid)
+  {
+  	DetectorGroup det = 
+  		(DetectorGroup)detectorid_map.get(new Integer(detid));
+  	
+  	if(det != null && det.getDetectorID() == detid && 
+  	   pixelid < det.numChildren())
+  	  addSelectedPixel(det.getChild(pixelid).getPickID());
+  }
+  
+ /**
+  * This method removes the pixel found within the specified ids
+  * from the set of selected pixels.  The first id represents
+  * the id number given to the detector when it was added (ie,
+  * the user id) and the second id represents the pixels index
+  * within that detector.
+  * 
+  * @param detid   The detector id number.
+  * @param pixelid The pixel id number within the detector.
+  */
+  public void removeSelectedPixel(int detid, int pixelid)
+  {
+  	DetectorGroup det = 
+  		(DetectorGroup)detectorid_map.get(new Integer(detid));
+  	
+  	if(det != null && det.getDetectorID() == detid && 
+  	   pixelid < det.numChildren())
+  	  removeSelectedPixel(det.getChild(pixelid).getPickID());
+  }
+ 
+ /**
+  * This method adds the pixel node with the given
+  * PickID to the set of selected pixels.  The PickID
+  * is the unique identification number within the scene
+  * graph.
+  * 
+  * @param pickid Unique identification number of the
+  *               Pixel shape.
+  */
+  public void addSelectedPixel(int pickid)
+  {
+  	if(pickid == -1)
+  		return;
+  	
+    selected_pixels.add(new Integer(pickid));
+  }
+  
+ /**
+  * This method removes the pixel node with the given
+  * PickID from the set of selected pixels.  The PickID
+  * is the unique identification number within the scene
+  * graph.
+  * 
+  * @param pickid Unique identification number of the
+  *               Pixel shape.
+  */
+  public void removeSelectedPixel(int pickid)
+  {
+  	if(pickid == -1)
+  		return;
+  	
+    selected_pixels.remove(new Integer(pickid));
+  }
+  
+ /**
+  * This method adds the all pixel nodes contained in the
+  * detector group with the given PickID to the set of selected 
+  * pixels.  The PickID is the unique identification number within 
+  * the scene graph.
+  * 
+  * @param pickid Unique identification number of the
+  *               detector group.
+  */
+  public void addSelectedDetector(int pickid)
+  { 	
+  	DetectorGroup det = (DetectorGroup)Node.getNodeWithID(pickid);
+  	
+  	if(det == null)
+  		return;
+  	
+  	for(int i = 0; i < det.numChildren(); i ++)
+      selected_pixels.add(new Integer(det.getChild(i).getPickID()));
+  }
+  
+ /**
+  * This method removes the all pixel nodes contained in the
+  * detector group with the given PickID from the set of selected 
+  * pixels.  The PickID is the unique identification number within 
+  * the scene graph.
+  * 
+  * @param pickid Unique identification number of the
+  *               detector group.
+  */
+  public void removeSelectedDetector(int pickid)
+  { 	
+  	DetectorGroup det = (DetectorGroup)Node.getNodeWithID(pickid);
+  	
+  	if(det == null)
+  		return;
+  	
+  	for(int i = 0; i < det.numChildren(); i ++)
+      selected_pixels.remove(new Integer(det.getChild(i).getPickID()));
+  }
+  
+  /**
+   * This method unselects all pixels.
+   */
+  public void clearSelected() { selected_pixels.clear(); }
+  
+ /**
+  * This method colors all the selected pixels with the given 
+  * color.  The change will not be seen until the next call
+  * to the Draw method for the jogl panel.
+  * 
+  * @param color The color to apply to selected pixels.
+  */
+  public void colorSelected(Color color)
+  {
+  	SimpleShape pixel;
+  	int pickid = -1;
+  	
+    for(Iterator it = selected_pixels.iterator(); it.hasNext(); )
+    {
+      pickid = ((Integer)it.next()).intValue();
+      pixel = (SimpleShape)Node.getNodeWithID(pickid);
+      if(pixel != null) pixel.setColor(color);
+    }
+    
+    compileDisplayList = true;
   }
    
   /**
