@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/07/29 15:23:50  kramer
+ * Now this class records if the colorscale controls are visible and their
+ * last visible location.  Also, when the user selects to use a solid
+ * color or a colorscale for the contour lines, this class makes the
+ * colorscale controls invisible/visible respectively.
+ *
  * Revision 1.1  2005/07/25 20:42:37  kramer
+ *
  * This is a module of the ContourViewComponent that records if the
  * ContourJPanel is using a solid color or colorscale to color the contour
  * lines it draws.
@@ -41,13 +48,13 @@
  */
 package gov.anl.ipns.ViewTools.Components.TwoD.Contour;
 
-import java.awt.Color;
-
 import gov.anl.ipns.Util.Messaging.Information.InformationCenter;
 import gov.anl.ipns.Util.Messaging.Property.PropertyChangeConnector;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
+
+import java.awt.Color;
 
 /**
  * 
@@ -55,31 +62,52 @@ import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
 public class ContourColorScaleHandler extends ContourChangeHandler
 {
 //------------------------=[ ObjectState keys ]=------------------------------//
-   public static final String USE_COLORSCALE_KEY = "Use colorscale key";
+   public static final String USE_COLORSCALE_KEY = 
+                                 "Use colorscale key";
+   public static final String COLORSCALE_CONTROL_LOCATION_KEY = 
+                                 "Colorscale location key";
+   public static final String COLORSCALE_CONTROL_VISIBLE_KEY = 
+                                 "Colorscale visible key";
 //----------------------=[ End ObjectState keys ]=----------------------------//
    
    
 //--------------------=[ Default field values ]=------------------------------//
    public static final boolean DEFAULT_USE_COLORSCALE = false;
+   public static final String DEFAULT_COLORSCALE_LOCATION = 
+                                 CONTROL_PANEL_LOCATION;
+   public static final boolean DEFAULT_COLORSCALE_VISIBLE = true;
 //------------------=[ End default field values ]=----------------------------//
    
    
 //-----------------------------=[ Fields ]=-----------------------------------//
    private boolean usesColorscale;
+   private boolean colorscaleControlVisible;
+   private String lastVisColorscaleLoc;
 //---------------------------=[ End fields ]=---------------------------------//
    
    
 //--------------------------=[ Constructors ]=--------------------------------//
    public ContourColorScaleHandler(PropertyChangeConnector connector, 
                                    InformationCenter center, 
-                                   ContourJPanel panel, boolean useColorscale)
+                                   ContourJPanel panel, 
+                                   boolean useColorscale, 
+                                   String colorscaleLocation)
    {
       super(connector, center, panel);
       
       //now to connect to the PropertyChangeConnector
-      getPropertyConnector().addHandler(this);
+       getPropertyConnector().addHandler(this);
       
       this.usesColorscale = useColorscale;
+      
+      //record the last location of the colorscale control as the default 
+      //location (and also set that the control is visible)
+       this.lastVisColorscaleLoc = DEFAULT_COLORSCALE_LOCATION;
+       this.colorscaleControlVisible = DEFAULT_COLORSCALE_VISIBLE;
+      
+      //notify everyone (including this class) that the colorscale control 
+      //has moved
+       colorScaleLocationChanged(colorscaleLocation);
    }
 //------------------------=[ End constructors ]=------------------------------//
    
@@ -93,11 +121,29 @@ public class ContourColorScaleHandler extends ContourChangeHandler
    public void changeColorScaleName(String colorscale)
    {
       this.usesColorscale = true;
+      
+      colorScaleLocationChanged(this.lastVisColorscaleLoc);
    }
    
    public void changeColor(Color color)
    {
       this.usesColorscale = false;
+      
+      colorScaleLocationChanged(NONE_LOCATION);
+   }
+   
+   public void changeColorScaleLocation(String location)
+   {
+      if (location==null)
+         location = DEFAULT_COLORSCALE_LOCATION;
+      
+      if (location.equals(NONE_LOCATION))
+         this.colorscaleControlVisible = false;
+      else
+      {
+         this.colorscaleControlVisible = true;
+         this.lastVisColorscaleLoc = location;
+      }
    }
 //------=[ End methods implemented for the ContourChangeHandler class ]=------//
    
@@ -134,17 +180,53 @@ public class ContourColorScaleHandler extends ContourChangeHandler
             colorChanged(color);
          }
       }
+      
+      val = state.get(COLORSCALE_CONTROL_LOCATION_KEY);
+      if ( (val != null) && (val instanceof String) )
+      {
+         String visibleLoc = (String)val;
+         
+         val = state.get(COLORSCALE_CONTROL_VISIBLE_KEY);
+         if ( (val != null) && (val instanceof Boolean) )
+         {
+            boolean colorscaleVisible = ((Boolean)val).booleanValue();
+            
+            //store the last visible location
+              this.lastVisColorscaleLoc = visibleLoc;
+            
+            //determine which location to give to colorScaleLocationChanged()
+            //if the colorscale control is not visible, its location is 
+            //NONE_LOCATION
+              String location = this.lastVisColorscaleLoc;
+              if (!colorscaleVisible)
+                 location = NONE_LOCATION;
+            
+            colorScaleLocationChanged(location);
+         }
+      }
    }
    
    public ObjectState getObjectState(boolean isDefault)
    {
       ObjectState state = new ObjectState();
         if (isDefault)
+        {
            state.insert(USE_COLORSCALE_KEY, 
-                 new Boolean(DEFAULT_USE_COLORSCALE));
+                           new Boolean(DEFAULT_USE_COLORSCALE));
+           state.insert(COLORSCALE_CONTROL_LOCATION_KEY, 
+                           DEFAULT_COLORSCALE_LOCATION);
+           state.insert(COLORSCALE_CONTROL_VISIBLE_KEY, 
+                           new Boolean(DEFAULT_COLORSCALE_VISIBLE));
+        }
         else
+        {
            state.insert(USE_COLORSCALE_KEY, 
-                 new Boolean(usesColorscale));
+                           new Boolean(usesColorscale));
+           state.insert(COLORSCALE_CONTROL_LOCATION_KEY, 
+                           this.lastVisColorscaleLoc);
+           state.insert(COLORSCALE_CONTROL_VISIBLE_KEY, 
+                           new Boolean(this.colorscaleControlVisible));
+        }
       return state;
    }
 //---------=[ End methods implemented for the IPreserveState interface ]=-----//
