@@ -28,6 +28,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/07/29 20:42:46  cjones
+ *  The picker will now store the Pick IDs for the pixel shape and detector
+ *  group on mouse hit.  It will also update the detector pick id
+ *  on double clicks.
+ *
  *  Revision 1.3  2005/07/27 20:36:37  cjones
  *  Added menu item that allows the user to choose between different shapes
  *  for the pixels. Also, in frames view, user can change the time between
@@ -61,14 +66,16 @@ import SSG_Tools.SSG_Nodes.Groups.DetectorGroup;
  *  that is "hit" by a ray through the current x,y pixel locations.
  *
  *  One a hit, the handler will store the detector id and pixel id of any
- *  click on a detector pixel.
+ *  click on a detector pixel along with the unique pick ids for both.
+ *  The pixel value will also be stored.
  */
 public class PixelBoxPicker extends MouseAdapter
 {
    private JoglPanel my_panel;
    private HitRecord closestHit;
    private Vector3D point;
-   private int detectorid, pixelid;
+   private int detectorid, detector_pickid;
+   private int pixelid, pixel_pickid;
    private float pixelval;
 
    /**
@@ -117,12 +124,14 @@ public class PixelBoxPicker extends MouseAdapter
         }
         
         // Traverse hit to find pixel id and detector id.
+        pixel_pickid = detector_pickid = -1;
         if(closestHit != null)
         {
           System.out.println("Closest hit = " + closestHit );
            
           int name = closestHit.lastName();
           Node node = Node.getNodeWithID( name );
+          
           detectorid = pixelid = -1;
           pixelval = 0;
           while( node != null)
@@ -131,12 +140,14 @@ public class PixelBoxPicker extends MouseAdapter
             {
               pixelid = ((IPixelShape)node).getPixelID();
               pixelval = ((IPixelShape)node).getValue();
+              pixel_pickid = node.getPickID();
               System.out.println( "Pixel = " + pixelid );
             }
                         
             if(node instanceof DetectorGroup && detectorid == -1)
             {
               detectorid = ((DetectorGroup)node).getDetectorID();
+              detector_pickid = node.getPickID();
               System.out.println( "Detector = " + detectorid );
             }
             
@@ -149,6 +160,46 @@ public class PixelBoxPicker extends MouseAdapter
         point = my_panel.pickedPoint( x, y );
         System.out.println("3D point = " + point );      
      }
+     
+     else if ( e.getClickCount() == 2 )
+     {
+        int x = e.getX();
+        int y = e.getY();
+
+        // Test object selection by printing the "hit list", giving the IDs
+        // for the object selected and it's named parents. 
+
+        HitRecord hitlist[] = my_panel.pickHitList( x, y );
+
+        // Find closest hit
+        closestHit = null;
+        for ( int i = 0; i < hitlist.length; i++ ) {
+          //System.out.println("hit = " + hitlist[i] );
+          if(i == 0) 
+            closestHit = hitlist[i];
+          else if(hitlist[i].getMin() < closestHit.getMin()) 
+            closestHit = hitlist[i];     
+        }
+        
+        // Traverse hit to find pixel id and detector id.
+        detector_pickid = -1;
+        if(closestHit != null)
+        {          
+          int name = closestHit.lastName();
+          Node node = Node.getNodeWithID( name );
+
+          while( node != null)
+          {       
+            if(node instanceof DetectorGroup && detector_pickid == -1)
+            {
+              detector_pickid = node.getPickID();
+              break;
+            }
+            
+            node = node.getParent();
+          }
+        }
+     }
    }
    
    /**
@@ -160,6 +211,17 @@ public class PixelBoxPicker extends MouseAdapter
     {
       return pixelid;
     }
+    
+    /**
+     * Returns Pixel Pick ID that identifies the shape
+     * within the scene graph
+     *
+     *   @return Pixel Pick ID or -1 for no hit.
+     */
+     public int getPixelPickID()
+     {
+       return pixel_pickid;
+     }
     
    /**
     * Returns Pixel Value.
@@ -180,6 +242,17 @@ public class PixelBoxPicker extends MouseAdapter
     {
       return detectorid;
     }
+    
+    /**
+     * Returns Detector Pick ID that identifies the detector
+     * group within the scene graph
+     *
+     *   @return Detector Pick ID or -1 for no hit.
+     */
+     public int getDetectorPickID()
+     {
+       return detector_pickid;
+     }
     
    /**
     * Returns 3d coordinates of click
