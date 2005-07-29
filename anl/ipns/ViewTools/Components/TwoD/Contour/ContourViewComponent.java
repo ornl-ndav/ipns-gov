@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/07/29 15:38:01  kramer
+ * Fixed the typo in setObjectState() where the ContourMenuHandler's
+ * ObjectState was mistakenly called on the ContourLayoutHandler's
+ * setObjectState() method.
+ *
  * Revision 1.3  2005/07/28 23:06:29  kramer
+ *
  * There was a problem where the ContourJPanel's and PanViewControl's
  * displays were not in sync.  Some commented code that failed to solve this
  * problem was removed from this class.  Instead the problem appears to have
@@ -215,10 +221,13 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
         
       //and make the object that will record if a solid color or 
       //colorscale name is currently being used to color the coontour lines
-        colorscaleHandler = new ContourColorScaleHandler(connector, 
-                                                         center, 
-                                                         contourPanel, 
-                                                         useColorScale);
+        colorscaleHandler = 
+           new ContourColorScaleHandler(connector, 
+                                        center, 
+                                        contourPanel, 
+                                        useColorScale, 
+                                        ContourChangeHandler.
+                                           CONTROL_PANEL_LOCATION);
       
       
       //because the ContourMenuHandler is made first, the color it specifies 
@@ -302,7 +311,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       
       val = state.get(COLORSCALE_HANDLER_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
-         this.layoutHandler.setObjectState((ObjectState)val);
+         this.colorscaleHandler.setObjectState((ObjectState)val);
       
       layoutHandler.changeDisplay();
    }
