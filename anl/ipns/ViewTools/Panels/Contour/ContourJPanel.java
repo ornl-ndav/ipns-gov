@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.20  2005/08/01 23:23:01  kramer
+ * Modified the setColorScale(Color[]) and setLineStyles(int[]) methods.
+ * They included a 'while' loop, except their counter was never incremented.
+ * Now the counter is incremented so that the while loops will actually end.
+ *
  * Revision 1.19  2005/07/28 23:17:13  kramer
+ *
  * -Now if the labels or number of significant figures is changed the
  *  thumbnail is not invalidated (this reduces the number of times the
  *  thumbnail needs to be redrawn because the labels are not shown in the
@@ -677,7 +683,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
             {
                int i = 0;
                while ( equal && (i<lineStyles.length) )
+               {
                   equal = (this.lineStyles[i] == lineStyles[i]);
+                  i++;
+               }
             }
          }
          
@@ -908,7 +917,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          {
             int i = 0;
             while ( equal && (i<colors.length) )
+            {
                equal = (this.colorScale[i] == colors[i]);
+               i++;
+            }
          }
       }
       
