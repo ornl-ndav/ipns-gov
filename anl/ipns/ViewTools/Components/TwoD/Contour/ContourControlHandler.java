@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.6  2005/08/01 23:08:10  kramer
+ * -Made a couple 'public static' fields 'final'
+ * -Fixed some javadoc spelling errors
+ * -Modified setObjectState() to change the display as it sets the
+ *  ObjectState on the ViewControls.
+ *
  * Revision 1.5  2005/07/29 22:42:49  kramer
+ *
  * This class contains controls with checkboxes that enable/disable contour
  * line labels and label formating.  These checkboxes were not working but
  * are now fixed.
@@ -287,7 +294,9 @@ public class ContourControlHandler extends ContourChangeHandler
    public static final String DEFAULT_COLOR_SCALE = 
       IndexColorMaker.HEATED_OBJECT_SCALE_2;
    
-   public static double DEFAULT_INTENSITY = 30;
+   public static final double DEFAULT_INTENSITY = 30;
+   
+   public static final boolean DEFAULT_USE_MANUAL_LEVELS = false;
    //-----------------=[ Defaults unique to this class ]=-------------------//
    
 //------------------=[ End default field values ]=----------------------------//
@@ -370,7 +379,7 @@ public class ContourControlHandler extends ContourChangeHandler
     * @param minValue  This is used to describe how to generate uniformly 
     *                  spaced contour levels.  It is the value of the lowest 
     *                  contour level
-    * @param maxValue  This is used to describe ho to generate unformly 
+    * @param maxValue  This is used to describe how to generate unformly 
     *                  spaced contour levels.  It is the value of the highest 
     *                  uniform contour level.
     * @param numLevels This is used to describe how to generate uniformly 
@@ -409,7 +418,7 @@ public class ContourControlHandler extends ContourChangeHandler
       controls[0] = generateIntensityControls();
       controls[1] = generateColorScaleControls(colorScale, isDoubleSided);
       controls[2] = generateContourControls(minValue, maxValue, numLevels, 
-                                                levels, useManualLevels);
+                                            levels, useManualLevels);
       controls[3] = generateLineStyleControl(styles, stylesEnabled);
       controls[4] = generateLabelControls(enableLabels, everyNthLineLabeled);
       controls[5] = generateSigFigControls(enableFormatting, numSigFig);
@@ -506,31 +515,61 @@ public class ContourControlHandler extends ContourChangeHandler
       //    set the states for the ViewControls
       Object val = state.get(INTENSITY_SLIDER_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
+      {
          intensitySlider.setObjectState((ObjectState)val);
+         setIntensity(intensitySlider.getValue());
+         intensityChanged(intensitySlider.getValue());
+      }
       
       val = state.get(CONTROL_COLOR_SCALE_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
+      {
          controlColorscale.setObjectState((ObjectState)val);
+         
+         boolean isDoubleSided = ContourMenuHandler.DEFAULT_IS_DOUBLE_SIDED;
+         Boolean doubleSided = (Boolean)getInfoCenter().
+            obtainValue(ContourMenuHandler.IS_DOUBLE_SIDED);
+         if (doubleSided != null)
+            isDoubleSided = doubleSided.booleanValue();
+         
+         setColorScale(controlColorscale.getColorScale(), isDoubleSided);
+         colorScaleNameChanged(controlColorscale.getColorScale());
+      }
          
       val = state.get(CONTOUR_CONTROLS_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
+      {
          contourControl.setObjectState((ObjectState)val);
+         setActiveContours((Contours)contourControl.getControlValue());
+      }
       
       val = state.get(LINE_STYLES_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
+      {
          lineStyleControl.setObjectState((ObjectState)val);
+         setLineStyles(lineStyleControl.getEnabledLineStyles());
+      }
       
       val = state.get(LINE_LABELS_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
+      {
          labelControl.setObjectState((ObjectState)val);
+         setIsLabelEnabled(labelControl.isChecked());
+      }
       
       val = state.get(NUM_SIG_FIGS_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
+      {
          sigFigControl.setObjectState((ObjectState)val);
+         setIsLabelFormattingEnabled(sigFigControl.isChecked());
+      }
       
       val = state.get(BACKGROUND_COLOR_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
+      {
          backgroundControl.setObjectState((ObjectState)val);
+         setBackgroundColor(backgroundControl.getSelectedColor());
+      }
       
       val = state.get(PAN_VIEW_CONTROL_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
@@ -581,10 +620,7 @@ public class ContourControlHandler extends ContourChangeHandler
    
    public void setColorScale(String colorscale, boolean isDoubleSided)
    {
-      changeColorScaleName(colorscale);
       colorScaleNameChanged(colorscale);
-      
-      changeIsDoubleSided(isDoubleSided);
       isDoubleSidedChanged(isDoubleSided);
    }
    
@@ -601,6 +637,7 @@ public class ContourControlHandler extends ContourChangeHandler
       if (contours==null || contourControl==null)
          return;
       
+      getContourPanel().setContours(contours);
       contourControl.setControlValue(contours);
    }
    
@@ -812,7 +849,7 @@ public class ContourControlHandler extends ContourChangeHandler
          new CompositeContourControl(getContourPanel(), 
                                      minValue, maxValue, numLevels, 
                                      levels, 
-                                     false);
+                                     showManualControls);
       contourControl.addActionListener(new ActionListener()
       {
          public void actionPerformed(ActionEvent event)
