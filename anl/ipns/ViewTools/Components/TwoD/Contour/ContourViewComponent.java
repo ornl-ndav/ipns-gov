@@ -33,7 +33,15 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2005/08/01 23:13:27  kramer
+ * -Modified the setObjectState() method to set the ObjectState of the
+ *  ContourControlHandler after setting the ObjectState of the
+ *  ContourLayoutHandler (instead of before it).
+ * -Added getter methods for the ContourMenuHandler, ContourControlHandler,
+ *  ContourLayoutHandler, and ContourColorScaleHandler.
+ *
  * Revision 1.4  2005/07/29 15:38:01  kramer
+ *
  * Fixed the typo in setObjectState() where the ContourMenuHandler's
  * ObjectState was mistakenly called on the ContourLayoutHandler's
  * setObjectState() method.
@@ -297,23 +305,24 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       if (state==null)
          return;
       
+      
       Object val = state.get(MENU_HANDLER_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
          this.menuHandler.setObjectState((ObjectState)val);
-      
-      val = state.get(CONTROL_HANDLER_KEY);
-      if ( (val != null) && (val instanceof ObjectState) )
-         this.controlHandler.setObjectState((ObjectState)val);
       
       val = state.get(LAYOUT_HANDLER_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
          this.layoutHandler.setObjectState((ObjectState)val);
       
+      val = state.get(CONTROL_HANDLER_KEY);
+      if ( (val != null) && (val instanceof ObjectState) )
+         this.controlHandler.setObjectState((ObjectState)val);
+      
       val = state.get(COLORSCALE_HANDLER_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
          this.colorscaleHandler.setObjectState((ObjectState)val);
       
-      layoutHandler.changeDisplay();
+      layoutHandler.displayChanged();
    }
 
    public ObjectState getObjectState(boolean is_default)
@@ -403,6 +412,29 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       layoutHandler.kill();
    }
 //-------=[ End methods mplemented for the IViewComponent2D interface ]=------//
+   
+   
+//------------------------=[ Getter methods ]=--------------------------------//
+   public ContourMenuHandler getMenuHandler()
+   {
+      return this.menuHandler;
+   }
+   
+   public ContourControlHandler getControlHandler()
+   {
+      return this.controlHandler;
+   }
+   
+   public ContourLayoutHandler getLayoutHandler()
+   {
+      return this.layoutHandler;
+   }
+   
+   public ContourColorScaleHandler getColorScaleHandler()
+   {
+      return this.colorscaleHandler;
+   }
+//----------------------=[ End getter methods ]=------------------------------//
    
    
 //----------------=[ Methods used to test this class ]=-----------------------//
