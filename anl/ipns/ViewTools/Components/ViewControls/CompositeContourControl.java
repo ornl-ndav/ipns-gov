@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.9  2005/08/01 23:17:14  kramer
+ * Modified the setControlValue() method to be able to accept MixedContours
+ * objects as inputs.
+ *
  * Revision 1.8  2005/07/28 15:46:35  kramer
+ *
  * -Changed all occurences of SharedData to SharedMessages.  Now this class
  *  does not use any class from the DataSetTools.* packages.
  * -Now when the contour specifications are changed a CONTOURS_CHANGED
@@ -93,6 +98,7 @@ import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Panels.Contour.ContourJPanel;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.Contours;
+import gov.anl.ipns.ViewTools.Panels.Contour.Contours.MixedContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.NonUniformContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.OrderedContours;
 import gov.anl.ipns.ViewTools.Panels.Contour.Contours.UniformContours;
@@ -435,6 +441,9 @@ public class CompositeContourControl extends ViewControl
            controls.setValue(0, min);
            controls.setValue(1, max);
            controls.setValue(2, numLevels);
+           
+         //make the tab containing the uniform controls visible
+         tabControl.setSelectedTab(0);
       }
       else if (value instanceof NonUniformContours)
       {
@@ -447,6 +456,30 @@ public class CompositeContourControl extends ViewControl
             strLevels[i] = ""+rawLevels[i];
          
          levelList.setControlValue(strLevels);
+         
+         //make the tab containing the nonuniform controls visible
+         tabControl.setSelectedTab(1);
+      }
+      else if (value instanceof MixedContours)
+      {
+         MixedContours contours = (MixedContours)value;
+         Object[] levels = new Object[contours.getNumLevels()];
+         for (int i=0; i<contours.getNumLevels(); i++)
+            levels[i] = ""+contours.getLevelAt(i);
+         
+         //display the contour levels found in the control that displays 
+         //the nonuniform contour levels
+         getNonUniformControls().setControlValue(levels);
+         
+         //then make blank all of the values shown in the control that 
+         //displays the uniform contour levels
+         FieldEntryControl control = getUniformControls();
+           control.setValue(0, "");
+           control.setValue(1, "");
+           control.setValue(2, "");
+           
+         //make the tab containing the nonuniform controls visible
+         tabControl.setSelectedTab(1);
       }
    }
 
