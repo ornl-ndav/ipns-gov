@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.7  2005/08/02 16:12:40  kramer
+ * Added the field NUM_SIG_FIGS_INFO_KEY which is the key used with a
+ * InformationCenter to get the number of significant figures currently
+ * being used when drawing the contour lines.
+ *
  * Revision 1.6  2005/08/01 23:08:10  kramer
+ *
  * -Made a couple 'public static' fields 'final'
  * -Fixed some javadoc spelling errors
  * -Modified setObjectState() to change the display as it sets the
@@ -110,6 +116,8 @@ public class ContourControlHandler extends ContourChangeHandler
                                  "Intensity info key";
    public static final String COLORSCALE_NAME_INFO_KEY = 
                                  "Colorscale name info key";
+   public static final String NUM_SIG_FIGS_INFO_KEY = 
+                                 "Num sig figs info key";
 //------------------=[ End InformationCenter keys ]=--------------------------//
 
    
@@ -410,6 +418,7 @@ public class ContourControlHandler extends ContourChangeHandler
       //now to tell the info center which values this class knows about
       getInfoCenter().registerHandler(this, INTENSITY_INFO_KEY);
       getInfoCenter().registerHandler(this, COLORSCALE_NAME_INFO_KEY);
+      getInfoCenter().registerHandler(this, NUM_SIG_FIGS_INFO_KEY);
       
       //now to connect to the PropertyChangeConnector
       getPropertyConnector().addHandler(this);
@@ -500,6 +509,8 @@ public class ContourControlHandler extends ContourChangeHandler
          return new Double(getColorScaleIntensity());
       else if (key.equals(COLORSCALE_NAME_INFO_KEY))
          return getColorScale();
+      else if (key.equals(NUM_SIG_FIGS_INFO_KEY))
+         return new Integer(getNumSigFigs());
       else
          return null;
    }
