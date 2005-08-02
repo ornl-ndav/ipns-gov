@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2005/08/02 16:17:51  kramer
+ * Modified the getPrecision() method to return the number of significant
+ * figures currently being used to render the contour lines.
+ *
  * Revision 1.2  2005/07/28 15:33:21  kramer
+ *
  * Changed calls from changeDisplay() (which repaints the display) to
  * displayChanged() (which tells all listeners to repaint the display).
  * As a result, the new PanViewControl is repainted as the main window is
@@ -439,9 +444,13 @@ public class ContourLayoutHandler extends ContourChangeHandler
 
    public int getPrecision()
    {
-//TODO FIX THIS SO THAT IT RETURNS SOMETHING USEFUL
-      return 4;
-      //return controlHandler.getNumSigFigs();
+      Integer num = (Integer)getInfoCenter().
+         obtainValue(ContourControlHandler.NUM_SIG_FIGS_INFO_KEY);
+      int numSigFigs = ContourControlHandler.DEFAULT_NUM_SIG_DIGS;
+      if (num != null)
+         numSigFigs = num.intValue();
+      
+      return numSigFigs;
    }
 
    public Font getFont()
