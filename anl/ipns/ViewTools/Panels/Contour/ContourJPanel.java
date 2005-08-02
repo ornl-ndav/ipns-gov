@@ -33,7 +33,14 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.21  2005/08/02 16:49:45  kramer
+ * Modified the getThumbnail() method so that if the main contour image
+ * hasn't been drawn yet, the method doesn't even try to draw the thumbnail
+ * (because there is no image for it to reflect).  This greatly improves the
+ * startup time for the ContourViewComponent (that uses this class).
+ *
  * Revision 1.20  2005/08/01 23:23:01  kramer
+ *
  * Modified the setColorScale(Color[]) and setLineStyles(int[]) methods.
  * They included a 'while' loop, except their counter was never incremented.
  * Now the counter is incremented so that the while loops will actually end.
@@ -145,6 +152,7 @@ package gov.anl.ipns.ViewTools.Panels.Contour;
 
 import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.Util.Sys.ElapsedTime;
 import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
@@ -1085,6 +1093,16 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
         BufferedImage image = 
            new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         
+        //If the main image hasn't been drawn yet, don't even bother 
+        //  trying to draw the thumbnail.  
+        //This improves performance because if there is not image for 
+        //  the thumbnail to reflect, time isn't spent trying to make a 
+        //  thumbnail.
+        //Also, if 'this.firstPaint==true' the thumbnail isn't 
+        //  considered valid by 'isThumbnailValid()' anyway
+        if (this.firstPaint)
+           return image;
+        
       //TODO This forces the background color of the image to correspond to 
       //     the background of the panel.  This is here because the draw() 
       //     method sometimes leaves a black stripe on the right side of the 
@@ -1128,11 +1146,18 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public void paint(Graphics gr)
    {
+      //System.err.println("ContourJPanel.paint() was invoked");
+      
       draw((Graphics2D)gr);
    }
    
    private void draw(Graphics2D g)
    {
+//For timing purposes
+//      System.out.println("Draw invoked .... starting timer");
+//      ElapsedTime time = new ElapsedTime();
+//End for timing purposes
+      
       stop_box( current_point, false );   // if the system redraws this without
 
       stop_crosshair( current_point );    // our knowlege, we've got to get rid
@@ -1390,6 +1415,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       }
       
       g.setBackground(getBackgroundColor());
+      
+//For timing purposes
+//      float elapsedTime = time.elapsed();
+//      System.out.println("  drawing completed in "+elapsedTime+" seconds");
+//End for timing purposes
    }
    
    private CoordTransform getRowColumnToWC()
