@@ -33,7 +33,18 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.22  2005/08/02 21:54:00  kramer
+ * -Added the field 'mainImageNotInit'.  This field is used to store if the
+ *  main contour image has been rendered yet.  This is now used to determine
+ *  if a new thumbnail should be rendered.  This maintains the faster
+ *  startup speed of the ContourViewComponent, but removes the bug where
+ *  the thumbnail would go blank when the main image was double clicked.
+ * -Added javadocs and clarified some of the code's comments.
+ * -Rearranged some of the code in the draw() method.  However, the code
+ *  still has the same functionality.
+ *
  * Revision 1.21  2005/08/02 16:49:45  kramer
+ *
  * Modified the getThumbnail() method so that if the main contour image
  * hasn't been drawn yet, the method doesn't even try to draw the thumbnail
  * (because there is no image for it to reflect).  This greatly improves the
@@ -152,7 +163,6 @@ package gov.anl.ipns.ViewTools.Panels.Contour;
 
 import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
-import gov.anl.ipns.Util.Sys.ElapsedTime;
 import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
@@ -191,13 +201,13 @@ import javax.swing.WindowConstants;
 
 /* TODO List
  * 1.  Compare drawing the lines based on the points located at pixel 
- *     corners or pixel centers.
- * 2.  Label the contour lines (or use line types).
+ *     corners or pixel centers.  (Done)
+ * 2.  Label the contour lines (or use line types).  (Done)
  * 3.  Figure out how to color the lines and possibly use colored regions.
  *     (for now don't worry about filling colored regions)
  *     Can look at it as an image with the contours overlayed on top of it 
  *     and each pixel is given a color depending on if it is betweeen certain 
- *     levels.
+ *     levels.  (Right now the contour lines are colored)
  * 4.  Algorithm for finding how to chain the segments found together.
  */
 /**
@@ -208,6 +218,7 @@ import javax.swing.WindowConstants;
 public class ContourJPanel extends CoordJPanel implements Serializable,
                                                           IPreserveState
 {
+//------------------=[ Used to identify line styles ]=------------------------//
    /** Identifies a line style as a solid line. */
    public static final int SOLID = GraphJPanel.LINE;
    /** Identifies a line style as a dashed line. */
@@ -216,6 +227,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public static final int DASHED_DOTTED = GraphJPanel.DASHDOT;
    /** Identifies a lines style as a dotted line. */
    public static final int DOTTED = GraphJPanel.DOTTED;
+//----------------=[ End used to identify line styles ]=----------------------//
+   
    
 //--------------------------=[ ObjectState keys ]=----------------------------//
    /**
@@ -284,7 +297,17 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
 //------------------------=[ End ObjectState keys ]=--------------------------//
 
 //------------------------=[ Private constants ]=-----------------------------//
+   /**
+    * This is used to define the log scaler's source interval.  
+    * The log scaler maps values from the interval 
+    * [0, {@link #LOG_TABLE_SIZE LOG_TABLE_SIZE}].
+    */
    private final int LOG_TABLE_SIZE = 60000;
+   /**
+    * This is used to define the log scaler's destination interval.  
+    * The log scaler maps from vaues to the interval 
+    * [0, {@link #NUM_POSITIVE_COLORS NUM_POSITIVE_COLOR}].
+    */
    private final int NUM_POSITIVE_COLORS = 127;
 //----------------------=[ End private constants ]=---------------------------//
    
@@ -347,9 +370,31 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * </b>
     */
    private boolean firstPaint;
-   
+   /**
+    * Boolean flag that marks if the main contour plot has been drawn or 
+    * not.  This flag is used by the {@link #getThumbnail(int, int) 
+    * getThumbnail(int, int)} method to determine how to generate the 
+    * thumbnail.  If this flag is <code>true</code> (i.e. if the main 
+    * contour plot has not been drawn yet), the <code>getThumbnail()</code> 
+    * method does not try to render a thumbnail and instead returns a blank 
+    * image.  This helps the startup performance of viewers like the 
+    * <code>ContourViewComponent</code>
+    */
+   private boolean mainImageNotInit;
+   /** 
+    * Used to associate colors to contour levels.  These colors are used when 
+    * drawing the contour levels.  The colors reflect the contours "height".
+    */
    private PseudoLogScaleUtil logScaler;
+   /**
+    * Used to affect how the colors are mapped to contour levels.  The closer 
+    * this value is to <code>100</code>, the more the colors are pulled to 
+    * the high end of the color spectrum.  The closer this value is to 
+    * <code>0</code>, the more the colors are pulled to the low end of the 
+    * color spectrum.
+    */
    private double logScale;
+   /** A reference to the thumbnail that refelcts the large contour image. */
    private BufferedImage thumbnail;
    
    /** Describes the line styles used to render the contour levels. */
@@ -404,6 +449,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       
       //set that the contour image has not been drawn yet
       this.firstPaint = true;
+      this.mainImageNotInit = true;
       //listen to changes in zooming
       addActionListener(new ActionListener()
       {
@@ -977,25 +1023,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       }
    }
    
-   /*
-   /**
-    * Used to set if the aspect ratio should be preserved or not.  This 
-    * method also redraws the image so that it reflects the new state of 
-    * the aspect ratio.
-    * 
-    * @param preserve True if the aspect ratio should be preserved and 
-    *                 false if it shouldn't be preserved.
-    /
-   public void setPreserveAspectRatio(boolean preserve)
-   {
-      super.setPreserveAspectRatio(preserve);
-      //setLocalWorldCoords(getLocalWorldCoords());
-      
-      invalidateThumbnail();
-      reRender();
-   }
-   */
-   
    /**
     * Used to get the logscale factor that is used in the logarithmic 
     * mapping that is used to determine the color of the contour lines 
@@ -1048,6 +1075,15 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       return data2D;
    }
    
+   /**
+    * Used to determine the row in the virtual array of data that contains 
+    * the data point that is displayed at the pixel point with the given 
+    * y coordinate.
+    * 
+    * @param y The y coordinate of the pixel point in question.
+    * @return The row in the virtual array that corresponds to the given 
+    *         pixel point's y coordinate.
+    */
    public int getRowForY(float y)
    {
       CoordTransform rcToWC = getRowColumnToWC();
@@ -1062,6 +1098,15 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       return row;
    }
    
+   /**
+    * Used to determine the column in the virtual array of data that contains 
+    * the data point that is displayed at the pixel point with the given 
+    * x coordinate.
+    * 
+    * @param x The x coordinate of the pixel point in question.
+    * @return The column in the virtual array that corresponds to the given 
+    *         pixel point's x coordinate.
+    */
    public int getColumnForX(float x)
    {
       CoordTransform rcToWC = getRowColumnToWC();
@@ -1076,6 +1121,17 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       return col;
    }
    
+   /**
+    * Used to get a thumbnail image of the main contour plot image.  This 
+    * method caches the thumbnail and only rerenders a new one if the 
+    * contour plot has changed.  Thus, if the contour image isn't being 
+    * modified (by changing the colorscale, line styles, etc.) this method 
+    * can be called often without a large performance hit.
+    * 
+    * @param width Specifies the width of the thumbnail.
+    * @param height Specifies the height of the thumbnail.
+    * @return A thumbnail image that reflects the main contour plot image.
+    */
    public Image getThumbnail(int width, int height)
    {
       //the thumbnail is chached because it is expensive to create it
@@ -1098,9 +1154,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
         //This improves performance because if there is not image for 
         //  the thumbnail to reflect, time isn't spent trying to make a 
         //  thumbnail.
-        //Also, if 'this.firstPaint==true' the thumbnail isn't 
+        //Also, if 'this.mainImageNotInit==true' the thumbnail isn't 
         //  considered valid by 'isThumbnailValid()' anyway
-        if (this.firstPaint)
+        if (this.mainImageNotInit)
            return image;
         
       //TODO This forces the background color of the image to correspond to 
@@ -1146,25 +1202,28 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public void paint(Graphics gr)
    {
-      //System.err.println("ContourJPanel.paint() was invoked");
-      
       draw((Graphics2D)gr);
+      //record that the main contour plot has been initialized
+      //(i.e. it has been drawn)
+      this.mainImageNotInit = false;
    }
    
+   /**
+    * Draws a contour plot into the given graphics object.
+    * 
+    * @param g The graphics object that describes something that can be 
+    *          drawn to.  This could, for example, correspond to a 
+    *          <code>JPanel</code> or an image.
+    */
    private void draw(Graphics2D g)
    {
-//For timing purposes
-//      System.out.println("Draw invoked .... starting timer");
-//      ElapsedTime time = new ElapsedTime();
-//End for timing purposes
-      
-      stop_box( current_point, false );   // if the system redraws this without
+      stop_box( current_point, false );// if the system redraws this without
 
-      stop_crosshair( current_point );    // our knowlege, we've got to get rid
-                                          // of the cursors, or the old position
-                                          // will be drawn rather than erased
-                                          // when the user moves the cursor (due
-                                          // to XOR drawing).
+      stop_crosshair( current_point ); // our knowlege, we've got to get rid
+                                       // of the cursors, or the old position
+                                       // will be drawn rather than erased
+                                       // when the user moves the cursor (due
+                                       // to XOR drawing).
       
       //call the superclass to draw into the given Graphics2D
         super.paint(g);
@@ -1192,55 +1251,28 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
            return;
         }
         
-      //set the local transforms to map a rectangular region to the 
-      //entire panel
-//        SetTransformsToWindowSize();
-      //now to get the transform that maps from row/column to the world 
-      //coordinates of the entire panel.  The row/col is mapped to the 
-      //location on the ENTIRE panel because the ALL of the data in the 
-      //array needs to be mapped to ALL of the panel (not just a small 
-      //region which is what 'local_transform' describes).
+      //Get the transform that maps from the row/column coordinates of the 
+      //array of data to the world coordinates of the entire panel.
         CoordTransform rcToWC = getRowColumnToWC();
-      //if this is the first time the contour image is being painted 
+        
+      //If this is the first time the contour image is being painted 
       //set the local_transform to have its input region be the output 
-      //region of 'rcToWC'.  After the contour image is drawn the user can 
-      //zoom in and the superclass handles setting the source (input) of 
-      //local_transform to be the correct subset of the entire panel.
+      //region of 'rcToWC' (i.e. the entire panel).  After the 
+      //contour image is drawn the user can zoom in and the superclass 
+      //handles setting the source (input) of local_transform to be the 
+      //correct subset of the entire panel.
        if (firstPaint)
        {
-          //if the drawing should act like the panel hasn't been painted yet
-          //set the source of the local transform to be the CoordBounds 
-          //object that encapsulates the bounds of the entire panel
-          //(in world coordinates)
           local_transform.setSource(getGlobalWCBounds());
           firstPaint = false;
        }
-
-      //this holds the contour points found
-        Vector contourPts;
-      //references an element in 'contourPts'
-        floatPoint2D curPt;
-      //this will hold the x points describing where each contour line segment 
-      //that should be drawn.  The units will initially be in terms of 
-      //row/column and will be converted to world coordinates and then 
-      //pixel coordinates.  The numbers are in the order 
-      //p1_start, p1_end, p2_start, p2_end ....
-        float[] xrcVals;
-      //the same as above except this stores y values
-        float[] yrcVals;
-      //this is the index of the point with the minimum gradient on a level
-      //(where grad(F(x,y)) := F_x(x,y)*i + F_y(x,y)*j where 
-      // F_x(x,y) denotes the partial derivative of F with respect to x
-      // F_y(x,y) is the partial derivative of F with respect to y)
-        int minGradIndex;
-      //this stores the square of the minimum gradient
-        float minGradSqr;
-        
-      //these are the minimum and maximum x and y indices in the array 
-      //that can be accessed and still be in the current view window
-      //(all of the data may not be in the view window if the user has 
-      // zoomed in on some portion of the data).  Note that the values are 
-      // inclusize (i.e. arr[xMaxIndex][yMaxIndex] can legally be accessed).
+       
+      //These are the bounds of the array of data that is currently being 
+      //  displayed on the screen.
+      //ex.) If the user has zoomed in on some portion of the data, then 
+      //  only a subset of the array of data is being displayed on the screen 
+      //The bounds are inclusive (i.e. arr[xMaxIndex][yMaxIndex] 
+      //  can legally be accessed).
         int xMinIndex = getXIndexFromPixel(0, rcToWC, arr.length, true);
         int xMaxIndex = getXIndexFromPixel(getWidth(), rcToWC, 
                                            arr.length, false);
@@ -1265,16 +1297,44 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
            yMaxIndex = yMinIndex;
         }
         
-      //for each level draw the contour
-      //the following values are 'sticky'.  In other words if they are 
-      //defined for one level but not the next, the values from the previous 
-      //level stick
-        //the line style
-          int lineSytle = DEFAULT_LINE_STYLE;
-        //if labels should be displayed
-          boolean showLabel = DEFAULT_SHOW_LABEL;
-        //the number of significant digits
-          int numSigDigits = DEFAULT_NUM_SIG_DIGS;
+      /* Variables used when drawing the contour lines */
+        
+      //holds the contour points found
+        Vector contourPts;
+      //references an element in 'contourPts'
+        floatPoint2D curPt;
+      //Holds the x points describing where each contour line segment 
+      //  should be drawn.  
+      //The units will initially be in terms of row/column and will be 
+      //  converted to world coordinates and then pixel coordinates.  
+      //The numbers are in the order p1_start, p1_end, p2_start, p2_end ....
+        float[] xrcVals;
+      //the same as above except this stores y values
+        float[] yrcVals;
+      //This is the index of the point with the minimum gradient on a level
+      //  grad(F(x,y)) := F_x(x,y)*i + F_y(x,y)*j 
+      //  F_x(x,y) denotes the partial derivative of F with respect to x
+      //  F_y(x,y) is the partial derivative of F with respect to y
+      //  F is the 3D function that the array of data can be interpreted as 
+      //    representing.
+        int minGradIndex;
+      //stores the square of the minimum gradient
+        float minGradSqr;
+        
+      /* The following variables are 'sticky'.  In other words, if they are 
+       * defined for one level but not the next, the values from the 
+       * previous level stick
+       */
+        
+      //the line style
+        int lineSytle = DEFAULT_LINE_STYLE;
+      //if labels should be displayed
+        boolean showLabel = DEFAULT_SHOW_LABEL;
+      //the number of significant digits
+        int numSigDigits = DEFAULT_NUM_SIG_DIGS;
+          
+          
+      //For each level draw the contour.
       for (int i=0; i<levels.getNumLevels(); i++)
       {
          //first to initialize the variables used to draw this level
@@ -1285,10 +1345,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
              showLabel = showLabels[i%showLabels.length];
              numSigDigits = numSigFigs[i%numSigFigs.length];
          
-         //now to get the contours.  The 'Contour2D.contour()' method does 
-         //the work of calculating the points on the contour level.  
+         //Now to get the contours.  The 'Contour2D.contour()' method does 
+         //  the work of calculating the points on the contour level.  
          //The code in this class does the work of graphically 
-         //displaying these points.
+         //  displaying these points.
            contourPts = Contour2D.contour(arr, levels.getLevelAt(i));
          
          //now to create space for the arrays
@@ -1311,21 +1371,27 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                *        center of the boxes.  Adding 1/2f shifts the point 
                *        from the corner to the center.
                */
-                 
+              
               //now to determine the square of the gradient of the
               //function at this point.  The point with the gradient 
               //closest to 0 is the point that is farthest away from the 
               //contour level above and below the current contour level.
               int xIndex = (int)curPt.x;
               int yIndex = (int)curPt.y;
+              
+              //only compare the gradient if the current point is inside the 
+              //region currently being viewed
               if ( xIndex>=xMinIndex && xIndex<xMaxIndex && 
                    yIndex>=yMinIndex && yIndex<yMaxIndex)
               {
+                 //partial derivative of F with respect to x
                  float Fx = arr[xIndex+1][yIndex] - arr[xIndex][yIndex];
                  if ( (yIndex+1)<arr[xIndex].length )
                  {
+                    //partial derivative of F with respect to y
                     float Fy = arr[xIndex][yIndex+1] - arr[xIndex][yIndex];
                     float gradSqr = Fx*Fx+Fy*Fy;
+                    
                     //if this gradient is as smaller or smaller than the 
                     //current minimum, record it.  The point recorded will 
                     //be used later when rendering the contour's label
@@ -1349,12 +1415,12 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          //to reflect viewing a smaller subsection of the panel.
             local_transform.MapXListTo(xrcVals);
             local_transform.MapYListTo(yrcVals);
-            
+
          //now to draw the lines with the new pixel coordinates
            for (int j=0; (j+1)<contourPts.size(); j+=2)
            {
               //if this or the next index corresponds to the index of the 
-              //point with the smallest gradient draw the contour label
+              //point with the smallest gradient, draw the contour label
               //if labels are enabled
               if ( showLabel && (j==minGradIndex || (j+1)==minGradIndex) )
               {
@@ -1413,13 +1479,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                           (int)(yrcVals[j+1]));
            }
       }
-      
-      g.setBackground(getBackgroundColor());
-      
-//For timing purposes
-//      float elapsedTime = time.elapsed();
-//      System.out.println("  drawing completed in "+elapsedTime+" seconds");
-//End for timing purposes
    }
    
    private CoordTransform getRowColumnToWC()
@@ -1603,10 +1662,24 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       this.thumbnail = null;
    }
    
+   /**
+    * Used to determine if the thumbnail that is cached accurately reflects 
+    * the contents of the main contour plot and is the correct size.
+    * 
+    * @param width A thumbnail could be requested whose width is specified 
+    *              by this field.  This method uses this width to determine 
+    *              if the cached thumbnail is the correct width.
+    * @param height A thumbnail could be requested whose height is specified 
+    *               by this field.  This method uses this height to 
+    *               determine if the cached thumbnail is the correct height.
+    * @return True if the cached thumbnail accurately reflects the contents 
+    *         of the main contour plot, and false if a new thumbnail needs 
+    *         to be created.
+    */
    private boolean isThumbnailValid(int width, int height)
    {
       //if the main image hasn't been painted yet the thumbnail is invalid
-      if (this.firstPaint)
+      if (this.firstPaint || this.mainImageNotInit)
          return false;
       
       //if the width or height for the newly requested thumbnail are invalid 
@@ -1803,5 +1876,23 @@ private Color fixColors(Color c1, Color c2, int delta)
    return newColor;
 }
 */
+
+
+/*
+   /**
+    * Used to set if the aspect ratio should be preserved or not.
+    * 
+    * @param preserve True if the aspect ratio should be preserved and 
+    *                 false if it shouldn't be preserved.
+    /
+   public void setPreserveAspectRatio(boolean preserve)
+   {
+      super.setPreserveAspectRatio(preserve);
+      //setLocalWorldCoords(getLocalWorldCoords());
+      
+      //invalidateThumbnail();
+      //reRender();
+   }
+   */
 
 //--------------------------=[ End unused code ]=-----------------------------//
