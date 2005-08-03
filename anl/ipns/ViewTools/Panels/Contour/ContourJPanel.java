@@ -33,7 +33,16 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.23  2005/08/03 15:56:50  kramer
+ * -Changed the field 'firstPaint' to 'wcNotInit' because it stores if the
+ *  world coordinates have been initialized or not.
+ * -Added and improved the javadocs.
+ * -Rearranged the code to make it easier to read.  For example, the code
+ *  is now divided into sections like:  fields, constructors,
+ *  getter/setter methods, private methods, ....
+ *
  * Revision 1.22  2005/08/02 21:54:00  kramer
+ *
  * -Added the field 'mainImageNotInit'.  This field is used to store if the
  *  main contour image has been rendered yet.  This is now used to determine
  *  if a new thumbnail should be rendered.  This maintains the faster
@@ -182,6 +191,7 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -197,6 +207,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 /* TODO List
@@ -211,9 +222,65 @@ import javax.swing.WindowConstants;
  * 4.  Algorithm for finding how to chain the segments found together.
  */
 /**
- * This is a special type of panel with zooming and cursor capabilities such 
- * that given an array of data in an <code>IVirtualArray2D</code> a 
- * contour plot of the data can be generated.
+ * This class is a special type of <code>JPanel</code> that has the ability 
+ * to draw a contour plot that describes an <code>IVirtualArray2D</code> of 
+ * data.
+ * <p>
+ * With drawing the contour lines, you can:
+ * <ul>
+ *   <li>
+ *     Specify the contours levels to render
+ *   </li>
+ *   <li>
+ *     Specify the contour colors
+ *   </li>
+ *   <li>
+ *     Specify the contour styles
+ *   </li>
+ *   <li>
+ *     Specify if the contour lines should be labeled
+ *   </li>
+ *   <li>
+ *     If the contour lines are labeled, specify the number of significant 
+ *     figures reflected in the labels
+ *   </li>
+ *   <li>
+ *     Specify the contour plot's background color
+ *   </li>
+ *   <li>
+ *     Acquire a thumbnail image of the main contour plot
+ *   </li>
+ *   <li>
+ *     Specify that the plot should be drawn with the aspect ratio 
+ *     preserved or not preserved
+ *   </li>
+ *   <li>
+ *     Zoom in on a region of the plot
+ *   </li>
+ * </ul>
+ * <p>
+ * This class is designed such that there are getter/setter methods to 
+ * get and set properties that modify the way the contour plot is rendered.  
+ * Except when specified otherwise, these setter methods don't immediately 
+ * re-render the contour plot.  Instead, after invoking a setter method, the 
+ * {@link #reRender() reRender()} method should be invoked to re-render the 
+ * contour plot.  This improves efficiency because several properties can 
+ * be set and then the contour plot can be re-rendered <b>one time</b> to 
+ * reflect all of the changed properties (instead of re-rendering the 
+ * contour plot several times for each changed property).
+ * <p>
+ * This class caches the thumbnail it creates.  Thus, when the thumbnail is 
+ * requested (with the {@link #getThumbnail(int, int) getThumbnail(int, int)} 
+ * method), a new thumbnail is not redrawn if the cached copy accurately 
+ * reflects the main contour plot.  This improves performance.  To force the 
+ * thumbnail to be redrawn (i.e. to specify that the thumbnail does not 
+ * accurately reflect the main contour plot), the 
+ * {@link #invalidateThumbnail() invalidateThumbnail()} method can be 
+ * invoked before requesting the thumbnail.  However, after any of the 
+ * setter methods are used to change the way the contour plot is drawn, the 
+ * <code>invalidateThumbnail()</code> should <i>not</i> be invoked.  
+ * Instead, the setter methods will invalidate the thumbnail if it needs to 
+ * be (sometimes the thumbnail is still valid after setting a property).
  */
 public class ContourJPanel extends CoordJPanel implements Serializable,
                                                           IPreserveState
@@ -296,20 +363,22 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public static final String BACKGROUND_COLOR_KEY = "Background color";
 //------------------------=[ End ObjectState keys ]=--------------------------//
 
+   
 //------------------------=[ Private constants ]=-----------------------------//
    /**
     * This is used to define the log scaler's source interval.  
     * The log scaler maps values from the interval 
-    * [0, {@link #LOG_TABLE_SIZE LOG_TABLE_SIZE}].
+    * [0, <code>LOG_TABLE_SIZE</code>].
     */
    private final int LOG_TABLE_SIZE = 60000;
    /**
     * This is used to define the log scaler's destination interval.  
     * The log scaler maps from vaues to the interval 
-    * [0, {@link #NUM_POSITIVE_COLORS NUM_POSITIVE_COLOR}].
+    * [0, <code>NUM_POSITIVE_COLORS</code>}].
     */
    private final int NUM_POSITIVE_COLORS = 127;
 //----------------------=[ End private constants ]=---------------------------//
+   
    
 //------------------------=[ Default field values ]=--------------------------//
    /**
@@ -346,6 +415,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public static final Color[] DEFAULT_COLOR_SCALE = new Color[] {Color.BLACK};
 //----------------------=[ End default field values ]=------------------------//
    
+   
 //------------------------------=[ Fields ]=----------------------------------//
    /** Holds the data that is being drwn on this panel. */
    private IVirtualArray2D data2D;
@@ -355,7 +425,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    private Contours levels;
    /**
-    * Boolean flag that marks if the contour graph has been drawn yet or not.  
+    * Boolean flag that marks if the contour graph has had its 
+    * world coordinates initialized yet or not.  
     * <p>
     * Its initial value is 'true' and whenever the zoom is reset its value is 
     * reset to 'true' otherwise it is 'false'.  The paint() method uses this 
@@ -369,7 +440,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * However, there may be a better solution.
     * </b>
     */
-   private boolean firstPaint;
+   private boolean wcNotInit;
    /**
     * Boolean flag that marks if the main contour plot has been drawn or 
     * not.  This flag is used by the {@link #getThumbnail(int, int) 
@@ -378,7 +449,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * contour plot has not been drawn yet), the <code>getThumbnail()</code> 
     * method does not try to render a thumbnail and instead returns a blank 
     * image.  This helps the startup performance of viewers like the 
-    * <code>ContourViewComponent</code>
+    * <code>ContourViewComponent</code>.
     */
    private boolean mainImageNotInit;
    /** 
@@ -412,6 +483,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    private Color[] colorScale;
 //----------------------------=[ End fields ]=--------------------------------//
+   
    
 //---------------------------=[ Constructors ]=-------------------------------//
    /**
@@ -447,9 +519,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                                               0, (float)NUM_POSITIVE_COLORS);
       setLogScale(0);
       
-      //set that the contour image has not been drawn yet
-      this.firstPaint = true;
+      //set that the contour image has not been initialized yet
+      this.wcNotInit = true;
       this.mainImageNotInit = true;
+      
       //listen to changes in zooming
       addActionListener(new ActionListener()
       {
@@ -460,10 +533,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
           */
          public void actionPerformed(ActionEvent event)
          {
-            //if the zoom was rest act like the contour image 
-            //has never been drawn yet
+            //if the zoom was reset, act like the contour image 
+            //world coordinates have not been initialized yet
             if (event.getActionCommand().equals(RESET_ZOOM))
-               firstPaint = true;
+               wcNotInit = true;
          }
       });
       
@@ -522,6 +595,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       this.levels = new NonUniformContours(levels);
    }
 //-------------------------=[ End constructors ]=-----------------------------//
+   
    
 //-----------=[ Methods implemented for the IPreserveState interface ]=-------//
    /**
@@ -647,23 +721,8 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
 //--------=[ End methods implemented for the IPreserveState interface ]=------//
    
-   /**
-    * Use this method to change the data that is being displayed on the 
-    * contour graph.  This method then redraws the graph to reflect the 
-    * new data.
-    * 
-    * @param arr The new data that should be plotted.
-    */
-   public void changeData(IVirtualArray2D arr)
-   {
-      if (this.data2D != arr)
-      {
-         data2D = arr;
-         invalidateThumbnail();
-         reRender();
-      }
-   }
    
+//----------------------=[ Getter/setter methods ]=---------------------------//
    /**
     * Get the contours that are currently being plotted.
     * 
@@ -675,8 +734,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
    
    /**
-    * Set the contours that should be plotted.  Along with setting the 
-    * new contours, this method immediately redraws the graph.
+    * Set the contours that should be plotted.
     * 
     * @param levels The contours that should be plotted.
     */
@@ -1056,14 +1114,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
    
    /**
-    * Used to force the contour graph to be redrawn.
-    */
-   public void reRender()
-   {
-      repaint();
-   }
-   
-   /**
     * Used to get a reference to the data onto which the contour lines being 
     * drawn are based.
     * 
@@ -1171,9 +1221,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
         
       //the following variables are effected by the painting of the 
       //thumbnail and need to be reverted when the painting is complete
-        //when the thumbnail is painted, the variable holding whether 
-        //or not the main image was painted should not be affected
-          boolean firstPaintCopy = this.firstPaint;
+        //when the thumbnail is painted, the variable describing if the 
+        //main image's world coordinates have been initialized 
+        //should not be affected
+          boolean firstPaintCopy = this.wcNotInit;
         //labels are momentarily disabled in the thumbnail image
           boolean[] labelBackup = getShowLabels();
           setShowLabels(new boolean[] {false});
@@ -1189,12 +1240,50 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //now revert all of the saved variables back
         this.local_transform = localBackup;
         setShowLabels(labelBackup);
-        this.firstPaint = firstPaintCopy;
+        this.wcNotInit = firstPaintCopy;
          
       //cache the image made
         this.thumbnail = image;
         
       return this.thumbnail;
+   }
+//--------------------=[ End getter/setter methods ]=-------------------------//
+   
+   
+//--------------------=[ Extra public methods ]=------------------------------//
+   /**
+    * Use this method to change the data that is being displayed on the 
+    * contour graph.  This method then redraws the graph to reflect the 
+    * new data.
+    * 
+    * @param arr The new data that should be plotted.
+    */
+   public void changeData(IVirtualArray2D arr)
+   {
+      if (this.data2D != arr)
+      {
+         data2D = arr;
+         invalidateThumbnail();
+         reRender();
+      }
+   }
+   
+   /**
+    * Used to make the cached thumbnail invalid.  As a result, when the 
+    * {@link #getThumbnail(int, int) getThumbnail(int, int)} method is 
+    * invoked, the thumbnail is forced to be redrawn.
+    */
+   public void invalidateThumbnail()
+   {
+      this.thumbnail = null;
+   }
+   
+   /**
+    * Used to force the contour graph to be redrawn.
+    */
+   public void reRender()
+   {
+      repaint();
    }
    
    /**
@@ -1207,7 +1296,10 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //(i.e. it has been drawn)
       this.mainImageNotInit = false;
    }
+//------------------=[ End extra public methods ]=----------------------------//
    
+   
+//-------------------------=[ Private methods ]=------------------------------//
    /**
     * Draws a contour plot into the given graphics object.
     * 
@@ -1255,16 +1347,16 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //array of data to the world coordinates of the entire panel.
         CoordTransform rcToWC = getRowColumnToWC();
         
-      //If this is the first time the contour image is being painted 
+      //If the panel's world coordinates have not been initialized yet, 
       //set the local_transform to have its input region be the output 
       //region of 'rcToWC' (i.e. the entire panel).  After the 
       //contour image is drawn the user can zoom in and the superclass 
       //handles setting the source (input) of local_transform to be the 
       //correct subset of the entire panel.
-       if (firstPaint)
+       if (wcNotInit)
        {
           local_transform.setSource(getGlobalWCBounds());
-          firstPaint = false;
+          wcNotInit = false;
        }
        
       //These are the bounds of the array of data that is currently being 
@@ -1481,6 +1573,32 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       }
    }
    
+   /**
+    * Used to get the rectangular box that describes the bounds of the 
+    * entire panel in terms of the world coordinate system.
+    * 
+    * @return An encapsulation of the world coordinate bounds of the entire 
+    *         panel.
+    */
+   private CoordBounds getGlobalWCBounds()
+   {
+      AxisInfo xInfo = this.data2D.getAxisInfo(AxisInfo.X_AXIS);
+      AxisInfo yInfo = this.data2D.getAxisInfo(AxisInfo.Y_AXIS);
+      
+      return new CoordBounds(xInfo.getMin(), yInfo.getMax(), 
+                             xInfo.getMax(), yInfo.getMin());
+   }
+   
+   /**
+    * Used to create a transformation that maps from row/column 
+    * coordinates to world coordinates.  The transformation maps from the 
+    * entire array of data to the world coordinates describing the entire 
+    * panel.
+    * 
+    * @return The transformation that maps the entire array of data 
+    *         (in row/column coordinates) to the entire panel 
+    *         (in world coordinates).
+    */
    private CoordTransform getRowColumnToWC()
    {
       //get the CoordBounds object that encapsulates the bounds of 
@@ -1503,59 +1621,36 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
    
    /**
-    * Used to get the rectangular box that describes the bounds of the 
-    * entire panel in terms of the world coordinate system.
+    * Given a floating point number, this method gets the closest 
+    * corresponding index.  The index is forced to be in the range 
+    * [0,maxIndex).
     * 
-    * @return An encapsulation of the world coordinate bounds of the entire 
-    *         panel.
+    * @param pseudoIndex The floating point number close to an index.
+    * @param maxIndex The smallest positive invalid index.  If this parameter 
+    *                 is 5, then the indexes, 0, 1, 2, 3, and 4 are valid 
+    *                 indices and 5 is the first invalid index.
+    * @param roundUp True if this method should round up to the nearest 
+    *                index and false if it should round down to the nearest 
+    *                index.
+    * @return The closest valid index to the given floating point 'pseudo' 
+    *         index either rounded up or down.
     */
-   private CoordBounds getGlobalWCBounds()
+   private int getValidIndex(float pseudoIndex, int maxIndex, boolean roundUp)
    {
-      AxisInfo xInfo = this.data2D.getAxisInfo(AxisInfo.X_AXIS);
-      AxisInfo yInfo = this.data2D.getAxisInfo(AxisInfo.Y_AXIS);
+      int index;
+      if (roundUp)
+         index = (int)Math.ceil(pseudoIndex);
+      else
+         index = (int)Math.floor(pseudoIndex);
       
-      return new CoordBounds(xInfo.getMin(), yInfo.getMax(), 
-                             xInfo.getMax(), yInfo.getMin());
-   }
-   
-   /**
-    * Used to look at the "elevation" of a particular contour level and 
-    * find the color that should be used when drawing the contour level.  
-    * This method incorportates the current logarithmic scaling factor when 
-    * determining the color.
-    * 
-    * @param height The "elevation" of the contour line in question.
-    * 
-    * @see #setLogScale(double)
-    * @see #getLogScale()
-    */
-   private Color getColorForLevel(float height)
-   {
-      //get the logarithmic scale factor to use
-        double scale = getLogScale();
-      
-      //logarithmically adjust the height given
-        height = logScaler.toDest(height, scale);
-      //get the max and min such that they correspond to the new 
-      //mapped logarithmic region
-        float max = logScaler.toDest(levels.getHighestLevel(), scale);
-        float min = logScaler.toDest(levels.getLowestLevel(), scale);
-      
-      //a mapping (or function) y = ax + b is used to map the interval 
-      //[max, min] to the interval [0, colorScale.length-1]
-        float a = (colorScale.length-1)/(max-min);
-        float b = -1*a*min;
-      
-      //the value of the function is the index in 
-      //the colorscale array of colors
-        int index = (int)(a*height+b);
-      //if the index is out of bounds pull it back in
-        if (index < 0)
-           index = 0;
-        else if (index >= colorScale.length)
-           index = colorScale.length - 1;
-        
-      return colorScale[index];
+      //if the index is out of bounds 
+      //change it so that it is back in bounds
+      if (index<0)
+         index = 0;
+      else if (index>=maxIndex)
+         index = maxIndex-1;
+
+      return index;
    }
    
    /**
@@ -1625,44 +1720,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
    
    /**
-    * Given a floating point number, this method gets the closest 
-    * corresponding index.  The index is forced to be in the range 
-    * [0,maxIndex).
-    * 
-    * @param pseudoIndex The floating point number close to an index.
-    * @param maxIndex The smallest positive invalid index.  If this parameter 
-    *                 is 5, then the indexes, 0, 1, 2, 3, and 4 are valid 
-    *                 indices and 5 is the first invalid index.
-    * @param roundUp True if this method should round up to the nearest 
-    *                index and false if it should round down to the nearest 
-    *                index.
-    * @return The closest valid index to the given floating point 'pseudo' 
-    *         index either rounded up or down.
-    */
-   private int getValidIndex(float pseudoIndex, int maxIndex, boolean roundUp)
-   {
-      int index;
-      if (roundUp)
-         index = (int)Math.ceil(pseudoIndex);
-      else
-         index = (int)Math.floor(pseudoIndex);
-      
-      //if the index is out of bounds 
-      //change it so that it is back in bounds
-      if (index<0)
-         index = 0;
-      else if (index>=maxIndex)
-         index = maxIndex-1;
-
-      return index;
-   }
-   
-   public void invalidateThumbnail()
-   {
-      this.thumbnail = null;
-   }
-   
-   /**
     * Used to determine if the thumbnail that is cached accurately reflects 
     * the contents of the main contour plot and is the correct size.
     * 
@@ -1678,8 +1735,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    private boolean isThumbnailValid(int width, int height)
    {
-      //if the main image hasn't been painted yet the thumbnail is invalid
-      if (this.firstPaint || this.mainImageNotInit)
+      //if the main image hasn't been initialized yet, 
+      //the thumbnail is invalid
+      if (this.wcNotInit || this.mainImageNotInit)
          return false;
       
       //if the width or height for the newly requested thumbnail are invalid 
@@ -1699,8 +1757,51 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    }
    
    /**
+    * Used to look at the "elevation" of a particular contour level and 
+    * find the color that should be used when drawing the contour level.  
+    * This method incorportates the current logarithmic scaling factor when 
+    * determining the color.
+    * 
+    * @param height The "elevation" of the contour line in question.
+    * 
+    * @see #setLogScale(double)
+    * @see #getLogScale()
+    */
+   private Color getColorForLevel(float height)
+   {
+      //get the logarithmic scale factor to use
+        double scale = getLogScale();
+      
+      //logarithmically adjust the height given
+        height = logScaler.toDest(height, scale);
+      //get the max and min such that they correspond to the new 
+      //mapped logarithmic region
+        float max = logScaler.toDest(levels.getHighestLevel(), scale);
+        float min = logScaler.toDest(levels.getLowestLevel(), scale);
+      
+      //a mapping (or function) y = ax + b is used to map the interval 
+      //[max, min] to the interval [0, colorScale.length-1]
+        float a = (colorScale.length-1)/(max-min);
+        float b = -1*a*min;
+      
+      //the value of the function is the index in 
+      //the colorscale array of colors
+        int index = (int)(a*height+b);
+      //if the index is out of bounds pull it back in
+        if (index < 0)
+           index = 0;
+        else if (index >= colorScale.length)
+           index = colorScale.length - 1;
+        
+      return colorScale[index];
+   }
+//-----------------------=[ End private methods ]=----------------------------//
+   
+   
+//------------------=[ Methods used to test this class ]=---------------------//
+   /**
     * Generates a float[][] for the data for the function 
-    * f(x,y) = x+y
+    * f(x,y) = x<sup>2</sup>+y<sup>2</sup>
     */
    private static float[][] getTestDataArr()
    {
@@ -1733,7 +1834,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * Generates a IVirtualArray2D for the data for the function 
     * f(x,y) = x+y
     */
-   public static IVirtualArray2D getTestData()
+   private static IVirtualArray2D getTestData()
    {
       return new VirtualArray2D(getTestDataArr());
    }
@@ -1750,11 +1851,16 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          levels[2] = 2;
          levels[3] = 7;
          levels[4] = 12.2332f;
-      IVirtualArray2D v2d = ContourViewComponent.getTestData(51,51,3,4);
-      final ContourJPanel panel = new ContourJPanel(v2d, 0, 10, 11);
+         
+      final IVirtualArray2D v2d_1 = 
+               ContourViewComponent.getTestData(51,51,3,4);
+      final IVirtualArray2D v2d_2 = 
+               getTestData();
+      
+      final ContourJPanel panel = new ContourJPanel(v2d_1, 0, 10, 11);
          //initialize the panel's world coordinates
-         AxisInfo xInfo = v2d.getAxisInfo(AxisInfo.X_AXIS);
-         AxisInfo yInfo = v2d.getAxisInfo(AxisInfo.Y_AXIS);
+         AxisInfo xInfo = v2d_1.getAxisInfo(AxisInfo.X_AXIS);
+         AxisInfo yInfo = v2d_1.getAxisInfo(AxisInfo.Y_AXIS);
          
          panel.initializeWorldCoords(new CoordBounds(xInfo.getMin(), 
                                                      yInfo.getMax(), 
@@ -1806,8 +1912,39 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                                            BorderLayout.CENTER);
         thumbnailPane.setSize(200, 200);
       thumbnailPane.setVisible(true);
+      
+      final String data1 = "Data1";
+      final String data2 = "Data2";
+      final JButton changeButton1;
+      final JButton changeButton2;
+      ActionListener changeListener = new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            String message = event.getActionCommand();
+            if (message.equals(data1))
+               panel.changeData(v2d_1);
+            else if (message.equals(data2))
+               panel.changeData(v2d_2);
+         }
+      };
+      changeButton1 = new JButton(data1);
+        changeButton1.addActionListener(changeListener);
+      changeButton2 = new JButton(data2);
+        changeButton2.addActionListener(changeListener);
+      
+      JPanel changePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        changePanel.add(new JLabel("Change the displayed data to"));
+        changePanel.add(changeButton1);
+        changePanel.add(changeButton2);
         
+      JFrame changeFrame = new JFrame("Change the Displayed Data");
+        changeFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        changeFrame.getContentPane().add(changePanel);
+        changeFrame.pack();
+      changeFrame.setVisible(true);
    }
+//----------------=[ End methods used to test this class ]=-------------------//
 }
 
 //----------------------------=[ Unused code ]=-------------------------------//
