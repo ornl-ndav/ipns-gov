@@ -30,9 +30,13 @@
  *   Support of HFIR/SNS Analysis Software Development 
  *   UT-Battelle contract #:   4000036212
  *   Date:   Oct. 1, 2004 - Sept. 30, 2006
- *odified:
+ * 
+ *  Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/08/04 22:43:57  cjones
+ *  Fixed error in comment header
+ *
  *  Revision 1.4  2005/08/04 22:42:31  cjones
  *  Updated comment header and javadocs
  *
