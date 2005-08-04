@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.7  2005/08/04 14:41:50  kramer
+ * Fixed some javadoc errors.
+ *
  * Revision 1.6  2005/07/12 16:54:46  kramer
+ *
  * Now the setObjectState() method calls super.setObjectState() to set the
  * state that the superclass maintains.
  *
@@ -156,9 +160,16 @@ public class ControlList extends ViewControl
    public static final String SUBMIT_BUTTON_KEY = "Submit Button Key";
    
    //Default values used in this ViewControl
+   /**
+    * The default text that is placed in the textbox that is 
+    * used to enter values.
+    */
    private static final String default_entry_label = "Enter new value";
+   /** The text that appears on the "Add" button. */
    private static final String default_add_button_text = "Add";
+   /** The text that appears on the "Remove" button. */
    private static final String default_remove_button_text = "Remove";
+   /** The text that appears on the "Submit" button. */
    private static final String default_submit_button_text = "Submit";
    
    //default values for entries in the ObjectState
@@ -208,8 +219,8 @@ public class ControlList extends ViewControl
    private FieldEntryControl entryControl;
    /**
     * This contains the "Add" button.  When this button is clicked, the value 
-    * written in the text field of the {@link #entryControl entryControl}  
-    * object is added {@link #list list}.  This variable is saved in this 
+    * written in the text field of the <code>entryControl</code>  
+    * object is added to {@link #list list}.  This variable is saved in this 
     * class's object state.
     */
    private ButtonControl addButton;
