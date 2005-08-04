@@ -33,6 +33,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/08/04 22:24:12  cjones
+ *  Added help frame to give a general overiew of Display3D. Also, made fixes
+ *  to the comment header.
+ *
  *  Revision 1.3  2005/07/22 19:47:45  cjones
  *  Display3D can now accept IPhysicalArray3D[] or IPhysicalArray3DList[]
  *  as data input.  If the list version is given, a frame controller will
@@ -51,13 +55,13 @@
 package gov.anl.ipns.ViewTools.Displays;
 
 import javax.swing.*;
+
 import java.util.Vector;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
 import javax.swing.text.html.HTMLEditorKit;
 
+import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.UI.SplitPaneWithState;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.ThreeD.*;
@@ -76,6 +80,8 @@ import gov.anl.ipns.ViewTools.Components.IPhysicalArray3D;
 public class Display3D extends Display
 {
   private IPointList3D[] datalist;
+  
+  private static JFrame helper = null;
   
  /**
   * Construct a 3D display frame with the specified data. This constructor
@@ -128,6 +134,8 @@ public class Display3D extends Display
  /**
   * This method sets the ObjectState of this viewer to a previously saved
   * state.
+  * 
+  * UNFINSHED
   *
   *  @param  new_state The previously saved state that this viewer will be
   *                    set to.
@@ -140,6 +148,8 @@ public class Display3D extends Display
  /**
   * This method will get the current values of the state variables for this
   * object. These variables will be wrapped in an ObjectState.
+  *
+  *  UNFINISHED
   *
   *  @param  isDefault Should selective state be returned, that used to store
   *                    user preferences common from project to project?
@@ -219,32 +229,25 @@ public class Display3D extends Display
   * This private method will (re)build the menubar.
   * If the file being loaded is not found, those menu items
   * must be removed. To do so, rebuild the Menubar.
-  * 
-  *   CURRENTLY UNFINISHED
   */ 
   private void addToMenubar()
   {
     Vector options           = new Vector();
     Vector save_default      = new Vector();
+    Vector switch_view       = new Vector();
     Vector help              = new Vector();
     Vector display_help      = new Vector();
     Vector option_listeners  = new Vector();
     Vector help_listeners    = new Vector();
     
-    // build options menu
-    options.add("Options");
-    option_listeners.add( new Menu3DListener() ); // listener for options
-    options.add(save_default);
-      save_default.add("Save User Settings");
-      option_listeners.add( new Menu3DListener() ); // listener for user prefs.
+    menu_bar.add( new JMenu("Options") );
     
     // build help menu
     help.add("Help");
     help_listeners.add( new Menu3DListener() );
     help.add( display_help );
       display_help.add("Using Display3D");
-      help_listeners.add( new Menu3DListener() );  // listener for D2D helper
-    menu_bar.add( MenuItemMaker.makeMenuItem(options,option_listeners) );
+      help_listeners.add( new Menu3DListener() );  // listener for D3D helper
     menu_bar.add( MenuItemMaker.makeMenuItem(help,help_listeners) );
   }
 
@@ -262,6 +265,34 @@ public class Display3D extends Display
     }
   }
   
+  /**
+   * Contains/Displays control information about this viewer.
+   */
+   public static void help()
+   {
+     helper = new JFrame("Introduction to the Display3D");
+     helper.setBounds(0,0,600,400);
+     JEditorPane textpane = new JEditorPane();
+     textpane.setEditable(false);
+     textpane.setEditorKit( new HTMLEditorKit() );
+     String text = "<H1>Description:</H1> <P>" + 
+        "The Display3D provides a 3D representation of data, " +
+        "which allows users to quickly examine detector " +
+ 		"configurations and pixel values. A 3D scene is created " +
+ 		"to provide a physical form to the pixels, closely " +
+ 		"matching the detectors actual layouts. The pixels can be " +
+ 		"colored by value using several selectable color models and " +
+ 		"a variable brightness setting. The user is then capable of " +
+ 		"moving about the scene, examining specific pixels, or " +
+ 		"selecting groups of pixels for use elsewhere.</P>";
+     textpane.setText(text);
+     JScrollPane scroll = new JScrollPane(textpane);
+     scroll.setVerticalScrollBarPolicy(
+         			    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+     helper.getContentPane().add(scroll);
+     WindowShower.show(helper);
+   }
+  
  /*
   * This class is required to handle all messages within the Display3D.
   */
@@ -269,12 +300,10 @@ public class Display3D extends Display
   {
     public void actionPerformed( ActionEvent ae )
     {
-      if( ae.getActionCommand().equals("Save User Settings") )
-      {
-      }
       // Called if user selects help option.
-      else if( ae.getActionCommand().equals("Using Display3D") )
+      if( ae.getActionCommand().equals("Using Display3D") )
       {
+      	help();
       }
   
     }
