@@ -24,15 +24,20 @@
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
- *
- * This work was supported by the National Science Foundation under grant
- * number DMR-0218882.
- *
- * For further information, see <http://www.pns.anl.gov/ISAW/>
+ * 
+ * This work was supported by the University of Tennessee Knoxville and 
+ * the Spallation Neutron Source at Oak Ridge National Laboratory under: 
+ *   Support of HFIR/SNS Analysis Software Development 
+ *   UT-Battelle contract #:   4000036212
+ *   Date:   Oct. 1, 2004 - Sept. 30, 2006
  *
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.6  2005/08/04 22:34:57  cjones
+ *  Now contains methods for add, removing, and returning selected pixels using
+ *  the SelectedListItem object. Also, fixed some documentation.
+ *
  *  Revision 1.5  2005/07/29 20:48:21  cjones
  *  The base DetectorScene now contains methods for selecting and unselecting
  *  pixels. Selected pixels can then be set to a given color.
@@ -62,6 +67,7 @@ package gov.anl.ipns.ViewTools.Components.ThreeD;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Vector;
 import java.util.TreeSet;
 import java.util.TreeMap;
 import java.util.Iterator;
@@ -82,6 +88,7 @@ import SSG_Tools.SSG_Nodes.SimpleShapes.*;
 import SSG_Tools.SSG_Nodes.Groups.*;
 import SSG_Tools.SSG_Nodes.Groups.Transforms.*;
 
+import gov.anl.ipns.Util.Numeric.UniqueIntGenerator;
 import gov.anl.ipns.ViewTools.Components.IPhysicalArray3D;
 import gov.anl.ipns.ViewTools.Components.IPointList3D;
 import gov.anl.ipns.ViewTools.Components.IBoundsList3D;
@@ -102,7 +109,8 @@ import gov.anl.ipns.ViewTools.Components.PhysicalArray3D;
  * addSceneCircle will encompose the volume with a 2d circle, and addLineAxes will 
  * draw coordinate axes at the center of the scene.
  * 
- * The user may add/remove pixels from a set to specify whether they have been
+ * The object also stores a collection of currently selected pixels.
+ * The user may add/remove pixels from the set to specify whether they have been
  * selected or not.  The selected pixels can then be colored with a given color.
  */
 public class DetectorSceneBase extends Group
@@ -165,17 +173,17 @@ public class DetectorSceneBase extends Group
   }
   
   /**
-   * This method adds a detector to the scene.  A detector is constructed by given
+   * This method adds a detector to the scene.  A detector is constructed by giving
    * a list of points to represent the pixels and a list of bound information for
    * each point to define the shape and orientation of the pixel.  Entries in
    * point_list and bounds_list should coorrespond, e.g. a point at index 1 in point_list
    * will have its bounds information at index 1 in bounds_list.  The bounds list should
-   * have equal or more entries than point_list, but excess indices in bounds_list will
+   * have equal the number of entries as point_list, and excess indices in bounds_list will
    * be ignored.  The volume bounding box is recalculated for each
    * detector added.  The center is assumed to be at the origin.
    * 
    * @param id			Detector id.
-   * @param shapteType  The type of shape that each pixel will be drawn as. 
+   * @param shapeType  The type of shape that each pixel will be drawn as. 
    *                    Default is BOX.
    * @param point_list  An array of 3D points. Each point represents a pixel of the
    *                    Detector.
@@ -193,10 +201,12 @@ public class DetectorSceneBase extends Group
     {
       detector = new DetectorGroup(id);
       	
+      // Got through each 
       for ( int i = 0; i < point_list.getNumPoints(); i++ )
       {                                      
         if(shapeType == DOT)
         {
+          // The DOT will take the size of the X dimension extent.
           extents = bounds_list.getExtents(i).get();
           Vector3D[] pts = new Vector3D[1];
           pts[0] = point_list.getPoint(i);
@@ -208,10 +218,16 @@ public class DetectorSceneBase extends Group
         
         else if(shapeType == RECTANGLE)
         {
+          // The rectangle will take the width of the x dimension
+          // extent and the height of the y dimension extent.
           extents = bounds_list.getExtents(i).get();
+          
+          // Width - X Vector
           Vector3D width = bounds_list.getOrientation(i)[0];
-          width.normalize();
+          width.normalize();           
           width.multiply(extents[0]);
+          
+          // Height - Y Vector
           Vector3D height = bounds_list.getOrientation(i)[1];
           height.normalize();
           height.multiply(extents[1]);
@@ -223,6 +239,8 @@ public class DetectorSceneBase extends Group
         
         else
         {
+          // Default Shape: Box
+          // All extents, orientations use.
           shape = new PixelPositionedBox(i, point_list.getPoint(i),
         		                                bounds_list.getOrientation(i)[0],
         		                                bounds_list.getOrientation(i)[1],
@@ -230,7 +248,7 @@ public class DetectorSceneBase extends Group
 												Color.WHITE);
         }
 
-        // Use max point to find center
+        // Use max point to find center and bounding box
         position = point_list.getPoint(i).get();
         for(int j = 0; j < 3; j++) 
         {
@@ -238,11 +256,12 @@ public class DetectorSceneBase extends Group
           if(position[j] < min_point[j]) min_point[j] = position[j];
         }
                   
-        // THIS NEEDS TO BE CHANGED TO UNIQUE ID
-        shape.setPickID( 2+id*100+i );
+        // Generate pick id that is unique
+        shape.setPickID( UniqueIntGenerator.getNextInt() );
         
         detector.addChild( shape );
         
+        // Map user detector id to the detector object
         detectorid_map.put(new Integer(id), detector);
         
       }
@@ -277,7 +296,7 @@ public class DetectorSceneBase extends Group
     else detector = new DetectorGroup(-1);
 
      //THIS NEEDS TO BE CHANGED TO A UNIQUE ID
-    detector.setPickID(10000*id+1);
+    detector.setPickID(  UniqueIntGenerator.getNextInt() );
     addChild(detector);
     
     compileDisplayList = true;
@@ -427,14 +446,18 @@ public class DetectorSceneBase extends Group
     changeBackground = true;
   }
   
+  /*-------------- SELECTION METHODS ------------------------*/
+  
   /**
    * Return all of the selected pixels in an array of
    * strings.  Each string is formatted as follows: 
-   *   "Det <detector_user_id> Pixel <pixel_user_id>"
+   *   "Det <detector_user_id> Pix <pixel_user_id>"
    * where detector_user_id is an integer representing
    * the id given to the detector when it was added and
    * the pixel_user_id is the index to the pixel within
    * the detector. 
+   * 
+   * Each selected pixel has an individual string.
    *
    * @return An array of formatted strings, one
    *         for each selected pixel.
@@ -443,28 +466,115 @@ public class DetectorSceneBase extends Group
   {
   	if(selected_pixels.size() <= 0) return null;
   	
+  	// One string for each pixel
   	String[] output = new String[selected_pixels.size()];
   	
   	int i =0;
     for(Iterator it = selected_pixels.iterator(); it.hasNext(); i++)
     {
+      // Use pickid to find PixelID and DetectorID
       int pickid = ((Integer)it.next()).intValue();
       SimpleShape pixel = (SimpleShape)Node.getNodeWithID(pickid);
       DetectorGroup det = (DetectorGroup)pixel.getParent();
       int pixelid = ((IPixelShape)pixel).getPixelID();
       int detid = det.getDetectorID();
      
-      output[i] = new String("Det: " + detid + " Pixel: " + pixelid);
+      // Construct its String
+      output[i] = new String("Det " + detid + " Pix " + pixelid);
     }
     
     return output;
   }
   
+  /**
+   * Return all of the selected pixels as a Vector of
+   * SelectListItem objects.  Each SelectedListItem
+   * is grouped by a single detector and all selected
+   * pixels for that detector.
+   *
+   * @return A Vector SelectedListItem objects
+   *         representing all selected pixels.
+   */
+  public Vector getSelectedItems()
+  {  	
+  	Vector output = new Vector();
+  	
+  	// Since the PickIDs are in increasing order, all of the pixels
+  	// for any given detector should be grouped together.  Worst case
+  	// one detector is split if the UniqueIDs wrap around to the 
+  	// beginning
+  	
+  	int i = 0;
+  	int cur_det = -1;  // Current detector id
+  	TreeSet pixelids = new TreeSet(); // To hold and sort Pixel IDs
+    for(Iterator it = selected_pixels.iterator(); it.hasNext(); i++)
+    {
+      // Find PixelID and DetectorID for selected pickid
+      int pickid = ((Integer)it.next()).intValue();
+      SimpleShape pixel = (SimpleShape)Node.getNodeWithID(pickid);
+      DetectorGroup det = (DetectorGroup)pixel.getParent();
+      int pixelid = ((IPixelShape)pixel).getPixelID();
+      int detid = det.getDetectorID();
+      
+      // If first iteration, set current detector id and
+      // add the pixel id to its collection.
+      if(i == 0)
+      {
+      	pixelids.add(new Integer(pixelid));
+      	cur_det = detid;
+      }
+      // If this detector is same as last detector, then add pixel id
+      else if(detid == cur_det)
+      {
+        //Add pixel id to list of selected pixels for this detector.
+      	pixelids.add(new Integer(pixelid));
+      }
+      // If detector is new, store last detector into SelectedListItem
+      else
+      {
+        //Add last detector with selected pixels and go to next.
+      	// Get all pixel ids in increasing order
+      	Object[] tempids = pixelids.toArray();
+      	int[] pix_array = new int[tempids.length];
+      	for(int j = 0; j < tempids.length; j++)
+      	  pix_array[j] = ((Integer)tempids[j]).intValue();
+      	
+      	int[] det_array  = { cur_det };
+      	// Generate SelectedListItem for that detector
+      	output.add( new SelectedListItem(det_array, pix_array));
+      	
+      	// Start the new detector
+      	pixelids.clear();
+      	pixelids.add(new Integer(pixelid));
+      	cur_det = detid;
+      }
+    }
+    
+    // If iterations stop and there is a detector to be transformed
+    // into a SelectedListItem
+    if(i != 0)
+    {
+      // Get all pixel ids in increasing order
+      Object[] tempids = pixelids.toArray();
+      int[] pix_array = new int[tempids.length];
+      for(int j = 0; j < tempids.length; j++)
+        pix_array[j] = ((Integer)tempids[j]).intValue();
+    	
+      int[] det_array  = { cur_det };
+      // Generate SelectedListItem for that detector.
+      output.add( new SelectedListItem(det_array, pix_array));
+    }
+    
+    return output;
+  }
+  
+  
  /**
   * This will intersect the set of given selected pixels with the
   * current selected pixels.  The lists of ids must match in 
-  * length, where every index represents correspondings ids within
-  * the two arrays.
+  * length, where every index represents corresponding ids within
+  * the two arrays. Thus, for index i, retain pixel at i that is
+  * in detector at i.
   * 
   * @param det_ids    The detector ids as given when the detector
   *                        was added.
@@ -480,9 +590,11 @@ public class DetectorSceneBase extends Group
   	
   	for(int i = 0; i < det_ids.length; i++)
   	{
+  	  // Map detector id to detector scene node
   	  DetectorGroup det = (DetectorGroup)
 	        detectorid_map.get(new Integer(det_ids[i]));
   	  
+  	  // If node exists, get child at pixel id 
   	  if(det != null && det.getDetectorID() == det_ids[i] && 
   	  	 pixel_ids[i] < det.numChildren())
   	    tmpset.add(new Integer(det.getChild(pixel_ids[i]).getPickID()));
@@ -491,6 +603,75 @@ public class DetectorSceneBase extends Group
   	selected_pixels.retainAll(tmpset);
   }
   
+  /**
+   * This will intersect the set of given selected pixels with the
+   * current selected pixels.  
+   * 
+   * @param items An array of SelectedListItem that contains 
+   *              detector and pixels ids that should be retained.
+   */
+   public void retainSelectedPixels(SelectedListItem[] items)
+   {   	
+   	TreeSet tmpset = new TreeSet();
+   	
+   	for(int i = 0; i < items.length; i++)
+   	{
+   	  // The detectors for which all of pixels are
+   	  // selected
+   	  int[] dets = items[i].getDetectorArray();
+   	  int[] pixs = items[i].getPixelArray();
+   	  
+      if(dets != null && pixs != null)
+   	    for(int d_i = 0; d_i < dets.length; d_i++)
+   	    {
+   	      // Get detector scene node
+   	      DetectorGroup det = (DetectorGroup)
+ 	            detectorid_map.get(new Integer(dets[d_i]));
+   	  
+   	      // If it's not there, move on to next detector
+   	      if(det == null || det.getDetectorID() != dets[d_i]) break;
+   	    
+   	      // If it is there, add all the pixel ids to retainable set
+   	      for(int p_i = 0; p_i < pixs.length; p_i++)
+   	        if(pixs[p_i] < det.numChildren())
+   	          tmpset.add(new Integer(det.getChild(pixs[p_i]).getPickID()));
+   	    }
+   	}
+   	
+   	selected_pixels.retainAll(tmpset);
+   }
+  
+ /**
+  * This method adds the pixels contained within the given item.
+  * For each detector id, all of the pixel ids will be added 
+  * to the set of selected pixels.
+  * 
+  * @param item The item containing detectors with pixel ids
+  *             that will be added to selection.
+  */
+  public void addSelectedPixel(SelectedListItem item)
+  {
+  	int[] det_array = item.getDetectorArray();
+  	int[] pix_array = item.getPixelArray();
+  	
+  	// This makes sure the SelectedListItems were set
+  	if(det_array == null || pix_array == null)
+  	  return;
+  	
+  	for(int i = 0; i < det_array.length; i++)
+  	{
+  	  // get detector scene object
+   	  DetectorGroup det = 
+   		  (DetectorGroup)detectorid_map.get(new Integer(det_array[i]));
+    	
+   	  // Select all the specified pixels
+  	  if(det != null && det.getDetectorID() == det_array[i])
+  	    for(int j = 0; j < pix_array.length; j++)
+  	      if(pix_array[j] < det.numChildren())
+  	        addSelectedPixel(det.getChild(pix_array[j]).getPickID());
+  	}
+  }
+   
  /**
   * This method adds the pixel found within the specified ids
   * to the set of selected pixels.  The first id represents
@@ -509,6 +690,34 @@ public class DetectorSceneBase extends Group
   	if(det != null && det.getDetectorID() == detid && 
   	   pixelid < det.numChildren())
   	  addSelectedPixel(det.getChild(pixelid).getPickID());
+  }
+  
+ /**
+  * This method removes the pixels contained within the given item.
+  * For each detector id, all of the pixel ids will be removed 
+  * from the set of selected pixels.
+  * 
+  * @param item The item containing detectors with pixel ids
+  *             that will be removed from selection.
+  */
+  public void removeSelectedPixel(SelectedListItem item)
+  {
+  	int[] det_array = item.getDetectorArray();
+  	int[] pix_array = item.getPixelArray();
+  	
+  	if(det_array == null || pix_array == null)
+      return;
+  	
+  	for(int i = 0; i < det_array.length; i++)
+  	{
+   	  DetectorGroup det = 
+   		  (DetectorGroup)detectorid_map.get(new Integer(det_array[i]));
+    	
+  	  if(det != null && det.getDetectorID() == det_array[i])
+  	    for(int j = 0; j < pix_array.length; j++)
+  	      if(pix_array[j] < det.numChildren())
+  	        removeSelectedPixel(det.getChild(pix_array[j]).getPickID());
+  	}
   }
   
  /**
