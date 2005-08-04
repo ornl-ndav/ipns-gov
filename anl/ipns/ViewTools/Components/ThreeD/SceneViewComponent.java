@@ -24,15 +24,19 @@
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
- *
- * This work was supported by the National Science Foundation under grant
- * number DMR-0218882.
- *
- * For further information, see <http://www.pns.anl.gov/ISAW/>
+ * 
+ * This work was supported by the University of Tennessee Knoxville and 
+ * the Spallation Neutron Source at Oak Ridge National Laboratory under: 
+ *   Support of HFIR/SNS Analysis Software Development 
+ *   UT-Battelle contract #:   4000036212
+ *   Date:   Oct. 1, 2004 - Sept. 30, 2006
  *
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.6  2005/08/04 22:36:47  cjones
+ *  Updated documentation and comment header.
+ *
  *  Revision 1.5  2005/07/29 20:52:50  cjones
  *  Multiple pixels can now be selected through either mouse clicks or
  *  a side control list.  A single click will select a single pixel and a
@@ -74,26 +78,41 @@ import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 
 /**
- * This object displays data in a three dimensional viewer. Data is given as a 
- * IPhysicalArray3D[] and all data points are drawn to a color based on their 
- * value. The positions, extents, and orientations give each point its place 
- * and shape in space.
+ * This object displays data in a three dimensional viewer. Data is given as an 
+ * array of IPhysicalArray3D objects. Each data point has one associated value,
+ * which is used to color the point using a log scaled color model. The positions,
+ * extents, and orientations give each point its place and shape in space. The
+ * user may select three different shapes: a box, a rectangle, or a dot.  The
+ * box gives the most accurate representation of the data, but it may exhibit
+ * low frame rendering with large datasets. The other two shapes can increase
+ * performance but are less accurate to the true representation of the 
+ * detectors.
  * 
- * Controls are created to handle camera and data colors. A printout of
- * selected data appears under these controls.
+ * Several controls allow the user to adjust the camera, change the pixel colors,
+ * change the background color, see output from mouse clicks, and a list of
+ * selected pixels.
+ * 
+ * On the selected pixel list, the proper input is to first put the 
+ * detector ids that were assigned to the particular data array and 
+ * then the pixel indices within that array.  To include multiple ids
+ * on a line use a comma (',') to seperate individual nonconsecutive ids and use
+ * a colon (':') to specifiy a range of ids.
+ * Examples: 4 6
+ *           4 5,8
+ *           4 5,7,9:11
  * 
  * This component uses a JOGL (Java OpenGL) based panel to render the scene.
  */
 public class SceneViewComponent extends ViewComponent3D
 {  
-  
+  // These are needed for the LogScaleColorModel
   private float min_value, max_value;
   
   /**
    * Constructor.  Takes array of physical location information and 
    * builds the panel, controls, menus, and scene.
    *  
-   *   @param arrays The data that will be put into the scene
+   *   @param arrays The data that will be put into the scene.
    */
   public SceneViewComponent( IPhysicalArray3D[] arrays )
   {
@@ -102,32 +121,6 @@ public class SceneViewComponent extends ViewComponent3D
     dataChanged(arrays);
     buildControls();
     buildMenu();
-  }
-  
- /**
-  * This method will set the current state variables of the object to state
-  * variables wrapped in the ObjectState passed in.
-  *
-  *  @param new_state
-  */
-  public void setObjectState( ObjectState new_state )
-  {
-    
-  }
-  
- /**
-  * This method will get the current values of the state variables for this
-  * object. These variables will be wrapped in an ObjectState.
-  *
-  *  @param  is_default True if default state, use static variable.
-  *  @return if true, the selective default state, else the state for with
-  *          all possible saved values.
-  */ 
-  public ObjectState getObjectState( boolean is_default )
-  {
-    ObjectState state = new ObjectState();
-
-    return state;
   }
   
  /**
@@ -147,17 +140,20 @@ public class SceneViewComponent extends ViewComponent3D
   
  /**
   * This method is called whenever the view component needs to update 
-  * the detector pixels to have the currentShapeType.
+  * the detector pixels' shape.  The shape should be set to one of the 
+  * static int variables describing the shapes.
   */
   public void changeShape()
   {
+  	// The currentShapeType is set by the menu handler in ViewComponent3D
   	((DetectorScene)joglpane.getScene()).changeShape(currentShapeType);
   }
    
  /**
   * This method is invoked to notify the view component when the data
-  * has changed within the same array. The scene will be recreated
-  * since the pixel volumes may have been altered.
+  * has changed within the same array. The scene will be colored and
+  * redrawn to reflect these changes.  This only affects changes
+  * to the data values and no the physical information.
   */
   public void dataChanged()
   {
@@ -169,10 +165,12 @@ public class SceneViewComponent extends ViewComponent3D
   * data needs to be displayed.   If the data is not null, it creates a new
   * scene and panel based on the given data.
   *
-  *  @param  arrays - virtual arrays of data
+  *  @param  arrays Virtual arrays of data. Each array should an implementation
+  *                 of IPhysicalArray3D.
   */ 
   public void dataChanged(IPointList3D[] arrays)
   { 
+  	// Clean up jogl pane if needed.
   	if(joglpane != null)
   	{
   	  joglpane.setScene(null);
@@ -187,6 +185,7 @@ public class SceneViewComponent extends ViewComponent3D
       return;
     }
    
+    // Local reference to data.
     varrays = (IPhysicalArray3D[])arrays;
    
     // Set min_value and max_value
@@ -201,6 +200,7 @@ public class SceneViewComponent extends ViewComponent3D
     
     joglpane.setCamera( scene.makeCamera() );
     
+    // This listener handles selections and picks
     joglpane.getDisplayComponent().addMouseListener( 
             new PickHandler( joglpane ));
 
@@ -255,6 +255,11 @@ public class SceneViewComponent extends ViewComponent3D
       
   }
   
+  /*
+   * This builds the standard 3D menu, but turns
+   * off the option of setting the frame step size
+   * since the frame controller is not used.
+   */
   protected void buildMenu()
   {
   	super.buildMenu();
@@ -264,7 +269,8 @@ public class SceneViewComponent extends ViewComponent3D
    
  /*
   * Finds the range of data values for current arrays. 
-  * Sets max_value and min_value.
+  * Sets max_value and min_value. These values
+  * are to be used with the LogScaleColorModel
   */
   private void findDataRange()
   {

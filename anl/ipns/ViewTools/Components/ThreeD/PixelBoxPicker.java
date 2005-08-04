@@ -24,10 +24,19 @@
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
+ * 
+ * This work was supported by the University of Tennessee Knoxville and 
+ * the Spallation Neutron Source at Oak Ridge National Laboratory under: 
+ *   Support of HFIR/SNS Analysis Software Development 
+ *   UT-Battelle contract #:   4000036212
+ *   Date:   Oct. 1, 2004 - Sept. 30, 2006
  *
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/08/04 22:36:45  cjones
+ *  Updated documentation and comment header.
+ *
  *  Revision 1.4  2005/07/29 20:42:46  cjones
  *  The picker will now store the Pick IDs for the pixel shape and detector
  *  group on mouse hit.  It will also update the detector pick id
@@ -71,7 +80,7 @@ import SSG_Tools.SSG_Nodes.Groups.DetectorGroup;
  */
 public class PixelBoxPicker extends MouseAdapter
 {
-   private JoglPanel my_panel;
+   private JoglPanel my_panel;  // To get hitlist
    private HitRecord closestHit;
    private Vector3D point;
    private int detectorid, detector_pickid;
@@ -79,7 +88,7 @@ public class PixelBoxPicker extends MouseAdapter
    private float pixelval;
 
    /**
-    * Constructor. Makes PixelBoxPicker
+    * Constructor. Makes PixelBoxPicker.
     *
     *   @param panel The JoglPanel mouse will be used in.
     */
@@ -92,12 +101,14 @@ public class PixelBoxPicker extends MouseAdapter
     * Mouse Click Handler.  Whenever there is a single click, this method
     * will find the HitRecord closest to the user and, if availiable, store
     * the pixel id and detector id on object hit.  It will also store the 3d
-    * coordinates for the click.
+    * coordinates and pixel values for the click.  A double click will update
+    * the detector id.
     *
     *   @param e Mouse Event gives (x,y) screen coordinates.
     */
    public void mouseClicked (MouseEvent e)
    {
+   	 // Update selected pixel.
      if ( e.getClickCount() == 1 )
      {
         int x = e.getX();
@@ -109,9 +120,6 @@ public class PixelBoxPicker extends MouseAdapter
         HitRecord hitlist[] = my_panel.pickHitList( x, y );
         if ( hitlist.length > 0 )
           Toolkit.getDefaultToolkit().beep();
-
-        System.out.println( "MouseClickHandler: num_hits = "+hitlist.length);
-        System.out.println( "x,y = " + x + ", " + y );
         
         // Find closest hit
         closestHit = null;
@@ -127,7 +135,6 @@ public class PixelBoxPicker extends MouseAdapter
         pixel_pickid = detector_pickid = -1;
         if(closestHit != null)
         {
-          System.out.println("Closest hit = " + closestHit );
            
           int name = closestHit.lastName();
           Node node = Node.getNodeWithID( name );
@@ -135,20 +142,18 @@ public class PixelBoxPicker extends MouseAdapter
           detectorid = pixelid = -1;
           pixelval = 0;
           while( node != null)
-          {
+          { // Go through node that was hit to find pixel info
             if(node instanceof IPixelShape && pixelid == -1) 
             {
               pixelid = ((IPixelShape)node).getPixelID();
               pixelval = ((IPixelShape)node).getValue();
               pixel_pickid = node.getPickID();
-              System.out.println( "Pixel = " + pixelid );
             }
-                        
+            // Find detector info
             if(node instanceof DetectorGroup && detectorid == -1)
             {
               detectorid = ((DetectorGroup)node).getDetectorID();
               detector_pickid = node.getPickID();
-              System.out.println( "Detector = " + detectorid );
             }
             
             node = node.getParent();
@@ -157,10 +162,10 @@ public class PixelBoxPicker extends MouseAdapter
         
         // Test Picked Point by printing the 3D coordinates of the point
         // that was clicked on.
-        point = my_panel.pickedPoint( x, y );
-        System.out.println("3D point = " + point );      
+        point = my_panel.pickedPoint( x, y );      
      }
      
+     // Detector ID update.
      else if ( e.getClickCount() == 2 )
      {
         int x = e.getX();
@@ -189,7 +194,7 @@ public class PixelBoxPicker extends MouseAdapter
           Node node = Node.getNodeWithID( name );
 
           while( node != null)
-          {       
+          { // Just find detector info
             if(node instanceof DetectorGroup && detector_pickid == -1)
             {
               detector_pickid = node.getPickID();

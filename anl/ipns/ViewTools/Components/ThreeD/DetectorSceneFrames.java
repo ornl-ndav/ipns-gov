@@ -24,15 +24,19 @@
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
- *
- * This work was supported by the National Science Foundation under grant
- * number DMR-0218882.
- *
- * For further information, see <http://www.pns.anl.gov/ISAW/>
+ * 
+ * This work was supported by the University of Tennessee Knoxville and 
+ * the Spallation Neutron Source at Oak Ridge National Laboratory under: 
+ *   Support of HFIR/SNS Analysis Software Development 
+ *   UT-Battelle contract #:   4000036212
+ *   Date:   Oct. 1, 2004 - Sept. 30, 2006
  *
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.4  2005/08/04 22:36:44  cjones
+ *  Updated documentation and comment header.
+ *
  *  Revision 1.3  2005/07/27 20:36:34  cjones
  *  Added menu item that allows the user to choose between different shapes
  *  for the pixels. Also, in frames view, user can change the time between
@@ -78,10 +82,13 @@ import gov.anl.ipns.ViewTools.Components.LogScaleColorModel;
  * of detector pixels, which will be drawn as solid boxes using the physical 
  * information stored in the array.  The detectors will be given the ID of 
  * the array, and each pixel within an array will be given its index as its
- * ID.
+ * ID.  A circle will be created to surround the detectors on the horizontal
+ * axis and three lines will be created to represent the axes.
  * 
  * Each pixel has an associate list of values that is used to color the pixel
- * when a color model is given.
+ * when a color model is given. The shape of the pixels can be 
+ * changed by providing on of the statically defined ints describing
+ * shapes.  
  */
 public class DetectorSceneFrames extends DetectorSceneBase
 {
@@ -90,9 +97,10 @@ public class DetectorSceneFrames extends DetectorSceneBase
 
   /* --------------------------- Constructor --------------------------- */
   /**
-   *  Construct the scene objects with using the given physical arrays.
-   *  Each 3d point will be given a box.  The orientation and volume of box
-   *  is also contained within the physical arrays.
+   *  Construct the scene objects using the given physical arrays.
+   *  Each 3d point will be given the specified shape.  The orientation
+   *  and dimensions of the shape are also contained within the physical 
+   *  arrays.
    *
    *   @param pa3D       Arrays containing position, extent, and 
    *                     orientation data.
@@ -164,10 +172,11 @@ public class DetectorSceneFrames extends DetectorSceneBase
 		  
           for( int i = 0; i < detector.numChildren(); i++)
           {
-      	    //From DetectorGroup, get Transform. From Transform, get Shape
             float value = points[det].getValue(i, frame);
             
+            // Each child of the detector is a shape
             SimpleShape shape = (SimpleShape)detector.getChild(i);
+            // Update pixel's color and value
             shape.setColor( model.getColor(value) );
             ((IPixelShape)shape).setValue(value);
             

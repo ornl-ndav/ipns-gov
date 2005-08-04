@@ -24,10 +24,19 @@
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
+ * 
+ * This work was supported by the University of Tennessee Knoxville and 
+ * the Spallation Neutron Source at Oak Ridge National Laboratory under: 
+ *   Support of HFIR/SNS Analysis Software Development 
+ *   UT-Battelle contract #:   4000036212
+ *   Date:   Oct. 1, 2004 - Sept. 30, 2006
  *
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2005/08/04 22:36:46  cjones
+ * Updated documentation and comment header.
+ *
  * Revision 1.1  2005/07/27 20:36:42  cjones
  * Added menu item that allows the user to choose between different shapes
  * for the pixels. Also, in frames view, user can change the time between
@@ -55,7 +64,15 @@ public class PixelPositionedBox extends PositionedBox
   private float PixelVal = 0;
 
   /* --------------------------- constructor --------------------------- */
+  
   /**
+   * This creates a positioned, colored box for for the pixel.
+   * 
+   *   @param id        The id of the pixel.
+   *   @param base      The base vector of the box.
+   *   @param up        The up vector of the box.
+   *   @param extents   The width of each dimension of the box.
+   *   @param new_color The color of the box.
    */
   public PixelPositionedBox( int id, Vector3D center, 
   		                     Vector3D base, Vector3D up,
