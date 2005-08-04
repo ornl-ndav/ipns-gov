@@ -24,15 +24,19 @@
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
- *
- * This work was supported by the National Science Foundation under grant
- * number DMR-0218882.
- *
- * For further information, see <http://www.pns.anl.gov/ISAW/>
+ * 
+ * This work was supported by the University of Tennessee Knoxville and 
+ * the Spallation Neutron Source at Oak Ridge National Laboratory under: 
+ *   Support of HFIR/SNS Analysis Software Development 
+ *   UT-Battelle contract #:   4000036212
+ *   Date:   Oct. 1, 2004 - Sept. 30, 2006
  *
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/08/04 22:42:34  cjones
+ *  Updated comment header and javadocs
+ *
  *  Revision 1.1  2005/07/19 15:48:09  cjones
  *  Added 3D Array implementations.
  * 
@@ -393,8 +397,8 @@ public class SparseArray3D extends PointList3D implements ISparseArray3D
   * Use this method to specify whether to use error values that were passed
   * into the setErrors() method or to use the square-root of the data value.
   *
-  *  @param  use_sqrt If true, use square-root.
-  *                   If false, use set error values if they exist.
+  *  @param  use_sqrt_errs If true, use square-root.
+  *                        If false, use set error values if they exist.
   */
   public void setSquareRootErrors( boolean use_sqrt_errs )
   {

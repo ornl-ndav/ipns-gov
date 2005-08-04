@@ -24,15 +24,19 @@
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
- *
- * This work was supported by the National Science Foundation under grant
- * number DMR-0218882.
- *
- * For further information, see <http://www.pns.anl.gov/ISAW/>
+ * 
+ * This work was supported by the University of Tennessee Knoxville and 
+ * the Spallation Neutron Source at Oak Ridge National Laboratory under: 
+ *   Support of HFIR/SNS Analysis Software Development 
+ *   UT-Battelle contract #:   4000036212
+ *   Date:   Oct. 1, 2004 - Sept. 30, 2006
  *
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2005/08/04 22:42:33  cjones
+ *  Updated comment header and javadocs
+ *
  *  Revision 1.1  2005/07/19 15:56:15  cjones
  *  Add LogScaleColorModel for Scene coloring.
  * 
@@ -56,6 +60,9 @@ import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
  *  color models from the IndexColorMaker should be used.  The shape of the log 
  *  function used for the scaling can be adjusted to control the apparent 
  *  brightness of the color. 
+ * 
+ *   @see gov.anl.ipns.ViewTools.Components.PseudoLogScaleUtil
+ *   @see gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker
  */
 public class LogScaleColorModel
 {
@@ -127,6 +134,7 @@ public class LogScaleColorModel
   	if(s > 100 || s < 0)
   	  throw new IllegalArgumentException("Log scale control out of bounds.");
   	
+  	// Create log scaler and generate log scale table
     PseudoLogScaleUtil log_scaler = new PseudoLogScaleUtil(
 	                                  0f, (float)LOG_TABLE_SIZE,
 	              		              0f, NUM_POSITIVE_COLORS );
@@ -227,8 +235,8 @@ public class LogScaleColorModel
   */
   public float getDataMax()
   {
-   return max_data;
-  }
+    return max_data;
+  } 
  
  /**
   * Generates the color from given data value based on set color scale
@@ -241,6 +249,7 @@ public class LogScaleColorModel
   */ 
   public Color getColor(float data_value)
   {
+  	// Make sure the data value is in given range
     float max_abs = 0;
     if ( Math.abs( max_data ) > Math.abs( min_data ) )
       max_abs = Math.abs( max_data );
@@ -251,6 +260,8 @@ public class LogScaleColorModel
       throw new IllegalArgumentException("Value outside of valid range. " +
     	 							   "Please use setDataRange(min, max)");
     
+    // If the range is 0, then the value is scaled to 0
+    // Otherwise, scale the value to a log table index
     float scale_factor = 0;
     if ( max_abs > 0 )
       scale_factor = (LOG_TABLE_SIZE - 1) / max_abs;
@@ -261,6 +272,7 @@ public class LogScaleColorModel
     if( isTwoSided )
       zero_index = ZERO_COLOR_INDEX;
     
+    // Scale
     float temp = 0;
     temp = data_value * scale_factor;
 	
@@ -277,6 +289,7 @@ public class LogScaleColorModel
     else
       index = (int)(zero_index - log_scale[(int)(-temp)]);
 
+	// Generate RGB int representing the color
 	int rgb = color_model.getRGB(index);
 	
 	return new Color(rgb);

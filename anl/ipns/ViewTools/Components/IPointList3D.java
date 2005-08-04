@@ -24,15 +24,18 @@
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
- *
- * This work was supported by the National Science Foundation under grant
- * number DMR-0218882.
- *
- * For further information, see <http://www.pns.anl.gov/ISAW/>
- *
- *  Modified:
+ * 
+ * This work was supported by the University of Tennessee Knoxville and 
+ * the Spallation Neutron Source at Oak Ridge National Laboratory under: 
+ *   Support of HFIR/SNS Analysis Software Development 
+ *   UT-Battelle contract #:   4000036212
+ *   Date:   Oct. 1, 2004 - Sept. 30, 2006
+ *odified:
  *
  *  $Log$
+ *  Revision 1.4  2005/08/04 22:42:31  cjones
+ *  Updated comment header and javadocs
+ *
  *  Revision 1.3  2005/07/19 15:48:06  cjones
  *  Added 3D Array implementations.
  * 
