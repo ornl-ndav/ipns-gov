@@ -34,7 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2005/08/05 21:53:04  kramer
+ *  Added the methods 'getValues()' and 'getKeys()' which are used to get an
+ *  Enumeration of the values stored in and keys used by this ObjectState.
+ *
  *  Revision 1.13  2005/06/02 21:19:41  kramer
+ *
  *  Modified the editTable(....) method so that if it is called to insert a
  *  null field, it will immediately return false.
  *
@@ -244,6 +249,28 @@ public class ObjectState implements java.io.Serializable
     // if the key is not a string, no parsing or recursion is required, the
     // key is assumed to be at this level in the ObjectState heirarchy.
     return table.get(key);
+  }
+  
+  /**
+   * Used to get an enumeration of all of the values contained in this 
+   * ObjectState.
+   * 
+   * @return A list of all of the values stored in this ObjectState.
+   */
+  public Enumeration getValues()
+  {
+     return table.elements();
+  }
+  
+  /**
+   * Used to get an enumeration of the keys used to access the values in 
+   * this ObjectState.
+   * 
+   * @return A list of the keys used to access the data in this ObjectState.
+   */
+  public Enumeration getKeys()
+  {
+     return table.keys();
   }
  
  /**
