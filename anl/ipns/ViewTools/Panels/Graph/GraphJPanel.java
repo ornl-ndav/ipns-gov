@@ -30,6 +30,26 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.56  2005/08/12 21:03:07  dennis
+ * Did some "tuning" of calculation for the Y and X range, since
+ * it is fairly expensive to compare all values in all graphs,
+ * and this calculation is done several times.  Specifically,
+ * we removed redundant comparison with max if the value was
+ * already found to be less than min.  Also, replaced 6 array
+ * references with 1.
+ * NOTE: Some structural changes are needed to fix this properly.
+ * 1. The vector of graphs should be private, so that it is only
+ *    changeable by get/set methods.
+ * 2. The min and max should be updated only when a graph is
+ *    added or deleted.  Currently any time the min is requested,
+ *    the min, max and min positive values are recalculated.
+ *    When the min or min positive value is requested, the
+ *    previously calculated values are returned.  While this
+ *    reduces the amount of calculation somewhat, it is somewhat
+ *    "fragil".  Also, the min/max methods are used by the controls
+ *    and other higher level classes, so they can be called many
+ *    times.
+ *
  * Revision 1.55  2005/08/12 20:23:01  dennis
  * Now forces the x and y ranges to be non-degenerate.  This fixes
  * a problem where no axis was drawn by the SelectedGraph view.
@@ -1832,18 +1852,22 @@ public float getYmin()
     miny =  yvals[0];
     maxy =  yvals[0];
     min_positive_y = Float.POSITIVE_INFINITY;               
+    float val;
     for (int line=0; line < graphs.size(); line++)
         {
           gd = (GraphData)graphs.elementAt(line);
           yvals = gd.y_vals;
            for (int i=0; i < yvals.length; i++)
            {
-              if (yvals[i] < miny)
-                miny = yvals[i];
-              if (yvals[i] > maxy)
-                maxy = yvals[i];
-              if( yvals[i] > 0 && yvals[i] < min_positive_y )
-	        min_positive_y = yvals[i];
+              val = yvals[i];
+              if (val < miny)
+                miny = val;
+              else if (val > maxy)       // NOTE: since this is an "inner loop"
+                maxy = val;              // it helps to NOT compare to maxy 
+                                         // if it was already less than miny 
+
+              if( val > 0 && val < min_positive_y )
+	        min_positive_y = val;
 	   }
         }
     return miny;
@@ -1884,18 +1908,22 @@ public float getXmin()
     minx =  xvals[0];
     maxx =  xvals[0];
     min_positive_x = Float.POSITIVE_INFINITY;
+    float val;
     for (int line=0; line < graphs.size(); line++)
         {
           gd = (GraphData)graphs.elementAt(line);
           xvals = gd.x_vals;
            for (int i=0; i < xvals.length; i++)
            {
-              if (xvals[i] < minx)
-                minx = xvals[i];
-              if (xvals[i] > maxx)
-                maxx = xvals[i];
-              if( xvals[i] > 0 && xvals[i] < min_positive_x )
-	        min_positive_x = xvals[i];
+              val = xvals[i];
+              if (val < minx)
+                minx = val;
+              else if (val > maxx)       // NOTE: since this is an "inner loop"
+                maxx = val;              // it helps to not compare with maxx
+                                         // if it was already less than minx
+
+              if( val > 0 && val < min_positive_x )
+	        min_positive_x = val;
            }
         }
 
