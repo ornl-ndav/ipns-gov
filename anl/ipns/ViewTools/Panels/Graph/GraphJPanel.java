@@ -30,7 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.55  2005/08/12 20:23:01  dennis
+ * Now forces the x and y ranges to be non-degenerate.  This fixes
+ * a problem where no axis was drawn by the SelectedGraph view.
+ *
  * Revision 1.54  2005/06/17 19:22:08  kramer
+ *
  * Made the method to get a BasicStroke object that is used to draw lines of
  * different types (i.e. solid, dotted, ....) in this class public and
  * static.  That way other viewer can draw lines of different type in a
@@ -213,7 +218,6 @@ import gov.anl.ipns.Util.Numeric.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 
-
   
 /**
  *  A GraphJPanel Test object maintains and draws a list of graphs.
@@ -223,7 +227,6 @@ public class GraphJPanel extends    CoordJPanel
                          implements Serializable,
 				    IPreserveState
 {
-
       
 /**
  * "x offset factor" - This constant String is a key for referencing the State
@@ -264,7 +267,7 @@ public class GraphJPanel extends    CoordJPanel
   public static final String GRAPH_DATA = "Graph Data";
 
 
-  public transient Vector  graphs;
+  public  transient Vector  graphs;
 
   private transient boolean         y_bound_set = false;
   private transient boolean         x_bound_set = false;
@@ -371,6 +374,7 @@ public class GraphJPanel extends    CoordJPanel
        repaint();
   }
 	
+
   /**
    * This method will get the current values of the state variables for this
    * object. These variables will be wrapped in an ObjectState. Keys will be
@@ -393,10 +397,8 @@ public class GraphJPanel extends    CoordJPanel
       }
 
       return state;
-
     } 
 		      
-  
   
 /* ------------------------------- setData -------------------------------- */
 /**
@@ -1688,6 +1690,40 @@ public Dimension getPreferredSize()
 }
 
 
+/**
+ *  Force the specified interval to be non-degnerate.  If points are NaN
+ *  or are equal, form an appropriate default non-degenerate interval.
+ */
+private float[] FixInterval( float min, float max )
+{
+   if ( Float.isNaN( min ) || Float.isNaN( max ) )
+   {
+     min = 0;            // take usable defaults
+     max = 1;
+   }
+   if ( min == max )    // split them up
+   {
+      if ( max == 0 )
+        max = 1;
+      else if ( max > 0 )           // provide some headroom above graph
+      {                             // and start at 0
+        min = -0.1f * max;
+        max =  1.1f * max;
+      }
+      else  // max < 0
+      {
+        max = -0.1f * min;
+        min =  1.1f * min;
+      }
+   }
+   
+   float vals[] = new float[2];
+   vals[0] = min;
+   vals[1] = max;
+   return vals;
+}
+
+
 private void set_auto_data_bound()
 {
    auto_data_bound = new CoordBounds();
@@ -1700,10 +1736,20 @@ private void set_auto_data_bound()
    }
 */
    float xmin, xmax, ymin, ymax;
+                                        // get min/max, but force the
+                                        // interval to be non-degenerate
    xmin = getXmin();
    xmax = getXmax();
+   float fixed_vals[] = FixInterval( xmin, xmax );
+   xmin = fixed_vals[0];
+   xmax = fixed_vals[1];
+
    ymin = getYmin();
    ymax = getYmax();
+   fixed_vals = FixInterval( ymin, ymax );
+   ymin = fixed_vals[0];
+   ymax = fixed_vals[1];
+
    // If log, make sure range is all positive.
    if( getLogScaleX() )
      xmin = getPositiveXmin();
@@ -1761,6 +1807,18 @@ private void SetDataBounds()
       initializeWorldCoords( data_bound );
 }
 
+/**
+ * This method will return the scale factor used on the y-axis to create a
+ * border above and below the graph.
+ *
+ *  @return Scale factor used to scale y-axis.
+ */
+public float getScaleFactor()
+{
+  return 1.05f;
+}
+
+
 /* ------------------------------getYmin--------------------------------*/
 
 public float getYmin()
@@ -1791,23 +1849,20 @@ public float getYmin()
     return miny;
 }
 
-/**
- * This method will return the scale factor used on the y-axis to create a
- * border above and below the graph.
- *
- *  @return Scale factor used to scale y-axis.
- */
-public float getScaleFactor()
-{
-  return 1.05f;
-}
-
 /*------------------------------- getYmax -----------------------------------*/
+/**
+ *  CAUTION: getYmin must be called first, to set the max & min.  ######
+ *           TODO: ##### change to have a calculateMinMax, keep flag and
+ *                 only recalculate if something changed.
+ *                 Change getYmin, getYmax, getXmin, getXmax to be
+ *                 one routine with parameters, and no side effects. 
+ */
 public float getYmax()
 {
   getYmin();
   return maxy;
 }
+
 
 /*---------------------------- getPositiveYmin ------------------------------*/
 public float getPositiveYmin()
