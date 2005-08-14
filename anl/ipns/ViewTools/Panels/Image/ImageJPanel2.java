@@ -31,7 +31,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2005/08/14 05:22:11  dennis
+ *  Added public method RebuildImage() to force the visibile image
+ *  to be recalculated, and call repaint().  This is needed for
+ *  setting the image scrolling is done with a separate scroll bar.
+ *
  *  Revision 1.2  2005/06/17 20:10:35  kramer
+ *
  *  Modified the getThumbnail() method by adding a 'forceRedraw' parameter
  *  that can force the redraw of the thumbnail.  This fixes the problem of
  *  the thumbnail not changing after the color scale changes on the big
@@ -831,6 +837,18 @@ public CoordBounds getImageCoords()
   return getWorldToImageTransform().getDestination();
 }
 
+
+/* -------------------------- RebuildImage ---------------------------- */
+/**
+ *  Force rebuilding the visibile portion of the image and call repaint.
+ *  This routine must be called after the zoom region is set.
+ */
+public void RebuildImage()
+{
+   makeImage();
+   repaint();
+}
+
 /* ---------------------- LocalTransformChanged -------------------------- */
 
 protected void LocalTransformChanged()
@@ -1144,8 +1162,8 @@ class ImageKeyAdapter extends KeyAdapter
  /* Basic main program for testing purposes only. */
   public static void main(String[] args)
   {
-    int rows = 100;
-    int cols = 100000;  
+    int rows = 10000;
+    int cols = 1000;  
     float test_array[][] = new float[rows][cols];
 
     for ( int i = 0; i < rows; i++ )
@@ -1167,6 +1185,8 @@ class ImageKeyAdapter extends KeyAdapter
     panel.setNamedColorModel( IndexColorMaker.HEATED_OBJECT_SCALE_2, 
                               true,
                               true );
+    panel.setGlobalWorldCoords( new CoordBounds( 0, 0, 20, 20 ) );
+    panel.setLocalWorldCoords( new CoordBounds( 10, 10, 12, 10.2f ) );
     f.getContentPane().add(panel);
     f.setVisible(true);
   }
