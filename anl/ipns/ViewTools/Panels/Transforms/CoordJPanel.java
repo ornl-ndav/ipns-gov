@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.39  2005/08/14 05:25:31  dennis
+ *  The SetTransformsToWindowSize() method will now use a default
+ *  200x200 window size if the window is not yet created to get a
+ *  valid size.
+ *
  *  Revision 1.38  2005/01/10 16:16:51  dennis
  *  Removed empty statement(s).
  *
@@ -930,8 +935,12 @@ private void SetZoomRegionToWindowSize()
 
 public void SetTransformsToWindowSize()
 {
-  if ( !isVisible() )  // not yet visible, so ignore it
+  if ( !isVisible() )  // not yet visible, so assume a default window size 
+  {
+    global_transform.setDestination( 0, 0, 200, 200 );
+    local_transform.setDestination( global_transform.getDestination());
     return;
+  }
 
   Dimension total_size = this.getSize();
 
