@@ -34,7 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/08/17 21:25:28  kramer
+ *  Added the containsKey() method.  This method was added so that it could
+ *  be used by the Operators.Special.ObjectState.ObjectStateUtilities class.
+ *
  *  Revision 1.14  2005/08/05 21:53:04  kramer
+ *
  *  Added the methods 'getValues()' and 'getKeys()' which are used to get an
  *  Enumeration of the values stored in and keys used by this ObjectState.
  *
@@ -304,6 +309,18 @@ public class ObjectState implements java.io.Serializable
   public int size()
   {
     return table.size();
+  }
+  
+  /**
+   * Used to determine if the given key is used in this ObjectState.
+   * 
+   * @param key The key to analyze.
+   * @return True if the given key is used used in this ObjectState and 
+   *         false if it isn't.
+   */
+  public boolean containsKey(String key)
+  {
+     return table.containsKey(key);
   }
   
  /**
