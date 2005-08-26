@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2005/08/26 15:28:44  rmikk
+ *  Added code in LOGaddmsg to replace all 2 char \n by one char \n
+ *
  *  Revision 1.4  2004/10/09 13:54:56  rmikk
  *  Checked for null String case
  *
@@ -116,6 +119,11 @@ public class SharedMessages implements java.io.Serializable
   public static void LOGaddmsg( String message){
     if( message == null)
        return;
+    for( int k = message.indexOf("\\n"); k>=0;){
+    
+         message=message.substring(0,k)+'\n'+message.substring(k+2);
+         k=message.indexOf("\\n");
+    }
     if( LOGout !=null)
       try{
         LOGout.write( message.getBytes());
