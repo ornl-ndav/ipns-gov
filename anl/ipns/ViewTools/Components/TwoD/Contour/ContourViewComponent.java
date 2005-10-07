@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.6  2005/10/07 21:32:36  kramer
+ * Added javadoc comments for every field, constructor, method, inner class,
+ * etc. in this class.
+ *
  * Revision 1.5  2005/08/01 23:13:27  kramer
+ *
  * -Modified the setObjectState() method to set the ObjectState of the
  *  ContourControlHandler after setting the ObjectState of the
  *  ContourLayoutHandler (instead of before it).
@@ -184,22 +189,97 @@ import javax.swing.JPanel;
 public class ContourViewComponent implements IViewComponent2D, Serializable
 {
 //------------------------=[ ObjectState keys ]=------------------------------//
+   /**
+    * "Menu handler key" - This static constant String is a key used for 
+    * referencing the state information for the 
+    * <code>ContourMenuHandler</code> used by this component.  The value 
+    * that this key references is an <code>ObjectState</cdoe> of a 
+    * <code>ContourMenuHandler</code>.
+    */
    public static final String MENU_HANDLER_KEY = "Menu handler key";
+   
+   /**
+    * "Controls handler key" - This static constant String is a key used for 
+    * referencing the state information for the 
+    * <code>ContourControlHandler</code> used by this component.  The value 
+    * that this key references is an <code>ObjectState</cdoe> of a 
+    * <code>ContourControlHandler</code>.
+    */
    public static final String CONTROL_HANDLER_KEY = "Controls handler key";
+   
+   /**
+    * "Layout handler key" - This static constant String is a key used for 
+    * referencing the state information for the 
+    * <code>ContourLayoutHandler</code> used by this component.  The value 
+    * that this key references is an <code>ObjectState</cdoe> of a 
+    * <code>ContourLayoutHandler</code>.
+    */
    public static final String LAYOUT_HANDLER_KEY = "Layout handler key";
+   
+   /**
+    * "Colorscale handler key" - This static constant String is a key used 
+    * for referencing the state information for the 
+    * <code>ContourColorScaleHandler</code> used by this component.  The 
+    * value that this key references is an <code>ObjectState</cdoe> of a 
+    * <code>ContourColorScaleHandler</code>.
+    */
    public static final String COLORSCALE_HANDLER_KEY = "Colorscale handler key";
 //----------------------=[ End ObjectState keys ]=----------------------------//
 
    
 //----------------------------=[ Fields ]=------------------------------------//
+   /**
+    * This is the module that handles working with this ViewComponent's 
+    * menus.  It maintains their state and responds to user input.
+    */
    private ContourMenuHandler menuHandler;
+   
+   /**
+    * This is the module that handles working with this ViewComponent's 
+    * <code>ViewControls</code>.  It maintains their state and responds 
+    * to user input.
+    */
    private ContourControlHandler controlHandler;
+   
+   /**
+    * This is the module that handles working with this ViewComponent's 
+    * layout.  That is, it maintains positioning the panels that display 
+    * the actaul contour plot, the plot's axes, and any calibrated 
+    * colorscale controls.  It also maintains the state of these objects 
+    * and responds to user input.
+    */
    private ContourLayoutHandler layoutHandler;
+   
+   /**
+    * This is the module that handles working with the state of this 
+    * ViewComponent's colorscale.  That is, it records whether the plot is 
+    * being colored with a solid color or a colorscale.  It also maintains 
+    * this state information.
+    */
    private ContourColorScaleHandler colorscaleHandler;
 //--------------------------=[ End fields ]=----------------------------------//
   
    
 //-------------------------=[ Constructors ]=---------------------------------//
+   /**
+    * Constructs this ViewComponent using the given parameters.
+    * 
+    * @param v2D The data to be displayed by this ViewComponent.
+    * @param contourPanel The <code>ContourJPanel</code> that is used to 
+    *                     display a contour plot of this ViewComponent's data.
+    * @param useManualLevels This ViewComponent displays the manually 
+    *                        entered contour levels and the uniformly 
+    *                        spaced contour levels in a tabbed pane.  
+    *                        If this parameter is <code>true</code> the 
+    *                        tab containing the manually entered contour 
+    *                        levels will be the front tab.  Otherwise, the 
+    *                        tab containing the uniformly spaced contour 
+    *                        levels will be the front tab.
+    * @param useColorScale If <code>true</code>, the default colorscale will 
+    *                      be used to color the contour plot.  Otherwise, 
+    *                      the default line color will be used to color the 
+    *                      contour plot.
+    */
    private ContourViewComponent(IVirtualArray2D v2D, 
                                 ContourJPanel contourPanel, 
                                 boolean useManualLevels, 
@@ -247,6 +327,15 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       dataChanged(v2D);
    }
    
+   /**
+    * Constructs this ViewComponent to use the given data.  In addition, 
+    * when the view is created the view controls will have the controls for 
+    * the uniformly spaced contour levels displayed in the front tab of a 
+    * tabbed pane.  Also, the default line color (and not the default 
+    * colorscale) will be used to color the contour plot. 
+    * 
+    * @param arr The data to be displayed by this ViewComponent.
+    */
    public ContourViewComponent(IVirtualArray2D arr)
    {
       this(arr, 
@@ -300,11 +389,15 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    
    
 //---------=[ Methods mplemented for the IViewComponent2D interface ]=--------//
+   /**
+    * Used to set this ViewComponent's state.
+    * 
+    * @param state An ObjectState encapsulating this ViewComponent's state.
+    */
    public void setObjectState(ObjectState state)
    {
       if (state==null)
          return;
-      
       
       Object val = state.get(MENU_HANDLER_KEY);
       if ( (val != null) && (val instanceof ObjectState) )
@@ -325,6 +418,14 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       layoutHandler.displayChanged();
    }
 
+   /**
+    * Used to get the ObjectState that encapsulates this ViewComponent's 
+    * state information.
+    * 
+    * @param is_default If <code>true</code>, this ViewComponent's default 
+    *                   state is returned.  If <code>false</code>, this 
+    *                   ViewComponent's current state is returned.
+    */
    public ObjectState getObjectState(boolean is_default)
    {
       ObjectState state = new ObjectState();
@@ -339,6 +440,11 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       return state;
    }
 
+   /**
+    * Used to set the point that user is currently pointing at.
+    * 
+    * @param fpt The point that the user is currently pointing at.
+    */
    public void setPointedAt(floatPoint2D fpt)
    {
       if (fpt==null)
@@ -347,21 +453,47 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       layoutHandler.getContourPanel().set_crosshair_WC(fpt);
    }
 
+   /**
+    * Used to get the point that the user is currently pointing at.
+    * 
+    * @return The point that the user is currently pointing at.
+    */
    public floatPoint2D getPointedAt()
    {
       return new floatPoint2D(layoutHandler.getContourPanel().
                                  getCurrent_WC_point());
    }
 
+   /**
+    * Given the array of selected regions a selection overlay with the 
+    * selected regions can be made.  Currently this method does nothing 
+    * because this ViewComponent does not use a selection overlay.
+    * 
+    * @param rgn An array of the selected regions.
+    */
    public void setSelectedRegions(Region[] rgn)
    {
    }
 
+   /**
+    * Used to get the regions that are selected by the selection overlay.
+    * 
+    * @return An array of the regions that are selected by the 
+    *         selection overlay.  Currently, this method returns a zero 
+    *         element array because this ViewComponent does not use a 
+    *         selection overlay.
+    */
    public Region[] getSelectedRegions()
    {
       return new Region[0];
    }
 
+   /**
+    * Invoked to inform this ViewComponent that its data has changed to 
+    * the newly specified data.
+    * 
+    * @param v2D This ViewComponent's new data.
+    */
    public void dataChanged(IVirtualArray2D v2D)
    {
       menuHandler.reinit(v2D);
@@ -372,41 +504,80 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       layoutHandler.displayChanged();
    }
 
+   /**
+    * Invoked to inform this ViewComponent that its data has changed.
+    */
    public void dataChanged()
    {
       layoutHandler.changeDisplay();
    }
 
+   /**
+    * Adds the specified <code>ActionListener</code> to this ViewComponent.
+    * 
+    * @param act_listener The object that wants to listen to changes to 
+    *                     this ViewComponent.
+    */
    public void addActionListener(ActionListener act_listener)
    {
       layoutHandler.addActionListener(act_listener);
    }
 
+   /**
+    * Removes the specified <code>ActionListener</code> from the list of 
+    * <code>ActionListeners</code> that have been added to this 
+    * ViewComponent.
+    * 
+    * @param act_listener The object that wants to discontinue listening to 
+    *                     changes to this ViewComponent.
+    */
    public void removeActionListener(ActionListener act_listener)
    {
       layoutHandler.removeActionListener(act_listener);
    }
 
+   /**
+    * Removes all <code>ActionListeners</code> that have been added 
+    * to this ViewComponent.
+    */
    public void removeAllActionListeners()
    {
       layoutHandler.removeAllActionListeners();
    }
 
+   /**
+    * Used to get the panel that actaully displays this ViewComponent's data.
+    * 
+    * @return The panel that displays this ViewComponent's data.
+    */
    public JPanel getDisplayPanel()
    {
       return layoutHandler.getDisplayPanel();
    }
 
+   /**
+    * Used to access this ViewComponent's view controls.
+    * 
+    * @return This ViewComponent's controls.
+    */
    public ViewControl[] getControls()
    {
       return controlHandler.getControls();
    }
 
+   /**
+    * Used to access this ViewComponent's menu items.
+    * 
+    * @return This ViewComponent's menu items.
+    */
    public ViewMenuItem[] getMenuItems()
    {
       return menuHandler.getMenuItems();
    }
 
+   /**
+    * Called to inform this ViewComponent that it is no longer needed.
+    */
    public void kill()
    {
       layoutHandler.kill();
@@ -415,21 +586,48 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    
    
 //------------------------=[ Getter methods ]=--------------------------------//
+   /**
+    * Used to get access to the module that maintains this ViewComponent's 
+    * menus.
+    * 
+    * @return This ViewComponent's module that maintains the menus.
+    */
    public ContourMenuHandler getMenuHandler()
    {
       return this.menuHandler;
    }
    
+   /**
+    * Used to get access to the module that maintains this ViewComponent's 
+    * <code>ViewControls</code>.
+    * 
+    * @return This ViewComponent's module that maintains the controls.
+    */
    public ContourControlHandler getControlHandler()
    {
       return this.controlHandler;
    }
    
+   /**
+    * Used to get access to the module that maintains the layout of the 
+    * panels that display this ViewComponent's contour plot.
+    * 
+    * @return This ViewComponent's module that maintains the layout of 
+    *         the contour plot panels.
+    */
    public ContourLayoutHandler getLayoutHandler()
    {
       return this.layoutHandler;
    }
    
+   /**
+    * Used to get access to the module that records how this 
+    * ViewComponent's contour plot is being colored (i.e. with a colorscale 
+    * or with a solid color).
+    * 
+    * @return This ViewComponent's module that records if a colorscale is 
+    *         being used to color the contour plot.
+    */
    public ContourColorScaleHandler getColorScaleHandler()
    {
       return this.colorscaleHandler;
@@ -456,6 +654,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    
    /**
     * Creates a float array array of test data.
+    * 
     * @param Nx The number of columns in the array.  A good value is 41.
     * @param Ny The number of rows in the array.  A good value is 51.
     * @param xRange The x range.  A good value is 3.0.

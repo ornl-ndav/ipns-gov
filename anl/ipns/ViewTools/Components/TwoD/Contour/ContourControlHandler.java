@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.8  2005/10/07 21:32:34  kramer
+ * Added javadoc comments for every field, constructor, method, inner class,
+ * etc. in this class.
+ *
  * Revision 1.7  2005/08/02 16:12:40  kramer
+ *
  * Added the field NUM_SIG_FIGS_INFO_KEY which is the key used with a
  * InformationCenter to get the number of significant figures currently
  * being used when drawing the contour lines.
@@ -108,14 +113,39 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 
+/**
+ * This is a module of a <code>ContourViewComponent</code> that is 
+ * responsible for maintaining the <code>ViewControls</code> used to 
+ * control the view component.  That is, this class maintains the 
+ * state information for the controls and listens to other modules of 
+ * the view component so that the state of the controls is 
+ * synchronized with the other modules.
+ */
 public class ContourControlHandler extends ContourChangeHandler 
                                       implements InformationHandler
 {
 //--------------------=[ InformationCenter keys ]=----------------------------//
+   /**
+    * "Intensity info key" - This static constant String is used with a 
+    * {@link InformationCenter InformationCenter} to reference the 
+    * intensity on the colorscale that should be used when rendering the 
+    * contour plot.
+    */
    public static final String INTENSITY_INFO_KEY = 
                                  "Intensity info key";
+   /**
+    * "Colorscale name info key" - This static constant String is used 
+    * with a {@link InformationCenter InformationCenter} to reference 
+    * the colorscale that is should be used when rendering a contour plot.
+    */
    public static final String COLORSCALE_NAME_INFO_KEY = 
                                  "Colorscale name info key";
+   /**
+    * "Num sig figs info key" - This static constant String is used 
+    * with a {@link InformationCenter InformationCenter} to reference 
+    * the number of significant figures that should be used when 
+    * rendering contour line labels.
+    */
    public static final String NUM_SIG_FIGS_INFO_KEY = 
                                  "Num sig figs info key";
 //------------------=[ End InformationCenter keys ]=--------------------------//
@@ -183,6 +213,12 @@ public class ContourControlHandler extends ContourChangeHandler
     * <code>ColorControl</code> object.
     */
    public static final String BACKGROUND_COLOR_KEY = "Background color key";
+   /**
+    * "PanViewControl key" - This static constant String is a key used for 
+    * referencing the state information for the control that holds a 
+    * thumbnail image of the contour plot and is used to pan the main 
+    * contour plot image.
+    */
    public static final String PAN_VIEW_CONTROL_KEY = "PanViewControl key";
 //---------------------=[ End ObjectState keys ]=-----------------------------//
    
@@ -302,8 +338,18 @@ public class ContourControlHandler extends ContourChangeHandler
    public static final String DEFAULT_COLOR_SCALE = 
       IndexColorMaker.HEATED_OBJECT_SCALE_2;
    
+   /**
+    * Specifies the default intensity of the colorscale used when coloring 
+    * the contour plot.  The value of this field is <code>30</code>.
+    */
    public static final double DEFAULT_INTENSITY = 30;
    
+   /**
+    * Specifies if, by default, the manually entered contour levels or 
+    * uniformly spaced contour levels will be used when rendering the 
+    * contour plot.  The value of this field is <code>false</code>.  That 
+    * is, by default the uniformly spaced contour levels will be used.
+    */
    public static final boolean DEFAULT_USE_MANUAL_LEVELS = false;
    //-----------------=[ Defaults unique to this class ]=-------------------//
    
@@ -350,13 +396,46 @@ public class ContourControlHandler extends ContourChangeHandler
     * intensity of the colorscale that is used to color the contour lines.
     */
    private ControlSlider intensitySlider;
+   /**
+    * This is the <code>ViewControl</code> that holds a thumbnail image of 
+    * the contour plot and displays location of the zoomed region 
+    * of the plot relative to the contour plot as a whole.
+    */
    private PanViewControl panControl;
-   
+   /**
+    * This is the array of <code>ViewControls</code> that this class is 
+    * maintaining.
+    */
    private ViewControl[] controls;
 //---------------------------=[ End fields ]=---------------------------------//
    
    
 //--------------------------=[ Constructors ]=--------------------------------//
+   /**
+    * Constructs a module for a 
+    * {@link ContourViewComponent ContourViewComponent} that handles 
+    * working with the view component's controls.
+    * 
+    * @param connector          Serves to connect several modules of a 
+    *                           {@link ContourViewComponent 
+    *                           ContourViewComponent} so that if a 
+    *                           property in one module is changed, the 
+    *                           other modules are notified.
+    * @param center             Serves as the central location where the 
+    *                           data shared between several modules of a 
+    *                           {@link ContourViewComponent 
+    *                           ContourViewComponent} is stored.
+    * @param panel              The panel that is responsible for 
+    *                           rendering the contour plot.
+    * @param useManualLevels    Used to specify if the contour levels 
+    *                           entered in the "manual contour levels" 
+    *                           control will be used when rendering the 
+    *                           contour plot.  If <code>true</code>, the 
+    *                           manually entered contour levels will be 
+    *                           used.  Otherwise, the contour levels 
+    *                           specified in the control for the uniformly 
+    *                           spaced contour levels will be used.
+    */
    public ContourControlHandler(PropertyChangeConnector connector, 
                                 InformationCenter center, 
                                 ContourJPanel panel, boolean useManualLevels)
@@ -367,7 +446,6 @@ public class ContourControlHandler extends ContourChangeHandler
                      DEFAULT_NUM_CONTOURS, 
                      DEFAULT_MANUAL_LEVELS, 
                      useManualLevels,
-                     ContourMenuHandler.DEFAULT_PRESERVE_ASPECT_RATIO, 
                      DEFAULT_STYLES, 
                      DEFAULT_ENABLE_STYLE_ARR, 
                      DEFAULT_SHOW_LABEL, 
@@ -376,8 +454,7 @@ public class ContourControlHandler extends ContourChangeHandler
                      DEFAULT_NUM_SIG_DIGS, 
                      DEFAULT_COLOR_SCALE, 
                      ContourMenuHandler.DEFAULT_IS_DOUBLE_SIDED, 
-                     DEFAULT_BACKGROUND_COLOR, 
-                     ContourMenuHandler.DEFAULT_LINE_COLOR);
+                     DEFAULT_BACKGROUND_COLOR);
    }
    
    /**
@@ -395,23 +472,85 @@ public class ContourControlHandler extends ContourChangeHandler
     *                  contour levels in the group of uniformly spaced 
     *                  contour levels.
     * @param levels    This is the list of manually entered contour levels.
-    * @param useManualLevels If true the controls used to enter the manually 
-    *                        entered contours levels will initially have the 
-    *                        focus.  If false the controls used to enter 
-    *                        the data to generate the uniformly spaced 
-    *                        contour levels will have focus.
+    * @param useManualLevels      If true the controls used to enter the 
+    *                               manually entered contours levels will 
+    *                               initially have the focus.  If false the 
+    *                               controls used to enter the data to 
+    *                               generate the uniformly spaced contour 
+    *                               levels will have focus.
+    * @param styles               Specifies the line styles to use when 
+    *                               rendering the contour lines.  The 
+    *                               possible styles are 
+    *                               {@link ContourJPanel#DASHED DASHED}, 
+    *                               {@link ContourJPanel#DOTTED DOTTED}, 
+    *                               {@link ContourJPanel#DASHED_DOTTED}, or 
+    *                               {@link ContourJPanel#SOLID SOLID}.  
+    *                               The length of this array should be 
+    *                               {@link LineStyleControl#getNumOfStyles() 
+    *                               LineStyleControl.getNumOfStyles()}.  
+    *                               If it is too short, default values 
+    *                               are used.  If it is too long, the 
+    *                               extra values are ignored.  When 
+    *                               rendering the contour plot, the 
+    *                               renderer cycles through this array to 
+    *                               determine the line style to use.  
+    *                               In other words, suppose this array has 
+    *                               four elements.  When the first 
+    *                               contour line is rendered, the line style 
+    *                               at the index 0 is used.  When, the 
+    *                               second line is rendered, the line style 
+    *                               at index 1 is used.  However, when the 
+    *                               renderer gets to the fourth contour line, 
+    *                               it starts over at the line style at 
+    *                               index 0 to determine the style to use.
+    * @param stylesEnabled        Specifies which line styles are enabled 
+    *                               in the array specified by the parameter 
+    *                               <code>styles</code>.  The length of the 
+    *                               array specified by this parameter should 
+    *                               be one less than the length of the array 
+    *                               specified by the parameter 
+    *                               <code>styles</code>.  That is because the 
+    *                               <code>ith</code> element in this array 
+    *                               corresponds to whether or not the style 
+    *                               at the <code>(i+1)th</code> element in 
+    *                               the <code>styles</code> should be 
+    *                               enabled.  This is because the first style 
+    *                               is always enabled and cannot be disabled.  
+    *                               The rest of this array describes the other 
+    *                               line styles.
+    * @param enableLabels         Specifies if the contour lines on the 
+    *                               contour plot should be labeled or not.
+    * @param everyNthLineLabeled  Specifies that every <code>nth</code> in 
+    *                               the contour plot should be labeled.
+    * @param enableFormatting     Specifies in the contour lines on the 
+    *                               contour plot should have their labels 
+    *                               formatted or not.  When the labels are 
+    *                               formatted, their values are reflected 
+    *                               to a specified number of significant 
+    *                               figures.
+    * @param numSigFig            The number of significant figures 
+    *                               to which the contour line's labels 
+    *                               should be rounded to.
+    * @param colorScale           The colorscale to use when rendering 
+    *                               the cotour plot.
+    * @param isDoubleSided        If <code>true</code>, the colorscale 
+    *                               specified by the parameter 
+    *                               <code>colorScale</code> will be 
+    *                               double-sided.  If <code>false</code>, 
+    *                               it will not be double-sided.
+    * @param backgroundColor      Specifies the background color to use when 
+    *                               rendering the contour plot.
     */
    public ContourControlHandler(PropertyChangeConnector connector, 
                                 InformationCenter center, 
                                 ContourJPanel panel, 
                                 float minValue, float maxValue, int numLevels, 
                                 float[] levels, boolean useManualLevels, 
-                                boolean preserveAspectRatio, 
                                 int[] styles, boolean[] stylesEnabled, 
                                 boolean enableLabels, int everyNthLineLabeled, 
                                 boolean enableFormatting, int numSigFig, 
                                 String colorScale, boolean isDoubleSided, 
-                                Color backgroundColor, Color contourColor)
+                                Color backgroundColor)
    {
       super(connector, center, panel);
       
@@ -440,6 +579,16 @@ public class ContourControlHandler extends ContourChangeHandler
    
    
 //--------=[ Methods implemented for the ContourChangeHandler class ]=--------//
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  This method is invoked when the data that is to be 
+    * displayed by the contour plot has changed.  When invoked, 
+    * this method updates the controls to reflect this new data.
+    * 
+    * @param v2d The new data that is going to be plotted.
+    * 
+    * @see ContourChangeHandler#reinit(IVirtualArray2D)
+    */
    public void reinit(IVirtualArray2D v2d)
    {
       //if the data has changed, make sure that the thumbnail is invalidated
@@ -451,6 +600,17 @@ public class ContourControlHandler extends ContourChangeHandler
 //      this.panControl.repaint();
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the colorscale being used to color the contour plot 
+    * changes, this method is invoked.  When it is invoked, the control 
+    * for the colorscale is updated to reflect the change.
+    * 
+    * @param colorscale The name of the colorscale that will now be 
+    *                   used to color the contour plot.
+    * 
+    * @see ContourChangeHandler#changeColorScaleName(String)
+    */
    public void changeColorScaleName(String colorscale)
    {
       if (!IndexColorMaker.isValidColorScaleName(colorscale))
@@ -467,6 +627,28 @@ public class ContourControlHandler extends ContourChangeHandler
         this.controlColorscale.setColorScale(colorscale, isDoubleSided);
    }
 
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  This method is invoked if the location of the colorscale's 
+    * control changes.  When invoked, this method updates the controls 
+    * so that the colorscale's control is in the correct location.
+    * 
+    * @param location A string alias describing the new location of the 
+    *                 colorscale's control.  The value of this parameter 
+    *                 should be either:
+    * <ul>
+    *   <li>{@link ContourChangeHandler#CONTROL_PANEL_LOCATION 
+    *                                   CONTROL_PANEL_LOCATION}</li>
+    *   <li>{@link ContourChangeHandler#BELOW_IMAGE_LOCATION 
+    *                                   BELOW_IMAGE_LOCATION}</li>
+    *   <li>{@link ContourChangeHandler#RIGHT_IMAGE_LOCATION 
+    *                                   RIGHT_IMAGE_LOCATION}</li>
+    *   <li>{@link ContourChangeHandler#NONE_LOCATION 
+    *                                   NONE_LOCATION}</li>
+    * </ul>
+    * 
+    * @see ContourChangeHandler#changeColorScaleLocation(String)
+    */
    public void changeColorScaleLocation(String location)
    {
       if ( (location != null) && location.equals(CONTROL_PANEL_LOCATION) )
@@ -475,17 +657,51 @@ public class ContourControlHandler extends ContourChangeHandler
          controlColorscale.setVisible(false);
    }
 
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the intensity on the colorscale used to color the contour 
+    * plot changes, this method is invoked.  When invoked, the controls 
+    * for the intensity and the colorscale are updated to reflect the 
+    * change.
+    * 
+    * @param intensity The intensity of the colorscale that is now going 
+    *                  to be used to render the contour plot.
+    * 
+    * @see ContourChangeHandler#changeIntensity(double)
+    */
    public void changeIntensity(double intensity)
    {
       intensitySlider.setValue((float)intensity);
       this.controlColorscale.setLogScale(intensity);
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the colorscale being used to color the contour plot is 
+    * modified to be/not be "double-sided", this method is invoked.  
+    * When invoked, this method updates the colorscale's control to 
+    * reflect the change.
+    * 
+    * @param isDoubleSided <code>True</code> if the colorscale used to 
+    *                      color the contour plot is now double-sided and 
+    *                      <code>false</code> if it isn't.
+    * 
+    * @see ContourChangeHandler#changeIsDoubleSided(boolean)
+    */
    public void changeIsDoubleSided(boolean isDoubleSided)
    {
       this.controlColorscale.setColorScale(getColorScale(), isDoubleSided);
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  This method is invoked whenever the display has changed 
+    * (i.e. become inconsistent) and needs to be updated.  When invoked, 
+    * this method updates the controls to be in a consistent state with 
+    * the contour plot.
+    * 
+    * @see ContourChangeHandler#changeDisplay()
+    */
    public void changeDisplay()
    {
       if (this.panControl != null)
@@ -500,6 +716,23 @@ public class ContourControlHandler extends ContourChangeHandler
 
    
 //------=[ Methods implemented for the InformationHandler interface ]=--------//
+   /**
+    * This method is implemented for the 
+    * {@link InformationHandler InformationHandler} interface.  Given a 
+    * certain string alias, the data referenced by that alias will be 
+    * returned.
+    * 
+    * @param key The string alias for some particular data.
+    * @return    The data associated with the given string or 
+    *            <code>null</code> if <code>key</code> is not 
+    *            understood by this class.
+    * 
+    * @see InformationHandler#getValue(String)
+    * 
+    * @see #INTENSITY_INFO_KEY
+    * @see #COLORSCALE_NAME_INFO_KEY
+    * @see #NUM_SIG_FIGS_INFO_KEY
+    */
    public Object getValue(String key)
    {
       if (key==null)
@@ -518,6 +751,13 @@ public class ContourControlHandler extends ContourChangeHandler
    
    
 //-----------=[ Methods implemented for the IPreserveState interface ]=-------//
+   /**
+    * Used to set the state information of this object to match the state 
+    * information encapsulated in the <code>ObjectStage</code> parameter 
+    * given.
+    * 
+    * @param state An encapsulation of this Object's state.
+    */
    public void setObjectState(ObjectState state)
    {
       if (state==null)
@@ -587,6 +827,15 @@ public class ContourControlHandler extends ContourChangeHandler
          panControl.setObjectState((ObjectState)val);
    }
 
+   /**
+    * Used to get an encapsulation of this Object's state information.
+    * 
+    * @param is_default If <code>true</code>, this Object's default state 
+    *                   is returned.  Otherwise, its current state is 
+    *                   returned.
+    * 
+    * @return An encapsulation of this Object's state.
+    */
    public ObjectState getObjectState(boolean is_default)
    {
       ObjectState state = new ObjectState();
@@ -613,28 +862,62 @@ public class ContourControlHandler extends ContourChangeHandler
 
   
 //--------------=[ Getter/setter methods for the controls ]=------------------//
+   /**
+    * Used to access the array of <code>ViewControls</code> that this 
+    * class is maintaining.
+    * 
+    * @return The controls that this class is maintaining.
+    */
    public ViewControl[] getControls()
    {
       return controls;
    }
    
+   /**
+    * Used to access the colorscale currently displayed on the 
+    * control for the colorscale.
+    * 
+    * @return The colorscale displayed on the colorscale's control.
+    */
    public String getColorScale()
    {
       return controlColorscale.getColorScale();
    }
    
+   /**
+    * Used to set the color that is to be used to color the contour plot.
+    * 
+    * @param color The new color that is to be used to color the 
+    *              contour plot.
+    */
    public void setColorScale(Color color)
    {
       changeColor(color);
       colorChanged(color);
    }
    
+   /**
+    * Used to set the colorscale that is to be used 
+    * to color the contour plot.
+    * 
+    * @param colorscale    The colorscale that is to be used to color 
+    *                      the contour plot.
+    * @param isDoubleSided <code>True</code> if the colorscale should 
+    *                      be double sided and <code>false</code> if 
+    *                      it should not be.
+    */
    public void setColorScale(String colorscale, boolean isDoubleSided)
    {
       colorScaleNameChanged(colorscale);
       isDoubleSidedChanged(isDoubleSided);
    }
    
+   /**
+    * Used to access the contour levels that are currently specified in 
+    * the controls as the contour levels to plot on the contour image.
+    * 
+    * @return The contour levels to plot on the contour image.
+    */
    public Contours getActiveContours()
    {
       if (contourControl==null)
@@ -643,6 +926,13 @@ public class ContourControlHandler extends ContourChangeHandler
       return (Contours)contourControl.getControlValue();
    }
    
+   /**
+    * Used to set the contour levels that should be plotted when 
+    * rendering the contour image.
+    * 
+    * @param contours The contour levels to plot when drawing the 
+    *                 contour image.
+    */
    public void setActiveContours(Contours contours)
    {
       if (contours==null || contourControl==null)
@@ -652,6 +942,12 @@ public class ContourControlHandler extends ContourChangeHandler
       contourControl.setControlValue(contours);
    }
    
+   /**
+    * Used to get the line styles, as specified in the controls, that are 
+    * being used when rendering the contour plot.
+    * 
+    * @return The line styles used to render the contour plot.
+    */
    public int[] getLineStyles()
    {
       if (lineStyleControl==null)
@@ -660,6 +956,12 @@ public class ContourControlHandler extends ContourChangeHandler
       return lineStyleControl.getEnabledLineStyles();
    }
    
+   /**
+    * Used to set the line styles that should be used when rendering the 
+    * contour image.
+    * 
+    * @param styles The line styles used when rendering the contour image.
+    */
    public void setLineStyles(int[] styles)
    {
       if (styles==null || lineStyleControl==null)
@@ -670,6 +972,15 @@ public class ContourControlHandler extends ContourChangeHandler
       displayChanged();
    }
    
+   /**
+    * Used to determine if the controls reflect that the contour lines 
+    * should be labeled when rendering the contour plot.
+    * 
+    * @return <code>True</code> if the controls reflect that the 
+    *         contour lines should be labeled when the contour plot is 
+    *         rendered and <code>false</code> if the contour lines 
+    *         should not be rendered.
+    */
    public boolean getIsLabelEnabled()
    {
       if (labelControl==null)
@@ -678,6 +989,14 @@ public class ContourControlHandler extends ContourChangeHandler
       return labelControl.isChecked();
    }
    
+   /**
+    * Used to set if the contour lines should be labeled when the 
+    * contour plot is renered.
+    * 
+    * @param enable <code>True</code> if the contour lines should be 
+    *               labeled when the contour plot is rendered and 
+    *               <code>false</code> if they shouldn't be.
+    */
    public void setIsLabelEnabled(boolean enable)
    {
       if (labelControl==null)
@@ -693,6 +1012,14 @@ public class ContourControlHandler extends ContourChangeHandler
       displayChanged();
    }
    
+   /**
+    * Used to determine interval between labeled lines on the contour 
+    * plot as specified by the controls.
+    * 
+    * @return The interval between labeled lines on the contour plot.  
+    *         For example, if this method returns 4, then every 4th 
+    *         contour line will be labeled.
+    */
    public int getLabelEvery()
    {
       if (labelControl==null || labelControl.getSpinnerValue()==null)
@@ -701,6 +1028,15 @@ public class ContourControlHandler extends ContourChangeHandler
       return ((Integer)labelControl.getSpinnerValue()).intValue();
    }
    
+   /**
+    * Used to set the interval between labeled contour lines on the 
+    * contour plot.
+    * 
+    * @param nthLine The interval between labeled contour lines on the 
+    *                contour plot.  For example, if the value of this 
+    *                parameter is 4, then every 4th contour line will 
+    *                be labeled.
+    */
    public void setLabelEvery(int nthLine)
    {
       if (labelControl==null)
@@ -716,6 +1052,22 @@ public class ContourControlHandler extends ContourChangeHandler
       }
    }
    
+   /**
+    * Used to determine if the contour line labels should be formatted 
+    * if they are rendered on the contour image.  Note:  Even if the 
+    * contour line labels are disabled, if the controls specify that 
+    * the contour line labels should be formatted, this method will 
+    * return <code>true</code>.  In this case, if the labels were 
+    * rendered, they would be formatted.  When the labels are formatted 
+    * they are modified to have the certain number of significant figures.
+    * 
+    * @return <code>True</code> if the contour line labels on the 
+    *         contour image should be labeled and <code>false</code> if 
+    *         they shouldn't.
+    *         
+    * @see #getNumSigFigs()
+    * @see #setIsLabelEnabled(boolean)
+    */
    public boolean getIsLabelFormattingEnabled()
    {
       if (sigFigControl==null)
@@ -724,6 +1076,22 @@ public class ContourControlHandler extends ContourChangeHandler
       return sigFigControl.isChecked();
    }
    
+   /**
+    * Used to set if the contour line labels on the contour plot should 
+    * be formatted.  Note:  This method is closely connected to the methods 
+    * {@link #setNumSigFigs(int) setNumSigFigs(int)} and 
+    * {@link #setLabelEvery(int) setLabelEvery(int)} and line labels must 
+    * be enabled for the label formatting to work.  When the labels are 
+    * formatted they are modified to have the certain number of 
+    * significant figures.
+    * 
+    * @param enable <code>True</code> if the contour line labels should 
+    *               be formatted and <code>false</code> if they shouldn't 
+    *               be.
+    *               
+    * @see #setNumSigFigs(int)
+    * @see #getIsLabelEnabled()
+    */
    public void setIsLabelFormattingEnabled(boolean enable)
    {
       if (sigFigControl==null)
@@ -739,6 +1107,16 @@ public class ContourControlHandler extends ContourChangeHandler
       displayChanged();
    }
    
+   /**
+    * Used to access the number of significant figures that will be 
+    * reflected in the contour line labels on the contour plot.
+    * 
+    * @return The number of significant figures reflected in the 
+    *         contour plot's line labels.
+    *         
+    * @see #getIsLabelFormattingEnabled()
+    * @see #getIsLabelEnabled()
+    */
    public int getNumSigFigs()
    {
       if (sigFigControl==null || sigFigControl.getSpinnerValue()==null)
@@ -747,6 +1125,17 @@ public class ContourControlHandler extends ContourChangeHandler
       return ((Integer)sigFigControl.getSpinnerValue()).intValue();
    }
    
+   /**
+    * Used to set the number of significant figures that will be 
+    * reflected in the contour line labels on the contour plot.  
+    * Note:  This method will modify the control to reflect the parameter 
+    * given.  However, contour line labels and contour line label 
+    * formatting must be enabled for the contour plot to reflect the 
+    * changes imposed by this method.
+    * 
+    * @param num The number of significant figures reflected in the 
+    *            contour line labels on the contour plot.
+    */
    public void setNumSigFigs(int num)
    {
       if (sigFigControl==null)
@@ -762,6 +1151,13 @@ public class ContourControlHandler extends ContourChangeHandler
       }
    }
    
+   /**
+    * Used to access the background color that is to be used when rendering 
+    * the contour plot as specified by the controls.
+    * 
+    * @return The background color that is to be used when rendering the 
+    *         contour plot.
+    */
    public Color getBackgroundColor()
    {
       if (backgroundControl ==null)
@@ -770,6 +1166,13 @@ public class ContourControlHandler extends ContourChangeHandler
       return backgroundControl.getSelectedColor();
    }
    
+   /**
+    * Used to set the background color that is to be used when rendering 
+    * the contour plot.
+    * 
+    * @param color The background color to be used when rendering the 
+    *              contour plot.
+    */
    public void setBackgroundColor(Color color)
    {
       if (color==null)
@@ -780,6 +1183,13 @@ public class ContourControlHandler extends ContourChangeHandler
       displayChanged();
    }
    
+   /**
+    * Used to set the intensity of the colorscale used when coloring the 
+    * contour plot.
+    * 
+    * @param intensity The intensity of the colorscale used when 
+    *                  rendering the contour plot.
+    */
    public void setIntensity(double intensity)
    {
       changeIntensity(intensity);
@@ -787,6 +1197,13 @@ public class ContourControlHandler extends ContourChangeHandler
       displayChanged();
    }
    
+   /**
+    * Used to get the intensity of the colorscale used when coloring the 
+    * contour plot.
+    * 
+    * @return The intensity of the colorscale used when coloring the 
+    *         contour plot.
+    */
    public double getColorScaleIntensity()
    {
       if (intensitySlider==null)
@@ -798,6 +1215,13 @@ public class ContourControlHandler extends ContourChangeHandler
    
    
 //--------------=[ Methods used to generate the controls ]=-------------------//
+   /**
+    * Used to instantiate and initialize the field 
+    * {@link #backgroundControl backgroundControl}.
+    * 
+    * @return {@link #backgroundControl this.backgroundControl}.  That is, 
+    *         after constructing the field, a reference to it is returned.
+    */
    private ColorControl generateBackgroundControls(Color color)
    {
       backgroundControl = new ColorControl("Background Color", 
@@ -818,6 +1242,13 @@ public class ContourControlHandler extends ContourChangeHandler
       return backgroundControl;
    }
    
+   /**
+    * Used to instantiate and initialize the field 
+    * {@link #intensitySlider intensitySlider}.
+    * 
+    * @return {@link #intensitySlider this.intensitySlider}.  That is, 
+    *         after constructing the field, a reference to it is returned.
+    */
    private ControlSlider generateIntensityControls()
    {
       intensitySlider = new ControlSlider(0, 100, 100);
@@ -833,6 +1264,13 @@ public class ContourControlHandler extends ContourChangeHandler
       return intensitySlider;
    }
    
+   /**
+    * Used to instantiate and initialize the field 
+    * {@link #controlColorscale controlColorscale}.
+    * 
+    * @return {@link #controlColorscale this.controlColorscale}.  That is, 
+    *         after constructing the field, a reference to it is returned.
+    */
    private ControlColorScale generateColorScaleControls(String scale, 
                                                         boolean isDoubleSided)
    {
@@ -847,8 +1285,13 @@ public class ContourControlHandler extends ContourChangeHandler
       return this.controlColorscale;
    }
    
-   
-   
+   /**
+    * Used to instantiate and initialize the field 
+    * {@link #contourControl contourControl}.
+    * 
+    * @return {@link #contourControl this.contourControl}.  That is, 
+    *         after constructing the field, a reference to it is returned.
+    */
    private CompositeContourControl generateContourControls(
                                                     float minValue, 
                                                     float maxValue, 
@@ -873,6 +1316,13 @@ public class ContourControlHandler extends ContourChangeHandler
       return contourControl;
    }
    
+   /**
+    * Used to instantiate and initialize the field 
+    * {@link #lineStyleControl lineStyleControl}.
+    * 
+    * @return {@link #lineStyleControl this.lineStyleControl}.  That is, 
+    *         after constructing the field, a reference to it is returned.
+    */
    private LineStyleControl generateLineStyleControl(int[] styles, 
                                                     boolean[] stylesEnabled)
    {
@@ -880,8 +1330,15 @@ public class ContourControlHandler extends ContourChangeHandler
       return lineStyleControl;
    }
    
+   /**
+    * Used to instantiate and initialize the field 
+    * {@link #labelControl labelControl}.
+    * 
+    * @return {@link #labelControl this.labelControl}.  That is, 
+    *         after constructing the field, a reference to it is returned.
+    */
    private ControlCheckboxSpinner generateLabelControls(boolean enable, 
-                                                       int initialValue)
+                                                        int initialValue)
    {
       int min = 1;
       int max = 100;
@@ -915,6 +1372,13 @@ public class ContourControlHandler extends ContourChangeHandler
       return labelControl;
    }
    
+   /**
+    * Used to instantiate and initialize the field 
+    * {@link #sigFigControl sigFigControl}.
+    * 
+    * @return {@link #sigFigControl this.sigFigControl}.  That is, 
+    *         after constructing the field, a reference to it is returned.
+    */
    private ControlCheckboxSpinner generateSigFigControls(boolean enable, 
                                                         int initialValue)
    {
@@ -950,6 +1414,13 @@ public class ContourControlHandler extends ContourChangeHandler
       return sigFigControl;
    }
    
+   /**
+    * Used to instantiate and initialize the field 
+    * {@link #panControl panControl}.
+    * 
+    * @return {@link #panControl this.panConrol}.  That is, 
+    *         after constructing the field, a reference to it is returned.
+    */
    private PanViewControl generatePanViewControl()
    {
       this.panControl = new PanViewControl(getContourPanel());
@@ -976,8 +1447,20 @@ public class ContourControlHandler extends ContourChangeHandler
 
    
 //--------------------------=[ Listeners ]=-----------------------------------//
+   /**
+    * This class is used to listen to the <code>ContourJPanel</code> that 
+    * does the actual work of rendering the contour image.  Its main 
+    * purpose is to synchronize the displays of the main contour image and 
+    * the thumbnail image of the contour image displayed on this class's 
+    * <code>PanViewControl</code>.
+    */
    private class PanelListener implements ActionListener
    {
+      /**
+       * Invoked whenever a change occurs.
+       * 
+       * @param event An encapsulation of the change.
+       */
       public void actionPerformed(ActionEvent event)
       {
          String message = event.getActionCommand();

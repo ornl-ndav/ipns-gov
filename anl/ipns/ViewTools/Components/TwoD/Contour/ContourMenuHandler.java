@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/10/07 21:32:36  kramer
+ * Added javadoc comments for every field, constructor, method, inner class,
+ * etc. in this class.
+ *
  * Revision 1.3  2005/07/29 15:32:52  kramer
+ *
  * Now when the user selects to use a solid/colorscale to color the contour
  * lines, the controls for the ControlColorScale are disabled/enabled.
  *
@@ -72,14 +77,41 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 
+/**
+ * This is a module of a <code>ContourViewComponent</code> that is 
+ * responsible for mainting the menu items associated with the 
+ * view component.  That is, this class maintains the state 
+ * information for the menu items and listens to other modules of 
+ * the view component to keep the state of the menu items 
+ * synchronized with the other modules.
+ */
 public class ContourMenuHandler extends ContourChangeHandler 
                                    implements InformationHandler
 {
 //--------------------=[ InformationCenter keys ]=----------------------------//
+   /**
+    * "Is double sided info key" - This static constant String is a key 
+    * used with a {@link InformationCenter InformationCenter} to 
+    * reference whether the user has specified that the color scale 
+    * should be double sided.
+    */
    public static final String IS_DOUBLE_SIDED_INFO_KEY = 
                                   "Is double sided info key";
+   
+   /**
+    * "Color info key" - This static constant String is a key used with 
+    * a {@link InformationCenter InformationCenter} to reference the 
+    * line color of the contour plot.
+    */
    public static final String COLOR_INFO_KEY = 
                                   "Color info key";
+   
+   /**
+    * "Preserve aspect ratio info key" - This static constant String is 
+    * a key used with a {@link InformationCenter InformationCenter}  to 
+    * reference whether the aspect ratio should be preserved when 
+    * rendering the contour plot.
+    */
    public static final String PRESERVE_ASPECT_RATIO_INFO_KEY = 
                                   "Preserve aspect ratio info key";
 //--------------------=[ InformationCenter keys ]=----------------------------//
@@ -94,6 +126,7 @@ public class ContourMenuHandler extends ContourChangeHandler
     * a <code>Boolean</code> object.
     */
    public static final String IS_DOUBLE_SIDED_KEY = "Is double sided key";
+   
    /**
     * "Aspect ratio key" - This static constant String is a key used for 
     * referencing whether or not the aspect ratio is currently preserved for 
@@ -101,6 +134,7 @@ public class ContourMenuHandler extends ContourChangeHandler
     * <code>Boolean</code>.
     */
    public static final String ASPECT_RATIO_KEY = "Aspect ratio key";
+   
    /**
     * "Solid color key" - This static constant String is a key used for 
     * referencing the state information about the <code>ColorControl</code> 
@@ -122,12 +156,14 @@ public class ContourMenuHandler extends ContourChangeHandler
     */
    public static final boolean DEFAULT_PRESERVE_ASPECT_RATIO = 
       ContourJPanel.DEFAULT_PRESERVE_ASPECT_RATIO;
+   
    /**
     * Specifies if the named colorscales used to determine the colors to 
     * render the contour lines with should be a double-sided contour scale 
     * by default.  The value of this field is <code>false</code>.
     */
    public static final boolean DEFAULT_IS_DOUBLE_SIDED = false;
+   
    /**
     * Specifies the default solid color that the contour lines will be 
     * rendered using.  If the field {@link ContourJPanel#DEFAULT_COLOR_SCALE 
@@ -148,27 +184,65 @@ public class ContourMenuHandler extends ContourChangeHandler
       
       
 //-----------------------------=[ Fields ]=-----------------------------------//
+   /**
+    * This is the array of menus items that this class maintains, listens 
+    * to, and synchronizes.
+    */
    private ViewMenuItem[] menuItems;
+   
    /**
     * This is the menu item that is used to specify if the contour plot 
     * should be rendered with its aspect ratio preserved or not.
     */
    private JCheckBoxMenuItem aspectRatioItem;
+   
    /**
     * This is the menu item that is used to specify the solid color to 
     * use when coloring the contour lines.
     */
    private ColorControl contourColorItem;
+   
    /**
     * This is the menu item that is used to specify if the named color scale 
     * used to color the contour lines should be double-sided or not.
     */
    private JCheckBoxMenuItem isDoubleSidedItem;
+   
+   /**
+    * This is the menu that contains all of the menu items that 
+    * are used to specify the colorscale to use when rendering 
+    * a contour plot.
+    */
    private JMenu colorscaleControlMenu;
 //---------------------------=[ End fields ]=---------------------------------//
    
    
 //--------------------------=[ Constructors ]=--------------------------------//
+   /**
+    * Constructs a module for a 
+    * {@link ContourViewComponent ContourViewComponent} that handles 
+    * working with the view component's menu items.
+    * 
+    * @param connector      Serves to connect several modules of a 
+    *                         {@link ContourViewComponent 
+    *                         ContourViewComponent} so that if a 
+    *                         property in one module is changed, the 
+    *                         other modules are notified.
+    * @param center         Serves as the central location where the 
+    *                         data shared between several modules of a 
+    *                         {@link ContourViewComponent 
+    *                         ContourViewComponent} is stored.
+    * @param panel          The panel that is responsible for 
+    *                         rendering the contour plot.
+    * @param useColorScale  If <code>true</code>, the colorscale 
+    *                         specified by the parameter 
+    *                         <code>colorscale</code> will be used 
+    *                         to color the contour plot.  
+    *                         If <code>false</code>, the color 
+    *                         specified by the parameter 
+    *                         <code>lineColor</code> will be used 
+    *                         to color the contour plot.
+    */
    public ContourMenuHandler(PropertyChangeConnector connector, 
                              InformationCenter center, 
                              ContourJPanel panel, boolean useColorScale)
@@ -179,6 +253,46 @@ public class ContourMenuHandler extends ContourChangeHandler
            DEFAULT_PRESERVE_ASPECT_RATIO);
    }
    
+   /**
+    * Constructs a module for a 
+    * {@link ContourViewComponent ContourViewComponent} that handles 
+    * working with the view component's menu items.
+    * 
+    * @param connector            Serves to connect several modules of a 
+    *                               {@link ContourViewComponent 
+    *                               ContourViewComponent} so that if a 
+    *                               property in one module is changed, the 
+    *                               other modules are notified.
+    * @param center               Serves as the central location where the 
+    *                               data shared between several modules of a 
+    *                               {@link ContourViewComponent 
+    *                               ContourViewComponent} is stored.
+    * @param panel                The panel that is responsible for 
+    *                               rendering the contour plot.
+    * @param lineColor            Specifies the initial line color that 
+    *                               should be set in the menu items and 
+    *                               used to render the contour lines.
+    * @param colorScale           Specifies the initial colorscale that 
+    *                               should be set in the menu items and 
+    *                               used to render the contour lines.
+    * @param isDoubleSided        If <code>true</code> the colorscale 
+    *                               specified by the parameter 
+    *                               <code>colorscale</code> will be a 
+    *                               double-sided colorscale.  
+    *                               If <code>false</code>, it it won't.
+    * @param useColorScale        If <code>true</code>, the colorscale 
+    *                               specified by the parameter 
+    *                               <code>colorscale</code> will be used 
+    *                               to color the contour plot.  
+    *                               If <code>false</code>, the color 
+    *                               specified by the parameter 
+    *                               <code>lineColor</code> will be used 
+    *                               to color the contour plot.
+    * @param preserveAspectRatio  If <code>true</code>, the contour plot 
+    *                               will be rendered with its aspect ratio 
+    *                               preserved.  If <code>false</code>, its 
+    *                               apsect ratio will not be preserved.
+    */
    public ContourMenuHandler(PropertyChangeConnector connector, 
                              InformationCenter center, 
                              ContourJPanel panel, 
@@ -320,23 +434,73 @@ public class ContourMenuHandler extends ContourChangeHandler
    
    
 //--------=[ Methods implemented for the ContourChangeHandler class ]=--------//
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  However, it does nothing.  If the contour data is changed, 
+    * this class does not have to change any of the menu items.
+    * 
+    * @param v2d The new data that is going to be plotted.
+    * 
+    * @see ContourChangeHandler#reinit(IVirtualArray2D)
+    */
    public void reinit(IVirtualArray2D v2d)
    {
       //nothing has to be done if a new virtual array is given
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the colorscale being used to color the contour plot 
+    * changes, this method is invoked.  When it is invoked, the menu 
+    * item is enabled to allow the colorscale to be 
+    * specified/unspecified as a "double-sided" colorscale.  In addition, 
+    * the menu that contains all of the possible colorscales is enabled.
+    * 
+    * @param colorscale The name of the colorscale that will now be 
+    *                   used to color the contour plot.
+    * 
+    * @see ContourChangeHandler#changeColorScaleName(String)
+    */
    public void changeColorScaleName(String colorscale)
    {
       isDoubleSidedItem.setEnabled(true);
       this.colorscaleControlMenu.setEnabled(true);
    }
 
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the color being used to color the contour plot changes, 
+    * this method is invoked.  When it is invoked, the menu item that 
+    * allows the current colorscale to be specified/unspecified as a 
+    * "double-sided" colorscale is disabled.  In addition, the menu that 
+    * contains all of the possible colorscales is disabled.  This is 
+    * because if a solid color is being used to color the contour plot, 
+    * these options are not needed.
+    * 
+    * @param color The color that is now going to be used to color the 
+    *              contour plot.
+    * 
+    * @see ContourChangeHandler#changeColor(Color)
+    */
    public void changeColor(Color color)
    {
       isDoubleSidedItem.setEnabled(false);
       this.colorscaleControlMenu.setEnabled(false);
    }
 
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the colorscale being used to color the contour plot is 
+    * modified to be/not be "double-sided", this method is invoked.  
+    * When invoked, this method modifies the checkbox in the menus to 
+    * reflect the new state of the "double-sidedness" of the colorscale.
+    * 
+    * @param isDoubleSided <code>True</code> if the colorscale used to 
+    *                      color the contour plot is now double-sided and 
+    *                      <code>false</code> if it isn't.
+    * 
+    * @see ContourChangeHandler#changeIsDoubleSided(boolean)
+    */
    public void changeIsDoubleSided(boolean isDoubleSided)
    {
       if (isDoubleSidedItem==null)
@@ -348,6 +512,23 @@ public class ContourMenuHandler extends ContourChangeHandler
    
    
 //------=[ Methods implemented for the InformationHandler interface ]=--------//
+   /**
+    * This method is implemented for the 
+    * {@link InformationHandler InformationHandler} interface.  Given a 
+    * certain string alias, the data referenced by that alias will be 
+    * returned.
+    * 
+    * @param key The string alias for some particular data.
+    * @return    The data associated with the given string or 
+    *            <code>null</code> if <code>key</code> is not 
+    *            understood by this class.
+    * 
+    * @see InformationHandler#getValue(String)
+    * 
+    * @see #IS_DOUBLE_SIDED_INFO_KEY
+    * @see #COLOR_INFO_KEY
+    * @see #PRESERVE_ASPECT_RATIO_INFO_KEY
+    */
    public Object getValue(String key)
    {
       if (key==null)
@@ -366,6 +547,13 @@ public class ContourMenuHandler extends ContourChangeHandler
    
    
 //-----------=[ Methods implemented for the IPreserveState interface ]=-------//
+   /**
+    * Used to set the state information of this object to match the state 
+    * information encapsulated in the <code>ObjectStage</code> parameter 
+    * given.
+    * 
+    * @param state An encapsulation of this Object's state.
+    */
    public void setObjectState(ObjectState state)
    {
       if (state==null)
@@ -385,6 +573,15 @@ public class ContourMenuHandler extends ContourChangeHandler
          setIsDoubleSidedColorScale(((Boolean)val).booleanValue());
    }
 
+   /**
+    * Used to get an encapsulation of this Object's state information.
+    * 
+    * @param is_default If <code>true</code>, this Object's default state 
+    *                   is returned.  Otherwise, its current state is 
+    *                   returned.
+    * 
+    * @return An encapsulation of this Object's state.
+    */
    public ObjectState getObjectState(boolean is_default)
    {
       ObjectState state = new ObjectState();
@@ -410,12 +607,27 @@ public class ContourMenuHandler extends ContourChangeHandler
 //---------=[ End methods implemented for the IPreserveState interface ]=-----//
    
    
-// -------------=[ Getter/setter methods for the menu items ]=-----------------//
+//-------------=[ Getter/setter methods for the menu items ]=-----------------//
+   /**
+    * Used to get the array of menu items that this class maintains, 
+    * listens to, and synchronizes.
+    * 
+    * @return This class's menu items.
+    */
    public ViewMenuItem[] getMenuItems()
    {
       return menuItems;
    }
    
+   /**
+    * Used to determine if this class's menu items reflect 
+    * that contour plot colorscale should be double sided 
+    * or not.
+    * 
+    * @return <code>True</code> if the contour plot's 
+    *         colorscale should be double sided and 
+    *         <code>false</code> if it shouldn't.
+    */
    public boolean getIsDoubleSidedColorScale()
    {
       if (isDoubleSidedItem==null)
@@ -424,12 +636,30 @@ public class ContourMenuHandler extends ContourChangeHandler
       return isDoubleSidedItem.isSelected();
    }
    
+   /**
+    * Used to specify if this class's menu items should reflect 
+    * that contour plot colorscale should be double sided 
+    * or not.
+    * 
+    * @param doubleSided <code>True</code> if the contour plot's 
+    *                    colorscale should be double sided and 
+    *                    <code>false</code> if it shouldn't.
+    */
    public void setIsDoubleSidedColorScale(boolean doubleSided)
    {
       isDoubleSidedItem.setSelected(doubleSided);
       isDoubleSidedChanged(doubleSided);
    }
    
+   /**
+    * Used to determine if this class's menu items 
+    * specify if the aspect ratio should be preserved 
+    * or not when rendering the contour plot.
+    * 
+    * @return <code>True</code> if the contour plot should 
+    *         have its aspect ratio preserved and 
+    *         <code>false</code> if it shouldn't.
+    */
    public boolean getPreserveAspectRatio()
    {
       if (aspectRatioItem==null)
@@ -438,6 +668,18 @@ public class ContourMenuHandler extends ContourChangeHandler
       return aspectRatioItem.isSelected();
    }
    
+   /**
+    * Used to set if this class's menu items should 
+    * specify that the contour plot's aspect ratio 
+    * should either be preserved or not 
+    * (as specified).
+    * 
+    * @param isSelected If <code>true</code> the 
+    *                   contour plot's aspect ratio 
+    *                   will be preserved and if 
+    *                   <code>false</code>, it 
+    *                   won't be.
+    */
    public void setPreserveAspectRatio(boolean isSelected)
    {
       //update the menu item to be either selected or deselected
@@ -447,6 +689,12 @@ public class ContourMenuHandler extends ContourChangeHandler
       preserveAspectRatioChanged(isSelected);
    }
    
+   /**
+    * Used to get the color used to render the contour lines 
+    * as specified by this class's menu items.
+    * 
+    * @return The color to use when rendering the contour lines.
+    */
    public Color getLineColor()
    {
       if (contourColorItem==null)
@@ -455,6 +703,13 @@ public class ContourMenuHandler extends ContourChangeHandler
       return contourColorItem.getSelectedColor();
    }
    
+   /**
+    * Used to set the color that should be used when rendering 
+    * the contour plot's contour lines.
+    * 
+    * @param color The line to use when rendering the contour 
+    *              lines.
+    */
    public void setLineColor(Color color)
    {
       if (contourColorItem == null)
@@ -467,8 +722,16 @@ public class ContourMenuHandler extends ContourChangeHandler
    
 
 //------------=[ Methods used to generate the menu items ]=-------------------//
+   /**
+    * Used to instantiate and initialize the field 
+    * {@link #aspectRatioItem aspectRatioItem}.
+    * 
+    * @return {@link #aspectRatioItem aspectRatioItem}.  That is, 
+    *         after constructing the field, a reference to it is 
+    *         returned.
+    */
    private JCheckBoxMenuItem generateAspectRatioMenuItem(boolean 
-         preserveAspectRatio)
+                                                         preserveAspectRatio)
    {
       //make the control for the aspect ratio
       aspectRatioItem = 
@@ -488,8 +751,22 @@ public class ContourMenuHandler extends ContourChangeHandler
    
    
 //----------------------------=[ Listeners ]=---------------------------------//
+   /**
+    * This class has several menu items that are used to specify 
+    * the location of the control that specifies the color 
+    * scale to use when rendering the contour plot.  This class 
+    * listens for selections on these menu items.
+    */
    public class MoveColorScaleListener implements ActionListener
    {
+      /**
+       * Invoked when one of the menu items that specify the 
+       * location of the control for the colorscale has been 
+       * selected.
+       * 
+       * @param event An encapsulation of information about 
+       *              the menu item that has been selected.
+       */
       public void actionPerformed(ActionEvent event)
       {
          colorScaleLocationChanged(event.getActionCommand());
