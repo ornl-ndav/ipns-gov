@@ -33,7 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2005/10/07 21:36:09  kramer
+ * Fully javadoc commented everything in the inner class PartitionedPanel.
+ * Approximately 75% of the rest of the code has also been javadoc commented.
+ *
  * Revision 1.3  2005/08/02 16:17:51  kramer
+ *
  * Modified the getPrecision() method to return the number of significant
  * figures currently being used to render the contour lines.
  *
@@ -54,6 +59,7 @@
 package gov.anl.ipns.ViewTools.Components.TwoD.Contour;
 
 import gov.anl.ipns.Util.Messaging.Information.InformationCenter;
+import gov.anl.ipns.Util.Messaging.Information.InformationHandler;
 import gov.anl.ipns.Util.Messaging.Property.PropertyChangeConnector;
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
@@ -88,6 +94,14 @@ import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
 
 /**
+ * This is a module of a <code>ContourViewComponent</code> that is 
+ * responsible for maintaining the layout of the contour image on 
+ * the view component.  That is, this module handles the placement 
+ * of the contour image, modifies the size of the contour image so 
+ * that its aspect ratio is preserved if required, and stores state 
+ * informatino about the layout of the contour image.  In addition, 
+ * the layout and placement of the axes and any readouts around the 
+ * contour image are maintained by this module.
  */
 public class ContourLayoutHandler extends ContourChangeHandler 
                                              implements IAxisAddible, 
@@ -113,9 +127,29 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 //---------------------------=[ Constants ]=----------------------------------//
+   /**
+    * Specifies the default height of the northern region of the panel 
+    * that holds the contour image.  In other words, this value can be 
+    * thought of as the deault top margin above the contour image.
+    */
    private final int DEFAULT_NORTH_HEIGHT;
+   /**
+    * Specifies the default height of the southern region of the panel 
+    * that holds the contour image.  In other words, this value can be 
+    * thought of as the default bottom margin below the contour image.
+    */
    private final int DEFAULT_SOUTH_HEIGHT;
+   /**
+    * Specifies the default width of the eastern region of the panel 
+    * that holds the contour image.  In other words, this value can be 
+    * thought of as the default right margin beside the contour image.
+    */
    private final int DEFAULT_EAST_WIDTH;
+   /**
+    * Specifies the default width of the western region of the panel that 
+    * holds the contour image.  In other words, this value can be 
+    * thought of as the default left margin beside the contour image.
+    */
    private final int DEFAULT_WEST_WIDTH;
 //-------------------------=[ End constants ]=--------------------------------//
    
@@ -194,6 +228,16 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 //--------=[ Methods implemented for the ContourChangeHandler class ]=--------//
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  This method is invoked when the data that is to be 
+    * displayed by the contour plot has changed.  When invoked, 
+    * this method updates the display to reflect this new data.
+    * 
+    * @param v2D The new data that is going to be plotted.
+    * 
+    * @see ContourChangeHandler#reinit(IVirtualArray2D)
+    */
    public void reinit(IVirtualArray2D v2D)
    {
       ContourJPanel contourPanel = getContourPanel();
@@ -239,6 +283,14 @@ public class ContourLayoutHandler extends ContourChangeHandler
       }
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  This method is invoked whenever the display has changed 
+    * (i.e. become inconsistent) and needs to be updated.  When invoked, 
+    * this method updates the contour plot to reflect the change.
+    * 
+    * @see ContourChangeHandler#changeDisplay()
+    */
    public void changeDisplay()
    {
       //determine if the aspect ratio is to be preserved
@@ -264,11 +316,11 @@ public class ContourLayoutHandler extends ContourChangeHandler
       setPreserveAspectRatio(preserve);
       
       //now repaint and revalidate all of the panels used in the display 
-      this.partitionPanel.repaint();
       this.partitionPanel.revalidate();
+      this.partitionPanel.repaint();
       
-      this.innerPanel.repaint();
       this.innerPanel.revalidate();
+      this.innerPanel.repaint();
       
       Component topPanel = this.layerPanel;
       while ( topPanel.getParent() != null)
@@ -276,6 +328,17 @@ public class ContourLayoutHandler extends ContourChangeHandler
       topPanel.repaint();
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the colorscale being used to color the contour plot 
+    * changes, this method is invoked.  When it is invoked, the contour 
+    * plot is updated to relect the change.
+    * 
+    * @param colorscale The name of the colorscale that will now be 
+    *                   used to color the contour plot.
+    * 
+    * @see ContourChangeHandler#changeColorScaleName(String)
+    */
    public void changeColorScaleName(String colorscale)
    {
       boolean isDoubleSided = ContourMenuHandler.DEFAULT_IS_DOUBLE_SIDED;
@@ -294,12 +357,35 @@ public class ContourLayoutHandler extends ContourChangeHandler
       displayChanged();
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the color being used to color the contour plot changes, 
+    * this method is invoked.  When it is invoked, the contour plot is 
+    * updated to reflect the change.
+    * 
+    * @param color The color that is now going to be used to color the 
+    *              contour plot.
+    * 
+    * @see ContourChangeHandler#changeColor(Color)
+    */
    public void changeColor(Color color)
    {
       getContourPanel().setColorScale(color);
       displayChanged();
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the colorscale being used to color the contour plot is 
+    * modified to be/not be "double-sided", this method is invoked.  
+    * When invoked, the contour plot is updated to reflect the change.
+    * 
+    * @param isDoubleSided <code>True</code> if the colorscale used to 
+    *                      color the contour plot is now double-sided and 
+    *                      <code>false</code> if it isn't.
+    * 
+    * @see ContourChangeHandler#changeIsDoubleSided(boolean)
+    */
    public void changeIsDoubleSided(boolean isDoubleSided)
    {
       ControlColorScale control = getVisibleColorScale();
@@ -317,6 +403,28 @@ public class ContourLayoutHandler extends ContourChangeHandler
       displayChanged();
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  This method is invoked if the location of the colorscale's 
+    * control changes.  When invoked, this method updates the layout 
+    * so that the colorscale's control is in the correct location.
+    * 
+    * @param location A string alias describing the new location of the 
+    *                 colorscale's control.  The value of this parameter 
+    *                 should be either:
+    * <ul>
+    *   <li>{@link ContourChangeHandler#CONTROL_PANEL_LOCATION 
+    *                                   CONTROL_PANEL_LOCATION}</li>
+    *   <li>{@link ContourChangeHandler#BELOW_IMAGE_LOCATION 
+    *                                   BELOW_IMAGE_LOCATION}</li>
+    *   <li>{@link ContourChangeHandler#RIGHT_IMAGE_LOCATION 
+    *                                   RIGHT_IMAGE_LOCATION}</li>
+    *   <li>{@link ContourChangeHandler#NONE_LOCATION 
+    *                                   NONE_LOCATION}</li>
+    * </ul>
+    * 
+    * @see ContourChangeHandler#changeColorScaleLocation(String)
+    */
    public void changeColorScaleLocation(String location)
    {
       this.partitionPanel.removePartitionComponent(PartitionedPanel.EAST);
@@ -348,6 +456,17 @@ public class ContourLayoutHandler extends ContourChangeHandler
       displayChanged();
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the intensity on the colorscale used to color the contour 
+    * plot changes, this method is invoked.  When invoked, the contour plot 
+    * is updated to reflect the change.
+    * 
+    * @param intensity The intensity of the colorscale that is now going 
+    *                  to be used to render the contour plot.
+    * 
+    * @see ContourChangeHandler#changeIntensity(double)
+    */
    public void changeIntensity(double intensity)
    {
       getContourPanel().setLogScale(intensity);
@@ -357,6 +476,19 @@ public class ContourLayoutHandler extends ContourChangeHandler
       displayChanged();
    }
    
+   /**
+    * This method is implemented for the <code>ContourChangeHandler</code> 
+    * class.  If the state of whether or not the aspect ratio should be 
+    * preserved when rendering the contour plot, this method is invoked.  
+    * When invoked, the layout of the display is changed so that the 
+    * contour plot has its apsect ratio either preserved or not preserved 
+    * (as specified).
+    * 
+    * @param preserve <code>True</code> if the aspect ratio should 
+    *                 be preserved and <code>false</code> if it shouldn't.
+    * 
+    * @see ContourChangeHandler#changeAspectRatio(boolean)
+    */
    public void changeAspectRatio(boolean preserve)
    {
       setPreserveAspectRatio(preserve);
@@ -366,6 +498,18 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 // ------=[ Methods implemented for the InformationHandler interface ]=--------//
+   /**
+    * This method is implemented for the 
+    * {@link InformationHandler InformationHandler} interface.  Given a 
+    * certain string alias, the data referenced by that alias would normally 
+    * be returned.  However, this class does not maintain any data.  Thus, 
+    * <code>null</code> is always returned.
+    * 
+    * @param key The string alias for some particular data.
+    * @return    <code>null</code>.
+    * 
+    * @see InformationHandler#getValue(String)
+    */
    public Object getValue(String key)
    {
       //this class isn't registered to maintain any values
@@ -375,6 +519,13 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 //-----------=[ Methods implemented for the IPreserveState interface ]=-------//
+   /**
+    * Used to set the state information of this object to match the state 
+    * information encapsulated in the <code>ObjectStage</code> parameter 
+    * given.
+    * 
+    * @param state An encapsulation of this Object's state.
+    */
    public void setObjectState(ObjectState state)
    {
       if (state==null)
@@ -390,6 +541,15 @@ public class ContourLayoutHandler extends ContourChangeHandler
          getAxisOverlay().setObjectState((ObjectState)val);
    }
 
+   /**
+    * Used to get an encapsulation of this Object's state information.
+    * 
+    * @param is_default If <code>true</code>, this Object's default state 
+    *                   is returned.  Otherwise, its current state is 
+    *                   returned.
+    * 
+    * @return An encapsulation of this Object's state.
+    */
    public ObjectState getObjectState(boolean is_default)
    {
       //get an empty ObjectState
@@ -693,20 +853,46 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 //-----------------------=[ Inner classes ]=----------------------------------//
+   /**
+    * This is a special panel that is divided into five sections:  north, 
+    * south, east, west, and central.  Components can be added to each 
+    * section of this panel and methods are provided to ensure the 
+    * aspect ratio of the center panel is preserved.  This class was 
+    * designed in this way because it was intended to be used with a 
+    * {@link ContourLayoutHandler ContourLayoutHandler}.  That is, the 
+    * layout handler would place a contour plot in the central section of 
+    * an object of this class.  This class would in turn be used to 
+    * preserve the aspect ratio of the contour image.
+    */
    private static class PartitionedPanel extends JPanel
    {
+      /** The constant that specifies the northern section of this panel. */
       public static final int NORTH = 0;
+      /** The constant that specifies the southern section of this panel. */
       public static final int SOUTH = 1;
+      /** The constant that specifies the eastern section of this panel. */
       public static final int EAST = 2;
+      /** The constant that specifies the western section of this panel. */
       public static final int WEST = 3;
+      /** The constant that specifies the central section of this panel. */
       public static final int CENTER = 4;
       
+      /** The panel that is the northern section of this panel. */
       private JPanel northPanel;
+      /** The panel that is the southern section of this panel. */
       private JPanel southPanel;
+      /** The panel that is the eastern section of this panel. */
       private JPanel eastPanel;
+      /** The panel that is the western section of this panel. */
       private JPanel westPanel;
+      /** The panel that is the central section of this panel. */
       private JPanel centerPanel;
       
+      /**
+       * Constructs a panel with a northern, southern, eastern, western, 
+       * and central section.  The contents and sizes of these sections 
+       * are not initialized.
+       */
       public PartitionedPanel()
       {
          super();
@@ -727,6 +913,30 @@ public class ContourLayoutHandler extends ContourChangeHandler
          add(centerPanel, BorderLayout.CENTER);
       }
       
+      /**
+       * Constructs a panel with a northern, southern, eastern, western, 
+       * and central section with their sizes adjusted to the sizes 
+       * specified.  That is, the panel can be thought of as a document 
+       * with margins.  The parameters given specify the sizes of the 
+       * margins.  The numbers can also be interpreted as the height of 
+       * the northern and southern sections and width of the eastern and 
+       * western sections.  The size of the central section is 
+       * automatically adjusted to meet the requirements for the sizes of 
+       * the other sections. 
+       * 
+       * @param northHeight The height in pixels of the northern section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's top margin.
+       * @param southHeight The height in pixels of the southern section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's bottom margin.
+       * @param eastWidth   The width in pixels of the eastern section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's right margin.
+       * @param westWidth   The width in pixels of the western section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's left margin.
+       */
       public PartitionedPanel(int northHeight, int southHeight, 
                               int eastWidth, int westWidth)
       {
@@ -734,6 +944,17 @@ public class ContourLayoutHandler extends ContourChangeHandler
          adjustPreferredSizes(northHeight, southHeight, eastWidth, westWidth);
       }
       
+      /**
+       * Used to get a rectangle describing the region encompassed by 
+       * the section on this panel as specified by the given integer 
+       * code.  The rectangle returned encapsulates the location of the 
+       * region as well as its size.
+       * 
+       * @param partition A code that specifies the section of this 
+       *                  panel to use.
+       * @return          An encapsulation of the location and size of 
+       *                  the specified section of this panel.
+       */
       public Rectangle getPartitionRegion(int partition)
       {
          JPanel panel = getPanelInPartition(partition);
@@ -741,6 +962,22 @@ public class ContourLayoutHandler extends ContourChangeHandler
                               panel.getSize());
       }
       
+      /**
+       * Sets the given component as the component that is located in the 
+       * section of this panel as specified by its integer code.
+       * 
+       * @param partition A code that specifies the section of this 
+       *                  panel to use.
+       * 
+       * @param comp      The component that is to be located at the 
+       *                  specified section on this panel.
+       * 
+       * @see #NORTH
+       * @see #SOUTH
+       * @see #EAST
+       * @see #WEST
+       * @see #CENTER
+       */
       public void setPartitionComponent(int partition, Component comp)
       {
          JPanel panel = getPanelInPartition(partition);
@@ -751,11 +988,35 @@ public class ContourLayoutHandler extends ContourChangeHandler
          //repaint();
       }
       
+      /**
+       * Used to get the panel that is located at the specified 
+       * section of this panel.
+       * 
+       * @param partition A code that specifies the section of this 
+       *                  panel to use.
+       * 
+       * @return The component at the specified section of this 
+       *         panel or <code>null</code> if no components 
+       *         exist in the specified section.  If 
+       *         <code>partition</code> is invalid, the component 
+       *         in the central section is returned.
+       */
       public Component getPartitionComponent(int partition)
       {
-         return getPanelInPartition(partition).getComponent(0);
+         JPanel panel = getPanelInPartition(partition);
+         if (0 < panel.getComponentCount())
+            return panel.getComponent(0);
+         else
+            return null;
       }
       
+      /**
+       * Used to remove the component from the section on this panel 
+       * as specified by the integer code given.
+       * 
+       * @param partition A code that specifies the section of this 
+       *                  panel to use.
+       */
       public void removePartitionComponent(int partition)//, 
                                            //int northHeight, int southHeight, 
                                            //int eastWidth, int westWidth)
@@ -767,6 +1028,33 @@ public class ContourLayoutHandler extends ContourChangeHandler
          //panel.repaint();
       }
       
+      /**
+       * Because this class is tailor made to work with a 
+       * {@link ContourLayoutHandler ContourLayoutHandler} this method is 
+       * designed to work with a contour image.  That is given information 
+       * about the contour image, the central region of this panel will 
+       * be adjusted so that the aspect ratio of the contour image is 
+       * preserved.
+       * 
+       * @param numRows The number of rows in the contour image's 
+       *                {@link gov.anl.ipns.ViewTools.Components.IVirtualArray 
+       *                IVirtualArray} that are currently being displayed on 
+       *                the screen.  That is, if the user has selected to 
+       *                zoom in on a region of the contour image, how many 
+       *                rows are being displayed.
+       * @param numCols The number of columns in the contour image's 
+       *                {@link gov.anl.ipns.ViewTools.Components.IVirtualArray 
+       *                IVirtualArray} that are currently being displayed on 
+       *                the screen.  That is, if the user has selected to 
+       *                zoom in on a region of the contour image, how many 
+       *                columns are being displayed.
+       * @param maxRows The total number of rows in the contour image's 
+       *                {@link gov.anl.ipns.ViewTools.Components.IVirtualArray 
+       *                IVirtualArray}.
+       * @param maxCols The total number of columns in the contour image's 
+       *                {@link gov.anl.ipns.ViewTools.Components.IVirtualArray 
+       *                IVirtualArray}.
+       */
       public void enablePreserveAspectRatio(int numRows, int numCols, 
                                             int maxRows, int maxCols)
       {
@@ -819,12 +1107,51 @@ public class ContourLayoutHandler extends ContourChangeHandler
          adjustPreferredSizes(northHeight, southHeight, eastWidth, westWidth);
       }
       
+      /**
+       * Disables the preservation of the aspect ratio of the central 
+       * region of this panel.  Instead, the sizes of the northern, 
+       * southern, eastern, and western sections are modified to the 
+       * sizes given.  As a result, the size of the central region is 
+       * automatically adjusted to correspond to these changes.
+       * 
+       * @param northHeight The height in pixels of the northern section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's top margin.
+       * @param southHeight The height in pixels of the southern section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's bottom margin.
+       * @param eastWidth   The width in pixels of the eastern section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's right margin.
+       * @param westWidth   The width in pixels of the western section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's left margin.
+       */
       public void disablePreserveAspectRatio(int northHeight, int southHeight, 
                                              int eastWidth, int westWidth)
       {
          adjustPreferredSizes(northHeight, southHeight, eastWidth, westWidth);
       }
       
+      /**
+       * Used to adjust the sizes of the northern, southern, eastern, and 
+       * western sections to the specified sizes.  The size of the 
+       * central region is automatically adjusted to accomidate these 
+       * changes.
+       * 
+       * @param northHeight The height in pixels of the northern section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's top margin.
+       * @param southHeight The height in pixels of the southern section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's bottom margin.
+       * @param eastWidth   The width in pixels of the eastern section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's right margin.
+       * @param westWidth   The width in pixels of the western section of 
+       *                    the panel.  This can also be thought of as the 
+       *                    panel's left margin.
+       */
       private void adjustPreferredSizes(int northHeight, int southHeight, 
                                         int eastWidth, int westWidth)
       {
@@ -839,6 +1166,21 @@ public class ContourLayoutHandler extends ContourChangeHandler
                               totalDim.height-northHeight-southHeight ));
       }
       
+      /**
+       * Given the integer code for a section of this panel, this method 
+       * obtains the panel that is that section.
+       * 
+       * @param location An integer code that specifies a section of 
+       *                 this panel.
+       * 
+       * @return The panel that is the specified section of this panel.
+       * 
+       * @see #NORTH
+       * @see #SOUTH
+       * @see #EAST
+       * @see #WEST
+       * @see #CENTER
+       */
       private JPanel getPanelInPartition(int location)
       {
          switch (location)
