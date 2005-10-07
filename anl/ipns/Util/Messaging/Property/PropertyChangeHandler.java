@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/10/07 21:28:28  kramer
+ * Added javadoc comments for everything in the class/interface.
+ *
  * Revision 1.1  2005/07/25 20:27:44  kramer
+ *
  * Initial checkin.  Classes that implement this interface can be added to
  * a PropertyChangeConnector.  Thus, they can be placed in a web such that
  * every PropertyChangeHandler can communicate with every other
@@ -42,7 +46,17 @@
  */
 package gov.anl.ipns.Util.Messaging.Property;
 
+/**
+ * Classes that implement this interface have the ability to 
+ * be notified when a specific named property has changed.
+ */
 public interface PropertyChangeHandler
 {
+   /**
+    * Invoked when a particular named property has changed.
+    * 
+    * @param property The name of the property that has changed.
+    * @param value    The property's new value.
+    */
    public void propertyChanged(String property, Object value);
 }

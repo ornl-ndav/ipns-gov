@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2005/10/07 21:26:07  kramer
+ * Added javadoc comments for everything in the class/interface.
+ *
  * Revision 1.1  2005/07/25 20:34:28  kramer
+ *
  * Initial checkin. The InformationHandler and InformationCenter interface
  * and class form the base of an information communication system.
  * For a particular piece of information, exactly one InformationHandler is
@@ -46,6 +50,10 @@
 package gov.anl.ipns.Util.Messaging.Information;
 
 /**
+ * Classes that implement this interface have the ability to be registered 
+ * with a {@link gov.anl.ipns.Util.Messaging.Information.InformationCenter 
+ * InformationCenter} object as being able to store data that is aliased 
+ * by string keys.
  */
 public interface InformationHandler
 {
@@ -54,6 +62,10 @@ public interface InformationHandler
     * Used to get the value aliased by the given key.  If this handler 
     * doesn't have the information requested, it should return 
     * <code>null</code>.
+    * 
+    * @return The data refered to by the string <code>key</code> or 
+    *         <code>null</code> if <code>key</code> is unrecognized or 
+    *         invalid.
     */
    public Object getValue(String key);
 }
