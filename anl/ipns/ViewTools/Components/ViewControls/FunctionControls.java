@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.52  2005/10/07 18:38:19  serumb
+ * Removed extra label in front of graph title.
+ *
  * Revision 1.51  2005/04/20 21:25:06  dennis
  * Removed unused imports.
  *
@@ -391,7 +394,7 @@ import javax.swing.*;
       {
         group_id   = Varray1D.getGraphTitle( i );
         SelGraphDSIndx[index] = i;
-        lines[index++]   = "Group ID:" + group_id;
+        lines[index++]   =  group_id;
       }
     }
           
@@ -582,7 +585,7 @@ import javax.swing.*;
         {
           group_id   = Varray1D.getGraphTitle( i );
           SelGraphDSIndx[index] = i;
-          lines[index++]   = "Group ID:" + group_id;
+          lines[index++]   =  group_id;
         }
       }
 

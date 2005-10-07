@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2005/10/07 18:37:21  serumb
+ *  Removed extra label in front of graph title.
+ *
  *  Revision 1.13  2005/05/25 20:28:33  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -165,7 +168,7 @@ public class LegendOverlay extends OverlayJPanel
     {
        for (int i=0; i < selectedGraphs.length; i++)
        {
-         graphs[i] = (String)("Group ID: " +  ila.getText(selectedGraphs[i]));
+         graphs[i] =   ila.getText(selectedGraphs[i]);
          lineInfo[i] = ila.getGraphData(i+1);
        }
     }
