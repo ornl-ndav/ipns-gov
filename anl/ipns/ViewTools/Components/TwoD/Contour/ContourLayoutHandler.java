@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2005/10/11 04:53:40  kramer
+ * Completed the javadocs for every member of this class.
+ *
  * Revision 1.4  2005/10/07 21:36:09  kramer
+ *
  * Fully javadoc commented everything in the inner class PartitionedPanel.
  * Approximately 75% of the rest of the code has also been javadoc commented.
  *
@@ -115,6 +119,7 @@ public class ContourLayoutHandler extends ContourChangeHandler
     * <code>ObjectState</cdoe> of a <code>ContourJPanel</code>.
     */
    public static final String CONTOUR_PANEL_KEY = "Contour panel key";
+   
    /**
     * "Axis overlay key" - This static constant String is a key used for 
     * referencig the state information for the <code>AxisOverlay2D</code> 
@@ -133,18 +138,21 @@ public class ContourLayoutHandler extends ContourChangeHandler
     * thought of as the deault top margin above the contour image.
     */
    private final int DEFAULT_NORTH_HEIGHT;
+   
    /**
     * Specifies the default height of the southern region of the panel 
     * that holds the contour image.  In other words, this value can be 
     * thought of as the default bottom margin below the contour image.
     */
    private final int DEFAULT_SOUTH_HEIGHT;
+   
    /**
     * Specifies the default width of the eastern region of the panel 
     * that holds the contour image.  In other words, this value can be 
     * thought of as the default right margin beside the contour image.
     */
    private final int DEFAULT_EAST_WIDTH;
+   
    /**
     * Specifies the default width of the western region of the panel that 
     * holds the contour image.  In other words, this value can be 
@@ -155,13 +163,38 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 //--------------------------------=[ Fields ]=--------------------------------//
-   private PartitionedPanel innerPanel;
-   private PartitionedPanel partitionPanel;
    /**
-    * The panel that contains the <code>ContourJPanel</code> and 
-    * all of the transparencies.
+    * This is a panel that is divided into north, south, east, west, 
+    * and central sections.  The <code>ContourJPanel</code> that does 
+    * the actual work of rendering the contour image is placed in 
+    * the central region of this panel.  The other regions then 
+    * expand to accomidate the axes that are placed over the contour 
+    * image.
+    */
+   private PartitionedPanel innerPanel;
+   
+   /**
+    * This is a panel that is divided into north, south, east, west, 
+    * and central sections.  The panel <code>innerPanel</code> is 
+    * placed at the center of this panel.  Then the controls for 
+    * the colorscale are placed in either the east or south sections 
+    * of this panel as specified by the user.   That is, to make the 
+    * controls appear to be located to the right side or below the 
+    * contour image, the controls are added to their respective 
+    * sections of this panel.
+    */
+   private PartitionedPanel partitionPanel;
+   
+   /**
+    * This is the "display panel."  That is, it is the root panel 
+    * of every other panel and transparency.  It contains 
+    * the panel <code>partitionPanel</code> and all of the 
+    * transparencies.  These panels contain their respective 
+    * components, etc.  Thus, in the end, this panel contains 
+    * every graphical element that this module maintains.
     */
    private JPanel layerPanel;
+   
    /**
     * The Vector of transparencies that are placed on top of the 
     * <code>ContourJPanel</code> to give it more functionality.  This 
@@ -172,11 +205,36 @@ public class ContourLayoutHandler extends ContourChangeHandler
    /** The Vector of ActionListener associated with this component. */
    private Vector listenerVec;
    
+   /**
+    * The <code>ContourViewComponent</code> that this module is 
+    * associated with.
+    */
    private ContourViewComponent contourComp;
 //------------------------------=[ End fields ]=------------------------------//
    
    
 //--------------=[ Constructors and construction methods ]=-------------------//
+   /**
+    * Constructs a module for a 
+    * {@link ContourViewComponent ContourViewComponent} that handles 
+    * displaying the view component's contour plot.
+    * 
+    * @param connector          Serves to connect several modules of a 
+    *                           {@link ContourViewComponent 
+    *                           ContourViewComponent} so that if a 
+    *                           property in one module is changed, the 
+    *                           other modules are notified.
+    * @param center             Serves as the central location where the 
+    *                           data shared between several modules of a 
+    *                           {@link ContourViewComponent 
+    *                           ContourViewComponent} is stored.
+    * @param panel              The panel that is responsible for 
+    *                           rendering the contour plot.
+    * @param component          The view component that this module is 
+    *                           to maintain.
+    * @param v2D                The data that is to be displayed by 
+    *                           this module.
+    */
    public ContourLayoutHandler(PropertyChangeConnector connector, 
                                InformationCenter center, 
                                ContourJPanel panel, 
@@ -194,6 +252,13 @@ public class ContourLayoutHandler extends ContourChangeHandler
       reinit(v2D);
    }
    
+   /**
+    * This method instantiates and initializes every field in this class 
+    * to their default starting values.
+    * 
+    * @param contourComp The <code>ViewComponent</code> that this 
+    *                    module is to maintain.
+    */
    private void init(ContourViewComponent contourComp)
    {
       this.contourComp = contourComp;
@@ -215,11 +280,11 @@ public class ContourLayoutHandler extends ContourChangeHandler
         this.innerPanel = 
            new PartitionedPanel(DEFAULT_NORTH_HEIGHT, DEFAULT_SOUTH_HEIGHT, 
                                 DEFAULT_EAST_WIDTH, DEFAULT_WEST_WIDTH);
-          innerPanel.setPartitionComponent(PartitionedPanel.CENTER, 
-                                               contourPanel);
+          this.innerPanel.setPartitionComponent(PartitionedPanel.CENTER, 
+                                                contourPanel);
         this.partitionPanel = new PartitionedPanel(0, 0, 0, 0);
-          partitionPanel.setPartitionComponent(PartitionedPanel.CENTER, 
-                                               innerPanel);
+         this. partitionPanel.setPartitionComponent(PartitionedPanel.CENTER, 
+                                                    this.innerPanel);
          
       this.transparencies = new Vector();
       this.listenerVec = new Vector();
@@ -569,6 +634,18 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 //----------=[ Methods implemented for the IAxisAddible interface ]=----------//
+   /**
+    * This method is used by the axis overlays to get an encapsulation of 
+    * the information describing one of the coordinate axes of the display.
+    * 
+    * @param axiscode A code representing either the X, Y, or Z axis.
+    * 
+    * @return Information about one of the coordinate axes of the display.
+    * 
+    * @see AxisInfo#X_AXIS
+    * @see AxisInfo#Y_AXIS
+    * @see AxisInfo#Z_AXIS
+    */
    public AxisInfo getAxisInformation(int axiscode)
    {
       float min = 0;
@@ -597,11 +674,23 @@ public class ContourLayoutHandler extends ContourChangeHandler
       return new AxisInfo(min, max, label, units, AxisInfo.LINEAR);
    }
 
+   /**
+    * This method is used by the axis overlays to get the title to 
+    * display above the data plotted.
+    * 
+    * @return The title to display above the data.
+    */
    public String getTitle()
    {
       return getContourPanel().getData().getTitle();
    }
 
+   /**
+    * This method is used by the axis overlays to determine the 
+    * precision of the data as specified by the user.
+    * 
+    * @return The precision of the data displayed.
+    */
    public int getPrecision()
    {
       Integer num = (Integer)getInfoCenter().
@@ -613,22 +702,53 @@ public class ContourLayoutHandler extends ContourChangeHandler
       return numSigFigs;
    }
 
+   /**
+    * This method is used by the axis overlays to determine the 
+    * font to use when rendering the axis labels.
+    * 
+    * @return This method currently always returns 
+    *         {@link FontUtil#LABEL_FONT2 FontUtil.LABEL_FONT2}.
+    */
    public Font getFont()
    {
       //TODO Make the font adjustable
       return FontUtil.LABEL_FONT2;
    }
 
+   /**
+    * This method is used by any overlay that responds to zooming.  
+    * It is used to get the coordinate bounds of the current 
+    * zoomed region.
+    * 
+    * @return The coordinate bounds of the current zoomed region.
+    */
    public CoordBounds getLocalCoordBounds()
    {
       return getContourPanel().getLocalWorldCoords().MakeCopy();
    }
 
+   /**
+    * This method is used by any overlay that responds to zooming.  
+    * It is used to get the coordinate bounds of the entire 
+    * image that has been plotted.
+    * 
+    * @return The coordinate bounds of the entire image.
+    */
    public CoordBounds getGlobalCoordBounds()
    {
       return getContourPanel().getGlobalWorldCoords().MakeCopy();
    }
 
+   /**
+    * This method can be used by any overlay.  It is used to get 
+    * a rectangle describing the size and location of only 
+    * the contour image itself.  That is, the rectangle describing 
+    * the contour image and all of the axes and other overlays 
+    * is not returned.
+    * 
+    * @return An encapsulation of the size and location of the 
+    *         contour image.
+    */
    public Rectangle getRegionInfo()
    {
       //this.partitionPanel contains another PartiontionedPanel at its center 
@@ -660,6 +780,14 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 //-----=[ Extra methods implemented for the IColorScaleAddible interface ]=---//
+   /**
+    * This method is implemented for the 
+    * {@link IColorScaleAddible IColorScaleAddible} interface.  
+    * It is used to access the colorscale that is currently being 
+    * used to color the contour plot.
+    * 
+    * @return The colorscale that is used to color the contour plot.
+    */
    public String getColorScale()
    {
       String colorscale = 
@@ -671,6 +799,14 @@ public class ContourLayoutHandler extends ContourChangeHandler
       return colorscale;
    }
 
+   /**
+    * This method is implemented for the 
+    * {@link IColorScaleAddible IColorScaleAddible} interface.  
+    * It is used to add listeners to this module.
+    * 
+    * @param actionlistener The object that wants to listen to changes 
+    *                       to this module.
+    */
    public void addActionListener(ActionListener actionlistener)
    {
       if (actionlistener==null)
@@ -679,11 +815,29 @@ public class ContourLayoutHandler extends ContourChangeHandler
          listenerVec.add(actionlistener);
    }
 
+   /**
+    * This method is implemented for the 
+    * {@link IColorScaleAddible IColorScaleAddible} interface.  
+    * It is used to access the axis info about the Z axis 
+    * of the contour plot.
+    * 
+    * @return An encapsulation of information about the Z axis.
+    */
    public AxisInfo getValueAxisInfo()
    {
       return getAxisInformation(AxisInfo.Z_AXIS);
    }
 
+   /**
+    * This method is implemented for the 
+    * {@link gov.anl.ipns.ViewTools.Components.Transparency.ILogAxisAddible 
+    * ILogAxisAddible} interface.  It is used to access the scaling 
+    * factor that is applied to the colorscale that is used to color the 
+    * contour plot.
+    * 
+    * @return The scaling factor that adjusts the colorscale that is 
+    *         used to color the contour plot.
+    */
    public double getLogScale()
    {
       Double intensity = 
@@ -698,16 +852,38 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 //-----------------------=[ Getter/setter methods ]=--------------------------//
+   /**
+    * Used to access the transparency of this module that is its 
+    * <code>AxisOverlay2D</code>.
+    * 
+    * @return The transparency that displays the axes over the 
+    *         contour plot.
+    */
    public AxisOverlay2D getAxisOverlay()
    {
       return (AxisOverlay2D)transparencies.get(0);
    }
    
+   /**
+    * Used to access the root panel that contains all of this module's 
+    * components.
+    * 
+    * @return The panel that contains all of the graphical elements 
+    *         that this module maintains (in their current state).
+    */
    public JPanel getDisplayPanel()
    {
       return this.layerPanel;
    }
    
+   /**
+    * Used to set if the aspect ratio should be preserved when 
+    * rendering the contour image.
+    * 
+    * @param preserve <code>True</code> if the aspect ratio should be 
+    *                 preserved when rendering the contour image and 
+    *                 <code>false</code> if it should not be preserved.
+    */
    public void setPreserveAspectRatio(boolean preserve)
    {
       if (!preserve)
@@ -738,6 +914,13 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
 //--------------------------=[ Extra methods ]=-------------------------------//
    //---------------------=[ For the listeners ]=-----------------------------//
+   /**
+    * This method is used to remove the given listener from the list of 
+    * listeners that are notified of changes to this module.
+    * 
+    * @param act_listener The object that does not want to listen to 
+    *                     this module anymore.
+    */
    public void removeActionListener(ActionListener act_listener)
    {
       if (act_listener==null)
@@ -745,21 +928,42 @@ public class ContourLayoutHandler extends ContourChangeHandler
       listenerVec.remove(act_listener);
    }
 
+   /**
+    * This method is used to remove all of the listeners from the list 
+    * of listeners that are notified of changes to this module.
+    */
    public void removeAllActionListeners()
    {
       listenerVec.clear();
    }
    //-------------------=[ End for the listeners ]=---------------------------//
    
+   /**
+    * This method should be invoked when this display is not needed 
+    * anymore.  This method then invokes the <code>kill()</code> 
+    * method on every one of this module's transparencies 
+    * (which are of the type {@link OverlayJPanel OverlayJPanel}).
+    */
    public void kill()
    {
       for (int i=0; i<this.transparencies.size(); i++)
          ((OverlayJPanel)this.transparencies.elementAt(i)).kill();
    }
-// --------------------------=[ Extra methods ]=-------------------------------//
+//--------------------------=[ Extra methods ]=-------------------------------//
    
    
-// --------------------=[ Private methods ]=-----------------------------------//
+//--------------------=[ Private methods ]=-----------------------------------//
+   /**
+    * Convience method that sends the given message to all 
+    * of this class's <code>ActionListeners</code>.
+    * 
+    * @param message The message component of the <code>ActionEvent</code> 
+    *                that is sent to all of this class's 
+    *                <code>ActionListeners</code>.  The 
+    *                <code>ActionEvent's</code> id is set to 0 and 
+    *                its source is set to this module's 
+    *                <code>ContourViewComponent</code>.
+    */
    private void sendMessage(String message)
    {
       Vector listenerVec = this.listenerVec;
@@ -776,6 +980,14 @@ public class ContourLayoutHandler extends ContourChangeHandler
       }
    }
    
+   /**
+    * Used to access the control for the colorscale that is displayed 
+    * by this module.
+    * 
+    * @return The colorscale's control that is displayed by this 
+    *         module or <code>null</code> if it currently not 
+    *         being displayed.
+    */
    private ControlColorScale getVisibleColorScale()
    {
       ControlColorScale scale = null;
@@ -787,6 +999,15 @@ public class ContourLayoutHandler extends ContourChangeHandler
          return null;
    }
    
+   /**
+    * Used to access the inner panel of 
+    * {@link #partitionPanel partitionPanel}.  The inner panel 
+    * contains the <code>ContourJPanel</code> that displays the 
+    * contour plot.
+    * 
+    * @return The panel in the central section of the panel 
+    *         {@link #partitionPanel partitionPanel}.
+    */
    private PartitionedPanel getInnerPanel()
    {
       //extract the PartitionedPanel at the center of 'this.partitionPanel'
@@ -796,6 +1017,24 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    //gets the ControlColorScale located in this.partitionPanel's 
    //specified partition
+   /**
+    * Used to access the colorscale control located in the given 
+    * section of the panel {@link #partitionPanel partitionPanel}.
+    * 
+    * @param partition A code specifying a section of the panel 
+    *                  {@link #partitionPanel partitionPanel}.
+    * 
+    * @return The colorscale control located at the given section of the 
+    *         panel {@link #partitionPanel partitionPanel} or 
+    *         <code>null</code> if no colorscale control is located in 
+    *         the specified section.
+    * 
+    * @see PartitionedPanel#NORTH
+    * @see PartitionedPanel#SOUTH
+    * @see PartitionedPanel#EAST
+    * @see PartitionedPanel#WEST
+    * @see PartitionedPanel#CENTER
+    */
    private ControlColorScale getControlColorScaleAt(int partition)
    {
       ControlColorScale control = null;
@@ -820,16 +1059,39 @@ public class ContourLayoutHandler extends ContourChangeHandler
    
    
 //---------------------------=[ Listeners ]=----------------------------------//
+   /**
+    * This class is used to listen to this module's 
+    * <code>ContourJPanel</code> when it is resized.
+    */
    private class ResizeListener extends ComponentAdapter
    {
+      /**
+       * Invoked when this module's <code>ContourJPanel</code> 
+       * is resized, at which time the display is updated.
+       */
       public void componentResized(ComponentEvent event)
       {
          displayChanged();
       }
    }
 
+   /**
+    * This class is used to listen to 
+    * {@link CoordJPanel#CURSOR_MOVED CURSOR_MOVED} 
+    * messages that are sent to this module's 
+    * <code>ContourJPanel</code>.  When such a message is 
+    * recieved, a 
+    * {@link IViewComponent#POINTED_AT_CHANGED POINTED_AT_CHANGED} 
+    * message is sent to all listeners.  This allows the 
+    * cursor movements in one view component to be synchronized 
+    * with the movement of the cursor in another view component.
+    */
    private class CursorListener implements ActionListener
    {
+      /**
+       * Invoked when this module's <code>ContourJPanel</code> 
+       * recieves a message.
+       */
       public void actionPerformed(ActionEvent event)
       {
          if ( event.getActionCommand().equals(CoordJPanel.CURSOR_MOVED) )
@@ -838,8 +1100,18 @@ public class ContourLayoutHandler extends ContourChangeHandler
       }
    }
    
+   /**
+    * This class is used to listen to this module's 
+    * <code>ContourJPanel</code> for changes to the 
+    * zoomed region of the panel.
+    */
    private class ContourPanelListener implements ActionListener
    {
+      /**
+       * If a region of this module's <code>ContourJPanel</code> is 
+       * zoomed or if the zoom is reset, this method updates the 
+       * display.
+       */
       public void actionPerformed(ActionEvent event)
       {
          String command = event.getActionCommand();
