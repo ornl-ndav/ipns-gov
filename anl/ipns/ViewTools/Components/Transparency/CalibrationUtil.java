@@ -34,6 +34,25 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2005/10/14 15:16:02  dennis
+ *    "Fixed" a bug in the subDivide(), that caused an infinite loop
+ *  when a very small interval was subdivided.  (Eg. an interval from
+ *  0.9999999 to 1.0000001).  Due to rounding errors in floating point
+ *  arithmetic, the calculated step size between subdivision points is so
+ *  small that when adding it to the starting point, the value does not
+ *  change.
+ *    This was "Fixed" by limiting the iteration to a reasonable number of
+ *  steps.  If that number of steps is exceeded, the target interval is
+ *  extended to a larger interval, and the larger interval is subdivided.
+ *  The subDivideLog() method should also be checked to verify that it
+ *  is robust enough to handle this case.
+ *    This is a partial fix to the problem of the SelectedGraphView
+ *  "hanging" on data that is essentially (but not quite) constant.
+ *  Unfortunately, the axis calibration code still has a small problem with
+ *  scaling such data.  In particular, the interval from 0.9999999 to
+ *  1.0000001 gets represented with values on the order of 1000000E-6.
+ *  However, at least it now works.
+ *
  *  Revision 1.11  2005/01/24 22:29:34  millermi
  *  - Fixed bug that altered the xmin and xmax values in method calls.
  *  - Realigned code for easier reading.
@@ -145,6 +164,7 @@ public class CalibrationUtil
     this( interval_min, interval_max, 4, Format.AUTO );
   }   
   
+
  /* ------------------------------- subDivide ------------------------*
   * Method taken and modified from Subdivide.c by Dennis Mikkelson
   */
@@ -158,6 +178,8 @@ public class CalibrationUtil
   */   
   public float[] subDivide()
   {
+    final float MAX_STEPS = 1000;
+
     float s_diff = 0;
     int   i_power = 0;
     float start = 0;
@@ -166,7 +188,6 @@ public class CalibrationUtil
        
     s_diff = xmax - xmin;
     
-    //System.out.println("Diff = " + s_diff );
  /* Now express the length of the interval in the form  s_diff * 10^ipower
     where s_diff is in the interval [1., 10.) */
     i_power = 0;
@@ -211,9 +232,15 @@ public class CalibrationUtil
     }
 
   // return the number of steps
+  // NOTE: This can fail due to rounding errors in the floating point
+  //       calculation.  If step is so small that it is the "noise level"
+  //       of floating point arithmetic, it can happen that sum+step is
+  //       no different than sum.  To avoid this, we break out of the loop
+  //       when too many iterations have occurred and try to subdivide a
+  //       larger interval.
     float sum = start; 
     int numstep = 0;	 
-    while( sum <= xmax )
+    while( sum <= xmax && numstep < MAX_STEPS )
     {
       sum = sum + step;
       numstep++;
@@ -224,13 +251,22 @@ public class CalibrationUtil
     //System.out.println("Start = " + start );
     //System.out.println("NumStep = " + numstep );
       
-    values[0] = step;
-    values[1] = start;
-    values[2] = numstep;
+    if ( numstep < MAX_STEPS )
+    {
+      values[0] = step;
+      values[1] = start;
+      values[2] = numstep;
+    }
+    else
+    {
+      CalibrationUtil try_again = new CalibrationUtil( xmin/5, xmax*5 ); 
+      return try_again.subDivide();
+    }
     
     return values;
-  } /* Subdivide */
+  } /* subDivide */
   
+
  /**
   * This method will roughly divide the interval using geometric steps.
   * If xmin is within one degree of xmax, values could be negative and 
@@ -505,7 +541,7 @@ public class CalibrationUtil
 	value_step++; 
       }
     } // end else (inteval greater than one degree)
- 
+
     return values;
   }
  
