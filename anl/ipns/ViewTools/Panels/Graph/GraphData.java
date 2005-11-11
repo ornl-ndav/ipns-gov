@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.21  2005/11/11 20:26:49  serumb
+ * Changed the default color of the selected graph to blue.
+ *
  * Revision 1.20  2005/03/11 19:49:41  serumb
  * Added get and set Object State methods and changed Basic Stroke variable
  * to use an integer key.
@@ -166,7 +169,7 @@ public class GraphData implements Serializable,
   transient float   x_vals[]  = { 0, 1 };
   transient float   y_vals[]  = { 0, .001f };
 
-  public Color  color     = Color.black;
+  public Color  color     = Color.blue;
   public int    linetype  = 8;
   public float  linewidth = 1;
   public int    marktype  = 0;
@@ -174,7 +177,7 @@ public class GraphData implements Serializable,
   public int    marksize  = 2;
 //  public BasicStroke Stroke = new BasicStroke(1);
   public boolean transparent = false;
-  public Color  errorcolor = Color.blue;
+  public Color  errorcolor = Color.black;
 
   private transient float[] error_bars = null;
   private transient int errors = 0;
