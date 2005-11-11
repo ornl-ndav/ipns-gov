@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/11/11 05:35:56  serumb
+ *  Added object state variables for the legend.
+ *
  *  Revision 1.14  2005/10/07 18:37:21  serumb
  *  Removed extra label in front of graph title.
  *
@@ -112,13 +115,16 @@ public class LegendOverlay extends OverlayJPanel
   public static final String FONT	    = "Font";
     
  /**
-  * "Axes Displayed" - This constant String is a key for referencing the state
-  * information about which axes are to be displayed by the axis overlay.
-  * The value that this key references is a primative integer. The integer
-  * values are specified by public variables NO_AXES, X_AXIS, Y_AXIS, and
-  * DUAL_AXES.
+  * "Legend Label" - This constant String is a key for referencing the state
+  * information about the legend label.
   */
-  public static final String LEGEND_DISPLAYED = "Legend Displayed";
+  public static final String LEGEND_LABEL = "Legend Label";
+
+ /**
+  * "Legend Border" - This constant String is a key for referencing the state
+  * information about the legend border.
+  */
+  public static final String LEGEND_BORDER = "Legend Border";
 
  /**
   * "Editor Bounds" - This constant String is a key for referencing the state
@@ -137,7 +143,6 @@ public class LegendOverlay extends OverlayJPanel
   private static JFrame helper = null;
   private transient ILegendAddible component;
   private Font f;
-  private boolean legend_drawn;
   private transient LegendOverlay this_panel;
   private transient LegendEditor editor;
   private transient Rectangle current_bounds;
@@ -206,20 +211,28 @@ public class LegendOverlay extends OverlayJPanel
       redraw = true;  
     }  
     
-    temp = new_state.get(LEGEND_DISPLAYED);
-    if( temp != null )
-    {
-      legend_drawn = ((Boolean)temp).booleanValue(); 
-      redraw = true;  
-    } 
-
     temp = new_state.get(EDITOR_BOUNDS);
     if( temp != null )
     {
       editor_bounds = (Rectangle)temp;
-      editor.setBounds( editor_bounds );  
+      editor.setBounds( editor_bounds );
+      redraw = true;  
     }
     
+    temp = new_state.get(LEGEND_LABEL);    
+    if( temp != null )
+    {
+      legend_label = (String)temp;
+      redraw = true;
+    }
+
+    temp = new_state.get(LEGEND_BORDER);
+    if( temp != null )
+    {
+      draw_border = ((Boolean)temp).booleanValue();
+      redraw = true;
+    }
+
     if( redraw )
       this_panel.repaint();
   }
@@ -239,7 +252,8 @@ public class LegendOverlay extends OverlayJPanel
 
     state.insert( EDITOR_BOUNDS, editor_bounds );
     state.insert( FONT, f );
-    state.insert( LEGEND_DISPLAYED, new Boolean(legend_drawn) );
+    state.insert( LEGEND_BORDER, new Boolean(draw_border) );
+    state.insert( LEGEND_LABEL, legend_label );
     if( !isDefault )
      {
       
@@ -566,7 +580,7 @@ public BasicStroke strokeType(int key, int graph_num)
     private Box middle = new Box(0);
     private Box bottomBox = new Box(0);
     private ControlCheckbox border_check = 
-                                  new ControlCheckbox(true);
+                                  new ControlCheckbox(draw_border);
     
     public LegendEditor(String[] graphs)
     {
