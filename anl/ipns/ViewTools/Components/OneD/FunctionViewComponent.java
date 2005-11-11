@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.74  2005/11/11 20:29:12  serumb
+ *  Set pointed at graph color to black, and set the graphs to be offset
+ *  when two or more are selected.
+ *
  *  Revision 1.73  2005/05/24 17:32:04  serumb
  *  Removed unneeded print statement.
  *
@@ -463,10 +467,20 @@ public class FunctionViewComponent implements IViewComponent1D,
       
     //initialize pointed_at graph
     int pointed_at_index = Varray1D.getPointedAtGraph();
+    gjp.setColor(Color.black, 0, false);
     Draw_GJP( pointed_at_index, 0 );
     
       mainControls = new FunctionControls(varr, gjp, getDisplayPanel(),this);
       mainControls.get_frame().addWindowListener( new FrameListener() );
+
+      if(Varray1D.getNumSelectedGraphs() > 1)
+      {
+         gjp.setMultiplotOffsets((int)(20 ),
+                                (int)( 20 ));
+                gjp.repaint();
+        
+      }
+
     }
     else
     {
