@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.53  2005/11/11 05:38:01  serumb
+ * Added state information for controls.
+ *
  * Revision 1.52  2005/10/07 18:38:19  serumb
  * Removed extra label in front of graph title.
  *
@@ -241,6 +244,25 @@ import javax.swing.*;
    */
    public static final String GRAPH_RANGE = "Graph Range";
 
+  /**
+   * "Annotation Control" - This constant String is a key for referencing the 
+   * State information about the Annotation Overlay control.
+   */
+   public static final String ANNOTATION_CONTROL = "Annotation Control";
+
+  /**
+   * "Axis Control" - This constant String is a key for referencing the
+   * State information about the Axis Overlay control.
+   */
+   public static final String AXIS_CONTROL = "Axis Control";
+
+  /**
+   * "Legend Control" - This constant String is a key for referencing the
+   * State information about the Legend Overlay control.
+   */
+   public static final String LEGEND_CONTROL = "Legend Control";
+
+
   private transient IVirtualArrayList1D Varray1D;
   private transient FunctionViewComponent fvc;
   private transient GraphJPanel gjp;
@@ -351,13 +373,40 @@ import javax.swing.*;
    */
    public void setObjectState( ObjectState new_state )
    {
+      boolean redraw = false;  // if any values change redraw.
+  
       Object temp = new_state.get(GRAPH_RANGE);
       if ( temp != null)
       {
         graph_range.setObjectState((ObjectState)temp);
+        redraw = true;
       }
-      graph_range.validate();
-      graph_range.repaint();
+    
+      temp = new_state.get(ANNOTATION_CONTROL);
+      if ( temp != null)
+      {
+        annotation_checkbox.setObjectState((ObjectState)temp);
+        redraw = true;
+      }
+
+      temp = new_state.get(AXIS_CONTROL);
+      if ( temp != null)
+      {
+        axis_checkbox.setObjectState((ObjectState)temp);
+        redraw = true;
+      }
+
+      temp = new_state.get(LEGEND_CONTROL);
+      if ( temp != null)
+      {
+        legend_checkbox.setObjectState((ObjectState)temp);
+        redraw = true;
+      }
+
+      if (redraw){
+        graph_range.validate();
+        graph_range.repaint();
+      }
    }   
 
   /**
@@ -368,7 +417,11 @@ import javax.swing.*;
    public ObjectState getObjectState(boolean isDefault)
    {
      ObjectState state = new ObjectState();
+     state.insert( ANNOTATION_CONTROL, annotation_checkbox.getObjectState
+                                                              (isDefault) );
+     state.insert( AXIS_CONTROL, axis_checkbox.getObjectState(isDefault) );
      state.insert( GRAPH_RANGE, graph_range.getObjectState(isDefault) );
+     state.insert( LEGEND_CONTROL, legend_checkbox.getObjectState(isDefault) );
 
      if(! isDefault){
      }
@@ -741,6 +794,7 @@ import javax.swing.*;
        MarkColor.getButton().setForeground( gjp.getMarkColor(line_index) );
        LineColor.getButton().setForeground( gjp.getColor(line_index) );
        ErrorColor.getButton().setForeground( gjp.getErrorColor(line_index) );
+
   }
   
   public ViewControlsPanel get_panel() {
