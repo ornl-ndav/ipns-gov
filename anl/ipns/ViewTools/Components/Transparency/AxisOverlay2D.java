@@ -34,6 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.51  2005/11/22 20:59:43  dennis
+ *  Added options for tick marks to point inward or outward, and for
+ *  drawing tick marks on both sides of the graph.  This is currently
+ *  implemented for the linear scales, not the logarithmic scales.
+ *  Added new constructor with an extra parameter to set the tick mark
+ *  direction.
+ *  Retained a constructor with original signature, and tick marks
+ *  pointing outward, for backwards compatibility.  (Andrew Moe)
+ *
  *  Revision 1.50  2005/05/25 20:28:29  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -255,7 +264,8 @@
 
 package gov.anl.ipns.ViewTools.Components.Transparency;
 
-import javax.swing.*; 
+import javax.swing.*;
+import javax.swing.ButtonGroup; 
 import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -400,19 +410,46 @@ public class AxisOverlay2D extends OverlayJPanel
   private int x_scale;
   private int y_scale;
   private boolean isTwoSided = true;
-  private int gridxdisplay = 0;  // 0 = none, 1 = major, 2 = major/minor
-  private int gridydisplay = 0;
+  private int gridxdisplay = 0;         // 0 = none, 1 = major, 2 = major/minor
+  private int gridydisplay = 0;         // 0 = none, 1 = major, 2 = major/minor    
+  private boolean displayXop = true;    // false = X-axis opposite off, 
+                                        // true = X-axis opposite on 
+  private boolean displayYop = true;    // false = Y-axis opposite off, 
+                                        // true = Y-axis opposite on 
+  private int ticksinoutX = 0;          // 0 = outside, 1 = inside
+  private int ticksinoutY = 0;          // 0 = outside, 1 = inside
+  
   private transient AxisOverlay2D this_panel;
   private transient AxisEditor editor;
   private Color gridcolor = Color.black;
   private Rectangle editor_bounds = new Rectangle(0,0,400,110);
+
+
+ /**
+  * Constructor for initializing a new AxisOverlay2D, with tick marks
+  * pointing outward by default.
+  *
+  *  @param  iaa      The IAxisAddible object to which the axis overlay is
+  *                   added.
+  */
+  public AxisOverlay2D( IAxisAddible iaa )
+  {
+    this( iaa, false );
+  }
+
   
  /**
-  * Constructor for initializing a new AxisOverlay2D
+  * Constructor for initializing a new AxisOverlay2D, with tick mark direction
+  * specified by the "inward" flag.
   *
-  *  @param  iaa - IAxisAddible object
+  *  @param  iaa      The IAxisAddible object to which the axis overlay is
+  *                   added.
+  *  @param  inward   Boolean flag indicating whether or not the tick marks
+  *                   should be pointing inward.  If true, the tick marks
+  *                   point in toward the center of the graph region; 
+  *                   if false, they point away from the graph region.
   */ 
-  public AxisOverlay2D(IAxisAddible iaa)
+  public AxisOverlay2D( IAxisAddible iaa, boolean inward )
   {
     super();
     addComponentListener( new NotVisibleListener() );
@@ -427,10 +464,25 @@ public class AxisOverlay2D extends OverlayJPanel
     setDisplayAxes( DUAL_AXES );
     setXScale( component.getAxisInformation(AxisInfo.X_AXIS).getScale() );
     setYScale( component.getAxisInformation(AxisInfo.Y_AXIS).getScale() );
+
+    //currently, these ticksinout variables 
+    //will act in unison until desired otherwise
+    if ( inward )
+    {
+      ticksinoutX = 1;  
+      ticksinoutY = 1;        
+    }
+    else
+    {
+      ticksinoutX = 0; 
+      ticksinoutY = 0;
+    }
+
     editor = new AxisEditor();
     this_panel = this;
   }
   
+
  /**
   * Constructor for creating a new AxisOverlay2D with previous state settings.
   *
@@ -439,7 +491,7 @@ public class AxisOverlay2D extends OverlayJPanel
   */ 
   public AxisOverlay2D(IAxisAddible iaa, ObjectState state)
   {
-    this(iaa);
+    this(iaa,false);
     setObjectState(state);
   }
 
@@ -746,7 +798,7 @@ public class AxisOverlay2D extends OverlayJPanel
     {
       // Linear axis.
       if( x_scale == AxisInfo.LINEAR )
-    	paintLinearX( g2d );
+    	paintLinearX( g2d );                   //<-----insert paintLinearTickX
       // Tru-log axis.
       else if( x_scale == AxisInfo.TRU_LOG )
     	paintTruLogX(g2d);
@@ -758,7 +810,7 @@ public class AxisOverlay2D extends OverlayJPanel
     {
       // Linear Axis
       if( y_scale == AxisInfo.LINEAR )
-    	paintLinearY( g2d );
+    	paintLinearY( g2d );                   //<-----insert paintLinearTickY
       // Tru-log axis
       else if( y_scale == AxisInfo.TRU_LOG )
     	paintTruLogY(g2d);
@@ -903,6 +955,8 @@ public class AxisOverlay2D extends OverlayJPanel
  /*
   * Draw the x axis with horizontal numbers and ticks spaced linearly.
   */   
+  //Put the USE FOR XOP parts into a separate if function, so that the ticks
+  //are not drawn with the grid
   private void paintLinearX( Graphics2D g2d )
   {
     FontMetrics fontdata = g2d.getFontMetrics();
@@ -932,18 +986,17 @@ public class AxisOverlay2D extends OverlayJPanel
     int prepix = (int)( (float)xaxis*(start - xmin)/
         		(xmax-xmin) + xstart); 
     int skip = 0;
+    
     // Step through and draw x axis tick marks.
     for( int steps = 0; steps < numxsteps; steps++ )
     {  
       A = (float)steps*step + start;		   
-      pixel = (int)( 
-              (float)xaxis*(A - xmin)/
-              (xmax-xmin) + xstart);	 
-  
+      pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart);	 
+      
       subpixel = (int)( 
               ( (float)xaxis*(A - xmin - step/2 ) )/
               (xmax-xmin) + xstart);	  
-      // Going to be used to increment the numbers on the bottem of the graph
+      // Going to be used to increment the numbers on the bottom of the graph
       // the way that they are supposed to be numbered.
       num = util.standardize( (step * (float)steps + start) );
       exp_index = num.lastIndexOf('E');        
@@ -955,16 +1008,15 @@ public class AxisOverlay2D extends OverlayJPanel
       {
         skip++;
       }
+      
       // draw evenly spaced numeric labels.
       if( steps%skip == 0 )
-      { 
-		
+      { 		
         String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
+      
         g2d.drawString( temp_num, 
              pixel - fontdata.stringWidth(temp_num)/2, 
              yaxis + ystart + xtick_length + fontdata.getHeight() );
-             
-      
       } 	
 
 
@@ -977,13 +1029,7 @@ public class AxisOverlay2D extends OverlayJPanel
           // first draw gridlines in their color
           g2d.setColor( gridcolor );
           g2d.drawLine( subpixel, ystart, subpixel, yaxis + ystart );
-          
-          // then draw tick mark in black
-          g2d.setColor( Color.black );
         }
-        //always draw tick marks, minor tick marks
-        g2d.drawLine( subpixel, yaxis + ystart, 
-        	      subpixel, yaxis + ystart + xtick_length-2 );
       }
       
       // to draw grid line for major ticks
@@ -993,15 +1039,13 @@ public class AxisOverlay2D extends OverlayJPanel
         g2d.setColor( gridcolor );
         g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
         
-        // then draw tick mark in black
-        g2d.setColor( Color.black );
       }
-
-      g2d.drawLine( pixel, yaxis + ystart, 
-        	    pixel, yaxis + ystart + xtick_length );  
+      
       //System.out.println("Y Position: " + (yaxis + ystart + 
       //				     xtick_length) );
-      // if last step but another tick should be drawn
+      
+      
+      // If last step but another tick should be drawn
       if( steps == (numxsteps - 1) && 
           ( xaxis + xstart - pixel) > xaxis/(2*numxsteps) )
       { 
@@ -1013,40 +1057,157 @@ public class AxisOverlay2D extends OverlayJPanel
           g2d.drawLine( pixel + (pixel - subpixel), ystart, 
         		pixel + (pixel - subpixel), 
         		yaxis + ystart );
-          
-          // then draw tick mark in black
-          g2d.setColor( Color.black );
         }
-	// draw major tickmarks		
-        g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
-        	      pixel + (pixel - subpixel), 
-        	      yaxis + ystart + xtick_length-2 );
+        
+        
         steps++;
         A = (float)steps*step + start;  	  
-        pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart); 
+        pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart);
         
-	if( steps%skip == 0 && pixel <= (xstart + xaxis) )
+        
+        if( steps%skip == 0 && pixel <= (xstart + xaxis) )
         {      
+          //Draw labels for ticks
           num = util.standardize( (step * (float)steps + start) );
           exp_index = num.lastIndexOf('E');
-          String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
+          String temp_num = removeTrailingZeros( num.substring(0,exp_index) );          
+          
           g2d.drawString( temp_num,
 	       pixel - fontdata.stringWidth(temp_num)/2, 
                yaxis + ystart + xtick_length + fontdata.getHeight() );
+                 
+                    
           // to draw grid line for major ticks
           if( gridxdisplay == 1 || gridxdisplay == 2 )
           {   
             // first draw gridlines in their color
             g2d.setColor( gridcolor );
             g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
-          
-            // then draw tick mark in black
-            g2d.setColor( Color.black );
           }
-          g2d.drawLine( pixel, yaxis + ystart, 
-                	pixel, yaxis + ystart + xtick_length );
-        }    
+        }
+        
+        steps--;
+        A = (float)steps*step + start;  	  
+        pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart);
       }   
+    
+      
+      //Drawing tick marks
+      
+      //draw tick mark in black
+      g2d.setColor( Color.black );      
+      
+      //(MINOR TICKS)
+      if( subpixel > xstart && subpixel < (xstart + xaxis) )
+      {
+        if(ticksinoutX == 0)
+        {
+          //draw ticks outside
+          g2d.drawLine( subpixel, yaxis + ystart, subpixel,
+                       (yaxis + ystart + xtick_length-2) - 1 );
+         if(displayXop == true)
+         {
+           g2d.drawLine( subpixel,ystart - 1, subpixel, 
+                         ((ystart - (xtick_length-2))-1) + 1 );
+         }
+      }
+      else
+      {
+        //draw ticks inside
+        g2d.drawLine( subpixel, (yaxis + ystart) - 1, subpixel, 
+                      (((yaxis + ystart) - (xtick_length-2)) - 1) + 1 );
+        if(displayXop == true)
+        {
+          g2d.drawLine( subpixel, ystart , subpixel, 
+                        ((ystart + (xtick_length-2))) - 1 );
+        }
+      }  
+    }
+    
+    //(MAJOR TICKS)
+    //draw major ticks inside or outside the graph
+    if(ticksinoutX == 0)
+    {
+      //draw ticks outside
+      g2d.drawLine( pixel, yaxis + ystart, pixel, 
+                   (yaxis + ystart + xtick_length) - 1 );
+      if(displayXop == true)
+      {
+        g2d.drawLine( pixel, ystart - 1, pixel, 
+                      ((ystart - xtick_length) - 1) + 1);
+      }
+    }
+    else
+    {
+      //draw ticks inside
+      g2d.drawLine( pixel, (yaxis + ystart) - 1, pixel, 
+                   (((yaxis + ystart) - (xtick_length)) - 1) + 1 );
+      if(displayXop == true)
+      {
+        g2d.drawLine( pixel, ystart , pixel, (ystart + xtick_length) - 1 );
+      }
+    }
+      
+    // If last step but another tick should be drawn
+    if( steps == (numxsteps - 1) && 
+       ( xaxis + xstart - pixel) > xaxis/(2*numxsteps) )
+    {
+      if(ticksinoutX == 0)
+      {
+        //draw ticks outside
+        g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
+            pixel + (pixel - subpixel), (yaxis + ystart + xtick_length-2) - 1 );
+
+        if(displayXop == true)
+        {
+          g2d.drawLine( pixel + (pixel - subpixel), ystart - 1, 
+              pixel + (pixel - subpixel), ((ystart - (xtick_length-2))-1) + 1 );
+        }
+      }
+      else
+      {
+        //draw ticks inside
+        g2d.drawLine( pixel + (pixel - subpixel), 
+                     (yaxis + ystart) - 1,
+                      pixel + (pixel - subpixel), 
+                     (((yaxis + ystart) - (xtick_length-2)) - 1) + 1 );
+
+        if(displayXop == true)
+        {
+          g2d.drawLine( pixel + (pixel - subpixel), ystart , 
+                pixel + (pixel - subpixel), ((ystart + (xtick_length-2))) -1 );
+        }
+      }   	  
+    	  
+      steps++;
+      A = (float)steps*step + start;  	  
+      pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart);
+          
+      if( steps%skip == 0 && pixel <= (xstart + xaxis) )
+      {      
+        if(ticksinoutX == 0)
+        {
+          //draw ticks outside
+          g2d.drawLine( pixel, yaxis + ystart, pixel, 
+                        (yaxis + ystart + xtick_length) - 1 );
+          if(displayXop == true)
+          {
+             g2d.drawLine( pixel, ystart - 1, pixel, 
+                          ((ystart - xtick_length) - 1) + 1);
+          }
+        }
+        else
+        {
+          //draw ticks inside
+          g2d.drawLine( pixel, (yaxis + ystart) - 1, pixel, 
+                        (((yaxis + ystart) - (xtick_length)) - 1) + 1 );
+          if(displayXop == true)
+          {
+            g2d.drawLine( pixel, ystart , pixel, (ystart + xtick_length) - 1 );
+          }
+        }
+       }
+      }
     } // end of for
     paintLabelsAndUnits( num, X_AXIS, false, g2d );
   }
@@ -1066,7 +1227,7 @@ public class AxisOverlay2D extends OverlayJPanel
     float starty = values[1];
     int numysteps = (int)values[2];
     
-    //   System.out.println("Y Start/Step = " + starty + "/" + ystep);
+    //System.out.println("Y Start/Step = " + starty + "/" + ystep);
     int ytick_length = 5;     // the length of the tickmark is 5 pixels
     int ypixel = 0;	      // where to place major ticks
     int ysubpixel = 0;        // where to place minor ticks
@@ -1092,7 +1253,7 @@ public class AxisOverlay2D extends OverlayJPanel
     
       ypixel = (int)( (pmax - pmin) * ( a - amin) /
         	      (ymax - ymin) + pmin);
-  //       System.out.println("YPixel " + ypixel ); 
+      //System.out.println("YPixel " + ypixel ); 
 
       //System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
     
@@ -1107,68 +1268,162 @@ public class AxisOverlay2D extends OverlayJPanel
       System.out.println("Ypixel/Pmax = " + ypixel + "/" + pmax );
       System.out.println("Num = " + num );
       */
+      
       // if pixel is between top and bottom of imagejpanel, draw it  
       if( ypixel <= pmin && ypixel >= pmax )
       {
         if( ((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip) )
         {
-	  String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
+          //draw labels for ticks
+          String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
           g2d.drawString( temp_num,
-          	    xstart - ytick_length - 
-          	    fontdata.stringWidth(temp_num),
-          	    ypixel + fontdata.getHeight()/4 );
+          xstart - ytick_length - 
+          fontdata.stringWidth(temp_num),
+          ypixel + fontdata.getHeight()/4 );
         }	       
         
-        // paint gridlines for major ticks
-        if( gridydisplay == 1 || gridydisplay == 2 )
-        {
-          // change color for grid painting
-          g2d.setColor(gridcolor);
-          g2d.drawLine( xstart - 1, ypixel - 1, 
-                	xstart + xaxis - 1, ypixel - 1 );   
-          // change color for tick marks
-          g2d.setColor(Color.black);
-        }
-        g2d.drawLine( xstart - ytick_length, ypixel - 1, 
-                      xstart - 1, ypixel - 1 );   
-      }
-      // if subpixel is between top and bottom of imagejpanel, draw it
-      if( ysubpixel <= pmin && ysubpixel >= pmax )
+      // paint gridlines for major ticks
+      if( gridydisplay == 1 || gridydisplay == 2 )
       {
-        // paint gridlines for minor ticks
-        if( gridydisplay == 2 )
-        {
-          // change color for grid painting
-          g2d.setColor(gridcolor);
-          g2d.drawLine( xstart - 1, ysubpixel - 1, 
-                	xstart + xaxis - 1, ysubpixel - 1 );   
-          // change color for tick marks
-          g2d.setColor(Color.black);
-        }
-        g2d.drawLine( xstart - (ytick_length - 2), ysubpixel - 1, 
-                      xstart - 1, ysubpixel - 1 );
-      }
-      // if a tick mark should be drawn at the end, draw it
-      // since the above "if" takes care of all subtick marks before the
-      // actual numbered ticks, there may be a tick mark needed after the 
-      // last tick. ( end refers to smallest y value )
-      if( ysteps == 0 && 
-          (pmin - ypixel) > yaxis/(2*numysteps) ) 
+        // change color for grid painting
+        g2d.setColor(gridcolor);
+        g2d.drawLine( xstart - 1, ypixel - 1, xstart + xaxis - 1, ypixel - 1 );
+      }          
+    }
+      
+    // if subpixel is between top and bottom of imagejpanel, draw it
+    if( ysubpixel <= pmin && ysubpixel >= pmax )
+    {
+      // paint gridlines for minor ticks
+      if( gridydisplay == 2 )
       {
-        // paint gridlines for major ticks
-        if( gridydisplay == 2 )
-        {
-          // change color for grid painting
-          g2d.setColor(gridcolor);
-          g2d.drawLine( xstart - 1, (int)(ysubpixel + 
-           ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart + xaxis - 1, 
-           (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));  
-          // change color for tick marks
-          g2d.setColor(Color.black);
+        // change color for grid painting
+        g2d.setColor(gridcolor);
+        g2d.drawLine( xstart - 1, ysubpixel - 1, 
+                     xstart + xaxis - 1, ysubpixel - 1 );             
+      }       
+    }
+      
+    //draw the grid line at the last tick mark
+    if( ysteps == 0 && 
+       (pmin - ypixel) > yaxis/(2*numysteps) ) 
+    {
+      // paint gridlines for major ticks
+      if( gridydisplay == 2 )
+      {
+        // change color for grid painting
+        g2d.setColor(gridcolor);
+        g2d.drawLine( xstart - 1, (int)(ysubpixel + 
+         ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart + xaxis - 1, 
+         (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
+      }
+    }
+      
+    //Drawing tick marks
+      
+    //setting tick color
+    g2d.setColor( Color.black );
+    
+    //if pixel is between top and bottom of imagejpanel, draw it  
+    if( ypixel <= pmin && ypixel >= pmax )
+    {
+      //(MAJOR TICKS)
+      if(ticksinoutY == 0)
+      {
+        //draw ticks outside
+        g2d.drawLine( xstart - 1, ypixel - 1, 
+                    ((xstart - ytick_length) - 1) + 1, ypixel - 1 );
+       if(displayYop == true)
+       {
+         //display y-axis opposite
+        g2d.drawLine( (xstart + xaxis) - 1 , ypixel - 1, 
+                     (((xstart + xaxis) + ytick_length)- 1) - 1, ypixel - 1 );
+       }
+     }
+     else
+     {
+       //draw ticks inside
+       g2d.drawLine( xstart  , ypixel - 1, 
+                    (xstart + ytick_length) - 1 , ypixel - 1 );
+       if(displayYop == true)
+       {
+         //display y-axis opposite
+         g2d.drawLine( xstart + xaxis, ypixel - 1, 
+                      ((xstart + xaxis) - ytick_length) + 1, ypixel - 1 );
+       }
+     }
+   }
+
+   //if subpixel is between top and bottom of imagejpanel, draw it
+   if( ysubpixel <= pmin && ysubpixel >= pmax )
+   {
+     //(MINOR TICKS)
+     if (ticksinoutY == 0)
+     {
+       //draw ticks outside
+       g2d.drawLine( xstart - 1, ysubpixel - 1,
+                     ((xstart - (ytick_length - 2)) - 1) + 1, ysubpixel - 1 );
+       if(displayYop == true)
+       {
+         //display y-axis opposite
+         g2d.drawLine( (xstart + xaxis) - 1, ysubpixel - 1,
+               (((xstart + xaxis) + (ytick_length-2))- 1) - 1, ysubpixel - 1 );
+       }
+     }
+     else
+     {
+       //draw ticks inside
+       g2d.drawLine( xstart, ysubpixel - 1,
+                    (xstart + (ytick_length - 2)) - 1 , ysubpixel - 1 );
+       if(displayYop == true)
+       {
+         //display y-axis opposite
+         g2d.drawLine(xstart + xaxis , ysubpixel - 1, 
+                 (((xstart + xaxis) - (ytick_length-2))) + 1, ysubpixel - 1 );
+       }
+     }
+   }
+
+
+   // if a tick mark should be drawn at the end, draw it
+   // there may be a tick mark needed after the 
+   // last tick. ( end refers to smallest y value )
+   if( ysteps == 0 && (pmin - ypixel) > yaxis/(2*numysteps) ) 
+   {    	  
+     if (ticksinoutY == 0)
+     {
+       //draw  ticks outside
+       g2d.drawLine( xstart - 1, 
+                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+                ((xstart - (ytick_length - 2)) - 1) + 1, 
+               (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+
+       if(displayYop == true)
+       {
+         //display y-axis opposite
+        g2d.drawLine( xstart + xaxis, 
+            (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+            ((xstart + xaxis) + (ytick_length-2)) - 1, 
+            (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+       }    			  
+     }
+     else
+     {
+       //draw ticks inside
+       g2d.drawLine( xstart - 1, 
+               (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+               ((xstart + (ytick_length - 2)) - 1) - 1,
+               (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+    		  
+       if(displayYop == true)
+       {
+         //display y-axis opposite
+        g2d.drawLine( xstart + xaxis, 
+              (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+             (((xstart + xaxis) - (ytick_length-2))) + 1,
+              (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
         }
-        g2d.drawLine( xstart - (ytick_length - 2), (int)(ysubpixel + 
-           ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart - 1, 
-           (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
+       }
       }
     }
     paintLabelsAndUnits( num, Y_AXIS, false, g2d );
@@ -2045,6 +2300,8 @@ public class AxisOverlay2D extends OverlayJPanel
     } // end else large
     paintLabelsAndUnits( "", X_AXIS, true, g2d );
   }
+
+
 /*------------------------paintTruLogY(Graphics2D)----------------------------
  * This function paints Logrithmic axis on the overlay for the y axis using
  * logscale util and Calibration util to find nice numbers to paint.
@@ -2171,7 +2428,7 @@ public class AxisOverlay2D extends OverlayJPanel
 
         //paint minor tick marks
         for(int minorsteps = 0; minorsteps < 9; minorsteps++)
-	{
+       {
           minor_tick += (int)(major_tick);
 	
 	  //find where the point will fall on the graphics coordinate system
@@ -2209,71 +2466,123 @@ public class AxisOverlay2D extends OverlayJPanel
   private class AxisEditor extends JFrame
   {
     private AxisEditor this_editor;
-    private JComboBox xbox;
-    private JComboBox ybox;
+    private JComboBox xgridbox;
+    private JComboBox ygridbox;
+    private JComboBox ticksidebox;
+    private JRadioButton ticktwoside;
+    private JRadioButton tickfourside;
     
     public AxisEditor()
     {
       super("Axis Editor");
       this_editor = this;
-      this.getContentPane().setLayout( new GridLayout(2,0) );
+      this.getContentPane().setLayout( new GridLayout(3,0) );
       this.setBounds(editor_bounds);
       this.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-      String[] xlist = {"X Axis (none)","Major Grid","Major/Minor Grid"};
-      String[] ylist = {"Y Axis (none)","Major Grid","Major/Minor Grid"};
-      xbox = new JComboBox(xlist);
-      xbox.setName("XBOX");
-      xbox.setSelectedIndex(gridxdisplay);
-      xbox.addActionListener( new ControlListener() );
-      ybox = new JComboBox(ylist);
-      ybox.setName("YBOX");
-      ybox.setSelectedIndex(gridydisplay);
-      ybox.addActionListener( new ControlListener() );
       
-      JButton gridcolor = new JButton("Change Grid Color");
+      //this jcombobox is for selecting grids on the x and y axis
+      String[] xgridlist = {"X Axis (none)","Major Grid","Major/Minor Grid"};
+      String[] ygridlist = {"Y Axis (none)","Major Grid","Major/Minor Grid"};
+      xgridbox = new JComboBox(xgridlist);
+      xgridbox.setName("XGRIDBOX");
+      xgridbox.setSelectedIndex(gridxdisplay);
+      xgridbox.addActionListener( new ControlListener() );
+      ygridbox = new JComboBox(ygridlist);
+      ygridbox.setName("YGRIDBOX");
+      ygridbox.setSelectedIndex(gridydisplay);
+      ygridbox.addActionListener( new ControlListener() );
+      
+      //this jcombobox is for toggling the ticks for being inside/outside 
+      //the graph.  It uses {private int tickdisplay in AxisOverlay2D}
+      String[] ticklist = {"Outside","Inside"};
+      ticksidebox = new JComboBox(ticklist);
+      ticksidebox.setName("TICKBOX");
+      ticksidebox.setSelectedIndex(ticksinoutX);
+      ticksidebox.setSelectedIndex(ticksinoutY);
+      ticksidebox.addActionListener(new ControlListener());
+      
+      //this jbutton is for selecting the gridcolor
+      JButton gridcolor = new JButton("Grid Color");
       gridcolor.addActionListener( new ControlListener() );
+      
+      //this will determine which JRadioButton will be selected at default
+      boolean defaultTwoSide = false;
+      if((displayXop == false) && (displayYop == false))
+      {
+    	  defaultTwoSide = true;
+      }      
+      
+      //these jradiobuttons are for selecting the tick axes options      
+      ticktwoside = new JRadioButton("Two Sides",defaultTwoSide);
+      ticktwoside.addActionListener( new ControlListener() );      
+      tickfourside = new JRadioButton("Four Sides",!defaultTwoSide);
+      tickfourside.addActionListener( new ControlListener() );
+      ButtonGroup ticksidegroup = new ButtonGroup();
+      ticksidegroup.add(ticktwoside);
+      ticksidegroup.add(tickfourside);
+      
+      //this jbutton is for closing the window
       JButton closebutton = new JButton("Close");
       closebutton.addActionListener( new ControlListener() );
       
       // this jpanel groups all grid options into one row.
       JPanel gridoptions = new JPanel( new GridLayout() );
       gridoptions.add( new JLabel("Grid Options") );
-      gridoptions.add(xbox);
-      gridoptions.add(ybox);
+      gridoptions.add(xgridbox);
+      gridoptions.add(ygridbox);
+      gridoptions.add(gridcolor);
       
-      // this jpanel groups all other miscellaneous options into one row.
-      JPanel miscoptions = new JPanel( new GridLayout() );
-      miscoptions.add(gridcolor);
-      miscoptions.add(closebutton);
-      //miscoptions.add(
+      // this jpanel groups all of the tick options into one row
+      JPanel tickoptions = new JPanel (new GridLayout());
+      tickoptions.add( new JLabel("Tick Options"));
+      tickoptions.add(ticktwoside);
+      tickoptions.add(tickfourside);
+      tickoptions.add(ticksidebox);
+      
+      // this jpanel groups the closing function(s) into one row
+      JPanel closeoptions = new JPanel( new GridLayout() );
+      closeoptions.add(closebutton);      
+       
       this.getContentPane().add( gridoptions );
-      this.getContentPane().add( miscoptions );
+      this.getContentPane().add( tickoptions );
+      this.getContentPane().add( closeoptions );
       this_editor.addComponentListener( new EditorListener() );
     }
    
    /*
     * Listener for GUI components of the editor.
-    */ 
+    */
     class ControlListener implements ActionListener
     {
       public void actionPerformed( ActionEvent e )
       {
-	if( e.getSource() instanceof JComboBox )
+        if( e.getSource() instanceof JComboBox )
         {
-	  JComboBox temp = ((JComboBox)e.getSource());
-          if( temp.getName().equals("XBOX") )
+          JComboBox temp = ((JComboBox)e.getSource());
+          if( temp.getName().equals("XGRIDBOX") )
+          {
             gridxdisplay = temp.getSelectedIndex();
-          else
+            this_panel.repaint();
+          }
+          else if(temp.getName().equals("YGRIDBOX"))
+          {
             gridydisplay = temp.getSelectedIndex();
-          this_panel.repaint();
-	}
+            this_panel.repaint();
+          }
+          else if(temp.getName().equals("TICKBOX"))
+          {
+            ticksinoutX = temp.getSelectedIndex();
+            ticksinoutY = temp.getSelectedIndex();
+            this_panel.repaint();
+          }
+        }
         else if( e.getSource() instanceof JButton )
         {
           String message = e.getActionCommand();
-          if( message.equals("Change Grid Color") )
+          if( message.equals("Grid Color") )
           {
-	    Color temp =
-        	JColorChooser.showDialog(this_editor, "Grid Color", gridcolor);
+            Color temp = 
+                 JColorChooser.showDialog(this_editor, "Grid Color", gridcolor);
             if( temp != null )
             {
               gridcolor = temp;
@@ -2282,11 +2591,26 @@ public class AxisOverlay2D extends OverlayJPanel
           }
           else if( message.equals("Close") )
           { 
-	    editor_bounds = this_editor.getBounds(); 
+            editor_bounds = this_editor.getBounds(); 
             this_editor.dispose();
             this_panel.repaint();
           }
-          
+        }
+        else if( e.getSource() instanceof JRadioButton )
+        {
+          String message = e.getActionCommand();
+          if( message.equals("Two Sides") )
+          {
+            displayXop = false;
+            displayYop = false;
+            this_panel.repaint();
+          }
+          else if(message.equals("Four Sides"))
+          {
+            displayXop = true;
+            displayYop = true;
+            this_panel.repaint();
+          }
         }
       }
     }
@@ -2299,7 +2623,7 @@ public class AxisOverlay2D extends OverlayJPanel
     {
       public void componentResized( ComponentEvent we )
       {
-	editor_bounds = editor.getBounds();
+        editor_bounds = editor.getBounds();
       }
     }	    
   }
