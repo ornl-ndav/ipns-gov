@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.6  2005/11/22 21:09:59  dennis
+ * Modified to point tick marks inward by default.
+ *
  * Revision 1.5  2005/10/11 04:53:40  kramer
+ *
  * Completed the javadocs for every member of this class.
  *
  * Revision 1.4  2005/10/07 21:36:09  kramer
@@ -320,10 +324,11 @@ public class ContourLayoutHandler extends ContourChangeHandler
       {
          //store the transparencies in a Vector
          this.transparencies.clear();
-           AxisOverlay2D axes = new AxisOverlay2D(this);
-             axes.setVisible(true);
-             axes.setDisplayAxes(AxisOverlay2D.DUAL_AXES);
-           this.transparencies.add(axes);
+                                       // Default tick marks inward for contour 
+         AxisOverlay2D axes = new AxisOverlay2D(this,true);
+           axes.setVisible(true);
+           axes.setDisplayAxes(AxisOverlay2D.DUAL_AXES);
+         this.transparencies.add(axes);
            
          //add each transparency and the ContourJPanel to the main layout panel
          for (int i=0; i<this.transparencies.size(); i++)

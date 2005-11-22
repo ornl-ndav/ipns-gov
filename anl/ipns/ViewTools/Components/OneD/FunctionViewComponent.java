@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.75  2005/11/22 21:09:54  dennis
+ *  Modified to point tick marks inward by default.
+ *
  *  Revision 1.74  2005/11/11 20:29:12  serumb
  *  Set pointed at graph color to black, and set the graphs to be offset
  *  when two or more are selected.
@@ -430,13 +433,14 @@ public class FunctionViewComponent implements IViewComponent1D,
     
     if( varr.getNumGraphs(  ) > 0 )
     {
-      buildViewComponent();  // initializes big_picture to jpanel containing
-     				  // the background and transparencies
+      buildViewComponent();     // initializes big_picture to jpanel containing
+                                // the background and transparencies
       // create transparencies
       AnnotationOverlay top = new AnnotationOverlay( this );
-      top.setVisible( false );  // initialize this overlay to off.
+      top.setVisible( false );    // initialize this overlay to off.
 
-      AxisOverlay2D bottom = new AxisOverlay2D( this );
+                                  // Default ticks inward for this component
+      AxisOverlay2D bottom = new AxisOverlay2D( this, true );
 
       LegendOverlay leg_overlay = new LegendOverlay( this );
    

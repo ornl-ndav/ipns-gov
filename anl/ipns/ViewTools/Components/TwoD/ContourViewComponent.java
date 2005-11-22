@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.15  2005/11/22 21:09:56  dennis
+ * Modified to point tick marks inward by default.
+ *
  * Revision 1.14  2005/07/20 17:24:46  kramer
+ *
  * Added javadocs for all of the fields.  Removed the redundant field
  * DEFAULT_CONTOUR_COLOR (it repeats DEFAULT_LINE_COLOR).  Updated the
  * method setPreserveAspectRatio() to call setPreserveAspectRatio() on the
@@ -825,12 +829,16 @@ public class ContourViewComponent implements IViewComponent2D, Serializable,
       {
          //store the transparencies in a Vector
          this.transparencies.clear();
-           AxisOverlay2D axes = new AxisOverlay2D(this);
+                                               // tick marks point inward by
+                                               // default
+         AxisOverlay2D axes = new AxisOverlay2D(this, true);
+
 //TODO For now the AxisOverlay2D is not visible because it does not work.
 //     Fix it.
-             axes.setVisible(true);
-             axes.setDisplayAxes(AxisOverlay2D.DUAL_AXES);
-           this.transparencies.add(axes);
+
+         axes.setVisible(true);
+         axes.setDisplayAxes(AxisOverlay2D.DUAL_AXES);
+         this.transparencies.add(axes);
          
          //layout used to add transparencies on top of the ContourJPanel
          OverlayLayout layout = new OverlayLayout(this.layerPanel);
