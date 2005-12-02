@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.76  2005/12/02 16:39:59  serumb
+ *  Set "pointed at" graph color to black, so the default blue is not used
+ *  when a graph is cleared.
+ *
  *  Revision 1.75  2005/11/22 21:09:54  dennis
  *  Modified to point tick marks inward by default.
  *
@@ -1105,6 +1109,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     int pointed_at_line = Varray1D.getPointedAtGraph();
     float[] x_vals = Varray1D.getXValues(pointed_at_line);
     float[] y_vals = Varray1D.getYValues(pointed_at_line);
+    gjp.setColor( Color.black, 0, false );
     if(pointed_at_line >= 0) {
       gjp.updatePointedAtGraph(x_vals,y_vals);
       return true;
@@ -1166,7 +1171,8 @@ public class FunctionViewComponent implements IViewComponent1D,
      //                                        graph_num, true);
        if(!draw_pointed_at)
          gjp.setTransparent(true, 0, true);    
-
+       else gjp.setColor( Color.black, 0, true );
+   
   }
    
   /**
