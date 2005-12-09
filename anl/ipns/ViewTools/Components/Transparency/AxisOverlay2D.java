@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.52  2005/12/09 18:35:13  dennis
+ *  Completed work with tick mark options.  (Andrew Moe)
+ *  Ticks marks can now be pointing inward or outward, on
+ *  two or four sides of the graph for linear and/or log axes.
+ *
  *  Revision 1.51  2005/11/22 20:59:43  dennis
  *  Added options for tick marks to point inward or outward, and for
  *  drawing tick marks on both sides of the graph.  This is currently
@@ -1336,8 +1341,8 @@ public class AxisOverlay2D extends OverlayJPanel
        if(displayYop == true)
        {
          //display y-axis opposite
-        g2d.drawLine( (xstart + xaxis) - 1 , ypixel - 1, 
-                     (((xstart + xaxis) + ytick_length)- 1) - 1, ypixel - 1 );
+        g2d.drawLine( (xstart + xaxis), ypixel - 1, 
+                     (((xstart + xaxis) + ytick_length)- 1) , ypixel - 1 );
        }
      }
      else
@@ -1348,8 +1353,8 @@ public class AxisOverlay2D extends OverlayJPanel
        if(displayYop == true)
        {
          //display y-axis opposite
-         g2d.drawLine( xstart + xaxis, ypixel - 1, 
-                      ((xstart + xaxis) - ytick_length) + 1, ypixel - 1 );
+         g2d.drawLine( (xstart + xaxis)-1, ypixel - 1, 
+                      ((xstart + xaxis) - ytick_length), ypixel - 1 );
        }
      }
    }
@@ -1366,8 +1371,8 @@ public class AxisOverlay2D extends OverlayJPanel
        if(displayYop == true)
        {
          //display y-axis opposite
-         g2d.drawLine( (xstart + xaxis) - 1, ysubpixel - 1,
-               (((xstart + xaxis) + (ytick_length-2))- 1) - 1, ysubpixel - 1 );
+         g2d.drawLine( (xstart + xaxis), ysubpixel - 1,
+               (((xstart + xaxis) + (ytick_length-2))- 1), ysubpixel - 1 );
        }
      }
      else
@@ -1378,8 +1383,8 @@ public class AxisOverlay2D extends OverlayJPanel
        if(displayYop == true)
        {
          //display y-axis opposite
-         g2d.drawLine(xstart + xaxis , ysubpixel - 1, 
-                 (((xstart + xaxis) - (ytick_length-2))) + 1, ysubpixel - 1 );
+         g2d.drawLine((xstart + xaxis)-1 , ysubpixel - 1, 
+                 (((xstart + xaxis) - (ytick_length-2))), ysubpixel - 1 );
        }
      }
    }
@@ -1396,7 +1401,7 @@ public class AxisOverlay2D extends OverlayJPanel
        g2d.drawLine( xstart - 1, 
                 (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
                 ((xstart - (ytick_length - 2)) - 1) + 1, 
-               (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
 
        if(displayYop == true)
        {
@@ -1410,17 +1415,17 @@ public class AxisOverlay2D extends OverlayJPanel
      else
      {
        //draw ticks inside
-       g2d.drawLine( xstart - 1, 
+       g2d.drawLine( xstart, 
                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
-               ((xstart + (ytick_length - 2)) - 1) - 1,
+               ((xstart + (ytick_length - 2)) - 1),
                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
     		  
        if(displayYop == true)
        {
          //display y-axis opposite
-        g2d.drawLine( xstart + xaxis, 
+        g2d.drawLine( (xstart + xaxis)-1, 
               (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
-             (((xstart + xaxis) - (ytick_length-2))) + 1,
+             (((xstart + xaxis) - (ytick_length-2))),
               (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
         }
        }
@@ -2252,7 +2257,28 @@ public class AxisOverlay2D extends OverlayJPanel
     	  g2d.drawString( string_num,
         		  pixel-(fontdata.stringWidth(string_num)/2),
     			  yaxis + ystart + 25 );
-    	  g2d.drawLine(pixel,yaxis+ystart, pixel, yaxis + ystart + 5);
+    	  
+    	  //display outside major ticks
+          if(ticksinoutX == 0)
+          {
+             g2d.drawLine(pixel,yaxis+ystart, pixel, (yaxis + ystart + 5)-1);
+             if(displayXop == true)
+             {
+               //display major outside Xop
+               g2d.drawLine(pixel,ystart-1, pixel, ((ystart - 5)-1) + 1 );
+             }
+          }
+          else
+          {
+          //display major inside
+            g2d.drawLine( pixel,(yaxis+ystart)-1, pixel,
+                          (((yaxis + ystart) - 5) - 1) + 1 );
+            if(displayXop == true)
+            {
+            //display major inside Xop
+              g2d.drawLine(pixel,ystart, pixel,(ystart + 5) - 1 );
+            }
+          }
     	}
       }
     }
@@ -2283,16 +2309,57 @@ public class AxisOverlay2D extends OverlayJPanel
             // If 0, draw a major tick with number, else draw a minor tick.
             if( minorsteps == 0 )
             {
-              //draw on axis if it actually will fit on the axis.
-              g2d.drawLine(pixel,yaxis+ystart, pixel, yaxis + ystart + 5);
-              g2d.drawString(string_num, 
-        		     pixel-(fontdata.stringWidth(string_num)/2),
-        		     yaxis + ystart + 25);
+              //draw on axis if it actually will fit on the axis.              
+              //display outside major ticks
+              if(ticksinoutX == 0)
+              {
+                g2d.drawLine(pixel,yaxis+ystart, pixel, (yaxis + ystart + 5)-1);
+                if(displayXop == true)
+                {
+                  //display major outside Xop
+                  g2d.drawLine(pixel,ystart-1, pixel, ((ystart - 5)-1) + 1 );
+                }
+              }
+              else
+              {
+      	        //display major inside
+                g2d.drawLine( pixel,(yaxis+ystart)-1, pixel,
+                              (((yaxis + ystart) - 5) - 1) + 1 );
+                if(displayXop == true)
+                {
+                  //display major inside Xop
+                  g2d.drawLine(pixel,ystart, pixel,(ystart + 5) - 1 );
+                }
+              }
+              //draw number data for tick
+              g2d.drawString( string_num, 
+                              pixel-(fontdata.stringWidth(string_num)/2),
+                              yaxis + ystart + 25);
             }
             else
             {
-              //draw on axis if it actually will fit on the axis.
-              g2d.drawLine(pixel,yaxis+ystart, pixel, yaxis + ystart + 3);
+              //draw on axis if it actually will fit on the axis.              
+              //display outside minor ticks
+              if(ticksinoutX == 0)
+              {
+                g2d.drawLine(pixel,yaxis+ystart,pixel, (yaxis + ystart + 3) -1);
+                if(displayXop == true)
+                {
+                  //display minor outside Xop
+                  g2d.drawLine(pixel,ystart-1, pixel,((ystart - 3)-1) + 1 );
+      	        }
+              }
+              else
+              {
+                //display minor inside
+                g2d.drawLine( pixel, (yaxis+ystart)-1, pixel,
+                              (((yaxis + ystart) - 3) - 1) + 1 );
+                if(displayXop == true)
+                {
+                  //display minor inside xop
+                  g2d.drawLine(pixel,ystart, pixel,(ystart + 3) - 1 );
+                }
+              }
             }
           }
         } // end for minorsteps
@@ -2407,7 +2474,28 @@ public class AxisOverlay2D extends OverlayJPanel
         g2d.drawString(string_num,
 	               xstart - fontdata.stringWidth(string_num) - 15,
 		       pixel + (fontdata.getHeight()/4) );
-        g2d.drawLine(xstart - 3, pixel, xstart, pixel);
+        
+        //draw minor ticks
+        if(ticksinoutY == 0)
+    	{
+          //draw minor ticks out
+          g2d.drawLine(xstart - 1, pixel,((xstart - 3) - 1) + 1, pixel);
+          if(displayYop == true)
+          {
+            //draw minor ticks out on Yop
+            g2d.drawLine(xstart+xaxis, pixel,(xstart + xaxis + 3)- 1, pixel);
+          }
+    	}
+    	else
+    	{
+          //draw minor ticks in
+          g2d.drawLine(xstart, pixel,(xstart + 3) - 1 , pixel);
+          if(displayYop == true)
+          {
+            //draw minor ticks in on Yop
+            g2d.drawLine((xstart+xaxis)-1, pixel,(xstart + xaxis) - 3, pixel);
+          }
+    	}
       }
     }
     //if there are more than 2 orders of magnitude between the min and the max
@@ -2441,16 +2529,63 @@ public class AxisOverlay2D extends OverlayJPanel
 	    // If 0, draw a major tick, else draw a minor tick.
 	    if( minorsteps == 0 )
 	    {
-              //draw on axis if it actually will fit on the axis.
-              g2d.drawLine(xstart - 5, pixel, xstart, pixel);
+              //draw the number for each tick
               g2d.drawString(string_num,
 	    		     xstart - fontdata.stringWidth(string_num) - 15,
 	    		     pixel + (fontdata.getHeight()/4)) ;
-	    }
-	    else
-	    {
+              
               //draw on axis if it actually will fit on the axis.
-              g2d.drawLine(xstart - 3, pixel, xstart, pixel); 
+              if(ticksinoutY == 0)
+              {
+                //draw major ticks out
+                g2d.drawLine(xstart - 1, pixel,((xstart - 5) - 1) + 1, pixel);
+                if(displayYop == true)
+                {
+                  //draw major ticks out on Yop
+            	  g2d.drawLine( xstart + xaxis, pixel, 
+                               (xstart + xaxis + 5)- 1, pixel);
+            	  }
+              }
+              else
+              {
+                //draw major ticks in
+                g2d.drawLine(xstart, pixel,(xstart + 5) - 1 , pixel);
+            	  
+                if(displayYop == true)
+                {
+                  //draw major ticks in on Yop
+                  g2d.drawLine( (xstart + xaxis) - 1, pixel,
+                                (xstart + xaxis) - 5, pixel);
+                }
+              }
+            }
+            else
+            {
+              //draw on axis if it actually will fit on the axis.              
+              //g2d.drawLine(xstart - 3, pixel, xstart, pixel);
+
+              if(ticksinoutY == 0)
+              {
+                //draw minor ticks out
+                g2d.drawLine(xstart - 1, pixel,((xstart - 3) - 1) + 1, pixel);
+                if(displayYop == true)
+                {
+                  //draw minor ticks out on Yop
+                  g2d.drawLine( xstart + xaxis, pixel,
+                               (xstart + xaxis + 3)- 1, pixel);
+                }
+              }
+              else
+              {
+                //draw minor ticks in
+                g2d.drawLine(xstart, pixel,(xstart + 3) - 1 , pixel);
+                if(displayYop == true)
+                {
+                  //draw minor ticks in on Yop
+                  g2d.drawLine( (xstart + xaxis) - 1, pixel,
+                                (xstart + xaxis) - 3, pixel);
+                }
+              }
             }
 	  } // end if( pixel ... )
         } // end for( minorsteps )
