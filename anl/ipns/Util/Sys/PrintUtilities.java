@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2005/12/10 16:07:18  rmikk
+ *  Now uses the IsawGUI.ComponentPrintable to print JTextComponents
+ *    with pages.
+ *
  *  Revision 1.14  2005/03/24 00:01:57  dennis
  *  Changed property file for last printer used to be
  *  IsawDefaultPrinter.dat in the user's home directory.
@@ -151,7 +155,7 @@ public class PrintUtilities implements Printable
     // docflavor in order to use the printservicelookup to get the available 
     // printers so we can make sure that the printer is installed before 
     // trying to print to it
-    DocFlavor myFormat = DocFlavor.SERVICE_FORMATTED.PRINTABLE;
+    DocFlavor myFormat = DocFlavor.SERVICE_FORMATTED.PAGEABLE;
     PrintService[] services =
                        PrintServiceLookup.lookupPrintServices(myFormat, aset2);
 
@@ -175,7 +179,7 @@ public class PrintUtilities implements Printable
         }
       }	
     }	
-    printJob.setPrintable(this);
+    printJob.setPrintable(new IsawGUI.ComponentPrintable(componentToBePrinted));
     if (printJob.printDialog(aset2))
     {
       try
