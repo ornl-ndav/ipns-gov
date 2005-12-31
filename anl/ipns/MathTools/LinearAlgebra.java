@@ -35,6 +35,12 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.27  2005/12/31 02:46:01  dennis
+ *  Added methods to copy matrices and multiply a matrix times
+ *  a vector.
+ *  Made some minor improvements to other javadocs.  Quite a few
+ *  of the basic methods still need javadocs.
+ *
  *  Revision 1.26  2004/08/05 17:05:18  dennis
  *  Added some additional explanation to the documentation for
  *  the BestFitMatrix() routine.
@@ -179,11 +185,10 @@ public final class LinearAlgebra
   }
 
 
-
   /**
-   * Determines a square matrix A[][] with it's inverse, if
-   * possible. Actually casts into a double and calls the other
-   * version.
+   * Calculate the inverse of a square matrix A[][], of floats, if
+   * possible.  This copies the matrix into a double double precision
+   * array and calls the other version.
    *
    * @see #getInverse(double[][])
    */
@@ -192,8 +197,9 @@ public final class LinearAlgebra
     return double2float(getInverse(float2double(A)));
   }
 
+
   /**
-   * Determines a square matrix A[][] with it's inverse, if
+   * Calculate the inverse of a square matrix A[][], of doubles, if
    * possible.
    *
    * @param A the square matrix to invert.
@@ -265,6 +271,7 @@ public final class LinearAlgebra
     return invA;
   }
 
+
   /**
    * Replaces a square matrix A[][] with it's inverse, if
    * possible.
@@ -288,6 +295,7 @@ public final class LinearAlgebra
     }
     return true;
   }
+
 
   /**
    * Prints to STDOUT any nXm matrix of doubles
@@ -360,6 +368,7 @@ public final class LinearAlgebra
     return d;
   }
 
+
   /**
    * Converts a one dimensional double array to a 
    * one dimensional float array
@@ -372,6 +381,7 @@ public final class LinearAlgebra
     }
     return f;
   }
+
 
   /**
    * Converts a rectangular float array to a rectangular double array
@@ -392,6 +402,7 @@ public final class LinearAlgebra
     return d;
   }
 
+
   /**
    * Converts a rectangular double array to a rectangular float array
    */
@@ -407,6 +418,7 @@ public final class LinearAlgebra
     return f;
   }
 
+
   /**
    * Determines whether or not the specified matrix is square by
    * comparing the lengths of the arrays.
@@ -420,6 +432,7 @@ public final class LinearAlgebra
     }
   }
 
+
   /**
    * Determines whether or not the specified matrix is rectangular by
    * comparing the lengths of the arrays.
@@ -431,6 +444,7 @@ public final class LinearAlgebra
     }
     return true;
   }
+
 
   /**
    * Determines whether or not the specified matrix is rectangular by
@@ -444,6 +458,7 @@ public final class LinearAlgebra
     return true;
   }
 
+
   /**
    * Determines whether or not the specified matrix is square by
    * comparing the lengths of the arrays.
@@ -456,6 +471,7 @@ public final class LinearAlgebra
       return false;
     }
   }
+
 
   /**
    * Find the determinant of a 3x3 or 2x2 matrix
@@ -477,8 +493,9 @@ public final class LinearAlgebra
     return det;
   }
 
+
   /**
-   * Multiply two matrices together
+   * Multiply two matrices together, using double arrays.
    */
   public static double[][] mult (double[][] a, double[][] b){
     if(!(isRectangular(a)&&isRectangular(b)))
@@ -507,12 +524,12 @@ public final class LinearAlgebra
         }
       }
     }
-
     return c;
   }
 
+
   /**
-   * Multiply two matrices together
+   * Multiply two matrices together, using float arrays.
    */
   public static float[][] mult(float[][] a, float[][] b){
     if( a==null || b==null ) return null;
@@ -525,6 +542,183 @@ public final class LinearAlgebra
       return double2float(mult(da,db));
     }
   }
+
+
+  /* ------------------------------- mult --------------------------------- */
+  /**
+   *  Multiply a matrix times a vector, using doubles.
+   *
+   *  @param  A       The matrix to multiply times the specified vector
+   *  @param  vec     The vector to be multiplied
+   *
+   *  @return A new array containing the product vector, A*vec
+   */
+  public static double[] mult( double[][] A, double[] vec )
+  {
+    if ( ! isRectangular(A) )
+      throw new IllegalArgumentException("Array A is not rectangular");
+
+    if ( vec == null )
+      throw new IllegalArgumentException("Vector is null");
+
+    int n_rows   = A.length;
+    int n_cols   = A[0].length;
+    int vec_rows = vec.length;
+
+    // check that this is possible
+    if ( n_cols != vec_rows )
+      throw new ArrayIndexOutOfBoundsException("Matrix cannot be multiplied "
+             + " times vector due to dimensionality: " 
+             +   n_rows + " X " + n_cols  
+             + ", " + vec_rows ); 
+
+    double[] result = new double[ vec_rows ];
+
+    for( int row = 0; row < n_rows; row++ )
+    {
+      for( int col = 0; col < n_cols; col++ )
+        result[col] += A[row][col] * vec[col];
+    }
+    return result;
+  }
+  
+
+  /* ------------------------------- mult --------------------------------- */
+  /**
+   *  Multiply a matrix times a vector, using floats.
+   *
+   *  @param  A       The matrix to multiply times the specified vector
+   *  @param  vec     The vector to be multiplied
+   *
+   *  @return A new array containing the product vector, A*vec
+   */
+  public static float[] mult( float[][] A, float[] vec )
+  {
+    if ( ! isRectangular(A) )
+      throw new IllegalArgumentException("Array A is not rectangular");
+
+    if ( vec == null )
+      throw new IllegalArgumentException("Vector is null");
+
+    int n_rows   = A.length;
+    int n_cols   = A[0].length;
+    int vec_rows = vec.length;
+
+    // check that this is possible
+    if ( n_cols != vec_rows )
+      throw new ArrayIndexOutOfBoundsException("Matrix cannot be multiplied "
+             + " times vector due to dimensionality: "
+             +   n_rows + " X " + n_cols
+             + ", " + vec_rows );
+
+    float[] result = new float[ vec_rows ];
+
+    for( int row = 0; row < n_rows; row++ )
+    {
+      for( int col = 0; col < n_cols; col++ )
+        result[col] += A[row][col] * vec[col];
+    }
+    return result;
+  }
+
+
+  /* ------------------------------- copy --------------------------------- */
+  /**
+   *  Make a copy of a two-dimensional array of doubles
+   *
+   *  @param  A   The two-dimensional array to copy
+   *  
+   *  @return  A new array with the same dimensions as the specified array,
+   *           containing the same values of the specified array.
+   */
+  public static double[][] copy( double A[][] )
+  {
+    if ( ! isRectangular(A) )
+      throw new IllegalArgumentException("Array A is not rectangular");
+
+    double M[][] = new double[ A.length ][ A[0].length ];
+    for ( int i = 0; i < A.length; i++ )
+      for ( int j = 0; j < A[0].length; j++ )
+        M[i][j] = A[i][j];
+    return M;
+  }
+
+
+  /* ------------------------------- copy --------------------------------- */
+  /**
+   *  Make a copy of a two-dimensional array of floats
+   *
+   *  @param  A   The two-dimensional array to copy
+   *  
+   *  @return  A new array with the same dimensions as the specified array,
+   *           containing the same values of the specified array.
+   */
+  public static float[][] copy( float A[][] )
+  {
+    if ( ! isRectangular(A) )
+      throw new IllegalArgumentException("Array A is not rectangular");
+
+    float M[][] = new float[ A.length ][ A[0].length ];
+    for ( int i = 0; i < A.length; i++ )
+      for ( int j = 0; j < A[0].length; j++ )
+        M[i][j] = A[i][j];
+    return M;
+  }
+
+
+  /* ------------------------------- copy --------------------------------- */
+  /**
+   *  Copy one two-dimensional array of doubles into a second two-dimensional
+   *  array. 
+   *
+   *  @param  A   The two-dimensional array to copy
+   *
+   *  @param  B   The two-dimensional array into which the values will be
+   *              copied.  This must have the same dimensions as array A.
+   */
+  public static void copy( double A[][], double B[][] )
+  {
+    if ( ! isRectangular(A) )
+      throw new IllegalArgumentException("Array A is not rectangular");
+
+    if ( ! isRectangular(B) )
+      throw new IllegalArgumentException("Array B is not rectangular");
+
+    if ( A.length != B.length || A[0].length != B[0].length )
+      throw new IllegalArgumentException("Array A and B are not the same size");
+
+    for ( int i = 0; i < A.length; i++ )
+      for ( int j = 0; j < A[0].length; j++ )
+        B[i][j] = A[i][j];
+  }
+
+
+  /* ------------------------------- copy --------------------------------- */
+  /**
+   *  Copy one two-dimensional array of floats into a second two-dimensional
+   *  array. 
+   *
+   *  @param  A   The two-dimensional array to copy
+   *
+   *  @param  B   The two-dimensional array into which the values will be
+   *              copied.  This must have the same dimensions as array A.
+   */
+  public static void copy( float A[][], float B[][] )
+  {
+    if ( ! isRectangular(A) )
+      throw new IllegalArgumentException("Array A is not rectangular");
+
+    if ( ! isRectangular(B) )
+      throw new IllegalArgumentException("Array B is not rectangular");
+
+    if ( A.length != B.length || A[0].length != B[0].length )
+      throw new IllegalArgumentException("Array A and B are not the same size");
+
+    for ( int i = 0; i < A.length; i++ )
+      for ( int j = 0; j < A[0].length; j++ )
+        B[i][j] = A[i][j];
+  }
+
 
   /* ------------------------------- solve -------------------------------- */
   /**
@@ -571,6 +765,7 @@ public final class LinearAlgebra
     return QR_solve( A, u, b );
   }
 
+
   /* ------------------------------- QR_solve ----------------------------- */
   /**
    *  Solve a system of linear equations, Ax = b, using the QR factored 
@@ -596,6 +791,7 @@ public final class LinearAlgebra
    *            than rows, or if the system is singular, this function fails 
    *            and returns NaN.
    */
+
   public static double QR_solve( double A[][], double u[][], double b[] )
   {
                                           // Apply the Householder transforms
@@ -704,6 +900,7 @@ public final class LinearAlgebra
     return U; 
   }
 
+
   /* -------------------------- BestFitMatrix ---------------------------- */
   /**
    *  Calculate and return the matrix M that most nearly maps the vectors in
@@ -725,7 +922,7 @@ public final class LinearAlgebra
    *  return residual errors, so BestFitMatrix() method should generally
    *  be used.
    *
-   *  @param  M      The n X m matrix that maps vector q[i][*] to 
+   *  @param  M      The n X m matrix that maps vector q[i][*] to
    *                 vector r[i][*].  The components of M are set by this
    *                 method, but the storage for M must be properly allocated
    *                 by the calling code.
