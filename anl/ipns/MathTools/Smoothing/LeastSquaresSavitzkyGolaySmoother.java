@@ -31,7 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/01/02 22:15:45  kramer
+ * Changed a comparison from (val == Double.NaN) to the correct statement as
+ * Double.isNaN(val).
+ *
  * Revision 1.2  2004/12/01 20:05:40  kramer
+ *
  * Fixed some of the javadoc statements so that they didn't have @param
  * arguments referring to variables that didn't exist.
  *
@@ -313,7 +318,7 @@ public class LeastSquaresSavitzkyGolaySmoother
       
       double returnedVal = LinearAlgebra.solve(A,b);
           
-      if (returnedVal == Double.NaN)
+      if (Double.isNaN(returnedVal))
       {
          System.out.println("Invalid parameter in getSmoothedValue()");
          System.out.println("  LinearAlgebra.solve() returned "+returnedVal);
