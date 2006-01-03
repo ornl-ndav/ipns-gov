@@ -35,6 +35,9 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.28  2006/01/03 03:24:20  dennis
+ *  Fixed index error in methods to multiply matrix times vector.
+ *
  *  Revision 1.27  2005/12/31 02:46:01  dennis
  *  Added methods to copy matrices and multiply a matrix times
  *  a vector.
@@ -577,7 +580,7 @@ public final class LinearAlgebra
     for( int row = 0; row < n_rows; row++ )
     {
       for( int col = 0; col < n_cols; col++ )
-        result[col] += A[row][col] * vec[col];
+        result[row] += A[row][col] * vec[col];
     }
     return result;
   }
@@ -616,7 +619,7 @@ public final class LinearAlgebra
     for( int row = 0; row < n_rows; row++ )
     {
       for( int col = 0; col < n_cols; col++ )
-        result[col] += A[row][col] * vec[col];
+        result[row] += A[row][col] * vec[col];
     }
     return result;
   }
