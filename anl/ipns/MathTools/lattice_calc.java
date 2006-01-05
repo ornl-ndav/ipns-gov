@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2006/01/05 18:01:49  dennis
+ * Fixed one spelling error in printout for test program.
+ * Changed default values used for a,b,c, alpha,beta,gamma
+ * in test program.
+ *
  * Revision 1.5  2005/04/20 21:24:02  dennis
  * Modified LatticeParamsOfG() and LatticeParamsOfUB() to return
  * null if the matrix is singular.
@@ -431,20 +436,20 @@ public class lattice_calc
 
    public static void main( String args[] )
    {
+/*
      double a = 4.91642;
      double b = 4.91254;
      double c = 5.42703; 
      double alpha = 88.7985;
      double beta  = 89.3668;
      double gamma = 61.3224;
-/*
+*/
      double a = 4.9138;
      double b = 4.9138;
      double c = 5.4051;
      double alpha = 90;
      double beta  = 90;
      double gamma = 120;
-*/
 
      double A[][]     = A_matrix( a, b, c, alpha, beta, gamma );
      double Aunit[][] = A_unit( a, b, c, alpha, beta, gamma );
@@ -499,7 +504,7 @@ public class lattice_calc
      double Astar_transp[][] = LinearAlgebra.getTranspose( Astar );
      double A_transp[][] = LinearAlgebra.getTranspose( A );
 
-     System.out.println("Astart transpose = ");
+     System.out.println("Astar transpose = ");
      LinearAlgebra.print( Astar_transp );     
 
      System.out.println( "A * Astar_transp =" );
