@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.54  2006/01/05 20:32:43  rmikk
+ * Fixed an off by one typo error
+ *
  * Revision 1.53  2005/11/11 05:38:01  serumb
  * Added state information for controls.
  *
@@ -229,7 +232,6 @@ import java.awt.event.*;
 // Component location and resizing within the big_picture
 import javax.swing.*;
 //import javax.swing.border.*;  
-
 /*
  * This class creates the controls and adds them to the control panel.
  */
@@ -501,7 +503,9 @@ import javax.swing.*;
     shift_types[1]   = "Vertical";
     shift_types[2]   = "Overlaid";
     labelbox7      = new LabelCombobox( label7, shift_types );
-    labelbox7.setSelectedIndex( 2 );
+    
+    labelbox7.setSelectedIndex( 2 );    
+    
     labelbox7.setBorderVisible(false);
 
     log_placements = new String[4];
@@ -615,9 +619,10 @@ import javax.swing.*;
     control_list[13] = legend_checkbox;
     control_list[14] = graph_range;
     control_list[15] = cursor;
-    control_list[15] = labelbox8;
+    control_list[16] = labelbox8;
 
   }
+  
  
  /**
    * This Method updates the control that selects the graph to be modified.
@@ -1268,6 +1273,7 @@ import javax.swing.*;
               gjp.setMultiplotOffsets(0,0);
               gjp.repaint();
             }
+           
         } else if( ae.getSource( ) == labelbox9) {
             if (labelbox9.getSelectedItem( ).equals( "1" ))
             shift_factor = 1;
