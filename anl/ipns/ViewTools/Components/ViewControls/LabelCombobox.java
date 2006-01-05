@@ -30,7 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2006/01/05 20:30:42  rmikk
+ *  set the title of the combo box in the constructor
+ *
  *  Revision 1.9  2005/06/22 22:22:01  kramer
+ *
  *  Added the setEnabled(boolean enabled) method.
  *
  *  Revision 1.8  2005/05/25 20:28:42  dennis
@@ -123,6 +127,10 @@ public class LabelCombobox extends ViewControl
       f_layout = new FlowLayout(0);
       this.fields = fields;
       cboxLabel = new JLabel(p_label);
+      
+      //setting the ViewControl title
+      setTitle(p_label);     
+      
       thepanel.setLayout(f_layout);
       thepanel.add(cboxLabel);
 
