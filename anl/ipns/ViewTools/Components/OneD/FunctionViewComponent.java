@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.77  2006/01/05 20:34:43  rmikk
+ *  Initialized the SHIFT value on the SHIFT control
+ *
  *  Revision 1.76  2005/12/02 16:39:59  serumb
  *  Set "pointed at" graph color to black, so the default blue is not used
  *  when a graph is cleared.
@@ -483,9 +486,32 @@ public class FunctionViewComponent implements IViewComponent1D,
 
       if(Varray1D.getNumSelectedGraphs() > 1)
       {
-         gjp.setMultiplotOffsets((int)(20 ),
+
+    	  //Retrieving viewcontrol list and setting the Shift type to 0 (Diagonal)
+    	  //This is set to Diagonal because this is how it is display below    	  
+    	  ViewControl[] vcontrol = mainControls.getControlList();
+    	  int i = -1;
+    	  do
+    	  {
+    		  i++;
+    		  if(vcontrol[i].getTitle().equals("Shift"))
+    		  {
+    			 
+    			  vcontrol[i].setControlValue(new Integer(0));
+    		  }
+    		  
+    	  }while(!(vcontrol[i].getTitle().equals("Shift"))&&(i<vcontrol.length));    		  
+    	  
+    	  /*
+    	 // System.out.println("TITLE\tCONT-VALUE");    	  
+    	  for(int a = 0;a<vcontrol.length;a++)
+    	  {
+    		  System.out.println("["+a+"] ." + vcontrol[a].getTitle() + ".\t" + vcontrol[a].getControlValue());
+    	  }*/     	  
+    	  
+    	  gjp.setMultiplotOffsets((int)(20 ),
                                 (int)( 20 ));
-                gjp.repaint();
+    	  gjp.repaint(); 
         
       }
 
