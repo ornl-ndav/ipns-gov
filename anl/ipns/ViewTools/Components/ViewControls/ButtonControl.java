@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2006/01/05 20:29:34  rmikk
+ *  set the Title for a button in the constructor
+ *
  *  Revision 1.9  2005/05/25 20:28:37  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -95,6 +98,9 @@ public class ButtonControl extends ViewControl
       button = new JButton(buttonName);
       this.add(button);
       button.addActionListener( new ButtonListener() ); 
+      
+      //setting the ViewControl title
+      setTitle(buttonName);
      
    }
  
