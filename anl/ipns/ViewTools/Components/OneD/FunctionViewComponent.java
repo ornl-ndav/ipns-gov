@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.79  2006/02/05 23:53:39  amoe
+ *  Previous 1.78 is log incorrect.  Here is the correct log:
+ *
+ *  -Added code to dataChanged() so that the legend would refresh when new spectra are selected.
+ *  -Edited code that sets the Shift ViewControl to "Diagonal", to use a public static final int variable in FunctionControls when muliple spectra are selected.
+ *
  *  Revision 1.78  2006/02/05 20:20:21  amoe
  *  -Added code to dataChanged() so that the legend would refresh when new spectra are selected.
  *  -Modified control_list initialization to use static final int variables instead of int numbers.
@@ -362,8 +368,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   * own state, this value is of type ObjectState, and contains the state of
   * the controls.
   */
-     public static final String FUNCTION_CONTROLS = "FunctionControls";  
-     
+     public static final String FUNCTION_CONTROLS = "FunctionControls";       
 
       
 
@@ -492,7 +497,7 @@ public class FunctionViewComponent implements IViewComponent1D,
       {
 
     	  //Retrieving viewcontrol list and setting the Shift type to 0 (Diagonal)
-    	  //This is set to Diagonal because this is how it is display below    	  
+    	  //This is set to Diagonal because this is how it is displayed below    	  
     	  ViewControl[] vcontrol = mainControls.getControlList();
     	  
     	  vcontrol[FunctionControls.VC_SHIFT].setControlValue(new Integer(0));
