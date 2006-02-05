@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.55  2006/02/05 20:46:24  amoe
+ * -Added "Shift Type" and "Shift Factor" to Object State.
+ * -Added public static final int variables that correspond to ViewControl[] control_list contents.
+ * -Modified control_list initialization to use public static final int variables instead of int numbers.
+ *
  * Revision 1.54  2006/01/05 20:32:43  rmikk
  * Fixed an off by one typo error
  *
@@ -241,14 +246,14 @@ import javax.swing.*;
   {
 
   /**
-   * "Graph Range" - This constant String is a key for referencing the State
-   * information about the x range for the graph to be displayed.
+   * "Graph Range" - This constant String is a key for referencing the
+   * State information about the x range for the graph to be displayed.
    */
    public static final String GRAPH_RANGE = "Graph Range";
 
   /**
-   * "Annotation Control" - This constant String is a key for referencing the 
-   * State information about the Annotation Overlay control.
+   * "Annotation Control" - This constant String is a key for referencing 
+   * the State information about the Annotation Overlay control.
    */
    public static final String ANNOTATION_CONTROL = "Annotation Control";
 
@@ -263,8 +268,137 @@ import javax.swing.*;
    * State information about the Legend Overlay control.
    */
    public static final String LEGEND_CONTROL = "Legend Control";
+   
+  /**
+   * "Shift Type" - This constant String is a key for referencing the State
+   * information about the Shift control. 
+   */
+   public static final String SHIFT_TYPE = "Shift Type";
+   
+  /**
+   * "Shift Factor" - This constant String is a key for referencing the 
+   * State information about the Shift Factor control. 
+   */
+   public static final String SHIFT_FACTOR = "Shift Factor";
 
-
+   
+  /**
+   * VC_LINE_SELECTED - This constant int is an index for referencing the 
+   * location of Line Selected in a ViewControl[] in FunctionControls.
+   */ 
+   public static final int VC_LINE_SELECTED = 0;
+   
+  /**
+   * VC_LINE_STYLE - This constant int is an index for referencing the 
+   * location of Line Style in the ViewControl[] control_list in 
+   * FunctionControls.
+   */
+   public static final int VC_LINE_STYLE = 1;
+   
+  /**
+   * VC_LINE_WIDTH - This constant int is an index for referencing the 
+   * location of Line Width in the ViewControl[] control_list in 
+   * FunctionControls.
+   */
+   public static final int VC_LINE_WIDTH = 2;
+   
+  /**
+   * VC_POINT_MARKER - This constant int is an index for referencing the 
+   * location of Point Marker in the ViewControl[] control_list in 
+   * FunctionControls.
+   */ 
+   public static final int VC_POINT_MARKER = 3;
+   
+  /**
+   * VC_POINT_MARKER_SIZE - This constant int is an index for referencing 
+   * the location of Point Marker Size in the ViewControl[] control_list 
+   * in FunctionControls.
+   */ 
+   public static final int VC_POINT_MARKER_SIZE = 4;
+   
+  /**
+   * VC_ERROR_BARS - This constant int is an index for referencing the 
+   * location of Error Bars in the ViewControl[] control_list in 
+   * FunctionControls.
+   */  
+   public static final int VC_ERROR_BARS = 5;
+   
+  /**
+   * VC_LINE_COLOR - This constant int is an index for referencing the 
+   * location of Line Color in the ViewControl[] control_list in 
+   * FunctionControls.
+   */
+   public static final int VC_LINE_COLOR = 6;
+   
+  /**
+   * VC_POINT_MARKER_COLOR - This constant int is an index for 
+   * referencing the location of Point Marker Color in the ViewControl[] 
+   * control_list in FunctionControls.
+   */ 
+   public static final int VC_POINT_MARKER_COLOR = 7;
+   
+  /**
+   * VC_ERROR_BAR_COLOR - This constant int is an index for referencing the 
+   * location of Error Bar Color in the ViewControl[] control_list in 
+   * FunctionControls.
+   */ 
+   public static final int VC_ERROR_BAR_COLOR = 8;
+   
+  /**
+   * VC_SHIFT - This constant int is an index for referencing the 
+   * location of Shift in the ViewControl[] control_list in FunctionControls.
+   */ 
+   public static final int VC_SHIFT = 9;
+   
+  /**
+   * VC_SHIFT_FACTOR - This constant int is an index for referencing the 
+   * location of Shift Factor in the ViewControl[] control_list in 
+   * FunctionControls.
+   */ 
+   public static final int VC_SHIFT_FACTOR = 10;
+   
+  /**
+   * VC_AXIS_CHECKBOX - This constant int is an index for referencing the 
+   * location of Axis Checkbox in the ViewControl[] control_list in 
+   * FunctionControls.
+   */
+   public static final int VC_AXIS_CHECKBOX = 11;
+   
+  /**
+   * VC_ANNOTATION_CHECKBOX - This constant int is an index for referencing 
+   * the location of Annontation Checkbox in the ViewControl[] control_list 
+   * in FunctionControls.
+   */ 
+   public static final int VC_ANNOTATION_CHECKBOX = 12;
+   
+  /**
+   * VC_LEGEND_CHECKBOX - This constant int is an index for referencing the 
+   * location of Legend Checkbox in the ViewControl[] control_list in 
+   * FunctionControls.
+   */ 
+   public static final int VC_LEGEND_CHECKBOX = 13;
+   
+  /**
+   * VC_GRAPH_RANGE - This constant int is an index for referencing the 
+   * location of Graph Range in the ViewControl[] control_list in 
+   * FunctionControls.
+   */ 
+   public static final int VC_GRAPH_RANGE = 14;
+   
+  /**
+   * VC_CURSOR - This constant int is an index for referencing the 
+   * location of Cursor in the ViewControl[] control_list in FunctionControls.
+   */ 
+   public static final int VC_CURSOR = 15;
+   
+  /**
+   * VC_LOGARITH_AXES - This constant int is an index for referencing the 
+   * location of Logarithmic Axes in the ViewControl[] control_list in 
+   * FunctionControls.
+   */ 
+   public static final int VC_LOGARITH_AXES = 16;
+  
+   
   private transient IVirtualArrayList1D Varray1D;
   private transient FunctionViewComponent fvc;
   private transient GraphJPanel gjp;
@@ -404,11 +538,26 @@ import javax.swing.*;
         legend_checkbox.setObjectState((ObjectState)temp);
         redraw = true;
       }
+      
+      temp = new_state.get(SHIFT_TYPE);
+      if ( temp != null)
+      {
+    	  labelbox7.setObjectState((ObjectState)temp);
+    	  redraw = true;
+      }
 
+      temp = new_state.get(SHIFT_FACTOR);
+      if ( temp != null)
+      {
+    	  labelbox9.setObjectState((ObjectState)temp);
+    	  redraw = true;
+      }
+      
       if (redraw){
         graph_range.validate();
         graph_range.repaint();
       }
+      
    }   
 
   /**
@@ -424,6 +573,8 @@ import javax.swing.*;
      state.insert( AXIS_CONTROL, axis_checkbox.getObjectState(isDefault) );
      state.insert( GRAPH_RANGE, graph_range.getObjectState(isDefault) );
      state.insert( LEGEND_CONTROL, legend_checkbox.getObjectState(isDefault) );
+     state.insert( SHIFT_TYPE, labelbox7.getObjectState(isDefault));
+     state.insert( SHIFT_FACTOR, labelbox9.getObjectState(isDefault));
 
      if(! isDefault){
      }
@@ -601,26 +752,25 @@ import javax.swing.*;
     graph_range.addActionListener( new RangeListener(  ) );
     gjp.addActionListener( new ImageListener(  ) );
     fvc.addActionListener( new ImageListener(  ) ); 
-
+    
     control_list = new ViewControl[17];
-    control_list[0] = labelbox1;
-    control_list[1] = labelbox2; 
-    control_list[2] = labelbox3;
-    control_list[3] = labelbox4;
-    control_list[4] = labelbox5;
-    control_list[5] = labelbox6;
-    control_list[6] = LineColor;
-    control_list[7] = MarkColor;
-    control_list[8] = ErrorColor; 
-    control_list[9] = labelbox7;
-    control_list[10] = labelbox9;
-    control_list[11] = axis_checkbox;
-    control_list[12] = annotation_checkbox;
-    control_list[13] = legend_checkbox;
-    control_list[14] = graph_range;
-    control_list[15] = cursor;
-    control_list[16] = labelbox8;
-
+    control_list[VC_LINE_SELECTED] = labelbox1;
+    control_list[VC_LINE_STYLE] = labelbox2; 
+    control_list[VC_LINE_WIDTH] = labelbox3;
+    control_list[VC_POINT_MARKER] = labelbox4;
+    control_list[VC_POINT_MARKER_SIZE] = labelbox5;
+    control_list[VC_ERROR_BARS] = labelbox6;
+    control_list[VC_LINE_COLOR] = LineColor;
+    control_list[VC_POINT_MARKER_COLOR] = MarkColor;
+    control_list[VC_ERROR_BAR_COLOR] = ErrorColor; 
+    control_list[VC_SHIFT] = labelbox7;
+    control_list[VC_SHIFT_FACTOR] = labelbox9;
+    control_list[VC_AXIS_CHECKBOX] = axis_checkbox;
+    control_list[VC_ANNOTATION_CHECKBOX] = annotation_checkbox;
+    control_list[VC_LEGEND_CHECKBOX] = legend_checkbox;
+    control_list[VC_GRAPH_RANGE] = graph_range;
+    control_list[VC_CURSOR] = cursor;
+    control_list[VC_LOGARITH_AXES] = labelbox8;
   }
   
  
@@ -1010,12 +1160,13 @@ import javax.swing.*;
              }
              else if( ccb.getTitle().equals("Legend Overlay") )
              {
-               LegendOverlay legend = (LegendOverlay)
+               System.out.println("no more legend");
+            	 LegendOverlay legend = (LegendOverlay)
                                  big_picture.getComponent(
                                  big_picture.getComponentCount() - 4 );
                legend.editLegend();
              }
-            fvc.paintComponents( );
+             fvc.paintComponents( );
            }
         /* 
            listens for the edit annotation button and brings up an edit 
