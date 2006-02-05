@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.78  2006/02/05 20:20:21  amoe
+ *  -Added code to dataChanged() so that the legend would refresh when new spectra are selected.
+ *  -Modified control_list initialization to use static final int variables instead of int numbers.
+ *
  *  Revision 1.77  2006/01/05 20:34:43  rmikk
  *  Initialized the SHIFT value on the SHIFT control
  *
@@ -268,7 +272,6 @@ import gov.anl.ipns.ViewTools.UI.*;
 import gov.anl.ipns.Util.Numeric.*;
 
 // component changes
-
 import java.awt.*;
 import java.awt.Rectangle;
 import java.awt.event.*;
@@ -360,6 +363,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   * the controls.
   */
      public static final String FUNCTION_CONTROLS = "FunctionControls";  
+     
 
       
 
@@ -395,7 +399,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    */
   public FunctionViewComponent( IVirtualArrayList1D varr ) {
 
-    Varray1D    = varr;  // Get reference to varr
+	Varray1D    = varr;  // Get reference to varr
     precision   = 4;
     font        = FontUtil.LABEL_FONT2;
     gjp         = new GraphJPanel(  );
@@ -490,20 +494,11 @@ public class FunctionViewComponent implements IViewComponent1D,
     	  //Retrieving viewcontrol list and setting the Shift type to 0 (Diagonal)
     	  //This is set to Diagonal because this is how it is display below    	  
     	  ViewControl[] vcontrol = mainControls.getControlList();
-    	  int i = -1;
-    	  do
-    	  {
-    		  i++;
-    		  if(vcontrol[i].getTitle().equals("Shift"))
-    		  {
-    			 
-    			  vcontrol[i].setControlValue(new Integer(0));
-    		  }
-    		  
-    	  }while(!(vcontrol[i].getTitle().equals("Shift"))&&(i<vcontrol.length));    		  
     	  
-    	  /*
-    	 // System.out.println("TITLE\tCONT-VALUE");    	  
+    	  vcontrol[FunctionControls.VC_SHIFT].setControlValue(new Integer(0));
+    	  
+    	  /* 
+    	  System.out.println("TITLE\tCONT-VALUE");    	  
     	  for(int a = 0;a<vcontrol.length;a++)
     	  {
     		  System.out.println("["+a+"] ." + vcontrol[a].getTitle() + ".\t" + vcontrol[a].getControlValue());
@@ -611,8 +606,6 @@ public class FunctionViewComponent implements IViewComponent1D,
        redraw = true;
     }       
     
-    if( redraw )
-      reInit();
 
   } 
 
@@ -813,23 +806,23 @@ public class FunctionViewComponent implements IViewComponent1D,
   /**
    *  This function will return an array of 17 ViewControls 
    *  which are used by the Function View Component.
-   *  [0] - Control to choose a selected line.
-   *  [1] - Control to choose the style of the chosen line.
-   *  [2] - Control to choose the thickness of the chosen line.
-   *  [3] - Control to display point markers for the chosen line.
-   *  [4] - Control to choose the size of the point markers for the line.
-   *  [5] - Control to display error bars for the choosen line.
-   *  [6] - Button Control to select the color of the chosen line.
-   *  [7] - Button Control to select the color of the point markers.
-   *  [8] - Button Control to select the color of the error bars.
-   *  [9] - Control to offset the selected lines
-   *  [10]- Control to set a shift factor to offset the selected lines by.
-   *  [11]- Control to select the axis overlay.
-   *  [12]- Control to select the annotation overlay.
-   *  [13]- Control to select the legend overlay.
-   *  [14]- Control to select a range for the graph to display.
-   *  [15]- Control to show the location of the cursor.
-   *  [16]- Control to display logarithmic axes.
+   *  [0] - Control to choose a selected line. (Line Selected)
+   *  [1] - Control to choose the style of the chosen line. (Line Style)
+   *  [2] - Control to choose the thickness of the chosen line. (Line Width)
+   *  [3] - Control to display point markers for the chosen line. (Point Marker)
+   *  [4] - Control to choose the size of the point markers for the line. (Point Marker Size)
+   *  [5] - Control to display error bars for the choosen line. (Error Bars)
+   *  [6] - Button Control to select the color of the chosen line. (Line Color)
+   *  [7] - Button Control to select the color of the point markers. (Point Marker Color)
+   *  [8] - Button Control to select the color of the error bars. (Error Bar Color)
+   *  [9] - Control to offset the selected lines. (Shift)
+   *  [10]- Control to set a shift factor to offset the selected lines by. (Shift Factor)
+   *  [11]- Control to select the axis overlay. (Axis Checkbox)
+   *  [12]- Control to select the annotation overlay. (Annotation Checkbox)
+   *  [13]- Control to select the legend overlay. (Legend Checkbox)
+   *  [14]- Control to select a range for the graph to display. (Graph Range)
+   *  [15]- Control to show the location of the cursor. (Cursor)
+   *  [16]- Control to display logarithmic axes. (Logarith Axes)
    *
    *  @return ViewControl[] the array of view controls
    */
@@ -935,7 +928,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    * This method will be called to notify this component of a change in data.
    */
   public void dataChanged(  ) {
-
+	  
        if(draw_pointed_at) 
        DrawPointedAtGraph();
        paintComponents(big_picture.getGraphics());
@@ -947,6 +940,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    */
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
    {
+	  
     if (Varray1D != pin_varray){
       if (Varray1D.getNumSelectedGraphs() > pin_varray.getNumSelectedGraphs()){
         gjp.clearData();
@@ -975,6 +969,15 @@ public class FunctionViewComponent implements IViewComponent1D,
     //System.out.println( "Thank you for notifying us" );
     //System.out.println( "" );
     sendMessage(SELECTED_CHANGED);
+    
+  	//check if the Legend is on.  If it is, refresh it.
+    ViewControl[] vcontrol = mainControls.getControlList();  
+  	
+    if( (new Boolean(true)).equals(vcontrol[FunctionControls.VC_LEGEND_CHECKBOX].getControlValue()) )
+    {
+    	((LegendOverlay)transparencies.elementAt(0)).setVisible(true);    	
+    }
+ 
   }
 
   /**
