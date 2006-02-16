@@ -49,9 +49,15 @@ public class GSASFunctions {
     }
   }
 
+//GSAS TOF profile function 1, a convolution of two back-to-back exponentials
+//with a gaussian peak shape function (R.B. Von Dreele, J. Jorgensen & C. Windsor,
+//J. Appl. Cryst., 1982). The fortran subroutine is:
+// SUBROUTINE EXPGAUS1(DT,ALP,BET,SIG,PRFUNC,DPRDT,ALPART,BEPART,SGPART)
+
+  public native int expgaus1 (float pgargs[]);
+
 //GSAS TOF profile function 3, a convolution of two back-to-back exponentials
-//with a pseudo-voigt peak shape function. The fortran subroutine is accessed
-//through JNI and takes 7 arguments:
+//with a pseudo-voigt peak shape function. The fortran subroutine is: 
 //SUBROUTINE EPSVOIGT(DT,ALP,BET,SIG,GAM,FUNC,DFDX,DFDA,DFDB,DFDS,DFDG)
 
   public native int epsvoigt (float pvargs[]);
@@ -73,22 +79,33 @@ public class GSASFunctions {
           sigmasqr = 280.8383f,
           gamma = 8.1543f;
     
+    float pgargs[] = new float[] {dt, alpha, beta, sigmasqr, func, 
+          dfdx, dfda, dfdb, dfds};
     float pvargs[] = new float[] {dt, alpha, beta, sigmasqr, gamma, func, 
       dfdx, dfda, dfdb, dfds, dfdg};
     int rtcode;
     GSASFunctions gsasf0 = new GSASFunctions();
     
     for (int i = -100; i < 101; i++) {
+          pgargs[0] = i*4;      
+          rtcode = gsasf0.expgaus1(pgargs);
+          System.out.print(pgargs[0]+" "+pgargs[1]+" "+pgargs[2]+" "+pgargs[3]+" "+pgargs[4]+" "+pgargs[5]+" "
+          +pgargs[6]+" "+pgargs[7]+" "+pgargs[8]+"\n");
+        }
+    
+    System.out.println("\n\n\n");    
+    for (int i = -100; i < 101; i++) {
       pvargs[0] = i*4;      
       rtcode = gsasf0.epsvoigt(pvargs);
       System.out.print(pvargs[0]+" "+pvargs[1]+" "+pvargs[2]+" "+pvargs[3]+" "+pvargs[4]+" "+pvargs[5]+" "
       +pvargs[6]+" "+pvargs[7]+" "+pvargs[8]+" "+pvargs[9]+" "+pvargs[10]+"\n");
     }
-    
+
+/*    
     for (int i = -10; i < 11; i++) {
       System.out.println(i*0.1f+" "+gsasf0.gerfc(i*0.1f));
     }
-
+*/
   }
 
 }
