@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2006/02/16 23:11:28  dennis
+ *  Improved choice of step size for approximating numerical derivatives.
+ *  More work remains to be done with this, but this is a first step.
+ *
  *  Revision 1.9  2004/03/15 23:53:49  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -195,9 +199,7 @@ abstract public class OneVarFunction implements IOneVarFunction
    */
   public double get_dFdx( double x )
   {
-    double dx = Math.abs( DELTA*x );
-    if ( dx < DELTA )
-      dx = DELTA;
+    double dx = ChooseInitialStepSize( x );
     return (getValue( x + dx ) - getValue( x - dx ))/ ( 2 * dx );
   }
 
@@ -246,6 +248,26 @@ abstract public class OneVarFunction implements IOneVarFunction
   {
     if ( domain != null )
       domain = interval;
+  }
+
+
+  /**
+   *  Choose a step size, dx, to be used in approximating numerical 
+   *  derivatives.  The value of dx is chosen so that 
+   *  |dx/x| is approximately DELTA, provided that x is not zero.
+   *  If x is zero, dx is set to DELTA. 
+   */
+  protected double ChooseInitialStepSize( double x )
+  {
+    if ( x == 0 )
+      return DELTA;
+
+    x = Math.abs(x);                      // make the local copy of x positive
+    double dx = DELTA * x;
+    while ( dx/x < DELTA )
+      dx *= 10;
+
+    return dx; 
   }
 
 

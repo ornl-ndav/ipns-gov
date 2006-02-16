@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2006/02/16 23:11:28  dennis
+ *  Improved choice of step size for approximating numerical derivatives.
+ *  More work remains to be done with this, but this is a first step.
+ *
  *  Revision 1.11  2004/03/15 23:53:49  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -208,9 +212,7 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
     double parameters_copy[] = getParameters();
     double old_a_val   = parameters_copy[i];
 
-    double da = Math.abs( DELTA * old_a_val );
-    if ( da < DELTA )
-      da = DELTA;
+    double da = ChooseInitialStepSize( old_a_val );
 
     parameters_copy[i] = old_a_val + da;
     setParameters( parameters_copy );
@@ -250,9 +252,7 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
     double parameters_copy[] = getParameters();
     double old_a_val   = parameters_copy[i];
 
-    double da = Math.abs( DELTA * old_a_val );
-    if ( da < DELTA )
-      da = DELTA;
+    double da = ChooseInitialStepSize( old_a_val );
 
     parameters_copy[i] = old_a_val + da;
     setParameters( parameters_copy );
