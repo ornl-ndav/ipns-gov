@@ -217,7 +217,7 @@ public class GSASTOFProfileFunction3 extends    OneVarParameterizedFunction
           throw new RuntimeException("!!!!!!Failed to call the GSAS Fortran subroutine epsvoigt().!!!!!!");
 
       if (i == 0)
-        return epsvoigtargs[5]; //diff(f, amplitude);
+        return epsvoigtargs[5]; //diff(f, scale_factor);
 //      else if (i == 1)
 //        return parameters[0] * epsvoigtargs[6];
       else if (i < 6)
@@ -298,8 +298,8 @@ public class GSASTOFProfileFunction3 extends    OneVarParameterizedFunction
 
       double scalef = 35060.83,
         tof0 = 25122.2,
-        alpha = 0.38545,
-        beta = 0.032,
+        alpha = 0.3,
+        beta = 0.03,
         sigmasqr = 426.24,
         gamma = 0,
         m = 0.,
