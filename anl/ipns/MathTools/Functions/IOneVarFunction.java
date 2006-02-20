@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/02/20 04:38:32  dennis
+ *  Changed delta for computing numerical derivatives from
+ *  1.0E-8 to 1.0E-5.
+ *
  *  Revision 1.6  2004/03/12 01:52:11  dennis
  *  Moved to package MathTools.Functions
  *
@@ -70,7 +74,7 @@ import gov.anl.ipns.Util.Numeric.*;
  */
 public interface IOneVarFunction extends IOneVariableFunction
 {
-  public static final double DELTA = 1.0E-8;  // step size used for evaluating
+  public static final double DELTA = 1.0E-5;  // step size used for evaluating
                                                // numerical derivatives
   public float    getValue( float x );
   public double   getValue( double x );
