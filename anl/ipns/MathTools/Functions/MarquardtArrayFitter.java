@@ -35,6 +35,23 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2006/02/20 05:04:53  dennis
+ *  Made several improvements to usability & robustness.
+ *  -- Iteration now stops when the maximum relative absolute change
+ *     in any parameter (or just absolute change, if the parameter is 0)
+ *     is less than the specified threshold.
+ *  -- If the calculated chisqr is infinite or NaN, an error message is
+ *     printed.  This can occur initially if the initial parameters are
+ *     such that the function cannot be evaluated due to overflow, or
+ *     division by 0.
+ *  -- Now checks if the calculated step in any parameter is NaN or
+ *     infinite, before taking that step.  If the step in any parameter
+ *     is invalid, the step will not be taken, but the adaptive parameter
+ *     lamda is just adjusted.
+ *  -- Now prints some basic information about the number of steps used,
+ *     the maximum relative change in a parameter and the value of lamda,
+ *     after the fit, for imformation purposes.
+ *
  *  Revision 1.15  2005/04/22 16:51:25  dennis
  *  Moved three remaining debug prints into "if (debug)" statement.
  *
@@ -134,7 +151,8 @@ public class MarquardtArrayFitter extends CurveFitter
    *  @param y          The list of y values
    *  @param sigma      The list of standard deviations for the data points.
    *                    The data points are weighted by 1/(sigma*sigma).
-   *  @param tolerance  When (norm_da/norm_a) < tolerance, the iteration will
+   *  @param tolerance  When the maximun relative change of any parameter is
+   *                    less than the specified tolerance, the iteration will
    *                    stop.
    *  @param max_steps  When the number of iterations hits max_steps, the 
    *                    interation will stop. 
@@ -285,7 +303,8 @@ public class MarquardtArrayFitter extends CurveFitter
     double chisq_1 = 0;
     double chisq_2 = 0;
     boolean chisq_increasing;
-    double  norm_da = tolerance + 1;
+    double  norm_da = 0;
+    double  max_relative_change = tolerance + 1;
     double  norm_a  = 1;
     double  w_diff_i;                                // weighted difference at
                                                      // at the ith data point
@@ -311,7 +330,10 @@ public class MarquardtArrayFitter extends CurveFitter
         weights[i] = 1.0/(sigma[i]*sigma[i]);
 
     chisq_1 = getChiSqr();
-    while ( n_steps < max_steps && norm_da/norm_a > tolerance )
+    if ( Double.isNaN( chisq_1 ) || Double.isInfinite( chisq_1 ) )
+      System.out.println("ERROR: MarquardtFitter chisq_1 = " + chisq_1 );
+
+    while ( n_steps < max_steps && max_relative_change > tolerance )
     {
                                                       // calculate vector beta
       for ( int k = 0; k < n_params; k++ )            // and matrix A
@@ -328,24 +350,6 @@ public class MarquardtArrayFitter extends CurveFitter
       {
         derivs[k] = f.get_dFdai(x,k);      // get derivatives at all "x" points
                                            // with respect to kth parameter
-        if ( debug )
-        {
-          boolean all_zero = true;
-          int i = 0;
-          while (all_zero && i < n_points )
-          { 
-            if ( derivs[k][i] != 0 )
-              all_zero = false;
-            i++;
-          }
-          if ( all_zero )
-          {
-            System.out.println( "ERROR: all derivs 0 WRT parameter #" + k );
-            System.out.println( "a, a_old, da = " + a[k] + ", " 
-                                                  + a_old[k] + ", " 
-                                                  + da[k] );
-          }
-        }
       }
 
       for ( int i = 0; i < n_points; i++ )            // sum over points x[i]
@@ -389,25 +393,36 @@ public class MarquardtArrayFitter extends CurveFitter
           da[k] /= root_diag[k];
 
         norm_da = LinearAlgebra.norm(da);
-
-        for ( int k = 0; k < n_params; k++ )
-          a[k] = a_old[k] + da[k];
-        f.setParameters(a);
-        
-        chisq_2 = getChiSqr();
-        if ( chisq_2 > chisq_1 )
-        {
+        if ( Double.isNaN     ( norm_da ) || 
+             Double.isInfinite( norm_da ) )  // da FAILED...so don't change
+        {                                    // parameters, but increase lamda
           lamda *= 10;
-          for ( int i = 0; i < n_params; i++ )
-            a[i] = a_old[i];
-          f.setParameters(a);
         }
-        else
+        else                                 // try changing params by da
         {
-          lamda /= 10;
-          chisq_increasing = false;
-          chisq_1 = chisq_2;
-        }        
+          for ( int k = 0; k < n_params; k++ )
+            a[k] = a_old[k] + da[k];
+          f.setParameters(a);
+        
+          chisq_2 = getChiSqr();
+          if ( Double.isNaN( chisq_2 ) || Double.isInfinite( chisq_2 ) )
+            System.out.println("ERROR: MarquardtFitter chisq_2 = " + chisq_2 );
+
+          if ( chisq_2 > chisq_1 )           // chisq got worse, so backup
+          {                                  // and increase lamda
+            lamda *= 10;
+            for ( int i = 0; i < n_params; i++ )
+              a[i] = a_old[i];
+            f.setParameters(a);
+          }
+          else                              // chisq got better so keep 
+          {                                 // change and decrease lamda
+            lamda /= 10;
+            chisq_increasing = false;
+            chisq_1 = chisq_2;
+            max_relative_change = MaxRelativeParameterChange( da, a );
+          }        
+        }
         n_steps++;
       }
       if ( debug )
@@ -416,11 +431,12 @@ public class MarquardtArrayFitter extends CurveFitter
                                                 lamda );
     }
 
+    System.out.println("After Marquardt Fit Process ......................");
+    System.out.println("n_steps taken  = " + n_steps );
+    System.out.println("max_rel_change = " + max_relative_change );
+    System.out.println("adaptive lamda = " + lamda );
     if ( debug )
     {
-      System.out.println("After fit ..............................");
-      System.out.println("n_steps = " + n_steps );
-      System.out.println("lamda = " + lamda );
       System.out.println("........................................");
       System.out.println("A[k][k],    Alpha[k][k],   u[k][k] =");
       for ( int k = 0; k < n_params; k++ )
