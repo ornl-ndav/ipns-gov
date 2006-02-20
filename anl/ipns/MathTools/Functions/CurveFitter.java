@@ -28,6 +28,13 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.6  2006/02/20 04:41:40  dennis
+ * Added method: MaxRelativeParameterChange( da[], a[] ) to calculate
+ * the maximum relative absolute change in a parameter during the
+ * curve fitting process.  This allows setting a more meaningful
+ * stopping criterion...stop when the maximum change in any parameter
+ * during an optimization step is less than a specified tolerance.
+ *
  * Revision 1.5  2004/03/19 17:24:25  dennis
  * Removed unused variables
  *
@@ -76,6 +83,7 @@ abstract public class CurveFitter implements ICurveFitter
         weights[i] = 1.0/(sigma[i]*sigma[i]);
   } 
 
+
   /**
    *  Get the function whose parameters were adjusted by this CurveFitter
    *  object.
@@ -87,7 +95,9 @@ abstract public class CurveFitter implements ICurveFitter
     return f;
   }
 
+
   abstract public double[] getParameterSigmas();
+
 
   public double getWeightedChiSqr()
   {
@@ -110,6 +120,7 @@ abstract public class CurveFitter implements ICurveFitter
     return sum/n_free;
   }
 
+
   public double getChiSqr()
   {
     double diff;
@@ -121,6 +132,43 @@ abstract public class CurveFitter implements ICurveFitter
       sum += diff * diff * weights[i];
     }
     return sum;
+  }
+
+
+  /**
+   *  Calculate the maximum relative change in the parameters:
+   *  max( |da[i]/a[i]| ).  If a[i] is zero, |da[i]| is used.
+   *  
+   *  @param da   array of changes in the parameter values
+   *  @param a    array of parameter values
+   *  
+   *  @return  The maximum of the quantities |da[i]/a[i]| or |da[i]| if
+   *  a[i] is zero.  If the arrays are null, of zero length or of unequal
+   *  length, a -1 is returned.
+   */
+  public static double MaxRelativeParameterChange( double da[], double a[] )
+  {
+    double max_change = -1;
+    if ( da == null || a == null ||
+         da.length < 1 || da.length != a.length )
+      return max_change;
+
+    double change;
+    double mag_param;
+    double mag_delta;
+    for ( int i = 0; i < a.length; i++ )
+    {
+      mag_param = Math.abs(  a[i] );
+      mag_delta = Math.abs( da[i] );
+      if ( mag_param == 0 )
+        change = mag_delta;
+      else 
+        change = mag_delta/mag_param;
+
+      if ( change > max_change )
+        max_change = change;
+    } 
+    return max_change;
   }
 
 }
