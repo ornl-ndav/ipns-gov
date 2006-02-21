@@ -35,6 +35,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2006/02/21 04:05:56  dennis
+ *  Removed two informational prints.  In case a calculated
+ *  chi squared value is NaN or infinite, the step is just quietly
+ *  undone, and the control parameter is adjusted.
+ *
  *  Revision 1.16  2006/02/20 05:04:53  dennis
  *  Made several improvements to usability & robustness.
  *  -- Iteration now stops when the maximum relative absolute change
@@ -405,10 +410,10 @@ public class MarquardtArrayFitter extends CurveFitter
           f.setParameters(a);
         
           chisq_2 = getChiSqr();
-          if ( Double.isNaN( chisq_2 ) || Double.isInfinite( chisq_2 ) )
-            System.out.println("ERROR: MarquardtFitter chisq_2 = " + chisq_2 );
 
-          if ( chisq_2 > chisq_1 )           // chisq got worse, so backup
+          if ( Double.isNaN( chisq_2 )      || 
+               Double.isInfinite( chisq_2 ) || 
+               chisq_2 > chisq_1 )           // chisq got worse, so backup
           {                                  // and increase lamda
             lamda *= 10;
             for ( int i = 0; i < n_params; i++ )
