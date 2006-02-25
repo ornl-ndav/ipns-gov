@@ -237,10 +237,10 @@ public class GSASTOFProfileFunction1 extends    OneVarParameterizedFunction
       double derivs[] = new double[ x.length ];
       double x_min = domain.getStart_x();
 
-      if ( i < 6 )      
+      if ( i < 5 )      
         for ( int k = 0; k < x.length; k++ ) 
           derivs[k] = get_dFdai(x[k], i); 
-      else if ( i == 6 )      
+      else if ( i == 5 )      
         for ( int k = 0; k < x.length; k++ ) 
           derivs[k] = x[k] - x_min;
       else
