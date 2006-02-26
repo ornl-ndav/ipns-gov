@@ -35,6 +35,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2006/02/26 04:19:57  dennis
+ *  -Made DoFit() public.
+ *  -Moved getResultsString() up to the base class.
+ *  -Removed some informational prints giving the number of steps
+ *   and max_relative_change after the fit.
+ *  -Now uses n_steps and max_relative_change from the base class, so
+ *   these values can be obtained for informational purposes after
+ *   the fit is complete.
+ *
  *  Revision 1.17  2006/02/21 04:05:56  dennis
  *  Removed two informational prints.  In case a calculated
  *  chi squared value is NaN or infinite, the step is just quietly
@@ -171,29 +180,9 @@ public class MarquardtArrayFitter extends CurveFitter
                                int    max_steps ) 
   {
     super( function, x, y, sigma );
-    do_fit( tolerance, max_steps );
+    DoFit( tolerance, max_steps );
   } 
 
-
-  /**
-   *  Return a formatted, multi-line String containing the results of the 
-   *  fitting calculation, with error estimates on the fitted parameters.
-   */
-  public String getResultsString()
-  {
-    StringBuffer result = new StringBuffer();
-    String names[]    = f.getParameterNames();
-    double coefs[]    = f.getParameters();
-    double p_sigmas[] = getParameterSigmas();
-    for ( int i = 0; i < names.length; i++ )
-    {
-      result.append( Format.string(names[i],17)  );
-      result.append( Format.real(coefs[i],20,9) + "  +-" );
-      result.append( Format.real(p_sigmas[i], 20,9) );
-      result.append( "\n" );
-    }
-    return result.toString();
-  }
 
   /**
    *  Get estimates of the standard deviations of the parameters, as
@@ -295,21 +284,31 @@ public class MarquardtArrayFitter extends CurveFitter
     return p_sigmas;
   }
 
-  /*
-   *  Carry out Marquardt's method to do the fit.
+
+  /**
+   *  Carry out additional steps of Marquardt's method to do the fit.  The
+   *  iteration will stop when the maximum relative change in any parameter
+   *  is less than the specified tolerance, or when the specified maximum
+   *  number of steps have been taken.  The results of doing the fit are
+   *  available by getting the parameters from the function and by using 
+   *  other methods in the class.  Note: this method may be called multiple
+   *  times, to continue iterating from the point the iteration previously
+   *  terminated.
+   *
+   *  @param  tolerance   The tolerance on the maximum relative change in
+   *                      in any parameter
+   *  @param  max_steps   The maximum number of steps to take 
    */
 
-  private void do_fit( double tolerance, int max_steps )
+  public void DoFit( double tolerance, int max_steps )
   {
     boolean debug = false;                          // set true for some debug
                                                     // messages.
     double lamda   = 0.001;
-    int    n_steps = 0;
     double chisq_1 = 0;
     double chisq_2 = 0;
     boolean chisq_increasing;
     double  norm_da = 0;
-    double  max_relative_change = tolerance + 1;
     double  norm_a  = 1;
     double  w_diff_i;                                // weighted difference at
                                                      // at the ith data point
@@ -325,6 +324,9 @@ public class MarquardtArrayFitter extends CurveFitter
     Alpha            = new double[n_params][n_params];
     root_diag        = new double[n_params];
 
+    n_steps = 0;                                      // reset the quantities
+    max_relative_change = tolerance + 1;              // used as stopping 
+                                                      // criteria
     ClosedInterval domain = f.getDomain();
     float x_min = domain.getStart_x();
     float x_max = domain.getEnd_x();
@@ -436,12 +438,13 @@ public class MarquardtArrayFitter extends CurveFitter
                                                 lamda );
     }
 
-    System.out.println("After Marquardt Fit Process ......................");
-    System.out.println("n_steps taken  = " + n_steps );
-    System.out.println("max_rel_change = " + max_relative_change );
-    System.out.println("adaptive lamda = " + lamda );
     if ( debug )
     {
+      System.out.println("After Marquardt Fit Process ......................");
+      System.out.println("n_steps taken  = " + n_steps );
+      System.out.println("max_rel_change = " + max_relative_change );
+      System.out.println("adaptive lamda = " + lamda );
+    
       System.out.println("........................................");
       System.out.println("A[k][k],    Alpha[k][k],   u[k][k] =");
       for ( int k = 0; k < n_params; k++ )
