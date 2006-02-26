@@ -28,6 +28,19 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.7  2006/02/26 04:14:22  dennis
+ * Moved some capabilities from the derived class, MarquardtArrayFitter,
+ * into this abstract base class, so that they could be shared by other
+ * derived classes in the future.  Specifically:
+ * - Moved getResultsString() to base class
+ * - Moved counter "n_steps" and "max_relative_change" to base class
+ *   and added methods getNumStepsTaken() and getMaxParameterChange().
+ *   This will allow access to this information after the fit has been
+ *   calculated, so that informational prints will not be needed.
+ * - Made DoFit( tolerance, max_steps ) a public method, so that the
+ *   fit can be restarted from the point it reached last.
+ * - Added more documentation.
+ *
  * Revision 1.6  2006/02/20 04:41:40  dennis
  * Added method: MaxRelativeParameterChange( da[], a[] ) to calculate
  * the maximum relative absolute change in a parameter during the
@@ -48,15 +61,34 @@
 
 package gov.anl.ipns.MathTools.Functions;
 
+import gov.anl.ipns.Util.Numeric.*;
 
+
+/**
+ *  This is an abstract base class for classes that fit a 
+ *  IOneVarParameterizedFunction to a set of measured points (x[i], y[i])
+ *  with specified standard deviations in the y values.   
+ */
 abstract public class CurveFitter implements ICurveFitter
 {
-  protected IOneVarParameterizedFunction f;
+  protected IOneVarParameterizedFunction f;  // function being fit to 
+                                             // the data
 
-  protected double x[],
-                   y[],
-                   sigma[],
-                   weights[];
+  protected double x[],                      // x,y data being fit
+                   y[];
+
+  protected double sigma[];                // list of standard deviations for
+                                           // the data points.  The data points
+                                           // are weighted by 1/(sigma*sigma)
+
+  protected double weights[];
+
+  protected int    n_steps;               // counter for number of steps taken
+                                          // set by derived classes
+
+  protected double  max_relative_change;  // largest relative change in any
+                                          // parameter, set by derived classes
+
 
   /**
    *  Construct a curve fitter object to adjust the parameters for the
@@ -96,9 +128,37 @@ abstract public class CurveFitter implements ICurveFitter
   }
 
 
+  /**
+   *  Carry out additional steps of the fit method.  The iteration will stop 
+   *  when a tolerance criterion is satisfied, or when the specified maximum
+   *  number of steps have been taken.  The results of doing the fit are
+   *  available by getting the parameters from the function and by using 
+   *  other methods in the class.  Note: this method may be called multiple
+   *  times, to continue iterating from the point the iteration previously
+   *  terminated.
+   *
+   *  @param  tolerance   The tolerance bound to meet 
+   *  @param  max_steps   The maximum number of steps to take 
+   */
+  abstract public void DoFit( double tolerance, int max_steps );
+
+
+  /**
+   *  Get estimate of the uncertainties in the parameters, after the last
+   *  step of the fit process.
+   *
+   *  @return  estimate of the uncertainties in the parameters. 
+   */
   abstract public double[] getParameterSigmas();
 
 
+  /**
+   *  Calculate the weighted sum of the squares of the errors divided by the
+   *  number of free parameters, after the last step of the fit process.
+   *
+   *  @return  The sum of the squares of the errors in the fit, multiplied
+   *           by the weights of the points after the last call to DoFit.
+   */
   public double getWeightedChiSqr()
   {
     double diff;
@@ -121,6 +181,13 @@ abstract public class CurveFitter implements ICurveFitter
   }
 
 
+  /**
+   *  Calculate the weighted sum of the squares of the errors after the
+   *  last step of the fit process.
+   *
+   *  @return  The sum of the squares of the errors in the fit, multiplied
+   *           by the weights of the points after the last call to DoFit.
+   */
   public double getChiSqr()
   {
     double diff;
@@ -132,6 +199,56 @@ abstract public class CurveFitter implements ICurveFitter
       sum += diff * diff * weights[i];
     }
     return sum;
+  }
+
+
+  /**
+   *  Get the maximum relative change in any parameter during the last step
+   *  of the fit.
+   *
+   *  @return  The last value calculated for the maximum relative change
+   *           of any paramter during the last call to the DoFit method.
+   */
+  public double getMaxParameterChange()
+  {
+    return max_relative_change;
+  }
+
+
+  /**
+   *  Get the number of steps taken during the last attempt to do the
+   *  fit.
+   *
+   *  @return  The last value of the step counter during the last call 
+   *           to the DoFit method.
+   */
+  public double getNumStepsTaken()
+  {
+    return n_steps;
+  }
+
+
+  /**
+   *  Convenience method to form  a formatted, multi-line String containing 
+   *  the results of the fitting calculation, with error estimates on the 
+   *  fitted parameters.
+   *  
+   *  @return a multi-line string containing a summary of the fit.
+   */
+  public String getResultsString()
+  {
+    StringBuffer result = new StringBuffer();
+    String names[]    = f.getParameterNames();
+    double coefs[]    = f.getParameters();
+    double p_sigmas[] = getParameterSigmas();
+    for ( int i = 0; i < names.length; i++ )
+    {
+      result.append( Format.string(names[i],17)  );
+      result.append( Format.real(coefs[i],20,9) + "  +-" );
+      result.append( Format.real(p_sigmas[i], 20,9) );
+      result.append( "\n" );
+    }
+    return result.toString();
   }
 
 
