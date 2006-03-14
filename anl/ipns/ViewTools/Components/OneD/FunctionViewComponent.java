@@ -33,15 +33,25 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.79  2006/02/05 23:53:39  amoe
- *  Previous 1.78 is log incorrect.  Here is the correct log:
+ *  Revision 1.80  2006/03/14 22:08:16  dennis
+ *  Undid the default setting of Shift to "Diagonal", since most uses of
+ *  this component require the graphs be "Overlaid".  (Tom Worlton)
  *
- *  -Added code to dataChanged() so that the legend would refresh when new spectra are selected.
- *  -Edited code that sets the Shift ViewControl to "Diagonal", to use a public static final int variable in FunctionControls when muliple spectra are selected.
+ *
+ *  Revision 1.79  2006/02/05 23:53:39  amoe
+ *
+ *  Previous 1.78 is log incorrect.  Here is the correct log:
+ *  -Added code to dataChanged() so that the legend would refresh when 
+ *   new spectra are selected.
+ *  -Edited code that sets the Shift ViewControl to "Diagonal", to use a 
+ *   public static final int variable in FunctionControls when muliple 
+ *   spectra are selected.
  *
  *  Revision 1.78  2006/02/05 20:20:21  amoe
- *  -Added code to dataChanged() so that the legend would refresh when new spectra are selected.
- *  -Modified control_list initialization to use static final int variables instead of int numbers.
+ *  -Added code to dataChanged() so that the legend would refresh when new
+ *   spectra are selected.
+ *  -Modified control_list initialization to use static final int variables 
+ *   instead of int numbers.
  *
  *  Revision 1.77  2006/01/05 20:34:43  rmikk
  *  Initialized the SHIFT value on the SHIFT control
@@ -496,17 +506,18 @@ public class FunctionViewComponent implements IViewComponent1D,
       if(Varray1D.getNumSelectedGraphs() > 1)
       {
 
-    	  //Retrieving viewcontrol list and setting the Shift type to 0 (Diagonal)
-    	  //This is set to Diagonal because this is how it is displayed below    	  
+    	  //Retrieving viewcontrol list 
     	  ViewControl[] vcontrol = mainControls.getControlList();
     	  
-    	  vcontrol[FunctionControls.VC_SHIFT].setControlValue(new Integer(0));
+          // Comment out the switch to diagonal shift of spectra
+          //vcontrol[FunctionControls.VC_SHIFT].setControlValue(new Integer(0));
     	  
     	  /* 
     	  System.out.println("TITLE\tCONT-VALUE");    	  
     	  for(int a = 0;a<vcontrol.length;a++)
     	  {
-    		  System.out.println("["+a+"] ." + vcontrol[a].getTitle() + ".\t" + vcontrol[a].getControlValue());
+            System.out.println("["+a+"] ." + vcontrol[a].getTitle() + 
+                               ".\t" + vcontrol[a].getControlValue());
     	  }*/     	  
     	  
     	  gjp.setMultiplotOffsets((int)(20 ),
