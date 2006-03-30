@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2006/03/30 23:56:35  dennis
+ *  Made some improvements to the clarity of the code.
+ *  Getting or setting a region is now done using calls to
+ *  methods to get or set partial rows.
+ *  This is now a bit more robust if used with ragged arrays.
+ *  Ragged arrays are NOT fully supported yet, but don't
+ *  immediatlely break things.
+ *
  *  Revision 1.15  2004/09/15 21:55:44  millermi
  *  - Updated LINEAR, TRU_LOG, and PSEUDO_LOG setting for AxisInfo class.
  *    Adding a second log required the boolean parameter to be changed
@@ -108,7 +116,7 @@ import gov.anl.ipns.Util.Sys.SharedMessages;
  * are numbered 0 - M-1 and the columns are numbered 0 - N-1. 
  */
 
-public class VirtualArray2D implements IVirtualArray2D
+public class VirtualArray2D implements IMutableVirtualArray2D
 {
   // data members
   private float[][] dataArray;
@@ -121,6 +129,7 @@ public class VirtualArray2D implements IVirtualArray2D
   private float[][] errorArray;      // array of error values.
   private boolean errors_set;        // has setErrors() method been called.
   private boolean use_sqrt;          // should square-root errors be used.
+
    
  /**
   * Constructor that allows the user to enter dimensions M,N and
@@ -148,6 +157,7 @@ public class VirtualArray2D implements IVirtualArray2D
     title = NO_TITLE;
   }
 
+
  /**
   * Constructor that allows the user to pass in a 2D array of float
   * to be made into a new virtual array.
@@ -156,9 +166,22 @@ public class VirtualArray2D implements IVirtualArray2D
   */  
   public VirtualArray2D( float[][] array2d )
   {
-    dataArray = array2d;
-    num_columns = array2d[0].length;
-    num_rows = array2d.length;
+    if ( array2d           == null  ||
+         array2d.length    <= 0     ||
+         array2d[0]        == null  || 
+         array2d[0].length <= 0      )
+    {
+      dataArray = new float[0][0];
+      num_rows = 0;
+      num_columns = 0;
+    }
+    else
+    {
+      dataArray = array2d;
+      num_columns = array2d[0].length;
+      num_rows = array2d.length;
+    }
+
     errors_set = false;
     use_sqrt = false;
     rowinfo = new AxisInfo(0, 1, AxisInfo.NO_LABEL,
@@ -169,6 +192,7 @@ public class VirtualArray2D implements IVirtualArray2D
                             AxisInfo.NO_UNITS, AxisInfo.LINEAR);
     title = NO_TITLE;
   }
+
 
  /**
   * Constructor that allows the user to pass in a 2D array of float
@@ -185,6 +209,7 @@ public class VirtualArray2D implements IVirtualArray2D
     this(array2d);
     setErrors(errs);
   }	 
+
 
 /* 
  * The following methods allow the user to attach meaningful discription
@@ -210,6 +235,7 @@ public class VirtualArray2D implements IVirtualArray2D
       return colinfo;
     return datainfo;
   }
+
   
  /**
   * Sets the attributes of the data array within a AxisInfo wrapper.
@@ -233,6 +259,7 @@ public class VirtualArray2D implements IVirtualArray2D
     else
       datainfo = new AxisInfo(min,max,label,units, scale);
   } 
+
   
  /**
   * Sets the attributes of the data array within a AxisInfo wrapper.
@@ -251,6 +278,7 @@ public class VirtualArray2D implements IVirtualArray2D
     else
       datainfo = info.copy();
   } 
+
   
  /**
   * This method will return the title assigned to the data. 
@@ -261,6 +289,7 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     return title;
   }
+
   
  /**
   * This method will assign a title to the data. 
@@ -271,6 +300,7 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     title = ptitle;
   }
+
   
  /**
   * Get value for a single array element. If row or column exceeds the array,
@@ -285,7 +315,8 @@ public class VirtualArray2D implements IVirtualArray2D
   */ 
   public float getDataValue( int row, int column )
   {
-    if( row < num_rows && column < num_columns && row >= 0 && column >= 0)
+    if(    row >= 0  &&     row < num_rows   && 
+        column >= 0  &&  column < dataArray[row].length )
       return dataArray[row][column];
     else
     {
@@ -294,6 +325,7 @@ public class VirtualArray2D implements IVirtualArray2D
       return Float.NaN;
     }
   }  
+
   
  /**
   * Set value for a single array element.
@@ -304,7 +336,8 @@ public class VirtualArray2D implements IVirtualArray2D
   */
   public void setDataValue( int row, int column, float value )
   {
-    if( row < num_rows && column < num_columns && row >= 0 && column >= 0)
+    if(    row >= 0  &&     row < num_rows   &&
+        column >= 0  &&  column < dataArray[row].length )
       dataArray[row][column] = value;
     else
     {
@@ -313,6 +346,7 @@ public class VirtualArray2D implements IVirtualArray2D
       return;
     }
   }
+
 
  /**
   * Get values for a portion or all of a row.
@@ -330,6 +364,13 @@ public class VirtualArray2D implements IVirtualArray2D
   */
   public float[] getRowValues( int row, int from, int to )
   {
+    if ( row < 0 || row >= num_rows )
+    {
+      SharedMessages.addmsg("Warning - invalid row " +
+                            "selection in getRowValues()");
+      return new float[0];
+    }  
+
     if( from > to )
     {
       // swap them
@@ -338,36 +379,31 @@ public class VirtualArray2D implements IVirtualArray2D
       to = from;
       from = temp;
     }	   
-    if( from >= num_columns || to < 0 )
+
+    if( from >= dataArray[row].length || to < 0 )
     {  
       SharedMessages.addmsg("Warning - bound exceeds array in getRowValues()");
       return new float[0];
     }
+
     if( from < 0 )
       from = 0;
-    if( to >= num_columns )
-      to = num_columns - 1;
-    if( row < num_rows && row >= 0 )
+
+    if( to >= dataArray[row].length )
+      to = dataArray[row].length - 1;
+
+    float[] value = new float[(to - from + 1)];
+    int i = 0;
+    while( from <= to )
     {
-      float[] value = new float[(to - from + 1)];
-      int i = 0;
-      while( from != to + 1 )
-      {
-        value[i] = dataArray[row][from];
-        i++;
-        from++;
-      }
-      return value;
+      value[i] = dataArray[row][from];
+      i++;
+      from++;
     }
-    else
-    {  
-      SharedMessages.addmsg("Warning - invalid row " +
-                            "selection in getRowValues()");
-      return new float[0];
-    }
-       
+    return value;
   }	   
   
+
  /**
   * Set values for a portion or all of a row.
   * The "from" and "to" values must be direct array reference, i.e.
@@ -381,26 +417,26 @@ public class VirtualArray2D implements IVirtualArray2D
   */
   public void setRowValues( float[] values, int row, int start )
   {
-    if( (start + values.length) > num_columns )  
-      SharedMessages.addmsg("Warning - bound exceeds array in setRowValues()");
-    if( row < num_rows && row >= 0 )
+    if ( row < 0 || row >= num_rows )
     {
-      int i = 0;
-      while( i < values.length && start < num_columns)
-      {
-        dataArray[row][start] = values[i];
-        i++;
-        start++;
-      }
-    }
-    else
-    {  
       SharedMessages.addmsg("Warning - invalid row " +
                             "selection in setRowValues()");
       return;
-    } 
+    }
+
+    if( (start + values.length) > dataArray[row].length )  
+      SharedMessages.addmsg("Warning - bound exceeds array in setRowValues()");
+
+    int i = 0;
+    while( i < values.length && start < dataArray[row].length )
+    {
+      dataArray[row][start] = values[i];
+      i++;
+      start++;
+    }
   }	   
    
+
  /**
   * Get values for a portion or all of a column.
   * The "from" and "to" values must be direct array reference, i.e.
@@ -454,6 +490,7 @@ public class VirtualArray2D implements IVirtualArray2D
       return new float[0];
     }
   }
+
   
  /**
   * Set values for a portion or all of a column.
@@ -490,6 +527,7 @@ public class VirtualArray2D implements IVirtualArray2D
       return;
     }
   }
+
   
  /**
   * Set all values in the array to a value. This method will usually
@@ -499,11 +537,12 @@ public class VirtualArray2D implements IVirtualArray2D
   */
   public void setAllValues( float value )
   {
-    for( int col = 0; col < num_rows; col++ )
-      for( int row = 0; row < num_columns; row++ )
-        dataArray[col][row] = value;
+    for( int row = 0; row < num_rows; row++ )
+      for( int col = 0; col < dataArray[row].length; col++ )
+        dataArray[row][col] = value;
   }
   
+
  /**
   * Returns the values in the specified region.
   * The vertical dimensions of the region are specified by starting 
@@ -580,14 +619,13 @@ public class VirtualArray2D implements IVirtualArray2D
    /* 
     * This portion will not be done if the whole array is asked for.
     */
-    float[][] region = 
-           new float[(row_stop - row_start + 1)][(col_stop - col_start + 1)];
-    for( int row = 0; row < (row_stop - row_start + 1); row++ )
-      for( int col = 0; col < (col_stop - col_start + 1); col++ )
-   	region[row][col] = dataArray[row+row_start][col+col_start];
+    float[][] region = new float[(row_stop - row_start + 1)][];
+    for( int row = 0; row < region.length; row++ )
+      region[row] = getRowValues( row + row_start, col_start, col_stop );
 
     return region;
   }
+
      
  /**  
   * Sets values for a specified rectangular region. This method takes 
@@ -606,25 +644,24 @@ public class VirtualArray2D implements IVirtualArray2D
       SharedMessages.addmsg("Warning - bound exceeds array " + 
     					       "in getColumnValues()");
     }
+
     if( row_start < 0 )
       row_start = 0;
+
     if( col_start < 0 )
       col_start = 0;
-    int row = 0;
-    int col = 0;
+
     // allows user to choose values exceeding the array bounds, but only
     // changes values of legal positions
+
+    int row = 0;
     while( row < values.length && (row+row_start) < num_rows )
     {
-      while( col < values[0].length && (col+col_start) < num_columns )
-      {
-        dataArray[row+row_start][col+col_start] = values[row][col];
-        col++;
-      }
-      col = 0;
+      setRowValues( values[row], row + row_start, col_start );
       row++;
     }
   }
+
   
  /**
   * Returns number of rows in the array.
@@ -635,6 +672,7 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     return num_rows;
   }
+
   
  /**
   * Returns number of columns in the array.
@@ -645,6 +683,7 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     return num_columns;
   }
+
   
  /**
   * Convenience method for getting the dimension of the VirtualArray2D.
@@ -655,6 +694,7 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     return 2;
   }
+
   
  /**
   * Set the error values that correspond to the data. The dimensions of the
@@ -704,6 +744,7 @@ public class VirtualArray2D implements IVirtualArray2D
       return false;
     }
   }
+
   
  /**
   * Get the error values corresponding to the data. setSquareRootErrors(true)
@@ -739,6 +780,7 @@ public class VirtualArray2D implements IVirtualArray2D
     // if neither use_sqrt nor errors_set, return null.
     return null;
   }
+
   
  /**
   * Use this method to specify whether to use error values that were passed
@@ -751,6 +793,7 @@ public class VirtualArray2D implements IVirtualArray2D
   {
     use_sqrt = use_sqrt_errs;
   }
+
  
  /**
   * Get an error value for a given row and column. Returns Float.NaN if
@@ -776,6 +819,7 @@ public class VirtualArray2D implements IVirtualArray2D
     // if neither use_sqrt or errors_set, then return NaN
     return Float.NaN;
   }
+
   
  /*
   * MAIN - Basic main program to test the VirtualArray2D class
