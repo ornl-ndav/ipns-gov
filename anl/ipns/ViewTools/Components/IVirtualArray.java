@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/03/30 23:57:55  dennis
+ *  Modified to not require the use of mutator methods for the
+ *  virtual arrays.  These changes were required since the concept
+ *  of a "mutable" virtual array was separated from the concept of
+ *  a virtual array.
+ *
  *  Revision 1.5  2005/06/01 22:20:52  dennis
  *  Moved setAxisInfo( axis, info ) to this interface, from the
  *  IVirtualArray2D interface, since all virtual arrays should
@@ -56,14 +62,20 @@
  *
  */
  
- package gov.anl.ipns.ViewTools.Components;
+package gov.anl.ipns.ViewTools.Components;
 
 /**
- * This interface defines all other IVirtualArrayxD interfaces. Common
- * functionality is grouped here to make polymorphism possible. 
+ * This interface defines methods common to all virtual arrays, whether or
+ * not the values of the virtual array can be changed.  In many cases a 
+ * virtual array interface will be implemented by a class that wraps a
+ * data extraction or data production process.  The values are derived and
+ * cannot be directly altered.  IF it is meaningful to set values in a
+ * virtual array, then a "Mutable" virtual array interface should be 
+ * implemented.
  */
 public interface IVirtualArray
 {  
+
  /**
   * "No Title" - This String is used to specify that no title was assigned
   * to the data. 
@@ -83,15 +95,7 @@ public interface IVirtualArray
   *  @param  title - title describing the data
   */
   public void setTitle( String title );
-      
- /**
-  * Set all values in the array to a value. This method will usually
-  * serve to "initialize" or zero out the array. 
-  *
-  *  @param  value - single value used to set all other values in the array
-  */
-  public void setAllValues( float value );
- 
+
  /**
   * Gets the dimension of the VirtualArray. For example, IVirtualArray1D = 1,
   * IVirtualArray2D = 2.
@@ -109,7 +113,6 @@ public interface IVirtualArray
   *  @see    gov.anl.ipns.ViewTools.Components.AxisInfo
   */
   public AxisInfo getAxisInfo( int axis );
-
 
  /**
   * Sets the attributes of the data array within a AxisInfo wrapper.

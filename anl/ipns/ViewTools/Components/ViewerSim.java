@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2006/03/30 23:57:56  dennis
+ *  Modified to not require the use of mutator methods for the
+ *  virtual arrays.  These changes were required since the concept
+ *  of a "mutable" virtual array was separated from the concept of
+ *  a virtual array.
+ *
  *  Revision 1.12  2005/06/02 22:31:21  dennis
  *  Modified to only use IVirtualArray2D methods after creating a
  *  VirtualArray2D object.
@@ -217,30 +223,31 @@ public class ViewerSim
    public static void main( String args[] ) 
    {
       // *** test ImageViewComponent ***
-      int col = 250;
-      int row = 250;	
+      int n_cols = 250;
+      int n_rows = 250;	
       //Make a sample 2D array
-      IVirtualArray2D va2D = new VirtualArray2D(row, col); 
+
+      float arr[][] = new float[ n_rows ][ n_cols ];
+      for(int i = 0; i < n_rows; i++)
+      {
+         for(int j = 0; j < n_cols; j++)
+         {
+            if ( i % 25 == 0 )
+               arr[i][j] = i*n_cols; 
+            else if ( j % 25 == 0 )
+               arr[i][j] = j*n_rows; 
+            else
+               arr[i][j] = i*j;
+         }
+      }
+
+      IVirtualArray2D va2D = new VirtualArray2D( arr ); 
       va2D.setAxisInfo( AxisInfo.X_AXIS, .001f, .1f, 
                            "TestX","TestUnits", AxisInfo.LINEAR );
       va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, -1f, 
                             "TestY","TestYUnits", AxisInfo.LINEAR );
       va2D.setTitle("Main Test");
-      //Fill the 2D array with the function x*y
-      float ftemp;
-      for(int i = 0; i < row; i++)
-      {
-         for(int j = 0; j < col; j++)
-         {
-            ftemp = i*j;
-            if ( i % 25 == 0 )
-	       va2D.setDataValue(i, j, i*col); //put float into va2D
-            else if ( j % 25 == 0 )
-	       va2D.setDataValue(i, j, j*row); //put float into va2D
-            else
-	       va2D.setDataValue(i, j, ftemp); //put float into va2D
-	 }
-      }
+      
       ImageViewComponent livc = new ImageViewComponent(va2D);
       
       ViewerSim viewer = new ViewerSim(livc);

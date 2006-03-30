@@ -34,7 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.35  2006/03/30 23:58:00  dennis
+ *  Modified to not require the use of mutator methods for the
+ *  virtual arrays.  These changes were required since the concept
+ *  of a "mutable" virtual array was separated from the concept of
+ *  a virtual array.
+ *
  *  Revision 1.34  2005/07/25 20:19:41  kramer
+ *
  *  Now the ColorScaleListener checks if it has recieved a COLORSCALE_CHANGED
  *  message before typcasting the events source to a IColorScaleAddible.
  *
@@ -864,30 +871,26 @@ public class ControlColorScale extends ViewControl
   */
   public static void main(String[] args)
   {	 
-    int col = 250;
-    int row = 250;    
+    int n_cols = 250;
+    int n_rows = 250;
     //Make a sample 2D array
-    IVirtualArray2D va2D = new VirtualArray2D(row, col); 
-    va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, .0001f, 
- 			 "TestX","TestUnits", AxisInfo.LINEAR );
-    va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, .001f, 
- 			  "TestY","TestYUnits", AxisInfo.LINEAR );
-    va2D.setTitle("Main Test");
-    //Fill the 2D array with the function x*y
-    float ftemp;
-    for(int i = 0; i < row; i++)
+
+    float arr[][] = new float[ n_rows ][ n_cols ];
+    for(int i = 0; i < n_rows; i++)
     {
-      for(int j = 0; j < col; j++)
-      {
-        ftemp = i*j;
-        if ( i % 25 == 0 )
-          va2D.setDataValue(i, j, i*col); //put float into va2D
-        else if ( j % 25 == 0 )
-          va2D.setDataValue(i, j, j*row); //put float into va2D
-        else
-          va2D.setDataValue(i, j, ftemp); //put float into va2D
-      }
+       for(int j = 0; j < n_cols; j++)
+       {
+          if ( i % 25 == 0 )
+             arr[i][j] = i*n_cols;
+          else if ( j % 25 == 0 )
+             arr[i][j] = j*n_rows;
+          else
+             arr[i][j] = i*j;
+       }
     }
+
+    IVirtualArray2D va2D = new VirtualArray2D( arr ); 
+
     ImageViewComponent ivc = new ImageViewComponent(va2D);
     ControlColorScale color = 
  		new ControlColorScale(ivc, ControlColorScale.HORIZONTAL);

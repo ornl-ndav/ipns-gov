@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.90  2006/03/30 23:57:57  dennis
+ *  Modified to not require the use of mutator methods for the
+ *  virtual arrays.  These changes were required since the concept
+ *  of a "mutable" virtual array was separated from the concept of
+ *  a virtual array.
+ *
  *  Revision 1.89  2005/06/04 23:11:24  rmikk
  *  Fixed it so that when data is changed with a virtual array argument
  *    everything is reinitialized always.  My virtual arrays may indicate a
@@ -2480,30 +2486,31 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public static void main( String args[] ) 
   {
-    int col = 200;
-    int row = 200;
+    int n_cols = 250;
+    int n_rows = 250;
+    //Make a sample 2D array
+
+    float arr[][] = new float[ n_rows ][ n_cols ];
+    for(int i = 0; i < n_rows; i++)
+    {
+       for(int j = 0; j < n_cols; j++)
+       {
+          if ( i % 25 == 0 )
+             arr[i][j] = i*n_cols;
+          else if ( j % 25 == 0 )
+             arr[i][j] = j*n_rows;
+          else
+             arr[i][j] = i*j;
+       }
+    }
 
     //Make a sample 2D array
-    IVirtualArray2D va2D = new VirtualArray2D(row, col); 
+    IVirtualArray2D va2D = new VirtualArray2D( arr ); 
     va2D.setAxisInfo( AxisInfo.X_AXIS, 0f, 10000f, 
         	       "TestX","TestUnits", AxisInfo.LINEAR );
     va2D.setAxisInfo( AxisInfo.Y_AXIS, 0f, 1500f, 
         		"TestY","TestYUnits", AxisInfo.TRU_LOG );
     va2D.setTitle("Main Test");
-    //Fill the 2D array with the function x*y
-    for(int i = 0; i < row; i++)
-    {
-      for(int j = 0; j < col; j++)
-      {
-        // adds vertical and horizontal test lines every 25th pixel
-        if ( i % 25 == 0 )
-          va2D.setDataValue(i, j, i*col); //put float into va2D
-        else if ( j % 25 == 0 )
-          va2D.setDataValue(i, j, j*row); //put float into va2D
-        else
-          va2D.setDataValue(i, j, i*j); //put float into va2D
-      }
-    }
     
     JFrame frame = new JFrame("ImageViewComponent Test");
     frame.setBounds(0,0,600,300);

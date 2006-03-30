@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2006/03/30 23:57:55  dennis
+ *  Modified to not require the use of mutator methods for the
+ *  virtual arrays.  These changes were required since the concept
+ *  of a "mutable" virtual array was separated from the concept of
+ *  a virtual array.
+ *
  *  Revision 1.12  2005/06/06 14:33:05  dennis
  *  Removed method declaration, setAxisInfo( i, axis_info ), since that
  *  method was moved to the IVirtualArray class.
@@ -88,8 +94,9 @@ package gov.anl.ipns.ViewTools.Components;
 /**
  * This interface is implemented by classes that can produce a "logical"
  * 2-D array of floats and is used to pass data to viewers and view components.
- * Along with the data, some data attributes are kept in the virtual 
- * array.  An IVirtualArray2D has the same logical format as a typical 2D array.
+ * Along with the data, some information, such as at title, and axis labels 
+ * and units, are kept with the virtual array.  An IVirtualArray2D has the 
+ * same logical format as a typical 2D array.
  * Below is an example of an M x N virtual array.<br><br>
  *
  * | (0,0)    (0,1)   (0,2)  ...  (0,N-1)  |<br>
@@ -104,11 +111,20 @@ package gov.anl.ipns.ViewTools.Components;
  * start at zero and go to M-1 and the column numbers
  * start at zero and go to N-1. 
  *
+ * In the current version of IVirtualArray2D, the values of the array cannot 
+ * be set.  This is to allow the interface to be implemented by classes that
+ * calculate or extract a regular array of values from some more complicated
+ * underlying data structures.  In such cases, it is not meaningiful to set
+ * the values, just to get them.  IF the values must be set, then the 
+ * IMutableVirtualArray2D interface should be implemented.
+ *
+ *  @see gov.anl.ipns.ViewTools.Components.IMutableVirtualArray2D
  *  @see gov.anl.ipns.ViewTools.Components.AxisInfo
  */
 
 public interface IVirtualArray2D extends IVirtualArray
 {  
+
  /**
   * Sets the attributes of the data array within a AxisInfo wrapper.
   * This method will take in an integer to determine which axis
@@ -124,6 +140,7 @@ public interface IVirtualArray2D extends IVirtualArray
   public void setAxisInfo( int axis, float min, float max,
 			   String label, String units, int scale ); 
   
+
  /*
   ***************************************************************************
   * The following methods must include implementation to prevent
@@ -132,7 +149,8 @@ public interface IVirtualArray2D extends IVirtualArray
   * the parameters must not exceed (M-1,N-1). 
   ***************************************************************************
   */
-  
+
+
  /**
   * Get values for a portion or all of a row.
   * The "from" and "to" values must be direct array reference, i.e.
@@ -149,19 +167,7 @@ public interface IVirtualArray2D extends IVirtualArray
   */
   public float[] getRowValues( int row, int from, int to );
   
- /**
-  * Set values for a portion or all of a row.
-  * The "from" and "to" values must be direct array reference, i.e.
-  * because the array positions start at zero, not one, this must be
-  * accounted for. If the array passed in exceeds the bounds of the array, 
-  * set values for array elements and ignore extra values.
-  *
-  *  @param values  array of elements to be put into the row
-  *  @param row     row number of desired row
-  *  @param start   what column number to start at
-  */
-  public void setRowValues( float[] values, int row, int start );
-  
+
  /**
   * Get values for a portion or all of a column.
   * The "from" and "to" values must be direct array reference, i.e.
@@ -178,18 +184,6 @@ public interface IVirtualArray2D extends IVirtualArray
   */
   public float[] getColumnValues( int column, int from, int to );
   
- /**
-  * Set values for a portion or all of a column.
-  * The "from" and "to" values must be direct array reference, i.e.
-  * because the array positions start at zero, not one, this must be
-  * accounted for. If the array passed in exceeds the bounds of the array, 
-  * set values for array elements and ignore extra values.
-  *
-  *  @param values  array of elements to be put into the column
-  *  @param column  column number of desired column
-  *  @param start   what row number to start at
-  */
-  public void setColumnValues( float[] values, int column, int start );
   
  /**
   * Get value for a single array element.
@@ -201,14 +195,6 @@ public interface IVirtualArray2D extends IVirtualArray
   */ 
   public float getDataValue( int row, int column );
   
- /**
-  * Set value for a single array element.
-  *
-  *  @param  row     row number of element
-  *  @param  column  column number of element
-  *  @param  value   value that element will be set to
-  */
-  public void setDataValue( int row, int column, float value );
   
  /**
   * Returns the values in the specified region.
@@ -226,20 +212,9 @@ public interface IVirtualArray2D extends IVirtualArray
   *	     will be returned.
   */
   public float[][] getRegionValues( int row_start, int row_stop,
-				    int col_start, int col_stop );
- /**  
-  * Sets values for a specified rectangular region. This method takes 
-  * in a 2D array that is already organized into rows and columns
-  * corresponding to a portion of the virtual array that will be altered.
-  *
-  *  @param  values	2-D array of float values 
-  *  @param  row_start  first row of the region being altered
-  *  @param  col_start  first column of the region being altered
-  */
-  public void setRegionValues( float[][] values, 
-			       int row_start,
-        		       int col_start );
-        		       
+                                    int col_start, int col_stop );
+
+
  /**
   * Returns number of rows in the array.
   *
@@ -247,23 +222,14 @@ public interface IVirtualArray2D extends IVirtualArray
   */ 
   public int getNumRows();
 
+
  /**
   * Returns number of columns in the array.
   *
   *  @return This returns the number of columns in the array. 
   */
   public int getNumColumns();
-  
- /**
-  * Set the error values that correspond to the data. The dimensions of the
-  * error values array should match the dimensions of the data array. Zeroes
-  * will be used to fill undersized error arrays. Values that are in an array
-  * that exceeds the data array will be ignored.
-  *
-  *  @param  error_values The array of error values corresponding to the data.
-  *  @return true if data array dimensions match the error array dimensions.
-  */
-  public boolean setErrors( float[][] error_values );
+
   
  /**
   * Get the error values corresponding to the data. If no error values have
@@ -272,16 +238,8 @@ public interface IVirtualArray2D extends IVirtualArray
   *  @return error values of the data.
   */
   public float[][] getErrors();
+
   
- /**
-  * Use this method to specify whether to use error values that were passed
-  * into the setErrors() method or to use the square-root of the data value.
-  *
-  *  @param  use_sqrt If true, use square-root.
-  *                   If false, use set error values if they exist.
-  */
-  public void setSquareRootErrors( boolean use_sqrt );
- 
  /**
   * Get an error value for a given row and column. Returns Float.NaN if
   * row or column are invalid.
@@ -292,4 +250,5 @@ public interface IVirtualArray2D extends IVirtualArray
   *          Float.NaN is returned.
   */
   public float getErrorValue( int row, int column ); 
+
 }

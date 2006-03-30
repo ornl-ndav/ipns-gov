@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.27  2006/03/30 23:57:54  dennis
+ * Modified to not require the use of mutator methods for the
+ * virtual arrays.  These changes were required since the concept
+ * of a "mutable" virtual array was separated from the concept of
+ * a virtual array.
+ *
  * Revision 1.26  2005/05/25 20:28:28  dennis
  * Now calls convenience method WindowShower.show() to show
  * the window, instead of instantiating a WindowShower object
@@ -502,7 +508,12 @@ public class IVCTester extends JFrame implements IPreserveState,
 	  
 	  if( !Float.isNaN(data.getDataValue(row,col)) )
 	  {
-	    data.setDataValue( row, col, data.getDataValue(row,col) * 2f );
+            if ( data instanceof IMutableVirtualArray2D )
+	      ((IMutableVirtualArray2D)data).setDataValue(
+                                  row, col, data.getDataValue(row,col) * 2f );
+            else
+              System.out.println("Can't set new value into row, col: " + row +
+                                  ", " + col );
           }
 	  //System.out.println("(" + selectedpoints[j].x + "," + 
           //      	     selectedpoints[j].y + ")" );
