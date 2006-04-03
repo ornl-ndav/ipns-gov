@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/04/03 00:18:54  dennis
+ *  Initial version with Mutator methods moved to IMutableVirtualArrayList1D.
+ *  (More work needs to be done to clean up this implementation of the concept.)
+ *
  *  Revision 1.6  2005/06/01 21:25:18  dennis
  *  Removed setTitle() method from this interface, since it inherits
  *  the method from IVirtualArray.
@@ -69,21 +73,14 @@
  *  - This file was involved in generalizing AxisInfo2D to
  *    AxisInfo. This change was made so that the AxisInfo
  *    class can be used for more than just 2D axes.
- *
- *
  */
  
 package gov.anl.ipns.ViewTools.Components;
  
 /**
- * This interface is implemented by classes that can produce a virtual function 
- * list containing a 3Darray of floats and is used to pass data to viewers and 
- * view components.Along with the data, some data attributes are kept in the 
- * virtual FunctionList. 
- * the x dimension is either 0 or 1. 0 for the x values 1 for the y values
- * the y dimension contains a number of x and y values 
- * the z dimension is represents the line numbers.
-
+ *  This interface is implemented by classes that can produce a "logical"
+ *  list of one dimensional functions or histograms, represented by arrays
+ *  of values. 
  */
 
 public interface IVirtualArrayList1D extends IVirtualArray
@@ -104,21 +101,6 @@ public interface IVirtualArrayList1D extends IVirtualArray
   */
   public float[] getYValues( int graph_number );
   
- /**
-  * Set values for one tabulated function together with it's error
-  * estimates.
-  *
-  *  @param  x_values
-  *  @param  y_values
-  *  @param  errors
-  *  @param  graph_title
-  *  @param  graph_num
-  */
-  public void setXYValues( float[] x_values, 
-			   float[] y_values, 
-			   float[] errors,
-			   String graph_title,
-			   int graph_num);
  
 /**
  * Sets the attributes of the data array within a AxisInfo wrapper.
