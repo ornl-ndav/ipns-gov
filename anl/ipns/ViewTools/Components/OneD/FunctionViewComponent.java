@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.81  2006/04/21 22:15:45  amoe
+ *  -In buildViewComponent(), the surrounding panels around the SelectedGraphView are now white on default.
+ *
+ *  -In FunctionViewComponent(), the SelectedGraphView is now outlined by a gray line border on default.
+ *
  *  Revision 1.80  2006/03/14 22:08:16  dennis
  *  Undid the default setting of Shift to "Diagonal", since most uses of
  *  this component require the graphs be "Overlaid".  (Tom Worlton)
@@ -296,6 +301,7 @@ import java.awt.event.*;
 import java.io.Serializable;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.border.*;
 
 /**
  * This class allows the user to view data in the form of an image. Meaning
@@ -429,6 +435,8 @@ public class FunctionViewComponent implements IViewComponent1D,
        gjp.setData( x, y, i, false );     
     }
     gjp.setBackground( Color.white );
+    gjp.setBorder(new LineBorder(Color.gray));
+    
 /*    // set initial line styles
     if( varr.getNumSelectedGraphs(  ) > 1 ) {
       gjp.setColor( Color.blue, 2, true );
@@ -1273,18 +1281,22 @@ public class FunctionViewComponent implements IViewComponent1D,
     JPanel north = new JPanel( new FlowLayout(  ) );
 
     north.setPreferredSize( new Dimension( 0, 25 ) );
-
+    north.setBackground(Color.white);
+    
     JPanel east = new JPanel( new FlowLayout(  ) );
 
     east.setPreferredSize( new Dimension( 50, 0 ) );
+    east.setBackground(Color.white);
 
     JPanel south = new JPanel( new FlowLayout(  ) );
 
     south.setPreferredSize( new Dimension( 0, southwidth ) );
+    south.setBackground(Color.white);
 
     JPanel west = new JPanel( new FlowLayout(  ) );
 
     west.setPreferredSize( new Dimension( westwidth, 0 ) );
+    west.setBackground(Color.white);
     //Construct the background JPanel
     background.add( gjp, "Center" );
     background.add( north, "North" );
