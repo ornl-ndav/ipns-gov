@@ -48,22 +48,41 @@ package gov.anl.ipns.MathTools.Functions;
  */
 public class OrthoPolyFit {
   
-//bookkeeping method to prepare a histogram data for opolyfit();  
-  public static double[][] opolyfit_h (float xs0[], float ys[], int kplus1) {
+  private double fitmsr[];
+  private double A[][];
+  private double xvals[];
+  private double yvals[];
+  private double svals[];  
+
+  public OrthoPolyFit() {
+  }
+
+  public OrthoPolyFit(double xs[], double ys[], double ss[]) {
+    xvals = xs;
+    yvals = ys;
+    svals = ss;
+  }
+  
+//bookkeeping method to use float instead of double;  
+  public void opolyfit_f (float xs0[], float ys[], int kplus1) {
   
     int n = ys.length;
-    if (xs0.length != n+1) throw new RuntimeException("!!!!!!input data not a histogram!!!!!!");
+//    if (xs0.length != n+1) throw new RuntimeException("!!!!!!input data not a histogram!!!!!!");
     if (kplus1 >= 20) throw new RuntimeException("******fitting polynomial order exceeding 20******");
-    double xvals[] = new double[n];
-    double yvals[] = new double[n];
-    double svals[] = new double[n];
+    xvals = new double[n];
+    yvals = new double[n];
+    svals = new double[n];
     
     for (int i = 0; i < n; i++) {
       xvals[i] = (double) xs0[i];
       yvals[i] = (double) ys[i];
       svals[i] = 1.0;
     }
-    return opolyfit (xvals, yvals, svals, kplus1);         
+    opolyfit (xvals, yvals, svals, kplus1);         
+  }
+
+  public void opolyfit(int kplus1) {
+    opolyfit(xvals, yvals, svals, kplus1);
   }
   
   /**
@@ -80,7 +99,7 @@ public class OrthoPolyFit {
    *         Chebyshev term in the approximating polynomial of degree i. See
    *         the main() method for how to evaluate the polynomial using A.
    */
-  public static double[][] opolyfit (double xs0[], double ys[], double ss[], int kplus1) {
+  public void opolyfit (double xs0[], double ys[], double ss[], int kplus1) {
 
 //  The symbol notations follow the Clenshaw paper as closely as possible.
 //  "cpt" is the P (eq. 12) value array in current cycle, "cpl" the arry
@@ -92,7 +111,7 @@ public class OrthoPolyFit {
     double xmin = xs0[0], xmax = xs0[m];
     int k = kplus1-1;
     double cpt[] = new double[k+2], cpl[] = new double[k+2], dummy[];
-    double A[][] = new double[kplus1][kplus1];
+    A = new double[kplus1][kplus1];
     double x, y, w;
     double b0, b1, b2, p;
     double sump2t, sump2l = 0, sumxp2, sumyp;
@@ -161,12 +180,46 @@ public class OrthoPolyFit {
        cpt = dummy;
 //      System.out.println("P[][2]"+cpt[2]);
     }
+    
+    fitmsr = msr;
    
 //    System.out.println("A[][]: "+A[3][0]+" "+A[3][1]+" "+A[3][2]+" "+A[3][3]+" "+A[3][4]+" "+A[3][5]+" "+A[3][6]); 
-    return A;        
+//    return A;        
+  }
+
+//get kth order fit;  
+  public double[] getFit (int k) {
+
+    if (A == null || A[0].length < k)
+      throw new RuntimeException("!!!!!!Unable to get Chebyshev coefficients!!!!!!");
+
+    double xi, xmin = xvals[0], xmax = xvals[xvals.length-1];
+    int m = xvals.length;
+    double Ak[] = A[k], yfit[] = new double[m];
+    Ak[0] /= 2;
+    ChebyshevSum ychebyk = new ChebyshevSum(Ak);
+
+    for (int i = 0; i < m; i++) {
+      xi = (2*xvals[i]-xmax-xmin)/(xmax-xmin);
+      yfit[i] = ychebyk.getValue(xi);
+    }
+
+    return yfit;
   }
   
+  public float[] getFit_f (int k) {
+    double[] yfit = getFit(k);
+    int n = yfit.length;
+    float[] yfit_f = new float[n];
+    for (int i = 0; i < n; i++)
+      yfit_f[i] = (float) yfit[i];
+    
+    return yfit_f;    
+  }
   
+  public double[] getMSR () {
+    return fitmsr;
+  }
   
   public static void main(String[] args) {
     
@@ -183,7 +236,11 @@ public class OrthoPolyFit {
     y = new double[] {10.4, 7.9, 4.7, 2.5, 1.2, 2.2, 5.1, 9.2, 16.1, 24.5, 35.3};  
     w = new double[] {1, 1, 1, 1, 1, 0.8, 0.8, 0.7, 0.5, 0.3, 0.2};
 
-    double A3[] = opolyfit(x, y, w, 7)[3];
+    OrthoPolyFit opf1 = new OrthoPolyFit(x, y, w);
+    opf1.opolyfit(7);
+    double yfit[] = opf1.getFit(0);
+/*
+    double A3[] = opf1.opolyfit(7)[3];
     A3[0] /= 2;
     ChebyshevSum ycheby3 = new ChebyshevSum(A3);
     double xi, xmin = x[0], xmax = x[x.length-1];
@@ -191,6 +248,14 @@ public class OrthoPolyFit {
     for (int i = 0; i <= m; i++) {
       xi = (2*x[i]-xmax-xmin)/(xmax-xmin);
       System.out.println("x: "+x[i]+" y: "+y[i]+" fit: "+ycheby3.getValue(xi));
+    }
+*/
+    for (int i = 0; i < yfit.length; i++) {
+      System.out.println("x: "+x[i]+" y: "+y[i]+" fit: "+yfit[i]);
+    }
+    
+    for (int i = 0; i < opf1.fitmsr.length; i++) {
+      System.out.println("i: "+i+" fitmsr: "+opf1.fitmsr[i]);
     }
   }
 
