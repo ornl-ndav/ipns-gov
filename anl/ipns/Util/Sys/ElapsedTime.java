@@ -30,6 +30,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/05/01 19:24:29  dennis
+ *  Now uses the newer high resolution timer, System.nanoTime(),
+ *  to get a timing resolution of 20 microseconds or better,
+ *  rather than the older System.currentTimeMillis() which had
+ *  a timing resolution of at best 1 millisecond on Linux,
+ *  and often had lower resolution on various Windwows systems.
+ *
  *  Revision 1.5  2004/03/15 23:53:49  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -59,7 +66,7 @@ public class ElapsedTime
    */
   public ElapsedTime() 
   {
-    base_time = System.currentTimeMillis();
+    base_time = System.nanoTime();
   }
 
   /**
@@ -70,7 +77,7 @@ public class ElapsedTime
    */
   public float elapsed()
   {
-    return ( System.currentTimeMillis() - base_time ) / 1000.0f;
+    return ( System.nanoTime() - base_time ) / 1.0e9f;
   }
 
   /**
@@ -78,7 +85,7 @@ public class ElapsedTime
    */
   public void reset()
   {
-    base_time = System.currentTimeMillis();
+    base_time = System.nanoTime();
   }
 
   /*
@@ -95,11 +102,11 @@ public class ElapsedTime
 
     timer.reset();
     double x = 0;
-    for ( int i = 0; i < 10000000; i++ )
+    for ( int i = 0; i < 10000; i++ )
       x = Math.cos(x);
 
     time = timer.elapsed();
-    System.out.println("After ten million double precision cosines, " +
+    System.out.println("After ten thousand double precision cosines, " +
                        "elapsed time = " + time );
 
     timer.reset();
