@@ -33,10 +33,18 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.81  2006/04/21 22:15:45  amoe
- *  -In buildViewComponent(), the surrounding panels around the SelectedGraphView are now white on default.
+ *  Revision 1.82  2006/05/24 17:13:38  dennis
+ *  Made dataChanged( VirtualArrayList1D ) always reconstruct the list
+ *  of graphs. (Jim Kohl)
+ *  Also, now always clear the graphs from the graph JPanel, removed
+ *  a couple of unused variables and did some minor format cleanup.
  *
- *  -In FunctionViewComponent(), the SelectedGraphView is now outlined by a gray line border on default.
+ *  Revision 1.81  2006/04/21 22:15:45  amoe
+ *  -In buildViewComponent(), the surrounding panels around the 
+ *   SelectedGraphView are now white on default.
+ *
+ *  -In FunctionViewComponent(), the SelectedGraphView is now outlined by a 
+ *   gray line border on default.
  *
  *  Revision 1.80  2006/03/14 22:08:16  dennis
  *  Undid the default setting of Shift to "Diagonal", since most uses of
@@ -344,16 +352,13 @@ public class FunctionViewComponent implements IViewComponent1D,
   *  "Control Box" - This constant String is a key for referencing the state
   *   Information about wether or not to display the function controls box.
   */
-
   public static final String CONTROL_BOX         = "Control Box";
 
  /**
   * "Graph JPanel" - This constant String is a key for refferencing the
   * state information about the graph jpanel.
   */
-  
   public static final String GRAPHJPANEL        = "Graph JPanel";
- 
     
  /**
   * "AnnotationOverlay" - This constant String is a key for referencing the
@@ -385,7 +390,6 @@ public class FunctionViewComponent implements IViewComponent1D,
   * the controls.
   */
      public static final String FUNCTION_CONTROLS = "FunctionControls";       
-
       
 
   
@@ -401,8 +405,6 @@ public class FunctionViewComponent implements IViewComponent1D,
   // for component size and location adjustments
   //private ComponentAltered comp_listener;
   private transient Rectangle regioninfo;
-  private transient CoordBounds local_bounds;
-  private transient CoordBounds global_bounds;
   private transient Vector transparencies = new Vector(  );
   private int precision;
   private Font font;
@@ -412,6 +414,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   private boolean draw_pointed_at = false;
   private ControlCheckbox control_box = new ControlCheckbox(false);
 
+
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
    * to be viewed in a border layout.
@@ -420,7 +423,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    */
   public FunctionViewComponent( IVirtualArrayList1D varr ) {
 
-	Varray1D    = varr;  // Get reference to varr
+    Varray1D    = varr;  // Get reference to varr
     precision   = 4;
     font        = FontUtil.LABEL_FONT2;
     gjp         = new GraphJPanel(  );
@@ -460,8 +463,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     gjp.addComponentListener( comp_listener );
 
     regioninfo      = new Rectangle( gjp.getBounds(  ) );
-    local_bounds    = gjp.getLocalWorldCoords(  ).MakeCopy(  );
-    global_bounds   = gjp.getGlobalWorldCoords(  ).MakeCopy(  );
 
     Listeners = new Vector(  );
     
@@ -501,7 +502,7 @@ public class FunctionViewComponent implements IViewComponent1D,
 
       DrawSelectedGraphs();
       if(draw_pointed_at)
-      DrawPointedAtGraph();
+        DrawPointedAtGraph();
       
     //initialize pointed_at graph
     int pointed_at_index = Varray1D.getPointedAtGraph();
@@ -513,14 +514,13 @@ public class FunctionViewComponent implements IViewComponent1D,
 
       if(Varray1D.getNumSelectedGraphs() > 1)
       {
-
+    	  /*
     	  //Retrieving viewcontrol list 
     	  ViewControl[] vcontrol = mainControls.getControlList();
     	  
           // Comment out the switch to diagonal shift of spectra
           //vcontrol[FunctionControls.VC_SHIFT].setControlValue(new Integer(0));
     	  
-    	  /* 
     	  System.out.println("TITLE\tCONT-VALUE");    	  
     	  for(int a = 0;a<vcontrol.length;a++)
     	  {
@@ -531,9 +531,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     	  gjp.setMultiplotOffsets((int)(20 ),
                                 (int)( 20 ));
     	  gjp.repaint(); 
-        
       }
-
     }
     else
     {
@@ -542,6 +540,7 @@ public class FunctionViewComponent implements IViewComponent1D,
       big_picture.add( no_graph );
     }
   }
+
 
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
@@ -554,8 +553,8 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     this(varr);
     setObjectState(state);
-
   }
+
 
  // setState() and getState() are required by IPreserveState interface   
  /**
@@ -629,9 +628,8 @@ public class FunctionViewComponent implements IViewComponent1D,
  
        redraw = true;
     }       
-    
-
   } 
+
 
   /**
   * This method will get the current values of the state variables for this
@@ -700,6 +698,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    // AxisInfo yinfo = getAxisInformation( AxisInfo.Y_AXIS );
 
   }
+
  
   public AxisInfo getAxisInformation( int axis ) {
     /*float xmin,xmax,ymin,ymax;
@@ -760,6 +759,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     return regioninfo;
   }
 
+
   /**
    * This method will return the title given to the image as specified by
    * the Virtual Array
@@ -770,6 +770,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   public String getTitle(  ) {
     return Varray1D.getTitle(  );
   }
+
 
   /**
    * This method will return the precision specified by the user. Precision
@@ -782,6 +783,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     return precision;
   }
 
+
   /**
    * This method will return the font used on by the overlays. The axis overlay
    * will call this to determine what font to use.
@@ -791,6 +793,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   public Font getFont(  ) {
     return font;
   }
+
 
  // methods required by legend interface
 
@@ -809,6 +812,7 @@ public class FunctionViewComponent implements IViewComponent1D,
      return data; //test 
    }
 
+
   /**
    *  This method will return the text for the legend.
    *
@@ -818,6 +822,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    return Varray1D.getGraphTitle( graph );
    }
 
+
   /**
    *  This method will return the selected graphs for the legend.
    *
@@ -826,6 +831,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    public int[] getSelectedGraphs(){
    return Varray1D.getSelectedIndexes();
    }
+
 
   /**
    *  This function will return an array of 17 ViewControls 
@@ -861,18 +867,18 @@ public class FunctionViewComponent implements IViewComponent1D,
    * jpanel. To be implemented, the center may have to be a coordjpanel.
    */
   public CoordBounds getLocalCoordBounds(  ) {
-    //return local_bounds;
     return gjp.getLocalWorldCoords(  ).MakeCopy(  );
   }
+
 
   /**
    * This method will return the global coordinate bounds of the center
    * jpanel. To be implemented, the center may have to be a coordjpanel.
    */
   public CoordBounds getGlobalCoordBounds(  ) {
-    //return global_bounds;
     return gjp.getGlobalWorldCoords(  ).MakeCopy(  );
   }
+
 
   /**
    * This method will return the virtual array. 
@@ -880,6 +886,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   public IVirtualArrayList1D getArray(  ) {
     return Varray1D;
   }
+
   
  /**
   * This method will get the minimum positive value for the x and y axis.
@@ -901,6 +908,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     return 0;
   }
 
+
  /**
   * This method will get the scale factor used, if any, to alter the size of
   * the bounds. A scale factor of 1.05 will increase the bounds by 5% while
@@ -914,6 +922,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     // Invalid axis, return zero.
     return 1f;
   }
+
   
   /**
    * This method adjusts the crosshairs on the graphjpanel.
@@ -936,6 +945,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     //System.out.println( "" );
   }
 
+
   /**
    * This method creates a selected region to be displayed over the graphjpanel
    * by an overlay.
@@ -948,40 +958,42 @@ public class FunctionViewComponent implements IViewComponent1D,
     //System.out.println( "" );
   }
 
+
   /**
    * This method will be called to notify this component of a change in data.
    */
   public void dataChanged(  ) {
 	  
        if(draw_pointed_at) 
-       DrawPointedAtGraph();
+         DrawPointedAtGraph();
        paintComponents(big_picture.getGraphics());
        sendMessage(POINTED_AT_CHANGED);
     }
   
+
   /**
    * This method takes in a new array of data and redraws the graph accordingly.
    */
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
-   {
-	  
-    if (Varray1D != pin_varray){
-      if (Varray1D.getNumSelectedGraphs() > pin_varray.getNumSelectedGraphs()){
-        gjp.clearData();
-      /*  float[] reset = {0,0.0001f};
-        gjp.setData(reset,reset, 0, false);*/
-	float[] x_vals = pin_varray.getXValues(0);
-	float[] y_vals = pin_varray.getYValues(0);
-	        gjp.setData(x_vals,y_vals, 0, false);
-      }
-      Varray1D = pin_varray;
+  {
+    gjp.clearData();          // since any of the graphs might have changed, we
+                              // clear out all stored copies and start over.
+
+                              // The 0th graph in the gjp will be used for the
+                              // pointed at graph.  By default, use the 0th
+                              // entry in the virtual array.
+    float[] x_vals = pin_varray.getXValues(0);
+    float[] y_vals = pin_varray.getYValues(0);
+    gjp.setData(x_vals,y_vals, 0, false);
+    
+    Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
                               // SAME FRAME, so that the frame doesn't move.
-     mainControls.dataChanged(Varray1D);
-     DrawSelectedGraphs(); 
-    } 
+    mainControls.dataChanged(Varray1D);
+    DrawSelectedGraphs(); 
     dataChanged();
-    transparencies.set(0 ,  new LegendOverlay(this));
+
+    transparencies.set( 0,  new LegendOverlay(this) );
     big_picture.removeAll();
       for( int trans = 0; trans < transparencies.size(  ); trans++ ) {
      	big_picture.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
@@ -994,15 +1006,15 @@ public class FunctionViewComponent implements IViewComponent1D,
     //System.out.println( "" );
     sendMessage(SELECTED_CHANGED);
     
-  	//check if the Legend is on.  If it is, refresh it.
+    //check if the Legend is on.  If it is, refresh it.
     ViewControl[] vcontrol = mainControls.getControlList();  
   	
     if( (new Boolean(true)).equals(vcontrol[FunctionControls.VC_LEGEND_CHECKBOX].getControlValue()) )
     {
-    	((LegendOverlay)transparencies.elementAt(0)).setVisible(true);    	
+      ((LegendOverlay)transparencies.elementAt(0)).setVisible(true);    	
     }
- 
   }
+
 
   /**
    * Get selected set specified by setSelectedSet. The selection overlay
@@ -1017,6 +1029,7 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     return selectedset;
   }
+
 
   /**
    * Method to add a listener to this component.
@@ -1040,6 +1053,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     //System.out.println( "" );
   }
 
+
   /**
    * Method to remove a listener from this component.
    *
@@ -1049,12 +1063,14 @@ public class FunctionViewComponent implements IViewComponent1D,
     Listeners.remove( act_listener );
   }
 
+
   /**
    * Method to remove all listeners from this component.
    */
   public void removeAllActionListeners(  ) {
     Listeners.removeAllElements(  );
   }
+
 
   public ViewControl[] getControls(  ) {
  /*  // if no 
@@ -1083,6 +1099,7 @@ public class FunctionViewComponent implements IViewComponent1D,
      return new ViewControl[0];
   }
 
+
   public ViewMenuItem[] getMenuItems(  ) {
    
    if( Varray1D.getNumGraphs(  ) < 1 )
@@ -1104,6 +1121,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     //return new ViewMenuItem[0];
   }
 
+
   /**
    * Return the "background" or "master" panel
    *
@@ -1112,6 +1130,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   public JPanel getDisplayPanel(  ) {
     return big_picture;
   }
+
 
   /*
    *  Gets the current point
@@ -1125,11 +1144,13 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     return pt;
   }
+
  
  public void paintComponents()
  {
    paintComponents(big_picture.getGraphics()); 
  } 
+
 
   /*
    * Tells all listeners about a new action.
@@ -1144,6 +1165,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     }
   }
 
+
   private void paintComponents( Graphics g ) {   
     if( g != null )
     {
@@ -1153,10 +1175,11 @@ public class FunctionViewComponent implements IViewComponent1D,
     while( temppainter.getParent() != null )
       temppainter = temppainter.getParent();
     temppainter.repaint();
-        for( int next = 0; next < transparencies.size(  ); next++ ) {
-          ( ( OverlayJPanel )transparencies.elementAt( next ) ).repaint(  );
-        }
+    for( int next = 0; next < transparencies.size(  ); next++ ) {
+       ( ( OverlayJPanel )transparencies.elementAt( next ) ).repaint(  );
+    }
   }
+
 
   private boolean DrawPointedAtGraph() {
     int pointed_at_line = Varray1D.getPointedAtGraph();
@@ -1169,6 +1192,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     }
     return false;
   }
+
+
   private void reInit(){
 
     if( Varray1D.getNumGraphs(  ) > 0 )
@@ -1179,7 +1204,7 @@ public class FunctionViewComponent implements IViewComponent1D,
                                   // the background and transparencies
         DrawSelectedGraphs();
         if(draw_pointed_at)
-        DrawPointedAtGraph();
+          DrawPointedAtGraph();
 
         mainControls.reInit();
       }
@@ -1190,9 +1215,7 @@ public class FunctionViewComponent implements IViewComponent1D,
       no_graph.add( new JLabel("No Graphs to Display") );
       big_picture.add( no_graph );
     }
-
   }  
-    
     
 
   private int DrawSelectedGraphs() {
@@ -1214,7 +1237,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     return draw_count;
   }
 
-  private void Draw_GJP( int index, int graph_num)
+
+  private void Draw_GJP( int index, int graph_num )
   {
        float x[] = Varray1D.getXValues(index);
        float y[] = Varray1D.getYValues(index);
@@ -1224,9 +1248,10 @@ public class FunctionViewComponent implements IViewComponent1D,
      //                                        graph_num, true);
        if(!draw_pointed_at)
          gjp.setTransparent(true, 0, true);    
-       else gjp.setColor( Color.black, 0, true );
-   
+       else 
+         gjp.setColor( Color.black, 0, true );
   }
+
    
   /**
    * To be continued.
@@ -1261,6 +1286,7 @@ public class FunctionViewComponent implements IViewComponent1D,
        sendMessage (SELECTED_CHANGED);
     }
   }
+
 
   /*
    * This method takes in an graphjpanel and puts it into a borderlayout.
@@ -1304,6 +1330,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     background.add( south, "South" );
     background.add( east, "East" );
   }
+
 
   /*
    * MAIN - Basic main program to test a FunctionViewComponent object
@@ -1484,5 +1511,3 @@ public class FunctionViewComponent implements IViewComponent1D,
    }
  
 }
-
-
