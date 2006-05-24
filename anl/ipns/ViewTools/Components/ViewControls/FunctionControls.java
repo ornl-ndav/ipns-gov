@@ -31,6 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.56  2006/05/24 17:09:32  dennis
+ * Changed dataChanged( IVirtualArrayList1D ) to always update the
+ * list of graph names. (Jim Kohl)
+ * Removed a couple of unused variables, and did some minor format
+ * cleanup.
+ *
  * Revision 1.55  2006/02/05 20:46:24  amoe
  * -Added "Shift Type" and "Shift Factor" to Object State.
  * -Added public static final int variables that correspond to ViewControl[] control_list contents.
@@ -410,7 +416,6 @@ import javax.swing.*;
   private transient JPanel RboxPanel   = new JPanel(  );
   private transient JPanel controlpanel= new JPanel(  );
   private transient JPanel label_panel = new JPanel(  );
-  private transient JPanel z_panel     = new JPanel(  );
   private transient String label1      = "Line Selected";
   private transient String label2      = "Line Style";
   private transient String label3      = "Line Width";
@@ -455,7 +460,6 @@ import javax.swing.*;
                                     new ControlCheckboxButton(  );
   private transient ControlCheckboxButton legend_checkbox = 
                                     new ControlCheckboxButton(  );
-  private transient double log_scale = 10;
   private transient float shift_factor = 1;
   private transient ViewControlsPanel main_panel;
   private transient JFrame the_frame;
@@ -781,26 +785,24 @@ import javax.swing.*;
    */  
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
   {
-    if (Varray1D != pin_varray)
-    {
-      String group_id;
-      Varray1D = pin_varray;
-      lines = new String[Varray1D.getNumSelectedGraphs(  )];
-      SelGraphDSIndx = new int[Varray1D.getNumSelectedGraphs(  )];
-      int index = 0;
-      for( int i = 0; i < Varray1D.getNumGraphs(  ); i++ ) {
-        if( Varray1D.isSelected(i) )
-        {
-          group_id   = Varray1D.getGraphTitle( i );
-          SelGraphDSIndx[index] = i;
-          lines[index++]   =  group_id;
-        }
+    String group_id;
+    Varray1D = pin_varray;
+    lines = new String[Varray1D.getNumSelectedGraphs(  )];
+    SelGraphDSIndx = new int[Varray1D.getNumSelectedGraphs(  )];
+    int index = 0;
+    for( int i = 0; i < Varray1D.getNumGraphs(  ); i++ ) {
+      if( Varray1D.isSelected(i) )
+      {
+        group_id   = Varray1D.getGraphTitle( i );
+        SelGraphDSIndx[index] = i;
+        lines[index++]   =  group_id;
       }
-
-      labelbox1.setItemList(lines);
     }
+
+    labelbox1.setItemList(lines);
   }
   
+
   /**
     * Method to initialize the View Controls.
     */
@@ -1097,11 +1099,12 @@ import javax.swing.*;
            else {
              cursor.setValue(0,gjp.getCurrent_WC_point().x);
              cursor.setValue(1,gjp.getCurrent_WC_point().y);
-
            } 
       }
     }
  }
+
+
   private class ControlListener implements ActionListener {
     //~ Methods ****************************************************************
     public void actionPerformed( ActionEvent ae ) {
