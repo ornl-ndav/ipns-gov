@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/05/30 18:56:07  rmikk
+ *  log messages are now appended to the end of the file if it already exists.
+ *
  *  Revision 1.5  2005/08/26 15:28:44  rmikk
  *  Added code in LOGaddmsg to replace all 2 char \n by one char \n
  *
@@ -166,7 +169,7 @@ public class SharedMessages implements java.io.Serializable
       try{
          if( LOGout != null)
             LOGout.close();
-         LOGout = new FileOutputStream( filename);
+         LOGout = new FileOutputStream( filename, true);
       }catch(Exception s){
          LOGout = null;
       }
