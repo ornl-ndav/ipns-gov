@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/06/06 22:20:30  rmikk
+ *  Added a method to the OpenLog method to add an append boolean.  The
+ *  default is not to append.
+ *
  *  Revision 1.6  2006/05/30 18:56:07  rmikk
  *  log messages are now appended to the end of the file if it already exists.
  *
@@ -156,12 +160,24 @@ public class SharedMessages implements java.io.Serializable
    
  }
  
+ 
+ /**
+  *  Sets up the file that information will be logged to.
+  *  The previous log file will be updated and closed and the contents of the
+  *  file, filename, will be deleted.
+  * @param filename   The name of the file that will receive log information
+  */
+ public static void openLog( String filename){
+	 openLog( filename, false);
+ }
+ 
  /**
   *  Sets up the file that information will be logged to.
   *  The previous log file will be updated and closed
   * @param filename   The name of the file that will receive log information
+  * @param append   appends to the log file if true, otherwise deletes the old file.
   */
- public static void openLog( String filename){
+ public static void openLog( String filename, boolean append){
     
     if( filename == null)
        LOGout = null;
@@ -169,7 +185,7 @@ public class SharedMessages implements java.io.Serializable
       try{
          if( LOGout != null)
             LOGout.close();
-         LOGout = new FileOutputStream( filename, true);
+         LOGout = new FileOutputStream( filename, append);
       }catch(Exception s){
          LOGout = null;
       }
