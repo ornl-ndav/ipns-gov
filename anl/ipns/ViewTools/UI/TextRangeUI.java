@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2006/06/12 15:33:38  dennis
+ *  Trivial fix to docs and frame label.
+ *
  *  Revision 1.11  2004/03/15 23:53:59  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -238,7 +241,7 @@ public class TextRangeUI extends    JTextField
     show_text();
   }
 
-  /* ---------------------------- find_number ---------------------------- */
+  /* ---------------------------- findNumber ---------------------------- */
   /**
    *  Find a numerical value, between the specified characters in the specified
    *  string. If the specified start and end characters are not found, or if
@@ -294,7 +297,7 @@ public class TextRangeUI extends    JTextField
  */
     public static void main(String[] args)
     {
-      JFrame f = new JFrame("Test for JTextField");
+      JFrame f = new JFrame("Test for TextRangeUI");
       f.setBounds(0,0,200,150);
       final TextRangeUI range_ui = new TextRangeUI( "TOF", 0, 1000);
 
