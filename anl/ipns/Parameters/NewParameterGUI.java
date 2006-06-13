@@ -32,6 +32,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/13 16:16:02  dennis
+ *  Added methods notifyChanged() and notifyChanging() that are
+ *  to be called by low-level listeners, when the PG's entry widget
+ *  is changed.  Currently, these methods just trip the valid flag
+ *  to false (pending verification of the new value).  Eventually,
+ *  these methods could also pass the change notificiation on.
+ *
  *  Revision 1.1  2006/06/12 21:52:29  dennis
  *  Initial version of new code for parameter GUIs.  While this is
  *  loosely based on the parameter GUIs developed several years ago
@@ -210,10 +217,46 @@ public abstract class NewParameterGUI implements INewParameterGUI,
    */
   public String toString() 
   {
-    String result = this.getType() + ": \"" + this.getName()  + "\" "  + 
-                                              this.getValue() +
-                                     " "    + this.getValidFlag();
+    String result = "";
+    try
+    {
+      result = this.getType() + ": \"" + this.getName()  + "\" "  + 
+                                         this.getValue() +
+                                " "    + this.getValidFlag();
+    }
+    catch ( Exception e )
+    {
+      result = this.getType() + ": \"" + this.getName()  + "\" "  + 
+                                " Exception getting value "  + e  +
+                                " "    + this.getValidFlag();
+    }
     return result;
+  }
+
+
+  /**
+   *  This method should be called by concrete derived classes when their
+   *  value is in the process of being changed.  This will cause the valid
+   *  flag to be tripped false.  Future versions may also send a message 
+   *  indicating that the value is being changed, using an
+   *  "IParameterMessageSender" that has been added to this parameter.
+   */
+  protected final void notifyChanging()
+  {
+    setValidFlag( false );
+  } 
+
+
+  /**
+   *  This method should be called by concrete derived classes when their
+   *  value has been changed.  This will cause the valid flag to be tripped 
+   *  false.  Future versions may also send a message indicating that the 
+   *  value was changed, using an "IParameterMessageSender" that has been 
+   *  added to this parameter.
+   */
+  protected final void notifyChanged()
+  {
+    setValidFlag( false );
   }
 
 
