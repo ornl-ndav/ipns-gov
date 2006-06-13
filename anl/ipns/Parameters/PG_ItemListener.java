@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/13 16:13:20  dennis
+ *  Corrected this to call notifyChanged() when an event occurs,
+ *  NOT hasChanged().
+ *
  *  Revision 1.1  2006/06/13 16:04:20  dennis
  *  Item listener for handling low-level change events on an PG, that
  *  uses a check box, such as the BooleanPG.  When the itemStateChanged()
@@ -47,7 +51,7 @@ import java.awt.event.*;
 
 /**
  *  This class is an item listener that can be added to an appropriate 
- *  concrete class derived from NewParameterGUI, to call the hasChanged()
+ *  concrete class derived from NewParameterGUI, to call the notifyChanged()
  *  method to notify the PG that the item's value changed, and to trip the
  *  the valid Checkbox to false.
  */
@@ -68,9 +72,17 @@ public class PG_ItemListener implements ItemListener
   }
 
   
-  public void itemStateChanged( ItemEvent e )
+  /**
+   *  This method is called when the item's state is changed (e.g. BooleanPG
+   *  checkbox is checked or unchecked.)  It just calls the PG's 
+   *  notifyChanged() method.
+   *
+   *  @param  event  The item event indicating that the state was changed.
+   */
+  public void itemStateChanged( ItemEvent event )
   {
-    my_pg.hasChanged();
+    my_pg.notifyChanged();
   }
+
 
 }
