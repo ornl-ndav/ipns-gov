@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/13 16:17:00  dennis
+ *  Now adds a PG_ItemListener to the checkbox, so that the valid
+ *  flag will get tripped false when the checkbox state changes.
+ *
  *  Revision 1.1  2006/06/12 21:52:27  dennis
  *  Initial version of new code for parameter GUIs.  While this is
  *  loosely based on the parameter GUIs developed several years ago
@@ -109,6 +113,8 @@ public class BooleanPG extends BooleanPG_base
 
       panel.add( label );
       panel.add( box );
+ 
+      box.addItemListener( new PG_ItemListener( this ) );
     }
 
     setEnabled( enabled );                         // set widget state from
