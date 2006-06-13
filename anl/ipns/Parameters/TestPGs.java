@@ -32,6 +32,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/13 19:51:12  dennis
+ *  Modified Test GUI that includes controls for testing the functionality
+ *  of the NewParameterGUI objects.  The NewParameterGUI objects
+ *  are enclosed in a JFrame, with several control buttons to allow testing
+ *  the Enable/Disable, get/setValue and get/setValidFlag methods.
+ *  As new PGs are created, the main method of this class should be
+ *  modified to test the new PGs.
+ *
  *  Revision 1.1  2006/06/12 21:52:30  dennis
  *  Initial version of new code for parameter GUIs.  While this is
  *  loosely based on the parameter GUIs developed several years ago
@@ -43,89 +51,227 @@
 package gov.anl.ipns.Parameters;
 
 import javax.swing.*;
+import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 
-
+/**
+ *  This class tests the NewParameterGUIs.  The NewParameterGUI objects 
+ *  are enclosed in a JFrame, with several control buttons to allow testing
+ *  the Enable/Disable, get/setValue and get/setValidFlag methods.
+ *  As new PGs are created, the main method of this class should be 
+ *  modified to test the new PGs.
+ */
 public class TestPGs
 {
+  public static final String SET_VALID   = " Set Valid ";
+  public static final String SET_INVALID = "Set InValid";
+
+  public static final String ENABLE      = "Enable ";
+  public static final String DISABLE     = "Disable";
+
+  public static final String SET_VAL_1   = "Set Value 1";
+  public static final String SET_VAL_2   = "Set Value 2";
+
+  Vector pg_list    = new Vector();     // list of PG's being tested
+  Vector val_1_list = new Vector();     // list of default values for the PG's
+  Vector val_2_list = new Vector();     // list of second values for the PG's
   
-  private static void Exercise( INewParameterGUI pg, 
-                                Object        val_1, 
-                                Object        val_2,
-                                boolean       test_valid_flag )
+
+  /**
+   *  Add the specified pg and pair of values to the list of pgs being
+   *  tested.
+   *
+   *  @param  pg     The PG being tested.
+   *  @param  val_1  The value to set into the pg when the "Set Value 1" 
+   *                 button is pushed.
+   *  @param  val_2  The value to set into the pg when the "Set Value 2" 
+   *                 button is pushed.
+   */
+  private void AddToTestList( INewParameterGUI pg, 
+                              Object        val_1, 
+                              Object        val_2 )
   {
-    System.out.println("\nStart testing " + pg.getName() + " .............. " );
-    System.out.println("TYPE IDENTIFIED AS " + pg.getType() );
-    Scanner sc = new Scanner( System.in );
-    
-    System.out.println("Test set value ......");
+    pg_list.add( pg );
+    val_1_list.add( val_1 );    
+    val_2_list.add( val_2 );    
+
     pg.setValue( val_1 );
-    System.out.println("Set Value to " + val_1 );
-    System.out.println("Press return to continue");
-    sc.nextLine();
+  }
 
-    pg.setValue( val_2 );
-    System.out.println("Set Value to " + val_2 );
-    System.out.println("Press return to continue");
-    sc.nextLine();
-     
-    if ( test_valid_flag )
+
+  /**
+   *  Make the GUI for this test.
+   *
+   *  @param  show_valid_box  Flag that indicates whether or not the valid
+   *                          check box should be drawn.
+   */
+  private void MakeGUI( boolean show_valid_box )
+  {
+     int num_guis = pg_list.size();
+     JFrame f = new JFrame("Test for ParameterGUIs");
+     f.setBounds( 0, 0, 500, 25 * (num_guis + 1) + 25 );
+
+
+     f.getContentPane().setLayout( new GridLayout(num_guis + 1, 1) );
+     for ( int i = 0; i < num_guis; i++ )
+     {
+       INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+       f.getContentPane().add( pg.getGUIPanel(show_valid_box) );
+     }
+
+     JPanel  button_panel  = new JPanel();
+     JButton enable_button = new JButton( DISABLE );
+     JButton value_button  = new JButton( SET_VAL_2 );
+     JButton show_button   = new JButton( "Show Values" );
+     JButton valid_button  = new JButton( SET_VALID );
+
+     enable_button.addActionListener( new EnableListener() );
+     value_button.addActionListener( new ValueListener() );
+     show_button.addActionListener( new ShowListener() );
+     valid_button.addActionListener( new ValidListener() );
+
+     button_panel.setLayout( new GridLayout( 1, 4 ) );
+     button_panel.add( enable_button ); 
+     button_panel.add( value_button ); 
+     button_panel.add( show_button ); 
+     button_panel.add( valid_button ); 
+
+     f.getContentPane().add( button_panel );
+     f.setVisible( true );
+     f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+  }
+
+
+  /**
+   *  This class handles the Enable/Disable button events,
+   *  and goes through the list of PGs, enabling or disabling them.
+   */
+  class EnableListener implements ActionListener
+  {
+    public void actionPerformed( ActionEvent e )
     {
-      System.out.println("Test valid flag ......");
-      pg.setValidFlag( true );
-      System.out.println("VALID FLAG set TRUE");
-      System.out.println("VALID FLAG is " + pg.getValidFlag() );
-      System.out.println("Press return to continue");
-      sc.nextLine();
-      pg.setValidFlag( false );
-      System.out.println("VALID FLAG set FALSE");
-      System.out.println("VALID FLAG is " + pg.getValidFlag() );
-      System.out.println("Press return to continue");
-      sc.nextLine();
-    }
+      String  command = e.getActionCommand();
+      JButton button  = (JButton)(e.getSource());
+      boolean enable; 
+      if ( command.equals( ENABLE ) )
+      {
+        enable = true;
+        button.setText( DISABLE ); 
+      }
+      else
+      {
+        enable = false;
+        button.setText( ENABLE );
+      }
 
-    System.out.println("Test get value ......");
-    String answer = "Y";
-    while ( answer.toUpperCase().startsWith( "Y" ) )
+      for ( int i = 0; i < pg_list.size(); i++ )
+      {
+        INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+        pg.setEnabled( enable );
+      }
+    }
+  }
+
+
+  /**
+   *  This class handles the SetValue1/SetValue2 button events,
+   *  and goes through the list of PGs, setting the first or second value
+   *  into the PGs, as specified. 
+   */
+  class ValueListener implements ActionListener
+  {
+    public void actionPerformed( ActionEvent e )
     {
-      System.out.println("Value currently is " + pg.getValue() );
-      System.out.println("If you want to change it, change GUI and press 'y'");
-      answer = sc.next();
+      String  command = e.getActionCommand();
+      JButton button  = (JButton)(e.getSource());
+      Vector  val_list;
+      if ( command.equals( SET_VAL_1 ) )
+      {
+        val_list = val_1_list;
+        button.setText( SET_VAL_2 );
+      }
+      else
+      {
+        val_list = val_2_list;
+        button.setText( SET_VAL_1 );
+      }
+
+      for ( int i = 0; i < pg_list.size(); i++ )
+      {
+        INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+        pg.setValue( val_list.elementAt(i) );
+      }
     }
+  }
 
-    pg.setEnabled( false );
 
-    System.out.println("Done testing " + pg.getName() + " .............. \n" );
-    System.out.println();
+  /**
+   *  This class handles the Show Values button events, and goes through 
+   *  the list of PGs, printing the values of all of the PGs to the 
+   *  console. 
+   */
+  class ShowListener implements ActionListener
+  {
+    public void actionPerformed( ActionEvent e )
+    {
+      System.out.println("\n\n=================== PG_VALUES ================");
+      for ( int i = 0; i < pg_list.size(); i++ )
+      {
+        INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+        System.out.println("------------- " + pg.getName() + " -------------");
+        System.out.println( pg.toString() );
+        System.out.println( "      Value = " + pg.getValue() );
+        System.out.println( "StringValue = " + pg.getStringValue() );
+      }
+    }
+  }
+
+
+  /**
+   *  This class handles the Valid/Invalid button events,
+   *  and goes through the list of PGs, setting the valid flag to the 
+   *  requested state.
+   */
+  class ValidListener implements ActionListener
+  {
+    public void actionPerformed( ActionEvent e )
+    {
+      String  command = e.getActionCommand();
+      JButton button  = (JButton)(e.getSource());
+      boolean valid;
+      if ( command.equals( SET_VALID ) )
+      {
+        valid = true;
+        button.setText( SET_INVALID );
+      }
+      else
+      {
+        valid = false;
+        button.setText( SET_VALID );
+      }
+
+      for ( int i = 0; i < pg_list.size(); i++ )
+      {
+        INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+        pg.setValidFlag( valid );
+      }
+    }
   }
 
 
   public static void main( String args[] )
   {
-     JFrame f = new JFrame("Test for ParameterGUIs");
-     f.setBounds(0,0,400,400);
+    TestPGs tester = new TestPGs();
 
-     f.getContentPane().setLayout( new GridLayout(4,1) );
+    BooleanPG checkbox1 = new BooleanPG( "Bool Test 1", false );
+    BooleanPG checkbox2 = new BooleanPG( "Bool Test 2 (X)", false );
 
-     BooleanPG checkbox1 = new BooleanPG( "Bool Test 1", false );
-     f.getContentPane().add( checkbox1.getGUIPanel( false ) );
+    tester.AddToTestList( checkbox1, true, false );
+    tester.AddToTestList( checkbox2, true, false );
 
-     BooleanPG checkbox2 = new BooleanPG( "Bool Test 2 (X)", false );
-     f.getContentPane().add( checkbox2.getGUIPanel( true ) );
-
-     f.setVisible( true );
-
-     Exercise( checkbox1, true, false, true );
-     Exercise( checkbox2, true, false, true );
-
-     System.out.println("Press return to exit");
-     Scanner sc = new Scanner( System.in );
-     sc.nextLine();
-
-     checkbox1.destroyGUIPanel();
-     checkbox2.destroyGUIPanel();
-     System.exit(0);
+    tester.MakeGUI( true );      // show the valid check box
+    // tester.MakeGUI( false );    // don't show the valid check box
   }
 
 
