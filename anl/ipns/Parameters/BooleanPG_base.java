@@ -32,6 +32,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/15 22:08:09  dennis
+ *  Added try/catch blocks to the hasChanged() and updateValueFromGUI()
+ *  methods, so that these will NOT throw exceptions if the widget value
+ *  is invalid.  The exception handling is focused on the get/setValue()
+ *  methods.
+ *
  *  Revision 1.1  2006/06/12 21:52:27  dennis
  *  Initial version of new code for parameter GUIs.  While this is
  *  loosely based on the parameter GUIs developed several years ago
@@ -110,11 +116,10 @@ public abstract class BooleanPG_base extends NewParameterGUI
    */
   public final Object getValue() throws IllegalArgumentException
   {
-    if( hasGUI() )                        // NOTE: In some cases it will be
-      bool_value = getWidgetValue();      //       neccessary to check if the
-                                          //       widget value is valid and
-                                          //       NOT use it, but throw an
-                                          //       illegal argument exception
+    if( hasGUI() )                        // NOTE: getWidgetValue() may throw 
+      bool_value = getWidgetValue();      //       an IllegalArgumentException 
+                                          //       if the widget value does 
+                                          //       not represent a boolean
     setValidFlag( true );
     return new Boolean( bool_value );
   }
@@ -130,7 +135,7 @@ public abstract class BooleanPG_base extends NewParameterGUI
    *
    * @param  obj  The new value.
    *
-   * @throws IllegalArgumentException if the specifice object cannot be 
+   * @throws IllegalArgumentException if the specific object cannot be 
    *         converted to a boolean value.
    */
   public final void setValue( Object obj ) throws IllegalArgumentException
@@ -162,16 +167,24 @@ public abstract class BooleanPG_base extends NewParameterGUI
    */
   public boolean hasChanged()
   {
-    if ( !hasGUI() ) 
-      return false;
+    if ( !hasGUI() )                        // GUI can't change if it's
+      return false;                         // not there!
 
-    boolean gui_value = getWidgetValue();
+    try
+    {
+      boolean gui_value = getWidgetValue();
     
-    if ( gui_value == bool_value )
-      return false;
-
-    setValidFlag(false);
-    return true;
+      if ( gui_value == bool_value )        // not change in value
+        return false;
+    
+      setValidFlag(false);                  // GUI val doesn't match old val 
+      return true;
+    }
+    catch ( Exception exception )
+    {
+      setValidFlag( false );                // illegal value entered by user
+      return true;                          // is considered a change
+    }
   }
 
 
@@ -194,15 +207,24 @@ public abstract class BooleanPG_base extends NewParameterGUI
     if ( !hasGUI() )                  // no GUI entry widget, so can't do
       return true;                    // anything
 
-    bool_value = getWidgetValue();    // if GUI entry widget exsits, copy
-    setValidFlag( true );             // the value over and set the valid flag
-    return true;
+    try
+    {
+      bool_value = getWidgetValue();    // if GUI entry widget exsits, copy
+      setValidFlag( true );             // the value over and set the valid flag
+      return true;
+    }
+    catch ( Exception exception )
+    {
+      setValidFlag( false );
+      return false; 
+    }
   }
 
 
   /**
-   * Used to clear out the BooleanPG.  This sets the internal value 
-   * to false.  There are no other resources to free.  
+   * Used to clear any resources allocated by the BooleanPG.  This just 
+   * sets the internal value to false since there are no other resources 
+   * to free.  
    */
   public void clear() 
   {
