@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/15 23:37:48  dennis
+ *  Fixed error in comment.
+ *
  *  Revision 1.2  2006/06/13 16:13:20  dennis
  *  Corrected this to call notifyChanged() when an event occurs,
  *  NOT hasChanged().
@@ -57,7 +60,7 @@ import java.awt.event.*;
  */
 public class PG_ItemListener implements ItemListener
 {
-  private NewParameterGUI my_pg = null;  // this is the PG whose haaChanged()
+  private NewParameterGUI my_pg = null;  // this is the PG whose notifyChanged()
                                           // method should be called.
 
   /**
