@@ -32,6 +32,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/15 22:04:44  dennis
+ *  Improved getCopy() method so that it doesn't call getValue(), but
+ *  uses the value from the base class directly.  This will avoid
+ *  throwing an exception if getCopy() is called when the GUI widget
+ *  is present but has an invalid value.  Also now copies the state
+ *  of the "valid flag".  The exact state of the GUI widget is NOT
+ *  copied, since the GUI widget will be initialized from the current
+ *  value when getPanel() is called.
+ *
  *  Revision 1.2  2006/06/13 16:17:00  dennis
  *  Now adds a PG_ItemListener to the checkbox, so that the valid
  *  flag will get tripped false when the checkbox state changes.
@@ -89,7 +98,8 @@ public class BooleanPG extends BooleanPG_base
    */
   public Object getCopy() 
   {
-     BooleanPG copy = new BooleanPG( getName(), getValue() );
+     BooleanPG copy = new BooleanPG( getName(), new Boolean( bool_value ) );
+     copy.setValidFlag( getValidFlag() );
      return copy;
   }
 
