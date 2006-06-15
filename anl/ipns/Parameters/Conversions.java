@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/15 22:01:07  dennis
+ *  Added get_int() method to get an integer value from an Object
+ *  that is a Number or a String.
+ *
  *  Revision 1.1  2006/06/12 21:52:28  dennis
  *  Initial version of new code for parameter GUIs.  While this is
  *  loosely based on the parameter GUIs developed several years ago
@@ -69,8 +73,8 @@ public class Conversions
    *  
    *  @return the boolean value obtained from the specified object.
    *
-   * @throws IllegalArgumentException if the object cannot be converted
-   *         to a boolean value.
+   *  @throws IllegalArgumentException if the object cannot be converted
+   *          to a boolean value.
    */
 
   public static boolean get_boolean( Object obj ) 
@@ -111,4 +115,69 @@ public class Conversions
     return bool_value;
   }
 
+
+  /**
+   *  Get an int value from the specified object, if possible.  
+   *  Conversions from objects of class Number or String are
+   *  supported.  If a String is passed in it must be a sequence of 
+   *  characters representing an integer.  If a Number object is passed
+   *  in, it's value must be an integer value.  For example a Float with
+   *  a value 1.0f will return the integer 1, but a Float with a value of
+   *  1.3f with cause an IllegalArgumentException to be thrown.   A null
+   *  object will give the value 0, as a default.  All other objects will 
+   *  cause an IllegalArugumentException to be thrown.
+   *
+   *  @param  obj   A Number or String object that can be
+   *                interpreted as an integer value.
+   *  
+   *  @return the int value obtained from the specified object.
+   *
+   *  @throws IllegalArgumentException if the object cannot be converted
+   *          to an integer value.
+   */
+
+  public static int get_int( Object obj ) throws IllegalArgumentException
+  {
+    int int_value;
+
+    if( obj == null )
+      int_value = 0;
+
+    else if ( obj instanceof Number )
+    {
+      double double_value = ((Number)obj).doubleValue();
+      int_value = ((Number)obj).intValue();
+      if ( int_value == double_value )
+        return int_value;
+      else
+        throw new IllegalArgumentException(
+                                "Number not an int value:" + double_value);
+    }
+
+    else if( obj instanceof String )
+    {
+      String temp = ((String)obj).trim();
+      try
+      {
+        Double double_value = new Double( temp );
+        int_value = double_value.intValue();     // we DO consider 1.0 to be int
+        if ( int_value == double_value )
+          return int_value;
+        else
+          throw new IllegalArgumentException(
+                                "Number not an int value:" + double_value);
+      }
+      catch ( Exception exception )
+      {
+        throw new IllegalArgumentException("String not int value:" + temp);
+      }
+    }
+
+    else
+      throw new IllegalArgumentException("Object not int value:" + obj);
+
+    return int_value;
+  }
+
+  
 }
