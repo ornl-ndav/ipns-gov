@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/15 23:37:14  dennis
+ *  Added test of IntegerPG.
+ *  Added basic exception handling when calling getValue().
+ *
  *  Revision 1.2  2006/06/13 19:51:12  dennis
  *  Modified Test GUI that includes controls for testing the functionality
  *  of the NewParameterGUI objects.  The NewParameterGUI objects
@@ -221,8 +225,15 @@ public class TestPGs
         INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
         System.out.println("------------- " + pg.getName() + " -------------");
         System.out.println( pg.toString() );
-        System.out.println( "      Value = " + pg.getValue() );
-        System.out.println( "StringValue = " + pg.getStringValue() );
+        try
+        {
+          System.out.println( "      Value = " + pg.getValue() );
+          System.out.println( "StringValue = " + pg.getStringValue() );
+        }
+        catch ( IllegalArgumentException exception )
+        {
+          System.out.println( "NO VALID VALUE AVAILABLE IN GUI" );
+        }
       }
     }
   }
@@ -266,9 +277,11 @@ public class TestPGs
 
     BooleanPG checkbox1 = new BooleanPG( "Bool Test 1", false );
     BooleanPG checkbox2 = new BooleanPG( "Bool Test 2 (X)", false );
+    IntegerPG int_pg    = new IntegerPG( "Integer PG Test", 2 );
 
     tester.AddToTestList( checkbox1, true, false );
     tester.AddToTestList( checkbox2, true, false );
+    tester.AddToTestList( int_pg, 1, 2 );
 
     tester.MakeGUI( true );      // show the valid check box
     // tester.MakeGUI( false );    // don't show the valid check box
