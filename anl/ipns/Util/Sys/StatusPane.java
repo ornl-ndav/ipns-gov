@@ -31,6 +31,10 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.12  2006/06/18 02:40:17  rmikk
+ * invoked the update scroll method again
+ * Improved this method with the new modelToView and other scrolling methods
+ *
  * Revision 1.11  2004/08/17 21:05:20  rmikk
  * Eliminated the UpdateScroll method call.  The new version of Java seems to
  * do this automatically.  Causes text to be written in random places(?)
@@ -148,7 +152,7 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
      */
     public void add( Object Value){
         spb.add( Value);
-        //UpdateScroll();
+        UpdateScroll();
     } 
     
     public Document getDocument(){
@@ -169,7 +173,7 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
                return;
              if( spb.getRows() < 2)
                 return;
-             int line;// = spb.getRows();
+             /*int line;// = spb.getRows();
              Document D = spb.getDocument();
              int length =D.getLength();
              line = spb.getLineOfOffset(length-1);
@@ -177,6 +181,18 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
              int RowHeight = spb.getBounds().height/spb.getRows();
                   
              X.getViewport().setViewPosition( new Point( 0, (line -1)*RowHeight) );
+             */
+             Dimension ViewportExtent = X.getViewport().getExtentSize();
+             Point UPLeft = X.getViewport().getViewPosition();
+             int nlines = spb.getLineCount();
+             if( nlines <5) return;
+             int pos = spb.getLineStartOffset( nlines -5);
+             Rectangle R = spb.modelToView( pos);
+             if(R.y > UPLeft.y)
+               if( R.y < UPLeft.y+ViewportExtent.height)
+            	   return;
+             X.getViewport().setViewPosition( new Point( R.x,R.y));
+            
              }
            catch( Exception ss){
              System.out.println("StatusPane listen error ="+ss);
