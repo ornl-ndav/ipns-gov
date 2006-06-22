@@ -31,6 +31,19 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.57  2006/06/22 20:48:46  amoe
+ * -Commented out the_frame.setSize(..) in FunctionControls(..) and
+ * replaced with the_frame.pack().  This is to make the_frame 's size
+ * dynamic.
+ * -Commented out final Strings FRAME_WIDTH and FRAME_HEIGHT.
+ * These are no longer needed for setting the_frame size.
+ * -Set names for viewcontrols: leftBox, control_box, rightBox,
+ * RboxPanel, controlpanel in buildControls(). This is so the
+ * viewcontrols can be referred to by name when looking inside
+ * controlpanel.
+ * -In close_frame(), replaced the_frame.setBounds(...) with
+ * the_frame.setLocation(...) and the_frame.pack() .
+ *
  * Revision 1.56  2006/05/24 17:09:32  dennis
  * Changed dataChanged( IVirtualArrayList1D ) to always update the
  * list of graph names. (Jim Kohl)
@@ -467,8 +480,8 @@ import javax.swing.*;
   private transient CursorOutputControl cursor;
   private transient ViewControl[] control_list;
 
-  public static final int FRAME_WIDTH  = 480; 
-  public static final int FRAME_HEIGHT = 350; 
+  //public static final int FRAME_WIDTH  = 480; 
+  //public static final int FRAME_HEIGHT = 350; 
   
   /**
    *  Constructor that builds the controls in an existing frame.
@@ -487,10 +500,11 @@ import javax.swing.*;
     buildControls();
 
     main_panel.addViewControl(controlpanel);
-    the_frame.setSize( FRAME_WIDTH, FRAME_HEIGHT );
+    //the_frame.setSize( FRAME_WIDTH, FRAME_HEIGHT );    
     the_frame.getContentPane().removeAll();
     the_frame.getContentPane().add( (JComponent)main_panel.getPanel() );
     the_frame.validate();
+    the_frame.pack();
   }
 
   /**
@@ -709,6 +723,7 @@ import javax.swing.*;
     panel3.add( ErrorColor.getButton() );
                                                                                    
     // the left box is the left side of the control panel
+    leftBox.setName("leftBox");
     leftBox.add( labelbox1 );
     leftBox.add( labelbox2 );
     leftBox.add( labelbox3 );
@@ -721,8 +736,10 @@ import javax.swing.*;
     leftBox.add( labelbox7 );
     leftBox.add( labelbox9 );
 
+    control_box.setName("control_box");
     control_box.add(leftBox);
     
+    rightBox.setName("rightBox");
     rightBox.add( axis_checkbox );
     rightBox.add( annotation_checkbox );
     rightBox.add( legend_checkbox );
@@ -730,11 +747,13 @@ import javax.swing.*;
     rightBox.add( cursor );
     rightBox.add( labelbox8 );
                                                                               
+    RboxPanel.setName("RboxPanel");
     RboxPanel.setLayout(G_lout);
     RboxPanel.add(rightBox);
                                                                                    
     control_box.add(RboxPanel);
-                                                                                   
+
+    controlpanel.setName("controlpanel");
     controlpanel.setLayout( G_lout );
     controlpanel.add( control_box );
                                                                                    
@@ -982,7 +1001,8 @@ import javax.swing.*;
 
     Point location =  the_frame.getLocation();
     the_frame.setVisible( false );
-    the_frame.setBounds( location.x, location.y, FRAME_WIDTH, FRAME_HEIGHT );
+    the_frame.setLocation(location.x, location.y);
+    the_frame.pack();
   }
   
   // method to remove panels upon removal of view components 
@@ -1163,7 +1183,6 @@ import javax.swing.*;
              }
              else if( ccb.getTitle().equals("Legend Overlay") )
              {
-               System.out.println("no more legend");
             	 LegendOverlay legend = (LegendOverlay)
                                  big_picture.getComponent(
                                  big_picture.getComponentCount() - 4 );
