@@ -33,6 +33,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.83  2006/06/22 19:39:58  amoe
+ *  -changed 'private transient GraphJPanel gjp' to protected, for
+ *  DifferenceViewComponent
+ *  -changed 'private FunctionControls mainControls' to protected, for
+ *  DifferenceViewComponent
+ *  -updated javadoc entry for dataChanged(...)
+ *
  *  Revision 1.82  2006/05/24 17:13:38  dennis
  *  Made dataChanged( VirtualArrayList1D ) always reconstruct the list
  *  of graphs. (Jim Kohl)
@@ -399,7 +406,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   private transient Vector Listeners   = null;
   private transient JPanel big_picture = new JPanel();
   private transient JPanel background = new JPanel(new BorderLayout());
-  private transient GraphJPanel gjp;
+  protected transient GraphJPanel gjp;
   private final int MAX_GRAPHS = 20;
  
   // for component size and location adjustments
@@ -410,7 +417,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   private Font font;
  // private transient LinkedList controls = new LinkedList(  );
  // private int linewidth      = 1;
-  private FunctionControls mainControls;
+  protected FunctionControls mainControls;
   private boolean draw_pointed_at = false;
   private ControlCheckbox control_box = new ControlCheckbox(false);
 
@@ -514,14 +521,14 @@ public class FunctionViewComponent implements IViewComponent1D,
 
       if(Varray1D.getNumSelectedGraphs() > 1)
       {
-    	  /*
+    	  
     	  //Retrieving viewcontrol list 
-    	  ViewControl[] vcontrol = mainControls.getControlList();
+    	  //ViewControl[] vcontrol = mainControls.getControlList();
     	  
           // Comment out the switch to diagonal shift of spectra
-          //vcontrol[FunctionControls.VC_SHIFT].setControlValue(new Integer(0));
+          //vcontrol[FunctionControls.VC_SHIFT].setControlValue(new Integer(2));
     	  
-    	  System.out.println("TITLE\tCONT-VALUE");    	  
+    	  /*System.out.println("TITLE\tCONT-VALUE");    	  
     	  for(int a = 0;a<vcontrol.length;a++)
     	  {
             System.out.println("["+a+"] ." + vcontrol[a].getTitle() + 
@@ -973,6 +980,8 @@ public class FunctionViewComponent implements IViewComponent1D,
 
   /**
    * This method takes in a new array of data and redraws the graph accordingly.
+   * 
+   * @param pin_varr The IVirtual array containing data for producing the graph(s).
    */
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
   {
