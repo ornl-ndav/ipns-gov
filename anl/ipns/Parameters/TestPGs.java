@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/06/23 14:15:20  dennis
+ *  Added test of StringPG.
+ *
  *  Revision 1.3  2006/06/15 23:37:14  dennis
  *  Added test of IntegerPG.
  *  Added basic exception handling when calling getValue().
@@ -275,13 +278,15 @@ public class TestPGs
   {
     TestPGs tester = new TestPGs();
 
-    BooleanPG checkbox1 = new BooleanPG( "Bool Test 1", false );
-    BooleanPG checkbox2 = new BooleanPG( "Bool Test 2 (X)", false );
+    BooleanPG checkbox1 = new BooleanPG( "Boolean PG 1", false );
+    BooleanPG checkbox2 = new BooleanPG( "Boolean PG 2", false );
     IntegerPG int_pg    = new IntegerPG( "Integer PG Test", 2 );
+    StringPG  str_pg    = new StringPG( "String PG Test", "Some String" );
 
     tester.AddToTestList( checkbox1, true, false );
-    tester.AddToTestList( checkbox2, true, false );
+    tester.AddToTestList( checkbox2, false, true );
     tester.AddToTestList( int_pg, 1, 2 );
+    tester.AddToTestList( str_pg, "First String", "Second String" );
 
     tester.MakeGUI( true );      // show the valid check box
     // tester.MakeGUI( false );    // don't show the valid check box
