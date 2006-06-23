@@ -32,6 +32,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/23 14:19:17  dennis
+ *  Added initial version of method get_String() to get a String
+ *  from an object.  For now, this is very straight forward and
+ *  just gets a default form of the String object.  This "may" in
+ *  the future be extended to get specialized String forms for
+ *  special objects, such as a compact String form of an increasing
+ *  sequence of integers in an int[].
+ *
  *  Revision 1.2  2006/06/15 22:01:07  dennis
  *  Added get_int() method to get an integer value from an Object
  *  that is a Number or a String.
@@ -179,5 +187,31 @@ public class Conversions
     return int_value;
   }
 
+
+  /**
+   *  Get a String value from the specified object, if possible.  
+   *
+   *  @param  obj   An object that is to be converted to a String
+   *  
+   *  @return the String value obtained from the specified object.
+   *
+   *  @throws IllegalArgumentException if the object cannot be converted
+   *          to a String value.
+   */
+
+  public static String get_String( Object obj ) throws IllegalArgumentException
+  {
+    String str_value;
+
+    if( obj == null )
+      str_value = "";
+
+    else
+      str_value = "" + obj;       // use default way of converting Object to
+                                  // String.  We may accomodate specific 
+                                  // conversions for other data types in the
+                                  // future.
+    return str_value;
+  }
   
 }
