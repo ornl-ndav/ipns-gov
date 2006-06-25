@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/25 01:30:25  dennis
+ *  Removed updateValueFromGUI() method, since the getValue() method
+ *  also will update the stored value from the value in the GUI,
+ *  if the GUI is present.
+ *
  *  Revision 1.1  2006/06/12 21:52:29  dennis
  *  Initial version of new code for parameter GUIs.  While this is
  *  loosely based on the parameter GUIs developed several years ago
@@ -119,23 +124,6 @@ public interface INewParameterGUI extends INewParameter {
    *          value in the entry widget is not a proper value.
    */
   boolean hasChanged();
-
-
-  /**
-   *  Attempt to update the value of this Parameter from the GUI entry
-   *  widget, and return true if the update succeeds, or there is no
-   *  GUI present.  If there is a GUI entry widget, but it's value is
-   *  is invalid, then this method will return false, and will not 
-   *  alter the value of this Parameter.  This method may also set the 
-   *  value of the valid flag, if the GUI is present.  Specifically,
-   *  if the GUI is present the valid flag is set true if the update
-   *  succeeds and false if the value from the GUI entry widget is invalid.
-   *  If there is no GUI, the state of the valid flag is not changed.
-   *
-   *  @return true if there is no GUI entry widget, or if there is a 
-   *          GUI entry widget with a valid value.  Return false otherwise.
-   */
-  boolean updateValueFromGUI();
 
 
   /**
