@@ -32,6 +32,18 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/06/25 02:01:10  dennis
+ *  Adjusted handling of valid flag in getValue(), setValue() and
+ *  hasChanged() methods, based on latest design revisions.  Specifically,
+ *  getValue() will not alter the flag, since listeners will trip the valid
+ *  flag false when the GUI is altered.
+ *  setValue() will trip the flag false, since changing the value will require
+ *  the code using the PG to determine whether or not the value is "really"
+ *  valid for the current application.
+ *  hasChanged() will set the flag false, if it returns true (due to a
+ *  change or invalid value).  It will NOT set the flag true if no change
+ *  is detected.
+ *
  *  Revision 1.3  2006/06/25 01:30:24  dennis
  *  Removed updateValueFromGUI() method, since the getValue() method
  *  also will update the stored value from the value in the GUI,
@@ -125,7 +137,6 @@ public abstract class BooleanPG_base extends NewParameterGUI
       bool_value = getWidgetValue();      //       an IllegalArgumentException 
                                           //       if the widget value does 
                                           //       not represent a boolean
-    setValidFlag( true );
     return new Boolean( bool_value );
   }
 
