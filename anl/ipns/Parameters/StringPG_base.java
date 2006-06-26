@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/06/26 20:48:07  dennis
+ *  Fixed minor error in javadocs.
+ *
  *  Revision 1.3  2006/06/25 02:01:11  dennis
  *  Adjusted handling of valid flag in getValue(), setValue() and
  *  hasChanged() methods, based on latest design revisions.  Specifically,
@@ -93,7 +96,8 @@ public abstract class StringPG_base extends NewParameterGUI
   /**
    * Get the value of this String valued PG, as a String.  
    *
-   * @return "true" or "false".
+   * @return The value of this PG as a String.  In the case of a StringPG
+   *         this is the same as is returned by the getValue() method.
    *
    * @throws IllegalArgumentException is thrown, if a GUI entry widget
    *         exists for this PG, but the value in the GUI cannot be converted 
@@ -222,7 +226,8 @@ public abstract class StringPG_base extends NewParameterGUI
 
   /**
    * Sets the GUI's current value.  NOTE: When this method is called from the
-   * setValue(obj) method, the validity of the argument has already be checked.
+   * setValue(obj) method, the validity of the argument has already been
+   * checked.
    *
    * @param value  The String value to set into the GUI widget.
    *

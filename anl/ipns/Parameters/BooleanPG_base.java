@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/06/26 20:48:06  dennis
+ *  Fixed minor error in javadocs.
+ *
  *  Revision 1.4  2006/06/25 02:01:10  dennis
  *  Adjusted handling of valid flag in getValue(), setValue() and
  *  hasChanged() methods, based on latest design revisions.  Specifically,
@@ -231,7 +234,8 @@ public abstract class BooleanPG_base extends NewParameterGUI
 
   /**
    * Sets the GUI's current value.  NOTE: When this method is called from the
-   * setValue(obj) method, the validity of the argument has already be checked.
+   * setValue(obj) method, the validity of the argument has already been
+   * checked.
    *
    * @param value  The boolean value to set into the GUI widget.
    *
