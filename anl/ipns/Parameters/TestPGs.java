@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/06/26 22:15:20  rmikk
+ *  Incorporated a test case for the BooleanEnablePG
+ *
  *  Revision 1.4  2006/06/23 14:15:20  dennis
  *  Added test of StringPG.
  *
@@ -115,6 +118,11 @@ public class TestPGs
    */
   private void MakeGUI( boolean show_valid_box )
   {
+	  
+	 for(int i =0; i< pg_list.size(); i++)
+		 if( pg_list.elementAt(i) instanceof BooleanEnablePG)
+			((BooleanEnablePG)pg_list.elementAt(i)).addPropertyChangeListener( 
+					new EnableParamListener(pg_list,i));
      int num_guis = pg_list.size();
      JFrame f = new JFrame("Test for ParameterGUIs");
      f.setBounds( 0, 0, 500, 25 * (num_guis + 1) + 25 );
@@ -280,14 +288,20 @@ public class TestPGs
 
     BooleanPG checkbox1 = new BooleanPG( "Boolean PG 1", false );
     BooleanPG checkbox2 = new BooleanPG( "Boolean PG 2", false );
+       Vector V = new Vector();
+       V.addElement( new Boolean( true));
+       V.addElement( new Integer( 1));
+       V.addElement( new Integer(1));
+    BooleanEnablePG Check3 = new BooleanEnablePG("do.no do",V);
     IntegerPG int_pg    = new IntegerPG( "Integer PG Test", 2 );
     StringPG  str_pg    = new StringPG( "String PG Test", "Some String" );
 
     tester.AddToTestList( checkbox1, true, false );
     tester.AddToTestList( checkbox2, false, true );
+    tester.AddToTestList( Check3 ,true, false);
     tester.AddToTestList( int_pg, 1, 2 );
     tester.AddToTestList( str_pg, "First String", "Second String" );
-
+   
     tester.MakeGUI( true );      // show the valid check box
     // tester.MakeGUI( false );    // don't show the valid check box
   }
