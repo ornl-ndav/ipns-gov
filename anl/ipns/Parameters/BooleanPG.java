@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/06/26 21:26:34  dennis
+ *  Made the checkbox protected instead of private, so the
+ *  BooleanEnablePG can derive from this class and listen
+ *  for ItemChanged events from the checkbox.
+ *
  *  Revision 1.3  2006/06/15 22:04:44  dennis
  *  Improved getCopy() method so that it doesn't call getValue(), but
  *  uses the value from the base class directly.  This will avoid
@@ -64,10 +69,10 @@ import javax.swing.*;
  */
 public class BooleanPG extends BooleanPG_base
 {
-  private JPanel    panel   = null;
-  private JCheckBox box     = null;
-  private JLabel    label   = null;
-  private boolean   enabled = true;    // we store the enabled state, so the
+  private   JPanel    panel   = null;
+  protected JCheckBox box     = null;
+  private   JLabel    label   = null;
+  private   boolean   enabled = true;  // we store the enabled state, so the
                                        // setEnabled() method can be called
                                        // before constructing the widget.
 
