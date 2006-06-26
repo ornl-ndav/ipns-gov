@@ -30,6 +30,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 	private boolean displayDiff			= true;		//true if the difference graph is on
 	private boolean plotShiftedDiff		= true;		//plot the shifted diff graph
 	private int numSelected;						//number of selected graphs
+	private int numGraphs;							//number of total graphs
 	
 	//graph selected for difference
 	// diffGraph = graphZero - graphOne
@@ -62,6 +63,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		fvcGraphs = varr;
 		selectedIndexes = fvcGraphs.getSelectedIndexes();
 		numSelected = selectedIndexes.length;
+		numGraphs = fvcGraphs.getNumGraphs();
 		
 		int pointedAtGraph = fvcGraphs.getPointedAtGraph();		
 		
@@ -79,16 +81,29 @@ public class DifferenceViewComponent extends FunctionViewComponent
 			graphOne = selectedIndexes[1];
 		}
 		
-		//don't display diff if there are less than 2 selected graphs
-		if(numSelected >= 2)
+		
+		fvcGraphDiffVec= new Vector(0);
+		fvcGraphDiffVec.setSize(numGraphs);
+		System.out.println("fvcGraphDiffVec size: "+ fvcGraphDiffVec.size());
+		System.out.println("fvcGraphDiffVec capacity: "+ fvcGraphDiffVec.capacity());
+		for(int i=0;i<numGraphs;i++)
 		{
+			fvcGraphDiffVec.set(i, new DataArray1D( fvcGraphs.getXValues(i),fvcGraphs.getYValues(i),fvcGraphs.getErrorValues(i),
+					fvcGraphs.getGraphTitle(i),fvcGraphs.isSelected(i),false) );
+		}
+		( (DataArray1D)(fvcGraphDiffVec.get(pointedAtGraph)) ).setPointedAt(true);  //re-setting the pointed at graph
+		
+		
+		
+		//don't display diff if there are less than 2 selected graphs
+		//if(numSelected >= 2)
+		//{
 			displayDiffGraph(true);
-		}		
+		//}		
 		
 		diffOptions = new DifferenceOptions();
 		incorporateControls();		
 	}
-		
 	
 	/**
 	 *	This method takes in a changed array of data and re-calculates the difference 
@@ -99,18 +114,59 @@ public class DifferenceViewComponent extends FunctionViewComponent
 	public void dataChanged(IVirtualArrayList1D pin_varr)
 	{		
 		boolean fullBuild = false;
+		int[] oldSelectedIndexes = selectedIndexes;
+		int oldNumSelected = numSelected;
+		int oldNumGraphs = numGraphs;		
 		
-		fvcGraphs = pin_varr;
+		fvcGraphs = pin_varr;		
 		
-		//clearing old selected indexes
-		for(int i=0;i<selectedIndexes.length;i++)
-		{
-			((DataArray1D)fvcGraphDiffVec.get(selectedIndexes[i])).setSelected(false);
-		}
-		
+		//updating the new selected indexes
 		selectedIndexes = fvcGraphs.getSelectedIndexes();
-		numSelected = selectedIndexes.length;		
+		numSelected = selectedIndexes.length;
+		numGraphs = fvcGraphs.getNumGraphs();		
 		
+		//if fvcGraphs size has changed, the vector must be remade
+		if(oldNumGraphs != numGraphs)
+		{
+			System.out.println("Rebuilding vector");
+			int pa = fvcGraphs.getPointedAtGraph();
+			fvcGraphDiffVec= new Vector(0);
+			fvcGraphDiffVec.setSize(numGraphs);
+			for(int i=0;i<numGraphs;i++)
+			{
+				fvcGraphDiffVec.set(i, new DataArray1D( fvcGraphs.getXValues(i),fvcGraphs.getYValues(i),
+						fvcGraphs.getErrorValues(i),fvcGraphs.getGraphTitle(i),fvcGraphs.isSelected(i),
+						false) );
+			}
+			//re-setting the pointed at graph
+			( (DataArray1D)(fvcGraphDiffVec.get(pa)) ).setPointedAt(true);
+		}		
+		else  //updating the current vector
+		{
+			//clearing old selected indexes
+			for(int i=0;i<oldNumSelected;i++)
+			{
+				((DataArray1D) fvcGraphDiffVec.get(oldSelectedIndexes[i]) ).setSelected(false);
+			}
+			
+			//updating selected indexes for graphs
+			for(int i=0;i<numSelected;i++)
+			{
+				((DataArray1D)fvcGraphDiffVec.get(selectedIndexes[i])).setSelected(true);
+			}
+			
+		}		
+		
+		
+		//if before there were less than 2 selected, but more than 2 selected now, must full build
+		//because there was no graph before
+		if((oldNumSelected < 2) && (numSelected >= 2))
+		{
+			fullBuild = true;
+			graphZero = selectedIndexes[0];
+			graphOne = selectedIndexes[1];
+		}		
+				
 		//if diff graph indexes are not currently (still) selected, change to 
 		//the next free selected index
 		if(Arrays.binarySearch(selectedIndexes,graphZero)<0)
@@ -151,7 +207,20 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		}
 		
 		displayDiffGraph(fullBuild);
-	}	
+		
+		
+		//updating difference controls
+		if(numSelected >= 2)
+		{
+			diff_Checkbox.setSelected(true);
+		}
+		else
+		{
+			diff_Checkbox.setSelected(false);
+		}
+        
+		//update DifferenceOptions graph selection lists?
+	}
 	
 	/**
 	 *	This method is responsible for displaying the difference graph.
@@ -164,30 +233,50 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		if(((numSelected >= 2) && fullBuild) && displayDiff)  //buildling new diff data from selected data
 		{
 			buildDiffGraph();
-			buildShiftDiffGraph();
-			
-			fvcGraphDiffVec= new Vector(0);
-			int pa = fvcGraphs.getPointedAtGraph();
+			buildShiftDiffGraph();					
 															/*TODO until Virtual Arrays are fixed/updated,
 															 * this part should just add a new DataArray1D 
 															 * graph (difference graph) to the end of the 
 															 * Virtual Array, instead of just making a new 
 															 * one.*/
-			for(int i=0;i<fvcGraphs.getNumGraphs();i++)
+			/*
+			int pa = fvcGraphs.getPointedAtGraph();
+			fvcGraphDiffVec= new Vector(0);
+			
+			for(int i=0;i<numGraphs;i++)
 			{
 				fvcGraphDiffVec.add( new DataArray1D( fvcGraphs.getXValues(i),fvcGraphs.getYValues(i),fvcGraphs.getErrorValues(i),
 						fvcGraphs.getGraphTitle(i),fvcGraphs.isSelected(i),false) );
 			}
 			( (DataArray1D)(fvcGraphDiffVec.get(pa)) ).setPointedAt(true);  //re-setting the pointed at graph
+			*/
 			
-			//adding differenceGraph to the vector of selected graphs
-			if(plotShiftedDiff)
+			
+			//if the difference graph doesn't exist in vector, add it
+			//there will be one more element in the vector if it does exist
+			if(numGraphs < fvcGraphDiffVec.size())
 			{
-				fvcGraphDiffVec.add(getShiftedDiffGraph());
+				//setting differenceGraph to the vector of selected graphs
+				if(plotShiftedDiff)
+				{
+					fvcGraphDiffVec.set(fvcGraphDiffVec.size()-1,getShiftedDiffGraph());
+				}
+				else
+				{
+					fvcGraphDiffVec.set(fvcGraphDiffVec.size()-1,getDifferenceGraph());
+				}				
 			}
 			else
 			{
-				fvcGraphDiffVec.add(getDifferenceGraph());
+				//adding differenceGraph to the vector of selected graphs
+				if(plotShiftedDiff)
+				{
+					fvcGraphDiffVec.add(getShiftedDiffGraph());
+				}
+				else
+				{
+					fvcGraphDiffVec.add(getDifferenceGraph());
+				}
 			}
 			
 			//creating the new Virtual Array with the difference graph included
@@ -195,7 +284,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 			fvcGraphWithDiff.setTitle(fvcGraphs.getTitle());
 			
 			//setting axis info
-			for(int i=0;(i<fvcGraphs.getNumGraphs())&&(fvcGraphs.getAxisInfo(i)!=null);i++)
+			for(int i=0;(i<numGraphs)&&(fvcGraphs.getAxisInfo(i)!=null);i++)
 			{
 				fvcGraphWithDiff.setAxisInfo(i,fvcGraphs.getAxisInfo(i));
 			}
@@ -207,17 +296,13 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		}
 		else if(((numSelected >= 2) && !fullBuild) && displayDiff) //updating display from available data
 		{			
-			//updating selected indexes
-			for(int i=0;i<selectedIndexes.length;i++)
-			{
-				((DataArray1D)fvcGraphDiffVec.get(selectedIndexes[i])).setSelected(true);
-			}
+			
 			
 			fvcGraphWithDiff = new VirtualArrayList1D(fvcGraphDiffVec);
 			
 			//restoring axis information
 			fvcGraphWithDiff.setTitle(fvcGraphs.getTitle());			
-			for(int i=0;(i<fvcGraphs.getNumGraphs())&&(fvcGraphs.getAxisInfo(i)!=null);i++)
+			for(int i=0;(i<numGraphs)&&(fvcGraphs.getAxisInfo(i)!=null);i++)
 			{
 				fvcGraphWithDiff.setAxisInfo(i,fvcGraphs.getAxisInfo(i));
 			}
@@ -235,7 +320,10 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		{
 			super.dataChanged(fvcGraphs);
 			System.out.println("UNHANDLED SCENARIO: DifferenceViewComponent displayDiffGraph()");
-		}			
+		}
+		System.out.println("Vector.length: "+fvcGraphDiffVec.size());
+		System.out.println("Orig.length: " + numGraphs);
+		System.out.println("Test Graph: " + fvcGraphs.getGraphTitle(47));
 	}
 	
 	/**
@@ -553,7 +641,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		int index = 1;  //default position is 1		
 		while((i < control_boxComp.length) && (searching == true))
 		{		
-			if(control_boxComp[i].getName().equals("nel"))
+			if(control_boxComp[i].getName().equals("RboxPanel"))
 			{
 				index = i;
 				searching = false;
@@ -679,6 +767,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 			if(actionMessage.equals("Checkbox Changed"))
 			{				
 				displayDiff = ((ControlCheckboxButton)ae.getSource()).isSelected();
+				System.out.println("checkbox changed");
 				displayDiffGraph(false);
 			}
 			else if(actionMessage.equals("Button Pressed"))
@@ -760,7 +849,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 	        this.getContentPane().add( closePanel );
 	        this.pack();	        
 		}
-	
+		
 		private class OptionListener implements ActionListener
 		{
 			public void actionPerformed( ActionEvent e )
