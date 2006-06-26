@@ -1,3 +1,39 @@
+/* File:  BooleanEnablePG.java 
+ *
+ * Copyright (C) 2006, Ruth Mikkelson
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contact : Ruth Mikkelson <Mikkelsonr@uwstout.edu>
+ *           University of Wisconsin-Stout
+ *           Menomonie, Wisconsin 54751
+ *           USA
+ *
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0426797, and by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ *
+ * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ * $Log$
+ * Revision 1.2  2006/06/26 22:52:42  dennis
+ * Minor fixes to javadocs.
+ *
+ */
+
 package gov.anl.ipns.Parameters;
 
 import javax.swing.*;
@@ -25,21 +61,18 @@ import java.awt.event.*;
  *
  */
 public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
-                                              ItemListener{
-
-	   
+                                              ItemListener{   
     int nSetIfTrue = 0;
     int nSetIfFalse = 0;
     PropertyChangeSupport PCSupport;
    
     
-
     /**
      * This constructor is a BooleanPG with the added Information to
      * determine which other parameterGUI's are to be enabled if true and 
      * disabledif false
      * @param name   The prompt
-     * @param value  Should be a Vector containing the intial value( True or 
+     * @param val    Should be a Vector containing the intial value( True or 
      *               False), an Integer for the number of Parameters following
      *               this one that will be enabled if true(disabled if false)
      *               then another integer indicating the number of parameters 
@@ -65,7 +98,6 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
         PCSupport = new PropertyChangeSupport( this );
 	}
 	
- 
     
     /**
 	 * 
@@ -76,7 +108,6 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
         return nSetIfTrue;
     }
     
- 
     
     /**
      * 
@@ -90,7 +121,6 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
     }
     
    
-    
     /**
      * Adds a listener that should be capable of enabling and disabliing the parameters
      * in a parameter list following this parameter
@@ -100,8 +130,7 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
     	PCSupport.addPropertyChangeListener(list);
     }
 
- 
-    
+   
     /**
      * Removes a listener that should be capable of enabling and disabliing the parameters
      * in a parameter list following this parameter
@@ -110,6 +139,7 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
     public void removePropertyChangeListener( PropertyChangeListener list){
     	PCSupport.removePropertyChangeListener( list);
     }
+  
     
     /**
      *  Fires a property change event. It should be to an EnableParamListener which
@@ -130,8 +160,7 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
 			return ((Vector)O).firstElement();
 		if( O.getClass().isArray())
 			return Array.get(O,0);
-		return O;
-		
+		return O;	
 	}
 
 
@@ -143,17 +172,18 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
         return new BooleanEnablePG(getName(), V);		
 	}
 	
+	
 	public JPanel getWidget(){
 		JPanel Res = super.getWidget();
 		box.addItemListener( this );
-		return Res;
-		
+		return Res;		
 	}
 	
 	
 	public void itemStateChanged( ItemEvent evt){
 		fire();
 	}
+	
 	 /**
 	  *  @param args
 	 */

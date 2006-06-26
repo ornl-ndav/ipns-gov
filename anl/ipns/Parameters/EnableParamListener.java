@@ -29,6 +29,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.2  2006/06/26 22:52:42  dennis
+ * Minor fixes to javadocs.
+ *
  * Revision 1.1  2006/06/26 22:14:03  rmikk
  * Initial checkin for the BooleanEnablePG listener. The IParameter had
  * to be changed and methods changed
@@ -41,9 +44,9 @@ package gov.anl.ipns.Parameters;
 
 import java.beans.*;
 import java.util.*;
-import DataSetTools.parameter.*;
 import DataSetTools.components.ParametersGUI.*;
 import DataSetTools.operator.*;
+
 /**
  * This class is a PropertyChangeListener for BooleanEnablePG's that
  * takes care of disabling and enabling other Parameters when the
@@ -109,8 +112,6 @@ public class EnableParamListener implements PropertyChangeListener {
         if (thisParamNum + nSetIfTrue + nSetIfFalse >= size(ParameterList))
             error = true;
         propertyChange( null);
-        
-               
     }
     
     
@@ -127,7 +128,6 @@ public class EnableParamListener implements PropertyChangeListener {
         if( P instanceof Operator)
             return ((Operator)P).getNum_parameters();
         return 0;
-        
     }
     
     // Finds the index-th entry of P. 
@@ -164,8 +164,8 @@ public class EnableParamListener implements PropertyChangeListener {
            else if(pparm instanceof INewParameterGUI)
                if(((INewParameterGUI)pparm).getGUIPanel(false)!= null)
                 ((INewParameterGUI)pparm).setEnabled(enable);
-               
         }    
+        
         enable = !enable;
         for( int i=thisParamNum+1+nSetIfTrue; (i<thisParamNum+1+nSetIfTrue+nSetIfFalse)&&(i<size(ParameterList)); i++){
            Object pparm=entry(ParameterList,i);
@@ -173,9 +173,7 @@ public class EnableParamListener implements PropertyChangeListener {
                ((JParameterGUI)pparm).getGUISegment().setEnabled(enable);
            else if(pparm instanceof INewParameterGUI)
                if(((INewParameterGUI)pparm).getGUIPanel(false) != null)
-                ((INewParameterGUI)pparm).setEnabled(enable);
-           
-               
+                ((INewParameterGUI)pparm).setEnabled(enable);            
         }    
         
     }
