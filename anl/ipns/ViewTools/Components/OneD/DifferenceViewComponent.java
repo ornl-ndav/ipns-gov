@@ -84,8 +84,8 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		
 		fvcGraphDiffVec= new Vector(0);
 		fvcGraphDiffVec.setSize(numGraphs);
-		System.out.println("fvcGraphDiffVec size: "+ fvcGraphDiffVec.size());
-		System.out.println("fvcGraphDiffVec capacity: "+ fvcGraphDiffVec.capacity());
+		//System.out.println("fvcGraphDiffVec size: "+ fvcGraphDiffVec.size());
+		//System.out.println("fvcGraphDiffVec capacity: "+ fvcGraphDiffVec.capacity());
 		for(int i=0;i<numGraphs;i++)
 		{
 			fvcGraphDiffVec.set(i, new DataArray1D( fvcGraphs.getXValues(i),fvcGraphs.getYValues(i),fvcGraphs.getErrorValues(i),
@@ -128,7 +128,6 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		//if fvcGraphs size has changed, the vector must be remade
 		if(oldNumGraphs != numGraphs)
 		{
-			System.out.println("Rebuilding vector");
 			int pa = fvcGraphs.getPointedAtGraph();
 			fvcGraphDiffVec= new Vector(0);
 			fvcGraphDiffVec.setSize(numGraphs);
@@ -319,11 +318,9 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		else  
 		{
 			super.dataChanged(fvcGraphs);
-			System.out.println("UNHANDLED SCENARIO: DifferenceViewComponent displayDiffGraph()");
+			//System.out.println("UNHANDLED SCENARIO: DifferenceViewComponent displayDiffGraph()");
 		}
-		System.out.println("Vector.length: "+fvcGraphDiffVec.size());
-		System.out.println("Orig.length: " + numGraphs);
-		System.out.println("Test Graph: " + fvcGraphs.getGraphTitle(47));
+
 	}
 	
 	/**
@@ -767,7 +764,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 			if(actionMessage.equals("Checkbox Changed"))
 			{				
 				displayDiff = ((ControlCheckboxButton)ae.getSource()).isSelected();
-				System.out.println("checkbox changed");
+				
 				displayDiffGraph(false);
 			}
 			else if(actionMessage.equals("Button Pressed"))
