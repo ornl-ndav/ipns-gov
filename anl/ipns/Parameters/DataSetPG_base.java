@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/26 22:36:23  dennis
+ *  setValue() and constructor now accept a null value and
+ *  translate that into the DataSet.EMPTY_DATA_SET.
+ *  Made a few minor fixes to javadocs.
+ *
  *  Revision 1.1  2006/06/26 21:01:50  dennis
  *  Abstract base class for PGs whose value is a reference to
  *  a DataSet.  Eventually this should be moved out of the "gov"
@@ -120,8 +125,9 @@ public abstract class DataSetPG_base extends NewParameterGUI
 
   /**
    * Set the value of this PG, its GUI entry widget, and the valid flag,
-   * if the specified object is a DataSet.  Throw an exception if the object
-   * is not a DataSet.
+   * if the specified object is a DataSet or is null.  Otherwise, throw an
+   * exception.  If null is passed in, the value will be set to
+   * DataSet.EMPTY_DATA_SET.
    * NOTE: This method is final, so derived classes cannot override it. 
    * Derived classes are only responsible for handling the value displayed
    * in the GUI entry widget, via setWidgetValue().
@@ -133,7 +139,10 @@ public abstract class DataSetPG_base extends NewParameterGUI
    */
   public final void setValue( Object obj ) throws IllegalArgumentException
   {
-    if ( obj == null || obj instanceof DataSet )  // perhaps there should be a
+    if ( obj == null ) 
+      ds_value = DataSet.EMPTY_DATA_SET;   
+
+    else if ( obj instanceof DataSet )            // perhaps there should be a
       ds_value = (DataSet)obj;                    // get_DataSet method.
 
     else
@@ -161,8 +170,8 @@ public abstract class DataSetPG_base extends NewParameterGUI
    *  @return true if there is an entry widget with a meaningful value
    *          that refers to a different DataSet than the value stored 
    *          in the parameter.  This will return false if there is no 
-   *          entry widget, or if the value in the entry widget does 
-   *          not refer to a DataSet.
+   *          entry widget, or if the value in the entry widget refers 
+   *          to the same DataSet that is currently the value of this PG.
    */
   public boolean hasChanged()
   {
