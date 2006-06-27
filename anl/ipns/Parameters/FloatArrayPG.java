@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/06/27 22:26:08  rmikk
+ * Incorporated the Conversions.get_FloatVector to ensure that the original
+ *    value is a FloatVector
+ *
  * Revision 1.2  2006/06/27 21:46:29  rmikk
  * Fixed the FloatArrayPG to use FloatPG for one entry
  *
@@ -55,7 +59,7 @@ public class FloatArrayPG extends VectorPG {
    * @param val The value of this IntegerArrayPG.
    */
   public FloatArrayPG( String name, Object val ) {
-    super( name, val );
+    super( name, Conversions.get_FloatVector(val) );
     setParam( new FloatPG( "Enter an Float ", 0 ) );
   }
 
