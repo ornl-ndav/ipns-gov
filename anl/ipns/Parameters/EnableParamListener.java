@@ -29,6 +29,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2006/06/27 21:23:19  rmikk
+ * Removed a reference to DataSetTools/operators
+ * Did not create GUI element to disable the element
+ *
  * Revision 1.3  2006/06/27 20:25:01  rmikk
  * Eliminated references to DataSetTools
  *
@@ -79,7 +83,7 @@ public class EnableParamListener implements PropertyChangeListener {
      */
     public EnableParamListener(  Object ParameterList,int thisParamNum ) {
         super();
-        if( !(ParameterList instanceof Vector) && !(ParameterList instanceof DataSetTools.operator.Operator)){
+        if( !(ParameterList instanceof Vector) ){
             error=true;
             return;
         }
@@ -165,8 +169,7 @@ public class EnableParamListener implements PropertyChangeListener {
         for( int i=thisParamNum+1+nSetIfTrue; (i<thisParamNum+1+nSetIfTrue+nSetIfFalse)&&(i<size(ParameterList)); i++){
            Object pparm=entry(ParameterList,i);
            if(pparm instanceof INewParameterGUI)
-               if(((INewParameterGUI)pparm).getGUIPanel(false) != null)
-                ((INewParameterGUI)pparm).setEnabled(enable);            
+               ((INewParameterGUI)pparm).setEnabled(enable);            
         }    
         
     }
