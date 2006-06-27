@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2006/06/27 21:39:32  rmikk
+ *  Moved the BooleanEnable start to a point after the GUI was made.
+ *
+ *  Added a FloatArrayPG test case
+ *
  *  Revision 1.8  2006/06/27 20:33:33  dennis
  *  Minor reformat
  *
@@ -127,11 +132,7 @@ public class TestPGs
    */
   private void MakeGUI( boolean show_valid_box )
   {
-    for(int i =0; i< pg_list.size(); i++)
-      if( pg_list.elementAt(i) instanceof BooleanEnablePG)
-        ((BooleanEnablePG)pg_list.elementAt(i)).addPropertyChangeListener( 
-					new EnableParamListener(pg_list,i));
-
+    
     int num_guis = pg_list.size();
 
     JFrame f = new JFrame("Test for ParameterGUIs");
@@ -164,6 +165,12 @@ public class TestPGs
     f.getContentPane().add( button_panel );
     f.setVisible( true );
     f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    
+    for(int i =0; i< pg_list.size(); i++)
+        if( pg_list.elementAt(i) instanceof BooleanEnablePG)
+          ((BooleanEnablePG)pg_list.elementAt(i)).addPropertyChangeListener( 
+  					new EnableParamListener(pg_list,i));
+
   }
 
 
@@ -328,6 +335,17 @@ public class TestPGs
       
     tester.AddToTestList( new IntegerArrayPG("big int array",null),VV,VV1);
    
+    VV=new Vector(); 
+    VV.addElement( 1.1f);
+    VV.addElement( 3.2f); 
+    VV.addElement( -5.4f);
+    VV1=new Vector(); 
+    VV1.addElement( 11.1f);
+    VV1.addElement( 13.2f); 
+    VV1.addElement( -15.4f);
+    
+    tester.AddToTestList( new FloatArrayPG("bif float array",null),VV,VV1);
+    
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
   }
