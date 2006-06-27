@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2006/06/27 21:55:23  rmikk
+ *  Added a test program for the StringArrayPG
+ *
  *  Revision 1.9  2006/06/27 21:39:32  rmikk
  *  Moved the BooleanEnable start to a point after the GUI was made.
  *
@@ -325,7 +328,8 @@ public class TestPGs
     tester.AddToTestList( float_pg, 3.1416f, 2.7183f);
     tester.AddToTestList( str_pg, "First String", "Second String" );
 
-    Vector VV= new Vector(), VV1 = new Vector();
+    Vector VV= new Vector(),
+           VV1 = new Vector();
     VV.addElement( new Integer(1) );
     VV.addElement( new Integer(2) );
     VV.addElement( new Integer(3) );
@@ -343,8 +347,22 @@ public class TestPGs
     VV1.addElement( 11.1f);
     VV1.addElement( 13.2f); 
     VV1.addElement( -15.4f);
+ 
     
-    tester.AddToTestList( new FloatArrayPG("bif float array",null),VV,VV1);
+    tester.AddToTestList( new FloatArrayPG("big float array",null),VV,VV1);
+    
+    
+    VV=new Vector();
+    VV.addElement("jjj");
+    VV.addElement("kkk");
+    VV.addElement("lll");
+    VV1=new Vector();
+    VV1.addElement("abc");
+    VV1.addElement("def");
+    VV1.addElement("ghi");
+    
+    
+    tester.AddToTestList( new StringArrayPG("big String array",null),VV,VV1);
     
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
