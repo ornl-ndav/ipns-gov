@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2006/06/27 21:46:29  rmikk
+ * Fixed the FloatArrayPG to use FloatPG for one entry
+ *
  * Revision 1.1  2006/06/27 21:23:56  rmikk
  * Initial checkin for a ParameterGUI for entering medium sized lists of Floats
  *
@@ -53,7 +56,7 @@ public class FloatArrayPG extends VectorPG {
    */
   public FloatArrayPG( String name, Object val ) {
     super( name, val );
-    setParam( new IntegerPG( "Enter an Float ", 0 ) );
+    setParam( new FloatPG( "Enter an Float ", 0 ) );
   }
 
   
