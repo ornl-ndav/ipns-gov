@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/06/27 22:25:24  rmikk
+ *  Added 3 new conversions to IntegerVectors,FloatVectors and StringVectors
+ *
  *  Revision 1.5  2006/06/27 21:47:49  rmikk
  *  Fixed error in comparing double to float.  Usually they are never equal
  *
@@ -58,6 +61,8 @@
  *
  */
 package gov.anl.ipns.Parameters;
+import java.util.Vector;
+import java.lang.reflect.*;
 
 /**
  *  This class has static methods to get particular data type values from
@@ -273,4 +278,107 @@ public class Conversions
     return str_value;
   }
   
+  
+  
+  /**
+   *  Get a Vector of Integer values from the specified object, if possible.  
+   *
+   *  @param  obj   An object that is to be converted to a Vector of Integers
+   *  
+   *  @return the Vector with Integer values obtained from the specified object.
+   *
+   *  @throws IllegalArgumentException if the object cannot be converted
+   *          to a Vector of Integer values.
+   */
+
+  public static Vector<Integer> get_IntegerVector( Object obj) throws 
+                                         IllegalArgumentException{
+	  if( obj == null)
+		  return new Vector<Integer>();
+	  Vector<Integer> Res = new Vector<Integer>();
+	  if( obj instanceof Vector){
+		  
+		  for( int i =0; i< ((Vector)obj).size(); i++ ){
+			  Res.addElement( new Integer( get_int( ((Vector)obj).elementAt(i))));
+		  }
+		  return Res;
+	  }else if( obj.getClass().isArray()){
+		  for( int i=0; i< Array.getLength( obj); i++)
+			  Res.addElement( new Integer( (Integer)Array.get(obj,i)));
+		  return Res;
+	  }else{
+	     Res.addElement( new Integer( get_int( obj)));
+	  }
+	 return Res; 
+  }
+  
+  
+  
+  
+  /**
+   *  Get a Vector of Float values from the specified object, if possible.  
+   *
+   *  @param  obj   An object that is to be converted to a Vector of Floats
+   *  
+   *  @return the Vector with Float values obtained from the specified object.
+   *
+   *  @throws IllegalArgumentException if the object cannot be converted
+   *          to a Vector of Float values.
+   */
+
+  public static Vector<Float> get_FloatVector( Object obj) throws 
+                                         IllegalArgumentException{
+	  if( obj == null)
+		  return new Vector<Float>();
+	  Vector<Float> Res = new Vector<Float>();
+	  if( obj instanceof Vector){
+		  
+		  for( int i =0; i< ((Vector)obj).size(); i++ ){
+			  Res.addElement( new Float( get_float( ((Vector)obj).elementAt(i))));
+		  }
+		  return Res;
+	  }else if( obj.getClass().isArray()){
+		  for( int i=0; i< Array.getLength( obj); i++)
+			  Res.addElement( new Float( (Float)Array.get(obj,i)));
+		  return Res;
+	  }else{
+	     Res.addElement( new Float( get_float( obj)));
+	  }
+	 return Res; 
+  }
+  
+  
+  
+  
+  /**
+   *  Get a Vector of String values from the specified object, if possible.  
+   *
+   *  @param  obj   An object that is to be converted to a Vector of Strings
+   *  
+   *  @return the Vector with String values obtained from the specified object.
+   *
+   *  @throws IllegalArgumentException if the object cannot be converted
+   *          to a Vector of String values.
+   */
+
+  public static Vector<String> get_StringVector( Object obj) throws 
+                                         IllegalArgumentException{
+	  if( obj == null)
+		  return new Vector<String>();
+	  Vector<String> Res = new Vector<String>();
+	  if( obj instanceof Vector){
+		  
+		  for( int i =0; i< ((Vector)obj).size(); i++ ){
+			  Res.addElement( get_String( ((Vector)obj).elementAt(i)));
+		  }
+		  return Res;
+	  }else if( obj.getClass().isArray()){
+		  for( int i=0; i< Array.getLength( obj); i++)
+			  Res.addElement(  Array.get(obj,i).toString());
+		  return Res;
+	  }else{
+	     Res.addElement(  get_String( obj));
+	  }
+	 return Res; 
+  }
 }
