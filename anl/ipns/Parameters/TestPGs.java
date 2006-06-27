@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/06/27 19:50:23  rmikk
+ *  Added the IntegerArrayPG test case
+ *
  *  Revision 1.6  2006/06/27 16:35:48  taoj
  *  Modified main() to test the float PG.
  *
@@ -306,6 +309,11 @@ public class TestPGs
     tester.AddToTestList( int_pg, 1, 2 );
     tester.AddToTestList( float_pg, 3.1416f, 2.7183f);
     tester.AddToTestList( str_pg, "First String", "Second String" );
+      Vector VV= new Vector(), VV1 = new Vector();
+      VV.addElement( new Integer(1));VV.addElement( new Integer(2));VV.addElement( new Integer(3));
+      VV1.addElement( new Integer(21));VV1.addElement( new Integer(32));VV1.addElement( new Integer(43));
+      
+    tester.AddToTestList( new IntegerArrayPG("big int array",null),VV,VV1);
    
     tester.MakeGUI( true );      // show the valid check box
     // tester.MakeGUI( false );    // don't show the valid check box
