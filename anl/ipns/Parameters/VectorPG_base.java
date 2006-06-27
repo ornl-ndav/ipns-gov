@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/27 22:31:12  dennis
+ *  Minor refinement of some javadoc comments.
+ *
  *  Revision 1.2  2006/06/27 16:20:52  dennis
  *  Added abstract protected method getVectorValue(obj).  This
  *  method will be implemented by derived classes and is
@@ -78,8 +81,8 @@ public abstract class VectorPG_base extends NewParameterGUI
    * @param  name  The name (i.e. prompt string) for this PG.
    * @param  val   The initial value for this PG.
    *
-   * @throws IllegalArgumentException is thrown, if the specified object 
-   *         is not a Vector.
+   * @throws IllegalArgumentException is thrown, if it is not possible to
+   *         extract a Vector of the correct type from the specified object.
    */
   public VectorPG_base( String name, Object val ) 
                                              throws IllegalArgumentException
@@ -97,7 +100,8 @@ public abstract class VectorPG_base extends NewParameterGUI
    *         vector.
    *
    * @throws IllegalArgumentException is thrown, if a GUI entry widget
-   *         exists for this PG, but the value in the GUI is not a Vector. 
+   *         exists for this PG, but the value in the GUI cannot be converted
+   *         to a vector of the correct type. 
    */
   public String getStringValue() throws IllegalArgumentException
   {
@@ -120,15 +124,16 @@ public abstract class VectorPG_base extends NewParameterGUI
    * @return A reference to the Vector that is the value of this PG.
    *
    * @throws IllegalArgumentException is thrown, if a GUI entry widget
-   *         exists for this PG, but the value in the GUI is not a 
-   *         valid reference to a Vector.
+   *         exists for this PG, but the value in the GUI cannot be 
+   *         converted to a Vector of the correct type.
    */
   public final Object getValue() throws IllegalArgumentException
   {
     if( hasGUI() )                        // NOTE: getWidgetValue() may throw
       vec_value = getWidgetValue();       //       an IllegalArgumentException 
-                                          //       if the widget value does 
-                                          //       not refer to a Vector 
+                                          //       if the widget value can't 
+                                          //       be converted to the correct
+                                          //       type of Vector. 
     return vec_value;
   }
 
@@ -222,7 +227,7 @@ public abstract class VectorPG_base extends NewParameterGUI
   
   /**
    * Retrieves the GUI's current value.  IF the value in the widget does
-   * NOT refer to a Vector then the implementing method should
+   * NOT refer to a Vector then the implementation should
    * throw an IllegalArgumentException.
    * 
    * @return The value of the GUI.
