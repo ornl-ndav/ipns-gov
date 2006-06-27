@@ -29,6 +29,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2006/06/27 20:25:01  rmikk
+ * Eliminated references to DataSetTools
+ *
  * Revision 1.2  2006/06/26 22:52:42  dennis
  * Minor fixes to javadocs.
  *
@@ -44,8 +47,6 @@ package gov.anl.ipns.Parameters;
 
 import java.beans.*;
 import java.util.*;
-import DataSetTools.components.ParametersGUI.*;
-import DataSetTools.operator.*;
 
 /**
  * This class is a PropertyChangeListener for BooleanEnablePG's that
@@ -125,8 +126,6 @@ public class EnableParamListener implements PropertyChangeListener {
             return 0;
         if( P instanceof Vector)
             return ((Vector)P).size();
-        if( P instanceof Operator)
-            return ((Operator)P).getNum_parameters();
         return 0;
     }
     
@@ -139,8 +138,6 @@ public class EnableParamListener implements PropertyChangeListener {
             return null;
         if(P instanceof Vector)
             return ((Vector)P).elementAt( index );
-        if( P instanceof Operator)
-            return ((Operator)P).getParameter( index );
         return null;
     }
 
@@ -159,9 +156,7 @@ public class EnableParamListener implements PropertyChangeListener {
             enable=false;
         for( int i=thisParamNum+1; (i<thisParamNum+1+nSetIfTrue)&&(i<size(ParameterList)); i++){
            Object pparm=entry(ParameterList,i);
-           if(pparm instanceof JParameterGUI)
-               ((JParameterGUI)pparm).getGUISegment().setEnabled(enable);
-           else if(pparm instanceof INewParameterGUI)
+           if(pparm instanceof INewParameterGUI)
                if(((INewParameterGUI)pparm).getGUIPanel(false)!= null)
                 ((INewParameterGUI)pparm).setEnabled(enable);
         }    
@@ -169,9 +164,7 @@ public class EnableParamListener implements PropertyChangeListener {
         enable = !enable;
         for( int i=thisParamNum+1+nSetIfTrue; (i<thisParamNum+1+nSetIfTrue+nSetIfFalse)&&(i<size(ParameterList)); i++){
            Object pparm=entry(ParameterList,i);
-           if(pparm instanceof JParameterGUI)
-               ((JParameterGUI)pparm).getGUISegment().setEnabled(enable);
-           else if(pparm instanceof INewParameterGUI)
+           if(pparm instanceof INewParameterGUI)
                if(((INewParameterGUI)pparm).getGUIPanel(false) != null)
                 ((INewParameterGUI)pparm).setEnabled(enable);            
         }    
