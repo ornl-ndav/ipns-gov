@@ -32,6 +32,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/27 16:20:52  dennis
+ *  Added abstract protected method getVectorValue(obj).  This
+ *  method will be implemented by derived classes and is
+ *  responsible for extracting a Vector of the type required
+ *  by the derived class, from the specified obj.
+ *  Revised documentation.
+ *
  *  Revision 1.1  2006/06/26 22:37:54  dennis
  *  Initial version of abstract base class for PGs whose value
  *  is a Vector.  setValue() and constructor will accept a null
@@ -60,7 +67,13 @@ public abstract class VectorPG_base extends NewParameterGUI
 
   /**
    * Creates a new VectorPG_base object with the specified name and initial
-   * value.
+   * value.  If the val object is null, an empty vector
+   * will be used.  Other objects are passed to the getVectorValue() 
+   * method of the concrete derived class, to extract a valid value for
+   * this PG.  The definition of a valid value will differ based on 
+   * the specific requirements of the concrete derived class.  If a proper
+   * value for this PG can't be obtained from the specified object, an
+   * exception will be thrown.
    *
    * @param  name  The name (i.e. prompt string) for this PG.
    * @param  val   The initial value for this PG.
@@ -122,29 +135,31 @@ public abstract class VectorPG_base extends NewParameterGUI
 
   /**
    * Set the value of this PG, its GUI entry widget, and the valid flag,
-   * if the specified object is a Vector or is null.  Otherwise, throw an 
-   * exception.  If null is passed in, an empty Vector will be created as
-   * the value of the VectorPG.
+   * from the specified object.  If the object is null, an empty vector
+   * will be used.  Other objects are passed to the getVectorValue() 
+   * method of the concrete derived class, to extract a valid value for
+   * this PG.  The definition of a valid value will differ based on 
+   * the specific requirements of the concrete derived class.  If a proper
+   * value for this PG can't be obtained from the specified object, an
+   * exception will be thrown.
    * NOTE: This method is final, so derived classes cannot override it. 
-   * Derived classes are only responsible for handling the value displayed
-   * in the GUI entry widget, via setWidgetValue().
+   * Derived classes are responsible for handling the value displayed
+   * in the GUI entry widget, via setWidgetValue(), and for "extracting"
+   * an appropriate Vector from a specified object, via the getVectorValue()
+   * method.
    *
-   * @param  obj  The new Vector.
+   * @param  obj  The Object specifying the value for this PG.
    *
-   * @throws IllegalArgumentException if the specific object does not 
-   *         refer to a Vector. 
+   * @throws IllegalArgumentException if a Vector of the required type
+   *         cannot be extracted from the specified object. 
    */
   public final void setValue( Object obj ) throws IllegalArgumentException
   {
     if ( obj == null ) 
       vec_value = new Vector();
 
-    else if ( obj instanceof Vector )
-      vec_value = (Vector)obj; 
-
     else
-      throw new IllegalArgumentException(
-                    "obj not Vector in VectorPG_base.setValue()" );
+      vec_value = getVectorValue( obj ); 
 
     if ( hasGUI() )
       setWidgetValue( vec_value );
@@ -230,6 +245,26 @@ public abstract class VectorPG_base extends NewParameterGUI
    *         a GUI widget being present.
    */
   protected abstract void setWidgetValue( Vector value ) 
+                                          throws IllegalArgumentException;
+
+
+  /**
+   * Extract a Vector of the type required by the concrete subclass, from
+   * the specified object.  If the object is a Vector, it will serve as the
+   * value for the PG.  In (special) cases, some attempt may be made to
+   * extract a Vector with the correct contents from different types of
+   * objects.  The object types that are supported will depend on the
+   * concrete PG class, derived from this class, and should be described
+   * in the documentation for the concrete PG class.  If a proper value
+   * for this PG can't be obtained from the specified object, an
+   * exception will be thrown.
+   *
+   * @param  obj  The Object specifying the value for this PG.
+   *
+   * @throws IllegalArgumentException if a Vector of the required type
+   *         cannot be extracted from the specified object. 
+   */
+  protected abstract Vector getVectorValue( Object obj )
                                           throws IllegalArgumentException;
 
 }
