@@ -29,6 +29,10 @@
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
+ * $Log$
+ * Revision 1.2  2006/06/27 20:36:03  dennis
+ * Removed commented out actionPerformed() method.
+ * Added tag to include log messages.
  *
  */
 
@@ -39,17 +43,16 @@ import java.awt.event.*;
 import javax.swing.*;
 
 
-
 /**
  *  A BooleanPG uses a JCheckBox component to let the user specify a value
  *  of true (box checked) or false (box unchecked).
  */
 public class FloatPG extends FloatPG_base
 {
-  private JPanel    panel   = null;
-  private JTextField field = null;
-  private JLabel    label   = null;
-  private boolean   enabled = true;    // we store the enabled state, so the
+  private JPanel     panel   = null;
+  private JTextField field   = null;
+  private JLabel     label   = null;
+  private boolean    enabled = true;   // we store the enabled state, so the
                                        // setEnabled() method can be called
                                        // before constructing the widget.
 
@@ -185,10 +188,5 @@ public class FloatPG extends FloatPG_base
 
     field.setText( (new Float(value)).toString() );
   }
-/*
-  public void actionPerformed(ActionEvent event)
-  {
-    this.notifyChanged();      
-  }
-*/
+
 }
