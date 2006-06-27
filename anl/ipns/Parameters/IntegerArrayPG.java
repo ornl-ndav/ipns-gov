@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2006/06/27 22:26:56  rmikk
+ * Incorporated Conversions.get_IntegerVector to ensure the the initial
+ *   value passed in by the constructor was a valid IntegerVector
+ *
  * Revision 1.1  2006/06/27 19:50:00  rmikk
  * A parameterGUI that allows for the entering of a  medium sized list of integers.
  * Editing can be done with the ArrayJFrame
@@ -98,7 +102,7 @@ public class IntegerArrayPG extends VectorPG {
    * @param val The value of this IntegerArrayPG.
    */
   public IntegerArrayPG( String name, Object val ) {
-    super( name, val );
+    super( name, Conversions.get_IntegerVector(val) );
     setParam( new IntegerPG( "Enter an Integer ", 0 ) );
   }
 
