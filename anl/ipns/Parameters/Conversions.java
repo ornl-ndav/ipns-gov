@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/06/27 16:32:28  taoj
+ *  Added get_float() method to get a float value from a Number or String object.
+ *
  *  Revision 1.3  2006/06/23 14:19:17  dennis
  *  Added initial version of method get_String() to get a String
  *  from an object.  For now, this is very straight forward and
@@ -187,7 +190,62 @@ public class Conversions
     return int_value;
   }
 
+  /**
+   *  Get a float value from the specified object, if possible.  
+   *  Conversions from objects of class Number or String are
+   *  supported.  If a String is passed in it must be a sequence of 
+   *  characters representing a float number.  If a Number object is passed
+   *  in, it's value must be a float value. A null
+   *  object will give the value 0.0f, as a default.  All other objects will 
+   *  cause an IllegalArugumentException to be thrown.
+   *
+   *  @param  obj   A Number or String object that can be
+   *                interpreted as a float value.
+   *  
+   *  @return the float value obtained from the specified object.
+   *
+   *  @throws IllegalArgumentException if the object cannot be converted
+   *          to a float value.
+   */  
+  
+  public static float get_float( Object obj ) throws IllegalArgumentException
+  {
+    float float_value;
 
+    if( obj == null )
+      float_value = 0.0f;
+
+    else if ( obj instanceof Number )
+    {
+      double double_value = ((Number)obj).doubleValue();
+      float_value = ((Number)obj).floatValue();
+      if ( float_value == double_value )
+        return float_value;
+      else
+        throw new IllegalArgumentException(
+                                "Number not a float value:" + double_value);
+    }
+
+    else if( obj instanceof String )
+    {
+      String temp = ((String)obj).trim();
+      //Pattern regf = Pattern.compile("^[+|-]?[0-9]*(\\.[0-9]+)?([eE][+|-]?[0-9]+)?$");      
+      //Matcher s2f = regf.matcher(temp); 
+      //use the java static Float.valueof() method instead to convert string to float;
+
+      try {
+        float_value = Float.parseFloat(temp);
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("String not a float value:" + obj);
+      }
+    }
+
+    else throw new IllegalArgumentException("Object not a float value:" + obj);
+
+    return float_value;
+  }
+
+  
   /**
    *  Get a String value from the specified object, if possible.  
    *
