@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2006/06/27 20:33:33  dennis
+ *  Minor reformat
+ *
  *  Revision 1.7  2006/06/27 19:50:23  rmikk
  *  Added the IntegerArrayPG test case
  *
@@ -124,43 +127,43 @@ public class TestPGs
    */
   private void MakeGUI( boolean show_valid_box )
   {
-	  
-	 for(int i =0; i< pg_list.size(); i++)
-		 if( pg_list.elementAt(i) instanceof BooleanEnablePG)
-			((BooleanEnablePG)pg_list.elementAt(i)).addPropertyChangeListener( 
+    for(int i =0; i< pg_list.size(); i++)
+      if( pg_list.elementAt(i) instanceof BooleanEnablePG)
+        ((BooleanEnablePG)pg_list.elementAt(i)).addPropertyChangeListener( 
 					new EnableParamListener(pg_list,i));
-     int num_guis = pg_list.size();
-     JFrame f = new JFrame("Test for ParameterGUIs");
-     f.setBounds( 0, 0, 500, 25 * (num_guis + 1) + 25 );
 
+    int num_guis = pg_list.size();
 
-     f.getContentPane().setLayout( new GridLayout(num_guis + 1, 1) );
-     for ( int i = 0; i < num_guis; i++ )
-     {
-       INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
-       f.getContentPane().add( pg.getGUIPanel(show_valid_box) );
-     }
+    JFrame f = new JFrame("Test for ParameterGUIs");
+    f.setBounds( 0, 0, 500, 25 * (num_guis + 1) + 25 );
 
-     JPanel  button_panel  = new JPanel();
-     JButton enable_button = new JButton( DISABLE );
-     JButton value_button  = new JButton( SET_VAL_2 );
-     JButton show_button   = new JButton( "Show Values" );
-     JButton valid_button  = new JButton( SET_VALID );
+    f.getContentPane().setLayout( new GridLayout(num_guis + 1, 1) );
+    for ( int i = 0; i < num_guis; i++ )
+    {
+      INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+      f.getContentPane().add( pg.getGUIPanel(show_valid_box) );
+    }
 
-     enable_button.addActionListener( new EnableListener() );
-     value_button.addActionListener( new ValueListener() );
-     show_button.addActionListener( new ShowListener() );
-     valid_button.addActionListener( new ValidListener() );
+    JPanel  button_panel  = new JPanel();
+    JButton enable_button = new JButton( DISABLE );
+    JButton value_button  = new JButton( SET_VAL_2 );
+    JButton show_button   = new JButton( "Show Values" );
+    JButton valid_button  = new JButton( SET_VALID );
 
-     button_panel.setLayout( new GridLayout( 1, 4 ) );
-     button_panel.add( enable_button ); 
-     button_panel.add( value_button ); 
-     button_panel.add( show_button ); 
-     button_panel.add( valid_button ); 
+    enable_button.addActionListener( new EnableListener() );
+    value_button.addActionListener( new ValueListener() );
+    show_button.addActionListener( new ShowListener() );
+    valid_button.addActionListener( new ValidListener() );
 
-     f.getContentPane().add( button_panel );
-     f.setVisible( true );
-     f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    button_panel.setLayout( new GridLayout( 1, 4 ) );
+    button_panel.add( enable_button ); 
+    button_panel.add( value_button ); 
+    button_panel.add( show_button ); 
+    button_panel.add( valid_button ); 
+
+    f.getContentPane().add( button_panel );
+    f.setVisible( true );
+    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   }
 
 
@@ -294,13 +297,18 @@ public class TestPGs
 
     BooleanPG checkbox1 = new BooleanPG( "Boolean PG 1", false );
     BooleanPG checkbox2 = new BooleanPG( "Boolean PG 2", false );
-       Vector V = new Vector();
-       V.addElement( new Boolean( true));
-       V.addElement( new Integer( 1));
-       V.addElement( new Integer(1));
+
+    Vector V = new Vector();
+      V.addElement( new Boolean( true));
+      V.addElement( new Integer( 1));
+      V.addElement( new Integer(1));
+
     BooleanEnablePG Check3 = new BooleanEnablePG("do.no do",V);
+
     IntegerPG int_pg    = new IntegerPG( "Integer PG Test", 2 );
+
     FloatPG   float_pg  = new FloatPG( "Float PG Test", 3.1416f );
+
     StringPG  str_pg    = new StringPG( "String PG Test", "Some String" );
 
     tester.AddToTestList( checkbox1, true, false );
@@ -309,14 +317,19 @@ public class TestPGs
     tester.AddToTestList( int_pg, 1, 2 );
     tester.AddToTestList( float_pg, 3.1416f, 2.7183f);
     tester.AddToTestList( str_pg, "First String", "Second String" );
-      Vector VV= new Vector(), VV1 = new Vector();
-      VV.addElement( new Integer(1));VV.addElement( new Integer(2));VV.addElement( new Integer(3));
-      VV1.addElement( new Integer(21));VV1.addElement( new Integer(32));VV1.addElement( new Integer(43));
+
+    Vector VV= new Vector(), VV1 = new Vector();
+    VV.addElement( new Integer(1) );
+    VV.addElement( new Integer(2) );
+    VV.addElement( new Integer(3) );
+    VV1.addElement( new Integer(21) );
+    VV1.addElement( new Integer(32) );
+    VV1.addElement( new Integer(43) );
       
     tester.AddToTestList( new IntegerArrayPG("big int array",null),VV,VV1);
    
     tester.MakeGUI( true );      // show the valid check box
-    // tester.MakeGUI( false );    // don't show the valid check box
+//  tester.MakeGUI( false );     // don't show the valid check box
   }
 
 
