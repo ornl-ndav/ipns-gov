@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/06/27 21:47:49  rmikk
+ *  Fixed error in comparing double to float.  Usually they are never equal
+ *
  *  Revision 1.4  2006/06/27 16:32:28  taoj
  *  Added get_float() method to get a float value from a Number or String object.
  *
@@ -217,13 +220,11 @@ public class Conversions
 
     else if ( obj instanceof Number )
     {
-      double double_value = ((Number)obj).doubleValue();
+     
       float_value = ((Number)obj).floatValue();
-      if ( float_value == double_value )
-        return float_value;
-      else
-        throw new IllegalArgumentException(
-                                "Number not a float value:" + double_value);
+      
+      return float_value;
+     
     }
 
     else if( obj instanceof String )
