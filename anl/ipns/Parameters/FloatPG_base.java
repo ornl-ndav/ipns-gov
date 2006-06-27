@@ -29,6 +29,10 @@
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
+ * $Log$
+ * Revision 1.2  2006/06/27 20:35:11  dennis
+ * Removed commented out updateValueFromGUI(), since it is not
+ * needed.
  *
  */
 package gov.anl.ipns.Parameters;
@@ -45,7 +49,7 @@ package gov.anl.ipns.Parameters;
 
 public abstract class FloatPG_base extends NewParameterGUI 
 {
-  protected  float  float_value;  // just protected, so derived classes can
+  protected  float  float_value;   // just protected, so derived classes can
                                    // directly get the value to place in their
                                    // GUI when the GUI is built.
 
@@ -103,7 +107,7 @@ public abstract class FloatPG_base extends NewParameterGUI
   public final Object getValue() throws IllegalArgumentException
   {
     if( hasGUI() )                        // NOTE: In some cases it will be
-      float_value = getWidgetValue();      //       neccessary to check if the
+      float_value = getWidgetValue();     //       neccessary to check if the
                                           //       widget value is valid and
                                           //       NOT use it, but throw an
                                           //       illegal argument exception
@@ -127,7 +131,7 @@ public abstract class FloatPG_base extends NewParameterGUI
   public final void setValue( Object obj ) throws IllegalArgumentException
   {
     float_value = Conversions.get_float( obj );  // this could throw an
-                                                  // exception
+                                                 // exception
     if ( hasGUI() )
       setWidgetValue( float_value );
     
@@ -173,31 +177,6 @@ public abstract class FloatPG_base extends NewParameterGUI
     }    
   }
 
-/*
-  /**
-   *  Attempt to update the value of this Parameter from the GUI entry
-   *  widget, and return true if the update succeeds, or there is no
-   *  GUI present.  If there is a GUI entry widget, but it's value is
-   *  is invalid, then this method will return false, and will not 
-   *  alter the value of this Parameter.  This method may also set the 
-   *  value of the valid flag, if the GUI is present.  Specifically,
-   *  if the GUI is present the valid flag is set true if the update
-   *  succeeds and false if the value from the GUI entry widget is invalid.
-   *  If there is no GUI, the state of the valid flag is not changed.
-   *
-   *  @return true if there is no GUI entry widget, or if there is a 
-   *          GUI entry widget with a valid value.  Return false otherwise.
-   */
-/*  public boolean updateValueFromGUI()
-  {
-    if ( !hasGUI() )                  // no GUI entry widget, so can't do
-      return true;                    // anything
-
-    float_value = getWidgetValue();    // if GUI entry widget exsits, copy
-    setValidFlag( true );             // the value over and set the valid flag
-    return true;
-  }
-*/
 
   /**
    * Used to clear out the FloatPG.  This sets the internal value 
