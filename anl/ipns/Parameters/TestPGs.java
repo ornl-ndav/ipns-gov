@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/06/27 16:35:48  taoj
+ *  Modified main() to test the float PG.
+ *
  *  Revision 1.5  2006/06/26 22:15:20  rmikk
  *  Incorporated a test case for the BooleanEnablePG
  *
@@ -294,12 +297,14 @@ public class TestPGs
        V.addElement( new Integer(1));
     BooleanEnablePG Check3 = new BooleanEnablePG("do.no do",V);
     IntegerPG int_pg    = new IntegerPG( "Integer PG Test", 2 );
+    FloatPG   float_pg  = new FloatPG( "Float PG Test", 3.1416f );
     StringPG  str_pg    = new StringPG( "String PG Test", "Some String" );
 
     tester.AddToTestList( checkbox1, true, false );
     tester.AddToTestList( checkbox2, false, true );
-    tester.AddToTestList( Check3 ,true, false);
+    tester.AddToTestList( Check3 , true, false);
     tester.AddToTestList( int_pg, 1, 2 );
+    tester.AddToTestList( float_pg, 3.1416f, 2.7183f);
     tester.AddToTestList( str_pg, "First String", "Second String" );
    
     tester.MakeGUI( true );      // show the valid check box
