@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2006/06/27 22:27:39  rmikk
+ * Incorporated Conversions.get_StringVector to ensure the the initial value
+ * was a Vector of Strings
+ *
  * Revision 1.1  2006/06/27 21:54:58  rmikk
  * Initial checkin for a parameterGUI for entering and editing medium sized
  * lists of Strings
@@ -59,7 +63,7 @@ public class StringArrayPG extends VectorPG {
    * @param val The value of this IntegerArrayPG.
    */
   public StringArrayPG( String name, Object val ) {
-    super( name, val );
+    super( name, Conversions.get_StringVector( val) );
     setParam( new StringPG( "Enter a String ", 0 ) );
   }
 
