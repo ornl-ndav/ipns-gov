@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2006/06/28 15:35:52  rmikk
+ *  Added conversions for ArrayPG. ToVec
+ *
  *  Revision 1.7  2006/06/28 14:02:57  rmikk
  *  Added routines for ArrayPG to convert String to Vector
  *
@@ -489,15 +492,14 @@ public class Conversions
 				if (k1 < 0)
 					throw new java.lang.IllegalArgumentException(
 							"Braces do not match at letter " + (k + start));
-				Res
-						.addElement(RecursStringToVec(S.substring(k + 1, k1),
+				Res.addElement(RecursStringToVec(S.substring(k + 1, k1),
 								k + 1));
 				k = k1 + 1;
 			} else if (S.charAt(k) == '\"') {
 				int k1;
-				for (k1 = k + 1; (k1 < S.length()) && (S.charAt(k1) != '\"'); k1++) {
-				}
-				;
+				for (k1 = k + 1; (k1 < S.length()) && (S.charAt(k1) != '\"');
+				                             k1++) {}
+				
 				Res.addElement(S.substring(k + 1, k1));
 				k = k1 + 1;
 
@@ -524,7 +526,7 @@ public class Conversions
 							Res.addElement(new Float(S1));
 							k = k1;
 						} catch (Exception s2) {
-							if (";YES;NO;TRUE;FALSE;".indexOf(";"
+							if (";YES;NO;TRUE;FALSE;T;F;".indexOf(";"
 									+ S1.trim().toUpperCase() + ";") >= 0)
 								Res.addElement(new Boolean(S1));
 							else
@@ -581,5 +583,68 @@ public class Conversions
 			return null;
 		}
 	}
+	
+	
+	  
+	  /**
+	   * This method attempts to convert an Object to a Vector. If the
+	   * Object is an array of arrays of arrays of... it will convert it
+	   * to a Vector of Vectors of Vectors
+	   * @param O  The Object to be converted
+	   * @return   The Vectorified Object if possible, otherwise the Object is
+	   *            returned unchanged.
+	   *  Copied from DataSetTools.operator.Utils
+	   */
+	  public static Vector ToVec( Object O) throws IllegalArgumentException{
+	    Vector Res = new Vector();
+	    if( O == null)
+	      return new Vector();
+	    if( O instanceof String)
+	    	O = StringToVec( (String)O);
+	    if( O instanceof Vector){
+	       for( int i=0; i< ((Vector)O).size(); i++)
+	          Res.add( ToVec1(((Vector)O).elementAt(i)));
+	       return Res;
+	       
+	    }
+	   if( O.getClass().isArray()){
+	      for( int i=0; i< Array.getLength(O); i++)
+	         Res.add( ToVec1( Array.get(O,i)));
+	         return Res;
+	   }
+	   
+	   
+	  Res.addElement( O);
+	  return Res;
+	  }
+	  
+	private static Object ToVec1(Object O) throws IllegalArgumentException {
+		if (O == null)
+			return null;
+		if (O instanceof Vector)
+			return ToVec(O);
+		if (O.getClass().isArray())
+			return ToVec(O);
+		
+
+		if (O.getClass().equals(float.class))
+			return new Float(O.toString().trim());
+
+		if (O.getClass().equals(int.class))
+			return new Integer(O.toString().trim());
+		if (O instanceof String)
+			return O;
+		if (O.getClass().equals(byte.class))
+			return new Byte(O.toString().trim());
+		if (O.getClass().equals(long.class))
+			return new Long(O.toString().trim());
+		if (O.getClass().equals(short.class))
+			return new Short(O.toString().trim());
+		if (O.getClass().equals(double.class))
+			return new Double(O.toString().trim());
+		return O;
+
+	}
+	  
 }
 
