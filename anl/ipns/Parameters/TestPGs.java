@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2006/06/28 15:37:05  rmikk
+ *  Added the ArrayPG test case
+ *
  *  Revision 1.10  2006/06/27 21:55:23  rmikk
  *  Added a test program for the StringArrayPG
  *
@@ -364,6 +367,8 @@ public class TestPGs
     
     tester.AddToTestList( new StringArrayPG("big String array",null),VV,VV1);
     
+    tester.AddToTestList( new ArrayPG("small arrays",null),"[1,2,[3,4]]","[abc,def,ghi]")
+    ;
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
   }
