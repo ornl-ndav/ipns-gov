@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/06/28 20:09:27  rmikk
+ * Fixed the SetEnabe method to enable/disable almost everything
+ *
  * Revision 1.2  2006/06/27 21:26:19  rmikk
  * Fixed setEnabled so more GUI Elements change
  * Omitted a getValue and used the protected vec_value to prevent errors
@@ -240,7 +243,15 @@ public abstract class VectorPG extends VectorPG_base
 public void setEnabled( boolean on_off ){
 	entryFrame.setEnabled( on_off);
 	PanelwButton.setEnabled( on_off);
+	PanelwButton.getComponent(0).setEnabled( on_off);
 	vectorButton.setEnabled( on_off);
+}
+
+private void setEnabled( Component C, boolean on_off){
+	C.setEnabled( on_off);
+	if( C instanceof Container)
+		for( int i=0; i< ((Container)C).getComponentCount(); i++)
+		   setEnabled( ((Container)C).getComponent( i ), on_off);
 }
 
 }
