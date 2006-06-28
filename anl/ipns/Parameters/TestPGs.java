@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2006/06/28 20:02:31  rmikk
+ *  Added a test case for Qbins1PG
+ *
  *  Revision 1.11  2006/06/28 15:37:05  rmikk
  *  Added the ArrayPG test case
  *
@@ -367,8 +370,11 @@ public class TestPGs
     
     tester.AddToTestList( new StringArrayPG("big String array",null),VV,VV1);
     
-    tester.AddToTestList( new ArrayPG("small arrays",null),"[1,2,[3,4]]","[abc,def,ghi]")
-    ;
+    tester.AddToTestList( new ArrayPG("small arrays",null),"[1,2,[3,4]]",
+    		                                             "[abc,def,ghi]");
+    
+    tester.AddToTestList( new Qbins1PG("Qbins","[1,5,3,true]"),"[2,8,3,true]","[2,16,4,FALSE]");
+   
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
   }
