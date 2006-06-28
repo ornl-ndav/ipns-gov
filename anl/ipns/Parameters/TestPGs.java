@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2006/06/28 21:12:43  rmikk
+ *  Added a test for the PlaceHolderPG
+ *
  *  Revision 1.13  2006/06/28 20:22:01  rmikk
  *  Added a test case for the QbinsPG
  *
@@ -379,6 +382,8 @@ public class TestPGs
     tester.AddToTestList( new Qbins1PG("Qbins","[1,5,3,true]"),"[2,8,3,true]","[2,16,4,FALSE]");
     
     tester.AddToTestList( new QbinsPG("Qbins","[1,3,5,7,9]"),"[2,4,6,8,10]","[2,2,2,2,2,2]");
+    
+    tester.AddToTestList( new PlaceHolderPG( "PlaceHolder", new Integer(35)),"String", new Float(15.2f));
    
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
