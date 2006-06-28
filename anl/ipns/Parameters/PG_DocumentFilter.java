@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/28 22:46:25  dennis
+ *  Added some explanatory javadocs.
+ *
  *  Revision 1.1  2006/06/28 21:35:42  dennis
  *  This class extends Java's DocumentFilter class to provide
  *  character by character filtering of the characters typed into
@@ -80,6 +83,13 @@ public class PG_DocumentFilter extends DocumentFilter
   }
 
 
+  /**
+   *  This method just calls super.insertString() after printing a message.
+   *  It is not actually called when this DocumentFilter is associated with
+   *  a TextField, so the message is just printed in case a later version
+   *  of Java starts to use this method.  At that time the method should
+   *  be implemented to check the validity of the String.
+   */
   public void insertString( DocumentFilter.FilterBypass fb, 
                             int          offset, 
                             String       string, 
@@ -90,6 +100,12 @@ public class PG_DocumentFilter extends DocumentFilter
   }
 
 
+  /**
+   *  Remove a specified number of characters from the current String, 
+   *  provided the resulting String is still a valid String as defined
+   *  by the IStringFilter.isOkay() method.  This method is called when
+   *  the user presses the <delete> or <backspace> key.
+   */
   public void remove( DocumentFilter.FilterBypass fb, 
                       int          offset, 
                       int length )  throws BadLocationException
@@ -103,7 +119,7 @@ public class PG_DocumentFilter extends DocumentFilter
                         cur_text.substring( offset + length );
 
     if ( my_filter.isOkay( new_string ) )               // if ok make the change
-    {
+    {                                                   // by calling super.()
       super.remove( fb, offset, length );
       my_pg.notifyChanging();
     }
@@ -112,6 +128,12 @@ public class PG_DocumentFilter extends DocumentFilter
   }
 
 
+  /**
+   *  Replace a specified number of characters in the current String, 
+   *  provided the resulting String is still a valid String as defined
+   *  by the IStringFilter.isOkay() method.  This method is called when
+   *  the user presses the <delete> or <backspace> key.
+   */
   public void replace( DocumentFilter.FilterBypass fb, 
                        int          offset, 
                        int          length, 
@@ -129,7 +151,7 @@ public class PG_DocumentFilter extends DocumentFilter
                  cur_text.substring( offset + length );
 
     if ( my_filter.isOkay( new_string ) )               // if ok make the change
-    {
+    {                                                   // by calling super.()
       super.replace( fb, offset, length, text, attrs );
       my_pg.notifyChanging();
     }
