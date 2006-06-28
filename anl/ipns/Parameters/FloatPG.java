@@ -30,6 +30,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2006/06/28 22:32:53  dennis
+ * Modified to use the PG_DocumentFilter with a FloatFilter to
+ * prevent the user from entering some invalid values for a float.
+ *
  * Revision 1.2  2006/06/27 20:36:03  dennis
  * Removed commented out actionPerformed() method.
  * Added tag to include log messages.
@@ -39,8 +43,8 @@
 package gov.anl.ipns.Parameters;
 
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.text.*;
 
 
 /**
@@ -108,9 +112,15 @@ public class FloatPG extends FloatPG_base
 
       panel.add( label );
       panel.add( field );
+
+      PlainDocument document = new PlainDocument();
+      field.setDocument( document );
+
+      IStringFilter filter = new FloatFilter();
+      DocumentFilter doc_filter = new PG_DocumentFilter( this, filter );
+      document.setDocumentFilter( doc_filter );
  
       field.addActionListener( new PG_ActionListener( this ) );
-      field.addKeyListener( new PG_KeyListener( this ) );
     }
 
     setEnabled( enabled );                         // set widget state from
