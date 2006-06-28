@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/28 21:39:16  dennis
+ *  Now uses a PG_DocumentFilter, with an IntegerFilter to restrict
+ *  the characters that can be entered in the IntegerPG.
+ *
  *  Revision 1.1  2006/06/15 23:35:43  dennis
  *  Concrete base class for classes that will allow the user to
  *  enter an integer value.
@@ -42,6 +46,7 @@ package gov.anl.ipns.Parameters;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.text.*;
 
 /**
  *  An IntegerPG uses a JTextField component to let the user specify an
@@ -109,8 +114,14 @@ public class IntegerPG extends IntegerPG_base
       panel.add( label );
       panel.add( text_field );
  
+      PlainDocument document = new PlainDocument();
+      text_field.setDocument( document );
+
+      IStringFilter filter = new IntegerFilter();
+      DocumentFilter doc_filter = new PG_DocumentFilter( this, filter );
+      document.setDocumentFilter( doc_filter );
+
       text_field.addActionListener( new PG_ActionListener( this ) );
-      text_field.addKeyListener( new PG_KeyListener( this ) );
     }
 
     setEnabled( enabled );                 // set widget state from
