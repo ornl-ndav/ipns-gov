@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2006/06/28 20:20:25  rmikk
+ * Put a listener on the button so the valid checkbox will flip
+ *
  * Revision 1.3  2006/06/28 20:09:27  rmikk
  * Fixed the SetEnabe method to enable/disable almost everything
  *
@@ -165,6 +168,7 @@ public abstract class VectorPG extends VectorPG_base
 	    PanelwButton = new JPanel( new GridLayout( 1,2));
 	    PanelwButton.add( new JLabel("Press the button"));
 	    PanelwButton.add(vectorButton);
+	    vectorButton.addActionListener( new PG_ActionListener( this ));
 	    return PanelwButton;
   }
 
