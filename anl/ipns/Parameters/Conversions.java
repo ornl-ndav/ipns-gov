@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/06/28 14:02:57  rmikk
+ *  Added routines for ArrayPG to convert String to Vector
+ *
  *  Revision 1.6  2006/06/27 22:25:24  rmikk
  *  Added 3 new conversions to IntegerVectors,FloatVectors and StringVectors
  *
@@ -295,6 +298,8 @@ public class Conversions
                                          IllegalArgumentException{
 	  if( obj == null)
 		  return new Vector<Integer>();
+	  if( obj instanceof String)
+		  obj = StringToVec( (String)obj);
 	  Vector<Integer> Res = new Vector<Integer>();
 	  if( obj instanceof Vector){
 		  
@@ -330,6 +335,8 @@ public class Conversions
                                          IllegalArgumentException{
 	  if( obj == null)
 		  return new Vector<Float>();
+	  if( obj instanceof String)
+		  obj = StringToVec( (String)obj);
 	  Vector<Float> Res = new Vector<Float>();
 	  if( obj instanceof Vector){
 		  
@@ -365,6 +372,8 @@ public class Conversions
                                          IllegalArgumentException{
 	  if( obj == null)
 		  return new Vector<String>();
+	  if( obj instanceof String)
+		  obj = StringToVec( (String)obj);
 	  Vector<String> Res = new Vector<String>();
 	  if( obj instanceof Vector){
 		  
@@ -381,4 +390,196 @@ public class Conversions
 	  }
 	 return Res; 
   }
+
+
+
+   /**
+	 * Finds the first of occurrence of one letter in SearchChars in
+	 * the String S starting at start. Handles quoted strings
+	 *     
+	 * The search will not search items between two parentheses or
+	 * BraceChars if the
+	 * search started outside the parenthsesis.
+	 * @param  S           the string to search in
+	 * @param  start       the position in String S to start searching.
+	 * @param  SrchChars   The "set" of characters to be found
+	 * @param  brcpairs    Pairs of characters represent start and end of
+	 *                     "braces". The SearchChars between braces will not
+	 *                     be considered for matching. 
+	 *  @return the position of the found character or the end of the string
+	 */
+
+	public static int finddQuote(String S, int start, String SrchChars,
+			String brcpairs) {
+		int i, j;
+		int brclevel;
+		boolean quote;
+
+		if (S == null)
+			return -1;
+		if (SrchChars == null)
+			return -1;
+		if ((start < 0) || (start >= S.length()))
+			return S.length();
+		brclevel = 0;
+		quote = false;
+
+		for (i = start; i < S.length(); i++) {
+			char c = S.charAt(i);
+
+			if (c == '\"') {
+				if ((!quote) && (brclevel == 0) && (SrchChars.indexOf(c) >= 0))
+					return i;
+				quote = !quote;
+				//if( i >= 1)
+				//    if( S.charAt( i - 1 )  =='\"' ){
+				//       quote = !quote;
+				//     }
+			} else if (quote) {
+			} else if (SrchChars.indexOf(c) >= 0) {
+				if (brclevel == 0)
+					return i;
+			}
+			if ((!quote) && (brcpairs != null)) {
+				j = brcpairs.indexOf(c);
+				if (j < 0) {
+				} else if (j == 2 * (int) (j / 2))
+					brclevel++;
+				else
+					brclevel--;
+			}
+			if (brclevel < 0)
+				return i;
+		}
+		return S.length();
+	}
+
+	//------------------------- ArrayPG routines --------------------------
+	/**
+	 *   Will parse a String representation of a Vector to its Vector form
+	 *   @param  S  The String to parse
+	 *   @return  The Vector corresponding to the String S
+	 *
+	 * NOTE: Entries can be separated by spaces or commas,
+	 *       Entries can be vectors use [ ] to represent vectors
+	 *       No algebraic operations are supported on the entries
+	 *       entries can be 3:5:2. These will be expanded
+	 *       All other entries must be Strings,integer, float or boolean
+	 */
+	public static Vector StringToVec(String S)
+			throws java.lang.IllegalArgumentException {
+
+		S = S.trim();
+		if (S.startsWith("["))
+			if (finddQuote(S, 1, "]", "()[]") == S.length() - 1)
+				S = S.substring(1, S.length() - 1);
+		return RecursStringToVec(S, 0);
+	}
+
+	//start is so errors will give letter relative to first letter in original string
+	private static Vector RecursStringToVec(String S, int start)
+			throws java.lang.IllegalArgumentException {
+
+		S = S.trim();
+		Vector Res = new Vector();
+		int k = 0;
+		while (k < S.length()) {
+			if (S.charAt(k) == '[') {
+				int k1 = finddQuote(S, k + 1, "]", "[]");
+				if (k1 < 0)
+					throw new java.lang.IllegalArgumentException(
+							"Braces do not match at letter " + (k + start));
+				Res
+						.addElement(RecursStringToVec(S.substring(k + 1, k1),
+								k + 1));
+				k = k1 + 1;
+			} else if (S.charAt(k) == '\"') {
+				int k1;
+				for (k1 = k + 1; (k1 < S.length()) && (S.charAt(k1) != '\"'); k1++) {
+				}
+				;
+				Res.addElement(S.substring(k + 1, k1));
+				k = k1 + 1;
+
+			} else {//convert to proper data type
+				int k1 = finddQuote(S, k, " ,", "");
+				if (k1 < 0)
+					k1 = S.length();
+				String S1 = S.substring(k, k1);
+				Vector Res1 = null;
+				if (S1.indexOf(":") >= 0) {
+					Res1 = GetSubRange(S1);
+				}
+				if (Res1 != null) {
+					Res.addAll(Res1);
+					k = k1;
+
+				} else
+					try {
+						Res.addElement(new Integer(S1));
+						k = k1;
+					} catch (Exception s1) {
+						try {
+
+							Res.addElement(new Float(S1));
+							k = k1;
+						} catch (Exception s2) {
+							if (";YES;NO;TRUE;FALSE;".indexOf(";"
+									+ S1.trim().toUpperCase() + ";") >= 0)
+								Res.addElement(new Boolean(S1));
+							else
+								Res.addElement(S1);
+							k = k1;
+						}
+
+					}
+
+			}
+			while ((k < S.length()) && (S.charAt(k) == ' '))
+				k++;
+			if (k < S.length())
+				if (S.charAt(k) == ',')
+					k++;
+		}//while
+		return Res;
+	}
+
+	private static Vector GetSubRange(String S) {
+		if (S == null)
+			return null;
+		int k1 = S.indexOf(":");
+		int k2 = -1;
+		if (k1 < S.length())
+			k2 = S.indexOf(":", k1 + 1);
+		if (k2 < 0)
+			k2 = S.length();
+		try {
+			int N1 = (new Integer(S.substring(0, k1))).intValue();
+			int N2 = -1;
+			N2 = (new Integer(S.substring(k1 + 1, k2))).intValue();
+			int N3 = -1;
+			if (k2 < S.length())
+				N3 = (new Integer(S.substring(k2 + 1))).intValue();
+			else
+				N3 = 1;
+			if (N3 == 0)
+				return null;
+			if ((N2 - N1) / N3 < 0)
+				return null;
+
+			Vector Res = new Vector();
+			Res.addElement(new Integer(N1));
+			int sgn = 1;
+			if (N3 < 0)
+				sgn = -1;
+			while (sgn * (N2 - N1 - N3) >= 0) {
+				N1 = N1 + N3;
+				Res.addElement(new Integer(N1));
+			}
+			return Res;
+		} catch (Exception ss) {
+			return null;
+		}
+	}
 }
+
