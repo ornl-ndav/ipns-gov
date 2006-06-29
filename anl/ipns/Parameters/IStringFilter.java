@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/29 22:51:44  dennis
+ *  Minor fix for javadocs.
+ *
  *  Revision 1.1  2006/06/28 21:30:31  dennis
  *  Interface for classes that check whether or not a String
  *  has a particular form.  There is only one method, isOkay()
@@ -56,7 +59,9 @@ public interface IStringFilter
    *  Check whether or not the specified string is a valid String for entering
    *  data of a particular type.
    *
-   *  @param  str  The string to check 
+   *  @param  str  The String to check 
+   *
+   * @return true if the String is ok, false otherwise
    */
   public boolean isOkay( String str );
  

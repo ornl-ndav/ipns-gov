@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/29 22:51:44  dennis
+ *  Minor fix for javadocs.
+ *
  *  Revision 1.1  2006/06/28 22:31:42  dennis
  *  This calss implements IStringFilter.  The isOkay() method returns
  *  true only if hte String is a form that might be created while
@@ -56,7 +59,10 @@ public class FloatFilter implements IStringFilter
    * represents a valid float value, EXCEPT partial entries, like just a 
    * leading "-" are accepted.
    *
-   * @param  str  The string to check 
+   * @param  str  The String to check 
+   *
+   * @return true if the String is ok, false otherwise
+
    */
   public boolean isOkay( String str )
   {

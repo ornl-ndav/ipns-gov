@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/29 22:51:44  dennis
+ *  Minor fix for javadocs.
+ *
  *  Revision 1.1  2006/06/29 20:09:25  dennis
  *  This filter only accepts Strings needed while specifying an
  *  increasing sequence of integers, separated by "," and ":".
@@ -50,7 +53,10 @@ public class IntListFilter implements IStringFilter
   /**
    * Check if the specified String could occur while entering an IntListString. 
    *
-   * @param  str  The string to check 
+   * @param  str  The String to check 
+   *
+   * @return true if the String is ok, false otherwise
+
    */
   public boolean isOkay( String str )
   {

@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/29 22:51:44  dennis
+ *  Minor fix for javadocs.
+ *
  *  Revision 1.1  2006/06/28 21:33:04  dennis
  *  This class implements IStringFilter.  The isOkay() method returns
  *  true only if the String is of a form that might be created while
@@ -57,7 +60,10 @@ public class IntegerFilter implements IStringFilter
    * represents a valid integer value, EXCEPT partial entries, like just a 
    * leading "-" are accepted.
    *
-   * @param  str  The string to check 
+   * @param  str  The String to check 
+   *
+   * @return true if the String is ok, false otherwise
+
    */
   public boolean isOkay( String str )
   {
