@@ -32,9 +32,10 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.15  2006/06/29 20:34:28  dennis
- *  Added tests for IntArrayPG and FunctStringPG
+ *  Revision 1.16  2006/06/29 20:59:16  rmikk
+ *  Added tests for RealArrayPG and PlaceHolder PG's
  *
+ *  
  *  Revision 1.14  2006/06/28 21:12:43  rmikk
  *  Added a test for the PlaceHolderPG
  *
@@ -355,6 +356,7 @@ public class TestPGs
     VV1.addElement( new Integer(21) );
     VV1.addElement( new Integer(32) );
     VV1.addElement( new Integer(43) );
+      
     tester.AddToTestList( new IntegerArrayPG("big int array",null),VV,VV1);
    
     VV=new Vector(); 
@@ -365,6 +367,8 @@ public class TestPGs
     VV1.addElement( 11.1f);
     VV1.addElement( 13.2f); 
     VV1.addElement( -15.4f);
+ 
+    
     tester.AddToTestList( new FloatArrayPG("big float array",null),VV,VV1);
     
     
@@ -376,22 +380,32 @@ public class TestPGs
     VV1.addElement("abc");
     VV1.addElement("def");
     VV1.addElement("ghi");
+    
+    
     tester.AddToTestList( new StringArrayPG("big String array",null),VV,VV1);
     
-    tester.AddToTestList( new ArrayPG("small arrays",null),
-                                      "[1,2,[3,4]]",
-    		                      "[abc,def,ghi]");
+    tester.AddToTestList( new ArrayPG("small arrays",null),"[1,2,[3,4]]",
+    		                                             "[abc,def,ghi]");
     
-    tester.AddToTestList( new Qbins1PG("Qbins", "[1,5,3,true]"),
-                                       "[2,8,3,true]",
-                                       "[2,16,4,FALSE]" );
+    tester.AddToTestList( new Qbins1PG("Qbins","[1,5,3,true]"),"[2,8,3,true]",
+    		                                          "[2,16,4,FALSE]");
     
-    tester.AddToTestList( new QbinsPG("Qbins", "[1,3,5,7,9]"),
-                                      "[2,4,6,8,10]",
-                                      "[2,2,2,2,2,2]" );
+    tester.AddToTestList( new QbinsPG("Qbins","[1,3,5,7,9]"),
+    		                          "[2,4,6,8,10]","[2,2,2,2,2,2]");
     
-    tester.AddToTestList( new PlaceHolderPG( "PlaceHolder", new Integer(35)),
-                                             "String", new Float(15.2f));
+    tester.AddToTestList( new PlaceHolderPG( "PlaceHolder", 
+    		                       new Integer(35)),"String", new Float(15.2f));
+    
+    tester.AddToTestList( new RealArrayPG("Real Array", new int[1]),
+    		Conversions.StringToVec("[1,3,5,7]"), Conversions.StringToVec("[2.1,3.2,5.5]"));
+    
+    tester.AddToTestList( new RealArrayPG("Real Array", new int[0][0]),
+    		Conversions.StringToVec("[[1,3,5,7],[2,4,6,8]]"), Conversions.StringToVec("[[2.1,3.2,5.5],[3.1,4.1,5.1,6.1]]"));
+    
+    float[][]F1 ={{1.1f,2.3f,7.2f},{3.2f,8.3f,7.1f}};
+    float[][]F2 ={{2.1f,3.3f,8.2f},{4.2f,9.3f,8.1f}};
+    tester.AddToTestList( new RealArrayPG("Real Array", new float[0][0]),F1,F2);
+    		
    
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
