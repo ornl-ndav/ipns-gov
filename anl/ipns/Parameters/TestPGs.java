@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2006/06/29 22:18:48  rmikk
+ *  Added test program for SampleDataSetPG's
+ *
  *  Revision 1.18  2006/06/29 22:02:09  rmikk
  *  Added test cases for DataSetPg
  *
@@ -432,6 +435,12 @@ public class TestPGs
     tester.AddToTestList( DSpg, DS1[DS1.length-1], DS2[DS2.length-1]);
     
     
+    
+    SampleDataSetPG SDSpg = new SampleDataSetPG("Sample ",null);
+    SDSpg.AddItem( DS1[ DS1.length -1 ]);
+    //SDSpg.AddItem( DS2[ DS2.length -3]);
+    //SDSpg.AddItem( DS1[0]);
+    tester.AddToTestList( SDSpg, DS1[DS1.length-1], DS2[DS2.length-1]);
     }catch(Exception s){
        System.out.println("Could not find files "+ s.toString());
     }
