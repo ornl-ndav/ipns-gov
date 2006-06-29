@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2006/06/29 15:01:22  rmikk
+ *  Added a method to convert Vectors and Arrays to a matching real array
+ *
  *  Revision 1.8  2006/06/28 15:35:52  rmikk
  *  Added conversions for ArrayPG. ToVec
  *
@@ -645,6 +648,94 @@ public class Conversions
 		return O;
 
 	}
-	  
+	
+	/**
+	 *  Converts Vector or Array Objects to a matching Real Array
+	 * @param obj  A  Vector( of Vectors/Arrays..) or an Array (of Arrays/Vectors..) that can be
+	 *             converted to a real arrayy
+	 * @param matchClass  The class it must match, i.e. ( new int[0][0][0]).getClass()
+	 * @return  The converted Object
+	 * @throws IllegalArgumentException
+	 */
+	public static Object get_RealArray( Object obj, Class matchClass) throws
+	                                 IllegalArgumentException{
+		if( (obj == null) || (matchClass == null)) throw
+			new IllegalArgumentException( "Cannot convert null to real arrays");
+		if( !matchClass.isArray())throw
+		      new IllegalArgumentException( "matching class is not a real array"+
+		    		  " or has different number of dimensions");
+		if(!(obj instanceof Vector)&& !(obj.getClass().isArray()))throw
+	           new IllegalArgumentException( "Cannot convert to real array");
+		int N;
+		if( obj instanceof Vector)
+			N = ((Vector)obj).size();
+		else
+			N= Array.getLength( obj);
+		Class subComponentClass = matchClass.getComponentType();
+		Object Res = java.lang.reflect.Array.newInstance( subComponentClass , N);
+		for( int i=0; i< N ; i++){
+			Object elt;
+			if( obj instanceof Vector)
+				elt = ((Vector)obj).elementAt(i);
+			else
+				elt = Array.get( obj,i);
+			
+			if( elt == null)throw
+	           new IllegalArgumentException( "Cannot convert null to a numeric value");
+				
+			if( (elt instanceof Vector) || (elt.getClass().isArray())){
+				Array.set( Res, i, get_RealArray( elt, matchClass.getComponentType()));
+		    
+			}else if( !subComponentClass.isPrimitive())throw
+			     new IllegalArgumentException( "the matching class has different number of dimensions");
+			else if( elt instanceof Number){
+				if( subComponentClass.equals( Integer.TYPE))
+					Array.setInt( Res, i, ((Number)elt).intValue());
+				else if( subComponentClass.equals( Short.TYPE))
+					Array.setShort( Res, i, ((Number)elt).shortValue());
+				else if( subComponentClass.equals( Long.TYPE))
+					Array.setLong( Res, i, ((Number)elt).longValue());
+				else if( subComponentClass.equals( Byte.TYPE))
+					Array.setByte( Res, i, ((Number)elt).byteValue());
+				else if( subComponentClass.equals( Float.TYPE))
+					Array.setFloat( Res, i, ((Number)elt).floatValue());
+			    else if( subComponentClass.equals( Double.TYPE))
+					Array.setDouble( Res, i, ((Number)elt).doubleValue());
+			   	
+				
+			}else throw
+			   new IllegalArgumentException( "Cannot convert "+ elt.getClass()+" to a number");
+			
+		}
+		
+	    return Res;	
+	}
+	
+	public static void main( String args[]){
+      Vector V = new Vector();
+      V.addElement( new Integer(3));
+      V.addElement( new Integer(5));
+      V.addElement( new Integer( 7));
+      Vector W = new Vector();
+      W.addElement( V);
+      V = new Vector();
+      V.addElement( new Integer(13));
+      V.addElement( new Integer(15));
+      V.addElement( new Integer( 17));
+      W.addElement( V);
+
+      V = new Vector();
+      V.addElement( new Integer(23));
+      V.addElement( new Integer(25));
+      V.addElement( new Integer( 27));
+      W.addElement( V);
+      System.out.println( Conversions.get_RealArray(W, (new double[0][0]).getClass()).getClass());
+      
+      int[][] WW ={ {1,2,3,4},{5,6,7,8},{9,10,11,12}};
+      System.out.println(gov.anl.ipns.Util.Sys.StringUtil.toString( Conversions.get_RealArray(WW, (new float[0][0]).getClass())));
+      
+		
+		
+	}
 }
 
