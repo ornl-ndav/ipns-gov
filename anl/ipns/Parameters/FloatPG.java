@@ -30,6 +30,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2006/06/29 15:47:55  dennis
+ * Modified to use the FilteredPG_TextField.
+ *
  * Revision 1.3  2006/06/28 22:32:53  dennis
  * Modified to use the PG_DocumentFilter with a FloatFilter to
  * prevent the user from entering some invalid values for a float.
@@ -53,8 +56,11 @@ import javax.swing.text.*;
  */
 public class FloatPG extends FloatPG_base
 {
+                                         // Use a text field that can filter
+                                         // Strings to just keep valid ones
+  private FilteredPG_TextField field = null;
+
   private JPanel     panel   = null;
-  private JTextField field   = null;
   private JLabel     label   = null;
   private boolean    enabled = true;   // we store the enabled state, so the
                                        // setEnabled() method can be called
@@ -107,19 +113,12 @@ public class FloatPG extends FloatPG_base
     if( panel == null )                // make new panel with label & checkbox
     {
       panel = new JPanel( new GridLayout( 1, 2 ) );
-      field   = new JTextField();
+      field = new FilteredPG_TextField( this, new FloatFilter() );
       label = new JLabel( getName() );
 
       panel.add( label );
       panel.add( field );
 
-      PlainDocument document = new PlainDocument();
-      field.setDocument( document );
-
-      IStringFilter filter = new FloatFilter();
-      DocumentFilter doc_filter = new PG_DocumentFilter( this, filter );
-      document.setDocumentFilter( doc_filter );
- 
       field.addActionListener( new PG_ActionListener( this ) );
     }
 
@@ -138,7 +137,7 @@ public class FloatPG extends FloatPG_base
   protected void destroyWidget()
   {
     panel = null;                     // null out all references to gui 
-    field  = null;                     // components, so that they can be
+    field = null;                     // components, so that they can be
     label = null;                     // garbage collected.
   }
 
