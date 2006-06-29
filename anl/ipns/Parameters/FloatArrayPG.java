@@ -1,7 +1,7 @@
 /*
  * File:  FloatArrayPG.java
  *
- * Copyright (C) 2003, Ruth Mikkelson
+ * Copyright (C) 2006, Ruth Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2006/06/29 21:54:23  rmikk
+ * Added or fixed the GPL
+ *
  * Revision 1.3  2006/06/27 22:26:08  rmikk
  * Incorporated the Conversions.get_FloatVector to ensure that the original
  *    value is a FloatVector

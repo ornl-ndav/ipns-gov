@@ -1,7 +1,7 @@
 /*
- * File:  FloatArrayPG.java
+ * File:  StringArrayPG.java
  *
- * Copyright (C) 2003, Ruth Mikkelson
+ * Copyright (C) 2006, Ruth Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/06/29 21:54:22  rmikk
+ * Added or fixed the GPL
+ *
  * Revision 1.2  2006/06/27 22:27:39  rmikk
  * Incorporated Conversions.get_StringVector to ensure the the initial value
  * was a Vector of Strings
