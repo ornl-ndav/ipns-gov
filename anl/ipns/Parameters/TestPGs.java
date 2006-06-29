@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2006/06/29 22:02:09  rmikk
+ *  Added test cases for DataSetPg
+ *
  *  Revision 1.17  2006/06/29 21:09:34  dennis
  *  Replaced log message that was removed in last checkin.
  *  Fixed format.
@@ -103,7 +106,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
-
+import DataSetTools.dataset.*;
 /**
  *  This class tests the NewParameterGUIs.  The NewParameterGUI objects 
  *  are enclosed in a JFrame, with several control buttons to allow testing
@@ -414,7 +417,24 @@ public class TestPGs
     float[][]F1 ={{1.1f,2.3f,7.2f},{3.2f,8.3f,7.1f}};
     float[][]F2 ={{2.1f,3.3f,8.2f},{4.2f,9.3f,8.1f}};
     tester.AddToTestList( new RealArrayPG("Real Array", new float[0][0]),F1,F2);
-    		
+    new DataSetTools.util.SharedData();
+    
+    String path= System.getProperty( "ISAW_HOME")+"/SampleRuns/";
+    try{
+    DataSet[] DS1 = Command.ScriptUtil.load(path+"Gppd12358.run" );
+
+    DataSet[] DS2 = Command.ScriptUtil.load(path+"hrcs2955.run" );
+    
+    DataSetPG DSpg = new DataSetPG("DataSetPG", null);
+    DSpg.AddItem( DS1[ DS1.length -1 ]);
+    DSpg.AddItem( DS2[ DS2.length -1]);
+    DSpg.AddItem( DS1[0]);
+    tester.AddToTestList( DSpg, DS1[DS1.length-1], DS2[DS2.length-1]);
+    
+    
+    }catch(Exception s){
+       System.out.println("Could not find files "+ s.toString());
+    }
    
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
