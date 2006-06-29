@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/29 15:46:58  dennis
+ *  This no longer requires a NewParameterGUI object to notify when
+ *  changes to the text are accepted.  No notification will be attempted,
+ *  if the ParameterGUI to notify is null.
+ *
  *  Revision 1.2  2006/06/28 22:46:25  dennis
  *  Added some explanatory javadocs.
  *
@@ -72,13 +77,19 @@ public class PG_DocumentFilter extends DocumentFilter
    *  that the widget's value is being changed, AND to check that the newly 
    *  entered String is acceptable, based on the specified filter.
    *
-   *  @param  pg  The NewParameterGUI object to be notified.
+   *  @param  pg     The NewParameterGUI object to be notified when changes
+   *                 are made.  This is null, no notification will be done.
+
    *  @param  filter The IStringFilter that will be used to check wheter 
-   *                 or not the current String is acceptable.
+   *                 or not the current String is acceptable.  If this is
+   *                 null, a default filter that accepts all changes will
+   *                 be used.
    */
   public PG_DocumentFilter( NewParameterGUI pg, IStringFilter filter )
   {
     my_pg     = pg;
+    if ( filter == null )
+      filter = new AllPassFilter();
     my_filter = filter;
   }
 
@@ -107,7 +118,7 @@ public class PG_DocumentFilter extends DocumentFilter
    *  the user presses the <delete> or <backspace> key.
    */
   public void remove( DocumentFilter.FilterBypass fb, 
-                      int          offset, 
+                      int offset, 
                       int length )  throws BadLocationException
   {
                                                         // get copy of String
@@ -121,7 +132,8 @@ public class PG_DocumentFilter extends DocumentFilter
     if ( my_filter.isOkay( new_string ) )               // if ok make the change
     {                                                   // by calling super.()
       super.remove( fb, offset, length );
-      my_pg.notifyChanging();
+      if ( my_pg != null )
+        my_pg.notifyChanging();
     }
     else                                                // else sound bell to
       Toolkit.getDefaultToolkit().beep();               // warn the user
@@ -153,7 +165,8 @@ public class PG_DocumentFilter extends DocumentFilter
     if ( my_filter.isOkay( new_string ) )               // if ok make the change
     {                                                   // by calling super.()
       super.replace( fb, offset, length, text, attrs );
-      my_pg.notifyChanging();
+      if ( my_pg != null )
+        my_pg.notifyChanging();
     }
     else                                                // else sound bell to
       Toolkit.getDefaultToolkit().beep();               // warn the user
