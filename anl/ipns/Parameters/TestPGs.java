@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2006/06/29 20:34:28  dennis
+ *  Added tests for IntArrayPG and FunctStringPG
+ *
  *  Revision 1.14  2006/06/28 21:12:43  rmikk
  *  Added a test for the PlaceHolderPG
  *
@@ -331,7 +334,9 @@ public class TestPGs
 
     FloatPG   float_pg  = new FloatPG( "Float PG Test", 3.1416f );
 
-    StringPG  str_pg    = new StringPG( "String PG Test", "Some String" );
+    StringPG      str_pg     = new StringPG( "String PG Test", "Some String" );
+    IntArrayPG    int_arr_pg = new IntArrayPG("Int List String", "-10:-5,0:1");
+    FunctStringPG f_str_pg   = new FunctStringPG( "Function", "3.2*sin(x)" );
 
     tester.AddToTestList( checkbox1, true, false );
     tester.AddToTestList( checkbox2, false, true );
@@ -339,6 +344,8 @@ public class TestPGs
     tester.AddToTestList( int_pg, 1, 2 );
     tester.AddToTestList( float_pg, 3.1416f, 2.7183f);
     tester.AddToTestList( str_pg, "First String", "Second String" );
+    tester.AddToTestList( int_arr_pg, "-10:-5,0:1","-10:-5,1:2");
+    tester.AddToTestList( f_str_pg, "3.2*sin(x)", "3.2*cos(x)"); 
 
     Vector VV= new Vector(),
            VV1 = new Vector();
@@ -348,7 +355,6 @@ public class TestPGs
     VV1.addElement( new Integer(21) );
     VV1.addElement( new Integer(32) );
     VV1.addElement( new Integer(43) );
-      
     tester.AddToTestList( new IntegerArrayPG("big int array",null),VV,VV1);
    
     VV=new Vector(); 
@@ -359,8 +365,6 @@ public class TestPGs
     VV1.addElement( 11.1f);
     VV1.addElement( 13.2f); 
     VV1.addElement( -15.4f);
- 
-    
     tester.AddToTestList( new FloatArrayPG("big float array",null),VV,VV1);
     
     
@@ -372,18 +376,22 @@ public class TestPGs
     VV1.addElement("abc");
     VV1.addElement("def");
     VV1.addElement("ghi");
-    
-    
     tester.AddToTestList( new StringArrayPG("big String array",null),VV,VV1);
     
-    tester.AddToTestList( new ArrayPG("small arrays",null),"[1,2,[3,4]]",
-    		                                             "[abc,def,ghi]");
+    tester.AddToTestList( new ArrayPG("small arrays",null),
+                                      "[1,2,[3,4]]",
+    		                      "[abc,def,ghi]");
     
-    tester.AddToTestList( new Qbins1PG("Qbins","[1,5,3,true]"),"[2,8,3,true]","[2,16,4,FALSE]");
+    tester.AddToTestList( new Qbins1PG("Qbins", "[1,5,3,true]"),
+                                       "[2,8,3,true]",
+                                       "[2,16,4,FALSE]" );
     
-    tester.AddToTestList( new QbinsPG("Qbins","[1,3,5,7,9]"),"[2,4,6,8,10]","[2,2,2,2,2,2]");
+    tester.AddToTestList( new QbinsPG("Qbins", "[1,3,5,7,9]"),
+                                      "[2,4,6,8,10]",
+                                      "[2,2,2,2,2,2]" );
     
-    tester.AddToTestList( new PlaceHolderPG( "PlaceHolder", new Integer(35)),"String", new Float(15.2f));
+    tester.AddToTestList( new PlaceHolderPG( "PlaceHolder", new Integer(35)),
+                                             "String", new Float(15.2f));
    
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
