@@ -32,9 +32,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2006/06/29 21:09:34  dennis
+ *  Replaced log message that was removed in last checkin.
+ *  Fixed format.
+ *
  *  Revision 1.16  2006/06/29 20:59:16  rmikk
  *  Added tests for RealArrayPG and PlaceHolder PG's
  *
+ *  Revision 1.15  2006/06/29 20:34:28  dennis
+ *  Added tests for IntArrayPG and FunctStringPG
  *  
  *  Revision 1.14  2006/06/28 21:12:43  rmikk
  *  Added a test for the PlaceHolderPG
@@ -393,14 +399,17 @@ public class TestPGs
     tester.AddToTestList( new QbinsPG("Qbins","[1,3,5,7,9]"),
     		                          "[2,4,6,8,10]","[2,2,2,2,2,2]");
     
-    tester.AddToTestList( new PlaceHolderPG( "PlaceHolder", 
-    		                       new Integer(35)),"String", new Float(15.2f));
+    tester.AddToTestList( new PlaceHolderPG( "PlaceHolder", new Integer(35)),
+                         "String", 
+                          new Float(15.2f));
     
     tester.AddToTestList( new RealArrayPG("Real Array", new int[1]),
-    		Conversions.StringToVec("[1,3,5,7]"), Conversions.StringToVec("[2.1,3.2,5.5]"));
+    		          Conversions.StringToVec("[1,3,5,7]"), 
+                          Conversions.StringToVec("[2.1,3.2,5.5]"));
     
     tester.AddToTestList( new RealArrayPG("Real Array", new int[0][0]),
-    		Conversions.StringToVec("[[1,3,5,7],[2,4,6,8]]"), Conversions.StringToVec("[[2.1,3.2,5.5],[3.1,4.1,5.1,6.1]]"));
+    		Conversions.StringToVec("[[1,3,5,7],[2,4,6,8]]"), 
+                Conversions.StringToVec("[[2.1,3.2,5.5],[3.1,4.1,5.1,6.1]]"));
     
     float[][]F1 ={{1.1f,2.3f,7.2f},{3.2f,8.3f,7.1f}};
     float[][]F2 ={{2.1f,3.3f,8.2f},{4.2f,9.3f,8.1f}};
