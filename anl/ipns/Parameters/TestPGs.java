@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2006/06/29 23:08:22  dennis
+ *  Added tests for LoadFilePG, SaveFilePG, DataDirPG, MaterialPG and
+ *  InstNamePG
+ *
  *  Revision 1.19  2006/06/29 22:18:48  rmikk
  *  Added test program for SampleDataSetPG's
  *
@@ -150,8 +154,6 @@ public class TestPGs
     pg_list.add( pg );
     val_1_list.add( val_1 );    
     val_2_list.add( val_2 );    
-
-    pg.setValue( val_1 );
   }
 
 
@@ -198,10 +200,9 @@ public class TestPGs
     f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     
     for(int i =0; i< pg_list.size(); i++)
-        if( pg_list.elementAt(i) instanceof BooleanEnablePG)
-          ((BooleanEnablePG)pg_list.elementAt(i)).addPropertyChangeListener( 
+      if( pg_list.elementAt(i) instanceof BooleanEnablePG)
+         ((BooleanEnablePG)pg_list.elementAt(i)).addPropertyChangeListener( 
   					new EnableParamListener(pg_list,i));
-
   }
 
 
@@ -331,6 +332,7 @@ public class TestPGs
 
   public static void main( String args[] )
   {
+    new DataSetTools.util.SharedData();
     TestPGs tester = new TestPGs();
 
     BooleanPG checkbox1 = new BooleanPG( "Boolean PG 1", false );
@@ -350,6 +352,12 @@ public class TestPGs
     StringPG      str_pg     = new StringPG( "String PG Test", "Some String" );
     IntArrayPG    int_arr_pg = new IntArrayPG("Int List String", "-10:-5,0:1");
     FunctStringPG f_str_pg   = new FunctStringPG( "Function", "3.2*sin(x)" );
+    MaterialPG    mat_pg     = new MaterialPG( "Material", "C,O_2" );
+    InstNamePG    inst_pg    = new InstNamePG( "Instrument", null );
+
+    DataDirPG dat_pg    = new DataDirPG( "DataDir PG Test", "Directory String");
+    LoadFilePG ldf_pg   = new LoadFilePG( "LoadFile PG Test", "Load String");
+    SaveFilePG sav_pg   = new SaveFilePG( "SaveFile PG Test", "Save String");   
 
     tester.AddToTestList( checkbox1, true, false );
     tester.AddToTestList( checkbox2, false, true );
@@ -359,6 +367,12 @@ public class TestPGs
     tester.AddToTestList( str_pg, "First String", "Second String" );
     tester.AddToTestList( int_arr_pg, "-10:-5,0:1","-10:-5,1:2");
     tester.AddToTestList( f_str_pg, "3.2*sin(x)", "3.2*cos(x)"); 
+    tester.AddToTestList( mat_pg, "C,O_2", "H_2,O"); 
+    tester.AddToTestList( inst_pg, "SCD0", "GPPD" );
+
+    tester.AddToTestList( dat_pg, "/First_Dir", "/Second_Dir");
+    tester.AddToTestList( ldf_pg, "/First_File.run", "/Second_File.dat");
+    tester.AddToTestList( sav_pg, "/First_Save.dat", "/Second_Save.sav");
 
     Vector VV= new Vector(),
            VV1 = new Vector();
@@ -368,7 +382,6 @@ public class TestPGs
     VV1.addElement( new Integer(21) );
     VV1.addElement( new Integer(32) );
     VV1.addElement( new Integer(43) );
-      
     tester.AddToTestList( new IntegerArrayPG("big int array",null),VV,VV1);
    
     VV=new Vector(); 
@@ -379,10 +392,7 @@ public class TestPGs
     VV1.addElement( 11.1f);
     VV1.addElement( 13.2f); 
     VV1.addElement( -15.4f);
- 
-    
     tester.AddToTestList( new FloatArrayPG("big float array",null),VV,VV1);
-    
     
     VV=new Vector();
     VV.addElement("jjj");
@@ -420,7 +430,6 @@ public class TestPGs
     float[][]F1 ={{1.1f,2.3f,7.2f},{3.2f,8.3f,7.1f}};
     float[][]F2 ={{2.1f,3.3f,8.2f},{4.2f,9.3f,8.1f}};
     tester.AddToTestList( new RealArrayPG("Real Array", new float[0][0]),F1,F2);
-    new DataSetTools.util.SharedData();
     
     String path= System.getProperty( "ISAW_HOME")+"/SampleRuns/";
     try{
