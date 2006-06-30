@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2006/06/30 16:14:22  dennis
+ *  Added test for ChoiceListPG.
+ *  Added try...catch around setValue listener to indicate which
+ *  PGs throw exceptions.
+ *
  *  Revision 1.22  2006/06/30 14:59:43  rmikk
  *  Added a test for the loadFileArrayPg
  *
@@ -271,7 +276,15 @@ public class TestPGs
       for ( int i = 0; i < pg_list.size(); i++ )
       {
         INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
-        pg.setValue( val_list.elementAt(i) );
+        try
+        {
+          pg.setValue( val_list.elementAt(i) );
+        }
+        catch ( IllegalArgumentException exception )
+        {
+          System.out.print( "IllegalArgumentException in setValue() when " );
+          System.out.println( "setting value for " + pg.getClass() );
+        }
       }
     }
   }
@@ -299,7 +312,8 @@ public class TestPGs
         }
         catch ( IllegalArgumentException exception )
         {
-          System.out.println( "NO VALID VALUE AVAILABLE IN GUI" );
+          System.out.println( "NO VALID VALUE AVAILABLE IN getValue() " +
+                              "or in getStringValue()" );
         }
       }
     }
@@ -362,6 +376,11 @@ public class TestPGs
     FunctStringPG f_str_pg   = new FunctStringPG( "Function", "3.2*sin(x)" );
     MaterialPG    mat_pg     = new MaterialPG( "Material", "C,O_2" );
     InstNamePG    inst_pg    = new InstNamePG( "Instrument", null );
+    ChoiceListPG  choice_pg  = new ChoiceListPG( "Choose", "Third Choice" );
+    choice_pg.addItem( "First Choice" );
+    choice_pg.addItem( "Second Choice" );
+    choice_pg.addItem( "Third Choice" );
+    choice_pg.addItem( "Fourth Choice" );
 
     DataDirPG dat_pg    = new DataDirPG( "DataDir PG Test", "Directory String");
     LoadFilePG ldf_pg   = new LoadFilePG( "LoadFile PG Test", "Load String");
@@ -377,6 +396,7 @@ public class TestPGs
     tester.AddToTestList( f_str_pg, "3.2*sin(x)", "3.2*cos(x)"); 
     tester.AddToTestList( mat_pg, "C,O_2", "H_2,O"); 
     tester.AddToTestList( inst_pg, "SCD0", "GPPD" );
+    tester.AddToTestList( choice_pg, "First Choice", "Second Choice" );
 
     tester.AddToTestList( dat_pg, "/First_Dir", "/Second_Dir");
     tester.AddToTestList( ldf_pg, "/First_File.run", "/Second_File.dat");
