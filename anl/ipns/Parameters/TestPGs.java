@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2006/06/30 14:20:45  rmikk
+ *  Added a test for the FloatArrayArrayPG
+ *  Fixed an illegalArgumentException that occurs in setValue2. This causes the
+ *     rest of the tests to fail to update
+ *
  *  Revision 1.20  2006/06/29 23:08:22  dennis
  *  Added tests for LoadFilePG, SaveFilePG, DataDirPG, MaterialPG and
  *  InstNamePG
@@ -446,14 +451,15 @@ public class TestPGs
     
     
     SampleDataSetPG SDSpg = new SampleDataSetPG("Sample ",null);
-    SDSpg.AddItem( DS1[ DS1.length -1 ]);
+    SDSpg.AddItem( DS1[ DS1.length -1]);
     //SDSpg.AddItem( DS2[ DS2.length -3]);
     //SDSpg.AddItem( DS1[0]);
-    tester.AddToTestList( SDSpg, DS1[DS1.length-1], DS2[DS2.length-1]);
+    tester.AddToTestList( SDSpg, DS1[DS1.length-1], DS1[DS1.length-1]);
     }catch(Exception s){
        System.out.println("Could not find files "+ s.toString());
     }
-   
+    float[][] F ={{3.1f,3.1f,3.1f},{2.2f,2.2f,2.2f}};
+    tester.AddToTestList( new FloatArrayArrayPG("FloatArrayArray", null), "[[1,2,3,4],[5,6,7,8]]", F);
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
   }
