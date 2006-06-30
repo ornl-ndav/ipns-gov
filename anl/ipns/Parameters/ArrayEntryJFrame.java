@@ -32,6 +32,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2006/06/30 14:57:23  rmikk
+ * Added a JOptionPane dialog if new value is not Okay.
+ *
  * Revision 1.1  2006/06/27 19:47:17  rmikk
  * Initial Checkin.  This is part of the parameterGUI that allows for editing
  * medium sized lists
@@ -437,7 +440,13 @@ public class ArrayEntryJFrame extends JFrame implements ActionListener,
    *        fashion.
    */
   private void addVectorToList( INewParameterGUI param ) {
-    Object val = param.getValue(  );
+    Object val;
+    try{
+       val= param.getValue(  );
+     }catch( IllegalArgumentException s){
+        JOptionPane.showMessageDialog( this , s.getMessage() );
+        return;
+     }
 
     if( val == null ) {
       return;
