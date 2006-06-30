@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2006/06/30 14:59:43  rmikk
+ *  Added a test for the loadFileArrayPg
+ *
  *  Revision 1.21  2006/06/30 14:20:45  rmikk
  *  Added a test for the FloatArrayArrayPG
  *  Fixed an illegalArgumentException that occurs in setValue2. This causes the
@@ -437,29 +440,33 @@ public class TestPGs
     tester.AddToTestList( new RealArrayPG("Real Array", new float[0][0]),F1,F2);
     
     String path= System.getProperty( "ISAW_HOME")+"/SampleRuns/";
-    try{
-    DataSet[] DS1 = Command.ScriptUtil.load(path+"Gppd12358.run" );
+    try {
+         DataSet[] DS1 = Command.ScriptUtil.load( path + "GPPD12358.RUN" );
 
-    DataSet[] DS2 = Command.ScriptUtil.load(path+"hrcs2955.run" );
-    
-    DataSetPG DSpg = new DataSetPG("DataSetPG", null);
-    DSpg.AddItem( DS1[ DS1.length -1 ]);
-    DSpg.AddItem( DS2[ DS2.length -1]);
-    DSpg.AddItem( DS1[0]);
-    tester.AddToTestList( DSpg, DS1[DS1.length-1], DS2[DS2.length-1]);
-    
-    
-    
-    SampleDataSetPG SDSpg = new SampleDataSetPG("Sample ",null);
-    SDSpg.AddItem( DS1[ DS1.length -1]);
-    //SDSpg.AddItem( DS2[ DS2.length -3]);
-    //SDSpg.AddItem( DS1[0]);
-    tester.AddToTestList( SDSpg, DS1[DS1.length-1], DS1[DS1.length-1]);
-    }catch(Exception s){
-       System.out.println("Could not find files "+ s.toString());
-    }
+         DataSet[] DS2 = Command.ScriptUtil.load( path + "hrcs2955.run" );
+
+         DataSetPG DSpg = new DataSetPG( "DataSetPG" , null );
+         DSpg.AddItem( DS1[ DS1.length - 1 ] );
+         DSpg.AddItem( DS2[ DS2.length - 1 ] );
+         DSpg.AddItem( DS1[ 0 ] );
+         tester.AddToTestList( DSpg , DS1[ DS1.length - 1 ] ,
+                  DS2[ DS2.length - 1 ] );
+
+
+         SampleDataSetPG SDSpg = new SampleDataSetPG( "Sample " , null );
+         SDSpg.AddItem( DS1[ DS1.length - 1 ] );
+         // SDSpg.AddItem( DS2[ DS2.length -3]);
+         // SDSpg.AddItem( DS1[0]);
+         tester.AddToTestList( SDSpg , DS1[ DS1.length - 1 ] ,
+                  DS1[ DS1.length - 1 ] );
+      } catch( Exception s ) {
+         System.out.println( "Could not find files " + s.toString() );
+      }
     float[][] F ={{3.1f,3.1f,3.1f},{2.2f,2.2f,2.2f}};
     tester.AddToTestList( new FloatArrayArrayPG("FloatArrayArray", null), "[[1,2,3,4],[5,6,7,8]]", F);
+    
+       Vector V1 = Conversions.StringToVec( "["+path+"GPPD12358.RUN,"+path+"hrcs2955.run]");
+    tester.AddToTestList( new LoadFileArrayPG("LoadFileArray", null),V1, "["+path+"SCD06496.RUN]");
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
   }
