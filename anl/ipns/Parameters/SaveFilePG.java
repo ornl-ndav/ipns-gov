@@ -80,11 +80,7 @@ public class SaveFilePG extends StringPG_base
 	    }
 	    
 	    //checking for pathname validity
-	    File file = new File(widget_value);
-	    if(!file.exists())
-	    {
-	    	throw new IllegalArgumentException("No such file");
-	    }	    
+	    File file = new File(widget_value);   
 	    if(!file.isFile())
 	    {
 	    	throw new IllegalArgumentException("Not a file");
