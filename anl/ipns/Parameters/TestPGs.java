@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2006/06/30 17:00:52  dennis
+ *  Added test of PrinterNamePG.
+ *  Minor code reformat.
+ *
  *  Revision 1.23  2006/06/30 16:14:22  dennis
  *  Added test for ChoiceListPG.
  *  Added try...catch around setValue listener to indicate which
@@ -381,6 +385,8 @@ public class TestPGs
     choice_pg.addItem( "Second Choice" );
     choice_pg.addItem( "Third Choice" );
     choice_pg.addItem( "Fourth Choice" );
+    PrinterNamePG print_pg = new PrinterNamePG( "Choose Printer", 
+                                                "NO Printer 2" );
 
     DataDirPG dat_pg    = new DataDirPG( "DataDir PG Test", "Directory String");
     LoadFilePG ldf_pg   = new LoadFilePG( "LoadFile PG Test", "Load String");
@@ -397,6 +403,8 @@ public class TestPGs
     tester.AddToTestList( mat_pg, "C,O_2", "H_2,O"); 
     tester.AddToTestList( inst_pg, "SCD0", "GPPD" );
     tester.AddToTestList( choice_pg, "First Choice", "Second Choice" );
+    tester.AddToTestList( print_pg, "NO Printer 1", "NO Printer 3" );
+
 
     tester.AddToTestList( dat_pg, "/First_Dir", "/Second_Dir");
     tester.AddToTestList( ldf_pg, "/First_File.run", "/Second_File.dat");
@@ -482,11 +490,18 @@ public class TestPGs
       } catch( Exception s ) {
          System.out.println( "Could not find files " + s.toString() );
       }
+
     float[][] F ={{3.1f,3.1f,3.1f},{2.2f,2.2f,2.2f}};
-    tester.AddToTestList( new FloatArrayArrayPG("FloatArrayArray", null), "[[1,2,3,4],[5,6,7,8]]", F);
+    tester.AddToTestList( new FloatArrayArrayPG("FloatArrayArray", null), 
+                          "[[1,2,3,4],[5,6,7,8]]", 
+                           F);
     
-       Vector V1 = Conversions.StringToVec( "["+path+"GPPD12358.RUN,"+path+"hrcs2955.run]");
-    tester.AddToTestList( new LoadFileArrayPG("LoadFileArray", null),V1, "["+path+"SCD06496.RUN]");
+    Vector V1 = Conversions.StringToVec( 
+                          "["+path+"GPPD12358.RUN,"+path+"hrcs2955.run]");
+    tester.AddToTestList( new LoadFileArrayPG("LoadFileArray", null),
+                          V1, 
+                         "["+path+"SCD06496.RUN]");
+
     tester.MakeGUI( true );      // show the valid check box
 //  tester.MakeGUI( false );     // don't show the valid check box
   }
