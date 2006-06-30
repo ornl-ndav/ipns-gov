@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/06/30 16:48:25  dennis
+ *  Minor format clean up.
+ *
  *  Revision 1.4  2006/06/30 16:42:18  rmikk
  *  Fixed error that allowed +.e3 to be accepted
  *
@@ -68,7 +71,6 @@ public class FloatFilter implements IStringFilter
    * @param  str  The String to check 
    *
    * @return true if the String is ok, false otherwise
-
    */
   public boolean isOkay( String str )
   {
@@ -77,22 +79,20 @@ public class FloatFilter implements IStringFilter
     if ( temp.startsWith( "+" ) || temp.startsWith( "-" ) )
       temp = temp.substring(1);
 
-    if ( temp.length() == 0 )                  // we allow just a leading sign
-      return true;                             // while entering a float 
+    if ( temp.length() == 0 )                 // we allow just a leading sign
+      return true;                            // while entering a float 
 
     if ( temp.startsWith( "+" ) || temp.startsWith( "-" ) )  // only one sign
       return false;                                          // char allowed
 
-    if ( temp.endsWith( "." ) )              // we allow just a leading 
-      temp =  temp+ "0";                       // decimal point while entering
-                                               // a float
+    if ( temp.endsWith( "." ) )               // we allow just a leading 
+      temp =  temp+ "0";                      // decimal point while entering
+                                              // a float
 
     if ( temp.endsWith( "+" ) || temp.endsWith( "-" ) ||    // might end with
          temp.endsWith( "e" ) || temp.endsWith( "E" )  )    // E-  or +, etc
       temp = temp + "0";                                    // while entering
     
-   
-    // exponent
     try
     { 
        Float.parseFloat( temp );
