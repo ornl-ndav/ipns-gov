@@ -32,11 +32,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/30 14:21:17  dennis
+ *  Now traps a few more problems like starting with ',' or '_',
+ *  having repeated separator characters, and using exponential notation
+ *  or floating point suffixes like 'F' or 'D'.
+ *
  *  Revision 1.1  2006/06/29 22:54:49  dennis
  *  This IStringFilter class will only allow Strings that specify
  *  materials in a form like "H_2,O".
- *
- *
  */
 
 package gov.anl.ipns.Parameters;
@@ -45,7 +48,8 @@ package gov.anl.ipns.Parameters;
 /**
  *  This filter checks whether or not a String is a valid String that 
  *  could occur while entering a material, using a simple syntax of the
- *  form: C,H,F_3,O_3,S.
+ *  form: C,H,F_3,O_3,S.  It is not absolutely effective, but just traps 
+ *  some basic mistakes.
  */
 
 public class MaterialFilter implements IStringFilter
@@ -65,6 +69,18 @@ public class MaterialFilter implements IStringFilter
     if ( temp.length() == 0 )                     // we allow an empty string
       return true;
 
+    for ( int i = 0; i < temp.length() - 1; i++ ) // don't allow repeated ,_
+    {
+      char ch      = temp.charAt(i);
+      char next_ch = temp.charAt(i+1);
+      if ( ch == ',' || ch == '_' )
+        if ( next_ch == ',' || next_ch == '_' )
+          return false;
+
+      if ( i == 0 && (ch == ',' || ch == '_') )   // can't start with , or _
+        return false;
+    }
+
     String parts[] = temp.split(",");             // split into element groups
 
     for ( int i = 0; i < parts.length; i++ )
@@ -73,25 +89,35 @@ public class MaterialFilter implements IStringFilter
       if ( comp.length > 2 || comp.length < 1 )
         return false;
 
-      String element = comp[0];
+      String element = comp[0];   
       if ( element.length() < 1 )
         return false;
 
-      if ( !Character.isUpperCase(element.charAt(0)) )
-        return false;
+      if ( !Character.isUpperCase(element.charAt(0)) )   // first letter must
+        return false;                                    // be upper case
 
       for ( int k = 1; k < element.length(); k++ )
-        if ( !Character.isLowerCase(element.charAt(k)) )
-          return false;
+        if ( !Character.isLowerCase(element.charAt(k)) ) // later letters must
+          return false;                                  // be lower case
 
-      if ( comp.length > 1 )                      // the value must be a number
-      try
+      if ( comp.length > 1 )                      // next value must be a number
       {
-        float val = Float.parseFloat( comp[1] );
-      }
-      catch ( NumberFormatException e )
-      {
-        return false;
+        String number = comp[1];
+        try
+        {
+          Float.parseFloat( number );
+        }
+        catch ( NumberFormatException e )
+        {
+          return false;
+        }
+
+        for ( int k = 1; k < number.length(); k++ )     // don't allow letters
+        {                                               // in number(eg. E,F,D)
+          char ch = number.charAt(k);
+          if ( !Character.isDigit( ch ) && ( ch != '.' ) )
+            return false; 
+        }
       }
     }
 
