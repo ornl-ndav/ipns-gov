@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/30 14:24:39  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.2  2006/06/29 20:13:21  dennis
  *  Modified to do virtually all of the work in the new base class
  *  FilteredStringPG.  Now just extends FilteredStringPG and uses
@@ -44,8 +47,6 @@
 
 package gov.anl.ipns.Parameters;
 
-import java.awt.*;
-import javax.swing.*;
 
 /**
  *  A StringPG uses a JTextField component to let the user specify a String.

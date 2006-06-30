@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/30 14:24:41  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.1  2006/06/29 20:03:38  dennis
  *  This is an abstract base class for PGs whose value is a String
  *  subject to input restrictions.  The input restrictions are
@@ -39,16 +42,13 @@
  *  for different types of restrictions just need a constructor that
  *  calls the constructor for this class, with the correct filter.
  *
- *  Revision 1.1  2006/06/23 14:14:45  dennis
- *  Concrete class for entering a string from a TextField.
- *
  */
 
 package gov.anl.ipns.Parameters;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.text.*;
+
 
 /**
  * FilteredStringPG is an abstract base class for all String valued PGs

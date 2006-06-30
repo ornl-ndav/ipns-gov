@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/30 14:24:39  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.1  2006/06/29 22:55:53  dennis
  *  This PG uses a MaterialFilter to restrict entries to specifying
  *  materials in a form like "H_2,O"
@@ -41,8 +44,6 @@
 
 package gov.anl.ipns.Parameters;
 
-import java.awt.*;
-import javax.swing.*;
 
 /**
  *  A MaterialPG uses a JTextField component to let the user specify 

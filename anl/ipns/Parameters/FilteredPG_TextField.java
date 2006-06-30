@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/30 14:24:41  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.1  2006/06/29 15:45:09  dennis
  *  This class extends JTextField and accepts a filter that is applied
  *  to make certain that the new String should be accepted BEFORE the
@@ -46,7 +49,6 @@
 
 package gov.anl.ipns.Parameters;
 
-import java.awt.*;
 import javax.swing.*;
 import javax.swing.text.*;
 

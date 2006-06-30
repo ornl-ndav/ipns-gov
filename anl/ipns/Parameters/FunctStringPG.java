@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/30 14:24:40  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.1  2006/06/29 20:17:46  dennis
  *  This PG extends FilteredStringPG by using a filter that helps
  *  prevent errors while typing in a function expression.  This
@@ -43,8 +46,6 @@
 
 package gov.anl.ipns.Parameters;
 
-import java.awt.*;
-import javax.swing.*;
 
 /**
  *  A FuncStringPG uses a JTextField component to let the user specify a 

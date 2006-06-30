@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/06/30 14:24:39  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.3  2006/06/29 15:46:58  dennis
  *  This no longer requires a NewParameterGUI object to notify when
  *  changes to the text are accepted.  No notification will be attempted,
@@ -51,8 +54,6 @@
 package gov.anl.ipns.Parameters;
 
 import java.awt.*;
-import java.awt.event.*;
-import javax.swing.event.*;
 import javax.swing.text.*;
 
 /**

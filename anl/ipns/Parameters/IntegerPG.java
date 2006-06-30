@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/06/30 14:24:40  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.3  2006/06/29 15:47:56  dennis
  *  Modified to use the FilteredPG_TextField.
  *
@@ -49,7 +52,6 @@ package gov.anl.ipns.Parameters;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.text.*;
 
 /**
  *  An IntegerPG uses a JTextField component to let the user specify an

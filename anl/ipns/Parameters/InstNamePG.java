@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/06/30 14:24:40  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.1  2006/06/29 22:49:38  dennis
  *  PG for specifying instrument names.  Currently, this just get's its
  *  initial value from the system properties, and does not do any
@@ -41,8 +44,6 @@
 
 package gov.anl.ipns.Parameters;
 
-import java.awt.*;
-import javax.swing.*;
 import DataSetTools.util.SharedData;
 
 /**

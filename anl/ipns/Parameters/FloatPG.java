@@ -30,6 +30,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2006/06/30 14:24:40  dennis
+ * Removed unused imports.
+ *
  * Revision 1.4  2006/06/29 15:47:55  dennis
  * Modified to use the FilteredPG_TextField.
  *
@@ -47,7 +50,6 @@ package gov.anl.ipns.Parameters;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.text.*;
 
 
 /**
