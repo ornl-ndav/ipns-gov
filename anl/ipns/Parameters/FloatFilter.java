@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/06/30 16:42:18  rmikk
+ *  Fixed error that allowed +.e3 to be accepted
+ *
  *  Revision 1.3  2006/06/30 14:25:29  dennis
  *  Removed unused variable.
  *
@@ -80,17 +83,19 @@ public class FloatFilter implements IStringFilter
     if ( temp.startsWith( "+" ) || temp.startsWith( "-" ) )  // only one sign
       return false;                                          // char allowed
 
-    if ( temp.startsWith( "." ) )              // we allow just a leading 
-      temp = "0" + temp;                       // decimal point while entering
+    if ( temp.endsWith( "." ) )              // we allow just a leading 
+      temp =  temp+ "0";                       // decimal point while entering
                                                // a float
 
     if ( temp.endsWith( "+" ) || temp.endsWith( "-" ) ||    // might end with
          temp.endsWith( "e" ) || temp.endsWith( "E" )  )    // E-  or +, etc
       temp = temp + "0";                                    // while entering
-                                                            // exponent
+    
+   
+    // exponent
     try
-    {
-      Float.parseFloat( temp );
+    { 
+       Float.parseFloat( temp );
       return true;
     }
     catch ( NumberFormatException e )
