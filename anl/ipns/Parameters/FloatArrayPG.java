@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2006/06/30 14:19:10  rmikk
+ * Fixed the documentation to correspond specifically to FloatArrayPG
+ *
  * Revision 1.4  2006/06/29 21:54:23  rmikk
  * Added or fixed the GPL
  *
@@ -58,8 +61,8 @@ public class FloatArrayPG extends VectorPG {
   /**
    * Creates a new FloatArrayPG object.
    *
-   * @param name The name of this IntegerArrayPG.
-   * @param val The value of this IntegerArrayPG.
+   * @param name The prompt for values for this FloatArrayPG.
+   * @param val The intial value of this FloatArrayPG.
    */
   public FloatArrayPG( String name, Object val ) {
     super( name, Conversions.get_FloatVector(val) );
@@ -72,19 +75,14 @@ public class FloatArrayPG extends VectorPG {
   
   
   /**
-   * Extract a Vector of floats for the concrete subclass, from
-   * the specified object.  If the object is a Vector, it will serve as the
-   * value for the PG.  In (special) cases, some attempt may be made to
-   * extract a Vector with the correct contents from different types of
-   * objects.  The object types that are supported will depend on the
-   * concrete PG class, derived from this class, and should be described
-   * in the documentation for the concrete PG class.  If a proper value
-   * for this PG can't be obtained from the specified object, an
-   * exception will be thrown.
-   *
+   * Extract a Vector of Floats for the concrete subclass, from
+   * the specified object. 
+   *  
    * @param  obj  The Object specifying the value for this PG.
+   * 
+   * @return a Vector of Floats corresponding to obj
    *
-   * @throws IllegalArgumentException if a Vector of the required type
+   * @throws IllegalArgumentException if a Vector of Floats
    *         cannot be extracted from the specified object. 
    */
  public Vector getVectorValue(Object obj) throws IllegalArgumentException {
@@ -92,7 +90,7 @@ public class FloatArrayPG extends VectorPG {
 			return new Vector();
 		if (!(obj instanceof Vector))
 			throw new IllegalArgumentException(
-					"Improper format for Vector<Integer> values");
+					"Improper format for Vector<Float> values");
 		Vector Res = new Vector();
 		for (int i = 0; i < ((Vector) obj).size(); i++)
 			Res.addElement(Conversions.get_float(((Vector) obj).elementAt(i)));
@@ -102,9 +100,9 @@ public class FloatArrayPG extends VectorPG {
  
  
  /**
-  * Construct a copy of this IParameter object.
+  * Construct a copy of this FloatArrayPG.
   *
-  * @return A copy of this IParameter, with the same name and value.
+  * @return A copy of this FloatArrayPG, with the same name and value.
   */
  public Object getCopy(){
 	 FloatArrayPG iog = new FloatArrayPG( getName(),(Object) vec_value);
