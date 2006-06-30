@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/30 14:25:29  dennis
+ *  Removed unused variable.
+ *
  *  Revision 1.2  2006/06/29 22:51:44  dennis
  *  Minor fix for javadocs.
  *
@@ -79,7 +82,7 @@ public class IntegerFilter implements IStringFilter
     {
       try
       {
-        int val = Integer.parseInt( temp );
+        Integer.parseInt( temp );
         return true;
       }
       catch ( NumberFormatException e )

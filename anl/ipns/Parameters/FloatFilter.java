@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/30 14:25:29  dennis
+ *  Removed unused variable.
+ *
  *  Revision 1.2  2006/06/29 22:51:44  dennis
  *  Minor fix for javadocs.
  *
@@ -87,7 +90,7 @@ public class FloatFilter implements IStringFilter
                                                             // exponent
     try
     {
-      float val = Float.parseFloat( temp );
+      Float.parseFloat( temp );
       return true;
     }
     catch ( NumberFormatException e )

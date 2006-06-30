@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/06/30 14:21:58  dennis
+ *  Removed unused variable.
+ *
  *  Revision 1.2  2006/06/29 22:51:44  dennis
  *  Minor fix for javadocs.
  *
@@ -91,7 +94,7 @@ public class IntListFilter implements IStringFilter
     }
 
                                                          // make sure we don't
-    boolean ok          = true;                          // have two colons  
+                                                         // have two colons  
     boolean colon_found = false;                         // without a comma 
     for ( int i = 0; i < temp.length(); i++ )            // between
     {
