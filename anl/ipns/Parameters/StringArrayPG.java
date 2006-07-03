@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2006/07/03 21:06:53  dennis
+ * Cleaned up oddity regarding type casts/autoboxing.
+ *
  * Revision 1.3  2006/06/29 21:54:22  rmikk
  * Added or fixed the GPL
  *
@@ -67,7 +70,7 @@ public class StringArrayPG extends VectorPG {
    */
   public StringArrayPG( String name, Object val ) {
     super( name, Conversions.get_StringVector( val) );
-    setParam( new StringPG( "Enter a String ", 0 ) );
+    setParam( new StringPG( "Enter a String ", new Integer(0) ) );
   }
 
   

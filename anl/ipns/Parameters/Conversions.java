@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2006/07/03 21:06:52  dennis
+ *  Cleaned up oddity regarding type casts/autoboxing.
+ *
  *  Revision 1.9  2006/06/29 15:01:22  rmikk
  *  Added a method to convert Vectors and Arrays to a matching real array
  *
@@ -132,9 +135,9 @@ public class Conversions
       int intval = ((Integer)obj).intValue();
 
       if ( intval == 0 )
-        bool_value = Boolean.FALSE;
+        bool_value = false;
       else
-        bool_value = Boolean.TRUE;
+        bool_value = true;
     }
 
     else
@@ -187,8 +190,8 @@ public class Conversions
       String temp = ((String)obj).trim();
       try
       {
-        Double double_value = new Double( temp );
-        int_value = double_value.intValue();     // we DO consider 1.0 to be int
+        double double_value = Double.parseDouble( temp );
+        int_value = (int)double_value;          // we DO consider 1.0 to be int
         if ( int_value == double_value )
           return int_value;
         else
@@ -315,7 +318,7 @@ public class Conversions
 		  return Res;
 	  }else if( obj.getClass().isArray()){
 		  for( int i=0; i< Array.getLength( obj); i++)
-			  Res.addElement( new Integer( (Integer)Array.get(obj,i)));
+			  Res.addElement( (Integer)Array.get(obj,i));
 		  return Res;
 	  }else{
 	     Res.addElement( new Integer( get_int( obj)));
@@ -352,7 +355,7 @@ public class Conversions
 		  return Res;
 	  }else if( obj.getClass().isArray()){
 		  for( int i=0; i< Array.getLength( obj); i++)
-			  Res.addElement( new Float( (Float)Array.get(obj,i)));
+			  Res.addElement( (Float)Array.get(obj,i));
 		  return Res;
 	  }else{
 	     Res.addElement( new Float( get_float( obj)));

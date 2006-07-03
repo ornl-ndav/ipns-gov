@@ -29,6 +29,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2006/07/03 21:06:52  dennis
+ * Cleaned up oddity regarding type casts/autoboxing.
+ *
  * Revision 1.2  2006/06/26 22:52:42  dennis
  * Minor fixes to javadocs.
  *
@@ -155,7 +158,7 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
 	// The first value is what is returned
 	private static Object FirstArg( Object O){
 		if( O == null)
-			return false;
+			return new Boolean(false);
 		if( O instanceof Vector)
 			return ((Vector)O).firstElement();
 		if( O.getClass().isArray())

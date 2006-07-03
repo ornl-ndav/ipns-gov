@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/07/03 21:06:53  dennis
+ * Cleaned up oddity regarding type casts/autoboxing.
+ *
  * Revision 1.2  2006/06/27 22:26:56  rmikk
  * Incorporated Conversions.get_IntegerVector to ensure the the initial
  *   value passed in by the constructor was a valid IntegerVector
@@ -103,7 +106,7 @@ public class IntegerArrayPG extends VectorPG {
    */
   public IntegerArrayPG( String name, Object val ) {
     super( name, Conversions.get_IntegerVector(val) );
-    setParam( new IntegerPG( "Enter an Integer ", 0 ) );
+    setParam( new IntegerPG( "Enter an Integer ", new Integer( 0 ) ) );
   }
 
   
