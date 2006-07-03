@@ -30,6 +30,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.3  2006/07/03 20:55:28  dennis
+ * Explicityl construct object passed to set value, rather
+ * than rely on autoboxing.
+ *
  * Revision 1.2  2006/06/27 20:35:11  dennis
  * Removed commented out updateValueFromGUI(), since it is not
  * needed.
@@ -184,7 +188,7 @@ public abstract class FloatPG_base extends NewParameterGUI
    */
   public void clear() 
   {
-    setValue( 0.0f );
+    setValue( new Float(0.0) );
   }
 
   

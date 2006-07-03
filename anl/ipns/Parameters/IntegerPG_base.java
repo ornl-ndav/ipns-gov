@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/07/03 20:55:28  dennis
+ *  Explicityl construct object passed to set value, rather
+ *  than rely on autoboxing.
+ *
  *  Revision 1.4  2006/06/26 20:48:06  dennis
  *  Fixed minor error in javadocs.
  *
@@ -204,7 +208,7 @@ public abstract class IntegerPG_base extends NewParameterGUI
    */
   public void clear() 
   {
-    setValue( 0 );
+    setValue( new Integer( 0 ) );
   }
 
   
