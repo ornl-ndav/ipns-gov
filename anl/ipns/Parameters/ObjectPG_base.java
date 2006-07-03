@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/07/03 20:54:33  dennis
+ *  Removed unused import.
+ *
  *  Revision 1.1  2006/06/27 22:29:53  dennis
  *  Abstract base class for PGs that have an object as their value,
  *  such as PlaceholderPG and RealArrayPG.
@@ -40,7 +43,6 @@
  */
 package gov.anl.ipns.Parameters;  
 
-import java.util.*;
 import gov.anl.ipns.Util.Sys.*;
 
 
