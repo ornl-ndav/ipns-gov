@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2006/07/03 20:52:12  dennis
+ * Removed an unused import, method and variable.
+ *
  * Revision 1.4  2006/06/28 20:20:25  rmikk
  * Put a listener on the button so the valid checkbox will flip
  *
@@ -49,10 +52,6 @@
  */
 package gov.anl.ipns.Parameters;
 
-
-
-
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.awt.*;
 
@@ -60,7 +59,6 @@ import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.*;
-
 
 /**
  * This parameterGUI is the parent class of other parameterGUI's whose values
@@ -214,7 +212,9 @@ public abstract class VectorPG extends VectorPG_base
    */
   public void setWidgetValue( Vector value ) 
                                           throws IllegalArgumentException{
-	  Vector  V = getVectorValue( value);
+
+	  getVectorValue( value );  // just called to initialize some variables
+	                            // for Qbins1
 	  
 	  entryFrame.setValue( value );
   }
@@ -249,13 +249,6 @@ public void setEnabled( boolean on_off ){
 	PanelwButton.setEnabled( on_off);
 	PanelwButton.getComponent(0).setEnabled( on_off);
 	vectorButton.setEnabled( on_off);
-}
-
-private void setEnabled( Component C, boolean on_off){
-	C.setEnabled( on_off);
-	if( C instanceof Container)
-		for( int i=0; i< ((Container)C).getComponentCount(); i++)
-		   setEnabled( ((Container)C).getComponent( i ), on_off);
 }
 
 }
