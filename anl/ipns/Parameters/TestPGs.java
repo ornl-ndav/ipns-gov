@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2006/07/03 20:50:51  dennis
+ *  Now explicitly constructs some new objects to be passed into the
+ *  tester, rather than relying on autoboxing.
+ *
  *  Revision 1.24  2006/06/30 17:00:52  dennis
  *  Added test of PrinterNamePG.
  *  Minor code reformat.
@@ -361,8 +365,10 @@ public class TestPGs
     new DataSetTools.util.SharedData();
     TestPGs tester = new TestPGs();
 
-    BooleanPG checkbox1 = new BooleanPG( "Boolean PG 1", false );
-    BooleanPG checkbox2 = new BooleanPG( "Boolean PG 2", false );
+    Boolean   TRUE  = new Boolean( true  );
+    Boolean   FALSE = new Boolean( false );
+    BooleanPG checkbox1 = new BooleanPG( "Boolean PG 1", FALSE );
+    BooleanPG checkbox2 = new BooleanPG( "Boolean PG 2", FALSE );
 
     Vector V = new Vector();
       V.addElement( new Boolean( true));
@@ -371,9 +377,9 @@ public class TestPGs
 
     BooleanEnablePG Check3 = new BooleanEnablePG("do.no do",V);
 
-    IntegerPG int_pg    = new IntegerPG( "Integer PG Test", 2 );
+    IntegerPG int_pg    = new IntegerPG( "Integer PG Test", new Integer(2) );
 
-    FloatPG   float_pg  = new FloatPG( "Float PG Test", 3.1416f );
+    FloatPG   float_pg  = new FloatPG( "Float PG Test", new Float(3.1416f) );
 
     StringPG      str_pg     = new StringPG( "String PG Test", "Some String" );
     IntArrayPG    int_arr_pg = new IntArrayPG("Int List String", "-10:-5,0:1");
@@ -392,11 +398,11 @@ public class TestPGs
     LoadFilePG ldf_pg   = new LoadFilePG( "LoadFile PG Test", "Load String");
     SaveFilePG sav_pg   = new SaveFilePG( "SaveFile PG Test", "Save String");   
 
-    tester.AddToTestList( checkbox1, true, false );
-    tester.AddToTestList( checkbox2, false, true );
-    tester.AddToTestList( Check3 , true, false);
-    tester.AddToTestList( int_pg, 1, 2 );
-    tester.AddToTestList( float_pg, 3.1416f, 2.7183f);
+    tester.AddToTestList( checkbox1, TRUE, FALSE );
+    tester.AddToTestList( checkbox2, FALSE, TRUE );
+    tester.AddToTestList( Check3 , TRUE, FALSE );
+    tester.AddToTestList( int_pg, new Integer(1), new Integer(2) );
+    tester.AddToTestList( float_pg, new Float(3.1416f), new Float(2.7183f));
     tester.AddToTestList( str_pg, "First String", "Second String" );
     tester.AddToTestList( int_arr_pg, "-10:-5,0:1","-10:-5,1:2");
     tester.AddToTestList( f_str_pg, "3.2*sin(x)", "3.2*cos(x)"); 
@@ -421,13 +427,13 @@ public class TestPGs
     tester.AddToTestList( new IntegerArrayPG("big int array",null),VV,VV1);
    
     VV=new Vector(); 
-    VV.addElement( 1.1f);
-    VV.addElement( 3.2f); 
-    VV.addElement( -5.4f);
+    VV.addElement( new Float(1.1f) );
+    VV.addElement( new Float(3.2f) ); 
+    VV.addElement( new Float(-5.4f) );
     VV1=new Vector(); 
-    VV1.addElement( 11.1f);
-    VV1.addElement( 13.2f); 
-    VV1.addElement( -15.4f);
+    VV1.addElement( new Float(11.1f) );
+    VV1.addElement( new Float(13.2f) ); 
+    VV1.addElement( new Float(-15.4f) );
     tester.AddToTestList( new FloatArrayPG("big float array",null),VV,VV1);
     
     VV=new Vector();
