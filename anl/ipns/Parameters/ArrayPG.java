@@ -1,6 +1,5 @@
 package gov.anl.ipns.Parameters;
 
-import java.awt.Dimension;
 import java.util.Vector;
 
 import javax.swing.*;
