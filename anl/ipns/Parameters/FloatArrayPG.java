@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2006/07/03 21:13:58  dennis
+ * Explicitly create new object, rather than use autoboxing.
+ *
  * Revision 1.5  2006/06/30 14:19:10  rmikk
  * Fixed the documentation to correspond specifically to FloatArrayPG
  *
@@ -66,7 +69,7 @@ public class FloatArrayPG extends VectorPG {
    */
   public FloatArrayPG( String name, Object val ) {
     super( name, Conversions.get_FloatVector(val) );
-    setParam( new FloatPG( "Enter an Float ", 0 ) );
+    setParam( new FloatPG( "Enter an Float ", new Integer(0) ) );
   }
 
   

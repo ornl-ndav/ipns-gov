@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2006/07/03 21:13:58  dennis
+ * Explicitly create new object, rather than use autoboxing.
+ *
  * Revision 1.1  2006/06/30 14:15:53  rmikk
  * Initial checkin for FloatArrayArrayPG. This ParameterGUI allows for entering
  *   and maintaining a Vector of Vector of Floats
@@ -56,7 +59,7 @@ public class FloatArrayArrayPG extends VectorPG {
    */
   public FloatArrayArrayPG( String name, Object val ) {
     super( name, get_Vector_Vector_Float(val) );
-    setParam( new FloatArrayPG( "Enter an Float Arrray", 0 ) );
+    setParam( new FloatArrayPG( "Enter an Float Arrray", new Integer(0) ) );
   }
 
   
