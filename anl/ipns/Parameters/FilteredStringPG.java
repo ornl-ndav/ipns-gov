@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/07/04 02:29:52  dennis
+ *  Removed unneeded String concatenation.
+ *
  *  Revision 1.2  2006/06/30 14:24:41  dennis
  *  Removed unused imports.
  *
@@ -204,7 +207,7 @@ public abstract class FilteredStringPG extends StringPG_base
       throw new IllegalArgumentException(
               "setWidgetValue() called when no BooleanPG widget exists");
 
-    text_field.setText( ""+value );
+    text_field.setText( value );
   }
 
 }
