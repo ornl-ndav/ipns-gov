@@ -32,6 +32,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/07/04 02:27:23  dennis
+ *  Revised sequence in getGUIPanel(), so that the lower level
+ *  construction of the GUI widget is done before constructing
+ *  the overall GUIPanel().
+ *
  *  Revision 1.2  2006/06/13 16:16:02  dennis
  *  Added methods notifyChanged() and notifyChanging() that are
  *  to be called by low-level listeners, when the PG's entry widget
@@ -140,8 +145,14 @@ public abstract class NewParameterGUI implements INewParameterGUI,
         validCheck.setSelected( valid );
         validCheck.setEnabled( false );
 
+        JPanel widget = getWidget();      // NOTE: Do any calls to getWidget()
+                                          // BEFORE making the gui_panel non-
+                                          // null, since the gui_panel == null
+                                          // is used to check the existence of
+                                          // the GUI, and the GUI can't really
+                                          // exist until getWidget() finishes.
         gui_panel = new JPanel( new BorderLayout() );
-        gui_panel.add( getWidget(), BorderLayout.CENTER );
+        gui_panel.add( widget, BorderLayout.CENTER );
         gui_panel.add( validCheck,  BorderLayout.EAST );
       }
     }
