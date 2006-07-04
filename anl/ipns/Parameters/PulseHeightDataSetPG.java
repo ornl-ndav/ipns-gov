@@ -1,7 +1,7 @@
 /*
- * File:  DataSetPG.java
+ * File:  PulseHeightDataSetPG.java
  *
- * Copyright (C) 2006,  Ruth Mikkelson
+ * Copyright (C) 2006, Dennis Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
  * along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contact : Ruth Mikkelson <mikkelsonr@uwstout.edu>
+ * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
@@ -30,27 +30,22 @@
  * Modified:
  *
  * $Log$
- * Revision 1.3  2006/07/04 00:21:10  dennis
+ * Revision 1.1  2006/07/04 00:21:09  dennis
  * Refactored type-specific DataSet PG that extends the abstract
  * base class DataSetChoiceListPG.
  *
- * Revision 1.2  2006/06/29 21:54:23  rmikk
- * Added or fixed the GPL
- *
- * Revision 1.1  2006/06/29 21:49:23  rmikk
- * Initial checkin for DataSetPG that allows a user to select from a drop down
- * combo of datasets
  */
 package gov.anl.ipns.Parameters;
 
+import DataSetTools.dataset.Attribute;
 
 /**
  * 
- * Class to deal with lists of DataSets of any type.
- * @author RuthMikkelson
+ * Class to deal with lists of DataSets, restricted to only monitor DataSets.
+ * @author Dennis Mikkelson
  *
  */
-public class DataSetPG extends DataSetChoiceListPG {
+public class PulseHeightDataSetPG extends DataSetChoiceListPG {
 
    /**
     * Constructor
@@ -58,9 +53,9 @@ public class DataSetPG extends DataSetChoiceListPG {
     * @param val    An initial sample DataSet value, or null
     * @throws IllegalArgumentException
     */
-   public DataSetPG( String name, Object val ) throws IllegalArgumentException {
-      super( name, val, null );   // null for type String that must be matched
-                                  // will allow any DataSet to be accepted
+   public PulseHeightDataSetPG( String name, Object val ) 
+                                             throws IllegalArgumentException {
+      super( name, val, Attribute.PULSE_HEIGHT_DATA );
    }
 
 
@@ -69,11 +64,11 @@ public class DataSetPG extends DataSetChoiceListPG {
     */
    public Object getCopy() {
       
-      DataSetPG copy = new DataSetPG( getName(), ds_value );
+      PulseHeightDataSetPG copy = new PulseHeightDataSetPG(getName(), ds_value);
       
       for( int i=0; i < ds_list.size(); i++)
          copy.AddItem( ds_list.elementAt( i ));
-
+      
       copy.setValidFlag( getValidFlag() );
 
       return copy;
