@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2006/07/04 00:25:21  dennis
+ *  Removed one unused variable.
+ *
  *  Revision 1.18  2006/02/26 04:19:57  dennis
  *  -Made DoFit() public.
  *  -Moved getResultsString() up to the base class.
@@ -309,7 +312,6 @@ public class MarquardtArrayFitter extends CurveFitter
     double chisq_2 = 0;
     boolean chisq_increasing;
     double  norm_da = 0;
-    double  norm_a  = 1;
     double  w_diff_i;                                // weighted difference at
                                                      // at the ith data point
     int    n_params  = f.numParameters();
@@ -377,7 +379,6 @@ public class MarquardtArrayFitter extends CurveFitter
       while ( chisq_increasing && n_steps < max_steps )
       {
         a = f.getParameters();
-        norm_a = Math.max( 1.0, LinearAlgebra.norm(a) );
         for ( int k = 0; k < n_params; k++ )
         {
           a_old[k] = a[k];
