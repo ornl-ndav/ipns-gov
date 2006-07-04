@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/07/04 02:41:21  dennis
+ *  Moved getCopy() method from abstract base class,
+ *  FilteredStringPG, to concrete derived class.
+ *
  *  Revision 1.2  2006/06/30 14:24:40  dennis
  *  Removed unused imports.
  *
@@ -75,6 +79,19 @@ public class InstNamePG extends FilteredStringPG
       inst_name = SharedData.getProperty( "Default_Instrument" );
       str_value = inst_name;
     }
+  }
+
+
+  /**
+   * Construct a copy of this InstNamePG object.
+   *
+   * @return A copy of this InstNamePG, with the same name and value.
+   */
+  public Object getCopy() 
+  {
+     InstNamePG copy = new InstNamePG( getName(), str_value );
+     copy.setValidFlag( getValidFlag() );
+     return copy;
   }
 
 }

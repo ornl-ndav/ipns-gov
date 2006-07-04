@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/07/04 02:41:21  dennis
+ *  Moved getCopy() method from abstract base class,
+ *  FilteredStringPG, to concrete derived class.
+ *
  *  Revision 1.2  2006/06/30 14:24:40  dennis
  *  Removed unused imports.
  *
@@ -40,8 +44,6 @@
  *  prevent errors while typing in a function expression.  This
  *  class is complete, though the FunctionFilter is currently just
  *  a "stub" that returns true.
- *
- *
  */
 
 package gov.anl.ipns.Parameters;
@@ -70,6 +72,19 @@ public class FunctStringPG extends FilteredStringPG
                                             throws IllegalArgumentException
   {
     super( name, Conversions.get_String( val ), new FunctionFilter() );  
+  }
+
+
+  /**
+   * Construct a copy of this FunctStringPG object.
+   *
+   * @return A copy of this FunctStringPG, with the same name and value.
+   */
+  public Object getCopy() 
+  {
+     FunctStringPG copy = new FunctStringPG( getName(), str_value );
+     copy.setValidFlag( getValidFlag() );
+     return copy;
   }
 
 }

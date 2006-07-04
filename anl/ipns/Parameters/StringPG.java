@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/07/04 02:41:19  dennis
+ *  Moved getCopy() method from abstract base class,
+ *  FilteredStringPG, to concrete derived class.
+ *
  *  Revision 1.3  2006/06/30 14:24:39  dennis
  *  Removed unused imports.
  *
@@ -67,6 +71,19 @@ public class StringPG extends FilteredStringPG
   public StringPG( String name, Object val ) throws IllegalArgumentException
   {
     super( name, Conversions.get_String( val ), new AllPassFilter() );  
+  }
+
+
+  /**
+   * Construct a copy of this StringPG object.
+   *
+   * @return A copy of this StringPG, with the same name and value.
+   */
+  public Object getCopy() 
+  {
+     StringPG copy = new StringPG( getName(), str_value );
+     copy.setValidFlag( getValidFlag() );
+     return copy;
   }
 
 }

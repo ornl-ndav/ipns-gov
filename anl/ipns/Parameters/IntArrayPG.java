@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/07/04 02:41:20  dennis
+ *  Moved getCopy() method from abstract base class,
+ *  FilteredStringPG, to concrete derived class.
+ *
  *  Revision 1.2  2006/06/30 14:24:40  dennis
  *  Removed unused imports.
  *
@@ -70,5 +74,19 @@ public class IntArrayPG extends FilteredStringPG
   {
     super( name, Conversions.get_String( val ), new IntListFilter() );  
   }
+
+
+  /**
+   * Construct a copy of this IntArrayPG object.
+   *
+   * @return A copy of this IntArrayPG, with the same name and value.
+   */
+  public Object getCopy() 
+  {
+     IntArrayPG copy = new IntArrayPG( getName(), str_value );
+     copy.setValidFlag( getValidFlag() );
+     return copy;
+  }
+
 
 }

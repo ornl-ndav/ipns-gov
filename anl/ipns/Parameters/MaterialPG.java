@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/07/04 02:41:20  dennis
+ *  Moved getCopy() method from abstract base class,
+ *  FilteredStringPG, to concrete derived class.
+ *
  *  Revision 1.2  2006/06/30 14:24:39  dennis
  *  Removed unused imports.
  *
@@ -68,6 +72,19 @@ public class MaterialPG extends FilteredStringPG
   public MaterialPG( String name, Object val ) throws IllegalArgumentException
   {
     super( name, Conversions.get_String( val ), new MaterialFilter() );  
+  }
+
+
+  /**
+   * Construct a copy of this MaterialPG object.
+   *
+   * @return A copy of this MaterialPG, with the same name and value.
+   */
+  public Object getCopy() 
+  {
+     MaterialPG copy = new MaterialPG( getName(), str_value );
+     copy.setValidFlag( getValidFlag() );
+     return copy;
   }
 
 }
