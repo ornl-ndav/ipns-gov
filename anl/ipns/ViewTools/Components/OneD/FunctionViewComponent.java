@@ -33,6 +33,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.84  2006/07/10 21:01:10  amoe
+ *  *** empty log message ***
+ *
+ *  Revision 1.84  2006/07/04 20:00:12  amoe
+ *  Changed ControlCheckbox control_box to JMenuItem control_box.  
+ *  Then re-instantiated it in getMenuItems().  This will allow the 
+ *  existing code to correctly unselect the control_box when the 
+ *  FunctionControls window is closed.
+ *
  *  Revision 1.83  2006/06/22 19:39:58  amoe
  *  -changed 'private transient GraphJPanel gjp' to protected, for
  *  DifferenceViewComponent
@@ -419,7 +428,7 @@ public class FunctionViewComponent implements IViewComponent1D,
  // private int linewidth      = 1;
   protected FunctionControls mainControls;
   private boolean draw_pointed_at = false;
-  private ControlCheckbox control_box = new ControlCheckbox(false);
+  private JMenuItem control_box = new JMenuItem();
 
 
   /**
@@ -1124,6 +1133,9 @@ public class FunctionViewComponent implements IViewComponent1D,
 		   new JCheckBoxMenuItem("Show Pointed At"));
    ((JCheckBoxMenuItem)Res[1].getItem()).setState(draw_pointed_at);
    (Res[1]).addActionListener( new ControlListener() );
+   
+   //setting the function controls menu item
+   control_box = Res[0].getItem();
 
    return Res;
 
