@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2006/07/10 16:03:16  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  * Revision 1.1  2006/06/30 14:58:29  rmikk
  * Initial Checkin for LoadFileArrayPG.  This returns a vector of filenames that
  *   can use the Browse button to select( from separate directories too)
@@ -98,7 +101,7 @@ public class LoadFileArrayPG extends VectorPG {
   *
   * @return A copy of this LoadFileArrayPG, with the same name and value.
   */
- public Object getCopy(){
+ public Object clone(){
 	 LoadFileArrayPG iog = new LoadFileArrayPG( getName(), vec_value);
 	 return iog;
 	 
