@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.22  2006/07/10 20:26:36  amoe
+ * Set marksize to 5 because it is now the preferred default.
+ *
  * Revision 1.21  2005/11/11 20:26:49  serumb
  * Changed the default color of the selected graph to blue.
  *
@@ -174,7 +177,7 @@ public class GraphData implements Serializable,
   public float  linewidth = 1;
   public int    marktype  = 0;
   public Color  markcolor = Color.red;
-  public int    marksize  = 2;
+  public int    marksize  = 5;
 //  public BasicStroke Stroke = new BasicStroke(1);
   public boolean transparent = false;
   public Color  errorcolor = Color.black;
