@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.57  2006/07/10 20:32:18  amoe
+ * - Added code in paint to draw a Bar symbol.
+ * - Added final constant BAR.
+ *
  * Revision 1.56  2005/08/12 21:03:07  dennis
  * Did some "tuning" of calculation for the Y and X range, since
  * it is fairly expensive to compare all values in all graphs,
@@ -313,6 +317,8 @@ public class GraphJPanel extends    CoordJPanel
   public static final int STAR  = 3;
   public static final int BOX   = 4;
   public static final int CROSS = 5;
+  public static final int BAR	= 6;
+  
   public static final int DOTTED   = 6;
   public static final int DASHED   = 7;
   public static final int LINE     = 8;
@@ -1454,12 +1460,15 @@ public boolean is_autoY_bounds()
                g2.drawLine( x_int[i]+size, y_int[i]-size,
 	 		 x_int[i]-size, y_int[i]-size );     
              }
-             else   // type = CROSS
+             else if(type == CROSS)
              {
-               g2.drawLine( x_int[i]-size, y_int[i]-size,
-	  		 x_int[i]+size, y_int[i]+size );      
-               g2.drawLine( x_int[i]-size, y_int[i]+size,
-	  		 x_int[i]+size, y_int[i]-size );      
+            	 g2.drawLine( x_int[i]-size, y_int[i]-size, x_int[i]+size, y_int[i]+size );      
+            	 g2.drawLine( x_int[i]-size, y_int[i]+size, x_int[i]+size, y_int[i]-size );  
+            	 
+             }
+             else	//BAR 
+             {    
+            	 g2.drawLine(x_int[i] ,y_int[i]-size ,x_int[i] ,y_int[i]+size );
              }    
 	  } 
 	} 
@@ -1608,13 +1617,17 @@ public boolean is_autoY_bounds()
                g2.drawLine( x_midpt+size, y_int[i]-size,
 	 		 x_midpt-size, y_int[i]-size );     
              }
-             else   // type = CROSS
+             else if (type == CROSS)
              {
                g2.drawLine( x_midpt-size, y_int[i]-size,
 	  		 x_midpt+size, y_int[i]+size );      
                g2.drawLine( x_midpt-size, y_int[i]+size,
 	  		 x_midpt+size, y_int[i]-size );      
-             }    
+             }
+             else		//BAR
+             {
+            	 g2.drawLine(x_midpt, y_int[i]-size, x_midpt, y_int[i]+size);
+             }
 	  } 
 	}
         
