@@ -31,6 +31,15 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.58  2006/07/10 20:41:35  amoe
+ * Added code for new symbol type "Bar".
+ *
+ * Revision 1.58  2006/07/04 23:23:20  amoe
+ * - Added button to change the color of the background.
+ * - Changed the initial foreground color for the buttons LineColor,
+ *   MarkColor, and ErrorColor to correspond to their default graph
+ *   colors.
+ *
  * Revision 1.57  2006/06/22 20:48:46  amoe
  * -Commented out the_frame.setSize(..) in FunctionControls(..) and
  * replaced with the_frame.pack().  This is to make the_frame 's size
@@ -416,6 +425,13 @@ import javax.swing.*;
    * FunctionControls.
    */ 
    public static final int VC_LOGARITH_AXES = 16;
+   
+   /**
+    * VC_BACKGROUND_COLOR - This constant int is an index for referencing
+    * the location of the Background Color in the ViewControl[] control_list
+    * in FunctionControls.
+    */
+   public static final int VC_BACKGROUND_COLOR = 17;
   
    
   private transient IVirtualArrayList1D Varray1D;
@@ -426,6 +442,7 @@ import javax.swing.*;
   private transient JPanel panel1      = new JPanel(  );
   private transient JPanel panel2      = new JPanel(  );
   private transient JPanel panel3      = new JPanel(  );
+  private transient JPanel panel4	   = new JPanel(  );
   private transient JPanel RboxPanel   = new JPanel(  );
   private transient JPanel controlpanel= new JPanel(  );
   private transient JPanel label_panel = new JPanel(  );
@@ -449,6 +466,7 @@ import javax.swing.*;
   private transient ButtonControl LineColor;
   private transient ButtonControl MarkColor;
   private transient ButtonControl ErrorColor;
+  private transient ButtonControl BackgroundColor;
   private transient int line_index     = 1;
   private transient int linewidth      = 1;
   private transient Box leftBox        = new Box( 1 );
@@ -642,15 +660,16 @@ import javax.swing.*;
     line_width[4]   = "5";
     labelbox3       = new LabelCombobox( label3, line_width );
     labelbox3.setBorderVisible(false);                                                                                   
-    mark_types      = new String[6];
+    mark_types      = new String[7];
     mark_types[0]   = "DOT";
     mark_types[1]   = "PLUS";
     mark_types[2]   = "STAR";
     mark_types[3]   = "BOX";
     mark_types[4]   = "CROSS";
-    mark_types[5]   = "NO POINT MARKS";
+    mark_types[5]	= "BAR";
+    mark_types[6]   = "NO POINT MARKS";
     labelbox4       = new LabelCombobox( label4, mark_types );
-    labelbox4.setSelectedIndex( 5 );
+    labelbox4.setSelectedIndex( 6 );
     labelbox4.setBorderVisible(false);                                                                                   
     mark_size      = new String[5];
     mark_size[0]   = "1";
@@ -659,7 +678,7 @@ import javax.swing.*;
     mark_size[3]   = "4";
     mark_size[4]   = "5";
     labelbox5      = new LabelCombobox( label5, mark_size );
-    labelbox5.setSelectedIndex( 1 );
+    labelbox5.setSelectedIndex( 4 );
     labelbox5.setBorderVisible(false);                                                                                   
     bar_types      = new String[3];
     bar_types[1]   = "At Points";
@@ -694,12 +713,15 @@ import javax.swing.*;
    
     LineColor   = new ButtonControl( "Line Color" );
     LineColor.setBorderVisible(false);
+    LineColor.getButton().setForeground(gjp.getColor(line_index));
     MarkColor   = new ButtonControl( "Point Marker Color" );
     MarkColor.setBorderVisible(false);
-    MarkColor.getButton().setForeground( Color.red );
+    MarkColor.getButton().setForeground( gjp.getMarkColor(line_index) );
     ErrorColor  = new ButtonControl( "Error Bar Color" );
     ErrorColor.setBorderVisible(false);
-    ErrorColor.getButton().setForeground( Color.blue );
+    ErrorColor.getButton().setForeground( gjp.getErrorColor(line_index) );
+    BackgroundColor = new ButtonControl("Background Color");
+    BackgroundColor.setBorderVisible(false);
     axis_checkbox.setTitle( "Axis Overlay" );
     annotation_checkbox.setTitle( "Annotation Overlay" );
     legend_checkbox.setTitle( "Legend Overlay" );
@@ -718,9 +740,11 @@ import javax.swing.*;
     panel1.setLayout( G_lout );
     panel2.setLayout( G_lout );
     panel3.setLayout( G_lout );
+    panel4.setLayout( G_lout );
     panel1.add( LineColor.getButton() );
     panel2.add( MarkColor.getButton() );
     panel3.add( ErrorColor.getButton() );
+    panel4.add( BackgroundColor.getButton() );
                                                                                    
     // the left box is the left side of the control panel
     leftBox.setName("leftBox");
@@ -735,6 +759,7 @@ import javax.swing.*;
     leftBox.add( panel3 );
     leftBox.add( labelbox7 );
     leftBox.add( labelbox9 );
+    leftBox.add( panel4 );
 
     control_box.setName("control_box");
     control_box.add(leftBox);
@@ -766,6 +791,7 @@ import javax.swing.*;
     LineColor.addActionListener( new ControlListener(  ) );
     MarkColor.addActionListener( new ControlListener(  ) );
     ErrorColor.addActionListener( new ControlListener(  ) );
+    BackgroundColor.addActionListener( new ControlListener (  ));
     axis_checkbox.addActionListener( new ControlListener(  ) );
     annotation_checkbox.addActionListener( new ControlListener(  ) );
     legend_checkbox.addActionListener( new ControlListener(  ) );
@@ -776,7 +802,7 @@ import javax.swing.*;
     gjp.addActionListener( new ImageListener(  ) );
     fvc.addActionListener( new ImageListener(  ) ); 
     
-    control_list = new ViewControl[17];
+    control_list = new ViewControl[18];
     control_list[VC_LINE_SELECTED] = labelbox1;
     control_list[VC_LINE_STYLE] = labelbox2; 
     control_list[VC_LINE_WIDTH] = labelbox3;
@@ -794,6 +820,7 @@ import javax.swing.*;
     control_list[VC_GRAPH_RANGE] = graph_range;
     control_list[VC_CURSOR] = cursor;
     control_list[VC_LOGARITH_AXES] = labelbox8;
+    control_list[VC_BACKGROUND_COLOR] = BackgroundColor;
   }
   
  
@@ -927,7 +954,7 @@ import javax.swing.*;
         sets the mark type combo box to the mark type of the line selected.
       */
       if( gd.marktype == 0 ) {
-        labelbox4.setSelectedIndex( 5 );
+        labelbox4.setSelectedIndex( 6 );
       } else if( gd.marktype == 1 ) {
         labelbox4.setSelectedIndex( 0 );
       } else if( gd.marktype == 2 ) {
@@ -938,8 +965,10 @@ import javax.swing.*;
         labelbox4.setSelectedIndex( 3 );
       } else if( gd.marktype == 5 ) {
         labelbox4.setSelectedIndex( 4 );
+      } else if( gd.marktype == 6 )	{
+    	labelbox4.setSelectedIndex( 5 );
       }
-       /*
+      /*
         sets the line width combo box to the line width 
         of the line selected.
       */
@@ -1163,6 +1192,14 @@ import javax.swing.*;
             gjp.setErrorColor( e, line_index, true );
           }
         }
+        if( ae.getSource(  ) == BackgroundColor){
+        	Color e = JColorChooser.showDialog(null, "color chart", Color.black);
+        	
+        	if(e != null){
+        		BackgroundColor.getButton().setForeground(e);
+        		gjp.setBackground(e);
+        	}
+        }
       } else if( message.equals( "Button Pressed" )) {
  
         if( ae.getSource() instanceof ControlCheckboxButton )
@@ -1253,18 +1290,22 @@ import javax.swing.*;
             sets the mark type combo box to the mark type of the line selected.
           */
           if( gd.marktype == 0 ) {
-            labelbox4.setSelectedIndex( 5 );
-          } else if( gd.marktype == 1 ) {
-            labelbox4.setSelectedIndex( 0 );
-          } else if( gd.marktype == 2 ) {
-            labelbox4.setSelectedIndex( 1 );
-          } else if( gd.marktype == 3 ) {
-            labelbox4.setSelectedIndex( 2 );
-          } else if( gd.marktype == 4 ) {
-            labelbox4.setSelectedIndex( 3 );
-          } else if( gd.marktype == 5 ) {
-            labelbox4.setSelectedIndex( 4 );
-          }
+              labelbox4.setSelectedIndex( 6 );
+            } else if( gd.marktype == 1 ) {
+              labelbox4.setSelectedIndex( 0 );
+            } else if( gd.marktype == 2 ) {
+              labelbox4.setSelectedIndex( 1 );
+            } else if( gd.marktype == 3 ) {
+              labelbox4.setSelectedIndex( 2 );
+            } else if( gd.marktype == 4 ) {
+              labelbox4.setSelectedIndex( 3 );
+            } else if( gd.marktype == 5 ) {
+              labelbox4.setSelectedIndex( 4 );
+            } else if( gd.marktype == 6 )	{
+              labelbox4.setSelectedIndex( 5 );
+            }          
+          
+          
 
           /*
             sets the line width combo box to the line width 
@@ -1377,8 +1418,9 @@ import javax.swing.*;
             gjp.setMarkType( GraphJPanel.BOX, line_index, true );
           } else if( labelbox4.getSelectedItem(  ).equals( "CROSS" ) ) {
             gjp.setMarkType( GraphJPanel.CROSS, line_index, true );
-          } else if( 
-            labelbox4.getSelectedItem(  ).equals( "NO POINT MARKS" ) ) {
+          } else if( labelbox4.getSelectedItem(  ).equals("BAR") ) {
+        	gjp.setMarkType( GraphJPanel.BAR, line_index, true );
+          } else if( labelbox4.getSelectedItem(  ).equals( "NO POINT MARKS" ) ) {
             gjp.setMarkType( 0, line_index, true );
           }
 
@@ -1396,7 +1438,7 @@ import javax.swing.*;
           } else if( labelbox5.getSelectedItem(  ).equals( "4" ) ) {
             gjp.setMarkSize( 4, line_index, true );
           } else if( labelbox5.getSelectedItem(  ).equals( "5" ) ) {
-            gjp.setMarkSize( 4, line_index, true );
+            gjp.setMarkSize( 5, line_index, true );
           }
 
         /* 
