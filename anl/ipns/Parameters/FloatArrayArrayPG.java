@@ -31,6 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/07/10 19:12:21  dennis
+ * Change to new Parameters GUI in gov.anl.ipns.Parameters
+ *
+ * Revision 1.3  2006/07/04 20:33:23  dennis
+ * Fixed javadoc comment.
+ *
  * Revision 1.2  2006/07/03 21:13:58  dennis
  * Explicitly create new object, rather than use autoboxing.
  *
@@ -71,9 +77,8 @@ public class FloatArrayArrayPG extends VectorPG {
    * Extract a Vector of Vector of Floats for the concrete subclass, from
    * the specified object.  
    *
-   * @param  obj  The Object specifying the value for this PG.
-   *
-   * @param the corresponding Vector of  Vector of Floats
+   * @param obj  The object to be converted to a Vector of  
+   *             Vector of Floats
    *
    * @throws IllegalArgumentException if a Vector of the required type
    *         cannot be extracted from the specified object. 
@@ -88,7 +93,7 @@ public class FloatArrayArrayPG extends VectorPG {
   *
   * @return A copy of this IParameter, with the same name and value.
   */
- public Object getCopy(){
+ public Object clone(){
 	 FloatArrayArrayPG iog = new FloatArrayArrayPG( getName(),(Object) vec_value);
 	 return iog;
 	 

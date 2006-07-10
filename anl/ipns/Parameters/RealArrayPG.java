@@ -31,6 +31,14 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/07/10 19:12:21  dennis
+ * Change to new Parameters GUI in gov.anl.ipns.Parameters
+ *
+ * Revision 1.3  2006/07/04 20:13:20  dennis
+ * getObjectValue() now checks for it's argument being null
+ * and throws an IllegalArgumentException, if it is.  This
+ * fixes a NullPointerException in setValue().
+ *
  * Revision 1.2  2006/06/29 21:54:24  rmikk
  * Added or fixed the GPL
  *
@@ -133,8 +141,11 @@ public class RealArrayPG extends ObjectPG_base {
     * @see gov.anl.ipns.Parameters.ObjectPG_base#getWidgetValue()
     */
    public Object getWidgetValue() throws IllegalArgumentException {
-      return Conversions.get_RealArray( Conversions.StringToVec( entryField
+     if( entryWidget != null)
+        return Conversions.get_RealArray( Conversions.StringToVec( entryField
                .getText() ) , obj_value.getClass() );
+     else
+    	return obj_value;
    }
 
 
@@ -154,10 +165,16 @@ public class RealArrayPG extends ObjectPG_base {
     * @see gov.anl.ipns.Parameters.ObjectPG_base#getObjectValue(java.lang.Object)
     */
    public Object getObjectValue( Object obj ) throws IllegalArgumentException {
+
+      if( obj == null) throw
+        new IllegalArgumentException( "Cannot set a null value in RealArrayPG");
+
       if( obj_value == null ) // hopefully this happens only at construction
-                              // time
+         return obj;          // time
+
+      if( obj.getClass().equals( obj_value.getClass() ) ) 
          return obj;
-      if( obj.getClass().equals( obj_value.getClass() ) ) return obj;
+
       return Conversions.get_RealArray( obj , obj_value.getClass() );// Should
                                                                      // not do
                                                                      // this
@@ -165,7 +182,7 @@ public class RealArrayPG extends ObjectPG_base {
 
 
    /*
-    * @see gov.anl.ipns.Parameters.NewParameterGUI#getWidget()
+    * @see gov.anl.ipns.Parameters.ParameterGUI#getWidget()
     */
    public JPanel getWidget() {
 
@@ -196,7 +213,7 @@ public class RealArrayPG extends ObjectPG_base {
    /*
     * 
     * 
-    * @see gov.anl.ipns.Parameters.INewParameterGUI#clear()
+    * @see gov.anl.ipns.Parameters.IParameterGUI#clear()
     */
    public void clear() {
       int[] dims = new int[ ndims ];
@@ -205,7 +222,26 @@ public class RealArrayPG extends ObjectPG_base {
 
    }
 
+   public static Object getZeroLengthedArray(  Class Array_type){
+	   int ndims = 0;
+       if( Array_type == null)
+    	   return null;
+       if( !Array_type.isArray())
+    	   return null;
+	      // Get info about data type so Clear can replace a large
+	      // obj_value by one with 0 for each dim
+	      Class CC = Array_type;
+	      if( CC.isArray() ) ndims++ ;
+	      while( ( CC.getComponentType() != null ) ) {
+	         CC = CC.getComponentType();
+	         if( CC.isArray() ) ndims++ ;
+	      }
+	      Class baseClass = CC; 
+	      int[] dims = new int[ ndims ];
+	      Arrays.fill( dims , 0 );
+	      return Array.newInstance( baseClass , dims );
 
+   }
    /**
     * Enable or disable the GUI Components for entering values.
     * 
@@ -225,9 +261,9 @@ public class RealArrayPG extends ObjectPG_base {
    /*
     * 
     * 
-    * @see gov.anl.ipns.Parameters.INewParameter#getCopy()
+    * @see gov.anl.ipns.Parameters.IParameter#getCopy()
     */
-   public Object getCopy() {
+   public Object clone() {
       try {
          getValue();
       } catch( Exception s ) {

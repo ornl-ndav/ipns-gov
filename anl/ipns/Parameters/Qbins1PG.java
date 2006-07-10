@@ -31,6 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/07/10 19:12:21  dennis
+ * Change to new Parameters GUI in gov.anl.ipns.Parameters
+ *
+ * Revision 1.3  2006/07/04 20:31:59  dennis
+ * Removed variable that was never read.
+ *
  * Revision 1.2  2006/06/29 21:54:23  rmikk
  * Added or fixed the GPL
  *
@@ -172,11 +178,6 @@ public class Qbins1PG extends VectorPG_base implements Concatenator{
 		    String S = "" + startv;
 		    String E  =  "" + endv;
 		    String N = "" + stepsv;
-		    String DQ;
-		    if( dQ_v)
-		       DQ = "dQ";
-		    else
-		      DQ = "dQ/Q";
 		      
 		    start   = new JTextField( S, 7 );
 		    end     = new JTextField( E, 7 );
@@ -275,7 +276,7 @@ public class Qbins1PG extends VectorPG_base implements Concatenator{
    *
    * @return A copy of this Qbins1PG, with the same name and value.
    */	  
-	public Object getCopy() {
+	public Object clone() {
 		Vector V = new Vector();
 		try{
 	        getWidgetValue();
