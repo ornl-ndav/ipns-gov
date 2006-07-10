@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/07/10 16:25:04  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.5  2006/06/26 20:48:06  dennis
  *  Fixed minor error in javadocs.
  *
@@ -77,7 +80,7 @@ package gov.anl.ipns.Parameters;
  * @see BooleanPG
  */
 
-public abstract class BooleanPG_base extends NewParameterGUI 
+public abstract class BooleanPG_base extends ParamUsesString
 {
   protected  boolean  bool_value;  // just protected, so derived classes can
                                    // directly get the value to place in their
@@ -141,6 +144,23 @@ public abstract class BooleanPG_base extends NewParameterGUI
                                           //       if the widget value does 
                                           //       not represent a boolean
     return new Boolean( bool_value );
+  }
+
+
+  /**
+   * Get the value of this PG as a primitive boolean.
+   *
+   * @return the primitive boolean value of this PG.
+   *
+   * @throws IllegalArgumentException is thrown, if a GUI entry widget
+   *         exists for this PG, but the value in the GUI cannot be converted 
+   *         to a boolean value.
+   */
+  public final boolean getbooleanValue()
+  {
+    getValue();   // this will try to update the value from the GUI widget
+                  // and may throw an IllegalArgumentException
+    return bool_value;
   }
 
 

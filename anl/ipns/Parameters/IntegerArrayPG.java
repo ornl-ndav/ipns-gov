@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2006/07/10 16:25:05  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  * Revision 1.3  2006/07/03 21:06:53  dennis
  * Cleaned up oddity regarding type casts/autoboxing.
  *
@@ -164,7 +167,7 @@ public class IntegerArrayPG extends VectorPG {
   *
   * @return A copy of this IParameter, with the same name and value.
   */
- public Object getCopy(){
+ public Object clone(){
 	 IntegerArrayPG iog = new IntegerArrayPG( getName(), vec_value);
 	 return iog;
 	 

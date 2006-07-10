@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2006/07/10 16:25:04  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  * Revision 1.6  2006/07/03 21:13:58  dennis
  * Explicitly create new object, rather than use autoboxing.
  *
@@ -107,7 +110,7 @@ public class FloatArrayPG extends VectorPG {
   *
   * @return A copy of this FloatArrayPG, with the same name and value.
   */
- public Object getCopy(){
+ public Object clone(){
 	 FloatArrayPG iog = new FloatArrayPG( getName(),(Object) vec_value);
 	 return iog;
 	 

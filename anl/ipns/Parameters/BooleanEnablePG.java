@@ -29,6 +29,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2006/07/10 16:25:04  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  * Revision 1.3  2006/07/03 21:06:52  dennis
  * Cleaned up oddity regarding type casts/autoboxing.
  *
@@ -63,7 +66,7 @@ import java.awt.event.*;
  * @author MikkelsonR
  *
  */
-public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
+public class BooleanEnablePG extends BooleanPG implements IParameterGUI,
                                               ItemListener{   
     int nSetIfTrue = 0;
     int nSetIfFalse = 0;
@@ -88,6 +91,7 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
 	public BooleanEnablePG(String name, Object val)
 			throws IllegalArgumentException {
 		super(name, FirstArg(val));
+		val = Conversions.ToVec( val );
 		if (!(val instanceof Vector))
 			return;
 		Vector V = (Vector) val;
@@ -159,6 +163,8 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
 	private static Object FirstArg( Object O){
 		if( O == null)
 			return new Boolean(false);
+		if( O instanceof String)
+			O = Conversions.StringToVec( (String) O);
 		if( O instanceof Vector)
 			return ((Vector)O).firstElement();
 		if( O.getClass().isArray())
@@ -167,7 +173,7 @@ public class BooleanEnablePG extends BooleanPG implements INewParameterGUI,
 	}
 
 
-	public Object getCopy() {
+	public Object clone() {
         Vector V = new Vector();
         V.addElement(getValue());
         V.addElement(new Integer(nSetIfTrue));

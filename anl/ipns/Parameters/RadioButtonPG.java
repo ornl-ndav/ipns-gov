@@ -1,5 +1,5 @@
 /*
- * File:  ChoiceListPG.java
+ * File:  RadioButtonPG.java
  *
  * Copyright (C) 2006, Dennis Mikkelson
  *
@@ -32,7 +32,7 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.2  2006/07/10 16:25:04  dennis
+ *  Revision 1.1  2006/07/10 16:25:06  dennis
  *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
  *
  *  Revision 1.2  2006/07/04 18:36:52  dennis
@@ -40,11 +40,9 @@
  *  possible Strings.  Now extends the abstract base class
  *  StringListChoicePG.
  *
- *  Revision 1.1  2006/06/30 16:13:16  dennis
- *  This PG uses a JComboBox to present a list of choices.
- *  A few basic methods related to maintaining the Vector
- *  of choices ( clear(), addItem() ) should be factored out
- *  so that they can be shared with the RadioButtonPG
+ *  Revision 1.1  2006/07/04 17:41:33  dennis
+ *  Initial version of PG with radio buttons to select from a
+ *  list of Strings.
  *
  */
 
@@ -55,20 +53,20 @@ import javax.swing.*;
 import java.util.*;
 
 /**
- * A ChoiceListPG uses a combo box to present the users with a list of
- * of Strings to choose from. 
+ * A RadioButtonPG uses radio buttons to present the users with a
+ * list of of Strings to choose from. 
  */
-public class ChoiceListPG extends StringListChoicePG
+public class RadioButtonPG extends StringListChoicePG
 {
-  private JComboBox  combobox = null;
-  private JPanel     panel    = null;
-  private JLabel     label    = null;
-  private boolean    enabled  = true;  // we store the enabled state, so the
+  private JPanel   panel    = null;
+  private JPanel   b_panel  = null;
+  private JLabel   label    = null;
+  private boolean  enabled  = true;    // we store the enabled state, so the
                                        // setEnabled() method can be called
                                        // before constructing the widget.
 
   /**
-   * Creates a new ChoiceListPG object with the specified name and initial
+   * Creates a new RadioButtonPG object with the specified name and initial
    * value.  If the object passed in is a Vector of Strings, the vector of
    * Strings will determine the list of possible choices, and the initially
    * selected choice as follows.  If the last String in the Vector is NOT
@@ -90,7 +88,7 @@ public class ChoiceListPG extends StringListChoicePG
    * @throws IllegalArgumentException is thrown, if the specified value
    *         cannot be converted to a String value.
    */
-  public ChoiceListPG( String name, Object val ) 
+  public RadioButtonPG( String name, Object val ) 
                                         throws IllegalArgumentException
   {
     super( name, "" );  
@@ -111,7 +109,7 @@ public class ChoiceListPG extends StringListChoicePG
    */
   public Object clone() 
   {
-     ChoiceListPG copy = new ChoiceListPG( getName(), str_value );
+     RadioButtonPG copy = new RadioButtonPG( getName(), str_value );
      copy.choices = new Vector();
      for ( int i = 0; i < choices.size(); i++ )
        copy.choices.add( choices.elementAt(i) );
@@ -124,18 +122,18 @@ public class ChoiceListPG extends StringListChoicePG
    /**
    * Get a JPanel containing a composite entry widget for getting a value from
    * the user.  In this case, the panel contains two children, a label 
-   * giving the name (i.e. prompt string) and a JComboBox. 
-   * The JComboBox's value and enabled state is set from the currently
-   * recorded values. 
+   * giving the name (i.e. prompt string) and a JPanel with a list of
+   * RadioButtons.  The RadioButton's values and enabled state is set 
+   * from the currently recorded values. 
    *
    * @return a JPanel containing a component to enter a value.
    */
   protected JPanel getWidget() 
   {
-    if( panel == null )                // make new panel with label & ComboBox 
+    if( panel == null )            // make new panel with label & RadioButtons 
     {
-      combobox = new JComboBox();
       label    = new JLabel( getName() );
+      b_panel  = new JPanel();
 
       if ( choices.size() == 0 )
         choices.add( str_value );
@@ -145,18 +143,23 @@ public class ChoiceListPG extends StringListChoicePG
           choices.insertElementAt( str_value, 0 );
       }
 
+      int num_choices = choices.size();
+      b_panel.setLayout( new GridLayout( num_choices, 1 ) );
+      ButtonGroup b_group = new ButtonGroup();
+ 
       for ( int i = 0; i < choices.size(); i++ )
       {
-        combobox.addItem( choices.elementAt(i) );
+        JRadioButton button = new JRadioButton((String)choices.elementAt(i));
+        b_panel.add( button );
         if ( str_value.equals( (String)choices.elementAt(i) ) )
-          combobox.setSelectedItem( str_value );
+          button.setSelected(true);
+        b_group.add( button );
+        button.addActionListener( new PG_ActionListener( this ) );
       }
 
-      panel = new JPanel( new GridLayout( 1, 2 ) );
+      panel    = new JPanel( new GridLayout( 1, 2 ) );
       panel.add( label );
-      panel.add( combobox );
- 
-      combobox.addActionListener( new PG_ActionListener( this ) );
+      panel.add( b_panel );
     }
 
     setEnabled( enabled );                 // set widget state from
@@ -173,66 +176,82 @@ public class ChoiceListPG extends StringListChoicePG
    */
   protected void destroyWidget()
   {
-    panel    = null;                     // null out all references to gui 
-    combobox = null;                     // components, so that they can be
-    label    = null;                     // garbage collected.
+    panel   = null;                     // null out all references to gui 
+    b_panel = null;                     // components, so that they can be
+    label   = null;                     // garbage collected.
   }
 
 
   /**
-   * Enable or disable the JComboBox for entering values. 
+   * Enable or disable the RadioButtons for entering values. 
    *
-   * @param  on_off  Set true to enable the JComboBox for user input.
+   * @param  on_off  Set true to enable the RadioButtons for user input.
    */
   public void setEnabled( boolean on_off )
   {
     enabled = on_off;
     if ( panel != null )                // panel, box and label are created and
     {                                   // destroyed together, so we can just 
-      combobox.setEnabled( on_off );    // check that the panel is there
+                                        // check that the panel is there
       label.setEnabled( on_off );
+      Component components[] = b_panel.getComponents();
+      for ( int i = 0; i < components.length; i++ )
+        components[i].setEnabled( on_off );
     }
   }
 
 
   /**
-   * Retrieves the JComboBox's current value.  
+   * Retrieves the String associated with the currently selected JRadioButton.  
    * 
-   * @return The String value from the JComboBox, if possible.
+   * @return The String value from the selected JRadioButton, if possible.
    *
    * @throws IllegalArgumentException is thrown if this is called without
    *         a GUI widget being present, or if the value is invalid.
    */
   protected String getWidgetValue() throws IllegalArgumentException
   {
-    String widget_value = "";
-
-    if ( combobox == null )
+     if ( panel == null )
       throw new IllegalArgumentException(
               "getWidgetValue() called when no StringPG widget exists");
-
     else
-      widget_value = Conversions.get_String( combobox.getSelectedItem() );      
-
-    return widget_value;
+    {
+      Component components[] = b_panel.getComponents();
+      for ( int i = 0; i < components.length; i++ )
+      {
+        JRadioButton button = (JRadioButton)components[i];
+        if ( button.isSelected() )
+          return (String)choices.elementAt(i);
+      }
+    }
+    return str_value;
   }
 
 
   /**
-   * Sets the value displayed in the JComboBox to the specified value.
+   * Sets the selected String to the specified value.
    *
-   * @param value  The String value to record in the JComboBox.
+   * @param value  The String value to selecte in the list of radio buttons.
    *
    * @throws IllegalArgumentException is thrown if this is called without
    *         a GUI widget being present.
    */
   protected void setWidgetValue( String value ) throws IllegalArgumentException
   {
-    if ( combobox == null )
+    if ( panel == null )
       throw new IllegalArgumentException(
               "setWidgetValue() called when no BooleanPG widget exists");
 
-    combobox.setSelectedItem( value );
+    Component components[] = b_panel.getComponents();
+    for ( int i = 0; i < components.length; i++ )
+    {
+      if ( value.equals((String)choices.elementAt(i) ) )
+      {
+        JRadioButton button = (JRadioButton)components[i];
+        button.setSelected(true);
+        return;
+      }
+    }
   }
 
 }

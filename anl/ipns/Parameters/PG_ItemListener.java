@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/07/10 16:25:05  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.3  2006/06/15 23:37:48  dennis
  *  Fixed error in comment.
  *
@@ -54,22 +57,22 @@ import java.awt.event.*;
 
 /**
  *  This class is an item listener that can be added to an appropriate 
- *  concrete class derived from NewParameterGUI, to call the notifyChanged()
+ *  concrete class derived from ParameterGUI, to call the notifyChanged()
  *  method to notify the PG that the item's value changed, and to trip the
  *  the valid Checkbox to false.
  */
 public class PG_ItemListener implements ItemListener
 {
-  private NewParameterGUI my_pg = null;  // this is the PG whose notifyChanged()
+  private ParameterGUI my_pg = null;  // this is the PG whose notifyChanged()
                                           // method should be called.
 
   /**
-   *  Construct an item listener to notify the specified NewParameterGUI
+   *  Construct an item listener to notify the specified ParameterGUI
    *  object that the item's value was changed.
    *
-   *  @param  pg  The NewParameterGUI object to be notified.
+   *  @param  pg  The ParameterGUI object to be notified.
    */
-  public PG_ItemListener( NewParameterGUI pg )
+  public PG_ItemListener( ParameterGUI pg )
   {
     my_pg = pg;
   }

@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/07/10 16:25:06  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.4  2006/07/04 02:41:19  dennis
  *  Moved getCopy() method from abstract base class,
  *  FilteredStringPG, to concrete derived class.
@@ -79,7 +82,7 @@ public class StringPG extends FilteredStringPG
    *
    * @return A copy of this StringPG, with the same name and value.
    */
-  public Object getCopy() 
+  public Object clone() 
   {
      StringPG copy = new StringPG( getName(), str_value );
      copy.setValidFlag( getValidFlag() );

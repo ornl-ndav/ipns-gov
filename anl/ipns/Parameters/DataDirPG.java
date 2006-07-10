@@ -1,3 +1,15 @@
+/**
+ *  $Log$
+ *  Revision 1.2  2006/07/10 16:25:04  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
+ *  Revision 1.2  2006/07/04 20:21:50  dennis
+ *  Fixed minor java doc errors.
+ *  Added cvs logging tag, so CVS will record the messages in
+ *  the file.
+ *
+ */
+
 package gov.anl.ipns.Parameters;
 
 import java.io.File;
@@ -9,18 +21,20 @@ import javax.swing.JPanel;
  *	so the user may select a directory path.
  */
 public class DataDirPG extends StringPG_base
+                       implements IBrowsePG
 {
 	private FileChooserPanel fcPanel = null;
 	private boolean enabled			 = true; 	// we store the enabled state, so the
 	                                         	// setEnabled() method can be called
 	                                         	// before constructing the widget.
+	private String lastDirectory;
 	
 	/**
 	 * Creates a new DataDirPG object with the specified name and initial
 	 * value.
 	 *
 	 * @param  name  The name (i.e. prompt string) for this PG.
-	 * @param  val   The initial value for this PG.
+	 * @param  value The initial value for this PG.
 	 *
 	 * @throws IllegalArgumentException is thrown, if the specified value
 	 *         cannot be converted to a String value.
@@ -28,12 +42,18 @@ public class DataDirPG extends StringPG_base
 	public DataDirPG(String name, Object value ) throws IllegalArgumentException
 	{
 		super(name,value);
+		lastDirectory = null;
+		if( value != null)
+	           lastDirectory = value.toString();
+		if( lastDirectory == null || lastDirectory.length()< 2 )
+			   lastDirectory = System.getProperty( "Data_Directory");
+		str_value = lastDirectory;
 	}
 	
 	/**
 	 * Enable or disable the FileChooserPanel for selecting directory pathnames.
 	 *
-	 * @param  on_off  Set true to enable the FileChooserPanel.
+	 * @param  bol  Set true to enable the FileChooserPanel.
 	 */	
 	public void setEnabled(boolean bol)
 	{
@@ -50,7 +70,7 @@ public class DataDirPG extends StringPG_base
 	 *
 	 * @return A copy of this DataDirPG, with the same name and value.
 	 */	
-	public Object getCopy() 
+	public Object clone() 
 	{
 		DataDirPG copy = new DataDirPG( getName(), str_value );
 		copy.setValidFlag( getValidFlag() );
@@ -79,6 +99,7 @@ public class DataDirPG extends StringPG_base
 	    else
 	    {
 	    	widget_value = Conversions.get_String( fcPanel.getTextField().getText() );
+	    	widget_value = Append( widget_value );
 	    }
 	    
 	    File file = new File(widget_value);	    
@@ -118,10 +139,10 @@ public class DataDirPG extends StringPG_base
 					"when no DataDirPG widget exists");
 		}
 		
-		fcPanel.getTextField().setText( ""+value );
+		fcPanel.getTextField().setText( ""+Append(value) );
 	}
 
-	/**
+	/**necnex
 	 * Get a JPanel containing a composite entry widget for getting a value from
 	 * the user.  In this case, the panel contains three children, a label 
 	 * giving the name (i.e. prompt string), a JTextField holding the pathname
@@ -133,8 +154,9 @@ public class DataDirPG extends StringPG_base
 	{
 		if( fcPanel == null )			// make new panel with label, TextField, and button 
 	    {
-	      fcPanel      = new FileChooserPanel(FileChooserPanel.SET_DIRECTORY,getName());
-	 
+		  
+	      fcPanel      = new FileChooserPanel(FileChooserPanel.SET_DIRECTORY,getName(),
+	    		  lastDirectory );
 	      //ActionListeners
 	      fcPanel.getTextField().addActionListener( new PG_ActionListener( this ) );
 	      fcPanel.getTextField().addKeyListener( new PG_KeyListener( this ) );
@@ -146,6 +168,19 @@ public class DataDirPG extends StringPG_base
 	    return fcPanel;
 	}
 	
+	
+	/**
+	 * Appends the / at the end of the file name
+	 * @param dir   directory
+	 * @return      directory with a trailiig path separator
+	 */
+	private String Append( String dir){
+		dir = dir.replace('/', java.io.File.separatorChar);
+		dir = dir.replace('\\', java.io.File.separatorChar);
+		if( ! dir.endsWith( java.io.File.separator))
+			dir = dir +java.io.File.separator;
+		return dir;
+	}
 	/**
 	 * Set the FileChooserPanel to NULL, so that it can be garbage collected.  
 	 * Subsequent calls to getPGWidget() will return a new JPanel and entry 

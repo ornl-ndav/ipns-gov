@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/07/10 16:25:05  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.5  2006/07/03 20:55:28  dennis
  *  Explicityl construct object passed to set value, rather
  *  than rely on autoboxing.
@@ -58,8 +61,6 @@
  *
  *  Revision 1.1  2006/06/15 22:15:33  dennis
  *  Abstract base class for any concrete PG whose value is an Integer.
- *
- *
  */
 package gov.anl.ipns.Parameters;
 
@@ -72,7 +73,7 @@ package gov.anl.ipns.Parameters;
  * @see IntegerPG
  */
 
-public abstract class IntegerPG_base extends NewParameterGUI 
+public abstract class IntegerPG_base extends ParamUsesString 
 {
   protected  int  int_value;  // just protected, so derived classes can
                               // directly get the value to place in their
@@ -112,6 +113,20 @@ public abstract class IntegerPG_base extends NewParameterGUI
                                    // exception if the GUI widget value is bad
 
     return new Integer( int_value ).toString();
+  }
+
+  /**
+   * Get the value of this PG as a primitive int.
+   *
+   * @return the primitive int value of this PG.
+   * @throws IllegalArgumentException is thrown, if a GUI entry widget
+   *         exists for this PG, but the value in the GUI cannot be converted 
+   *         to an integer value.
+   */
+  public final int getintValue()
+  {
+    getValue();      // this will update int_value from the GUI if present
+    return int_value;
   }
 
 

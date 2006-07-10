@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2006/07/10 16:25:04  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.10  2006/07/03 21:06:52  dennis
  *  Cleaned up oddity regarding type casts/autoboxing.
  *
@@ -290,7 +293,16 @@ public class Conversions
     return str_value;
   }
   
-  
+  private static boolean isVector( Object O, Class C){
+	  if( O == null )
+		  return false;
+	  if( !( O instanceof Vector))
+		  return false;
+	  for( int i = 0; i< ((Vector)O).size(); i++)
+		  if( !((Vector)O).elementAt( i ).getClass().equals(C) )
+			  return false;
+	  return true;
+  }
   
   /**
    *  Get a Vector of Integer values from the specified object, if possible.  
@@ -309,7 +321,10 @@ public class Conversions
 		  return new Vector<Integer>();
 	  if( obj instanceof String)
 		  obj = StringToVec( (String)obj);
+	  if( isVector( obj, Integer.class))
+		  return (Vector<Integer>)obj;
 	  Vector<Integer> Res = new Vector<Integer>();
+	
 	  if( obj instanceof Vector){
 		  
 		  for( int i =0; i< ((Vector)obj).size(); i++ ){
@@ -346,7 +361,12 @@ public class Conversions
 		  return new Vector<Float>();
 	  if( obj instanceof String)
 		  obj = StringToVec( (String)obj);
+
+	  if( isVector( obj, Float.class))
+		  return (Vector<Float>)obj;
 	  Vector<Float> Res = new Vector<Float>();
+	
+	
 	  if( obj instanceof Vector){
 		  
 		  for( int i =0; i< ((Vector)obj).size(); i++ ){
@@ -383,6 +403,9 @@ public class Conversions
 		  return new Vector<String>();
 	  if( obj instanceof String)
 		  obj = StringToVec( (String)obj);
+
+	  if( isVector( obj, String.class))
+		  return (Vector<String>)obj;
 	  Vector<String> Res = new Vector<String>();
 	  if( obj instanceof Vector){
 		  
@@ -548,6 +571,8 @@ public class Conversions
 			if (k < S.length())
 				if (S.charAt(k) == ',')
 					k++;
+			while ((k < S.length()) && (S.charAt(k) == ' '))
+				k++;
 		}//while
 		return Res;
 	}
@@ -719,12 +744,18 @@ public class Conversions
       V.addElement( new Integer(3));
       V.addElement( new Integer(5));
       V.addElement( new Integer( 7));
+      System.out.println( Conversions.isVector( V, Integer.class));
+      System.out.println( Conversions.isVector( V, Float.class));
+    
       Vector W = new Vector();
       W.addElement( V);
       V = new Vector();
       V.addElement( new Integer(13));
       V.addElement( new Integer(15));
-      V.addElement( new Integer( 17));
+      V.addElement( new Float( 17));
+      System.out.println( Conversions.isVector( V, Integer.class));
+      System.out.println( Conversions.isVector( V, Float.class));
+    
       W.addElement( V);
 
       V = new Vector();
@@ -737,7 +768,7 @@ public class Conversions
       int[][] WW ={ {1,2,3,4},{5,6,7,8},{9,10,11,12}};
       System.out.println(gov.anl.ipns.Util.Sys.StringUtil.toString( Conversions.get_RealArray(WW, (new float[0][0]).getClass())));
       
-		
+
 		
 	}
 }

@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/07/10 16:25:05  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.1  2006/06/15 23:34:07  dennis
  *  Listeners for low-level events, for use with concrete parameter
  *  GUIs.  When an event occurs, the notifiyChanged() or
@@ -46,23 +49,23 @@ import java.awt.event.*;
 
 /**
  *  This class is a KeyListener that can be added to an appropriate 
- *  concrete class derived from NewParameterGUI, to call the notifyChanging()
+ *  concrete class derived from ParameterGUI, to call the notifyChanging()
  *  method to notify the PG that the item's value is being changed, and to
  *  trip the the valid Checkbox to false.
  */
 
 public class PG_KeyListener implements KeyListener
 {
-  private NewParameterGUI my_pg = null;// this is the PG whose notifyChanging()
+  private ParameterGUI my_pg = null;// this is the PG whose notifyChanging()
                                        // method should be called.
 
   /**
    *  Construct a KeyListener to notify the specified 
-   *  NewParameterGUI object that the widget's value is being changed.
+   *  ParameterGUI object that the widget's value is being changed.
    *
-   *  @param  pg  The NewParameterGUI object to be notified.
+   *  @param  pg  The ParameterGUI object to be notified.
    */
-  public PG_KeyListener( NewParameterGUI pg )
+  public PG_KeyListener( ParameterGUI pg )
   {
     my_pg = pg;
   }

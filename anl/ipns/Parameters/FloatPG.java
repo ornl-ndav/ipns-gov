@@ -30,6 +30,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.6  2006/07/10 16:25:04  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  * Revision 1.5  2006/06/30 14:24:40  dennis
  * Removed unused imports.
  *
@@ -56,7 +59,7 @@ import javax.swing.*;
  *  A BooleanPG uses a JCheckBox component to let the user specify a value
  *  of true (box checked) or false (box unchecked).
  */
-public class FloatPG extends FloatPG_base
+public class FloatPG extends FloatPG_base 
 {
                                          // Use a text field that can filter
                                          // Strings to just keep valid ones
@@ -93,7 +96,7 @@ public class FloatPG extends FloatPG_base
    *
    * @return A copy of this FloatPG, with the same name and value.
    */
-  public Object getCopy() 
+  public Object clone() 
   {
      FloatPG copy = new FloatPG( getName(), new Float( float_value ) );
      copy.setValidFlag( getValidFlag() );

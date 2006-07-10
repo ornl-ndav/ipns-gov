@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/07/10 16:25:05  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.4  2006/06/30 14:24:40  dennis
  *  Removed unused imports.
  *
@@ -94,7 +97,7 @@ public class IntegerPG extends IntegerPG_base
    *
    * @return A copy of this IntegerPG, with the same name and value.
    */
-  public Object getCopy() 
+  public Object clone() 
   {
      IntegerPG copy = new IntegerPG( getName(), new Integer( int_value ) );
      copy.setValidFlag( getValidFlag() );

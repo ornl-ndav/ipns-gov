@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/07/10 16:25:06  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.4  2006/06/26 20:48:07  dennis
  *  Fixed minor error in javadocs.
  *
@@ -69,7 +72,7 @@ package gov.anl.ipns.Parameters;
  * @see StringPG
  */
 
-public abstract class StringPG_base extends NewParameterGUI 
+public abstract class StringPG_base extends ParamUsesString
 {
   protected String str_value;  // just protected, so derived classes can
                                // directly get the value to place in their

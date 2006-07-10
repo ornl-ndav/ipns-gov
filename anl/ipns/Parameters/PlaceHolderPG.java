@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/07/10 16:25:05  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  * Revision 1.2  2006/06/29 21:54:23  rmikk
  * Added or fixed the GPL
  *
@@ -111,7 +114,7 @@ public class PlaceHolderPG extends ObjectPG_base {
 	/* Creates a widget with two labels that are not changeable
 	 * 
 	 * @return the JPanel that is the widget
-	 * @see gov.anl.ipns.Parameters.NewParameterGUI#getWidget()
+	 * @see gov.anl.ipns.Parameters.ParameterGUI#getWidget()
 	 */
 	public JPanel getWidget() {
 		if( EntryWidget != null )
@@ -124,7 +127,7 @@ public class PlaceHolderPG extends ObjectPG_base {
 
 	/* Destroys reference to the widget 
 	 * 
-	 * @see gov.anl.ipns.Parameters.NewParameterGUI#destroyWidget()
+	 * @see gov.anl.ipns.Parameters.ParameterGUI#destroyWidget()
 	 */
 	public void destroyWidget() {
 		EntryWidget = null;
@@ -134,7 +137,7 @@ public class PlaceHolderPG extends ObjectPG_base {
 	/* 
 	 * Since the GUI does not show the value this does nothing
 	 * 
-	 * @see gov.anl.ipns.Parameters.INewParameterGUI#clear()
+	 * @see gov.anl.ipns.Parameters.IParameterGUI#clear()
 	 */
 	public void clear() {
 		
@@ -147,7 +150,7 @@ public class PlaceHolderPG extends ObjectPG_base {
 	 *                will be disabled.  Here it means that the GUI
 	 *                will be grayed out or not. This GUI cannot change
 	 *                
-	 * @see gov.anl.ipns.Parameters.INewParameterGUI#setEnabled(boolean)
+	 * @see gov.anl.ipns.Parameters.IParameterGUI#setEnabled(boolean)
 	 */
 	public void setEnabled(boolean on_off) {
 		if( EntryWidget == null)
@@ -163,9 +166,9 @@ public class PlaceHolderPG extends ObjectPG_base {
 	 * to the value. For parameters to be passed by reference, this MUST be the
 	 * case.
 	 * 
-	 *  @see gov.anl.ipns.Parameters.INewParameter#getCopy()
+	 *  @see gov.anl.ipns.Parameters.IParameter#getCopy()
 	 */
-	public Object getCopy() {
+	public Object clone() {
 		return new PlaceHolderPG( getName(), obj_value);
 	}
 

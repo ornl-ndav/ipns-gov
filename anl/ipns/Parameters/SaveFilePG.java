@@ -1,6 +1,19 @@
+/**
+ * $Log$
+ * Revision 1.3  2006/07/10 16:25:06  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
+ * Revision 1.4  2006/07/04 20:21:50  dennis
+ * Fixed minor java doc errors.
+ * Added cvs logging tag, so CVS will record the messages in
+ * the file.
+ * 
+ */
+
+
 package gov.anl.ipns.Parameters;
 
-import java.io.File;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.JPanel;
 
 /**
@@ -8,18 +21,18 @@ import javax.swing.JPanel;
  *	so the user may select or create a file pathname.
  */
 public class SaveFilePG extends StringPG_base
+                        implements IBrowsePG
 {
 	private FileChooserPanel fcPanel = null;
 	private boolean enabled			 = true; 	// we store the enabled state, so the
 	                                         	// setEnabled() method can be called
-	                                         	// before constructing the widget.
 	
 	/**
 	 * Creates a new SaveFilePG object with the specified name and initial
 	 * value.
 	 *
 	 * @param  name  The name (i.e. prompt string) for this PG.
-	 * @param  val   The initial value for this PG.
+	 * @param  value The initial value for this PG.
 	 *
 	 * @throws IllegalArgumentException is thrown, if the specified value
 	 *         cannot be converted to a String value.
@@ -32,7 +45,7 @@ public class SaveFilePG extends StringPG_base
 	/**
 	 * Enable or disable the FileChooserPanel for selecting directory pathnames.
 	 *
-	 * @param  on_off  Set true to enable the FileChooserPanel.
+	 * @param  bol  Set true to enable the FileChooserPanel.
 	 */
 	public void setEnabled(boolean bol)
 	{
@@ -49,12 +62,18 @@ public class SaveFilePG extends StringPG_base
 	 *
 	 * @return A copy of this SaveFilePG, with the same name and value
 	 */
-	public Object getCopy() 
+	public Object clone() 
 	{
 		SaveFilePG copy = new SaveFilePG( getName(), str_value );
 		copy.setValidFlag( getValidFlag() );
 		return copy;
 	}
+
+
+        public void setFilter( FileFilter filter )
+        {
+           // TODO implement the ability to set a file filter
+        }
 	
 	/**
 	 * Retrieves the JTextField's current String (a filesystem pathname).
@@ -80,7 +99,11 @@ public class SaveFilePG extends StringPG_base
 	    }
 	    
 	    //checking for pathname validity
+/**
 	    File file = new File(widget_value);   
+
+   //This throws an exception, if a new file is to be created.  For now, just accept
+   //anything.
 	    if(!file.isFile())
 	    {
 	    	throw new IllegalArgumentException("Not a file");
@@ -89,7 +112,7 @@ public class SaveFilePG extends StringPG_base
 	    {
 	    	throw new IllegalArgumentException("Write permission is denied");
 	    }	    
-
+*/
 	    return widget_value;
 	}
 	
@@ -124,7 +147,7 @@ public class SaveFilePG extends StringPG_base
 	{
 		if( fcPanel == null )			// make new panel with label, TextField, and button 
 	    {
-	      fcPanel      = new FileChooserPanel(FileChooserPanel.SAVE_FILE,getName());
+	      fcPanel      = new FileChooserPanel(FileChooserPanel.SAVE_FILE,getName(), str_value);
 	 
 	      //ActionListeners
 	      fcPanel.getTextField().addActionListener( new PG_ActionListener( this ) );
@@ -145,8 +168,8 @@ public class SaveFilePG extends StringPG_base
 	protected void destroyWidget()
 	{
 		fcPanel = null;						// null out all references to gui
-											// components, so that they can be
-											// garbage collected.
+									// components, so that they can be
+		 							// garbage collected.
 	}
 
 }

@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/07/10 16:25:04  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.4  2006/06/26 21:26:34  dennis
  *  Made the checkbox protected instead of private, so the
  *  BooleanEnablePG can derive from this class and listen
@@ -101,7 +104,7 @@ public class BooleanPG extends BooleanPG_base
    *
    * @return A copy of this BooleanPG, with the same name and value.
    */
-  public Object getCopy() 
+  public Object clone() 
   {
      BooleanPG copy = new BooleanPG( getName(), new Boolean( bool_value ) );
      copy.setValidFlag( getValidFlag() );

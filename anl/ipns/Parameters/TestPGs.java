@@ -32,6 +32,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2006/07/10 16:25:06  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
+ *  Revision 1.27  2006/07/04 20:10:49  dennis
+ *  Added test of passing in null to setValue().
+ *
+ *  Revision 1.26  2006/07/04 17:57:18  dennis
+ *  Added test of RadioButtonPG.
+ *  Replaced GridLayout with Box, so that different height PGs
+ *  get laid out ok.
+ *
  *  Revision 1.25  2006/07/03 20:50:51  dennis
  *  Now explicitly constructs some new objects to be passed into the
  *  tester, rather than relying on autoboxing.
@@ -114,7 +125,7 @@
  *
  *  Revision 1.2  2006/06/13 19:51:12  dennis
  *  Modified Test GUI that includes controls for testing the functionality
- *  of the NewParameterGUI objects.  The NewParameterGUI objects
+ *  of the ParameterGUI objects.  The ParameterGUI objects
  *  are enclosed in a JFrame, with several control buttons to allow testing
  *  the Enable/Disable, get/setValue and get/setValidFlag methods.
  *  As new PGs are created, the main method of this class should be
@@ -135,8 +146,12 @@ import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 import DataSetTools.dataset.*;
+import DataSetTools.parameter.DataSetPG;
+import DataSetTools.parameter.MonitorDataSetPG;
+import DataSetTools.parameter.PulseHeightDataSetPG;
+import DataSetTools.parameter.SampleDataSetPG;
 /**
- *  This class tests the NewParameterGUIs.  The NewParameterGUI objects 
+ *  This class tests the NewParameterGUIs.  The ParameterGUI objects 
  *  are enclosed in a JFrame, with several control buttons to allow testing
  *  the Enable/Disable, get/setValue and get/setValidFlag methods.
  *  As new PGs are created, the main method of this class should be 
@@ -152,6 +167,7 @@ public class TestPGs
 
   public static final String SET_VAL_1   = "Set Value 1";
   public static final String SET_VAL_2   = "Set Value 2";
+  public static final String SET_NULL    = "Set Value null";
 
   Vector pg_list    = new Vector();     // list of PG's being tested
   Vector val_1_list = new Vector();     // list of default values for the PG's
@@ -168,7 +184,7 @@ public class TestPGs
    *  @param  val_2  The value to set into the pg when the "Set Value 2" 
    *                 button is pushed.
    */
-  private void AddToTestList( INewParameterGUI pg, 
+  private void AddToTestList( IParameterGUI pg, 
                               Object        val_1, 
                               Object        val_2 )
   {
@@ -190,14 +206,21 @@ public class TestPGs
     int num_guis = pg_list.size();
 
     JFrame f = new JFrame("Test for ParameterGUIs");
-    f.setBounds( 0, 0, 500, 25 * (num_guis + 1) + 25 );
+    f.setBounds( 0, 0, 500, 25 * (num_guis + 1) + 100 );
 
-    f.getContentPane().setLayout( new GridLayout(num_guis + 1, 1) );
+    Box box = new Box( BoxLayout.Y_AXIS );
+
+    f.getContentPane().setLayout( new GridLayout(1,1) );
+    f.getContentPane().add( box );
     for ( int i = 0; i < num_guis; i++ )
     {
-      INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
-      f.getContentPane().add( pg.getGUIPanel(show_valid_box) );
+      IParameterGUI pg = (IParameterGUI)pg_list.elementAt(i);
+      box.add( pg.getGUIPanel(show_valid_box) );
     }
+
+    JPanel spacer = new JPanel();
+    spacer.setPreferredSize( new Dimension( 0, 500 ) );
+    box.add( spacer );
 
     JPanel  button_panel  = new JPanel();
     JButton enable_button = new JButton( DISABLE );
@@ -216,7 +239,7 @@ public class TestPGs
     button_panel.add( show_button ); 
     button_panel.add( valid_button ); 
 
-    f.getContentPane().add( button_panel );
+    box.add( button_panel );
     f.setVisible( true );
     f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     
@@ -251,7 +274,7 @@ public class TestPGs
 
       for ( int i = 0; i < pg_list.size(); i++ )
       {
-        INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+        IParameterGUI pg = (IParameterGUI)pg_list.elementAt(i);
         pg.setEnabled( enable );
       }
     }
@@ -275,18 +298,27 @@ public class TestPGs
         val_list = val_1_list;
         button.setText( SET_VAL_2 );
       }
-      else
+      else if ( command.equals( SET_VAL_2 ) )
       {
         val_list = val_2_list;
+        button.setText( SET_NULL );
+      }
+      else // command.equals( SET_NULL )
+      {
+        val_list = null;
         button.setText( SET_VAL_1 );
       }
+      
 
       for ( int i = 0; i < pg_list.size(); i++ )
       {
-        INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+        IParameterGUI pg = (IParameterGUI)pg_list.elementAt(i);
         try
         {
-          pg.setValue( val_list.elementAt(i) );
+          if ( val_list != null )
+            pg.setValue( val_list.elementAt(i) );
+          else
+            pg.setValue( null );
         }
         catch ( IllegalArgumentException exception )
         {
@@ -310,7 +342,7 @@ public class TestPGs
       System.out.println("\n\n=================== PG_VALUES ================");
       for ( int i = 0; i < pg_list.size(); i++ )
       {
-        INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+        IParameterGUI pg = (IParameterGUI)pg_list.elementAt(i);
         System.out.println("------------- " + pg.getName() + " -------------");
         System.out.println( pg.toString() );
         try
@@ -353,7 +385,7 @@ public class TestPGs
 
       for ( int i = 0; i < pg_list.size(); i++ )
       {
-        INewParameterGUI pg = (INewParameterGUI)pg_list.elementAt(i);
+        IParameterGUI pg = (IParameterGUI)pg_list.elementAt(i);
         pg.setValidFlag( valid );
       }
     }
@@ -386,11 +418,17 @@ public class TestPGs
     FunctStringPG f_str_pg   = new FunctStringPG( "Function", "3.2*sin(x)" );
     MaterialPG    mat_pg     = new MaterialPG( "Material", "C,O_2" );
     InstNamePG    inst_pg    = new InstNamePG( "Instrument", null );
-    ChoiceListPG  choice_pg  = new ChoiceListPG( "Choose", "Third Choice" );
+    ChoiceListPG  choice_pg  = new ChoiceListPG( "ChoiceList", "Third Choice");
     choice_pg.addItem( "First Choice" );
     choice_pg.addItem( "Second Choice" );
     choice_pg.addItem( "Third Choice" );
     choice_pg.addItem( "Fourth Choice" );
+    RadioButtonPG radio_pg   = new RadioButtonPG("RadioButton","Third Choice");
+    radio_pg.addItem( "First Choice" );
+    radio_pg.addItem( "Second Choice" );
+    radio_pg.addItem( "Third Choice" );
+    radio_pg.addItem( "Fourth Choice" );
+
     PrinterNamePG print_pg = new PrinterNamePG( "Choose Printer", 
                                                 "NO Printer 2" );
 
@@ -409,6 +447,7 @@ public class TestPGs
     tester.AddToTestList( mat_pg, "C,O_2", "H_2,O"); 
     tester.AddToTestList( inst_pg, "SCD0", "GPPD" );
     tester.AddToTestList( choice_pg, "First Choice", "Second Choice" );
+    tester.AddToTestList( radio_pg, "First Choice", "Second Choice" );
     tester.AddToTestList( print_pg, "NO Printer 1", "NO Printer 3" );
 
 
@@ -476,23 +515,40 @@ public class TestPGs
     String path= System.getProperty( "ISAW_HOME")+"/SampleRuns/";
     try {
          DataSet[] DS1 = Command.ScriptUtil.load( path + "GPPD12358.RUN" );
-
          DataSet[] DS2 = Command.ScriptUtil.load( path + "hrcs2955.run" );
 
          DataSetPG DSpg = new DataSetPG( "DataSetPG" , null );
-         DSpg.AddItem( DS1[ DS1.length - 1 ] );
-         DSpg.AddItem( DS2[ DS2.length - 1 ] );
-         DSpg.AddItem( DS1[ 0 ] );
-         tester.AddToTestList( DSpg , DS1[ DS1.length - 1 ] ,
-                  DS2[ DS2.length - 1 ] );
+         SampleDataSetPG SDSpg = new SampleDataSetPG( "SampleDataSetPG " , null );
+         MonitorDataSetPG MDSpg = new MonitorDataSetPG( "MonitorDataSetPG", null );
+         PulseHeightDataSetPG PHDSpg = 
+                          new PulseHeightDataSetPG( "PulseHeightDataSetPG", null );
 
+         for ( int i = 0; i < DS1.length; i++ )  // add some DataSets to the PGs
+         {
+           DSpg.addItem  ( DS1[ i ] );
+           SDSpg.addItem ( DS1[ i ] );
+           MDSpg.addItem ( DS1[ i ] );
+           PHDSpg.addItem( DS1[ i ] );
+         }
 
-         SampleDataSetPG SDSpg = new SampleDataSetPG( "Sample " , null );
-         SDSpg.AddItem( DS1[ DS1.length - 1 ] );
-         // SDSpg.AddItem( DS2[ DS2.length -3]);
-         // SDSpg.AddItem( DS1[0]);
+         for ( int i = 0; i < DS2.length; i++ )
+         {
+           DSpg.addItem  ( DS2[ i ] );
+           SDSpg.addItem ( DS2[ i ] );
+           MDSpg.addItem ( DS2[ i ] );
+           PHDSpg.addItem( DS2[ i ] );
+         }
+
+         tester.AddToTestList( DSpg , DS1[ DS1.length - 1 ], 
+                                      DS2[ DS2.length - 1 ] );
+
          tester.AddToTestList( SDSpg , DS1[ DS1.length - 1 ] ,
-                  DS1[ DS1.length - 1 ] );
+                                       DS1[ DS1.length - 1 ] );
+
+         tester.AddToTestList( MDSpg, DS1[ 0 ], DS2[ 0 ] );
+
+         tester.AddToTestList( PHDSpg, DS1[ 1 ], DS2[ 1 ] );
+
       } catch( Exception s ) {
          System.out.println( "Could not find files " + s.toString() );
       }

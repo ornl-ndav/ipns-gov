@@ -1,6 +1,19 @@
+/**
+ *  $Log$
+ *  Revision 1.2  2006/07/10 16:25:05  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
+ *  Revision 1.2  2006/07/04 20:21:51  dennis
+ *  Fixed minor java doc errors.
+ *  Added cvs logging tag, so CVS will record the messages in
+ *  the file.
+ *
+ */
+
 package gov.anl.ipns.Parameters;
 
-import java.io.File;
+import java.io.*;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.JPanel;
 
 /**
@@ -8,9 +21,10 @@ import javax.swing.JPanel;
  *	so the user may select a file pathname.
  */
 public class LoadFilePG extends StringPG_base
+                        implements IBrowsePG
 {
 	private FileChooserPanel fcPanel = null;
-	private boolean enabled			 = true; 	// we store the enabled state, so the
+	private boolean enabled		 = true; 	// we store the enabled state, so the
 	                                         	// setEnabled() method can be called
 	                                         	// before constructing the widget.
 	
@@ -19,7 +33,7 @@ public class LoadFilePG extends StringPG_base
 	 * value.
 	 *
 	 * @param  name  The name (i.e. prompt string) for this PG.
-	 * @param  val   The initial value for this PG.
+	 * @param  value The initial value for this PG.
 	 *
 	 * @throws IllegalArgumentException is thrown, if the specified value
 	 *         cannot be converted to a String value.
@@ -32,7 +46,7 @@ public class LoadFilePG extends StringPG_base
 	/**
 	 * Enable or disable the FileChooserPanel for selecting directory pathnames.
 	 *
-	 * @param  on_off  Set true to enable the FileChooserPanel.
+	 * @param  bol  Set true to enable the FileChooserPanel.
 	 */	
 	public void setEnabled(boolean bol)
 	{
@@ -49,13 +63,19 @@ public class LoadFilePG extends StringPG_base
 	 *
 	 * @return A copy of this LoadFilePG, with the same name and value.
 	 */
-	public Object getCopy() 
+	public Object clone() 
 	{
 		LoadFilePG copy = new LoadFilePG( getName(), str_value );
 		copy.setValidFlag( getValidFlag() );
 		return copy;
 	}
 	
+        public void setFilter( FileFilter filter )
+        {
+           // TODO implement the ability to set a file filter
+        }
+
+
 	/**
 	 * Retrieves the JTextField's current String (a filesystem pathname).
 	 * 
@@ -127,9 +147,9 @@ public class LoadFilePG extends StringPG_base
 	 */
 	protected JPanel getWidget()
 	{
-		if( fcPanel == null )			// make new panel with label, TextField, and button 
+		if( fcPanel == null )	// make new panel with label, TextField, and button 
 	    {
-	      fcPanel      = new FileChooserPanel(FileChooserPanel.LOAD_FILE,getName());
+	      fcPanel      = new FileChooserPanel(FileChooserPanel.LOAD_FILE,getName(),str_value);
 	 
 	      //ActionListeners
 	      fcPanel.getTextField().addActionListener( new PG_ActionListener( this ) );
@@ -149,8 +169,8 @@ public class LoadFilePG extends StringPG_base
 	 */
 	protected void destroyWidget()
 	{
-		fcPanel = null;						// null out all references to gui
-											// components, so that they can be
-											// garbage collected.
+		fcPanel = null;		// null out all references to gui
+					// components, so that they can be
+					// garbage collected.
 	}
 }

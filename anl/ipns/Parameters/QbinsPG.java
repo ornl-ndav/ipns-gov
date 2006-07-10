@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/07/10 16:25:06  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  * Revision 1.2  2006/06/29 21:54:22  rmikk
  * Added or fixed the GPL
  *
@@ -112,7 +115,7 @@ public class QbinsPG extends VectorPG {
   *
   * @return A copy of this IParameter, with the same name and value.
   */
- public Object getCopy(){
+ public Object clone(){
 	 QbinsPG iog = new QbinsPG( getName(),(Object) vec_value);
 	 return iog;
 	 

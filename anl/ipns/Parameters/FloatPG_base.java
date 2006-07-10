@@ -30,6 +30,9 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.4  2006/07/10 16:25:04  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  * Revision 1.3  2006/07/03 20:55:28  dennis
  * Explicityl construct object passed to set value, rather
  * than rely on autoboxing.
@@ -51,7 +54,7 @@ package gov.anl.ipns.Parameters;
  * @see FloatPG
  */
 
-public abstract class FloatPG_base extends NewParameterGUI 
+public abstract class FloatPG_base extends ParamUsesString 
 {
   protected  float  float_value;   // just protected, so derived classes can
                                    // directly get the value to place in their
@@ -116,6 +119,23 @@ public abstract class FloatPG_base extends NewParameterGUI
                                           //       NOT use it, but throw an
                                           //       illegal argument exception
     return new Float( float_value );
+  }
+
+
+  /**
+   * Get the value of this PG as a primitive float.
+   *
+   * @return the primitive float value of this PG.
+   *
+   * @throws IllegalArgumentException is thrown, if a GUI entry widget
+   *         exists for this PG, but the value in the GUI cannot be converted 
+   *         to a float value.
+   */
+  public final float getfloatValue()
+  {
+    getValue();   // this will try to update the value from the GUI widget
+                  // and may throw an IllegalArgumentException
+    return float_value;
   }
 
 

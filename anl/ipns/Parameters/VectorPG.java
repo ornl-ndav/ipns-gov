@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2006/07/10 16:25:06  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  * Revision 1.5  2006/07/03 20:52:12  dennis
  * Removed an unused import, method and variable.
  *
@@ -76,7 +79,7 @@ public abstract class VectorPG extends VectorPG_base
 
   //~ Instance fields **********************************************************
 
-  private INewParameterGUI innerParam;
+  private IParameterGUI innerParam;
   private ArrayEntryJFrame entryFrame = null;
   private JButton vectorButton        = null;
   private JPanel PanelwButton         = null;
@@ -123,7 +126,7 @@ public abstract class VectorPG extends VectorPG_base
    * Sets this VectorPG's parameter.  Also resets the type to more accurately
    * show what this VectorPG is an array of.
    */
-  protected final void setParam( INewParameterGUI param ) {
+  protected final void setParam( IParameterGUI param ) {
     innerParam = param;
   }
 
@@ -133,7 +136,7 @@ public abstract class VectorPG extends VectorPG_base
   /**
    * Gets this VectorPG's parameter.
    */
-  protected final INewParameterGUI getParam(  ) {
+  protected final IParameterGUI getParam(  ) {
     return innerParam;
   }
 

@@ -32,11 +32,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/07/10 16:25:05  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.4  2006/06/30 14:24:39  dennis
  *  Removed unused imports.
  *
  *  Revision 1.3  2006/06/29 15:46:58  dennis
- *  This no longer requires a NewParameterGUI object to notify when
+ *  This no longer requires a ParameterGUI object to notify when
  *  changes to the text are accepted.  No notification will be attempted,
  *  if the ParameterGUI to notify is null.
  *
@@ -69,16 +72,16 @@ public class PG_DocumentFilter extends DocumentFilter
                                            // satisfy the isOkay() method of
                                            // the filter will be accepted.
 
-  private NewParameterGUI my_pg  = null;   // This is the PG whose 
+  private ParameterGUI my_pg  = null;   // This is the PG whose 
                                            // notifyChanging()
                                            // method should be called.
 
   /**
-   *  Construct a PG_DocumentFilter to notify the specified NewParameterGUI 
+   *  Construct a PG_DocumentFilter to notify the specified ParameterGUI 
    *  that the widget's value is being changed, AND to check that the newly 
    *  entered String is acceptable, based on the specified filter.
    *
-   *  @param  pg     The NewParameterGUI object to be notified when changes
+   *  @param  pg     The ParameterGUI object to be notified when changes
    *                 are made.  This is null, no notification will be done.
 
    *  @param  filter The IStringFilter that will be used to check wheter 
@@ -86,7 +89,7 @@ public class PG_DocumentFilter extends DocumentFilter
    *                 null, a default filter that accepts all changes will
    *                 be used.
    */
-  public PG_DocumentFilter( NewParameterGUI pg, IStringFilter filter )
+  public PG_DocumentFilter( ParameterGUI pg, IStringFilter filter )
   {
     my_pg     = pg;
     if ( filter == null )

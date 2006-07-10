@@ -1,3 +1,39 @@
+/* File:  ArrayPG.java 
+ *
+ * Copyright (C) 2006, Ruth Mikkelson
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contact : Ruth Mikkelson <Mikkelsonr@uwstout.edu>
+ *           University of Wisconsin-Stout
+ *           Menomonie, Wisconsin 54751
+ *           USA
+ *
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0426797, and by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ *
+ * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ *
+ *  $Log$
+ *  Revision 1.3  2006/07/10 16:25:03  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
+ */
 package gov.anl.ipns.Parameters;
 
 import java.util.Vector;
@@ -24,9 +60,8 @@ public class ArrayPG extends VectorPG_base {
 	private JTextField entryField;
 	
 	
-	
 	/**
-	 * Construcotr
+	 * Constructor
 	 * @param name   The prompt for this list of numbers
 	 * @param val    The initial value for this list of numbers
 	 *               it will be converted to a Vector and throw an
@@ -38,7 +73,6 @@ public class ArrayPG extends VectorPG_base {
 		entryWidget  = null;
 		entryField = null;
 	}
-
 	
 
 	 /**
@@ -55,10 +89,7 @@ public class ArrayPG extends VectorPG_base {
 		if( entryField == null)
 			throw new IllegalArgumentException( "ArrayPG GUI is not set up");
 		return Conversions.StringToVec( entryField.getText());
-		
 	}
-
-	
 
 
   /**
@@ -73,7 +104,6 @@ public class ArrayPG extends VectorPG_base {
    */
 	public void setWidgetValue(Vector value) throws IllegalArgumentException {
 		entryField.setText( StringUtil.toString( value ) );
-
 	}
 
 	
@@ -89,12 +119,12 @@ public class ArrayPG extends VectorPG_base {
 	public Vector getVectorValue(Object obj) throws IllegalArgumentException {
 		if( obj instanceof String)
 			obj = Conversions.StringToVec( (String)obj);
+		if( obj == null )
+			return new Vector();
+		if( obj instanceof Vector)
+			return (Vector)obj;
 		return Conversions.ToVec( obj);
-		
 	}
-
-
-	
 	
 
   /**
@@ -112,12 +142,12 @@ public class ArrayPG extends VectorPG_base {
 		entryWidget = new JPanel( new GridLayout(1,2));
         entryWidget.add( new JLabel( getName()));
         entryField = new JTextField( InitVal);
+        entryField.setPreferredSize( new Dimension(2,2));
         entryWidget.add(  entryField );
         entryField.addKeyListener( new PG_KeyListener( this));
         
         return entryWidget;
 	}
-
 
 
    /**
@@ -129,9 +159,7 @@ public class ArrayPG extends VectorPG_base {
 		entryWidget = null;
 		entryField = null;
 	}
-
 	
-
 
   /**
    * Enable or disable the GUI Components for entering values. 
@@ -154,10 +182,17 @@ public class ArrayPG extends VectorPG_base {
    *
    * @return A copy of this ArrayPG, with the same name and value.
    */
-	public Object getCopy() {
+	public Object clone() {
 		ArrayPG res = new ArrayPG( getName(), vec_value);
 		return res;
 	}
 
 
+	/**
+	 * Adds an element to the end of the current vector value
+	 * @param obj  The item to be added
+	 */
+	public void addItem( Object obj){
+	   vec_value.addElement( obj );
+	}
 }

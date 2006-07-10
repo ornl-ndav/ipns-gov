@@ -21,14 +21,20 @@
  *           Menomonie, Wisconsin 54751
  *           USA
  *
-  * This work was supported by the National Science Foundation under grant
+ * This work was supported by the National Science Foundation under grant
  * number DMR-0426797, and by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
-*
+ *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.5  2006/07/10 16:25:04  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
+ * Revision 1.5  2006/07/04 20:34:05  dennis
+ * Minor fix to formatting.
+ *
  * Revision 1.4  2006/06/27 21:23:19  rmikk
  * Removed a reference to DataSetTools/operators
  * Did not create GUI element to disable the element
@@ -160,16 +166,16 @@ public class EnableParamListener implements PropertyChangeListener {
             enable=false;
         for( int i=thisParamNum+1; (i<thisParamNum+1+nSetIfTrue)&&(i<size(ParameterList)); i++){
            Object pparm=entry(ParameterList,i);
-           if(pparm instanceof INewParameterGUI)
-               if(((INewParameterGUI)pparm).getGUIPanel(false)!= null)
-                ((INewParameterGUI)pparm).setEnabled(enable);
+           if(pparm instanceof IParameterGUI)
+               if(((IParameterGUI)pparm).getGUIPanel(false)!= null)
+                ((IParameterGUI)pparm).setEnabled(enable);
         }    
         
         enable = !enable;
         for( int i=thisParamNum+1+nSetIfTrue; (i<thisParamNum+1+nSetIfTrue+nSetIfFalse)&&(i<size(ParameterList)); i++){
            Object pparm=entry(ParameterList,i);
-           if(pparm instanceof INewParameterGUI)
-               ((INewParameterGUI)pparm).setEnabled(enable);            
+           if(pparm instanceof IParameterGUI)
+               ((IParameterGUI)pparm).setEnabled(enable);            
         }    
         
     }

@@ -1,5 +1,5 @@
 /*
- * File:  INewParameterGUI.java
+ * File:  IParameterGUI.java
  *
  * Copyright (C) 2002, Peter F. Peterson, 2006, Dennis Mikkelson
  *
@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.1  2006/07/10 16:25:05  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.2  2006/06/25 01:30:25  dennis
  *  Removed updateValueFromGUI() method, since the getValue() method
  *  also will update the stored value from the value in the GUI,
@@ -48,6 +51,7 @@
 package gov.anl.ipns.Parameters;
 
 import javax.swing.JPanel;
+import gov.anl.ipns.Util.Messaging.*;
 
 /**
  * This is an interface to be implemented by all parameters that include
@@ -56,7 +60,26 @@ import javax.swing.JPanel;
  * when needed, and will be destroyed when it is no longer needed.
  */
 
-public interface INewParameterGUI extends INewParameter {
+public interface IParameterGUI extends IParameter, IObservable 
+{
+  /** 
+   *  VALUE_CHANGING = "Value Changing" is the message sent to IObservers
+   *  when the GUI widget's value is being changed.  This may possibly 
+   *  not be used by all PG's, if it is not meaningfully defined for a
+   *  specific PG.  However, at least one of VALUE_CHANGED or VALUE_CHANGING
+   *  messages MUST be sent by all PGs.
+   */
+  public static final String VALUE_CHANGING = "Value Changing";
+
+  /** 
+   *  VALUE_CHANGED = "Value Changed" is the message sent to IObservers
+   *  when the GUI widget's value has been changed.  This may possibly 
+   *  not be used by all PG's, if it is not meaningfully defined for a
+   *  specific PG.  However, at least one of VALUE_CHANGED or VALUE_CHANGING
+   *  messages MUST be sent by all PGs.
+   */
+  public static final String VALUE_CHANGED  = "Value Changed";
+
 
   /**
    * Get a reference to a JPanel containing the GUI component for this
@@ -88,6 +111,14 @@ public interface INewParameterGUI extends INewParameter {
    * is called.
    */
   void destroyGUIPanel();
+
+
+  /**  #############  Temporary BandAid
+   * Used to let a parameter validate itself.  This is helpful for any instance
+   * where the "valid" checkbox is drawn, as it removes the need to
+   * individually validate ParameterGUIs.
+   */
+  public void validateSelf();
 
 
   /**

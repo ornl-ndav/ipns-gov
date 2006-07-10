@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2006/07/10 16:25:04  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.2  2006/06/30 14:24:41  dennis
  *  Removed unused imports.
  *
@@ -78,7 +81,7 @@ public class FilteredPG_TextField extends JTextField
    *                  in for the filter, a default filter that accepts any
    *                  String is used.
    */
-  public FilteredPG_TextField( NewParameterGUI pg, IStringFilter filter )
+  public FilteredPG_TextField( ParameterGUI pg, IStringFilter filter )
   {
     if ( filter == null )                      // make sure we have a valid 
       filter = new AllPassFilter();            // filter
@@ -94,7 +97,7 @@ public class FilteredPG_TextField extends JTextField
   /**
    *  Construct a JTextField object that applies the specified filter to
    *  characters, as they are being typed.  This just passes in null for
-   *  the NewParameterGUI to the other constructor.
+   *  the ParameterGUI to the other constructor.
    *
    *  @param  filter  The IStringFilter that is used to check the validity
    *                  of a resulting String, BEFORE it a change to the

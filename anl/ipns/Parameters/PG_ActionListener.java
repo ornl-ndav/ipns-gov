@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/07/10 16:25:05  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.1  2006/06/15 23:34:07  dennis
  *  Listeners for low-level events, for use with concrete parameter
  *  GUIs.  When an event occurs, the notifiyChanged() or
@@ -47,22 +50,22 @@ import java.awt.event.*;
 
 /**
  *  This class is an ActionListener that can be added to an appropriate 
- *  concrete class derived from NewParameterGUI, to call the notifyChanged()
+ *  concrete class derived from ParameterGUI, to call the notifyChanged()
  *  method to notify the PG that the widget's value changed, and to trip the
  *  the valid Checkbox to false.
  */
 public class PG_ActionListener implements ActionListener
 {
-  private NewParameterGUI my_pg = null;  // this is the PG whose notifyChanged()
+  private ParameterGUI my_pg = null;  // this is the PG whose notifyChanged()
                                          // method should be called.
 
   /**
-   *  Construct an action listener to notify the specified NewParameterGUI
+   *  Construct an action listener to notify the specified ParameterGUI
    *  object that the widget's value was changed.
    *
-   *  @param  pg  The NewParameterGUI object to be notified.
+   *  @param  pg  The ParameterGUI object to be notified.
    */
-  public PG_ActionListener( NewParameterGUI pg )
+  public PG_ActionListener( ParameterGUI pg )
   {
     my_pg = pg;
   }

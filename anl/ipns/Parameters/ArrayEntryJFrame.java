@@ -32,6 +32,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/07/10 16:25:03  dennis
+ * Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
+ * Revision 1.3  2006/07/04 20:32:34  dennis
+ * Commented out variable that was never read.
+ *
  * Revision 1.2  2006/06/30 14:57:23  rmikk
  * Added a JOptionPane dialog if new value is not Okay.
  *
@@ -111,8 +117,8 @@ public class ArrayEntryJFrame extends JFrame implements ActionListener,
   private Vector buttons            = new Vector( 9, 2 );
   private PropertyChangeSupport pcs;
   private Vector oldVector;
-  private INewParameterGUI param;
-  private int position              = -1;
+  private IParameterGUI param;
+//  private int position              = -1;
   private JDialog entryDialog;
   private JPanel innerPanel;
   private String helpMessage        = "No help message available";
@@ -125,7 +131,7 @@ public class ArrayEntryJFrame extends JFrame implements ActionListener,
    * @param param ParameterGUI that determines the resultant type of the
    *        elements stored in the ArrayEntryPanel.
    */
-  public ArrayEntryJFrame( INewParameterGUI param ) {
+  public ArrayEntryJFrame( IParameterGUI param ) {
     super( param.getName(  ) );
     innerPanel = new JPanel( new BorderLayout(  ) );
     this.setSize( 500, 300 );
@@ -256,7 +262,7 @@ public class ArrayEntryJFrame extends JFrame implements ActionListener,
       }
     }
 
-    position = -1;
+//    position = -1;
   }
 
   /**
@@ -302,7 +308,7 @@ public class ArrayEntryJFrame extends JFrame implements ActionListener,
     } else if( command == DELETE_LABEL ) {
       int j = jlist.getSelectedIndex(  );
 
-      position = -1;
+//      position = -1;
 
       if( j < 0 ) {
         //this should throw an exception at some point
@@ -417,7 +423,7 @@ public class ArrayEntryJFrame extends JFrame implements ActionListener,
    * @param pos The index of the position where the new value is at.
    */
   private void setInnerParameterValue( int pos ) {
-    position = pos;
+//    position = pos;
 
     if( !( param instanceof VectorPG ) ) {
       if( ( pos >= 0 ) && ( pos < jlistModel.getSize(  ) ) ) {
@@ -439,7 +445,7 @@ public class ArrayEntryJFrame extends JFrame implements ActionListener,
    *        Vector and param IS A Concatenator, we will add in a vertical
    *        fashion.
    */
-  private void addVectorToList( INewParameterGUI param ) {
+  private void addVectorToList( IParameterGUI param ) {
     Object val;
     try{
        val= param.getValue(  );

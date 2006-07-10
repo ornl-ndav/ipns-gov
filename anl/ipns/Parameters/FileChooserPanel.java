@@ -65,15 +65,18 @@ public class FileChooserPanel extends JPanel
 	 * @param lbl - The label that is displayed on the pane.  If empty or null,
 	 *				its spot will not be included in the layout for the pane.
 	 */
-	public FileChooserPanel(int chooseMode, String lbl)
+	public FileChooserPanel(int chooseMode, String lbl, String InitDirectory)
 	{
 		label 		= new JLabel(lbl);
-		text_field 	= new JTextField();
+		if( InitDirectory == null)
+		   text_field 	= new JTextField( 20 );
+		else
+		   text_field = new JTextField( InitDirectory, 20);
 		button 		= new JButton("Browse");
 		
 		button.addActionListener(new ControlListener());
 		
-		fileChooser = new JFileChooser();
+		fileChooser = new JFileChooser( InitDirectory );
 		
 		this.chooseMode = chooseMode;				
 		
@@ -95,6 +98,25 @@ public class FileChooserPanel extends JPanel
 		pnl.add(button,BorderLayout.LINE_END);
 		
 		fcp.add(pnl);		
+	}
+	
+	
+	/**
+	 * Creates a new FileChooserPanel with a label, text field, and a button 
+	 * that pops up a JFileChooser.
+	 * 
+	 * @param chooseMode - The mode for the File Chooser.  This specifies what
+	 * 					   what it can select. 
+	 * 					 	- FileChooserPanel.SET_DIRECTORY
+	 * 					 	- FileChooserPanel.LOAD_FILE
+	 * 					 	- FileChooserPanel.SAVE_FILE
+	 * 											   
+	 * @param lbl - The label that is displayed on the pane.  If empty or null,
+	 *				its spot will not be included in the layout for the pane.
+	 */
+	public FileChooserPanel(int chooseMode, String lbl)
+	{
+		this( chooseMode, lbl, null);		
 	}
 	
 	/**
@@ -125,6 +147,7 @@ public class FileChooserPanel extends JPanel
 	{
 		this(FileChooserPanel.GENERIC_SELECT,"");
 	}
+	
 	
 	/**
 	 * This is the file-choosing dialog box that is displayed, when the browse button

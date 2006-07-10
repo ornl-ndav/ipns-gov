@@ -1,5 +1,5 @@
 /*
- * File:  INewParameter.java
+ * File:  IParameter.java
  *
  * Copyright (C) 2003, Peter Peterson, 2006, Dennis Mikkelson 
  *
@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.1  2006/07/10 16:25:05  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.1  2006/06/12 21:52:28  dennis
  *  Initial version of new code for parameter GUIs.  While this is
  *  loosely based on the parameter GUIs developed several years ago
@@ -40,6 +43,7 @@
 package gov.anl.ipns.Parameters;
 
 
+
 /**
  * This is an interface to be implemented by all parameters.  A basic 
  * parameter just maintains a name and value pair, describing the prompt
@@ -48,7 +52,7 @@ package gov.anl.ipns.Parameters;
  * get input from the user.
  */
 
-public interface INewParameter {
+public interface IParameter {
 
   /**
    * Change the name (i.e. prompt string) for the parameter.
@@ -105,6 +109,6 @@ public interface INewParameter {
    *
    * @return A copy of this IParameter, with the same name and value.
    */
-  public Object getCopy();
+  public Object clone();
 
 }

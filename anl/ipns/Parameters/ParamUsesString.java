@@ -1,5 +1,5 @@
 /*
- * File:  MaterialPG.java
+ * File:  IntArrayPG.java
  *
  * Copyright (C) 2006, Dennis Mikkelson
  *
@@ -32,62 +32,61 @@
  * Modified:
  *
  *  $Log$
- *  Revision 1.4  2006/07/10 16:25:05  dennis
+ *  Revision 1.1  2006/07/10 16:25:05  dennis
  *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
  *
  *  Revision 1.3  2006/07/04 02:41:20  dennis
  *  Moved getCopy() method from abstract base class,
  *  FilteredStringPG, to concrete derived class.
  *
- *  Revision 1.2  2006/06/30 14:24:39  dennis
+ *  Revision 1.2  2006/06/30 14:24:40  dennis
  *  Removed unused imports.
  *
- *  Revision 1.1  2006/06/29 22:55:53  dennis
- *  This PG uses a MaterialFilter to restrict entries to specifying
- *  materials in a form like "H_2,O"
- *
- *
+ *  Revision 1.1  2006/06/29 20:11:34  dennis
+ *  This PG extends FilteredStringPG using a filter that only allows
+ *  users to specify an increasing sequence of integers, separated
+ *  by "," and ":".
  */
 
 package gov.anl.ipns.Parameters;
 
 
 /**
- *  A MaterialPG uses a JTextField component to let the user specify 
- *  a material in the form C,O_2.
+ *  This abstract class serves as the super class for those
+ *  PGs whose value can be meaningfully set with a String.
+ *  This concept is used by IsawLite, and has been added to
+ *  to the new simpler PGs, for compatibility with IsawLite.
  */
-public class MaterialPG extends FilteredStringPG
+public abstract class ParamUsesString extends ParameterGUI 
 {
 
   /**
-   * Creates a new MaterialPG object with the specified name and initial
-   * value.  A MaterialPG will let the user enter a material formula in
-   * a simple form with element groups separated by commas.  Each element
-   * group consists of an element symbol and possibly an underscore follwed
-   * by the number of that element.
+   * Constructor that just passes the information on up to the
+   * super class.
    *
-   * @param  name  The name (i.e. prompt string) for this PG.
-   * @param  val   The initial value for this PG.
-   *
-   * @throws IllegalArgumentException is thrown, if the specified value
-   *         cannot be converted to a String value.
+   * @param  name    The name (i.e. prompt string) for this PG.
+   * @param  valid   Whether this PG should be valid or 
+   *                 not (initially).
    */
-  public MaterialPG( String name, Object val ) throws IllegalArgumentException
+  public ParamUsesString( String name, boolean valid )
   {
-    super( name, Conversions.get_String( val ), new MaterialFilter() );  
+    super( name, valid );  
   }
 
-
   /**
-   * Construct a copy of this MaterialPG object.
+   * Set the value of this PG, its GUI entry widget, and the valid flag,
+   * from the specified String value.
    *
-   * @return A copy of this MaterialPG, with the same name and value.
+   * @param  str  The new value.
+   *
+   * @throws IllegalArgumentException if the GUI is active but the
+   *         specific String cannot be set as the value of the GUI,
+   *         or if the specified str cannot be converted into a 
+   *         value of the required type.
    */
-  public Object clone() 
+  public final void setStringValue( String str ) throws IllegalArgumentException
   {
-     MaterialPG copy = new MaterialPG( getName(), str_value );
-     copy.setValidFlag( getValidFlag() );
-     return copy;
+    setValue( str );
   }
 
 }

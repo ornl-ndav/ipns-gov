@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/07/10 16:25:06  dennis
+ *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
+ *
  *  Revision 1.3  2006/06/27 22:31:12  dennis
  *  Minor refinement of some javadoc comments.
  *
@@ -62,7 +65,7 @@ import gov.anl.ipns.Util.Sys.*;
  * particular type of entries.
  */
 
-public abstract class VectorPG_base extends NewParameterGUI 
+public abstract class VectorPG_base extends ParamUsesString 
 {
   protected  Vector  vec_value;  // just protected, so derived classes can
                                  // directly get the value to place in their
