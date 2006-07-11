@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.85  2006/07/11 16:22:33  dennis
+ *  Now does update of Axis info in dataChanged(). (Jim Kohl)
+ *
  *  Revision 1.84  2006/07/10 21:01:10  amoe
  *  *** empty log message ***
  *
@@ -1003,7 +1006,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     float[] x_vals = pin_varray.getXValues(0);
     float[] y_vals = pin_varray.getYValues(0);
     gjp.setData(x_vals,y_vals, 0, false);
-    
+    setAxisInfo();            // force update of Axis (Jim Kohl)
+ 
     Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
                               // SAME FRAME, so that the frame doesn't move.
