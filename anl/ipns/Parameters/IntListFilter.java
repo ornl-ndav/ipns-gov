@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2006/07/11 19:22:03  rmikk
+ *  Removed size constraints on successive values
+ *
  *  Revision 1.3  2006/06/30 14:21:58  dennis
  *  Removed unused variable.
  *
@@ -132,12 +135,13 @@ public class IntListFilter implements IStringFilter
       {
         int val = Integer.parseInt( parts[i] );
  
-        if ( i < parts.length - 1 || ends_with_delimiter ) // The last int may
+ /*       if ( i < parts.length - 1 || ends_with_delimiter ) // The last int may
         {                                                  // NOT be complete 
           if ( val < last_val )                        
             return false;
         }
         last_val = val;
+*/
       }
       catch ( NumberFormatException e )
       {
