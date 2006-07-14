@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/07/14 21:51:48  amoe
+ *  Changed both zeroLine and differenceLine to be black and solid lines
+ *
  *  Revision 1.4  2006/07/13 16:46:12  amoe
  *  - Added license and log tag.
  *  - Changed certain strings that said "Selected Difference" to
@@ -725,13 +728,11 @@ public class DifferenceViewComponent extends FunctionViewComponent
 			
 			//setting zeroLine
 			gjp.setData(zeroLine.getXArray(),zeroLine.getYArray(),gjp.getNum_graphs(),false);
-			gjp.setColor(Color.lightGray,gjp.getNum_graphs()-1,false);
-			gjp.setStroke(7,gjp.getNum_graphs()-1,false);
+			gjp.setColor(Color.black,gjp.getNum_graphs()-1,false);
 			
 			//setting diffLine
 			gjp.setData(differenceLine.getXArray(),differenceLine.getYArray(),gjp.getNum_graphs(),false);
-			gjp.setColor(Color.lightGray,gjp.getNum_graphs()-1,false);
-			gjp.setStroke(7,gjp.getNum_graphs()-1,false);
+			gjp.setColor(Color.black,gjp.getNum_graphs()-1,false);
 		}
 		else
 		{
