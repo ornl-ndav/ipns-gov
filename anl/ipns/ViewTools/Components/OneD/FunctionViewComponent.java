@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.86  2006/07/14 21:42:15  amoe
+ *  Changed GraphJPanel gjp border color to black.
+ *
  *  Revision 1.85  2006/07/11 16:22:33  dennis
  *  Now does update of Axis info in dataChanged(). (Jim Kohl)
  *
@@ -457,7 +460,7 @@ public class FunctionViewComponent implements IViewComponent1D,
        gjp.setData( x, y, i, false );     
     }
     gjp.setBackground( Color.white );
-    gjp.setBorder(new LineBorder(Color.gray));
+    gjp.setBorder(new LineBorder(Color.black));
     
 /*    // set initial line styles
     if( varr.getNumSelectedGraphs(  ) > 1 ) {
