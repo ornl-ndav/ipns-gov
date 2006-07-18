@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.53  2006/07/18 21:37:05  amoe
+ *  Made the minimum space in between number labels bigger.  This is
+ *  located in paintLinearX(..) .
+ *
  *  Revision 1.52  2005/12/09 18:35:13  dennis
  *  Completed work with tick mark options.  (Andrew Moe)
  *  Ticks marks can now be pointing inward or outward, on
@@ -1007,7 +1011,7 @@ public class AxisOverlay2D extends OverlayJPanel
       exp_index = num.lastIndexOf('E');        
 
       // determine a nice spacing for the labels.
-      if( (prepix + 2 + 
+      if( (prepix + 25 + 
            fontdata.stringWidth(num.substring(0,exp_index))/2) >
           (pixel - fontdata.stringWidth(num.substring(0,exp_index))/2) )
       {
