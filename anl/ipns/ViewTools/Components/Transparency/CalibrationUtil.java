@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2006/07/18 21:56:25  amoe
+ *  Fixed javadoc typo.
+ *
  *  Revision 1.12  2005/10/14 15:16:02  dennis
  *    "Fixed" a bug in the subDivide(), that caused an infinite loop
  *  when a very small interval was subdivided.  (Eg. an interval from
@@ -614,7 +617,7 @@ public class CalibrationUtil
   * the bound.  These sets are:
   * 1*10^x, 2*10^x, 5*10^x, 1.2*10^x, 1.5*10^x
   *
-  *  @return  the Greates Lower bound.
+  *  @return  the Greatest Lower bound.
   */
   public float greatestLowerBound()
   {
