@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.87  2006/07/18 21:57:32  amoe
+ *  Changed default precision from 4 to 6.
+ *
  *  Revision 1.86  2006/07/14 21:42:15  amoe
  *  Changed GraphJPanel gjp border color to black.
  *
@@ -446,7 +449,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   public FunctionViewComponent( IVirtualArrayList1D varr ) {
 
     Varray1D    = varr;  // Get reference to varr
-    precision   = 4;
+    precision   = 6;
     font        = FontUtil.LABEL_FONT2;
     gjp         = new GraphJPanel(  );
    
