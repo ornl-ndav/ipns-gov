@@ -30,6 +30,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2006/07/18 21:32:36  amoe
+ *  Fixed code in round(..) that caused incorrect rounding.  When
+ *  dividing "num" by ten, num could end up slightly lower than desired:
+ *  (i.e.  999.75 / 10.0f = 9.997499999999999 )  So, when "num" is
+ *  eventually rounded, it will be rounded down instead of up. "Num" is
+ *  now multiplied by 0.1 .
+ *
  *  Revision 1.13  2004/03/11 23:00:11  rmikk
  *  Added the correct package name to all java files
  *
@@ -212,7 +219,7 @@ public class Format
       // figure out the degree of num
       while ( Math.abs(num) >= 10.0 )
       { 
-	 num = num / 10.0f;
+	 num = num * 0.1f;
 	 numex = numex + 1;
       }
       while ( Math.abs(num) < 1.0 && num != 0 )
