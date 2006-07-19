@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.88  2006/07/19 17:39:03  dennis
+ *  Changed get/setPointedAt() methods to work with floatPoint2D,
+ *  rather than java.awt.Point.  This change is needed so that
+ *  the 1D view component deals with the PointedAt concept in
+ *  the same coordinate system as the other view components.
+ *
  *  Revision 1.87  2006/07/18 21:57:32  amoe
  *  Changed default precision from 4 to 6.
  *
@@ -956,16 +962,12 @@ public class FunctionViewComponent implements IViewComponent1D,
    *
    *  @param  pt
    */
-  public void setPointedAt( Point pt ) {
+  public void setPointedAt( floatPoint2D pt ) {
     //System.out.println( "Entering: void setPointedAt( Point pt )" );
     //System.out.println( "X value = " + pt.getX(  ) );
     //System.out.println( "Y value = " + pt.getY(  ) );
-
-    //Type cast Point pt  into  floatPoint2D fpt
-    floatPoint2D fpt = new floatPoint2D( ( float )pt.x, ( float )pt.y );
-
     //set the cursor position on GraphJPanel
-    gjp.setCurrent_WC_point( fpt );
+    gjp.setCurrent_WC_point( pt );
 
     //System.out.println( "" );
   }
@@ -997,9 +999,11 @@ public class FunctionViewComponent implements IViewComponent1D,
   
 
   /**
-   * This method takes in a new array of data and redraws the graph accordingly.
+   * This method changes the array of data being displayed and 
+   * updates the display accordingly.
    * 
-   * @param pin_varr The IVirtual array containing data for producing the graph(s).
+   * @param pin_varr The IVirtualArrayList1D containing the new data. 
+   * 
    */
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
   {
@@ -1166,14 +1170,12 @@ public class FunctionViewComponent implements IViewComponent1D,
   /*
    *  Gets the current point
    */
-  public Point getPointedAt(  ) {
+  public floatPoint2D getPointedAt(  ) {
     floatPoint2D fpt = new floatPoint2D(  );
 
     fpt = gjp.getCurrent_WC_point(  );
 
-    Point pt = new Point( ( int )fpt.x, ( int )fpt.y );
-
-    return pt;
+     return fpt;
   }
 
  
