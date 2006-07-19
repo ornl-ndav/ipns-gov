@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.7  2006/07/19 18:14:38  rmikk
+ * Set the contour levels to uniform  between min and max with 10 steps
+ *
  * Revision 1.6  2005/10/07 21:32:36  kramer
+ *
  * Added javadoc comments for every field, constructor, method, inner class,
  * etc. in this class.
  *
@@ -338,16 +342,44 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
     */
    public ContourViewComponent(IVirtualArray2D arr)
    {
-      this(arr, 
-           new ContourJPanel(arr, 
-                             ContourControlHandler.DEFAULT_LOWEST_CONTOUR, 
-                             ContourControlHandler.DEFAULT_HIGHEST_CONTOUR, 
-                             ContourControlHandler.DEFAULT_NUM_CONTOURS), 
-           false, //don't display the manual levels (display the uniform ones)
-           false);//don't use a colorscale for coloring the contour lines 
-                  //(use the default solid color)
+      //uniform levels from min to max in 10 steps
+      // defaults used for all others
+      this(arr, new ContourJPanel(arr,getMin(arr),getMax(arr),10),false, false);
+      
    }
    
+   static float min=Float.NaN, 
+               max=Float.NaN;
+   private static float getMin( IVirtualArray2D arr){
+      if( Float.isNaN(min))
+         getExtrema( arr);
+      return min;
+   }
+   
+   private static float getMax( IVirtualArray2D arr){
+      if( Float.isNaN(min))
+         getExtrema( arr );
+      return max;
+   }
+   
+   private static void getExtrema( IVirtualArray2D arr){
+      min = Float.MAX_VALUE;
+      max = Float.MIN_VALUE;
+      int nrows = arr.getNumRows();
+      int ncols = arr.getNumColumns();
+      int dr = Math.max( 1, nrows/100);
+      int dc = Math.max( 1, ncols/100);
+      for( int r = 0; r< nrows; r +=dr)
+         for( int c = 0; c < ncols; c+=dc){
+            float v = arr.getDataValue( r,c);
+            if( v < min)
+               min = v;
+            if( v > max)
+               max = v;
+         }
+            
+      
+   }
    /*
    public ContourViewComponent(IVirtualArray2D arr, 
                                float minValue, float maxValue, int numLevels)
