@@ -36,6 +36,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/07/19 18:07:43  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.5  2005/08/04 22:36:43  cjones
  *  Updated documentation and comment header.
  *
@@ -70,12 +73,8 @@ import gov.anl.ipns.MathTools.Geometry.Vector3D;
 import SSG_Tools.Viewers.*;
 import SSG_Tools.Cameras.*;
 
-import SSG_Tools.Appearance.*;
-import SSG_Tools.SSG_Nodes.*;
-import SSG_Tools.SSG_Nodes.Shapes.*;
 import SSG_Tools.SSG_Nodes.SimpleShapes.SimpleShape;
 import SSG_Tools.SSG_Nodes.Groups.*;
-import SSG_Tools.SSG_Nodes.Groups.Transforms.*;
 
 import gov.anl.ipns.ViewTools.Components.IPhysicalArray3D;
 import gov.anl.ipns.ViewTools.Components.PhysicalArray3D;

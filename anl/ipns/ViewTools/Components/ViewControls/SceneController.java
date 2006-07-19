@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2006/07/19 18:07:44  dennis
+ * Removed unused imports.
+ *
  * Revision 1.3  2005/07/22 21:43:00  cjones
  * Added functionality for Orthographic Checkbox
  *
@@ -47,7 +50,6 @@ package gov.anl.ipns.ViewTools.Components.ViewControls;
 import java.io.*;
 
 import gov.anl.ipns.MathTools.Geometry.*;
-import gov.anl.ipns.ViewTools.UI.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 
 /**
