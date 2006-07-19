@@ -33,6 +33,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2006/07/19 17:33:39  dennis
+ *  Changed get/setPointedAt() methods to work with floatPoint2D,
+ *  rather than java.awt.Point.  This change is needed so that
+ *  the 1D view component deals with the PointedAt concept in
+ *  the same coordinate system as the other view components.
+ *  Also, added dataChanged( IVirtualArray1DList ) to this
+ *  interface.  It was present in implementing classes, but
+ *  should be in the interface, so that different implementing
+ *  classes could be used polymorphically.
+ *
  *  Revision 1.7  2004/03/15 23:53:51  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
@@ -47,25 +57,39 @@
  
 package gov.anl.ipns.ViewTools.Components.OneD;
 
-import java.awt.*;
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.IViewComponent;
+import gov.anl.ipns.ViewTools.Components.IVirtualArrayList1D;
 
 /**
+ * This interface extends IViewComponent to the specific case of classes
+ * that display lists of functions.
  * Any class that implements this interface will interpret and display
  * data in a usable form. Examples include images, tables, and graphs.
  */
 public interface IViewComponent1D extends IViewComponent
 {
   /**
-   * This method is a notification to the view component that the selected
-   * point has changed.
+   * This method changes the array of data being displayed and 
+   * updates the display accordingly.
+   * 
+   * @param pin_varr The IVirtualArrayList1D containing the new data. 
+   */
+  public void dataChanged( IVirtualArrayList1D pin_varray );
+	
+  /**
+   * This method can be called by other classes to specify a position
+   * in "world coordinates" as the currently pointed at location.
+   * 
+   * @param pt  The "world coordinates" of the point being specified as
+   *            the pointed at location.
    */ 
-   public void setPointedAt( Point pt );
+   public void setPointedAt( floatPoint2D pt );
   
   /**
-   *  Returns the point in World coords that is being pointed at.
+   *  Returns the point in "world coordinates" of the point that 
+   *  is being pointed at in this viewer.
    */ 
-   public Point getPointedAt( );
+   public floatPoint2D getPointedAt( );
   
 }
-
