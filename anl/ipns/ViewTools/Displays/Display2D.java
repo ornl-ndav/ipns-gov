@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2006/07/19 18:15:40  rmikk
+ * Added the contour View as one of the choices
+ *
  * Revision 1.12  2005/06/20 14:41:13  dennis
  * Turned of "Preserve Aspect Ratio" by default.
  *
@@ -116,7 +119,7 @@ import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
 import gov.anl.ipns.Util.Sys.SaveImageActionListener;
-
+import gov.anl.ipns.ViewTools.Components.TwoD.Contour.*;
 /**
  * Simple class to display an 2-dimensional array of data, specified by an
  * IVirtualArray2D. Two common views for this display are as an image and
@@ -169,6 +172,12 @@ public class Display2D extends Display
   * 1 - Use this int to specify display using the TableViewComponent.
   */
   public static final int TABLE = 1;
+  
+
+  /**
+   * 1 - Use this int to specify display using the ContourViewComponent.
+   */
+   public static final int CONTOUR = 2;
   
   // many of the variables are protected in the Display base class
   private static JFrame helper = null;
@@ -410,6 +419,11 @@ public class Display2D extends Display
       if( colorscale != null )
         ((TableViewComponent)ivc).setThumbnailColorScale(colorscale);
     }
+    
+    if( current_view == CONTOUR){
+       ivc =  new  ContourViewComponent(  (IVirtualArray2D)data );
+    }
+    
     ivc.addActionListener( new ViewCompListener() );    
     
     //Box componentholder = new Box(BoxLayout.Y_AXIS);
@@ -463,6 +477,8 @@ public class Display2D extends Display
       switch_view.add("Image");
       option_listeners.add( new Menu2DListener() ); // listener for user prefs
       switch_view.add("Table");
+      option_listeners.add( new Menu2DListener() ); // listener for user prefs
+      switch_view.add("Contour");
       option_listeners.add( new Menu2DListener() ); // listener for user prefs
     
     // build help menu
@@ -603,6 +619,22 @@ public class Display2D extends Display
 	  // Rebuild the display with a table.
 	  buildPane();
 	}
+      }
+      //Called when user select Contour vies
+      
+      else if( ae.getActionCommand().equals( "Contour")){
+         if( current_view == CONTOUR )
+            return;
+         current_view = CONTOUR;
+         removeComponentMenuItems();
+         saveColorScale();
+        // Disable the "Print Image" and "Make JPEG Image" menu items.
+         JMenu file_menu = menu_bar.getMenu(0);
+         file_menu.getItem(2).setEnabled(false);
+         file_menu.getItem(3).setEnabled(false);
+         // Rebuild the display with a table.
+         buildPane();
+         
       }
       // Called when user selects "Print Image" menu item, only enabled if
       // view is Image.
