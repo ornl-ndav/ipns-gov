@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2006/07/20 13:36:43  dennis
+ * Added method cross(v) to take cross product of the current
+ * vector with another vector, v.
+ * Added method linear_combination() to set this vector to
+ * a linear combination of a specified list of vectors, using
+ * a specified list of coefficients.
+ *
  * Revision 1.13  2004/07/23 13:04:42  dennis
  * Added method getCopy() to  get a copy of the array of values defining
  * this vector.  (The get() method gets a reference to the array.)
@@ -93,6 +100,7 @@ public class Vector3D
    */
   public Vector3D()
   {
+     // Default constructor starts with the zero vector.
   }
 
   /*------------------------ copy constructor ---------------------------*/
@@ -354,7 +362,7 @@ public class Vector3D
 
   /*------------------------------- average -------------------------------*/
   /**
-   *  Set the vector to the average of the vectors in the given list of
+   *  Set this vector to the average of the vectors in the given list of
    *  vectors.
    *
    *  @param  list  the list of vectors to be averaged.
@@ -382,6 +390,40 @@ public class Vector3D
      v[0] = (float)(x/list.length);
      v[1] = (float)(y/list.length);
      v[2] = (float)(z/list.length);
+  }
+
+  /*------------------------ linear_combination -------------------------*/
+  /**
+   *  Set this vector to the linear combination c0*V0 + c1*V1 +...+ cn*Vn
+   *  of the specified coefficients c0,c1,...,cn and the specified vectors 
+   *  V1,V2,...,Vn.
+   *
+   *  @param  coeff    The list of coeficients, c0,c1,...,cn.  The array
+   *                   of coeficients must be of the same length as the
+   *                   the array of vectors.
+   *  @param  vectors  The list of vectors, V0,V1,...,Vn, to be combined.
+   *                   The array of vectors must be of the same length as
+   *                   the array of coefficients.
+   */
+  public void linear_combination( float coeff[], Vector3D vectors[] )
+  {
+    if ( coeff == null || vectors == null )
+    {
+      System.out.println("ERROR: null array in linear combination: " + 
+                          coeff + "," + vectors );
+      return;
+    }
+
+    int n_to_combine = Math.min( coeff.length, vectors.length );
+
+    set( 0, 0, 0);
+    Vector3D temp = new Vector3D();
+    for ( int i = 0; i < n_to_combine; i++ )
+    {
+      temp.set( vectors[i] );
+      temp.multiply( coeff[i] );
+      add( temp );
+    }
   }
 
   /*--------------------------- standardize ------------------------------*/
@@ -457,6 +499,28 @@ public class Vector3D
   public float dot( Vector3D vector )
   {
      return ( v[0] * vector.v[0] +  v[1] * vector.v[1] +  v[2] * vector.v[2] );
+  }
+
+/*------------------------------- cross ---------------------------------*/
+  /**
+   *  Set the current vector to the cross product of itself with the
+   *  given vector.  'This' is set to ( this "cross" v ).  It is assumed 
+   *  that the 4th component of vectors 'this' vector and v is 1.
+   *
+   *  @param  v  the second vector factor in the cross product
+   *
+   */
+  public void cross( Vector3D vec_2 )
+  {                                              // use temporaries for v0...v2
+                                                 // in case v1 or v2 == this
+     float t0 =  v[1] * vec_2.v[2]  -  v[2] * vec_2.v[1];
+     float t1 = -v[0] * vec_2.v[2]  +  v[2] * vec_2.v[0];
+     float t2 =  v[0] * vec_2.v[1]  -  v[1] * vec_2.v[0];
+
+     v[0] = t0;
+     v[1] = t1;
+     v[2] = t2;
+     v[3] = 1.0f;
   }
 
   /*------------------------------- cross ---------------------------------*/
