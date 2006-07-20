@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/07/20 23:43:31  amoe
+ *  Fixed NullPointedException problem when buildShiftDiffGraph() would
+ *  try to build a shifted difference graph with a null error list.
+ *
  *  Revision 1.5  2006/07/14 21:51:48  amoe
  *  Changed both zeroLine and differenceLine to be black and solid lines
  *
@@ -620,14 +624,30 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    //calculating shift amount, now that min/maxs are now known
 		    shift = (float)(Math.abs(diffGraphMax-selectedGraphMin) + .1*(selectedGraphMax-selectedGraphMin));
 		    
-		    //setting shifted diff Graph
-		    for(int i=0;i<y2Shifted.length;i++)
+		    //if there is no error list, it won't be included in the ShiftedDiffGraph
+		    if(e2 != null)
 		    {
-		    	y2Shifted[i] = y2[i] - shift;
-		    	e2Shifted[i] = e2[i] - shift; 
+		    	//setting shifted diff Graph
+		    	for(int i=0;i<y2Shifted.length;i++)
+		    	{
+		    		y2Shifted[i] = y2[i] - shift;
+		    		e2Shifted[i] = e2[i] - shift; 
+		    	}
+		    	
+		    	shiftedDiffGraph = new DataArray1D(differenceGraph.getXArray(),y2Shifted,e2Shifted,
+			    		"Difference: "+graphZeroTitle+"-"+graphOneTitle,true,false);
 		    }
-		    shiftedDiffGraph = new DataArray1D(differenceGraph.getXArray(),y2Shifted,e2Shifted,
-		    		"Difference: "+graphZeroTitle+"-"+graphOneTitle,true,false);
+		    else
+		    {
+		    	//setting shifted diff Graph
+		    	for(int i=0;i<y2Shifted.length;i++)
+		    	{
+		    		y2Shifted[i] = y2[i] - shift; 
+		    	}
+		    	
+		    	shiftedDiffGraph = new DataArray1D(differenceGraph.getXArray(),y2Shifted,null,
+			    		"Difference: "+graphZeroTitle+"-"+graphOneTitle,true,false);
+		    }
 	
 		    //zero line
 		    for(int i=0;i<zLine.length;i++)
