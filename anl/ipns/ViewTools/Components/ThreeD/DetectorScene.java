@@ -36,6 +36,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/07/21 14:32:26  dennis
+ *  Now explicitly disables lighting, to work with the updated JoglPanel.
+ *  Cleaned up some formatting problems caused by tabs.
+ *
  *  Revision 1.6  2006/07/19 18:07:43  dennis
  *  Removed unused imports.
  *
@@ -54,8 +58,8 @@
  *
  *  Revision 1.2  2005/07/22 19:45:09  cjones
  *  Separated 3D components into one base object and two functional objects,
- *  one for data with frames and one for data without frames. Also, added features
- *  and tweaked functionality.
+ *  one for data with frames and one for data without frames. Also, added 
+ *  features and tweaked functionality.
  *
  *  Revision 1.1  2005/07/19 15:56:34  cjones
  *  Added components for Display3D.
@@ -196,10 +200,10 @@ public class DetectorScene extends DetectorSceneBase
    */
   public static void main( String args[] )
   {  
-  	int detectorsize = 100;
-  	int numdetectors = 2;
+    int detectorsize = 100;
+    int numdetectors = 2;
   	
-  	IPhysicalArray3D[] data = new IPhysicalArray3D[numdetectors];
+    IPhysicalArray3D[] data = new IPhysicalArray3D[numdetectors];
 
     // Create 2 square panels
     // PANEL 1
@@ -208,11 +212,11 @@ public class DetectorScene extends DetectorSceneBase
       for(int j = 0; j < 10; j++)
       {
       	data[0].set(i*10+j, // Index
-      			  new Vector3D(i*50, j*50, 700), // 3D Coordinates
-                  new Vector3D(11, 13, 12),  // Box volume
-                  new Vector3D(1, 0, 0), // Orientation (X-Axis)
-				  new Vector3D(0, 1, 0), // Orientation (Y-Axis)
-				  j*30+i*10-150); // Value
+                    new Vector3D(i*50, j*50, 700), // 3D Coordinates
+                    new Vector3D(11, 13, 12),      // Box volume
+                    new Vector3D(1, 0, 0),         // Orientation (X-Axis)
+                    new Vector3D(0, 1, 0),         // Orientation (Y-Axis)
+                    j*30+i*10-150);                // Value
       }
   	data[0].setArrayID(0);  // Panel ID
     
@@ -222,11 +226,11 @@ public class DetectorScene extends DetectorSceneBase
       for(int j = 0; j < 10; j++)
       {
         data[1].set(i*10+j, // Index
-			      new Vector3D(i*50, j*50, -200), // 3D Coordinates
-                  new Vector3D(9, 10, 9), // Box Volume
-                  new Vector3D(4, 0, -2), // Orientation (X-Axis)
-				  new Vector3D(1, 1, 2),  // Orientation (Y-Axis)
-				  j*30+i*10+750); // Value
+                    new Vector3D(i*50, j*50, -200), // 3D Coordinates
+                    new Vector3D(9, 10, 9),         // Box Volume
+                    new Vector3D(4, 0, -2),         // Orientation (X-Axis)
+                    new Vector3D(1, 1, 2),          // Orientation (Y-Axis)
+                    j*30+i*10+750);                 // Value
       }
     data[1].setArrayID(1); // Panel ID
   
@@ -240,8 +244,8 @@ public class DetectorScene extends DetectorSceneBase
     demo.setCamera( scene.makeCamera() );
     
     demo.getDisplayComponent().addMouseListener( new PixelBoxPicker( demo ));
-    demo.enableLighting( true );
-    demo.enableHeadlight( true );
+    demo.enableLighting( false );
+//  demo.enableHeadlight( true ); // headlight not needed if lighting is off
   
     // Make Controller to move scene
     final gov.anl.ipns.ViewTools.Components.ViewControls.AltAzController
@@ -284,8 +288,7 @@ public class DetectorScene extends DetectorSceneBase
     frame.getContentPane().add( test );
     frame.getContentPane().add( controller );
     frame.setVisible(true);
-    
-    frame.show();
   }
 
 }
+
