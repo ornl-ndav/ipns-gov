@@ -36,6 +36,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.2  2006/07/21 14:40:42  dennis
+ *  Cleaned up some formatting problems caused by tabs.
+ *
  *  Revision 1.1  2005/08/04 22:33:17  cjones
  *  ViewComponent3D now uses SelectedListItem to convert string items into
  *  int arrays and vice versa. SelectedListItem uses IntList to (de)construct
@@ -83,8 +86,8 @@ public class SelectedListItem
    */
   public SelectedListItem( String det_string, String pix_string )
   {
-  	detector_array = IntList.ToArray(det_string);
-  	pixel_array = IntList.ToArray(pix_string);
+    detector_array = IntList.ToArray(det_string);
+    pixel_array = IntList.ToArray(pix_string);
   }
   
   /**
@@ -99,8 +102,8 @@ public class SelectedListItem
    */
   public SelectedListItem( int[] det_array, int[] pix_array )
   {
-  	detector_array = det_array;
-  	pixel_array = pix_array;
+    detector_array = det_array;
+    pixel_array = pix_array;
   }
     
  /**
@@ -110,15 +113,13 @@ public class SelectedListItem
   */
   public int[] getPixelArray()
   {
-	int[] pix_copy = null;
-	
-	if(pixel_array.length > 0)
-	{
-	  pix_copy = new int[pixel_array.length];
-  	  System.arraycopy(pixel_array, 0, 
-  	  		           pix_copy, 0, 
-					   pixel_array.length);
-	}
+    int[] pix_copy = null;
+
+    if(pixel_array.length > 0)
+    {
+      pix_copy = new int[pixel_array.length];
+      System.arraycopy(pixel_array, 0, pix_copy, 0, pixel_array.length);
+    }
   	
     return pix_copy;
   }
@@ -145,15 +146,13 @@ public class SelectedListItem
   */
   public int[] getDetectorArray()
   {
-	int[] det_copy = null;
-	
-	if(detector_array.length > 0)
-	{
-	  det_copy = new int[detector_array.length];
-  	  System.arraycopy(detector_array, 0, 
-  	  		           det_copy, 0, 
-  	  		       detector_array.length);
-	}
+    int[] det_copy = null;
+
+    if(detector_array.length > 0)
+    {
+      det_copy = new int[detector_array.length];
+      System.arraycopy(detector_array, 0, det_copy, 0, detector_array.length);
+    }
   	
     return det_copy;
   }
@@ -185,6 +184,6 @@ public class SelectedListItem
   public String toString()
   {
     return new String( "Det " + getDetectorString() +
-    		         " Pix " + getPixelString() );
+                       " Pix " + getPixelString() );
   }
 }
