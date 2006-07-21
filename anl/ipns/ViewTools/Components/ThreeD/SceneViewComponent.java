@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/07/21 14:12:29  dennis
+ *  Now explicitly disables lighting, to work with the updated JoglPanel.
+ *  Cleaned up some formatting problems caused by tabs.
+ *
  *  Revision 1.6  2005/08/04 22:36:47  cjones
  *  Updated documentation and comment header.
  *
@@ -60,8 +64,8 @@
  *
  *  Revision 1.2  2005/07/22 19:45:13  cjones
  *  Separated 3D components into one base object and two functional objects,
- *  one for data with frames and one for data without frames. Also, added features
- *  and tweaked functionality.
+ *  one for data with frames and one for data without frames. Also, added 
+ *  features and tweaked functionality.
  *
  *  Revision 1.1  2005/07/19 15:56:38  cjones
  *  Added components for Display3D.
@@ -80,7 +84,8 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 /**
  * This object displays data in a three dimensional viewer. Data is given as an 
  * array of IPhysicalArray3D objects. Each data point has one associated value,
- * which is used to color the point using a log scaled color model. The positions,
+ * which is used to color the point using a log scaled color model. The 
+ * positions,
  * extents, and orientations give each point its place and shape in space. The
  * user may select three different shapes: a box, a rectangle, or a dot.  The
  * box gives the most accurate representation of the data, but it may exhibit
@@ -88,15 +93,16 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.*;
  * performance but are less accurate to the true representation of the 
  * detectors.
  * 
- * Several controls allow the user to adjust the camera, change the pixel colors,
+ * Several controls allow the user to adjust the camera, change the pixel 
+ * colors,
  * change the background color, see output from mouse clicks, and a list of
  * selected pixels.
  * 
  * On the selected pixel list, the proper input is to first put the 
  * detector ids that were assigned to the particular data array and 
  * then the pixel indices within that array.  To include multiple ids
- * on a line use a comma (',') to seperate individual nonconsecutive ids and use
- * a colon (':') to specifiy a range of ids.
+ * on a line use a comma (',') to seperate individual nonconsecutive ids and
+ * use a colon (':') to specifiy a range of ids.
  * Examples: 4 6
  *           4 5,8
  *           4 5,7,9:11
@@ -116,7 +122,7 @@ public class SceneViewComponent extends ViewComponent3D
    */
   public SceneViewComponent( IPhysicalArray3D[] arrays )
   {
-  	super(arrays);
+    super(arrays);
 
     dataChanged(arrays);
     buildControls();
@@ -131,11 +137,11 @@ public class SceneViewComponent extends ViewComponent3D
   */ 
   public void ColorAndDraw()
   {
-  	if(varrays != null && joglpane != null)
-  	{
-  	  ((DetectorScene)joglpane.getScene()).applyColor(colormodel);
-  	  joglpane.Draw();
-  	}
+    if(varrays != null && joglpane != null)
+    {
+      ((DetectorScene)joglpane.getScene()).applyColor(colormodel);
+      joglpane.Draw();
+    }
   }
   
  /**
@@ -145,8 +151,8 @@ public class SceneViewComponent extends ViewComponent3D
   */
   public void changeShape()
   {
-  	// The currentShapeType is set by the menu handler in ViewComponent3D
-  	((DetectorScene)joglpane.getScene()).changeShape(currentShapeType);
+    // The currentShapeType is set by the menu handler in ViewComponent3D
+    ((DetectorScene)joglpane.getScene()).changeShape(currentShapeType);
   }
    
  /**
@@ -170,13 +176,13 @@ public class SceneViewComponent extends ViewComponent3D
   */ 
   public void dataChanged(IPointList3D[] arrays)
   { 
-  	// Clean up jogl pane if needed.
-  	if(joglpane != null)
-  	{
-  	  joglpane.setScene(null);
-  	  joglpane.setCamera(null);
+    // Clean up jogl pane if needed.
+    if(joglpane != null)
+    {
+      joglpane.setScene(null);
+      joglpane.setCamera(null);
       joglpane = null;
-  	}
+    }
    
     // Make sure data is valid. 
     if( arrays == null )
@@ -194,10 +200,11 @@ public class SceneViewComponent extends ViewComponent3D
     
     // Create scene and place in rendering panel
     DetectorScene scene = new DetectorScene( (IPhysicalArray3D[])varrays, 
-    		                                  currentShapeType );
+                                              currentShapeType );
     
     joglpane = new JoglPanel( scene );
-    
+    joglpane.enableLighting( false );
+ 
     joglpane.setCamera( scene.makeCamera() );
     
     // This listener handles selections and picks
@@ -227,32 +234,31 @@ public class SceneViewComponent extends ViewComponent3D
   */
   private void buildControls()
   {
-      controls = new ViewControl[8]; 
+    controls = new ViewControl[8]; 
       
-      // Control that adjusts the color intensity
-      controls[0] = createIntensityControl();
+    // Control that adjusts the color intensity
+    controls[0] = createIntensityControl();
       
-      // Control that displays uncalibrated color scale
-      controls[1] = createColorScaleControl();
+    // Control that displays uncalibrated color scale
+    controls[1] = createColorScaleControl();
       
-      // Background color
-      controls[2] = createBackgroundControl();
+    // Background color
+    controls[2] = createBackgroundControl();
       
-      // Control that handles camera position
-      controls[3] = createCamControl();
+    // Control that handles camera position
+    controls[3] = createCamControl();
       
-      // Control that handles turning on/off MouseArcBall
-      controls[4] = createArcBallControl();
+    // Control that handles turning on/off MouseArcBall
+    controls[4] = createArcBallControl();
       
-      // Picked point
-      controls[5] = createPointOutputControl();
+    // Picked point
+    controls[5] = createPointOutputControl();
       
-      // Picked pixel and detector
-      controls[6] = createIDOutputControl();
+    // Picked pixel and detector
+    controls[6] = createIDOutputControl();
       
-      // All selected pixel and detector
-      controls[7] = createSelectedListControl();
-      
+    // All selected pixel and detector
+    controls[7] = createSelectedListControl();
   }
   
   /*
@@ -262,7 +268,7 @@ public class SceneViewComponent extends ViewComponent3D
    */
   protected void buildMenu()
   {
-  	super.buildMenu();
+    super.buildMenu();
   	
     menus[3].getItem().setVisible(false);
   }
@@ -274,12 +280,12 @@ public class SceneViewComponent extends ViewComponent3D
   */
   private void findDataRange()
   {
-  	if(varrays == null)
-  		return;
+    if(varrays == null)
+      return;
   	
-  	float max = Float.NEGATIVE_INFINITY;
-  	float min = Float.POSITIVE_INFINITY;
-  	float value = 0;
+    float max = Float.NEGATIVE_INFINITY;
+    float min = Float.POSITIVE_INFINITY;
+    float value = 0;
   	
     for(int arr = 0; arr < varrays.length; arr++)
     {
@@ -297,3 +303,4 @@ public class SceneViewComponent extends ViewComponent3D
     min_value = min;
   }
 }
+

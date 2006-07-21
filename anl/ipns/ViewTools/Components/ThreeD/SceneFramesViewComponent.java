@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/07/21 14:15:11  dennis
+ *  Now explicitly disables lighting, to work with the updated JoglPanel.
+ *  Cleaned up some formatting problems caused by tabs.
+ *
  *  Revision 1.5  2005/08/04 22:36:46  cjones
  *  Updated documentation and comment header.
  *
@@ -60,9 +64,8 @@
  *
  *  Revision 1.1  2005/07/22 19:45:13  cjones
  *  Separated 3D components into one base object and two functional objects,
- *  one for data with frames and one for data without frames. Also, added features
- *  and tweaked functionality.
- *
+ *  one for data with frames and one for data without frames. Also, added 
+ *  features and tweaked functionality.
  *
  */
  
@@ -79,24 +82,27 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.FrameController;
 
 /**
  * This object displays data in a three dimensional viewer. Data is given as an 
- * array of IPhysicalArray3DList objects. Each data point has a list of associated
- * values, which are used to color the point using a log scaled color model. The 
- * positions, extents, and orientations give each point its place and shape in space. 
- * The user may select three different shapes: a box, a rectangle, or a dot.  The
+ * array of IPhysicalArray3DList objects. Each data point has a list of 
+ * associated values,
+ * which are used to color the point using a log scaled color model. The 
+ * positions, extents, and orientations give each point its place and shape 
+ * in space.  The user
+ * may select three different shapes: a box, a rectangle, or a dot.  The
  * box gives the most accurate representation of the data, but it may exhibit
  * low frame rendering with large datasets. The other two shapes can increase
  * performance but are less accurate to the true representation of the 
  * detectors.
  * 
- * Several controls allow the user to adjust the camera, change the pixel colors,
- * change the background color, change frames, see output from mouse clicks, and
+ * Several controls allow the user to adjust the camera, change the pixel 
+ * colors, change
+ * the background color, change frames, see output from mouse clicks, and
  * a list of selected pixels.
  * 
  * On the selected pixel list, the proper input is to first put the 
  * detector ids that were assigned to the particular data array and 
  * then the pixel indices within that array.  To include multiple ids
- * on a line use a comma (',') to seperate individual nonconsecutive ids and use
- * a colon (':') to specifiy a range of ids.
+ * on a line use a comma (',') to seperate individual nonconsecutive ids and
+ * use a colon (':') to specifiy a range of ids.
  * Examples: 4 6
  *           4 5,8
  *           4 5,7,9:11
@@ -116,7 +122,7 @@ public class SceneFramesViewComponent extends ViewComponent3D
    */
   public SceneFramesViewComponent( IPhysicalArray3DList[] arrays )
   {
-  	super(arrays);
+    super(arrays);
 
     dataChanged(arrays);
     buildControls();
@@ -131,39 +137,41 @@ public class SceneFramesViewComponent extends ViewComponent3D
   */ 
   public void ColorAndDraw()
   {
-  	if(varrays != null && joglpane != null)
-  	{  	  
-      // First find the current frame number to access data.
-  	  // If the controls are null, assume first frame
-  	  int frame = 0;
-  	  if(controls != null)
-  	  	frame = ((FrameController)getControl(FRAME_CONTROL_NAME)).getFrameNumber();
-  	  		
-  	  ((DetectorSceneFrames)joglpane.getScene()).applyColor(frame, colormodel);
-  	  joglpane.Draw();
-  	  
-  	  // Since the frame has changed, the value of the currently picked point will
-  	  // need to be changed.
-  	  if(controls != null)
-  	  {
-  	  	int detectorid = (int)((CursorOutputControl)getControl(ID_OUTPUT_NAME)).getValue(0);
-  	  	int pixelid = (int)((CursorOutputControl)getControl(ID_OUTPUT_NAME)).getValue(1);
-  	  	float value = 0;
-  	    
-  	  	// Find the first occurence of the picked detector id and retrieve the value for
-  	  	// the picked pixel.
-  	  	for(int i = 0; i < varrays.length; i ++)
-  	  	  if(varrays[i] != null && ((IPhysicalArray3DList)varrays[i]).getArrayID() == detectorid)
-  	  	  {
-  	  	    value = ((IPhysicalArray3DList)varrays[i]).getValue(pixelid, frame);
-  	  	    break;
-  	  	  }
-  	  	  
-  	  	// This sets the new value to be displayed on the control panel.
-  	  	setPixelValueOutput(value);
-  	  	  	
-  	  }
-  	}
+  if(varrays != null && joglpane != null)
+  {  	  
+    // First find the current frame number to access data.
+    // If the controls are null, assume first frame
+    int frame = 0;
+    if(controls != null)
+      frame =((FrameController)getControl(FRAME_CONTROL_NAME)).getFrameNumber();
+    		
+    ((DetectorSceneFrames)joglpane.getScene()).applyColor(frame, colormodel);
+    joglpane.Draw();
+    
+    // Since the frame has changed, the value of the currently picked point will
+    // need to be changed.
+    if(controls != null)
+    {
+      int detectorid =
+            (int)((CursorOutputControl)getControl(ID_OUTPUT_NAME)).getValue(0);
+
+      int pixelid = 
+            (int)((CursorOutputControl)getControl(ID_OUTPUT_NAME)).getValue(1);
+      float value = 0;
+      
+     // Find the first occurence of the picked detector id and retrieve 
+     // the value for the picked pixel.
+     for(int i = 0; i < varrays.length; i ++)
+      if (  varrays[i] != null && 
+          ((IPhysicalArray3DList)varrays[i]).getArrayID() == detectorid )
+      {
+        value = ((IPhysicalArray3DList)varrays[i]).getValue(pixelid, frame);
+        break;
+      }
+      // This sets the new value to be displayed on the control panel.
+      setPixelValueOutput(value);
+    }
+   }
   }
   
  /**
@@ -173,8 +181,8 @@ public class SceneFramesViewComponent extends ViewComponent3D
   */
   public void changeShape()
   {
-  	// The currentShapeType is set by the menu handler in ViewComponent3D
-  	((DetectorSceneFrames)joglpane.getScene()).changeShape(currentShapeType);
+    // The currentShapeType is set by the menu handler in ViewComponent3D
+    ((DetectorSceneFrames)joglpane.getScene()).changeShape(currentShapeType);
   }
    
  /**
@@ -198,13 +206,13 @@ public class SceneFramesViewComponent extends ViewComponent3D
   */ 
   public void dataChanged(IPointList3D[] arrays)
   { 
-  	// Clean up jogl pane if needed
-  	if(joglpane != null)
-  	{
-  	  joglpane.setScene(null);
-  	  joglpane.setCamera(null);
+    // Clean up jogl pane if needed
+    if(joglpane != null)
+    {
+      joglpane.setScene(null);
+      joglpane.setCamera(null);
       joglpane = null;
-  	}
+    }
    
     // Make sure data is valid. 
     if( arrays == null )
@@ -231,7 +239,8 @@ public class SceneFramesViewComponent extends ViewComponent3D
     		                          (IPhysicalArray3DList[])varrays, 
     		                           currentShapeType );
     
-    joglpane = new JoglPanel( scene );
+    joglpane = new JoglPanel( scene, true ); 
+    joglpane.enableLighting( false );
     
     joglpane.setCamera( scene.makeCamera() );
     
@@ -308,23 +317,28 @@ public class SceneFramesViewComponent extends ViewComponent3D
   */
   private void findDataRange()
   {
-  	if(varrays == null)
-  		return;
+    if (varrays == null)
+       return;
+  
+    float max = Float.NEGATIVE_INFINITY;
+    float min = Float.POSITIVE_INFINITY;
+    float value = 0;
   	
-  	float max = Float.NEGATIVE_INFINITY;
-  	float min = Float.POSITIVE_INFINITY;
-  	float value = 0;
-  	
-    for(int arr = 0; arr < varrays.length; arr++)
+    for (int arr = 0; arr < varrays.length; arr++)
     {
       if(varrays[arr] != null)
         for(int pt = 0; pt < varrays[arr].getNumPoints(); pt++)
-          for(int frame = 0; frame < ((IPhysicalArray3DList)varrays[arr]).getNumFrames(); frame++)
+          for( int frame = 0; 
+               frame < ((IPhysicalArray3DList)varrays[arr]).getNumFrames(); 
+               frame++)
           {
             value = ((IPhysicalArray3DList)varrays[arr]).getValue(pt, frame);
         
-            if(value > max) max = value;
-            if(value < min) min = value;
+            if(value > max) 
+               max = value;
+
+            if(value < min) 
+               min = value;
           }
     }
     
