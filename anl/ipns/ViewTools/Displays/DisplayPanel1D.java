@@ -65,7 +65,6 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
         super();
         _container = (Container) container;
 
-        float xmin, xmax, ymin, ymax;
         dP1DPrecision = 4;
         axisPane = new AxisOverlay2D(this);
         axisPane.setLayout(null);
@@ -321,9 +320,9 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
      * @see gov.anl.ipns.ViewTools.Components.Transparency.IAxisAddible#getAxisInformation(int)
      */
     public AxisInfo getAxisInformation(int axiscode) {
-        CoordBounds logBounds = null;
+//      CoordBounds logBounds = null;
         AxisInfo ai = null;
-        boolean logX = false, logY = false;
+//      boolean logX = false, logY = false;
         float x1, y1, x2, y2;
 
         if (axiscode == AxisInfo.X_AXIS) {
@@ -520,18 +519,18 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
     }
 
     public static void main(String[] args) {
-        int DOT = 1;
-        int PLUS = 2;
-        int STAR = 3;
+//      int DOT = 1;
+//      int PLUS = 2;
+//      int STAR = 3;
         int BOX = 4;
-        int CROSS = 5;
-        int DOTTED = 6;
-        int DASHED = 7;
-        int LINE = 8;
-        int DASHDOT = 9;
-        int TRANSPARENT = 10;
-        int ERROR_AT_POINT = 11;
-        int ERROR_AT_TOP = 12;
+//      int CROSS = 5;
+//      int DOTTED = 6;
+//      int DASHED = 7;
+//      int LINE = 8;
+//      int DASHDOT = 9;
+//      int TRANSPARENT = 10;
+//      int ERROR_AT_POINT = 11;
+//      int ERROR_AT_TOP = 12;
 
         JFrame f = new JFrame("Test for ImageJPanel");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -541,16 +540,16 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
 
         float g1_x_vals[] = { 1f, (float) 2, (float) 4, 10 };
         float g1_y_vals[] = { 30f, (float) 40, (float) 60, 70f };
-        float g1_e_vals[] = { 0.1f, 0.2f, 0.3f, 0.4f };
+//      float g1_e_vals[] = { 0.1f, 0.2f, 0.3f, 0.4f };
 
-        float g2_x_vals[] = { 1, 2 };
-        float g2_y_vals[] = { 2, 1 };
+//      float g2_x_vals[] = { 1, 2 };
+//      float g2_y_vals[] = { 2, 1 };
 
-        float g3_x_vals[] = { 0, (float) .5, (float) .6, 1 };
-        float g3_y_vals[] = { (float) .1, (float) .2, (float) .7, (float) .6 };
+//      float g3_x_vals[] = { 0, (float) .5, (float) .6, 1 };
+//      float g3_y_vals[] = { (float) .1, (float) .2, (float) .7, (float) .6 };
 
-        float g4_x_vals[] = { 0, (float) .4, (float) .6, 1 };
-        float g4_y_vals[] = { (float) .3, (float) .1, (float) .4, (float) .2 };
+//      float g4_x_vals[] = { 0, (float) .4, (float) .6, 1 };
+//      float g4_y_vals[] = { (float) .3, (float) .1, (float) .4, (float) .2 };
 
         DisplayPanel1D graph = new DisplayPanel1D(cp);
         graph.setGraphTitle("Test DsiplayPanel1D");
@@ -560,7 +559,7 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
         graph.setYUnits("y units");
         graph.setBackground(Color.white);
         graph.setColor(Color.black, 0, false);
-        graph.setStroke(graph.TRANSPARENT, 0, false);
+        graph.setStroke(GraphJPanel.TRANSPARENT, 0, false);
         graph.setLineWidth(1, 0, false);
         graph.setMarkColor(Color.green, 0, false);
         graph.addPlot(g1_x_vals, g1_y_vals, null);
