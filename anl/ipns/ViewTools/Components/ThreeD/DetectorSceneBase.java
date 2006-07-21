@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/07/21 13:30:19  dennis
+ *  Now explicitly disables lighting, to work with the updated JoglPanel.
+ *  Cleaned up some formatting problems caused by tabs.
+ *
  *  Revision 1.6  2005/08/04 22:34:57  cjones
  *  Now contains methods for add, removing, and returning selected pixels using
  *  the SelectedListItem object. Also, fixed some documentation.
@@ -57,9 +61,8 @@
  *
  *  Revision 1.1  2005/07/22 19:45:11  cjones
  *  Separated 3D components into one base object and two functional objects,
- *  one for data with frames and one for data without frames. Also, added features
- *  and tweaked functionality.
- *
+ *  one for data with frames and one for data without frames. Also, added 
+ *  features and tweaked functionality.
  * 
  */
  
@@ -95,19 +98,20 @@ import gov.anl.ipns.ViewTools.Components.IBoundsList3D;
 import gov.anl.ipns.ViewTools.Components.PhysicalArray3D;
 
 /**
- * This base class is used to draw a 3D scene consisting of detector groups.  Each
- * Detector is represented by two arrays: an array of points and an array of bounds 
- * information for each point. Every detector point will be drawn as solid boxes 
- * using the physical information stored in the bounds array.  The detectors are
- * assigned the given ids and each pixel within the a detector will assume its
- * index within the points array as its id.
+ * This base class is used to draw a 3D scene consisting of detector groups.  
+ * Each Detector is represented by two arrays: an array of points and an 
+ * array of bounds information for each point. Every detector point will be 
+ * drawn as solid boxes using the physical information stored in the bounds 
+ * array.  The detectors are assigned the given ids and each pixel within 
+ * a detector will assume its index within the points array as its id.
  * 
- * The volume bounding box is calculated as each detector is added, and the center
- * is assumed to be at the origin, <0,0,0>.
- * Once all detectors are added, makeCamera can be called to create a camera that will
- * view the volume from an adjusted distance along away from the scene.  In addition,
- * addSceneCircle will encompose the volume with a 2d circle, and addLineAxes will 
- * draw coordinate axes at the center of the scene.
+ * The volume bounding box is calculated as each detector is added, and the 
+ * center is assumed to be at the origin, <0,0,0>.
+ * Once all detectors are added, makeCamera can be called to create a
+ * camera that will view the volume from an adjusted distance along away 
+ * from the scene.  In addition, addSceneCircle will encompose the volume 
+ * with a 2d circle, and addLineAxes will draw coordinate axes at the 
+ * center of the scene.
  * 
  * The object also stores a collection of currently selected pixels.
  * The user may add/remove pixels from the set to specify whether they have been
@@ -158,7 +162,7 @@ public class DetectorSceneBase extends Group
    */
   public DetectorSceneBase()
   {
-    setPickID( Node.INVALID_PICK_ID );       // set a PickID for the root, for testing
+    setPickID( Node.INVALID_PICK_ID ); // set a PickID for the root, for testing
     
     detectorid_map = new TreeMap();
     selected_pixels = new TreeSet(); 
@@ -173,28 +177,31 @@ public class DetectorSceneBase extends Group
   }
   
   /**
-   * This method adds a detector to the scene.  A detector is constructed by giving
-   * a list of points to represent the pixels and a list of bound information for
-   * each point to define the shape and orientation of the pixel.  Entries in
-   * point_list and bounds_list should coorrespond, e.g. a point at index 1 in point_list
-   * will have its bounds information at index 1 in bounds_list.  The bounds list should
-   * have equal the number of entries as point_list, and excess indices in bounds_list will
+   * This method adds a detector to the scene.  A detector is constructed 
+   * by giving a list of points to represent the pixels and a list of bound 
+   * information for each point to define the shape and orientation of the 
+   * pixel.  Entries in point_list and bounds_list should coorrespond, 
+   * e.g. a point at index 1 in point_list will have its bounds information 
+   * at index 1 in bounds_list.  The bounds list should have equal the 
+   * number of entries as point_list, and excess indices in bounds_list will
    * be ignored.  The volume bounding box is recalculated for each
    * detector added.  The center is assumed to be at the origin.
    * 
-   * @param id			Detector id.
-   * @param shapeType  The type of shape that each pixel will be drawn as. 
+   * @param id          Detector id.
+   * @param shapeType   The type of shape that each pixel will be drawn as. 
    *                    Default is BOX.
-   * @param point_list  An array of 3D points. Each point represents a pixel of the
-   *                    Detector.
-   * @param bounds_list An array of bounds information for each point in point_list.
-   *                    This defines the shape of each pixel.
+   * @param point_list  An array of 3D points. Each point represents a 
+   *                    pixel of the Detector.
+   * @param bounds_list An array of bounds information for each point in 
+   *                    point_list. This defines the shape of each pixel.
    */
-  public void addDetector(int id, int shapeType,
-  		                  IPointList3D point_list, IBoundsList3D bounds_list)
+  public void addDetector(int id,
+                          int shapeType,
+                          IPointList3D  point_list,
+                          IBoundsList3D bounds_list)
   {
     Group detector;    
-    float[] extents, base, up, position;
+    float[] extents, position;
     SimpleShape shape;
             
     if(point_list != null && bounds_list != null)
@@ -233,19 +240,20 @@ public class DetectorSceneBase extends Group
           height.multiply(extents[1]);
            
           shape = new PixelParallelogram(i, point_list.getPoint(i),
-                    width, height,
-    				Color.WHITE);
+                                         width, height,
+                                         Color.WHITE);
         }
         
         else
         {
           // Default Shape: Box
           // All extents, orientations use.
-          shape = new PixelPositionedBox(i, point_list.getPoint(i),
-        		                                bounds_list.getOrientation(i)[0],
-        		                                bounds_list.getOrientation(i)[1],
-                                                bounds_list.getExtents(i),
-												Color.WHITE);
+          shape = new PixelPositionedBox(i, 
+                                         point_list.getPoint(i),
+                                         bounds_list.getOrientation(i)[0],
+                                         bounds_list.getOrientation(i)[1],
+                                         bounds_list.getExtents(i),
+                                         Color.WHITE);
         }
 
         // Use max point to find center and bounding box
@@ -273,8 +281,10 @@ public class DetectorSceneBase extends Group
       // Update bounding box
       for(int i = 0; i < 3; i++)
       {
-        if(min_point[i]-minexts[i] < bbox_low[i]) bbox_low[i] = min_point[i] - minexts[i];
-        if(max_point[i]+maxexts[i] > bbox_high[i]) bbox_high[i] = max_point[i] + maxexts[i];
+        if (min_point[i]-minexts[i] < bbox_low[i]) 
+           bbox_low[i] = min_point[i] - minexts[i];
+        if (max_point[i]+maxexts[i] > bbox_high[i]) 
+           bbox_high[i] = max_point[i] + maxexts[i];
       }
       
       // Update center
@@ -286,7 +296,8 @@ public class DetectorSceneBase extends Group
       
       /// Update the radius of the scene circle
       Vector3D plane_high = new Vector3D(bbox_high[0], bbox_high[1], 0);
-      circle_radius = plane_high.distance(new Vector3D(bbox_low[0], bbox_low[1], 0))/2.0f;
+      circle_radius = 
+           plane_high.distance(new Vector3D(bbox_low[0], bbox_low[1], 0))/2.0f;
       
       // Update scene's diameter
       Vector3D high_point = new Vector3D(bbox_high);
@@ -310,11 +321,11 @@ public class DetectorSceneBase extends Group
    */
   public void addSceneCircle()
   {
-  	scene_circle = new Group();
-  	
-  	Circle circle = new Circle(circle_radius, 55);
+    scene_circle = new Group();
   
-  	circle.setAppearance( new Appearance( new Material(Color.WHITE)) );
+    Circle circle = new Circle(circle_radius, 55);
+  
+    circle.setAppearance( new Appearance( new Material(Color.WHITE)) );
   	
     OrientationTransform trans = 
         new OrientationTransform(new Vector3D( 1,0,0 ), new Vector3D( 0,1,0 ),
@@ -348,32 +359,37 @@ public class DetectorSceneBase extends Group
    */
   public void addLineAxes()
   {
-  	scene_axes = new Group();
+     scene_axes = new Group();
   	
-  	OrientationTransform trans = new OrientationTransform(new Vector3D( 1,0,0 ), 
-                                                          new Vector3D( 0,1,0 ),
-                                                          new Vector3D( center ) );
+     OrientationTransform trans = 
+           new OrientationTransform( new Vector3D( 1,0,0 ), 
+                                     new Vector3D( 0,1,0 ),
+                                     new Vector3D( center ) );
   	
-    Line xaxis = new Line( new Vector3D(0,0,0), new Vector3D(diameter/4.f, 0, 0));
-  	xaxis.setAppearance( new Appearance( new Material(Color.RED)) );
-    trans.addChild(xaxis);
+     Line xaxis = 
+         new Line( new Vector3D(0,0,0), new Vector3D(diameter/4.f, 0, 0));
+
+     xaxis.setAppearance( new Appearance( new Material(Color.RED)) );
+     trans.addChild(xaxis);
 
   
-  	Line zaxis = new Line( new Vector3D(0,0,0), new Vector3D(0, 0, diameter/4.f));
-  	zaxis.setAppearance( new Appearance( new Material(Color.BLUE)) );
-    trans.addChild(zaxis);
+     Line zaxis = 
+             new Line( new Vector3D(0,0,0), new Vector3D(0, 0, diameter/4.f));
+     zaxis.setAppearance( new Appearance( new Material(Color.BLUE)) );
+     trans.addChild(zaxis);
 
     
-  	Line yaxis = new Line( new Vector3D(0,0,0), new Vector3D(0, diameter/4.f, 0));
-  	yaxis.setAppearance( new Appearance( new Material(Color.GREEN)) );
-    trans.addChild(yaxis);
+     Line yaxis = 
+             new Line( new Vector3D(0,0,0), new Vector3D(0, diameter/4.f, 0));
+     yaxis.setAppearance( new Appearance( new Material(Color.GREEN)) );
+     trans.addChild(yaxis);
     
-    scene_axes.addChild(trans);  	
+     scene_axes.addChild(trans);  	
     
-    addChild(scene_axes);
+     addChild(scene_axes);
     
-    compileDisplayList = true;
-    axisLinesOn = true;
+     compileDisplayList = true;
+     axisLinesOn = true;
   }
   
   /**
@@ -684,12 +700,13 @@ public class DetectorSceneBase extends Group
   */
   public void addSelectedPixel(int detid, int pixelid)
   {
-  	DetectorGroup det = 
-  		(DetectorGroup)detectorid_map.get(new Integer(detid));
+    DetectorGroup det = 
+                  (DetectorGroup)detectorid_map.get(new Integer(detid));
   	
-  	if(det != null && det.getDetectorID() == detid && 
-  	   pixelid < det.numChildren())
-  	  addSelectedPixel(det.getChild(pixelid).getPickID());
+    if(det != null                  && 
+       det.getDetectorID() == detid && 
+       pixelid < det.numChildren())
+      addSelectedPixel(det.getChild(pixelid).getPickID());
   }
   
  /**
@@ -702,22 +719,22 @@ public class DetectorSceneBase extends Group
   */
   public void removeSelectedPixel(SelectedListItem item)
   {
-  	int[] det_array = item.getDetectorArray();
-  	int[] pix_array = item.getPixelArray();
-  	
-  	if(det_array == null || pix_array == null)
+    int[] det_array = item.getDetectorArray();
+    int[] pix_array = item.getPixelArray();
+  
+    if(det_array == null || pix_array == null)
       return;
   	
-  	for(int i = 0; i < det_array.length; i++)
-  	{
-   	  DetectorGroup det = 
-   		  (DetectorGroup)detectorid_map.get(new Integer(det_array[i]));
+    for(int i = 0; i < det_array.length; i++)
+    {
+      DetectorGroup det = 
+                   (DetectorGroup)detectorid_map.get(new Integer(det_array[i]));
     	
-  	  if(det != null && det.getDetectorID() == det_array[i])
-  	    for(int j = 0; j < pix_array.length; j++)
-  	      if(pix_array[j] < det.numChildren())
-  	        removeSelectedPixel(det.getChild(pix_array[j]).getPickID());
-  	}
+      if(det != null && det.getDetectorID() == det_array[i])
+        for(int j = 0; j < pix_array.length; j++)
+          if(pix_array[j] < det.numChildren())
+            removeSelectedPixel(det.getChild(pix_array[j]).getPickID());
+    }
   }
   
  /**
@@ -732,12 +749,12 @@ public class DetectorSceneBase extends Group
   */
   public void removeSelectedPixel(int detid, int pixelid)
   {
-  	DetectorGroup det = 
-  		(DetectorGroup)detectorid_map.get(new Integer(detid));
-  	
-  	if(det != null && det.getDetectorID() == detid && 
-  	   pixelid < det.numChildren())
-  	  removeSelectedPixel(det.getChild(pixelid).getPickID());
+    DetectorGroup det = 
+                  (DetectorGroup)detectorid_map.get(new Integer(detid));
+  
+    if(det != null && det.getDetectorID() == detid && 
+       pixelid < det.numChildren())
+      removeSelectedPixel(det.getChild(pixelid).getPickID());
   }
  
  /**
@@ -751,8 +768,8 @@ public class DetectorSceneBase extends Group
   */
   public void addSelectedPixel(int pickid)
   {
-  	if(pickid == -1)
-  		return;
+    if(pickid == -1)
+      return;
   	
     selected_pixels.add(new Integer(pickid));
   }
@@ -768,8 +785,8 @@ public class DetectorSceneBase extends Group
   */
   public void removeSelectedPixel(int pickid)
   {
-  	if(pickid == -1)
-  		return;
+    if(pickid == -1)
+      return;
   	
     selected_pixels.remove(new Integer(pickid));
   }
@@ -785,12 +802,12 @@ public class DetectorSceneBase extends Group
   */
   public void addSelectedDetector(int pickid)
   { 	
-  	DetectorGroup det = (DetectorGroup)Node.getNodeWithID(pickid);
+    DetectorGroup det = (DetectorGroup)Node.getNodeWithID(pickid);
+  
+    if(det == null)
+    return;
   	
-  	if(det == null)
-  		return;
-  	
-  	for(int i = 0; i < det.numChildren(); i ++)
+    for(int i = 0; i < det.numChildren(); i ++)
       selected_pixels.add(new Integer(det.getChild(i).getPickID()));
   }
   
@@ -805,12 +822,12 @@ public class DetectorSceneBase extends Group
   */
   public void removeSelectedDetector(int pickid)
   { 	
-  	DetectorGroup det = (DetectorGroup)Node.getNodeWithID(pickid);
+    DetectorGroup det = (DetectorGroup)Node.getNodeWithID(pickid);
+  
+    if(det == null)
+      return;
   	
-  	if(det == null)
-  		return;
-  	
-  	for(int i = 0; i < det.numChildren(); i ++)
+    for(int i = 0; i < det.numChildren(); i ++)
       selected_pixels.remove(new Integer(det.getChild(i).getPickID()));
   }
   
@@ -828,8 +845,8 @@ public class DetectorSceneBase extends Group
   */
   public void colorSelected(Color color)
   {
-  	SimpleShape pixel;
-  	int pickid = -1;
+    SimpleShape pixel;
+    int pickid = -1;
   	
     for(Iterator it = selected_pixels.iterator(); it.hasNext(); )
     {
@@ -854,9 +871,9 @@ public class DetectorSceneBase extends Group
     if(changeBackground)
     {
       gl.glClearColor(backgroundColor.getRed()/255.f, 
-      				  backgroundColor.getGreen()/255.f,
-					  backgroundColor.getBlue()/255.f,
-					  backgroundColor.getAlpha()/255.f);
+                      backgroundColor.getGreen()/255.f,
+                      backgroundColor.getBlue()/255.f,
+                      backgroundColor.getAlpha()/255.f);
       gl.glClear(GL.GL_COLOR_BUFFER_BIT);
       changeBackground = false;
     }
@@ -893,11 +910,11 @@ public class DetectorSceneBase extends Group
       for(int j = 0; j < 10; j++)
       {
       	data[0].set(i*10+j, // Index
-      			  new Vector3D(i*50, j*50, 700), // 3D Coordinates
-                  new Vector3D(11, 13, 12),  // Box volume
-                  new Vector3D(1, 0, 0), // Orientation (X-Axis)
-				  new Vector3D(0, 1, 0), // Orientation (Y-Axis)
-				  j*30+i*10-150); // Value
+                    new Vector3D(i*50, j*50, 700), // 3D Coordinates
+                    new Vector3D(11, 13, 12),      // Box volume
+                    new Vector3D(1, 0, 0),         // Orientation (X-Axis)
+                    new Vector3D(0, 1, 0),         // Orientation (Y-Axis)
+                    j*30+i*10-150);                // Value
       }
   	data[0].setArrayID(0);  // Panel ID
     
@@ -907,11 +924,11 @@ public class DetectorSceneBase extends Group
       for(int j = 0; j < 10; j++)
       {
         data[1].set(i*10+j, // Index
-			      new Vector3D(i*50, j*50, -200), // 3D Coordinates
-                  new Vector3D(9, 10, 9), // Box Volume
-                  new Vector3D(4, 0, -2), // Orientation (X-Axis)
-				  new Vector3D(1, 1, 2),  // Orientation (Y-Axis)
-				  j*30+i*10+750); // Value
+                    new Vector3D(i*50, j*50, -200), // 3D Coordinates
+                    new Vector3D(9, 10, 9),         // Box Volume
+                    new Vector3D(4, 0, -2),         // Orientation (X-Axis)
+                    new Vector3D(1, 1, 2),          // Orientation (Y-Axis)
+                    j*30+i*10+750);                 // Value
       }
     data[1].setArrayID(1); // Panel ID
   
@@ -925,7 +942,8 @@ public class DetectorSceneBase extends Group
 
     // Make JoglPanel to render scene
     final JoglPanel demo = new JoglPanel( scene );
-    
+    demo.enableLighting( false );
+ 
     // Make camera that is accurately positioned to view volume
     demo.setCamera( scene.makeCamera() );
     
@@ -974,8 +992,6 @@ public class DetectorSceneBase extends Group
     frame.getContentPane().add( test );
     frame.getContentPane().add( controller );
     frame.setVisible(true);
-    
-    frame.show();
   }
 
 }
