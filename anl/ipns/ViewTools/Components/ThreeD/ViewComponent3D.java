@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/07/21 13:57:29  dennis
+ *  Cleaned up some formatting problems caused by tabs.
+ *  Commented out some currently unused variables.
+ *
  *  Revision 1.6  2005/08/04 22:33:17  cjones
  *  ViewComponent3D now uses SelectedListItem to convert string items into
  *  int arrays and vice versa. SelectedListItem uses IntList to (de)construct
@@ -66,9 +70,8 @@
  *
  *  Revision 1.1  2005/07/22 19:45:14  cjones
  *  Separated 3D components into one base object and two functional objects,
- *  one for data with frames and one for data without frames. Also, added features
- *  and tweaked functionality.
- *
+ *  one for data with frames and one for data without frames. Also, added 
+ *  features and tweaked functionality.
  *
  */
  
@@ -212,8 +215,8 @@ public abstract class ViewComponent3D implements IViewComponent3D
   private FrameController frame_control;
   
   private JPanel holder; // Holder for the display component  
-  private float[] pointClicked;
-  private int DetectorID, PixelID;
+//  private float[] pointClicked;
+//  private int DetectorID, PixelID;
   private float pointval;
   
   private Vector Listeners;
@@ -313,15 +316,16 @@ public abstract class ViewComponent3D implements IViewComponent3D
   */
   public JPanel getDisplayPanel()
   {
-  	// The holder is necessary because JoglPanel does
-  	// not extend from any swing components.
+    // The holder is necessary because JoglPanel does
+    // not extend from any swing components.
+
     if(holder != null)
     {
       holder.removeAll();
       holder = null;
     }
   	
-  	holder = new JPanel();
+    holder = new JPanel();
     holder.setSize(500, 500);
     holder.setLayout( new GridLayout() );
     // Setting minimum size allows jpanel to be resized
@@ -409,20 +413,20 @@ public abstract class ViewComponent3D implements IViewComponent3D
   */
   public void kill()
   {
-  	if(joglpane != null)
-  	{ 
-  	  joglpane.setCamera(null);
-  	  joglpane.setScene(null);
-  	  joglpane = null;
-  	}
+    if(joglpane != null)
+    { 
+      joglpane.setCamera(null);
+      joglpane.setScene(null);
+      joglpane = null;
+    }
   	
-  	if(holder != null) 
-  	{
-  	  holder.removeAll();
-  	  holder = null;
-  	}
+    if(holder != null) 
+    {
+      holder.removeAll();
+      holder = null;
+    }
   	
-  	varrays = null;
+    varrays = null;
   	
     if( helper != null )
         helper.dispose();
@@ -460,7 +464,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
          
      // Change color scale. This update side control.
      menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS,
-                  MenuItemMaker.getColorScaleMenu( new ColorChangedListener()) );
+                MenuItemMaker.getColorScaleMenu( new ColorChangedListener()) );
      
      // This menu option will toggle scene guides within the DetectorSceneBase
      OverlayMenuListener overlay_listener = new OverlayMenuListener();     
@@ -496,7 +500,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
      JMenuItem frame_step_time = new JMenuItem("Set step time...");
      frame_step_time.addActionListener(new FrameTimeStepListener());
      
-     menus[3] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, frame_step_time );    
+     menus[3] = new ViewMenuItem(ViewMenuItem.PUT_IN_OPTIONS, frame_step_time);
      
      Vector help = new Vector();
      Vector help_listeners = new Vector();
@@ -640,8 +644,8 @@ public abstract class ViewComponent3D implements IViewComponent3D
    */
   protected ControlCheckbox createArcBallControl()
   {
-  	toggle_arcball = new ControlCheckbox(ARCBALL_NAME);
-  	toggle_arcball.setText("Toggle ArcBall");
+    toggle_arcball = new ControlCheckbox(ARCBALL_NAME);
+    toggle_arcball.setText("Toggle ArcBall");
   	
     if(joglpane != null)
     {
@@ -652,7 +656,8 @@ public abstract class ViewComponent3D implements IViewComponent3D
       toggle_arcball.addActionListener( new ToggleArcBallListener() );
       
       // Add the mouse listener to the GLCanvas of the JoglPanel
-      joglpane.getDisplayComponent().addMouseListener( new CameraChangeHandler() );
+      joglpane.getDisplayComponent().addMouseListener( 
+                                                  new CameraChangeHandler() );
     }
  
     return toggle_arcball;
@@ -735,10 +740,11 @@ public abstract class ViewComponent3D implements IViewComponent3D
    protected ControlList createSelectedListControl()
    {  	
      // Selected points
-   	 selected_list_control = new ControlList("Det # Pixel #", new StringFilter());
-   	 selected_list_control.setEntryBoxLabel("Det# Pixel#");
-   	 
-   	 // This is needed so that the list will expand larger than a single line
+     selected_list_control = 
+                       new ControlList("Det # Pixel #", new StringFilter());
+     selected_list_control.setEntryBoxLabel("Det# Pixel#");
+ 
+     // This is needed so that the list will expand larger than a single line
      selected_list_control.setPreferredSize( new Dimension(0, 30000) );
      
      // Update list whenever Add or Remove button is pressed.
@@ -746,20 +752,20 @@ public abstract class ViewComponent3D implements IViewComponent3D
      
      // Update list whenever selection has changed by the mouse
      addActionListener(new ActionListener()
-     		  {
-                public void actionPerformed(ActionEvent event)
-                {
-                  if (event.getActionCommand().equals(SELECTED_POINT_CHANGED))
-                  {
-                    Vector selected = ((DetectorSceneBase)joglpane.getScene()).
-					                     getSelectedItems();
+     {
+        public void actionPerformed(ActionEvent event)
+        {
+           if (event.getActionCommand().equals(SELECTED_POINT_CHANGED))
+           {
+             Vector selected = ((DetectorSceneBase)joglpane.getScene()).
+                                 getSelectedItems();
                     
-                    selected_list_control.setControlValue(selected);
+             selected_list_control.setControlValue(selected);
                     
-                    selected_list_control.repaint();
-                  }
-                }
-              });
+             selected_list_control.repaint();
+           }
+        }
+      });
      
      selected_list_control.setTitle(SELECTED_LIST_NAME);
      
@@ -774,13 +780,15 @@ public abstract class ViewComponent3D implements IViewComponent3D
   * The name of this controller is FRAME_CONTROL_NAME
   * 
   *  @param time_values   The frame values. 
-  *  @param step_time_ms  The time between continous frame changes in milliseconds.
+  *  @param step_time_ms  The time between continous frame changes in 
+  *                       milliseconds.
   *  @return The frame controller.
   */
-  protected FrameController createFrameControl(float[] time_values, int step_time_ms)
+  protected FrameController createFrameControl(float[] time_values, 
+                                               int     step_time_ms)
   {  	
     // Picked point
- 	frame_control = new FrameController();
+    frame_control = new FrameController();
     frame_control.setFrame_values(time_values);
     frame_control.setStep_time(step_time_ms);
     
@@ -800,11 +808,11 @@ public abstract class ViewComponent3D implements IViewComponent3D
   */
   public void blinkSelected()
   {
-  	// Color is currently white.  This could be made into a user changable
-  	// variable or some color that could be calculated.
-  	((DetectorSceneBase)joglpane.getScene()).colorSelected(Color.WHITE);
-  	
-  	// Draw once with the selected pixels colored different.
+    // Color is currently white.  This could be made into a user changable
+    // variable or some color that could be calculated.
+    ((DetectorSceneBase)joglpane.getScene()).colorSelected(Color.WHITE);
+  
+    // Draw once with the selected pixels colored different.
     joglpane.Draw();
     
     // Color pixels to original values and draw again.
@@ -878,7 +886,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
     if( varrays == null )
       return;
       
-    pointClicked = point;
+//    pointClicked = point;
     
     if(point_output_control != null)
     {
@@ -925,8 +933,8 @@ public abstract class ViewComponent3D implements IViewComponent3D
     if( varrays == null )
       return;
       
-    PixelID = pixel;
-    DetectorID = detector;
+//    PixelID = pixel;
+//    DetectorID = detector;
     pointval = value;
     
     if(id_output_control != null)
@@ -1279,7 +1287,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
       {
       	if(toggle_arcball != null && toggle_arcball.isSelected())
       	{
-          Camera view = joglpane.getCamera();
+ //         Camera view = joglpane.getCamera();
         	
           /* AltAzController Should be Updated Here      */
           /* Once it has been modified to handle arcball */
