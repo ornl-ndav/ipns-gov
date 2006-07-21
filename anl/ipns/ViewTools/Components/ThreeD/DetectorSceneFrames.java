@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/07/21 13:42:04  dennis
+ *  Now explicitly disables lighting, to work with the updated JoglPanel.
+ *  Cleaned up some formatting problems caused by tabs.
+ *
  *  Revision 1.5  2006/07/19 18:07:44  dennis
  *  Removed unused imports.
  *
@@ -52,10 +56,8 @@
  *
  *  Revision 1.1  2005/07/22 19:45:12  cjones
  *  Separated 3D components into one base object and two functional objects,
- *  one for data with frames and one for data without frames. Also, added features
- *  and tweaked functionality.
- *
- * 
+ *  one for data with frames and one for data without frames. Also, added
+ *  features and tweaked functionality.
  */
  
 package gov.anl.ipns.ViewTools.Components.ThreeD;
@@ -166,7 +168,8 @@ public class DetectorSceneFrames extends DetectorSceneBase
     {
       if(points[det] != null)
       { 
-        if(frame >= 0 && frame < points[det].getNumFrames() && getChild(det) != null)
+        if ( frame >= 0 && 
+             frame < points[det].getNumFrames() && getChild(det) != null )
         {
           DetectorGroup detector = (DetectorGroup)getChild(det);
 		  
@@ -195,43 +198,46 @@ public class DetectorSceneFrames extends DetectorSceneBase
    */
   public static void main( String args[] )
   {  
-  	int detectorsize = 100;
-  	int numdetectors = 2;
+    int detectorsize = 100;
+    int numdetectors = 2;
   	
-  	IPhysicalArray3DList[] data = new IPhysicalArray3DList[numdetectors];
+    IPhysicalArray3DList[] data = new IPhysicalArray3DList[numdetectors];
 
     // Create 2 square panels
     // PANEL 1
-  	float[] time_vals = {1.5f, 2.6f, 3.6f, 5.2f };
-  	DataSetTools.dataset.XScale time = new DataSetTools.dataset.VariableXScale(time_vals);
+    float[] time_vals = {1.5f, 2.6f, 3.6f, 5.2f };
+    DataSetTools.dataset.XScale time =
+                         new DataSetTools.dataset.VariableXScale(time_vals);
   	
     data[0] = new PhysicalArray3DList(detectorsize, time);
     for(int i = 0; i < 10; i++)
       for(int j = 0; j < 10; j++)
       {
-      	float[] vals = { j*30+i*10-150, j*30+i*10-145, j*30+i*10-140, j*30+i*10-135 }; 
-      	data[0].set(i*10+j, // Index
-      			  new Vector3D(i*50, j*50, 700), // 3D Coordinates
-                  new Vector3D(11, 13, 12),  // Box volume
-                  new Vector3D(1, 0, 0), // Orientation (X-Axis)
-				  new Vector3D(0, 1, 0), // Orientation (Y-Axis)
-				  vals); // Value
+      	float[] vals = { j*30+i*10-150, j*30+i*10-145, j*30+i*10-140, 
+                         j*30+i*10-135 }; 
+      	data[0].set( i*10+j,                        // Index
+                     new Vector3D(i*50, j*50, 700), // 3D Coordinates
+                     new Vector3D(11, 13, 12),      // Box volume
+                     new Vector3D(1, 0, 0),         // Orientation (X-Axis)
+                     new Vector3D(0, 1, 0),         // Orientation (Y-Axis)
+                     vals );                        // Value
       }
-  	data[0].setArrayID(0);  // Panel ID
+    data[0].setArrayID(0);  // Panel ID
     
     // PANEL 2
     data[1] = new PhysicalArray3DList(detectorsize, time);
     for(int i = 0; i < 10; i++)
       for(int j = 0; j < 10; j++)
       {
-      	float[] vals = { j*30+i*10+750, j*30+i*10+755, j*30+i*10+760, j*30+i*10+765 }; 
+      	float[] vals = { j*30+i*10+750, j*30+i*10+755, j*30+i*10+760, 
+                         j*30+i*10+765 }; 
       	
-        data[1].set(i*10+j, // Index
-			      new Vector3D(i*50, j*50, -200), // 3D Coordinates
-                  new Vector3D(9, 10, 9), // Box Volume
-                  new Vector3D(4, 0, -2), // Orientation (X-Axis)
-				  new Vector3D(1, 1, 2),  // Orientation (Y-Axis)
-				  vals); // Value
+        data[1].set( i*10+j,                         // Index
+                     new Vector3D(i*50, j*50, -200), // 3D Coordinates
+                     new Vector3D(9, 10, 9),         // Box Volume
+                     new Vector3D(4, 0, -2),         // Orientation (X-Axis)
+                     new Vector3D(1, 1, 2),          // Orientation (Y-Axis)
+                     vals );                         // Value
       }
     data[1].setArrayID(1); // Panel ID
   
@@ -240,7 +246,8 @@ public class DetectorSceneFrames extends DetectorSceneBase
 
     // Make JoglPanel to render scene
     final JoglPanel demo = new JoglPanel( scene );
-    
+    demo.enableLighting( false );
+ 
     // Make camera that is accurately positioned to view volume
     demo.setCamera( scene.makeCamera() );
     
@@ -274,7 +281,6 @@ public class DetectorSceneFrames extends DetectorSceneBase
          }
        });
 
-    
     JPanel test = new JPanel();
     test.setSize(500, 500);
     test.setLayout( new GridLayout() );
@@ -290,8 +296,6 @@ public class DetectorSceneFrames extends DetectorSceneBase
     frame.getContentPane().add( test );
     frame.getContentPane().add( controller );
     frame.setVisible(true);
-    
-    frame.show();
   }
 
 }
