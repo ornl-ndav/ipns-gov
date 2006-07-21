@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/07/21 20:56:30  amoe
+ *  Fixed the warning messages for incompatible datasets and added
+ *  display information to the debug output.
+ *
  *  Revision 1.6  2006/07/20 23:43:31  amoe
  *  Fixed NullPointedException problem when buildShiftDiffGraph() would
  *  try to build a shifted difference graph with a null error list.
@@ -48,6 +52,7 @@
  */
 package gov.anl.ipns.ViewTools.Components.OneD;
 
+import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 import DataSetTools.dataset.*;
@@ -477,7 +482,10 @@ public class DifferenceViewComponent extends FunctionViewComponent
 	}	
 	
 	private void buildDiffGraph()
-	{		
+	{
+		//reset flawed diffference flag
+		flawedDifference = false;
+		
 		if(numSelected >= 2)
 		{
 			graphZeroTitle = getGraphID(graphZero);
@@ -500,12 +508,12 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    {
 		    	//could try: data.Compatible when checking flaw
 		    	flawedDifference = true;
-		    	System.out.println("Graphs ["+ getGraphID(graphZero)+"] and ["+getGraphID(graphOne)+
-		    			"] have unmatched bounds. Difference is flawed.");
-		    }
-		    else
-		    {
-		    	flawedDifference = false;
+		    	
+		    	SharedMessages.addmsg("WARNING in DifferenceViewComponent: Graphs ["+ getGraphID(graphZero)+
+		    			"] and ["+getGraphID(graphOne)+ "] have unmatched bounds. Difference is flawed.");
+		    	
+		    	/*System.out.println("Graphs ["+ getGraphID(graphZero)+"] and ["+getGraphID(graphOne)+
+		    			"] have unmatched bounds. Difference is flawed.");*/
 		    }
 		    
 		    //creating Data object, so Data.subtract() can be used
@@ -542,16 +550,16 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    	d1 = new HistogramTable(xs1,y1,e1,1);
 		    }		    
 		    
-		    /*
+		    
 		    //Checking for flawed Difference
 		    if(d0.isHistogram() != d1.isHistogram())
 		    {
 		    	flawedDifference = true;
+		    	
+		    	SharedMessages.addmsg("WARNING in DifferenceViewComponent:  Finding the difference " +
+		    			"between a Histogram and a Function may give a flawed result.");
 		    }
-		    else
-		    {
-		    	flawedDifference = false;
-		    }*/
+		    
 		    
 		    //Finding differenceGraph
 		    d2 = d0.subtract(d1);		    
@@ -560,7 +568,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    e2 = d2.getErrors();
 		    differenceGraph = new DataArray1D(x2,y2,e2,"Group IDs: "+graphZeroTitle+"-"+graphOneTitle,true,false);	    
 		    		    
-		    //debugDiffOutput();	    
+		    debugDiffOutput();	    
 		}
 		else //if there isn't two graphs to compare, diffGraph is null
 		{
@@ -770,12 +778,109 @@ public class DifferenceViewComponent extends FunctionViewComponent
 	
 	private void debugDiffOutput()   //prints out difference graph data to console
 	{
+		boolean displayErrors = false;
+		
+		//System.out.println("Num_Selected: " + selectedGraphs.getNumSelectedGraphs() + "\nNum_total: "+selectedViews.getNumGraphs());
+		
+		//display graph zero
+		float x0[] = fvcGraphs.getXValues(graphZero);
+		float y0[] = fvcGraphs.getYValues(graphZero);
+		float e0[] = fvcGraphs.getErrorValues(graphZero);
+		System.out.println("\n\n["+graphZeroTitle+"] (GraphZero)");		
+		System.out.println("X's length: "+x0.length);		
+		for(int i=0;i<x0.length;i++)
+		{
+			if(i<=10||i>=(x0.length-10))
+			{
+				System.out.print(x0[i]+"|");
+			}
+			if(i==10)
+			{
+				System.out.print("###|");
+			}
+		}		
+		System.out.println("\nY's length: "+y0.length);
+		for(int i=0;i<y0.length;i++)
+		{
+			if(i<=10||i>=(y0.length-10))
+			{
+				System.out.print(y0[i]+"|");
+			}
+			if(i==10)
+			{
+				System.out.print("###|");
+			}
+		}
+		if((e0 != null) && (displayErrors))
+		{
+			System.out.println("\nE's length: "+e0.length);
+			for(int i=0;i<e0.length;i++)
+			{
+				if(i<=10||i>=(e0.length-10))
+				{
+					System.out.print(e0[i]+"|");
+				}
+				if(i==10)
+				{
+					System.out.print("###|");
+				}
+			}
+		}
+		System.out.println();
+		
+		
+		//display graph one
+		float x1[] = fvcGraphs.getXValues(graphOne);
+		float y1[] = fvcGraphs.getYValues(graphOne);
+		float e1[] = fvcGraphs.getErrorValues(graphOne);
+		System.out.println("\n["+graphOneTitle+"] (GraphOne)");		
+		System.out.println("X's length: "+x1.length);		
+		for(int i=0;i<x1.length;i++)
+		{
+			if(i<=10||i>=(x1.length-10))
+			{
+				System.out.print(x1[i]+"|");
+			}
+			if(i==10)
+			{
+				System.out.print("###|");
+			}
+		}		
+		System.out.println("\nY's length: "+y1.length);
+		for(int i=0;i<y1.length;i++)
+		{
+			if(i<=10||i>=(y1.length-10))
+			{
+				System.out.print(y1[i]+"|");
+			}
+			if(i==10)
+			{
+				System.out.print("###|");
+			}
+		}
+		if((e1 != null) && (displayErrors))
+		{
+			System.out.println("\nE's length: "+e1.length);
+			for(int i=0;i<e1.length;i++)
+			{
+				if(i<=10||i>=(e1.length-10))
+				{
+					System.out.print(e1[i]+"|");
+				}
+				if(i==10)
+				{
+					System.out.print("###|");
+				}
+			}
+		}
+		System.out.println();
+		
+		
+		//display difference graph
 		float x2[] = differenceGraph.getXArray();
 		float y2[] = differenceGraph.getYArray();
-		float e2[] = differenceGraph.getErrorArray();
-		
-		System.out.println("\n\n["+graphZeroTitle+"]-["+graphOneTitle+"] (Diff)");
-		//System.out.println("Num_Selected: " + selectedGraphs.getNumSelectedGraphs() + "\nNum_total: "+selectedViews.getNumGraphs());
+		float e2[] = differenceGraph.getErrorArray();		
+		System.out.println("\n["+graphZeroTitle+"]-["+graphOneTitle+"] (Diff)");		
 		System.out.println("X's length: "+x2.length);		
 		for(int i=0;i<x2.length;i++)
 		{
@@ -787,8 +892,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 			{
 				System.out.print("###|");
 			}
-		}
-		
+		}		
 		System.out.println("\nY's length: "+y2.length);
 		for(int i=0;i<y2.length;i++)
 		{
@@ -801,17 +905,19 @@ public class DifferenceViewComponent extends FunctionViewComponent
 				System.out.print("###|");
 			}
 		}
-		
-		System.out.println("\nE's length: "+e2.length);
-		for(int i=0;i<e2.length;i++)
+		if((e2 != null) && (displayErrors))
 		{
-			if(i<=10||i>=(e2.length-10))
+			System.out.println("\nE's length: "+e2.length);
+			for(int i=0;i<e2.length;i++)
 			{
-				System.out.print(e2[i]+"|");
-			}
-			if(i==10)
-			{
-				System.out.print("###|");
+				if(i<=10||i>=(e2.length-10))
+				{
+					System.out.print(e2[i]+"|");
+				}
+				if(i==10)
+				{
+					System.out.print("###|");
+				}
 			}
 		}
 		System.out.println();
