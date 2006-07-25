@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2006/07/25 20:44:42  amoe
+ *  Fixed javadoc.
+ *
  *  Revision 1.8  2006/07/19 17:33:39  dennis
  *  Changed get/setPointedAt() methods to work with floatPoint2D,
  *  rather than java.awt.Point.  This change is needed so that
@@ -73,7 +76,7 @@ public interface IViewComponent1D extends IViewComponent
    * This method changes the array of data being displayed and 
    * updates the display accordingly.
    * 
-   * @param pin_varr The IVirtualArrayList1D containing the new data. 
+   * @param pin_varray The IVirtualArrayList1D containing the new data. 
    */
   public void dataChanged( IVirtualArrayList1D pin_varray );
 	
