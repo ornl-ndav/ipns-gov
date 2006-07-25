@@ -34,6 +34,14 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.8  2006/07/25 04:29:26  dennis
+ *  Added method AttachComponentSizeListener() that will cause the
+ *  component to listen for size changes and then request a rebuild
+ *  of display lists and a redraw.  This is needed for lightweight
+ *  GLJpanels, since their display lists are destroyed when the
+ *  panel is resized.  Without this, the display disappears when the
+ *  component is resized.
+ *
  *  Revision 1.7  2006/07/21 13:57:29  dennis
  *  Cleaned up some formatting problems caused by tabs.
  *  Commented out some currently unused variables.
@@ -119,7 +127,7 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.AltAzController;
  * 
  * Some controls require the JoglPanel (joglpane) viewer to be setup before
  * they can be correctly used or created.  It is recommened that inheriting
- * classes create the scene and joglpane before setuping controls.
+ * classes create the scene and joglpane before setting up controls.
  * 
  * This component uses a JOGL (Java OpenGL) based panel to render the scene.
  */
@@ -446,6 +454,23 @@ public abstract class ViewComponent3D implements IViewComponent3D
     }
   }
   
+
+  /**
+   * This class adds a component listener to the jogl display panel to 
+   * detect when the panel is resized.  When the panel is resized, the
+   * listener requests that the display lists be rebuilt and the scene redrawn.
+   * This is needed for a lightweight GLJpanel, since the display lists
+   * are destroyed when the panel is resized.
+   */
+  protected void AttachComponentSizeListener()
+  {
+    if ( joglpane == null )
+      return;
+
+    ComponentSizeListener listener = new ComponentSizeListener(); 
+    getDisplayComponent().addComponentListener( listener ); 
+  }
+
   /* --------------- MENU BAR -------------------------------------- */
   
   /*
@@ -948,8 +973,8 @@ public abstract class ViewComponent3D implements IViewComponent3D
   
   
   /**
-   * Contains control information about the TableJPanel. To view the information,
-   * use the WindowShower to visualize the help frame.
+   * Contains control information about the TableJPanel. To view the 
+   * information use the WindowShower to visualize the help frame.
    *
    *  @return JFrame containing help information for the table.
    */
@@ -1016,6 +1041,8 @@ public abstract class ViewComponent3D implements IViewComponent3D
     helper.getContentPane().add(scroll);
     WindowShower.show(helper);
    }
+
+
   /* --------------------- LISENERS FOR CONTROLS -------------------*/
     
   /**
@@ -1384,4 +1411,27 @@ public abstract class ViewComponent3D implements IViewComponent3D
        help();
      }
    }
+
+  /*
+   * This class listens for the jogl display panel to be resized, and
+   * requests that the display lists be rebuilt and the scene redrawn.
+   * This is needed for a lightweight GLJpanel, since the display lists
+   * are destroyed when the panel is resized.
+   */
+  private class ComponentSizeListener extends ComponentAdapter
+  {
+    public void componentResized( ComponentEvent event )
+    {
+      if ( joglpane == null )
+        return;
+
+      Object scene = joglpane.getScene();
+      if ( scene != null && scene instanceof DetectorSceneBase )
+      {
+        ((DetectorSceneBase)scene).RequestListRebuild();
+        joglpane.Draw();
+      }
+    }    
+  }
+
 }
