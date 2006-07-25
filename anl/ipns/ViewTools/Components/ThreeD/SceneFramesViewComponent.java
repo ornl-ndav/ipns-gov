@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.8  2006/07/25 03:05:25  dennis
+ *  Now only creates the JoglPanel one time, rather than every
+ *  time that dataChanged(array) is called.
+ *
  *  Revision 1.7  2006/07/25 02:14:25  dennis
  *  Added constructor with "is_heavy" parameter to select whether
  *  to use a heavyweight GLCanvas or lightweight GLJpanel.
@@ -239,7 +243,14 @@ public class SceneFramesViewComponent extends ViewComponent3D
     {
       joglpane.setScene(null);
       joglpane.setCamera(null);
-      joglpane = null;
+    }
+    else                                         // only build the panel once
+    {
+      joglpane = new JoglPanel( null, is_heavy ); 
+      joglpane.enableLighting( false );
+                                                 // handle selections and picks
+      joglpane.getDisplayComponent().addMouseListener( 
+            new PickHandler( joglpane ));
     }
    
     // Make sure data is valid. 
@@ -267,14 +278,8 @@ public class SceneFramesViewComponent extends ViewComponent3D
     		                          (IPhysicalArray3DList[])varrays, 
     		                           currentShapeType );
     
-    joglpane = new JoglPanel( scene, is_heavy ); 
-    joglpane.enableLighting( false );
-    
+    joglpane.setScene( scene );
     joglpane.setCamera( scene.makeCamera() );
-    
-    // This listener handles selections and picks
-    joglpane.getDisplayComponent().addMouseListener( 
-            new PickHandler( joglpane ));
     
     ColorAndDraw();
   }
