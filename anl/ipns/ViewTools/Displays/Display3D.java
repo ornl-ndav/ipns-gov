@@ -33,6 +33,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/07/25 02:17:06  dennis
+ *  Added constructor with "is_heavy" parameter to select whether
+ *  to use a heavyweight GLCanvas or lightweight GLJpanel.
+ *
  *  Revision 1.4  2005/08/04 22:24:12  cjones
  *  Added help frame to give a general overiew of Display3D. Also, made fixes
  *  to the comment header.
@@ -69,9 +73,10 @@ import gov.anl.ipns.ViewTools.Components.Menu.MenuItemMaker;
 import gov.anl.ipns.ViewTools.Components.IPhysicalArray3D;
 
 /**
- * This object displays a 3D scene of detectors.  The class will render scattered
- * points in the shape of boxes with given position, size, and orientation.  The 
- * data should be passed as an array of IPhysicalArray3D or IPhysicalArray3DList.
+ * This object displays a 3D scene of detectors.  The class will render 
+ * scattered points in the shape of boxes with given position, size, and 
+ * orientation.  The data should be passed as an array of IPhysicalArray3D 
+ * or IPhysicalArray3DList.
  * 
  * Side controls can be set on/off in the constructor. If the data is given
  * as IPhysicalArray3DList[], an extra control for controlling frames will
@@ -82,9 +87,31 @@ public class Display3D extends Display
   private IPointList3D[] datalist;
   
   private static JFrame helper = null;
+
+  private boolean is_heavy = true;
+
   
  /**
-  * Construct a 3D display frame with the specified data. This constructor
+  * Construct a 3D display frame with the specified data, using a heavyweight
+  * GLCanvas. This constructor is intended for data points with single 
+  * values. Side panel controls can be enabled or disabled.
+  *  
+  *  @param  iva           Array of Three-dimensional points with physical 
+  *                        volume information.
+  *  @param  view_code     Code for which view component is to be used to
+  *                        display the data.
+  *  @param  include_ctrls Code for which controls will be given to 
+  *                        manipulate the scene.
+  */
+  public Display3D( IPhysicalArray3D[] iva, int view_code, int include_ctrls )
+  {
+    this( iva, view_code, include_ctrls, true );
+  }
+
+
+ /**
+  * Construct a 3D display frame with the specified data, using either a
+  * heavyweight GLCanvas or a lightweight GLJPanel.  This constructor
   * is intended for data points with single values. Side panel controls can
   * be enabled or disabled.
   *  
@@ -93,49 +120,90 @@ public class Display3D extends Display
   *  @param  view_code     Code for which view component is to be used to
   *                        display the data.
   *  @param  include_ctrls Code for which controls will be given to 
-   *                        manipulate the scene.
+  *                        manipulate the scene.
+  *
+  *  @param  is_heavy      Flag to select between using a heavy weight 
+  *                        GLCanvas (if true) or a light weight GLJPanel
+  *                        (if false).
   */
-  public Display3D( IPhysicalArray3D[] iva, int view_code, int include_ctrls )
+  public Display3D( IPhysicalArray3D[] iva, 
+                    int                view_code, 
+                    int                include_ctrls,
+                    boolean            is_heavy )
   {
     super(iva[0], view_code, include_ctrls);
     makeHeavyWeightPopup();
 
+    this.is_heavy = is_heavy;
+
     datalist = iva;
     setTitle("Display3D");
-    
+
     addToMenubar();
     buildPane();
   }
+
   
-  /**
-  * Construct a 3D display frame with the specified data. This constructor
-  * is intended for data points with lists values. Side panel controls can
+ /**
+  * Construct a 3D display frame with the specified data, using a heavyweight
+  * GLCanvas. This constructor
+  * is intended for data points with lists of values. Side panel controls can
   * be enabled or disabled.
-   *  
-   *  @param  iva           Array of 3D dimensional points with lists of data 
-   *                        values and physical volume information.
-   *  @param  view_code     Code for which view component is to be used to
-   *                        display the data.
-   *  @param  include_ctrls Code for which controls will be given to 
-   *                        manipulate the scene.
-   */
-   public Display3D( IPhysicalArray3DList[] iva, int view_code, int include_ctrls )
+  *  
+  *  @param  iva           Array of 3D dimensional points with lists of data 
+  *                        values and physical volume information.
+  *  @param  view_code     Code for which view component is to be used to
+  *                        display the data.
+  *  @param  include_ctrls Code for which controls will be given to 
+  *                        manipulate the scene.
+  */
+   public Display3D( IPhysicalArray3DList[] iva, 
+                     int view_code, 
+                     int include_ctrls )
+   {
+     this( iva, view_code, include_ctrls, true );
+   }
+
+
+ /**
+  * Construct a 3D display frame with the specified data, using either a
+  * heavyweight GLCanvas or a lightweight GLJPanel.  This constructor
+  * is intended for data points with lists of values. Side panel controls can
+  * be enabled or disabled.
+  *  
+  *  @param  iva           Array of 3D dimensional points with lists of data 
+  *                        values and physical volume information.
+  *  @param  view_code     Code for which view component is to be used to
+  *                        display the data.
+  *  @param  include_ctrls Code for which controls will be given to 
+  *                        manipulate the scene.
+  *  @param  is_heavy      Flag to select between using a heavy weight 
+  *                        GLCanvas (if true) or a light weight GLJPanel
+  *                        (if false).
+  */
+   public Display3D( IPhysicalArray3DList[] iva,
+                     int                    view_code,
+                     int                    include_ctrls,
+                     boolean                is_heavy )
    {
      super(iva[0], view_code, include_ctrls);
      makeHeavyWeightPopup();
 
+     this.is_heavy = is_heavy;
+
      datalist = iva;
      setTitle("Display3D");
-     
+
      addToMenubar();
      buildPane();
    }
+
   
  /**
   * This method sets the ObjectState of this viewer to a previously saved
   * state.
   * 
-  * UNFINSHED
+  * TODO: setObjectState is UNFINSHED
   *
   *  @param  new_state The previously saved state that this viewer will be
   *                    set to.
@@ -149,7 +217,7 @@ public class Display3D extends Display
   * This method will get the current values of the state variables for this
   * object. These variables will be wrapped in an ObjectState.
   *
-  *  UNFINISHED
+  *  TODO: getObjectState is UNFINISHED
   *
   *  @param  isDefault Should selective state be returned, that used to store
   *                    user preferences common from project to project?
@@ -195,9 +263,10 @@ public class Display3D extends Display
     
     // Does data have frames or not.
     if(datalist instanceof IPhysicalArray3D[])
-    	ivc = new SceneViewComponent((IPhysicalArray3D[])datalist);
+    	ivc = new SceneViewComponent((IPhysicalArray3D[])datalist, is_heavy );
     else if(datalist instanceof IPhysicalArray3DList[])
-    	ivc = new SceneFramesViewComponent((IPhysicalArray3DList[])datalist);
+    	ivc = new SceneFramesViewComponent((IPhysicalArray3DList[])datalist,
+                                           is_heavy );
     else
     	return;
   
@@ -278,13 +347,13 @@ public class Display3D extends Display
      String text = "<H1>Description:</H1> <P>" + 
         "The Display3D provides a 3D representation of data, " +
         "which allows users to quickly examine detector " +
- 		"configurations and pixel values. A 3D scene is created " +
- 		"to provide a physical form to the pixels, closely " +
- 		"matching the detectors actual layouts. The pixels can be " +
- 		"colored by value using several selectable color models and " +
- 		"a variable brightness setting. The user is then capable of " +
- 		"moving about the scene, examining specific pixels, or " +
- 		"selecting groups of pixels for use elsewhere.</P>";
+ 	"configurations and pixel values. A 3D scene is created " +
+ 	"to provide a physical form to the pixels, closely " +
+ 	"matching the detectors actual layouts. The pixels can be " +
+ 	"colored by value using several selectable color models and " +
+ 	"a variable brightness setting. The user is then capable of " +
+ 	"moving about the scene, examining specific pixels, or " +
+ 	"selecting groups of pixels for use elsewhere.</P>";
      textpane.setText(text);
      JScrollPane scroll = new JScrollPane(textpane);
      scroll.setVerticalScrollBarPolicy(

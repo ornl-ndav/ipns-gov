@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.8  2006/07/25 02:14:25  dennis
+ *  Added constructor with "is_heavy" parameter to select whether
+ *  to use a heavyweight GLCanvas or lightweight GLJpanel.
+ *
  *  Revision 1.7  2006/07/21 14:12:29  dennis
  *  Now explicitly disables lighting, to work with the updated JoglPanel.
  *  Cleaned up some formatting problems caused by tabs.
@@ -112,22 +116,45 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 public class SceneViewComponent extends ViewComponent3D
 {  
   // These are needed for the LogScaleColorModel
-  private float min_value, max_value;
+  private float   min_value, 
+                  max_value;
+
+  private boolean is_heavy;
   
   /**
    * Constructor.  Takes array of physical location information and 
-   * builds the panel, controls, menus, and scene.
+   * builds the panel, controls, menus, and scene.  This constructor will 
+   * create heavyweight GLCanvas for the display.
    *  
    *   @param arrays The data that will be put into the scene.
    */
   public SceneViewComponent( IPhysicalArray3D[] arrays )
   {
+    this( arrays, true );
+  }
+
+
+  /**
+   * Constructor.  Takes array of physical location information and 
+   * builds the panel, controls, menus, and scene.  This constructor will
+   * create either a heavyweight GLCanvas or a lightweight GLJpanel depending
+   * on the value passed in for the is_heavy parameter.
+   *  
+   * @param  arrays    The data that will be put into the scene.
+   * @param  is_heavy  Flag indicating whether a heavyweight GLCanvas
+   *                   or lightweight GLJpanel should be used.
+   */
+  public SceneViewComponent( IPhysicalArray3D[] arrays, boolean is_heavy )
+  {
     super(arrays);
+
+    this.is_heavy = is_heavy;
 
     dataChanged(arrays);
     buildControls();
     buildMenu();
   }
+
   
  /**
   * This method will be called whenever the color of the scene changes.
@@ -202,7 +229,7 @@ public class SceneViewComponent extends ViewComponent3D
     DetectorScene scene = new DetectorScene( (IPhysicalArray3D[])varrays, 
                                               currentShapeType );
     
-    joglpane = new JoglPanel( scene );
+    joglpane = new JoglPanel( scene, is_heavy );
     joglpane.enableLighting( false );
  
     joglpane.setCamera( scene.makeCamera() );

@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.7  2006/07/25 02:14:25  dennis
+ *  Added constructor with "is_heavy" parameter to select whether
+ *  to use a heavyweight GLCanvas or lightweight GLJpanel.
+ *
  *  Revision 1.6  2006/07/21 14:15:11  dennis
  *  Now explicitly disables lighting, to work with the updated JoglPanel.
  *  Cleaned up some formatting problems caused by tabs.
@@ -113,21 +117,45 @@ public class SceneFramesViewComponent extends ViewComponent3D
 {  
   private float min_value, max_value;
   private float[] time_vals;
+
+  private boolean is_heavy;
+
   
   /**
    * Constructor.  Takes array of physical location information and 
-   * builds the panel, controls, menus, and scene.
+   * builds the panel, controls, menus, and scene.  This constructor will 
+   * create heavyweight GLCanvas for the display.
    *  
    *   @param arrays The data that will be put into the scene
    */
   public SceneFramesViewComponent( IPhysicalArray3DList[] arrays )
   {
+    this( arrays, true );
+  }
+
+
+  /**
+   * Constructor.  Takes array of physical location information and 
+   * builds the panel, controls, menus, and scene.  This constructor will
+   * create either a heavyweight GLCanvas or a lightweight GLJpanel depending
+   * on the value passed in for the is_heavy parameter.
+   *  
+   * @param  arrays    The data that will be put into the scene
+   * @param  is_heavy  Flag indicating whether a heavyweight GLCanvas
+   *                   or lightweight GLJpanel should be used.
+   */
+  public SceneFramesViewComponent( IPhysicalArray3DList[] arrays, 
+                                   boolean is_heavy )
+  {
     super(arrays);
+
+    this.is_heavy = is_heavy;
 
     dataChanged(arrays);
     buildControls();
     buildMenu();
   }
+
   
  /**
   * This method will be called whenever the color of the scene changes.
@@ -239,7 +267,7 @@ public class SceneFramesViewComponent extends ViewComponent3D
     		                          (IPhysicalArray3DList[])varrays, 
     		                           currentShapeType );
     
-    joglpane = new JoglPanel( scene, true ); 
+    joglpane = new JoglPanel( scene, is_heavy ); 
     joglpane.enableLighting( false );
     
     joglpane.setCamera( scene.makeCamera() );
