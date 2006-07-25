@@ -33,6 +33,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.6  2006/07/25 13:02:27  dennis
+ *  Commented out some unused variables.
+ *
  *  Revision 1.5  2006/07/25 02:17:06  dennis
  *  Added constructor with "is_heavy" parameter to select whether
  *  to use a heavyweight GLCanvas or lightweight GLJpanel.
@@ -301,12 +304,12 @@ public class Display3D extends Display
   */ 
   private void addToMenubar()
   {
-    Vector options           = new Vector();
-    Vector save_default      = new Vector();
-    Vector switch_view       = new Vector();
+ //   Vector options           = new Vector();
+ //   Vector save_default      = new Vector();
+ //   Vector switch_view       = new Vector();
     Vector help              = new Vector();
     Vector display_help      = new Vector();
-    Vector option_listeners  = new Vector();
+//    Vector option_listeners  = new Vector();
     Vector help_listeners    = new Vector();
     
     menu_bar.add( new JMenu("Options") );
