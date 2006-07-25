@@ -34,6 +34,18 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.8  2006/07/25 02:25:35  dennis
+ *  Now gets unused display list id from OpenGL, rather than
+ *  assuming that ID 1 is available.
+ *  Added method RequestListRebuild() to request rebuilding display
+ *  lists the next time the scene is rendered.  This is needed since
+ *  display lists are lost when a GLJpanel is resized.  This method
+ *  should be called from a component listener, to request rebuilding
+ *  display lists if the component is resized.  The Draw() method on
+ *  the underlying JoglPanel must also be called to actually force
+ *  a redraw.
+ *  Reformatted to improve readability.
+ *
  *  Revision 1.7  2006/07/21 13:30:19  dennis
  *  Now explicitly disables lighting, to work with the updated JoglPanel.
  *  Cleaned up some formatting problems caused by tabs.
@@ -140,6 +152,8 @@ public class DetectorSceneBase extends Group
   private float diameter = 0;
   private float circle_radius = 0;
   
+  private   int     list_id;
+  private   boolean is_list            = false;
   protected boolean compileDisplayList = true;   
   
   private boolean changeBackground = false; 
@@ -208,7 +222,7 @@ public class DetectorSceneBase extends Group
     {
       detector = new DetectorGroup(id);
       	
-      // Got through each 
+      // Go through each 
       for ( int i = 0; i < point_list.getNumPoints(); i++ )
       {                                      
         if(shapeType == DOT)
@@ -480,12 +494,12 @@ public class DetectorSceneBase extends Group
    */
   public String[] getFormattedSelectedIDs()
   {
-  	if(selected_pixels.size() <= 0) return null;
+    if(selected_pixels.size() <= 0) return null;
   	
-  	// One string for each pixel
-  	String[] output = new String[selected_pixels.size()];
+    // One string for each pixel
+    String[] output = new String[selected_pixels.size()];
   	
-  	int i =0;
+    int i =0;
     for(Iterator it = selected_pixels.iterator(); it.hasNext(); i++)
     {
       // Use pickid to find PixelID and DetectorID
@@ -513,16 +527,16 @@ public class DetectorSceneBase extends Group
    */
   public Vector getSelectedItems()
   {  	
-  	Vector output = new Vector();
-  	
-  	// Since the PickIDs are in increasing order, all of the pixels
-  	// for any given detector should be grouped together.  Worst case
-  	// one detector is split if the UniqueIDs wrap around to the 
-  	// beginning
-  	
-  	int i = 0;
-  	int cur_det = -1;  // Current detector id
-  	TreeSet pixelids = new TreeSet(); // To hold and sort Pixel IDs
+    Vector output = new Vector();
+  
+    // Since the PickIDs are in increasing order, all of the pixels
+    // for any given detector should be grouped together.  Worst case
+    // one detector is split if the UniqueIDs wrap around to the 
+    // beginning
+ 	
+    int i = 0;
+    int cur_det = -1;  // Current detector id
+    TreeSet pixelids = new TreeSet(); // To hold and sort Pixel IDs
     for(Iterator it = selected_pixels.iterator(); it.hasNext(); i++)
     {
       // Find PixelID and DetectorID for selected pickid
@@ -599,24 +613,25 @@ public class DetectorSceneBase extends Group
   public void retainSelectedPixels(int[] det_ids, 
   		                           int[] pixel_ids)
   {
-  	if(det_ids.length != pixel_ids.length)
+    if(det_ids.length != pixel_ids.length)
       return;
+  
+    TreeSet tmpset = new TreeSet();
   	
-  	TreeSet tmpset = new TreeSet();
-  	
-  	for(int i = 0; i < det_ids.length; i++)
-  	{
-  	  // Map detector id to detector scene node
-  	  DetectorGroup det = (DetectorGroup)
-	        detectorid_map.get(new Integer(det_ids[i]));
+    for(int i = 0; i < det_ids.length; i++)
+    {
+      // Map detector id to detector scene node
+      DetectorGroup det = (DetectorGroup)
+      detectorid_map.get(new Integer(det_ids[i]));
   	  
-  	  // If node exists, get child at pixel id 
-  	  if(det != null && det.getDetectorID() == det_ids[i] && 
-  	  	 pixel_ids[i] < det.numChildren())
-  	    tmpset.add(new Integer(det.getChild(pixel_ids[i]).getPickID()));
-  	}
+      // If node exists, get child at pixel id 
+      if( det != null                       && 
+          det.getDetectorID() == det_ids[i] && 
+          pixel_ids[i] < det.numChildren()   )
+        tmpset.add(new Integer(det.getChild(pixel_ids[i]).getPickID()));
+    }
   	
-  	selected_pixels.retainAll(tmpset);
+    selected_pixels.retainAll(tmpset);
   }
   
   /**
@@ -628,33 +643,34 @@ public class DetectorSceneBase extends Group
    */
    public void retainSelectedPixels(SelectedListItem[] items)
    {   	
-   	TreeSet tmpset = new TreeSet();
+     TreeSet tmpset = new TreeSet();
    	
-   	for(int i = 0; i < items.length; i++)
-   	{
-   	  // The detectors for which all of pixels are
-   	  // selected
-   	  int[] dets = items[i].getDetectorArray();
-   	  int[] pixs = items[i].getPixelArray();
+     for(int i = 0; i < items.length; i++)
+     {
+       // The detectors for which all of pixels are
+       // selected
+       int[] dets = items[i].getDetectorArray();
+       int[] pixs = items[i].getPixelArray();
    	  
-      if(dets != null && pixs != null)
-   	    for(int d_i = 0; d_i < dets.length; d_i++)
-   	    {
-   	      // Get detector scene node
-   	      DetectorGroup det = (DetectorGroup)
- 	            detectorid_map.get(new Integer(dets[d_i]));
+       if(dets != null && pixs != null)
+       for(int d_i = 0; d_i < dets.length; d_i++)
+       {
+         // Get detector scene node
+         DetectorGroup det = (DetectorGroup)
+         detectorid_map.get(new Integer(dets[d_i]));
    	  
-   	      // If it's not there, move on to next detector
-   	      if(det == null || det.getDetectorID() != dets[d_i]) break;
-   	    
-   	      // If it is there, add all the pixel ids to retainable set
-   	      for(int p_i = 0; p_i < pixs.length; p_i++)
-   	        if(pixs[p_i] < det.numChildren())
-   	          tmpset.add(new Integer(det.getChild(pixs[p_i]).getPickID()));
-   	    }
-   	}
-   	
-   	selected_pixels.retainAll(tmpset);
+         // If it's not there, move on to next detector
+         if(det == null || det.getDetectorID() != dets[d_i]) 
+           break;
+      
+         // If it is there, add all the pixel ids to retainable set
+         for(int p_i = 0; p_i < pixs.length; p_i++)
+           if(pixs[p_i] < det.numChildren())
+             tmpset.add(new Integer(det.getChild(pixs[p_i]).getPickID()));
+       }
+     } 
+  
+     selected_pixels.retainAll(tmpset);
    }
   
  /**
@@ -667,25 +683,25 @@ public class DetectorSceneBase extends Group
   */
   public void addSelectedPixel(SelectedListItem item)
   {
-  	int[] det_array = item.getDetectorArray();
-  	int[] pix_array = item.getPixelArray();
+    int[] det_array = item.getDetectorArray();
+    int[] pix_array = item.getPixelArray();
   	
-  	// This makes sure the SelectedListItems were set
-  	if(det_array == null || pix_array == null)
-  	  return;
+    // This makes sure the SelectedListItems were set
+    if(det_array == null || pix_array == null)
+      return;
   	
-  	for(int i = 0; i < det_array.length; i++)
-  	{
-  	  // get detector scene object
-   	  DetectorGroup det = 
-   		  (DetectorGroup)detectorid_map.get(new Integer(det_array[i]));
+    for(int i = 0; i < det_array.length; i++)
+    {
+      // get detector scene object
+      DetectorGroup det = 
+        (DetectorGroup)detectorid_map.get(new Integer(det_array[i]));
     	
-   	  // Select all the specified pixels
-  	  if(det != null && det.getDetectorID() == det_array[i])
-  	    for(int j = 0; j < pix_array.length; j++)
-  	      if(pix_array[j] < det.numChildren())
-  	        addSelectedPixel(det.getChild(pix_array[j]).getPickID());
-  	}
+      // Select all the specified pixels
+      if(det != null && det.getDetectorID() == det_array[i])
+        for(int j = 0; j < pix_array.length; j++)
+          if(pix_array[j] < det.numChildren())
+            addSelectedPixel(det.getChild(pix_array[j]).getPickID());
+    }
   }
    
  /**
@@ -700,8 +716,7 @@ public class DetectorSceneBase extends Group
   */
   public void addSelectedPixel(int detid, int pixelid)
   {
-    DetectorGroup det = 
-                  (DetectorGroup)detectorid_map.get(new Integer(detid));
+    DetectorGroup det = (DetectorGroup)detectorid_map.get(new Integer(detid));
   	
     if(det != null                  && 
        det.getDetectorID() == detid && 
@@ -834,7 +849,10 @@ public class DetectorSceneBase extends Group
   /**
    * This method unselects all pixels.
    */
-  public void clearSelected() { selected_pixels.clear(); }
+  public void clearSelected() 
+  {
+     selected_pixels.clear(); 
+  }
   
  /**
   * This method colors all the selected pixels with the given 
@@ -852,11 +870,23 @@ public class DetectorSceneBase extends Group
     {
       pickid = ((Integer)it.next()).intValue();
       pixel = (SimpleShape)Node.getNodeWithID(pickid);
-      if(pixel != null) pixel.setColor(color);
+      if(pixel != null) 
+         pixel.setColor(color);
     }
     
     compileDisplayList = true;
   }
+
+
+  /**
+   *  Set the compileDisplayList flag to true, so that the next time
+   *  the scene is rendered, the display lists will be regenerated.
+   */
+  public void RequestListRebuild()
+  {
+    compileDisplayList = true;
+  }
+
    
   /**
    * This method renders the scene by first collecting the GL calls into
@@ -878,16 +908,23 @@ public class DetectorSceneBase extends Group
       changeBackground = false;
     }
     
-    if(compileDisplayList) {
-      gl.glNewList( 1, GL.GL_COMPILE_AND_EXECUTE ); 
+    if( !is_list || compileDisplayList ) 
+    {
+      if ( !is_list )
+      {
+        list_id = gl.glGenLists(1);
+        is_list = true;
+      }
+      gl.glNewList( list_id, GL.GL_COMPILE ); 
       super.Render( drawable );
       gl.glEndList();
+      gl.glCallList( list_id );
       
       compileDisplayList = false;
     }
     else 
     {
-      gl.glCallList(1);
+      gl.glCallList( list_id );
     }
   }
 
@@ -942,14 +979,13 @@ public class DetectorSceneBase extends Group
 
     // Make JoglPanel to render scene
     final JoglPanel demo = new JoglPanel( scene );
-    demo.enableLighting( false );
  
     // Make camera that is accurately positioned to view volume
     demo.setCamera( scene.makeCamera() );
     
     demo.getDisplayComponent().addMouseListener( new PixelBoxPicker( demo ));
-    demo.enableLighting( true );
-    demo.enableHeadlight( true );
+    demo.enableLighting( false );
+//  demo.enableHeadlight( true ); // headlight not needed if lighting is off
   
     // Make Controller to move scene
     final gov.anl.ipns.ViewTools.Components.ViewControls.AltAzController
