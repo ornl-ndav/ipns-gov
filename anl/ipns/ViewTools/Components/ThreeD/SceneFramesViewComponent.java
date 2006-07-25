@@ -34,6 +34,15 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.9  2006/07/25 04:33:18  dennis
+ *  No longer sets the scene to null before rebuilding and setting a
+ *  new scene.  This avoids null pointer exceptions if redraws are
+ *  requested from another thread, when the new scene is being rebuilt,
+ *  though it may require more memory.
+ *  Now calls AttachComponentSizeListener() if it is using a lightweight
+ *  GLJpanel, to rebuild display lists that are lost when the component
+ *  is resized.
+ *
  *  Revision 1.8  2006/07/25 03:05:25  dennis
  *  Now only creates the JoglPanel one time, rather than every
  *  time that dataChanged(array) is called.
@@ -238,19 +247,20 @@ public class SceneFramesViewComponent extends ViewComponent3D
   */ 
   public void dataChanged(IPointList3D[] arrays)
   { 
-    // Clean up jogl pane if needed
-    if(joglpane != null)
-    {
-      joglpane.setScene(null);
-      joglpane.setCamera(null);
-    }
-    else                                         // only build the panel once
+    boolean first_time = false;
+
+    if ( joglpane == null )                  // only create the JoglPanel once
     {
       joglpane = new JoglPanel( null, is_heavy ); 
       joglpane.enableLighting( false );
-                                                 // handle selections and picks
+                                             // handle selections and picks
       joglpane.getDisplayComponent().addMouseListener( 
-            new PickHandler( joglpane ));
+                                                 new PickHandler( joglpane ));
+
+      if ( !is_heavy )                       // GLJpanel needs to have it's
+        AttachComponentSizeListener();       // display lists rebuilt if it
+                                             // changes size. :-(
+      first_time = true;
     }
    
     // Make sure data is valid. 
@@ -260,6 +270,7 @@ public class SceneFramesViewComponent extends ViewComponent3D
       return;
     }
    
+    // record local reference to data.
     varrays = (IPhysicalArray3DList[])arrays;
    
     // Set min_value and max_value
@@ -277,9 +288,11 @@ public class SceneFramesViewComponent extends ViewComponent3D
     DetectorSceneFrames scene = new DetectorSceneFrames( 
     		                          (IPhysicalArray3DList[])varrays, 
     		                           currentShapeType );
-    
+
     joglpane.setScene( scene );
-    joglpane.setCamera( scene.makeCamera() );
+
+    if ( first_time )                            // only set camera the first
+      joglpane.setCamera( scene.makeCamera() );  // time.
     
     ColorAndDraw();
   }
