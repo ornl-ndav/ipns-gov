@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2006/07/25 19:46:36  dennis
+ * Fixed variable name in javadoc comment.
+ *
  * Revision 1.14  2006/07/20 13:36:43  dennis
  * Added method cross(v) to take cross product of the current
  * vector with another vector, v.
@@ -507,7 +510,7 @@ public class Vector3D
    *  given vector.  'This' is set to ( this "cross" v ).  It is assumed 
    *  that the 4th component of vectors 'this' vector and v is 1.
    *
-   *  @param  v  the second vector factor in the cross product
+   *  @param  vec_2  the second vector factor in the cross product
    *
    */
   public void cross( Vector3D vec_2 )
