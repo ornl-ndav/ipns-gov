@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2006/07/25 16:06:31  amoe
+ *  Made the sample line in the legend box slightly smaller in order to make room for the corresponding text.
+ *
  *  Revision 1.15  2005/11/11 05:35:56  serumb
  *  Added object state variables for the legend.
  *
@@ -501,13 +504,13 @@ public BasicStroke strokeType(int key, int graph_num)
       {
          g2d.setStroke(strokeType(lineInfo[index].linetype, index) );
          g2d.setColor(lineInfo[index].color);
-         g2d.drawLine((int)current_bounds.getX()+(int)current_bounds
-                              .getWidth() - 40 + x_offset,
+         
+         g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 30 + x_offset,
                  (int)current_bounds.getY() + 20*(index+1) + y_offset,
-                 (int)current_bounds.getX() +(int)current_bounds.getWidth() - 10
-                 + x_offset,
+                 (int)current_bounds.getX() + (int)current_bounds.getWidth() - 10 + x_offset,
                  (int)current_bounds.getY() + 20*(index+1) + y_offset );
       }
+    
     //Draw marks
       int size = 2;
       for (int index = 0; index < graphs.length; index++)
