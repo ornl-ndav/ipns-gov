@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.89  2006/07/25 16:23:16  amoe
+ *  - Changed vector transparancies to protected.
+ *  - Made FunctionViewComponent self-referencing variable fvc.
+ *  - Created protected initTransparancies() for the purpose of
+ *    overloading it in DifferenceViewComponent.
+ *
  *  Revision 1.88  2006/07/19 17:39:03  dennis
  *  Changed get/setPointedAt() methods to work with floatPoint2D,
  *  rather than java.awt.Point.  This change is needed so that
@@ -436,7 +442,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   // for component size and location adjustments
   //private ComponentAltered comp_listener;
   private transient Rectangle regioninfo;
-  private transient Vector transparencies = new Vector(  );
+  protected transient Vector transparencies = new Vector(  );
   private int precision;
   private Font font;
  // private transient LinkedList controls = new LinkedList(  );
@@ -444,7 +450,7 @@ public class FunctionViewComponent implements IViewComponent1D,
   protected FunctionControls mainControls;
   private boolean draw_pointed_at = false;
   private JMenuItem control_box = new JMenuItem();
-
+  protected FunctionViewComponent fvc;
 
   /**
    * Constructor that takes in a virtual array and creates an graphjpanel
@@ -458,6 +464,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     precision   = 6;
     font        = FontUtil.LABEL_FONT2;
     gjp         = new GraphJPanel(  );
+    
+    fvc = this;
    
     //initialize selected graphs
     int num_lines = varr.getNumSelectedGraphs(  );
@@ -501,6 +509,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     {
       buildViewComponent();     // initializes big_picture to jpanel containing
                                 // the background and transparencies
+      /*
       // create transparencies
       AnnotationOverlay top = new AnnotationOverlay( this );
       top.setVisible( false );    // initialize this overlay to off.
@@ -513,6 +522,8 @@ public class FunctionViewComponent implements IViewComponent1D,
       transparencies.add( leg_overlay ); 
       transparencies.add( top );
       transparencies.add( bottom );  // add the transparency to the vector
+      */
+      initTransparancies();
       OverlayLayout overlay = new OverlayLayout( big_picture );
 
       big_picture.setLayout( overlay );
@@ -1184,7 +1195,22 @@ public class FunctionViewComponent implements IViewComponent1D,
    paintComponents(big_picture.getGraphics()); 
  } 
 
+ protected void initTransparancies()
+ {
+	 //create transparencies
+     AnnotationOverlay top = new AnnotationOverlay( this );
+     top.setVisible( false );    // initialize this overlay to off.
 
+                                 // Default ticks inward for this component
+     AxisOverlay2D bottom = new AxisOverlay2D( this, true );
+
+     LegendOverlay leg_overlay = new LegendOverlay( this );
+  
+     transparencies.add( leg_overlay ); 
+     transparencies.add( top );
+     transparencies.add( bottom );  // add the transparency to the vector     
+ }
+ 
   /*
    * Tells all listeners about a new action.
    *
