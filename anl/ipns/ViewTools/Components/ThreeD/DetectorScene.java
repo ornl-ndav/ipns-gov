@@ -36,6 +36,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.8  2006/07/25 04:35:24  dennis
+ *  Minor fix to javadoc comment.
+ *
  *  Revision 1.7  2006/07/21 14:32:26  dennis
  *  Now explicitly disables lighting, to work with the updated JoglPanel.
  *  Cleaned up some formatting problems caused by tabs.
@@ -95,7 +98,7 @@ import gov.anl.ipns.ViewTools.Components.LogScaleColorModel;
  * 
  * Each pixel has a single value that is used to color the pixel
  * when a color model is given.  The shape of the pixels can be 
- * changed by providing on of the statically defined ints describing
+ * changed by providing one of the statically defined ints describing
  * shapes.  
  */
 public class DetectorScene extends DetectorSceneBase
