@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.9  2006/07/25 20:54:47  amoe
+ * Fixed javadoc.
+ *
  * Revision 1.8  2005/10/07 21:32:34  kramer
+ *
  * Added javadoc comments for every field, constructor, method, inner class,
  * etc. in this class.
  *
@@ -484,13 +488,10 @@ public class ContourControlHandler extends ContourChangeHandler
     *                               {@link ContourJPanel#DASHED DASHED}, 
     *                               {@link ContourJPanel#DOTTED DOTTED}, 
     *                               {@link ContourJPanel#DASHED_DOTTED}, or 
-    *                               {@link ContourJPanel#SOLID SOLID}.  
-    *                               The length of this array should be 
-    *                               {@link LineStyleControl#getNumOfStyles() 
-    *                               LineStyleControl.getNumOfStyles()}.  
-    *                               If it is too short, default values 
-    *                               are used.  If it is too long, the 
-    *                               extra values are ignored.  When 
+    *                               {@link ContourJPanel#SOLID SOLID}.    
+    *                               If the length of the array is too short, 
+    *                               default values are used.  If it is too 
+    *                               long, the extra values are ignored.  When 
     *                               rendering the contour plot, the 
     *                               renderer cycles through this array to 
     *                               determine the line style to use.  
