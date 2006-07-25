@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.90  2006/07/25 20:43:27  amoe
+ *  - Changed width from 50 to 65 on west white border pane.
+ *  - Fixed javadoc.
+ *
  *  Revision 1.89  2006/07/25 16:23:16  amoe
  *  - Changed vector transparancies to protected.
  *  - Made FunctionViewComponent self-referencing variable fvc.
@@ -1013,7 +1017,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    * This method changes the array of data being displayed and 
    * updates the display accordingly.
    * 
-   * @param pin_varr The IVirtualArrayList1D containing the new data. 
+   * @param pin_varray The IVirtualArrayList1D containing the new data. 
    * 
    */
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
@@ -1370,7 +1374,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     
     JPanel east = new JPanel( new FlowLayout(  ) );
 
-    east.setPreferredSize( new Dimension( 50, 0 ) );
+    east.setPreferredSize( new Dimension( 65, 0 ) );
     east.setBackground(Color.white);
 
     JPanel south = new JPanel( new FlowLayout(  ) );
