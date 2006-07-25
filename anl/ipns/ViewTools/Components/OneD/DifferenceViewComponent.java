@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2006/07/25 16:40:08  amoe
+ *  - Changed difference graph titles to a more compact form.
+ *  - Created initTransparancies().
+ *  - Created inner class DifferenceAxisOverlay to create an axis for
+ *    displayed difference graphs.
+ *
  *  Revision 1.7  2006/07/21 20:56:30  amoe
  *  Fixed the warning messages for incompatible datasets and added
  *  display information to the debug output.
@@ -52,6 +58,7 @@
  */
 package gov.anl.ipns.ViewTools.Components.OneD;
 
+import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
@@ -60,6 +67,12 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
+
+import gov.anl.ipns.ViewTools.Components.Transparency.AnnotationOverlay;
+import gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D;
+import gov.anl.ipns.ViewTools.Components.Transparency.CalibrationUtil;
+import gov.anl.ipns.ViewTools.Components.Transparency.LegendOverlay;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 
 /**
  * This class calculates the difference between y-values, with respect to their x-values
@@ -479,7 +492,24 @@ public class DifferenceViewComponent extends FunctionViewComponent
 	{
 		diffOptions.dispose();
 		super.kill();		
-	}	
+	}
+	
+	protected void initTransparancies()											
+	{										//this method overrides initTransparancies()
+											//in FunctionViewComponent
+		 //create transparencies
+	     AnnotationOverlay top = new AnnotationOverlay( this );
+	     top.setVisible( false );    // initialize this overlay to off.
+
+	                                 // Default ticks inward for this component
+	     AxisOverlay2D bottom = new DifferenceAxisOverlay(true);
+
+	     LegendOverlay leg_overlay = new LegendOverlay( this );
+	  
+	     transparencies.add( leg_overlay ); 
+	     transparencies.add( top );
+	     transparencies.add( bottom );  // add the transparency to the vector
+	}
 	
 	private void buildDiffGraph()
 	{
@@ -643,7 +673,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    	}
 		    	
 		    	shiftedDiffGraph = new DataArray1D(differenceGraph.getXArray(),y2Shifted,e2Shifted,
-			    		"Difference: "+graphZeroTitle+"-"+graphOneTitle,true,false);
+		    			"["+graphZeroTitle+"]-["+graphOneTitle+"]",true,false);
 		    }
 		    else
 		    {
@@ -654,7 +684,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    	}
 		    	
 		    	shiftedDiffGraph = new DataArray1D(differenceGraph.getXArray(),y2Shifted,null,
-			    		"Difference: "+graphZeroTitle+"-"+graphOneTitle,true,false);
+		    			"["+graphZeroTitle+"]-["+graphOneTitle+"]",true,false);
 		    }
 	
 		    //zero line
@@ -922,6 +952,419 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		}
 		System.out.println();
 	}
+	
+	private class DifferenceAxisOverlay extends AxisOverlay2D
+	{
+		//float ymin;
+		//float ymax;
+		
+		//int yaxis;
+		//int ystart;
+		//int xaxis;
+		//int xstart;
+		
+		int precision;
+		
+		boolean displayDiffAxis = displayYop;
+		
+		public DifferenceAxisOverlay(boolean bol)
+		{
+			super(fvc,bol);
+			//System.out.println("DifferenceAxis() extends AxisOverlay2D");
+		}
+		
+		public void paint(Graphics g)
+		{
+			//System.out.println("DifferenceAxis.paint(..)");
+			
+			
+			Graphics2D g2d = (Graphics2D)g;
+		    g2d.setFont(fvc.getFont());
+		    FontMetrics fontdata = g2d.getFontMetrics();
+		    
+		    // Reset precision, make sure it is always consistent.		    
+		    precision = fvc.getPrecision();
+		    
+		    /*
+		    CoordBounds local_bounds = fvc.getLocalCoordBounds();
+		    
+		    //making sure that y1 < y2
+		    if( local_bounds.getY1() > local_bounds.getY2() )
+		    {
+		        local_bounds.invertBounds();
+		    }
+		    
+		    // min/max for y-axis
+		    ymin = (local_bounds.getY1()+shift);
+			ymax = (local_bounds.getY2()+shift);
+		    
+		    //get the dimension of the center panel (imagejpanel)
+		    yaxis = (int)( fvc.getRegionInfo().getHeight() );		    
+		    ystart = (int)( fvc.getRegionInfo().getLocation().getY() );
+		    
+		    //TRY TO DELETE THIS LATER
+		    xaxis = (int)( fvc.getRegionInfo().getWidth() );
+		    xstart = (int)( fvc.getRegionInfo().getLocation().getX() );
+		    */
+		    
+		    if( axesdrawn == Y_AXIS || axesdrawn == DUAL_AXES )
+		    {
+		        
+		    	// Linear Axis
+		        if( y_scale == AxisInfo.LINEAR )
+		        {
+		        	/*
+		        	//paint full right axis
+		        	paintRightFullAxis( g2d );		        	
+		        	displayYop = false;
+				    super.paint(g);
+				    displayYop = displayDiffAxis;
+				    */
+		        	
+		        	//paint seperated right axis
+		        	paintRightSeparatedAxis(g2d);
+		        	paintLeftSeparatedAxis(g2d);
+		        	displayYop = false;
+		        	displayY   = false;
+		        	super.paint(g);
+		        	displayYop = displayDiffAxis;
+		        	displayY   = true;
+		        }
+		        else
+		        {
+		        	super.paint(g);
+		        }	        
+		        
+		    }
+		    else
+		    {
+		    	super.paint(g);
+		    }
+		    
+
+		}
+		
+		private void paintRightSeparatedAxis(Graphics2D g2d)
+		{
+			FontMetrics fontdata = g2d.getFontMetrics();   
+		    String num = "";
+
+		    CoordBounds local_bounds = fvc.getLocalCoordBounds();
+		    
+		    //making sure that y1 < y2
+		    if( local_bounds.getY1() > local_bounds.getY2() )
+		    {
+		        local_bounds.invertBounds();
+		    }
+		    
+		    // min/max for y-axis
+		    float ymin = (local_bounds.getY1()+shift);
+			float ymax = (local_bounds.getY2()+shift);
+		    
+		    //get the dimension of the center panel (imagejpanel)
+		    int yaxis = (int)( fvc.getRegionInfo().getHeight() );		    
+		    int ystart = (int)( fvc.getRegionInfo().getLocation().getY() );
+		    
+		    //TRY TO DELETE THIS LATER
+		    int xaxis  = (int)( fvc.getRegionInfo().getWidth() );
+		    int xstart = (int)( fvc.getRegionInfo().getLocation().getX() );
+		    
+		    CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
+		        					 Format.ENGINEER );
+		    
+		    displayDiffAxis = displayYop;
+		    
+		    //g2d.setColor(Color.MAGENTA);		    
+		    
+		    
+		    float[] values = yutil.subDivide();
+		    float ystep = values[0];
+		    float starty = values[1];
+		    int numysteps = (int)values[2];
+		    
+		    int ytick_length = 5;
+		    
+		    int ypixel = 0;	      // where to place major ticks
+		    int ysubpixel = 0;    // where to place minor ticks
+		    
+		    int exp_index = 0;
+		    
+		    
+		    float pmin = ystart + yaxis;
+		    float pmax = ystart;
+		    float a = 0;
+		    float amin = ymin - starty;
+		    
+		    
+		    //yskip is the space between calibrations: 1 = every #, 2 = every other		    
+		    int yskip = 1;
+		    while( (yaxis*yskip/numysteps) < fontdata.getHeight() && yskip < numysteps)
+		    {
+		       yskip++;
+		    }		    
+		    int rem = numysteps%yskip;
+		    
+		    
+		    //create axis
+		    for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
+		    {
+		    	
+		    	a = ysteps * ystep;		        
+		        ypixel = (int)( (pmax - pmin) * ( a - amin) / (ymax - ymin) + pmin);
+		        ysubpixel = (int)( (pmax - pmin) * ( a - amin  + ystep/2 ) / (ymax - ymin) + pmin);
+		    	
+		        num = yutil.standardize(ystep * (float)ysteps + starty);
+		        exp_index = num.lastIndexOf('E');
+		        
+		        if( ypixel <= pmin && ypixel >= pmax )
+		        {
+		        	g2d.setColor(Color.MAGENTA);
+		        	num = removeTrailingZeros( num.substring(0,exp_index) );
+		        	
+		        	if( (((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip)) && (Float.parseFloat(num) <= selectedGraphMin + shift ) )
+		        	{
+		        		
+		        		//draw labels for ticks
+		        		if(Integer.parseInt(num) >= 0)
+		        		{	
+		        			g2d.drawString( num,(xstart+xaxis) + ytick_length + 9 ,
+		        					ypixel + fontdata.getHeight()/4);
+		        		}
+		        		else
+		        		{
+		        			g2d.drawString( num, (xstart+xaxis) + ytick_length + 2 ,
+			        			ypixel + fontdata.getHeight()/4 );
+		        		}
+		        	}	        	
+		        	
+		        	g2d.setColor(Color.BLACK);
+		        	
+		        	//Major ticks
+		        	if(ticksinoutY == 0)	//draw ticks outside
+		        	{  
+		        		if(displayDiffAxis == true)
+		        		{
+		        			//display y-axis opposite
+		        			g2d.drawLine( (xstart + xaxis), ypixel - 1, 
+		        				(((xstart + xaxis) + ytick_length)- 1) , ypixel - 1 );
+		        		}
+			         }
+			         else					//draw ticks inside
+			         {			           
+			        	 if(displayDiffAxis == true)
+			        	 {
+			        		 //display y-axis opposite
+			        		 g2d.drawLine( (xstart + xaxis)-1, ypixel - 1, 
+			        				 ((xstart + xaxis) - ytick_length), ypixel - 1 );
+			        	 }
+			         }
+		        }
+		        
+		        //if subpixel is between top and bottom of imagejpanel, draw it
+		        if( ysubpixel <= pmin && ysubpixel >= pmax )
+		        {
+		        	//Minor ticks
+		        	if (ticksinoutY == 0)
+		        	{
+		        		//draw ticks outside
+		        		if(displayDiffAxis == true)
+		        		{
+		        			//display y-axis opposite
+		        			g2d.drawLine( (xstart + xaxis), ysubpixel - 1,
+		        				(((xstart + xaxis) + (ytick_length-2))- 1), ysubpixel - 1 );
+		        		}
+		        	}
+		        	else
+		        	{
+		        		//draw ticks inside
+		        		if(displayDiffAxis == true)
+		        		{
+		        			//display y-axis opposite
+		        			g2d.drawLine((xstart + xaxis)-1 , ysubpixel - 1, 
+		        				(((xstart + xaxis) - (ytick_length-2))), ysubpixel - 1 );
+		        		}
+		        	}
+		        }
+		        
+		        // if a tick mark should be drawn at the end, draw it
+		        // there may be a tick mark needed after the 
+		        // last tick. ( end refers to smallest y value )
+		        if( ysteps == 0 && (pmin - ypixel) > yaxis/(2*numysteps) ) 
+		        {    	  
+		        	if (ticksinoutY == 0)
+		        	{
+		        		//draw tick outside
+		        		if(displayDiffAxis == true)
+		        		{
+		        			//display y-axis opposite
+		        			g2d.drawLine( xstart + xaxis, 
+		        				(int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+		        				((xstart + xaxis) + (ytick_length-2)) - 1, 
+		        				(int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+		        		}    			  
+		        	}
+		        	else
+		        	{
+		         		//draw tick inside  
+		        		if(displayDiffAxis == true)
+		        		{
+		        			//display y-axis opposite
+		        			g2d.drawLine( (xstart + xaxis)-1, 
+		        					(int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+		        					(((xstart + xaxis) - (ytick_length-2))),
+		        					(int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+		        		}
+		        	}
+		        }
+		    }
+		    //g2d.setColor(Color.BLACK);			
+		}
+		
+		private void paintLeftSeparatedAxis(Graphics2D g2d)
+		{
+			FontMetrics fontdata = g2d.getFontMetrics();   
+		    String num = "";
+
+		    CoordBounds local_bounds = fvc.getLocalCoordBounds();
+		    
+		    //making sure that y1 < y2
+		    if( local_bounds.getY1() > local_bounds.getY2() )
+		    {
+		        local_bounds.invertBounds();
+		    }
+		    
+		    // min/max for y-axis
+		    float ymin = (local_bounds.getY1());
+			float ymax = (local_bounds.getY2());
+		    
+		    //get the dimension of the center panel (imagejpanel)
+		    int yaxis = (int)( fvc.getRegionInfo().getHeight() );		    
+		    int ystart = (int)( fvc.getRegionInfo().getLocation().getY() );
+		    
+		    //TRY TO DELETE THIS LATER
+		    int xaxis  = (int)( fvc.getRegionInfo().getWidth() );
+		    int xstart = (int)( fvc.getRegionInfo().getLocation().getX() );
+		    
+		    CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
+		        					 Format.ENGINEER );
+		    
+		    //displayDiffAxis = displayYop;
+		    
+		    //g2d.setColor(Color.MAGENTA);		    
+		    
+		    
+		    float[] values = yutil.subDivide();
+		    float ystep = values[0];
+		    float starty = values[1];
+		    int numysteps = (int)values[2];
+		    
+		    int ytick_length = 5;
+		    
+		    int ypixel = 0;	      // where to place major ticks
+		    int ysubpixel = 0;    // where to place minor ticks
+		    
+		    int exp_index = 0;
+		    
+		    
+		    float pmin = ystart + yaxis;
+		    float pmax = ystart;
+		    float a = 0;
+		    float amin = ymin - starty;
+		    
+		    
+		    //yskip is the space between calibrations: 1 = every #, 2 = every other		    
+		    int yskip = 1;
+		    while( (yaxis*yskip/numysteps) < fontdata.getHeight() && yskip < numysteps)
+		    {
+		       yskip++;
+		    }		    
+		    int rem = numysteps%yskip;
+		    
+		    
+		    //create axis
+		    for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
+		    {
+		    	
+		    	a = ysteps * ystep;		        
+		        ypixel = (int)( (pmax - pmin) * ( a - amin) / (ymax - ymin) + pmin);
+		        ysubpixel = (int)( (pmax - pmin) * ( a - amin  + ystep/2 ) / (ymax - ymin) + pmin);
+		    	
+		        num = yutil.standardize(ystep * (float)ysteps + starty);
+		        exp_index = num.lastIndexOf('E');
+		        
+		        if( ypixel <= pmin && ypixel >= pmax )
+		        {
+		        	//g2d.setColor(Color.MAGENTA);
+		        	num = removeTrailingZeros( num.substring(0,exp_index) );
+		        	
+		        	//paint number label if in selected graph range
+		        	if( (((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip)) && (Float.parseFloat(num) >= diffGraphMax - shift ) )
+		        	{		        		
+		        		g2d.drawString( num, xstart - ytick_length - fontdata.stringWidth(num),
+		              		  ypixel + fontdata.getHeight()/4 );
+		        	}	        	
+		        	
+		        	g2d.setColor(Color.BLACK);
+		        	
+		        	//Major ticks
+		        	if(ticksinoutY == 0)	//draw ticks outside
+		        	{  
+		        		//draw ticks outside
+		        		g2d.drawLine( xstart - 1, ypixel - 1, 
+		        				((xstart - ytick_length) - 1) + 1, ypixel - 1 );
+			        }
+			        else					//draw ticks inside
+			        {			           
+			    		 //draw ticks inside
+			    		 g2d.drawLine( xstart  , ypixel - 1, 
+			    		 		(xstart + ytick_length) - 1 , ypixel - 1 );
+			        }
+		        }
+		        
+		        //if subpixel is between top and bottom of imagejpanel, draw it
+		        if( ysubpixel <= pmin && ysubpixel >= pmax )
+		        {
+		        	//Minor ticks
+		        	if (ticksinoutY == 0)
+		        	{
+			       		 //draw ticks outside
+			       		 g2d.drawLine( xstart - 1, ysubpixel - 1,
+			       				 ((xstart - (ytick_length - 2)) - 1) + 1, ysubpixel - 1 );
+		        	}
+		        	else
+		        	{
+			   	    	 //draw ticks inside
+			   	    	 g2d.drawLine( xstart, ysubpixel - 1,
+			   	    			 (xstart + (ytick_length - 2)) - 1 , ysubpixel - 1 );
+		        	}
+		        }
+		        
+		        // if a tick mark should be drawn at the end, draw it
+		        // there may be a tick mark needed after the 
+		        // last tick. ( end refers to smallest y value )
+		        if( ysteps == 0 && (pmin - ypixel) > yaxis/(2*numysteps) ) 
+		        {   		        	
+		        	if (ticksinoutY == 0)	//draw tick outside
+		        	{
+			       		 //draw  ticks outside
+			       		 g2d.drawLine( xstart - 1, 
+			   	                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+			   	                ((xstart - (ytick_length - 2)) - 1) + 1, 
+			   	                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );		        		   			  
+		        	}
+		        	else
+		        	{
+			       		 //draw ticks inside
+			           	 g2d.drawLine( xstart, 
+			                      (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+			                      ((xstart + (ytick_length - 2)) - 1),
+			                      (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );		         		
+		        	}
+		        }
+		    }
+		    //g2d.setColor(Color.BLACK);
+		}
+	}	
 	
 	private class ControlListener implements ActionListener 
 	{
