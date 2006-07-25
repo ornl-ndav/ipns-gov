@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.54  2006/07/25 16:18:21  amoe
+ *  - Created new boolean flags for left/bottom axes.
+ *  - Changed boolean flags for axes to "protected".
+ *  - Changed method removeTrailingZeros(..) to "protected".
+ *  - Made label spacing on x-axis smaller.
+ *  - Made the Linear and TruLog axes correspond to on/off boolean
+ *    flags.
+ *
  *  Revision 1.53  2006/07/18 21:37:05  amoe
  *  Made the minimum space in between number labels bigger.  This is
  *  located in paintLinearX(..) .
@@ -415,18 +423,22 @@ public class AxisOverlay2D extends OverlayJPanel
   private transient IAxisAddible component;
   private int precision;
   private Font f;
-  private int axesdrawn;
-  private int x_scale;
-  private int y_scale;
+  protected int axesdrawn;
+  protected int x_scale;
+  protected int y_scale;
   private boolean isTwoSided = true;
-  private int gridxdisplay = 0;         // 0 = none, 1 = major, 2 = major/minor
-  private int gridydisplay = 0;         // 0 = none, 1 = major, 2 = major/minor    
-  private boolean displayXop = true;    // false = X-axis opposite off, 
-                                        // true = X-axis opposite on 
-  private boolean displayYop = true;    // false = Y-axis opposite off, 
-                                        // true = Y-axis opposite on 
-  private int ticksinoutX = 0;          // 0 = outside, 1 = inside
-  private int ticksinoutY = 0;          // 0 = outside, 1 = inside
+  private int gridxdisplay = 0;           // 0 = none, 1 = major, 2 = major/minor
+  private int gridydisplay = 0;           // 0 = none, 1 = major, 2 = major/minor    
+  protected boolean displayX = true;	  // false = X-axis bottom off
+  										  // true  = X-axis bottom on
+  protected boolean displayY = true;	  // false = Y-axis left off
+  										  // true  = Y-axis left on
+  protected boolean displayXop = true;    // false = X-axis opposite off, 
+                                          // true = X-axis opposite on 
+  protected boolean displayYop = true;    // false = Y-axis opposite off, 
+                                          // true = Y-axis opposite on 
+  protected int ticksinoutX = 0;          // 0 = outside, 1 = inside
+  protected int ticksinoutY = 0;          // 0 = outside, 1 = inside
   
   private transient AxisOverlay2D this_panel;
   private transient AxisEditor editor;
@@ -767,6 +779,7 @@ public class AxisOverlay2D extends OverlayJPanel
   */  
   public void paint(Graphics g) 
   {  
+	  //System.out.println("AxisOverlay2D.paint(..)");
     Graphics2D g2d = (Graphics2D)g;
     g2d.setFont(f);
     FontMetrics fontdata = g2d.getFontMetrics();
@@ -774,6 +787,7 @@ public class AxisOverlay2D extends OverlayJPanel
     setPrecision( component.getPrecision() );
     
     CoordBounds local_bounds = component.getLocalCoordBounds();
+    
     // Make sure x1 < x2 and y1 < y2.
     if( local_bounds.getX1() > local_bounds.getX2() )
       local_bounds = new CoordBounds( local_bounds.getX2(),
@@ -807,7 +821,7 @@ public class AxisOverlay2D extends OverlayJPanel
     {
       // Linear axis.
       if( x_scale == AxisInfo.LINEAR )
-    	paintLinearX( g2d );                   //<-----insert paintLinearTickX
+    	paintLinearX( g2d );
       // Tru-log axis.
       else if( x_scale == AxisInfo.TRU_LOG )
     	paintTruLogX(g2d);
@@ -819,7 +833,7 @@ public class AxisOverlay2D extends OverlayJPanel
     {
       // Linear Axis
       if( y_scale == AxisInfo.LINEAR )
-    	paintLinearY( g2d );                   //<-----insert paintLinearTickY
+    	paintLinearY( g2d );
       // Tru-log axis
       else if( y_scale == AxisInfo.TRU_LOG )
     	paintTruLogY(g2d);
@@ -941,7 +955,7 @@ public class AxisOverlay2D extends OverlayJPanel
   * the display of numbers is to be a consistent length, comment the body of
   * this method out.
   */
-  private String removeTrailingZeros( String string_num )
+  protected String removeTrailingZeros( String string_num )
   { 
     int decimal_index = string_num.indexOf('.');
     int char_index = string_num.length();
@@ -1011,22 +1025,25 @@ public class AxisOverlay2D extends OverlayJPanel
       exp_index = num.lastIndexOf('E');        
 
       // determine a nice spacing for the labels.
-      if( (prepix + 25 + 
+      if( (prepix + 20 + 
            fontdata.stringWidth(num.substring(0,exp_index))/2) >
           (pixel - fontdata.stringWidth(num.substring(0,exp_index))/2) )
       {
         skip++;
       }
       
-      // draw evenly spaced numeric labels.
-      if( steps%skip == 0 )
-      { 		
-        String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
+      if(displayX)
+      {      
+      		// draw evenly spaced numeric labels.
+      		if( steps%skip == 0 )
+      		{ 		
+      			String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
       
-        g2d.drawString( temp_num, 
-             pixel - fontdata.stringWidth(temp_num)/2, 
-             yaxis + ystart + xtick_length + fontdata.getHeight() );
-      } 	
+      			g2d.drawString( temp_num, 
+      					pixel - fontdata.stringWidth(temp_num)/2, 
+      					yaxis + ystart + xtick_length + fontdata.getHeight() );
+      		}
+      }
 
 
       // draw minor tick marks (subpixel refers to minor tick mark)
@@ -1075,24 +1092,26 @@ public class AxisOverlay2D extends OverlayJPanel
         
         
         if( steps%skip == 0 && pixel <= (xstart + xaxis) )
-        {      
-          //Draw labels for ticks
-          num = util.standardize( (step * (float)steps + start) );
-          exp_index = num.lastIndexOf('E');
-          String temp_num = removeTrailingZeros( num.substring(0,exp_index) );          
-          
-          g2d.drawString( temp_num,
-	       pixel - fontdata.stringWidth(temp_num)/2, 
-               yaxis + ystart + xtick_length + fontdata.getHeight() );
-                 
+        {
+        	if(displayX)
+        	{
+        		//Draw labels for ticks
+        		num = util.standardize( (step * (float)steps + start) );
+        		exp_index = num.lastIndexOf('E');
+        		String temp_num = removeTrailingZeros( num.substring(0,exp_index) );          
+        		
+        		g2d.drawString( temp_num,
+        				pixel - fontdata.stringWidth(temp_num)/2, 
+        				yaxis + ystart + xtick_length + fontdata.getHeight() );
+        	}                 
                     
-          // to draw grid line for major ticks
-          if( gridxdisplay == 1 || gridxdisplay == 2 )
-          {   
-            // first draw gridlines in their color
-            g2d.setColor( gridcolor );
-            g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
-          }
+        	// to draw grid line for major ticks
+        	if( gridxdisplay == 1 || gridxdisplay == 2 )
+        	{   
+        		// first draw gridlines in their color
+        		g2d.setColor( gridcolor );
+        		g2d.drawLine( pixel, ystart, pixel, yaxis + ystart );
+        	}
         }
         
         steps--;
@@ -1112,24 +1131,32 @@ public class AxisOverlay2D extends OverlayJPanel
         if(ticksinoutX == 0)
         {
           //draw ticks outside
-          g2d.drawLine( subpixel, yaxis + ystart, subpixel,
+          if(displayX)
+          {
+        	g2d.drawLine( subpixel, yaxis + ystart, subpixel,
                        (yaxis + ystart + xtick_length-2) - 1 );
-         if(displayXop == true)
-         {
-           g2d.drawLine( subpixel,ystart - 1, subpixel, 
+          }
+          
+          if(displayXop)
+          {
+            g2d.drawLine( subpixel,ystart - 1, subpixel, 
                          ((ystart - (xtick_length-2))-1) + 1 );
-         }
-      }
-      else
-      {
-        //draw ticks inside
-        g2d.drawLine( subpixel, (yaxis + ystart) - 1, subpixel, 
-                      (((yaxis + ystart) - (xtick_length-2)) - 1) + 1 );
-        if(displayXop == true)
-        {
-          g2d.drawLine( subpixel, ystart , subpixel, 
-                        ((ystart + (xtick_length-2))) - 1 );
+          }
         }
+        else
+        {
+        	if(displayX)
+        	{
+        		//draw ticks inside
+        		g2d.drawLine( subpixel, (yaxis + ystart) - 1, subpixel, 
+                        (((yaxis + ystart) - (xtick_length-2)) - 1) + 1 );
+        	}
+        	
+        	if(displayXop)
+        	{
+        		g2d.drawLine( subpixel, ystart , subpixel, 
+                        ((ystart + (xtick_length-2))) - 1 );
+        	}
       }  
     }
     
@@ -1137,87 +1164,106 @@ public class AxisOverlay2D extends OverlayJPanel
     //draw major ticks inside or outside the graph
     if(ticksinoutX == 0)
     {
-      //draw ticks outside
-      g2d.drawLine( pixel, yaxis + ystart, pixel, 
-                   (yaxis + ystart + xtick_length) - 1 );
-      if(displayXop == true)
-      {
-        g2d.drawLine( pixel, ystart - 1, pixel, 
+    	if(displayX)
+    	{
+    		//draw ticks outside
+    		g2d.drawLine( pixel, yaxis + ystart, pixel, 
+    				(yaxis + ystart + xtick_length) - 1 );
+    	}
+      
+    	if(displayXop)
+    	{
+    		g2d.drawLine( pixel, ystart - 1, pixel, 
                       ((ystart - xtick_length) - 1) + 1);
-      }
+    	}
     }
     else
-    {
-      //draw ticks inside
-      g2d.drawLine( pixel, (yaxis + ystart) - 1, pixel, 
-                   (((yaxis + ystart) - (xtick_length)) - 1) + 1 );
-      if(displayXop == true)
-      {
-        g2d.drawLine( pixel, ystart , pixel, (ystart + xtick_length) - 1 );
-      }
+    {	
+    	if(displayX)
+    	{
+    		//draw ticks inside
+    		g2d.drawLine( pixel, (yaxis + ystart) - 1, pixel, 
+    				(((yaxis + ystart) - (xtick_length)) - 1) + 1 );
+    	}
+    	if(displayXop == true)
+    	{
+    		g2d.drawLine( pixel, ystart , pixel, (ystart + xtick_length) - 1 );
+    	}
     }
       
     // If last step but another tick should be drawn
     if( steps == (numxsteps - 1) && 
        ( xaxis + xstart - pixel) > xaxis/(2*numxsteps) )
     {
-      if(ticksinoutX == 0)
-      {
-        //draw ticks outside
-        g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
-            pixel + (pixel - subpixel), (yaxis + ystart + xtick_length-2) - 1 );
-
-        if(displayXop == true)
-        {
-          g2d.drawLine( pixel + (pixel - subpixel), ystart - 1, 
-              pixel + (pixel - subpixel), ((ystart - (xtick_length-2))-1) + 1 );
-        }
-      }
-      else
-      {
-        //draw ticks inside
-        g2d.drawLine( pixel + (pixel - subpixel), 
-                     (yaxis + ystart) - 1,
-                      pixel + (pixel - subpixel), 
-                     (((yaxis + ystart) - (xtick_length-2)) - 1) + 1 );
-
-        if(displayXop == true)
-        {
-          g2d.drawLine( pixel + (pixel - subpixel), ystart , 
-                pixel + (pixel - subpixel), ((ystart + (xtick_length-2))) -1 );
-        }
-      }   	  
+    	if(ticksinoutX == 0)
+    	{
+    		if(displayX)
+    		{
+    			//draw ticks outside
+    			g2d.drawLine( pixel + (pixel - subpixel), yaxis + ystart, 
+    					pixel + (pixel - subpixel), (yaxis + ystart + xtick_length-2) - 1 );
+    		}
+			if(displayXop == true)
+			{
+				g2d.drawLine( pixel + (pixel - subpixel), ystart - 1, 
+						pixel + (pixel - subpixel), ((ystart - (xtick_length-2))-1) + 1 );
+			}
+    	}
+		else
+		{
+			if(displayX)
+			{
+				//draw ticks inside
+				g2d.drawLine( pixel + (pixel - subpixel), 
+						(yaxis + ystart) - 1,
+						pixel + (pixel - subpixel), 
+						(((yaxis + ystart) - (xtick_length-2)) - 1) + 1 );
+			}
+		
+		    if(displayXop == true)
+		    {
+		    	g2d.drawLine( pixel + (pixel - subpixel), ystart , 
+		    			pixel + (pixel - subpixel), ((ystart + (xtick_length-2))) -1 );
+		    }
+		}   	  
     	  
-      steps++;
-      A = (float)steps*step + start;  	  
-      pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart);
-          
-      if( steps%skip == 0 && pixel <= (xstart + xaxis) )
-      {      
-        if(ticksinoutX == 0)
-        {
-          //draw ticks outside
-          g2d.drawLine( pixel, yaxis + ystart, pixel, 
-                        (yaxis + ystart + xtick_length) - 1 );
-          if(displayXop == true)
-          {
-             g2d.drawLine( pixel, ystart - 1, pixel, 
-                          ((ystart - xtick_length) - 1) + 1);
-          }
-        }
-        else
-        {
-          //draw ticks inside
-          g2d.drawLine( pixel, (yaxis + ystart) - 1, pixel, 
-                        (((yaxis + ystart) - (xtick_length)) - 1) + 1 );
-          if(displayXop == true)
-          {
-            g2d.drawLine( pixel, ystart , pixel, (ystart + xtick_length) - 1 );
-          }
-        }
-       }
+	    steps++;
+	    A = (float)steps*step + start;  	  
+	    pixel = (int)( (float)xaxis*(A - xmin)/(xmax-xmin) + xstart);
+	          
+	    if( steps%skip == 0 && pixel <= (xstart + xaxis) )
+	    {      
+	    	if(ticksinoutX == 0)
+			{
+	    		if(displayX)
+	    		{
+	    			//draw ticks outside
+	    			g2d.drawLine( pixel, yaxis + ystart, pixel, 
+						(yaxis + ystart + xtick_length) - 1 );
+	    		}
+				if(displayXop == true)
+				{
+					g2d.drawLine( pixel, ystart - 1, pixel, 
+							((ystart - xtick_length) - 1) + 1);
+				}
+			}
+			else
+			{
+				if(displayX)
+				{
+					//draw ticks inside
+					g2d.drawLine( pixel, (yaxis + ystart) - 1, pixel, 
+						(((yaxis + ystart) - (xtick_length)) - 1) + 1 );
+				}
+				if(displayXop == true)
+				{
+					g2d.drawLine( pixel, ystart , pixel, (ystart + xtick_length) - 1 );
+				}
+			}
+	        
+	    }
       }
-    } // end of for
+   } // end of for
     paintLabelsAndUnits( num, X_AXIS, false, g2d );
   }
   
@@ -1251,8 +1297,7 @@ public class AxisOverlay2D extends OverlayJPanel
     // yskip is the space between calibrations: 1 = every #, 2 = every other
     
     int yskip = 1;
-    while( (yaxis*yskip/numysteps) < 
-           fontdata.getHeight() && yskip < numysteps)
+    while( (yaxis*yskip/numysteps) < fontdata.getHeight() && yskip < numysteps)
        yskip++;
     int rem = numysteps%yskip;
 
@@ -1260,14 +1305,12 @@ public class AxisOverlay2D extends OverlayJPanel
     {	
       a = ysteps * ystep;
     
-      ypixel = (int)( (pmax - pmin) * ( a - amin) /
-        	      (ymax - ymin) + pmin);
+      ypixel = (int)( (pmax - pmin) * ( a - amin) / (ymax - ymin) + pmin);
       //System.out.println("YPixel " + ypixel ); 
 
       //System.out.println("Ymin/Ymax " + ymin + "/" + ymax );
     
-      ysubpixel = (int)( (pmax - pmin) * ( a - amin  + ystep/2 ) /
-        	      (ymax - ymin) + pmin); 
+      ysubpixel = (int)( (pmax - pmin) * ( a - amin  + ystep/2 ) / (ymax - ymin) + pmin); 
     
       num = yutil.standardize(ystep * (float)ysteps + starty);
       exp_index = num.lastIndexOf('E');
@@ -1281,14 +1324,12 @@ public class AxisOverlay2D extends OverlayJPanel
       // if pixel is between top and bottom of imagejpanel, draw it  
       if( ypixel <= pmin && ypixel >= pmax )
       {
-        if( ((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip) )
+        if((displayY) && (((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip))  )
         {
           //draw labels for ticks
           String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
-          g2d.drawString( temp_num,
-          xstart - ytick_length - 
-          fontdata.stringWidth(temp_num),
-          ypixel + fontdata.getHeight()/4 );
+          g2d.drawString( temp_num, xstart - ytick_length - fontdata.stringWidth(temp_num),
+        		  ypixel + fontdata.getHeight()/4 );
         }	       
         
       // paint gridlines for major ticks
@@ -1322,9 +1363,8 @@ public class AxisOverlay2D extends OverlayJPanel
       {
         // change color for grid painting
         g2d.setColor(gridcolor);
-        g2d.drawLine( xstart - 1, (int)(ysubpixel + 
-         ( (pmin - pmax) * ystep / (ymax - ymin) ) ), xstart + xaxis - 1, 
-         (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
+        g2d.drawLine( xstart - 1, (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+        		xstart + xaxis - 1, (int)( ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin))));
       }
     }
       
@@ -1336,60 +1376,74 @@ public class AxisOverlay2D extends OverlayJPanel
     //if pixel is between top and bottom of imagejpanel, draw it  
     if( ypixel <= pmin && ypixel >= pmax )
     {
-      //(MAJOR TICKS)
+      //Major ticks
       if(ticksinoutY == 0)
       {
-        //draw ticks outside
-        g2d.drawLine( xstart - 1, ypixel - 1, 
-                    ((xstart - ytick_length) - 1) + 1, ypixel - 1 );
-       if(displayYop == true)
-       {
-         //display y-axis opposite
-        g2d.drawLine( (xstart + xaxis), ypixel - 1, 
-                     (((xstart + xaxis) + ytick_length)- 1) , ypixel - 1 );
-       }
+    	  if(displayY)
+    	  {
+    		  //draw ticks outside
+    		  g2d.drawLine( xstart - 1, ypixel - 1, 
+    				  ((xstart - ytick_length) - 1) + 1, ypixel - 1 );
+    	  }
+    	  if(displayYop == true)
+    	  {
+    		  //display y-axis opposite
+    		  g2d.drawLine( (xstart + xaxis), ypixel - 1, 
+    				  (((xstart + xaxis) + ytick_length)- 1) , ypixel - 1 );
+    	  }
      }
      else
      {
-       //draw ticks inside
-       g2d.drawLine( xstart  , ypixel - 1, 
-                    (xstart + ytick_length) - 1 , ypixel - 1 );
-       if(displayYop == true)
-       {
-         //display y-axis opposite
-         g2d.drawLine( (xstart + xaxis)-1, ypixel - 1, 
-                      ((xstart + xaxis) - ytick_length), ypixel - 1 );
-       }
+    	 if(displayY)
+    	 {
+    		 //draw ticks inside
+    		 g2d.drawLine( xstart  , ypixel - 1, 
+    		 		(xstart + ytick_length) - 1 , ypixel - 1 );
+    	 }
+
+    	 if(displayYop == true)
+    	 {
+    		 //display y-axis opposite
+    		 g2d.drawLine( (xstart + xaxis)-1, ypixel - 1, 
+    				 ((xstart + xaxis) - ytick_length), ypixel - 1 );
+    	 }
      }
    }
 
    //if subpixel is between top and bottom of imagejpanel, draw it
    if( ysubpixel <= pmin && ysubpixel >= pmax )
    {
-     //(MINOR TICKS)
+     //Minor ticks
      if (ticksinoutY == 0)
      {
-       //draw ticks outside
-       g2d.drawLine( xstart - 1, ysubpixel - 1,
-                     ((xstart - (ytick_length - 2)) - 1) + 1, ysubpixel - 1 );
-       if(displayYop == true)
-       {
-         //display y-axis opposite
-         g2d.drawLine( (xstart + xaxis), ysubpixel - 1,
-               (((xstart + xaxis) + (ytick_length-2))- 1), ysubpixel - 1 );
+    	 if(displayYop)
+    	 {
+    		 //draw ticks outside
+    		 g2d.drawLine( xstart - 1, ysubpixel - 1,
+  	                     ((xstart - (ytick_length - 2)) - 1) + 1, ysubpixel - 1 );
+    	 }
+    	 
+    	 if(displayYop == true)
+    	 {
+    		 //display y-axis opposite
+    		 g2d.drawLine( (xstart + xaxis), ysubpixel - 1,
+    				 (((xstart + xaxis) + (ytick_length-2))- 1), ysubpixel - 1 );
        }
      }
      else
      {
-       //draw ticks inside
-       g2d.drawLine( xstart, ysubpixel - 1,
-                    (xstart + (ytick_length - 2)) - 1 , ysubpixel - 1 );
-       if(displayYop == true)
-       {
-         //display y-axis opposite
-         g2d.drawLine((xstart + xaxis)-1 , ysubpixel - 1, 
+    	 if(displayY)
+    	 {
+	    	 //draw ticks inside
+	    	 g2d.drawLine( xstart, ysubpixel - 1,
+	    			 (xstart + (ytick_length - 2)) - 1 , ysubpixel - 1 );
+    	 }
+    	 if(displayYop == true)
+    	 {
+    		 //display y-axis opposite
+    		 g2d.drawLine((xstart + xaxis)-1 , ysubpixel - 1, 
                  (((xstart + xaxis) - (ytick_length-2))), ysubpixel - 1 );
-       }
+    	 }
      }
    }
 
@@ -1401,39 +1455,43 @@ public class AxisOverlay2D extends OverlayJPanel
    {    	  
      if (ticksinoutY == 0)
      {
-       //draw  ticks outside
-       g2d.drawLine( xstart - 1, 
-                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
-                ((xstart - (ytick_length - 2)) - 1) + 1, 
-                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
-
-       if(displayYop == true)
-       {
-         //display y-axis opposite
-        g2d.drawLine( xstart + xaxis, 
-            (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
-            ((xstart + xaxis) + (ytick_length-2)) - 1, 
-            (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
-       }    			  
+    	 if(displayY)
+    	 {
+    		 //draw  ticks outside
+    		 g2d.drawLine( xstart - 1, 
+	                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+	                ((xstart - (ytick_length - 2)) - 1) + 1, 
+	                (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+    	 }
+    	 if(displayYop == true)
+    	 {
+    		 //display y-axis opposite
+    		 g2d.drawLine( xstart + xaxis, 
+    				 (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+    				 ((xstart + xaxis) + (ytick_length-2)) - 1, 
+    				 (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+    	 }    			  
      }
      else
      {
-       //draw ticks inside
-       g2d.drawLine( xstart, 
-               (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
-               ((xstart + (ytick_length - 2)) - 1),
-               (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
-    		  
-       if(displayYop == true)
-       {
-         //display y-axis opposite
-        g2d.drawLine( (xstart + xaxis)-1, 
-              (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
-             (((xstart + xaxis) - (ytick_length-2))),
-              (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
-        }
-       }
+    	 if(displayY)
+    	 {
+    		 //draw ticks inside
+        	 g2d.drawLine( xstart, 
+                   (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+                   ((xstart + (ytick_length - 2)) - 1),
+                   (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+    	 }	  
+    	 if(displayYop == true)
+    	 {
+    		 //display y-axis opposite
+    		 g2d.drawLine( (xstart + xaxis)-1, 
+    				 (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ),
+    				 (((xstart + xaxis) - (ytick_length-2))),
+    				 (int)(ysubpixel + ( (pmin - pmax) * ystep / (ymax - ymin) ) ) );
+    	 }
       }
+     }
     }
     paintLabelsAndUnits( num, Y_AXIS, false, g2d );
   } // end of paintLinearY()
@@ -2258,30 +2316,40 @@ public class AxisOverlay2D extends OverlayJPanel
     	//paint the pixel if it will fall onto the graph
     	if( pixel >= xstart && pixel <= (xstart + xaxis) )
     	{
-    	  g2d.drawString( string_num,
-        		  pixel-(fontdata.stringWidth(string_num)/2),
-    			  yaxis + ystart + 25 );
+    		if(displayX)
+    		{
+	    		g2d.drawString( string_num,
+	    				pixel-(fontdata.stringWidth(string_num)/2),
+	    				yaxis + ystart + 25 );
+    		}
     	  
     	  //display outside major ticks
           if(ticksinoutX == 0)
           {
-             g2d.drawLine(pixel,yaxis+ystart, pixel, (yaxis + ystart + 5)-1);
-             if(displayXop == true)
-             {
-               //display major outside Xop
-               g2d.drawLine(pixel,ystart-1, pixel, ((ystart - 5)-1) + 1 );
-             }
+        	  if(displayX)
+        	  {
+        		  g2d.drawLine(pixel,yaxis+ystart, pixel, (yaxis + ystart + 5)-1);
+        	  }
+             
+        	  if(displayXop == true)
+        	  {
+        		  //display major outside Xop
+        		  g2d.drawLine(pixel,ystart-1, pixel, ((ystart - 5)-1) + 1 );
+        	  }
           }
           else
           {
-          //display major inside
-            g2d.drawLine( pixel,(yaxis+ystart)-1, pixel,
-                          (((yaxis + ystart) - 5) - 1) + 1 );
-            if(displayXop == true)
-            {
-            //display major inside Xop
-              g2d.drawLine(pixel,ystart, pixel,(ystart + 5) - 1 );
-            }
+        	  if(displayX)
+        	  {
+        		  //display major inside
+        		  g2d.drawLine( pixel,(yaxis+ystart)-1, pixel,
+        				  (((yaxis + ystart) - 5) - 1) + 1 );
+        	  }        	  
+        	  if(displayXop == true)
+        	  {
+        		  //display major inside Xop
+        		  g2d.drawLine(pixel,ystart, pixel,(ystart + 5) - 1 );
+        	  }
           }
     	}
       }
@@ -2317,28 +2385,40 @@ public class AxisOverlay2D extends OverlayJPanel
               //display outside major ticks
               if(ticksinoutX == 0)
               {
-                g2d.drawLine(pixel,yaxis+ystart, pixel, (yaxis + ystart + 5)-1);
-                if(displayXop == true)
-                {
-                  //display major outside Xop
-                  g2d.drawLine(pixel,ystart-1, pixel, ((ystart - 5)-1) + 1 );
-                }
+				if(displayX)
+				{
+					g2d.drawLine(pixel,yaxis+ystart, pixel, (yaxis + ystart + 5)-1);
+				}
+				
+				if(displayXop == true)
+				{
+				  //display major outside Xop
+				  g2d.drawLine(pixel,ystart-1, pixel, ((ystart - 5)-1) + 1 );
+				}
               }
               else
               {
-      	        //display major inside
-                g2d.drawLine( pixel,(yaxis+ystart)-1, pixel,
-                              (((yaxis + ystart) - 5) - 1) + 1 );
-                if(displayXop == true)
-                {
-                  //display major inside Xop
-                  g2d.drawLine(pixel,ystart, pixel,(ystart + 5) - 1 );
-                }
+            	  if(displayX)
+            	  {
+            		  //display major inside
+                	  g2d.drawLine( pixel,(yaxis+ystart)-1, pixel,
+                			  (((yaxis + ystart) - 5) - 1) + 1 );
+            	  }
+            	  
+            	  if(displayXop == true)
+            	  {
+            		  //display major inside Xop
+            		  g2d.drawLine(pixel,ystart, pixel,(ystart + 5) - 1 );
+            	  }
               }
-              //draw number data for tick
-              g2d.drawString( string_num, 
-                              pixel-(fontdata.stringWidth(string_num)/2),
-                              yaxis + ystart + 25);
+              
+              if(displayX)
+              {
+            	  //draw number data for tick
+            	  g2d.drawString( string_num,
+            			  pixel-(fontdata.stringWidth(string_num)/2),
+            			  yaxis + ystart + 25);
+              }
             }
             else
             {
@@ -2346,23 +2426,30 @@ public class AxisOverlay2D extends OverlayJPanel
               //display outside minor ticks
               if(ticksinoutX == 0)
               {
-                g2d.drawLine(pixel,yaxis+ystart,pixel, (yaxis + ystart + 3) -1);
-                if(displayXop == true)
-                {
-                  //display minor outside Xop
-                  g2d.drawLine(pixel,ystart-1, pixel,((ystart - 3)-1) + 1 );
-      	        }
+            	  if(displayX)
+            	  {           	  
+            		  g2d.drawLine(pixel,yaxis+ystart,pixel, (yaxis + ystart + 3) -1);
+            	  }
+                
+            	  if(displayXop == true)
+            	  {
+            		  //display minor outside Xop
+            		  g2d.drawLine(pixel,ystart-1, pixel,((ystart - 3)-1) + 1 );
+            	  }
               }
               else
               {
-                //display minor inside
-                g2d.drawLine( pixel, (yaxis+ystart)-1, pixel,
-                              (((yaxis + ystart) - 3) - 1) + 1 );
-                if(displayXop == true)
-                {
-                  //display minor inside xop
-                  g2d.drawLine(pixel,ystart, pixel,(ystart + 3) - 1 );
-                }
+            	  if(displayX)
+            	  {
+	            	  //display minor inside
+	            	  g2d.drawLine( pixel, (yaxis+ystart)-1, pixel,
+	            			  (((yaxis + ystart) - 3) - 1) + 1 );
+            	  }
+            	  if(displayXop == true)
+            	  {
+            		  //display minor inside xop
+            		  g2d.drawLine(pixel,ystart, pixel,(ystart + 3) - 1 );
+            	  }
               }
             }
           }
@@ -2475,30 +2562,42 @@ public class AxisOverlay2D extends OverlayJPanel
 	                                     loggery.toDest(num)) );
 	string_num = Format.choiceFormat( num, Format.SCIENTIFIC, precision );
         //paint the pixel if it will fall onto the graph
-        g2d.drawString(string_num,
-	               xstart - fontdata.stringWidth(string_num) - 15,
-		       pixel + (fontdata.getHeight()/4) );
+        
+		if(displayY)
+		{
+			g2d.drawString(string_num,
+					xstart - fontdata.stringWidth(string_num) - 15,
+					pixel + (fontdata.getHeight()/4) );
+		}
         
         //draw minor ticks
         if(ticksinoutY == 0)
     	{
-          //draw minor ticks out
-          g2d.drawLine(xstart - 1, pixel,((xstart - 3) - 1) + 1, pixel);
-          if(displayYop == true)
-          {
-            //draw minor ticks out on Yop
-            g2d.drawLine(xstart+xaxis, pixel,(xstart + xaxis + 3)- 1, pixel);
-          }
+        	if(displayY)
+        	{
+        		//draw minor ticks out
+            	g2d.drawLine(xstart - 1, pixel,((xstart - 3) - 1) + 1, pixel);
+        	}
+        	
+        	if(displayYop == true)
+        	{
+        		//draw minor ticks out on Yop
+        		g2d.drawLine(xstart+xaxis, pixel,(xstart + xaxis + 3)- 1, pixel);
+        	}
     	}
     	else
     	{
-          //draw minor ticks in
-          g2d.drawLine(xstart, pixel,(xstart + 3) - 1 , pixel);
-          if(displayYop == true)
-          {
-            //draw minor ticks in on Yop
-            g2d.drawLine((xstart+xaxis)-1, pixel,(xstart + xaxis) - 3, pixel);
-          }
+    		if(displayY)
+    		{
+    			//draw minor ticks in
+    			g2d.drawLine(xstart, pixel,(xstart + 3) - 1 , pixel);
+    		}
+          
+    		if(displayYop == true)
+    		{
+    			//draw minor ticks in on Yop
+    			g2d.drawLine((xstart+xaxis)-1, pixel,(xstart + xaxis) - 3, pixel);
+    		}
     	}
       }
     }
@@ -2533,35 +2632,43 @@ public class AxisOverlay2D extends OverlayJPanel
 	    // If 0, draw a major tick, else draw a minor tick.
 	    if( minorsteps == 0 )
 	    {
-              //draw the number for each tick
-              g2d.drawString(string_num,
-	    		     xstart - fontdata.stringWidth(string_num) - 15,
-	    		     pixel + (fontdata.getHeight()/4)) ;
+	    		if(displayY)
+	    		{
+	    			//draw the number for each tick
+	    			g2d.drawString(string_num,
+	    					xstart - fontdata.stringWidth(string_num) - 15,
+	    					pixel + (fontdata.getHeight()/4)) ;
+	    		}
               
-              //draw on axis if it actually will fit on the axis.
-              if(ticksinoutY == 0)
-              {
-                //draw major ticks out
-                g2d.drawLine(xstart - 1, pixel,((xstart - 5) - 1) + 1, pixel);
-                if(displayYop == true)
-                {
-                  //draw major ticks out on Yop
-            	  g2d.drawLine( xstart + xaxis, pixel, 
-                               (xstart + xaxis + 5)- 1, pixel);
-            	  }
-              }
-              else
-              {
-                //draw major ticks in
-                g2d.drawLine(xstart, pixel,(xstart + 5) - 1 , pixel);
-            	  
-                if(displayYop == true)
-                {
-                  //draw major ticks in on Yop
-                  g2d.drawLine( (xstart + xaxis) - 1, pixel,
+	    		//draw on axis if it actually will fit on the axis.
+	    		if(ticksinoutY == 0)
+	    		{
+	    			if(displayY)
+	    			{
+	    				//draw major ticks out
+	    				g2d.drawLine(xstart - 1, pixel,((xstart - 5) - 1) + 1, pixel);
+	    			}
+	    			if(displayYop == true)
+	    			{
+	    				//draw major ticks out on Yop
+	    				g2d.drawLine( xstart + xaxis, pixel, 
+	    						(xstart + xaxis + 5)- 1, pixel);
+	    			}
+	    		}
+	    		else
+	    		{
+	    			if(displayY)
+	    			{
+	    				//draw major ticks in
+	    				g2d.drawLine(xstart, pixel,(xstart + 5) - 1 , pixel);
+	    			}
+	    			if(displayYop == true)
+	    			{
+	    				//draw major ticks in on Yop
+	    				g2d.drawLine( (xstart + xaxis) - 1, pixel,
                                 (xstart + xaxis) - 5, pixel);
-                }
-              }
+	    			}
+	    		}
             }
             else
             {
@@ -2570,25 +2677,34 @@ public class AxisOverlay2D extends OverlayJPanel
 
               if(ticksinoutY == 0)
               {
-                //draw minor ticks out
-                g2d.drawLine(xstart - 1, pixel,((xstart - 3) - 1) + 1, pixel);
-                if(displayYop == true)
-                {
-                  //draw minor ticks out on Yop
-                  g2d.drawLine( xstart + xaxis, pixel,
+            	  if(displayY)
+            	  {
+            		  //draw minor ticks out
+                	  g2d.drawLine(xstart - 1, pixel,((xstart - 3) - 1) + 1, pixel);
+            	  }
+            	  
+                
+            	  if(displayYop == true)
+            	  {
+            		  //draw minor ticks out on Yop
+            		  g2d.drawLine( xstart + xaxis, pixel,
                                (xstart + xaxis + 3)- 1, pixel);
-                }
+            	  }
               }
               else
               {
-                //draw minor ticks in
-                g2d.drawLine(xstart, pixel,(xstart + 3) - 1 , pixel);
-                if(displayYop == true)
-                {
-                  //draw minor ticks in on Yop
-                  g2d.drawLine( (xstart + xaxis) - 1, pixel,
-                                (xstart + xaxis) - 3, pixel);
-                }
+            	  if(displayY)
+            	  {
+            		  //draw minor ticks in
+                      g2d.drawLine(xstart, pixel,(xstart + 3) - 1 , pixel);
+            	  }
+               
+            	  if(displayYop == true)
+            	  {
+            		  //draw minor ticks in on Yop
+            		  g2d.drawLine( (xstart + xaxis) - 1, pixel,
+				                (xstart + xaxis) - 3, pixel);
+            	  }
               }
             }
 	  } // end if( pixel ... )
