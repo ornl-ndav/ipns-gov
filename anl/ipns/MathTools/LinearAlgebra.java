@@ -35,6 +35,12 @@
  *  system of linear equations using QR factorization
  * 
  *  $Log$
+ *  Revision 1.29  2006/07/26 15:55:42  dennis
+ *  Commented out BestFitMatrix2() method that uses the Jama package.
+ *  This method was only used for performance testing of our
+ *  BestFitMatrix() method.  Commenting it out, removes all
+ *  dependencies on the Jama package.
+ *
  *  Revision 1.28  2006/01/03 03:24:20  dennis
  *  Fixed index error in methods to multiply matrix times vector.
  *
@@ -137,7 +143,7 @@ package gov.anl.ipns.MathTools;
 import gov.anl.ipns.Util.Numeric.*;
 import gov.anl.ipns.Util.Sys.*;
 import java.util.*;
-import Jama.*;
+// import Jama.*;
 
 /**
  *  Basic linear algebra operations such as dot product, solution of
@@ -1024,6 +1030,7 @@ public final class LinearAlgebra
   *  should generally be used.  This method has the same signature as 
   *  BestFitMatrix. 
   */
+/*
   public static double BestFitMatrix2(double M[][], double q[][], double r[][])
   {
     QRDecomposition qr_d = new QRDecomposition( new Matrix(q) );   
@@ -1037,7 +1044,7 @@ public final class LinearAlgebra
 
     return 0;
   }
-
+*/
 
   /* ---------------------- HouseholderTransform --------------------------- */
   /**
