@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2006/07/26 16:10:32  dennis
+ *  Moved ComponentPrintable.java to gov/anl/ipns/Util/Sys
+ *  so it is with the PrintUtilities class that uses it.
+ *
  *  Revision 1.15  2005/12/10 16:07:18  rmikk
  *  Now uses the IsawGUI.ComponentPrintable to print JTextComponents
  *    with pages.
@@ -179,7 +183,7 @@ public class PrintUtilities implements Printable
         }
       }	
     }	
-    printJob.setPrintable(new IsawGUI.ComponentPrintable(componentToBePrinted));
+    printJob.setPrintable(new ComponentPrintable(componentToBePrinted));
     if (printJob.printDialog(aset2))
     {
       try
