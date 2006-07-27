@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2006/07/27 00:50:45  dennis
+ *  Moved ExcelAdapter from package IsawGUI to ExtTools
+ *
  *  Revision 1.13  2005/06/08 18:44:18  dennis
  *  Fixed javadoc error.
  *
@@ -128,7 +131,7 @@
  */
 package gov.anl.ipns.ViewTools.Panels.Table;
  
-import IsawGUI.ExcelAdapter;
+import ExtTools.ExcelAdapter;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
