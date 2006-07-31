@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.58  2006/07/31 02:35:25  dennis
+ * Trap index out of bounds error in getY_value() method.
+ *
  * Revision 1.57  2006/07/10 20:32:18  amoe
  * - Added code in paint to draw a Bar symbol.
  * - Added final constant BAR.
@@ -1078,7 +1081,12 @@ public float getY_value( float x_value, int graph_number )
   int index = arrayUtil.get_index_of( x_value, gd.x_vals );
 
   if ( x_value == gd.x_vals[index] )    // if exact value is in list, return
-    return gd.y_vals[index];            // the corresponding y value.  
+  {                                     // the corresponding y value.  
+    if ( index >= 0 && index < gd.y_vals.length )
+      return gd.y_vals[index];            
+    else
+      return 0.0f;                      // we hit the last x-point of a
+  }                                     // histogram so no correponding y
 
   float x1 = gd.x_vals[index];          // x_value between two listed x_vals 
   float x2 = gd.x_vals[index + 1];            
