@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2006/07/31 13:22:47  rmikk
+ * The save and print image menu items are now enabled for the contour vies
+ *
  * Revision 1.13  2006/07/19 18:15:40  rmikk
  * Added the contour View as one of the choices
  *
@@ -630,8 +633,8 @@ public class Display2D extends Display
          saveColorScale();
         // Disable the "Print Image" and "Make JPEG Image" menu items.
          JMenu file_menu = menu_bar.getMenu(0);
-         file_menu.getItem(2).setEnabled(false);
-         file_menu.getItem(3).setEnabled(false);
+         file_menu.getItem(2).setEnabled(true);
+         file_menu.getItem(3).setEnabled(true);
          // Rebuild the display with a table.
          buildPane();
          
