@@ -33,6 +33,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2006/08/01 14:21:29  dennis
+ *  Replaced Integer.parseInt() with Double.parseDouble() when
+ *  masking tick mark labels on part of the axis.  The Integer
+ *  version works as long as the tick labels are integers, but
+ *  gives a number format exception if the label has a non-zero
+ *  fractional part.  This fixes a bug where the difference
+ *  view failed for some graphs, but worked for other similar
+ *  graphs.
+ *
  *  Revision 1.8  2006/07/25 16:40:08  amoe
  *  - Changed difference graph titles to a more compact form.
  *  - Created initTransparancies().
@@ -1125,7 +1134,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		        	{
 		        		
 		        		//draw labels for ticks
-		        		if(Integer.parseInt(num) >= 0)
+		        		if(Double.parseDouble(num) >= 0)
 		        		{	
 		        			g2d.drawString( num,(xstart+xaxis) + ytick_length + 9 ,
 		        					ypixel + fontdata.getHeight()/4);
