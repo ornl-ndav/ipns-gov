@@ -1,5 +1,8 @@
 /**
  *  $Log$
+ *  Revision 1.3  2006/08/08 15:18:47  dennis
+ *  Remove the strict checking for file existence.
+ *
  *  Revision 1.2  2006/07/10 16:25:05  dennis
  *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
  *
@@ -99,7 +102,8 @@ public class LoadFilePG extends StringPG_base
 	    {
 	    	widget_value = Conversions.get_String( fcPanel.getTextField().getText() );
 	    }
-	    
+
+/*  Remove the strict checking for file existence.
 	    //checking for pathname validity
 	    File file = new File(widget_value);
 	    if(!file.exists())
@@ -114,7 +118,7 @@ public class LoadFilePG extends StringPG_base
 	    {
 	    	throw new IllegalArgumentException("Read permission is denied");
 	    }	    
-
+*/
 	    return widget_value;
 	}
 	
