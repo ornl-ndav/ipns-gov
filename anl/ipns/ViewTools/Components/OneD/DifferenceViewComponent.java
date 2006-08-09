@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2006/08/09 19:18:32  amoe
+ *  - Changed default difference graph title to a new minimized form.
+ *  - Decreased space between the difference axis labels and the axis line.
+ *
  *  Revision 1.9  2006/08/01 14:21:29  dennis
  *  Replaced Integer.parseInt() with Double.parseDouble() when
  *  masking tick mark labels on part of the axis.  The Integer
@@ -605,9 +609,9 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    x2 = d2.getX_values();
 		    y2 = d2.getY_values();
 		    e2 = d2.getErrors();
-		    differenceGraph = new DataArray1D(x2,y2,e2,"Group IDs: "+graphZeroTitle+"-"+graphOneTitle,true,false);	    
+		    differenceGraph = new DataArray1D(x2,y2,e2,"["+graphZeroTitle+"]-["+graphOneTitle+"]",true,false);	    
 		    		    
-		    debugDiffOutput();	    
+		    //debugDiffOutput();	    
 		}
 		else //if there isn't two graphs to compare, diffGraph is null
 		{
@@ -964,14 +968,6 @@ public class DifferenceViewComponent extends FunctionViewComponent
 	
 	private class DifferenceAxisOverlay extends AxisOverlay2D
 	{
-		//float ymin;
-		//float ymax;
-		
-		//int yaxis;
-		//int ystart;
-		//int xaxis;
-		//int xstart;
-		
 		int precision;
 		
 		boolean displayDiffAxis = displayYop;
@@ -979,14 +975,10 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		public DifferenceAxisOverlay(boolean bol)
 		{
 			super(fvc,bol);
-			//System.out.println("DifferenceAxis() extends AxisOverlay2D");
 		}
 		
 		public void paint(Graphics g)
 		{
-			//System.out.println("DifferenceAxis.paint(..)");
-			
-			
 			Graphics2D g2d = (Graphics2D)g;
 		    g2d.setFont(fvc.getFont());
 		    FontMetrics fontdata = g2d.getFontMetrics();
@@ -1083,9 +1075,6 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    
 		    displayDiffAxis = displayYop;
 		    
-		    //g2d.setColor(Color.MAGENTA);		    
-		    
-		    
 		    float[] values = yutil.subDivide();
 		    float ystep = values[0];
 		    float starty = values[1];
@@ -1136,12 +1125,12 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		        		//draw labels for ticks
 		        		if(Double.parseDouble(num) >= 0)
 		        		{	
-		        			g2d.drawString( num,(xstart+xaxis) + ytick_length + 9 ,
+		        			g2d.drawString( num,(xstart+xaxis) + ytick_length + 7 ,
 		        					ypixel + fontdata.getHeight()/4);
 		        		}
 		        		else
 		        		{
-		        			g2d.drawString( num, (xstart+xaxis) + ytick_length + 2 ,
+		        			g2d.drawString( num, (xstart+xaxis) + ytick_length + 0 ,
 			        			ypixel + fontdata.getHeight()/4 );
 		        		}
 		        	}	        	
@@ -1225,8 +1214,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		        		}
 		        	}
 		        }
-		    }
-		    //g2d.setColor(Color.BLACK);			
+		    }			
 		}
 		
 		private void paintLeftSeparatedAxis(Graphics2D g2d)
