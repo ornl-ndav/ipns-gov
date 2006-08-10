@@ -34,6 +34,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2006/08/10 15:01:28  dennis
+ * Added basic test in main().
+ *
  * Revision 1.2  2005/08/04 22:36:46  cjones
  * Updated documentation and comment header.
  *
@@ -47,9 +50,15 @@
 
 package gov.anl.ipns.ViewTools.Components.ThreeD;
 
+import javax.swing.*;
 import java.awt.Color;
 import gov.anl.ipns.MathTools.Geometry.Vector3D;
 import SSG_Tools.SSG_Nodes.SimpleShapes.*;
+import SSG_Tools.SSG_Nodes.*;
+import SSG_Tools.Cameras.*;
+import SSG_Tools.Viewers.*;
+import SSG_Tools.Viewers.Controls.*;
+
 
 /** 
  *  This class draws a solid box of the specified width, height and depth
@@ -113,4 +122,34 @@ public class PixelPositionedBox extends PositionedBox
   {
   	return PixelVal;
   }
+
+  /* --------------------------- main ----------------------------------- */
+  /**
+   *  Main program that tests this object by displaying it in a frame. 
+   */
+  public static void main( String args[] )
+  {
+    int id = 1;
+    Vector3D center = new Vector3D( 0, 0, 0 );
+    Vector3D base   = new Vector3D( 1, 0, 0 );
+    Vector3D up     = new Vector3D( 0, 1, 0 );
+    Vector3D extent = new Vector3D( 1, 2, 3 );
+
+    Node box = new PixelPositionedBox( id, 
+                                       center, base, up, extent, 
+                                       Color.RED );
+    JoglPanel demo = new JoglPanel( box, false );
+
+    Camera camera = demo.getCamera();
+    camera.setVRP( new Vector3D(0,0,0) );
+    camera.setCOP( new Vector3D(0,0,5) );
+    new MouseArcBall( demo );
+
+    JFrame frame = new JFrame( "PixelPositionedBox Test" );
+    frame.setSize(500,517);
+    frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+    frame.getContentPane().add( demo.getDisplayComponent() );
+    frame.setVisible(true);
+  }
+
 }
