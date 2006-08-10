@@ -34,6 +34,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.9  2006/08/10 15:04:07  dennis
+ *  Set default DOT size to 2 pixels square.
+ *
  *  Revision 1.8  2006/07/25 02:25:35  dennis
  *  Now gets unused display list id from OpenGL, rather than
  *  assuming that ID 1 is available.
@@ -233,7 +236,9 @@ public class DetectorSceneBase extends Group
           pts[0] = point_list.getPoint(i);
           
           shape = new PixelPolymarker(i, pts, Color.WHITE);
-          ((PixelPolymarker)shape).setSize((int)extents[0]);
+//        ((PixelPolymarker)shape).setSize((int)extents[0]);
+          ((PixelPolymarker)shape).setSize((2));        // ### should calcluate
+                                                        // ### proper dot size
           ((PixelPolymarker)shape).setType(PixelPolymarker.DOT);
         }
         
@@ -279,7 +284,7 @@ public class DetectorSceneBase extends Group
         }
                   
         // Generate pick id that is unique
-        shape.setPickID( UniqueIntGenerator.getNextInt() );
+        shape.setPickID( UniqueIntGenerator.getNextInt() );  
         
         detector.addChild( shape );
         
@@ -321,7 +326,8 @@ public class DetectorSceneBase extends Group
     else detector = new DetectorGroup(-1);
 
      //THIS NEEDS TO BE CHANGED TO A UNIQUE ID
-    detector.setPickID(  UniqueIntGenerator.getNextInt() );
+    detector.setPickID(  UniqueIntGenerator.getNextInt() ); 
+                                                           
     addChild(detector);
     
     compileDisplayList = true;
