@@ -34,6 +34,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.11  2006/08/10 15:05:11  dennis
+ *  Set default background color to a blue-gray, instead of black.
+ *
  *  Revision 1.10  2006/07/25 04:33:18  dennis
  *  No longer sets the scene to null before rebuilding and setting a
  *  new scene.  This avoids null pointer exceptions if redraws are
@@ -249,7 +252,8 @@ public class SceneViewComponent extends ViewComponent3D
     // Create scene and place in rendering panel
     DetectorScene scene = new DetectorScene( (IPhysicalArray3D[])varrays, 
                                               currentShapeType );
-    
+    scene.setBackgroundColor( DEFAULT_BACKGROUND_COLOR );
+
     joglpane.setScene( scene );
     
     if ( first_time )                            // only set camera the first
