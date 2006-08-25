@@ -31,6 +31,9 @@
  * Modified:  
  *  
  * $Log$
+ * Revision 1.14  2006/08/25 17:03:18  rmikk
+ * Eliminated a debug print
+ *
  * Revision 1.13  2006/08/25 15:55:51  rmikk
  * Fixed SCD error by changing the method to position the Viewport.  It was
  * previously positioned with the assumption that the status pane only had 5
@@ -196,7 +199,7 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
              if(R.y > UPLeft.y)
                if( R.y < UPLeft.y+ViewportExtent.height)
             	   return;
-             System.out.println("setting viewPort");
+            
              //X.getViewport().setViewPosition( new Point( R.x,R.y));
              X.scrollRectToVisible( R );
              }
