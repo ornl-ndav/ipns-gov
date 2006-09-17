@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2006/09/17 21:45:02  rmikk
+ * Made the class serializatble so the data sets can now be saved as isd.
+ *
  * Revision 1.13  2004/06/16 21:29:08  dennis
  * Added constructor to construct the transformation matrix from a
  * one dimensional array of values.
@@ -82,8 +85,9 @@ import gov.anl.ipns.MathTools.*;
  *  arbitrary 4x4 linear transformations.  Methods to apply the transformation
  *  to a single Vector3D or an array of Vector3D objects are also provided.
  */
-public class Tran3D
+public class Tran3D implements java.io.Serializable
 {
+  public  static final long serialVersionUID = 1L;
   public static final float Identity[][] = { { 1, 0, 0, 0 },
                                              { 0, 1, 0, 0 },
                                              { 0, 0, 1, 0 },
@@ -92,6 +96,8 @@ public class Tran3D
                              { 0, 1, 0, 0 },
                              { 0, 0, 1, 0 },
                              { 0, 0, 0, 1 } };
+  
+  
 
   /*------------------------- default constructor ----------------------*/
   /**
