@@ -1,5 +1,8 @@
 /**
  * $Log$
+ * Revision 1.4  2006/09/28 23:19:53  rmikk
+ * Replaced all file separators by a "/".  This is assumed by quite a few applications
+ *
  * Revision 1.3  2006/07/10 16:25:06  dennis
  * Change to new Parameter GUIs in gov.anl.ipns.Parameters
  *
@@ -113,6 +116,7 @@ public class SaveFilePG extends StringPG_base
 	    	throw new IllegalArgumentException("Write permission is denied");
 	    }	    
 */
+       widget_value = widget_value.replace( '\\', '/');
 	    return widget_value;
 	}
 	

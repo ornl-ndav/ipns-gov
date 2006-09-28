@@ -1,5 +1,8 @@
 /**
  *  $Log$
+ *  Revision 1.3  2006/09/28 23:19:52  rmikk
+ *  Replaced all file separators by a "/".  This is assumed by quite a few applications
+ *
  *  Revision 1.2  2006/07/10 16:25:04  dennis
  *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
  *
@@ -175,10 +178,10 @@ public class DataDirPG extends StringPG_base
 	 * @return      directory with a trailiig path separator
 	 */
 	private String Append( String dir){
-		dir = dir.replace('/', java.io.File.separatorChar);
-		dir = dir.replace('\\', java.io.File.separatorChar);
-		if( ! dir.endsWith( java.io.File.separator))
-			dir = dir +java.io.File.separator;
+		//dir = dir.replace('/', java.io.File.separatorChar);
+		dir = dir.replace('\\', '/');
+		if( ! dir.endsWith( "/"))
+			dir = dir +"/";
 		return dir;
 	}
 	/**

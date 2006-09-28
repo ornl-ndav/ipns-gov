@@ -1,5 +1,8 @@
 /**
  *  $Log$
+ *  Revision 1.4  2006/09/28 23:19:53  rmikk
+ *  Replaced all file separators by a "/".  This is assumed by quite a few applications
+ *
  *  Revision 1.3  2006/08/08 15:18:47  dennis
  *  Remove the strict checking for file existence.
  *
@@ -118,6 +121,7 @@ public class LoadFilePG extends StringPG_base
 	    {
 	    	throw new IllegalArgumentException("Read permission is denied");
 	    }	    
+       widget_value = widget_value.replace('\\','/');
 */
 	    return widget_value;
 	}
