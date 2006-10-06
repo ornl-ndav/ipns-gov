@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2006/10/06 03:54:02  amoe
+ *  Edited DifferenceAxisOverlay.paint() so that when the
+ *  differenceGraph is not shifted, the difference axis would turn off and
+ *  the regular axis would be displayed normally.
+ *
  *  Revision 1.10  2006/08/09 19:18:32  amoe
  *  - Changed default difference graph title to a new minimized form.
  *  - Decreased space between the difference axis labels and the axis line.
@@ -978,71 +983,32 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		}
 		
 		public void paint(Graphics g)
-		{
-			Graphics2D g2d = (Graphics2D)g;
-		    g2d.setFont(fvc.getFont());
-		    FontMetrics fontdata = g2d.getFontMetrics();
-		    
-		    // Reset precision, make sure it is always consistent.		    
-		    precision = fvc.getPrecision();
-		    
-		    /*
-		    CoordBounds local_bounds = fvc.getLocalCoordBounds();
-		    
-		    //making sure that y1 < y2
-		    if( local_bounds.getY1() > local_bounds.getY2() )
-		    {
-		        local_bounds.invertBounds();
-		    }
-		    
-		    // min/max for y-axis
-		    ymin = (local_bounds.getY1()+shift);
-			ymax = (local_bounds.getY2()+shift);
-		    
-		    //get the dimension of the center panel (imagejpanel)
-		    yaxis = (int)( fvc.getRegionInfo().getHeight() );		    
-		    ystart = (int)( fvc.getRegionInfo().getLocation().getY() );
-		    
-		    //TRY TO DELETE THIS LATER
-		    xaxis = (int)( fvc.getRegionInfo().getWidth() );
-		    xstart = (int)( fvc.getRegionInfo().getLocation().getX() );
-		    */
-		    
-		    if( axesdrawn == Y_AXIS || axesdrawn == DUAL_AXES )
-		    {
-		        
-		    	// Linear Axis
-		        if( y_scale == AxisInfo.LINEAR )
-		        {
-		        	/*
-		        	//paint full right axis
-		        	paintRightFullAxis( g2d );		        	
-		        	displayYop = false;
-				    super.paint(g);
-				    displayYop = displayDiffAxis;
-				    */
-		        	
-		        	//paint seperated right axis
-		        	paintRightSeparatedAxis(g2d);
-		        	paintLeftSeparatedAxis(g2d);
-		        	displayYop = false;
-		        	displayY   = false;
-		        	super.paint(g);
-		        	displayYop = displayDiffAxis;
-		        	displayY   = true;
-		        }
-		        else
-		        {
-		        	super.paint(g);
-		        }	        
-		        
-		    }
-		    else
-		    {
-		    	super.paint(g);
-		    }
-		    
-
+		{		   	        
+	    	// Linear Axis
+	        if((axesdrawn == Y_AXIS || axesdrawn == DUAL_AXES) && 
+	        		(y_scale == AxisInfo.LINEAR) && 
+	        		(plotShiftedDiff) )
+	        {
+	        	Graphics2D g2d = (Graphics2D)g;
+			    g2d.setFont(fvc.getFont());
+			    
+			    // Reset precision, make sure it is always consistent.		    
+			    precision = fvc.getPrecision();
+	        	
+	        	//paint seperated right axis
+	        	paintRightSeparatedAxis(g2d);
+	        	paintLeftSeparatedAxis(g2d);
+	        	
+	        	displayYop = false;
+	        	displayY   = false;
+	        	super.paint(g);
+	        	displayYop = displayDiffAxis;
+	        	displayY   = true;
+	        }
+	        else
+	        {
+	        	super.paint(g);
+	        }
 		}
 		
 		private void paintRightSeparatedAxis(Graphics2D g2d)
@@ -1066,7 +1032,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    int yaxis = (int)( fvc.getRegionInfo().getHeight() );		    
 		    int ystart = (int)( fvc.getRegionInfo().getLocation().getY() );
 		    
-		    //TRY TO DELETE THIS LATER
+		    
 		    int xaxis  = (int)( fvc.getRegionInfo().getWidth() );
 		    int xstart = (int)( fvc.getRegionInfo().getLocation().getX() );
 		    
@@ -1105,30 +1071,29 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    
 		    //create axis
 		    for( int ysteps = numysteps - 1; ysteps >= 0; ysteps-- )
-		    {
-		    	
+		    {		    	
 		    	a = ysteps * ystep;		        
 		        ypixel = (int)( (pmax - pmin) * ( a - amin) / (ymax - ymin) + pmin);
 		        ysubpixel = (int)( (pmax - pmin) * ( a - amin  + ystep/2 ) / (ymax - ymin) + pmin);
 		    	
 		        num = yutil.standardize(ystep * (float)ysteps + starty);
 		        exp_index = num.lastIndexOf('E');
-		        
+
 		        if( ypixel <= pmin && ypixel >= pmax )
 		        {
 		        	g2d.setColor(Color.MAGENTA);
 		        	num = removeTrailingZeros( num.substring(0,exp_index) );
 		        	
-		        	if( (((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip)) && (Float.parseFloat(num) <= selectedGraphMin + shift ) )
-		        	{
-		        		
+		        	if( (((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip)) 
+		        			&& (Float.parseFloat(num) <= selectedGraphMin + shift ))
+		        	{		        		
 		        		//draw labels for ticks
 		        		if(Double.parseDouble(num) >= 0)
 		        		{	
 		        			g2d.drawString( num,(xstart+xaxis) + ytick_length + 7 ,
 		        					ypixel + fontdata.getHeight()/4);
 		        		}
-		        		else
+		        		else    //if the num label is negative, make room for "-" sign
 		        		{
 		        			g2d.drawString( num, (xstart+xaxis) + ytick_length + 0 ,
 			        			ypixel + fontdata.getHeight()/4 );
@@ -1238,17 +1203,10 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		    int yaxis = (int)( fvc.getRegionInfo().getHeight() );		    
 		    int ystart = (int)( fvc.getRegionInfo().getLocation().getY() );
 		    
-		    //TRY TO DELETE THIS LATER
-		    int xaxis  = (int)( fvc.getRegionInfo().getWidth() );
 		    int xstart = (int)( fvc.getRegionInfo().getLocation().getX() );
 		    
 		    CalibrationUtil yutil = new CalibrationUtil( ymin, ymax, precision, 
-		        					 Format.ENGINEER );
-		    
-		    //displayDiffAxis = displayYop;
-		    
-		    //g2d.setColor(Color.MAGENTA);		    
-		    
+		        					 Format.ENGINEER );		    
 		    
 		    float[] values = yutil.subDivide();
 		    float ystep = values[0];
@@ -1295,7 +1253,8 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		        	num = removeTrailingZeros( num.substring(0,exp_index) );
 		        	
 		        	//paint number label if in selected graph range
-		        	if( (((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip)) && (Float.parseFloat(num) >= diffGraphMax - shift ) )
+		        	if( (((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip)) && 
+		        			( (Float.parseFloat(num) >= diffGraphMax-shift)) )
 		        	{		        		
 		        		g2d.drawString( num, xstart - ytick_length - fontdata.stringWidth(num),
 		              		  ypixel + fontdata.getHeight()/4 );
@@ -1359,7 +1318,6 @@ public class DifferenceViewComponent extends FunctionViewComponent
 		        	}
 		        }
 		    }
-		    //g2d.setColor(Color.BLACK);
 		}
 	}	
 	
@@ -1371,8 +1329,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 			
 			if(actionMessage.equals("Checkbox Changed"))
 			{				
-				displayDiff = ((ControlCheckboxButton)ae.getSource()).isSelected();
-				
+				displayDiff = ((ControlCheckboxButton)ae.getSource()).isSelected();				
 				displayDiffGraph(false);
 			}
 			else if(actionMessage.equals("Button Pressed"))
