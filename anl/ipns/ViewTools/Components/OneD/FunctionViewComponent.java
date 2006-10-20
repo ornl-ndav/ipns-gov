@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.92  2006/10/20 05:33:44  amoe
+ *  - Added code to setPointedAt(), so the crosshairs would be updated.
+ *  - Removed getDataPanel().
+ *
  *  Revision 1.91  2006/08/09 19:16:28  amoe
  *  Added getDataPanel().  It returns the GraphJPanel gjp.
  *  (Dominic Kramer, Andrew Moe)
@@ -988,7 +992,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     //System.out.println( "Y value = " + pt.getY(  ) );
     //set the cursor position on GraphJPanel
     gjp.setCurrent_WC_point( pt );
-    System.out.println( "FunctionViewComponent.setPointedAt(..);" );
+    gjp.set_crosshair_WC(new floatPoint2D(pt.x,gjp.getY_value(pt.x,0)));
   }
 
 
@@ -1126,13 +1130,6 @@ public class FunctionViewComponent implements IViewComponent1D,
    */
   public void removeAllActionListeners(  ) {
     Listeners.removeAllElements(  );
-  }
-  
-  /**
-   * Retrieve the JPanel that holds the data that this component displays.
-   */
-  public JPanel getDataPanel(){
-    return gjp;
   }
 
   public ViewControl[] getControls(  ) {
