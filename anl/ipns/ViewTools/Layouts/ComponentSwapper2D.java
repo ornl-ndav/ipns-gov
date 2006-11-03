@@ -34,7 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2006/11/03 19:42:40  amoe
+ *  - Edited:  //Changed protected buildComponent(..) to public
+ *                  //Changed protected linkComponents(..)  to  public
+ *  (Dominic Kramer)
+ *
  *  Revision 1.8  2005/07/25 20:51:03  kramer
+ *
  *  Modified the imports so that the new ContourViewComponent (from the
  *  package gov.anl.ipns.ViewTools.Components.TwoD.Contour package) is used.
  *
@@ -243,7 +249,7 @@ import java.awt.event.ActionListener;
    *
    *  @param  view_type The view_type that needs to be added to the table.
    */
-   protected void buildComponent(String view_type)
+   public void buildComponent(String view_type)
    {
      // Make sure there is data to be displayed.
      if( data == null )
@@ -290,7 +296,7 @@ import java.awt.event.ActionListener;
    * to the new visible view component. Information such as pointed at and
    * colorscale should be set here.
    */ 
-   protected void linkComponents()
+   public void linkComponents()
    {
      IViewComponent2D new_view = (IViewComponent2D)getViewComponent();
      // If this is the first ViewComponent to be created, no need to link
