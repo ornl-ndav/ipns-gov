@@ -34,7 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/11/03 19:46:12  amoe
+ *  -Added:  String DATA_SET
+ *                  getRawLayoutManager()
+ *  -Edited:  buildPanel()  // will send a message if layout manager
+ *                                          is a Dataset type, and not DataSetVirtualArray
+ *  (Dominic Kramer)
+ *
  *  Revision 1.4  2005/07/25 20:51:03  kramer
+ *
  *  Modified the imports so that the new ContourViewComponent (from the
  *  package gov.anl.ipns.ViewTools.Components.TwoD.Contour package) is used.
  *
@@ -53,9 +61,9 @@
  *    structure.
  *
  */
- package gov.anl.ipns.ViewTools.Layouts;
- 
- import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
+package gov.anl.ipns.ViewTools.Layouts;
+
+import gov.anl.ipns.Util.Sys.PrintComponentActionListener;
 import gov.anl.ipns.Util.Sys.SaveImageActionListener;
 import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.Util.Sys.WindowShower;
@@ -93,6 +101,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+import gov.anl.ipns.ViewTools.Components.ComponentView.DataSetSwapper;
+import gov.anl.ipns.ViewTools.Components.ComponentView.DataSetVirtualArray;
+
+
 /**
  * This class displays an IComponentLayoutManager and its menu items.
  * 
@@ -125,8 +137,13 @@ import javax.swing.KeyStroke;
    * ComponentViewManager. This variable will specify a SingleLayoutManager.
    */
    public static final String SINGLE = "Single";
+
+   public static final String DATA_SET = "DataSet";
+
    // Add new layout types to this list.
-   private final String[] layout_list = new String[]{SINGLE};
+   private final String[] layout_list = new String[]
+   { SINGLE, DATA_SET };
+
    // These static variables are shared by all ComponentViewManager instances.
    private static int cvm_counter = 0; // Keep track of # of view managers.
    private static JFrame shared_ctrls_ui; // Window displaying shared controls.
@@ -442,6 +459,11 @@ import javax.swing.KeyStroke;
      return current_layout;
    }
    
+   public AbstractLayoutManager getRawLayoutManager()
+   {
+      return this.alm;
+   }
+   
   /**
    * Override method from ActionValueJFrame. Perform additional operations
    * based on the event, then pass it on to listeners.
@@ -495,98 +517,113 @@ import javax.swing.KeyStroke;
    */
    private void buildPanel()
    {
-     // Remove everything from view.
-     getContentPane().removeAll();
-     if( alm != null )
-     {
-       // If switching views, save the state of the current layout manager.
-       layout_state.put(getLayoutManager(),alm.getObjectState(PROJECT));
-       // If switching views, save the preferences for current layout manager.
-       StringBuffer key = new StringBuffer(getLayoutManager()).append("Prefs");
-       layout_prefs.put(key.toString(),alm.getObjectState(DEFAULT));
-       // Remove any existing menu items.
-       removeLayoutMenuItems();
-       // Remove any registered controls.
-       removeSharedControls();
-       // Since regenerating the view, remove listeners.
-       removeActionValueListener(alm);
-       // Since regenerating the view, remove listeners.
-       alm.removeActionValueListener(this_manager);
-     }
-     String err_string = null;
-     // If data is not valid, 
-     if( data == null )
-     {
-       err_string = "No data to display.";
-     }
-     else if( !isValidLayout(getLayoutManager()) )
-     {
-       err_string = "ERROR in ComponentViewManager.buildPanel() - Layout"+
-                    "Manager ["+getLayoutManager()+"] unsupported.";
-     }
-     // If an error is found, clear the display and show the error.
-     if( err_string != null )
-     {
-       JPanel null_display = new JPanel();
-       null_display.add(new JLabel(err_string));
-       // Add error label to display.
-       getContentPane().add(null_display);
-       validate();
-       repaint();
-       return;
-     }
-     
-     // If state for layout exists, restore state.
-     ObjectState temp_state = (ObjectState)layout_state.get(getLayoutManager());
-     if( temp_state == null )
-     {
-       StringBuffer key = new StringBuffer(getLayoutManager()).append("Prefs");
-       temp_state = (ObjectState)layout_prefs.get(key.toString());
-     }
-     
-     // If SingleLayoutManager desired, create new instance and add it
-     // to the layouts table.
-     if( getLayoutManager().equals(SINGLE) )
-     {
-       if( temp_state != null )
-         alm = new SingleLayoutManager( data, (ObjectState)temp_state );
-       else
-         alm = new SingleLayoutManager(data);
-     }
-     else
-     {
-       // If this message appears, a new layout manager was probably created,
-       // but never added to the "if" statements above. To resolve this,
-       // add an a line similar to the existing layout managers.
-       SharedMessages.addmsg("Layout ["+getLayoutManager()+"] unsupported "+
-        		     "by ComponentViewManager.buildPanel(). "+
-        		     "Please add definition of this layout.");
-       // Rebuild display after removing all components.
-       validate();
-       repaint();
-       return;
-     }
-     // Allow AbstractLayoutManager to listen to ActionValueEvents
-     // generated by the view manager.
-     addActionValueListener(alm);
-     // Allow view manager to listen to ActionValueEvents generated
-     // by the LayoutManager.
-     alm.addActionValueListener(this_manager);
-     // Display the newly created layout manager.
-     getContentPane().add(alm);
-     // Add any menu items from the layout.
-     addLayoutMenuItems();
-     // Add any new shared controls to the ControlManager and GUI.
-     addSharedControls();
-     /*
-     // Load any saved user preferences if the first instance of view manager.
-     if( first_pass && cvm_counter == 1 )
-     {
-       first_pass = false;
-       loadPreferences();
-     }*/
-     validate();
-     repaint();
+      // Remove everything from view.
+      getContentPane().removeAll();
+      if (alm != null)
+      {
+         // If switching views, save the state of the current layout manager.
+         layout_state.put(getLayoutManager(), alm.getObjectState(PROJECT));
+         // If switching views, save the preferences for current layout manager.
+         StringBuffer key = new StringBuffer(getLayoutManager())
+               .append("Prefs");
+         layout_prefs.put(key.toString(), alm.getObjectState(DEFAULT));
+         // Remove any existing menu items.
+         removeLayoutMenuItems();
+         // Remove any registered controls.
+         removeSharedControls();
+         // Since regenerating the view, remove listeners.
+         removeActionValueListener(alm);
+         // Since regenerating the view, remove listeners.
+         alm.removeActionValueListener(this_manager);
+      }
+      String err_string = null;
+      // If data is not valid,
+      if (data == null)
+      {
+         err_string = "No data to display.";
+      }
+      else if (!isValidLayout(getLayoutManager()))
+      {
+         err_string = "ERROR in ComponentViewManager.buildPanel() - Layout"
+               + "Manager [" + getLayoutManager() + "] unsupported.";
+      }
+      // If an error is found, clear the display and show the error.
+      if (err_string != null)
+      {
+         JPanel null_display = new JPanel();
+         null_display.add(new JLabel(err_string));
+         // Add error label to display.
+         getContentPane().add(null_display);
+         validate();
+         repaint();
+         return;
+      }
+
+      // If state for layout exists, restore state.
+      ObjectState temp_state = (ObjectState) layout_state
+            .get(getLayoutManager());
+      if (temp_state == null)
+      {
+         StringBuffer key = new StringBuffer(getLayoutManager())
+               .append("Prefs");
+         temp_state = (ObjectState) layout_prefs.get(key.toString());
+      }
+
+      // If SingleLayoutManager desired, create new instance and add it
+      // to the layouts table.
+      if (getLayoutManager().equals(SINGLE))
+      {
+         if (temp_state != null)
+            alm = new SingleLayoutManager(data, (ObjectState) temp_state);
+         else
+            alm = new SingleLayoutManager(data);
+      }
+      else if (getLayoutManager().equals(DATA_SET))
+      {
+         if ( !(data instanceof DataSetVirtualArray) )
+         {
+            SharedMessages.addmsg("Layout ["+DATA_SET+"] is only supported " +
+                                  "by ComponentViewManager.buildPanel() " +
+                                  "if the ComponentViewManager was given a " +
+                                  DataSetVirtualArray.class.getName());
+            return;
+         }
+         
+         alm = new SingleLayoutManager(
+                      new DataSetSwapper( (DataSetVirtualArray)data ));
+      }
+      else
+      {
+         // If this message appears, a new layout manager was probably created,
+         // but never added to the "if" statements above. To resolve this,
+         // add an a line similar to the existing layout managers.
+         SharedMessages.addmsg("Layout [" + getLayoutManager()
+               + "] unsupported " + "by ComponentViewManager.buildPanel(). "
+               + "Please add definition of this layout.");
+         // Rebuild display after removing all components.
+         validate();
+         repaint();
+         return;
+      }
+      // Allow AbstractLayoutManager to listen to ActionValueEvents
+      // generated by the view manager.
+      addActionValueListener(alm);
+      // Allow view manager to listen to ActionValueEvents generated
+      // by the LayoutManager.
+      alm.addActionValueListener(this_manager);
+      // Display the newly created layout manager.
+      getContentPane().add(alm);
+      // Add any menu items from the layout.
+      addLayoutMenuItems();
+      // Add any new shared controls to the ControlManager and GUI.
+      addSharedControls();
+      /*
+       * // Load any saved user preferences if the first instance of view
+       * manager. if( first_pass && cvm_counter == 1 ) { first_pass = false;
+       * loadPreferences(); }
+       */
+      validate();
+      repaint();
    }
    
   /*
@@ -843,64 +880,65 @@ import javax.swing.KeyStroke;
    {
      public void actionPerformed( ActionEvent ae )
      {
-       String action = ae.getActionCommand();
-       // If layout from View menu...
-       if( isValidLayout(action) )
-       {
-         // If the current layout manager is not the specified manager,
-	 // change the layout.
-         if( !getLayoutManager().equals(action) )
-	 {
-	   setLayoutManager(action);
-	 }
-       }
-       else if( action.equals("Additional View") )
-       {
-	 ComponentViewManager cvm = new ComponentViewManager( getData(),
-	                                 this_manager.getObjectState(PROJECT) );
-	 // Let current view manager listen to new view manager.
-	 cvm.addActionValueListener(this_manager);
-         // Let new view manager listen to current view manager.
-	 addActionValueListener(cvm);
-	 
-	 WindowShower.show( cvm );
-	 // Consider adding window listener, which will remove listener when
-	 // window is closing.
-       }
-       else if( action.equals("Show Shared Controls") )
-       {
-         JCheckBoxMenuItem show = (JCheckBoxMenuItem)ae.getSource();
-	 // If menu item is checked and shared controls exist, show them.
-	 if( show.isSelected() &&
-	     shared_ctrls_ui.getContentPane().getComponentCount() > 0 )
+         String action = ae.getActionCommand();
+         // If layout from View menu...
+         if( isValidLayout(action) ) 
          {
-	   shared_ctrls_ui.setVisible(true);
-	 }
-	 else
-	   shared_ctrls_ui.setVisible(false);
-       }
-       else if( action.equals("Save User Preferences") )
-       {
-         getObjectState(IPreserveState.DEFAULT).silentFileChooser( PREFS_FILE,
-	                                                          true );
-         SharedMessages.addmsg("Saving preferences to "+PREFS_FILE);
-       }
-       // If Close, dispose of view manager.
-       else if( action.equals("Close") )
-       {
-         // Make sure to notify listeners that this window is closing before
-	 // disposing of the ComponentViewManager.
-         WindowEvent we = new WindowEvent( this_manager,
-	                                   WindowEvent.WINDOW_CLOSING );
-         WindowListener[] closing_listeners = this_manager.getWindowListeners();
-	 for( int i = 0; i < closing_listeners.length; i++ )
-	   closing_listeners[i].windowClosing(we);
-         // Release all screen resources used by the ViewManager.
-         dispose();
-	 // Run garbage collector.
-	 System.gc();
-       }
-     }
+            // If the current layout manager is not the specified manager,
+            // change the layout.
+            if (!getLayoutManager().equals(action))
+            {
+               setLayoutManager(action);
+            }
+         }
+         else if (action.equals("Additional View"))
+         {
+            ComponentViewManager cvm = new ComponentViewManager(getData(),
+                  this_manager.getObjectState(PROJECT));
+            // Let current view manager listen to new view manager.
+            cvm.addActionValueListener(this_manager);
+            // Let new view manager listen to current view manager.
+            addActionValueListener(cvm);
+
+            WindowShower.show(cvm);
+            // Consider adding window listener, which will remove listener when
+            // window is closing.
+         }
+         else if (action.equals("Show Shared Controls"))
+         {
+            JCheckBoxMenuItem show = (JCheckBoxMenuItem) ae.getSource();
+            // If menu item is checked and shared controls exist, show them.
+            if (show.isSelected()
+                  && shared_ctrls_ui.getContentPane().getComponentCount() > 0)
+            {
+               shared_ctrls_ui.setVisible(true);
+            }
+            else
+               shared_ctrls_ui.setVisible(false);
+         }
+         else if (action.equals("Save User Preferences"))
+         {
+            getObjectState(IPreserveState.DEFAULT).silentFileChooser(
+                  PREFS_FILE, true);
+            SharedMessages.addmsg("Saving preferences to " + PREFS_FILE);
+         }
+         // If Close, dispose of view manager.
+         else if (action.equals("Close"))
+         {
+            // Make sure to notify listeners that this window is closing before
+            // disposing of the ComponentViewManager.
+            WindowEvent we = new WindowEvent(this_manager,
+                  WindowEvent.WINDOW_CLOSING);
+            WindowListener[] closing_listeners = this_manager
+                  .getWindowListeners();
+            for (int i = 0; i < closing_listeners.length; i++)
+               closing_listeners[i].windowClosing(we);
+            // Release all screen resources used by the ViewManager.
+            dispose();
+            // Run garbage collector.
+            System.gc();
+         }
+      }
    }
    
   /*
