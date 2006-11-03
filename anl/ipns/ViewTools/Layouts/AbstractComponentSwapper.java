@@ -34,7 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2006/11/03 19:40:58  amoe
+ *  -Edited:   getSwapperMenuItems()
+ *                  //changed ComponentTracker(..) from protected to public
+ *  (Dominic Kramer)
+ *
  *  Revision 1.4  2005/06/28 18:29:29  kramer
+ *
  *  Modified the getSwapperMenuItems() method so that the ViewMenuItem array
  *  returned has its menu items configured so that the items to display the
  *  table, image, or contour view are placed in a 'View' menu.
@@ -78,6 +84,7 @@
  import gov.anl.ipns.ViewTools.Components.IVirtualArray;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
+import gov.anl.ipns.ViewTools.Components.ThreeD.ViewComponent3D;
  import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
  import gov.anl.ipns.ViewTools.UI.ActionValueJPanel;
  import gov.anl.ipns.ViewTools.UI.ActionValueEvent;
@@ -421,8 +428,12 @@
    */ 
    public ViewMenuItem[] getSwapperMenuItems()
    {
+      IViewComponent comp = getViewComponent();
+      if (comp == null)
+         return new ViewMenuItem[0];
+      
      //get the current IViewComponent's menu items
-     ViewMenuItem[] vcm = getViewComponent().getMenuItems();
+     ViewMenuItem[] vcm = comp.getMenuItems();
      //make an array to hold all of these items plus all of the items to 
      //switch to a different IViewComponent (a different view)
      ViewMenuItem[] menu_items = 
@@ -702,7 +713,7 @@
      private IViewComponent ivc;
      private int[] vis_ctrls;
      private int ctrl_scheme;
-     protected ComponentTracker(IViewComponent vc)
+     public ComponentTracker(IViewComponent vc)
      {
        ivc = vc;
        // By default, let all controls be shown.
