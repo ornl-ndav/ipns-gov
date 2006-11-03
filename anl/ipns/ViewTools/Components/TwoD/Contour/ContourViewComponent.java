@@ -33,6 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.8  2006/11/03 19:38:56  amoe
+ * -Added:  getRowForY()
+ *                getColumnForX()
+ *                getDataPanel()
+ * -Edited: javadocs (update)
+ * (Dominic Kramer)
+ *
  * Revision 1.7  2006/07/19 18:14:38  rmikk
  * Set the contour levels to uniform  between min and max with 10 steps
  *
@@ -419,6 +426,15 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    */
 //-------------------------=[ End constructors ]=-----------------------------//
    
+   public int getRowForY(float y)
+   {
+      return getControlHandler().getContourPanel().getRowForY(y);
+   }
+   
+   public int getColumnForX(float x)
+   {
+      return getControlHandler().getContourPanel().getColumnForX(x);
+   }
    
 //---------=[ Methods mplemented for the IViewComponent2D interface ]=--------//
    /**
@@ -578,7 +594,8 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    }
 
    /**
-    * Used to get the panel that actaully displays this ViewComponent's data.
+    * Used to get the panel that displays this ViewComponent's data 
+    * (along with axis information).
     * 
     * @return The panel that displays this ViewComponent's data.
     */
