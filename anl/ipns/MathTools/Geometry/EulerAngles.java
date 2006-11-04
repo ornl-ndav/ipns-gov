@@ -30,6 +30,9 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.2  2006/11/04 20:20:07  dennis
+ *  Minor efficiency improvement for new non-array Vector3D.
+ *
  *  Revision 1.1  2004/03/12 00:21:36  dennis
  *  Extracted EulerAngle calculations from tof_calc.java in ISAW
  *
@@ -170,8 +173,8 @@ public static double[] getEulerAngles( Vector3D_d u, Vector3D_d v )
  */
 public static float[] getEulerAngles( Vector3D u, Vector3D v )
 {
-  Vector3D_d u_double = new Vector3D_d( u.get()[0], u.get()[1], u.get()[2] );
-  Vector3D_d v_double = new Vector3D_d( v.get()[0], v.get()[1], v.get()[2] );
+  Vector3D_d u_double = new Vector3D_d( u );
+  Vector3D_d v_double = new Vector3D_d( v );
   double euler[] = getEulerAngles( u_double, v_double );
 
   float float_euler[] = new float[ euler.length ];

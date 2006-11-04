@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2006/11/04 20:20:07  dennis
+ * Minor efficiency improvement for new non-array Vector3D.
+ *
  * Revision 1.8  2004/11/04 18:12:57  dennis
  * The distance() method now takes a double precision Vector3D_d
  * as a parameter, rather than a single precision Vector3D.
@@ -105,8 +108,9 @@ public class Vector3D_d
    */
   public Vector3D_d( Vector3D vector )
   {
+    float temp[] = vector.get();
     for ( int i = 0; i < 4; i++ )
-      v[i] = vector.get()[i];
+      v[i] = temp[i];
   }
 
 
