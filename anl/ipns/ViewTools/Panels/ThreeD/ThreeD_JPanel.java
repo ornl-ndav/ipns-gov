@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.23  2006/11/04 20:14:04  dennis
+ * Minor efficiency improvement for new non-array form of Vector3D
+ *
  * Revision 1.22  2005/06/14 23:35:17  dennis
  * Now checks that the graphics object is not null in update()
  * and paint() methods.
@@ -637,8 +640,8 @@ public class ThreeD_JPanel extends    CoordJPanel
    tran3D_used.apply_to( point, proj_point );
    proj_point.standardize();
 
-   floatPoint2D window_point = new floatPoint2D( proj_point.get()[0],
-                                                 proj_point.get()[1] );
+   float temp[] = proj_point.get();
+   floatPoint2D window_point = new floatPoint2D( temp[0], temp[1] );
    window_point = tran2D_used.MapTo( window_point );
    return new Point( (int)window_point.x, (int)window_point.y );
  }
