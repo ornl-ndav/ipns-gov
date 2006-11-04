@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2006/11/04 20:17:31  dennis
+ * Minor efficiency improvement for new non-array Vector3D class.
+ *
  * Revision 1.3  2005/01/10 16:10:26  dennis
  * Fixed minor error that would cause an extra glTranslate() to
  * be called when it would not be used.
@@ -249,7 +252,8 @@ public class StrokeText extends GL_Shape
     GL gl = drawable.getGL();
 
     gl.glPushMatrix();
-    gl.glTranslatef( position.get()[0], position.get()[1], position.get()[2] );
+    float temp[] = position.get();
+    gl.glTranslatef( temp[0], temp[1], temp[2] );
     gl.glScalef( scale, scale, scale );
 
     float m[][] = orientation.get();      // pack the orientation transform

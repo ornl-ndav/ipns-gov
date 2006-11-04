@@ -36,6 +36,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.9  2006/11/04 20:17:32  dennis
+ *  Minor efficiency improvement for new non-array Vector3D class.
+ *
  *  Revision 1.8  2006/07/25 04:35:24  dennis
  *  Minor fix to javadoc comment.
  *
@@ -259,9 +262,9 @@ public class DetectorScene extends DetectorSceneBase
                                         1.5f*scene.getDiameter());
     controller.setMaximumSize(new Dimension(100,300));
     
-    controller.setCOP(new Vector3D(demo.getCamera().getCOP().get()));
-    controller.setVRP(new Vector3D(demo.getCamera().getVRP().get()));
-    controller.setVUV(new Vector3D(demo.getCamera().getVUV().get()));
+    controller.setCOP(new Vector3D(demo.getCamera().getCOP() ));
+    controller.setVRP(new Vector3D(demo.getCamera().getVRP() ));
+    controller.setVUV(new Vector3D(demo.getCamera().getVUV() ));
     
     controller.addActionListener( 
        new ActionListener()
@@ -270,7 +273,7 @@ public class DetectorScene extends DetectorSceneBase
          {
            Camera view = demo.getCamera();
            
-           view.setCOP(new Vector3D(controller.getCOP().get()));
+           view.setCOP(new Vector3D(controller.getCOP()));
            
            ((GLCanvas)demo.getDisplayComponent()).display();
          }
