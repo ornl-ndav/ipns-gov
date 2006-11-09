@@ -30,6 +30,9 @@
  * Modified:
  * 
  *  $Log$
+ *  Revision 1.7  2006/11/09 20:47:59  dennis
+ *  Added method to calculate the "mode". (Terry Farmer)
+ *
  *  Revision 1.6  2005/05/12 15:21:57  dennis
  *  Added methods for mean, min, max and standard deviation.
  *
@@ -148,7 +151,35 @@ public final class Statistics
 
      return highest;
   }
-
+  
+  /**
+   *  find the x value corresponding to the largest y value
+   *  @param  x_vals   Array of x values
+   *  @param  y_vals   Array of y values
+   *  compares the length of the x and y values to 
+   *  determine which x value to return
+   *  @return   Returns a float with the mode 
+   */
+  public static float mode ( float x_vals[], float y_vals[])
+  {
+     float highest = 0;
+     int index_of_highest = 0;
+     
+     int i;
+     for(  i = 0; i < y_vals.length; i++ )
+     
+     if ( highest < y_vals[i] )
+     {
+        highest = y_vals[i];
+        index_of_highest = i;
+     }  
+     
+     if(x_vals.length > y_vals.length)
+       return (x_vals[index_of_highest] + x_vals[index_of_highest+1])/2;
+     else
+       return x_vals[index_of_highest];
+  }
+  
 
   /**
    *  Find the minimum of all of the values stored in the specified array
@@ -207,16 +238,19 @@ public final class Statistics
   
   public static void main( String args[] )
   {
-    float xvals[] = {1,2,3};     
-    float yvals[] = {3,5,7};     
+	  
+    float xvals[] = {1,3,6,10,15,20};     
+    float yvals[] = {3,5,7,2,1 };     
 
     float params[] = FitLine( xvals, yvals );
     System.out.println("Fit parameters = " + params[0] + ", " + params[1] );
 
-    System.out.println("mean    = " + mean( xvals ) );
-    System.out.println("minimum = " + minimum( xvals ) );
-    System.out.println("maximum = " + maximum( xvals ) );
-    System.out.println("std dev = " + std_deviation( xvals ) );
+    System.out.println("mean    = " + mean( yvals ) );
+    System.out.println("minimum = " + minimum( yvals ) );
+    System.out.println("maximum = " + maximum( yvals ) );
+    System.out.println("std dev = " + std_deviation( yvals ) );
+    System.out.println("mode = " + mode(xvals, yvals));
+    //System.out.println("center = " + center);
   }
 
 }
