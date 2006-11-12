@@ -30,6 +30,15 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2006/11/12 05:31:54  dennis
+ * Switched 3D vector representation to use separate fields for
+ * x,y,z,w, instead of using an array to hold the four values.
+ * This saves both time and space for "most" vector operations
+ * since only one object (the vector) is created, rather than
+ * two (the vector and the array in the vector).  Applications
+ * that just frequently get all of the values out of the vector
+ * may not see any improvment.
+ *
  * Revision 1.9  2006/11/04 20:20:07  dennis
  * Minor efficiency improvement for new non-array Vector3D.
  *
@@ -77,7 +86,10 @@ package gov.anl.ipns.MathTools.Geometry;
 
 public class Vector3D_d 
 {
-  protected  double v[] = { 0, 0, 0, 1 };
+  protected  double  x = 0.0,
+                     y = 0.0,
+                     z = 0.0,
+                     w = 1.0;
 
   /*------------------------- default constructor ----------------------*/
   /**
@@ -86,6 +98,7 @@ public class Vector3D_d
    */
   public Vector3D_d()
   {
+     // Default constructor starts with the zero vector.
   }
 
   /*------------------------ copy constructor ---------------------------*/
@@ -109,8 +122,10 @@ public class Vector3D_d
   public Vector3D_d( Vector3D vector )
   {
     float temp[] = vector.get();
-    for ( int i = 0; i < 4; i++ )
-      v[i] = temp[i];
+    x = temp[0];
+    y = temp[1];
+    z = temp[2];
+    w = temp[3];
   }
 
 
@@ -141,12 +156,13 @@ public class Vector3D_d
   {
     if ( arr != null )
     {
-      int i = 0;
-      while ( i < 3 && i < arr.length )
-      {
-        v[i] = arr[i];
-        i++;
-      }
+       if ( arr.length > 2 )
+       {
+         x = arr[0];
+         y = arr[1];
+         z = arr[2];
+       }
+       w = 1.0; 
     }
   }
 
@@ -163,9 +179,9 @@ public class Vector3D_d
     if ( position != null )
     {
       double pos[] = position.getCartesianCoords();
-
-      for ( int i = 0; i < 3; i++ )
-        v[i] = pos[i];
+      x = pos[0];
+      y = pos[1];
+      z = pos[2];
     }
   }
 
@@ -177,14 +193,13 @@ public class Vector3D_d
    *
    *  @param  vec   The vector to compare with the current vector.
    * 
-   *  @return Returns true if the current vector has the same components as
-   *  as the specified vector.
+   *  @return Returns false if at leaset one of the x,y,z or w components 
+   *  don't match, and returns true otherwise.
    */
   public boolean equals( Vector3D_d vec )
   {
-    for ( int i = 0; i < 3; i++ )
-      if ( v[i] != vec.v[i] )
-        return false;
+     if ( x != vec.x || y != vec.y || z != vec.z || w != vec.w )
+       return false;
 
      return true;
   }
@@ -201,10 +216,10 @@ public class Vector3D_d
    */
   public void set( double x, double y, double z )
   {
-     v[0] = x;
-     v[1] = y;
-     v[2] = z;
-     v[3] = 1.0;
+     this.x = x;
+     this.y = y;
+     this.z = z;
+     this.w = 1.0;
   }
 
 
@@ -217,10 +232,10 @@ public class Vector3D_d
    */
   public void set( Vector3D_d vector )
   {
-     v[0] = vector.v[0];
-     v[1] = vector.v[1];
-     v[2] = vector.v[2];
-     v[3] = vector.v[3];
+     x = vector.x;
+     y = vector.y;
+     z = vector.z;
+     w = vector.w;
   }
 
 
@@ -228,63 +243,42 @@ public class Vector3D_d
   /**
    *  Set the value for this vector using values from the array.  If more
    *  than three values are given, the extra values are ignored.  If less
-   *  than three values are given, the unspecified values will be set to 
-   *  zero.
+   *  than three values are given, the values will be set to zero.  The 
+   *  fourth component, w, is set to 1.
    *
    *  @param arr  Array containing values to use for the x,y,z components
    *              of this vector. 
    */
   public void set( double arr[] )
   {
-     if ( arr == null || arr.length == 0 )
+     if ( arr == null || arr.length < 3 )
      {
-       v[0] = 0;
-       v[1] = 0;
-       v[2] = 0;
-       v[3] = 1;
+       x = 0f;
+       y = 0f;
+       z = 0f;
      }
      else
      {
-       int max = Math.min( arr.length, 3 );
-       for ( int i = 0; i < max; i++ )
-         v[i] = arr[i];
-       for ( int i = max; i < 3; i++ )
-         v[i] = 0;
-       v[3] = 1;
+       x = arr[0];
+       y = arr[1];
+       z = arr[2];
      }
+     w = 1.0;
   }
 
 
   /*------------------------------- get ---------------------------------*/
   /**
-   *  Get a reference to the 4 dimensional array containing the x, y, z, h
+   *  Get a 4 dimensional array containing a copy of the x, y, z, h
    *  coordinates for this vector.
    *
-   *  return reference to the 4D array containing the coordinates for this
+   *  return a 4D array containing copies of the coordinates for this
    *         vector.
    */
   public double[] get()
   {
+    double[] v = {x,y,z,w};
     return v;
-  }
-
-
-  /*---------------------------- getCopy ---------------------------------*/
-  /**
-   *  Get a copy of the 4 dimensional array containing the x, y, z, h
-   *  coordinates for this vector.
-   *
-   *  return a copy of the 4D array containing the coordinates for this
-   *         vector.
-   */
-  public double[] getCopy()
-  {
-    double copy[] = new double[4];
-    copy[0] = v[0];
-    copy[1] = v[1];
-    copy[2] = v[2];
-    copy[3] = v[3];
-    return copy;
   }
 
 
@@ -298,9 +292,9 @@ public class Vector3D_d
    */
   public void add( Vector3D_d vector )
   {
-     v[0] += vector.v[0];
-     v[1] += vector.v[1];
-     v[2] += vector.v[2];
+     x += vector.x;
+     y += vector.y;
+     z += vector.z;
   }
 
   /*----------------------------- subtract -------------------------------*/
@@ -313,9 +307,9 @@ public class Vector3D_d
    */
   public void subtract( Vector3D_d vector )
   {
-     v[0] -= vector.v[0];
-     v[1] -= vector.v[1];
-     v[2] -= vector.v[2];
+     x -= vector.x;
+     y -= vector.y;
+     z -= vector.z;
   }
 
   /*------------------------------- add ---------------------------------*/
@@ -327,9 +321,9 @@ public class Vector3D_d
    */
   public void add( double scalar )
   {
-     v[0] += scalar;
-     v[1] += scalar;
-     v[2] += scalar;
+     x += scalar;
+     y += scalar;
+     z += scalar;
   }
 
   /*----------------------------- multiply -------------------------------*/
@@ -341,14 +335,14 @@ public class Vector3D_d
    */
   public void multiply( double scalar )
   {
-     v[0] *= scalar;
-     v[1] *= scalar;
-     v[2] *= scalar;
+     x *= scalar;
+     y *= scalar;
+     z *= scalar;
   }
 
   /*------------------------------- average -------------------------------*/
   /**
-   *  Set the vector to the average of the vectors in the given list of
+   *  Set this vector to the average of the vectors in the given list of
    *  vectors.
    *
    *  @param  list  the list of vectors to be averaged.
@@ -357,25 +351,59 @@ public class Vector3D_d
   {
      if ( list == null || list.length == 0 )
      {
-       System.out.println("WARNING: average of empty list in Vector3D_d.average");
+       System.out.println("WARNING: average of empty list in Vector3D.average");
        set( 0, 0, 0 );
        return;
      }
 
-     double x = 0.0,
-            y = 0.0,
-            z = 0.0;
+     double x_tot = 0.0,
+            y_tot = 0.0,
+            z_tot = 0.0;
 
      for ( int i = 0; i < list.length; i++ )
      {
-       x += list[i].v[0];
-       y += list[i].v[1];
-       z += list[i].v[2];
-     } 
-     
-     v[0] = x/list.length;
-     v[1] = y/list.length;
-     v[2] = z/list.length;
+       x_tot += list[i].x;
+       y_tot += list[i].y;
+       z_tot += list[i].z;
+     }
+
+     x = x_tot/list.length;
+     y = y_tot/list.length;
+     z = z_tot/list.length;
+  }
+
+  /*------------------------ linear_combination -------------------------*/
+  /**
+   *  Set this vector to the linear combination c0*V0 + c1*V1 +...+ cn*Vn
+   *  of the specified coefficients c0,c1,...,cn and the specified vectors 
+   *  V1,V2,...,Vn.
+   *
+   *  @param  coeff    The list of coeficients, c0,c1,...,cn.  The array
+   *                   of coeficients must be of the same length as the
+   *                   the array of vectors.
+   *  @param  vectors  The list of vectors, V0,V1,...,Vn, to be combined.
+   *                   The array of vectors must be of the same length as
+   *                   the array of coefficients.
+   */
+  public void linear_combination( double coeff[], Vector3D_d vectors[] )
+  {
+    if ( coeff == null || vectors == null )
+    {
+      System.out.println("ERROR: null array in linear combination: " + 
+                          coeff + "," + vectors );
+      return;
+    }
+
+    int n_to_combine = Math.min( coeff.length, vectors.length );
+
+    set( 0, 0, 0);
+    Vector3D_d temp = new Vector3D_d();
+    for ( int i = 0; i < n_to_combine; i++ )
+    {
+      temp.set( vectors[i] );
+      temp.multiply( coeff[i] );
+      add( temp );
+    }
   }
 
   /*--------------------------- standardize ------------------------------*/
@@ -385,10 +413,10 @@ public class Vector3D_d
    */
   public void standardize()
   {
-     v[0] /= v[3]; 
-     v[1] /= v[3]; 
-     v[2] /= v[3]; 
-     v[3] = 1.0;
+     x /= w;
+     y /= w;
+     z /= w;
+     w = 1.0;
   }
 
   /*--------------------------- length ------------------------------*/
@@ -401,7 +429,7 @@ public class Vector3D_d
    */
   public double length()
   {
-    return Math.sqrt( v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
+    return Math.sqrt( x*x + y*y + z*z );
   }
 
   /*--------------------------- distance ------------------------------*/
@@ -415,9 +443,9 @@ public class Vector3D_d
    */
   public double distance( Vector3D_d vec )
   {
-    double dx = v[0] - vec.v[0];
-    double dy = v[1] - vec.v[1];
-    double dz = v[2] - vec.v[2];
+    double dx = x - vec.x;
+    double dy = y - vec.y;
+    double dz = z - vec.z;
     return Math.sqrt( dx * dx + dy * dy + dz * dz );
   }
 
@@ -432,10 +460,10 @@ public class Vector3D_d
      double len = length();
      if ( len != 0.0 )
      {
-       v[0] /= len;
-       v[1] /= len;
-       v[2] /= len;
-       v[3]  = 1.0;
+       x /= len;
+       y /= len;
+       z /= len;
+       w  = 1.0;
      }
   }
 
@@ -450,7 +478,28 @@ public class Vector3D_d
    */
   public double dot( Vector3D_d vector )
   {
-     return ( v[0] * vector.v[0] +  v[1] * vector.v[1] +  v[2] * vector.v[2] );
+     return ( x * vector.x +  y * vector.y +  z * vector.z );
+  }
+
+/*------------------------------- cross ---------------------------------*/
+  /**
+   *  Set the current vector to the cross product of itself with the
+   *  given vector.  'This' is set to ( this "cross" v2 ).  It is assumed 
+   *  that the 4th component of vectors 'this' vector and v is 1.
+   *
+   *  @param  v2  the second vector factor in the cross product
+   */
+  public void cross( Vector3D_d v2 )
+  {                                              // use temporary storage
+                                                 // in case v2 == this
+     double t0 =  y * v2.z  -  z * v2.y;
+     double t1 = -x * v2.z  +  z * v2.x;
+     double t2 =  x * v2.y  -  y * v2.x;
+
+     x = t0;
+     y = t1;
+     z = t2;
+     w = 1.0;
   }
 
   /*------------------------------- cross ---------------------------------*/
@@ -466,14 +515,14 @@ public class Vector3D_d
   public void cross( Vector3D_d v1, Vector3D_d v2 )
   {                                              // use temporaries for v0...v2
                                                  // in case v1 or v2 == this
-     double t0 =  v1.v[1] * v2.v[2]  -  v1.v[2] * v2.v[1];
-     double t1 = -v1.v[0] * v2.v[2]  +  v1.v[2] * v2.v[0];
-     double t2 =  v1.v[0] * v2.v[1]  -  v1.v[1] * v2.v[0];
+     double t0 =  v1.y * v2.z  -  v1.z * v2.y;
+     double t1 = -v1.x * v2.z  +  v1.z * v2.x;
+     double t2 =  v1.x * v2.y  -  v1.y * v2.x;
 
-     v[0] = t0;
-     v[1] = t1;
-     v[2] = t2;
-     v[3] = 1.0;
+     x = t0;
+     y = t1;
+     z = t2;
+     w = 1f;
   }
 
   /*------------------------------ toString ------------------------------ */
@@ -482,7 +531,7 @@ public class Vector3D_d
    */
   public String toString()
   {
-    return  "{ " + v[0] + ", " + v[1] + ", " + v[2] + " : " + v[3] + " }"; 
+    return  "{ " + x + ", " + y + ", " + z + " : " + w + " }";
   }
 
   /* ---------------------------- main ----------------------------------- */

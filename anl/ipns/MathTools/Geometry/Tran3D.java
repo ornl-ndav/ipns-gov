@@ -30,6 +30,15 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2006/11/12 05:31:53  dennis
+ * Switched 3D vector representation to use separate fields for
+ * x,y,z,w, instead of using an array to hold the four values.
+ * This saves both time and space for "most" vector operations
+ * since only one object (the vector) is created, rather than
+ * two (the vector and the array in the vector).  Applications
+ * that just frequently get all of the values out of the vector
+ * may not see any improvment.
+ *
  * Revision 1.14  2006/09/17 21:45:02  rmikk
  * Made the class serializatble so the data sets can now be saved as isd.
  *
@@ -87,7 +96,8 @@ import gov.anl.ipns.MathTools.*;
  */
 public class Tran3D implements java.io.Serializable
 {
-  public  static final long serialVersionUID = 1L;
+  public static final long serialVersionUID = 1L;
+
   public static final float Identity[][] = { { 1, 0, 0, 0 },
                                              { 0, 1, 0, 0 },
                                              { 0, 0, 1, 0 },
@@ -270,9 +280,9 @@ public class Tran3D implements java.io.Serializable
   public void setTranslation( Vector3D v )
   {
     set( Identity );
-    a[0][3] = v.v[0];
-    a[1][3] = v.v[1];
-    a[2][3] = v.v[2];
+    a[0][3] = v.x;
+    a[1][3] = v.y;
+    a[2][3] = v.z;
   }
 
 
@@ -289,9 +299,9 @@ public class Tran3D implements java.io.Serializable
   public void setScale( Vector3D v )
   {
     set( Identity );
-    a[0][0] = v.v[0];
-    a[1][1] = v.v[1];
-    a[2][2] = v.v[2];
+    a[0][0] = v.x;
+    a[1][1] = v.y;
+    a[2][2] = v.z;
   }
 
 
@@ -314,7 +324,7 @@ public class Tran3D implements java.io.Serializable
     double radians = angle * Math.PI / 180.0;
     double s       = Math.sin( radians ); 
     double c       = Math.cos( radians ); 
-    double mag     = Math.sqrt( v.v[0]*v.v[0] + v.v[1]*v.v[1] + v.v[2]*v.v[2] );
+    double mag     = Math.sqrt( v.x*v.x + v.y*v.y + v.z*v.z );
 
     if ( mag < 1.0e-10 )                       // axis is essentially zero
     {
@@ -323,9 +333,9 @@ public class Tran3D implements java.io.Serializable
       return;
     }
    
-    double x = v.v[0] / mag;
-    double y = v.v[1] / mag;
-    double z = v.v[2] / mag;
+    double x = v.x / mag;
+    double y = v.y / mag;
+    double z = v.z / mag;
 
     double xx    = x * x;
     double yy    = y * y;
@@ -451,14 +461,17 @@ public class Tran3D implements java.io.Serializable
     up.cross( n, base );                // make up perapendicular to n and base
 
     Tran3D orient = new Tran3D();   
-    for ( int i = 0; i < 3; i++ )
-      orient.a[i][0] = base.v[i];
+    orient.a[0][0] = base.x;
+    orient.a[1][0] = base.y;
+    orient.a[2][0] = base.z;
 
-    for ( int i = 0; i < 3; i++ )
-      orient.a[i][1] = up.v[i];
+    orient.a[0][1] = up.x;
+    orient.a[1][1] = up.y;
+    orient.a[2][1] = up.z;
 
-    for ( int i = 0; i < 3; i++ )
-      orient.a[i][2] = n.v[i];
+    orient.a[0][2] = n.x;
+    orient.a[1][2] = n.y;
+    orient.a[2][2] = n.z;
 
     setTranslation( translation );
     multiply_by( orient );             // combine orientation with tranlation
@@ -520,12 +533,17 @@ public class Tran3D implements java.io.Serializable
      a[1][3] = -v.dot( vrp );
      a[2][3] = -n.dot( vrp );
      
-     for ( int i = 0; i < 3; i++ )
-     {
-       a[0][i] = u.v[i];
-       a[1][i] = v.v[i];
-       a[2][i] = n.v[i];
-     }
+     a[0][0] = u.x;
+     a[1][0] = v.x;
+     a[2][0] = n.x;
+
+     a[0][1] = u.y;
+     a[1][1] = v.y;
+     a[2][1] = n.y;
+
+     a[0][2] = u.z;
+     a[1][2] = v.z;
+     a[2][2] = n.z;
                      
      if ( perspective )                   // multiply on the left by the
      {                                    // perspective proj matrix
@@ -585,35 +603,23 @@ public class Tran3D implements java.io.Serializable
    */
   public void apply_to( Vector3D v1, Vector3D v2 )
   {
-    float sum;
-    int   row, 
-          col;
-
-    if ( !v1.equals( v2 ) )
-      for ( row = 0; row < 4; row++ )
-      {
-        sum = 0.0f;
-        for ( col = 0; col < 4; col++ )
-          sum += a[row][col] * v1.v[col];
-
-        v2.v[row] = sum;
-      }       
-    else
+    if ( v1 == null || v2 == null )
     {
-      float temp[] = new float[4];          // if v1==v2, we must create the
-                                            // product in a temporary variable
-      for ( row = 0; row < 4; row++ )       // to avoid altering the vector
-      {                                     // while we still need the original
-        sum = 0.0f;
-        for ( col = 0; col < 4; col++ )
-          sum += a[row][col] * v1.v[col];
-
-        temp[row] = sum;
-      }      
-
-      for ( row = 0; row < 4; row++ )
-        v2.v[row] = temp[row];
+      System.out.println("Error in Tran3D.apply_to: vector is null" );
+      return;
     }
+
+    int   row;
+
+    float[] temp = new float[4];
+    for ( row = 0; row < 4; row++ )
+    {
+      temp[row] = a[row][0] * v1.x +
+                  a[row][1] * v1.y +
+                  a[row][2] * v1.z +
+                  a[row][3] * v1.w;
+    }
+    v2.set(temp);
   }
 
   /*-------------------------- apply_to -------------------------------*/
@@ -633,35 +639,8 @@ public class Tran3D implements java.io.Serializable
       return;
     }
 
-    float sum;
-    int   row,
-          col;
-    float temp[] = new float[4];
- 
     for ( int k = 0; k < v1.length; k++ )
-      if ( !v1[k].equals( v2[k] ) ) 
-        for ( row = 0; row < 4; row++ )
-        { 
-          sum = 0.0f; 
-          for ( col = 0; col < 4; col++ )
-            sum += a[row][col] * v1[k].v[col];
-        
-          v2[k].v[row] = sum;
-        } 
-      else
-      { 
-        for ( row = 0; row < 4; row++ )  
-        { 
-          sum = 0.0f; 
-          for ( col = 0; col < 4; col++ )
-            sum += a[row][col] * v1[k].v[col];
-        
-          temp[row] = sum;
-        }
-      
-        for ( row = 0; row < 4; row++ )
-          v2[k].v[row] = temp[row];
-      }
+      apply_to( v1[k], v2[k] );
   }
 
 

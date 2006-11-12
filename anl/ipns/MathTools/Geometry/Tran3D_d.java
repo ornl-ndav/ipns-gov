@@ -30,6 +30,15 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2006/11/12 05:31:53  dennis
+ * Switched 3D vector representation to use separate fields for
+ * x,y,z,w, instead of using an array to hold the four values.
+ * This saves both time and space for "most" vector operations
+ * since only one object (the vector) is created, rather than
+ * two (the vector and the array in the vector).  Applications
+ * that just frequently get all of the values out of the vector
+ * may not see any improvment.
+ *
  * Revision 1.7  2004/06/16 21:29:08  dennis
  * Added constructor to construct the transformation matrix from a
  * one dimensional array of values.
@@ -60,14 +69,14 @@
  * Revision 1.1  2003/07/14 22:23:00  dennis
  * Double precision version, ported from original
  * single precision version.
- *
- *
  */
 
 package gov.anl.ipns.MathTools.Geometry;
 
 import gov.anl.ipns.Util.Sys.*;
 import gov.anl.ipns.MathTools.*;
+
+import DataSetTools.math.*;
 
 /**
  *  This class represents basic transformations of Vector3D_d objects, such
@@ -78,6 +87,8 @@ import gov.anl.ipns.MathTools.*;
  */
 public class Tran3D_d
 {
+  public static final long serialVersionUID = 1L;
+
   public static final double Identity[][] = { { 1, 0, 0, 0 },
                                               { 0, 1, 0, 0 },
                                               { 0, 0, 1, 0 },
@@ -135,7 +146,7 @@ public class Tran3D_d
     int index = 0;
     for ( int row = 0; row < 4; row++ )
       for ( int col = 0; col < 4; col++ )
-      { 
+      {
         a[row][col] = array[index];
         index++;
       }
@@ -229,7 +240,7 @@ public class Tran3D_d
 
     if ( n_rows == 3 || n_cols == 3 )           // we didn't assign full matrix
     {                                           // so fill last row and col
-      a[3][3] = 1;                              // with 0,0,0,1
+      a[3][3] = 1.0;                            // with 0,0,0,1
       for ( int k = 0; k < 3; k++ )
       {
          a[3][k] = 0;
@@ -260,9 +271,9 @@ public class Tran3D_d
   public void setTranslation( Vector3D_d v )
   {
     set( Identity );
-    a[0][3] = v.v[0];
-    a[1][3] = v.v[1];
-    a[2][3] = v.v[2];
+    a[0][3] = v.x;
+    a[1][3] = v.y;
+    a[2][3] = v.z;
   }
 
 
@@ -279,9 +290,9 @@ public class Tran3D_d
   public void setScale( Vector3D_d v )
   {
     set( Identity );
-    a[0][0] = v.v[0];
-    a[1][1] = v.v[1];
-    a[2][2] = v.v[2];
+    a[0][0] = v.x;
+    a[1][1] = v.y;
+    a[2][2] = v.z;
   }
 
 
@@ -304,7 +315,7 @@ public class Tran3D_d
     double radians = angle * Math.PI / 180.0;
     double s       = Math.sin( radians ); 
     double c       = Math.cos( radians ); 
-    double mag     = Math.sqrt( v.v[0]*v.v[0] + v.v[1]*v.v[1] + v.v[2]*v.v[2] );
+    double mag     = Math.sqrt( v.x*v.x + v.y*v.y + v.z*v.z );
 
     if ( mag < 1.0e-10 )                       // axis is essentially zero
     {
@@ -313,9 +324,9 @@ public class Tran3D_d
       return;
     }
    
-    double x = v.v[0] / mag;
-    double y = v.v[1] / mag;
-    double z = v.v[2] / mag;
+    double x = v.x / mag;
+    double y = v.y / mag;
+    double z = v.z / mag;
 
     double xx    = x * x;
     double yy    = y * y;
@@ -442,14 +453,17 @@ public class Tran3D_d
     up.cross( n, base );                // make up perapendicular to n and base
 
     Tran3D_d orient = new Tran3D_d();
-    for ( int i = 0; i < 3; i++ )
-      orient.a[i][0] = base.v[i];
+    orient.a[0][0] = base.x;
+    orient.a[1][0] = base.y;
+    orient.a[2][0] = base.z;
 
-    for ( int i = 0; i < 3; i++ )
-      orient.a[i][1] = up.v[i];
+    orient.a[0][1] = up.x;
+    orient.a[1][1] = up.y;
+    orient.a[2][1] = up.z;
 
-    for ( int i = 0; i < 3; i++ )
-      orient.a[i][2] = n.v[i];
+    orient.a[0][2] = n.x;
+    orient.a[1][2] = n.y;
+    orient.a[2][2] = n.z;
 
     setTranslation( translation );
     multiply_by( orient );             // combine orientation with tranlation
@@ -512,12 +526,17 @@ public class Tran3D_d
      a[1][3] = -v.dot( vrp );
      a[2][3] = -n.dot( vrp );
      
-     for ( int i = 0; i < 3; i++ )
-     {
-       a[0][i] = u.v[i];
-       a[1][i] = v.v[i];
-       a[2][i] = n.v[i];
-     }
+     a[0][0] = u.x;
+     a[1][0] = v.x;
+     a[2][0] = n.x;
+
+     a[0][1] = u.y;
+     a[1][1] = v.y;
+     a[2][1] = n.y;
+
+     a[0][2] = u.z;
+     a[1][2] = v.z;
+     a[2][2] = n.z;
                      
      if ( perspective )                   // multiply on the left by the
      {                                    // perspective proj matrix
@@ -577,35 +596,24 @@ public class Tran3D_d
    */
   public void apply_to( Vector3D_d v1, Vector3D_d v2 )
   {
-    double sum;
-    int   row, 
-          col;
-
-    if ( !v1.equals( v2 ) )
-      for ( row = 0; row < 4; row++ )
-      {
-        sum = 0.0;
-        for ( col = 0; col < 4; col++ )
-          sum += a[row][col] * v1.v[col];
-
-        v2.v[row] = sum;
-      }       
-    else
+   if ( v1 == null || v2 == null )
     {
-      double temp[] = new double[4];        // if v1==v2, we must create the
-                                            // product in a temporary variable
-      for ( row = 0; row < 4; row++ )       // to avoid altering the vector
-      {                                     // while we still need the original
-        sum = 0.0;
-        for ( col = 0; col < 4; col++ )
-          sum += a[row][col] * v1.v[col];
-
-        temp[row] = sum;
-      }      
-
-      for ( row = 0; row < 4; row++ )
-        v2.v[row] = temp[row];
+      System.out.println("Error in Tran3D.apply_to: vector is null" );
+      return;
     }
+
+    int   row;
+
+    double[] temp = new double[4];
+    for ( row = 0; row < 4; row++ )
+
+    {
+      temp[row] = a[row][0] * v1.x +
+                  a[row][1] * v1.y +
+                  a[row][2] * v1.z +
+                  a[row][3] * v1.w;
+    }
+    v2.set(temp);
   }
 
   /*-------------------------- apply_to -------------------------------*/
@@ -625,35 +633,8 @@ public class Tran3D_d
       return;
     }
 
-    double sum;
-    int   row,
-          col;
-    double temp[] = new double[4];
- 
     for ( int k = 0; k < v1.length; k++ )
-      if ( !v1[k].equals( v2[k] ) ) 
-        for ( row = 0; row < 4; row++ )
-        { 
-          sum = 0.0; 
-          for ( col = 0; col < 4; col++ )
-            sum += a[row][col] * v1[k].v[col];
-        
-          v2[k].v[row] = sum;
-        } 
-      else
-      { 
-        for ( row = 0; row < 4; row++ )  
-        { 
-          sum = 0.0; 
-          for ( col = 0; col < 4; col++ )
-            sum += a[row][col] * v1[k].v[col];
-        
-          temp[row] = sum;
-        }
-      
-        for ( row = 0; row < 4; row++ )
-          v2[k].v[row] = temp[row];
-      }
+      apply_to( v1[k], v2[k] );
   }
 
 
@@ -779,6 +760,19 @@ public class Tran3D_d
     System.out.println( "Testing inverse..." );
 //    tran_1 = tof_calc_d.makeEulerRotation( 20, 30, 40 );
 //    tran_2 = tof_calc_d.makeEulerRotationInverse( 20, 30, 40 );
+
+    double[][] matrix_1 = { { 0.5294538, -0.7851017,   0.32139382, 0.0 },
+                            { 0.83092374, 0.40355885, -0.38302222, 0.0 },
+                            { 0.17101008, 0.4698463,   0.8660254,  0.0 },
+                            { 0.0,        0.0,         0.0,        1.0 } };
+
+    double[][] matrix_2 = { {  0.5294538,   0.83092374, 0.17101008, 0.0 },
+                            { -0.7851017,   0.40355885, 0.4698463,  0.0 },
+                            {  0.32139382, -0.38302222, 0.8660254,  0.0 },
+                            {  0.0,         0.0,        0.0,        1.0 } };
+
+    tran_1.set( matrix_1 );
+    tran_2.set( matrix_2 );
 
     System.out.println("tran 1 = ");
     System.out.println("" + tran_1 );
