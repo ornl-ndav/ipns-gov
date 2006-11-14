@@ -28,6 +28,14 @@
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
+ * MODIFIED:
+ *
+ * $Log$
+ * Revision 1.3  2006/11/14 02:07:54  dennis
+ * Added logging tag.
+ * NOTE: The return of array A[][] in method opolyfit has been commented out.
+ *       The opolyfit now has void return, however, the javadocs still have a
+ *       return tag.  These javadocs still need to be fixed.
  *
  */
 
