@@ -131,8 +131,8 @@ public class DataSetStatsControl extends ViewControl
     * Sets this control's value.  For this control, this value is 
     * a <code>DataSet</code>.
     * 
-    * @param The new <code>DataSet</code> whose meta-data is being 
-    *        viewed.  This object must be of type <code>DataSet</code>.
+    * @param value The new <code>DataSet</code> whose meta-data is being 
+    *              viewed.  This object must be of type <code>DataSet</code>.
     */
    @Override
    public void setControlValue(Object value)
