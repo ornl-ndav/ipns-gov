@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2007/01/12 14:57:55  dennis
+ * Removed unused imports.
+ *
  * Revision 1.8  2006/11/12 05:31:53  dennis
  * Switched 3D vector representation to use separate fields for
  * x,y,z,w, instead of using an array to hold the four values.
@@ -76,7 +79,7 @@ package gov.anl.ipns.MathTools.Geometry;
 import gov.anl.ipns.Util.Sys.*;
 import gov.anl.ipns.MathTools.*;
 
-import DataSetTools.math.*;
+//import DataSetTools.math.*;
 
 /**
  *  This class represents basic transformations of Vector3D_d objects, such

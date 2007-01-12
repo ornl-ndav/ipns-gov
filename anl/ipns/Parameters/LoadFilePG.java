@@ -1,5 +1,8 @@
 /**
  *  $Log$
+ *  Revision 1.5  2007/01/12 14:57:55  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.4  2006/09/28 23:19:53  rmikk
  *  Replaced all file separators by a "/".  This is assumed by quite a few applications
  *
@@ -18,7 +21,7 @@
 
 package gov.anl.ipns.Parameters;
 
-import java.io.*;
+//import java.io.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.JPanel;
 

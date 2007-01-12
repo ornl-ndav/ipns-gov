@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2007/01/12 14:57:56  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.5  2006/11/03 19:40:58  amoe
  *  -Edited:   getSwapperMenuItems()
  *                  //changed ComponentTracker(..) from protected to public
@@ -84,7 +87,7 @@
  import gov.anl.ipns.ViewTools.Components.IVirtualArray;
  import gov.anl.ipns.ViewTools.Components.ObjectState;
  import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
-import gov.anl.ipns.ViewTools.Components.ThreeD.ViewComponent3D;
+//import gov.anl.ipns.ViewTools.Components.ThreeD.ViewComponent3D;
  import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
  import gov.anl.ipns.ViewTools.UI.ActionValueJPanel;
  import gov.anl.ipns.ViewTools.UI.ActionValueEvent;

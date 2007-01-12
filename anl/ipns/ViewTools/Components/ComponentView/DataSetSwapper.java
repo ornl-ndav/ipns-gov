@@ -49,8 +49,8 @@ import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Layouts.AbstractComponentSwapper;
 import gov.anl.ipns.ViewTools.Layouts.ComponentSwapper2D;
 import gov.anl.ipns.ViewTools.Layouts.ComponentViewManager;
-import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
-import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
+//import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+//import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
 import gov.anl.ipns.ViewTools.UI.ActionValueEvent;
 import gov.anl.ipns.ViewTools.UI.ActionValueListener;
 
