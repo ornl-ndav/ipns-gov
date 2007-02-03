@@ -32,6 +32,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/02/03 17:22:57  rmikk
+ *  Uses the Boolean class to determine the boolean value of a string.  Strings of
+ *   yes, no, etc. will now be parsed better
+ *
  *  Revision 1.11  2006/07/10 16:25:04  dennis
  *  Change to new Parameter GUIs in gov.anl.ipns.Parameters
  *
@@ -129,8 +133,11 @@ public class Conversions
         bool_value = true;
       else if ( temp.equalsIgnoreCase( "false" ) )
         bool_value = false;
-      else
-        throw new IllegalArgumentException("String not boolean value:" + temp);
+      else{
+        
+         bool_value = (new Boolean( (String)obj)).booleanValue();
+      }
+        //throw new IllegalArgumentException("String not boolean value:" + temp);
     }
 
     else if ( obj instanceof Integer )
