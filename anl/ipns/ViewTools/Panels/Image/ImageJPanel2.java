@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2007/02/05 04:32:14  dennis
+ *  Removed small adjustment by 0.001 to World Coordinate bounds, which
+ *  was not necessary and caused problems with selections containing
+ *  the 0th row or column.
+ *
  *  Revision 1.3  2005/08/14 05:22:11  dennis
  *  Added public method RebuildImage() to force the visibile image
  *  to be recalculated, and call repaint().  This is needed for
@@ -478,8 +483,8 @@ public class ImageJPanel2 extends    CoordJPanel
       int start_col = Math.max( (int)(bounds.getX1() ), 0 );
       int end_col   = Math.min( (int)(bounds.getX2() ), data.getNumColumns()-1);
 
-      CoordBounds new_bounds = new CoordBounds(start_col+.001f,start_row+0.001f,
-                                               end_col+0.999f, end_row+0.999f );
+      CoordBounds new_bounds = new CoordBounds(start_col, start_row,
+                                               end_col+1, end_row+1 );
       new_bounds = world_to_image.MapFrom( new_bounds );
       setLocalWorldCoords( new_bounds );
       // Subsamble data if data exceeds bounds of monitor.
@@ -870,9 +875,10 @@ protected void LocalTransformChanged()
     CoordBounds     image_bounds;
 
     SetTransformsToWindowSize();
-    image_bounds = new CoordBounds( 0.001f, 0.001f, 
-                                    data.getNumColumns()-0.001f,
-				    data.getNumRows()-0.001f );
+    image_bounds = new CoordBounds( 0, 
+                                    0, 
+                                    data.getNumColumns(),
+                                    data.getNumRows() );
     world_bounds = getGlobal_transform().getSource();
     return( new CoordTransform( world_bounds, image_bounds ) );   
   }
@@ -913,8 +919,8 @@ protected void LocalTransformChanged()
         gstart_col == start_col && gend_col == end_col )
       makeThumbnail = true;
     
-    CoordBounds new_bounds = new CoordBounds( start_col+.001f, start_row+0.001f,
-                                              end_col+0.999f, end_row+0.999f );
+    CoordBounds new_bounds = new CoordBounds( start_col, start_row,
+                                              end_col+1, end_row+1 );
     new_bounds = world_to_image.MapFrom( new_bounds );
     setLocalWorldCoords( new_bounds );
     subSample(start_row,end_row,start_col,end_col);

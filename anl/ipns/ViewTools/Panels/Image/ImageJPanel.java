@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2007/02/05 04:32:14  dennis
+ *  Removed small adjustment by 0.001 to World Coordinate bounds, which
+ *  was not necessary and caused problems with selections containing
+ *  the 0th row or column.
+ *
  *  Revision 1.29  2004/11/12 17:26:07  millermi
  *  - Code in setLogScale() was factored out into PseudoLogScaleUtil.
  *    setLogScale() now used PseudoLogScaleUtil to do log mapping.
@@ -687,8 +692,7 @@ protected void LocalTransformChanged()
     CoordBounds     image_bounds;
 
     SetTransformsToWindowSize();
-    image_bounds = new CoordBounds( 0.001f, 0.001f, 
-                                    data[0].length-0.001f, data.length-0.001f );
+    image_bounds = new CoordBounds( 0, 0, data[0].length, data.length );
     world_bounds = getGlobal_transform().getSource();
     return( new CoordTransform( world_bounds, image_bounds ) );   
   }
@@ -714,8 +718,8 @@ protected void LocalTransformChanged()
     int start_col = Math.max( (int)(bounds.getX1() ), 0 );
     int end_col   = Math.min( (int)(bounds.getX2() ), data[0].length-1 );
 
-    CoordBounds new_bounds = new CoordBounds( start_col+.001f, start_row+0.001f,
-                                              end_col+0.999f, end_row+0.999f );
+    CoordBounds new_bounds = new CoordBounds( start_col, start_row,
+                                              end_col+1, end_row+1 );
     new_bounds = world_to_image.MapFrom( new_bounds );
     setLocalWorldCoords( new_bounds );
 

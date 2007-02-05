@@ -33,7 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.24  2007/02/05 04:33:41  dennis
+ * Removed small adjustment by 0.001 to World Coordinate bounds, which
+ * was not necessary and caused problems with selections containing
+ * the 0th row or column.
+ *
  * Revision 1.23  2005/08/03 15:56:50  kramer
+ *
  * -Changed the field 'firstPaint' to 'wcNotInit' because it stores if the
  *  world coordinates have been initialized or not.
  * -Added and improved the javadocs.
@@ -1609,12 +1615,11 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //location on the ENTIRE panel because the ALL of the data in the 
       //array needs to be mapped to ALL of the panel (not just a small 
       //region which is what 'local_transform' describes).
-        float delta = 0.001f;
       return new CoordTransform(
-                                new CoordBounds(delta, 
-                                                delta, 
-                                                data2D.getNumColumns()-delta, 
-                                                data2D.getNumRows()-delta
+                                new CoordBounds(0, 
+                                                0, 
+                                                data2D.getNumColumns(), 
+                                                data2D.getNumRows()
                                                ),
                                 wcBounds
                                );

@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.91  2007/02/05 04:33:12  dennis
+ *  Removed small adjustment by 0.001 to World Coordinate bounds, which
+ *  was not necessary and caused problems with selections containing
+ *  the 0th row or column.
+ *
  *  Revision 1.90  2006/03/30 23:57:57  dennis
  *  Modified to not require the use of mutator methods for the
  *  virtual arrays.  These changes were required since the concept
@@ -1422,9 +1427,10 @@ public class ImageViewComponent implements IViewComponent2D,
       ((Region)regions.elementAt(i)).setWorldBounds(ijp.getGlobalWorldCoords());
       // Image bounds are consistent with those set in ImageJPanel.
       ((Region)regions.elementAt(i)).setImageBounds( new CoordBounds( 
-                                     0.001f, 0.001f,
-                                     Varray2D.getNumColumns()-0.001f,
-				     Varray2D.getNumRows()-0.001f ) );
+                                     0,
+                                     0,
+                                     Varray2D.getNumColumns(),
+                                     Varray2D.getNumRows() ) );
       selectedregions[i] = (Region)regions.elementAt(i);
     }
     return selectedregions;
