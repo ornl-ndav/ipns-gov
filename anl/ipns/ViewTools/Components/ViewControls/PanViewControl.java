@@ -34,7 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2007/02/12 04:35:00  dennis
+ *  The refreshData() method is no longer executed completely, if
+ *  the PanViewControl is not currently shown.  This breaks a cycle
+ *  of method calls that occured when the refreshData() method
+ *  proceeded to get the thumbnail image and attempt to draw it
+ *  when the control was not used.  This caused an infinite loop in
+ *  the SANDWedgeViewer and HKLSliceViewer, since those viewers did
+ *  not show the PanViewControl.
+ *
  *  Revision 1.23  2005/07/28 15:50:20  kramer
+ *
  *  Modified to support ContourJPanels.  The refreshData() and
  *  setImageDimension() methods were modified to identify a ContourJPanel and
  *  invoke the correct methods to get a thumbnail and the image's dimensions.
@@ -439,6 +449,9 @@ public class PanViewControl extends ViewControl
     setImageDimension();
     setAspectRatio();
     
+    if ( !isShowing() )
+      return; 
+
     boolean validPanel = false;
     if( actual_cjp instanceof ImageJPanel2 )
     { 
