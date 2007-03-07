@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.41  2007/03/07 21:47:20  dennis
+ *  Added paintPointArray() method from Josh Oakgrove and Terry Farmer.
+ *  This routine will be used to fill the interior of regions selected
+ *  on an ImageViewComponent.  These changes are not yet complete, and
+ *  this method is not called yet.
+ *
  *  Revision 1.40  2005/05/25 20:28:33  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -706,6 +712,19 @@ public class SelectionOverlay extends OverlayJPanel
   { 
     super.paint(g);
     Graphics2D g2d = (Graphics2D)g; 
+
+/*  Temporary test code for paintPointArray()
+    Point[] test_points = new Point[800];
+    int index = 0;
+    for ( int y_row = 10; y_row < 30; y_row++ )
+      for ( int x_col = 10; x_col < 30; x_col++ )
+        test_points[index++] = new Point( x_col, y_row );
+    for ( int y_row = 20; y_row < 40; y_row++ )
+      for ( int x_col = 40; x_col < 60; x_col++ )
+        test_points[index++] = new Point( x_col, y_row );
+    paintPointArray( g2d, test_points );
+*/
+
     // Change the opaqueness of the selections.
     AlphaComposite ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER,
         					    opacity );
@@ -829,6 +848,80 @@ public class SelectionOverlay extends OverlayJPanel
       }
     }
   } // end of paint()
+
+
+  /** 
+   * Draw scan lines through the region determined by the array of points.
+   * Assumptions: 
+   *   The Point[] is completely filled w/ no gaps.  
+   *   The Point[] has points in order from left to right starting from 
+   *   top row to bottom(like reading).
+   *
+   * NOTE: This method will only be used for selection from the
+   *       ImageViewComponent.  In that case the array of points will contain
+   *       Row,col values for array elements of the array be displayed as an
+   *       image.  This method will convert the row,col coordinates to 
+   *       pixel coordinates before drawing.  That conversion is not done
+   *       yet.
+   *
+   *  @param   g   The Graphics2D object to draw on
+   *  @param   p   The array of points to draw scan lines through
+   */  
+  private void paintPointArray(Graphics2D g, Point[] p)
+  {
+    boolean shouldPaint=false;
+    int x_initial = -1;       // Initial x for draw line command
+    int y_initial = -1;       // Initial y for draw line command
+    int x_final   = -1;       // Final x for draw line command
+    int y_final   = -1;       // Final y for draw line command
+
+    //----------------------------------Loop through all points
+    for (int i = 0;i<p.length ; i++)
+    {  
+      //--------------------------for all points other then last
+      if(i != p.length-1)
+      {
+        //-------------------------------to find the initial x & y
+        if(x_initial == -1)
+        {
+          x_initial = p[i].x;
+          y_initial = p[i].y;
+        }
+
+        //----------------------------------------------to find the final x & y
+        if(!(p[i+1].x-p[i].x <= 1) || p[i].y!=p[i+1].y)
+        {
+          x_final = p[i].x;
+          y_final = p[i].y;
+          shouldPaint = true;
+        }
+      }
+      else
+      {
+        x_final = p[i].x;
+        y_final = p[i].y;
+
+        if (y_final != y_initial)
+        {
+          x_initial = p[i].x;
+          y_initial = p[i].y;
+        }
+
+        shouldPaint = true;
+      }
+
+      if(shouldPaint)
+      {
+        System.out.println("Drawing Line from " + x_initial + " " + y_initial +
+                                            " " + x_final   + " " + y_final);
+        g.drawLine(x_initial, y_initial, x_final, y_final);
+        x_initial = -1;
+        y_initial = -1;
+        shouldPaint = false;
+      }
+    }
+  }
+
 
  /*
   * Converts from world coordinates to a pixel point
