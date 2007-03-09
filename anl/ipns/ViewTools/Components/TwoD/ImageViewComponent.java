@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.92  2007/03/09 18:58:59  dennis
+ *  The dataChanged(array) now sets the data for the underlying
+ *  ImageJPanel, so that the coordinate mappings are initialized
+ *  before the overlays are created.  This fixes a bug where the
+ *  getColumnRowAtWorldCoordinate() did not work properly, when
+ *  needed by the SelectionOverlay class.
+ *
  *  Revision 1.91  2007/02/05 04:33:12  dennis
  *  Removed small adjustment by 0.001 to World Coordinate bounds, which
  *  was not necessary and caused problems with selections containing
@@ -594,7 +601,8 @@ public class ImageViewComponent implements IViewComponent2D,
   * for displaying the pointed-at cursor readouts.
   */
   public static final String CURSOR_READOUT_NAME = "Pointed At";
-  // these variables preserve the state of the ImageViewComponent
+
+ // these variables preserve the state of the ImageViewComponent
  /**
   * "Precision" - This constant String is a key for referencing the state
   * information about the precision this view component will have. Precision
@@ -1502,7 +1510,12 @@ public class ImageViewComponent implements IViewComponent2D,
         					    yinfo.getMax(),	 
         					    xinfo.getMax(),
         					    yinfo.getMin() ) ); 
-        
+
+	null_data = false;
+        ijp.setData(Varray2D, false);  // this is needed to setup coord trans
+                                       // before overlays are made.  Also
+                                       // ijp needs data before checking for
+                                       // two-sided model below:
         // two-sided model
         if( ijp.getDataMin() < 0 )
            isTwoSided = true;
@@ -1539,7 +1552,6 @@ public class ImageViewComponent implements IViewComponent2D,
         			 // the background and transparencies
         buildViewControls(); 
         buildViewMenuItems();
-	null_data = false;
 	// Redraw the new image.
 	big_picture.validate();
 	big_picture.repaint();
@@ -1730,6 +1742,7 @@ public class ImageViewComponent implements IViewComponent2D,
     // If the original data passed in was null, return dummy values.
     if( null_data )
       return new Point();
+
     return new Point( ijp.ImageCol_of_WC_x(wc_pt.x),
                       ijp.ImageRow_of_WC_y(wc_pt.y) );
   }
