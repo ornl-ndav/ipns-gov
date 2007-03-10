@@ -30,6 +30,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.40  2007/03/10 15:05:26  dennis
+ *  Coordinate transformation now maps to the full rectangle,
+ *  [0,0]x[width,height], rather than [e,e]x[width-e,height-e]
+ *  for a small "epsilon", e.  This means that the coordinate
+ *  system is considered to cover the full range of pixels,
+ *  with 0 corresponding to the left edge of the first
+ *  column of pixels ane width corresponding to the right
+ *  edge of the last column of pixels, etc.
+ *
  *  Revision 1.39  2005/08/14 05:25:31  dennis
  *  The SetTransformsToWindowSize() method will now use a default
  *  200x200 window size if the window is not yet created to get a
@@ -947,8 +956,7 @@ public void SetTransformsToWindowSize()
   int width  = total_size.width;
   int height = total_size.height;
 
-  global_transform.setDestination( -0.1f, -0.1f, 
-                                   width-0.9f, height-0.9f );
+  global_transform.setDestination( 0, 0, width, height );
 
   local_transform.setDestination( global_transform.getDestination()); 
 }
