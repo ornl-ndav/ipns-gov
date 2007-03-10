@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2007/03/10 22:03:15  dennis
+ * Changed the methods that check if a point is on an interval to
+ * use the half open intervals [xmin,xmax) and [ymin,ymax) to conform
+ * to the convention that the world coordinate system will extend
+ * from the left edge of the first column of pixels to the right
+ * edge of the last column of pixels, etc.
+ *
  * Revision 1.14  2005/01/10 16:16:51  dennis
  * Removed empty statement(s).
  *
@@ -403,50 +410,47 @@ public class CoordBounds implements Serializable
   }
 
   /**
-   *  Check to see if x value is on the x interval.
+   *  Check to see if the x value is on the half open x interval for 
+   *  this bound.
    *
-   *  @param  x Value to be checked on interval [xmin,xmax]
-   *  @return true if on interval [xmin,xmax]
+   *  @param  x Value to be checked if it's on the interval [xmin,xmax)
+   *  @return true if the point is on the interval [xmin,xmax)
    */
   public boolean onXInterval( float x )
   {
-    // assume x1 < x2
+                                // reorder bounds incase x1 > x2
     float xmin = x1;
     float xmax = x2;
-    // if x1 > x2, make max = x1
     if( xmin > xmax )
     {
       xmax = x1;
       xmin = x2;
     }
-    // is x on interval [xmin,xmax]
-    if( x >= xmin && x <= xmax )
+                                // check if y on interval [ymin,ymax)
+    if( x >= xmin && x < xmax )
       return true;
-    // otherwise not on interval [xmin,xmax]
     return false;
   }
 
   /**
-   *  Check to see if y value is on the y interval.
+   *  Check to see if the y value is on the half open y interval for
+   *  this bound.
    *
-   *  @param  y Value to be checked on interval [ymin,ymax]
-   *  @return true if on interval [ymin,ymax]
+   *  @param  y Value to be checked if it's on the interval [ymin,ymax)
+   *  @return true if the point is on the interval [ymin,ymax)
    */
   public boolean onYInterval( float y )
-  {
-    // assume y1 < y2
+  {                             // reorder bounds incase y1 > y2
     float ymin = y1;
     float ymax = y2;
-    // if y1 > y2, make max = y1
     if( ymin > ymax )
     {
       ymax = y1;
       ymin = y2;
     }
-    // is y on interval [ymin,ymax]
-    if( y >= ymin && y <= ymax )
+                                // check if y on interval [ymin,ymax)
+    if( y >= ymin && y < ymax )
       return true;
-    // otherwise not on interval [ymin,ymax]
     return false;
   }
   
