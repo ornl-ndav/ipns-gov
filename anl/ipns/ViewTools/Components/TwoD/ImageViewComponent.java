@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.93  2007/03/11 04:35:46  dennis
+ *  Added method setRegionTransforms(), that is used by the
+ *  SelectionOverlay, to set up the appropriate mapping between
+ *  world coordinates and array coordinates.
+ *
  *  Revision 1.92  2007/03/09 18:58:59  dennis
  *  The dataChanged(array) now sets the data for the underlying
  *  ImageJPanel, so that the coordinate mappings are initialized
@@ -1443,6 +1448,33 @@ public class ImageViewComponent implements IViewComponent2D,
     }
     return selectedregions;
   } 
+
+
+ /**
+  * Set the world to array mapping for each of the regions currently 
+  * selected in the selection overaly.  This must be done here, since 
+  * only the image view component knows about the size of the array.
+  *
+  */
+  public void setRegionTransforms() 
+  {
+    Vector regions =
+                  ((SelectionOverlay)transparencies.elementAt(1)).getRegions();
+
+    // This code will set the world and image bounds. Since only the 
+    // ImageViewComponent knows these bounds, it must set them.
+
+    CoordBounds wc_bounds = ijp.getGlobalWorldCoords();
+    CoordBounds image_bounds =  new CoordBounds( 0, 0,
+                                                 Varray2D.getNumColumns(),
+                                                 Varray2D.getNumRows() );
+    for( int i = 0; i < regions.size(); i++ )
+    {
+      ((Region)regions.elementAt(i)).setWorldBounds( wc_bounds );
+      ((Region)regions.elementAt(i)).setImageBounds( image_bounds );
+    }
+  }
+ 
  
  /**
   * This method will be called to notify this component of a change in data.
@@ -1746,6 +1778,8 @@ public class ImageViewComponent implements IViewComponent2D,
     return new Point( ijp.ImageCol_of_WC_x(wc_pt.x),
                       ijp.ImageRow_of_WC_y(wc_pt.y) );
   }
+
+
  /**
   * Get the (x-axis, y-axis) "world coordinate" point of the image at
   * the "pixel coordinate" point given. This method will map pixel values
@@ -1759,8 +1793,10 @@ public class ImageViewComponent implements IViewComponent2D,
     // If the original data passed in was null, return dummy values.
     if( null_data )
       return new floatPoint2D();
+
     return getWorldCoordsAtColumnRow( getColumnRowAtPixel(pixel_pt) );
   }
+
    
  /**
   * Get the (x-axis,y-axis) "world coordinate" value of the
