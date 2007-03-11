@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2007/03/11 04:37:16  dennis
+ *  Added methods to setWorldToArrayTran() and getWorldToArrayTran().
+ *
  *  Revision 1.9  2004/05/20 20:48:26  millermi
  *  - Constructor now initializes world and image bounds to
  *    the bounds of the defining points.
@@ -135,14 +138,14 @@ public class BoxRegion extends Region
     
     Vector pts = new Vector();
     CoordBounds imagebounds = world_to_image.getDestination();
-    // Set through box rowwise, getting points that are on the image.
-    for( int row = topleft.x; row <= bottomright.x; row++ )
+    // Step through box rowwise, getting points that are on the image.
+    for( int row = topleft.y; row <= bottomright.y; row++ )
     {
-      for( int col = topleft.y; col <= bottomright.y; col++ )
+      for( int col = topleft.x; col <= bottomright.x; col++ )
       {
         // add it to the array if the point is on the image.
-        if( imagebounds.onXInterval(row) && imagebounds.onYInterval(col) )
-          pts.add(new Point(row,col));
+        if( imagebounds.onXInterval(col) && imagebounds.onYInterval(row) )
+          pts.add(new Point(col,row));
       }
     }
     // construct static list of points.

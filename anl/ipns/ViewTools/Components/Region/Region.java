@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2007/03/11 04:37:16  dennis
+ *  Added methods to setWorldToArrayTran() and getWorldToArrayTran().
+ *
  *  Revision 1.12  2005/01/18 22:59:47  millermi
  *  - Added getWorldBounds() and getImageBounds()
  *
@@ -124,8 +127,9 @@ public abstract class Region implements java.io.Serializable
   public static final int IMAGE = 1;
   
   protected floatPoint2D[] definingpoints;  // saved in world coords.
-  protected Point[] selectedpoints;
+  protected Point[] selectedpoints;         // used in derived classes :-(
   protected CoordTransform world_to_image;
+
   //protected boolean world_coords_set = false;  // use these flags to tell if
   //protected boolean image_coords_set = false;  // coordtransform is complete.
   
@@ -140,6 +144,37 @@ public abstract class Region implements java.io.Serializable
     selectedpoints = new Point[0];
     world_to_image = new CoordTransform();
   }
+
+
+ /**
+  *  Method to set the transform from world to array coordinates.  A copy
+  *  of the specified tansform is made.
+  *
+  *  @param world_to_array  The transform to be copied as this region's
+  *                         transform from world coordinates to array 
+  *                         coordinates.
+  */
+ public void setWorldToArrayTran( CoordTransform world_to_array  )
+ {
+   if ( world_to_array != null )
+     world_to_image = new CoordTransform( world_to_array );
+   else
+     throw new IllegalArgumentException( "Error: null transform" );
+ }
+
+
+ /**
+  *  Method to get the transform from world to array coordinates.  A copy
+  *  of the region's transform is returned.
+  *
+  *  @return a copy of this region's transform from world coordinates 
+  *          to array coordinates.
+  */
+ public CoordTransform getWorldToArrayTran()
+ {
+   return new CoordTransform( world_to_image );
+ }
+
   
  /**
   * Set the world coordinate system. This must be done immediately following
@@ -215,12 +250,15 @@ public abstract class Region implements java.io.Serializable
       map_to_center.y += y_offset;
       return map_to_center;
     }
+
     // convert to image coords
     if( to_coordsystem == IMAGE )
       return world_to_image.MapTo(fpt);
+
     // if invalid number
     return null;
   }
+
   
  /**
   * Get the world coordinate points used to define the geometric shape.
@@ -246,6 +284,7 @@ public abstract class Region implements java.io.Serializable
     // if invalid number
     return null;
   }
+
   
  /**
   * Compare two regions. This will return true only if the two intances
@@ -263,17 +302,21 @@ public abstract class Region implements java.io.Serializable
     // if references are the same, the region is the same.
     if( this == reg2 )
       return true;
+
     // check if instances of the same class
     if( !this.getClass().getName().equals(reg2.getClass().getName()) )
       return false;
+
     // make sure working on same coordinate systems
     if( !world_to_image.equals(reg2.world_to_image) )
       return false;
+
     // make sure there exist the same number of defining points
     floatPoint2D[] thisdp = this.getDefiningPoints(WORLD);
     floatPoint2D[] reg2dp = reg2.getDefiningPoints(WORLD);
     if( thisdp.length != reg2dp.length )
       return false;
+
     // check each individual element, be aware that float values are hard
     // to compare reliably.
     for( int i = 0; i < thisdp.length; i++ )
@@ -281,9 +324,11 @@ public abstract class Region implements java.io.Serializable
       if( thisdp[i] != reg2dp[i] )
         return false;
     }
+
     // else, must be same region.
     return true;
   }
+
   
  /**
   * Get all of the image points inside the region. The use of
@@ -294,11 +339,13 @@ public abstract class Region implements java.io.Serializable
   *  @return array of points included within the region.
   */
   public abstract Point[] getSelectedPoints();
+
   
  /**
   * Displays the Region type and its defining points.
   */
   public abstract String toString();
+
    
  /**
   * This method returns the selected points within a region. However, duplicate
@@ -308,13 +355,15 @@ public abstract class Region implements java.io.Serializable
   *  @return array of points included within the region.
   */
   protected abstract Point[] initializeSelectedPoints();
+
   
  /**
-  * This method is defines a rectangular bounds that the region is contained in.
+  * This method gets a rectangular bounding box containing the region.
   *
   *  @return Rectangular bounds containing the region.
   */
   public abstract CoordBounds getRegionBounds();
+
   
  /**
   * Since image row/column values are integers, the mapping from world to
@@ -332,6 +381,7 @@ public abstract class Region implements java.io.Serializable
     float y = (float)Math.floor((double)imagept.y);
     return new Point(Math.round(x), Math.round(y));
   }
+
 
  /**
   * This method removes duplicate points selected by multiple regions.
@@ -358,9 +408,11 @@ public abstract class Region implements java.io.Serializable
     // this transform will map image bounds to an integer grid from
     // [0,#rows-1] x [0,#col-1]
     CoordTransform image_to_array = new CoordTransform();
+
     // if no regions are passed in, return no points.
     if( regions.length == 0 )
       return new Point[0];
+
     // region bounds are in image coordinates.
     CoordBounds regionbounds = regions[0].getRegionBounds();
     float rowmin = regionbounds.getX1();
@@ -386,26 +438,32 @@ public abstract class Region implements java.io.Serializable
         colmax = regions[i].getRegionBounds().getY2();
       }
     }
+
     // create a nice integer-like interval that will nicely map to
     // the array.
     rowmin = (float)Math.floor((double)rowmin);
     colmin = (float)Math.floor((double)colmin);
     rowmax = (float)Math.ceil((double)rowmax);
     colmax = (float)Math.ceil((double)colmax);
+
     // set image bounds
     image_to_array.setSource( new CoordBounds(rowmin,colmin,rowmax,colmax) );
+
     // build table to keep track of selected points
     int rows = Math.abs(Math.round(rowmax - rowmin)) + 1;
     int columns = Math.abs(Math.round(colmax - colmin)) + 1;
+
     // set array bounds
     image_to_array.setDestination( new CoordBounds(0,0,
                                                    (float)(rows-1),
 						   (float)(columns-1) ) );
     boolean[][] point_table = new boolean[rows][columns];
+
     //System.out.println("Row/Column: " + rows + "/" + columns );
     Vector points = new Vector();
     Point[] sel_pts;
     Point temp = new Point();
+
     // for each region, mark its selected points
     for( int i = 0; i < regions.length; i++ )
     {
@@ -431,6 +489,7 @@ public abstract class Region implements java.io.Serializable
 	}
       }
     }
+
     // put the vector of points into an array of points
     Point[] unionpoints = new Point[points.size()];
     for( int i = 0; i < points.size(); i++ )
