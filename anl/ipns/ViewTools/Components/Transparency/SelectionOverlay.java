@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.42  2007/03/11 04:32:53  dennis
+ *  Added code to set up transformation from Array coordinates to
+ *  the world coordinate system.  Added method to apply this
+ *  transform. Added code to in paintPointArray() method to map
+ *  the centers of selected array positions to pixels.
+ *
  *  Revision 1.41  2007/03/07 21:47:20  dennis
  *  Added paintPointArray() method from Josh Oakgrove and Terry Farmer.
  *  This routine will be used to fill the interior of regions selected
@@ -266,6 +272,7 @@ import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Region.*;
 import gov.anl.ipns.ViewTools.Components.Cursor.*; 
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
+import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.Util.Numeric.floatPoint2D; 
 import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
@@ -333,12 +340,14 @@ public class SelectionOverlay extends OverlayJPanel
   
   private transient SelectionJPanel sjp; // panel overlaying the center jpanel
   private transient IZoomAddible component;	 // component being passed
-  private Vector regions;		 // all selected regions
+  private Vector regions;                        // all selected regions
   // used for repaint by SelectListener 
   private transient SelectionOverlay this_panel;
   private Color reg_color;
   private transient Rectangle current_bounds;
-  private transient CoordTransform pixel_local;  
+  private transient CoordTransform pixel_local;          // pixel coords to WC
+  private transient CoordTransform array_global = null;  // array coords to WC
+                                                         // for ImageViewC only
   private transient Vector Listeners = null;  
   private float opacity = 1.0f; 	 // value [0,1] where 0 is clear, 
 					 // and 1 is solid.
@@ -380,7 +389,49 @@ public class SelectionOverlay extends OverlayJPanel
     					  current_bounds.getHeight() ) );
     pixel_local = new CoordTransform( pixel_map, 
         			      component.getLocalCoordBounds() );
-    
+//    System.out.println("pixel_local = " + pixel_local );    
+
+                                  // make mapping from the array to world
+                                  // coordinates, if we are dealing with an
+                                  // ImageViewComponent
+    if ( iza instanceof ImageViewComponent )
+    {
+      ImageViewComponent ivc = (ImageViewComponent)iza;
+
+      CoordBounds wc_bounds = component.getGlobalCoordBounds();
+//    System.out.println("wc_bounds = " + wc_bounds);
+
+      Point p1 = ivc.getColumnRowAtWorldCoords( 
+                   new floatPoint2D( wc_bounds.getX1(), wc_bounds.getY1() ) ); 
+
+      Point p2 = ivc.getColumnRowAtWorldCoords( 
+                   new floatPoint2D( wc_bounds.getX2(), wc_bounds.getY2() ) ); 
+
+                          // The row & column values returned by the above
+                          // methods are restricted to [0,NROWS-1] and 
+                          // [0,NCOLS-1].  However, our coordinates range
+                          // over [0,NROWS] and [0,NCOLS] to cover from the
+                          // left edge of the first column to the right edge
+                          // of the last column, etc.  Consequently, we need
+                          // to increment the non-zero values.  We allow for
+                          // the min & max values to be in either order, but
+                          // the ordering MUST MATCH the coordinate system 
+                          // by the ivc and underlying ImageJPanel2.
+      if ( p1.x == 0 )
+        p2.x++;
+      else
+        p1.x++;
+
+      if ( p1.y == 0 )
+        p2.y++;
+      else
+        p1.y++;
+
+      CoordBounds arr_bounds = new CoordBounds( p1.x, p1.y, p2.x, p2.y );
+      array_global = new CoordTransform( arr_bounds, wc_bounds );
+//    System.out.println("Array to World coords: " + array_global );
+    }
+
     Listeners = new Vector();
     sjp.requestFocus(); 	      
   }
@@ -713,23 +764,37 @@ public class SelectionOverlay extends OverlayJPanel
     super.paint(g);
     Graphics2D g2d = (Graphics2D)g; 
 
-/*  Temporary test code for paintPointArray()
-    Point[] test_points = new Point[800];
-    int index = 0;
-    for ( int y_row = 10; y_row < 30; y_row++ )
-      for ( int x_col = 10; x_col < 30; x_col++ )
-        test_points[index++] = new Point( x_col, y_row );
-    for ( int y_row = 20; y_row < 40; y_row++ )
-      for ( int x_col = 40; x_col < 60; x_col++ )
-        test_points[index++] = new Point( x_col, y_row );
-    paintPointArray( g2d, test_points );
-*/
-
     // Change the opaqueness of the selections.
     AlphaComposite ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER,
-        					    opacity );
+                                                    opacity );
     g2d.setComposite(ac);
-    
+
+    // color of all of the selections.
+    g2d.setColor(reg_color);
+
+
+    if ( component instanceof ImageViewComponent )
+    {
+      Vector all_points = new Vector();
+      for (int i = 0; i < regions.size(); i++ )
+      {
+        Region region = (Region)regions.elementAt(i);
+//      System.out.println("Selected region is: " + region );
+ 
+        Point[] sel_points = region.getSelectedPoints();
+//      System.out.println("Number selected = " + sel_points.length );
+
+        for ( int j = 0; j < sel_points.length; j++ )
+          all_points.add( sel_points[j] );
+      }
+      Point[] point_array = new Point[ all_points.size() ];
+      for ( int i = 0; i < all_points.size(); i++ )
+        point_array[i] = (Point)all_points.elementAt(i);
+      
+      paintPointArray( g2d, point_array );
+    }
+
+
     current_bounds = component.getRegionInfo();  // current size of center
     sjp.setBounds( current_bounds );
     // this limits the paint window to the size of the background image.
@@ -747,8 +812,6 @@ public class SelectionOverlay extends OverlayJPanel
     				     current_bounds.getHeight() ) );
     pixel_local.setSource( pixel_map );
     pixel_local.setDestination( component.getLocalCoordBounds() );
-    // color of all of the selections.
-    g2d.setColor(reg_color);
 
     Region region;    
     floatPoint2D[] fp;
@@ -850,6 +913,18 @@ public class SelectionOverlay extends OverlayJPanel
   } // end of paint()
 
 
+  /**
+   *  Map from array to pixel coordinates
+   */
+  private Point ArrayToPixel( int x, int y )
+  {
+    floatPoint2D point = new floatPoint2D( x+0.5f, y+0.5f );
+    point = array_global.MapTo( point );
+    point = pixel_local.MapFrom( point );
+    return new Point( Math.round(point.x), Math.round(point.y) );
+  }
+  
+
   /** 
    * Draw scan lines through the region determined by the array of points.
    * Assumptions: 
@@ -869,6 +944,10 @@ public class SelectionOverlay extends OverlayJPanel
    */  
   private void paintPointArray(Graphics2D g, Point[] p)
   {
+/*
+    System.out.println("**pixel_local  : " + pixel_local );
+    System.out.println("**array_global : " + array_global );
+*/
     boolean shouldPaint=false;
     int x_initial = -1;       // Initial x for draw line command
     int y_initial = -1;       // Initial y for draw line command
@@ -912,9 +991,12 @@ public class SelectionOverlay extends OverlayJPanel
 
       if(shouldPaint)
       {
-        System.out.println("Drawing Line from " + x_initial + " " + y_initial +
-                                            " " + x_final   + " " + y_final);
-        g.drawLine(x_initial, y_initial, x_final, y_final);
+                                 // first map from array coords to pixel coords
+        Point p1 = ArrayToPixel( x_initial, y_initial );
+        Point p2 = ArrayToPixel( x_final,  y_final   );
+
+        g.drawLine(p1.x, p1.y, p2.x, p2.y);
+
         x_initial = -1;
         y_initial = -1;
         shouldPaint = false;
@@ -1139,7 +1221,15 @@ public class SelectionOverlay extends OverlayJPanel
           regionadded = false;
 	
         if( regionadded )
+        {                           // fix mapping from
+                                    // WC to array coordinates for each region
+          if ( component instanceof ImageViewComponent )
+          {
+            ImageViewComponent ivc = (ImageViewComponent)component;
+            ivc.setRegionTransforms();
+          }
           sendMessage(REGION_ADDED);
+        }
       }
       this_panel.repaint();  // Without this, the newly drawn regions would
 			     // not appear.
