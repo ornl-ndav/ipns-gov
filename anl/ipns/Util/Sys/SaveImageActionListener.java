@@ -32,6 +32,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2007/03/12 19:19:50  rmikk
+ * Added a static method to save an Image of an IViewComponent. It uses the
+ *   swing invoke later to make sure all the drawing is done in time.
+ *
  * Revision 1.4  2004/03/12 17:54:28  rmikk
  * Fixed package names.
  * Fixed JMenuBar "File" Jmenu search algorithm
@@ -56,19 +60,27 @@ package gov.anl.ipns.Util.Sys;
 import gov.anl.ipns.Util.File.*;
 import java.awt.event.*;
 import javax.swing.*;
+
 import java.awt.image.*;
 import java.awt.*;
 import java.io.*;
+import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.Util.SpecialStrings.*;
+import gov.anl.ipns.ViewTools.Components.TwoD.*;
 
 public class SaveImageActionListener implements ActionListener{
 
  private Component comp;
+ static String err = null;
  
  public SaveImageActionListener(  Component comp)
  {  
    this.comp = comp;
  }
-  
+ 
+ public SaveImageActionListener( IViewComponent viewComp){
+    this((Component)(viewComp.getDisplayPanel()));
+ }
  public static void setUpMenuItem(JMenuBar jmb, Component comp )
  {
    if( jmb == null)
@@ -143,6 +155,7 @@ public class SaveImageActionListener implements ActionListener{
         			  (OutputStream)fout ) )
        {
          SharedMessages.addmsg( " no appropriate writer is found");
+         fout.close();
          return; 
        }
        fout.close();
@@ -151,11 +164,70 @@ public class SaveImageActionListener implements ActionListener{
        SharedMessages.addmsg( "Image Save Error:"+ss.toString());
      }
    }
+   
+   
+   /**
+    * Saves an IViewComponent to a file as a jpeg image.
+    * @param Comp  The IViewComponent whose Display Panel is to be saved. NOTE that 
+    *                the view component does not have to be displayable.
+    * @param filename  The filename for the saved image. It will be forced to end
+    *                  in .jpg if that is not the case
+    * @width    the width in pixels of image or -1 to use default. 
+    * @height   the height in pixels of the image or -1 for the default.
+    * 
+    * 
+    * @return null or an ErrorString if an error occurred.
+    */
+   public static Object SaveImage( IViewComponent Comp, String filename, int width, int height){
+      
+      if( Comp == null) 
+         return new ErrorString("View Component is null in SaveImage");
+      
+      if( filename == null) 
+         return new ErrorString("null filename in SaveImage");
+      
+      if( filename.length() <1)
+         return new ErrorString("empty filename in SaveImage");
+      
+      int k=filename.lastIndexOf(".");
+      if( k >=0){
+         if( !filename.substring(k+1).equalsIgnoreCase("jpg")){
+           filename=filename.substring(0,k);
+           k=-1;
+         }
+      }
+         if( k < 0) 
+            filename = filename +".jpg";
+         
+         
+      Component comp = Comp.getDisplayPanel();
+      JWindow jf1=null;
+      if( !comp.isDisplayable()){
+         jf1 = new JWindow();
+         jf1.setPreferredSize( new Dimension(width+7, height+25));   
+         jf1.getContentPane().setLayout( new GridLayout(1,1));
+         jf1.getContentPane(). add( comp);
+         jf1.pack();
+         jf1.validate(); 
+         
+      }
+      Object[] in_outData = new Object[1];
+      
+     
+      SwingUtilities.invokeLater( 
+         new RunPaint(comp, in_outData));
+    
+      
+      SwingUtilities.invokeLater( new RunSvImage(in_outData,filename));
+     
+      
+      return null;
+   }
  
  /*
   * File filter for .jpg files, file format for images.
   */ 
-  private class JPEGFileFilter extends RobustFileFilter
+  class JPEGFileFilter extends RobustFileFilter
   {
    /*
     *  Default constructor.  Calls the super constructor,
@@ -168,5 +240,84 @@ public class SaveImageActionListener implements ActionListener{
       super.addExtension(".jpg");
     } 
   }
+ 
+  /**
+   * Test for the SaveImage static method
+   * @param args  not used
+   */
+ public static void main( String args[]){
+   float[][] F =new float[200][300];
+   for( int i=0; i<200;i++)
+      java.util.Arrays.fill( F[i], .1f*i);
+   ImageViewComponent img = new ImageViewComponent(
+               new VirtualArray2D( F));  
+   
+   SaveImageActionListener.SaveImage(img,"C:/xxx.jpg",1200,1300);
+   System.out.println("Done");
+   System.exit(0);
+ }
+  
+}
+
+
+class RunPaint implements Runnable{
+  Component comp;
+  BufferedImage bimg;
+  Object[] in_outData;
+  public RunPaint( Component comp, Object[] in_outData){
+     this.comp = comp;
+     bimg= null;
+     this.in_outData = in_outData;
+  }
+  public void run(){
+
+     Rectangle R = comp.getBounds();
+     bimg= new BufferedImage(R.width, R.height,
+              BufferedImage.TYPE_INT_RGB ); 
+     in_outData[0]= bimg;
+   
+     Graphics2D gr = bimg.createGraphics();
+
+     comp.paint( gr);
+     
+ }
+}
+
+
+
+class RunSvImage implements Runnable{
+   String filename;
+   BufferedImage bimg;
+   Object[] in_outData;
+   public RunSvImage( Object[] in_outData, String filename){
+      this.filename = filename;
+      this.bimg = (BufferedImage)in_outData[0];
+      this.in_outData = in_outData;
+   }
+   
+   public void run(){
+      this.bimg = (BufferedImage)in_outData[0];
+      SaveImageActionListener.err=null;
+      try{
+         FileOutputStream fout = new FileOutputStream( new File(filename) );
+         if( !javax.imageio.ImageIO.write( bimg, "jpg",
+                     (OutputStream)fout ) )
+         {
+           SharedMessages.addmsg( " no appropriate writer is found");
+           SaveImageActionListener .err =" no appropriate writer is found";
+           fout.close();
+           return ;
+         }
+         fout.close();
+         
+       }
+       catch( Exception ss){
+         SharedMessages.addmsg( "Image Save Error:"+ss.toString());
+         SaveImageActionListener .err="Image Save Error:"+ss.toString();
+         return; 
+       }
+       
+     
+   }
 }
 
