@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.93  2007/03/12 15:00:53  amoe
+ *  Added public method isDrawingPointedAtGraph() so external
+ *  classes could determine if the FunctionViewComponent's
+ *  pointedAtGraph is on.
+ *
  *  Revision 1.92  2006/10/20 05:33:44  amoe
  *  - Added code to setPointedAt(), so the crosshairs would be updated.
  *  - Removed getDataPanel().
@@ -978,6 +983,10 @@ public class FunctionViewComponent implements IViewComponent1D,
     return 1f;
   }
 
+  public boolean isDrawingPointedAtGraph()
+  {
+	  return draw_pointed_at;
+  }
   
   /**
    * This method adjusts the crosshairs on the graphjpanel.
