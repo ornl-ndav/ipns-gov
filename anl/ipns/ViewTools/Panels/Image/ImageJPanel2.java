@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2007/03/15 20:12:09  dennis
+ *  Made getWorldToImageTransform() method public so that it can
+ *  be used by the ImageViewComponent.
+ *
  *  Revision 1.4  2007/02/05 04:32:14  dennis
  *  Removed small adjustment by 0.001 to World Coordinate bounds, which
  *  was not necessary and caused problems with selections containing
@@ -234,6 +238,9 @@ public class ImageJPanel2 extends    CoordJPanel
   private boolean         isTwoSided = true;
   private boolean         makeThumbnail = false;
   private boolean         auto_scale_data = true; // Initially allow auto scale.
+
+
+/* ------------------------- constructor ---------------------------------- */
 /**
  *  Construct an ImageJPanel with default values for the color scale, log
  *  scaling factor and array of values.  Most applications using this class
@@ -257,6 +264,8 @@ public class ImageJPanel2 extends    CoordJPanel
     addKeyListener( new ImageKeyAdapter() );
   }
 
+
+/* ------------------------- setObjectState ------------------------------- */
  /**
   * This method will set the current state variables of the object to state
   * variables wrapped in the ObjectState passed in.
@@ -293,9 +302,10 @@ public class ImageJPanel2 extends    CoordJPanel
     // may need changing
     if( redraw )
       repaint();
-   
   } 
+
  
+/* ------------------------- getObjectState ------------------------------- */
  /**
   * This method will get the current values of the state variables for this
   * object. These variables will be wrapped in an ObjectState.
@@ -315,6 +325,7 @@ public class ImageJPanel2 extends    CoordJPanel
     
     return state;
   }
+
 
 /* ------------------------- changeLogScale -------------------------- */
 /**
@@ -340,6 +351,7 @@ public class ImageJPanel2 extends    CoordJPanel
     if ( rebuild_image )
       makeImage();
   }
+
 
 /* -------------------------- setNamedColorModel --------------------------- */
 /**
@@ -379,7 +391,9 @@ public class ImageJPanel2 extends    CoordJPanel
       makeImage();
     }
   }
+
   
+ /* ----------------------- enableAutoDataRange --------------------------- */
  /**
   * Determine whether the minimum and maximum data values are calculated
   * by the setData() [True] or explicitly set by setDataRange() [False].
@@ -397,7 +411,9 @@ public class ImageJPanel2 extends    CoordJPanel
   {
     auto_scale_data = auto_range_on;
   }
+
   
+ /* --------------------- isAutoDataRangeEnabled ------------------------- */
  /**
   * Determine whether the minimum and maximum data values are calculated
   * by the setData() [True] or explicitly set by setDataRange() [False].
@@ -410,6 +426,8 @@ public class ImageJPanel2 extends    CoordJPanel
     return auto_scale_data;
   }
   
+
+ /* -------------------------- setDataRange ------------------------------ */
  /**
   * This method will set the data range to [data_min,data_max]. Calling this
   * method will disable auto data range calculation done when setData() is
@@ -436,6 +454,7 @@ public class ImageJPanel2 extends    CoordJPanel
     // turn off auto data range calculation.
     enableAutoDataRange(false);
   }
+
 
 /* ------------------------------- setData -------------------------------- */
 /**
@@ -559,7 +578,9 @@ public class ImageJPanel2 extends    CoordJPanel
       makeImage();
     }
   } // End setData()
-  
+
+
+ /* -------------------------- getThumbnail ----------------------------- */  
  /**
   *  Get a thumbnail of the entire image shown by this ImageJPanel.
   *
@@ -639,6 +660,7 @@ public class ImageJPanel2 extends    CoordJPanel
     paint(g);
   }
 
+
 /* --------------------------------- paint ------------------------------- */
 /**
  *  This method is invoked by swing to draw the image.  Applications must not
@@ -665,6 +687,7 @@ public class ImageJPanel2 extends    CoordJPanel
     }
   }
 
+
 /* -------------------------- ImageRow_of_PixelRow ----------------------- */
 /**
  *  Get the row number in the data array of the specified pixel row.
@@ -680,6 +703,7 @@ public class ImageJPanel2 extends    CoordJPanel
  
     return ImageRow_of_WC_y( WC_y );
   }
+
 
 /* -------------------------- ImageRow_of_WC_y ----------------------- */
 /**
@@ -703,6 +727,7 @@ public class ImageJPanel2 extends    CoordJPanel
     return row;
   }
 
+
 /* -------------------------- ImageCol_of_PixelCol ----------------------- */
 /**
  *  Get the column number in the data array of the specified pixel col.
@@ -718,6 +743,7 @@ public class ImageJPanel2 extends    CoordJPanel
 
     return  ImageCol_of_WC_x( WC_x );
   }
+
 
 /* -------------------------- ImageCol_of_WC_x ----------------------- */
 /**
@@ -740,6 +766,23 @@ public class ImageJPanel2 extends    CoordJPanel
       col = data.getNumColumns() - 1;
 
     return col;
+  }
+
+
+/* ----------------------- getWorldToImageTransform ---------------------- */
+
+  public CoordTransform getWorldToImageTransform()
+  {
+    CoordBounds     world_bounds;
+    CoordBounds     image_bounds;
+
+    SetTransformsToWindowSize();
+    image_bounds = new CoordBounds( 0,
+                                    0,
+                                    data.getNumColumns(),
+                                    data.getNumRows() );
+    world_bounds = getGlobal_transform().getSource();
+    return( new CoordTransform( world_bounds, image_bounds ) );
   }
 
 
@@ -831,6 +874,8 @@ public float getDataMax()
   return max_data;
 }
 
+
+/* -------------------------- getImageCoords --------------------------- */
 /**
  *  Get the image number of rows/columns wrapped in a CoordBound object to
  *  allow for mapping to another coordinate system.
@@ -866,22 +911,6 @@ protected void LocalTransformChanged()
  * PRIVATE METHODS
  *
  */
-
-/* ----------------------- getWorldToImageTransform ---------------------- */
-
-  private CoordTransform getWorldToImageTransform()
-  {
-    CoordBounds     world_bounds;
-    CoordBounds     image_bounds;
-
-    SetTransformsToWindowSize();
-    image_bounds = new CoordBounds( 0, 
-                                    0, 
-                                    data.getNumColumns(),
-                                    data.getNumRows() );
-    world_bounds = getGlobal_transform().getSource();
-    return( new CoordTransform( world_bounds, image_bounds ) );   
-  }
 
 
 /* ---------------------------------- makeImage --------------------------- */
