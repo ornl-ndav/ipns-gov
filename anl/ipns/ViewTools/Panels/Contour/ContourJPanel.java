@@ -33,6 +33,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.25  2007/03/15 20:54:41  dennis
+ * Made getRowColumnToWC() public.
+ *
  * Revision 1.24  2007/02/05 04:33:41  dennis
  * Removed small adjustment by 0.001 to World Coordinate bounds, which
  * was not necessary and caused problems with selections containing
@@ -1176,6 +1179,36 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       
       return col;
    }
+
+   /**
+    * Used to create a transformation that maps from row/column 
+    * coordinates to world coordinates.  The transformation maps from the 
+    * entire array of data to the world coordinates describing the entire 
+    * panel.
+    * 
+    * @return The transformation that maps the entire array of data 
+    *         (in row/column coordinates) to the entire panel 
+    *         (in world coordinates).
+    */
+   public CoordTransform getRowColumnToWC()
+   {
+      //get the CoordBounds object that encapsulates the bounds of 
+      //the panel in world coordinates
+        CoordBounds wcBounds = getGlobalWCBounds();
+      //now to make a transform that maps from row/column to the world 
+      //coordinates of the entire panel.  The row/col is mapped to the 
+      //location on the ENTIRE panel because the ALL of the data in the 
+      //array needs to be mapped to ALL of the panel (not just a small 
+      //region which is what 'local_transform' describes).
+      return new CoordTransform(
+                                new CoordBounds(0,
+                                                0,
+                                                data2D.getNumColumns(),
+                                                data2D.getNumRows()
+                                               ),
+                                wcBounds
+                               );
+   }
    
    /**
     * Used to get a thumbnail image of the main contour plot image.  This 
@@ -1595,35 +1628,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                              xInfo.getMax(), yInfo.getMin());
    }
    
-   /**
-    * Used to create a transformation that maps from row/column 
-    * coordinates to world coordinates.  The transformation maps from the 
-    * entire array of data to the world coordinates describing the entire 
-    * panel.
-    * 
-    * @return The transformation that maps the entire array of data 
-    *         (in row/column coordinates) to the entire panel 
-    *         (in world coordinates).
-    */
-   private CoordTransform getRowColumnToWC()
-   {
-      //get the CoordBounds object that encapsulates the bounds of 
-      //the panel in world coordinates
-        CoordBounds wcBounds = getGlobalWCBounds();
-      //now to make a transform that maps from row/column to the world 
-      //coordinates of the entire panel.  The row/col is mapped to the 
-      //location on the ENTIRE panel because the ALL of the data in the 
-      //array needs to be mapped to ALL of the panel (not just a small 
-      //region which is what 'local_transform' describes).
-      return new CoordTransform(
-                                new CoordBounds(0, 
-                                                0, 
-                                                data2D.getNumColumns(), 
-                                                data2D.getNumRows()
-                                               ),
-                                wcBounds
-                               );
-   }
    
    /**
     * Given a floating point number, this method gets the closest 
