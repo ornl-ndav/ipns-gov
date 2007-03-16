@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2007/03/16 16:48:35  dennis
+ *  Major refactoring.  Now overides getSelectedPoints() to deterimine
+ *  which point(s) this region should indicate as selected.  Removed
+ *  initializeSelectedPoints() method that is no longer needed.  Removed
+ *  getRegionBounds() method, since that is now taken care of in the
+ *  base class using the world coordinate bounds.  Added getRegionBoundsWC().
+ *
  *  Revision 1.9  2004/05/20 20:48:27  millermi
  *  - Constructor now initializes world and image bounds to
  *    the bounds of the defining points.
@@ -80,6 +87,7 @@ import java.util.Vector;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
 /**
  * This class passes one or more selected points. Most of the functionality
@@ -88,6 +96,11 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
  */ 
 public class PointRegion extends Region
 {
+  float min_x;
+  float max_x;
+  float min_y;
+  float max_y;
+
  /**
   * Constructor takes in an array of Points, each defining a point region.
   *
@@ -98,64 +111,74 @@ public class PointRegion extends Region
     super(dp);
     
     // Give the image and world bounds meaningful values.
-    float xmin = definingpoints[0].x;
-    float xmax = definingpoints[0].x;
-    float ymin = definingpoints[0].y;
-    float ymax = definingpoints[0].y;
+    min_x = definingpoints[0].x;
+    max_x = min_x; 
+    min_y = definingpoints[0].y;
+    max_y = min_y;
     for( int i = 1; i < definingpoints.length; i++ )
     {
-      if( definingpoints[i].x < xmin )
-        xmin = definingpoints[i].x;
-      if( definingpoints[i].x > xmax )
-        xmax = definingpoints[i].x;
-      if( definingpoints[i].y < ymin )
-        ymin = definingpoints[i].y;
-      if( definingpoints[i].y > ymax )
-        ymax = definingpoints[i].y;
+      if( definingpoints[i].x < min_x )
+        min_x = definingpoints[i].x;
+      else if( definingpoints[i].x > max_x )
+        max_x = definingpoints[i].x;
+
+      if( definingpoints[i].y < min_y )
+        min_y = definingpoints[i].y;
+      else if( definingpoints[i].y > max_y )
+        max_y = definingpoints[i].y;
     }
-    setWorldBounds( new CoordBounds( xmin, ymin, xmax, ymax ) );
-    setImageBounds( new CoordBounds( xmin, ymin, xmax, ymax ) );
   }
   
+
  /**
-  * The PointRegion returns the defining points as an array of Points.
-  *
-  *  @return array of points.
+  *  Get a bounding box for the region, in World Coordinates.  The
+  *  points of the region will lie in the X-interval [X1,X2] and
+  *  in the Y-interval [Y1,Y2], where X1,X2,Y1 and Y2 are the values
+  *  returned by the CoordBounds.getX1(), getX2(), getY1(), getY2()
+  *  methods.
+  * 
+  *  @return a CoordBounds object containing the full extent of this
+  *          list of points.
   */
-  public Point[] getSelectedPoints()
-  { 
-    initializeSelectedPoints();
-    Region[] points = {this};
-    selectedpoints = getRegionUnion( points );
-    return selectedpoints;
-  }
+ public CoordBounds getRegionBoundsWC()
+ {
+    return new CoordBounds( min_x, min_y, max_x, max_y );
+ }
   
+
  /**
-  * This method is here to factor out the setting of the selected points.
-  * By doing this, regions can make use of the getRegionUnion() method.
+  * Get the array elements currently selected, based on the world coordinate
+  * points and the mapping from world to array coordinates.
   *
-  *  @return array of points included within the region.
+  *  @param  world_to_array  The transformation from world coordinates to
+  *                          array coordinates.
+  *
+  *  @return array of Points, each of which contains one or more of
+  *          the selected points.
   */
-  protected Point[] initializeSelectedPoints()
+  public Point[] getSelectedPoints( CoordTransform world_to_array )
   {
     Vector pts = new Vector();
-    CoordBounds imagebounds = world_to_image.getDestination();
+    CoordBounds imagebounds = world_to_array.getDestination();
     Point temp;
-    // Convert defining points from world coords to image coords and
-    // add it to the array if the point is on the image.
+
+               // Convert defining points from world coords to image coords and
+               // add it to the array if the point is on the image.
     for( int i = 0; i < definingpoints.length; i++ )
     {
-      temp = floorImagePoint(world_to_image.MapTo(definingpoints[i]));
+      temp = floorImagePoint(world_to_array.MapTo(definingpoints[i]));
       if( imagebounds.onXInterval(temp.x) && imagebounds.onYInterval(temp.y) )
         pts.add(temp);
     }
-    // construct static list of points.
-    selectedpoints = new Point[pts.size()];
+
+                                                  // construct array of points.
+    Point[] selectedpoints = new Point[pts.size()];
     for( int i = 0; i < pts.size(); i++ )
       selectedpoints[i] = (Point)pts.elementAt(i);
     return selectedpoints;
   } 
   
+
  /**
   * Display the region type with its defining points. For a PointRegion,
   * all points will be displayed.
@@ -172,29 +195,5 @@ public class PointRegion extends Region
     }
     return regstring.toString();
   } 
-   
- /**
-  * This method returns the extent of the Points selected.
-  *
-  *  @return The bounds of the PointRegion.
-  */
-  public CoordBounds getRegionBounds()
-  {
-    float xmin = world_to_image.MapTo(definingpoints[0]).x;
-    float xmax = world_to_image.MapTo(definingpoints[0]).x;
-    float ymin = world_to_image.MapTo(definingpoints[0]).y;
-    float ymax = world_to_image.MapTo(definingpoints[0]).y;
-    for( int i = 1; i < definingpoints.length; i++ )
-    {
-      if( world_to_image.MapTo(definingpoints[i]).x < xmin )
-        xmin = world_to_image.MapTo(definingpoints[i]).x;
-      if( world_to_image.MapTo(definingpoints[i]).x > xmax )
-        xmax = world_to_image.MapTo(definingpoints[i]).x;
-      if( world_to_image.MapTo(definingpoints[i]).y < ymin )
-        ymin = world_to_image.MapTo(definingpoints[i]).y;
-      if( world_to_image.MapTo(definingpoints[i]).y > ymax )
-        ymax = world_to_image.MapTo(definingpoints[i]).y;
-    }
-    return new CoordBounds( xmin, ymin, xmax, ymax );
-  }
+
 }
