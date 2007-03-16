@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2007/03/16 18:30:49  dennis
+ *  Now handles cirlces and ellipses.
+ *  Minor code clean up.
+ *
  *  Revision 1.16  2004/03/12 01:33:23  millermi
  *  - Changed package and imports.
  *
@@ -138,11 +142,18 @@ public class SelectionJPanel extends ActiveJPanel
   public static final String BOX = "Box";
  
  /**
-  * "Ellipse" - This message String is used to select/deselect the circle cursor.
-  * The region this pertains to is the EllipseRegion. Ellipse is used because
-  * scaling does not always yield an exact circle.
+  * "Ellipse" - This message String is used to select/deselect the ellipse 
+  *             cursor.  The region this pertains to is the EllipseRegion. 
+  *             Ellipse is used because scaling does not always yield an 
+  *             exact circle.
   */ 
   public static final String ELLIPSE = "Ellipse";
+
+ /**
+  * "Circle" - This message String is used to select/deselect the circle 
+  *             cursor.  
+  */
+  public static final String CIRCLE = "Circle";
  
  /**
   * "Line" - This message String is used to select/deselect the line cursor.
@@ -179,6 +190,7 @@ public class SelectionJPanel extends ActiveJPanel
   private AnnularCursor ring;
   private BoxCursor box;
   private CircleCursor circle;
+  private EllipseCursor ellipse;
   private PointCursor point;
   private LineCursor line;
   private WedgeCursor wedge;
@@ -186,6 +198,7 @@ public class SelectionJPanel extends ActiveJPanel
   private boolean isAdown;   // true if A is pressed (for RESET_SELECTED)
   private boolean isBdown;   // true if B is pressed (for box selection)
   private boolean isCdown;   // true if C is pressed (for circle selection)
+  private boolean isEdown;   // true if E is pressed (for ellipse selection)
   private boolean isDdown;   // true if D is pressed (for dbl wedge selection)
   private boolean isLdown;   // true if L is pressed (for line selection)
   private boolean isPdown;   // true if P is pressed (for point selection)
@@ -193,6 +206,7 @@ public class SelectionJPanel extends ActiveJPanel
   private boolean isWdown;   // true if W is pressed (for wedge selection)
   private boolean doing_box;	  // true if box selection started
   private boolean doing_circle;   // true if circle selection started
+  private boolean doing_ellipse;  // true if ellipse selection started
   private boolean doing_dblwedge; // true if wedge selection started
   private boolean doing_line;	  // true if line selection started
   private boolean doing_point;    // true if point selection started
@@ -201,10 +215,11 @@ public class SelectionJPanel extends ActiveJPanel
   private boolean firstRun;	  // true if 3pt cursor hasn't drawn midpoint
   private boolean disableBox;      // initially enabled.
   private boolean disableCircle;   // initially enabled.
+  private boolean disableEllipse;  // initially enabled.
   private boolean disableDblWedge; // initially enabled.
   private boolean disableLine;     // initially enabled.
   private boolean disablePoint;    // initially enabled.
-  private boolean disableRing;      // initially enabled.
+  private boolean disableRing;     // initially enabled.
   private boolean disableWedge;    // initially enabled.
   private boolean disableAll;      // initially enabled, used to disable
                                    // Clear All action.
@@ -227,6 +242,7 @@ public class SelectionJPanel extends ActiveJPanel
     
     doing_box = false;
     doing_circle = false;
+    doing_ellipse = false;
     doing_line = false;
     doing_point = false;
     doing_wedge = false;
@@ -241,6 +257,7 @@ public class SelectionJPanel extends ActiveJPanel
   
     box = new BoxCursor(this);
     circle = new CircleCursor(this);
+    ellipse = new EllipseCursor(this);
     line = new LineCursor(this);
     point = new PointCursor(this);
     wedge = new WedgeCursor(this);
@@ -289,6 +306,17 @@ public class SelectionJPanel extends ActiveJPanel
      	doing_circle = true;
       }
     }  
+    else if( cursor instanceof EllipseCursor )
+    {
+      if ( doing_ellipse )
+        cursor.redraw( current );
+      else
+      {
+        cursor.start( current );
+        cursor.redraw( current );
+        doing_ellipse = true;
+      }
+    }
     else if( cursor instanceof LineCursor )
     {
       if ( doing_line )
@@ -390,6 +418,15 @@ public class SelectionJPanel extends ActiveJPanel
         doing_circle = false;
       }
     }  
+    else if( cursor instanceof EllipseCursor )
+    {
+      if ( doing_ellipse )
+      {
+        cursor.redraw( current );
+        cursor.stop( current );
+        doing_ellipse = false;
+      }
+    }
     else if( cursor instanceof LineCursor )
     {	
       if ( doing_line )
@@ -485,8 +522,10 @@ public class SelectionJPanel extends ActiveJPanel
   {
     if( cursor.equals(BOX) )
       return box;
-    else if( cursor.equals(ELLIPSE) )
+    else if( cursor.equals(CIRCLE) )
       return circle;
+    else if( cursor.equals(ELLIPSE) )
+      return ellipse;
     else if( cursor.equals(LINE) )
       return line;     
     else //( cursor.equals(POINT) )
@@ -519,54 +558,60 @@ public class SelectionJPanel extends ActiveJPanel
   */ 
   public JButton[] getControls()
   {
-    JButton[] controls = new JButton[8];
+    JButton[] controls = new JButton[9];
     controls[0] = new JButton(BOX);
     controls[0].addActionListener( new ButtonListener() );
     controls[0].setToolTipText("Shortcut Key: Hold B");
     if( disableBox )
       controls[0].setEnabled(false);
     
-    controls[1] = new JButton(ELLIPSE);
+    controls[1] = new JButton(CIRCLE);
     controls[1].addActionListener( new ButtonListener() );
     controls[1].setToolTipText("Shortcut Key: Hold C");
     if( disableCircle )
       controls[1].setEnabled(false);
-    
-    controls[2] = new JButton(DOUBLE_WEDGE);
+
+    controls[2] = new JButton(ELLIPSE);
     controls[2].addActionListener( new ButtonListener() );
-    controls[2].setToolTipText("Shortcut Key: Hold D");
-    if( disableDblWedge )
-      controls[2].setEnabled(false);
+    controls[2].setToolTipText("Shortcut Key: Hold E");
+    if( disableEllipse )
+      controls[1].setEnabled(false);
     
-    controls[3] = new JButton(LINE);
+    controls[3] = new JButton(DOUBLE_WEDGE);
     controls[3].addActionListener( new ButtonListener() );
-    controls[3].setToolTipText("Shortcut Key: Hold L");
-    if( disableLine )
+    controls[3].setToolTipText("Shortcut Key: Hold D");
+    if( disableDblWedge )
       controls[3].setEnabled(false);
     
-    controls[4] = new JButton(POINT);
+    controls[4] = new JButton(LINE);
     controls[4].addActionListener( new ButtonListener() );
-    controls[4].setToolTipText("Shortcut Key: Hold P");
-    if( disablePoint )
+    controls[4].setToolTipText("Shortcut Key: Hold L");
+    if( disableLine )
       controls[4].setEnabled(false);
     
-    controls[5] = new JButton(RING);
+    controls[5] = new JButton(POINT);
     controls[5].addActionListener( new ButtonListener() );
-    controls[5].setToolTipText("Shortcut Key: Hold R");
-    if( disableRing )
+    controls[5].setToolTipText("Shortcut Key: Hold P");
+    if( disablePoint )
       controls[5].setEnabled(false);
     
-    controls[6] = new JButton(WEDGE);
+    controls[6] = new JButton(RING);
     controls[6].addActionListener( new ButtonListener() );
-    controls[6].setToolTipText("Shortcut Key: Hold W");
-    if( disableWedge )
+    controls[6].setToolTipText("Shortcut Key: Hold R");
+    if( disableRing )
       controls[6].setEnabled(false);
     
-    controls[7] = new JButton("Clear All");
+    controls[7] = new JButton(WEDGE);
     controls[7].addActionListener( new ButtonListener() );
-    controls[7].setToolTipText("Shortcut Key: Hold A");
-    if( disableAll )
+    controls[7].setToolTipText("Shortcut Key: Hold W");
+    if( disableWedge )
       controls[7].setEnabled(false);
+    
+    controls[8] = new JButton("Clear All");
+    controls[8].addActionListener( new ButtonListener() );
+    controls[8].setToolTipText("Shortcut Key: Hold A");
+    if( disableAll )
+      controls[8].setEnabled(false);
     
     return controls;
   }
@@ -586,6 +631,7 @@ public class SelectionJPanel extends ActiveJPanel
         disableAll = true;
         disableBox = true;
         disableCircle = true;
+        disableEllipse = true;
         disableDblWedge = true;
         disableLine = true;
         disablePoint = true;
@@ -594,8 +640,10 @@ public class SelectionJPanel extends ActiveJPanel
       }
       else if( cursor[c].equals(BOX) )
         disableBox = true;
-      else if( cursor[c].equals(ELLIPSE) )
+      else if( cursor[c].equals(CIRCLE) )
         disableCircle = true;
+      else if( cursor[c].equals(ELLIPSE) )
+        disableEllipse = true;
       else if( cursor[c].equals(DOUBLE_WEDGE) )
         disableDblWedge = true;
       else if( cursor[c].equals(LINE) )
@@ -624,6 +672,7 @@ public class SelectionJPanel extends ActiveJPanel
         disableAll = false;
         disableBox = false;
         disableCircle = false;
+        disableEllipse = false;
         disableDblWedge = false;
         disableLine = false;
         disablePoint = false;
@@ -632,8 +681,10 @@ public class SelectionJPanel extends ActiveJPanel
       }
       else if( cursor[c].equals(BOX) )
         disableBox = false;
-      else if( cursor[c].equals(ELLIPSE) )
+      else if( cursor[c].equals(CIRCLE) )
         disableCircle = false;
+      else if( cursor[c].equals(ELLIPSE) )
+        disableEllipse = false;
       else if( cursor[c].equals(DOUBLE_WEDGE) )
         disableDblWedge = false;
       else if( cursor[c].equals(LINE) )
@@ -662,8 +713,10 @@ public class SelectionJPanel extends ActiveJPanel
       return !disableAll;
     if( cursor.equals(BOX) )
       return !disableBox;
-    if( cursor.equals(ELLIPSE) )
+    if( cursor.equals(CIRCLE) )
       return !disableCircle;
+    if( cursor.equals(ELLIPSE) )
+      return !disableEllipse;
     if( cursor.equals(DOUBLE_WEDGE) )
       return !disableDblWedge;
     if( cursor.equals(LINE) )
@@ -682,7 +735,7 @@ public class SelectionJPanel extends ActiveJPanel
   */
   private boolean doingAny()
   {
-    if( doing_box || doing_circle || doing_line || 
+    if( doing_box || doing_circle || doing_ellipse || doing_line || 
 	doing_point || doing_wedge || doing_dblwedge ||
 	doing_ring )
       return true;
@@ -699,6 +752,7 @@ public class SelectionJPanel extends ActiveJPanel
     isAdown = false;
     isBdown = false;
     isCdown = false;
+    isEdown = false;
     isDdown = false;
     isLdown = false;
     isPdown = false;
@@ -750,6 +804,10 @@ public class SelectionJPanel extends ActiveJPanel
 	{
 	  isCdown = true;    
 	}
+        else if( code == KeyEvent.VK_E && !disableEllipse )
+        {
+          isEdown = true;
+        }
 	else if( code == KeyEvent.VK_D && !disableDblWedge )
 	{
 	  isDdown = true;   
@@ -791,6 +849,10 @@ public class SelectionJPanel extends ActiveJPanel
       {
 	isCdown = false;     
       }
+      else if( code == KeyEvent.VK_E )
+      {
+	isEdown = false;     
+      }
       else if( code == KeyEvent.VK_D && !doing_dblwedge )
       {
 	isDdown = false;     
@@ -829,9 +891,13 @@ public class SelectionJPanel extends ActiveJPanel
 	{
 	  isBdown = true;
 	}
-	else if( message.equals(ELLIPSE) && !disableCircle )
+	else if( message.equals(CIRCLE) && !disableCircle )
 	{
 	  isCdown = true;
+	}
+	else if( message.equals(ELLIPSE) && !disableEllipse )
+	{
+	  isEdown = true;
 	}
 	else if( message.equals(DOUBLE_WEDGE) && !disableDblWedge )
 	{
@@ -883,6 +949,8 @@ public class SelectionJPanel extends ActiveJPanel
 	set_cursor( box, e.getPoint() );
       else if( isCdown )
 	set_cursor( circle, e.getPoint() );
+      else if( isEdown )
+	set_cursor( ellipse, e.getPoint() );
       else if( isDdown )
 	set_cursor( dblwedge, e.getPoint() );
       else if( isLdown )
@@ -913,6 +981,13 @@ public class SelectionJPanel extends ActiveJPanel
 	stop_cursor( circle, current );
 	isCdown = false;
 	//if( validpoint )
+          message += ">" + CIRCLE;
+      }
+      else if( doing_ellipse )
+      {
+        stop_cursor( ellipse, current );
+        isEdown = false;
+        //if( validpoint )
           message += ">" + ELLIPSE;
       }
       else if( doing_line )
@@ -992,6 +1067,8 @@ public class SelectionJPanel extends ActiveJPanel
 	set_cursor( box, e.getPoint() );
       else if( doing_circle )
 	set_cursor( circle, e.getPoint() );
+      else if( doing_ellipse )
+	set_cursor( ellipse, e.getPoint() );
       else if( doing_dblwedge )
 	set_cursor( dblwedge, e.getPoint() );
       else if( doing_line )
