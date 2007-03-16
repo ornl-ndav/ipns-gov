@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.94  2007/03/16 18:45:43  dennis
+ *  Added method getWorldToArrayTransform, needed to use the new Region
+ *  classes.
+ *  Removed setRegionTransform() method that is no longer needed.
+ *
  *  Revision 1.93  2007/03/11 04:35:46  dennis
  *  Added method setRegionTransforms(), that is used by the
  *  SelectionOverlay, to set up the appropriate mapping between
@@ -1299,6 +1304,20 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     return ijp.getGlobalWorldCoords().MakeCopy();
   }  
+
+
+ /**
+  * Get a copy of the tranformation that maps world coordinates to array
+  * (col,row) coordinates for this view component. 
+  *
+  * @return a CoordTransform object that maps from world coordinates
+  *         to array (col,row) coordinates.
+  */
+  public CoordTransform getWorldToArrayTransform()
+  {
+    return ijp.getWorldToImageTransform();
+  }
+
   
  /**
   * This method will get the current log scale value for the imagejpanel.
@@ -1310,6 +1329,7 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     return logscale;
   }
+
   
  //****************************************************************************
 
@@ -1437,6 +1457,7 @@ public class ImageViewComponent implements IViewComponent2D,
     // ImageViewComponent knows these bounds, it must set them.
     for( int i = 0; i < selectedregions.length; i++ )
     {
+    	/*
       ((Region)regions.elementAt(i)).setWorldBounds(ijp.getGlobalWorldCoords());
       // Image bounds are consistent with those set in ImageJPanel.
       ((Region)regions.elementAt(i)).setImageBounds( new CoordBounds( 
@@ -1444,38 +1465,13 @@ public class ImageViewComponent implements IViewComponent2D,
                                      0,
                                      Varray2D.getNumColumns(),
                                      Varray2D.getNumRows() ) );
+        */
       selectedregions[i] = (Region)regions.elementAt(i);
     }
     return selectedregions;
   } 
 
 
- /**
-  * Set the world to array mapping for each of the regions currently 
-  * selected in the selection overaly.  This must be done here, since 
-  * only the image view component knows about the size of the array.
-  *
-  */
-  public void setRegionTransforms() 
-  {
-    Vector regions =
-                  ((SelectionOverlay)transparencies.elementAt(1)).getRegions();
-
-    // This code will set the world and image bounds. Since only the 
-    // ImageViewComponent knows these bounds, it must set them.
-
-    CoordBounds wc_bounds = ijp.getGlobalWorldCoords();
-    CoordBounds image_bounds =  new CoordBounds( 0, 0,
-                                                 Varray2D.getNumColumns(),
-                                                 Varray2D.getNumRows() );
-    for( int i = 0; i < regions.size(); i++ )
-    {
-      ((Region)regions.elementAt(i)).setWorldBounds( wc_bounds );
-      ((Region)regions.elementAt(i)).setImageBounds( image_bounds );
-    }
-  }
- 
- 
  /**
   * This method will be called to notify this component of a change in data.
   */
