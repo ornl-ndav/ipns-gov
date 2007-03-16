@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.43  2007/03/16 18:44:13  dennis
+ *  Adapted to work with new Region classes.
+ *  No longer keeps world to array transformation as state information,
+ *  but gets the current world to array transform from the IViewComponent2D
+ *  object it is overlaid on.
+ *
  *  Revision 1.42  2007/03/11 04:32:53  dennis
  *  Added code to set up transformation from Array coordinates to
  *  the world coordinate system.  Added method to apply this
@@ -273,6 +279,7 @@ import gov.anl.ipns.ViewTools.Components.Region.*;
 import gov.anl.ipns.ViewTools.Components.Cursor.*; 
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
+import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
 import gov.anl.ipns.Util.Numeric.floatPoint2D; 
 import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
@@ -346,7 +353,6 @@ public class SelectionOverlay extends OverlayJPanel
   private Color reg_color;
   private transient Rectangle current_bounds;
   private transient CoordTransform pixel_local;          // pixel coords to WC
-  private transient CoordTransform array_global = null;  // array coords to WC
                                                          // for ImageViewC only
   private transient Vector Listeners = null;  
   private float opacity = 1.0f; 	 // value [0,1] where 0 is clear, 
@@ -389,48 +395,6 @@ public class SelectionOverlay extends OverlayJPanel
     					  current_bounds.getHeight() ) );
     pixel_local = new CoordTransform( pixel_map, 
         			      component.getLocalCoordBounds() );
-//    System.out.println("pixel_local = " + pixel_local );    
-
-                                  // make mapping from the array to world
-                                  // coordinates, if we are dealing with an
-                                  // ImageViewComponent
-    if ( iza instanceof ImageViewComponent )
-    {
-      ImageViewComponent ivc = (ImageViewComponent)iza;
-
-      CoordBounds wc_bounds = component.getGlobalCoordBounds();
-//    System.out.println("wc_bounds = " + wc_bounds);
-
-      Point p1 = ivc.getColumnRowAtWorldCoords( 
-                   new floatPoint2D( wc_bounds.getX1(), wc_bounds.getY1() ) ); 
-
-      Point p2 = ivc.getColumnRowAtWorldCoords( 
-                   new floatPoint2D( wc_bounds.getX2(), wc_bounds.getY2() ) ); 
-
-                          // The row & column values returned by the above
-                          // methods are restricted to [0,NROWS-1] and 
-                          // [0,NCOLS-1].  However, our coordinates range
-                          // over [0,NROWS] and [0,NCOLS] to cover from the
-                          // left edge of the first column to the right edge
-                          // of the last column, etc.  Consequently, we need
-                          // to increment the non-zero values.  We allow for
-                          // the min & max values to be in either order, but
-                          // the ordering MUST MATCH the coordinate system 
-                          // by the ivc and underlying ImageJPanel2.
-      if ( p1.x == 0 )
-        p2.x++;
-      else
-        p1.x++;
-
-      if ( p1.y == 0 )
-        p2.y++;
-      else
-        p1.y++;
-
-      CoordBounds arr_bounds = new CoordBounds( p1.x, p1.y, p2.x, p2.y );
-      array_global = new CoordTransform( arr_bounds, wc_bounds );
-//    System.out.println("Array to World coords: " + array_global );
-    }
 
     Listeners = new Vector();
     sjp.requestFocus(); 	      
@@ -772,18 +736,25 @@ public class SelectionOverlay extends OverlayJPanel
     // color of all of the selections.
     g2d.setColor(reg_color);
 
+    current_bounds = component.getRegionInfo();  // current size of center
+    sjp.setBounds( current_bounds );
+    // this limits the paint window to the size of the background image.
+    g2d.clipRect( (int)current_bounds.getX(),
+                  (int)current_bounds.getY(),
+                  (int)current_bounds.getWidth(),
+                  (int)current_bounds.getHeight() );
 
-    if ( component instanceof ImageViewComponent )
+    if ( component instanceof IViewComponent2D )
     {
+      IViewComponent2D ivc = (IViewComponent2D)component;
+      CoordTransform world_to_array = ivc.getWorldToArrayTransform();
+      CoordTransform array_global = CoordTransform.inverse( world_to_array );
+
       Vector all_points = new Vector();
       for (int i = 0; i < regions.size(); i++ )
       {
         Region region = (Region)regions.elementAt(i);
-//      System.out.println("Selected region is: " + region );
- 
-        Point[] sel_points = region.getSelectedPoints();
-//      System.out.println("Number selected = " + sel_points.length );
-
+        Point[] sel_points = region.getSelectedPoints(world_to_array);
         for ( int j = 0; j < sel_points.length; j++ )
           all_points.add( sel_points[j] );
       }
@@ -791,17 +762,9 @@ public class SelectionOverlay extends OverlayJPanel
       for ( int i = 0; i < all_points.size(); i++ )
         point_array[i] = (Point)all_points.elementAt(i);
       
-      paintPointArray( g2d, point_array );
+      paintPointArray( g2d, point_array, array_global );
     }
 
-
-    current_bounds = component.getRegionInfo();  // current size of center
-    sjp.setBounds( current_bounds );
-    // this limits the paint window to the size of the background image.
-    g2d.clipRect( (int)current_bounds.getX(),
-        	  (int)current_bounds.getY(),
-    		  (int)current_bounds.getWidth(),
-    		  (int)current_bounds.getHeight() );
     // the current pixel coordinates
     CoordBounds pixel_map = 
             new CoordBounds( (float)current_bounds.getX(), 
@@ -820,7 +783,7 @@ public class SelectionOverlay extends OverlayJPanel
     for( int num_reg = 0; num_reg < regions.size(); num_reg++ )
     {
       region = (Region)regions.elementAt(num_reg);
-      fp = region.getDefiningPoints(Region.WORLD);
+      fp = region.getDefiningPoints();
       p = new Point[fp.length];
       for( int i = 0; i < fp.length; i++ )
       {
@@ -855,26 +818,6 @@ public class SelectionOverlay extends OverlayJPanel
           g2d.drawLine( p[0].x - 5, p[0].y, p[0].x + 5, p[0].y );	  
           g2d.drawLine( p[0].x, p[0].y - 5, p[0].x, p[0].y + 5 );
         }
-        else if( region instanceof WedgeRegion )
-        {
-         /* p[0]   = center pt of circle that arc is taken from
-          * p[1]   = last mouse point/point at intersection of line and arc
-          * p[2]   = reflection of p[1]
-          * p[3]   = top left corner of bounding box around arc's total circle
-          * p[4]   = bottom right corner of bounding box around arc's circle
-          * p[5].x = startangle, the directional vector in degrees
-          * p[5].y = degrees covered by arc.
-          */
-          // Since p[5] is not a point, but angular measures, they are a direct
-          // cast from float to int, no convertion needed.
-          p[p.length - 1].x = (int)fp[p.length - 1].x;
-          p[p.length - 1].y = (int)fp[p.length - 1].y;
-          g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y );
-          g2d.drawLine( p[0].x, p[0].y, p[2].x, p[2].y );	    
-          
-          g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
-        	      p[4].y - p[3].y, p[5].x, p[5].y);
-        }
         else if( region instanceof DoubleWedgeRegion )
         {
          /* p[0]   = center pt of circle that arc is taken from
@@ -897,6 +840,26 @@ public class SelectionOverlay extends OverlayJPanel
           g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
         	      p[4].y - p[3].y, p[5].x + 180, p[5].y);
         }
+        else if( region instanceof WedgeRegion )
+        {
+         /* p[0]   = center pt of circle that arc is taken from
+          * p[1]   = last mouse point/point at intersection of line and arc
+          * p[2]   = reflection of p[1]
+          * p[3]   = top left corner of bounding box around arc's total circle
+          * p[4]   = bottom right corner of bounding box around arc's circle
+          * p[5].x = startangle, the directional vector in degrees
+          * p[5].y = degrees covered by arc.
+          */
+          // Since p[5] is not a point, but angular measures, they are a direct
+          // cast from float to int, no convertion needed.
+          p[p.length - 1].x = (int)fp[p.length - 1].x;
+          p[p.length - 1].y = (int)fp[p.length - 1].y;
+          g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y );
+          g2d.drawLine( p[0].x, p[0].y, p[2].x, p[2].y );
+
+          g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
+                      p[4].y - p[3].y, p[5].x, p[5].y);
+        }
         else if( region instanceof AnnularRegion )
         {
          /* p[0]   = center pt of circle
@@ -916,7 +879,7 @@ public class SelectionOverlay extends OverlayJPanel
   /**
    *  Map from array to pixel coordinates
    */
-  private Point ArrayToPixel( int x, int y )
+  private Point ArrayToPixel( int x, int y, CoordTransform array_global )
   {
     floatPoint2D point = new floatPoint2D( x+0.5f, y+0.5f );
     point = array_global.MapTo( point );
@@ -939,15 +902,14 @@ public class SelectionOverlay extends OverlayJPanel
    *       pixel coordinates before drawing.  That conversion is not done
    *       yet.
    *
-   *  @param   g   The Graphics2D object to draw on
-   *  @param   p   The array of points to draw scan lines through
+   *  @param   g            The Graphics2D object to draw on
+   *  @param   p            The array of points to draw scan lines through
+   *  @param   array_global The current array to world coordinate transform
    */  
-  private void paintPointArray(Graphics2D g, Point[] p)
+  private void paintPointArray( Graphics2D g, 
+                                Point[]    p, 
+                                CoordTransform array_global)
   {
-/*
-    System.out.println("**pixel_local  : " + pixel_local );
-    System.out.println("**array_global : " + array_global );
-*/
     boolean shouldPaint=false;
     int x_initial = -1;       // Initial x for draw line command
     int y_initial = -1;       // Initial y for draw line command
@@ -992,8 +954,8 @@ public class SelectionOverlay extends OverlayJPanel
       if(shouldPaint)
       {
                                  // first map from array coords to pixel coords
-        Point p1 = ArrayToPixel( x_initial, y_initial );
-        Point p2 = ArrayToPixel( x_final,  y_final   );
+        Point p1 = ArrayToPixel( x_initial, y_initial, array_global );
+        Point p2 = ArrayToPixel( x_final,  y_final, array_global );
 
         g.drawLine(p1.x, p1.y, p2.x, p2.y);
 
@@ -1086,26 +1048,49 @@ public class SelectionOverlay extends OverlayJPanel
 	}
 	else if( message.indexOf( SelectionJPanel.ELLIPSE ) > -1 )
 	{
-	  Circle circle = ((CircleCursor)sjp.getCursor( 
-				 SelectionJPanel.ELLIPSE )).region();
-	  // top-left corner
-	  Point p1 = new Point( circle.getDrawPoint() );
-	  p1.x += (int)current_bounds.getX();
-	  p1.y += (int)current_bounds.getY();
-	  // bottom-right corner
-	  Point p2 = new Point( circle.getCenter() );
-	  p2.x += circle.getRadius() + (int)current_bounds.getX();
-	  p2.y += circle.getRadius() + (int)current_bounds.getY();
-	  // center of circle
-	  Point p3 = new Point( circle.getCenter() );
-	  p3.x += (int)current_bounds.getX();
-	  p3.y += (int)current_bounds.getY();
-	  floatPoint2D[] tempwcp = new floatPoint2D[3];
-	  tempwcp[0] = convertToWorldPoint( p1 );
-	  tempwcp[1] = convertToWorldPoint( p2 );
-	  tempwcp[2] = convertToWorldPoint( p3 );
-				
-	  regions.add( new EllipseRegion(tempwcp) );
+          Ellipse ellipse = ((EllipseCursor)sjp.getCursor(  
+                                 SelectionJPanel.ELLIPSE )).region();
+          // top-left corner
+          Point p1 = new Point( ellipse.getDrawPoint() );
+          p1.x += (int)current_bounds.getX();
+          p1.y += (int)current_bounds.getY();
+          // bottom-right corner
+          Point p2 = new Point( ellipse.getCenter() );
+          p2.x += ellipse.getDx() + (int)current_bounds.getX();
+          p2.y += ellipse.getDy() + (int)current_bounds.getY();
+          // center of circle
+          Point p3 = new Point( ellipse.getCenter() );
+          p3.x += (int)current_bounds.getX();
+          p3.y += (int)current_bounds.getY();
+          floatPoint2D[] tempwcp = new floatPoint2D[3]; 
+          tempwcp[0] = convertToWorldPoint( p1 );
+          tempwcp[1] = convertToWorldPoint( p2 );
+          tempwcp[2] = convertToWorldPoint( p3 );
+                                
+          regions.add( new EllipseRegion(tempwcp) );
+        }
+        else if( message.indexOf( SelectionJPanel.CIRCLE ) > -1 )
+        {
+          Circle circle = ((CircleCursor)sjp.getCursor(  
+                                 SelectionJPanel.CIRCLE )).region();
+          // top-left corner
+          Point p1 = new Point( circle.getDrawPoint() );
+          p1.x += (int)current_bounds.getX();
+          p1.y += (int)current_bounds.getY();
+          // bottom-right corner
+          Point p2 = new Point( circle.getCenter() );
+          p2.x += circle.getRadius() + (int)current_bounds.getX();
+          p2.y += circle.getRadius() + (int)current_bounds.getY();
+          // center of circle
+          Point p3 = new Point( circle.getCenter() );
+          p3.x += (int)current_bounds.getX();
+          p3.y += (int)current_bounds.getY();
+          floatPoint2D[] tempwcp = new floatPoint2D[3]; 
+          tempwcp[0] = convertToWorldPoint( p1 );
+          tempwcp[1] = convertToWorldPoint( p2 );
+          tempwcp[2] = convertToWorldPoint( p3 );
+                                
+          regions.add( new EllipseRegion(tempwcp) );
 	}	
 	else if( message.indexOf( SelectionJPanel.LINE ) > -1 )
 	{
@@ -1221,15 +1206,8 @@ public class SelectionOverlay extends OverlayJPanel
           regionadded = false;
 	
         if( regionadded )
-        {                           // fix mapping from
-                                    // WC to array coordinates for each region
-          if ( component instanceof ImageViewComponent )
-          {
-            ImageViewComponent ivc = (ImageViewComponent)component;
-            ivc.setRegionTransforms();
-          }
           sendMessage(REGION_ADDED);
-        }
+
       }
       this_panel.repaint();  // Without this, the newly drawn regions would
 			     // not appear.
