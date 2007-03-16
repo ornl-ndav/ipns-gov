@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2007/03/16 16:53:03  dennis
+ *  Removed initializeSelectedPoints() method that was no longer needed.
+ *  Adapted to newly revised Region class.
+ *
  *  Revision 1.4  2004/05/20 20:48:27  millermi
  *  - Constructor now initializes world and image bounds to
  *    the bounds of the defining points.
@@ -57,6 +61,7 @@ import java.awt.Point;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
 /**
  * This class is a specific region designated by two points. A TableRegion is
@@ -67,6 +72,7 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 public class TableRegion extends Region
 {
   private boolean selected = false;
+
  /**
   * Constructor - provides basic initialization for all subclasses
   *
@@ -76,29 +82,8 @@ public class TableRegion extends Region
   {
     super(dp);
     selected = isSelected;
-    
-    // Give the image and world bounds meaningful values.
-    setWorldBounds( new CoordBounds( definingpoints[0].x,
-                                     definingpoints[0].y, 
-                                     definingpoints[1].x,
-			             definingpoints[1].y ) );
-    setImageBounds( new CoordBounds( definingpoints[0].x,
-                                     definingpoints[0].y, 
-                                     definingpoints[1].x,
-			             definingpoints[1].y ) );
   }
   
- /**
-  * Get all of the points inside the region. This method assumes
-  * that the input points are in (x,y) where (x = col, y = row ) form.
-  * The points are entered into the array row by row.
-  *
-  *  @return array of points included within the region.
-  */
-  public Point[] getSelectedPoints()
-  {
-    return initializeSelectedPoints();
-  }
   
  /**
   * Set whether the points in this region are selected or not selected.
@@ -110,6 +95,7 @@ public class TableRegion extends Region
     selected = isSelected;
   }
   
+
  /**
   * Use this to determine whether this region is selected or deselected.
   *
@@ -119,20 +105,26 @@ public class TableRegion extends Region
   {
     return selected;
   }
+
   
  /**
-  * This method is here to factor out the setting of the selected points.
-  * By doing this, regions can make use of the getRegionUnion() method.
+  * Get the selected points for this table region using (col,row) coordinates.
+  * The world_to_array transformation is taken to be the identity for 
+  * TableRegions, so the parameter is ignored.
+  *
+  *  @param  world_to_array  Transform from world coordinates to array
+  *                          coordinates must be the identity transform
+  *                          for TableRegion.  This parameter is ignored.
   *
   *  @return array of points included within the region.
   */
-  protected Point[] initializeSelectedPoints()
+  public Point[] getSelectedPoints( CoordTransform world_to_array )
   { 
     Point topleft = definingpoints[0].toPoint();
     Point bottomright = definingpoints[1].toPoint();
     int w = bottomright.x - topleft.x + 1;
     int h = bottomright.y - topleft.y + 1;
-    selectedpoints = new Point[w*h];
+    Point[] selectedpoints = new Point[w*h];
     int index = 0;
     // Set through box rowwise, getting points that are on the image.
     for( int row = topleft.x; row <= bottomright.x; row++ )
@@ -145,6 +137,7 @@ public class TableRegion extends Region
     }
     return selectedpoints;
   }
+
   
  /**
   * Display the region type with its defining points.
@@ -158,17 +151,25 @@ public class TableRegion extends Region
 	    "Bottom-right Corner: " + definingpoints[1] + "\n" +
 	    "Is Selected: " + selected + "\n");
   }
-   
+
+
  /**
-  * This method returns the rectangle of table cells.
-  *
-  *  @return The bounds of the TableRegion.
+  *  Get a bounding box for the region, in World Coordinates.  The
+  *  points of the region will lie in the X-interval [X1,X2] and
+  *  in the Y-interval [Y1,Y2], where X1,X2,Y1 and Y2 are the values
+  *  returned by the CoordBounds.getX1(), getX2(), getY1(), getY2()
+  *  methods.
+  * 
+  *  @return a CoordBounds object containing the full extent of this
+  *          region.
   */
-  public CoordBounds getRegionBounds()
-  {
+ public CoordBounds getRegionBoundsWC()
+ {
     return new CoordBounds( definingpoints[0].x,
                             definingpoints[0].y, 
                             definingpoints[1].x,
 			    definingpoints[1].y );
-  }
+ }
+
+   
 }
