@@ -34,6 +34,19 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2007/03/16 16:38:12  dennis
+ *  Major refactoring of Region concept.  Regions are defined in world
+ *  coordinates.  Any information about the mapping from world coordinates
+ *  to array (col,row) coordinates is no longer kept by the regions.
+ *  The world_to_array transformation is passed in as a parameter to
+ *  the methods that require it.  This avoids any problems with keeping
+ *  the mapping up to date.  Also, a region can be easily used with different
+ *  mappings, say from world to an array of data or from world to pixels
+ *  on a display, just by providing the correct mapping when calling the
+ *  methods.  All methods for getting and setting mapping information were
+ *  removed.  Also, methods specific to regions with an interior (such as box)
+ *  were placed in a subclass RegionsWithInterior.
+ *
  *  Revision 1.13  2007/03/11 04:37:16  dennis
  *  Added methods to setWorldToArrayTran() and getWorldToArrayTran().
  *
@@ -107,31 +120,14 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
  * used to pass selected regions (selected using the Selection Overlay) from a
  * view component to the viewer. Given the defining points of a region,
  * subclasses of this class can return all of the points inside the selected
- * region. The defining points are saved in the world coordinate system, so
- * all subclasses must map the defining points to image values before using.
- * ALL CLASSES THAT USE THE REGION CLASS SHOULD CALL setWorldBounds() AND
- * setImageBounds() IMMEDIATELY AFTER CONSTRUCTING A REGION INSTANCE.
+ * region. The defining points are saved in the world coordinate system.
+ * Classes that use regions are responsible for constructing and maintaining
+ * a mapping from world coordinates to array or pixel coordinates, if they
+ * such a discrete coordinate system.
  */ 
 public abstract class Region implements java.io.Serializable
 {
- /**
-  * "0" - This primative integer defines the coordinate system in
-  * world coordinates.
-  */
-  public static final int WORLD = 0;
-  
- /**
-  * "1" - This primative integer defines the coordinate system in
-  * image row/column coordinates.
-  */
-  public static final int IMAGE = 1;
-  
   protected floatPoint2D[] definingpoints;  // saved in world coords.
-  protected Point[] selectedpoints;         // used in derived classes :-(
-  protected CoordTransform world_to_image;
-
-  //protected boolean world_coords_set = false;  // use these flags to tell if
-  //protected boolean image_coords_set = false;  // coordtransform is complete.
   
  /**
   * Constructor - provides basic initialization for all subclasses
@@ -141,155 +137,24 @@ public abstract class Region implements java.io.Serializable
   protected Region( floatPoint2D[] dp )
   {
     definingpoints = dp;
-    selectedpoints = new Point[0];
-    world_to_image = new CoordTransform();
   }
 
 
- /**
-  *  Method to set the transform from world to array coordinates.  A copy
-  *  of the specified tansform is made.
-  *
-  *  @param world_to_array  The transform to be copied as this region's
-  *                         transform from world coordinates to array 
-  *                         coordinates.
-  */
- public void setWorldToArrayTran( CoordTransform world_to_array  )
- {
-   if ( world_to_array != null )
-     world_to_image = new CoordTransform( world_to_array );
-   else
-     throw new IllegalArgumentException( "Error: null transform" );
- }
-
-
- /**
-  *  Method to get the transform from world to array coordinates.  A copy
-  *  of the region's transform is returned.
-  *
-  *  @return a copy of this region's transform from world coordinates 
-  *          to array coordinates.
-  */
- public CoordTransform getWorldToArrayTran()
- {
-   return new CoordTransform( world_to_image );
- }
-
-  
- /**
-  * Set the world coordinate system. This must be done immediately following
-  * the construction of the Region since the selected area is dependent on
-  * the image and world bounds.
-  *
-  *  @param  wb The world bounds.
-  */
-  public void setWorldBounds( CoordBounds wb )
-  {
-    world_to_image.setSource(wb);
-    //world_coords_set = true;
-  }
-  
- /**
-  * Set the image coordinate system. This must be done immediately following
-  * the construction of the Region since the selected area is dependent on
-  * the image and world bounds.
-  *
-  *  @param  ib The image bounds.
-  */
-  public void setImageBounds( CoordBounds ib )
-  {
-    world_to_image.setDestination(ib);
-    //image_coords_set = true;
-  }
-  
- /**
-  * Get the world coordinate bounds for the region.
-  */ 
-  public CoordBounds getWorldBounds()
-  {
-    return world_to_image.getSource();
-  }
-  
- /**
-  * Get the image coordinate bounds for the region.
-  */ 
-  public CoordBounds getImageBounds()
-  {
-    return world_to_image.getDestination();
-  }
-  
- /**
-  * This method converts a floatPoint2D from one coordinate system to the
-  * coordinate system specified. It is assumed that the floatPoint2D lives
-  * in either the image or world coordinate system. If image coordinates
-  * are converted to world coords, the world coordinate values at the center
-  * of the pixel are returned.
-  *
-  *  @param  fpt floatPoint2D that is going to be mapped to the other coord
-  *              system.
-  *  @param  to_coordsystem The coordinate system the point will be mapped TO.
-  *  @return the mapped floatPoint2D.
-  */
-  public floatPoint2D convertFloatPoint( floatPoint2D fpt, int to_coordsystem )
-  {
-    // convert to world coords
-    // Since image coords are whole numbers, map world coords to pixel centers.
-    if( to_coordsystem == WORLD )
-    {
-      // the transform goes from upper left-hand corner
-      floatPoint2D map_to_center = world_to_image.MapFrom(fpt);
-      floatPoint2D wcpt1 = world_to_image.MapFrom(new floatPoint2D(0,0));
-      floatPoint2D wcpt2 = world_to_image.MapFrom(new floatPoint2D(1,1));
-      float x_offset = (wcpt2.x - wcpt1.x)/2f;
-      float y_offset = (wcpt2.y - wcpt1.y)/2f;
-      // Since offset takes care of increasing vs decreasing bounds, only
-      // need to use one case.
-      // This will adjust the bounds by half a pixel in world coordinates
-      // so the coordinates are given at pixel centers.
-      map_to_center.x += x_offset;
-      map_to_center.y += y_offset;
-      return map_to_center;
-    }
-
-    // convert to image coords
-    if( to_coordsystem == IMAGE )
-      return world_to_image.MapTo(fpt);
-
-    // if invalid number
-    return null;
-  }
-
-  
  /**
   * Get the world coordinate points used to define the geometric shape.
   *
-  *  @param  coordsystem The coordinate system from which the defining
-  *                      points are taken from, either WORLD or IMAGE.
-  *  @return array of points that define the region.
+  * @return a reference to the array of points that define the region.
   */
-  public floatPoint2D[] getDefiningPoints( int coordsystem )
+  public floatPoint2D[] getDefiningPoints()
   {
-    // world coords
-    if( coordsystem == WORLD )
-      return definingpoints;
-    // image coords
-    if( coordsystem == IMAGE )
-    {
-      // convert image def. pts to world def. pts.
-      floatPoint2D[] imagedp = new floatPoint2D[definingpoints.length];
-      for( int i = 0; i < definingpoints.length; i++ )
-        imagedp[i] = world_to_image.MapTo(definingpoints[i]);
-      return imagedp;
-    }
-    // if invalid number
-    return null;
+    return definingpoints;
   }
 
   
  /**
   * Compare two regions. This will return true only if the two intances
-  * are of the same class, have the same world_to_image transform, and have
-  * identical defining points. Be aware that it is difficult to compare
+  * are of the same class and have identical defining points. 
+  * Be aware that it is difficult to compare
   * float values reliably, so even identical regions will return false if
   * one of the values is off by a small amount. This will reliably return true
   * if the references of the two regions match. 
@@ -297,7 +162,7 @@ public abstract class Region implements java.io.Serializable
   *  @param  reg2 The region to be compared.
   *  @return true if equal, false if not.
   */
-  public boolean equals( Region reg2 )
+  public boolean equals1( Region reg2 )
   {
     // if references are the same, the region is the same.
     if( this == reg2 )
@@ -307,13 +172,9 @@ public abstract class Region implements java.io.Serializable
     if( !this.getClass().getName().equals(reg2.getClass().getName()) )
       return false;
 
-    // make sure working on same coordinate systems
-    if( !world_to_image.equals(reg2.world_to_image) )
-      return false;
-
     // make sure there exist the same number of defining points
-    floatPoint2D[] thisdp = this.getDefiningPoints(WORLD);
-    floatPoint2D[] reg2dp = reg2.getDefiningPoints(WORLD);
+    floatPoint2D[] thisdp = this.definingpoints;
+    floatPoint2D[] reg2dp = reg2.definingpoints;
     if( thisdp.length != reg2dp.length )
       return false;
 
@@ -329,40 +190,81 @@ public abstract class Region implements java.io.Serializable
     return true;
   }
 
-  
+
  /**
-  * Get all of the image points inside the region. The use of
-  * Point was chosen over floatPoint2D because at this point we are dealing
-  * with row/column coordinates, so rounding is acceptable. This method assumes
-  * that the input points are in (x,y) where (x = col, y = row ) form.
-  *
-  *  @return array of points included within the region.
+  *  Get a bounding box for the region, in World Coordinates.  The
+  *  points of the region will lie in the X-interval [X1,X2] and
+  *  in the Y-interval [Y1,Y2], where X1,X2,Y1 and Y2 are the values
+  *  returned by the CoordBounds.getX1(), getX2(), getY1(), getY2()
+  *  methods.
+  * 
+  *  @return a CoordBounds object containing the full extent of this
+  *          region.
   */
-  public abstract Point[] getSelectedPoints();
+ abstract public CoordBounds getRegionBoundsWC();
 
   
+ /**
+  * Get the discrete points that lie within this region, based on the
+  * specified mapping from world to array (col,row) coordinates.
+  * 
+  *  @return array of points included within the region.
+  */
+  abstract public Point[] getSelectedPoints( CoordTransform world_to_array );
+  
+
  /**
   * Displays the Region type and its defining points.
   */
-  public abstract String toString();
+  abstract public String toString();
 
-   
+
  /**
-  * This method returns the selected points within a region. However, duplicate
-  * points may exist in the list of points. getSelectedPoints() will call this
-  * method and the getRegionUnion() method to eliminate duplicate points.
+  *  This method gets a rectangular bounding box in array (col,row) coordinates
+  *  that contains the region, based on the bounds returned by the
+  *  getRegionBoundsWC() method.  The Math.floor and Math.ceil functions are
+  *  applied to the results of mapping the world coordinate bounds to array
+  *  coordinates, to guarantee that the integer bounds produced contain
+  *  the region.
   *
-  *  @return array of points included within the region.
-  */
-  protected abstract Point[] initializeSelectedPoints();
-
-  
- /**
-  * This method gets a rectangular bounding box containing the region.
+  *  @param world_to_array  The transformation from world coordinates to 
+  *                         array coordinates
   *
   *  @return Rectangular bounds containing the region.
   */
-  public abstract CoordBounds getRegionBounds();
+  public CoordBounds getRegionBounds( CoordTransform world_to_array )
+  {
+    CoordBounds bounds = getRegionBoundsWC();
+
+    floatPoint2D min_point = new floatPoint2D( bounds.getX1(), bounds.getY1() );
+    floatPoint2D max_point = new floatPoint2D( bounds.getX2(), bounds.getY2() );
+
+    min_point = world_to_array.MapTo( min_point );
+    max_point = world_to_array.MapTo( max_point );
+
+    if ( min_point.x > max_point.x )
+    {
+      float temp = min_point.x;
+      min_point.x = max_point.x;
+      max_point.x = temp;
+    }
+
+    if ( min_point.y > max_point.y )
+    {
+      float temp = min_point.y;
+      min_point.y = max_point.y;
+      max_point.y = temp;
+    }
+
+    min_point.x = (float)Math.floor( min_point.x );
+    min_point.y = (float)Math.floor( min_point.y );
+
+    max_point.x = (float)Math.ceil( max_point.x );
+    max_point.y = (float)Math.ceil( max_point.y );
+
+    return new CoordBounds( min_point.x, min_point.y,
+                            max_point.x, max_point.y );
+  }
 
   
  /**
@@ -377,9 +279,9 @@ public abstract class Region implements java.io.Serializable
   */
   protected Point floorImagePoint( floatPoint2D imagept )
   {
-    float x = (float)Math.floor((double)imagept.x);
-    float y = (float)Math.floor((double)imagept.y);
-    return new Point(Math.round(x), Math.round(y));
+    int x = (int)Math.floor(imagept.x);
+    int y = (int)Math.floor(imagept.y);
+    return new Point( x, y );
   }
 
 
@@ -391,7 +293,8 @@ public abstract class Region implements java.io.Serializable
   *  @param  regions The list of regions to be unionized.
   *  @return A list of unique points for all of the regions.
   */
-  public static Point[] getRegionUnion( Region[] regions )
+  public static Point[] getRegionUnion( Region[]       regions, 
+                                        CoordTransform world_to_array  )
   {
     // Only the TableRegion class has the concept of selected and deselected
     // regions. This means only TableRegions can "subtract". However, the
@@ -414,28 +317,28 @@ public abstract class Region implements java.io.Serializable
       return new Point[0];
 
     // region bounds are in image coordinates.
-    CoordBounds regionbounds = regions[0].getRegionBounds();
+    CoordBounds regionbounds = regions[0].getRegionBounds( world_to_array );
     float rowmin = regionbounds.getX1();
     float rowmax = regionbounds.getX2();
     float colmin = regionbounds.getY1();
     float colmax = regionbounds.getY2();
     for( int i = 1; i < regions.length; i++ )
     {
-      if( regions[i].getRegionBounds().getX1() < rowmin )
+      if( regions[i].getRegionBounds( world_to_array ).getX1() < rowmin )
       {
-        rowmin = regions[i].getRegionBounds().getX1();
+        rowmin = regions[i].getRegionBounds( world_to_array ).getX1();
       }
-      if( regions[i].getRegionBounds().getX2() > rowmax )
+      if( regions[i].getRegionBounds( world_to_array ).getX2() > rowmax )
       {
-        rowmax = regions[i].getRegionBounds().getX2();
+        rowmax = regions[i].getRegionBounds( world_to_array ).getX2();
       }
-      if( regions[i].getRegionBounds().getY1() < colmin )
+      if( regions[i].getRegionBounds( world_to_array ).getY1() < colmin )
       {
-        colmin = regions[i].getRegionBounds().getY1();
+        colmin = regions[i].getRegionBounds( world_to_array ).getY1();
       }
-      if( regions[i].getRegionBounds().getY2() > colmax )
+      if( regions[i].getRegionBounds( world_to_array ).getY2() > colmax )
       {
-        colmax = regions[i].getRegionBounds().getY2();
+        colmax = regions[i].getRegionBounds( world_to_array ).getY2();
       }
     }
 
@@ -467,9 +370,11 @@ public abstract class Region implements java.io.Serializable
     // for each region, mark its selected points
     for( int i = 0; i < regions.length; i++ )
     {
+      System.out.println("Region = \n" + regions[i] );
       // use initializeSelectedPoints() since getSelectedPoints() may call
       // this method, causing an endless loop.
-      sel_pts = regions[i].initializeSelectedPoints();
+      // sel_pts = regions[i].initializeSelectedPoints(); 
+      sel_pts = new Point[0];
       for( int pt = 0; pt < sel_pts.length; pt++ )
       { 
 	// map image points to array points
