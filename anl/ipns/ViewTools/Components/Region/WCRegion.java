@@ -1,5 +1,5 @@
 /*
- * File: WRegion.java
+ * File: WCRegion.java
  *
  * Copyright (C) 2003, Mike Miller
  *
@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2007/03/16 16:54:08  dennis
+ *  Fixed file name in comment.
+ *
  *  Revision 1.5  2004/03/15 23:53:52  dennis
  *  Removed unused imports, after factoring out the View components,
  *  Math and other utils.
