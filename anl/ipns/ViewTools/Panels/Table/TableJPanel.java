@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2007/03/16 18:34:02  dennis
+ *  Adapted to use new Region methods.
+ *
  *  Revision 1.14  2006/07/27 00:50:45  dennis
  *  Moved ExcelAdapter from package IsawGUI to ExtTools
  *
@@ -181,6 +184,7 @@ import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.Region.PointRegion;
 import gov.anl.ipns.ViewTools.Components.Region.TableRegion;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Sys.WindowShower;
@@ -1277,7 +1281,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     floatPoint2D[] def_pts;
     for( int i = 0; i < regions.length; i++ )
     {
-      def_pts = regions[i].getDefiningPoints(Region.WORLD);
+      def_pts = regions[i].getDefiningPoints();
       p1 = def_pts[0].toPoint();
       p2 = def_pts[1].toPoint();
       setSelectedCells( p1.y, p2.y, p1.x, p2.x, regions[i].isSelected() );
@@ -1297,7 +1301,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   */
   public void addSelectedRegion( TableRegion region )
   {
-    floatPoint2D[] def_pts = region.getDefiningPoints(Region.WORLD);
+    floatPoint2D[] def_pts = region.getDefiningPoints();
     Point p1 = def_pts[0].toPoint();
     Point p2 = def_pts[1].toPoint();
     // Note that the (x,y) point is actually stored as (column,row).
@@ -1339,10 +1343,11 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
         // Start a new group of non-TableRegions to be converted.
 	other_regions.clear();
 	// Group non-TableRegions together until the next TableRegion.
+    CoordTransform identity_tran = new CoordTransform();
 	while( i < any_region.length &&
 	       !( any_region[i] instanceof TableRegion ) )
 	{
-          region_bounds = any_region[i].getRegionBounds();
+          region_bounds = any_region[i].getRegionBounds( identity_tran );
 	  // Find absolute min and max row and column of all the regions to
 	  // reduce the size of the table rows and columns that are looked at.
 	  if( row_min > region_bounds.getY1() )
@@ -1374,7 +1379,8 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
      	  }
      	  
      	  // Get all of the unique points selected by these regions.
-     	  Point[] misc_point = Region.getRegionUnion(misc_region);
+     	  Point[] misc_point = Region.getRegionUnion(misc_region,
+     			                                     identity_tran );
      	  
      	  // Make grid and mark all of the selected points. Add an extra row
      	  // that should be all false, this will cause any remaining bounds in
@@ -1867,7 +1873,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
 	  // If shift is misused, remove all selections and start new selection
 	  // at the given point. Misuse occurs when a selection already exists
 	  // and only the shift modifier is used to add a selection.
-	  if( getSelectedCells().getDefiningPoints(Region.WORLD).length > 1 )
+	  if( getSelectedCells().getDefiningPoints().length > 1 )
 	  {
 	    setSelectedRegions(null);
 	    anchor = me.getPoint();
