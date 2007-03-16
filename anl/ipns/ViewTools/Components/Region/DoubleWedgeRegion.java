@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2007/03/16 16:57:56  dennis
+ *  Major refactoring.  This class is now derived from the
+ *  RegionWithInterior class.  The getSelectedPoints() method is
+ *  implemented uniformly in the base class, RegionWithInterior.
+ *  This is a major simplification.  The key method is the
+ *  isInsideWC(x,y) that determines which world coordinate points
+ *  are inside the region, and getRegionBoundsWC() that provides
+ *  a bounding rectangle for this region in world coordinates.
+ *  Removed initializeSelectedPoints() method that is no longer
+ *  needed.
+ *
  *  Revision 1.14  2004/12/05 05:32:34  millermi
  *  - Fixed Eclipse warnings.
  *
@@ -92,10 +103,7 @@
  */ 
 package gov.anl.ipns.ViewTools.Components.Region;
 
-import java.awt.Point;
-
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
-import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 
 /**
  * This class is a specific region designated by three points.
@@ -117,8 +125,9 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
  * information at each step of the region calculation. Like a ElipseRegion,
  * this region may appear to be circular, but may actually be eliptical.
  */ 
-public class DoubleWedgeRegion extends Region
+public class DoubleWedgeRegion extends WedgeRegion
 {
+
  /**
   * Constructor - uses Region's constructor to set the defining points.
   * The defining points are assumed to be in image values, where
@@ -126,130 +135,37 @@ public class DoubleWedgeRegion extends Region
   * The only exception is definingpoint[5] which holds angular (in degrees)
   * values.
   *
-  *  @param  dp - defining points of the DoubleWedge
-  */ 
+  *  @param  dp - defining points of the wedge
+  */
   public DoubleWedgeRegion( floatPoint2D[] dp )
   {
     super(dp);
-    
-    // Give the image and world bounds meaningful values.
-    setWorldBounds( new CoordBounds( definingpoints[3].x,
-                                     definingpoints[3].y, 
-                                     definingpoints[4].x,
-			             definingpoints[4].y ) );
-    setImageBounds( new CoordBounds( definingpoints[3].x,
-                                     definingpoints[3].y, 
-                                     definingpoints[4].x,
-			             definingpoints[4].y ) );
   }
-  
+
+
  /**
-  * Get all of the points inside the double wedge region. 
+  *  Check whether or not the specified World Coordinate point is inside 
+  *  of the Region.
   *
-  *  @return array of points included within the double wedge region.
+  *  @param x   The x-coordinate of the point, in world coordinates.
+  *  @param y   The y-coordinate of the point, in world coordinates.
+  *  @return true if the point is in the region and false otherwise.
   */
-  public Point[] getSelectedPoints()
-  {  
-    initializeSelectedPoints();
-    Region[] dwedge = {this};
-    // get rid of duplicate points.
-    selectedpoints = getRegionUnion( dwedge );
-    return selectedpoints;
-  }
-  
- /**
-  * Get the world coordinate points used to define the geometric shape.
-  * This class must overload the base class method since angles must be
-  * ignored in the conversion.
-  *
-  *  @param  coordsystem The coordinate system from which the defining
-  *                      points are taken from, either WORLD or IMAGE.
-  *  @return array of points that define the region.
-  */
-  public floatPoint2D[] getDefiningPoints( int coordsystem )
-  {
-    // defining points, either in world or image.
-    floatPoint2D[] imagedp = super.getDefiningPoints(coordsystem);
-    // world coords
-    if( coordsystem == WORLD )
-      return imagedp;
-    // image coords
-    if( coordsystem == IMAGE )
-    {
-      // since angles were converted to image coords, replace them with
-      // original values.
-      imagedp[5] = definingpoints[5];
-      return imagedp;
-    }
-    // if invalid number
-    return null;
-  }
-  
- /**
-  * This method is here to factor out the setting of the selected points.
-  * By doing this, regions can make use of the getRegionUnion() method.
-  *
-  *  @return array of points included within the region.
-  */
-  protected Point[] initializeSelectedPoints()
-  { 
-   /* p[0]   = center pt of circle that arc is taken from
-    * p[1]   = last mouse point/point at intersection of line and arc
-    * p[2]   = reflection of p[1]
-    * p[3]   = top left corner of bounding box around arc's total circle
-    * p[4]   = bottom right corner of bounding box around arc's circle
-    * p[5].x = startangle, the directional vector in degrees
-    * p[5].y = degrees covered by arc.
-    *
-    * Although this method uses quadrants similar to the unit circle,
-    * be aware that the slope in these quadrants does not behave in the same
-    * fashion. Quad II & III have positive slope while Quad I & IV have neg.
-    */
-    // convert world coord defining points to image values.
-    // use 2 wedgeregions to construct the doublewedge
-    WedgeRegion wedge1 = new WedgeRegion(definingpoints);
-    wedge1.setWorldBounds(world_to_image.getSource());
-    wedge1.setImageBounds(world_to_image.getDestination());
-    Point[] selected_pts_wedge1 = wedge1.initializeSelectedPoints();
-    
-    // defining points for wedge2
-    floatPoint2D[] defpt2 = new floatPoint2D[definingpoints.length];
-    defpt2[0] = new floatPoint2D( definingpoints[0] );
-    defpt2[1] = new floatPoint2D( 2f*defpt2[0].x - definingpoints[1].x,
-                                  2f*defpt2[0].y - definingpoints[1].y );
-    defpt2[2] = new floatPoint2D( 2f*defpt2[0].x - definingpoints[2].x,
-                                  2f*defpt2[0].y - definingpoints[2].y );
-    defpt2[3] = new floatPoint2D( definingpoints[3] );
-    defpt2[4] = new floatPoint2D( definingpoints[4] );
-    
-    // adjust starting angle to either 180 degrees ahead or behind,
-    // depending on the angle. Always keep angle on interval [0,360)
-    if( (definingpoints[5].x + 180f) >= 360 )
-      defpt2[5] = new floatPoint2D( definingpoints[5].x - 180f,
-				    definingpoints[5].y );
-    else
-      defpt2[5] = new floatPoint2D( definingpoints[5].x + 180f,
-				    definingpoints[5].y );
-    
-    WedgeRegion wedge2 = new WedgeRegion(defpt2);
-    wedge2.setWorldBounds(world_to_image.getSource());
-    wedge2.setImageBounds(world_to_image.getDestination());
-    Point[] selected_pts_wedge2 = wedge2.initializeSelectedPoints();
-    int total_num_pts = selected_pts_wedge1.length +
-			selected_pts_wedge2.length;
-    
-    selectedpoints = new Point[total_num_pts];
-    // fill points array with points from first wedge
-    for( int i = 0; i < selected_pts_wedge1.length; i++ )
-      selectedpoints[i] = new Point(selected_pts_wedge1[i]);
-    
-    // fill points array with points from second wedge
-    for( int j = 0; j < selected_pts_wedge2.length; j++ )
-      selectedpoints[selected_pts_wedge1.length + j] = 
-                     new Point(selected_pts_wedge2[j]);
-    
-    return selectedpoints;
-  } 
+ public boolean isInsideWC( float x, float y )
+ {
+                                   // A point will be within the double wedge
+                                   // provided it is in the wedge, or its
+                                   // reflection across the center is in the
+                                   // wedge
+   if ( super.isInsideWC( x, y ) )
+     return true;
+
+   if ( super.isInsideWC( 2 * x_center - x, 2 * y_center - y ) )
+     return true;
+
+   return false;
+ }
+
   
  /**
   * Display the region type with its defining points.
@@ -268,17 +184,4 @@ public class DoubleWedgeRegion extends Region
 	    "Interior Angle: " + definingpoints[5].y + "\n" );
   }
    
- /**
-  * This method returns the rectangle containing the ellipse from which the
-  * double wedge is taken from.
-  *
-  *  @return The bounds of the DoubleWedgeRegion.
-  */
-  public CoordBounds getRegionBounds()
-  {
-    return new CoordBounds( world_to_image.MapTo(definingpoints[3]).x,
-                            world_to_image.MapTo(definingpoints[3]).y, 
-                            world_to_image.MapTo(definingpoints[4]).x,
-			    world_to_image.MapTo(definingpoints[4]).y );
-  }
 }

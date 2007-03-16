@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2007/03/16 16:57:56  dennis
+ *  Major refactoring.  This class is now derived from the
+ *  RegionWithInterior class.  The getSelectedPoints() method is
+ *  implemented uniformly in the base class, RegionWithInterior.
+ *  This is a major simplification.  The key method is the
+ *  isInsideWC(x,y) that determines which world coordinate points
+ *  are inside the region, and getRegionBoundsWC() that provides
+ *  a bounding rectangle for this region in world coordinates.
+ *  Removed initializeSelectedPoints() method that is no longer
+ *  needed.
+ *
  *  Revision 1.20  2005/01/18 22:59:00  millermi
  *  - Fixed gramatical error in comments.
  *
@@ -129,9 +140,6 @@
  */ 
 package gov.anl.ipns.ViewTools.Components.Region;
 
-import java.awt.Point;
-import java.util.Vector;
-
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 
@@ -155,8 +163,17 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
  * information at each step of the region calculation. Like a EllipseRegion,
  * this region may appear to be circular, but may actually be elliptical.
  */ 
-public class WedgeRegion extends Region
+public class WedgeRegion extends RegionWithInterior
 {
+  float x_center;       // World Coordinates of center
+  float y_center;
+                        // NOTE: Circle could be ellipse in WC
+  float dx;             // half-width of ellipse in X-direction
+  float dy;             // half-height of ellipse in X-direction
+
+  float start_angle;    // angle of initial side, in radians 
+  float included_angle; // included angle ( <= 360 ), in radians 
+
  /**
   * Constructor - uses Region's constructor to set the defining points.
   * The defining points are assumed to be in image values, where
@@ -170,278 +187,71 @@ public class WedgeRegion extends Region
   {
     super(dp);
     
-    // Give the image and world bounds meaningful values.
-    setWorldBounds( new CoordBounds( definingpoints[3].x,
-                                     definingpoints[3].y,
-				     definingpoints[4].x,
-				     definingpoints[4].y ) );
-    setImageBounds( new CoordBounds( definingpoints[3].x,
-                                     definingpoints[3].y,
-				     definingpoints[4].x,
-				     definingpoints[4].y ) );
-  }
-  
- /**
-  * Get all of the points inside the wedge region. This method first determines
-  * if the point is in the ellipse, then uses angles to find if the points
-  * in the wedge region. 
-  *
-  *  @return array of points included within the wedge region.
-  */
-  public Point[] getSelectedPoints()
-  { 
-    initializeSelectedPoints();
-    Region[] wedge = {this};
-    // get rid of duplicate points.
-    selectedpoints = getRegionUnion( wedge );
-    return selectedpoints;
-  }
-  
- /**
-  * Get the world coordinate points used to define the geometric shape.
-  * This class must overload the base class method since angles must be
-  * ignored in the conversion.
-  *
-  *  @param  coordsystem The coordinate system from which the defining
-  *                      points are taken from, either WORLD or IMAGE.
-  *  @return array of points that define the region.
-  */
-  public floatPoint2D[] getDefiningPoints( int coordsystem )
-  {
-    // defining points, either in world or image.
-    floatPoint2D[] imagedp = super.getDefiningPoints(coordsystem);
-    // world coords
-    if( coordsystem == WORLD )
-      return imagedp;
-    // image coords
-    if( coordsystem == IMAGE )
-    {
-      // since angles were converted to image coords, replace them with
-      // original values.
-      imagedp[5] = definingpoints[5];
-      return imagedp;
-    }
-    // if invalid number
-    return null;
-  }
-  
- /**
-  * This method is here to factor out the setting of the selected points.
-  * By doing this, regions can make use of the getRegionUnion() method.
-  *
-  *  @return array of points included within the region.
-  */
-  protected Point[] initializeSelectedPoints()
-  { 
-   /* p[0]   = center pt of circle that arc is taken from
-    * p[1]   = last mouse point/point at intersection of line and arc
-    * p[2]   = reflection of p[1]
-    * p[3]   = top left corner of bounding box around arc's total circle
-    * p[4]   = bottom right corner of bounding box around arc's circle
-    * p[5].x = startangle, the directional vector in degrees
-    * p[5].y = degrees covered by arc.
-    */
-    Point center = floorImagePoint(
-                                world_to_image.MapTo(definingpoints[0]));
-    Point topleft = floorImagePoint(
-                                world_to_image.MapTo(definingpoints[3]));
-    Point bottomright = floorImagePoint(
-                                world_to_image.MapTo(definingpoints[4]));
-    
-    int xextent = center.x - topleft.x;
-    int yextent = center.y - topleft.y; 
-    
-    Vector points = new Vector();  // dynamic array of points
-    float startangle = definingpoints[5].x;
-    float totalangle = definingpoints[5].y + startangle;
-    float stopangle = totalangle;
-    int p1quad = 0; 
-    // using the startangle, find the quadrant of p1
-    if( startangle <= 180 )
-    {
-      if( startangle <= 90 )
-      {
-	p1quad =  1;
-      }
-      else
-      {
-	p1quad =  2;
-      }
-    }
-    else
-    {
-      if( startangle < 270 )
-      {
-	p1quad =  3;
-      }
-      else
-      {
-	p1quad =  4;
-      }
-    } 
-    // make sure angle is between 0 and 360  
-    if( totalangle >= 360 )
-      totalangle -= 360f;
-    //System.out.println("Total: " + totalangle );
-    int rp1quad = 0;
-    // using the startangle + arcangle, find quadrant of reflection of p1
-    if( totalangle <= 180 )
-    {
-      if( totalangle <= 90 )
-      {
-	rp1quad =  1;
-      }
-      else
-      {
-	rp1quad =  2;
-      }
-    }
-    else
-    {
-      if( totalangle < 270 )
-      {
-	rp1quad =  3;
-      }
-      else
-      {
-	rp1quad =  4;
-      }
-    }
-    
-    // using formula for ellipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
-    // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
-    int quadnum = 0;
-    // these values are specific to each quadrant, once quadrant is know, set
-    // these values.
-    int ystart = 0;
-    int ystop = 0;
-    int xstart = 0;
-    int xstop = 0;
-    
-    // if rp1quad < p1quad, angle goes from 4th quad to 1st quad. so
-    // adjust rp1quad so it works as an ending bound for the for loop.
-    if( rp1quad < p1quad )
-      rp1quad += 4;
-    // if the two are in the same quad, but the total angle is greater than 90,
-    // the shape must be a pie with a slice removed.
-    else if( rp1quad == p1quad && definingpoints[5].y > 90 )
-      rp1quad += 3;
+    x_center = dp[0].x;
+    y_center = dp[0].y;
 
-    // Step through each quadrant involved in the selection.
-    for( int quadcount = p1quad; quadcount <= rp1quad; quadcount++ )
-    {
-      // since rp1quad could be > 4, restrict the quadnum to max of 4.
-      if( quadcount > 4 )
-	quadnum = quadcount - 4;
-      else
-	quadnum = quadcount;
-      
-      // Depending on which quadrant, set the bounds for the two for loops
-      // below which will step through all the points in that quadrant
-      // and add ones contained in the selection.
-      // Since y values go top to bottom, the ystart and stop are switched
-      // and since quad 2 & 3 x values should go right to left, those xstart
-      // and stop are switched.
-      if( quadnum == 1 )
-      {
-	ystart = center.y;
-	ystop  = topleft.y;
-	xstart = center.x;
-	xstop  = bottomright.x;
-      }
-      else if( quadnum == 2 )
-      {
-	ystart = center.y;
-	ystop  = topleft.y;
-	xstart = topleft.x;
-	xstop  = center.x - 1;
-      }
-      else if( quadnum == 3 )
-      {
-	ystart = bottomright.y;
-	ystop  = center.y + 1;
-	xstart = topleft.x;
-	xstop  = center.x - 1;
-      }
-      else if( quadnum == 4 )
-      {
-	ystart = bottomright.y;
-	ystop  = center.y + 1;
-	xstart = center.x;
-	xstop  = bottomright.x;
-      }
-      //System.out.println("Current quad(c): " + quadnum );
-      double dist = 0;
-      float xdiff = 0;
-      float ydiff = 0;
-      // These two loops will check every point within the given quadrant
-      // and test to see if the point is in the ellipse from which the
-      // arc comes from.
-      for( int y = ystart; y >= ystop; y-- )
-      {
-	for( int x = xstart; x <= xstop; x++ )
-	{
-	  xdiff = 0;
-	  ydiff = 0;
-	  // x/y diff represent x-h/y-k respectively
-	  xdiff = Math.abs( (float)(x - center.x) );
-	  ydiff = Math.abs( (float)(y - center.y) );
-	  // Subtracting 1/(xextent*4) is to account for fractional pixels.
-	  // This will give a smoother, more accurate selected region.
-	  dist = Math.pow((double)(xdiff - 1/(double)(xextent*4)),2) /
-        	 Math.pow((double)xextent,2) + 
-		   Math.pow((double)(ydiff - 1/(double)(yextent*4)),2) /
-        	   Math.pow((double)yextent,2);
-	  //System.out.println("(" + x + "," + y + ")..." + dist ); 
-	  // Using ellipse equation, the distance must be < 1 in order to
-          // be contained within the ellipse.
-          if( dist <= 1 )
-	  {
-            int pointangle  = -Math.round( (float)Math.toDegrees(Math.atan2( 
-						   (double)(y - center.y),
-						   (double)(x - center.x))));
-	    // put everything from 0-360
-	    if( pointangle < 0 )
-	      pointangle = 360 + pointangle;
-	    
-	   //System.out.println("Point/Stop: " + pointangle + "/" + stopangle);
-            // if stopangle >= 360, the angle goes from 4th to 1st quadrant,
-            // thus start - 360, and 0 - stop becomes the interval.
-            if( stopangle >= 360 )
-            {
-              if( pointangle >= startangle || 
-        	  pointangle <= stopangle - 360f )
-              {
-	        // make sure point is on the image.
-	        CoordBounds imagebounds = world_to_image.getDestination();
-	        if( imagebounds.onXInterval((float)x) && 
-	            imagebounds.onYInterval((float)y) )
-		  points.add( new Point( x, y ) );
-              }
-            }
-            // otherwise the angle must be between the start and stop angle.
-            else
-            {
-              if( pointangle >= startangle && pointangle <= stopangle )
-              {
-	        // make sure point is on the image.
-	        CoordBounds imagebounds = world_to_image.getDestination();
-	        if( imagebounds.onXInterval((float)x) && 
-	            imagebounds.onYInterval((float)y) )
-		  points.add( new Point( x, y ) );
-              }
-            }
-	  } // if( dist < 1 )
-	} // end for x
-      } // end for y
-    } // for quad
-    
-    // put the vector of points into an array of points
-    selectedpoints = new Point[points.size()];
-    for( int i = 0; i < points.size(); i++ )
-      selectedpoints[i] = (Point)points.elementAt(i);
-    return selectedpoints;     
-  } 
+    dx = Math.abs( dp[3].x - x_center );
+    dy = Math.abs( dp[3].y - y_center );
+
+    start_angle = (float)Math.atan2( dp[1].y - y_center, dp[1].x - x_center );
+
+    float end_angle = 
+                   (float)Math.atan2( dp[2].y - y_center, dp[2].x - x_center );
+
+    included_angle = end_angle - start_angle;
+
+    while ( included_angle <= 0 )
+      included_angle += (float)(2*Math.PI);
+
+    while  ( included_angle >= 2*Math.PI )
+      included_angle -= (float)(2*Math.PI);
+  }
+
+
+ /**
+  *  Check whether or not the specified World Coordinate point is inside 
+  *  of the Region.
+  *
+  *  @param x   The x-coordinate of the point, in world coordinates.
+  *  @param y   The y-coordinate of the point, in world coordinates.
+  *  @return true if the point is in the region and false otherwise.
+  */
+ public boolean isInsideWC( float x, float y )
+ {
+   float x_diff_sqr = (x - x_center)*(x - x_center);
+   float y_diff_sqr = (y - y_center)*(y - y_center);
+
+   if ( x_diff_sqr/(dx*dx) + y_diff_sqr/(dy*dy) > 1 )
+     return false;
+
+   float angle = (float)Math.atan2( y - y_center, x - x_center );
+   while ( angle < start_angle )
+     angle += (float)(2*Math.PI);
+
+   if ( angle <= start_angle + included_angle )
+     return true;
+
+   return false;
+ }
+
+
+ /**
+  *  Get a bounding box for the region, in World Coordinates.  The
+  *  points of the region will lie in the X-interval [X1,X2] and
+  *  in the Y-interval [Y1,Y2], where X1,X2,Y1 and Y2 are the values
+  *  returned by the CoordBounds getX1(), getX2(), getY1(), getY2()
+  *  methods.
+  * 
+  *  @return a CoordBounds object containing the full extent of this
+  *          region.
+  */
+ public CoordBounds getRegionBoundsWC()
+ {                                      // NOTE: We could get tighter
+                                        //       bound here
+    return new CoordBounds( x_center - dx, y_center - dy,
+                            x_center + dx, y_center + dy );
+ }
+
   
  /**
   * Display the region type with its defining points.
@@ -460,17 +270,4 @@ public class WedgeRegion extends Region
 	    "Interior Angle: " + definingpoints[5].y + "\n" );
   }
    
- /**
-  * This method returns the rectangle containing the ellipse from which the
-  * wedge is taken from.
-  *
-  *  @return The bounds of the WedgeRegion.
-  */
-  public CoordBounds getRegionBounds()
-  {
-    return new CoordBounds( world_to_image.MapTo(definingpoints[3]).x,
-                            world_to_image.MapTo(definingpoints[3]).y, 
-                            world_to_image.MapTo(definingpoints[4]).x,
-			    world_to_image.MapTo(definingpoints[4]).y );
-  }
 }

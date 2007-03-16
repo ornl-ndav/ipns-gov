@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/03/16 16:57:56  dennis
+ *  Major refactoring.  This class is now derived from the
+ *  RegionWithInterior class.  The getSelectedPoints() method is
+ *  implemented uniformly in the base class, RegionWithInterior.
+ *  This is a major simplification.  The key method is the
+ *  isInsideWC(x,y) that determines which world coordinate points
+ *  are inside the region, and getRegionBoundsWC() that provides
+ *  a bounding rectangle for this region in world coordinates.
+ *  Removed initializeSelectedPoints() method that is no longer
+ *  needed.
+ *
  *  Revision 1.10  2007/03/11 04:37:16  dennis
  *  Added methods to setWorldToArrayTran() and getWorldToArrayTran().
  *
@@ -78,9 +89,6 @@
  */ 
 package gov.anl.ipns.ViewTools.Components.Region;
 
-import java.awt.Point;
-import java.util.Vector;
-
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 
@@ -89,9 +97,17 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
  * used to pass points selected by a rectangular region from the view
  * component to the viewer. Given the defining points of a region,
  * this class can return all of the points inside the selected region. 
+ * The defining points of the box are:
+ * p[0] = one corner
+ * p[1] = diagonally opposite corner
  */ 
-public class BoxRegion extends Region
+public class BoxRegion extends RegionWithInterior
 {
+  private float min_x = 0;
+  private float max_x = 1;
+  private float min_y = 0;
+  private float max_y = 1;
+
  /**
   * Constructor - provides basic initialization for all subclasses
   *
@@ -100,60 +116,45 @@ public class BoxRegion extends Region
   public BoxRegion( floatPoint2D[] dp )
   {
     super(dp);
-    
-    // Give the image and world bounds meaningful values.
-    setWorldBounds( new CoordBounds( definingpoints[0].x,
-                                     definingpoints[0].y, 
-			             definingpoints[1].x,
-			             definingpoints[1].y ) );
-    setImageBounds( new CoordBounds( definingpoints[0].x,
-                                     definingpoints[0].y, 
-			             definingpoints[1].x,
-			             definingpoints[1].y ) );
+
+    min_x = Math.min( definingpoints[0].x, definingpoints[1].x );
+    max_x = Math.max( definingpoints[0].x, definingpoints[1].x );
+    min_y = Math.min( definingpoints[0].y, definingpoints[1].y );
+    max_y = Math.max( definingpoints[0].y, definingpoints[1].y );
   }
-  
+
+
  /**
-  * Get all of the points inside the region. This method assumes
-  * that the input points are in (x,y) where (x = col, y = row ) form.
-  * The points are entered into the array row by row.
+  *  Check whether or not the specified World Coordinate point is inside 
+  *  of the Region.
   *
-  *  @return array of points included within the region.
+  *  @param x   The x-coordinate of the point, in world coordinates.
+  *  @param y   The y-coordinate of the point, in world coordinates.
+  *  @return true if the point is in the region and false otherwise.
   */
-  public Point[] getSelectedPoints()
-  {
-    return initializeSelectedPoints();
-  }
-  
+ public boolean isInsideWC( float x, float y )
+ {
+   if ( x >= min_x && x <= max_x &&
+        y >= min_y && y <= max_y  )
+     return true;
+   return false;
+ }
+
  /**
-  * This method is here to factor out the setting of the selected points.
-  * By doing this, regions can make use of the getRegionUnion() method.
-  *
-  *  @return array of points included within the region.
+  *  Get a bounding box for the region, in World Coordinates.  The
+  *  points of the region will lie in the X-interval [X1,X2] and
+  *  in the Y-interval [Y1,Y2], where X1,X2,Y1 and Y2 are the values
+  *  returned by the CoordBounds getX1(), getX2(), getY1(), getY2()
+  *  methods.
+  * 
+  *  @return a CoordBounds object containing the full extent of this
+  *          region.
   */
-  protected Point[] initializeSelectedPoints()
-  { 
-    Point topleft = floorImagePoint(world_to_image.MapTo(definingpoints[0]));
-    Point bottomright = floorImagePoint(
-                           world_to_image.MapTo(definingpoints[1]) );
-    
-    Vector pts = new Vector();
-    CoordBounds imagebounds = world_to_image.getDestination();
-    // Step through box rowwise, getting points that are on the image.
-    for( int row = topleft.y; row <= bottomright.y; row++ )
-    {
-      for( int col = topleft.x; col <= bottomright.x; col++ )
-      {
-        // add it to the array if the point is on the image.
-        if( imagebounds.onXInterval(col) && imagebounds.onYInterval(row) )
-          pts.add(new Point(col,row));
-      }
-    }
-    // construct static list of points.
-    selectedpoints = new Point[pts.size()];
-    for( int i = 0; i < pts.size(); i++ )
-      selectedpoints[i] = (Point)pts.elementAt(i);
-    return selectedpoints;
-  }
+ public CoordBounds getRegionBoundsWC()
+ {
+    return new CoordBounds( min_x, min_y, max_x, max_y );
+ }
+  
   
  /**
   * Display the region type with its defining points.
@@ -163,20 +164,8 @@ public class BoxRegion extends Region
   public String toString()
   {
     return ("Region: Box\n" +
-            "Top-left Corner: " + definingpoints[0] + "\n" +
+            "Top-left Corner:     " + definingpoints[0] + "\n" +
 	    "Bottom-right Corner: " + definingpoints[1] + "\n");
   }
    
- /**
-  * This method returns the rectangle representing the box.
-  *
-  *  @return The bounds of the BoxRegion.
-  */
-  public CoordBounds getRegionBounds()
-  {
-    return new CoordBounds( world_to_image.MapTo(definingpoints[0]).x,
-                            world_to_image.MapTo(definingpoints[0]).y, 
-                            world_to_image.MapTo(definingpoints[1]).x,
-			    world_to_image.MapTo(definingpoints[1]).y );
-  }
 }

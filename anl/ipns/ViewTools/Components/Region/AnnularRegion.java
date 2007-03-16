@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2007/03/16 16:57:56  dennis
+ *  Major refactoring.  This class is now derived from the
+ *  RegionWithInterior class.  The getSelectedPoints() method is
+ *  implemented uniformly in the base class, RegionWithInterior.
+ *  This is a major simplification.  The key method is the
+ *  isInsideWC(x,y) that determines which world coordinate points
+ *  are inside the region, and getRegionBoundsWC() that provides
+ *  a bounding rectangle for this region in world coordinates.
+ *  Removed initializeSelectedPoints() method that is no longer
+ *  needed.
+ *
  *  Revision 1.7  2004/05/20 20:48:25  millermi
  *  - Constructor now initializes world and image bounds to
  *    the bounds of the defining points.
@@ -67,15 +78,12 @@
  */ 
 package gov.anl.ipns.ViewTools.Components.Region;
 
-import java.awt.Point;
-import java.util.Vector;
-
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 
 /**
  * The AnnularRegion is used to pass points selected between two
- * circle regions (a ring) (in SelectionOverlay) from the view component
+ * elliptical regions (a ring) (in SelectionOverlay) from the view component
  * to the viewer. Given the defining points of a region,
  * this class can return all of the points inside the selected region. 
  * The defining points of the ring are:
@@ -85,8 +93,15 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
  * p[3]   = top left corner of bounding box of outer circle
  * p[4]   = bottom right corner of bounding box of outer circle
  */ 
-public class AnnularRegion extends Region
+public class AnnularRegion extends RegionWithInterior
 {
+  float x_center;
+  float y_center;
+  float dx_1;
+  float dy_1;
+  float dx_2;
+  float dy_2;
+
  /**
   * Constructor - uses Region's constructor to set the defining points.
   * The defining points are assumed to be in image values, where
@@ -97,131 +112,50 @@ public class AnnularRegion extends Region
   public AnnularRegion( floatPoint2D[] dp )
   {
     super(dp);
-    
-    // Give the image and world bounds meaningful values.
-    setWorldBounds( new CoordBounds( definingpoints[3].x,
-                                     definingpoints[3].y, 
-                                     definingpoints[4].x,
-			             definingpoints[4].y ) );
-    setImageBounds( new CoordBounds( definingpoints[3].x,
-                                     definingpoints[3].y, 
-                                     definingpoints[4].x,
-			             definingpoints[4].y ) );
+    x_center = dp[0].x;  
+    y_center = dp[0].y;  
+    dx_1 = Math.abs( dp[1].x - x_center );
+    dy_1 = Math.abs( dp[1].y - y_center );
+    dx_2 = Math.abs( dp[3].x - x_center );
+    dy_2 = Math.abs( dp[3].y - y_center );
   }
   
+
  /**
-  * Get all of the points inside the annular (ring) region. 
+  *  Check whether or not the specified World Coordinate point is inside 
+  *  of the Region.
   *
-  *  @return array of points included within the elliptical region.
+  *  @param x   The x-coordinate of the point, in world coordinates.
+  *  @param y   The y-coordinate of the point, in world coordinates.
+  *  @return true if the point is in the region and false otherwise.
   */
-  public Point[] getSelectedPoints()
-  { 
-    return initializeSelectedPoints();
-  }
-  
+ public boolean isInsideWC( float x, float y )
+ {
+   float x_diff_sqr = (x - x_center)*(x - x_center);
+   float y_diff_sqr = (y - y_center)*(y - y_center);
+   if ( x_diff_sqr/(dx_1 * dx_1) + y_diff_sqr/(dy_1 * dy_1 ) >= 1  && 
+        x_diff_sqr/(dx_2 * dx_2) + y_diff_sqr/(dy_2 * dy_2 ) <= 1   )
+     return true;
+   return false;
+ }
+
+
  /**
-  * This method is here to factor out the setting of the selected points.
-  * By doing this, regions can make use of the getRegionUnion() method.
-  *
-  *  @return array of points included within the region.
+  *  Get a bounding box for the region, in World Coordinates.  The
+  *  points of the region will lie in the X-interval [X1,X2] and
+  *  in the Y-interval [Y1,Y2], where X1,X2,Y1 and Y2 are the values
+  *  returned by the CoordBounds getX1(), getX2(), getY1(), getY2()
+  *  methods.
+  * 
+  *  @return a CoordBounds object containing the full extent of this
+  *          region.
   */
-  protected Point[] initializeSelectedPoints()
-  { 
-    // Convert definingpoints to image coords.
-    Point center = floorImagePoint(
-                             world_to_image.MapTo(definingpoints[0]));
-    // inner topleft
-    Point in_tl = floorImagePoint(
-                             world_to_image.MapTo(definingpoints[1]));
-    // inner bottomright
-    Point in_br = floorImagePoint(
-                             world_to_image.MapTo(definingpoints[2]));
-    // outer topleft
-    Point out_tl = floorImagePoint(
-                             world_to_image.MapTo(definingpoints[3]));
-    // outer bottomright
-    Point out_br = floorImagePoint(
-                             world_to_image.MapTo(definingpoints[4]));
-    
-    int inxextent = center.x - in_tl.x;
-    int inyextent = center.y - in_tl.y;
-    int outxextent = center.x - out_tl.x;
-    int outyextent = center.y - out_tl.y; 
-    Vector points = new Vector(); // dynamic array of points
-    
-    // if only one pixel is selected by the circle, for low resolution.
-    if( (outxextent == 0) && (outyextent == 0) )
-    { 
-      points.add( center );
-    }
-    // if one pixel in x, and more than one in y is selected
-    else if( outxextent == 0 )
-    {
-      for( int y = out_tl.y; y <= out_br.y; y++ ) 
-      { 
- 	// make sure point is not within the inner ring.
- 	if( y < in_tl.y || y > in_br.y )
- 	  points.add( new Point( out_tl.x, y ) );
-      }
-    }
-    // if one pixel in y, and more than one in x is selected
-    else if( outyextent == 0 )
-    {
-      for( int x = out_tl.x; x <= out_br.x; x++ )
-      { 
- 	// make sure point is not within the inner ring.
- 	if( x < in_tl.x || x > in_br.x )
- 	  points.add( new Point( x, out_tl.y ) );
-      }
-    }
-    // large region, more than one pixel in both x and y
-    else
-    {
-      double outdist = 0;
-      double indist = 0;
-      double xdiff = 0;
-      double ydiff = 0;
-      // using formula for ellipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
-      // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
-      for( int y = out_tl.y; y <= out_br.y; y++ )
-      {
- 	for( int x = out_tl.x; x <= out_br.x; x++ )
- 	{
- 	  xdiff = 0;
-          ydiff = 0;
-          // x/y diff represent x-h/y-k respectively
- 	  xdiff = Math.abs( (double)(x - center.x) );
- 	  ydiff = Math.abs( (double)(y - center.y) );
-          // Subtracting 1/(xextent*4) is to account for fractional pixels.
-          // This will give a smoother, more accurate selected region.
- 	  // outer distance.
-          outdist = Math.pow((xdiff - 1/(double)(outxextent*4)),2)/
-        		   Math.pow(outxextent,2)
-        		 + Math.pow((ydiff - 1/(double)(outyextent*4)),2)/
-        		   Math.pow(outyextent,2);
- 	  // inner distance.
-          indist = Math.pow((xdiff - 1/(double)(inxextent*4)),2)/
-        		   Math.pow(inxextent,2)
-        		 + Math.pow((ydiff - 1/(double)(inyextent*4)),2)/
-        		   Math.pow(inyextent,2);
-          //System.out.println("(" + x + "," + y + ")..." + dist ); 
-          // make sure point is between both ellipses.
-          if( outdist < 1 && indist >= 1 )
-	  {
-	    // make sure point is on the image.
-	    CoordBounds imagebounds = world_to_image.getDestination();
-	    if( imagebounds.onXInterval((float)x) && 
-	        imagebounds.onYInterval((float)y) )
-              points.add( new Point( x, y ) );
-	  } 
- 	} 
-      }
-    }
-    selectedpoints = new Point[points.size()];
-    for( int i = 0; i < points.size(); i++ )
-      selectedpoints[i] = (Point)points.elementAt(i);
-    return selectedpoints;
-  } 
+ public CoordBounds getRegionBoundsWC()
+ {
+    return new CoordBounds( x_center - dx_2, y_center - dy_2,
+                            x_center + dx_2, y_center + dy_2 );
+ }
+
   
  /**
   * Display the region type with its defining points.
@@ -238,16 +172,4 @@ public class AnnularRegion extends Region
 	    "Bottom-right bound(outer): " + definingpoints[4] + "\n");
   }
    
- /**
-  * This method returns the image bounds for the ring.
-  *
-  *  @return The bounds of the AnnularRegion.
-  */
-  public CoordBounds getRegionBounds()
-  {
-    return new CoordBounds( world_to_image.MapTo(definingpoints[3]).x,
-                            world_to_image.MapTo(definingpoints[3]).y, 
-                            world_to_image.MapTo(definingpoints[4]).x,
-			    world_to_image.MapTo(definingpoints[4]).y );
-  }
 }

@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/03/16 16:57:56  dennis
+ *  Major refactoring.  This class is now derived from the
+ *  RegionWithInterior class.  The getSelectedPoints() method is
+ *  implemented uniformly in the base class, RegionWithInterior.
+ *  This is a major simplification.  The key method is the
+ *  isInsideWC(x,y) that determines which world coordinate points
+ *  are inside the region, and getRegionBoundsWC() that provides
+ *  a bounding rectangle for this region in world coordinates.
+ *  Removed initializeSelectedPoints() method that is no longer
+ *  needed.
+ *
  *  Revision 1.10  2004/05/20 20:48:26  millermi
  *  - Constructor now initializes world and image bounds to
  *    the bounds of the defining points.
@@ -90,9 +101,6 @@
  */ 
 package gov.anl.ipns.ViewTools.Components.Region;
 
-import java.awt.Point;
-import java.util.Vector;
-
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 
@@ -107,123 +115,68 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
  * circle, because although the selection looks circular, unless aspect ratio
  * is preserved, it may not be.
  */ 
-public class EllipseRegion extends Region
+public class EllipseRegion extends RegionWithInterior
 {
+  float x_center;
+  float y_center;
+  float dx;
+  float dy;
+
  /**
   * Constructor - uses Region's constructor to set the defining points.
   * The defining points are assumed to be in image values, where
   * the input points are in (x,y) where (x = col, y = row ) form.
+  *
+  * dp[0] = top-left corner
+  * dp[1] = bottom-right corner
+  * dp[2] = center
   *
   *  @param  dp - defining points of an ellipse or circle.
   */ 
   public EllipseRegion( floatPoint2D[] dp )
   {
     super(dp);
-    
-    // Give the image and world bounds meaningful values.
-    setWorldBounds( new CoordBounds( definingpoints[0].x,
-                                     definingpoints[0].y, 
-                                     definingpoints[1].x,
-			             definingpoints[1].y ) );
-    setImageBounds( new CoordBounds( definingpoints[0].x,
-                                     definingpoints[0].y, 
-                                     definingpoints[1].x,
-			             definingpoints[1].y ) );
+
+    x_center = dp[2].x;
+    y_center = dp[2].y;
+    dx       = Math.abs( dp[1].x - x_center );
+    dy       = Math.abs( dp[1].y - y_center );
   }
+
+
+ /**
+  *  Check whether or not the specified World Coordinate point is inside 
+  *  of the Region.
+  *
+  *  @param x   The x-coordinate of the point, in world coordinates.
+  *  @param y   The y-coordinate of the point, in world coordinates.
+  *  @return true if the point is in the region and false otherwise.
+  */
+ public boolean isInsideWC( float x, float y )
+ {
+   if ( (x - x_center)*(x - x_center) / (dx * dx ) +
+        (y - y_center)*(y - y_center) / (dy * dy )  <= 1 )
+     return true;
+   return false;
+ }
+
   
  /**
-  * Get all of the points inside the elliptical region. 
-  *
-  *  @return array of points included within the elliptical region.
+  *  Get a bounding box for the region, in World Coordinates.  The
+  *  points of the region will lie in the X-interval [X1,X2] and
+  *  in the Y-interval [Y1,Y2], where X1,X2,Y1 and Y2 are the values
+  *  returned by the CoordBounds getX1(), getX2(), getY1(), getY2()
+  *  methods.
+  * 
+  *  @return a CoordBounds object containing the full extent of this
+  *          region.
   */
-  public Point[] getSelectedPoints()
-  {
-    return initializeSelectedPoints();
-  }
-  
- /**
-  * This method is here to factor out the setting of the selected points.
-  * By doing this, regions can make use of the getRegionUnion() method.
-  *
-  *  @return array of points included within the region.
-  */
-  protected Point[] initializeSelectedPoints()
-  { 
-    Point topleft = floorImagePoint(world_to_image.MapTo(definingpoints[0]));
-    Point bottomright = floorImagePoint(
-                               world_to_image.MapTo(definingpoints[1]) );
-    Point center = floorImagePoint(world_to_image.MapTo(definingpoints[2]) );
-    float xextent = (float)(center.x - topleft.x);
-    float yextent = (float)(center.y - topleft.y); 
-    Vector points = new Vector();  // dynamic array of points
-    
-    // if only one pixel is selected by the circle, for low resolution.
-    if( xextent == 0 && yextent == 0 )
-      points.add( center );
-    // if one pixel in x, and more than one in y is selected
-    else if( xextent == 0 )
-    {
-      for( int y = topleft.y; y <= bottomright.y; y++ ) 
-      {
-	// make sure point is on the image.
-	CoordBounds imagebounds = world_to_image.getDestination();
-	if( imagebounds.onXInterval((float)topleft.x) && 
-	    imagebounds.onYInterval((float)y) )
-	  points.add( new Point( topleft.x, y ) );
-      }
-    }
-    // if one pixel in y, and more than one in x is selected
-    else if( yextent == 0 )
-    {
-      for( int x = topleft.x; x <= bottomright.x; x++ )
-      {
-	// make sure point is on the image.
-	CoordBounds imagebounds = world_to_image.getDestination();
-	if( imagebounds.onXInterval((float)x) && 
-	    imagebounds.onYInterval((float)topleft.y) )
-	  points.add( new Point( x, topleft.y ) );
-      }
-    }
-    // large region, more than one pixel in both x and y
-    else
-    {
-      double dist = 0;
-      float xdiff = 0;
-      float ydiff = 0;
-      // using formula for ellipse: (x-h)^2/a^2 + (y-k)^2/b^2 = 1
-      // where x,y is point, (h,k) is center, and a,b are x/y extent (radius)
-      for( int y = topleft.y; y <= bottomright.y; y++ )
-      {
-	for( int x = topleft.x; x <= bottomright.x; x++ )
-	{
-	  xdiff = 0;
-          ydiff = 0;
-          // x/y diff represent x-h/y-k respectively
-	  xdiff = Math.abs( (float)(x - center.x) );
-	  ydiff = Math.abs( (float)(y - center.y) );
-          // Subtracting 1/(xextent*4) is to account for fractional pixels.
-          // This will give a smoother, more accurate selected region.
-	  dist = Math.pow((double)(xdiff - 1/(xextent*4)),2) / 
-        	 Math.pow((double)xextent,2) + 
-        	   Math.pow((double)(ydiff - 1/(yextent*4)),2) /
-        	   Math.pow((double)yextent,2);
-          //System.out.println("(" + x + "," + y + ")..." + dist ); 
-          if( dist < 1 )
-	  {
-	    // make sure point is on the image.
-	    CoordBounds imagebounds = world_to_image.getDestination();
-	    if( imagebounds.onXInterval((float)x) && 
-	        imagebounds.onYInterval((float)y) )
-              points.add( new Point( x, y ) ); 
-	  }
-	} 
-      }
-    }
-    selectedpoints = new Point[points.size()];
-    for( int i = 0; i < points.size(); i++ )
-      selectedpoints[i] = (Point)points.elementAt(i);
-    return selectedpoints;
-  }
+ public CoordBounds getRegionBoundsWC()
+ {
+    return new CoordBounds( x_center - dx, y_center - dy, 
+                            x_center + dx, y_center + dy );
+ }
+
   
  /**
   * Display the region type with its defining points.
@@ -238,16 +191,4 @@ public class EllipseRegion extends Region
 	    "Bottom-right bound: " + definingpoints[1] + "\n");
   }
    
- /**
-  * This method returns the rectangle containing the ellipse.
-  *
-  *  @return The bounds of the EllipseRegion.
-  */
-  public CoordBounds getRegionBounds()
-  {
-    return new CoordBounds( world_to_image.MapTo(definingpoints[0]).x,
-                            world_to_image.MapTo(definingpoints[0]).y, 
-                            world_to_image.MapTo(definingpoints[1]).x,
-			    world_to_image.MapTo(definingpoints[1]).y );
-  }
 }
