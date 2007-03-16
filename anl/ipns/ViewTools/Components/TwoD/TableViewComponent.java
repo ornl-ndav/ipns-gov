@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2007/03/16 17:01:39  dennis
+ *  Added method getWorldToArrayTransform().
+ *
  *  Revision 1.9  2005/05/25 20:28:36  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -515,6 +518,20 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     return new floatPoint2D( image_to_wc.MapXTo(col_row_pt.x),
                              image_to_wc.MapYTo(col_row_pt.y) );
   }
+
+
+ /**
+  * Get a copy of the tranformation that maps world coordinates to array
+  * (col,row) coordinates for this view component. 
+  *
+  * @return a CoordTransform object that maps from world coordinates
+  *         to array (col,row) coordinates.
+  */
+  public CoordTransform getWorldToArrayTransform()
+  {
+    return ijp.getWorldToImageTransform();
+  }
+
   
  /*
   * Tells all listeners about a new action.
