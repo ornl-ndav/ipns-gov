@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/03/16 17:00:13  dennis
+ *  Added static method to get the inverse of a specified transform.
+ *
  *  Revision 1.10  2004/03/12 00:42:59  millermi
  *  - Changed package and fixed imports.
  *
@@ -429,6 +432,18 @@ public class CoordTransform implements Serializable
            "Dest   Region: " + to;
   }
 
+
+  /**
+   *  Construct a new tranformation that is the inverse of the spceified
+   *  transformation.
+   *
+   *  @return a new CoordTransform that is the inverse of the specifed
+   *          CoordTransform.
+   */
+  public static CoordTransform inverse( CoordTransform tran )
+  {
+    return new CoordTransform( tran.to.MakeCopy(), tran.from.MakeCopy() );
+  }
 
 
 /* -----------------------------------------------------------------------
