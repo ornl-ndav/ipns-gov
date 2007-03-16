@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.28  2007/03/16 18:32:37  dennis
+ * Adapted to new getSelectedPoints() method for regions.  Now passes in
+ * the world_to_array transformation, as an argument to getSelectedPoints().
+ *
  * Revision 1.27  2006/03/30 23:57:54  dennis
  * Modified to not require the use of mutator methods for the
  * virtual arrays.  These changes were required since the concept
@@ -191,6 +195,7 @@ import gov.anl.ipns.ViewTools.Components.Transparency.Marker;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 
@@ -495,11 +500,12 @@ public class IVCTester extends JFrame implements IPreserveState,
       if( message.equals(ImageViewComponent.SELECTED_CHANGED) )
       {
   	Region[] selectedregions = ivc.getSelectedRegions();
+  	CoordTransform world_to_array = ivc.getWorldToArrayTransform();
 	// Make sure regions exist.
 	if( selectedregions.length < 1 )
 	  return;
-        Point[] selectedpoints = 
-	          selectedregions[selectedregions.length-1].getSelectedPoints();
+        Point[] selectedpoints = selectedregions[selectedregions.length-1].
+                                 getSelectedPoints(world_to_array);
         //System.out.println("NumSelectedPoints: " + selectedpoints.length);
         for( int j = 0; j < selectedpoints.length; j++ )
         {

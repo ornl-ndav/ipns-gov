@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2007/03/16 18:32:37  dennis
+ *  Adapted to new getSelectedPoints() method for regions.  Now passes in
+ *  the world_to_array transformation, as an argument to getSelectedPoints().
+ *
  *  Revision 1.13  2006/03/30 23:57:56  dennis
  *  Modified to not require the use of mutator methods for the
  *  virtual arrays.  These changes were required since the concept
@@ -105,6 +109,7 @@
  import gov.anl.ipns.ViewTools.Components.TwoD.*;
  import gov.anl.ipns.ViewTools.Components.Menu.*;
  import gov.anl.ipns.ViewTools.Components.Region.Region;
+ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
 /**
  * This class is a mock viewer to test basic functionality of any 
@@ -203,9 +208,11 @@ public class ViewerSim
        if( message.equals(ImageViewComponent.SELECTED_CHANGED) )
        {
          Region[] selectedregions = ivc.getSelectedRegions();
+         CoordTransform world_to_array = ivc.getWorldToArrayTransform();
 	 for( int i = 0; i < selectedregions.length; i++ )
 	 {
-	   Point[] selectedpoints = selectedregions[i].getSelectedPoints();
+	   Point[] selectedpoints = 
+		           selectedregions[i].getSelectedPoints(world_to_array);
 	   System.out.println("NumSelectedPoints: " + selectedpoints.length);
 	   for( int j = 0; j < selectedpoints.length; j++ )
 	   {
