@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2007/03/18 21:17:27  rmikk
+ *  makeImage only increases the zoom region the first time when the local
+ *    bounds do not correspond with pixel boundaries
+ *
  *  Revision 1.5  2007/03/15 20:12:09  dennis
  *  Made getWorldToImageTransform() method public so that it can
  *  be used by the ImageViewComponent.
@@ -934,6 +938,15 @@ protected void LocalTransformChanged()
     int end_row   = Math.min( (int)(bounds.getY2() ), data.getNumRows()-1 );
     int start_col = Math.max( (int)(bounds.getX1() ), 0 );
     int end_col   = Math.min( (int)(bounds.getX2() ), data.getNumColumns()-1 );
+
+    int xr2=0,xc2=0; //for rounding to integer pixels after first zoom
+   
+    if( bounds.getY2() != (int)bounds.getY2())
+       if(end_row <data.getNumRows()-1 )xr2=1;
+    
+    if( bounds.getX2() != (int)bounds.getX2())
+       if(end_col <  data.getNumColumns()-1)xc2=1;
+       
     
     // Convert global coord bounds to image row/column. Compare integer
     // row/columns because it is more consistent that comparing floats.
@@ -949,7 +962,7 @@ protected void LocalTransformChanged()
       makeThumbnail = true;
     
     CoordBounds new_bounds = new CoordBounds( start_col, start_row,
-                                              end_col+1, end_row+1 );
+                                              end_col+xc2, end_row+xr2 );
     new_bounds = world_to_image.MapFrom( new_bounds );
     setLocalWorldCoords( new_bounds );
     subSample(start_row,end_row,start_col,end_col);
