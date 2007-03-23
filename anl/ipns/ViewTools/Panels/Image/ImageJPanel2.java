@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2007/03/23 15:34:56  rmikk
+ *  Fixed an off by one error which made it difficult for fill lines to be drawn
+ *    in the middle of blocks corresponding to array elements
+ *
  *  Revision 1.6  2007/03/18 21:17:27  rmikk
  *  makeImage only increases the zoom region the first time when the local
  *    bounds do not correspond with pixel boundaries
@@ -939,13 +943,16 @@ protected void LocalTransformChanged()
     int start_col = Math.max( (int)(bounds.getX1() ), 0 );
     int end_col   = Math.min( (int)(bounds.getX2() ), data.getNumColumns()-1 );
 
-    int xr2=0,xc2=0; //for rounding to integer pixels after first zoom
+    int xr2=0;
+    int xc2=0; //for rounding to integer pixels after first zoom
    
     if( bounds.getY2() != (int)bounds.getY2())
-       if(end_row <data.getNumRows()-1 )xr2=1;
+       if(end_row <data.getNumRows()-1 )
+           xr2=1;
     
     if( bounds.getX2() != (int)bounds.getX2())
-       if(end_col <  data.getNumColumns()-1)xc2=1;
+       if(end_col <  data.getNumColumns()-1)
+          xc2=1;
        
     
     // Convert global coord bounds to image row/column. Compare integer
@@ -965,7 +972,7 @@ protected void LocalTransformChanged()
                                               end_col+xc2, end_row+xr2 );
     new_bounds = world_to_image.MapFrom( new_bounds );
     setLocalWorldCoords( new_bounds );
-    subSample(start_row,end_row,start_col,end_col);
+    subSample(start_row,end_row+xr2,start_col,end_col+xc2);
 
     stop_box( current_point, false );
     stop_crosshair( current_point );
@@ -987,8 +994,10 @@ protected void LocalTransformChanged()
     // Get monitor dimensions.
     Dimension monitor_dim = Toolkit.getDefaultToolkit().getScreenSize();
     
-    int h = Math.abs(end_row - start_row) + 1;
-    int w = Math.abs(end_col - start_col) + 1;
+   // int h = Math.abs(end_row - start_row) + 1;
+    //int w = Math.abs(end_col - start_col) + 1;
+    int h = Math.abs(end_row - start_row);
+    int w = Math.abs(end_col - start_col);
     
     // Subsample step increments. If image exceeds size
     // of monitor screen, increase steps for subsampling. 
@@ -1022,9 +1031,9 @@ protected void LocalTransformChanged()
     if( isTwoSided )
       zero_index = ZERO_COLOR_INDEX;
     float temp = 0;
-    for (int y = start_row; y <= end_row; y=y+y_step)
+    for (int y = start_row; y < end_row; y=y+y_step)
     {
-      for (int x = start_col; x <= end_col; x=x+x_step)
+      for (int x = start_col; x < end_col; x=x+x_step)
       {
         temp = data.getDataValue(y,x) * scale_factor;
 	if( temp > LOG_TABLE_SIZE - 1 )
