@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2007/03/23 20:28:57  dennis
+ *  Now checks for cursor being an instance of DoubleWedgeCursor
+ *  before checking for WedgeCursor.  This change is needed to
+ *  properly find the cursor type, now that DoubleWedgeCursor
+ *  extends WedgeCursor.
+ *
  *  Revision 1.17  2007/03/16 18:30:49  dennis
  *  Now handles cirlces and ellipses.
  *  Minor code clean up.
@@ -354,18 +360,10 @@ public class SelectionJPanel extends ActiveJPanel
   */
   public void set_cursor( XOR_Cursor3pt cursor, Point current )
   {
-    if( cursor instanceof WedgeCursor )
-    {
-      if ( doing_wedge )
-	cursor.redraw( current );
-      else
-      {
-	cursor.start( current );
-	cursor.redraw( current );
-	doing_wedge = true;
-      }
-    }
-    else if( cursor instanceof DoubleWedgeCursor )
+                                            // check DoubleWedgeCursor first
+                                            // since DoubleWedgeCursor extends
+                                            // WedgeCursor
+    if( cursor instanceof DoubleWedgeCursor )
     {
       if ( doing_dblwedge )
 	cursor.redraw( current );
@@ -374,6 +372,17 @@ public class SelectionJPanel extends ActiveJPanel
 	cursor.start( current );
 	cursor.redraw( current );
 	doing_dblwedge = true;
+      }
+    }
+    else if( cursor instanceof WedgeCursor )
+    {
+      if ( doing_wedge )
+        cursor.redraw( current );
+      else
+      {
+        cursor.start( current );
+        cursor.redraw( current );
+        doing_wedge = true;
       }
     }
     else if( cursor instanceof AnnularCursor )
@@ -458,24 +467,10 @@ public class SelectionJPanel extends ActiveJPanel
   */
   public void stop_cursor( XOR_Cursor3pt cursor, Point current )
   {
-    if( cursor instanceof WedgeCursor )
-    {	
-      if ( doing_wedge )
-      {
-	if( firstRun )
-        {
-          cursor.redraw( current );
-          cursor.midpoint( current );
-        }
-        else
-        {
-	  cursor.redraw( current );
-	  cursor.stop( current );
-	  doing_wedge = false;
-        }
-      }
-    } 
-    else if( cursor instanceof DoubleWedgeCursor )
+                                            // check DoubleWedgeCursor first
+                                            // since DoubleWedgeCursor extends
+                                            // WedgeCursor
+    if( cursor instanceof DoubleWedgeCursor )
     {	
       if ( doing_dblwedge )
       {
@@ -489,6 +484,23 @@ public class SelectionJPanel extends ActiveJPanel
 	  cursor.redraw( current );
 	  cursor.stop( current );
 	  doing_dblwedge = false;
+        }
+      }
+    }
+    else if( cursor instanceof WedgeCursor )
+    {
+      if ( doing_wedge )
+      {
+        if( firstRun )
+        {
+          cursor.redraw( current );
+          cursor.midpoint( current );
+        }
+        else
+        {
+          cursor.redraw( current );
+          cursor.stop( current );
+          doing_wedge = false;
         }
       }
     }
