@@ -37,6 +37,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2007/03/23 20:24:54  dennis
+ *  Now calculates symmetrically placed points across axis of wedge
+ *  using vectors, instead of slopes of lines that could become
+ *  undefined.
+ *
  *  Revision 1.7  2004/05/11 00:59:27  millermi
  *  - Removed unused variables.
  *
@@ -71,6 +76,7 @@
  import java.io.Serializable;
  import java.awt.Point;
  import java.awt.Graphics;
+ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 
 /** 
  *  This class implements a Rubberband Wedge cursor for selecting regions.
@@ -80,15 +86,18 @@
  */
 
 public class WedgeCursor extends  XOR_Cursor3pt 
-                                implements Serializable
+                                  implements Serializable
 {
-  private Point topleft = new Point(0,0);     // top left corner of box bounding
-                                              // the circle that the arc comes
-					      // from
-  private Point bottomright = new Point(0,0); // bottom right corner of same box
-  private Point p4 = new Point(0,0);          // reflection of p3
+  private Point topleft = new Point(0,0);     // top left corner of box
+                                              // bounding the circle that the
+                                              // arc comes from
+  private Point bottomright = new Point(0,0); // bottom right corner of 
+                                              // same box
+  private Point p4     = new Point(0,0);      // reflection of p3
   private Point angles = new Point(0,0);      // start angle and arcangle
+
   private boolean swap = false;               // were p3 and p4 swapped?
+
  /**
   *  Construct a new WedgeCursor to be used on a JPanel.
   *
@@ -104,50 +113,51 @@ public class WedgeCursor extends  XOR_Cursor3pt
   *  This method draws a wedge or pie slice. First a line is drawn, then the
   *  wedge is formed.
   *
-  *  @param  graphics	The graphics context that the circle will be drawn in.
-  *  @param  p1 	Vertex of wedge.
-  *  @param  p2 	Radius point of the wedge.
-  *  @param  p3 	Size of wedge arc.
+  *  @param  graphics   The graphics context that the circle will be drawn in.
+  *  @param  p1         Vertex of wedge.
+  *  @param  p2         Radius point of the wedge.
+  *  @param  p3         Size of wedge arc.
   */
   public void draw( Graphics graphics, Point p1, Point p2, Point p3 )
   {
-    // if second and third points are the same, draw only the line
-    if( !( p2.x == p3.x && p2.y == p3.y ) )
+    // if second and third points are the same, or first and second points are 
+    // the same, the draw only the line (or point) between p1 and p2.
+
+    if( !( p2.x == p3.x && p2.y == p3.y ) && !( p2.x == p1.x && p2.y == p1.y ))
     { 
-      // draw line from "if" again to make it disappear using XOR
-      //graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
-      // draw line passing through p1 and p3
+                                          // first draw line from p1 to p3
+                                          // then find and draw the reflection
+                                          // of this line across the axis of
+                                          // the wedge.
       graphics.drawLine( p1.x, p1.y, p3.x, p3.y );
       
-      // draw reflection of line passing through p1 and p3 about the line 
-      // passing through p1 and p2.
-      
-      // this will prevent slope of zero or +/- infinity
-      if( p1.x == p2.x )
-        p2.x += 1;
-      if( p1.y == p2.y )
-        p2.y += 1;
-      float slope = (float)(p2.y - p1.y)/(float)(p2.x - p1.x);
-      float perpendicular_slope = -1/slope;
-      // int is the intersection point of the two lines.
-      float intx = ( p3.y - p1.y - perpendicular_slope * p3.x + slope * p1.x )/
-                  ( slope - perpendicular_slope );
-      float inty = slope * (intx - p1.x) + p1.y;
-      // p4 is the reflection of p3 across the line passing through p1 and p2.
-      p4.x = (int)(2*intx - p3.x);
-      p4.y = (int)(2*inty - p3.y);
-      // reflection of line passing through p1 and p3.
+      floatPoint2D diff_vec = new floatPoint2D( p2.x - p1.x, p2.y - p1.y );
+      floatPoint2D u_vec = new floatPoint2D( diff_vec );
+      u_vec.normalize();
+      floatPoint2D v_vec = new floatPoint2D( -u_vec.y, u_vec.x ); 
+
+      floatPoint2D p3_float = new floatPoint2D( p3.x, p3.y );
+      diff_vec = new floatPoint2D( p3.x - p1.x, p3.y - p1.y );
+      float perp_comp = diff_vec.dot( v_vec );
+      v_vec.scale( -2 * perp_comp );
+      floatPoint2D p4_float = new floatPoint2D( p3_float );
+      p4_float.add( v_vec ); 
+
+      p4.x = Math.round( p4_float.x );
+      p4.y = Math.round( p4_float.y );
+                                            // draw reflection of line passing 
+                                            // through p1 and p3.
       graphics.drawLine( p1.x, p1.y, p4.x, p4.y );
       		
-      int startangle = -Math.round( (float)Math.toDegrees(Math.atan2(
-                                                       (double)(p3.y - p1.y),
-                                                       (double)(p3.x - p1.x))));
-      int stopangle  = -Math.round( (float)Math.toDegrees(Math.atan2( 
-                                                       (double)(p4.y - p1.y),
-                                                       (double)(p4.x - p1.x))));
-      int initangle  = -Math.round( (float)Math.toDegrees(Math.atan2( 
-                                                       (double)(p2.y - p1.y),
-                                                       (double)(p2.x - p1.x))));
+      float startangle = -(float)Math.toDegrees(Math.atan2(
+                                                     (double)(p3.y - p1.y),
+                                                     (double)(p3.x - p1.x)));
+      float stopangle  = -(float)Math.toDegrees(Math.atan2( 
+                                                     (double)(p4.y - p1.y),
+                                                     (double)(p4.x - p1.x)));
+      float initangle  = -(float)Math.toDegrees(Math.atan2( 
+                                                     (double)(p2.y - p1.y),
+                                                     (double)(p2.x - p1.x)));
       // put everything from 0-360
       if( startangle < 0 )
         startangle = 360 + startangle;
@@ -156,10 +166,10 @@ public class WedgeCursor extends  XOR_Cursor3pt
       if( initangle < 0 )
         initangle = 360 + initangle;      
       
-      // make sure startangle is always less than stop angle
+      // make sure startangle is always less than or equal to stop angle
       if( startangle > stopangle )
       { // swap them and their corresponding points
-        int temp = startangle;
+        float temp = startangle;
 	startangle = stopangle;
 	stopangle = temp;
 	swap = true;
@@ -167,19 +177,17 @@ public class WedgeCursor extends  XOR_Cursor3pt
       else
         swap = false;
       
-      int arcangle = stopangle - startangle;
+      float arcangle = stopangle - startangle;
       // if initangle isn't between start and stop, then the angle includes
       // the point where the unit circle goes from 359 to 0. Swap the start
       // and stop angle so that the arcangle is always positive and the
       // drawing always occurs in a counterclockwise direction.
-      // The initangle+1 and initangle-1 are adjustments to compensate for
-      // rounding.  
-      if( !( initangle+1 >= startangle && initangle-1 <= stopangle) )
+      if( !( initangle >= startangle && initangle <= stopangle) )
       {
-        int invertStop = 360 - stopangle;
+        float invertStop = 360 - stopangle;
 	arcangle = startangle + invertStop;
 	
-        int temp = startangle;
+        float temp = startangle;
 	startangle = stopangle;
 	stopangle = temp;
 	swap = !swap;
@@ -193,14 +201,22 @@ public class WedgeCursor extends  XOR_Cursor3pt
       bottomright = new Point( topleft.x + (int)(2*radius),
                                topleft.y + (int)(2*radius) );
      //System.out.println("Start/Stop angle: " + startangle + "/" + stopangle );
-      //System.out.println("StartPt: (" + topleft.x + "," + topleft.y +")" );
+     //System.out.println("StartPt: (" + topleft.x + "," + topleft.y +")" );
       
-      graphics.drawArc(topleft.x,topleft.y,(int)(2*radius),(int)(2*radius),
-                       startangle,arcangle);
       // put angles in point for passing to overlay.
-      angles.x = startangle;
-      angles.y = arcangle;
+      angles.x = Math.round(startangle);
+      angles.y = Math.round(arcangle);
+      if ( angles.y > 1 )
+      {
+        graphics.drawArc( topleft.x, 
+                          topleft.y,
+                          (int)(2*radius),
+                          (int)(2*radius),
+                          angles.x,          // integer form of startangle
+                          angles.y  );       // integer form of arcangle 
+      }
     }
+
     // this line is the directional vector
     graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
   }
