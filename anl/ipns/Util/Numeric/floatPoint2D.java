@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/03/23 18:15:30  dennis
+ *  Added some "vector" methods: add(), subtract(), dot(), scale() and
+ *  normalize().
+ *
  *  Revision 1.10  2004/07/07 23:01:13  dennis
  *  Added method: distance(pt) to calculate the distance from the current
  *  floatPoint2D object to a specified floatPoint2D object.
@@ -145,6 +149,33 @@ public class floatPoint2D implements java.io.Serializable {
       return (float)Math.sqrt( x*x + y*y ); 
     }
 
+
+    /**
+     *  If this point is not (0,0) scale x and y by 1/magnitude, so that 
+     *  this point will have magnitude 1.  If this point is (0,0) this 
+     *  method has no effect.
+     */
+    public void normalize()
+    {
+      if ( x != 0 || y != 0 )
+      {
+         float mag = (float)Math.sqrt( x*x + y*y );
+         x /= mag;
+         y /= mag;
+      }
+    }
+
+
+    /**
+     *  Multiply the x and y components of this point by the specified 
+     *  scale factor.
+     */
+    public void scale( float factor )
+    {
+       x *= factor;
+       y *= factor;
+    }
+
   
     /**
      *  Calculate the distance from the current point
@@ -164,11 +195,52 @@ public class floatPoint2D implements java.io.Serializable {
 
 
     /**
+     *  Calculate the dot product of this point with the specified
+     *  point.
+     *
+     *  @param point2  The second factor in the dot product.
+     *
+     *  @return The dot product: this (dot) point2
+     */
+    public float dot( floatPoint2D point2 )
+    {
+      return x*point2.x + y*point2.y;
+    }
+
+
+    /**
+     *  Add the components of the specified point to the components of
+     *  this point.
+     *
+     *  @param point2  The second term in the sum.
+     */
+    public void add( floatPoint2D point2 )
+    {
+       x += point2.x;
+       y += point2.y;
+    }
+
+
+    /**
+     *  Subtract the components of the specified point from the components of
+     *  this point.
+     *
+     *  @param point2  The second term in the difference.
+     */
+    public void subtract( floatPoint2D point2 )
+    {
+       x -= point2.x;
+       y -= point2.y;
+    }
+
+
+    /**
      * Returns a representation of this point as a string.
      */
     public String toString() {
 	return "[x=" + x + ",y=" + y + "]";
     }	
+
 
     /**
      * Converts a floatPoint2D to a java.awt.Point.
