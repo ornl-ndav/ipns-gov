@@ -27,6 +27,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2007/03/25 21:59:04  dennis
+ *  Cleaned up getSelectedPoints() method.  Now calls getRegionBuonds()
+ *  method to get the range of rows and columns covered, instead of
+ *  getting the world coordinate bounds and mapping them to array
+ *  coordinates.  Also, now uses an array to accumulate the selected
+ *  points, instead of a vector, for efficiency.
+ *
  *  Revision 1.1  2007/03/16 16:31:48  dennis
  *  New subclass of Region to deal with regions like box, wedge, circle,
  *  etc. that have an interior, as opposed to regions like line and point
@@ -101,55 +108,40 @@ public abstract class RegionWithInterior extends    Region
   */
   public Point[] getSelectedPoints( CoordTransform world_to_array )
   {
-    CoordBounds bounds = getRegionBoundsWC();
+                                          // get bounding box for the region
 
-    floatPoint2D min_point = new floatPoint2D( bounds.getX1(), bounds.getY1() );
-    floatPoint2D max_point = new floatPoint2D( bounds.getX2(), bounds.getY2() );
+    CoordBounds bounds = getRegionBounds( world_to_array );
 
-    min_point = world_to_array.MapTo( min_point );
-    max_point = world_to_array.MapTo( max_point );
+    int min_x = (int)bounds.getX1();
+    int max_x = (int)bounds.getX2();
 
-    if ( min_point.x > max_point.x )
-    {
-      float temp = min_point.x;
-      min_point.x = max_point.x;
-      max_point.x = temp;
-    }
-
-    if ( min_point.y > max_point.y )
-    {
-      float temp = min_point.y;
-      min_point.y = max_point.y;
-      max_point.y = temp;
-    }
-
-    min_point.x = (float)Math.floor( min_point.x );
-    min_point.y = (float)Math.floor( min_point.y );
-
-    max_point.x = (float)Math.ceil( max_point.x );
-    max_point.y = (float)Math.ceil( max_point.y );
-
-                                           // Step through box rowwise, getting
+    int min_y = (int)bounds.getY1();
+    int max_y = (int)bounds.getY2();
+                                           // Step through box rowwise, saving 
                                            // points that are in the region.
-    Vector pts = new Vector();
+
+    Point pts[] = new Point[ ( max_x - min_x + 1 ) * ( max_y - min_y + 1 ) ];
+
     floatPoint2D temp_point = new floatPoint2D();
-    for( int row = (int)min_point.y; row <= (int)max_point.y; row++ )
+    int  num_pts = 0;
+    for( int row = min_y; row <= max_y; row++ )
     {
-      for( int col = (int)min_point.x; col <= (int)max_point.x; col++ )
+      for( int col = min_x; col <= max_x; col++ )
       {
-        temp_point.x = col + 0.5f;
-        temp_point.y = row + 0.5f;
+                                      // NOTE: We could avoid making lots of
+        temp_point.x = col + 0.5f;    // small temp_point objects, if we added
+        temp_point.y = row + 0.5f;    // a method to do the mapping "in place"
         temp_point = world_to_array.MapFrom( temp_point );
+
         if ( isInsideWC( temp_point.x, temp_point.y ) )
-          pts.add(new Point(col,row));
+          pts[num_pts++] = new Point(col,row);
       }
     }
                                             // construct final list of points.
-    Point[] selectedpoints = new Point[pts.size()];
-    for( int i = 0; i < pts.size(); i++ )
-      selectedpoints[i] = (Point)pts.elementAt(i);
+    Point[] selected_points = new Point[num_pts];
+    System.arraycopy( pts, 0, selected_points, 0, num_pts );
 
-    return selectedpoints;
+    return selected_points;
   }
   
 }
