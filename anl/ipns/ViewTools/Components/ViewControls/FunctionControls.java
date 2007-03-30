@@ -31,6 +31,16 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.59  2007/03/30 19:18:42  amoe
+ * - Commented out RangeListener and it's application to the graph
+ * range.  I added the RangeListener functionality to the
+ * ControlListener.  This is triggered by a
+ * RangeControl.RANGE_CHANGED flag. ControlListener is now
+ * applied to the graph range.
+ *
+ * - Added setZoom(..) method.  This sets the zoom region on the
+ * GraphJPanel.
+ *
  * Revision 1.58  2006/07/10 20:41:35  amoe
  * Added code for new symbol type "Bar".
  *
@@ -798,7 +808,10 @@ import javax.swing.*;
     labelbox7.addActionListener( new ControlListener(  ) );
     labelbox9.addActionListener( new ControlListener(  ) );
     labelbox8.addActionListener( new ControlListener(  ) );
-    graph_range.addActionListener( new RangeListener(  ) );
+    
+    //graph_range.addActionListener( new RangeListener(  ) );
+    graph_range.addActionListener( new ControlListener(  ) );
+    
     gjp.addActionListener( new ImageListener(  ) );
     fvc.addActionListener( new ImageListener(  ) ); 
     
@@ -1037,41 +1050,58 @@ import javax.swing.*;
   // method to remove panels upon removal of view components 
   public void kill() {
   }
+  
+  private void setZoom(float x1, float y1, float x2, float y2)
+  {
+	  gjp.setZoom_region(x1, y1, x2, y2);
+  }
 
+  /*
   private class RangeListener implements ActionListener {
 
     public void actionPerformed(ActionEvent ae)  {
-          // System.out.println("Entered: " + graph_range.getTitle() );
-          // System.out.println("event " + ae);
-          // System.out.println("Min = " + graph_range.getMin(0) );
-          // System.out.println("Max = " + graph_range.getMax(0) );
-      LogScaleUtil loggery = new LogScaleUtil(gjp.getPositiveYmin(),
-                                              gjp.getYmax(),
-                                              gjp.getPositiveYmin(),
-					      gjp.getYmax());
-      LogScaleUtil loggerx = new LogScaleUtil(gjp.getPositiveXmin(),
-        			              gjp.getXmax(), 
-				              gjp.getPositiveXmin(),
-					      gjp.getXmax());
+    	
+    	//System.out.println("ae.getActionCommand(): "+ae.getActionCommand());
+    	//System.out.println("ae.getID(): "+ae.getID());
+    	//System.out.println("ae.getSource(): "+ae.getSource());
+    	//System.out.println("ae.getClass(): "+ae.getClass());
+    	//System.out.println("ae.paramString(): "+ae.paramString());
+    	//System.out.println("ae.toString(): "+ae.toString());
+      
+          LogScaleUtil loggery = new LogScaleUtil(gjp.getPositiveYmin(),
+        		                                  gjp.getYmax(),
+        		                                  gjp.getPositiveYmin(),
+        		                                  gjp.getYmax());
+          
+          LogScaleUtil loggerx = new LogScaleUtil(gjp.getPositiveXmin(),
+    		                                      gjp.getXmax(),
+    		                                      gjp.getPositiveXmin(),
+    		                                      gjp.getXmax());
 
-      if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
-
-        gjp.setZoom_region( loggerx.toDest(graph_range.getMin(0)),
-        		    loggery.toDest(graph_range.getMax(1)),
-        		    loggerx.toDest(graph_range.getMax(0)),
-        		    loggery.toDest(graph_range.getMin(1)) );
-      }
-      else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) { 
-        gjp.setZoom_region( loggerx.toDest(graph_range.getMin(0)), 
-        		    graph_range.getMax(1),
-        		    loggerx.toDest(graph_range.getMax(0)),
-        		    graph_range.getMin(1) );
-      }
-      else
-      gjp.setZoom_region( graph_range.getMin(0), graph_range.getMax(1),
-        		  graph_range.getMax(0), graph_range.getMin(1) );
+          if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
+        	  
+        	  setZoom(loggerx.toDest(graph_range.getMin(0)),
+        			  loggery.toDest(graph_range.getMax(1)),
+        			  loggerx.toDest(graph_range.getMax(0)),
+        			  loggery.toDest(graph_range.getMin(1)));
+          }
+          else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) { 
+        	  
+        	  setZoom(loggerx.toDest(graph_range.getMin(0)), 
+        			  graph_range.getMax(1),
+        			  loggerx.toDest(graph_range.getMax(0)),
+        			  graph_range.getMin(1));
+          }
+          else
+          {        	  
+        	  setZoom(graph_range.getMin(0), 
+        			  graph_range.getMax(1),
+        			  graph_range.getMax(0), 
+        			  graph_range.getMin(1));
+          }
+          
     }
-  }
+  }*/
  
  private class ImageListener implements ActionListener {
     //~ Methods ****************************************************************
@@ -1597,10 +1627,10 @@ import javax.swing.*;
 	    // ranges (log sets min to least positive number in negative)
             AxisInfo xinfo = fvc.getAxisInformation(AxisInfo.X_AXIS);
             AxisInfo yinfo = fvc.getAxisInformation(AxisInfo.Y_AXIS);
-	    graph_range.setMin(0, xinfo.getMin());
-	    graph_range.setMax(0, xinfo.getMax());
-	    graph_range.setMin(1, yinfo.getMin());
-	    graph_range.setMax(1, yinfo.getMax());
+            graph_range.setMin(0, xinfo.getMin());
+            graph_range.setMax(0, xinfo.getMax());
+            graph_range.setMin(1, yinfo.getMin());
+            graph_range.setMax(1, yinfo.getMax());
           }  
       } 
         /* 
@@ -1654,7 +1684,42 @@ import javax.swing.*;
           }
         }
        fvc.paintComponents(  );
-      }  
+      }
+      else if( message.equals(RangeControl.RANGE_CHANGED) ) 
+      {      	
+    	  LogScaleUtil loggery = new LogScaleUtil(gjp.getPositiveYmin(),
+      		                                  gjp.getYmax(),
+      		                                  gjp.getPositiveYmin(),
+      		                                  gjp.getYmax());
+        
+    	  LogScaleUtil loggerx = new LogScaleUtil(gjp.getPositiveXmin(),
+  		                                      gjp.getXmax(),
+  		                                      gjp.getPositiveXmin(),
+  		                                      gjp.getXmax());
+
+    	  if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) 
+    	  {
+    		  setZoom(loggerx.toDest(graph_range.getMin(0)),
+    				  loggery.toDest(graph_range.getMax(1)),
+    				  loggerx.toDest(graph_range.getMax(0)),
+    				  loggery.toDest(graph_range.getMin(1)));
+    	  }
+    	  else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) 
+    	  { 
+    		  setZoom(loggerx.toDest(graph_range.getMin(0)), 
+      			  graph_range.getMax(1),
+      			  loggerx.toDest(graph_range.getMax(0)),
+      			  graph_range.getMin(1));
+    	  }
+    	  else
+    	  {
+    		  setZoom(graph_range.getMin(0), 
+      			  graph_range.getMax(1),
+      			  graph_range.getMax(0), 
+      			  graph_range.getMin(1));
+    	  }
+      }     
+      
        fvc.paintComponents(  );
     }
   }
