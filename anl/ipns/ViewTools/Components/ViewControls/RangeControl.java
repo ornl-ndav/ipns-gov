@@ -31,6 +31,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2007/03/30 19:10:07  amoe
+ *  - Added RANGE_CHANGED constant.  It acts as a flag for when the
+ *  ranges change.
+ *  - Set the range_fields' action command to RANGE_CHANGED.
+ *  - Added validateRanges().  This sends a message to the super class.
+ *  - setObjectState() now calls validateRanges() at the end.
+ *  - addActionListener now adds the local listener to the super class's
+ *  listener list.
+ *
  *  Revision 1.3  2005/05/25 20:28:43  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -80,6 +89,12 @@ public class RangeControl extends ViewControl implements Serializable,
     *  information about the Label For the text Range.
     */
   public static String RANGE_LABEL = "Range Label";
+  
+   /**
+    *  "Range Changed" - This constant String is used as a message for updating the
+    *  graph range with action listeners.
+    */
+  public static String RANGE_CHANGED = "Range Changed";
 
   private TextRangeUI[] range_field;
   private Box vert_box = new Box(BoxLayout.Y_AXIS);
@@ -97,6 +112,7 @@ public class RangeControl extends ViewControl implements Serializable,
     for(int index = 0; index < name.length; index++)
     {
       range_field[index] = new TextRangeUI(name[index],0,1);
+      range_field[index].setActionCommand(RANGE_CHANGED);
       vert_box.add(range_field[index]);
     }
     add(vert_box);
@@ -112,7 +128,7 @@ public class RangeControl extends ViewControl implements Serializable,
    public void setObjectState( ObjectState new_state )
    {
       Object temp = new_state.get(MIN_RANGE);
-   
+      
       for( int x = 0; x < range_field.length; x++){
         String MIN_RANGEX = MIN_RANGE + x;
         temp = new_state.get(MIN_RANGEX);
@@ -145,6 +161,7 @@ public class RangeControl extends ViewControl implements Serializable,
       }
       validate();
       repaint();
+      validate_ranges();
    }
  
   /**
@@ -262,6 +279,10 @@ public class RangeControl extends ViewControl implements Serializable,
       setMax( index,(float)( 
       ((float[])( ((Vector)value).elementAt(index)) ) [1] ) );
     }
+    
+    //notify listeners of range updates
+    //send_message(RANGE_CHANGED);
+    
     return; 
   }
 
@@ -283,16 +304,23 @@ public class RangeControl extends ViewControl implements Serializable,
     }
     return values;
   }
+  
+  public void validate_ranges()
+  {
+	  send_message(RANGE_CHANGED);
+  }
 
   /**
     * Function to add an action Listener to the text fields.
     */
    public void addActionListener(ActionListener listener)
    {
-     for(int i=0; i < range_field.length; i++)
-     {
-       range_field[i].addActionListener(listener);
-     }
+	   super.listeners.add(listener);
+	   
+	   for(int i=0; i < range_field.length; i++)
+	   {
+		   range_field[i].addActionListener(listener);
+	   }
    }
    /**
      * Main Program for test purposes only.
