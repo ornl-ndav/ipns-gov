@@ -35,8 +35,11 @@
  * only this class uses three points.)
  *
  * Modified:
- *
  *  $Log$
+ *  Revision 1.9  2007/04/07 21:27:44  dennis
+ *  Clean up of logic for selecting points that define the region.
+ *
+ *
  *  Revision 1.8  2007/03/23 20:24:54  dennis
  *  Now calculates symmetrically placed points across axis of wedge
  *  using vectors, instead of slopes of lines that could become
@@ -93,10 +96,9 @@ public class WedgeCursor extends  XOR_Cursor3pt
                                               // arc comes from
   private Point bottomright = new Point(0,0); // bottom right corner of 
                                               // same box
+  private Point last_p3= new Point(0,0);      // last value of p3
   private Point p4     = new Point(0,0);      // reflection of p3
   private Point angles = new Point(0,0);      // start angle and arcangle
-
-  private boolean swap = false;               // were p3 and p4 swapped?
 
  /**
   *  Construct a new WedgeCursor to be used on a JPanel.
@@ -114,14 +116,16 @@ public class WedgeCursor extends  XOR_Cursor3pt
   *  wedge is formed.
   *
   *  @param  graphics   The graphics context that the circle will be drawn in.
-  *  @param  p1         Vertex of wedge.
-  *  @param  p2         Radius point of the wedge.
-  *  @param  p3         Size of wedge arc.
+  *  @param  p1         Vertex of wedge, the first point the user selects.
+  *  @param  p2         Point the axis of symmetry for the wedge 
+  *  @param  p3         Point on the outer edge of the wedge.  This point is
+  *                     reflected across the axis of symmetry to form the
+  *                     full wedge. 
   */
   public void draw( Graphics graphics, Point p1, Point p2, Point p3 )
   {
     // if second and third points are the same, or first and second points are 
-    // the same, the draw only the line (or point) between p1 and p2.
+    // the same, then draw only the line (or point) between p1 and p2.
 
     if( !( p2.x == p3.x && p2.y == p3.y ) && !( p2.x == p1.x && p2.y == p1.y ))
     { 
@@ -149,70 +153,59 @@ public class WedgeCursor extends  XOR_Cursor3pt
                                             // through p1 and p3.
       graphics.drawLine( p1.x, p1.y, p4.x, p4.y );
       		
-      float startangle = -(float)Math.toDegrees(Math.atan2(
-                                                     (double)(p3.y - p1.y),
-                                                     (double)(p3.x - p1.x)));
-      float stopangle  = -(float)Math.toDegrees(Math.atan2( 
-                                                     (double)(p4.y - p1.y),
-                                                     (double)(p4.x - p1.x)));
-      float initangle  = -(float)Math.toDegrees(Math.atan2( 
-                                                     (double)(p2.y - p1.y),
-                                                     (double)(p2.x - p1.x)));
-      // put everything from 0-360
-      if( startangle < 0 )
-        startangle = 360 + startangle;
-      if( stopangle < 0 )
-        stopangle = 360 + stopangle;
-      if( initangle < 0 )
-        initangle = 360 + initangle;      
-      
-      // make sure startangle is always less than or equal to stop angle
-      if( startangle > stopangle )
-      { // swap them and their corresponding points
-        float temp = startangle;
-	startangle = stopangle;
-	stopangle = temp;
-	swap = true;
+      double angle_3   = -Math.atan2(p3.y - p1.y, p3.x - p1.x);
+      double angle_4   = -Math.atan2(p4.y - p1.y, p4.x - p1.x);
+      double axisangle = -Math.atan2(p2.y - p1.y, p2.x - p1.x);
+
+      double half_angle   = 0;             // this is half the positive angle
+                                           // at the vertex of the wedge
+
+                                           // we may need to swap points p3&p4
+                                           // if p3 is not located clockwise
+                                           // along the edge of the wedge, from
+                                           // the wedge axis.
+      boolean swap_points = false;
+      if ( Math.abs( angle_3 - axisangle ) < Math.abs( angle_4 - axisangle ))
+      {
+        half_angle = Math.abs(angle_3 - axisangle);
+        if ( angle_3 - axisangle  > 0 )
+          swap_points = true;
       }
       else
-        swap = false;
-      
-      float arcangle = stopangle - startangle;
-      // if initangle isn't between start and stop, then the angle includes
-      // the point where the unit circle goes from 359 to 0. Swap the start
-      // and stop angle so that the arcangle is always positive and the
-      // drawing always occurs in a counterclockwise direction.
-      if( !( initangle >= startangle && initangle <= stopangle) )
       {
-        float invertStop = 360 - stopangle;
-	arcangle = startangle + invertStop;
-	
-        float temp = startangle;
-	startangle = stopangle;
-	stopangle = temp;
-	swap = !swap;
+        half_angle = Math.abs(angle_4 - axisangle);
+        if ( angle_4 - axisangle < 0 )
+          swap_points = true;
       }
+      
+      if ( swap_points )                   // rearrange our copies of p3&p4 
+      {                                    // so the wedge can start from p3
+        last_p3 = new Point( p4 );         // an extend in the clockwise 
+        p4      = new Point( p3 );         // direction.
+      }
+      else
+        last_p3 = new Point( p3 );
+
+      
       // create rectangle with p1 at its center that bounds the arc's circle
       // find radius of arc
-      double xsquared = Math.pow( (double)(p1.x - p3.x), 2 );
-      double ysquared = Math.pow( (double)(p1.y - p3.y), 2 );
+      double xsquared = Math.pow( p1.x - p3.x, 2 );
+      double ysquared = Math.pow( p1.y - p3.y, 2 );
       double radius = Math.sqrt( xsquared + ysquared );
       topleft = new Point( p1.x - (int)radius, p1.y - (int)radius );
       bottomright = new Point( topleft.x + (int)(2*radius),
                                topleft.y + (int)(2*radius) );
-     //System.out.println("Start/Stop angle: " + startangle + "/" + stopangle );
-     //System.out.println("StartPt: (" + topleft.x + "," + topleft.y +")" );
       
       // put angles in point for passing to overlay.
-      angles.x = Math.round(startangle);
-      angles.y = Math.round(arcangle);
-      if ( angles.y > 1 )
+      angles.x = (int)Math.round(Math.toDegrees( axisangle - half_angle ));
+      angles.y = (int)Math.round(Math.toDegrees( 2 * half_angle ));
+      if ( angles.y > 0 )
       {
         graphics.drawArc( topleft.x, 
                           topleft.y,
                           (int)(2*radius),
                           (int)(2*radius),
-                          angles.x,          // integer form of startangle
+                          angles.x,          // integer form of angle_3 
                           angles.y  );       // integer form of arcangle 
       }
     }
@@ -220,6 +213,7 @@ public class WedgeCursor extends  XOR_Cursor3pt
     // this line is the directional vector
     graphics.drawLine( p1.x, p1.y, p2.x, p2.y );
   }
+
 
  /**
   *  This method returns an array of points used to define a wedge.
@@ -245,20 +239,15 @@ public class WedgeCursor extends  XOR_Cursor3pt
     array[0] = first_pt;
     // swap points here instead of in draw because otherwise swapping affects
     // the XOR cursor redraw, which erases the last drawn line.
-    if( !swap )
-    {
-      array[1] = last_pt;
-      array[2] = p4;
-    }
-    else
-    {
-      array[1] = p4;
-      array[2] = last_pt;
-    }
+
+    array[1] = last_p3;
+    array[2] = p4;
+
     array[3] = topleft;
     array[4] = bottomright;
     array[5] = angles;
 
     return array;
   }
+
 }
