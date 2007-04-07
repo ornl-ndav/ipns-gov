@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/04/07 21:23:58  dennis
+ *  Removed two unused variables.
+ *
  *  Revision 1.10  2007/03/16 16:48:36  dennis
  *  Major refactoring.  Now overides getSelectedPoints() to deterimine
  *  which point(s) this region should indicate as selected.  Removed
@@ -96,8 +99,6 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
  */ 
 public class LineRegion extends Region
 {
-  private float start_x;   // coordinates of one endpoint
-  private float start_y;
   private float min_x = 0;
   private float max_x = 1;
   private float min_y = 0;
@@ -111,9 +112,6 @@ public class LineRegion extends Region
   public LineRegion( floatPoint2D[] dp )
   {
     super(dp);
-
-    start_x = dp[0].x;
-    start_y = dp[0].y;
 
     min_x = Math.min( dp[0].x, dp[1].x );
     max_x = Math.max( dp[0].x, dp[1].x );
