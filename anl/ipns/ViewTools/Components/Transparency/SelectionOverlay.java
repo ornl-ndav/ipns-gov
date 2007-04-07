@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.44  2007/04/07 21:23:00  dennis
+ *  Removed unused import.
+ *
  *  Revision 1.43  2007/03/16 18:44:13  dennis
  *  Adapted to work with new Region classes.
  *  No longer keeps world to array transformation as state information,
@@ -278,7 +281,6 @@ import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Region.*;
 import gov.anl.ipns.ViewTools.Components.Cursor.*; 
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
-import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
 import gov.anl.ipns.Util.Numeric.floatPoint2D; 
 import gov.anl.ipns.Util.Sys.ColorSelector;

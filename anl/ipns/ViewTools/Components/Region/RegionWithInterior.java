@@ -27,6 +27,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2007/04/07 21:23:27  dennis
+ *  Removed unused import.
+ *
  *  Revision 1.2  2007/03/25 21:59:04  dennis
  *  Cleaned up getSelectedPoints() method.  Now calls getRegionBuonds()
  *  method to get the range of rows and columns covered, instead of
@@ -45,7 +48,6 @@
 package gov.anl.ipns.ViewTools.Components.Region;
 
 import java.awt.Point;
-import java.util.Vector;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
