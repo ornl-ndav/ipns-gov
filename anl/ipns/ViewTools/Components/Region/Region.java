@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2007/04/11 21:52:33  dennis
+ *  Simplified getRegionUnion() method by using the RegionOpList class.
+ *
  *  Revision 1.14  2007/03/16 16:38:12  dennis
  *  Major refactoring of Region concept.  Regions are defined in world
  *  coordinates.  Any information about the mapping from world coordinates
@@ -108,9 +111,7 @@
 package gov.anl.ipns.ViewTools.Components.Region;
 
 import java.awt.Point;
-import java.util.Vector;
 
-import gov.anl.ipns.Util.Sys.SharedMessages;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
@@ -296,109 +297,11 @@ public abstract class Region implements java.io.Serializable
   public static Point[] getRegionUnion( Region[]       regions, 
                                         CoordTransform world_to_array  )
   {
-    // Only the TableRegion class has the concept of selected and deselected
-    // regions. This means only TableRegions can "subtract". However, the
-    // getRegionUnion() is generalized for the other regions, thus the
-    // selected and deselected concept is not implemented. If all TableRegions
-    // are selected, the TableRegion class behaves just like any other
-    // Region class.
-    if( regions instanceof TableRegion[] )
-      SharedMessages.addmsg( "Note: Using Region.getRegionUnion() with " +
-                             "TableRegions will return an incorrect list of " +
-			     "points if any of the TableRegions are " +
-			     "unselected." );
-    
-    // this transform will map image bounds to an integer grid from
-    // [0,#rows-1] x [0,#col-1]
-    CoordTransform image_to_array = new CoordTransform();
+     RegionOpList op_list = new RegionOpList();
+     for ( int i = 0; i < regions.length; i++ )
+       op_list.add( new RegionOp( regions[i], RegionOp.Operation.UNION ) );
 
-    // if no regions are passed in, return no points.
-    if( regions.length == 0 )
-      return new Point[0];
-
-    // region bounds are in image coordinates.
-    CoordBounds regionbounds = regions[0].getRegionBounds( world_to_array );
-    float rowmin = regionbounds.getX1();
-    float rowmax = regionbounds.getX2();
-    float colmin = regionbounds.getY1();
-    float colmax = regionbounds.getY2();
-    for( int i = 1; i < regions.length; i++ )
-    {
-      if( regions[i].getRegionBounds( world_to_array ).getX1() < rowmin )
-      {
-        rowmin = regions[i].getRegionBounds( world_to_array ).getX1();
-      }
-      if( regions[i].getRegionBounds( world_to_array ).getX2() > rowmax )
-      {
-        rowmax = regions[i].getRegionBounds( world_to_array ).getX2();
-      }
-      if( regions[i].getRegionBounds( world_to_array ).getY1() < colmin )
-      {
-        colmin = regions[i].getRegionBounds( world_to_array ).getY1();
-      }
-      if( regions[i].getRegionBounds( world_to_array ).getY2() > colmax )
-      {
-        colmax = regions[i].getRegionBounds( world_to_array ).getY2();
-      }
-    }
-
-    // create a nice integer-like interval that will nicely map to
-    // the array.
-    rowmin = (float)Math.floor((double)rowmin);
-    colmin = (float)Math.floor((double)colmin);
-    rowmax = (float)Math.ceil((double)rowmax);
-    colmax = (float)Math.ceil((double)colmax);
-
-    // set image bounds
-    image_to_array.setSource( new CoordBounds(rowmin,colmin,rowmax,colmax) );
-
-    // build table to keep track of selected points
-    int rows = Math.abs(Math.round(rowmax - rowmin)) + 1;
-    int columns = Math.abs(Math.round(colmax - colmin)) + 1;
-
-    // set array bounds
-    image_to_array.setDestination( new CoordBounds(0,0,
-                                                   (float)(rows-1),
-						   (float)(columns-1) ) );
-    boolean[][] point_table = new boolean[rows][columns];
-
-    //System.out.println("Row/Column: " + rows + "/" + columns );
-    Vector points = new Vector();
-    Point[] sel_pts;
-    Point temp = new Point();
-
-    // for each region, mark its selected points
-    for( int i = 0; i < regions.length; i++ )
-    {
-      System.out.println("Region = \n" + regions[i] );
-      // use initializeSelectedPoints() since getSelectedPoints() may call
-      // this method, causing an endless loop.
-      // sel_pts = regions[i].initializeSelectedPoints(); 
-      sel_pts = new Point[0];
-      for( int pt = 0; pt < sel_pts.length; pt++ )
-      { 
-	// map image points to array points
-	temp = image_to_array.MapTo(new floatPoint2D(sel_pts[pt])).toPoint();
-        /*
-	System.out.println(image_to_array);
-	System.out.println("row min/max: " + rowmin + "/" + rowmax );
-	System.out.println("col min/max: " + colmin + "/" + colmax );
-	System.out.println("Point: " + temp );
-	*/
-	if( !(point_table[temp.x][temp.y]) )
-	{
-          //System.out.println("Point: (" + sel_pts[pt].x + "," + 
-	  //                                sel_pts[pt].y + ")");
-	  points.add( new Point( sel_pts[pt] ) );
-	  point_table[temp.x][temp.y] = true;
-	}
-      }
-    }
-
-    // put the vector of points into an array of points
-    Point[] unionpoints = new Point[points.size()];
-    for( int i = 0; i < points.size(); i++ )
-      unionpoints[i] = (Point)points.elementAt(i);
-    return unionpoints;
+     return op_list.getSelectedPoints( world_to_array );
   }
+
 }
