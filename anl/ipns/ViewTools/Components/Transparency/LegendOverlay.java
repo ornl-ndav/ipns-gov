@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2007/04/13 19:59:24  amoe
+ *  - Added Bar mark type for Legend.
+ *  - Changed hardcoded constants to public GraphJPanel constants,
+ *   in drawLegend(..) for the marks.
+ *
  *  Revision 1.16  2006/07/25 16:06:31  amoe
  *  Made the sample line in the legend box slightly smaller in order to make room for the corresponding text.
  *
@@ -515,27 +520,27 @@ public BasicStroke strokeType(int key, int graph_num)
       int size = 2;
       for (int index = 0; index < graphs.length; index++)
       {
-	 g2d.setStroke(new BasicStroke(1) );
+         g2d.setStroke(new BasicStroke(1) );
          g2d.setColor(lineInfo[index].markcolor);
          int x_int =(int)current_bounds.getX()+(int)current_bounds
                             .getWidth() - 30 + x_offset;
          int y_int =(int)current_bounds.getY() + 20*(index+1)
                             + y_offset;
 
-         if( lineInfo[index].marktype == 0){}
-         else if( lineInfo[index].marktype == 1)
+         
+         if( lineInfo[index].marktype == GraphJPanel.DOT)
          {
             g2d.drawLine( x_int, y_int,
                               x_int, y_int );
          }
-         else if ( lineInfo[index].marktype == 2 )
+         else if ( lineInfo[index].marktype == GraphJPanel.PLUS )
          {
             g2d.drawLine( x_int-size, y_int,
                             x_int+size, y_int      );
             g2d.drawLine( x_int,     y_int-size,
                             x_int,      y_int+size );
          }
-         else if ( lineInfo[index].marktype == 3 )
+         else if ( lineInfo[index].marktype == GraphJPanel.STAR )
          {
            g2d.drawLine( x_int-size, y_int,
                              x_int+size, y_int      );
@@ -546,7 +551,7 @@ public BasicStroke strokeType(int key, int graph_num)
            g2d.drawLine( x_int-size, y_int+size,
                              x_int+size, y_int-size );
          }
-         else if ( lineInfo[index].marktype == 4 )
+         else if ( lineInfo[index].marktype == GraphJPanel.BOX )
          {
            g2d.drawLine( x_int-size, (y_int-size),
                     x_int-size, (y_int+size) );
@@ -557,13 +562,23 @@ public BasicStroke strokeType(int key, int graph_num)
            g2d.drawLine( x_int+size, y_int-size,
                      x_int-size, y_int-size );
          }
-         else   // type = CROSS
+         else if( lineInfo[index].marktype == GraphJPanel.CROSS )
          {
            g2d.drawLine( x_int-size, y_int-size,
                      x_int+size, y_int+size );
            g2d.drawLine( x_int-size, y_int+size,
                      x_int+size, y_int-size );
          }
+         else if( lineInfo[index].marktype == GraphJPanel.BAR )
+         {
+             g2d.drawLine( x_int, y_int-size, 
+            		 x_int, y_int+size );
+         }
+         else
+         {
+        	 //System.out.println(":No Point Marks");
+         }
+         
       }
   }
 
