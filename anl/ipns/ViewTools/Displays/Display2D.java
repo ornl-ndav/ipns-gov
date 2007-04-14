@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2007/04/14 14:04:42  rmikk
+ * The tickmarks and axis labels are now shown when printing the image.
+ *
  * Revision 1.14  2006/07/31 13:22:47  rmikk
  * The save and print image menu items are now enabled for the contour vies
  *
@@ -433,17 +436,19 @@ public class Display2D extends Display
     //componentholder.add( ivc.getDisplayPanel() );
     Box view_comp_controls = buildControlPanel();
     // if user wants controls, and controls exist, display them in a splitpane.
+    JPanel jpHolder = new JPanel( new java.awt.GridLayout(1,1));
+    jpHolder.add(ivc.getDisplayPanel());
     if( add_controls == CTRL_ALL && view_comp_controls != null )
     {
       setBounds(0,0,700,510);
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
-    	  			    ivc.getDisplayPanel(),
+    		  jpHolder,
         			    view_comp_controls, .75f );
     }
     else
     {
       setBounds(0,0,500,500);
-      pane = ivc.getDisplayPanel();
+      pane = jpHolder;
     }
     getContentPane().add(pane);
     addComponentMenuItems();

@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2007/04/14 14:04:42  rmikk
+ * The tickmarks and axis labels are now shown when printing the image.
+ *
  * Revision 1.8  2005/05/25 20:28:44  dennis
  * Now calls convenience method WindowShower.show() to show
  * the window, instead of instantiating a WindowShower object
@@ -145,6 +148,8 @@ public class Display1D extends Display
     setTitle("Display1D");
     addToMenubar();
     buildPane();
+    JMenu file_menu= menu_bar.getMenu(0);
+    PrintComponentActionListener.setUpMenuItem(file_menu,getContentPane());
     loadProps(PROP_FILE);
   }
  
@@ -320,18 +325,20 @@ public class Display1D extends Display
     ivc.addActionListener( new ViewCompListener() );    
     
     Box view_comp_controls = buildControlPanel();
+    JPanel jpHolder = new JPanel( new java.awt.GridLayout(1,1));
+    jpHolder =ivc.getDisplayPanel();
     // if user wants controls, and controls exist, display them in a splitpane.
     if( add_controls == CTRL_ALL && view_comp_controls != null )
     {
       setBounds(0,0,700,485);
       pane = new SplitPaneWithState(JSplitPane.HORIZONTAL_SPLIT,
-    	  			    ivc.getDisplayPanel(),
+    	  			    jpHolder,
         			    view_comp_controls, .75f );
     }
     else
     {
       setBounds(0,0,500,500);
-      pane = ivc.getDisplayPanel();
+      pane = jpHolder;
     }
     getContentPane().add(pane);
     addComponentMenuItems();
@@ -388,9 +395,11 @@ public class Display1D extends Display
     print.add("Print Graph");
     save_graph.add("Make JPEG Graph");
     file_listeners.add( new Menu2DListener() );
+   
     JMenu file_menu = menu_bar.getMenu(0);
-    file_menu.add( MenuItemMaker.makeMenuItem( print, file_listeners ),
-		   file_menu.getItemCount() - 1 );
+ //   file_menu.add( MenuItemMaker.makeMenuItem( print, file_listeners ),
+//		   file_menu.getItemCount() - 1 );
+    
     file_menu.add( MenuItemMaker.makeMenuItem( save_graph, file_listeners ),
 		   file_menu.getItemCount() - 1 );
     
