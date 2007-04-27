@@ -32,6 +32,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.6  2007/04/27 13:00:44  rmikk
+ * Fixed javadoc error
+ *
  * Revision 1.5  2007/03/12 19:19:50  rmikk
  * Added a static method to save an Image of an IViewComponent. It uses the
  *   swing invoke later to make sure all the drawing is done in time.
@@ -172,8 +175,8 @@ public class SaveImageActionListener implements ActionListener{
     *                the view component does not have to be displayable.
     * @param filename  The filename for the saved image. It will be forced to end
     *                  in .jpg if that is not the case
-    * @width    the width in pixels of image or -1 to use default. 
-    * @height   the height in pixels of the image or -1 for the default.
+    * @param width    the width in pixels of image or -1 to use default. 
+    * @param height   the height in pixels of the image or -1 for the default.
     * 
     * 
     * @return null or an ErrorString if an error occurred.
