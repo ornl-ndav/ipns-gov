@@ -28,6 +28,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2007/04/27 03:52:27  dennis
+ * Cleaned up and expanded the javadocs.
+ *
  * Revision 1.1  2007/04/11 21:51:10  dennis
  * New class for dealing with unions, intersections and complements
  * of selected regions.
@@ -41,8 +44,24 @@ import java.util.Vector;
 import java.awt.Point;
 
 /**
- * Class RegionOpList - Holds a list of RegionOp objects and 
- * contains methods to componds all the objects into one boolean[][]
+ * This class Holds a list of RegionOp objects and contains methods 
+ * to carry out the specified operations on the specified regions.
+ * The regions are specified in a "world coordinate systme", such
+ * as the size in cenimeters of an area detector.  The range of 
+ * world coordinates is assumed to correspond to an underlying two
+ * dimensional data array, such as the array of data values from a
+ * pixelated detector.  The method getSelectedPoints will return
+ * the list of (col,row) pairs corresponding to the selected elements
+ * in the underlying data array.  The selected points are the
+ * result of applying the operations and corresponding operations
+ * in the order that they appear in the list.  For example, the 
+ * first pair is typically a region with the operation "UNION". This 
+ * will set the selected points to the array elemets corresponding
+ * to the specified region.  If a second pair is the operation 
+ * INTERSECT and another region, when this pair is processed, the
+ * selected points will be set to the array elements that are in
+ * the intersection of the previously selected points AND the 
+ * points in the newly specified region.
  */
 public class RegionOpList {
 
@@ -62,6 +81,7 @@ public class RegionOpList {
  
  /**
   * Removes the RegionOp at the specified position from the list
+  *
   * @param pos  The position from which to remove the RegionOp
   */
   public void remove( int pos ){
@@ -80,8 +100,19 @@ public class RegionOpList {
 
  
  /**
-  * Compounds the list of RegionOps into a boolean[][] of included values
-  * @return
+  * Get the list of array coordinates in this compound selection.
+  * This RegionOpList contains a (possibly) empty list of selected
+  * region and operation pairs.  This method goes through the list
+  * of region and operation pairs, and accumulates the net result
+  * of the sequence of operations applied using the specified 
+  * regions.  
+  *
+  * @param world_to_array The transformation between floating point 
+  *                       "world coordinates" and the column & row
+  *                       numbers of the underlying data array. 
+  *
+  * @return An array of points containing the (col,row) coordinates
+  *         of each selected underlying data array element.
   */
   public Point[] getSelectedPoints( CoordTransform world_to_array ){
     RegionOp.Operation op;
@@ -138,6 +169,10 @@ public class RegionOpList {
  }
 
  
+ /**
+  *  Scan across all of the specified regions to obtain the maximum 
+  *  row and column indices used.
+  */
  private Point getSize( CoordTransform world_to_array ){
    int x = -1;
    int y = -1;
@@ -174,8 +209,14 @@ public class RegionOpList {
 
  
  /**
-  * Adds region to current selection
-  * @param region region to add
+  * Union the specified region with the current cummulative selection.
+  *
+  * @param region         Region to union with the
+  *                       current cummulative selection.
+  * 
+  * @param world_to_array The tranformation from the world coordinates
+  *                       in which the regions are specified, to the
+  *                       (col,row) coordinates of the underlying data array.
   */
  private void doUnion( Region region, CoordTransform world_to_array ){
    Point points[] = region.getSelectedPoints( world_to_array );
@@ -189,8 +230,14 @@ public class RegionOpList {
 
  
  /**
-  * Intersects region to current selection
-  * @param region region to interect
+  * Intersects the specified region with the current cumulative selection.
+  *
+  * @param region         Region to be intersected with the
+  *                       current cummulative selection.
+  * 
+  * @param world_to_array The tranformation from the world coordinates
+  *                       in which the regions are specified, to the
+  *                       (col,row) coordinates of the underlying data array.
   */
  private void doIntersect( Region region, CoordTransform world_to_array ){
    boolean[][] mask = getThisRegionMask( region, world_to_array );
@@ -203,8 +250,15 @@ public class RegionOpList {
 
  
  /**
-  * Subtracts region to current selection
-  * @param region region to subtract
+  * Intersects the complement of the specified region with the current 
+  * cummulative selection.
+  *
+  * @param region         Region whose complement is intersected with the
+  *                       current cummulative selection.
+  * 
+  * @param world_to_array The tranformation from the world coordinates
+  *                       in which the regions are specified, to the
+  *                       (col,row) coordinates of the underlying data array.
   */
  private void doIntersectComplement( Region         region, 
                                      CoordTransform world_to_array ){
@@ -218,7 +272,7 @@ public class RegionOpList {
  
 
  /**
-  * Reverses current cummulative selection
+  * Complement the current cummulative selection
   */
  private void doComplement(){
    //If Point is true in mask set it to false
