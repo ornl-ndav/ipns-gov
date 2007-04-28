@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2007/04/28 19:46:40  dennis
+ *  The getRegionBounds() method now clamps the lower bounds to be
+ *  at least zero, and the upperbounds to be no more than maximum
+ *  row or column number.
+ *  Expanded java docs.
+ *
  *  Revision 1.15  2007/04/11 21:52:33  dennis
  *  Simplified getRegionUnion() method by using the RegionOpList class.
  *
@@ -208,6 +214,12 @@ public abstract class Region implements java.io.Serializable
  /**
   * Get the discrete points that lie within this region, based on the
   * specified mapping from world to array (col,row) coordinates.
+  *
+  * @param world_to_array  The transformation from world coordinates to
+  *                        array coordinates.  NOTE: The destination bounds
+  *                        for this mapping MUST correspond to the array
+  *                        size.  The destination CoordBounds object is used
+  *                        to get the array size!!!
   * 
   *  @return array of points included within the region.
   */
@@ -229,7 +241,10 @@ public abstract class Region implements java.io.Serializable
   *  the region.
   *
   *  @param world_to_array  The transformation from world coordinates to 
-  *                         array coordinates
+  *                         array coordinates.  NOTE: The destination bounds
+  *                         for this mapping MUST correspond to the array
+  *                         size.  The destination CoordBounds object is used
+  *                         to get the array size!!!
   *
   *  @return Rectangular bounds containing the region.
   */
@@ -243,6 +258,10 @@ public abstract class Region implements java.io.Serializable
     min_point = world_to_array.MapTo( min_point );
     max_point = world_to_array.MapTo( max_point );
 
+                                      // Switch the "min" and "max"
+                                      // incase the ordering is reversed in
+                                      // the bounds (eg. "upside down" coords
+                                      // on the screen.)
     if ( min_point.x > max_point.x )
     {
       float temp = min_point.x;
@@ -256,12 +275,25 @@ public abstract class Region implements java.io.Serializable
       min_point.y = max_point.y;
       max_point.y = temp;
     }
-
+                                       // get lower and upper bounds as 
+                                       // integer values
     min_point.x = (float)Math.floor( min_point.x );
     min_point.y = (float)Math.floor( min_point.y );
 
     max_point.x = (float)Math.ceil( max_point.x );
     max_point.y = (float)Math.ceil( max_point.y );
+
+                                       // "clamp" the computed bounds to lie
+                                       // inside the array
+    CoordBounds array_size = world_to_array.getDestination();
+    int n_cols = Math.round(Math.max( array_size.getX1(), array_size.getX2()));
+    int n_rows = Math.round(Math.max( array_size.getY1(), array_size.getY2()));
+
+    max_point.x = Math.min( max_point.x, n_cols - 1 );
+    min_point.x = Math.max( min_point.x, 0 );
+
+    max_point.y = Math.min( max_point.y, n_rows - 1 );
+    min_point.y = Math.max( min_point.y, 0 );
 
     return new CoordBounds( min_point.x, min_point.y,
                             max_point.x, max_point.y );
@@ -291,7 +323,14 @@ public abstract class Region implements java.io.Serializable
   * Calling this method will combine all regions' selected points into
   * one list of points, where each point is unique.
   *
-  *  @param  regions The list of regions to be unionized.
+  *  @param regions         The list of regions to be unionized.
+  *
+  *  @param world_to_array  The transformation from world coordinates to
+  *                         array coordinates.  NOTE: The destination bounds
+  *                         for this mapping MUST correspond to the array
+  *                         size.  The destination CoordBounds object is used
+  *                         to get the array size!!!
+  *
   *  @return A list of unique points for all of the regions.
   */
   public static Point[] getRegionUnion( Region[]       regions, 
