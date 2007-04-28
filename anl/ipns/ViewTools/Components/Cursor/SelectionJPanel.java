@@ -33,9 +33,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2007/04/28 05:58:40  dennis
+ *  Added (and now send) messages for OPACITY_CHANGED and
+ *  COLOR_CHANGED.
+ *  Added javadocs on constructor.
+ *
  *  Revision 1.19  2007/04/28 03:26:30  dennis
  *  Refactored and added controls to complement current selection
  *  and choose operations to be used when combining regions.
+ *  (Joshua Oakgrove, Terry Farmer, Galina Pozharsky)
  *
  *  Revision 1.18  2007/03/23 20:28:57  dennis
  *  Now checks for cursor being an instance of DoubleWedgeCursor
@@ -210,8 +216,14 @@ public class SelectionJPanel extends ActiveJPanel
   public static final String COMPLEMENT_CURRENT_SELECTION = "Complement";
   
   public static final String UNION = "Union";
+
   public static final String INTERSECT = "Intersect";
+
   public static final String INTERSECT_COMPLEMENT = "Intersect Complement";
+
+  public static final String COLOR_CHANGED = ColorSelector.COLOR_CHANGED;
+
+  public static final String OPACITY_CHANGED = "Opacity_Changed";
   
   private AnnularCursor ring;
   private BoxCursor box;
@@ -263,7 +275,7 @@ public class SelectionJPanel extends ActiveJPanel
   private Color reg_color;
   private String[] ops = {UNION,INTERSECT,INTERSECT_COMPLEMENT};
   private JComboBox opChooser;
-  private JLabel opLabel = new JLabel("Opperation");
+  private JLabel opLabel = new JLabel("Operation");
                                    // Clear All action.
   
  /**
@@ -319,12 +331,22 @@ public class SelectionJPanel extends ActiveJPanel
     opChooser = new JComboBox(ops);
     opChooser.addActionListener(new JComboBoxListener());
     opChooser.setSelectedIndex(0);
-  editor = new SelectionEditor();
-  addComponentListener(new NotVisibleListener());
+    editor = new SelectionEditor();
+    addComponentListener(new NotVisibleListener());
   }
   
 
-  public SelectionJPanel(String name,Color color,float transparency)
+ /**
+  *  Construct a SelectionJPanel for entry of a compound selection,
+  *  with a specified name, draw color and transparency value.
+  *
+  *  @param name         The name of the list of region, operator pairs
+  *                      being constructed
+  *  @param color        The color to use when drawing the regions
+  *  @param transparency The transparency value to use when drawing the regions
+  *
+  */
+  public SelectionJPanel(String name, Color color, float transparency )
   { 
       isAdown = false;
       isBdown = false;
@@ -374,8 +396,8 @@ public class SelectionJPanel extends ActiveJPanel
       opChooser = new JComboBox(ops);
       opChooser.addActionListener(new JComboBoxListener());
       opChooser.setSelectedIndex(0);
-    editor = new SelectionEditor();
-    addComponentListener(new NotVisibleListener());
+      editor = new SelectionEditor();
+      addComponentListener(new NotVisibleListener());
     }
 
   
@@ -448,6 +470,7 @@ public class SelectionJPanel extends ActiveJPanel
       }
     }  
   }
+
 
  /* --------------- set_cursor for XOR_Cursor3pt --------------------- */
  /**
@@ -863,7 +886,7 @@ public class SelectionJPanel extends ActiveJPanel
    */
   public void setRegionColor(Color color) {
     reg_color = color;
-    send_message("");
+    send_message( COLOR_CHANGED );
   }
 
   
@@ -892,7 +915,7 @@ public class SelectionJPanel extends ActiveJPanel
       opacity = 0;
     else
       opacity = value;
-    send_message("");
+    send_message( OPACITY_CHANGED );
   }
 
   
@@ -1397,8 +1420,7 @@ public class SelectionJPanel extends ActiveJPanel
       opPanel.add(opChooser);
       pane.add(opPanel);
       
-      ColorSelector color_chooser = new ColorSelector(
-          ColorSelector.SWATCH);
+      ColorSelector color_chooser = new ColorSelector( ColorSelector.SWATCH );
       color_chooser.addActionListener(new ControlListener());
 
       pane.add(color_chooser);
@@ -1435,17 +1457,25 @@ public class SelectionJPanel extends ActiveJPanel
      * of the controls on the editor.
      */
     class ControlListener implements ActionListener {
+
       public void actionPerformed(ActionEvent ae) {
+
         String message = ae.getActionCommand();
-        if (message.equals(ColorSelector.COLOR_CHANGED)) {
-          setRegionColor(((ColorSelector) ae.getSource())
+
+        if ( message.equals( ColorSelector.COLOR_CHANGED ) ) {
+          setRegionColor( ((ColorSelector) ae.getSource() )
               .getSelectedColor());
-        } else if (message.equals(ControlSlider.SLIDER_CHANGED)) {
+        }
+
+        else if (message.equals(ControlSlider.SLIDER_CHANGED)) {
           setOpacity(((ControlSlider) ae.getSource()).getValue());
-        } else if (message.equals("Close")) {
+        } 
+
+        else if (message.equals("Close")) {
           editor_bounds = this_editor.getBounds();
           this_editor.dispose();
         }
+
         //send repaint message
       }
     }
