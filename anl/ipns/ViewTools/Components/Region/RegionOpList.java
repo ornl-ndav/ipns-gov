@@ -28,6 +28,10 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2007/04/28 03:34:52  dennis
+ * Added method removeAll() to clear the list of RegionOps.
+ * Null regions are now skipped when the maximum size is found.
+ *
  * Revision 1.2  2007/04/27 03:52:27  dennis
  * Cleaned up and expanded the javadocs.
  *
@@ -86,6 +90,14 @@ public class RegionOpList {
   */
   public void remove( int pos ){
     regionOpList.remove( pos );
+  }
+
+
+ /**
+  * Remove all region ops from the list
+  */
+  public void removeAll(){
+    regionOpList.clear();
   }
 
  
@@ -182,13 +194,15 @@ public class RegionOpList {
    // for every point, if its x is max set to x
    // for every point, if its y is max set to y
    for ( RegionOp regionOp:regionOpList ){
-     points = regionOp.getRegion().getSelectedPoints( world_to_array );
-     for ( Point p:points ){
-       if ( p.x > x ){
-         x = p.x;
-       }
-       if ( p.y > y ){
-         y = p.y;
+     if ( regionOp.getRegion() != null ){
+       points = regionOp.getRegion().getSelectedPoints( world_to_array );
+       for ( Point p:points ){
+         if ( p.x > x ){
+           x = p.x;
+         }
+         if ( p.y > y ){
+           y = p.y;
+         }
        }
      }
    }
