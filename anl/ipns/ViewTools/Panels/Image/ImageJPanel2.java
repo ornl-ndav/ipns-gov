@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.8  2007/04/28 13:56:05  rmikk
+ *  Fixed error when there is only one row or one column of data
+ *
  *  Revision 1.7  2007/03/23 15:34:56  rmikk
  *  Fixed an off by one error which made it difficult for fill lines to be drawn
  *    in the middle of blocks corresponding to array elements
@@ -953,7 +956,10 @@ protected void LocalTransformChanged()
     if( bounds.getX2() != (int)bounds.getX2())
        if(end_col <  data.getNumColumns()-1)
           xc2=1;
-       
+     if( data.getNumRows()==1)
+        xr2=1;
+     if( data.getNumColumns() ==1)
+        xc2=1;
     
     // Convert global coord bounds to image row/column. Compare integer
     // row/columns because it is more consistent that comparing floats.
