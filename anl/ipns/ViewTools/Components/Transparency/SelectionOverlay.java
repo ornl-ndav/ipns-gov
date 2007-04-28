@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.45  2007/04/28 03:32:09  dennis
+ *  Refactored and added/modified methods to deal with named
+ *  RegionOpLists. (Joshua Oakgrove, Galina Pozharsky, Terry Farmer,
+ *  Chad Diller, Jonathan Morck).
+ *
  *  Revision 1.44  2007/04/07 21:23:00  dennis
  *  Removed unused import.
  *
@@ -247,45 +252,47 @@
  *  annotation editing or annotation deletion. (Mike Miller)
  * 
  */
- 
+
 /* *************************************************************
  * *********Basic controls for the Selection Overlay************
  * *************************************************************
- * Keyboard Event    * Mouse Event       * Action	       *
+ * Keyboard Event    * Mouse Event       * Action         *
  ***************************************************************
- * press B	     * Press/Drag mouse  * box selection       *
- * press C	     * Press/Drag mouse  * circle selection    *
+ * press B       * Press/Drag mouse  * box selection       *
+ * press C       * Press/Drag mouse  * circle selection    *
  * press L           * Press/Drag mouse  * line selection      *
- * press P	     * Press/Drag mouse  * point selection     * 
- * none  	     * Double click      * clear last selected *
+ * press P       * Press/Drag mouse  * point selection     * 
+ * none         * Double click      * clear last selected *
  * press A (all)     * Single click      * clear all selected  *
  ***************************************************************
  * Important: 
  * All keyboard events must be done prior to mouse events.
- */ 
- 
+ */
+
 package gov.anl.ipns.ViewTools.Components.Transparency;
 
 import javax.swing.*;
-import javax.swing.text.html.HTMLEditorKit; 
+import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.Vector; 
+import java.util.Vector;
+import java.util.Hashtable;
 import java.lang.Math;
 
 import gov.anl.ipns.ViewTools.Panels.Cursors.*;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Region.*;
-import gov.anl.ipns.ViewTools.Components.Cursor.*; 
+import gov.anl.ipns.ViewTools.Components.Cursor.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
-import gov.anl.ipns.Util.Numeric.floatPoint2D; 
+import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.ViewTools.Components.Region.RegionOpListWithColor;
 
 /**
  * This class allows users to select a region for calculation purposes.
@@ -294,601 +301,654 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.*;
  * extends an OverlayJPanel, which extends a JPanel, this class is
  * already serializable.
  */
-public class SelectionOverlay extends OverlayJPanel
-{
- /**
-  * "REGION_ADDED" - This constant String is an Action Listener message
-  * sent out when a new region has been selected.
-  */
-  public static final String REGION_ADDED   = "REGION_ADDED";
-  
- /**
-  * "REGION_REMOVED" - This constant String is an Action Listener message
-  * sent out when a region has been deselected/removed.
-  */
+public class SelectionOverlay extends OverlayJPanel {
+  /**
+   * "REGION_ADDED" - This constant String is an Action Listener message
+   * sent out when a new region has been selected.
+   */
+  public static final String REGION_ADDED = "REGION_ADDED";
+
+  /**
+   * "REGION_REMOVED" - This constant String is an Action Listener message
+   * sent out when a region has been deselected/removed.
+   */
   public static final String REGION_REMOVED = "REGION_REMOVED";
-  
- /**
-  * "ALL_REGIONS_REMOVED" - This constant String is an Action Listener message
-  * sent out when all regions have been deselected/removed.
-  */
+
+  /**
+   * "ALL_REGIONS_REMOVED" - This constant String is an Action Listener message
+   * sent out when all regions have been deselected/removed.
+   */
   public static final String ALL_REGIONS_REMOVED = "ALL_REGIONS_REMOVED";
-  
+
   // these variables are used to preserve the Selection state.
- /**
-  * "Selected Regions" - This constant String is a key for referencing the
-  * state information about which regions have been selected.
-  * The value that this key references is a Vector of Region instances.
-  */
+  /**
+   * "Selected Regions" - This constant String is a key for referencing the
+   * state information about which regions have been selected.
+   * The value that this key references is a Vector of Region instances.
+   */
   public static final String SELECTED_REGIONS = "Selected Regions";
-  
- /**
-  * "Selection Color" - This constant String is a key for referencing the
-  * state information about the color of the selection outlines.
-  * The value that this key references is of type Color.
-  */
-  public static final String SELECTION_COLOR  = "Selection Color";
-  
- /**
-  * "Opacity" - This constant String is a key for referencing the
-  * state information about the invisibility of the selection outline.
-  * The value that this key references is a primative float on the range
-  * [0,1], with 0 = transparent, 1 = opaque.
-  */
-  public static final String OPACITY	      = "Opacity";
-    
- /**
-  * "Editor Bounds" - This constant String is a key for referencing the state
-  * information about the size and bounds of the Selection Editor window. 
-  * The value that this key references is a Rectangle. The Rectangle contains
-  * the dimensions for the editor.
-  */
-  public static final String EDITOR_BOUNDS    = "Editor Bounds";
-    
+
+  /**
+   * "Selection Color" - This constant String is a key for referencing the
+   * state information about the color of the selection outlines.
+   * The value that this key references is of type Color.
+   */
+  public static final String SELECTION_COLOR = "Selection Color";
+
+  /**
+   * "Opacity" - This constant String is a key for referencing the
+   * state information about the invisibility of the selection outline.
+   * The value that this key references is a primative float on the range
+   * [0,1], with 0 = transparent, 1 = opaque.
+   */
+  public static final String OPACITY = "Opacity";
+
+  /**
+   * "Editor Bounds" - This constant String is a key for referencing the state
+   * information about the size and bounds of the Selection Editor window. 
+   * The value that this key references is a Rectangle. The Rectangle contains
+   * the dimensions for the editor.
+   */
+  //public static final String EDITOR_BOUNDS = "Editor Bounds";
+
   private static JFrame helper = null;
-  
+
   private transient SelectionJPanel sjp; // panel overlaying the center jpanel
-  private transient IZoomAddible component;	 // component being passed
-  private Vector regions;                        // all selected regions
+
+  private transient IZoomAddible component; // component being passed
+
+  private Hashtable<String, RegionOpListWithColor> regionOpLists;
+
   // used for repaint by SelectListener 
   private transient SelectionOverlay this_panel;
-  private Color reg_color;
+
+  //private Color reg_color;
+
   private transient Rectangle current_bounds;
-  private transient CoordTransform pixel_local;          // pixel coords to WC
-                                                         // for ImageViewC only
-  private transient Vector Listeners = null;  
-  private float opacity = 1.0f; 	 // value [0,1] where 0 is clear, 
-					 // and 1 is solid.
-  private transient SelectionEditor editor;
+
+  private transient CoordTransform pixel_local; // pixel coords to WC
+
+  // for ImageViewC only
+  private transient Vector Listeners = null;
+
+  //private float opacity = 1.0f; // value [0,1] where 0 is clear, 
+
+  // and 1 is solid.
+  //private transient SelectionEditor editor;
+
   // buttons for making selections, used by editor.
-  private JButton[] sjpbuttons;
-  private Rectangle editor_bounds = new Rectangle(0,0,430,290);
- 
- /**
-  * Constructor creates an overlay with a SelectionJPanel that shadows the
-  * center panel of the IZoomAddible component.
-  *
-  *  @param  iza - IZoomAddible component
-  */ 
-  public SelectionOverlay(IZoomAddible iza)
-  {
+  //private JButton[] sjpbuttons;
+
+  //private Rectangle editor_bounds = new Rectangle(0, 0, 430, 290);
+  
+  private String regionName = "Default";
+  private RegionOp.Operation operation = RegionOp.Operation.UNION;
+
+  /**
+   * Constructor creates an overlay with a SelectionJPanel that shadows the
+   * center panel of the IZoomAddible component.
+   *
+   *  @param  iza - IZoomAddible component
+   */
+  public SelectionOverlay(IZoomAddible iza) {
     super();
-    this.setLayout( new GridLayout(1,1) );
-    sjp = new SelectionJPanel();
+    this.setLayout(new GridLayout(1, 1));
+    sjp = new SelectionJPanel( regionName, Color.RED, 1.0f );
     sjp.setOpaque(false);
-    sjpbuttons = sjp.getControls();
-    editor = new SelectionEditor();
-    addComponentListener( new NotVisibleListener() );
     component = iza;
-    regions = new Vector();	  
+    
+    regionOpLists = new Hashtable<String, RegionOpListWithColor>();
+    regionOpLists.put(regionName, new RegionOpListWithColor());
+
     this_panel = this;
-    reg_color = Color.white;
-     
+
     this.add(sjp);
-    sjp.addActionListener( new SelectListener() ); 
+    sjp.addActionListener(new SelectListener());
     current_bounds = component.getRegionInfo();
-    //this_panel.setBounds( current_bounds );
-    CoordBounds pixel_map = 
-        	 new CoordBounds( (float)current_bounds.getX(), 
-        			  (float)current_bounds.getY(),
-        			  (float)(current_bounds.getX() + 
-    					  current_bounds.getWidth()),
-    				  (float)(current_bounds.getY() + 
-    					  current_bounds.getHeight() ) );
-    pixel_local = new CoordTransform( pixel_map, 
-        			      component.getLocalCoordBounds() );
+    CoordBounds pixel_map = new CoordBounds((float) current_bounds.getX(),
+        (float) current_bounds.getY(),
+        (float) (current_bounds.getX() + current_bounds.getWidth()),
+        (float) (current_bounds.getY() + current_bounds.getHeight()));
+    pixel_local = new CoordTransform(pixel_map, component
+        .getLocalCoordBounds());
 
     Listeners = new Vector();
-    sjp.requestFocus(); 	      
+    sjp.requestFocus();
   }
- 
- /**
-  * Constructor creates an SelectionOverlay with previous state information.
-  *
-  *  @param  iza - IZoomAddible component
-  *  @param  state - ObjectState of this overlay
-  */ 
-  public SelectionOverlay(IZoomAddible iza, ObjectState state)
-  {
+
+  /**
+   * Constructor creates an SelectionOverlay with previous state information.
+   *
+   *  @param  iza - IZoomAddible component
+   *  @param  state - ObjectState of this overlay
+   */
+  public SelectionOverlay(IZoomAddible iza, ObjectState state) {
     this(iza);
     setObjectState(state);
   }
 
- /**
-  * Contains/Displays control information about this overlay.
-  */
-  public static void help()
-  {
+  /**
+   * Contains/Displays control information about this overlay.
+   */
+  public static void help() {
     helper = new JFrame("Help for Selection Overlay");
-    helper.setBounds(0,0,600,400);
+    helper.setBounds(0, 0, 600, 400);
     JEditorPane textpane = new JEditorPane();
     textpane.setEditable(false);
-    textpane.setEditorKit( new HTMLEditorKit() );
-    String text = "<H1>Description:</H1>" +
-                  "<P>The Selection Overlay is used to selection regions of " +
-        	  "data for analysis. The selected region will initially be " +
-        	  "outlined in white, unless otherwise specified.</P>" +
-                  "<H2>Commands for Selection Overlay</H2>" +
-                  "<P>Note:<BR>" +
-        	  "- These commands will NOT work if the Annotation " +
-        	  "Overlay checkbox IS checked or if the Selection " + 
-    		  "Overlay IS NOT checked.<BR>" +
-    		  "- Zooming on the image is only allowed if this overlay " +
-    		  "is turned off.</P>"  +
-                  "<H2>Image Commands:</H2>" +
-                  "<P>Click/Drag/Release Mouse w/B_Key pressed>" + 
-        	  "ADD BOX SELECTION<BR>" +
-                  "Click/Drag/Release Mouse w/C_Key pressed>" + 
-        	  "ADD ELLIPSE SELECTION<BR>" +
-                  "Click/Drag/Release Mouse w/D_Key pressed>" + 
-        	  "ADD DOUBLE WEDGE SELECTION<BR>" +
-                  "Click/Drag/Release Mouse w/L_Key pressed>" + 
-        	  "ADD LINE SELECTION<BR>" +
-                  "Click/Drag/Release Mouse w/P_Key pressed>" + 
-        	  "ADD POINT SELECTION<BR>" +
-                  "Click/Drag/Release Mouse w/R_Key pressed>" + 
-        	  "ADD RING SELECTION<BR>" +
-                  "Click/Drag/Release Mouse w/W_Key pressed>" + 
-        	  "ADD WEDGE SELECTION<BR>" +
-                  "Double Click Mouse>REMOVE LAST SELECTION<BR>" +
-                  "Single Click Mouse w/A_Key>REMOVE ALL SELECTIONS</P>" +
-                  "<H2>Selection Editor Commands <BR>" +
-		  "(Edit button under Selection Overlay Control)</H2><P>" +
-                  "Click on button corresponding to region type in editor, " +
-        	  "then on image Click/Drag/Release mouse to ADD SELECTION" +
-                  "<BR>Move slider to CHANGE OPACITY OF SELECTION. If highly " +
-        	  "opaque, lines show bright. Low opacity makes selections " +
-    		  "clear or transparent.<BR>" +
-                  "Click on \"Change Color\" to CHANGE COLOR OF SELECTION.</P>";
-    
+    textpane.setEditorKit(new HTMLEditorKit());
+    String text = "<H1>Description:</H1>"
+        + "<P>The Selection Overlay is used to selection regions of "
+        + "data for analysis. The selected region will initially be "
+        + "outlined in white, unless otherwise specified.</P>"
+        + "<H2>Commands for Selection Overlay</H2>" + "<P>Note:<BR>"
+        + "- These commands will NOT work if the Annotation "
+        + "Overlay checkbox IS checked or if the Selection "
+        + "Overlay IS NOT checked.<BR>"
+        + "- Zooming on the image is only allowed if this overlay "
+        + "is turned off.</P>" + "<H2>Image Commands:</H2>"
+        + "<P>Click/Drag/Release Mouse w/B_Key pressed>"
+        + "ADD BOX SELECTION<BR>"
+        + "Click/Drag/Release Mouse w/C_Key pressed>"
+        + "ADD ELLIPSE SELECTION<BR>"
+        + "Click/Drag/Release Mouse w/D_Key pressed>"
+        + "ADD DOUBLE WEDGE SELECTION<BR>"
+        + "Click/Drag/Release Mouse w/L_Key pressed>"
+        + "ADD LINE SELECTION<BR>"
+        + "Click/Drag/Release Mouse w/P_Key pressed>"
+        + "ADD POINT SELECTION<BR>"
+        + "Click/Drag/Release Mouse w/R_Key pressed>"
+        + "ADD RING SELECTION<BR>"
+        + "Click/Drag/Release Mouse w/W_Key pressed>"
+        + "ADD WEDGE SELECTION<BR>"
+        + "Double Click Mouse>REMOVE LAST SELECTION<BR>"
+        + "Single Click Mouse w/A_Key>REMOVE ALL SELECTIONS</P>"
+        + "<H2>Selection Editor Commands <BR>"
+        + "(Edit button under Selection Overlay Control)</H2><P>"
+        + "Click on button corresponding to region type in editor, "
+        + "then on image Click/Drag/Release mouse to ADD SELECTION"
+        + "<BR>Move slider to CHANGE OPACITY OF SELECTION. If highly "
+        + "opaque, lines show bright. Low opacity makes selections "
+        + "clear or transparent.<BR>"
+        + "Click on \"Change Color\" to CHANGE COLOR OF SELECTION.</P>";
+
     textpane.setText(text);
     JScrollPane scroll = new JScrollPane(textpane);
-    scroll.setVerticalScrollBarPolicy(
- 				    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    scroll
+        .setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     helper.getContentPane().add(scroll);
     WindowShower.show(helper);
   }
-  
- /**
-  * This method will set the current state variables of the object to state
-  * variables wrapped in the ObjectState passed in.
-  *
-  *  @param new_state
-  */
-  public void setObjectState( ObjectState new_state )
-  {	       
-    boolean redraw = false;  // if any values are changed, repaint overlay.
+
+  /**
+   * This method will set the current state variables of the object to state
+   * variables wrapped in the ObjectState passed in.
+   *
+   *  @param new_state
+   */
+  public void setObjectState(ObjectState new_state) {
+    boolean redraw = false; // if any values are changed, repaint overlay.
     Object temp = new_state.get(SELECTED_REGIONS);
-    if( temp != null )
-    {
-      regions = ((Vector)temp);
+    if (temp != null) {
+      regionOpLists = ((Hashtable) temp);
       redraw = true;
       // only send message if region was added.
-      if( regions.size() > 0 )
-        sendMessage(REGION_ADDED); 
+      if (regionOpLists.size() > 0)
+        sendMessage(REGION_ADDED);
     }
-    
+
     temp = new_state.get(SELECTION_COLOR);
-    if( temp != null )
-    {
-      setRegionColor( (Color)temp );
-      redraw = true;  
+    if (temp != null) {
+      sjp.setRegionColor((Color) temp);
+      redraw = true;
     }
-    
+
     temp = new_state.get(OPACITY);
-    if( temp != null )
-    {
-      setOpacity( ((Float)temp).floatValue() ); 
-      redraw = true;  
-    }  
-     
-    temp = new_state.get(EDITOR_BOUNDS);
-    if( temp != null )
-    {
-      editor_bounds = (Rectangle)temp;
-      editor.setBounds( editor_bounds );  
+    if (temp != null) {
+      sjp.setOpacity(((Float) temp).floatValue());
+      redraw = true;
     }
-    
-    if( redraw )
-      this_panel.repaint(); 
+
+    temp = new_state.get(sjp.EDITOR_BOUNDS);
+    if (temp != null) {
+      sjp.setEditorBounds((Rectangle) temp);
+    }
+
+    if (redraw)
+      this_panel.repaint();
   }
- 
- /**
-  * This method will get the current values of the state variables for this
-  * object. These variables will be wrapped in an ObjectState.
-  *
-  *  @param  isDefault Should selective state be returned, that used to store
-  *                    user preferences common from project to project?
-  *  @return if true, the default state containing user preferences,
-  *          if false, the entire state, suitable for project specific saves.
-  */ 
-  public ObjectState getObjectState( boolean isDefault )
-  {
+
+  /**
+   * This method will get the current values of the state variables for this
+   * object. These variables will be wrapped in an ObjectState.
+   *
+   *  @param  isDefault Should selective state be returned, that used to store
+   *                    user preferences common from project to project?
+   *  @return if true, the default state containing user preferences,
+   *          if false, the entire state, suitable for project specific saves.
+   */
+  public ObjectState getObjectState(boolean isDefault) {
     ObjectState state = new ObjectState();
-    state.insert( SELECTION_COLOR, reg_color );
-    state.insert( OPACITY, new Float(opacity) );
-    state.insert( EDITOR_BOUNDS, editor_bounds );
-    
+    state.insert(SELECTION_COLOR, sjp.getColor());
+    state.insert(OPACITY, new Float(sjp.getOpacity()));
+    state.insert(sjp.EDITOR_BOUNDS, sjp.getEditorBounds());
+
     // load these for project specific instances.
-    if( !isDefault )
-    {
-      state.insert( SELECTED_REGIONS, regions );
+    if (!isDefault) {
+      state.insert(SELECTED_REGIONS, regionOpLists);
     }
-    
+
     return state;
   }
- 
- /**
-  * This method sets the opaqueness of the selection. Values will fall in the
-  * interval [0,1], with 1 being opaque, and 0 being transparent. 
-  *
-  *  @param  value - on interval [0,1]
-  */ 
-  public void setOpacity( float value )
-  {
-    if( value > 1 )
-      opacity = 1.0f;
-    else if( value < 0 )
-      opacity = 0;
-    else
-      opacity = value;
-  }
-  
- /**
-  * This method is used to view an instance of the Selection Editor.
-  */ 
-  public void editSelection()
-  {
-    if( editor.isVisible() )
-    {
-      editor.toFront();
-      editor.requestFocus();
-    }
-    else
-    {
-      editor_bounds = editor.getBounds();
-      editor.dispose();
-      editor = new SelectionEditor();
-      WindowShower.show(editor);
-      editor.toFront();
-    }
-  }
-  
- /**
-  * Method to add a listener to this overlay.
-  *
-  *  @param act_listener
-  */
-  public void addActionListener( ActionListener act_listener )
-  {	     
-    for ( int i = 0; i < Listeners.size(); i++ )    // don't add it if it's
-      if ( Listeners.elementAt(i).equals( act_listener ) ) // already there
-        return;
 
-    Listeners.add( act_listener ); //Otherwise add act_listener
+
+  /**
+   * This method sets the opaqueness of the selection. Values will fall in the
+   * interval [0,1], with 1 being opaque, and 0 being transparent. 
+   *
+   *  @param  value - on interval [0,1]
+   */
+  public void setOpacity(float value) {
+    setRegionOpListOpacity( regionName, value );
   }
- 
- /**
-  * Method to remove a listener from this component.
-  *
-  *  @param act_listener
-  */ 
-  public void removeActionListener( ActionListener act_listener )
-  {
-    Listeners.remove( act_listener );
-  }
- 
- /**
-  * Method to remove all listeners from this component.
-  */ 
-  public void removeAllActionListeners()
-  {
-    Listeners.removeAllElements();
-  }
-  
- /**
-  * This method gets the vector containing all of the selected regions. All
-  * regions in the vector are in a Region wrapper.
-  *
-  *  @return region vector
-  */ 
-  public Vector getRegions()
-  {
-    return regions;
-  }
-  
- /**
-  * Remove all selections from the overlay.
-  */
-  public void clearRegions()
-  {
-    if( regions.size() > 0 )
-    {
-      regions.clear(); 
-      sendMessage(ALL_REGIONS_REMOVED);
+
+
+  //TODO CHANGED HERE
+  /**
+   * Set the opacity for the specified RegionOpList
+   *
+   * @param  name   the name of the RegionOpList to change
+   * @param  value  the new opacity value to use when drawing the
+   *                specified RegionOpList
+   */
+  public void setRegionOpListOpacity( String name, float value ){
+    if ( value > 1 ) {
+      getRegionOpListWithColor(name).setOpacity(1.0f);
     }
-  }
-  
- /**
-  * This method allows a user to add a region with a method instead of by
-  * using the GUI.
-  *
-  *  @param  reg The array of Regions to be added.
-  */
-  public void addRegions( Region[] reg )
-  {
-    // ignore if null
-    if( reg == null || reg.length == 0 )
-      return;
-    // add all regions in the array.
-    for( int i = 0; i < reg.length; i++ )
-      regions.add(reg[i]);
-    // send message that region was added.
-    sendMessage(REGION_ADDED);
-  } 
-  
- /**
-  * This method sets all the colors for the selected regions. Initially set
-  * to white.
-  *
-  *  @param  color
-  */
-  public void setRegionColor( Color color )
-  {
-    reg_color = color;
+    else if ( value < 0 ){
+      getRegionOpListWithColor(name).setOpacity(0.0f);
+    }
+    else{
+      getRegionOpListWithColor(name).setOpacity(value);
+    }
     this_panel.repaint();
   }
-  
- /**
-  * This method gives focus to the SelectionJPanel, which is overlayed on the
-  * center of the IZoomAddible component.
-  */
-  public void getFocus()
-  {
+
+
+  /**
+   * This method is used to view an instance of the Selection Editor.
+   */
+  public void editSelection() {
+    sjp.editSelection();
+  }
+
+
+  /**
+   * Method to add a listener to this overlay.
+   *
+   *  @param act_listener
+   */
+  public void addActionListener( ActionListener act_listener ) {
+    for (int i = 0; i < Listeners.size(); i++)
+      // don't add it if it's
+      if (Listeners.elementAt(i).equals(act_listener)) // already there
+        return;
+
+    Listeners.add(act_listener); //Otherwise add act_listener
+  }
+
+
+  /**
+   * Method to remove a listener from this component.
+   *
+   *  @param act_listener
+   */
+  public void removeActionListener( ActionListener act_listener ) {
+    Listeners.remove(act_listener);
+  }
+
+
+  /**
+   * Method to remove all listeners from this component.
+   */
+  public void removeAllActionListeners() {
+    Listeners.removeAllElements();
+  }
+
+
+  public RegionOpListWithColor getRegionOpListWithColor( String name ) {
+    if (regionOpLists.containsKey(name)) {
+      return regionOpLists.get(name);
+    } else {
+      return new RegionOpListWithColor();
+    }
+  }
+
+
+  /**
+   * This method gets the vector containing all of the selected regions. All
+   * regions in the vector are in a Region wrapper.
+   *
+   *  @return region vector
+   */
+  public Vector getRegions() {
+    Vector regions = new Vector();
+    Vector<RegionOp> regionOps = getRegionOpListWithColor(regionName).getList();
+    for (RegionOp op : regionOps) {
+      regions.add(op.getRegion());
+    }
+    return regions;
+  }
+
+
+  /**
+   * Remove all selections from the overlay.
+   */
+  public void clearRegions() {
+    getRegionOpListWithColor(regionName).getList().clear();
+    sendMessage(ALL_REGIONS_REMOVED);
+  }
+
+
+  /**
+   * This method allows a user to add a region with a method instead of by
+   * using the GUI.
+   *
+   *  @param  reg The array of Regions to be added.
+   */
+  public void addRegions( Region[] reg ) {
+    // ignore if null
+    if (reg == null || reg.length == 0)
+      return;
+    // add all regions in the array.
+    for (int i = 0; i < reg.length; i++) {
+      regionOpLists.get(regionName).add(
+          new RegionOp(reg[i], RegionOp.Operation.UNION));
+    }
+
+    // send message that region was added.
+    sendMessage(REGION_ADDED);
+  }
+
+
+  /**
+   * This method sets the draw color for the selected regions in the 
+   * default RegionOpList. 
+   *
+   *  @param  color The color to use when drawing the default selected regions
+   */
+  public void setRegionColor( Color color ) {
+    setRegionOpListColor( regionName, color );
+  }
+
+
+  //TODO ADDED STUFF HERE
+  /**
+   * This method sets the draw color for the selected regions in the 
+   * specified RegionOpList. 
+   *
+   * @param  name  The name of the RegionOpList whose color is to be changed
+   * @param  color The color to use when drawing the default selected regions
+   */
+  public void setRegionOpListColor( String name, Color color ){
+    getRegionOpListWithColor(name).setColor(color);
+    this_panel.repaint();
+  }
+
+
+  /**
+   * This method gives focus to the SelectionJPanel, which is overlayed on the
+   * center of the IZoomAddible component.
+   */
+  public void getFocus() {
     sjp.requestFocus();
   }
-     
- /**
-  * This method is called by to inform the overlay that it is no
-  * longer needed. In turn, the overlay closes all windows created
-  * by it before closing.
-  */ 
-  public void kill()
-  {
-    editor.dispose();
-    if( helper != null )
+
+
+  /**
+   * This method is called by to inform the overlay that it is no
+   * longer needed. In turn, the overlay closes all windows created
+   * by it before closing.
+   */
+  public void kill() {
+    //editor.dispose();
+    if (helper != null)
       helper.dispose();
   }
- 
- /**
-  * This method will disable the selections and cursors included in the names
-  * list. Names are defined by static Strings in the SelectionJPanel class.
-  *
-  *  @param  select_names List of selection names defined by
-  *                       SelectionJPanel class.
-  *  @see gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel
-  */ 
-  public void disableSelection( String[] select_names )
-  {
-    sjp.disableCursor( select_names );
-    sjpbuttons = sjp.getControls();
-    
-    if( editor.isVisible() )
-    {
-      editor.dispose();
-      editSelection();
-    }
-  }
-  
- /**
-  * This method will enable the selections and cursors included in the names
-  * list. Names are defined by static Strings in the SelectionJPanel class.
-  *
-  *  @param  select_names List of selection names defined by
-  *                       SelectionJPanel class.
-  *  @see gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel
-  */ 
-  public void enableSelection( String[] select_names )
-  {
-    sjp.enableCursor( select_names );
-    sjpbuttons = sjp.getControls();
-    
-    if( editor.isVisible() )
-    {
-      editor.dispose();
-      editSelection();
-    }
+
+
+  /**
+   * This method will disable the selections and cursors included in the names
+   * list. Names are defined by static Strings in the SelectionJPanel class.
+   *
+   *  @param  select_names List of selection names defined by
+   *                       SelectionJPanel class.
+   *  @see gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel
+   */
+  public void disableSelection( String[] select_names ) {
+    sjp.disableSelection(select_names);
   }
 
- /**
-  * Overrides paint method. This method will paint the selected regions.
-  *
-  *  @param  g - graphics object
-  */
-  public void paint(Graphics g) 
-  { 
+
+  /**
+   * This method will enable the selections and cursors included in the names
+   * list. Names are defined by static Strings in the SelectionJPanel class.
+   *
+   *  @param  select_names List of selection names defined by
+   *                       SelectionJPanel class.
+   *  @see gov.anl.ipns.ViewTools.Components.Cursor.SelectionJPanel
+   */
+  public void enableSelection(String[] select_names) {
+    sjp.enableSelection(select_names);
+  }
+
+
+  /**
+   * Overrides paint method. This method will paint the selected regions.
+   *
+   *  @param  g - graphics object
+   */
+  public void paint(Graphics g) {
     super.paint(g);
-    Graphics2D g2d = (Graphics2D)g; 
+    Graphics2D g2d = (Graphics2D) g;
 
-    // Change the opaqueness of the selections.
-    AlphaComposite ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER,
-                                                    opacity );
-    g2d.setComposite(ac);
+    current_bounds = component.getRegionInfo(); // current size of center
+    sjp.setBounds(current_bounds);
 
-    // color of all of the selections.
-    g2d.setColor(reg_color);
-
-    current_bounds = component.getRegionInfo();  // current size of center
-    sjp.setBounds( current_bounds );
     // this limits the paint window to the size of the background image.
-    g2d.clipRect( (int)current_bounds.getX(),
-                  (int)current_bounds.getY(),
-                  (int)current_bounds.getWidth(),
-                  (int)current_bounds.getHeight() );
+    g2d.clipRect( (int) current_bounds.getX(), 
+                  (int) current_bounds.getY(),
+                  (int) current_bounds.getWidth(), 
+                  (int) current_bounds.getHeight());
 
-    if ( component instanceof IViewComponent2D )
-    {
-      IViewComponent2D ivc = (IViewComponent2D)component;
+    AlphaComposite ac;
+
+    if ( component instanceof IViewComponent2D ) {    //draw region interior
+
+      IViewComponent2D ivc = (IViewComponent2D) component;
       CoordTransform world_to_array = ivc.getWorldToArrayTransform();
-      CoordTransform array_global = CoordTransform.inverse( world_to_array );
+      CoordTransform array_global = CoordTransform.inverse(world_to_array);
 
-      Vector all_points = new Vector();
-      for (int i = 0; i < regions.size(); i++ )
-      {
-        Region region = (Region)regions.elementAt(i);
-        Point[] sel_points = region.getSelectedPoints(world_to_array);
-        for ( int j = 0; j < sel_points.length; j++ )
-          all_points.add( sel_points[j] );
+      //TODO Changed HERE
+      for( RegionOpListWithColor list:regionOpLists.values() ) {
+        Point[] point_array = list.getSelectedPoints(world_to_array);
+
+        g2d.setColor(list.getColor());
+        ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, 
+                                         list.getOpacity() );
+        g2d.setComposite(ac);
+        paintPointArray(g2d, point_array, array_global);
       }
-      Point[] point_array = new Point[ all_points.size() ];
-      for ( int i = 0; i < all_points.size(); i++ )
-        point_array[i] = (Point)all_points.elementAt(i);
-      
-      paintPointArray( g2d, point_array, array_global );
     }
 
     // the current pixel coordinates
-    CoordBounds pixel_map = 
-            new CoordBounds( (float)current_bounds.getX(), 
-        		     (float)current_bounds.getY(),
-        		     (float)(current_bounds.getX() + 
-    				     current_bounds.getWidth()),
-    			     (float)(current_bounds.getY() + 
-    				     current_bounds.getHeight() ) );
-    pixel_local.setSource( pixel_map );
-    pixel_local.setDestination( component.getLocalCoordBounds() );
+    CoordBounds pixel_map = new CoordBounds(
+                 (float) current_bounds.getX(),
+                 (float) current_bounds.getY(),
+                 (float) (current_bounds.getX() + current_bounds.getWidth()),
+                 (float) (current_bounds.getY() + current_bounds.getHeight()));
+    pixel_local.setSource(pixel_map);
+    pixel_local.setDestination(component.getLocalCoordBounds());
 
-    Region region;    
-    floatPoint2D[] fp;
-    Point[] p;
+    //get all the regions and draw outlines 
+
+    floatPoint2D[] fp=null;
+    Point[] p=null;
+    Region region;
     boolean nullfound = false;
-    for( int num_reg = 0; num_reg < regions.size(); num_reg++ )
-    {
-      region = (Region)regions.elementAt(num_reg);
-      fp = region.getDefiningPoints();
-      p = new Point[fp.length];
-      for( int i = 0; i < fp.length; i++ )
-      {
-        if( fp[i] == null )
-	{
-	  regions.remove(num_reg);
-	  i = fp.length;
-	  nullfound = true;
-	}
-	else
-    	  p[i] = convertToPixelPoint( fp[i] );
-      }
-      if( !nullfound )
-      {
-        //System.out.println("Point: " + p[0].x + "," + p[0].y );   
-        if( region instanceof EllipseRegion )
-        {
-          g2d.drawOval( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
-        }
-        else if( region instanceof BoxRegion )
-        {
-          g2d.drawRect( p[0].x, p[0].y, p[1].x - p[0].x, p[1].y - p[0].y );
-        }
-        else if( region instanceof LineRegion )
-        {
-          g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y );	   
-        }
-        else if( region instanceof PointRegion )
-        {
-          //System.out.println("Drawing instance of point at " + 
-          //		     ((Point)region).x + "/" + ((Point)region).y );
-          g2d.drawLine( p[0].x - 5, p[0].y, p[0].x + 5, p[0].y );	  
-          g2d.drawLine( p[0].x, p[0].y - 5, p[0].x, p[0].y + 5 );
-        }
-        else if( region instanceof DoubleWedgeRegion )
-        {
-         /* p[0]   = center pt of circle that arc is taken from
-          * p[1]   = last mouse point/point at intersection of line and arc
-          * p[2]   = reflection of p[1]
-          * p[3]   = top left corner of bounding box around arc's total circle
-          * p[4]   = bottom right corner of bounding box around arc's circle
-          * p[5].x = startangle, the directional vector in degrees
-          * p[5].y = degrees covered by arc.
-          */
-          // Since p[5] is not a point, but angular measures, they are a direct
-          // cast from float to int, no convertion needed.
-          p[p.length - 1].x = (int)fp[p.length - 1].x;
-          p[p.length - 1].y = (int)fp[p.length - 1].y;
-          g2d.drawLine( 2*p[0].x - p[1].x, 2*p[0].y - p[1].y, p[1].x, p[1].y );
-          g2d.drawLine( 2*p[0].x - p[2].x, 2*p[0].y - p[2].y, p[2].x, p[2].y );
-          
-          g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
-        	      p[4].y - p[3].y, p[5].x, p[5].y);
-          g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
-        	      p[4].y - p[3].y, p[5].x + 180, p[5].y);
-        }
-        else if( region instanceof WedgeRegion )
-        {
-         /* p[0]   = center pt of circle that arc is taken from
-          * p[1]   = last mouse point/point at intersection of line and arc
-          * p[2]   = reflection of p[1]
-          * p[3]   = top left corner of bounding box around arc's total circle
-          * p[4]   = bottom right corner of bounding box around arc's circle
-          * p[5].x = startangle, the directional vector in degrees
-          * p[5].y = degrees covered by arc.
-          */
-          // Since p[5] is not a point, but angular measures, they are a direct
-          // cast from float to int, no convertion needed.
-          p[p.length - 1].x = (int)fp[p.length - 1].x;
-          p[p.length - 1].y = (int)fp[p.length - 1].y;
-          g2d.drawLine( p[0].x, p[0].y, p[1].x, p[1].y );
-          g2d.drawLine( p[0].x, p[0].y, p[2].x, p[2].y );
 
-          g2d.drawArc(p[3].x, p[3].y, p[4].x - p[3].x,
-                      p[4].y - p[3].y, p[5].x, p[5].y);
+                // Change the opaqueness of the selections              
+                //TODO CHANGE HERE
+    for( RegionOpListWithColor list:regionOpLists.values() ) {
+      g2d.setColor(list.getColor());
+      ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, 
+                                       list.getOpacity() );
+      g2d.setComposite(ac);
+
+      for ( RegionOp regionOp:list.getList() ) {
+        region = regionOp.getRegion();
+        if ( region != null ) {
+          fp = region.getDefiningPoints();
+          p  = new Point[fp.length];
+          for (int i = 0; i < fp.length; i++) {
+            if (fp[i] == null){
+              nullfound = true;
+            }
+            else{
+              p[i] = convertToPixelPoint(fp[i]);
+            }
+          }
         }
-        else if( region instanceof AnnularRegion )
-        {
-         /* p[0]   = center pt of circle
-          * p[1]   = top left corner of bounding box of inner circle
-          * p[2]   = bottom right corner of bounding box of inner circle
-          * p[3]   = top left corner of bounding box of outer circle
-          * p[4]   = bottom right corner of bounding box of outer circle
-          */
-          g2d.drawOval( p[1].x, p[1].y, p[2].x - p[1].x, p[2].y - p[1].y );
-          g2d.drawOval( p[3].x, p[3].y, p[4].x - p[3].x, p[4].y - p[3].y );
-        }
-      }
-    }
+        else
+          nullfound = true; 
+
+      if( !nullfound ){
+        if ( region instanceof EllipseRegion ) {
+          g2d.drawOval( p[0].x, 
+                        p[0].y,
+                        p[1].x - p[0].x, 
+                        p[1].y - p[0].y);
+        } 
+        else if ( region instanceof BoxRegion ) {
+          g2d.drawRect( p[0].x, 
+                        p[0].y, 
+                        p[1].x - p[0].x, 
+                        p[1].y - p[0].y );
+        } 
+        else if ( region instanceof LineRegion ) {
+          g2d.drawLine( p[0].x, 
+                        p[0].y, 
+                        p[1].x, 
+                        p[1].y );
+        } 
+        else if ( region instanceof PointRegion ) {
+          g2d.drawLine( p[0].x - 5, 
+                        p[0].y, 
+                        p[0].x + 5,
+                        p[0].y );
+          g2d.drawLine( p[0].x, 
+                        p[0].y - 5, 
+                        p[0].x, 
+                        p[0].y + 5);
+        } 
+        else if ( region instanceof DoubleWedgeRegion ) {
+          /* p[0]   = center pt of circle that arc is taken from
+           * p[1]   = last mouse point/point at intersection of line and arc
+           * p[2]   = reflection of p[1]
+           * p[3]   = top left corner of bounding box around arc's total circle
+           * p[4]   = bottom right corner of bounding box around arc's circle
+           * p[5].x = startangle, the directional vector in degrees
+           * p[5].y = degrees covered by arc.
+           */
+           // Since p[5] is not a point, but angular measures, they are a direct
+           // cast from float to int, no convertion needed.
+           p[p.length - 1].x = (int) fp[p.length - 1].x;
+           p[p.length - 1].y = (int) fp[p.length - 1].y;
+
+           g2d.drawLine( 2 * p[0].x - p[1].x, 
+                         2 * p[0].y - p[1].y,
+                         p[1].x, 
+                         p[1].y );
+           g2d.drawLine( 2 * p[0].x - p[2].x, 
+                         2 * p[0].y - p[2].y,
+                         p[2].x, 
+                         p[2].y );
+
+           g2d.drawArc( p[3].x, 
+                        p[3].y, 
+                        p[4].x - p[3].x, 
+                        p[4].y - p[3].y, 
+                        p[5].x, 
+                        p[5].y );
+           g2d.drawArc( p[3].x, 
+                        p[3].y, 
+                        p[4].x - p[3].x, 
+                        p[4].y - p[3].y, 
+                        p[5].x + 180, 
+                        p[5].y );
+        } 
+        else if ( region instanceof WedgeRegion ) {
+          /* p[0]   = center pt of circle that arc is taken from
+           * p[1]   = last mouse point/point at intersection of line and arc
+           * p[2]   = reflection of p[1]
+           * p[3]   = top left corner of bounding box around arc's total circle
+           * p[4]   = bottom right corner of bounding box around arc's circle
+           * p[5].x = startangle, the directional vector in degrees
+           * p[5].y = degrees covered by arc.
+           */
+           // Since p[5] is not a point, but angular measures, they are a direct
+           // cast from float to int, no convertion needed.
+           p[p.length - 1].x = (int) fp[p.length - 1].x;
+           p[p.length - 1].y = (int) fp[p.length - 1].y;
+
+           g2d.drawLine(p[0].x, p[0].y, p[1].x, p[1].y);
+           g2d.drawLine(p[0].x, p[0].y, p[2].x, p[2].y);
+
+           g2d.drawArc( p[3].x, 
+                        p[3].y, 
+                        p[4].x - p[3].x, 
+                        p[4].y - p[3].y, 
+                        p[5].x, 
+                        p[5].y );
+        } 
+        else if (region instanceof AnnularRegion) {
+          /* p[0]   = center pt of circle
+           * p[1]   = top left corner of bounding box of inner circle
+           * p[2]   = bottom right corner of bounding box of inner circle
+           * p[3]   = top left corner of bounding box of outer circle
+           * p[4]   = bottom right corner of bounding box of outer circle
+           */
+           g2d.drawOval( p[1].x, p[1].y, p[2].x - p[1].x, p[2].y - p[1].y );
+
+           g2d.drawOval( p[3].x, p[3].y, p[4].x - p[3].x, p[4].y - p[3].y );
+         }
+         nullfound = false;
+       }
+     }
+   }
   } // end of paint()
 
 
   /**
-   *  Map from array to pixel coordinates
+   *  Map an (x,y) pair from array coordinates to pixel coordinates
+   *
+   *  @param  x             The x-coordinate (i.e. column number) of a position
+   *                        in the array of data values
+   *  @param  y             The y-coordinate (i.e. row number) of a position
+   *                        in the array of data values
+   *  @param  array_global  The tranformation from array (col,row) to the
+   *                        world coordinates
+   *
+   *  @return A point containing the on screen pixel coordinates corresponding
+   *          to the specified (x,y) location in the data array. 
    */
-  private Point ArrayToPixel( int x, int y, CoordTransform array_global )
-  {
-    floatPoint2D point = new floatPoint2D( x+0.5f, y+0.5f );
+  private Point ArrayToPixel( int x, int y, CoordTransform array_global ) {
+
+    floatPoint2D point = new floatPoint2D( x + 0.5f, y + 0.5f );
     point = array_global.MapTo( point );
     point = pixel_local.MapFrom( point );
-    return new Point( Math.round(point.x), Math.round(point.y) );
+    return new Point( Math.round( point.x ), Math.round( point.y ) );
   }
-  
+
 
   /** 
    * Draw scan lines through the region determined by the array of points.
@@ -907,45 +967,37 @@ public class SelectionOverlay extends OverlayJPanel
    *  @param   g            The Graphics2D object to draw on
    *  @param   p            The array of points to draw scan lines through
    *  @param   array_global The current array to world coordinate transform
-   */  
+   */
   private void paintPointArray( Graphics2D g, 
-                                Point[]    p, 
-                                CoordTransform array_global)
-  {
-    boolean shouldPaint=false;
-    int x_initial = -1;       // Initial x for draw line command
-    int y_initial = -1;       // Initial y for draw line command
-    int x_final   = -1;       // Final x for draw line command
-    int y_final   = -1;       // Final y for draw line command
+                                Point[]    p,
+                                CoordTransform array_global ) {
+    boolean shouldPaint = false;
+    int x_initial = -1; // Initial x for draw line command
+    int y_initial = -1; // Initial y for draw line command
+    int x_final = -1; // Final x for draw line command
+    int y_final = -1; // Final y for draw line command
 
     //----------------------------------Loop through all points
-    for (int i = 0;i<p.length ; i++)
-    {  
+    for (int i = 0; i < p.length; i++) {
       //--------------------------for all points other then last
-      if(i != p.length-1)
-      {
+      if (i != p.length - 1) {
         //-------------------------------to find the initial x & y
-        if(x_initial == -1)
-        {
+        if (x_initial == -1) {
           x_initial = p[i].x;
           y_initial = p[i].y;
         }
 
         //----------------------------------------------to find the final x & y
-        if(!(p[i+1].x-p[i].x <= 1) || p[i].y!=p[i+1].y)
-        {
+        if (!(p[i + 1].x - p[i].x <= 1) || p[i].y != p[i + 1].y) {
           x_final = p[i].x;
           y_final = p[i].y;
           shouldPaint = true;
         }
-      }
-      else
-      {
+      } else {
         x_final = p[i].x;
         y_final = p[i].y;
 
-        if (y_final != y_initial)
-        {
+        if (y_final != y_initial) {
           x_initial = p[i].x;
           y_initial = p[i].y;
         }
@@ -953,11 +1005,10 @@ public class SelectionOverlay extends OverlayJPanel
         shouldPaint = true;
       }
 
-      if(shouldPaint)
-      {
-                                 // first map from array coords to pixel coords
-        Point p1 = ArrayToPixel( x_initial, y_initial, array_global );
-        Point p2 = ArrayToPixel( x_final,  y_final, array_global );
+      if (shouldPaint) {
+        // first map from array coords to pixel coords
+        Point p1 = ArrayToPixel(x_initial, y_initial, array_global);
+        Point p2 = ArrayToPixel(x_final, y_final, array_global);
 
         g.drawLine(p1.x, p1.y, p2.x, p2.y);
 
@@ -969,356 +1020,288 @@ public class SelectionOverlay extends OverlayJPanel
   }
 
 
- /*
-  * Converts from world coordinates to a pixel point
-  */
-  private Point convertToPixelPoint( floatPoint2D fp )
-  {
-    floatPoint2D fp2d = pixel_local.MapFrom( fp );
-    return new Point( (int)fp2d.x, (int)fp2d.y );
+  /*
+   * Converts from world coordinates to a pixel point on the display 
+   * using the current local transformation between a subregion
+   * and the full display area.
+   *
+   * @param fp    floatPoint2D object containing world coordinates
+   * 
+   * @return A Point object 
+   */
+  private Point convertToPixelPoint( floatPoint2D fp ) {
+    floatPoint2D fp2d = pixel_local.MapFrom(fp);
+    return new Point( (int) fp2d.x, (int) fp2d.y );
   }
- 
- /*
-  * Converts from pixel coordinates to world coordinates.
-  */
-  private floatPoint2D convertToWorldPoint( Point p )
-  {
-    return pixel_local.MapTo( new floatPoint2D((float)p.x, (float)p.y) );
+
+
+  /*
+   * Converts from pixel coordinates to world coordinates, using the 
+   * current local transformation between a subregion and the full
+   * display area.
+   * 
+   * @param  p    Point containing the pixel coordinates of a point on the
+   *              display
+   *
+   * @return a floatPoint2D object containg the world coodinates of the
+   *           specified pixel. 
+   */
+  private floatPoint2D convertToWorldPoint( Point p ) {
+    return pixel_local.MapTo(new floatPoint2D((float) p.x, (float) p.y));
   }
-  
- /*
-  * Tells all listeners about a new action.
-  *
-  *  @param  message
-  */  
-  private void sendMessage( String message )
-  {
-    for ( int i = 0; i < Listeners.size(); i++ )
-    {
-      ActionListener listener = (ActionListener)Listeners.elementAt(i);
-      listener.actionPerformed( new ActionEvent( this, 0, message ) );
+
+
+  /*
+   * Tells all listeners about a new action.
+   *
+   *  @param  message  The message to send.
+   */
+  private void sendMessage( String message ) {
+    for (int i = 0; i < Listeners.size(); i++) {
+      ActionListener listener = (ActionListener) Listeners.elementAt(i);
+      listener.actionPerformed(new ActionEvent(this, 0, message));
     }
   }
 
- /*
-  * SelectListener listens for messages being passed from the SelectionJPanel.
-  */
-  private class SelectListener implements ActionListener
-  {
-    public void actionPerformed( ActionEvent ae )
-    {
-      String message = ae.getActionCommand(); 
+
+  /*
+   * SelectListener listens for messages being passed from the SelectionJPanel.
+   */
+  private class SelectListener implements ActionListener {
+
+    public void actionPerformed(ActionEvent ae) {
+
+      String message = ae.getActionCommand();
+                        
+      SelectionJPanel named_sjp = (SelectionJPanel)ae.getSource();
+      String name = named_sjp.getName();
+                        
       // clear all selections from the vector
-      if( message.equals( SelectionJPanel.RESET_SELECTED ) )
-      { 
-	if( regions.size() > 0 )
-	{
-	  regions.clear(); 
-	  sendMessage(ALL_REGIONS_REMOVED);
-	}	  
+      if (message.equals(SelectionJPanel.RESET_SELECTED)) {
+
+        getRegionOpListWithColor(name).removeAll();
+        sendMessage(ALL_REGIONS_REMOVED);
       }
+      
       // remove the last selection from the vector
-      else if( message.equals( SelectionJPanel.RESET_LAST_SELECTED ) )
-      {
-	if( regions.size() > 0 )
-	{
-	  regions.removeElementAt(regions.size() - 1);  
-	  sendMessage(REGION_REMOVED);
-	}		  
+      else if (message.equals(SelectionJPanel.RESET_LAST_SELECTED)) {
+
+        RegionOpListWithColor list = getRegionOpListWithColor(name);
+        int pos = list.getList().size() - 1;
+        list.remove(pos);        
+        sendMessage(REGION_REMOVED);
       }
+      
+      else if (message.equals(SelectionJPanel.COMPLEMENT_CURRENT_SELECTION)){
+
+        getRegionOpListWithColor(name).add(
+                            new RegionOp(null,RegionOp.Operation.COMPLEMENT) );
+      }
+
       // region is specified by REGION_SELECTED>BOX >ELLIPSE >POINT   
       // if REGION_SELECTED is in the string, find which region 
-      else if( message.indexOf( SelectionJPanel.REGION_SELECTED ) > -1 )
-      {
-	boolean regionadded = true;
-	if( message.indexOf( SelectionJPanel.BOX ) > -1 )
-	{
-	  Rectangle box = ((BoxCursor)sjp.getCursor( 
-				 SelectionJPanel.BOX )).region();
-	  Point p1 = new Point( box.getLocation() );
-	  p1.x += (int)current_bounds.getX();
-	  p1.y += (int)current_bounds.getY();
-	  Point p2 = new Point( p1 );
-	  p2.x += (int)box.getWidth();
-	  p2.y += (int)box.getHeight();
-	  floatPoint2D[] tempwcp = new floatPoint2D[2];
-	  tempwcp[0] = convertToWorldPoint( p1 );
-	  tempwcp[1] = convertToWorldPoint( p2 );
-			 
-	  regions.add( new BoxRegion(tempwcp) );
-	  //System.out.println("Drawing box region" );
-	}
-	else if( message.indexOf( SelectionJPanel.ELLIPSE ) > -1 )
-	{
-          Ellipse ellipse = ((EllipseCursor)sjp.getCursor(  
-                                 SelectionJPanel.ELLIPSE )).region();
-          // top-left corner
-          Point p1 = new Point( ellipse.getDrawPoint() );
-          p1.x += (int)current_bounds.getX();
-          p1.y += (int)current_bounds.getY();
-          // bottom-right corner
-          Point p2 = new Point( ellipse.getCenter() );
-          p2.x += ellipse.getDx() + (int)current_bounds.getX();
-          p2.y += ellipse.getDy() + (int)current_bounds.getY();
-          // center of circle
-          Point p3 = new Point( ellipse.getCenter() );
-          p3.x += (int)current_bounds.getX();
-          p3.y += (int)current_bounds.getY();
-          floatPoint2D[] tempwcp = new floatPoint2D[3]; 
-          tempwcp[0] = convertToWorldPoint( p1 );
-          tempwcp[1] = convertToWorldPoint( p2 );
-          tempwcp[2] = convertToWorldPoint( p3 );
-                                
-          regions.add( new EllipseRegion(tempwcp) );
-        }
-        else if( message.indexOf( SelectionJPanel.CIRCLE ) > -1 )
-        {
-          Circle circle = ((CircleCursor)sjp.getCursor(  
-                                 SelectionJPanel.CIRCLE )).region();
-          // top-left corner
-          Point p1 = new Point( circle.getDrawPoint() );
-          p1.x += (int)current_bounds.getX();
-          p1.y += (int)current_bounds.getY();
-          // bottom-right corner
-          Point p2 = new Point( circle.getCenter() );
-          p2.x += circle.getRadius() + (int)current_bounds.getX();
-          p2.y += circle.getRadius() + (int)current_bounds.getY();
-          // center of circle
-          Point p3 = new Point( circle.getCenter() );
-          p3.x += (int)current_bounds.getX();
-          p3.y += (int)current_bounds.getY();
-          floatPoint2D[] tempwcp = new floatPoint2D[3]; 
-          tempwcp[0] = convertToWorldPoint( p1 );
-          tempwcp[1] = convertToWorldPoint( p2 );
-          tempwcp[2] = convertToWorldPoint( p3 );
-                                
-          regions.add( new EllipseRegion(tempwcp) );
-	}	
-	else if( message.indexOf( SelectionJPanel.LINE ) > -1 )
-	{
-	  Line line = ((LineCursor)sjp.getCursor( 
-				  SelectionJPanel.LINE )).region();
-	  Point p1 = new Point( line.getP1() );
-	  p1.x += (int)current_bounds.getX();
-	  p1.y += (int)current_bounds.getY();
-	  Point p2 = new Point( line.getP2() );
-	  p2.x += (int)current_bounds.getX();
-	  p2.y += (int)current_bounds.getY();
-	  floatPoint2D[] tempwcp = new floatPoint2D[2];
-	  tempwcp[0] = convertToWorldPoint( p1 );
-	  tempwcp[1] = convertToWorldPoint( p2 );
-	
-	  regions.add( new LineRegion(tempwcp) );
-	}	
-	else if( message.indexOf( SelectionJPanel.POINT ) > -1 )
-	{ 
-	  //System.out.println("Drawing point region" );
-	  // create new point, otherwise regions would be shared.
-	  Point np = new Point( ((PointCursor)
-		  sjp.getCursor( SelectionJPanel.POINT )).region() );
-	  np.x += (int)current_bounds.getX();
-	  np.y += (int)current_bounds.getY();
-	  floatPoint2D[] tempwcp = new floatPoint2D[1];
-	  tempwcp[0] = convertToWorldPoint( np );
-	  regions.add( new PointRegion(tempwcp) );
-	}    
-	else if( message.indexOf( SelectionJPanel.WEDGE ) > -1 &&
-        	 message.indexOf( SelectionJPanel.DOUBLE_WEDGE ) == -1 )
-	{ 
-	  //System.out.println("Drawing wedge region" );
-	  // create new point, otherwise regions would be shared.
-	  Point[] p_array = ( ((WedgeCursor)
-		  sjp.get3ptCursor( SelectionJPanel.WEDGE )).region() );
-	  floatPoint2D[] tempwcp = new floatPoint2D[p_array.length];
-	  for( int i = 0; i < p_array.length - 1; i++ )
-          {
-            p_array[i].x += (int)current_bounds.getX();
-	    p_array[i].y += (int)current_bounds.getY();
-	    tempwcp[i] = convertToWorldPoint( p_array[i] );
-          }
-          // Since these are angles, they do not need transforming
-          if( p_array.length > 0 )
-          {
-            tempwcp[p_array.length - 1] = new floatPoint2D( 
-        			       (float)p_array[p_array.length - 1].x,
-        			       (float)p_array[p_array.length - 1].y );
-          }
-          
-	  regions.add( new WedgeRegion(tempwcp) );
-	}
-	else if( message.indexOf( SelectionJPanel.DOUBLE_WEDGE ) > -1 )
-	{ 
-	  // create new point, otherwise regions would be shared.
-	  Point[] p_array = ( ((DoubleWedgeCursor)
-		  sjp.get3ptCursor( SelectionJPanel.DOUBLE_WEDGE )).region() );
-	  floatPoint2D[] tempwcp = new floatPoint2D[p_array.length];
-	  for( int i = 0; i < p_array.length - 1; i++ )
-          {
-            p_array[i].x += (int)current_bounds.getX();
-	    p_array[i].y += (int)current_bounds.getY();
-	    tempwcp[i] = convertToWorldPoint( p_array[i] );
-          }
-          // Since these are angles, they do not need transforming
-          if( p_array.length > 0 )
-          {
-            tempwcp[p_array.length - 1] = new floatPoint2D( 
-        			       (float)p_array[p_array.length - 1].x,
-        			       (float)p_array[p_array.length - 1].y );
-          }
-	  regions.add( new DoubleWedgeRegion(tempwcp) );
-	} 
-	else if( message.indexOf( SelectionJPanel.RING ) > -1 )
-	{ 
-	  // create new point, otherwise regions would be shared.
-	  Point[] p_array = ( ((AnnularCursor)
-		  sjp.get3ptCursor( SelectionJPanel.RING )).region() );
-	  // center of ring
-	  Point p1 = new Point( p_array[0] );
-	  p1.x += (int)current_bounds.getX();
-	  p1.y += (int)current_bounds.getY();
-	  
-	  // inner top-left corner
-	  Point p2 = new Point( p1 );
-	  p2.x -= p_array[1].x;
-	  p2.y -= p_array[1].x;
-	  // inner bottom-right corner
-	  Point p3 = new Point( p1 );
-	  p3.x += p_array[1].x;
-	  p3.y += p_array[1].x;
-	  
-	  // outer top-left corner
-	  Point p4 = new Point( p1 );
-	  p4.x -= p_array[1].y;
-	  p4.y -= p_array[1].y;
-	  // outer bottom-right corner
-	  Point p5 = new Point( p1 );
-	  p5.x += p_array[1].y;
-	  p5.y += p_array[1].y;
-	  
-	  floatPoint2D[] tempwcp = new floatPoint2D[5];
-	  tempwcp[0] = convertToWorldPoint( p1 );
-	  tempwcp[1] = convertToWorldPoint( p2 );
-	  tempwcp[2] = convertToWorldPoint( p3 );
-	  tempwcp[3] = convertToWorldPoint( p4 );
-	  tempwcp[4] = convertToWorldPoint( p5 );
-	  
-	  regions.add( new AnnularRegion(tempwcp) );
-	}
-        else  // no recognized region was added
-          regionadded = false;
-	
-        if( regionadded )
-          sendMessage(REGION_ADDED);
 
+      else if (message.indexOf(SelectionJPanel.REGION_SELECTED) > -1) {
+
+        operation = named_sjp.getOp();
+        boolean regionadded = true;
+        if (message.indexOf(SelectionJPanel.BOX) > -1) {
+          Rectangle box = ((BoxCursor) sjp
+              .getCursor(SelectionJPanel.BOX)).region();
+          Point p1 = new Point(box.getLocation());
+          p1.x += (int) current_bounds.getX();
+          p1.y += (int) current_bounds.getY();
+          Point p2 = new Point(p1);
+          p2.x += (int) box.getWidth();
+          p2.y += (int) box.getHeight();
+          floatPoint2D[] tempwcp = new floatPoint2D[2];
+          tempwcp[0] = convertToWorldPoint(p1);
+          tempwcp[1] = convertToWorldPoint(p2);
+
+          getRegionOpListWithColor(name).add(
+                              new RegionOp(new BoxRegion(tempwcp),operation) );
+        } 
+
+        else if ( message.indexOf(SelectionJPanel.ELLIPSE) > -1 ) {
+
+          Ellipse ellipse = ((EllipseCursor) sjp
+                                .getCursor(SelectionJPanel.ELLIPSE)).region();
+          // top-left corner
+          Point p1 = new Point(ellipse.getDrawPoint());
+          p1.x += (int) current_bounds.getX();
+          p1.y += (int) current_bounds.getY();
+          // bottom-right corner
+          Point p2 = new Point(ellipse.getCenter());
+          p2.x += ellipse.getDx() + (int) current_bounds.getX();
+          p2.y += ellipse.getDy() + (int) current_bounds.getY();
+          // center of circle
+          Point p3 = new Point(ellipse.getCenter());
+          p3.x += (int) current_bounds.getX();
+          p3.y += (int) current_bounds.getY();
+          floatPoint2D[] tempwcp = new floatPoint2D[3];
+          tempwcp[0] = convertToWorldPoint(p1);
+          tempwcp[1] = convertToWorldPoint(p2);
+          tempwcp[2] = convertToWorldPoint(p3);
+          getRegionOpListWithColor(name).add(
+                           new RegionOp(new EllipseRegion(tempwcp),operation));
+        } 
+
+        else if (message.indexOf(SelectionJPanel.CIRCLE) > -1) {
+
+          Circle circle = ((CircleCursor) sjp
+                                  .getCursor(SelectionJPanel.CIRCLE)).region();
+
+          // top-left corner
+          Point p1 = new Point(circle.getDrawPoint());
+          p1.x += (int) current_bounds.getX();
+          p1.y += (int) current_bounds.getY();
+
+          // bottom-right corner
+          Point p2 = new Point(circle.getCenter());
+          p2.x += circle.getRadius() + (int) current_bounds.getX();
+          p2.y += circle.getRadius() + (int) current_bounds.getY();
+
+          // center of circle
+          Point p3 = new Point(circle.getCenter());
+          p3.x += (int) current_bounds.getX();
+          p3.y += (int) current_bounds.getY();
+          floatPoint2D[] tempwcp = new floatPoint2D[3];
+          tempwcp[0] = convertToWorldPoint(p1);
+          tempwcp[1] = convertToWorldPoint(p2);
+          tempwcp[2] = convertToWorldPoint(p3);
+          getRegionOpListWithColor(name).add(
+                           new RegionOp(new EllipseRegion(tempwcp),operation));
+        } 
+
+        else if (message.indexOf(SelectionJPanel.LINE) > -1) {
+
+          Line line = ((LineCursor) sjp
+                            .getCursor(SelectionJPanel.LINE)).region();
+          Point p1 = new Point(line.getP1());
+          p1.x += (int) current_bounds.getX();
+          p1.y += (int) current_bounds.getY();
+          Point p2 = new Point(line.getP2());
+          p2.x += (int) current_bounds.getX();
+          p2.y += (int) current_bounds.getY();
+          floatPoint2D[] tempwcp = new floatPoint2D[2];
+          tempwcp[0] = convertToWorldPoint(p1);
+          tempwcp[1] = convertToWorldPoint(p2);
+          getRegionOpListWithColor(name).add(
+                             new RegionOp(new LineRegion(tempwcp),operation));
+        } 
+
+        else if (message.indexOf(SelectionJPanel.POINT) > -1) {
+
+          // create new point, otherwise regions would be shared.
+          Point np = new Point(((PointCursor) sjp
+                                 .getCursor(SelectionJPanel.POINT)).region());
+          np.x += (int) current_bounds.getX();
+          np.y += (int) current_bounds.getY();
+          floatPoint2D[] tempwcp = new floatPoint2D[1];
+          tempwcp[0] = convertToWorldPoint(np);
+          getRegionOpListWithColor(name).add(
+                            new RegionOp(new PointRegion(tempwcp),operation));
+        } 
+
+        else if ( message.indexOf(SelectionJPanel.WEDGE) > -1  &&
+                  message.indexOf(SelectionJPanel.DOUBLE_WEDGE) == -1) {
+
+          // create new point, otherwise regions would be shared.
+          Point[] p_array = (((WedgeCursor) sjp
+              .get3ptCursor(SelectionJPanel.WEDGE)).region());
+          floatPoint2D[] tempwcp = new floatPoint2D[p_array.length];
+
+          for (int i = 0; i < p_array.length - 1; i++) {
+            p_array[i].x += (int) current_bounds.getX();
+            p_array[i].y += (int) current_bounds.getY();
+            tempwcp[i] = convertToWorldPoint(p_array[i]);
+          }
+
+          // Since these are angles, they do not need transforming
+          if (p_array.length > 0) {
+            tempwcp[p_array.length - 1] = new floatPoint2D(
+                (float) p_array[p_array.length - 1].x,
+                (float) p_array[p_array.length - 1].y);
+          }
+
+          getRegionOpListWithColor(name).add(
+                            new RegionOp(new WedgeRegion(tempwcp),operation));
+        } 
+
+        else if ( message.indexOf(SelectionJPanel.DOUBLE_WEDGE) > -1 ) {
+
+          // create new point, otherwise regions would be shared.
+          Point[] p_array = (((DoubleWedgeCursor) sjp
+              .get3ptCursor(SelectionJPanel.DOUBLE_WEDGE))
+              .region());
+          floatPoint2D[] tempwcp = new floatPoint2D[p_array.length];
+          for (int i = 0; i < p_array.length - 1; i++) {
+            p_array[i].x += (int) current_bounds.getX();
+            p_array[i].y += (int) current_bounds.getY();
+            tempwcp[i] = convertToWorldPoint(p_array[i]);
+          }
+
+          // Since these are angles, they do not need transforming
+          if (p_array.length > 0) {
+            tempwcp[p_array.length - 1] = new floatPoint2D(
+                (float) p_array[p_array.length - 1].x,
+                (float) p_array[p_array.length - 1].y);
+          }
+
+          getRegionOpListWithColor(name).add(
+                       new RegionOp(new DoubleWedgeRegion(tempwcp),operation));
+        } 
+
+        else if (message.indexOf(SelectionJPanel.RING) > -1) {
+
+          // create new point, otherwise regions would be shared.
+          Point[] p_array = (((AnnularCursor) sjp
+                               .get3ptCursor(SelectionJPanel.RING)).region());
+          // center of ring
+          Point p1 = new Point(p_array[0]);
+          p1.x += (int) current_bounds.getX();
+          p1.y += (int) current_bounds.getY();
+
+          // inner top-left corner
+          Point p2 = new Point(p1);
+          p2.x -= p_array[1].x;
+          p2.y -= p_array[1].x;
+          // inner bottom-right corner
+          Point p3 = new Point(p1);
+          p3.x += p_array[1].x;
+          p3.y += p_array[1].x;
+
+          // outer top-left corner
+          Point p4 = new Point(p1);
+          p4.x -= p_array[1].y;
+          p4.y -= p_array[1].y;
+          // outer bottom-right corner
+          Point p5 = new Point(p1);
+          p5.x += p_array[1].y;
+          p5.y += p_array[1].y;
+
+          floatPoint2D[] tempwcp = new floatPoint2D[5];
+          tempwcp[0] = convertToWorldPoint(p1);
+          tempwcp[1] = convertToWorldPoint(p2);
+          tempwcp[2] = convertToWorldPoint(p3);
+          tempwcp[3] = convertToWorldPoint(p4);
+          tempwcp[4] = convertToWorldPoint(p5);
+          getRegionOpListWithColor(name).add(
+                          new RegionOp(new AnnularRegion(tempwcp),operation));
+        } 
+
+        else
+          // no recognized region was added
+          regionadded = false;
+
+        if (regionadded)
+          sendMessage(REGION_ADDED);
       }
-      this_panel.repaint();  // Without this, the newly drawn regions would
-			     // not appear.
-    }  // end actionPerformed()   
+
+      this_panel.repaint(); // Without this, the newly drawn regions would
+                            // not appear.
+    } // end actionPerformed()   
+
   } // end SelectListener
-  
- /*
-  * This class is the editor for the Selection Overlay. This is used to 
-  * create a selection, change opacity of a selection, and change selection
-  * color.
-  */ 
-  private class SelectionEditor extends JFrame
-  {
-    private JPanel pane;
-    private SelectionEditor this_editor;
-    
-    public SelectionEditor()
-    {
-      super("SelectionEditor");
-      this.setBounds(editor_bounds);
-      this_editor = this;
-      pane = new JPanel();
-      new BoxLayout( pane, BoxLayout.Y_AXIS );
-      // Number of grid rows needed for the selection type buttons,
-      // and add one in for the JLabel.
-      int gridrows = (int)Math.ceil( (double)(sjpbuttons.length + 1)/3 );
-      // If number of rows are specified, the number of columns doesn't matter.
-      JPanel sjpcontrols = new JPanel( new GridLayout( gridrows, 1 ) );
-      sjpcontrols.add( new JLabel("Add Selection") );
-      for( int i = 0; i < sjpbuttons.length; i++ )
-	sjpcontrols.add( sjpbuttons[i] );
-     
-      pane.add( sjpcontrols );
-      
-      ColorSelector color_chooser = new ColorSelector(ColorSelector.SWATCH);
-      color_chooser.addActionListener( new ControlListener() );
-      
-      pane.add(color_chooser);
-      
-      // Slider that controls the opaqueness of the selections.
-      ControlSlider opacityscale = 
-			   new ControlSlider("Selection Opacity Scale");
-      opacityscale.setStep(.01f);
-      opacityscale.setRange(0f,1f);
-      opacityscale.setMajorTickSpace(.2f);
-      opacityscale.setMinorTickSpace(.05f);
-      opacityscale.setValue(opacity);
-      opacityscale.addActionListener( new ControlListener() );
-      
-      JButton closebutton = new JButton("Close");
-      closebutton.addActionListener( new ControlListener() );
-      JPanel spacer = new JPanel();
-      spacer.setPreferredSize( new Dimension(editor_bounds.width/4,0) );
-      
-      JPanel slider_and_close = new JPanel( new BorderLayout() );
-      slider_and_close.add(opacityscale, BorderLayout.WEST );
-      slider_and_close.add(spacer, BorderLayout.CENTER );
-      slider_and_close.add(closebutton, BorderLayout.EAST );
-      
-      pane.add(slider_and_close);
-      
-      this.getContentPane().add(pane);
-      this_editor.addComponentListener( new EditorListener() );
-    }
-    
-   /*
-    * Private listener for the SelectionEditor. This class listens to all
-    * of the controls on the editor.
-    */ 
-    class ControlListener implements ActionListener
-    {
-      public void actionPerformed( ActionEvent ae )
-      {
-        String message = ae.getActionCommand();
-	if( message.equals( ColorSelector.COLOR_CHANGED ) )
-        {
-	  setRegionColor( ((ColorSelector)ae.getSource()).getSelectedColor() );
-	}
-        else if( message.equals( ControlSlider.SLIDER_CHANGED ) )
-        {
-          setOpacity( ((ControlSlider)ae.getSource()).getValue() );
-        }
-        else if( message.equals("Close") )
-        {  
-	  editor_bounds = this_editor.getBounds(); 
-          this_editor.dispose();
-        }
-        this_panel.repaint();
-      }
-    }
-     
-    class EditorListener extends ComponentAdapter
-    {
-      public void componentResized( ComponentEvent we )
-      {
-    	editor_bounds = editor.getBounds();
-      }
-    }	     
-  }
-  
- /*
-  * This class will hide the SelectionEditor if the editor is visible but
-  * the overlay is not.
-  */
-  private class NotVisibleListener extends ComponentAdapter
-  {
-    public void componentHidden( ComponentEvent ce )
-    {
-      editor.setVisible(false);
-    }
-  }
+
 }
