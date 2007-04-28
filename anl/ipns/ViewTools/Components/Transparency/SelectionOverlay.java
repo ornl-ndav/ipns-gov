@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.46  2007/04/28 05:54:06  dennis
+ *  Added support for OPACITY_CHANGED and COLOR_CHANGED messages.
+ *
  *  Revision 1.45  2007/04/28 03:32:09  dennis
  *  Refactored and added/modified methods to deal with named
  *  RegionOpLists. (Joshua Oakgrove, Galina Pozharsky, Terry Farmer,
@@ -260,10 +263,10 @@
  ***************************************************************
  * press B       * Press/Drag mouse  * box selection       *
  * press C       * Press/Drag mouse  * circle selection    *
- * press L           * Press/Drag mouse  * line selection      *
+ * press L       * Press/Drag mouse  * line selection      *
  * press P       * Press/Drag mouse  * point selection     * 
- * none         * Double click      * clear last selected *
- * press A (all)     * Single click      * clear all selected  *
+ * none          * Double click      * clear last selected *
+ * press A (all) * Single click      * clear all selected  *
  ***************************************************************
  * Important: 
  * All keyboard events must be done prior to mouse events.
@@ -1082,17 +1085,29 @@ public class SelectionOverlay extends OverlayJPanel {
         getRegionOpListWithColor(name).removeAll();
         sendMessage(ALL_REGIONS_REMOVED);
       }
-      
+
       // remove the last selection from the vector
-      else if (message.equals(SelectionJPanel.RESET_LAST_SELECTED)) {
+      else if (message.equals(SelectionJPanel.RESET_LAST_SELECTED) ) {
 
         RegionOpListWithColor list = getRegionOpListWithColor(name);
         int pos = list.getList().size() - 1;
         list.remove(pos);        
         sendMessage(REGION_REMOVED);
       }
+
+      else if ( message.equals(SelectionJPanel.COLOR_CHANGED) )
+      { 
+        RegionOpListWithColor list = getRegionOpListWithColor(name);
+        list.setColor( named_sjp.getColor() );
+      }
       
-      else if (message.equals(SelectionJPanel.COMPLEMENT_CURRENT_SELECTION)){
+      else if ( message.equals(SelectionJPanel.OPACITY_CHANGED) )
+      { 
+        RegionOpListWithColor list = getRegionOpListWithColor(name);
+        list.setOpacity( named_sjp.getOpacity() );
+      }
+      
+      else if ( message.equals(SelectionJPanel.COMPLEMENT_CURRENT_SELECTION) ){
 
         getRegionOpListWithColor(name).add(
                             new RegionOp(null,RegionOp.Operation.COMPLEMENT) );
