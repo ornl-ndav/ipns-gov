@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/04/28 19:47:26  dennis
+ *  Expanded javadocs.
+ *
  *  Revision 1.10  2007/03/16 16:48:35  dennis
  *  Major refactoring.  Now overides getSelectedPoints() to deterimine
  *  which point(s) this region should indicate as selected.  Removed
@@ -147,14 +150,18 @@ public class PointRegion extends Region
   
 
  /**
-  * Get the array elements currently selected, based on the world coordinate
-  * points and the mapping from world to array coordinates.
+  * Get the discrete points that lie within this region, based on the
+  * specified mapping from world to array (col,row) coordinates.  For
+  * region consisting of individual points, this consists of the 
+  * array positions consisting of those individual points. 
   *
-  *  @param  world_to_array  The transformation from world coordinates to
-  *                          array coordinates.
+  * @param world_to_array  The transformation from world coordinates to
+  *                        array coordinates.  NOTE: The destination bounds
+  *                        for this mapping MUST correspond to the array
+  *                        size.  The destination CoordBounds object is used
+  *                        to get the array size!!!
   *
-  *  @return array of Points, each of which contains one or more of
-  *          the selected points.
+  *  @return array of points included within the region.
   */
   public Point[] getSelectedPoints( CoordTransform world_to_array )
   {

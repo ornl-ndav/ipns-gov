@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/04/28 19:47:26  dennis
+ *  Expanded javadocs.
+ *
  *  Revision 1.11  2007/04/07 21:23:58  dennis
  *  Removed two unused variables.
  *
@@ -136,6 +139,29 @@ public class LineRegion extends Region
  }
 
 
+ /**
+  * Get the discrete points that lie within this region, based on the
+  * specified mapping from world to array (col,row) coordinates.  For
+  * a LineRegion, the selected points are determined by using a line
+  * drawing algorithm to step along the array elements starting from
+  * the array element containing the first point on the line, going
+  * to the array element containing the last point on the line.  Array
+  * elements closest to the world coordinate line are added to the 
+  * selected points.  IF the line has slope more than one in magnitude,
+  * then each row from row of the first point to the row of the last 
+  * point, will have precisely one column selected.  Similarly, IF the
+  * line has slope less than one in magnitude, then each column will 
+  * contain one selected point, between the first and last columns of
+  * the line.
+  *
+  * @param world_to_array  The transformation from world coordinates to
+  *                        array coordinates.  NOTE: The destination bounds
+  *                        for this mapping MUST correspond to the array
+  *                        size.  The destination CoordBounds object is used
+  *                        to get the array size!!!
+  *
+  * @return array of points included within the region.
+  */
  public Point[] getSelectedPoints( CoordTransform world_to_array )
  {
    CoordBounds imagebounds = world_to_array.getDestination();

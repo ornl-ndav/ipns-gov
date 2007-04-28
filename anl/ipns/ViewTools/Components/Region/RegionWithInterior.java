@@ -27,6 +27,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2007/04/28 19:47:26  dennis
+ *  Expanded javadocs.
+ *
  *  Revision 1.3  2007/04/07 21:23:27  dennis
  *  Removed unused import.
  *
@@ -101,13 +104,22 @@ public abstract class RegionWithInterior extends    Region
 
 
  /**
-  * Get all of the image points inside the region. The use of
-  * Point was chosen over floatPoint2D because at this point we are dealing
-  * with row/column coordinates, so rounding is acceptable. This method assumes
-  * that the input points are in (x,y) where (x = col, y = row ) form.
+  * Get the discrete points that lie within this region, based on the
+  * specified mapping from world to array (col,row) coordinates.  Each
+  * array element within the bounding box of the region is mapped to
+  * world coordinates.  The resulting world coordinate point is tested
+  * to see whether or not it is an interior point of the region, using
+  * the isInsideWC(x,y) method.
+  *
+  * @param world_to_array  The transformation from world coordinates to
+  *                        array coordinates.  NOTE: The destination bounds
+  *                        for this mapping MUST correspond to the array
+  *                        size.  The destination CoordBounds object is used
+  *                        to get the array size!!!
   *
   *  @return array of points included within the region.
   */
+
   public Point[] getSelectedPoints( CoordTransform world_to_array )
   {
                                           // get bounding box for the region
