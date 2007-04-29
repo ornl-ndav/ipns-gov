@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.10  2007/04/29 18:47:44  rmikk
+ *  Fixed off by one error caused be previous fixes of such errors.  This caused
+ *  the last row and last column not to be shown
+ *
  *  Revision 1.9  2007/04/29 18:22:54  dennis
  *  Added boolean parameter to makeImage() method to determine
  *  whether or not the thumbnail image is to be constructed.
@@ -948,9 +952,9 @@ protected void LocalTransformChanged()
     // Convert local coord bounds to image row/column.
     bounds = world_to_image.MapTo( bounds );
     int start_row = Math.max( (int)(bounds.getY1() ), 0 );
-    int end_row   = Math.min( (int)(bounds.getY2() ), data.getNumRows()-1 );
+    int end_row   = Math.min( (int)(bounds.getY2() ), data.getNumRows());
     int start_col = Math.max( (int)(bounds.getX1() ), 0 );
-    int end_col   = Math.min( (int)(bounds.getX2() ), data.getNumColumns()-1 );
+    int end_col   = Math.min( (int)(bounds.getX2() ), data.getNumColumns());
 
     int xr2=0;
     int xc2=0; //for rounding to integer pixels after first zoom
@@ -963,12 +967,7 @@ protected void LocalTransformChanged()
        if(end_col <  data.getNumColumns()-1)
           xc2=1;
 
-     if( data.getNumRows()==1)
-        xr2=1;
-
-     if( data.getNumColumns()==1)
-        xc2=1;
- 
+    
     CoordBounds new_bounds = new CoordBounds( start_col, start_row,
                                               end_col+xc2, end_row+xr2 );
     new_bounds = world_to_image.MapFrom( new_bounds );
