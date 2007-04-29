@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.48  2007/04/29 20:29:02  dennis
+ *  Now uses removeLast() method from SelectionJPanel, to UNDO the
+ *  last operation.
+ *
  *  Revision 1.47  2007/04/29 18:25:00  dennis
  *  Removed unused imports.
  *  Fixed reference to static constant to be in terms of class name.
@@ -1090,8 +1094,7 @@ public class SelectionOverlay extends OverlayJPanel {
       else if (message.equals(SelectionJPanel.RESET_LAST_SELECTED) ) {
 
         RegionOpListWithColor list = getRegionOpListWithColor(name);
-        int pos = list.getList().size() - 1;
-        list.remove(pos);        
+        list.removeLast();        
         sendMessage(REGION_REMOVED);
       }
 
