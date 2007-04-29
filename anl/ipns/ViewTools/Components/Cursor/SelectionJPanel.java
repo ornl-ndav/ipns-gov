@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2007/04/29 20:26:07  dennis
+ *  Added button to undo the previous selection.
+ *  Now all buttons use one instance of a ButtonListener.
+ *
  *  Revision 1.21  2007/04/29 18:26:04  dennis
  *  Made UNION the default operation type returned by getOperation()
  *
@@ -147,13 +151,13 @@ public class SelectionJPanel extends ActiveJPanel
   * "RESET_SELECTED" - This message String is sent to listeners when the
   * all of the selections are removed.
   */ 
-  public static final String RESET_SELECTED = "RESET_SELECTED";
+  public static final String RESET_SELECTED = "Clear All";
   
  /**
   * "RESET_LAST_SELECTED" - This message String is sent to listeners when the
   * last selection is removed.
   */ 
-  public static final String RESET_LAST_SELECTED = "RESET_LAST_SELECTED";
+  public static final String RESET_LAST_SELECTED = "UNDO";
   
  /**
   * "REGION_SELECTED" - This message String is sent to listeners when a
@@ -279,7 +283,6 @@ public class SelectionJPanel extends ActiveJPanel
   private String[] ops = {UNION,INTERSECT,INTERSECT_COMPLEMENT};
   private JComboBox opChooser;
   private JLabel opLabel = new JLabel("Operation");
-                                   // Clear All action.
   
  /**
   * Constructor adds listeners to this SelectionJPanel. All boolean values
@@ -696,70 +699,74 @@ public class SelectionJPanel extends ActiveJPanel
  
  /**
   * This method returns controls to be used as an alternative to key events
-  * when making selections. Also included is a "Clear All" button. If the
+  * when making selections. Also included is a RESET_SELECTED button. If the
   * disableCursor() method has been called, disabled buttons will be grayed-out.
   *
   *  @return array of JButtons, each button corresponding to a region.
   */ 
   public JButton[] getControls()
   {
-    JButton[] controls = new JButton[10];
+    ButtonListener button_listener = new ButtonListener();
+    JButton[] controls = new JButton[11];
     controls[0] = new JButton(BOX);
-    controls[0].addActionListener( new ButtonListener() );
+    controls[0].addActionListener( button_listener );
     controls[0].setToolTipText("Shortcut Key: Hold B");
     if( disableBox )
       controls[0].setEnabled(false);
     
     controls[1] = new JButton(CIRCLE);
-    controls[1].addActionListener( new ButtonListener() );
+    controls[1].addActionListener( button_listener );
     controls[1].setToolTipText("Shortcut Key: Hold C");
     if( disableCircle )
       controls[1].setEnabled(false);
 
     controls[2] = new JButton(ELLIPSE);
-    controls[2].addActionListener( new ButtonListener() );
+    controls[2].addActionListener( button_listener );
     controls[2].setToolTipText("Shortcut Key: Hold E");
     if( disableEllipse )
       controls[1].setEnabled(false);
     
     controls[3] = new JButton(DOUBLE_WEDGE);
-    controls[3].addActionListener( new ButtonListener() );
+    controls[3].addActionListener( button_listener );
     controls[3].setToolTipText("Shortcut Key: Hold D");
     if( disableDblWedge )
       controls[3].setEnabled(false);
     
     controls[4] = new JButton(LINE);
-    controls[4].addActionListener( new ButtonListener() );
+    controls[4].addActionListener( button_listener );
     controls[4].setToolTipText("Shortcut Key: Hold L");
     if( disableLine )
       controls[4].setEnabled(false);
     
     controls[5] = new JButton(POINT);
-    controls[5].addActionListener( new ButtonListener() );
+    controls[5].addActionListener( button_listener );
     controls[5].setToolTipText("Shortcut Key: Hold P");
     if( disablePoint )
       controls[5].setEnabled(false);
     
     controls[6] = new JButton(RING);
-    controls[6].addActionListener( new ButtonListener() );
+    controls[6].addActionListener( button_listener );
     controls[6].setToolTipText("Shortcut Key: Hold R");
     if( disableRing )
       controls[6].setEnabled(false);
     
     controls[7] = new JButton(WEDGE);
-    controls[7].addActionListener( new ButtonListener() );
+    controls[7].addActionListener( button_listener );
     controls[7].setToolTipText("Shortcut Key: Hold W");
     if( disableWedge )
       controls[7].setEnabled(false);
     
     controls[8] = new JButton(COMPLEMENT_CURRENT_SELECTION);
-    controls[8].addActionListener( new ButtonListener() );
+    controls[8].addActionListener( button_listener );
+
+    controls[9] = new JButton(RESET_LAST_SELECTED);
+    controls[9].addActionListener( button_listener );
     
-    controls[9] = new JButton("Clear All");
-    controls[9].addActionListener( new ButtonListener() );
-    controls[9].setToolTipText("Shortcut Key: Hold A");
+    controls[10] = new JButton(RESET_SELECTED);
+    controls[10].addActionListener( button_listener );
+    controls[10].setToolTipText("Shortcut Key: Hold A");
     if( disableAll )
-      controls[9].setEnabled(false);
+      controls[10].setEnabled(false);
     
     return controls;
   }
@@ -1201,9 +1208,13 @@ public class SelectionJPanel extends ActiveJPanel
         {
           isWdown = true;
         }
-        else if ( message.equals("Clear All") )
+        else if ( message.equals(RESET_SELECTED) )
         {
           send_message(RESET_SELECTED);
+        }
+        else if ( message.equals(RESET_LAST_SELECTED) )
+        {
+          send_message(RESET_LAST_SELECTED);
         }
         else if ( message.equals(COMPLEMENT_CURRENT_SELECTION))
         {
