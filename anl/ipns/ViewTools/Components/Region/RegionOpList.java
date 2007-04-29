@@ -28,6 +28,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2007/04/29 20:27:31  dennis
+ * Replaced remove() method with removeLast(), which is the form
+ * needed for UNDO.
+ * A remove() operation can still be done by getting a reference
+ * to the list.
+ *
  * Revision 1.4  2007/04/29 19:07:05  dennis
  * The size of the array is now obtained from the size of the
  * destination coordinate bounds object.  In case this destination
@@ -88,17 +94,23 @@ public class RegionOpList {
     regionOpList.add( regionOp );
   }
 
- 
+
  /**
-  * Removes the RegionOp at the specified position from the list
+  * Removes the RegionOp at the end of the list, if there is one
   *
-  * @param pos  The position from which to remove the RegionOp
+  * @return true or false, depending on whether or not there was a
+  *         RegionOp to remove.
   */
-  public void remove( int pos ){
-    regionOpList.remove( pos );
+  public boolean removeLast(){
+    int size = regionOpList.size();
+    if ( size <= 0 )
+      return false;
+  
+    regionOpList.remove( size - 1 );
+    return true;
   }
 
-
+ 
  /**
   * Remove all region ops from the list
   */
