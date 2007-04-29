@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2007/04/29 18:22:54  dennis
+ *  Added boolean parameter to makeImage() method to determine
+ *  whether or not the thumbnail image is to be constructed.
+ *
  *  Revision 1.8  2007/04/28 13:56:05  rmikk
  *  Fixed error when there is only one row or one column of data
  *
@@ -360,7 +364,7 @@ public class ImageJPanel2 extends    CoordJPanel
   {                                       
     setLogScale( s );
     if ( rebuild_image )
-      makeImage();
+      makeImage( false );
   }
 
 
@@ -399,7 +403,7 @@ public class ImageJPanel2 extends    CoordJPanel
                                                    NUM_POSITIVE_COLORS );
     if ( rebuild_image )
     {
-      makeImage();
+      makeImage( false );
     }
   }
 
@@ -586,7 +590,7 @@ public class ImageJPanel2 extends    CoordJPanel
     } // End if( isAutoScaleDataEnabled() )
     if ( rebuild_image )
     {
-      makeImage();
+      makeImage( false );
     }
   } // End setData()
 
@@ -620,13 +624,13 @@ public class ImageJPanel2 extends    CoordJPanel
     {
       CoordTransform temp = new CoordTransform(local_transform);
       local_transform = new CoordTransform(global_transform);
-      makeImage();
+      makeImage( true );
       if( width == 0 || height == 0 )
         thumbnail = image.getScaledInstance( 100, 100, Image.SCALE_DEFAULT );
       else
         thumbnail = image.getScaledInstance(width, height, Image.SCALE_DEFAULT);
       local_transform = new CoordTransform(temp);
-      makeImage();
+      makeImage( false );
     }
     return thumbnail;
   } 
@@ -689,7 +693,7 @@ public class ImageJPanel2 extends    CoordJPanel
                                         // to XOR drawing). 
 
     if ( rescaled_image == null )       // the component might not have been
-      makeImage();                      // visible when makeImage was called
+      makeImage( false );               // visible when makeImage was called
 
     if ( rescaled_image != null )       // the component must still not be 
     {                                   // visible
@@ -906,7 +910,7 @@ public CoordBounds getImageCoords()
  */
 public void RebuildImage()
 {
-   makeImage();
+   makeImage( false );
    repaint();
 }
 
@@ -914,7 +918,7 @@ public void RebuildImage()
 
 protected void LocalTransformChanged()
 {
-  makeImage();
+  makeImage( false );
 }
 
 /* -----------------------------------------------------------------------
@@ -930,10 +934,12 @@ protected void LocalTransformChanged()
   * By calling subSample(), this method can display any size array
   * in approximately the same time frame.
   */
-  private void makeImage()
+  private void makeImage( boolean do_thumbnail )
   {
-    if ( ! isVisible() )              // don't do it yet if it's not visible
+    if ( ! isShowing() )             // don't do it yet if it's not displayed 
       return;
+    
+    makeThumbnail = do_thumbnail;
 
     SetTransformsToWindowSize();
     // Get world_to_image transform, and local world coord bounds.
@@ -956,24 +962,13 @@ protected void LocalTransformChanged()
     if( bounds.getX2() != (int)bounds.getX2())
        if(end_col <  data.getNumColumns()-1)
           xc2=1;
+
      if( data.getNumRows()==1)
         xr2=1;
-     if( data.getNumColumns() ==1)
+
+     if( data.getNumColumns()==1)
         xc2=1;
-    
-    // Convert global coord bounds to image row/column. Compare integer
-    // row/columns because it is more consistent that comparing floats.
-    CoordBounds    gbounds  = getGlobal_transform().getSource();
-    gbounds = world_to_image.MapTo( gbounds );
-    int gstart_row = Math.max((int)(gbounds.getY1() ), 0 );
-    int gend_row   = Math.min((int)(gbounds.getY2() ), data.getNumRows()-1 );
-    int gstart_col = Math.max((int)(gbounds.getX1() ), 0 );
-    int gend_col   = Math.min((int)(gbounds.getX2() ), data.getNumColumns()-1 );
-    // Make the thumbnail image if the local bounds are equal to global bounds.
-    if( gstart_row == start_row && gend_row == end_row &&
-        gstart_col == start_col && gend_col == end_col )
-      makeThumbnail = true;
-    
+ 
     CoordBounds new_bounds = new CoordBounds( start_col, start_row,
                                               end_col+xc2, end_row+xr2 );
     new_bounds = world_to_image.MapFrom( new_bounds );
