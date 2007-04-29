@@ -28,6 +28,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2007/04/29 19:07:05  dennis
+ * The size of the array is now obtained from the size of the
+ * destination coordinate bounds object.  In case this destination
+ * object is not properly set, the largest column and row used are
+ * still found.
+ *
  * Revision 1.3  2007/04/28 03:34:52  dennis
  * Added method removeAll() to clear the list of RegionOps.
  * Null regions are now skipped when the maximum size is found.
@@ -37,13 +43,13 @@
  *
  * Revision 1.1  2007/04/11 21:51:10  dennis
  * New class for dealing with unions, intersections and complements
- * of selected regions.
- *
+ * of selected regions. (Johnathan Morck, Chad Diller)
  */
 
 package gov.anl.ipns.ViewTools.Components.Region;
 
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import java.util.Vector;
 import java.awt.Point;
 
@@ -122,14 +128,31 @@ public class RegionOpList {
   * @param world_to_array The transformation between floating point 
   *                       "world coordinates" and the column & row
   *                       numbers of the underlying data array. 
+  *                       NOTE: The destination bounds for this
+  *                       mapping MUST correspond to the array size
+  *                       The destination CoordBounds object is used
+  *                       to get the array size!!!
   *
   * @return An array of points containing the (col,row) coordinates
   *         of each selected underlying data array element.
   */
   public Point[] getSelectedPoints( CoordTransform world_to_array ){
     RegionOp.Operation op;
-    Point size = getSize( world_to_array );
-    regionMask = new boolean[size.x][size.y];
+
+    CoordBounds array_size = world_to_array.getDestination();
+    int n_cols = Math.round(Math.max( array_size.getX1(), array_size.getX2()));
+    int n_rows = Math.round(Math.max( array_size.getY1(), array_size.getY2()));
+
+                                                // NOTE: This check is not
+    Point max_size = getSize( world_to_array ); // strictly necessary, and it 
+    if ( max_size.x > n_cols )                  // can be expensive.  However
+      n_cols = max_size.x;                      // it will prevent a crash if
+    if ( max_size.y > n_rows )                  // the destination of the 
+      n_rows = max_size.y;                      // world_to_array transform is
+                                                // set smaller than the array
+                                                // size.  This shouldn't
+                                                // happen, but....
+    regionMask = new boolean[n_cols][n_rows];
   
     for ( RegionOp regionOp:regionOpList ){
       op = regionOp.getOp();
@@ -174,7 +197,6 @@ public class RegionOpList {
   
     //explicitly set to null for gc
     op = null;
-    size = null;
     regionMask = null;
   
     return points;
@@ -186,8 +208,8 @@ public class RegionOpList {
   *  row and column indices used.
   */
  private Point getSize( CoordTransform world_to_array ){
-   int x = -1;
-   int y = -1;
+   int max_x = -1;
+   int max_y = -1;
    Point[] points;
   
    // for every region, get the selected points.
@@ -197,17 +219,17 @@ public class RegionOpList {
      if ( regionOp.getRegion() != null ){
        points = regionOp.getRegion().getSelectedPoints( world_to_array );
        for ( Point p:points ){
-         if ( p.x > x ){
-           x = p.x;
+         if ( p.x > max_x ){
+           max_x = p.x;
          }
-         if ( p.y > y ){
-           y = p.y;
+         if ( p.y > max_y ){
+           max_y = p.y;
          }
        }
      }
    }
-   return new Point( x+1, y+1 );    // required size is one more than the
-                                    // largest index.
+   return new Point( max_x+1, max_y+1 ); // required size is one more than the
+                                         // largest index.
  }
 
  
