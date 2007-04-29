@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.47  2007/04/29 18:25:00  dennis
+ *  Removed unused imports.
+ *  Fixed reference to static constant to be in terms of class name.
+ *
  *  Revision 1.46  2007/04/28 05:54:06  dennis
  *  Added support for OPACITY_CHANGED and COLOR_CHANGED messages.
  *
@@ -279,8 +283,6 @@ import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.util.Vector;
 import java.util.Hashtable;
 import java.lang.Math;
@@ -289,10 +291,8 @@ import gov.anl.ipns.ViewTools.Panels.Cursors.*;
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Region.*;
 import gov.anl.ipns.ViewTools.Components.Cursor.*;
-import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
-import gov.anl.ipns.Util.Sys.ColorSelector;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOpListWithColor;
@@ -511,7 +511,7 @@ public class SelectionOverlay extends OverlayJPanel {
       redraw = true;
     }
 
-    temp = new_state.get(sjp.EDITOR_BOUNDS);
+    temp = new_state.get(SelectionJPanel.EDITOR_BOUNDS);
     if (temp != null) {
       sjp.setEditorBounds((Rectangle) temp);
     }
@@ -533,7 +533,7 @@ public class SelectionOverlay extends OverlayJPanel {
     ObjectState state = new ObjectState();
     state.insert(SELECTION_COLOR, sjp.getColor());
     state.insert(OPACITY, new Float(sjp.getOpacity()));
-    state.insert(sjp.EDITOR_BOUNDS, sjp.getEditorBounds());
+    state.insert(SelectionJPanel.EDITOR_BOUNDS, sjp.getEditorBounds());
 
     // load these for project specific instances.
     if (!isDefault) {
