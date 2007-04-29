@@ -33,6 +33,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2007/04/29 18:26:04  dennis
+ *  Made UNION the default operation type returned by getOperation()
+ *
  *  Revision 1.20  2007/04/28 05:58:40  dennis
  *  Added (and now send) messages for OPACITY_CHANGED and
  *  COLOR_CHANGED.
@@ -943,8 +946,10 @@ public class SelectionJPanel extends ActiveJPanel
       return RegionOp.Operation.UNION;
     else if(intersectOpSelected)
       return RegionOp.Operation.INTERSECT;
-    else
+    else if(intersectComplementOpSelected)
       return RegionOp.Operation.INTERSECT_COMPLEMENT;
+    else
+      return RegionOp.Operation.UNION;
   }
   
 
