@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2007/05/08 13:41:19  rmikk
+ * Now extends a subclass of JFrame which finalizes the JFrame when disposed.
+ * Also called the super() for the constructors
+ *
  * Revision 1.13  2005/06/15 21:25:13  rmikk
  * No longer destroys the whole program when exit is selected from the
  *   File Menu
@@ -120,7 +124,7 @@ import gov.anl.ipns.ViewTools.UI.FontUtil;
  * only to visualize the data in a graphical manner. Displays include the
  * graph (Display1D), image (Display2D), and soon the table (both 1D and 2D).
  */
-abstract public class Display extends JFrame implements IPreserveState,
+abstract public class Display extends gov.anl.ipns.Util.Sys.FinishJFrame implements IPreserveState,
                                                        Serializable
 { 
  /**
@@ -152,6 +156,7 @@ abstract public class Display extends JFrame implements IPreserveState,
   */
   protected Display( IVirtualArray iva, int view_code, int ctrl_option )
   {
+     super();
     // make sure data is not null
     if( iva == null )
     {
