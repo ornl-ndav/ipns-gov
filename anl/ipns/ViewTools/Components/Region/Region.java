@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2007/05/10 20:54:41  dennis
+ *  Added method ClampPointsToArray() that is used to restrict the selected
+ *  points returned by regions such as LineRegion and PointRegion, that are
+ *  not derived from the RegionWithInterior class.
+ *
  *  Revision 1.16  2007/04/28 19:46:40  dennis
  *  The getRegionBounds() method now clamps the lower bounds to be
  *  at least zero, and the upperbounds to be no more than maximum
@@ -117,6 +122,7 @@
 package gov.anl.ipns.ViewTools.Components.Region;
 
 import java.awt.Point;
+import java.util.Vector;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
@@ -299,18 +305,72 @@ public abstract class Region implements java.io.Serializable
                             max_point.x, max_point.y );
   }
 
+
+ /**
+  *  This method clamps the specified list of Points to lie in the bounding
+  *  box (in array coordinates) for this Region.  The bounding box is the 
+  *  intersection of the bounds returned by the getRegionBounds() method and
+  *  the destination region of the world_to_array transformation.  
+  *
+  *  @param world_to_array  The transformation from world coordinates to 
+  *                         array coordinates.  NOTE: The destination bounds
+  *                         for this mapping MUST correspond to the array
+  *                         size.  The destination CoordBounds object is used
+  *                         to get the array size!!!
+  *
+  *  @param points          The list of Points in array coordinates that are
+  *                         to be restricted to lie in the data array.
+  *
+  *  @return a new list of Points, containing only those points in the
+  *          original list, that lie in the data array.
+  */
+  public Point[] ClampPointsToArray( CoordTransform world_to_array,
+                                     Point[]        points )
+  {
+
+                                 // To deal with the possibility that the
+                                 // line extended of the edge of the array,
+                                 // we only keep points that are inside
+                                 // the array.
+    CoordBounds bounds = getRegionBounds( world_to_array );
+
+    int min_x = (int)bounds.getX1();
+    int max_x = (int)bounds.getX2();
+
+    int min_y = (int)bounds.getY1();
+    int max_y = (int)bounds.getY2();
+
+    Vector bounded_points = new Vector( points.length );
+    int row,
+        col;
+    for ( int i = 0; i < points.length; i++ )
+    {
+      row = points[i].y;
+      col = points[i].x;
+      if ( row >= min_y && row <= max_y && col >= min_x && col <= max_x )
+        bounded_points.add( points[i] );
+    }
+
+    points = new Point[ bounded_points.size() ];
+    for ( int i = 0; i < points.length; i++ )
+      points[i] = (Point)bounded_points.elementAt(i);
+
+    return points;
+  }
+
   
  /**
   * Since image row/column values are integers, the mapping from world to
   * image coordinates must be converted from image float values to integers.
-  * To display properly, the decimal portion of the float values must be
-  * truncated instead of rounded. Off-by-one errors will occur if image decimal
-  * is >= .5.
+  * Any float coordinates with column number in the half-open interval
+  * [col,col+1) and row number in [row,row+1) will be mapped to the point
+  * with array coordinates [col,row] by this method. 
   *
-  *  @param  imagept Float image row/column values.
-  *  @return The corresponding integer image row/column values.
+  *  @param  imagept   Floating point (possibly fractions) (col,row)
+  *                    coordinates.
+  *  @return           The corresponding integer image row/column values.
   */
-  protected Point floorImagePoint( floatPoint2D imagept )
+  public Point floorImagePoint( floatPoint2D imagept )
   {
     int x = (int)Math.floor(imagept.x);
     int y = (int)Math.floor(imagept.y);
