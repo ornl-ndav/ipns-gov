@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2007/05/10 20:55:43  dennis
+ *  Now uses the Region.ClampPointsToArray() to restrict the points returned
+ *  by getSelectedPoints() to lie in the array.
+ *
  *  Revision 1.12  2007/04/28 19:47:26  dennis
  *  Expanded javadocs.
  *
@@ -246,7 +250,8 @@ public class LineRegion extends Region
        line_pt.x += step_in_y * dx_dy;
      }
    }
-   return result;
+
+   return  ClampPointsToArray( world_to_array, result );
  }
 
   

@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/05/10 20:55:43  dennis
+ *  Now uses the Region.ClampPointsToArray() to restrict the points returned
+ *  by getSelectedPoints() to lie in the array.
+ *
  *  Revision 1.11  2007/04/28 19:47:26  dennis
  *  Expanded javadocs.
  *
@@ -153,7 +157,9 @@ public class PointRegion extends Region
   * Get the discrete points that lie within this region, based on the
   * specified mapping from world to array (col,row) coordinates.  For
   * region consisting of individual points, this consists of the 
-  * array positions consisting of those individual points. 
+  * array positions consisting of those individual points.  NOTE: If 
+  * several defining points map to the same array coordinates, those
+  * array coordinates will be listed once for each such defining point.
   *
   * @param world_to_array  The transformation from world coordinates to
   *                        array coordinates.  NOTE: The destination bounds
@@ -165,24 +171,12 @@ public class PointRegion extends Region
   */
   public Point[] getSelectedPoints( CoordTransform world_to_array )
   {
-    Vector pts = new Vector();
-    CoordBounds imagebounds = world_to_array.getDestination();
-    Point temp;
+    Point points[] = new Point[ definingpoints.length ];
 
-               // Convert defining points from world coords to image coords and
-               // add it to the array if the point is on the image.
     for( int i = 0; i < definingpoints.length; i++ )
-    {
-      temp = floorImagePoint(world_to_array.MapTo(definingpoints[i]));
-      if( imagebounds.onXInterval(temp.x) && imagebounds.onYInterval(temp.y) )
-        pts.add(temp);
-    }
+      points[i] = floorImagePoint( world_to_array.MapTo( definingpoints[i] ) );
 
-                                                  // construct array of points.
-    Point[] selectedpoints = new Point[pts.size()];
-    for( int i = 0; i < pts.size(); i++ )
-      selectedpoints[i] = (Point)pts.elementAt(i);
-    return selectedpoints;
+    return ClampPointsToArray( world_to_array, points );
   } 
   
 
