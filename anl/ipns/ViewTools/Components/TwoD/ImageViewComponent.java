@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.95  2007/05/28 20:47:11  dennis
+ *  Added method showSelector that will show (or hide) an editor panel for
+ *  a specified compound region selection. (Jonathan Morck)
+ *  Added java docs for this method. (dennis)
+ *
  *  Revision 1.94  2007/03/16 18:45:43  dennis
  *  Added method getWorldToArrayTransform, needed to use the new Region
  *  classes.
@@ -1815,6 +1820,24 @@ public class ImageViewComponent implements IViewComponent2D,
                              image_to_wc.MapYTo(col_row_pt.y) );
   }
   
+
+  /**
+   *  This method will show (or hide) the selection editor for the specified
+   *  compound selection.  
+   *
+   *  @param  name       The name of the compound selection for which the 
+   *                     editor should be shown, or hidden.
+   *
+   *  @param  show_hide  flag indicating whether to show (true) or hide (false)
+   *                     the editor for the specified compound selection.
+   */
+  public void showSelector(String name, boolean show_hide)
+  {
+     ((SelectionOverlay)(transparencies.elementAt(1))).
+                                                   showEditor(name, show_hide);
+  }
+
+
  /*
   * Tells all listeners about a new action.
   *
