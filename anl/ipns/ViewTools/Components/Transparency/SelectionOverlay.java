@@ -34,6 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.49  2007/05/28 20:36:50  dennis
+ *  Added method showEditor() to pop up the editor for the named
+ *  regionOpList.
+ *  Modified method getRegionOpListWithColor() to create a new regionOpList,
+ *  save it in the Hashtable of regionOpLists, and return a reference to the
+ *  new regionOpList, if the named regionOpList does not already exist.
+ *  (Jonathan Morck)
+ *  Added java docs to these methods. (dennis)
+ *
  *  Revision 1.48  2007/04/29 20:29:02  dennis
  *  Now uses removeLast() method from SelectionJPanel, to UNDO the
  *  last operation.
@@ -622,11 +631,27 @@ public class SelectionOverlay extends OverlayJPanel {
   }
 
 
+  /**
+   *  This method with get a reference to the specified RegionOpListWithColor
+   *  from the list of named regionOpLists, if the named regionOpList exists.
+   *  If the name has not been previously used, this method creates a new
+   *  empty regionOpList with that name, saves it, and returns a reference
+   *  to the new list.
+   *
+   *  @param  name  The name of the regionOpListWithColor that should be 
+   *                returned.
+   *
+   *  @return  The regionOpListWithColor, specified by the name, will be
+   *           returned.  This will be a new empty list, if the named list
+   *           did not previously exist.
+   */
   public RegionOpListWithColor getRegionOpListWithColor( String name ) {
     if (regionOpLists.containsKey(name)) {
       return regionOpLists.get(name);
     } else {
-      return new RegionOpListWithColor();
+      RegionOpListWithColor temp = new RegionOpListWithColor();
+      regionOpLists.put(name, temp);
+      return temp;
     }
   }
 
@@ -733,6 +758,54 @@ public class SelectionOverlay extends OverlayJPanel {
    */
   public void disableSelection( String[] select_names ) {
     sjp.disableSelection(select_names);
+  }
+
+
+  /**
+   *  This method will show (or hide) the selection editor for the specified
+   *  regionOpList.  
+   *
+   *  @param  name       The name of the regionOpList for which the editor
+   *                     should be shown, or hidden.
+   *
+   *  @param  show_hide  flag indicating whether to show (true) or hide (false)
+   *                     the editor for the specified regionOpList.
+   */
+  public void showEditor(String name, boolean show_hide)
+  {
+    if(sjp != null && !show_hide)
+    {
+      // System.out.println("1");
+      this_panel.remove(sjp);
+      sjp = null;
+    }
+    else if(sjp == null && !show_hide)
+    {
+      // System.out.println("2");
+      return;
+    }
+    else if(sjp == null && show_hide)
+    {
+      // System.out.println("3");
+      sjp = new SelectionJPanel(name,Color.RED,1.0f);
+      sjp.setOpaque(false);
+      this_panel.add(sjp);
+      sjp.addActionListener(new SelectListener());
+      sjp.requestFocus();
+      this_panel.editSelection();
+    }
+    else if(sjp != null && show_hide)
+    {
+      // System.out.println("4");
+      this_panel.remove(sjp);
+      sjp = null;
+      sjp = new SelectionJPanel(name,Color.RED,1.0f);
+      sjp.setOpaque(false);
+      this_panel.add(sjp);
+      sjp.addActionListener(new SelectListener());
+      sjp.requestFocus();
+      this_panel.editSelection();
+    }
   }
 
 
