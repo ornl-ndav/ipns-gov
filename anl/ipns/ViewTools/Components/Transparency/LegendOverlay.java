@@ -34,13 +34,20 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2007/05/31 19:24:10  amoe
+ *  - Changed the legend so the sample line would be displayed left of
+ *  the graph label.
+ *  - Changed the legend box so it now auto-sizes around the length of
+ *  the graph labels and the legend title.
+ *
  *  Revision 1.17  2007/04/13 19:59:24  amoe
  *  - Added Bar mark type for Legend.
  *  - Changed hardcoded constants to public GraphJPanel constants,
  *   in drawLegend(..) for the marks.
  *
  *  Revision 1.16  2006/07/25 16:06:31  amoe
- *  Made the sample line in the legend box slightly smaller in order to make room for the corresponding text.
+ *  Made the sample line in the legend box slightly smaller in order to make 
+ *  room for the corresponding text.
  *
  *  Revision 1.15  2005/11/11 05:35:56  serumb
  *  Added object state variables for the legend.
@@ -179,11 +186,11 @@ public class LegendOverlay extends OverlayJPanel
     lineInfo = new GraphData[selectedGraphs.length];
     if( selectedGraphs.length > 0)
     {
-       for (int i=0; i < selectedGraphs.length; i++)
-       {
-         graphs[i] =   ila.getText(selectedGraphs[i]);
-         lineInfo[i] = ila.getGraphData(i+1);
-       }
+      for (int i=0; i < selectedGraphs.length; i++)
+      {
+        graphs[i] =   ila.getText(selectedGraphs[i]);
+        lineInfo[i] = ila.getGraphData(i+1);
+      }
     }
 
     editor = new LegendEditor(graphs);
@@ -263,9 +270,9 @@ public class LegendOverlay extends OverlayJPanel
     state.insert( LEGEND_BORDER, new Boolean(draw_border) );
     state.insert( LEGEND_LABEL, legend_label );
     if( !isDefault )
-     {
-      
-     }    
+    {
+      //
+    }    
     return state;
   }
 
@@ -349,8 +356,8 @@ public class LegendOverlay extends OverlayJPanel
       helper.dispose();
   }
 
-/*------------------------------ StrokeType --------------------------------*/
-/**
+ /*------------------------------ StrokeType --------------------------------*/
+ /**
   *  Makes the different stroke types to be returned
   *
   *  @param  key         the integer constant for the stroke types.
@@ -362,51 +369,50 @@ public class LegendOverlay extends OverlayJPanel
   *                      effect and returns false.
   *
   *  @return             the stroke type for the particular key.
-  */
-  
-public BasicStroke strokeType(int key, int graph_num)
-{
-  if (graph_num < 0 || graph_num >= graphs.length )    // no such graph
-    return new BasicStroke();
-                                                                                                   
-  if (key == DASHED)
+  */    
+  public BasicStroke strokeType(int key, int graph_num)
   {
-    float dash1[] = {10.0f};
-    BasicStroke dashed = new BasicStroke(lineInfo[graph_num].linewidth,
-    BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 10.0f, dash1, 0.0f);
-    return dashed;
+    if (graph_num < 0 || graph_num >= graphs.length )    // no such graph
+      return new BasicStroke();
+                                                                                                     
+    if (key == DASHED)
+    {
+      float dash1[] = {10.0f};
+      BasicStroke dashed = new BasicStroke(lineInfo[graph_num].linewidth,
+      BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 10.0f, dash1, 0.0f);
+      return dashed;
+    }
+    else if (key == DOTTED)
+    {
+      float dots1[] = {0,6,0,6};
+      BasicStroke dotted = new BasicStroke(lineInfo[graph_num].linewidth,
+      BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL, 0, dots1, 0);
+      return dotted;
+    }
+    else if (key == LINE)
+    {
+      BasicStroke stroke = new BasicStroke(lineInfo[graph_num].linewidth);
+      return stroke;
+    }
+    else if (key ==DASHDOT)
+    {
+      float[] dash2 = {6.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f};
+      BasicStroke dashdot = new BasicStroke(lineInfo[graph_num].linewidth, 
+      BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 10.0f, dash2, 0.0f);
+      return dashdot;
+    }
+    else if (key == TRANSPARENT)
+    {
+      float clear[] = {0.0f, 1000.0f};
+      BasicStroke transparent = new BasicStroke(0.0f);
+      return transparent;
+    }
+    else
+    {
+      System.out.println("ERROR: no Stroke of this type, default is returned");
+      return new BasicStroke();
+    }
   }
-  else if (key == DOTTED)
-  {
-    float dots1[] = {0,6,0,6};
-    BasicStroke dotted = new BasicStroke(lineInfo[graph_num].linewidth,
-    BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL, 0, dots1, 0);
-    return dotted;
-  }
-  else if (key == LINE)
-  {
-  BasicStroke stroke = new BasicStroke(lineInfo[graph_num].linewidth);
-  return stroke;
-  }
-  else if (key ==DASHDOT)
-  {
-    float[] dash2 = {6.0f, 4.0f, 2.0f, 4.0f, 2.0f, 4.0f};
-    BasicStroke dashdot = new BasicStroke(lineInfo[graph_num].linewidth, 
-    BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 10.0f, dash2, 0.0f);
-    return dashdot;
-  }
-  else if (key == TRANSPARENT)
-  {
-    float clear[] = {0.0f, 1000.0f};
-    BasicStroke transparent = new BasicStroke(0.0f);
-    return transparent;
-  }
-  else
-  {
-    System.out.println("ERROR: no Stroke of this type, default is returned");
-    return new BasicStroke();
-  }
-}
                                             
  
  /**
@@ -421,15 +427,12 @@ public BasicStroke strokeType(int key, int graph_num)
     Graphics2D g2d = (Graphics2D)g;
     f.deriveFont(0.1f);
     g2d.setFont(f);
-  //  FontMetrics fontdata = g2d.getFontMetrics();
-    // System.out.println("Precision = " + precision);
+    //FontMetrics fontdata = g2d.getFontMetrics();
+    //System.out.println("Precision = " + precision);
     updateTransform();
     
     drawLegend(g2d);
    }  
-
-
-  
    
  /*
   * This method will get the current bounds of the center and reset
@@ -441,147 +444,169 @@ public BasicStroke strokeType(int key, int graph_num)
   }
 
 
-  /*
-   * This method draws the legend in the top left corner of the graph.
-   */
+ /*
+  * This method draws the legend in the top left corner of the graph.
+  */
   private void drawLegend(Graphics2D g2d)
-  {
-    //legend border width =120 hieght = 25 per line
-    // left line
-   if(draw_border)
-   {
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125
-                 + x_offset,
-                 (int)current_bounds.getY()+5 + y_offset,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 125
-                 + x_offset,
-                 (int)current_bounds.getY()+10 + 20*(int)graphs.length
-                 + y_offset );
-    //top line
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125
-                 + x_offset,
-                 (int)current_bounds.getY()+5 + y_offset,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 120
-                 + x_offset,
-                 (int)current_bounds.getY()+5 + y_offset);
-    g2d.drawString(  legend_label,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 118
-                 + x_offset,
-                 (int)current_bounds.getY()+10 + y_offset);
-    if((120 - 7.6f * legend_label.length()) > 0)
-      g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() -
-                 (int)(120 - 7.6f * legend_label.length())
-                 + x_offset,
-                 (int)current_bounds.getY()+5 + y_offset,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
-                 + x_offset,
-                 (int)current_bounds.getY()+5 + y_offset);
-   
-    //right line
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
-                 + x_offset,
-                 (int)current_bounds.getY()+5 + y_offset,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
-                 + x_offset,
-                 (int)current_bounds.getY()+10 + 20*(int)graphs.length
-                 + y_offset );
-    //Bottom line
-    g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 125
-                 + x_offset,
-                 (int)current_bounds.getY()+10 + 20*(int)graphs.length 
-                 + y_offset,
-                 (int)current_bounds.getX()+(int)current_bounds.getWidth() - 5
-                 + x_offset,
-                 (int)current_bounds.getY()+10 + 20*(int)graphs.length
-                 + y_offset );
-   }
-    //Draw text
-    for (int index = 0; index < graphs.length; index++)
-      {
-        g2d.drawString( graphs[index],
-        (int)current_bounds.getX()+(int)current_bounds.getWidth() - 120
-        + x_offset,
-        (int)current_bounds.getY()+ 5 + 20*(index+1)+ y_offset );
-      }
-
-    //Draw line
-    for (int index = 0; index < graphs.length; index++)
-      {
-         g2d.setStroke(strokeType(lineInfo[index].linetype, index) );
-         g2d.setColor(lineInfo[index].color);
-         
-         g2d.drawLine((int)current_bounds.getX()+(int)current_bounds.getWidth() - 30 + x_offset,
-                 (int)current_bounds.getY() + 20*(index+1) + y_offset,
-                 (int)current_bounds.getX() + (int)current_bounds.getWidth() - 10 + x_offset,
-                 (int)current_bounds.getY() + 20*(index+1) + y_offset );
-      }
+  {	  
+	  FontMetrics f_metric = g2d.getFontMetrics();
     
-    //Draw marks
-      int size = 2;
-      for (int index = 0; index < graphs.length; index++)
-      {
-         g2d.setStroke(new BasicStroke(1) );
-         g2d.setColor(lineInfo[index].markcolor);
-         int x_int =(int)current_bounds.getX()+(int)current_bounds
-                            .getWidth() - 30 + x_offset;
-         int y_int =(int)current_bounds.getY() + 20*(index+1)
-                            + y_offset;
+	  //The maximum width of labels, sample lines, and the legend label
+	  int maxLablWidth = getMaxStringWidth(graphs,f_metric);
+	  int maxSampLineWidth = 20;
+	  int maxLegLablWidth = f_metric.stringWidth(legend_label);
+	  
+    //The maximum total width will be (maxLablWidth + maxSampLineWidth) or 
+    //maxLegLablWidth, whichever one is bigger.
+	  int maxTotalWidth = ( (maxLablWidth+maxSampLineWidth) > maxLegLablWidth ? 
+        (maxLablWidth+maxSampLineWidth) : maxLegLablWidth);
+	  
+    
+	  if(draw_border)
+	  {            
+	    //Left line
+	    g2d.drawLine( (int)current_bounds.getX() + (int)current_bounds.getWidth()
+	        - (maxTotalWidth+17) + x_offset,
+                    (int)current_bounds.getY() + 5 + y_offset,
+                    (int)current_bounds.getX() + (int)current_bounds.getWidth()
+                    - (maxTotalWidth+17) + x_offset,
+                    (int)current_bounds.getY() + 10 + (20*(int)graphs.length) +
+                    y_offset );
+    
+	    //Top line (pre legend_label - left)
+	    g2d.drawLine( (int)current_bounds.getX() + (int)current_bounds.getWidth()
+          - (maxTotalWidth+17) + x_offset,
+                    (int)current_bounds.getY() + 5 + y_offset,
+                    (int)current_bounds.getX() + (int)current_bounds.getWidth()
+                    - (maxTotalWidth+13) + x_offset,
+                    (int)current_bounds.getY() + 5 + y_offset);
+    
+	    //Legend label
+	    g2d.drawString( legend_label,
+                      (int)current_bounds.getX() + (int)current_bounds.getWidth()
+                      - (maxTotalWidth+11) + x_offset,
+                      (int)current_bounds.getY() + 10 + y_offset);
 
+	    //Top line (post legend_label - right)
+	    g2d.drawLine( (int)current_bounds.getX() + (int)current_bounds.getWidth()
+          - (maxTotalWidth+(13-maxLegLablWidth)) + x_offset,
+                    (int)current_bounds.getY() + 5 + y_offset,
+                    (int)current_bounds.getX() + (int)current_bounds.getWidth()
+                    - 5 + x_offset,
+                      (int)current_bounds.getY() + 5 + y_offset);
+        
+	    //Right line
+	    g2d.drawLine( (int)current_bounds.getX() + (int)current_bounds.getWidth()
+          - 5 + x_offset,
+                  (int)current_bounds.getY() + 5 + y_offset,
+                  (int)current_bounds.getX() + (int)current_bounds.getWidth()
+                  - 5 + x_offset,
+                  (int)current_bounds.getY() + 10 + (20*(int)graphs.length)
+                  + y_offset );
+
+	    //Bottom line
+	    g2d.drawLine( (int)current_bounds.getX() + (int)current_bounds.getWidth()
+          - (maxTotalWidth+17) + x_offset,
+                  (int)current_bounds.getY() + 10 + (20*(int)graphs.length) + 
+                  y_offset,
+                  (int)current_bounds.getX() + (int)current_bounds.getWidth() -
+                  5 + x_offset,
+                  (int)current_bounds.getY() + 10 + (20*(int)graphs.length) + 
+                  y_offset );
+	  }
+    
+    //Graph labels
+    for (int index = 0; index < graphs.length; index++)
+    {  
+      g2d.drawString( graphs[index],
+                (int)current_bounds.getX() + (int)current_bounds.getWidth() - 
+                ((maxTotalWidth)-12) + x_offset,
+                (int)current_bounds.getY() + 5 + (20*(index+1)) + y_offset );        
+    }
+    
+    //Graph sample line
+    for (int index = 0; index < graphs.length; index++)
+    {
+      g2d.setStroke(strokeType(lineInfo[index].linetype, index) );
+      g2d.setColor(lineInfo[index].color);
          
-         if( lineInfo[index].marktype == GraphJPanel.DOT)
-         {
-            g2d.drawLine( x_int, y_int,
-                              x_int, y_int );
-         }
-         else if ( lineInfo[index].marktype == GraphJPanel.PLUS )
-         {
-            g2d.drawLine( x_int-size, y_int,
-                            x_int+size, y_int      );
-            g2d.drawLine( x_int,     y_int-size,
-                            x_int,      y_int+size );
-         }
-         else if ( lineInfo[index].marktype == GraphJPanel.STAR )
-         {
-           g2d.drawLine( x_int-size, y_int,
-                             x_int+size, y_int      );
-           g2d.drawLine( x_int,      y_int-size,
-                             x_int,      y_int+size );
-           g2d.drawLine( x_int-size, y_int-size,
-                             x_int+size, y_int+size );
-           g2d.drawLine( x_int-size, y_int+size,
-                             x_int+size, y_int-size );
-         }
-         else if ( lineInfo[index].marktype == GraphJPanel.BOX )
-         {
-           g2d.drawLine( x_int-size, (y_int-size),
-                    x_int-size, (y_int+size) );
-           g2d.drawLine( x_int-size, y_int+size,
-                     x_int+size, y_int+size );
-           g2d.drawLine( x_int+size, y_int+size,
-                     x_int+size, y_int-size );
-           g2d.drawLine( x_int+size, y_int-size,
-                     x_int-size, y_int-size );
-         }
-         else if( lineInfo[index].marktype == GraphJPanel.CROSS )
-         {
-           g2d.drawLine( x_int-size, y_int-size,
-                     x_int+size, y_int+size );
-           g2d.drawLine( x_int-size, y_int+size,
-                     x_int+size, y_int-size );
-         }
-         else if( lineInfo[index].marktype == GraphJPanel.BAR )
-         {
-             g2d.drawLine( x_int, y_int-size, 
-            		 x_int, y_int+size );
-         }
-         else
-         {
-        	 //System.out.println(":No Point Marks");
-         }
+      g2d.drawLine( (int)current_bounds.getX() + (int)current_bounds.getWidth()
+          - (maxTotalWidth + 13) + x_offset,
+                 (int)current_bounds.getY() + (20*(index+1)) + y_offset,
+                 (int)current_bounds.getX() + (int)current_bounds.getWidth() - 
+                 ((maxTotalWidth)-7) + x_offset,
+                 (int)current_bounds.getY() + (20*(index+1)) + y_offset );
+    }
+    
+    //Graph sample line marks
+    int size = 2;
+    for (int index = 0; index < graphs.length; index++)
+    {
+      g2d.setStroke(new BasicStroke(1));
+      g2d.setColor(lineInfo[index].markcolor);
          
+      int x_int = (int)current_bounds.getX() + (int)current_bounds.getWidth()
+      - 30 + x_offset;
+      int y_int = (int)current_bounds.getY() + (20*(index+1)) + y_offset;
+         
+      if( lineInfo[index].marktype == GraphJPanel.DOT)
+      {
+        g2d.drawLine( x_int, y_int, x_int, y_int );
       }
+      else if ( lineInfo[index].marktype == GraphJPanel.PLUS )
+      {
+        g2d.drawLine( x_int - size, y_int, x_int + size, y_int );            
+        g2d.drawLine( x_int, y_int - size, x_int, y_int + size );
+      }
+      else if ( lineInfo[index].marktype == GraphJPanel.STAR )
+      {
+        g2d.drawLine( x_int - size, y_int, x_int + size, y_int );           
+        g2d.drawLine( x_int, y_int - size, x_int, y_int + size );           
+        g2d.drawLine( x_int - size, y_int - size, x_int + size, y_int + size );           
+        g2d.drawLine( x_int - size, y_int + size, x_int + size, y_int - size );
+      }
+      else if ( lineInfo[index].marktype == GraphJPanel.BOX )
+      {
+        g2d.drawLine( x_int - size, y_int - size, x_int - size, y_int + size );           
+        g2d.drawLine( x_int - size, y_int + size, x_int + size, y_int + size );           
+        g2d.drawLine( x_int + size, y_int + size, x_int + size, y_int - size );           
+        g2d.drawLine( x_int + size, y_int - size, x_int - size, y_int - size );
+      }
+      else if( lineInfo[index].marktype == GraphJPanel.CROSS )
+      {
+        g2d.drawLine( x_int - size, y_int - size, x_int + size, y_int + size );           
+        g2d.drawLine( x_int - size, y_int + size, x_int + size, y_int - size );
+      }
+      else if( lineInfo[index].marktype == GraphJPanel.BAR )
+      {
+        g2d.drawLine( x_int, y_int - size, x_int, y_int + size );
+      }
+      else
+      {
+        //System.out.println(":No Point Marks");
+      }         
+    }
   }
 
+ /*
+  * This method takes in an array of strings and a font metric, and finds
+  * the widest string in the specified font.
+  */
+  private int getMaxStringWidth(String[] s_arr,FontMetrics fm)
+  {
+    int longestWidth = 0;
+    int currentWidth;
+    for(int i=0;i<s_arr.length;i++)
+    {
+      currentWidth = fm.stringWidth(s_arr[i]);
+      if( currentWidth > longestWidth)
+		  {
+			  longestWidth = currentWidth;
+		  }
+	  }
+    
+	  return(longestWidth);		  
+  }
  
   private class LegendEditor extends JFrame
   {
@@ -597,8 +622,7 @@ public BasicStroke strokeType(int key, int graph_num)
     private Box topBox = new Box(0);
     private Box middle = new Box(0);
     private Box bottomBox = new Box(0);
-    private ControlCheckbox border_check = 
-                                  new ControlCheckbox(draw_border);
+    private ControlCheckbox border_check = new ControlCheckbox(draw_border);
     
     public LegendEditor(String[] graphs)
     {
@@ -683,8 +707,7 @@ public BasicStroke strokeType(int key, int graph_num)
           String message = e.getActionCommand();
           if( message.equals("Change Label") )
           {
-            graphs[selectedLineBox.getSelectedIndex()] = 
-                                                labelField.getText();
+            graphs[selectedLineBox.getSelectedIndex()] = labelField.getText();
             this_panel.repaint();
 	    
           }
@@ -695,7 +718,7 @@ public BasicStroke strokeType(int key, int graph_num)
           } 
           else if( message.equals("Close") )
           { 
-	    editor_bounds = this_editor.getBounds(); 
+            editor_bounds = this_editor.getBounds(); 
             this_editor.dispose();
             this_panel.repaint();
           }
@@ -726,7 +749,7 @@ public BasicStroke strokeType(int key, int graph_num)
     {
       public void componentResized( ComponentEvent we )
       {
-	editor_bounds = editor.getBounds();
+        editor_bounds = editor.getBounds();
       }
     }
     
@@ -749,27 +772,25 @@ public BasicStroke strokeType(int key, int graph_num)
         {
           if( name.equals("Ctrl-UP") )
           {
-                y_offset--;
+            y_offset--;
           }
           else if( name.equals("Ctrl-DOWN") )
           {
-                y_offset++;
+            y_offset++;
           }
           else if( name.equals("Ctrl-LEFT") )
           {
-                x_offset--;
+            x_offset--;
           }
           else if( name.equals("Ctrl-RIGHT") )
           {
-                x_offset++;
+            x_offset++;
           }
 
-        this_panel.repaint();
+          this_panel.repaint();
         }
       } 
-    }
-
-	    
+    }	    
   }
   
  /*
