@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.60  2007/06/01 15:35:56  amoe
+ * Removed redundant block of code in reInit() .
+ *
  * Revision 1.59  2007/03/30 19:18:42  amoe
  * - Commented out RangeListener and it's application to the graph
  * range.  I added the RangeListener functionality to the
@@ -902,27 +905,6 @@ import javax.swing.*;
 
       GraphData gd = ( GraphData )gjp.graphs.elementAt( line_index );
 
-     if(
-        gjp.getStroke( line_index ) == (
-            GraphJPanel.DOTTED) ) {
-        labelbox2.setSelectedIndex( 2 );
-      } else if(
-       gjp.getStroke( line_index ) == (
-            GraphJPanel.LINE) ) {
-        labelbox2.setSelectedIndex( 0 );
-      } else if(
-        gjp.getStroke( line_index )==(
-            GraphJPanel.DASHED) ) {
-       labelbox2.setSelectedIndex( 1 );
-      } else if(
-        gjp.getStroke( line_index ) == (
-            GraphJPanel.DASHDOT) ) {
-        labelbox2.setSelectedIndex( 3 );
-      } else if(
-        gjp.getStroke( line_index ) == (
-            GraphJPanel.TRANSPARENT) ) {
-        labelbox2.setSelectedIndex( 4 );
-      }
      
       /*
         sets the line style combo box to the style of the line selected.
