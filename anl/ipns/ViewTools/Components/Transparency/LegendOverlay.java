@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2007/06/01 19:33:08  amoe
+ *  -Added note comment to strokeType(..), regarding transparent lines.
+ *  -Added if-statement to drawLegend(..), so the sample lines would not
+ *  be drawn if the graph line was transparent.
+ *  -Changed position of sample point markers, since the sample lines
+ *  were moved in previous CVS change.
+ *
  *  Revision 1.18  2007/05/31 19:24:10  amoe
  *  - Changed the legend so the sample line would be displayed left of
  *  the graph label.
@@ -403,7 +410,10 @@ public class LegendOverlay extends OverlayJPanel
     }
     else if (key == TRANSPARENT)
     {
-      float clear[] = {0.0f, 1000.0f};
+      //NOTE:Transparency is not set as a stroke, the sample line is simply not
+      // drawn when transparent.  This is in drawLegend(..) .
+      
+      //float clear[] = {0.00f, 100.00f};
       BasicStroke transparent = new BasicStroke(0.0f);
       return transparent;
     }
@@ -527,15 +537,17 @@ public class LegendOverlay extends OverlayJPanel
     //Graph sample line
     for (int index = 0; index < graphs.length; index++)
     {
-      g2d.setStroke(strokeType(lineInfo[index].linetype, index) );
-      g2d.setColor(lineInfo[index].color);
-         
-      g2d.drawLine( (int)current_bounds.getX() + (int)current_bounds.getWidth()
-          - (maxTotalWidth + 13) + x_offset,
-                 (int)current_bounds.getY() + (20*(index+1)) + y_offset,
-                 (int)current_bounds.getX() + (int)current_bounds.getWidth() - 
-                 ((maxTotalWidth)-7) + x_offset,
-                 (int)current_bounds.getY() + (20*(index+1)) + y_offset );
+      g2d.setStroke(strokeType(lineInfo[index].linetype, index) );      
+      g2d.setColor(lineInfo[index].color);        
+      
+      //if the line is transparent, don't draw it
+      if(!lineInfo[index].transparent)
+        g2d.drawLine( (int)current_bounds.getX() + (int)current_bounds.getWidth()
+            - (maxTotalWidth + 13) + x_offset,
+                   (int)current_bounds.getY() + (20*(index+1)) + y_offset,
+                   (int)current_bounds.getX() + (int)current_bounds.getWidth() - 
+                   ((maxTotalWidth)-7) + x_offset,
+                   (int)current_bounds.getY() + (20*(index+1)) + y_offset );
     }
     
     //Graph sample line marks
@@ -545,8 +557,8 @@ public class LegendOverlay extends OverlayJPanel
       g2d.setStroke(new BasicStroke(1));
       g2d.setColor(lineInfo[index].markcolor);
          
-      int x_int = (int)current_bounds.getX() + (int)current_bounds.getWidth()
-      - 30 + x_offset;
+      int x_int = (int)current_bounds.getX() + (int)current_bounds.getWidth() -
+        (maxTotalWidth + 3) + x_offset;
       int y_int = (int)current_bounds.getY() + (20*(index+1)) + y_offset;
          
       if( lineInfo[index].marktype == GraphJPanel.DOT)
