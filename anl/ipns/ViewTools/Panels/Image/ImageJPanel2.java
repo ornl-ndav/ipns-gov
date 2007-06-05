@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/06/05 20:10:53  rmikk
+ *  Eliminated an off by one error.  end_col's float value can be NumColumns
+ *
  *  Revision 1.10  2007/04/29 18:47:44  rmikk
  *  Fixed off by one error caused be previous fixes of such errors.  This caused
  *  the last row and last column not to be shown
@@ -960,13 +963,13 @@ protected void LocalTransformChanged()
     int xc2=0; //for rounding to integer pixels after first zoom
    
     if( bounds.getY2() != (int)bounds.getY2())
-       if(end_row <data.getNumRows()-1 )
+       if(end_row <data.getNumRows() )
            xr2=1;
     
     if( bounds.getX2() != (int)bounds.getX2())
-       if(end_col <  data.getNumColumns()-1)
+       if(end_col <  data.getNumColumns())
           xc2=1;
-
+    
     
     CoordBounds new_bounds = new CoordBounds( start_col, start_row,
                                               end_col+xc2, end_row+xr2 );
