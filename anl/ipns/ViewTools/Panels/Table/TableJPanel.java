@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2007/06/05 20:12:54  rmikk
+ *  Fixed it so the row labels and column labels sent in are seen
+ *
  *  Revision 1.15  2007/03/16 18:34:02  dennis
  *  Adapted to use new Region methods.
  *
@@ -335,6 +338,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   private CoordBounds active_selection; // The actively growing selection.
   private JTableHeader column_labels; // Save backup of header, so it can be
                                       // set to null, thus not appearing.
+ 
   private JTable row_labels; // The row labels.
   private JPanel row_label_container; // The row labels and spacers.
   private Vector row_label_list; // List of labels, one for each row.
@@ -370,15 +374,15 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   */ 
   public TableJPanel( TableModel tm )
   {
-    super();
-    // Prevent data from being null. If zero rows/columns then just create
-    // a default JTable.
-    if( tm == null || tm.getRowCount() <= 0 || tm.getColumnCount() <= 0 )
-      table = new JTable();
-    else
-      table = new JTable(tm);
-    init();
-  }
+        super();
+     // Prevent data from being null. If zero rows/columns then just create
+     // a default JTable.
+     if( tm == null || tm.getRowCount() <= 0 || tm.getColumnCount() <= 0 )
+       table = new JTable();
+     else
+       table = new JTable(tm);
+     init();
+   }
   
  /**
   * Constructor that takes in the dimensions of the table. This will
@@ -458,13 +462,17 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
     // Initialize the label lists to contain "Column #" or "Row #".
     Object[] column_label_array = new Object[columns];
     for( int col_num = 0; col_num < columns; col_num++ )
-      column_label_array[col_num] = new Integer(col_num);
+      column_label_array[col_num] = table.getColumnModel().getColumn(col_num).
+                                                  getHeaderValue().toString();
+                                 //new Integer(col_num);
     setColumnLabels(column_label_array);
     
     row_label_list = new Vector();
     Object[] row_label_array = new Object[rows];
-    for( int row_num = 0; row_num < rows; row_num++ )
+    for( int row_num = 0; row_num < rows; row_num++ ){
       row_label_array[row_num] = new Integer(row_num);
+      row_label_list.add( new Integer( row_num));
+    }
     setRowLabels(row_label_array);
     row_label_container = new JPanel( new BorderLayout() );
     row_label_container.add( row_labels, BorderLayout.CENTER );
