@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/06/05 20:06:41  rmikk
+ *  The row labels and column labels now correspond to the values given in the
+ *     corresponding axisInfo
+ *
  *  Revision 1.10  2007/03/16 17:01:39  dennis
  *  Added method getWorldToArrayTransform().
  *
@@ -392,6 +396,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   {
     varray = array;
     // Make sure data is valid.
+    String[] rowNames = null;
     if( varray != null )
     {
       //Make ijp correspond to the data in f_array
@@ -403,12 +408,35 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     						  yinfo.getMax(),      
     						  xinfo.getMax(),
     						  yinfo.getMin() ) );
+      float Delta = (yinfo.getMax()-yinfo.getMin())/varray.getNumRows();
+      rowNames = new String[ varray.getNumRows()];
+      float Val = yinfo.getMin()+Delta/2f;
+      for( int i= 0; i< rowNames.length; i++){
+         rowNames[i] = ""+Val;
+         Val += Delta;
+      }
+         
     }
     tjp = null;
-    tjp = new TableJPanel( TableModelMaker.getModel(varray) );
+    tjp = new TableJPanel( TableModelMaker.getModel(varray, getColumnNames( varray )) );
     tjp.setColumnAlignment( SwingConstants.RIGHT );
     tjp.addActionListener( new TableListener() );
+    if( rowNames != null)
+       tjp.setRowLabels( rowNames);
     dataChanged();
+  }
+  
+  private String[] getColumnNames( IVirtualArray2D varray){
+     String[] Res = new String[ varray.getNumColumns()];
+     
+     AxisInfo x_axis = varray.getAxisInfo( AxisInfo.X_AXIS );
+     float L = (x_axis.getMax() - x_axis.getMin() )/Res.length;
+     float S = x_axis.getMin() + L/2f;
+     for( int i=0; i< Res.length; i++){
+        Res[i] =""+S;
+        S+=L;
+     }
+     return Res;
   }
   
  /**
