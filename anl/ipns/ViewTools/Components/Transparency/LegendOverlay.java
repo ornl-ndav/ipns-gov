@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2007/06/06 17:21:59  amoe
+ *  -After every action from the LegendEditor's components, focus will be
+ *  requested back to the titleField.  This is so the input keys for moving
+ *  the legend will be heard.
+ *  -Edited the help pane so it would be a bit more easier to read.
+ *
  *  Revision 1.19  2007/06/01 19:33:08  amoe
  *  -Added note comment to strokeType(..), regarding transparent lines.
  *  -Added if-statement to drawLegend(..), so the sample lines would not
@@ -290,7 +296,7 @@ public class LegendOverlay extends OverlayJPanel
   {
     helper = new JFrame("Help for Legend Overlay");
     helper.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-    helper.setBounds(0,0,600,400);
+    helper.setBounds(0,0,575,500);
 
     JEditorPane textpane = new JEditorPane();
     textpane.setEditable(false);
@@ -299,27 +305,16 @@ public class LegendOverlay extends OverlayJPanel
                   "The Legend Overlay is used to add an on-screen legend to " +
                   "a selected set of graphs. Below are some basic commands " +
                   " necessary for creating the legend.</P>" +
-                  "<H2>Commands for Legend Overlay</H2>" +
-                  "<P>Note:<BR>" +
+                  "<P><I>Note:</I><BR>" +
                   "- These commands will NOT work if the Legend " +
-                  "Overlay checkbox IS NOT checked.<BR>" +
+                  "Overlay checkbox IS NOT checked.<BR><BR>" +
                   "<H2>LegendEditor Commands <BR>" +
-                  "(Edit Button under Annotation Overlay Control)</H2>" +
-                  "<P>Commands below are listed in the following way:<BR>" +
-                  "(Focus>Action>Result) Focus is where the cursor or " +
-                  "mouse must be. Focus is gained by clicking the mouse on " +
-                  "the desired area. Action is the action performed by you, " +
-                  "the user. Result is the consequence of your action.<BR>" +
-                  "TextArea>Hold Ctrl, Press Arrow Keys>MOVE LEGEND<BR>" +
-                  "Border Checkbox>Click Mouse>ADD/REMOVE BORDER<BR>" +
-                  "Graph Combobox>Click Mouse and Highlight Graph>SELECTS" +
-                  "THE GRAPH LABEL YOU WANT TO CHANGE<BR>" +
-                  "Change Label Button>Click Mouse>CHANGES THE GRAPH LABEL" +
-                  "ON THE LEGEND TO THE TEXT IN THE GRAPH TEXT AREA<BR>" +
-                  "Change Legend Label Button>Click Mouse>CHANGES THE LEGEND" +  
-                  "LABEL ON THE BORDER TO THE TEXT IN THE" + 
-                  "LEGEND LABEL TEXT AREA<BR>" +
-                  "Close Button>Single Mouse Click>CLOSE EDITOR</P>";
+                  "(Edit Button under Annotation Overlay Control)</H2>" +    
+                  "<P>To move LEGEND: Click on the Legend Editor window's gray space and hold <Ctrl> and press any arrow key.</P>"+
+                  "<P>To toggle LEGEND BORDER: Click on \"Display Border\" checkbox.</P>"+
+                  "<P>To SELECT GRAPH: Click on \"Graph\" combo-box and click on a graph title.</P>"+
+                  "<P>To change GRAPH LABEL: Click on the textfield, type in a new label, and click on \"Change Label\" button.</P>"+
+                  "<P>To change LEGEND LABEL: Click on the textfield, type in a new label, and click on \"Change Legend Label\" button.</P>";
     textpane.setText(text);
     JScrollPane scroll = new JScrollPane(textpane);
     scroll.setVerticalScrollBarPolicy(
@@ -721,12 +716,13 @@ public class LegendOverlay extends OverlayJPanel
           {
             graphs[selectedLineBox.getSelectedIndex()] = labelField.getText();
             this_panel.repaint();
-	    
+            titleField.requestFocus();	    
           }
           else if( message.equals("Change Legend Label"))
           {
             legend_label = legend_field.getText();
             this_panel.repaint();
+            titleField.requestFocus();
           } 
           else if( message.equals("Close") )
           { 
@@ -745,7 +741,8 @@ public class LegendOverlay extends OverlayJPanel
           if( message.equals("COMBOBOX_CHANGED") )
           {
              labelField.setText(graphs[selectedLineBox.getSelectedIndex()]);        
-          }  
+          }
+          titleField.requestFocus();
         }
         else if( e.getSource() instanceof ControlCheckbox )
         {
@@ -753,6 +750,7 @@ public class LegendOverlay extends OverlayJPanel
           if (message.equals("Checkbox Changed") )
           draw_border = border_check.isSelected();
           this_panel.repaint();
+          titleField.requestFocus();
         }    
       }
     }
