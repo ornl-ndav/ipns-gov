@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.59  2007/06/08 20:01:19  dennis
+ * Now forces Y_min < Y_max before making bounds that
+ * are ultimately inverted.
+ *
  * Revision 1.58  2006/07/31 02:35:25  dennis
  * Trap index out of bounds error in getY_value() method.
  *
@@ -1158,10 +1162,18 @@ public void setY_bounds( float y_min, float y_max )
 {
   CoordBounds data_bound = getGlobalWorldCoords();
 
+  if ( y_min > y_max )
+  {
+    float temp = y_min;
+    y_min = y_max;
+    y_max = temp;
+  } 
+
   data_bound.setBounds( data_bound.getX1(), y_min,     // change and "lock" the
                         data_bound.getX2(), y_max );   // new y_min, y_max
 
   data_bound.invertBounds();               // needed for "upside down" pixel
+
   initializeWorldCoords( data_bound );     // coordinates
 
   repaint();
@@ -1791,7 +1803,6 @@ private void set_auto_data_bound()
    ymin = fixed_vals[0];
    ymax = fixed_vals[1];
 
-   // If log, make sure range is all positive.
    if( getLogScaleX() )
      xmin = getPositiveXmin();
    if( getLogScaleY() )
@@ -1808,7 +1819,7 @@ private void SetDataBounds()
     float x1, y1, x2, y2;
                                        // get both the currently set WC bounds
                                        // and the automatically scaled bounds
-    CoordBounds current_bound   = getGlobalWorldCoords();
+    CoordBounds current_bound = getGlobalWorldCoords().MakeCopy();
     current_bound.invertBounds();
 
                                       // choose new y_bounds based on flag
@@ -1835,9 +1846,17 @@ private void SetDataBounds()
       x2 = auto_data_bound.getX2();
     }
 
+    if ( y1 > y2 )
+    {
+      float temp = y1;
+      y1 = y2;
+      y2 = temp;
+    }
+
     CoordBounds data_bound =  new CoordBounds( x1, y1, x2, y2 );
     data_bound.invertBounds();               // needed for "upside down" pixel
                                              // coordinates
+  
     CoordBounds local_bounds = getLocalWorldCoords();
     // If "don't reset local bounds and local bounds are within the
     // global bounds, only reset the world coordinates.
