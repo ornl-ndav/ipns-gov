@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.94  2007/06/08 20:29:48  dennis
+ *  setAxisInfo() now inverts the bounds to be consistent with
+ *  other parts of the system.
+ *  Also removed some unused code in setAxisInfo()
+ *
  *  Revision 1.93  2007/03/12 15:00:53  amoe
  *  Added public method isDrawingPointedAtGraph() so external
  *  classes could determine if the FunctionViewComponent's
@@ -725,37 +730,11 @@ public class FunctionViewComponent implements IViewComponent1D,
   /**
    * This method initializes the world coords.
    */
-  public void setAxisInfo() {/*
-  if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true ) 
-  {
-      gjp.setLocalWorldCoords( gjp.getLocalLogWorldCoords() );
-  }
-  else if (gjp.getLogScaleX() == true && gjp.getLogScaleY() == false)
-  {
-      gjp.setLocalWorldCoords( new CoordBounds(
-                               gjp.getLocalLogWorldCoords().getX1(),
-                               gjp.getLocalWorldCoords().getY1(),
-			       gjp.getLocalLogWorldCoords().getX2(),
-                               gjp.getLocalWorldCoords().getY2() ) );
-  }                                    
-  else if (gjp.getLogScaleX() == false && gjp.getLogScaleY() == true)
-  {
-      gjp.setLocalWorldCoords( new CoordBounds(
-                               gjp.getLocalWorldCoords().getX1(),
-                               gjp.getLocalLogWorldCoords().getY1(),
-			       gjp.getLocalWorldCoords().getX2(),
-                               gjp.getLocalLogWorldCoords().getY2() ) );
-  }
-  else
-  {*/
-    gjp.initializeWorldCoords( 
-        new CoordBounds( 
-          gjp.getXmin(), gjp.getYmin(),
-          gjp.getXmax(), gjp.getYmax() ) );
-  //}
- 
-   // AxisInfo xinfo = getAxisInformation( AxisInfo.X_AXIS );
-   // AxisInfo yinfo = getAxisInformation( AxisInfo.Y_AXIS );
+  public void setAxisInfo() {
+    CoordBounds bounds = new CoordBounds( gjp.getXmin(), gjp.getYmin(),
+                                          gjp.getXmax(), gjp.getYmax() );
+    bounds.invertBounds();
+    gjp.initializeWorldCoords( bounds );
 
   }
 
@@ -1043,7 +1022,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    */
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
   {
-	//System.out.println("gjp.clearData()");
+    // System.out.println("gjp.clearData()");
     gjp.clearData();          // since any of the graphs might have changed, we
                               // clear out all stored copies and start over.
 
@@ -1079,7 +1058,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     //check if the Legend is on.  If it is, refresh it.
     ViewControl[] vcontrol = mainControls.getControlList();  
   	
-    if( (new Boolean(true)).equals(vcontrol[FunctionControls.VC_LEGEND_CHECKBOX].getControlValue()) )
+    if( Boolean.TRUE.equals(
+             vcontrol[FunctionControls.VC_LEGEND_CHECKBOX].getControlValue()) )
     {
       ((LegendOverlay)transparencies.elementAt(0)).setVisible(true);    	
     }
