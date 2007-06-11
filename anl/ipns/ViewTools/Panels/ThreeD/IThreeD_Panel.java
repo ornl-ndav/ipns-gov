@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/06/11 15:03:48  dennis
+ * Now uses general Objects, instead of just Strings to identify
+ * specific lists of 3D objects to be drawn.  In particular, this
+ * allows Integer objects to be used to identify such lists.
+ *
  * Revision 1.1  2004/05/03 18:12:47  dennis
  * Initial version of interface for panels that display lists
  * of 3D objects.
@@ -105,7 +110,7 @@ public interface IThreeD_Panel
  *                   changed.
  *  @param  colors   Array of colors to use for the named list of objects.
  */
-  public void setColors( String name, Color colors[] );
+  public void setColors( Object name, Color colors[] );
 
 
 /* ----------------------------- setColor --------------------------- */
@@ -120,7 +125,7 @@ public interface IThreeD_Panel
  *                   changed.
  *  @param  color    New color to use for the named list of objects.
  */
-  public void setColors( String name, Color color );
+  public void setColors( Object name, Color color );
 
 
 /* ----------------------------- setObjects ----------------------------- */
@@ -136,7 +141,7 @@ public interface IThreeD_Panel
  *                this panel.
  *  @param  obj   Array of ThreeD objects to be set for this panel.
  */
- public void setObjects( String name, IThreeD_Object obj[] );
+ public void setObjects( Object name, IThreeD_Object obj[] );
 
 
 /* ----------------------------- getObjects ----------------------------- */
@@ -151,7 +156,7 @@ public interface IThreeD_Panel
  *  @return  Array of ThreeD objects or null if the named objects don't
  *           exit.
  */
- public IThreeD_Object[] getObjects( String name );
+ public IThreeD_Object[] getObjects( Object name );
 
 
 /* ----------------------------- getAllObjects ----------------------------- */
@@ -176,7 +181,7 @@ public interface IThreeD_Panel
  *  @param  name  Unique string identifer to be used for the new array
  *                of objects being removed from this panel
  */
- public void removeObjects( String name );
+ public void removeObjects( Object name );
 
 
 /* --------------------------------- clear -------------------------------- */
