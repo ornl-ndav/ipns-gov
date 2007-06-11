@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.24  2007/06/11 15:05:10  dennis
+ * Now uses general Objects, instead of just Strings to identify
+ * specific lists of 3D objects to be drawn.  In particular, this
+ * allows Integer objects to be used to identify such lists.
+ * Also, replaced Hashtable that stored "named" lists of
+ * 3D objects with Tree of 3D objects.
+ *
  * Revision 1.23  2006/11/04 20:14:04  dennis
  * Minor efficiency improvement for new non-array form of Vector3D
  *
@@ -109,7 +116,7 @@ public class ThreeD_JPanel extends    CoordJPanel
                            implements IThreeD_Panel,
                                       Serializable
 {
-  private  Hashtable       obj_lists     = null;  // Hastable storing, object[]
+  private  TreeMap         obj_lists     = null;  // TreeMap storing, object[]
                                                   // lists referenced by name 
                                                   
   private  IThreeD_Object  picked_object = null;  // last object picked
@@ -146,7 +153,7 @@ public class ThreeD_JPanel extends    CoordJPanel
   { 
     super();
 
-    obj_lists = new Hashtable();
+    obj_lists = new TreeMap();
 
     setPreserveAspectRatio( true );
     setVirtualScreenSize( 1, 1, true );
@@ -389,7 +396,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  *                   changed.
  *  @param  colors   Array of colors to use for the named list of objects.
  */
-  public void setColors( String name, Color colors[] )
+  public void setColors( Object name, Color colors[] )
   {
     IThreeD_Object objects[] = (IThreeD_Object[])obj_lists.get(name);
 
@@ -419,7 +426,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  *                   changed.
  *  @param  color    New color to use for the named list of objects.
  */
-  public void setColors( String name, Color color )
+  public void setColors( Object name, Color color )
   {
     IThreeD_Object objects[] = (IThreeD_Object[])obj_lists.get(name);
 
@@ -446,7 +453,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  *                this panel.
  *  @param  obj   Array of ThreeD objects to be set for this panel.
  */
- public void setObjects( String name, IThreeD_Object obj[] )
+ public void setObjects( Object name, IThreeD_Object obj[] )
  {
                                                      // ignore degenerate cases
    if ( name == null || obj == null || obj.length <= 0 )  
@@ -473,7 +480,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  *  @return  Array of ThreeD objects or null if the named objects don't
  *           exit.
  */
- public IThreeD_Object[] getObjects( String name )
+ public IThreeD_Object[] getObjects( Object name )
  {                                                // ignore degenerate cases
    if ( name == null )
      return null;
@@ -526,7 +533,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  *  @param  name  Unique string identifer to be used for the new array
  *                of objects being removed from this panel
  */
- public void removeObjects( String name )
+ public void removeObjects( Object name )
  {
    obj_lists.remove( name );
    obj_lists_valid = false; 
@@ -707,17 +714,18 @@ public class ThreeD_JPanel extends    CoordJPanel
    }
 
    int n_objects = 0;
-   Enumeration e = obj_lists.elements();
-   while ( e.hasMoreElements() ) 
-     n_objects += ( (IThreeD_Object[])(e.nextElement()) ).length;
+   Collection all_lists  = obj_lists.values();
+   Iterator iterator = all_lists.iterator();
+   while ( iterator.hasNext() ) 
+     n_objects += ( (IThreeD_Object[])(iterator.next()) ).length;
 
    all_objects = new IThreeD_Object[n_objects];
    IThreeD_Object list[];
    int place = 0;
-   e = obj_lists.elements();
-   while ( e.hasMoreElements() ) 
+   iterator = all_lists.iterator();
+   while ( iterator.hasNext() ) 
    {
-     list = (IThreeD_Object[])e.nextElement();
+     list = (IThreeD_Object[])iterator.next();
      for ( int j = 0; j < list.length; j++ )
      {
        all_objects[ place ] = list[j];
