@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2007/06/12 20:50:36  rmikk
+ *  Made the POINTED_AT_CHANGED agree with IObserver's value
+ *
  *  Revision 1.16  2007/06/05 20:12:54  rmikk
  *  Fixed it so the row labels and column labels sent in are seen
  *
@@ -188,6 +191,7 @@ import gov.anl.ipns.ViewTools.Components.Region.PointRegion;
 import gov.anl.ipns.ViewTools.Components.Region.TableRegion;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
+import gov.anl.ipns.Util.Messaging.*;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.Sys.WindowShower;
@@ -234,7 +238,7 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
   * "Pointed At Changed" - This messaging String is sent out whenever the
   * pointed at cell is changed.
   */
-  public static final String POINTED_AT_CHANGED = "Pointed At Changed";
+  public static final String POINTED_AT_CHANGED = IObserver.POINTED_AT_CHANGED;
   
  /**
   * "Viewport Changed" - This messaging String is sent out whenever the
