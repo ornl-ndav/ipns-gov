@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.7  2007/06/12 20:31:07  rmikk
+ *  Redefined POINTED_AT_CHANGED to correspond to IObserver's POINTED_AT
+ *     _CHANGED
+ *
  *  Revision 1.6  2004/03/19 20:27:46  millermi
  *  - Now extends IPreserveState, thus requiring all view components
  *    to have methods get/setObjectState().
@@ -70,6 +74,7 @@ import java.awt.event.ActionListener;
 
 import gov.anl.ipns.ViewTools.Components.Menu.ViewMenuItem;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
+import gov.anl.ipns.Util.Messaging.*;
 
 /**
  * Any class that implements this interface will interpret and display
@@ -84,7 +89,7 @@ public interface IViewComponent extends IPreserveState
   * "POINTED_AT_CHANGED" - this message String is used by view components
   * to inform listeners that the current point has changed.
   */
-  public static final String POINTED_AT_CHANGED = "POINTED_AT_CHANGED";
+  public static final String POINTED_AT_CHANGED = IObserver.POINTED_AT_CHANGED;
   
  /**
   * "SELECTED_CHANGED" - this message String is used by view components
