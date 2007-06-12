@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/06/12 20:39:42  rmikk
+ *  Set POINTED_AT_CHANGED to agree with IObserver's POINTED_AT_CHANGED
+ *
  *  Revision 1.11  2007/06/05 20:06:41  rmikk
  *  The row labels and column labels now correspond to the values given in the
  *     corresponding axisInfo
@@ -654,7 +657,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
       if( message.equals(TableJPanel.SELECTED_CHANGED) )
         sendMessage(SELECTED_CHANGED);
       else if( message.equals(TableJPanel.POINTED_AT_CHANGED) )
-        sendMessage(POINTED_AT_CHANGED);
+        sendMessage(TableJPanel.POINTED_AT_CHANGED);
       else if( message.equals(TableJPanel.VIEWPORT_CHANGED) )
       {
 	// If varray was null, PanViewControl was never created, so do nothing.
