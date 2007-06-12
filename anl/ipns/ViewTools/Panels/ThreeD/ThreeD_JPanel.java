@@ -30,6 +30,23 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.25  2007/06/12 19:15:05  dennis
+ * Significant simplification.
+ * 1. No longer attempts to do it's own double buffering, but just uses
+ *    Swing's built in double buffering (the default).
+ * 2. No longer calls super.paint().  The call to super.paint() caused
+ *    some odd flickering of other components!
+ * 3. Now overides paintComponent() instead of paint().  Recent documentation
+ *    states that derived classes should NOT overide paint(), but should
+ *    override paintComponent().  This change avoided some corruption
+ *    of the underlying data when many updates were done by asynchronously
+ *    merging redraws due new frame requests from the frame controller
+ *    and redraws due to the user adjusting the alt-az slider controls in
+ *    the ThreeDView.
+ * 4. Switched back from using TreeMap to using Hashtable to store the list
+ *    of named lists of 3D objects, since thare was no performance
+ *    advantage to the TreeMap in this case.
+ *
  * Revision 1.24  2007/06/11 15:05:10  dennis
  * Now uses general Objects, instead of just Strings to identify
  * specific lists of 3D objects to be drawn.  In particular, this
@@ -104,7 +121,6 @@ import javax.swing.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 import gov.anl.ipns.ViewTools.Panels.Image.*;
 import gov.anl.ipns.MathTools.Geometry.*;
-import gov.anl.ipns.Util.Sys.*;
 import gov.anl.ipns.Util.Numeric.*;
 
 
@@ -116,13 +132,13 @@ public class ThreeD_JPanel extends    CoordJPanel
                            implements IThreeD_Panel,
                                       Serializable
 {
-  private  TreeMap         obj_lists     = null;  // TreeMap storing, object[]
+  private  Hashtable       obj_lists     = null;  // Hashtable storing, object[]
                                                   // lists referenced by name 
                                                   
   private  IThreeD_Object  picked_object = null;  // last object picked
   private  IThreeD_Object  all_objects[] = null;  // array of all current 
                                                   // objects
-  private  int             index[]       = null;  // depth sorted array of
+  private  Integer         index[]       = null;  // depth sorted array of
                                                   // indices into all_objects[]
   private  Tran3D          tran;
   private  Tran3D          tran3D_used  = null;
@@ -135,13 +151,6 @@ public class ThreeD_JPanel extends    CoordJPanel
                                                    // front clipping plane as 
                                                    // fraction of distance from
                                                    // VRP to COP
-
-  private Image buffer;                            // use an off-screen buffer
-  private int   buffer_width  = -1;                // to draw to and then
-  private int   buffer_height = -1;                // paing by copying the 
-  private Graphics graphics_buffer;                // off-screen buffer to the
-                                                   // CoordJPanel 
-
   private boolean debug = false;
 
 
@@ -153,7 +162,7 @@ public class ThreeD_JPanel extends    CoordJPanel
   { 
     super();
 
-    obj_lists = new TreeMap();
+    obj_lists = new Hashtable();
 
     setPreserveAspectRatio( true );
     setVirtualScreenSize( 1, 1, true );
@@ -166,74 +175,10 @@ public class ThreeD_JPanel extends    CoordJPanel
       if ( size.height > 0 && size.width > size.height )
         setVirtualScreenSize( size.width/(float)size.height, 1, true );
     }
-
-    setBackground( Color.black );
   }
 
 
-/* ------------------------------ repaint ------------------------------- */
-   /**
-    *  This repaint method just calls update() so that the offscreen buffer
-    *  is used for drawing.
-    */
-   public void repaint()
-   {
-     if ( debug )
-       System.out.println("START REPAINT");
-
-     update( getGraphics() );
-   }
-
-
-/* ------------------------------ update ------------------------------- */
-   /**
-    *  This update method creates a new off screen buffer, if the buffer 
-    *  doesn't exist, or is of the wrong size, then calls paint(), passing
-    *  in the off screen buffer, and finally draws the off screen buffer
-    *  image to the specified Graphics object g.
-    */
-   public void update( Graphics g )
-   {
-      ElapsedTime timer = null;
-      if ( debug )
-      {
-        timer = new ElapsedTime();
-        timer.reset();
-      }
-
-      if ( !isVisible() || g == null )
-        return;
-
-      int width = (int)getWidth();
-      int height = (int)getHeight();
-
-      if ( width <= 10 )
-        return;
-
-      if ( height <= 10 )
-        return;
-
-      // Create an offscreen image and then get its
-      // graphics context
-      if ( buffer == null || width != buffer_width || height != buffer_height )
-      {
-        buffer = createImage( width, height );
-        buffer_width  = width;
-        buffer_height = height;
-        graphics_buffer = buffer.getGraphics();
-      }
-
-      paint( graphics_buffer );          // paint to the off screen buffer 
-                                         // then just draw the offscreen 
-                                         // image onto the screen
-      g.drawImage(buffer, 0, 0, this);
-
-      if ( debug && timer != null )
-        System.out.println("Update screen took: " + timer.elapsed() );
-   }
-
-
-/* --------------------------------- paint ------------------------------- */
+/* ---------------------------- paintComponent --------------------------- */
 /**
  *  Draw all of the 3D objects.  This function should not be called directly by
  *  the application.  To request drawing the 3D scene, call repaint() if the
@@ -241,83 +186,49 @@ public class ThreeD_JPanel extends    CoordJPanel
  *  application needs to wait for the drawing to complete before advancing.
  *
  *  @param  g   The graphics context to use when painting the scene.
- *              If g is the graphics buffer, the objects will be projected
- *              and drawn onto the buffer.  If g is the graphics context for
- *              this ThreeD_JPanel, the offscreen buffer will be drawn to
- *              the panel, provided the buffer exists and is valid. 
- *              If there is no valid buffer, the objects will be projected
- *              and drawn directly.
  */
-  public void paint( Graphics g )
+  public void paintComponent( Graphics g )
   {
-    if ( !isVisible() || g == null )
+    if ( !isShowing() || g == null )
       return;
 
     int width = (int)getWidth();
     int height = (int)getHeight();
 
-    if ( width <= 10 )                      
+    if ( width <= 10 )
       return;
 
     if ( height <= 10 )
       return;
 
-    ElapsedTime timer = null;
+    Graphics2D g2d = (Graphics2D)g.create();  // get copy of Graphics object
+/*
+    if ( isDoingCrosshair() )                 // if the system redraws this
+      stop_crosshair( current_point );        // without our knowledge, this
+                                              // gets rid of the cursors other-
+    if ( isDoingBox() )                       // wise the old position will be
+      stop_box( current_point, false );       // drawn instead of erased when
+                                              // the user moves the cusor
+*/                                            // (due to XOR drawing). 
+     build_object_list();
 
-    if ( (Object)g != (Object)graphics_buffer )
-    {
-                                              // the system sometimes calls
-                                              // paint directly, if for example 
-                                              // a window is exposed.  Use our
-                                              // buffer, if possible.
-      if ( graphics_buffer != null         && 
-           width           == buffer_width && 
-           height          == buffer_height )
-      {
-        g.drawImage(buffer, 0, 0, this); 
-        return;
-      }
-      else
-        System.out.println("3D JPANEL NOT USING BUFFER!!!!!!" );
-    }
-
-    if ( debug )
-    {
-      if ( (Object)g != (Object)graphics_buffer )
-        System.out.println("paint() called for JPanel, not graphics_buffer");
-      else
-        System.out.println("paint() called for graphics_buffer");
-
-      timer = new ElapsedTime();
-      timer.reset();
-    }
-
-    data_painted = true;
-    if ( isDoingCrosshair() )                  // if the system redraws this
-      stop_crosshair( current_point );         // without our knowledge, 
-                                               // we've got to get rid
-    if ( isDoingBox() )                        // of the cursors, or the 
-      stop_box( current_point, false );        // old position will be drawn
-                                               // instead of erased when the
-                                               // user moves the cursor (due
-                                               // to XOR drawing).
-    super.paint(g);
-
-    build_object_list();
+    g2d.setColor( getBackground() );
+    g2d.fillRect( 0, 0, width, height );
 
     if ( all_objects == null )
     {
-      g.setColor( Color.white );
-      g.drawString( "No 3D Objects", getWidth()/3, getHeight()/2 );
-      return;
+      System.out.println("Setting color to WHITE");
+      g2d.setColor( Color.WHITE );
+      g2d.drawString( "No 3D Objects", getWidth()/3, getHeight()/2 );
     }
-
-    project();
-    for ( int i = 0; i < all_objects.length; i++ )
-      all_objects[ index[i] ].Draw(g);
-
-    if ( debug && timer != null )
-      System.out.println("actually painting took: " + timer.elapsed() );
+    else
+    {
+      project();
+      for ( int i = 0; i < all_objects.length; i++ )
+        all_objects[ index[i] ].Draw(g2d);
+    }
+    g2d.dispose();
+    data_painted = true;
   }
 
 
@@ -398,7 +309,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
   public void setColors( Object name, Color colors[] )
   {
-    IThreeD_Object objects[] = (IThreeD_Object[])obj_lists.get(name);
+    IThreeD_Object objects[] = (IThreeD_Object[])obj_lists.get(name); 
 
     if ( objects != null )
     {
@@ -714,18 +625,17 @@ public class ThreeD_JPanel extends    CoordJPanel
    }
 
    int n_objects = 0;
-   Collection all_lists  = obj_lists.values();
-   Iterator iterator = all_lists.iterator();
-   while ( iterator.hasNext() ) 
-     n_objects += ( (IThreeD_Object[])(iterator.next()) ).length;
+   Enumeration e = obj_lists.elements();
+   while ( e.hasMoreElements() )
+     n_objects += ( (IThreeD_Object[])(e.nextElement()) ).length;
 
    all_objects = new IThreeD_Object[n_objects];
    IThreeD_Object list[];
    int place = 0;
-   iterator = all_lists.iterator();
-   while ( iterator.hasNext() ) 
+   e = obj_lists.elements();
+   while ( e.hasMoreElements() )
    {
-     list = (IThreeD_Object[])iterator.next();
+     list = (IThreeD_Object[])e.nextElement();
      for ( int j = 0; j < list.length; j++ )
      {
        all_objects[ place ] = list[j];
@@ -733,10 +643,10 @@ public class ThreeD_JPanel extends    CoordJPanel
      }
    }
 
-   index = new int[ all_objects.length ];
+   index = new Integer[ all_objects.length ];
 
    for ( int i = 0; i < index.length; i++ )
-     index[i] = i;
+     index[i] = new Integer(i);
 
    data_painted = false;
 
@@ -780,27 +690,11 @@ public class ThreeD_JPanel extends    CoordJPanel
     for ( int i = 0; i < all_objects.length; i++ )
       all_objects[i].Project( tran, local_transform, clip_distance );
 
-    JavaSort( all_objects, index );
+    Arrays.sort( index, new DepthComparator( all_objects ) );
 
     tran3D_used = new Tran3D( tran );
     tran2D_used = new CoordTransform( local_transform );
   }
-
-
-/* -------------------------- JavaSort -------------------------------- */
-
-private void JavaSort( IThreeD_Object list[],
-                       int            index[] )
-{
-  Integer Index[] = new Integer[ index.length ];   // make list of Integer
-  for ( int i = 0; i < index.length; i++ )         // objects
-    Index[i] = new Integer(i);
-
-  Arrays.sort( Index, new DepthComparator( list ) );
-
-  for ( int i = 0; i < index.length; i++ )         // copy back to int[] list 
-    index[i] = Index[i].intValue();
-}
 
 
 /* ------------------------ DepthComparator ---------------------------- */
@@ -817,8 +711,8 @@ private class DepthComparator implements Serializable,
 
   public int compare( Object o1, Object o2 )
   {
-    int i1 = ((Integer)o1).intValue();
-    int i2 = ((Integer)o2).intValue();
+    int i1 = (Integer)o1;
+    int i2 = (Integer)o2;
     float d1 = list[ i1 ].depth();
     float d2 = list[ i2 ].depth();
     if ( d1 < d2 ) 
