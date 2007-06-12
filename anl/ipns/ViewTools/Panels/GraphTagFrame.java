@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.2  2007/06/12 21:23:56  rmikk
+ *  Fixed a reverse problem with the column mode
+ *
  *  Revision 1.1  2007/06/12 20:28:28  rmikk
  *  Initial CheckIn. This produces a JFrame that tags along on the boundary of
  *    another JFrame, displaying values of slices in a VirtualArray2D that should
@@ -286,7 +289,7 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
             
             graphValues[ - ( row - start ) ] = data.getDataValue( row ,
                      pointedAtCol );
-            xvals[ - ( row - start ) ] = row;
+            xvals[ - ( row - start ) ] = - ( row - start );
             
             if( Float.isNaN( miny ) )
                
