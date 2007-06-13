@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2007/06/13 15:36:31  dennis
+ * Minor performance improvemnt...reordered code in Project() method so
+ * that the array of components of a vector is only requested one time.
+ *
  * Revision 1.9  2004/03/15 23:53:55  dennis
  * Removed unused imports, after factoring out the View components,
  * Math and other utils.
@@ -174,14 +178,16 @@ abstract public class ThreeD_Object implements IThreeD_Object
     for ( int i = 0; i < vertices.length; i++ )        // project each vertex
     { 
       projection.apply_to( vertices[i], point );
-      if ( point.get()[2] >= front_clip )
-        clipped = true;
-      point.standardize();
 
       coords = point.get();
+
+      if ( coords[2] >= front_clip )
+        clipped = true;
+
+      point.standardize();
+
       sum += coords[2];                                // to calculate the
                                                        // average depth in scene
-
       x[i] = coords[0]; 
       y[i] = coords[1]; 
     }
