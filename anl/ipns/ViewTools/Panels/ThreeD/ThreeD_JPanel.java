@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.26  2007/06/13 15:37:29  dennis
+ * Added some documentation to private methods.
+ *
  * Revision 1.25  2007/06/12 19:15:05  dennis
  * Significant simplification.
  * 1. No longer attempts to do it's own double buffering, but just uses
@@ -655,8 +658,12 @@ public class ThreeD_JPanel extends    CoordJPanel
                                            // and depth sorted again. 
  }
 
-/* ----------------------------- project ------------------------------ */
 
+/* ----------------------------- project ------------------------------ */
+/**
+ *  This method will project all 3D objects onto the virtual 2D viewing 
+ *  screen so that their projections can be drawn.  
+ */
   private void project()
   {
     if ( debug )
@@ -698,11 +705,17 @@ public class ThreeD_JPanel extends    CoordJPanel
 
 
 /* ------------------------ DepthComparator ---------------------------- */
-
+/**
+ *  This class is used by the Arrays.sort() method to order the objects
+ *  to be drawn based on their depth in the scene.  After sorting, the
+ *  objects will be drawn from back to front so that objects in front will
+ *  overwrite objects in back.
+ */
 private class DepthComparator implements Serializable, 
                                          Comparator 
 {
   IThreeD_Object list[];
+
 
   public DepthComparator( IThreeD_Object list[] )
   {
