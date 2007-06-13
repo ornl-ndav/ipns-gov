@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2007/06/13 15:28:22  rmikk
+ *  Added a variable,  makeNewPanImage, that is used to get a new image
+ *  whenever the current image in the Pan View is out of date.
+ *
  *  Revision 1.24  2007/02/12 04:35:00  dennis
  *  The refreshData() method is no longer executed completely, if
  *  the PanViewControl is not currently shown.  This breaks a cycle
@@ -225,7 +229,10 @@ public class PanViewControl extends ViewControl
   private double data_width = 0;
   private double data_height = 0;
   private boolean ignore_change = false;
-  
+  /**
+   * Set to True if the data represented in the image has changed.
+   */
+  public boolean makeNewPanImage = false;
  /**
   * Constructor for creating a thumbnail of the CoordJPanel passed in.
   *
@@ -461,7 +468,8 @@ public class PanViewControl extends ViewControl
       // control affects the aspect ratio of the image. Don't need to
       // alter the image size according to the aspect ratio.
       panel_image = ((ImageJPanel2)actual_cjp).getThumbnail( panel_size.width, 
-                            panel_size.height, true );
+                            panel_size.height, makeNewPanImage );
+      makeNewPanImage = false;
     }
     else if ( actual_cjp instanceof ContourJPanel )
     {
