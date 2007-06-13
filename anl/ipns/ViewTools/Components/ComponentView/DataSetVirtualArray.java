@@ -275,10 +275,10 @@ public class DataSetVirtualArray implements IVirtualArray2D,
    {
       final float[] ERROR_VAL = new float[]{};
       
-      if (!isFromToValid(from, to, getNumRows()))
+      if (!isFromToValid(from, to, getNumColumns()))
          return ERROR_VAL;
       
-      float[] dataArr = new float[to-from];
+      float[] dataArr = new float[(to-from)+1];
       for (int i=from; i<=to; i++)
          dataArr[i] = getDataValue(row, i);
       
@@ -308,10 +308,10 @@ public class DataSetVirtualArray implements IVirtualArray2D,
    {
       final float[] ERROR_VAL = new float[]{};
       
-      if (!isFromToValid(from, to, getNumColumns()))
+      if (!isFromToValid(from, to, getNumRows()))
          return ERROR_VAL;
       
-      float[] dataArr = new float[to-from];
+      float[] dataArr = new float[(to-from)+1];
       for (int i=from; i<=to; i++)
          dataArr[i] = getDataValue(i, column);
       
