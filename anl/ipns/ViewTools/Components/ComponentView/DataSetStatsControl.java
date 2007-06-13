@@ -32,7 +32,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * Modified:
- * $ Log: DataSetStatsControl.java,v $
+ * $Log$
+ * Revision 1.3  2007/06/13 22:08:10  amoe
+ * Fixed CVS log tag.
+ *
  */
 
 package gov.anl.ipns.ViewTools.Components.ComponentView;
