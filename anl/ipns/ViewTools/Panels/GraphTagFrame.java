@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2007/06/13 16:29:13  rmikk
+ *  Fixed error that allows Time to be a mode when there are no time values to
+ *     display
+ *
  *  Revision 1.2  2007/06/12 21:23:56  rmikk
  *  Fixed a reverse problem with the column mode
  *
@@ -178,7 +182,7 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
       row.addActionListener( this );
       col.addActionListener( this );
       time.addActionListener( this );
-      if( time != null ) {
+      if( TimeValues != null ) {
          time.setSelected( true );
       }
       else {
@@ -194,9 +198,10 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
       setTitle( Mode );
 
       setGraph();
+     
       setPosition();
+  
    }
-
    
    
    // Sets up the graph to be shown in the TagFrame
@@ -573,6 +578,9 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
    
    private void setPosition() {
 
+      
+      if( Mode == TIME && TimeValues == null)
+         return;
       Insets ins = getInsets();
 //      Insets FrameInsets = Frame2Tag.getInsets();
       int x = - 1 , 
