@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.33  2007/06/13 21:18:47  dennis
+ *  Removed un-needed update() method that called paint().
+ *  Replaced paint() by paintComponent().
+ *  Changed paintComponent() method to use a copy of the Graphics
+ *  object passed in.
+ *
  *  Revision 1.32  2007/04/27 18:40:05  dennis
  *  Restoring ImageJPanel, which was mistakenly removed from CVS.
  *  NOT all instances of ImageJPanel have been replaced by
@@ -466,22 +472,17 @@ public class ImageJPanel extends    CoordJPanel
   }
 
 
-/* -------------------------------- update ------------------------------- */
-/**
- *  Update method that just calls paint.
- */
-  public void update( Graphics g )
-  {
-    paint(g);
-  }
-
-/* --------------------------------- paint ------------------------------- */
+/* ---------------------------- paintComponent --------------------------- */
 /**
  *  This method is invoked by swing to draw the image.  Applications must not
  *  call this directly.
+ *
+ *  @param g  The Graphics object to use for drawing the image
  */
-  public void paint( Graphics g )
+  public void paintComponent( Graphics g )
   {
+    Graphics2D g2d = (Graphics2D)g.create();
+
     stop_box( current_point, false );   // if the system redraws this without
     stop_crosshair( current_point );    // our knowlege, we've got to get rid
                                         // of the cursors, or the old position
@@ -495,9 +496,12 @@ public class ImageJPanel extends    CoordJPanel
     if ( rescaled_image != null )       // the component must still not be 
     {                                   // visible
       prepareImage( rescaled_image, this );
-      g.drawImage( rescaled_image, 0, 0, this ); 
+      g2d.drawImage( rescaled_image, 0, 0, this );
     }
+
+    g2d.dispose();
   }
+
 
 /* -------------------------- ImageRow_of_PixelRow ----------------------- */
 /**
