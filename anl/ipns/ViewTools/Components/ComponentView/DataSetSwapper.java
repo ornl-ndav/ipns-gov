@@ -41,7 +41,10 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Components.IViewComponent;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
+import gov.anl.ipns.ViewTools.Components.OneD.DataArray1D;
 import gov.anl.ipns.ViewTools.Components.OneD.FunctionViewComponent;
+import gov.anl.ipns.ViewTools.Components.OneD.VirtualArrayList1D;
 import gov.anl.ipns.ViewTools.Components.TwoD.ImageViewComponent;
 import gov.anl.ipns.ViewTools.Components.TwoD.TableViewComponent;
 import gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent;
@@ -88,7 +91,7 @@ public class DataSetSwapper extends AbstractComponentSwapper
                                        implements ComponentListener
 {
    /** The data that is currently being viewed. */
-   private DataSetVirtualArray dsArray;
+   private IVirtualArray2D vArray;
    
    /**
     * The swapper that switches between the image, contour, and table 
@@ -107,13 +110,13 @@ public class DataSetSwapper extends AbstractComponentSwapper
     * <code>DataSet</code> associated with the 
     * <code>DataSetVirtualArray</code> being viewed.
     */
-   private DataSetStatsControl imageStatsControl;
+   //private DataSetStatsControl imageStatsControl;
    
    /**
     * A tabular view of the meta-data associated with a slice through 
     * the <code>DataSetVirtualArray</code> being viewed.
     */
-   private DataSetStatsControl graphStatsControl;
+   //private DataSetStatsControl graphStatsControl;
    
    /**
     * A pane split left and right.  The "data panel" of 
@@ -152,16 +155,16 @@ public class DataSetSwapper extends AbstractComponentSwapper
    /**
     * Views the given data initally as an image.
     * 
-    * @param dsArray The data to view.
+    * @param vArray The data to view.
     */
-   public DataSetSwapper(DataSetVirtualArray dsArray)
+   public DataSetSwapper(IVirtualArray2D vArray)
    {
-      this(dsArray, IMAGE);
+      this(vArray, IMAGE);
    }
    
    /**
-    * 
-    * @param dsArray  The data to view.
+    * Constructs a DataSetSwapper object.
+    * @param vArray  The data to view.
     * @param viewType A string describing how the data should be viewd.  
     *                 Possible values are: <br>
     *                 <ul>
@@ -170,31 +173,40 @@ public class DataSetSwapper extends AbstractComponentSwapper
     *                   <li><code>IComponentSwapper.TABLE</code></li>
     *                 </ul>
     */
-   public DataSetSwapper(DataSetVirtualArray dsArray, String viewType)
+   public DataSetSwapper(IVirtualArray2D vArray, String viewType)
    {
       super(new String[]{TABLE,IMAGE,CONTOUR}, 
-            dsArray, 
+            vArray, 
             viewType);
       
-      this.dsArray = dsArray;
-      this.displaySwapper = new ComponentSwapper2D(dsArray, 
+      this.vArray = vArray;
+      this.displaySwapper = new ComponentSwapper2D(vArray, 
                                                    viewType, 
                                                    SHOW_ALL);
       
       this.displaySwapper.addActionValueListener(
                              new SwapperMotionListener());
       
-      this.functComp = new FunctionViewComponent(dsArray);
+      //initializing FunctionViewComponent and setting a graph
+      this.functComp = new FunctionViewComponent(new VirtualArrayList1D(
+          new DataArray1D(new float[]{},new float[]{})));
+      displayRowInFunctionView(0);
+      
       this.functComp.addActionListener(new FunctionListener());
       
+      /**
+       * TODO: (INIT) Make new Stat Control that doesn't use a DataSet
+       * and implement it here.
+       */
       // construct the stats controls 
       // (for the entire DataSet and the current graph)
-      this.imageStatsControl   = 
-              new DataSetStatsControl(this.dsArray.getDataSet(), 
-                                      "Image Data");
-      this.graphStatsControl = 
-              new DataSetStatsControl(this.dsArray.getDataSet(), 
-                                      "Graph Data");
+      //this.imageStatsControl   = 
+      //       new DataSetStatsControl(this.vArray.getDataSet(), 
+      //                                "Image Data");
+      //this.graphStatsControl = 
+      //       new DataSetStatsControl(this.vArray.getDataSet(), 
+      //                                "Graph Data");
+      
       
       // this will listen to changes to the toggle button that 
       // displays/undisplays the current view component's controls 
@@ -221,9 +233,14 @@ public class DataSetSwapper extends AbstractComponentSwapper
       JPanel statsPanel = new JPanel();
         statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
         statsPanel.add(this.showControlsButton);
-        statsPanel.add(this.imageStatsControl);
-        statsPanel.add(this.graphStatsControl);
-      
+        
+        /**  
+         * TODO: Stats controls can be added when it can
+         * be implemented correctly (see INIT todo)
+         */
+        //statsPanel.add(this.imageStatsControl);
+        //statsPanel.add(this.graphStatsControl);
+        
       // the display pane is a split pane that holds the panel displaying 
       // the data as either an image, contour plot, or table on the left 
       // and the DataSet and graph statistics on the right 
@@ -243,7 +260,7 @@ public class DataSetSwapper extends AbstractComponentSwapper
       // now the data has to be set and 
       // the GUI has to be constructed 
       // the superclass calls buildComponent() to make the view
-      setData(dsArray);
+      setData(vArray);
       buildComponent(viewType);
       buildDataSetDisplay();
    }
@@ -268,8 +285,42 @@ public class DataSetSwapper extends AbstractComponentSwapper
       repaint();
    }
    
+   /**
+    * This method displays a specified row in the FunctionViewComponent.
+    * 
+    * @param row - A row index from a IVirtualArray2D.
+    */
+   private void displayRowInFunctionView(int row)
+   {
+     //making a new graph to put into FunctionViewComponent
+     float[] yvals = vArray.getRowValues(row,0,vArray.getNumColumns()-1);
+     float[] xvals = new float[yvals.length+1];
+     float xmin = vArray.getAxisInfo(row).getMin();
+     float xmax = vArray.getAxisInfo(row).getMax();
+     float xcount = xvals.length;
+     float xinc;
+          
+     //finding the x value increment
+     if(xcount > 1)
+     {
+       xinc = (xmax-xmin)/(xcount-1);
+     }
+     else 
+       xinc = 0;     
+     
+     //filling xvals
+     for(int i=0;i<xcount;i++)
+     {
+       xvals[i]=xmin+(xinc*i);
+     }
+     
+     DataArray1D datArray = new DataArray1D(xvals,yvals);
+     VirtualArrayList1D va1D = new VirtualArrayList1D(datArray);
+     
+     this.functComp.dataChanged(va1D);
+   }
    
-//----------------=[ Implemented for AbstractComponentSwapper ]=--------------//
+//----------------=[ Implemented for AbstractComponentSwapper ]=-------------//
    /**
     * Used to modify the data to view.
     * <p>
@@ -376,7 +427,8 @@ public class DataSetSwapper extends AbstractComponentSwapper
       if (comp == null)
          return;
       
-      this.dsArray.setNumColumns(comp.getWidth());
+      /**TODO*/
+      //this.vArray.setNumColumns(comp.getWidth());
       this.mainPane.invalidate();
       comp.repaint();
    }
@@ -457,64 +509,51 @@ public class DataSetSwapper extends AbstractComponentSwapper
             return;
       
          if (ave.getActionCommand().equals(IViewComponent.POINTED_AT_CHANGED))
-         {
+         {               
             Object ob = ave.getSource();
             if (ob == null)
                return;
             
+            //the row that is(will be) pointed at
+            int row = 0;
+            
             if (ob instanceof ImageViewComponent)
             {
-               ImageViewComponent imageComp = (ImageViewComponent)ob;
-         
-               floatPoint2D worldCoords = (floatPoint2D)ave.getNewValue();
-         
+               ImageViewComponent imageComp = (ImageViewComponent)ob;         
+               floatPoint2D worldCoords = (floatPoint2D)ave.getNewValue();         
                Point rowCol = imageComp.getColumnRowAtWorldCoords(worldCoords);
          
-               int row = (int)rowCol.getY();
-         
-               dsArray.getDataSet().setPointedAtIndex(row);
-               functComp.dataChanged();
-         
-               // No conversions need to be done here to convert worldCoords.x 
-               // into the propery value in terms of the XScale of the Data at 
-               // index 'row'.  This is because worldCoords.x is in world 
-               // coordinates (and not pixel coordinates).
-               imageStatsControl.displayDataAt(worldCoords.x, row);
+               row = (int)rowCol.getY();
             }
             else if (ob instanceof ContourViewComponent)
             {
-               ContourViewComponent contourComp = (ContourViewComponent)ob;
-               
+               ContourViewComponent contourComp = (ContourViewComponent)ob;               
                floatPoint2D worldCoords = (floatPoint2D)ave.getNewValue();
                
-               int row = contourComp.getRowForY(worldCoords.y);
-               
-               dsArray.getDataSet().setPointedAtIndex(row);
-               functComp.dataChanged();
-         
-               // No conversions need to be done here to convert worldCoords.x 
-               // into the propery value in terms of the XScale of the Data at 
-               // index 'row'.  This is because worldCoords.x is in world 
-               // coordinates (and not pixel coordinates).
-               imageStatsControl.displayDataAt(worldCoords.x, row);
+               row = contourComp.getRowForY(worldCoords.y);
              }
             else if (ob instanceof TableViewComponent)
             {
-               TableViewComponent tableComp = (TableViewComponent)ob;
-               
+               TableViewComponent tableComp = (TableViewComponent)ob;               
                floatPoint2D worldCoords = tableComp.getPointedAt();
                Point rowCol = tableComp.getColumnRowAtWorldCoords(worldCoords);
-               int row = rowCol.y;
                
-               dsArray.getDataSet().setPointedAtIndex(row);
-               functComp.dataChanged();
-         
-               // No conversions need to be done here to convert worldCoords.x 
-               // into the propery value in terms of the XScale of the Data at 
-               // index 'row'.  This is because worldCoords.x is in world 
-               // coordinates (and not pixel coordinates).
-               imageStatsControl.displayDataAt(worldCoords.x, row);
+               row = rowCol.y;
             }
+            
+            //vArray.getDataSet().setPointedAtIndex(row);
+            //functComp.dataChanged();
+            displayRowInFunctionView(row);
+      
+            // No conversions need to be done here to convert worldCoords.x 
+            // into the propery value in terms of the XScale of the Data at 
+            // index 'row'.  This is because worldCoords.x is in world 
+            // coordinates (and not pixel coordinates).
+            /**
+             * TODO: Can set Stats control when it can be implemented correctly
+             * (see INIT todo).
+             */
+            //imageStatsControl.displayDataAt(worldCoords.x, row);
          }
       }
    }
@@ -543,8 +582,13 @@ public class DataSetSwapper extends AbstractComponentSwapper
             if (pt == null)
                return;
             
-            int index = dsArray.getDataSet().getPointedAtIndex();
-            graphStatsControl.displayDataAt(pt.x, index);
+            /**
+             * TODO: Can set Stats control when it can be implemented correctly
+             * (see INIT todo).
+             */
+            //int index = vArray.getDataSet().getPointedAtIndex();
+            //graphStatsControl.displayDataAt(pt.x, index);
+            
          }
       }
    }
