@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2007/06/13 21:05:26  dennis
+ *  Removed un-needed update() method that called paint().
+ *  Changed paintComponent() method to use a copy of the Graphics
+ *  object passed in.
+ *
  *  Revision 1.12  2007/06/13 15:49:25  rmikk
  *  Replaced paint by paintComponent as preferred by the latest java
  *
@@ -611,6 +616,7 @@ public class ImageJPanel2 extends    CoordJPanel
   *
   *  @param  width The desired width of the thumbnail.
   *  @param  height The desired height of the thumbnail.
+  *
   *  @return A thumbnail of the Image.
   */ 
   public Image getThumbnail(int width, int height, boolean forceRedraw)
@@ -676,25 +682,17 @@ public class ImageJPanel2 extends    CoordJPanel
   }
 
 
-/* -------------------------------- update ------------------------------- */
-/**
- *  Update method that just calls paint.
- */
-  public void update( Graphics g )
-  {
-    paint(g);
-  }
-
-
-/* --------------------------------- paint ------------------------------- */
+/* ---------------------------- paintComponent --------------------------- */
 /**
  *  This method is invoked by swing to draw the image.  Applications must not
  *  call this directly.
+ *
+ *  @param g  The Graphics object to use for drawing the image
  */
   public void paintComponent( Graphics g )
   {
-    // Call the paint() on the extended class.
-    //super.paint(g);
+    Graphics2D g2d = (Graphics2D)g.create();
+
     stop_box( current_point, false );   // if the system redraws this without
     stop_crosshair( current_point );    // our knowlege, we've got to get rid
                                         // of the cursors, or the old position
@@ -708,8 +706,10 @@ public class ImageJPanel2 extends    CoordJPanel
     if ( rescaled_image != null )       // the component must still not be 
     {                                   // visible
       prepareImage( rescaled_image, this );
-      g.drawImage( rescaled_image, 0, 0, this ); 
+      g2d.drawImage( rescaled_image, 0, 0, this ); 
     }
+
+    g2d.dispose();
   }
 
 
@@ -924,12 +924,14 @@ public void RebuildImage()
    repaint();
 }
 
+
 /* ---------------------- LocalTransformChanged -------------------------- */
 
 protected void LocalTransformChanged()
 {
   makeImage( false );
 }
+
 
 /* -----------------------------------------------------------------------
  *
@@ -987,6 +989,7 @@ protected void LocalTransformChanged()
     repaint();
   }
  
+
  /*
   * This method will look at the monitor dimensions and determine the
   * amount of data that can be displayed on the screen. If the array
@@ -1068,6 +1071,7 @@ protected void LocalTransformChanged()
 					      color_model, pix, 0,
 					      num_displayed_cols));
   }
+
 
 /* ---------------------------- rescaleImage -------------------------- */
 
@@ -1222,7 +1226,9 @@ class ImageKeyAdapter extends KeyAdapter
  * MAIN
  *
  */
+
  /* Basic main program for testing purposes only. */
+
   public static void main(String[] args)
   {
     int rows = 10000;
