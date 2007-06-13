@@ -32,7 +32,16 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * Modified:
- * $ Log: DataSetVirtualArray.java,v $
+ * $Log$
+ * Revision 1.3  2007/06/13 22:07:19  amoe
+ * - Fixed CVS log tag.
+ * - Log from previous commit:
+ *   - In getRowValues(..) and getColumnValues(..)
+ *     - Validity is checked by sending in the column count/row count,
+ *       respectively; not vice-versa.
+ *     - Added +1 to (to-from) for dataArr size, because the distance
+ *       between x and y (including x and y) is (y-x)+1 .
+ *
  */
 
 package gov.anl.ipns.ViewTools.Components.ComponentView;
