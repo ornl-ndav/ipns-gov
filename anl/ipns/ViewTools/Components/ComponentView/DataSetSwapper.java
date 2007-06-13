@@ -32,7 +32,22 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * Modified:
- * $ Log: DataSetSwapper.java,v $
+ * $Log$
+ * Revision 1.4  2007/06/13 21:50:40  amoe
+ * -Fixed CVS log tag.
+ * -Log from previous commit:
+ *   - Changed 'DataSetVirtualArray dsArray' to 'IVirtualArray2D vArray'.
+ *   - Made constructors take in IVirtualArray2D, instead of
+ *     DataSetVirtualArray.
+ *   - In constructor, made FunctionViewComponent initialize with an
+ *     empty 1D virtual array, then update it with an initial row from the 2D
+ *     virtual array.
+ *   - Added new private method 'displayRowInFunctionView(..)'.
+ *   - Made SwapperMotionListener update the pointed at row and
+ *     cleaned up it's code.
+ *   - Commented out references to DataSetStatsControl objects.
+ *   - Updated javadocs.
+ *
  */
 
 package gov.anl.ipns.ViewTools.Components.ComponentView;
