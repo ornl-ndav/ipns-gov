@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/06/13 15:49:25  rmikk
+ *  Replaced paint by paintComponent as preferred by the latest java
+ *
  *  Revision 1.11  2007/06/05 20:10:53  rmikk
  *  Eliminated an off by one error.  end_col's float value can be NumColumns
  *
@@ -688,10 +691,10 @@ public class ImageJPanel2 extends    CoordJPanel
  *  This method is invoked by swing to draw the image.  Applications must not
  *  call this directly.
  */
-  public void paint( Graphics g )
+  public void paintComponent( Graphics g )
   {
     // Call the paint() on the extended class.
-    super.paint(g);
+    //super.paint(g);
     stop_box( current_point, false );   // if the system redraws this without
     stop_crosshair( current_point );    // our knowlege, we've got to get rid
                                         // of the cursors, or the old position
