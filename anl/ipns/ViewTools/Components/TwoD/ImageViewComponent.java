@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.96  2007/06/13 15:29:32  rmikk
+ *  The PanViewController is now notified when the data is changed
+ *
  *  Revision 1.95  2007/05/28 20:47:11  dennis
  *  Added method showSelector that will show (or hide) an editor panel for
  *  a specified compound region selection. (Jonathan Morck)
@@ -1494,6 +1497,7 @@ public class ImageViewComponent implements IViewComponent2D,
     ((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
     ((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
     ((PanViewControl)controls[7]).validate();  // Need this to resize control.
+    ((PanViewControl)controls[7]).makeNewPanImage = true ;
     ((PanViewControl)controls[7]).repaint();
     paintComponents();
   }

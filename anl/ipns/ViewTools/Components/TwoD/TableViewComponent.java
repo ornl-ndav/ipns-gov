@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2007/06/13 15:30:23  rmikk
+ *  The PanViewController is now notified when the data is changed
+ *
  *  Revision 1.12  2007/06/12 20:39:42  rmikk
  *  Set POINTED_AT_CHANGED to agree with IObserver's POINTED_AT_CHANGED
  *
@@ -387,6 +390,9 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   public void dataChanged()
   {
     tjp.repaint();
+    if( controls != null && controls.length >=1){
+       ((PanViewControl)controls[1]).makeNewPanImage = true;
+    }
   }
   
  /**
