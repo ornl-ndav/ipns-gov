@@ -30,6 +30,14 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.60  2007/06/14 15:00:26  dennis
+ * Now overrides paintComponent() instead of paint() method.
+ * paintComponent() method now creates a Graphics2D "copy" of the
+ * Graphics object it is given, and uses the copy to draw.  This
+ * avoids changing the state of the Graphics object that was
+ * passed in.
+ * Also did some minor reformatting for readability.
+ *
  * Revision 1.59  2007/06/08 20:01:19  dennis
  * Now forces Y_min < Y_max before making bounds that
  * are ultimately inverted.
@@ -1206,12 +1214,12 @@ public boolean is_autoY_bounds()
 }
 
 
-
-/* --------------------------------- paint ------------------------------- */
+/* -------------------------- paintComponent ----------------------------- */
 /**
- *  Draw all of the graphs.
+ *  Draw all of the graphs and/or markers.  NOTE: this method should not 
+ *  be called directly by applications.  Applications should call repaint().
  */
-  public void paint( Graphics g )
+  public void paintComponent( Graphics g )
   {
     stop_box( current_point, false );   // if the system redraws this without
 
@@ -1220,8 +1228,7 @@ public boolean is_autoY_bounds()
                                         // will be drawn rather than erased
                                         // when the user moves the cursor (due
                                         // to XOR drawing).
-    super.paint(g);
-    Graphics2D g2 = (Graphics2D)g;
+    Graphics2D g2 = (Graphics2D)g.create();
     
     SetTransformsToWindowSize();
     int x_offset = 0;
@@ -1249,6 +1256,9 @@ public boolean is_autoY_bounds()
     }
     int height = getHeight();
 
+
+    g2.setColor( getBackground() );
+    g2.fillRect( 0, 0, getWidth(), getHeight() );
 
 
     for ( int gr_index = graphs.size()-1; gr_index >= 0; gr_index-- )
@@ -1454,36 +1464,38 @@ public boolean is_autoY_bounds()
              else if ( type == PLUS )
              {
                g2.drawLine( x_int[i]-size, y_int[i],
-	  		      x_int[i]+size, y_int[i]      );      
-              g2.drawLine( x_int[i],     y_int[i]-size, 
-	  			x_int[i],      y_int[i]+size );      
+                            x_int[i]+size, y_int[i]      );      
+               g2.drawLine( x_int[i],      y_int[i]-size, 
+                            x_int[i],      y_int[i]+size );      
              }
              else if ( type == STAR )
              {
                g2.drawLine( x_int[i]-size, y_int[i],
-	  			 x_int[i]+size, y_int[i]      );      
+                            x_int[i]+size, y_int[i]      );      
                g2.drawLine( x_int[i],      y_int[i]-size,
-	  			 x_int[i],      y_int[i]+size );      
+                            x_int[i],      y_int[i]+size );      
                g2.drawLine( x_int[i]-size, y_int[i]-size,
-	  			 x_int[i]+size, y_int[i]+size );      
+                            x_int[i]+size, y_int[i]+size );      
                g2.drawLine( x_int[i]-size, y_int[i]+size,
-				 x_int[i]+size, y_int[i]-size );      
+                            x_int[i]+size, y_int[i]-size );      
              }
              else if ( type == BOX )
              {
                g2.drawLine( x_int[i]-size, (y_int[i]-size), 
-	 		x_int[i]-size, (y_int[i]+size) );      
+                            x_int[i]-size, (y_int[i]+size) );      
                g2.drawLine( x_int[i]-size, y_int[i]+size,
-			 x_int[i]+size, y_int[i]+size );      
+                            x_int[i]+size, y_int[i]+size );      
                g2.drawLine( x_int[i]+size, y_int[i]+size,
-	 		 x_int[i]+size, y_int[i]-size );      
+                            x_int[i]+size, y_int[i]-size );      
                g2.drawLine( x_int[i]+size, y_int[i]-size,
-	 		 x_int[i]-size, y_int[i]-size );     
+                            x_int[i]-size, y_int[i]-size );     
              }
              else if(type == CROSS)
              {
-            	 g2.drawLine( x_int[i]-size, y_int[i]-size, x_int[i]+size, y_int[i]+size );      
-            	 g2.drawLine( x_int[i]-size, y_int[i]+size, x_int[i]+size, y_int[i]-size );  
+               g2.drawLine( x_int[i]-size, y_int[i]-size, 
+                            x_int[i]+size, y_int[i]+size );      
+               g2.drawLine( x_int[i]-size, y_int[i]+size, 
+                            x_int[i]+size, y_int[i]-size );  
             	 
              }
              else	//BAR 
@@ -1541,10 +1553,8 @@ public boolean is_autoY_bounds()
 
           }
         }
-
-
-
       }
+
       else if ( is_histogram )  // Histogram data
       { 
        //if transparent do not draw line
@@ -1618,35 +1628,35 @@ public boolean is_autoY_bounds()
              else if ( type == STAR )
              {
                g2.drawLine( x_midpt-size, y_int[i],
-	  			 x_midpt+size, y_int[i]      );      
+                            x_midpt+size, y_int[i]      );      
                g2.drawLine( x_midpt,      y_int[i]-size,
-	  			 x_midpt,      y_int[i]+size );      
+                            x_midpt,      y_int[i]+size );      
                g2.drawLine( x_midpt-size, y_int[i]-size,
-	  			 x_midpt+size, y_int[i]+size );      
+                            x_midpt+size, y_int[i]+size );      
                g2.drawLine( x_midpt-size, y_int[i]+size,
-				 x_midpt+size, y_int[i]-size );      
+                            x_midpt+size, y_int[i]-size );      
              }
              else if ( type == BOX )
              {
                g2.drawLine( x_midpt-size, (y_int[i]-size), 
-	 		x_midpt-size, (y_int[i]+size) );      
+                            x_midpt-size, (y_int[i]+size) );      
                g2.drawLine( x_midpt-size, y_int[i]+size,
-			 x_midpt+size, y_int[i]+size );      
+                            x_midpt+size, y_int[i]+size );      
                g2.drawLine( x_midpt+size, y_int[i]+size,
-	 		 x_midpt+size, y_int[i]-size );      
+                            x_midpt+size, y_int[i]-size );      
                g2.drawLine( x_midpt+size, y_int[i]-size,
-	 		 x_midpt-size, y_int[i]-size );     
+                            x_midpt-size, y_int[i]-size );     
              }
              else if (type == CROSS)
              {
                g2.drawLine( x_midpt-size, y_int[i]-size,
-	  		 x_midpt+size, y_int[i]+size );      
+                            x_midpt+size, y_int[i]+size );      
                g2.drawLine( x_midpt-size, y_int[i]+size,
-	  		 x_midpt+size, y_int[i]-size );      
+                            x_midpt+size, y_int[i]-size );      
              }
              else		//BAR
              {
-            	 g2.drawLine(x_midpt, y_int[i]-size, x_midpt, y_int[i]+size);
+                g2.drawLine(x_midpt, y_int[i]-size, x_midpt, y_int[i]+size);
              }
 	  } 
 	}
@@ -1704,12 +1714,12 @@ public boolean is_autoY_bounds()
             }
           }   
         }
-
       }
       else 
        System.out.println("ERROR: x&y arrays don't match in GraphJPanel.paint");
     } 
 
+    g2.dispose();
   }
 
 
