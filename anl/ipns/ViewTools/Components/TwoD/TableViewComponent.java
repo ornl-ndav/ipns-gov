@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2007/06/14 22:08:33  rmikk
+ *  Had the PanViewControl repaint itself when the data is changed.
+ *
  *  Revision 1.13  2007/06/13 15:30:23  rmikk
  *  The PanViewController is now notified when the data is changed
  *
@@ -392,6 +395,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     tjp.repaint();
     if( controls != null && controls.length >=1){
        ((PanViewControl)controls[1]).makeNewPanImage = true;
+       ((PanViewControl)controls[1]).repaint();
     }
   }
   
