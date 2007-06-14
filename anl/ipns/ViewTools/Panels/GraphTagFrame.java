@@ -30,6 +30,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2007/06/14 20:13:38  rmikk
+ *  Eliminated an unused import
+ *  Reused the same instance of the graphJPanel and container fpr
+ *    faster repaints without a relayout
+ *  Eliminated several layout, invalidate, and validate operations
+ *
  *  Revision 1.3  2007/06/13 16:29:13  rmikk
  *  Fixed error that allows Time to be a mode when there are no time values to
  *     display
@@ -54,7 +60,7 @@ import java.awt.*;
 import java.awt.event.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Graph.*;
-import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
+
 
 
 /**
@@ -194,7 +200,8 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
       bar.add( jm );
       this.setJMenuBar( bar );
 
-
+      graph = new GraphJPanel();
+      getContentPane().add( graph );
       setTitle( Mode );
 
       setGraph();
@@ -315,33 +322,25 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
       else
          
          return;
-
-      graph = new GraphJPanel();
-      
+     
+      graph.clearData();
       if( ! Mode.equals( COL ) ) {
          
          graph.setX_bounds( xvals[ 0 ] + .5f , xvals[ xvals.length - 1 ] - .5f );
-         graph.setData( xvals , graphValues );
          graph.setY_bounds( miny , maxy );
+         graph.setData( xvals , graphValues ,0,true );
+        
          
       }
       else {
          
-         graph.setData( graphValues , xvals );
+        
          graph.setY_bounds( xvals[ 0 ] - .5f , xvals[ xvals.length - 1 ] + .5f );
          graph.setX_bounds( miny , maxy );
-         
+         graph.setData( graphValues , xvals,0,true);
       }
 
-      // INdicate pointed At??????? in the graph
-      getContentPane().removeAll();
-
-      getContentPane().add( graph );
-      invalidate();
-      repaint();
-      validate();
-      repaint();
-
+ 
    }
 
 
@@ -570,6 +569,7 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
          time.setEnabled( true );
       
       setGraph();
+     
 
    }
 
@@ -625,11 +625,6 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
       }
 
       setBounds( x , y , width , height );
-      invalidate();
-      doLayout();
-      validate();
-      invalidate();
-      repaint();
 
    }
 
@@ -838,5 +833,18 @@ class TaggedFrameListener extends ComponentAdapter {
       TagFrame.SetTag2FrameChanged( (JFrame) ( e.getSource() ) );
 
    }
- 
+}
+
+class RepaintThread extends Thread{
+   JComponent comp;
+   public RepaintThread( JComponent comp){
+      this.comp = comp;
+   }
+   
+   public void run(){
+      
+      comp.repaint();
+   }
+   
+   
 }
