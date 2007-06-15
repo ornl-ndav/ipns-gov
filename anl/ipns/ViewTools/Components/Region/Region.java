@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2007/06/15 22:33:32  oakgrovej
+ *  Added getRegionInstance methods
+ *
  *  Revision 1.17  2007/05/10 20:54:41  dennis
  *  Added method ClampPointsToArray() that is used to restrict the selected
  *  points returned by regions such as LineRegion and PointRegion, that are
@@ -124,7 +127,12 @@ package gov.anl.ipns.ViewTools.Components.Region;
 import java.awt.Point;
 import java.util.Vector;
 
+import javax.swing.JPanel;
+
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.ViewTools.Components.Cursor.*;
+import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
+import gov.anl.ipns.ViewTools.Panels.Cursors.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 
@@ -402,5 +410,188 @@ public abstract class Region implements java.io.Serializable
 
      return op_list.getSelectedPoints( world_to_array );
   }
-
+  
+  public static Region getInstanceRegion(XOR_Cursor3pt cursor)
+  {
+    return null;
+  }
+  
+  public static Region getInstanceRegion(XOR_Cursor cursor,CoordTransform trans)
+  {
+    Region newRegion;
+    if (cursor instanceof EllipseCursor)
+    {
+      //use transformation to change points of the cursor
+      Ellipse ellipseRegion = ((EllipseCursor)cursor).region();
+      Point p1 =ellipseRegion.getDrawPoint();
+      Point center = ellipseRegion.getCenter();
+      Point p2 =new Point(ellipseRegion.getDx()+center.x,
+                          ellipseRegion.getDy()+center.y);
+      floatPoint2D[] points = new floatPoint2D[3];
+      if (trans!=null)
+      {
+        //System.out.println("Mapping trans");
+        trans.MapTo(new floatPoint2D(p1));
+        points[1] = trans.MapTo(new floatPoint2D(p1));
+        points[2] = trans.MapTo(new floatPoint2D(p2));
+      }
+      else
+      {
+        //System.out.println("setting points\n"+p1+"\n"+p2);
+        points[1] = new floatPoint2D(p1);
+        points[2] = new floatPoint2D(p2);
+      }
+      //create a region with these new world pts
+      newRegion = new EllipseRegion(points);
+    }
+    else
+    {
+      newRegion = null;
+      //System.out.println("null region");
+    }
+    return newRegion;
+  }
+  
+  public static Region getInstanceRegion(XOR_PanCursor cursor,
+                                         CoordTransform trans)
+  {
+    Region newRegion;
+    if (cursor instanceof BoxPanCursor)
+    {
+      //use transformation to change points of the cursor
+      Point p1 =((BoxPanCursor)cursor).getP1();
+      Point p2 =((BoxPanCursor)cursor).getP2();
+      floatPoint2D[] points = new floatPoint2D[2];
+      if (trans!=null)
+      {
+        //System.out.println("Mapping trans");
+        trans.MapTo(new floatPoint2D(p1));
+        points[0] = trans.MapTo(new floatPoint2D(p1));
+        points[1] = trans.MapTo(new floatPoint2D(p2));
+      }
+      else
+      {
+        //System.out.println("setting points\n"+p1+"\n"+p2);
+        points[0] = new floatPoint2D(p1);
+        points[1] = new floatPoint2D(p2);
+      }
+      //create a region with these new world pts
+      newRegion = new BoxRegion(points);
+    }
+    else
+    {
+      newRegion = null;
+      //System.out.println("null region");
+    }
+    return newRegion;
+  }
+  
+  public static Region getInstanceRegion(CursorTag cursor,floatPoint2D[] points)
+  {
+    if( cursor instanceof XOR_Cursor3pt)
+      return getInstanceRegion((XOR_Cursor3pt)cursor,points);
+    else if(cursor instanceof XOR_Cursor)
+      return getInstanceRegion((XOR_Cursor)cursor,points);
+    else if(cursor instanceof BoxPanCursor)
+    {
+      return getInstanceRegion((XOR_PanCursor)cursor,points);
+    }
+    else
+      return null;
+  }
+  
+  private static Region getInstanceRegion(XOR_Cursor3pt cursor,
+                                         floatPoint2D[] points)
+  {
+    Region newRegion = null;
+        
+    if(cursor instanceof WedgeCursor)
+    {
+      JPanel drawPanel = cursor.getPanel();
+      if( drawPanel instanceof SelectionOverlay)
+      {
+        Point[] regPoints = ((WedgeCursor)cursor).region();
+        floatPoint2D[] tempwcp = new floatPoint2D[6];
+        for (int i = 0; i < regPoints.length - 1; i++) 
+        {
+          //System.out.println(regPoints[i]+"");
+          tempwcp[i] = ((SelectionOverlay) drawPanel).convertToWorldPoint(regPoints[i]);
+        }
+        tempwcp[0]=points[0];
+        //System.out.println(points[0]+"");
+        if (regPoints.length > 0) 
+        {
+          tempwcp[regPoints.length - 1] = new floatPoint2D(
+              (float) regPoints[regPoints.length - 1].x,
+              (float) regPoints[regPoints.length - 1].y);
+        }
+        if(cursor instanceof DoubleWedgeCursor)
+          newRegion = new DoubleWedgeRegion(tempwcp);
+        else
+          newRegion = new WedgeRegion(tempwcp);
+        
+      }
+      
+    }
+    else if(cursor instanceof AnnularCursor)
+    {
+      floatPoint2D[] regPoints = new floatPoint2D[5];
+      regPoints[0]=points[0];
+      //top left inner circle
+      float x = Math.abs( points[0].x - points[1].x );
+      float y = Math.abs( points[0].y - points[1].y );
+      float r = (float)Math.sqrt( Math.pow(x,2) + Math.pow(y,2) );
+      regPoints[1]= new floatPoint2D(points[0].x-r,points[0].y+r);
+      //bottom right inner
+      regPoints[2]=new floatPoint2D(points[0].x+r,points[0].y-r);
+      
+//    top left outer circle
+      x = Math.abs( points[0].x - points[2].x );
+      y = Math.abs( points[0].y - points[2].y );
+      r = (float)Math.sqrt( Math.pow(x,2) + Math.pow(y,2) );
+      regPoints[3]= new floatPoint2D(points[0].x-r,points[0].y+r);
+      //bottom right outer
+      regPoints[4]=new floatPoint2D(points[0].x+r,points[0].y-r);
+      
+      
+      newRegion = new AnnularRegion(regPoints);
+    }
+    return newRegion;
+  }
+  
+  private static Region getInstanceRegion(XOR_Cursor cursor,
+                                         floatPoint2D[] points)
+  {
+    Region newRegion = null;
+    //System.out.println("making XOR_Cursor region");
+    if (cursor instanceof EllipseCursor)
+    {
+      //System.out.println("making Ellipse region");
+      newRegion = new EllipseRegion(points);
+    }
+    
+    else if(cursor instanceof PointCursor)
+    {
+      //System.out.println("making Point region");
+      points[((PointCursor)cursor).region().x] = points[points.length-1];
+      floatPoint2D[] newPoints = new floatPoint2D[points.length-1];
+      for (int i=0;i<newPoints.length;i++)
+        newPoints[i] = points[i];
+      newRegion = new PointRegion(newPoints);
+    }
+    
+    else if(cursor instanceof LineCursor)
+    {
+      //System.out.println("making line Region");
+      newRegion = new LineRegion(points);
+    }
+    return newRegion;
+  }
+  
+  private static Region getInstanceRegion(XOR_PanCursor cursor,
+                                         floatPoint2D[] points)
+  {
+    Region newRegion = new BoxRegion(points);
+    return newRegion;
+  }
 }
