@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2007/06/15 16:42:00  dennis
+ *  Removed do_thumbnail parameter from makeImage(), since the thumbnail
+ *  image is now made in the method makeThumbnailImage().
+ *
  *  Revision 1.14  2007/06/15 16:23:33  dennis
  *  1. Making thumbnail image is now done in separate method, so that it
  *     no longer interacts with making the displayed image.  The thumbnail
@@ -400,8 +404,9 @@ public class ImageJPanel2 extends    CoordJPanel
   public void changeLogScale( double s, boolean rebuild_image )
   {                                       
     setLogScale( s );
+
     if ( rebuild_image )
-      makeImage( false );
+      makeImage();
   }
 
 
@@ -439,9 +444,7 @@ public class ImageJPanel2 extends    CoordJPanel
       color_model = IndexColorMaker.getColorModel( color_model_string,
                                                    NUM_POSITIVE_COLORS );
     if ( rebuild_image )
-    {
-      makeImage( false );
-    }
+      makeImage();
   }
 
   
@@ -561,11 +564,11 @@ public class ImageJPanel2 extends    CoordJPanel
     } // End if( isAutoScaleDataEnabled() )
 
 
+    thumbnail_image = null;
+
     if ( rebuild_image )
-    {
-      makeImage( false );
-      thumbnail_image = null;
-    }
+      makeImage();
+
   } // End setData()
 
 
@@ -649,7 +652,7 @@ public class ImageJPanel2 extends    CoordJPanel
                                         // to XOR drawing). 
 
     if ( image == null )                // the component might not have been
-      makeImage( false );               // visible when makeImage was called
+      makeImage();                      // visible when makeImage was called
 
     if ( image != null )                // the component not showing
       g2d.drawImage( image, 0, 0, this ); 
@@ -865,7 +868,7 @@ public CoordBounds getImageCoords()
  */
 public void RebuildImage()
 {
-   makeImage( false );
+   makeImage();
    repaint();
 }
 
@@ -874,7 +877,7 @@ public void RebuildImage()
 
 protected void LocalTransformChanged()
 {
-  makeImage( false );
+  makeImage();
 }
 
 
@@ -891,7 +894,7 @@ protected void LocalTransformChanged()
   * By calling subSample(), this method can display any size array
   * in approximately the same time frame.
   */
-  private void makeImage( boolean do_thumbnail )
+  private void makeImage()
   {
     if ( ! isShowing() )             // don't do it yet if it's not displayed 
       return;
