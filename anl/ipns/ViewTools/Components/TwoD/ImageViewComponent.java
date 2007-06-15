@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.97  2007/06/15 16:57:16  dennis
+ *  Commented out some extra calls to validate().
+ *
  *  Revision 1.96  2007/06/13 15:29:32  rmikk
  *  The PanViewController is now notified when the data is changed
  *
@@ -1496,7 +1499,7 @@ public class ImageViewComponent implements IViewComponent2D,
     // This is required since the PanViewControl holds its own bounds.
     ((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
     ((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
-    ((PanViewControl)controls[7]).validate();  // Need this to resize control.
+ // ((PanViewControl)controls[7]).validate();  // Need this to resize control.
     ((PanViewControl)controls[7]).makeNewPanImage = true ;
     ((PanViewControl)controls[7]).repaint();
     paintComponents();
@@ -1590,8 +1593,8 @@ public class ImageViewComponent implements IViewComponent2D,
         buildViewControls(); 
         buildViewMenuItems();
 	// Redraw the new image.
-	big_picture.validate();
-	big_picture.repaint();
+//	big_picture.validate();
+//	big_picture.repaint();
 	//paintComponents();
       }
       else
@@ -2480,7 +2483,7 @@ public class ImageViewComponent implements IViewComponent2D,
 	setColorScale(message);
 	return;
       }
-      background.validate();
+  //###    background.validate();
       paintComponents();
     }
   }
