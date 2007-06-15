@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2007/06/15 22:19:44  oakgrovej
+ *  Added method to get the last point
+ *
  *  Revision 1.2  2004/03/12 01:33:22  millermi
  *  - Changed package and imports.
  *
@@ -121,4 +124,14 @@ import java.awt.Rectangle;
   {
     return new Point(first_pt);
   }
+  
+  /**
+   * Get the bottom-right corner of the box.
+   *
+   *  @return bottom-right corner of the box.
+   */ 
+   public Point getP2()
+   {
+     return new Point(last_pt);
+   }
 }
