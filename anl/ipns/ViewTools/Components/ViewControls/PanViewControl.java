@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.27  2007/06/15 18:18:52  rmikk
+ *  Checked for a null thumbnail image
+ *
  *  Revision 1.26  2007/06/15 16:55:18  dennis
  *  Replaced paint() with paintComponent() and removed call to
  *  super.paint();
@@ -477,7 +480,7 @@ public class PanViewControl extends ViewControl
       // alter the image size according to the aspect ratio.
       panel_image = ((ImageJPanel2)actual_cjp).getThumbnail( panel_size.width, 
                             panel_size.height, makeNewPanImage );
-      makeNewPanImage = false;
+      if( panel_image != null) makeNewPanImage = false;
     }
     else if ( actual_cjp instanceof ContourJPanel )
     {
