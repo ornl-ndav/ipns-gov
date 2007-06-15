@@ -35,6 +35,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2007/06/15 22:31:11  oakgrovej
+ *  Added cursor tag
+ *
  *  Revision 1.4  2004/04/02 20:58:33  millermi
  *  - Fixed javadoc errors
  *
@@ -68,7 +71,7 @@ import javax.swing.JPanel;
  */
 
 
-abstract public class XOR_PanCursor implements Serializable
+abstract public class XOR_PanCursor implements Serializable, CursorTag
 {
   public static final int NORTH = 0;
   public static final int EAST  = 1;
