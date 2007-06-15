@@ -33,6 +33,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2007/06/15 22:28:35  oakgrovej
+ *  Added:
+ *  Click message
+ *  clickPoint along with get method
+ *  closeEditor method
+ *
  *  Revision 1.22  2007/04/29 20:26:07  dennis
  *  Added button to undo the previous selection.
  *  Now all buttons use one instance of a ButtonListener.
@@ -232,6 +238,8 @@ public class SelectionJPanel extends ActiveJPanel
 
   public static final String OPACITY_CHANGED = "Opacity_Changed";
   
+  public static final String CLICK = "Click";
+  
   private AnnularCursor ring;
   private BoxCursor box;
   private CircleCursor circle;
@@ -273,11 +281,12 @@ public class SelectionJPanel extends ActiveJPanel
   
   private String name;
   private transient SelectionEditor editor;
+  private Point clickPoint;
 
 //buttons for making selections, used by editor.
   private JButton[] sjpbuttons;
   public static final String EDITOR_BOUNDS = "Editor Bounds";
-  private Rectangle editor_bounds = new Rectangle(0, 0, 430, 390);
+  private Rectangle editor_bounds = new Rectangle(700, 0, 430, 390);
   private float opacity = 1.0f; // value [0,1] where 0 is clear,
   private Color reg_color;
   private String[] ops = {UNION,INTERSECT,INTERSECT_COMPLEMENT};
@@ -959,6 +968,11 @@ public class SelectionJPanel extends ActiveJPanel
       return RegionOp.Operation.UNION;
   }
   
+  public Point getClickPoint()
+  {
+    return new Point(clickPoint);
+  }
+  
 
   /**
    * This method is used to view an instance of the Selection Editor.
@@ -1012,6 +1026,11 @@ public class SelectionJPanel extends ActiveJPanel
       editor.dispose();
       editSelection();
     }
+  }
+  
+  public void closeEditor()
+  {
+    editor.dispose();
   }
 
   
@@ -1261,7 +1280,17 @@ public class SelectionJPanel extends ActiveJPanel
     public void mouseClicked (MouseEvent e)
     {
       if ( e.getClickCount() == 2 ) 
+      {   
         send_message( RESET_LAST_SELECTED );
+        //System.out.println("dclick");
+      }
+      else
+      {
+        clickPoint = new Point(e.getX(),e.getY());
+        send_message( CLICK );
+        //System.out.println("click "+clickPoint);
+        
+      }
     }
 
     public void mousePressed ( MouseEvent e )
@@ -1365,7 +1394,7 @@ public class SelectionJPanel extends ActiveJPanel
           message += ">" + DOUBLE_WEDGE;
         }
         firstRun = !firstRun; 
-      } 
+      }
       send_message(message);       
     }
   } 
@@ -1412,7 +1441,7 @@ public class SelectionJPanel extends ActiveJPanel
     private SelectionEditor this_editor;
 
     public SelectionEditor() {
-      super("SelectionEditor");
+      super(name+" SelectionEditor");
       this.setBounds(editor_bounds);
       this_editor = this;
       pane = new JPanel();
