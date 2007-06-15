@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.98  2007/06/15 22:53:05  oakgrovej
+ *  Added controls for making and selecting new selectors
+ *
  *  Revision 1.97  2007/06/15 16:57:16  dennis
  *  Commented out some extra calls to validate().
  *
@@ -758,6 +761,10 @@ public class ImageViewComponent implements IViewComponent2D,
   */
   public static final String PRESERVE_ASPECT_RATIO   = "Preserve Aspect Ratio";
   
+  public static final String SELECTOR_NAMES = "Selectors";
+  
+  public static final String ADD_SELECTION = "Add Selector";
+  
   //An object containing our array of data
   private transient IVirtualArray2D Varray2D;  
   private transient Vector Listeners = null;   
@@ -1165,7 +1172,7 @@ public class ImageViewComponent implements IViewComponent2D,
     ijp.setNamedColorModel( colorscale, isTwoSided, true );
     ((ControlColorScale)controls[1]).setColorScale( colorscale, 
     						    isTwoSided );	 
-    ((PanViewControl)controls[7]).repaint();
+    ((PanViewControl)controls[9]).repaint();
     sendMessage(COLORSCALE_CHANGED);
     paintComponents();
   }
@@ -1497,11 +1504,11 @@ public class ImageViewComponent implements IViewComponent2D,
     if( addColorControlEast || addColorControlSouth )
       buildViewComponent();
     // This is required since the PanViewControl holds its own bounds.
-    ((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
-    ((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
- // ((PanViewControl)controls[7]).validate();  // Need this to resize control.
-    ((PanViewControl)controls[7]).makeNewPanImage = true ;
-    ((PanViewControl)controls[7]).repaint();
+    ((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
+    ((PanViewControl)controls[9]).setLocalBounds(getLocalCoordBounds());
+ // ((PanViewControl)controls[9]).validate();  // Need this to resize control.
+    ((PanViewControl)controls[9]).makeNewPanImage = true ;
+    ((PanViewControl)controls[9]).repaint();
     paintComponents();
   }
  
@@ -1921,9 +1928,9 @@ public class ImageViewComponent implements IViewComponent2D,
     // give focus to the top overlay
     returnFocus();
     
-    ((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
-    ((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
-    ((PanViewControl)controls[7]).repaint();
+    ((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
+    ((PanViewControl)controls[9]).setLocalBounds(getLocalCoordBounds());
+    ((PanViewControl)controls[9]).repaint();
   } 
   
  /*
@@ -2005,7 +2012,7 @@ public class ImageViewComponent implements IViewComponent2D,
     // IT IS RECOMMENDED THAT THE PANVIEWCONTROL REMAIN THE LAST CONTROL,
     // Adding a spacer panel to "crunch" controls may result in the
     // PanViewControl getting drawn over any latter controls.
-    controls = new ViewControl[8];
+    controls = new ViewControl[10];
     // Control that adjusts the image intensity
     controls[0] = new ControlSlider();
     controls[0].setTitle(INTENSITY_SLIDER_NAME);
@@ -2034,10 +2041,17 @@ public class ImageViewComponent implements IViewComponent2D,
     controls[6] = new ControlCheckboxButton();  // initially unchecked
     controls[6].setTitle(ANNOTATION_OVERLAY_NAME);
     controls[6].addActionListener( new ControlListener() );
-    // Control that displays a thumbnail of the image
-    controls[7] = new PanViewControl(ijp);
-    controls[7].setTitle(PAN_NAME);
+    //  Control that selects a certain selector
+    controls[7] = new LabelCombobox(SELECTOR_NAMES,
+      ((SelectionOverlay)transparencies.elementAt(1)).getAllNames());
     controls[7].addActionListener( new ControlListener() );
+    //  Control that adds a new selector
+    controls[8] = new ButtonControl(ADD_SELECTION);
+    controls[8].addActionListener( new ControlListener() );
+    // Control that displays a thumbnail of the image
+    controls[9] = new PanViewControl(ijp);
+    controls[9].setTitle(PAN_NAME);
+    controls[9].addActionListener( new ControlListener() ); 
   }
   
  /*
@@ -2246,16 +2260,16 @@ public class ImageViewComponent implements IViewComponent2D,
       else if (message == CoordJPanel.ZOOM_IN)
       {
 	ImageJPanel2 center = (ImageJPanel2)ae.getSource();
-	((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
-	((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
+	((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
+	((PanViewControl)controls[9]).setLocalBounds(getLocalCoordBounds());
         buildAspectImage();
 	paintComponents();
       }
       else if (message == CoordJPanel.RESET_ZOOM)
       {
 	ImageJPanel2 center = (ImageJPanel2)ae.getSource();
-	((PanViewControl)controls[7]).setGlobalBounds(getGlobalCoordBounds());
-	((PanViewControl)controls[7]).setLocalBounds(getLocalCoordBounds());
+	((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
+	((PanViewControl)controls[9]).setLocalBounds(getLocalCoordBounds());
         buildAspectImage();
 	paintComponents();
       }	 
@@ -2280,7 +2294,7 @@ public class ImageViewComponent implements IViewComponent2D,
         ControlSlider control = (ControlSlider)ae.getSource();
         logscale = control.getValue();
         ijp.changeLogScale( logscale, true );
-	((PanViewControl)controls[7]).repaint();
+	((PanViewControl)controls[9]).repaint();
 	// Causes any calibrated ControlColorScale to be updated
 	// with slider movements.
 	sendMessage(COLORSCALE_CHANGED);
@@ -2406,6 +2420,24 @@ public class ImageViewComponent implements IViewComponent2D,
           // this method is only here to repaint the image
           ijp.changeLogScale( logscale, true );
 	  buildAspectImage();
+        }
+      }
+      //Message from the list of selectors
+      else if( message.equals( LabelCombobox.COMBOBOX_CHANGED ) )
+      {
+        ((SelectionOverlay)transparencies.elementAt(1)).showEditor(
+            (String)((LabelCombobox)ae.getSource()).getSelectedItem(), true);
+      }
+      //Message from the add new selector button.
+      else if( message.equals( ButtonControl.BUTTON_PRESSED ) )
+      {
+//      popup to ask for name of selector. 
+        String selName = JOptionPane.showInputDialog(
+            "Enter name of selector");
+        if (selName != null)
+        {
+          int itemIndex = ((LabelCombobox)controls[7]).addItem(selName);
+          ((LabelCombobox)controls[7]).setSelectedIndex(itemIndex);
         }
       }
       //repaints overlays accurately
