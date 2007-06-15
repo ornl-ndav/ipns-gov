@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2007/06/15 16:55:18  dennis
+ *  Replaced paint() with paintComponent() and removed call to
+ *  super.paint();
+ *  When data is refreshed this no longer finds the uppermost parent
+ *  panel and repaints that panel.  This caused components that used
+ *  this to be redrawn too many times, and caused flickering as the
+ *  components were laid out.
+ *
  *  Revision 1.25  2007/06/13 15:28:22  rmikk
  *  Added a variable,  makeNewPanImage, that is used to get a new image
  *  whenever the current image in the Pan View is out of date.
@@ -453,11 +461,11 @@ public class PanViewControl extends ViewControl
   */ 
   private void refreshData()
   {
-    setImageDimension();
-    setAspectRatio();
-    
     if ( !isShowing() )
       return; 
+
+    setImageDimension();
+    setAspectRatio();
 
     boolean validPanel = false;
     if( actual_cjp instanceof ImageJPanel2 )
@@ -485,18 +493,7 @@ public class PanViewControl extends ViewControl
     if( validPanel && (panel_image != null) )
     {
       panel.setImage(panel_image);
-      // have to use update so Overlay is always displayed over the image.
-      if( getGraphics() != null && isShowing() )
-        update( getGraphics() );
-      // Go up to the top-most level and repaint everything. This will
-      // draw the overlay on the image correctly.
-      Component temppainter = this;
-      while( temppainter.getParent() != null )
-        temppainter = temppainter.getParent();
-      // This prevents an infinite loop, since this method is called in the
-      // repaint() method.
-      if( temppainter != this )
-        temppainter.repaint();
+      panel.repaint();
     }
   }
   
@@ -601,9 +598,9 @@ public class PanViewControl extends ViewControl
       image = i;
     }
     
-    public void paint( Graphics g )
+    public void paintComponent( Graphics g )
     {
-      super.paint(g);
+//      super.paint(g);
       if( image != null )
         g.drawImage( image, 0, 0, this );
     }
