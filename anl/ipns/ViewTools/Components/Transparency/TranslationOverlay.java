@@ -34,7 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2007/06/15 16:56:19  dennis
+ *  Replaced paint() with paintComponent() and removed call to super.paint().
+ *
  *  Revision 1.17  2005/06/14 13:59:51  kramer
+ *
  *  Added setXORMode(Color.gray) in the paint() method so that the pane
  *  cursor is XOR rendered in the same way the other cursors are.
  *
@@ -229,13 +233,13 @@ public class TranslationOverlay extends OverlayJPanel
   }
  
  /**
-  * This paint will draw a rectangle over the region selected by the cursor.
+  * This paintComponent method will draw a rectangle over the region 
+  * selected by the cursor.
   *
   *  @param  g - graphics object required by the paint method.
   */ 
-  public void paint(Graphics g)
+  public void paintComponent(Graphics g)
   {
-    super.paint(g);
     g.setXORMode(Color.gray);
     g.drawRect( (int)viewport.getX1(), (int)viewport.getY1(),
                 (int)viewport.getX2() - (int)viewport.getX1(),
