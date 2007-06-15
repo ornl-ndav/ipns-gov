@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.50  2007/06/15 22:49:00  oakgrovej
+ *  Added vector to hold list of editors
+ *  added cursor to be drawn if editing
+ *  getAllNames()
+ *  paint method paints a cursor if there is one
+ *  RegionEditorPropertyChangeListener
+ *  click message recieved
+ *
  *  Revision 1.49  2007/05/28 20:36:50  dennis
  *  Added method showEditor() to pop up the editor for the named
  *  regionOpList.
@@ -296,6 +304,9 @@ import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Enumeration;
 import java.util.Vector;
 import java.util.Hashtable;
 import java.lang.Math;
@@ -309,6 +320,7 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOpListWithColor;
+import gov.anl.ipns.ViewTools.Components.RegionOpEditFrames.*;
 
 /**
  * This class allows users to select a region for calculation purposes.
@@ -399,6 +411,9 @@ public class SelectionOverlay extends OverlayJPanel {
   
   private String regionName = "Default";
   private RegionOp.Operation operation = RegionOp.Operation.UNION;
+  private Vector<RegionOpEditFrame> Editors = new Vector<RegionOpEditFrame>();
+  private floatPoint2D[] cursorPoints;
+  private CursorTag cursor;
 
   /**
    * Constructor creates an overlay with a SelectionJPanel that shadows the
@@ -412,7 +427,7 @@ public class SelectionOverlay extends OverlayJPanel {
     sjp = new SelectionJPanel( regionName, Color.RED, 1.0f );
     sjp.setOpaque(false);
     component = iza;
-    
+
     regionOpLists = new Hashtable<String, RegionOpListWithColor>();
     regionOpLists.put(regionName, new RegionOpListWithColor());
 
@@ -670,6 +685,28 @@ public class SelectionOverlay extends OverlayJPanel {
     }
     return regions;
   }
+  
+  /**
+   * Gets the names of the regionOpLists.
+   * @return String array containing the names of the regionOpLists
+   */
+  public String[] getAllNames()
+  {
+    Vector<String> allTheNames = new Vector<String>();
+    Enumeration<String> theNames = regionOpLists.keys();
+    while(theNames.hasMoreElements())
+       allTheNames.addElement(theNames.nextElement());
+    Object[] allNamesObj = allTheNames.toArray();
+    String[] allNames = new String[allNamesObj.length];
+    for (int i=0;i<allNamesObj.length;i++)
+      allNames[i] = allNamesObj[i].toString();
+    return allNames;
+  }
+  
+  public SelectionJPanel getSelectionJPanel()
+  {
+    return sjp;
+  }
 
 
   /**
@@ -790,6 +827,7 @@ public class SelectionOverlay extends OverlayJPanel {
       sjp = new SelectionJPanel(name,Color.RED,1.0f);
       sjp.setOpaque(false);
       this_panel.add(sjp);
+      regionName = name;
       sjp.addActionListener(new SelectListener());
       sjp.requestFocus();
       this_panel.editSelection();
@@ -797,11 +835,18 @@ public class SelectionOverlay extends OverlayJPanel {
     else if(sjp != null && show_hide)
     {
       // System.out.println("4");
+      RegionOpEditFrame[] EditorsCopy = new RegionOpEditFrame[Editors.size()];
+      Editors.copyInto(EditorsCopy);
+      for(int j=0;j<EditorsCopy.length;j++)
+        EditorsCopy[j].dispose();
+      sjp.closeEditor();
+      //Editors.removeAllElements();
       this_panel.remove(sjp);
       sjp = null;
       sjp = new SelectionJPanel(name,Color.RED,1.0f);
       sjp.setOpaque(false);
       this_panel.add(sjp);
+      regionName = name;
       sjp.addActionListener(new SelectListener());
       sjp.requestFocus();
       this_panel.editSelection();
@@ -939,7 +984,8 @@ public class SelectionOverlay extends OverlayJPanel {
            * p[5].x = startangle, the directional vector in degrees
            * p[5].y = degrees covered by arc.
            */
-           // Since p[5] is not a point, but angular measures, they are a direct
+           // Since p[5] is not a point, but angular measures, 
+           //they are a direct
            // cast from float to int, no convertion needed.
            p[p.length - 1].x = (int) fp[p.length - 1].x;
            p[p.length - 1].y = (int) fp[p.length - 1].y;
@@ -975,7 +1021,8 @@ public class SelectionOverlay extends OverlayJPanel {
            * p[5].x = startangle, the directional vector in degrees
            * p[5].y = degrees covered by arc.
            */
-           // Since p[5] is not a point, but angular measures, they are a direct
+           // Since p[5] is not a point, but angular measures, 
+           //they are a direct
            // cast from float to int, no convertion needed.
            p[p.length - 1].x = (int) fp[p.length - 1].x;
            p[p.length - 1].y = (int) fp[p.length - 1].y;
@@ -1005,6 +1052,77 @@ public class SelectionOverlay extends OverlayJPanel {
        }
      }
    }
+    
+    if(cursor != null)
+    {
+      g2d.setColor(sjp.getColor());
+      PointCursor defPt = new PointCursor(this_panel);
+        if(cursor instanceof BoxPanCursor)
+        {
+          //((XOR_PanCursor)cursor).init(cursorPoints[0], cursorPoints[1]);
+          ((XOR_PanCursor)cursor).draw(g2d,
+              convertToPixelPoint(cursorPoints[0]),
+              convertToPixelPoint(cursorPoints[1]));
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+        }
+        else if(cursor instanceof EllipseCursor)
+        {
+          ((EllipseCursor)cursor).draw(g2d,
+              convertToPixelPoint(cursorPoints[2]),
+              convertToPixelPoint(cursorPoints[1]));
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+        }
+        else if(cursor instanceof DoubleWedgeCursor)
+        {
+          ((DoubleWedgeCursor)cursor).draw(g2d,
+              convertToPixelPoint(cursorPoints[0]),
+              convertToPixelPoint(cursorPoints[2]),
+              convertToPixelPoint(cursorPoints[1]));
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[2]),null);
+        }
+        else if(cursor instanceof WedgeCursor)
+        {
+          ((WedgeCursor)cursor).draw(g2d,
+              convertToPixelPoint(cursorPoints[0]),
+              convertToPixelPoint(cursorPoints[2]),
+              convertToPixelPoint(cursorPoints[1]));
+          
+          //System.out.println("cursorPTs2:");
+          //for(int i=0;i<((WedgeCursor)cursor).region().length;i++)
+          //  System.out.println(""+((WedgeCursor)cursor).region()[i]);
+          
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[2]),null);
+        }
+        else if(cursor instanceof AnnularCursor)
+        {
+          ((AnnularCursor)cursor).draw(g2d, 
+              convertToPixelPoint(cursorPoints[0]), 
+              convertToPixelPoint(cursorPoints[1]), 
+              convertToPixelPoint(cursorPoints[2]));
+          
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[2]),null);
+        }
+        else if(cursor instanceof PointCursor)
+        {
+          ((PointCursor)cursor).draw(g2d, 
+              convertToPixelPoint(cursorPoints[cursorPoints.length-1]), null);
+        }
+        else if(cursor instanceof LineCursor)
+        {
+          ((LineCursor)cursor).draw(g2d, 
+              convertToPixelPoint(cursorPoints[0]),
+              convertToPixelPoint(cursorPoints[1]));
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+        }
+    }
   } // end of paint()
 
 
@@ -1109,7 +1227,7 @@ public class SelectionOverlay extends OverlayJPanel {
    * 
    * @return A Point object 
    */
-  private Point convertToPixelPoint( floatPoint2D fp ) {
+  public Point convertToPixelPoint( floatPoint2D fp ) {
     floatPoint2D fp2d = pixel_local.MapFrom(fp);
     return new Point( (int) fp2d.x, (int) fp2d.y );
   }
@@ -1126,7 +1244,7 @@ public class SelectionOverlay extends OverlayJPanel {
    * @return a floatPoint2D object containg the world coodinates of the
    *           specified pixel. 
    */
-  private floatPoint2D convertToWorldPoint( Point p ) {
+  public floatPoint2D convertToWorldPoint( Point p ) {
     return pixel_local.MapTo(new floatPoint2D((float) p.x, (float) p.y));
   }
 
@@ -1193,24 +1311,31 @@ public class SelectionOverlay extends OverlayJPanel {
       // if REGION_SELECTED is in the string, find which region 
 
       else if (message.indexOf(SelectionJPanel.REGION_SELECTED) > -1) {
+        
+        CoordBounds sjp_coords = new CoordBounds((float) (0),
+            (float) (0),
+            (float) (current_bounds.getWidth()),
+            (float) (current_bounds.getHeight()));
+        CoordTransform pixel_sjp = new CoordTransform(sjp_coords, component
+            .getLocalCoordBounds());
 
         operation = named_sjp.getOp();
         boolean regionadded = true;
+        
         if (message.indexOf(SelectionJPanel.BOX) > -1) {
           Rectangle box = ((BoxCursor) sjp
               .getCursor(SelectionJPanel.BOX)).region();
           Point p1 = new Point(box.getLocation());
-          p1.x += (int) current_bounds.getX();
-          p1.y += (int) current_bounds.getY();
           Point p2 = new Point(p1);
           p2.x += (int) box.getWidth();
           p2.y += (int) box.getHeight();
-          floatPoint2D[] tempwcp = new floatPoint2D[2];
-          tempwcp[0] = convertToWorldPoint(p1);
-          tempwcp[1] = convertToWorldPoint(p2);
-
+          
+          BoxPanCursor boxCur = new BoxPanCursor(this_panel);
+          boxCur.init(p1,p2);
+          Region.getInstanceRegion( boxCur,pixel_sjp );
           getRegionOpListWithColor(name).add(
-                              new RegionOp(new BoxRegion(tempwcp),operation) );
+              new RegionOp(Region.getInstanceRegion( boxCur,pixel_sjp ),
+                           operation) );
         } 
 
         else if ( message.indexOf(SelectionJPanel.ELLIPSE) > -1 ) {
@@ -1227,6 +1352,9 @@ public class SelectionOverlay extends OverlayJPanel {
           p2.y += ellipse.getDy() + (int) current_bounds.getY();
           // center of circle
           Point p3 = new Point(ellipse.getCenter());
+          //EllipseCursor ellipseCur = new EllipseCursor(this_panel);
+          //ellipseCur.start(p1);
+          //ellipseCur.stop(p2);
           p3.x += (int) current_bounds.getX();
           p3.y += (int) current_bounds.getY();
           floatPoint2D[] tempwcp = new floatPoint2D[3];
@@ -1388,11 +1516,307 @@ public class SelectionOverlay extends OverlayJPanel {
         if (regionadded)
           sendMessage(REGION_ADDED);
       }
-
+      //Oakgrove
+      else if(message.equals(SelectionJPanel.CLICK))
+      {
+        //System.out.println("cliccckkkkk!!!");//discover America, Green Eyes
+        //is the point on the interior of a region?
+        //if no editors are up
+        if(Editors.size()==0)
+        {
+      Point clickPoint = sjp.getClickPoint();
+      clickPoint.x += current_bounds.getX();
+      clickPoint.y += current_bounds.getY();
+      floatPoint2D fP2D = convertToWorldPoint(clickPoint);
+      Vector<RegionOp> regionOps = 
+        getRegionOpListWithColor(regionName).getList();
+      if(regionOps.size()>0)
+      {
+        //System.out.println("made it here");
+        RegionOp regOp;
+        Region reg;
+        //Fix this
+        for ( int i=0; i<regionOps.size(); i++ )
+        {
+      regOp = regionOps.get(i);
+      reg = regOp.getRegion();
+      if(reg instanceof RegionWithInterior)
+      {
+        if(((RegionWithInterior)reg).isInsideWC(fP2D.x, fP2D.y))
+        {
+      if(reg instanceof EllipseRegion)
+      {
+        //System.out.println("pop up Ellipse edit window");
+        floatPoint2D[] ellipsePoints = reg.getDefiningPoints();
+        EllipseRegionOpEditFrame ellipseEdit = new EllipseRegionOpEditFrame(
+            ellipsePoints[0],ellipsePoints[2],regOp.getOp(),i);
+        ellipseEdit.addPropertyChangeListener(
+              new RegionEditorPropertyListener());
+        ellipseEdit.setVisible(true);
+        cursor = new EllipseCursor(this_panel);
+        cursorPoints = ellipseEdit.getDefiningPoints();
+        Editors.add(ellipseEdit);
+      }
+      
+      else if(reg instanceof DoubleWedgeRegion)
+      {
+        //System.out.println("pop up DWedge Edit");
+        floatPoint2D[] dWedgePoints = reg.getDefiningPoints();
+        floatPoint2D rotationPt = new floatPoint2D();
+        rotationPt.y = dWedgePoints[2].y-.5f*(
+            dWedgePoints[2].y-dWedgePoints[1].y);
+        rotationPt.x = dWedgePoints[2].x-.5f*(
+            dWedgePoints[2].x-dWedgePoints[1].x);
+        DoubleWedgeRegionOpEditFrame dWedgeEdit = 
+          new DoubleWedgeRegionOpEditFrame(dWedgePoints[0],
+              dWedgePoints[1],
+              rotationPt,
+              regOp.getOp(),i);
+        dWedgeEdit.addPropertyChangeListener(
+            new RegionEditorPropertyListener());
+        dWedgeEdit.setVisible(true);
+        cursor = new DoubleWedgeCursor(this_panel);
+        cursorPoints = dWedgeEdit.getDefiningPoints();
+        Editors.add(dWedgeEdit);
+      }
+        
+      else if(reg instanceof WedgeRegion)
+      {
+        //System.out.println("pop up Wedge edit window");
+        floatPoint2D[] wedgePoints = reg.getDefiningPoints();
+        floatPoint2D rotationPt = new floatPoint2D();
+        rotationPt.y = wedgePoints[2].y-.5f*(
+            wedgePoints[2].y-wedgePoints[1].y);
+        rotationPt.x = wedgePoints[2].x-.5f*(
+            wedgePoints[2].x-wedgePoints[1].x);
+        WedgeRegionOpEditFrame wedgeEdit = new WedgeRegionOpEditFrame(
+            wedgePoints[0],wedgePoints[1],rotationPt,regOp.getOp(),i);
+        wedgeEdit.addPropertyChangeListener(
+            new RegionEditorPropertyListener());
+        wedgeEdit.setVisible(true);
+        cursor = new WedgeCursor(this_panel);
+        cursorPoints = wedgeEdit.getDefiningPoints();
+        Editors.add(wedgeEdit);
+      }
+        
+      else if(reg instanceof BoxRegion)
+      {
+        //System.out.println("pop up Box edit window");
+        floatPoint2D[] boxPoints = reg.getDefiningPoints();
+        BoxRegionOpEditFrame boxEdit = new BoxRegionOpEditFrame(
+          boxPoints[0],boxPoints[1],regOp.getOp(),i);
+        //System.out.println("region Index "+i);
+        boxEdit.addPropertyChangeListener(new RegionEditorPropertyListener());
+        boxEdit.setVisible(true);
+        boxEdit.firePropertyChange( RegionOpEditFrame.DRAW_CURSOR,0,0 );
+        cursor = new BoxPanCursor(this_panel);
+        cursorPoints = boxEdit.getDefiningPoints();
+        Editors.add(boxEdit);
+      }
+      
+      else if(reg instanceof AnnularRegion)
+      {
+        floatPoint2D[] ringPoints = reg.getDefiningPoints();
+        floatPoint2D radPoint1 = new floatPoint2D(ringPoints[0].x,
+                                                  ringPoints[1].y);
+        floatPoint2D radPoint2 = new floatPoint2D(ringPoints[0].x,
+                                                  ringPoints[3].y);
+        AnnularRegionOpEditFrame ringEdit = new AnnularRegionOpEditFrame(
+            ringPoints[0],radPoint1,radPoint2,regOp.getOp(),i);
+        ringEdit.addPropertyChangeListener(new RegionEditorPropertyListener());
+        ringEdit.setVisible(true);
+        cursor = new AnnularCursor(this_panel);
+        cursorPoints = ringEdit.getDefiningPoints();
+        Editors.add(ringEdit);
+      }
+        
+        }
+      }
+      else if(reg instanceof PointRegion)
+      {
+        floatPoint2D[] points = reg.getDefiningPoints();
+        for(int j =0;j<points.length;j++)
+        {
+      if(convertToPixelPoint(points[j]).y<clickPoint.y+5 &&
+          convertToPixelPoint(points[j]).y>clickPoint.y-5 &&
+          convertToPixelPoint(points[j]).x<clickPoint.x+5 &&
+          convertToPixelPoint(points[j]).x>clickPoint.x-5)
+      {
+        PointRegionOpEditFrame pointEdit = new PointRegionOpEditFrame
+                                            (points[j],sjp.getOp(),i,j);
+        pointEdit.addPropertyChangeListener(
+            new RegionEditorPropertyListener());
+        pointEdit.setVisible(true);
+        cursor = new PointCursor(this_panel);
+        Point index= new Point(j,0);
+        ((PointCursor)cursor).start(index);
+        cursorPoints = new floatPoint2D[reg.getDefiningPoints().length+1];
+        for(int k=0;k<reg.getDefiningPoints().length;k++)
+        {
+          cursorPoints[k]=reg.getDefiningPoints()[k];
+        }
+        cursorPoints[reg.getDefiningPoints().length]=pointEdit
+            .getDefiningPoints()[0];
+        Editors.add(pointEdit);
+      }
+        }
+      }
+      
+      else if(reg instanceof LineRegion)
+      {
+        //System.out.println("figure something out");
+        floatPoint2D[] points = reg.getDefiningPoints();
+        if(fP2D.x<Math.max(points[0].x, points[1].x)+10&&
+            fP2D.x>Math.min(points[0].x, points[1].x)-10&& 
+            fP2D.y<Math.max(points[0].y, points[1].y)+10&&
+            fP2D.y>Math.min(points[0].y, points[1].y)-10)
+        {
+      LineRegionOpEditFrame lineEdit = new LineRegionOpEditFrame(
+          points[0],points[1],sjp.getOp(),i);
+      lineEdit.addPropertyChangeListener(new RegionEditorPropertyListener());
+      lineEdit.setVisible(true);
+      cursor = new LineCursor(this_panel);
+      cursorPoints = lineEdit.getDefiningPoints();
+      Editors.add(lineEdit);
+        }
+      }
+        }
+      }
+        }
+      }
       this_panel.repaint(); // Without this, the newly drawn regions would
                             // not appear.
     } // end actionPerformed()   
 
-  } // end SelectListener
+  } // end SelectListener 
+  
+  private class RegionEditorPropertyListener implements PropertyChangeListener
+  {
 
+    public void propertyChange(PropertyChangeEvent e)
+    {
+
+      if (e.getPropertyName().equals(RegionOpEditFrame.DRAW_CURSOR))
+      {
+        //System.out.println("getting here!!!1");
+        
+        if(e.getSource() instanceof BoxRegionOpEditFrame)
+        {
+          cursor = new BoxPanCursor(this_panel);
+          cursorPoints = ((BoxRegionOpEditFrame)e.getSource())
+              .getDefiningPoints();
+        }
+
+        else if(e.getSource() instanceof EllipseRegionOpEditFrame)
+        {
+          cursor = new EllipseCursor(this_panel);
+          cursorPoints = ((EllipseRegionOpEditFrame)e.getSource())
+              .getDefiningPoints();
+        }
+        
+        else if(e.getSource() instanceof AnnularRegionOpEditFrame)
+        {
+          cursor = new AnnularCursor(this_panel);
+          cursorPoints = ((AnnularRegionOpEditFrame)e.getSource())
+              .getDefiningPoints();
+        }
+        
+        else if(e.getSource() instanceof DoubleWedgeRegionOpEditFrame)
+        {
+          cursor = new DoubleWedgeCursor(this_panel);
+          cursorPoints = ((DoubleWedgeRegionOpEditFrame)e.getSource())
+              .getDefiningPoints();
+        }
+         
+        else if(e.getSource() instanceof WedgeRegionOpEditFrame)
+        {
+          cursor = new WedgeCursor(this_panel);
+          cursorPoints = ((WedgeRegionOpEditFrame)e.getSource())
+              .getDefiningPoints();
+        }
+        
+        //System.out.println("getting here!!!");
+        else if(e.getSource() instanceof PointRegionOpEditFrame)
+        {
+          //System.out.println("getting here!!!");
+          cursor = new PointCursor(this_panel);
+          Point index = new Point(((PointRegionOpEditFrame)e.getSource())
+                  .getPointIndex(),0);
+          ((PointCursor)cursor).start(index);
+          floatPoint2D[] regPts = getRegionOpListWithColor(sjp.getName())
+              .getList().get(((PointRegionOpEditFrame)e.getSource())
+              .getRegionIndex()).getRegion().getDefiningPoints();
+          cursorPoints= new floatPoint2D[regPts.length+1];
+          for (int i=0; i<regPts.length;i++)
+            cursorPoints[i] = regPts[i];
+          cursorPoints[regPts.length]=((PointRegionOpEditFrame)e.getSource())
+                                            .getDefiningPoints()[0];
+        }
+        else if(e.getSource() instanceof LineRegionOpEditFrame)
+        {
+          cursor = new LineCursor(this_panel);
+          cursorPoints = ((LineRegionOpEditFrame)e.getSource())
+              .getDefiningPoints();
+        }
+
+       // System.out.println("cursorPTs:");
+        //for(int i=0;i<cursorPoints.length;i++)
+          //System.out.println(""+cursorPoints[i]);
+        this_panel.repaint();
+        
+      }
+      
+      if (e.getPropertyName().equals(RegionOpEditFrame.DONE))
+      {
+                
+       // ((RegionOpEditFrame)e.getSource()).dispose();
+        RegionOpListWithColor regListWC = regionOpLists.get(sjp.getName());
+        Vector<RegionOp> regOpList = regListWC.getList();
+        regOpList.setElementAt(
+            new RegionOp(
+                Region.getInstanceRegion(cursor,cursorPoints),
+                ((RegionOpEditFrame)e.getSource()).getOp()),
+            ((RegionOpEditFrame)e.getSource()).getRegionIndex());
+        ((RegionOpEditFrame)e.getSource()).dispose();
+        Editors.removeElement(e.getSource());
+        cursor = null;
+        sjp.repaint();
+      }
+      
+      if (e.getPropertyName().equals(RegionOpEditFrame.CANCEL))
+      {
+        Editors.removeElement(e.getSource());
+        cursor= null;
+        sjp.repaint();
+      }
+      
+      if (e.getPropertyName().equals(RegionOpEditFrame.DRAW_REGION))
+      {
+        RegionOpListWithColor regListWC = regionOpLists.get(sjp.getName());
+        //System.out.println(""+regListWC.getList().get(0));
+        Vector<RegionOp> regOpList = regListWC.getList();
+        //if (cursor instanceof XOR_Cursor)
+          //System.out.println("Ok the cursor is an XOR_Cursor");
+        //if (cursor instanceof PointCursor)
+          //System.out.println("and it is a PointCursor");
+        
+       // System.out.println("region.instance call");
+       // for(int i=0;i<((PointCursor)cursor).region().length;i++)
+          //System.out.println(""+((PointCursor)cursor).region());
+        
+        regOpList.setElementAt(
+            new RegionOp(
+                Region.getInstanceRegion(cursor,cursorPoints),
+                ((RegionOpEditFrame)e.getSource()).getOp()),
+            ((RegionOpEditFrame)e.getSource()).getRegionIndex());
+        //System.out.println("Region FromGetInstance: "+
+        //Region.getInstanceRegion((XOR_PanCursor)cursor,cursorPoints));
+        //System.out.println(""+
+        //regOpList.get(((RegionOpEditFrame)e.getSource()).getRegionIndex()));
+        sjp.repaint();
+      }
+      
+    }
+    
+  }
 }
