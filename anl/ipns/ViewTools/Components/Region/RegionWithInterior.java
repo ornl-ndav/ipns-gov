@@ -27,6 +27,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2007/06/15 22:41:20  oakgrovej
+ *  added if else statement to catch an error
+ *
  *  Revision 1.4  2007/04/28 19:47:26  dennis
  *  Expanded javadocs.
  *
@@ -133,8 +136,11 @@ public abstract class RegionWithInterior extends    Region
     int max_y = (int)bounds.getY2();
                                            // Step through box rowwise, saving 
                                            // points that are in the region.
-
-    Point pts[] = new Point[ ( max_x - min_x + 1 ) * ( max_y - min_y + 1 ) ];
+    Point pts[];
+    if(( max_x - min_x + 1 ) * ( max_y - min_y + 1 )<0)
+      pts = new Point[0];
+    else
+      pts = new Point[ ( max_x - min_x + 1 ) * ( max_y - min_y + 1 ) ];
 
     floatPoint2D temp_point = new floatPoint2D();
     int  num_pts = 0;
