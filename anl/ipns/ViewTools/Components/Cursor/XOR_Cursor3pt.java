@@ -33,6 +33,9 @@
  *   Prentice Hall, 1997 )
  *
  *  $Log$
+ *  Revision 1.6  2007/06/15 22:30:40  oakgrovej
+ *  Added cursor tag & get panel method
+ *
  *  Revision 1.5  2004/04/02 20:58:33  millermi
  *  - Fixed javadoc errors
  *
@@ -67,7 +70,7 @@ import javax.swing.JPanel;
  * @see gov.anl.ipns.ViewTools.Components.Cursor.WedgeCursor 
  * @see gov.anl.ipns.ViewTools.Components.Cursor.DoubleWedgeCursor
  */
-abstract public class XOR_Cursor3pt implements Serializable
+abstract public class XOR_Cursor3pt implements Serializable, CursorTag
 {
     protected JPanel    panel;
     protected Point     first_pt     = new Point(0,0); 
@@ -272,6 +275,11 @@ abstract public class XOR_Cursor3pt implements Serializable
     active = false;
     mpset = false;
     return ( true );
+  }
+  
+  public JPanel getPanel()
+  {
+    return panel;
   }
 
 }
