@@ -32,6 +32,9 @@
  *   Prentice Hall, 1997 )
  *
  *  $Log$
+ *  Revision 1.5  2007/06/15 22:37:12  oakgrovej
+ *  Added cursor tag
+ *
  *  Revision 1.4  2006/07/31 01:59:18  dennis
  *  Fixed bug in start() method.  The y-coordinates were
  *  improperly set.  This is a partial fix to problems with
@@ -47,6 +50,8 @@
 
 package gov.anl.ipns.ViewTools.Panels.Cursors;
 
+import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
+
 import java.awt.*;
 import java.io.*;
 import javax.swing.*;
@@ -60,7 +65,7 @@ import javax.swing.*;
  */
 
 
-abstract public class XOR_Cursor implements Serializable
+abstract public class XOR_Cursor implements Serializable, CursorTag
 {
     protected JPanel    panel;
     protected Point     first_pt     = new Point(0,0); 
