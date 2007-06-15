@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/06/15 22:37:52  oakgrovej
+ *  addItem method
+ *
  *  Revision 1.10  2006/01/05 20:30:42  rmikk
  *  set the title of the combo box in the constructor
  *
@@ -260,6 +263,17 @@ public class LabelCombobox extends ViewControl
       cbox.addItem(items[i]);
     }
     ignore_change = false;
+  }
+  
+  /**
+   * To add an item to the combobox
+   * @param item string to be added
+   * @return the Index of the item added
+   */
+  public int addItem( String item)
+  {
+    cbox.addItem(item);
+    return cbox.getItemCount()-1;
   }
 
   /**
