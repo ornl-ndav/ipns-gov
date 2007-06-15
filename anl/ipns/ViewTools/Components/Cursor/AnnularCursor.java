@@ -37,6 +37,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.4  2007/06/15 22:18:29  oakgrovej
+ *  Added draw for the inner circle in draw method
+ *
  *  Revision 1.3  2004/03/12 01:33:22  millermi
  *  - Changed package and imports.
  *
@@ -93,8 +96,12 @@ public class AnnularCursor extends  XOR_Cursor3pt
       int x = Math.abs( p1.x - p3.x );
       int y = Math.abs( p1.y - p3.y );
       int r = (int)Math.sqrt( Math.pow(x,2) + Math.pow(y,2) ); 
+      graphics.drawOval( (p1.x - r), (p1.y - r), 2*r, 2*r );
       
-      // draw inner circle of ring  	 
+      // draw inner circle of ring 
+      x = Math.abs( p1.x - p2.x );
+      y = Math.abs( p1.y - p2.y );
+      r = (int)Math.sqrt( Math.pow(x,2) + Math.pow(y,2) );
       graphics.drawOval( (p1.x - r), (p1.y - r), 2*r, 2*r );
     }
     // if second and third points are the same, draw only inner circle
