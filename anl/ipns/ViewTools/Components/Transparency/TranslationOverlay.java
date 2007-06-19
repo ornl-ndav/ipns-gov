@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2007/06/19 20:34:39  dennis
+ *  Added call to tjp.repaint() in paintComponent() method.  This fixes
+ *  a problem where the zoomed region did not show up on the PanViewControl
+ *  until the user clicked on the PanViewControl.
+ *
  *  Revision 1.18  2007/06/15 16:56:19  dennis
  *  Replaced paint() with paintComponent() and removed call to super.paint().
  *
@@ -244,6 +249,10 @@ public class TranslationOverlay extends OverlayJPanel
     g.drawRect( (int)viewport.getX1(), (int)viewport.getY1(),
                 (int)viewport.getX2() - (int)viewport.getX1(),
 		(int)viewport.getY2() - (int)viewport.getY1() );
+
+    tjp.repaint();                     // ask for the cursor to be repainted
+                                       // otherwise the user must click once
+                                       // on the PanView control to see cursor
   }
   
  /**
