@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.27  2007/06/20 15:57:29  dennis
+ * paintComponent() again turns off the cursors before drawing.  This
+ * code had been temporarily commented out for testing.  It is needed
+ * when tracking pointed at changes from other views.
+ *
  * Revision 1.26  2007/06/13 15:37:29  dennis
  * Added some documentation to private methods.
  *
@@ -205,14 +210,14 @@ public class ThreeD_JPanel extends    CoordJPanel
       return;
 
     Graphics2D g2d = (Graphics2D)g.create();  // get copy of Graphics object
-/*
+
     if ( isDoingCrosshair() )                 // if the system redraws this
       stop_crosshair( current_point );        // without our knowledge, this
                                               // gets rid of the cursors other-
     if ( isDoingBox() )                       // wise the old position will be
       stop_box( current_point, false );       // drawn instead of erased when
                                               // the user moves the cusor
-*/                                            // (due to XOR drawing). 
+                                              // (due to XOR drawing). 
      build_object_list();
 
     g2d.setColor( getBackground() );
