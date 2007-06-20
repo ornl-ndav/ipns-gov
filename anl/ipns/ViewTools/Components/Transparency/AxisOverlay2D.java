@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.55  2007/06/20 15:55:03  dennis
+ *  Renamed paint() method to paintComponent().  Also, removed call to
+ *  super.paint() in paintComponent() and modified paintComponent() to
+ *  work with a copy of the graphics object that was passed in.
+ *
  *  Revision 1.54  2006/07/25 16:18:21  amoe
  *  - Created new boolean flags for left/bottom axes.
  *  - Changed boolean flags for axes to "protected".
@@ -777,10 +782,11 @@ public class AxisOverlay2D extends OverlayJPanel
   *
   *  @param  g - graphics object
   */  
-  public void paint(Graphics g) 
+  public void paintComponent(Graphics g) 
   {  
-	  //System.out.println("AxisOverlay2D.paint(..)");
-    Graphics2D g2d = (Graphics2D)g;
+                                   // make copy of Graphics object
+    Graphics2D g2d = (Graphics2D)g.create();
+
     g2d.setFont(f);
     FontMetrics fontdata = g2d.getFontMetrics();
     // Reset precision, make sure it is always consistent.
@@ -841,7 +847,9 @@ public class AxisOverlay2D extends OverlayJPanel
       else if( y_scale == AxisInfo.PSEUDO_LOG )
     	paintPseudoLogY( g2d );
     }
-    super.paint(g);
+
+    g2d.dispose();
+
   } // end of paint()
   
  /* ***********************Private Methods************************** */
