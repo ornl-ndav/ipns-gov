@@ -2,14 +2,14 @@ package gov.anl.ipns.ViewTools.Components.RegionOpEditFrames;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
@@ -24,41 +24,28 @@ import gov.anl.ipns.ViewTools.Components.Region.RegionOp.Operation;
  * @author Josh Oakgrove
  *
  */
-public class DoubleWedgeRegionOpEditFrame extends JFrame implements 
-    RegionOpEditFrame
+public class DoubleWedgeRegionOpEditFrame extends RegionOpEditFrame
 {
 private static int VALUE_JUMP = 5;
   
-  private boolean positionSelected = false;
-  private boolean point1Selected = false;
-  private boolean point2Selected = false;
-  private boolean point3Selected = false;
+  private boolean radiusSelected = false;
   
-  private JRadioButton position;
-  private JRadioButton point1;
-  private JRadioButton point2;
-  private JRadioButton point3;
-  private JPanel movementPanel;
-  private JPanel buttonPanel;
-  private JPanel pointPanel;
-  private JPanel positionPanel;
-  private JPanel point1Panel;
-  private JPanel point2Panel;
-  private JPanel point3Panel;
-  private JPanel LRPanel;
-  private JPanel wedgeCompPanel;
+  private JRadioButton radius;
+  private JPanel RadiusPanel;
+  private JPanel AxisAnglePanel;
+  private JPanel IncludedAnglePanel;
+  private JTextField radiusField;
+  private JSlider axisAngleSlider;
+  private JSlider includedAngleSlider;
   
-  private JTextField p1x = new JTextField(6);
-  private JTextField p1y = new JTextField(6);
-  private JTextField p2x = new JTextField(6);
-  private JTextField p2y = new JTextField(6);
-  private JTextField p3x = new JTextField(6);
-  private JTextField p3y = new JTextField(6);
+  private float p1x;
+  private float p1y;
+  private float p2x;
+  private float p2y;
+  private float p3x;
+  private float p3y;
   
-  private ButtonGroup radioGroup = new ButtonGroup();
-  private JFrame this_editor;
   private int regionIndex;
-  private RegionOp.Operation operation;
 
   /**
    * constructor takes in three points:
@@ -71,35 +58,101 @@ private static int VALUE_JUMP = 5;
    * @param op Operation to go with the Region
    * @param index The index of the RegionOp with in the RegionOpList
    */
-  public DoubleWedgeRegionOpEditFrame(floatPoint2D pt1, floatPoint2D pt2,
-      floatPoint2D pt3,RegionOp.Operation op,int index)
+  public DoubleWedgeRegionOpEditFrame(floatPoint2D[] wedgePoints
+      ,RegionOp.Operation op,int index)
   {
-    super("Double Wedge Editor");
-    this.setBounds(700,390, 350, 277);
-    this.setResizable(false);
-    this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    super("Wedge Editor",op);
+    super.setBounds(700,390, 450, 280);
+    super.setResizable(false);
+    super.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     this_editor = this;
     
-    Container contentPane = super.getContentPane();
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+    setEditorValues(wedgePoints);
     
-    p1x.setText(""+pt1.x);
-    p1y.setText(""+pt1.y);
-    p2x.setText(""+pt2.x);
-    p2y.setText(""+pt2.y);
-    p3x.setText(""+pt3.x);
-    p3y.setText(""+pt3.y);
-       
-    buildMovementPanel();
-    buildPoint3Panel();
-    buildButtonPanel();
-    contentPane.add(movementPanel);
-    contentPane.add(point3Panel);
-    contentPane.add(buttonPanel);
-    addKeyListener(new PositionKeyListener());
+    center.addActionListener(new radioButtonListener());
+    cenY.addActionListener(new textFieldListener());
+    cenX.addActionListener(new textFieldListener());
+    
     
     regionIndex = index;
-    operation = op;
+  }
+  
+  private void setEditorValues(floatPoint2D[] wedgePoints)
+  {
+    //takes the wedge points and sets the defining points along 
+    //with the radius, angles, and center point
+    
+    //set the defining points
+    floatPoint2D rotationPt = new floatPoint2D();
+    rotationPt.y = wedgePoints[2].y-.5f*(
+        wedgePoints[2].y-wedgePoints[1].y);
+    rotationPt.x = wedgePoints[2].x-.5f*(
+        wedgePoints[2].x-wedgePoints[1].x);
+    
+    p1x = wedgePoints[0].x;
+    p1y = wedgePoints[0].y;
+    p2x = wedgePoints[1].x;
+    p2y = wedgePoints[1].y;
+    p3x = rotationPt.x;
+    p3y = rotationPt.y;
+    
+    //set the center
+    cenX.setText(""+p1x);
+    cenY.setText(""+p1y);
+    
+    /*set the angles
+    axisAngleSlider.setValue((int)Math.round(wedgePoints[5].x+
+        wedgePoints[5].y/2.0));
+    includedAngleSlider.setValue((int)wedgePoints[5].y);*/
+    
+    //set the radius
+    //radius = sqrt(Dx^2+Dy^2)
+    float Dx = Math.abs(p1x-p2x);
+    float Dy = Math.abs(p1y-p2y);
+    float rad = (float)Math.sqrt(Dx*Dx+Dy*Dy);
+    radiusField.setText(""+rad);
+    
+//  set the angles
+    axisAngleSlider.setValue((int)Math.round(wedgePoints[5].x+
+        wedgePoints[5].y/2.0));
+    includedAngleSlider.setValue((int)wedgePoints[5].y);
+  }
+  
+  private void setDefiningPoints()
+  {
+    //uses the angles, center point, and radius to get the 
+    //three defining points: center, corner and point on axis.
+    p1x = Float.parseFloat(cenX.getText());
+    p1y = Float.parseFloat(cenY.getText());
+    float rad = Float.parseFloat(radiusField.getText());
+    float Dx = rad*(float)Math.cos(Math.PI*
+                           (float)axisAngleSlider.getValue()/180.0);
+    float Dy = rad*(float)Math.sin(Math.PI*
+                           (float)axisAngleSlider.getValue()/180.0);
+    p3x = p1x + Dx;
+    p3y = p1y + Dy;
+    
+    float Dx2 = rad*(float)Math.cos(Math.PI*
+        ((float)includedAngleSlider.getValue()/2.0+
+        (float)axisAngleSlider.getValue())/180.0);
+            //  --------------rotation alternative-------------------
+            //Dx*(float)Math.cos(Math.PI*
+                            //((float)includedAngleSlider.getValue())/360.0)-
+            //Dy*(float)Math.sin(Math.PI*
+                            //((float)includedAngleSlider.getValue())/360.0);
+    float Dy2 = rad*(float)Math.sin(Math.PI*
+        ((float)includedAngleSlider.getValue()/2.0+
+        (float)axisAngleSlider.getValue())/180.0);
+            //  --------------rotation alternative-------------------
+            //Dx*(float)Math.sin(Math.PI*
+                            //((float)includedAngleSlider.getValue())/360.0)+
+            //Dy*(float)Math.cos(Math.PI*
+                            //((float)includedAngleSlider.getValue())/360.0);
+    p2x = p1x + Dx2;
+    p2y = p1y + Dy2;
+    //System.out.println("center = ("+p1x+","+p1y+")\n"+
+                       //"corner = ("+p3x+","+p3y+")\n"+
+                       //"rotati = ("+p2x+","+p2y+")");
   }
   public void dispose()
   {
@@ -111,18 +164,10 @@ private static int VALUE_JUMP = 5;
   public floatPoint2D[] getDefiningPoints()
   {
     floatPoint2D[] points = new floatPoint2D[3];
-    points[0]=new floatPoint2D(Float.parseFloat(p1x.getText()),
-                               Float.parseFloat(p1y.getText()));
-    points[1]=new floatPoint2D(Float.parseFloat(p2x.getText()),
-                               Float.parseFloat(p2y.getText()));
-    points[2]=new floatPoint2D(Float.parseFloat(p3x.getText()),
-                               Float.parseFloat(p3y.getText()));
+    points[0]=new floatPoint2D(p1x, p1y);
+    points[1]=new floatPoint2D(p2x, p2y);
+    points[2]=new floatPoint2D(p3x, p3y);
     return points;
-  }
-
-  public Operation getOp()
-  {
-    return operation;
   }
 
   public int getRegionIndex()
@@ -136,196 +181,147 @@ private static int VALUE_JUMP = 5;
     return cursor;
   }
   
-  private void buildMovementPanel()
+  public void Down()
   {
-    movementPanel = new JPanel();
-    movementPanel.setLayout(new BoxLayout(movementPanel,BoxLayout.X_AXIS));
-    //movementPanel.addKeyListener(new MoveKeyListener());
-    buildPositionPanel();
-    buildPointPanel();
-    movementPanel.add(positionPanel);
-    movementPanel.add(pointPanel);
+    if(centerSelected)
+    {
+      p1y -= VALUE_JUMP;
+      p2y -= VALUE_JUMP;
+      p3y -= VALUE_JUMP;
+      cenY.setText(""+p1y);
+    }
+    else if (radiusSelected)
+    {
+      radiusField.setText(""+
+          (Float.parseFloat(radiusField.getText())-VALUE_JUMP));
+      setDefiningPoints();
+    }
+    firePropertyChange(DRAW_CURSOR, 1, 2);
+  }
+
+  public void Left()
+  {
+    if(centerSelected)
+    {
+      p1x -= VALUE_JUMP;
+      p2x -= VALUE_JUMP;
+      p3x -= VALUE_JUMP;
+      cenX.setText(""+p1x);
+    }
+    else if (radiusSelected)
+    {
+      radiusField.setText(""+
+          (Float.parseFloat(radiusField.getText())-VALUE_JUMP));
+      setDefiningPoints();
+    }
+    firePropertyChange(DRAW_CURSOR, 1, 2);
+  }
+
+  public void Right()
+  {
+    if(centerSelected)
+    {
+      p1x += VALUE_JUMP;
+      p2x += VALUE_JUMP;
+      p3x += VALUE_JUMP;
+      cenX.setText(""+p1x);
+    }
+    else if (radiusSelected)
+    {
+      radiusField.setText(""+
+          (Float.parseFloat(radiusField.getText())+VALUE_JUMP));
+      setDefiningPoints();
+    }
+    firePropertyChange(DRAW_CURSOR, 1, 2);
+  }
+
+  public void Up()
+  {
+    if(centerSelected)
+    {
+      p1y += VALUE_JUMP;
+      p2y += VALUE_JUMP;
+      p3y += VALUE_JUMP;
+      cenY.setText(""+p1y);
+    }
+    else if (radiusSelected)
+    {
+      radiusField.setText(""+
+          (Float.parseFloat(radiusField.getText())+VALUE_JUMP));
+      setDefiningPoints();
+    }
+    firePropertyChange(DRAW_CURSOR, 1, 2);
   }
   
-  private void buildButtonPanel()
+  protected void buildDefiningPanel()
   {
-    buttonPanel = new JPanel();
-    buttonPanel.setBorder(BorderFactory.createEtchedBorder());
-    buttonPanel.setLayout(new BoxLayout( buttonPanel,BoxLayout.X_AXIS ));
-    //buttonPanel.addKeyListener(new MoveKeyListener());
-    JPanel BPanel = new JPanel();
-    
-    JButton done = new JButton("Done");
-    done.addActionListener(new buttonListener());
-    JButton draw = new JButton("Draw");
-    draw.addActionListener(new buttonListener());
-    JButton cancel = new JButton("Cancel");
-    cancel.addActionListener(new buttonListener());
-    
-    BPanel.add(done);
-    BPanel.add(draw);
-    BPanel.add(cancel);
-    buttonPanel.add(BPanel);
+    DefiningPanel = new JPanel();
+    DefiningPanel.setLayout(new BoxLayout(DefiningPanel,BoxLayout.Y_AXIS));
+    buildRadiusPanel();
+    buildAxisAnglePanel();
+    buildIncludedAnglePanel();
+    DefiningPanel.add(RadiusPanel);
+    DefiningPanel.add(AxisAnglePanel);
+    DefiningPanel.add(IncludedAnglePanel);
   }
   
-  /*private void buildWedgeCompPanel()
+  private void buildRadiusPanel()
   {
-    wedgeCompPanel = new JPanel();
-    JButton wedgeComp = new JButton("Wedge Complement");
-    wedgeComp.addActionListener(new buttonListener());
-    wedgeCompPanel.add(wedgeComp);
-    wedgeCompPanel.setBorder(BorderFactory.createEtchedBorder());
-  }*/
-  
-  private void buildPositionPanel()
-  {
-    positionPanel = new JPanel();
-    positionPanel.setBorder(BorderFactory.createEtchedBorder());
-    positionPanel.setLayout(new BoxLayout(positionPanel,BoxLayout.Y_AXIS));
-    //positionPanel.addKeyListener(new MoveKeyListener());
-    position = new JRadioButton("Position");
-    position.addActionListener(new buttonListener());
-    position.addKeyListener(new PositionKeyListener());
-    radioGroup.add(position);
-    JPanel PPanel = new JPanel();
-    PPanel.add(position);
-    
-    /*wedgeCompPanel = new JPanel();
-    JButton wedgeComp = new JButton("Complement");
-    wedgeComp.addActionListener(new buttonListener());
-    wedgeCompPanel.add(wedgeComp);
-    //wedgeCompPanel.setBorder(BorderFactory.createEtchedBorder());
-    */
-    
-    buildLRPanel();    
-    
-    positionPanel.add(PPanel);
-    positionPanel.add(LRPanel);
-    //positionPanel.add(wedgeCompPanel);
-  }
-  
-  private void buildLRPanel()
-  {
-    LRPanel = new JPanel();
-    LRPanel.setLayout(new BorderLayout());
-    //LRPanel.addKeyListener(new MoveKeyListener());
-    JButton up = new JButton("Up");
-    JButton left = new JButton("L");
-    JButton right = new JButton("R");
-    JButton down = new JButton("Dn");
-    //listeners
-    up.addActionListener(new buttonListener());
-    left.addActionListener(new buttonListener());
-    right.addActionListener(new buttonListener());
-    down.addActionListener(new buttonListener());
-    up.addKeyListener(new PositionKeyListener());
-    left.addKeyListener(new PositionKeyListener());
-    right.addKeyListener(new PositionKeyListener());
-    down.addKeyListener(new PositionKeyListener());
-    JPanel NPanel = new JPanel();
-    NPanel.add(up);
-    LRPanel.add(NPanel,BorderLayout.NORTH);
-    JPanel LPanel = new JPanel();
-    LPanel.add(left);
-    LRPanel.add(LPanel,BorderLayout.WEST);
-    JPanel RPanel = new JPanel();
-    RPanel.add(right);
-    LRPanel.add(RPanel,BorderLayout.EAST);
-    JPanel SPanel = new JPanel();
-    SPanel.add(down);
-    LRPanel.add(SPanel,BorderLayout.SOUTH);
-  }
-  
-  private void buildPointPanel()
-  {
-    pointPanel = new JPanel();
-    pointPanel.setLayout(new BoxLayout(pointPanel,BoxLayout.Y_AXIS));
-    //pointPanel.addKeyListener(new MoveKeyListener());
-    buildPoint1Panel();
-    buildPoint2Panel();
-    //buildPoint3Panel();
-    pointPanel.add(point1Panel);
-    pointPanel.add(point2Panel);
-    //pointPanel.add(point3Panel);
-  }
-  
-  private void buildPoint1Panel()
-  {
-    point1Panel = new JPanel(new BorderLayout());
-    point1Panel.setBorder(BorderFactory.createEtchedBorder());
+    radiusField = new JTextField(6);
+    RadiusPanel = new JPanel(new BorderLayout());
+    RadiusPanel.setBorder(BorderFactory.createEtchedBorder());
     //point1Panel.addKeyListener(new MoveKeyListener());
-    point1 = new JRadioButton("Focus Point");
-    point1.addActionListener(new buttonListener());
-    point1.addKeyListener(new PositionKeyListener());
-    radioGroup.add(point1);
+    radius = new JRadioButton("Radius");
+    radius.addActionListener(new radioButtonListener());
+    radius.addKeyListener(new PositionKeyListener());
+    radioGroup.add(radius);
     JPanel CPanel = new JPanel();
     //CPanel.addKeyListener(new MoveKeyListener());
-    JLabel xLabel = new JLabel("X");
-    p1x.addActionListener(new textFieldListener());
-    JLabel yLabel = new JLabel("Y");
-    p1y.addActionListener(new textFieldListener());
-    CPanel.add(xLabel);
-    CPanel.add(p1x);
-    CPanel.add(yLabel);
-    CPanel.add(p1y);
+    JLabel radiusLabel = new JLabel("Length");
+    radiusField.addActionListener(new textFieldListener());
+    CPanel.add(radiusLabel);
+    CPanel.add(radiusField);
     
-    point1Panel.add(point1,BorderLayout.NORTH);
-    point1Panel.add(CPanel, BorderLayout.CENTER);
+    RadiusPanel.add(radius,BorderLayout.NORTH);
+    RadiusPanel.add(CPanel, BorderLayout.CENTER);
   }
   
-  private void buildPoint2Panel()
+  private void buildAxisAnglePanel()
   {
-    point2Panel = new JPanel(new BorderLayout());
-    point2Panel.setBorder(BorderFactory.createEtchedBorder());
-    //point2Panel.addKeyListener(new MoveKeyListener());
-    point2 = new JRadioButton("Corner Point");
-    point2.addKeyListener(new PositionKeyListener());
-    point2.addActionListener(new buttonListener());
-    radioGroup.add(point2);
-    JPanel CPanel = new JPanel();
-    JLabel xLabel = new JLabel("X");
-    //CPanel.addKeyListener(new MoveKeyListener());
-    p2x.addActionListener(new textFieldListener());
-    JLabel yLabel = new JLabel("Y");
-    p2y.addActionListener(new textFieldListener());
-    //add to listeners
-    CPanel.add(xLabel);
-    CPanel.add(p2x);
-    CPanel.add(yLabel);
-    CPanel.add(p2y);
+    axisAngleSlider = new JSlider(-180,180);
+    axisAngleSlider.setMajorTickSpacing(20);
+    axisAngleSlider.setPaintTicks(true);
+    axisAngleSlider.setValueIsAdjusting(false);
+    AxisAnglePanel = new JPanel(new BorderLayout());
+    AxisAnglePanel.setBorder(BorderFactory.createEtchedBorder());
     
-    point2Panel.add(point2,BorderLayout.NORTH);
-    point2Panel.add(CPanel, BorderLayout.CENTER);
+    JLabel axisAngleLable = new JLabel("Axis Angle");
+    axisAngleSlider.addChangeListener(new sliderListener());
+    //add to listeners
+
+    AxisAnglePanel.add(axisAngleLable,BorderLayout.NORTH);
+    AxisAnglePanel.add(axisAngleSlider,BorderLayout.CENTER);
   }
   
-  private void buildPoint3Panel()
+  private void buildIncludedAnglePanel()
   {
-    point3Panel = new JPanel(new BorderLayout());
-    point3Panel.setBorder(BorderFactory.createEtchedBorder());
-    //point2Panel.addKeyListener(new MoveKeyListener());
-    point3 = new JRadioButton("Rotation Point");
-    point3.addKeyListener(new PositionKeyListener());
-    point3.addActionListener(new buttonListener());
-    radioGroup.add(point3);
-    JPanel CPanel = new JPanel();
-    JLabel xLabel = new JLabel("X");
-    //CPanel.addKeyListener(new MoveKeyListener());
-    p3x.addActionListener(new textFieldListener());
-    JLabel yLabel = new JLabel("Y");
-    p3y.addActionListener(new textFieldListener());
-    //add to listeners
-    CPanel.add(xLabel);
-    CPanel.add(p3x);
-    CPanel.add(yLabel);
-    CPanel.add(p3y);
+    includedAngleSlider = new JSlider(0,180);
+    includedAngleSlider.setMajorTickSpacing(20);
+    includedAngleSlider.setPaintTicks(true);
+    includedAngleSlider.setValueIsAdjusting(false);
+    IncludedAnglePanel = new JPanel(new BorderLayout());
+    IncludedAnglePanel.setBorder(BorderFactory.createEtchedBorder());
     
-    point3Panel.add(point3,BorderLayout.NORTH);
-    point3Panel.add(CPanel, BorderLayout.CENTER);
+    includedAngleSlider.addChangeListener(new sliderListener());
+    JLabel includedAngleLable = new JLabel("Included Angle");
+    //add to listeners
+    
+    IncludedAnglePanel.add(includedAngleLable,BorderLayout.NORTH);
+    IncludedAnglePanel.add(includedAngleSlider,BorderLayout.CENTER);
   }
   
   private class textFieldListener implements ActionListener
   {
-
     public void actionPerformed(ActionEvent e)
     {
       Object source = e.getSource();
@@ -343,404 +339,82 @@ private static int VALUE_JUMP = 5;
           isDecimal = true;
         }
       }
-      if ( source.equals(p1x) )
+      if ( source.equals(radiusField) )
       {
-        //System.out.println("Point 1 x changed");
-        point1.setSelected(true);
-        p1x.setText(numericText);
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
+        //System.out.println("radius changed");
+        radiusField.setText(numericText);
+        setDefiningPoints();
+        
       }
       
-      else if(source.equals(p1y))
+      else if (source.equals(cenX))
       {
-        //System.out.println("Point 1 y changed");
-        point1.setSelected(true);
-        p1y.setText(numericText);
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
+        cenX.setText(numericText);
+        center.setSelected(true);
+        float Dx = Float.parseFloat(cenX.getText()) - p1x;
+        p1x += Dx;
+        p2x += Dx;
+        p3x += Dx;
       }
       
-      else if(source.equals(p2x))
+      else if (source.equals(cenY))
       {
-        //System.out.println("Point 2 x changed");
-        point2.setSelected(true);
-        p2x.setText(numericText);
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
+        cenY.setText(numericText);
+        center.setSelected(true);
+        float Dy = Float.parseFloat(cenY.getText()) - p1y;
+        p1y += Dy;
+        p2y += Dy;
+        p3y += Dy;
       }
       
-      else if(source.equals(p2y))
-      {
-        //System.out.println("Point 2 y changed");
-        point2.setSelected(true);
-        p2y.setText(numericText);
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-      }
-      
+      this_editor.firePropertyChange(DRAW_CURSOR,1,2);
     }
-    
-    
   }
   
-  private class buttonListener implements ActionListener
+  private class radioButtonListener implements ActionListener
   {
     public void actionPerformed(ActionEvent e)
     {
       String message = e.getActionCommand();
-      ////System.out.println(message);
-      if( message.equals("Up"))
+      if (message.equals("Center"))
       {
-        //System.out.println("Up");
-        Float y1 = Float.parseFloat(p1y.getText());
-        y1+=VALUE_JUMP;
-        Float y2 = Float.parseFloat(p2y.getText());
-        y2+=VALUE_JUMP;
-        p1y.setText(""+y1);
-        p2y.setText(""+y2);
-//      set approprate values for draw
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        position.doClick();
+        centerSelected = true;
+        radiusSelected = false;
       }
-      
-      else if( message.equals("R"))
+      else if( message.equals("Radius"))
       {
-        //System.out.println("R");
-        Float x1 = Float.parseFloat(p1x.getText());
-        x1+=VALUE_JUMP;
-        Float x2 = Float.parseFloat(p2x.getText());
-        x2+=VALUE_JUMP;
-        p1x.setText(""+x1);
-        p2x.setText(""+x2);
-//      set approprate values for draw
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        position.doClick();
-      }
-      
-      else if( message.equals("L"))
-      {
-        //System.out.println("L");
-        Float x1 = Float.parseFloat(p1x.getText());
-        x1-=VALUE_JUMP;
-        Float x2 = Float.parseFloat(p2x.getText());
-        x2-=VALUE_JUMP;
-        p1x.setText(""+x1);
-        p2x.setText(""+x2);
-//      set approprate values for draw
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        position.doClick();
-      }
-      
-      else if( message.equals("Dn"))
-      {
-        //System.out.println("Dn");
-        Float y1 = Float.parseFloat(p1y.getText());
-        y1-=VALUE_JUMP;
-        Float y2 = Float.parseFloat(p2y.getText());
-        y2-=VALUE_JUMP;
-        p1y.setText(""+y1);
-        p2y.setText(""+y2);
-//      set approprate values for draw
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        position.doClick();
-      }
-      
-      else if( message.equals("Draw"))
-      {
-        //System.out.println("Draw");
-        //this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        this_editor.firePropertyChange(DRAW_REGION,1,2);
-      }
-      
-      else if( message.equals("Done"))
-      {
-        //System.out.println("Done");
-        //this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        this_editor.firePropertyChange(DONE,1,2);
-      }
-      
-      else if( message.equals("Cancel"))
-      {
-        //System.out.println("Cancel");
-        this_editor.dispose();
-      }
-     
-      /*else if(message.equals("Complement"))
-      {
-        //System.out.println("Comp wedge");
-        Float focusX = Float.parseFloat(p1x.getText());
-        Float focusY = Float.parseFloat(p1y.getText());
-        Float rotateX = Float.parseFloat(p3x.getText());
-        Float rotateY = Float.parseFloat(p3y.getText());
-        Float newY = -rotateY+focusY-rotateX+focusX;
-        Float newX = -rotateX+focusX+rotateY-focusY;
-        p3x.setText(""+(rotateX+newX));
-        p3y.setText(""+(rotateY+newY));
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-      }*/
-      
-      else if(message.equals("Position"))
-      {
-        positionSelected = true;
-        point1Selected = false;
-        point2Selected = false;
-        point3Selected = false;
-        //System.out.println("positonSel");
-      }
-      
-      else if(message.equals("Focus Point"))
-      {
-        positionSelected = false;
-        point1Selected = true;
-        point2Selected = false;
-        point3Selected = false;
-        //System.out.println("point1Sel");
-      }
-      
-      else if(message.equals("Corner Point"))
-      {
-        positionSelected = false;
-        point1Selected = false;
-        point2Selected = true;
-        point3Selected = false;
-        //System.out.println("point2Sel");
-      }
-      
-      else if(message.equals("Rotation Point"))
-      {
-        positionSelected = false;
-        point1Selected = false;
-        point2Selected = false;
-        point3Selected = true;
-        //System.out.println("point3Sel");
+        centerSelected = false;
+        radiusSelected = true;
       }
     }
   }
   
-  private class PositionKeyListener implements KeyListener
+  private class sliderListener implements ChangeListener
   {
-    public void keyPressed( KeyEvent e )
+
+    public void stateChanged(ChangeEvent e)
     {
-      
-      //System.out.println("Pressed");
-      int code = e.getKeyCode();
-      
-      if(positionSelected)
+      if(e.getSource().equals(axisAngleSlider))
       {
-        if( code == KeyEvent.VK_UP)
-        {
-          //System.out.println("Up");
-          Float y1 = Float.parseFloat(p1y.getText());
-          y1+=VALUE_JUMP;
-          Float y2 = Float.parseFloat(p2y.getText());
-          y2+=VALUE_JUMP;
-          Float y3 = Float.parseFloat(p3y.getText());
-          y3+=VALUE_JUMP;
-          p1y.setText(""+y1);
-          p2y.setText(""+y2);
-          p3y.setText(""+y3);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-          position.setSelected(true);
-        }
-      
-        if( code == KeyEvent.VK_DOWN)
-        {
-          //System.out.println("Dn");
-          Float y1 = Float.parseFloat(p1y.getText());
-          y1-=VALUE_JUMP;
-          Float y2 = Float.parseFloat(p2y.getText());
-          y2-=VALUE_JUMP;
-          Float y3 = Float.parseFloat(p3y.getText());
-          y3-=VALUE_JUMP;
-          p1y.setText(""+y1);
-          p2y.setText(""+y2);
-          p3y.setText(""+y3);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-          position.setSelected(true);
-        }
-      
-        if( code == KeyEvent.VK_RIGHT)
-        {
-          //System.out.println("R");
-          Float x1 = Float.parseFloat(p1x.getText());
-          x1+=VALUE_JUMP;
-          Float x2 = Float.parseFloat(p2x.getText());
-          x2+=VALUE_JUMP;
-          Float x3 = Float.parseFloat(p3x.getText());
-          x3+=VALUE_JUMP;
-          p1x.setText(""+x1);
-          p2x.setText(""+x2);
-          p3x.setText(""+x3);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-          position.setSelected(true);
-        }
-      
-        if( code == KeyEvent.VK_LEFT)
-        {
-          //System.out.println("L");
-          Float x1 = Float.parseFloat(p1x.getText());
-          x1-=VALUE_JUMP;
-          Float x2 = Float.parseFloat(p2x.getText());
-          x2-=VALUE_JUMP;
-          Float x3 = Float.parseFloat(p3x.getText());
-          x3-=VALUE_JUMP;
-          p1x.setText(""+x1);
-          p2x.setText(""+x2);
-          p3x.setText(""+x3);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-          position.setSelected(true);
-        }
+        //System.out.println("axisAngleSlider changed");
+        setDefiningPoints();
+        firePropertyChange(DRAW_CURSOR,1,2);
       }
       
-      else if( point1Selected )
+      if(e.getSource().equals(includedAngleSlider))
       {
-        //change X,Y values of point1 for direction key pressed
-        if( code == KeyEvent.VK_UP)
-        {
-          //System.out.println("Up");
-          Float y1 = Float.parseFloat(p1y.getText());
-          y1+=VALUE_JUMP;
-          p1y.setText(""+y1);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_DOWN)
-        {
-          //System.out.println("Dn");
-          Float y1 = Float.parseFloat(p1y.getText());
-          y1-=VALUE_JUMP;
-          p1y.setText(""+y1);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_RIGHT)
-        {
-          //System.out.println("R");
-          Float x1 = Float.parseFloat(p1x.getText());
-          x1+=VALUE_JUMP;
-          p1x.setText(""+x1);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_LEFT)
-        {
-          //System.out.println("L");
-          Float x1 = Float.parseFloat(p1x.getText());
-          x1-=VALUE_JUMP;
-          p1x.setText(""+x1);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      }
-      
-      else if( point2Selected )
-      {
-        if( code == KeyEvent.VK_UP)
-        {
-          //System.out.println("Up");
-          Float y2 = Float.parseFloat(p2y.getText());
-          y2+=VALUE_JUMP;
-          p2y.setText(""+y2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_DOWN)
-        {
-          //System.out.println("Dn");
-          Float y2 = Float.parseFloat(p2y.getText());
-          y2-=VALUE_JUMP;
-          p2y.setText(""+y2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_RIGHT)
-        {
-          //System.out.println("R");
-          Float x2 = Float.parseFloat(p2x.getText());
-          x2+=VALUE_JUMP;
-          p2x.setText(""+x2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_LEFT)
-        {
-          //System.out.println("L");
-          Float x2 = Float.parseFloat(p2x.getText());
-          x2-=VALUE_JUMP;
-          p2x.setText(""+x2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      }
-      
-      else if( point3Selected )
-      {
-        if( code == KeyEvent.VK_UP)
-        {
-          //System.out.println("Up");
-          Float y3 = Float.parseFloat(p3y.getText());
-          y3+=VALUE_JUMP;
-          p3y.setText(""+y3);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_DOWN)
-        {
-          //System.out.println("Dn");
-          Float y3 = Float.parseFloat(p3y.getText());
-          y3-=VALUE_JUMP;
-          p3y.setText(""+y3);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_RIGHT)
-        {
-          //System.out.println("R");
-          Float x3 = Float.parseFloat(p3x.getText());
-          x3+=VALUE_JUMP;
-          p3x.setText(""+x3);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_LEFT)
-        {
-          //System.out.println("L");
-          Float x3 = Float.parseFloat(p3x.getText());
-          x3-=VALUE_JUMP;
-          p3x.setText(""+x3);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
+        //System.out.println("includedAngleSlider changed");
+        setDefiningPoints();
+        firePropertyChange(DRAW_CURSOR,1,2);
       }
     }
-
-
-    public void keyReleased(KeyEvent e)
-    {
-      //System.out.println("Released");
-      
-    }
-
-    public void keyTyped(KeyEvent e)
-    {
-      //System.out.println("Typed");
-      
-    }
+    
   }
   
   /*public static void main(String[]args)
   {
-    DoubleWedgeRegionOpEditFrame test = new DoubleWedgeRegionOpEditFrame();
+    WedgeRegionOpEditFrame2 test = new WedgeRegionOpEditFrame2();
     test.setVisible(true);
   }*/
+  
 }

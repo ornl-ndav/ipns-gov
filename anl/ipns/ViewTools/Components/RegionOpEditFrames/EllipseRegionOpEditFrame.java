@@ -1,11 +1,7 @@
 package gov.anl.ipns.ViewTools.Components.RegionOpEditFrames;
 
 import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
@@ -13,15 +9,7 @@ import gov.anl.ipns.ViewTools.Components.Cursor.EllipseCursor;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp.Operation;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 /**
  * This class creates an Ellipse Region Editor based on two defining points
@@ -29,35 +17,26 @@ import javax.swing.JTextField;
  * @author Josh Oakgrove
  *
  */
-public class EllipseRegionOpEditFrame extends JFrame implements RegionOpEditFrame
+public class EllipseRegionOpEditFrame extends RegionOpEditFrame
 {
 
-private static int VALUE_JUMP = 5;
+private static float VALUE_JUMP = 5.0f;
   
-  private boolean positionSelected = false;
-  private boolean cornerPointSelected = false;
-  private boolean centerPointSelected = false;
+  private boolean dimensionsSelected = false;
   
-  private JRadioButton position;
-  private JRadioButton corner;
-  private JRadioButton center;
-  private JPanel movementPanel;
-  private JPanel buttonPanel;
-  private JPanel pointPanel;
-  private JPanel positionPanel;
-  private JPanel point1Panel;
-  private JPanel point2Panel;
-  private JPanel LRPanel;
+  private JRadioButton dimensions;
+
+  private JPanel DimensionPanel;
   
-  private JTextField crx = new JTextField(6);
-  private JTextField cry = new JTextField(6);
-  private JTextField ctx = new JTextField(6);
-  private JTextField cty = new JTextField(6);
+  private JTextField widthField;
+  private JTextField heightField;
   
-  private ButtonGroup radioGroup = new ButtonGroup();
-  private JFrame this_editor;
+  private float crx ;
+  private float cry ;
+  private float ctx ;
+  private float cty ;
+  
   private int regionIndex;
-  private RegionOp.Operation operation;
   
   /**
    * constructor takes two points:
@@ -71,27 +50,23 @@ private static int VALUE_JUMP = 5;
   public EllipseRegionOpEditFrame(floatPoint2D corn, floatPoint2D cent,
                                   RegionOp.Operation op,int index)
   {
-    super("Ellipse Editor");
-    this.setBounds(700,390, 295, 220);
-    this.setResizable(false);
-    this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    super("Ellipse Editor",op);
+    super.setBounds(700,390, 400, 284);
+    super.setResizable(false);
+    super.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     this_editor = this;
-    
-    Container contentPane = super.getContentPane();
-    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-    
-    crx.setText(""+corn.x);
-    cry.setText(""+corn.y);
-    ctx.setText(""+cent.x);
-    cty.setText(""+cent.y);
-    buildMovementPanel();
-    buildButtonPanel();
-    contentPane.add(movementPanel);
-    contentPane.add(buttonPanel);
-    addKeyListener(new PositionKeyListener());
+        
+    center.addActionListener(new radioButtonListener());
+    cenY.addActionListener(new textFieldListener());
+    cenX.addActionListener(new textFieldListener());
+    crx = corn.x;
+    cry = corn.y;
+    ctx = cent.x;
+    cty = cent.y;
+
+    calculateDimensions();
     
     regionIndex = index;
-    operation = op;
   }
   
   /**
@@ -106,18 +81,11 @@ private static int VALUE_JUMP = 5;
   public floatPoint2D[] getDefiningPoints()
   {
     floatPoint2D[] points = new floatPoint2D[3];
-    points[0]=new floatPoint2D(Float.parseFloat(crx.getText()),
-                               Float.parseFloat(cry.getText()));
-    points[2]=new floatPoint2D(Float.parseFloat(ctx.getText()),
-                               Float.parseFloat(cty.getText()));
-    points[1]=new floatPoint2D(points[0].x-2*(points[0].x-points[2].x),
-                               points[0].y-2*(points[0].y-points[2].y));
+    points[0]=new floatPoint2D(crx,cry);
+    points[2]=new floatPoint2D(ctx,cty);
+    points[1]=new floatPoint2D(points[0].x-2.0f*(points[0].x-points[2].x),
+                               points[0].y-2.0f*(points[0].y-points[2].y));
     return points;
-  }
-
-  public Operation getOp()
-  {
-    return operation;
   }
 
   public int getRegionIndex()
@@ -131,148 +99,122 @@ private static int VALUE_JUMP = 5;
     return cursor;
   }
   
-  private void buildMovementPanel()
+  public void Down()
   {
-    movementPanel = new JPanel();
-    movementPanel.setLayout(new BoxLayout(movementPanel,BoxLayout.X_AXIS));
-    //movementPanel.addKeyListener(new MoveKeyListener());
-    buildPositionPanel();
-    buildPointPanel();
-    movementPanel.add(positionPanel);
-    movementPanel.add(pointPanel);
+    if(centerSelected)
+    {
+      cry -= VALUE_JUMP;
+      cty -= VALUE_JUMP;
+    }
+    else if (dimensionsSelected)
+    {
+      if(cry>cty)
+        cry -= VALUE_JUMP/2.0f;
+      else
+        cry += VALUE_JUMP/2.0f;
+    }
+    calculateDimensions();
+  }
+
+  public void Left()
+  {
+    if(centerSelected)
+    {
+      crx -= VALUE_JUMP;
+      ctx -= VALUE_JUMP;
+    }
+    else if (dimensionsSelected)
+    {
+      if(crx>ctx)
+        crx -= VALUE_JUMP/2.0f;
+      else
+        crx += VALUE_JUMP/2.0f;
+    }
+    calculateDimensions();
+  }
+
+  public void Right()
+  {
+    if(centerSelected)
+    {
+      crx += VALUE_JUMP;
+      ctx += VALUE_JUMP;
+    }
+    else if (dimensionsSelected)
+    {
+      if(crx>ctx)
+        crx += VALUE_JUMP/2.0f;
+      else
+        crx -= VALUE_JUMP/2.0f;
+    }
+    calculateDimensions();
+  }
+
+  public void Up()
+  {
+    if(centerSelected)
+    {
+      cry += VALUE_JUMP;
+      cty += VALUE_JUMP;
+    }
+    else if (dimensionsSelected)
+    {
+      if(cry>cty)
+        cry += VALUE_JUMP/2.0f;
+      else
+        cry -= VALUE_JUMP/2.0f;
+    }
+    calculateDimensions();
   }
   
-  private void buildButtonPanel()
+  private void calculateDimensions()
   {
-    buttonPanel = new JPanel();
-    buttonPanel.setBorder(BorderFactory.createEtchedBorder());
-    buttonPanel.setLayout(new BoxLayout( buttonPanel,BoxLayout.X_AXIS ));
-    //buttonPanel.addKeyListener(new MoveKeyListener());
-    JPanel BPanel = new JPanel();
-    
-    JButton done = new JButton("Done");
-    done.addActionListener(new buttonListener());
-    JButton draw = new JButton("Draw");
-    draw.addActionListener(new buttonListener());
-    JButton cancel = new JButton("Cancel");
-    cancel.addActionListener(new buttonListener());
-    
-    BPanel.add(done);
-    BPanel.add(draw);
-    BPanel.add(cancel);
-    buttonPanel.add(BPanel);
+    float w = Math.abs(crx-ctx)*2.0f;
+    float h = Math.abs(cry-cty)*2.0f;
+    widthField.setText("" + w);
+    heightField.setText("" + h);
+    cenY.setText(""+cty);
+    cenX.setText(""+ctx);
+    //System.out.println("Center = ("+ctx+","+cty+")\n"+
+    //    "Corner = ("+crx+","+cry+")");
   }
   
-  private void buildPositionPanel()
+  protected void buildDefiningPanel()
   {
-    positionPanel = new JPanel();
-    positionPanel.setBorder(BorderFactory.createEtchedBorder());
-    positionPanel.setLayout(new BoxLayout(positionPanel,BoxLayout.Y_AXIS));
-    //positionPanel.addKeyListener(new MoveKeyListener());
-    position = new JRadioButton("Position");
-    position.addActionListener(new buttonListener());
-    position.addKeyListener(new PositionKeyListener());
-    radioGroup.add(position);
-    JPanel PPanel = new JPanel();
-    PPanel.add(position);
-    
-    buildLRPanel();
-    
-    //listeners
-    positionPanel.add(PPanel);
-    positionPanel.add(LRPanel);
+    DefiningPanel = new JPanel();
+    DefiningPanel.setLayout(new BoxLayout(DefiningPanel,BoxLayout.Y_AXIS));
+    buildDimensionPanel();
+    DefiningPanel.add(DimensionPanel);
   }
   
-  private void buildLRPanel()
+  private void buildDimensionPanel()
   {
-    LRPanel = new JPanel();
-    LRPanel.setLayout(new BorderLayout());
-    //LRPanel.addKeyListener(new MoveKeyListener());
-    JButton up = new JButton("Up");
-    JButton left = new JButton("L");
-    JButton right = new JButton("R");
-    JButton down = new JButton("Dn");
-    //listeners
-    up.addActionListener(new buttonListener());
-    left.addActionListener(new buttonListener());
-    right.addActionListener(new buttonListener());
-    down.addActionListener(new buttonListener());
-    up.addKeyListener(new PositionKeyListener());
-    left.addKeyListener(new PositionKeyListener());
-    right.addKeyListener(new PositionKeyListener());
-    down.addKeyListener(new PositionKeyListener());
-    JPanel NPanel = new JPanel();
-    NPanel.add(up);
-    LRPanel.add(NPanel,BorderLayout.NORTH);
-    JPanel LPanel = new JPanel();
-    LPanel.add(left);
-    LRPanel.add(LPanel,BorderLayout.WEST);
-    JPanel RPanel = new JPanel();
-    RPanel.add(right);
-    LRPanel.add(RPanel,BorderLayout.EAST);
-    JPanel SPanel = new JPanel();
-    SPanel.add(down);
-    LRPanel.add(SPanel,BorderLayout.SOUTH);
-  }
-  
-  private void buildPointPanel()
-  {
-    pointPanel = new JPanel();
-    pointPanel.setLayout(new BoxLayout(pointPanel,BoxLayout.Y_AXIS));
-    //pointPanel.addKeyListener(new MoveKeyListener());
-    buildPoint1Panel();
-    buildPoint2Panel();
-    pointPanel.add(point1Panel);
-    pointPanel.add(point2Panel);
-  }
-  
-  private void buildPoint1Panel()
-  {
-    point1Panel = new JPanel(new BorderLayout());
-    point1Panel.setBorder(BorderFactory.createEtchedBorder());
-    //point1Panel.addKeyListener(new MoveKeyListener());
-    corner = new JRadioButton("Corner Point");
-    corner.addActionListener(new buttonListener());
-    corner.addKeyListener(new PositionKeyListener());
-    radioGroup.add(corner);
+    DimensionPanel = new JPanel(new BorderLayout());
+    DimensionPanel.setBorder(BorderFactory.createEtchedBorder());
+    dimensions = new JRadioButton("Dimensions");
+    dimensions.addActionListener(new radioButtonListener());
+    dimensions.addKeyListener(new PositionKeyListener());
+    radioGroup.add(dimensions);
     JPanel CPanel = new JPanel();
-    //CPanel.addKeyListener(new MoveKeyListener());
-    JLabel xLabel = new JLabel("X");
-    crx.addActionListener(new textFieldListener());
-    JLabel yLabel = new JLabel("Y");
-    cry.addActionListener(new textFieldListener());
-    CPanel.add(xLabel);
-    CPanel.add(crx);
-    CPanel.add(yLabel);
-    CPanel.add(cry);
+    CPanel.setLayout(new BoxLayout(CPanel,BoxLayout.Y_AXIS));
+    JLabel xLabel = new JLabel("Width");
+    widthField = new JTextField(6);
+    widthField.addActionListener(new textFieldListener());
+    JLabel yLabel = new JLabel("Height");
+    heightField = new JTextField(6);
+    heightField.addActionListener(new textFieldListener());
+    JPanel XPanel = new JPanel();
+    XPanel.add(xLabel);
+    XPanel.add(widthField);
+    CPanel.add(XPanel);
     
-    point1Panel.add(corner,BorderLayout.NORTH);
-    point1Panel.add(CPanel, BorderLayout.CENTER);
-  }
-  
-  private void buildPoint2Panel()
-  {
-    point2Panel = new JPanel(new BorderLayout());
-    point2Panel.setBorder(BorderFactory.createEtchedBorder());
-    //point2Panel.addKeyListener(new MoveKeyListener());
-    center = new JRadioButton("Center Point");
-    center.addKeyListener(new PositionKeyListener());
-    center.addActionListener(new buttonListener());
-    radioGroup.add(center);
-    JPanel CPanel = new JPanel();
-    JLabel xLabel = new JLabel("X");
-    //CPanel.addKeyListener(new MoveKeyListener());
-    ctx.addActionListener(new textFieldListener());
-    JLabel yLabel = new JLabel("Y");
-    cty.addActionListener(new textFieldListener());
-    //add to listeners
-    CPanel.add(xLabel);
-    CPanel.add(ctx);
-    CPanel.add(yLabel);
-    CPanel.add(cty);
+    JPanel YPanel = new JPanel();
+    YPanel.add(yLabel);
+    YPanel.add(heightField);
+    CPanel.add(YPanel);
     
-    point2Panel.add(center,BorderLayout.NORTH);
-    point2Panel.add(CPanel, BorderLayout.CENTER);
+    DimensionPanel.add(dimensions,BorderLayout.NORTH);
+    DimensionPanel.add(CPanel, BorderLayout.CENTER);
   }
   
   public void dispose()
@@ -283,7 +225,6 @@ private static int VALUE_JUMP = 5;
   
   private class textFieldListener implements ActionListener
   {
-
     public void actionPerformed(ActionEvent e)
     {
       Object source = e.getSource();
@@ -301,323 +242,67 @@ private static int VALUE_JUMP = 5;
           isDecimal = true;
         }
       }
-      if ( source.equals(crx) )
+      if ( source.equals(widthField) )
       {
-        //System.out.println("Point 1 x changed");
-        corner.setSelected(true);
-        crx.setText(numericText);
+        //System.out.println("Width changed");
+        dimensions.setSelected(true);
+        crx = ctx + Float.parseFloat(numericText)/2.0f;
+        calculateDimensions();
         this_editor.firePropertyChange(DRAW_CURSOR,1,2);
       }
       
-      else if(source.equals(cry))
+      else if(source.equals(heightField))
       {
-        //System.out.println("Point 1 y changed");
-        corner.setSelected(true);
-        cry.setText(numericText);
+//      System.out.println("height changed");
+        dimensions.setSelected(true);
+        cry = cty - Float.parseFloat(numericText)/2.0f;
+        calculateDimensions();
         this_editor.firePropertyChange(DRAW_CURSOR,1,2);
       }
       
-      else if(source.equals(ctx))
+      else if (source.equals(cenX))
       {
-        //System.out.println("Point 2 x changed");
         center.setSelected(true);
-        ctx.setText(numericText);
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
+        float w = Float.parseFloat(widthField.getText());
+        ctx = Float.parseFloat(numericText);
+        crx = ctx + w/2.0f;
       }
       
-      else if(source.equals(cty))
+      else if (source.equals(cenY))
       {
-        //System.out.println("Point 2 y changed");
         center.setSelected(true);
-        cty.setText(numericText);
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
+        float h = Float.parseFloat(heightField.getText());
+        cty = Float.parseFloat(numericText);
+        cry = cty - h/2.0f;
       }
       
+      calculateDimensions();
+      this_editor.firePropertyChange(DRAW_CURSOR,1,2);
     }
-    
-    
   }
   
-  private class buttonListener implements ActionListener
+  private class radioButtonListener implements ActionListener
   {
     public void actionPerformed(ActionEvent e)
     {
       String message = e.getActionCommand();
-      ////System.out.println(message);
-      if( message.equals("Up"))
+      if (message.equals("Center"))
       {
-        //System.out.println("Up");
-        Float y1 = Float.parseFloat(cry.getText());
-        y1+=VALUE_JUMP;
-        Float y2 = Float.parseFloat(cry.getText());
-        y2+=VALUE_JUMP;
-        cry.setText(""+y1);
-        cty.setText(""+y2);
-//      set approprate values for draw
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        position.doClick();
+        centerSelected = true;
+        dimensionsSelected = false;
       }
-      
-      else if( message.equals("R"))
+      else if( message.equals("Dimensions"))
       {
-        //System.out.println("R");
-        Float x1 = Float.parseFloat(crx.getText());
-        x1+=VALUE_JUMP;
-        Float x2 = Float.parseFloat(ctx.getText());
-        x2+=VALUE_JUMP;
-        crx.setText(""+x1);
-        ctx.setText(""+x2);
-//      set approprate values for draw
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        position.doClick();
+        centerSelected = false;
+        dimensionsSelected = true;
       }
-      
-      else if( message.equals("L"))
-      {
-        //System.out.println("L");
-        Float x1 = Float.parseFloat(crx.getText());
-        x1-=VALUE_JUMP;
-        Float x2 = Float.parseFloat(ctx.getText());
-        x2-=VALUE_JUMP;
-        crx.setText(""+x1);
-        ctx.setText(""+x2);
-//      set approprate values for draw
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        position.doClick();
-      }
-      
-      else if( message.equals("Dn"))
-      {
-        //System.out.println("Dn");
-        Float y1 = Float.parseFloat(cry.getText());
-        y1-=VALUE_JUMP;
-        Float y2 = Float.parseFloat(cty.getText());
-        y2-=VALUE_JUMP;
-        cry.setText(""+y1);
-        cty.setText(""+y2);
-//      set approprate values for draw
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        position.doClick();
-      }
-      
-      else if( message.equals("Draw"))
-      {
-        //System.out.println("Draw");
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        this_editor.firePropertyChange(DRAW_REGION,1,2);
-      }
-      
-      else if( message.equals("Done"))
-      {
-        //System.out.println("Done");
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        this_editor.firePropertyChange(DONE,1,2);
-      }
-      
-      else if( message.equals("Cancel"))
-      {
-        //System.out.println("Cancel");
-        this_editor.dispose();
-      }
-      
-      else if(message.equals("Position"))
-      {
-        positionSelected = true;
-        cornerPointSelected = false;
-        centerPointSelected = false;
-        //System.out.println("positonSel");
-      }
-      
-      else if(message.equals("Corner Point"))
-      {
-        positionSelected = false;
-        cornerPointSelected = true;
-        centerPointSelected = false;
-        //System.out.println("point1Sel");
-      }
-      
-      else if(message.equals("Center Point"))
-      {
-        positionSelected = false;
-        cornerPointSelected = false;
-        centerPointSelected = true;
-        //System.out.println("point2Sel");
-      }
-    }
-  }
-  
-  private class PositionKeyListener implements KeyListener
-  {
-    public void keyPressed( KeyEvent e )
-    {
-      
-      //System.out.println("Pressed");
-      int code = e.getKeyCode();
-      
-      if(positionSelected)
-      {
-        if( code == KeyEvent.VK_UP)
-        {
-          //System.out.println("Up");
-          Float y1 = Float.parseFloat(cry.getText());
-          y1+=VALUE_JUMP;
-          Float y2 = Float.parseFloat(cty.getText());
-          y2+=VALUE_JUMP;
-          cry.setText(""+y1);
-          cty.setText(""+y2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-          position.setSelected(true);
-        }
-      
-        if( code == KeyEvent.VK_DOWN)
-        {
-          //System.out.println("Dn");
-          Float y1 = Float.parseFloat(cry.getText());
-          y1-=VALUE_JUMP;
-          Float y2 = Float.parseFloat(cty.getText());
-          y2-=VALUE_JUMP;
-          cry.setText(""+y1);
-          cty.setText(""+y2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-          position.setSelected(true);
-        }
-      
-        if( code == KeyEvent.VK_RIGHT)
-        {
-          //System.out.println("R");
-          Float x1 = Float.parseFloat(crx.getText());
-          x1+=VALUE_JUMP;
-          Float x2 = Float.parseFloat(ctx.getText());
-          x2+=VALUE_JUMP;
-          crx.setText(""+x1);
-          ctx.setText(""+x2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-          position.setSelected(true);
-        }
-      
-        if( code == KeyEvent.VK_LEFT)
-        {
-          //System.out.println("L");
-          Float x1 = Float.parseFloat(crx.getText());
-          x1-=VALUE_JUMP;
-          Float x2 = Float.parseFloat(ctx.getText());
-          x2-=VALUE_JUMP;
-          crx.setText(""+x1);
-          ctx.setText(""+x2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-          position.setSelected(true);
-        }
-      }
-      
-      else if( cornerPointSelected )
-      {
-        //change X,Y values of point1 for direction key pressed
-        if( code == KeyEvent.VK_UP)
-        {
-          //System.out.println("Up");
-          Float y1 = Float.parseFloat(cry.getText());
-          y1+=VALUE_JUMP;
-          cry.setText(""+y1);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_DOWN)
-        {
-          //System.out.println("Dn");
-          Float y1 = Float.parseFloat(cry.getText());
-          y1-=VALUE_JUMP;
-          cry.setText(""+y1);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_RIGHT)
-        {
-          //System.out.println("R");
-          Float x1 = Float.parseFloat(crx.getText());
-          x1+=VALUE_JUMP;
-          crx.setText(""+x1);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_LEFT)
-        {
-          //System.out.println("L");
-          Float x1 = Float.parseFloat(crx.getText());
-          x1-=VALUE_JUMP;
-          crx.setText(""+x1);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      }
-      
-      else if( centerPointSelected )
-      {
-        if( code == KeyEvent.VK_UP)
-        {
-          //System.out.println("Up");
-          Float y2 = Float.parseFloat(cty.getText());
-          y2+=VALUE_JUMP;
-          cty.setText(""+y2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_DOWN)
-        {
-          //System.out.println("Dn");
-          Float y2 = Float.parseFloat(cty.getText());
-          y2-=VALUE_JUMP;
-          cty.setText(""+y2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_RIGHT)
-        {
-          //System.out.println("R");
-          Float x2 = Float.parseFloat(ctx.getText());
-          x2+=VALUE_JUMP;
-          ctx.setText(""+x2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      
-        if( code == KeyEvent.VK_LEFT)
-        {
-          //System.out.println("L");
-          Float x2 = Float.parseFloat(ctx.getText());
-          x2-=VALUE_JUMP;
-          ctx.setText(""+x2);
-//        set approprate values for draw
-          this_editor.firePropertyChange(DRAW_CURSOR,1,2);
-        }
-      }
-    }
-
-
-    public void keyReleased(KeyEvent e)
-    {
-      //System.out.println("Released");
-      
-    }
-
-    public void keyTyped(KeyEvent e)
-    {
-      //System.out.println("Typed");
-      
     }
   }
   
   /*public static void main(String[]args)
   {
-    EllipseRegionOpEditFrame test = new EllipseRegionOpEditFrame();
+    EllipseRegionOpEditFrame2 test = new EllipseRegionOpEditFrame2
+                      (new floatPoint2D(60,40),new floatPoint2D(50,50));
     test.setVisible(true);
   }*/
 }
