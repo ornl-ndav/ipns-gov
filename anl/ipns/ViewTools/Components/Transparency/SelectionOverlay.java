@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.51  2007/06/22 21:17:57  oakgrovej
+ *  The wedge and the double wedge when clicked on, pass the whole defining points array into the editor.
+ *
  *  Revision 1.50  2007/06/15 22:49:00  oakgrovej
  *  Added vector to hold list of editors
  *  added cursor to be drawn if editing
@@ -1055,23 +1058,27 @@ public class SelectionOverlay extends OverlayJPanel {
     
     if(cursor != null)
     {
-      g2d.setColor(sjp.getColor());
-      PointCursor defPt = new PointCursor(this_panel);
+      g2d.setColor(Color.white);
+      g2d.setXORMode( Color.black );
+      //g2d.setStroke(new BasicStroke
+      //    (2,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
+      //PointCursor defPt = new PointCursor(this_panel);
         if(cursor instanceof BoxPanCursor)
         {
           //((XOR_PanCursor)cursor).init(cursorPoints[0], cursorPoints[1]);
           ((XOR_PanCursor)cursor).draw(g2d,
               convertToPixelPoint(cursorPoints[0]),
               convertToPixelPoint(cursorPoints[1]));
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
         }
         else if(cursor instanceof EllipseCursor)
         {
+          g2d.setStroke(new BasicStroke(1,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
           ((EllipseCursor)cursor).draw(g2d,
               convertToPixelPoint(cursorPoints[2]),
               convertToPixelPoint(cursorPoints[1]));
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
         }
         else if(cursor instanceof DoubleWedgeCursor)
         {
@@ -1079,9 +1086,9 @@ public class SelectionOverlay extends OverlayJPanel {
               convertToPixelPoint(cursorPoints[0]),
               convertToPixelPoint(cursorPoints[2]),
               convertToPixelPoint(cursorPoints[1]));
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[2]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[2]),null);
         }
         else if(cursor instanceof WedgeCursor)
         {
@@ -1094,9 +1101,9 @@ public class SelectionOverlay extends OverlayJPanel {
           //for(int i=0;i<((WedgeCursor)cursor).region().length;i++)
           //  System.out.println(""+((WedgeCursor)cursor).region()[i]);
           
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[2]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[2]),null);
         }
         else if(cursor instanceof AnnularCursor)
         {
@@ -1105,9 +1112,9 @@ public class SelectionOverlay extends OverlayJPanel {
               convertToPixelPoint(cursorPoints[1]), 
               convertToPixelPoint(cursorPoints[2]));
           
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[2]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[2]),null);
         }
         else if(cursor instanceof PointCursor)
         {
@@ -1116,11 +1123,13 @@ public class SelectionOverlay extends OverlayJPanel {
         }
         else if(cursor instanceof LineCursor)
         {
+         //g2d.setStroke(new BasicStroke
+         //    (2,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
           ((LineCursor)cursor).draw(g2d, 
               convertToPixelPoint(cursorPoints[0]),
               convertToPixelPoint(cursorPoints[1]));
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
-          defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[0]),null);
+          //defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
         }
     }
   } // end of paint()
@@ -1562,15 +1571,9 @@ public class SelectionOverlay extends OverlayJPanel {
       {
         //System.out.println("pop up DWedge Edit");
         floatPoint2D[] dWedgePoints = reg.getDefiningPoints();
-        floatPoint2D rotationPt = new floatPoint2D();
-        rotationPt.y = dWedgePoints[2].y-.5f*(
-            dWedgePoints[2].y-dWedgePoints[1].y);
-        rotationPt.x = dWedgePoints[2].x-.5f*(
-            dWedgePoints[2].x-dWedgePoints[1].x);
+        
         DoubleWedgeRegionOpEditFrame dWedgeEdit = 
-          new DoubleWedgeRegionOpEditFrame(dWedgePoints[0],
-              dWedgePoints[1],
-              rotationPt,
+          new DoubleWedgeRegionOpEditFrame(dWedgePoints,
               regOp.getOp(),i);
         dWedgeEdit.addPropertyChangeListener(
             new RegionEditorPropertyListener());
@@ -1584,13 +1587,8 @@ public class SelectionOverlay extends OverlayJPanel {
       {
         //System.out.println("pop up Wedge edit window");
         floatPoint2D[] wedgePoints = reg.getDefiningPoints();
-        floatPoint2D rotationPt = new floatPoint2D();
-        rotationPt.y = wedgePoints[2].y-.5f*(
-            wedgePoints[2].y-wedgePoints[1].y);
-        rotationPt.x = wedgePoints[2].x-.5f*(
-            wedgePoints[2].x-wedgePoints[1].x);
         WedgeRegionOpEditFrame wedgeEdit = new WedgeRegionOpEditFrame(
-            wedgePoints[0],wedgePoints[1],rotationPt,regOp.getOp(),i);
+            wedgePoints,regOp.getOp(),i);
         wedgeEdit.addPropertyChangeListener(
             new RegionEditorPropertyListener());
         wedgeEdit.setVisible(true);
@@ -1723,14 +1721,19 @@ public class SelectionOverlay extends OverlayJPanel {
         
         else if(e.getSource() instanceof DoubleWedgeRegionOpEditFrame)
         {
-          cursor = new DoubleWedgeCursor(this_panel);
+          //cursor = new DoubleWedgeCursor(this_panel);
           cursorPoints = ((DoubleWedgeRegionOpEditFrame)e.getSource())
               .getDefiningPoints();
         }
          
         else if(e.getSource() instanceof WedgeRegionOpEditFrame)
         {
-          cursor = new WedgeCursor(this_panel);
+          //because the Region.getInstance() method for the wedge depends
+          //on the cursor, the cursor must be drawn befor the method is 
+          //calledthe cursor is drawn in paint().  Due to Java's timing 
+          //paint does not draw the cursor before getInstance() and
+          //the wedge is not drawn properly
+          //cursor = new WedgeCursor(this_panel);
           cursorPoints = ((WedgeRegionOpEditFrame)e.getSource())
               .getDefiningPoints();
         }
@@ -1809,10 +1812,10 @@ public class SelectionOverlay extends OverlayJPanel {
                 Region.getInstanceRegion(cursor,cursorPoints),
                 ((RegionOpEditFrame)e.getSource()).getOp()),
             ((RegionOpEditFrame)e.getSource()).getRegionIndex());
-        //System.out.println("Region FromGetInstance: "+
-        //Region.getInstanceRegion((XOR_PanCursor)cursor,cursorPoints));
-        //System.out.println(""+
-        //regOpList.get(((RegionOpEditFrame)e.getSource()).getRegionIndex()));
+        
+        //for (int i=0;i<cursorPoints.length;i++)
+          //System.out.println("cursor pt["+i+"] = "+cursorPoints[i]);
+        
         sjp.repaint();
       }
       
