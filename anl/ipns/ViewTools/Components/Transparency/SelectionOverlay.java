@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.52  2007/06/25 18:55:23  oakgrovej
+ *  increased the cursor thickness for the line cursor
+ *
  *  Revision 1.51  2007/06/22 21:17:57  oakgrovej
  *  The wedge and the double wedge when clicked on, pass the whole defining points array into the editor.
  *
@@ -1123,8 +1126,8 @@ public class SelectionOverlay extends OverlayJPanel {
         }
         else if(cursor instanceof LineCursor)
         {
-         //g2d.setStroke(new BasicStroke
-         //    (2,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
+         g2d.setStroke(new BasicStroke
+             (2,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
           ((LineCursor)cursor).draw(g2d, 
               convertToPixelPoint(cursorPoints[0]),
               convertToPixelPoint(cursorPoints[1]));
@@ -1721,19 +1724,14 @@ public class SelectionOverlay extends OverlayJPanel {
         
         else if(e.getSource() instanceof DoubleWedgeRegionOpEditFrame)
         {
-          //cursor = new DoubleWedgeCursor(this_panel);
+          cursor = new DoubleWedgeCursor(this_panel);
           cursorPoints = ((DoubleWedgeRegionOpEditFrame)e.getSource())
               .getDefiningPoints();
         }
          
         else if(e.getSource() instanceof WedgeRegionOpEditFrame)
         {
-          //because the Region.getInstance() method for the wedge depends
-          //on the cursor, the cursor must be drawn befor the method is 
-          //calledthe cursor is drawn in paint().  Due to Java's timing 
-          //paint does not draw the cursor before getInstance() and
-          //the wedge is not drawn properly
-          //cursor = new WedgeCursor(this_panel);
+          cursor = new WedgeCursor(this_panel);
           cursorPoints = ((WedgeRegionOpEditFrame)e.getSource())
               .getDefiningPoints();
         }
