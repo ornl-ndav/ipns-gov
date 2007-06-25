@@ -8,11 +8,7 @@ import gov.anl.ipns.ViewTools.Components.Region.RegionOp.Operation;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-
+import java.awt.event.*
 import javax.swing.*;
 
 /**
@@ -63,6 +59,7 @@ public abstract class RegionOpEditFrame extends JFrame
   {
     super(name);
     this.setBounds(700,390, 230, 250);
+    this.addWindowFocusListener(new editWindowFocusListener());
     operation = op;
     Container contentPane = getContentPane();
     contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.Y_AXIS));
@@ -193,6 +190,7 @@ public abstract class RegionOpEditFrame extends JFrame
     LRUDPanel.add(DPanel);
   }
   
+
   public void dispose()
   {
     super.dispose();
@@ -328,6 +326,23 @@ public abstract class RegionOpEditFrame extends JFrame
           operation = operations[i];
         }
       }
+      
+    }
+        
+  }
+  
+  protected class editWindowFocusListener implements WindowFocusListener
+  {
+
+    public void windowGainedFocus(WindowEvent arg0)
+    {
+      this_editor.firePropertyChange(DRAW_CURSOR, 1, 2);
+      
+    }
+
+    public void windowLostFocus(WindowEvent arg0)
+    {
+      // TODO Auto-generated method stub
       
     }
     
