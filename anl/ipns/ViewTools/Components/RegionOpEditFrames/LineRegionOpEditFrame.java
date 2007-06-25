@@ -21,13 +21,18 @@ public class LineRegionOpEditFrame extends RegionOpEditFrame
 
 private static int VALUE_JUMP = 5;
   
-  private boolean dimensionsSelected = false;
+  private boolean point1Selected = false;
+  private boolean point2Selected = false;
   
-  private JRadioButton dimensions;
+  private JRadioButton point1;
+  private JRadioButton point2;
 
-  private JPanel DimensionPanel;
-  private JTextField widthField;
-  private JTextField heightField;
+  private JPanel Point1Panel;
+  private JPanel Point2Panel;
+  private JTextField p1xField;
+  private JTextField p1yField;
+  private JTextField p2xField;
+  private JTextField p2yField;
   
   private float p1x;
   private float p1y;
@@ -92,46 +97,80 @@ private static int VALUE_JUMP = 5;
   {
     DefiningPanel = new JPanel();
     DefiningPanel.setLayout(new BoxLayout(DefiningPanel,BoxLayout.Y_AXIS));
-    buildDimensionPanel();
-    DefiningPanel.add(DimensionPanel);
+    buildPoint1Panel();
+    buildPoint2Panel();
+    DefiningPanel.add(Point1Panel);
+    DefiningPanel.add(Point2Panel);
   }
   
-  private void buildDimensionPanel()
+  private void buildPoint1Panel()
   {
-    DimensionPanel = new JPanel(new BorderLayout());
-    DimensionPanel.setBorder(BorderFactory.createEtchedBorder());
-    dimensions = new JRadioButton("Dimensions");
-    dimensions.addActionListener(new radioButtonListener());
-    dimensions.addKeyListener(new PositionKeyListener());
-    radioGroup.add(dimensions);
+    Point1Panel = new JPanel(new BorderLayout());
+    Point1Panel.setBorder(BorderFactory.createEtchedBorder());
+    point1 = new JRadioButton("Point 1");
+    point1.addActionListener(new radioButtonListener());
+    point1.addKeyListener(new PositionKeyListener());
+    radioGroup.add(point1);
     JPanel CPanel = new JPanel();
     CPanel.setLayout(new BoxLayout(CPanel,BoxLayout.Y_AXIS));
-    JLabel xLabel = new JLabel("Width");
-    widthField = new JTextField(6);
-    widthField.addActionListener(new textFieldListener());
-    JLabel yLabel = new JLabel("Height");
-    heightField = new JTextField(6);
-    heightField.addActionListener(new textFieldListener());
+    JLabel xLabel = new JLabel("X");
+    p1xField = new JTextField(6);
+    p1xField.addActionListener(new textFieldListener());
+    JLabel yLabel = new JLabel("Y");
+    p1yField = new JTextField(6);
+    p1yField.addActionListener(new textFieldListener());
     JPanel XPanel = new JPanel();
     XPanel.add(xLabel);
-    XPanel.add(widthField);
+    XPanel.add(p1xField);
     CPanel.add(XPanel);
     
     JPanel YPanel = new JPanel();
     YPanel.add(yLabel);
-    YPanel.add(heightField);
+    YPanel.add(p1yField);
     CPanel.add(YPanel);
     
-    DimensionPanel.add(dimensions,BorderLayout.NORTH);
-    DimensionPanel.add(CPanel, BorderLayout.CENTER);
+    Point1Panel.add(point1,BorderLayout.NORTH);
+    Point1Panel.add(CPanel, BorderLayout.CENTER);
+  }
+  
+  private void buildPoint2Panel()
+  {
+    Point2Panel = new JPanel(new BorderLayout());
+    Point2Panel.setBorder(BorderFactory.createEtchedBorder());
+    point2 = new JRadioButton("Point 2");
+    point2.addActionListener(new radioButtonListener());
+    point2.addKeyListener(new PositionKeyListener());
+    radioGroup.add(point2);
+    JPanel CPanel = new JPanel();
+    CPanel.setLayout(new BoxLayout(CPanel,BoxLayout.Y_AXIS));
+    JLabel xLabel = new JLabel("X");
+    p2xField = new JTextField(6);
+    p2xField.addActionListener(new textFieldListener());
+    JLabel yLabel = new JLabel("Y");
+    p2yField = new JTextField(6);
+    p2yField.addActionListener(new textFieldListener());
+    JPanel XPanel = new JPanel();
+    XPanel.add(xLabel);
+    XPanel.add(p2xField);
+    CPanel.add(XPanel);
+    
+    JPanel YPanel = new JPanel();
+    YPanel.add(yLabel);
+    YPanel.add(p2yField);
+    CPanel.add(YPanel);
+    
+    Point2Panel.add(point2,BorderLayout.NORTH);
+    Point2Panel.add(CPanel, BorderLayout.CENTER);
   }
   
   private void calculateDimensions()
   {
     float w = Math.abs(p2x-p1x);
     float h = Math.abs(p1y-p2y);
-    widthField.setText("" + w);
-    heightField.setText("" + h);
+    p1xField.setText("" + p1x);
+    p1yField.setText("" + p1y);
+    p2xField.setText("" + p2x);
+    p2yField.setText("" + p2y);
     if(p1y>p2y)
       cenY.setText(""+(p2y+h/2.0f));
     else
@@ -157,10 +196,13 @@ private static int VALUE_JUMP = 5;
       p1y -= VALUE_JUMP;
       p2y -= VALUE_JUMP;
     }
-    else if (dimensionsSelected)
+    else if (point1Selected)
     {
       p1y -= VALUE_JUMP/2.0f;
-      p2y += VALUE_JUMP/2.0f;
+    }
+    else if (point2Selected)
+    {
+      p2y -= VALUE_JUMP/2.0f;
     }
     calculateDimensions();
   }
@@ -172,9 +214,12 @@ private static int VALUE_JUMP = 5;
       p1x -= VALUE_JUMP;
       p2x -= VALUE_JUMP;
     }
-    else if (dimensionsSelected)
+    else if (point1Selected)
     {
-      p1x += VALUE_JUMP/2.0f;
+      p1x -= VALUE_JUMP/2.0f;
+    }
+    else if (point2Selected)
+    {
       p2x -= VALUE_JUMP/2.0f;
     }
     calculateDimensions();
@@ -187,9 +232,12 @@ private static int VALUE_JUMP = 5;
       p1x += VALUE_JUMP;
       p2x += VALUE_JUMP;
     }
-    else if (dimensionsSelected)
+    else if (point1Selected)
     {
-      p1x -= VALUE_JUMP/2.0f;
+      p1x += VALUE_JUMP/2.0f;
+    }
+    else if (point2Selected)
+    {
       p2x += VALUE_JUMP/2.0f;
     }
     calculateDimensions();
@@ -202,10 +250,13 @@ private static int VALUE_JUMP = 5;
       p1y += VALUE_JUMP;
       p2y += VALUE_JUMP;
     }
-    else if (dimensionsSelected)
+    else if (point1Selected)
     {
       p1y += VALUE_JUMP/2.0f;
-      p2y -= VALUE_JUMP/2.0f;
+    }
+    else if (point2Selected)
+    {
+      p2y += VALUE_JUMP/2.0f;
     }
     calculateDimensions();
   }
@@ -229,36 +280,46 @@ private static int VALUE_JUMP = 5;
           isDecimal = true;
         }
       }
-      if ( source.equals(widthField) )
+      if ( source.equals(p1xField) )
       {
         //System.out.println("Width changed");
-        dimensions.setSelected(true);
-        p1x = Float.parseFloat(cenX.getText()) -
-                               Float.parseFloat(numericText)/2.0f;
-        p2x = p1x + Float.parseFloat(numericText);
+        point1.setSelected(true);
+        p1x = Float.parseFloat(numericText);
       }
       
-      else if(source.equals(heightField))
+      else if( source.equals(p1yField) )
       {
 //      System.out.println("height changed");
-        dimensions.setSelected(true);
-        p1y = Float.parseFloat(cenY.getText()) +
-                               Float.parseFloat(numericText)/2.0f;
-        p2y = p1y - Float.parseFloat(numericText);
+        point1.setSelected(true);
+        p1y = Float.parseFloat(numericText);
       }
       
-      else if (source.equals(cenX))
+      else if ( source.equals(p2xField) )
+      {
+        //System.out.println("Width changed");
+        point2.setSelected(true);
+        p2x = Float.parseFloat(numericText);
+      }
+      
+      else if( source.equals(p2yField) )
+      {
+//      System.out.println("height changed");
+        point2.setSelected(true);
+        p2y = Float.parseFloat(numericText);
+      }
+      
+      else if ( source.equals(cenX) )
       {
         center.setSelected(true);
-        float w = Float.parseFloat(widthField.getText());
+        float w = Math.abs(p2x-p1x);
         p1x = Float.parseFloat(numericText) - w/2.0f;
         p2x = Float.parseFloat(numericText) + w/2.0f;
       }
       
-      else if (source.equals(cenY))
+      else if ( source.equals(cenY) )
       {
         center.setSelected(true);
-        float h = Float.parseFloat(heightField.getText());
+        float h = Math.abs(p1y-p2y);
         p1y = Float.parseFloat(numericText) + h/2.0f;
         p2y = Float.parseFloat(numericText) - h/2.0f;
       }
@@ -276,12 +337,20 @@ private static int VALUE_JUMP = 5;
       if (message.equals("Center"))
       {
         centerSelected = true;
-        dimensionsSelected = false;
+        point1Selected = false;
+        point2Selected = false;
       }
-      else if( message.equals("Dimensions"))
+      else if( message.equals("Point 1"))
       {
         centerSelected = false;
-        dimensionsSelected = true;
+        point1Selected = true;
+        point2Selected = false;
+      }
+      else if( message.equals("Point 2"))
+      {
+        centerSelected = false;
+        point1Selected = false;
+        point2Selected = true;
       }
     }
   }
