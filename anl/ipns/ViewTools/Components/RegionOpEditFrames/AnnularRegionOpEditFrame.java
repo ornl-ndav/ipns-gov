@@ -65,7 +65,7 @@ private static int VALUE_JUMP = 5;
       floatPoint2D pt3,RegionOp.Operation op,int index)
   {
     super("Ring Editor",op);
-    super.setBounds(700,390, 350, 277);
+    super.setBounds(700,390, 370, 277);
     super.setResizable(false);
     super.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     this_editor = this;
@@ -256,41 +256,32 @@ private static int VALUE_JUMP = 5;
   
   private void buildRadius1Panel()
   {
-    Radius1Panel = new JPanel(new BorderLayout());
+    Radius1Panel = new JPanel();
     Radius1Panel.setBorder(BorderFactory.createEtchedBorder());
     radius1 = new JRadioButton("Inner Radius");
     radius1.addActionListener(new radioButtonListener());
     radius1.addKeyListener(new PositionKeyListener());
     radioGroup.add(radius1);
-    JPanel CPanel = new JPanel();
-    JLabel radLabel = new JLabel("Length");
     rad1Field = new JTextField(6);
     rad1Field.addActionListener(new textFieldListener());
-    CPanel.add(radLabel);
-    CPanel.add(rad1Field);
     
-    Radius1Panel.add(radius1,BorderLayout.NORTH);
-    Radius1Panel.add(CPanel, BorderLayout.CENTER);
+    Radius1Panel.add(radius1);
+    Radius1Panel.add(rad1Field);
   }
   
   private void buildRadius2Panel()
   {
-    Radius2Panel = new JPanel(new BorderLayout());
+    Radius2Panel = new JPanel();
     Radius2Panel.setBorder(BorderFactory.createEtchedBorder());
     radius2 = new JRadioButton("Outer Radius");
     radius2.addKeyListener(new PositionKeyListener());
     radius2.addActionListener(new radioButtonListener());
     radioGroup.add(radius2);
-    JPanel CPanel = new JPanel();
-    JLabel radLabel = new JLabel("Length");
     rad2Field = new JTextField(6);
     rad2Field.addActionListener(new textFieldListener());
-    //add to listeners
-    CPanel.add(radLabel);
-    CPanel.add(rad2Field);
     
-    Radius2Panel.add(radius2,BorderLayout.NORTH);
-    Radius2Panel.add(CPanel, BorderLayout.CENTER);
+    Radius2Panel.add(radius2);
+    Radius2Panel.add(rad2Field);
   }
   
   private class radioButtonListener implements ActionListener
