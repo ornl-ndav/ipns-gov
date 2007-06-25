@@ -35,6 +35,8 @@ private static int VALUE_JUMP = 5;
   private JPanel AxisAnglePanel;
   private JPanel IncludedAnglePanel;
   private JTextField radiusField;
+  private JTextField axisAngleField;
+  private JTextField includedAngleField;
   private JSlider axisAngleSlider;
   private JSlider includedAngleSlider;
   
@@ -113,6 +115,10 @@ private static int VALUE_JUMP = 5;
     radiusField.setText(""+rad);
     
 //  set the angles
+    axisAngleField.setText(""+(int)Math.round(wedgePoints[5].x+
+        wedgePoints[5].y/2.0));
+    includedAngleField.setText(""+(int)wedgePoints[5].y);
+    
     axisAngleSlider.setValue((int)Math.round(wedgePoints[5].x+
         wedgePoints[5].y/2.0));
     includedAngleSlider.setValue((int)wedgePoints[5].y);
@@ -268,22 +274,16 @@ private static int VALUE_JUMP = 5;
   private void buildRadiusPanel()
   {
     radiusField = new JTextField(6);
-    RadiusPanel = new JPanel(new BorderLayout());
+    RadiusPanel = new JPanel();
     RadiusPanel.setBorder(BorderFactory.createEtchedBorder());
-    //point1Panel.addKeyListener(new MoveKeyListener());
     radius = new JRadioButton("Radius");
     radius.addActionListener(new radioButtonListener());
     radius.addKeyListener(new PositionKeyListener());
     radioGroup.add(radius);
-    JPanel CPanel = new JPanel();
-    //CPanel.addKeyListener(new MoveKeyListener());
-    JLabel radiusLabel = new JLabel("Length");
     radiusField.addActionListener(new textFieldListener());
-    CPanel.add(radiusLabel);
-    CPanel.add(radiusField);
     
-    RadiusPanel.add(radius,BorderLayout.NORTH);
-    RadiusPanel.add(CPanel, BorderLayout.CENTER);
+    RadiusPanel.add(radius);
+    RadiusPanel.add(radiusField);
   }
   
   private void buildAxisAnglePanel()
@@ -295,11 +295,16 @@ private static int VALUE_JUMP = 5;
     AxisAnglePanel = new JPanel(new BorderLayout());
     AxisAnglePanel.setBorder(BorderFactory.createEtchedBorder());
     
-    JLabel axisAngleLable = new JLabel("Axis Angle");
+    JPanel NPanel = new JPanel();
+    JLabel axisAngleLabel = new JLabel("Axis Angle");
+    axisAngleField = new JTextField(4);
+    axisAngleField.addActionListener(new textFieldListener());
+    NPanel.add(axisAngleLabel);
+    NPanel.add(axisAngleField);
     axisAngleSlider.addChangeListener(new sliderListener());
     //add to listeners
 
-    AxisAnglePanel.add(axisAngleLable,BorderLayout.NORTH);
+    AxisAnglePanel.add(NPanel,BorderLayout.NORTH);
     AxisAnglePanel.add(axisAngleSlider,BorderLayout.CENTER);
   }
   
@@ -312,11 +317,15 @@ private static int VALUE_JUMP = 5;
     IncludedAnglePanel = new JPanel(new BorderLayout());
     IncludedAnglePanel.setBorder(BorderFactory.createEtchedBorder());
     
+    JPanel NPanel = new JPanel();
     includedAngleSlider.addChangeListener(new sliderListener());
-    JLabel includedAngleLable = new JLabel("Included Angle");
-    //add to listeners
+    JLabel includedAngleLabel = new JLabel("Included Angle");
+    includedAngleField = new JTextField(4);
+    includedAngleField.addActionListener(new textFieldListener());
+    NPanel.add(includedAngleLabel);
+    NPanel.add(includedAngleField);
     
-    IncludedAnglePanel.add(includedAngleLable,BorderLayout.NORTH);
+    IncludedAnglePanel.add(NPanel,BorderLayout.NORTH);
     IncludedAnglePanel.add(includedAngleSlider,BorderLayout.CENTER);
   }
   
@@ -329,8 +338,11 @@ private static int VALUE_JUMP = 5;
       String text = ((JTextField)source).getText();
       String numericText = "";
       boolean isDecimal = false;
+      boolean isNegative = false;
       for( int i=0; i<text.length(); i++ )
       {
+        if(i==0 &&text.charAt(0)=='-')
+          isNegative=true;
         if( Character.isDigit(text.charAt(i)) )
           numericText += text.charAt(i);
         if( text.charAt(i) == '.' && !isDecimal )
@@ -339,6 +351,11 @@ private static int VALUE_JUMP = 5;
           isDecimal = true;
         }
       }
+      
+      int degrees = (int)Math.round(Float.parseFloat(numericText));
+      while (degrees>360)
+        degrees -= 360;
+      
       if ( source.equals(radiusField) )
       {
         //System.out.println("radius changed");
@@ -349,7 +366,10 @@ private static int VALUE_JUMP = 5;
       
       else if (source.equals(cenX))
       {
-        cenX.setText(numericText);
+        if(isNegative)
+          cenX.setText("-"+numericText);
+        else
+          cenX.setText(numericText);
         center.setSelected(true);
         float Dx = Float.parseFloat(cenX.getText()) - p1x;
         p1x += Dx;
@@ -359,12 +379,37 @@ private static int VALUE_JUMP = 5;
       
       else if (source.equals(cenY))
       {
-        cenY.setText(numericText);
+        if(isNegative)
+          cenY.setText("-"+numericText);
+        else
+          cenY.setText(numericText);
         center.setSelected(true);
         float Dy = Float.parseFloat(cenY.getText()) - p1y;
         p1y += Dy;
         p2y += Dy;
         p3y += Dy;
+      }
+      
+      else if (source.equals(axisAngleField))
+      {
+        if(degrees>180)
+          degrees -= 360;
+        if(isNegative)
+        {
+          axisAngleField.setText(""+(-degrees));
+          axisAngleSlider.setValue(-degrees);
+        }
+        else
+        {
+          axisAngleField.setText(""+degrees);
+          axisAngleSlider.setValue(degrees);
+        }
+      }
+      
+      else if (source.equals(includedAngleField))
+      {
+        includedAngleField.setText(""+degrees);
+        includedAngleSlider.setValue(degrees);
       }
       
       this_editor.firePropertyChange(DRAW_CURSOR,1,2);
@@ -397,16 +442,16 @@ private static int VALUE_JUMP = 5;
       if(e.getSource().equals(axisAngleSlider))
       {
         //System.out.println("axisAngleSlider changed");
-        setDefiningPoints();
-        firePropertyChange(DRAW_CURSOR,1,2);
+        axisAngleField.setText(""+axisAngleSlider.getValue());
       }
       
       if(e.getSource().equals(includedAngleSlider))
       {
         //System.out.println("includedAngleSlider changed");
-        setDefiningPoints();
-        firePropertyChange(DRAW_CURSOR,1,2);
+        includedAngleField.setText(""+includedAngleSlider.getValue());
       }
+      setDefiningPoints();
+      firePropertyChange(DRAW_CURSOR,1,2);
     }
     
   }
