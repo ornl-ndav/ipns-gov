@@ -8,7 +8,7 @@ import gov.anl.ipns.ViewTools.Components.Region.RegionOp.Operation;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.event.*
+import java.awt.event.*;
 import javax.swing.*;
 
 /**
