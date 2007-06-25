@@ -248,7 +248,7 @@ public abstract class RegionOpEditFrame extends JFrame
       else if( message.equals("Draw"))
       {
         //System.out.println("Draw");
-        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
+        //this_editor.firePropertyChange(DRAW_CURSOR,1,2);
         this_editor.firePropertyChange(DRAW_REGION,1,2);
         //System.out.println("after fire");
       }
