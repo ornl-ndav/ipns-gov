@@ -1,7 +1,7 @@
 /*
  * File:  ImageRenderWriter.java
  *
- * Copyright (C) 2004, Andrew Moe, Ruth Mikkelson
+ * Copyright (C) 2007, Andrew Moe, Ruth Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/06/28 17:49:36  amoe
+ * Fixed copyright date.
+ *
  * Revision 1.1  2007/06/28 17:48:24  amoe
  * Initial commit.
  *
