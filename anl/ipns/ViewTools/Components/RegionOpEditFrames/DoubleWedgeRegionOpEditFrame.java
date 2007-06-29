@@ -51,12 +51,10 @@ private static int VALUE_JUMP = 5;
 
   /**
    * constructor takes in three points:
-   * pt1---center point
-   * pt2---corner point
-   * pt3---rotation point
-   * @param pt1 floatPoint2D in world coordinate system -- center point
-   * @param pt2 floatPoint2D in world coordinate system -- corner point
-   * @param pt3 floatPoint2D in world coordinate system -- rotation point
+   * wedgePoints[0]---center point
+   * wedgePoints[1]---corner point
+   * wedgePoints[2]---rotation point
+   * @param wedgePoints floatPoint2D[] in world coordinate system
    * @param op Operation to go with the Region
    * @param index The index of the RegionOp with in the RegionOpList
    */
