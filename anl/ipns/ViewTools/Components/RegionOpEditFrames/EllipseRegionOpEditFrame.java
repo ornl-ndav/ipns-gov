@@ -1,3 +1,40 @@
+/* 
+ * File: EllipseRegionOpEditFrame.java 
+ *  
+ * Copyright (C) 2007     Joshua Oakgrove 
+ * 
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License 
+ * along with this library; if not, write to the Free Software 
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA. 
+ * 
+ * Contact :  Dennis Mikkelson<mikkelsond@uwstout.edu> 
+ *            MSCS Department 
+ *            HH237H 
+ *            Menomonie, WI. 54751 
+ *            (715)-232-2291 
+ * 
+ * This work was supported by the National Science Foundation under grant 
+ * number DMR-0426797, and by the Intense Pulsed Neutron Source Division 
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA. 
+ * 
+ * 
+ * Modified: 
+ * 
+ * $Log$
+ * Revision 1.3  2007/07/02 20:01:03  oakgrovej
+ * Added Copyright notice & log message
+ * 
+ */ 
 package gov.anl.ipns.ViewTools.Components.RegionOpEditFrames;
 
 import java.awt.BorderLayout;
@@ -25,11 +62,14 @@ private static float VALUE_JUMP = 5.0f;
   private boolean dimensionsSelected = false;
   
   private JRadioButton dimensions;
+  private JCheckBox forceCircle;
 
   private JPanel DimensionPanel;
+  private JPanel CirclePanel;
   
   private JTextField widthField;
   private JTextField heightField;
+  private JTextField radiusField;
   
   private float crx ;
   private float cry ;
@@ -106,6 +146,12 @@ private static float VALUE_JUMP = 5.0f;
       cry -= VALUE_JUMP;
       cty -= VALUE_JUMP;
     }
+    else if (dimensionsSelected && forceCircle.isSelected())
+    {
+      float rad = Float.parseFloat(radiusField.getText());
+      radiusField.setText(""+(rad-VALUE_JUMP));
+      radToDefPoints();
+    }
     else if (dimensionsSelected)
     {
       if(cry>cty)
@@ -122,6 +168,12 @@ private static float VALUE_JUMP = 5.0f;
     {
       crx -= VALUE_JUMP;
       ctx -= VALUE_JUMP;
+    }
+    else if (dimensionsSelected && forceCircle.isSelected())
+    {
+      float rad = Float.parseFloat(radiusField.getText());
+      radiusField.setText(""+(rad-VALUE_JUMP));
+      radToDefPoints();
     }
     else if (dimensionsSelected)
     {
@@ -140,6 +192,12 @@ private static float VALUE_JUMP = 5.0f;
       crx += VALUE_JUMP;
       ctx += VALUE_JUMP;
     }
+    else if (dimensionsSelected && forceCircle.isSelected())
+    {
+      float rad = Float.parseFloat(radiusField.getText());
+      radiusField.setText(""+(rad+VALUE_JUMP));
+      radToDefPoints();
+    }
     else if (dimensionsSelected)
     {
       if(crx>ctx)
@@ -156,6 +214,12 @@ private static float VALUE_JUMP = 5.0f;
     {
       cry += VALUE_JUMP;
       cty += VALUE_JUMP;
+    }
+    else if (dimensionsSelected && forceCircle.isSelected())
+    {
+      float rad = Float.parseFloat(radiusField.getText());
+      radiusField.setText(""+(rad+VALUE_JUMP));
+      radToDefPoints();
     }
     else if (dimensionsSelected)
     {
@@ -175,8 +239,15 @@ private static float VALUE_JUMP = 5.0f;
     heightField.setText("" + h);
     cenY.setText(""+cty);
     cenX.setText(""+ctx);
+    float rad = (w+h)/4;
+    radiusField.setText(""+rad);
     //System.out.println("Center = ("+ctx+","+cty+")\n"+
     //    "Corner = ("+crx+","+cry+")");
+  }
+  private void radToDefPoints()
+  {
+    crx = ctx+Float.parseFloat(radiusField.getText());
+    cry = cty+Float.parseFloat(radiusField.getText());
   }
   
   protected void buildDefiningPanel()
@@ -184,7 +255,9 @@ private static float VALUE_JUMP = 5.0f;
     DefiningPanel = new JPanel();
     DefiningPanel.setLayout(new BoxLayout(DefiningPanel,BoxLayout.Y_AXIS));
     buildDimensionPanel();
+    buildCirclePanel();
     DefiningPanel.add(DimensionPanel);
+    DefiningPanel.add(CirclePanel);
   }
   
   private void buildDimensionPanel()
@@ -215,6 +288,26 @@ private static float VALUE_JUMP = 5.0f;
     
     DimensionPanel.add(dimensions,BorderLayout.NORTH);
     DimensionPanel.add(CPanel, BorderLayout.CENTER);
+  }
+  
+  private void buildCirclePanel()
+  {
+    CirclePanel = new JPanel(new BorderLayout());
+    CirclePanel.setBorder(BorderFactory.createEtchedBorder());
+    forceCircle = new JCheckBox("Force Circle");
+    forceCircle.addKeyListener(new PositionKeyListener());
+    forceCircle.addActionListener(new radioButtonListener());
+    
+    JPanel radiusPanel = new JPanel();
+    JLabel aveRad = new JLabel("Average Radius");
+    radiusField = new JTextField(6);
+    radiusField.setEditable(false);
+    radiusField.addActionListener(new textFieldListener());
+    radiusPanel.add(aveRad);
+    radiusPanel.add(radiusField);
+    
+    CirclePanel.add(forceCircle,BorderLayout.NORTH);
+    CirclePanel.add(radiusPanel, BorderLayout.CENTER);
   }
   
   public void dispose()
@@ -276,6 +369,12 @@ private static float VALUE_JUMP = 5.0f;
         cry = cty - h/2.0f;
       }
       
+      else if (source.equals(radiusField))
+      {
+        radiusField.setText(numericText);
+        radToDefPoints();
+      }
+      
       calculateDimensions();
       this_editor.firePropertyChange(DRAW_CURSOR,1,2);
     }
@@ -286,15 +385,36 @@ private static float VALUE_JUMP = 5.0f;
     public void actionPerformed(ActionEvent e)
     {
       String message = e.getActionCommand();
+      
       if (message.equals("Center"))
       {
         centerSelected = true;
         dimensionsSelected = false;
       }
+      
       else if( message.equals("Dimensions"))
       {
         centerSelected = false;
         dimensionsSelected = true;
+      }
+      
+      else if( message.equals("Force Circle"))
+      {
+        if( forceCircle.isSelected())
+        {
+          widthField.setEditable(false);
+          heightField.setEditable(false);
+          radiusField.setEditable(true);
+          radToDefPoints();
+          calculateDimensions();
+          this_editor.firePropertyChange(DRAW_CURSOR, 1, 2);
+        }
+        else
+        {
+          widthField.setEditable(true);
+          heightField.setEditable(true);
+          radiusField.setEditable(false);
+        }
       }
     }
   }
