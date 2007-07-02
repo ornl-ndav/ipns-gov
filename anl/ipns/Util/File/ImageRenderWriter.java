@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2007/07/02 23:03:42  amoe
+ * -Created new static methods render(..) and write(..) .
+ * -Changed renderAndWrite(..) to static.
+ * -Changed renderAndWrite to just use the render(..) and write(..)
+ * methods.
+ * -Removed the constructor now that the public methods are static.
+ *
  * Revision 1.2  2007/06/28 17:49:36  amoe
  * Fixed copyright date.
  *
@@ -39,9 +46,15 @@
  */
 package gov.anl.ipns.Util.File;
 
-import gov.anl.ipns.Util.SpecialStrings.ErrorString;
-import gov.anl.ipns.Util.SpecialStrings.SaveFileString;
-import gov.anl.ipns.Util.SpecialStrings.SpecialString;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+//import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.FileOutputStream;
+//import java.util.Vector;
+
 //import gov.anl.ipns.Util.Sys.WindowShower;
 //import gov.anl.ipns.ViewTools.Components.AxisInfo;
 //import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
@@ -66,15 +79,6 @@ import gov.anl.ipns.Util.SpecialStrings.SpecialString;
 //import DataSetTools.viewer.ViewManager;
 //import DataSetTools.viewer.ViewerState;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridLayout;
-//import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.FileOutputStream;
-//import java.util.Vector;
-
 import javax.swing.JComponent;
 //import javax.swing.JMenu;
 //import javax.swing.JTextField;
@@ -82,25 +86,78 @@ import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 
 /**
- * This class takes a <code>JComponent</code>, renders an image from it, and 
- * saves it to a file. The rendering and writing processes are done in 
- * separate threads and executed later on an event stack 
- * [uses <code>SwingUtilities.invokeLater(..)</code>].  This ensures that the 
- * image is rendered and written after the JComponent is completely built.
+ * This class provides an easy way to render <code>BufferedImage</code>s from 
+ * <code>JComponent</code>s and write them to a file. The rendering and 
+ * writing processes are done in separate threads and executed later on an 
+ * event stack [uses <code>SwingUtilities.invokeLater(..)</code>].  This 
+ * ensures that the image is rendered and written after the JComponent is 
+ * completely built.
  */
 public class ImageRenderWriter
-{
-  private JComponent source;  
-  private String file_name;  
-  private int width;
-  private int height;  
-  private String extension;
-   
+{ 
   /**
-   * Creates an ImageRenderWriter object.
+   * This method renders an image from a <code>JComponent</code> and writes it 
+   * to a file based on an format extension in the file_name. 
    * 
-   * @param source - The JComponent that the image will be rendered from.
-   * @param file_name - The image will be outputed to this filename and/or 
+   * @param source - The <code>JComponent</code> that the image will be 
+   *                 rendered from. 
+   * @param file_name - The image will be output to this filename and/or 
+   *                    address.  For example, "<code>image.jpg</code>" will 
+   *                    be output to ISAW's root directory. 
+   *                    "<code>/home/user/image.jpg</code>" will be output to 
+   *                    the given directory.  As of JDK 1.6, the known 
+   *                    possible image formats are: .jpg, .png, .bmp, .gif .   
+   */
+  public static void renderAndWrite(JComponent source,String file_name)
+  {
+    ImageRenderWriter.write(ImageRenderWriter.render(source),file_name);
+  }
+  
+  /**
+   * This method takes a <code>JComponent</code> and returns a 
+   * <code>BufferedImage</code> rendering of it.
+   * 
+   * @param source - The <code>JComponent</code> used to make the rendering.
+   * @return - The rendered <code>BufferedImage</code>.
+   */
+  public static BufferedImage render(JComponent source)
+  {
+    //making sure the JComponent is set to a valid size
+    validateSize(source);
+    int width = source.getWidth();
+    int height = source.getHeight();
+    
+    BufferedImage bimg = new BufferedImage( width,height,
+        BufferedImage.TYPE_INT_RGB);    
+    Graphics2D gr = bimg.createGraphics();    
+
+    JWindow jwin= new JWindow();
+    jwin.setSize(width,height);
+    jwin.getContentPane().setLayout( new GridLayout(1,1));
+    jwin.getContentPane().add(source);
+    jwin.pack();
+    jwin.validate();
+
+    //Invoke the following operations on EventQueue so that they finish in the
+    // correct order.  ImageRendererThread renders the image, and 
+    // ImageSaverThread saves it to a file.
+    SwingUtilities.invokeLater( new ImageRendererThread( source, gr) );
+    
+    if(jwin != null)
+    {
+      jwin.dispose();
+    }
+      
+    return bimg;
+  }
+  
+  /**
+   * This method takes a <code>BufferedImage</code> and writes it to a file 
+   * with a specified file name.
+   * 
+   * @param bimg - The <code>BufferedImage</code> that will be used to write 
+   *               the file. 
+   * @param file_name - The image will be output to this filename and/or 
    *                    address.  For example, "<code>image.jpg</code>" will 
    *                    be output to ISAW's root directory. 
    *                    "<code>/home/user/image.jpg</code>" will be output to 
@@ -109,14 +166,54 @@ public class ImageRenderWriter
    *                    As of JDK 1.6, the known possible image formats are:
    *                    .jpg, .png, .bmp, .gif .                    
    */
-  public ImageRenderWriter(JComponent source, String file_name)
-  {
-    this.source = source;
-    this.file_name = file_name;
-    this.width = source.getWidth();
-    this.height = source.getHeight();    
+  public static void write(BufferedImage bimg, String file_name)
+  {    
+    SwingUtilities.invokeLater(new ImageWriterThread( bimg, file_name, 
+        parseFileExtension(file_name)));
+  }
     
-    //making sure that the JComponent size is at least greater than 0.
+  /**
+   * This method parses a file format extenstion from a filename.  If the 
+   * filename does not contain a valid extension or any extension at all,
+   * the method will return 'png' by default.
+   */
+  private static String parseFileExtension(String file_name)
+  {
+    int i = file_name.lastIndexOf('.');
+    if( i<= 0)
+    {
+      //ERROR: The Filename must have an extension for type of save
+      return "png";
+    }
+
+    String extension = file_name.substring( i+1 ).toLowerCase();
+    if( extension == null)
+    {
+      //ERROR: Save FileName must have an extension
+      return "png";
+    }
+    
+    if( extension.length() <2)
+    {
+      //ERROR: Save FileName must have an extension with more than 1 character
+      return "png";
+    }
+    
+    return extension;
+  }
+  
+  /**
+   * This class makes sure that the specified <code>JComponent</code>'s size 
+   * is greater than zero.
+   * 
+   * @param source - The <code>JComponent</code> whose size will be validated.
+   */
+  private static void validateSize(JComponent source)
+  {
+    int width = source.getWidth();
+    int height = source.getHeight();    
+    
+    //making sure the source size is at least greater than 0.
     if( width <=0) 
     {
       width = 500;
@@ -134,83 +231,12 @@ public class ImageRenderWriter
   }
   
   /**
-   * Render and writes an image from the JComponent to the indicated file in 
-   * the format specified by the extension of the file.
+   * Thread for painting the <code>JComponent</code> to the 
+   * <code>BufferedImage</code>.
    * @author Andrew Moe
    * @author Ruth Mikkelson
    */
-  public Object renderAndWrite()
-  {
-    SpecialString temp_extension = parseFileExtension(file_name);
-    //If extension parse fails, then quit the method and return error string
-    if(temp_extension instanceof SaveFileString) 
-    {                                             
-      extension = temp_extension.toString();        
-    }
-    else
-      return temp_extension;    
-           
-    BufferedImage bimg = new BufferedImage( width,height,
-                                               BufferedImage.TYPE_INT_RGB);    
-    Graphics2D gr = bimg.createGraphics();    
-    
-    JWindow jwin= new JWindow();
-    jwin.setSize(width,height);   
-    jwin.getContentPane().setLayout( new GridLayout(1,1));
-    jwin.getContentPane().add(source);
-    jwin.pack();
-    jwin.validate();
-    
-    //Invoke the following operations on EventQueue so that they finish in the
-    // correct order.  ImageRendererThread renders the image, and 
-    // ImageSaverThread saves it to a file.
-    SwingUtilities.invokeLater( new ImageRendererThread( source, gr) );
-    SwingUtilities.invokeLater( 
-        new ImageSaverThread( bimg, file_name, extension));
-        
-    if(jwin != null)
-    {
-      jwin.dispose();
-    }    
-    
-    return "Success";
-  }
-   
-  /**
-   * This method parses a file format extenstion from a filename.
-   * @author Andrew Moe
-   * @author Ruth Mikkelson
-   */
-  private SpecialString parseFileExtension(String file_name)
-  {
-    int i = file_name.lastIndexOf('.');
-    if( i<= 0)
-    {
-      return new ErrorString(
-          "ERROR: The Filename must have an extension for type of save");
-    }
-
-    String extension = file_name.substring( i+1).toLowerCase();
-    if( extension == null)
-    {
-      return new ErrorString("Save FileName must have an extension");
-    }
-    
-    if( extension.length() <2)
-    {
-      return new ErrorString(
-          "Save FileName must have an extension with more than 1 character");
-    }
-    
-    return new SaveFileString(extension);
-  }
-  
-  /**
-   * Thread for painting the JComponent to the BufferedImage
-   * @author Andrew Moe
-   * @author Ruth Mikkelson
-   */
-  private class ImageRendererThread extends Thread
+  private static class ImageRendererThread extends Thread
   {
     private JComponent jc = null;
     private Graphics gr = null;
@@ -232,17 +258,17 @@ public class ImageRenderWriter
   }
     
   /**
-   * Thread to write the BufferedImage to the output file.
+   * Thread to write the <code>BufferedImage</code> to the output file.
    * @author Andrew Moe
    * @author Ruth Mikkelson
    */
-  private class ImageSaverThread extends Thread
+  private static class ImageWriterThread extends Thread
   {
     private BufferedImage bimg;
     private String save_file_name;
     private String extension;
     
-    public ImageSaverThread(BufferedImage bimg, String save_file_name, 
+    public ImageWriterThread(BufferedImage bimg, String save_file_name, 
                             String extension)
     {
       this.bimg = bimg;
@@ -340,31 +366,33 @@ public class ImageRenderWriter
     va1D.setTitle("Sine and Cosine Function");
     
     //DataSetViewer
-    //DataSetViewer dsv = ViewManager.getDataSetView( 
-    //                    ds, IViewManager.IMAGE, null);
-    //dsv.setSize(new Dimension(600, 500));
+    DataSetViewer dsv = ViewManager.getDataSetView( 
+                        ds, IViewManager.THREE_D, null);
+    dsv.setSize(new Dimension(600, 500));
     
     //DataSetSwapper
     //DataSetSwapper dss = new DataSetSwapper(va2D,"Image");
     //dss.setSize(new Dimension(600, 500));
     
     //Display
-    //Display1D display = new Display1D(va1D,Display1D.GRAPH,Display1D.CTRL_ALL);
-    Display2D display = new Display2D(va2D,Display2D.IMAGE,Display2D.CTRL_ALL);
+    Display1D display = new Display1D(va1D,Display1D.GRAPH,Display1D.CTRL_ALL);
+    //Display2D display = new Display2D(va2D,Display2D.IMAGE,Display2D.CTRL_ALL);
         
     //WindowShower.show(display);
-    JComponent jp = ((JComponent)display.getContentPane());
-    jp.setSize(600,500);
+    JComponent jc = ((JComponent)display.getContentPane());
+    jc.setSize(200,200);
     
     //JTextField jm = new JTextField("TestTextField");
     //jm.setSize(200,200);
     
     //Test
-    ImageRenderWriter irw = 
-                  new ImageRenderWriter(jp,"/home/moea/image_test.png");
-    System.out.println(irw.renderAndWrite());
+    //ImageRenderWriter irw = 
+    //              new ImageRenderWriter(jc,"/home/moea/image_test.png");
+    //System.out.println(irw.renderAndWrite());
     
-    System.exit(0);
+    ImageRenderWriter.renderAndWrite(jc,"/home/moea/image_test.png");
+    
+    //System.exit(0);
   }
   //*/
 
