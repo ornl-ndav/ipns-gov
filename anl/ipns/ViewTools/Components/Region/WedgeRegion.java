@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.22  2007/07/05 00:17:24  dennis
+ *  Fixed error in comment.
+ *
  *  Revision 1.21  2007/03/16 16:57:56  dennis
  *  Major refactoring.  This class is now derived from the
  *  RegionWithInterior class.  The getSelectedPoints() method is
@@ -169,7 +172,7 @@ public class WedgeRegion extends RegionWithInterior
   float y_center;
                         // NOTE: Circle could be ellipse in WC
   float dx;             // half-width of ellipse in X-direction
-  float dy;             // half-height of ellipse in X-direction
+  float dy;             // half-height of ellipse in Y-direction
 
   float start_angle;    // angle of initial side, in radians 
   float included_angle; // included angle ( <= 360 ), in radians 
@@ -214,6 +217,7 @@ public class WedgeRegion extends RegionWithInterior
   *
   *  @param x   The x-coordinate of the point, in world coordinates.
   *  @param y   The y-coordinate of the point, in world coordinates.
+  *
   *  @return true if the point is in the region and false otherwise.
   */
  public boolean isInsideWC( float x, float y )
@@ -256,7 +260,7 @@ public class WedgeRegion extends RegionWithInterior
  /**
   * Display the region type with its defining points.
   *
-  *  @return region type and defining points.
+  *  @return A String giving the region type and defining points.
   */
   public String toString()
   {
