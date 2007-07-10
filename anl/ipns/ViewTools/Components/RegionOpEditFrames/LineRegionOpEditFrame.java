@@ -31,6 +31,9 @@
  * Modified: 
  * 
  * $Log$
+ * Revision 1.5  2007/07/10 18:37:51  oakgrovej
+ * Added use of ValuatorPanels
+ *
  * Revision 1.4  2007/07/02 20:01:41  oakgrovej
  * Added Copyright notice & log message
  * 
@@ -39,11 +42,14 @@ package gov.anl.ipns.ViewTools.Components.RegionOpEditFrames;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
 import gov.anl.ipns.ViewTools.Components.Cursor.LineCursor;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
+import gov.anl.ipns.ViewTools.UI.ValuatorPanels.PointValuatorPanel;
 
 import javax.swing.*;
 
@@ -56,20 +62,12 @@ import javax.swing.*;
 public class LineRegionOpEditFrame extends RegionOpEditFrame
 {
 
-private static int VALUE_JUMP = 5;
-  
-  private boolean point1Selected = false;
-  private boolean point2Selected = false;
-  
-  private JRadioButton point1;
-  private JRadioButton point2;
+private static int VALUE_JUMP = 5;  
 
   private JPanel Point1Panel;
   private JPanel Point2Panel;
-  private JTextField p1xField;
-  private JTextField p1yField;
-  private JTextField p2xField;
-  private JTextField p2yField;
+  private PointValuatorPanel Point1Valuator;
+  private PointValuatorPanel Point2Valuator;
   
   private float p1x;
   private float p1y;
@@ -96,7 +94,6 @@ private static int VALUE_JUMP = 5;
     super.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     this_editor = this;
     
-    center.addActionListener(new radioButtonListener());
     cenY.addActionListener(new textFieldListener());
     cenX.addActionListener(new textFieldListener());
     p1x = pt1.x;
@@ -142,72 +139,26 @@ private static int VALUE_JUMP = 5;
   
   private void buildPoint1Panel()
   {
-    Point1Panel = new JPanel(new BorderLayout());
-    Point1Panel.setBorder(BorderFactory.createEtchedBorder());
-    point1 = new JRadioButton("Point 1");
-    point1.addActionListener(new radioButtonListener());
-    point1.addKeyListener(new PositionKeyListener());
-    radioGroup.add(point1);
-    JPanel CPanel = new JPanel();
-    CPanel.setLayout(new BoxLayout(CPanel,BoxLayout.Y_AXIS));
-    JLabel xLabel = new JLabel("X");
-    p1xField = new JTextField(6);
-    p1xField.addActionListener(new textFieldListener());
-    JLabel yLabel = new JLabel("Y");
-    p1yField = new JTextField(6);
-    p1yField.addActionListener(new textFieldListener());
-    JPanel XPanel = new JPanel();
-    XPanel.add(xLabel);
-    XPanel.add(p1xField);
-    CPanel.add(XPanel);
-    
-    JPanel YPanel = new JPanel();
-    YPanel.add(yLabel);
-    YPanel.add(p1yField);
-    CPanel.add(YPanel);
-    
-    Point1Panel.add(point1,BorderLayout.NORTH);
-    Point1Panel.add(CPanel, BorderLayout.CENTER);
+    Point1Valuator = new PointValuatorPanel(
+                "Point 1","X","Y",p1x,p1y,radioGroup);
+    Point1Panel = Point1Valuator.getPanel();
+    Point1Panel.addPropertyChangeListener(new PanelListener());
   }
   
   private void buildPoint2Panel()
   {
-    Point2Panel = new JPanel(new BorderLayout());
-    Point2Panel.setBorder(BorderFactory.createEtchedBorder());
-    point2 = new JRadioButton("Point 2");
-    point2.addActionListener(new radioButtonListener());
-    point2.addKeyListener(new PositionKeyListener());
-    radioGroup.add(point2);
-    JPanel CPanel = new JPanel();
-    CPanel.setLayout(new BoxLayout(CPanel,BoxLayout.Y_AXIS));
-    JLabel xLabel = new JLabel("X");
-    p2xField = new JTextField(6);
-    p2xField.addActionListener(new textFieldListener());
-    JLabel yLabel = new JLabel("Y");
-    p2yField = new JTextField(6);
-    p2yField.addActionListener(new textFieldListener());
-    JPanel XPanel = new JPanel();
-    XPanel.add(xLabel);
-    XPanel.add(p2xField);
-    CPanel.add(XPanel);
-    
-    JPanel YPanel = new JPanel();
-    YPanel.add(yLabel);
-    YPanel.add(p2yField);
-    CPanel.add(YPanel);
-    
-    Point2Panel.add(point2,BorderLayout.NORTH);
-    Point2Panel.add(CPanel, BorderLayout.CENTER);
+    Point2Valuator = new PointValuatorPanel(
+        "Point 2","X","Y",p2x,p2y,radioGroup);
+    Point2Panel = Point2Valuator.getPanel();
+    Point2Panel.addPropertyChangeListener(new PanelListener());
   }
   
   private void calculateDimensions()
   {
     float w = Math.abs(p2x-p1x);
     float h = Math.abs(p1y-p2y);
-    p1xField.setText("" + p1x);
-    p1yField.setText("" + p1y);
-    p2xField.setText("" + p2x);
-    p2yField.setText("" + p2y);
+    Point1Valuator.setPoint(new floatPoint2D(p1x,p1y));
+    Point2Valuator.setPoint(new floatPoint2D(p2x,p2y));
     if(p1y>p2y)
       cenY.setText(""+(p2y+h/2.0f));
     else
@@ -220,6 +171,16 @@ private static int VALUE_JUMP = 5;
     //    "Point2 = ("+p2x+","+p2y+")");
   }
   
+  private void setDefiningPoints()
+  {
+    floatPoint2D point = Point1Valuator.getPoint();
+    p1x = point.x;
+    p1y = point.y;
+    point = Point2Valuator.getPoint();
+    p2x = point.x;
+    p2y = point.y;
+  }
+  
   public void dispose()
   {
     super.dispose();
@@ -228,16 +189,16 @@ private static int VALUE_JUMP = 5;
   
   public void Down()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1y -= VALUE_JUMP;
       p2y -= VALUE_JUMP;
     }
-    else if (point1Selected)
+    else if (Point1Valuator.isSelected())
     {
       p1y -= VALUE_JUMP/2.0f;
     }
-    else if (point2Selected)
+    else if (Point2Valuator.isSelected())
     {
       p2y -= VALUE_JUMP/2.0f;
     }
@@ -246,16 +207,16 @@ private static int VALUE_JUMP = 5;
 
   public void Left()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1x -= VALUE_JUMP;
       p2x -= VALUE_JUMP;
     }
-    else if (point1Selected)
+    else if (Point1Valuator.isSelected())
     {
       p1x -= VALUE_JUMP/2.0f;
     }
-    else if (point2Selected)
+    else if (Point2Valuator.isSelected())
     {
       p2x -= VALUE_JUMP/2.0f;
     }
@@ -264,16 +225,16 @@ private static int VALUE_JUMP = 5;
 
   public void Right()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1x += VALUE_JUMP;
       p2x += VALUE_JUMP;
     }
-    else if (point1Selected)
+    else if (Point1Valuator.isSelected())
     {
       p1x += VALUE_JUMP/2.0f;
     }
-    else if (point2Selected)
+    else if (Point2Valuator.isSelected())
     {
       p2x += VALUE_JUMP/2.0f;
     }
@@ -282,16 +243,16 @@ private static int VALUE_JUMP = 5;
 
   public void Up()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1y += VALUE_JUMP;
       p2y += VALUE_JUMP;
     }
-    else if (point1Selected)
+    else if (Point1Valuator.isSelected())
     {
       p1y += VALUE_JUMP/2.0f;
     }
-    else if (point2Selected)
+    else if (Point2Valuator.isSelected())
     {
       p2y += VALUE_JUMP/2.0f;
     }
@@ -317,35 +278,8 @@ private static int VALUE_JUMP = 5;
           isDecimal = true;
         }
       }
-      if ( source.equals(p1xField) )
-      {
-        //System.out.println("Width changed");
-        point1.setSelected(true);
-        p1x = Float.parseFloat(numericText);
-      }
       
-      else if( source.equals(p1yField) )
-      {
-//      System.out.println("height changed");
-        point1.setSelected(true);
-        p1y = Float.parseFloat(numericText);
-      }
-      
-      else if ( source.equals(p2xField) )
-      {
-        //System.out.println("Width changed");
-        point2.setSelected(true);
-        p2x = Float.parseFloat(numericText);
-      }
-      
-      else if( source.equals(p2yField) )
-      {
-//      System.out.println("height changed");
-        point2.setSelected(true);
-        p2y = Float.parseFloat(numericText);
-      }
-      
-      else if ( source.equals(cenX) )
+      if ( source.equals(cenX) )
       {
         center.setSelected(true);
         float w = Math.abs(p2x-p1x);
@@ -366,30 +300,25 @@ private static int VALUE_JUMP = 5;
     }
   }
   
-  private class radioButtonListener implements ActionListener
+  private class PanelListener implements PropertyChangeListener
   {
-    public void actionPerformed(ActionEvent e)
+    public void propertyChange(PropertyChangeEvent e)
     {
-      String message = e.getActionCommand();
-      if (message.equals("Center"))
+      //System.out.println("Panel Listener");
+      Object source = e.getSource();
+      if( source.equals(Point1Panel) )
       {
-        centerSelected = true;
-        point1Selected = false;
-        point2Selected = false;
+        setDefiningPoints();
       }
-      else if( message.equals("Point 1"))
+      
+      else if( source.equals(Point2Panel) )
       {
-        centerSelected = false;
-        point1Selected = true;
-        point2Selected = false;
+        setDefiningPoints();
       }
-      else if( message.equals("Point 2"))
-      {
-        centerSelected = false;
-        point1Selected = false;
-        point2Selected = true;
-      }
+      this_editor.firePropertyChange(DRAW_CURSOR,1,2);
+      
     }
+    
   }
   
   /*public static void main(String[]args)

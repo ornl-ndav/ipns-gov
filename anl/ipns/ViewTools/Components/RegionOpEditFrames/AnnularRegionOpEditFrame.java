@@ -31,6 +31,9 @@
  * Modified: 
  * 
  * $Log$
+ * Revision 1.5  2007/07/10 18:37:19  oakgrovej
+ * Added use of ValuatorPanels
+ *
  * Revision 1.4  2007/07/02 19:59:47  oakgrovej
  * Added Copyright notice & log message
  * 
@@ -45,6 +48,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
 
@@ -54,6 +59,8 @@ import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
 import gov.anl.ipns.ViewTools.Components.Cursor.WedgeCursor;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp.Operation;
+import gov.anl.ipns.ViewTools.UI.ValuatorPanels.RadiusValuatorPanel;
+
 
 /**
  * This class creates a Annular Region Editor based on three defining points
@@ -66,17 +73,11 @@ public class AnnularRegionOpEditFrame extends RegionOpEditFrame
 {
 private static int VALUE_JUMP = 5;
   
-  private boolean innerRadiusSelected = false;
-  private boolean outerRadiusSelected = false;
-  
-  private JRadioButton radius1;
-  private JRadioButton radius2;
-  
   private JPanel Radius1Panel;
   private JPanel Radius2Panel;
   
-  private JTextField rad1Field;
-  private JTextField rad2Field;
+  private RadiusValuatorPanel Rad1Valuator;
+  private RadiusValuatorPanel Rad2Valuator;
     
   private float p1x;
   private float p1y;
@@ -114,7 +115,6 @@ private static int VALUE_JUMP = 5;
     p3x=pt3.x;
     p3y=pt3.y;
     
-    center.addActionListener(new radioButtonListener());
     cenX.addActionListener(new textFieldListener());
     cenY.addActionListener(new textFieldListener());
     
@@ -131,12 +131,12 @@ private static int VALUE_JUMP = 5;
     //set radius 1
     float xVal = p2x - p1x;
     float yVal = p2y - p1y;
-    rad1Field.setText(""+(float)Math.sqrt(xVal*xVal + yVal*yVal));
+    Rad1Valuator.setValue((float)Math.sqrt(xVal*xVal + yVal*yVal));
     
     //set radius 2
     xVal = p3x - p1x;
     yVal = p3y - p1y;
-    rad2Field.setText(""+(float)Math.sqrt(xVal*xVal + yVal*yVal));
+    Rad2Valuator.setValue((float)Math.sqrt(xVal*xVal + yVal*yVal));
   }
   
   private void setDefiningPoints()
@@ -147,11 +147,11 @@ private static int VALUE_JUMP = 5;
     
     //point on inner circle
     p2y = p1y;
-    p2x = p1x + Float.parseFloat(rad1Field.getText());
+    p2x = p1x + Rad1Valuator.getValue();
     
     //point on outer circle
     p3y = p1y;
-    p3x = p1x + Float.parseFloat(rad2Field.getText());
+    p3x = p1x + Rad2Valuator.getValue();
   }
   
   public void dispose()
@@ -186,23 +186,21 @@ private static int VALUE_JUMP = 5;
   
   public void Down()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1y -= VALUE_JUMP;
       p2y -= VALUE_JUMP;
       p3y -= VALUE_JUMP;
       cenY.setText(""+p1y);
     }
-    else if (innerRadiusSelected)
+    else if (Rad1Valuator.isSelected())
     {
-      rad1Field.setText(""+
-          (Float.parseFloat(rad1Field.getText())-VALUE_JUMP));
+      Rad1Valuator.setValue(Rad1Valuator.getValue()-VALUE_JUMP);
       setDefiningPoints();
     }
-    else if (outerRadiusSelected)
+    else if (Rad2Valuator.isSelected())
     {
-      rad2Field.setText(""+
-          (Float.parseFloat(rad2Field.getText())-VALUE_JUMP));
+      Rad2Valuator.setValue(Rad2Valuator.getValue()-VALUE_JUMP);
       setDefiningPoints();
     }
     firePropertyChange(DRAW_CURSOR, 1, 2);
@@ -210,23 +208,21 @@ private static int VALUE_JUMP = 5;
 
   public void Left()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1x -= VALUE_JUMP;
       p2x -= VALUE_JUMP;
       p3x -= VALUE_JUMP;
       cenX.setText(""+p1x);
     }
-    else if (innerRadiusSelected)
+    else if (Rad1Valuator.isSelected())
     {
-      rad1Field.setText(""+
-          (Float.parseFloat(rad1Field.getText())-VALUE_JUMP));
+      Rad1Valuator.setValue(Rad1Valuator.getValue()-VALUE_JUMP);
       setDefiningPoints();
     }
-    else if (outerRadiusSelected)
+    else if (Rad2Valuator.isSelected())
     {
-      rad2Field.setText(""+
-          (Float.parseFloat(rad2Field.getText())-VALUE_JUMP));
+      Rad2Valuator.setValue(Rad2Valuator.getValue()-VALUE_JUMP);
       setDefiningPoints();
     }
     firePropertyChange(DRAW_CURSOR, 1, 2);
@@ -234,23 +230,21 @@ private static int VALUE_JUMP = 5;
 
   public void Right()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1x += VALUE_JUMP;
       p2x += VALUE_JUMP;
       p3x += VALUE_JUMP;
       cenX.setText(""+p1x);
     }
-    else if (innerRadiusSelected)
+    else if (Rad1Valuator.isSelected())
     {
-      rad1Field.setText(""+
-          (Float.parseFloat(rad1Field.getText())+VALUE_JUMP));
+      Rad1Valuator.setValue(Rad1Valuator.getValue()+VALUE_JUMP);
       setDefiningPoints();
     }
-    else if (outerRadiusSelected)
+    else if (Rad2Valuator.isSelected())
     {
-      rad2Field.setText(""+
-          (Float.parseFloat(rad2Field.getText())+VALUE_JUMP));
+      Rad2Valuator.setValue(Rad2Valuator.getValue()+VALUE_JUMP);
       setDefiningPoints();
     }
     firePropertyChange(DRAW_CURSOR, 1, 2);
@@ -258,23 +252,21 @@ private static int VALUE_JUMP = 5;
 
   public void Up()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1y += VALUE_JUMP;
       p2y += VALUE_JUMP;
       p3y += VALUE_JUMP;
       cenY.setText(""+p1y);
     }
-    else if (innerRadiusSelected)
+    else if (Rad1Valuator.isSelected())
     {
-      rad1Field.setText(""+
-          (Float.parseFloat(rad1Field.getText())+VALUE_JUMP));
+      Rad1Valuator.setValue(Rad1Valuator.getValue()+VALUE_JUMP);
       setDefiningPoints();
     }
-    else if (outerRadiusSelected)
+    else if (Rad2Valuator.isSelected())
     {
-      rad2Field.setText(""+
-          (Float.parseFloat(rad2Field.getText())+VALUE_JUMP));
+      Rad2Valuator.setValue(Rad2Valuator.getValue()+VALUE_JUMP);
       setDefiningPoints();
     }
     firePropertyChange(DRAW_CURSOR, 1, 2);
@@ -293,59 +285,19 @@ private static int VALUE_JUMP = 5;
   
   private void buildRadius1Panel()
   {
-    Radius1Panel = new JPanel();
-    Radius1Panel.setBorder(BorderFactory.createEtchedBorder());
-    radius1 = new JRadioButton("Inner Radius");
-    radius1.addActionListener(new radioButtonListener());
-    radius1.addKeyListener(new PositionKeyListener());
-    radioGroup.add(radius1);
-    rad1Field = new JTextField(6);
-    rad1Field.addActionListener(new textFieldListener());
-    
-    Radius1Panel.add(radius1);
-    Radius1Panel.add(rad1Field);
+    Rad1Valuator = new RadiusValuatorPanel("Inner Radius",0,radioGroup);
+    Radius1Panel = Rad1Valuator.getPanel();
+    Radius1Panel.addPropertyChangeListener(new PanelListener());
   }
   
   private void buildRadius2Panel()
   {
-    Radius2Panel = new JPanel();
-    Radius2Panel.setBorder(BorderFactory.createEtchedBorder());
-    radius2 = new JRadioButton("Outer Radius");
-    radius2.addKeyListener(new PositionKeyListener());
-    radius2.addActionListener(new radioButtonListener());
-    radioGroup.add(radius2);
-    rad2Field = new JTextField(6);
-    rad2Field.addActionListener(new textFieldListener());
-    
-    Radius2Panel.add(radius2);
-    Radius2Panel.add(rad2Field);
+    Rad2Valuator = new RadiusValuatorPanel("Outer Radius",0,radioGroup);
+    Radius2Panel = Rad2Valuator.getPanel();
+    Radius2Panel.addPropertyChangeListener(new PanelListener());
   }
   
-  private class radioButtonListener implements ActionListener
-  {
-    public void actionPerformed(ActionEvent e)
-    {
-      String message = e.getActionCommand();
-      if (message.equals("Center"))
-      {
-        centerSelected = true;
-        innerRadiusSelected = false;
-        outerRadiusSelected = false;
-      }
-      else if( message.equals("Inner Radius"))
-      {
-        centerSelected = false;
-        innerRadiusSelected = true;
-        outerRadiusSelected = false;
-      }
-      else if( message.equals("Outer Radius"))
-      {
-        centerSelected = false;
-        innerRadiusSelected = false;
-        outerRadiusSelected = true;
-      }
-    }
-  }
+  
   
   private class textFieldListener implements ActionListener
   {
@@ -376,19 +328,29 @@ private static int VALUE_JUMP = 5;
       {
         cenY.setText(numericText);
       }
-      
-      else if(source.equals(rad1Field))
+    }
+  }
+  
+  private class PanelListener implements PropertyChangeListener
+  {
+    public void propertyChange(PropertyChangeEvent e)
+    {
+      //System.out.println("Panel Listener");
+      Object source = e.getSource();
+      if( source.equals(Radius1Panel) )
       {
-        rad1Field.setText(numericText);
+        setDefiningPoints();
+        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
       }
       
-      else if(source.equals(rad2Field))
+      else if( source.equals(Radius2Panel) )
       {
-        rad2Field.setText(numericText);
-      } 
-      setDefiningPoints();
-      firePropertyChange(DRAW_CURSOR,1,2);
-    }  
+        setDefiningPoints();
+        this_editor.firePropertyChange(DRAW_CURSOR,1,2);
+      }
+      
+    }
+    
   }
   
   

@@ -31,6 +31,9 @@
  * Modified: 
  * 
  * $Log$
+ * Revision 1.4  2007/07/10 18:37:27  oakgrovej
+ * Added use of ValuatorPanels
+ *
  * Revision 1.3  2007/07/02 19:59:56  oakgrovej
  * Added Copyright notice & log message
  * 
@@ -41,9 +44,13 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.Cursor.BoxPanCursor;
 import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
+import gov.anl.ipns.ViewTools.UI.ValuatorPanels.PointValuatorPanel;
+
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
 
@@ -57,13 +64,9 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
 {
   private static float VALUE_JUMP = 5;
   
-  private boolean dimensionsSelected = false;
-  
-  private JRadioButton dimensions;
   private JPanel DimensionPanel;
   
-  JTextField widthField;
-  JTextField heightField;
+  private PointValuatorPanel dimValuator;
   
   private float p1x ;
   private float p1y ;
@@ -91,7 +94,6 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
     super.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     this_editor = this;
     
-    center.addActionListener(new radioButtonListener());
     cenY.addActionListener(new textFieldListener());
     cenX.addActionListener(new textFieldListener());
     p1x = pt1.x;
@@ -119,6 +121,16 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
     return points;
   }
   
+  private void setDefiningPoints()
+  {
+    float w = dimValuator.getPoint().x;
+    float h = dimValuator.getPoint().y;
+    p1x = Float.parseFloat(cenX.getText()) - .5f * w;
+    p1y = Float.parseFloat(cenY.getText()) + .5f * h;
+    p2x = Float.parseFloat(cenX.getText()) + .5f * w;
+    p2y = Float.parseFloat(cenY.getText()) - .5f * h;
+  }
+  
   public CursorTag getTypeCursor()
   {
     BoxPanCursor cursor = null;
@@ -135,40 +147,17 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
   
   private void buildDimensionPanel()
   {
-    DimensionPanel = new JPanel(new BorderLayout());
-    DimensionPanel.setBorder(BorderFactory.createEtchedBorder());
-    dimensions = new JRadioButton("Dimensions");
-    dimensions.addActionListener(new radioButtonListener());
-    dimensions.addKeyListener(new PositionKeyListener());
-    radioGroup.add(dimensions);
-    JPanel CPanel = new JPanel();
-    CPanel.setLayout(new BoxLayout(CPanel,BoxLayout.Y_AXIS));
-    JLabel xLabel = new JLabel("Width");
-    widthField = new JTextField(6);
-    widthField.addActionListener(new textFieldListener());
-    JLabel yLabel = new JLabel("Height");
-    heightField = new JTextField(6);
-    heightField.addActionListener(new textFieldListener());
-    JPanel XPanel = new JPanel();
-    XPanel.add(xLabel);
-    XPanel.add(widthField);
-    CPanel.add(XPanel);
-    
-    JPanel YPanel = new JPanel();
-    YPanel.add(yLabel);
-    YPanel.add(heightField);
-    CPanel.add(YPanel);
-    
-    DimensionPanel.add(dimensions,BorderLayout.NORTH);
-    DimensionPanel.add(CPanel, BorderLayout.CENTER);
+    dimValuator = new PointValuatorPanel
+            ("Dimensions","Width","Height", 0, 0, radioGroup);
+    DimensionPanel = dimValuator.getPanel();
+    DimensionPanel.addPropertyChangeListener(new PanelListener());
   }
   
   private void calculateDimensions()
   {
     float w = Math.abs(p2x-p1x);
     float h = Math.abs(p1y-p2y);
-    widthField.setText("" + w);
-    heightField.setText("" + h);
+    dimValuator.setPoint(new floatPoint2D(w,h));
     if(p1y>p2y)
       cenY.setText(""+(p2y+h/2.0f));
     else
@@ -189,12 +178,12 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
   
   public void Down()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1y -= VALUE_JUMP;
       p2y -= VALUE_JUMP;
     }
-    else if (dimensionsSelected)
+    else if (dimValuator.isSelected())
     {
       p1y -= VALUE_JUMP/2.0f;
       p2y += VALUE_JUMP/2.0f;
@@ -204,12 +193,12 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
 
   public void Left()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1x -= VALUE_JUMP;
       p2x -= VALUE_JUMP;
     }
-    else if (dimensionsSelected)
+    else if (dimValuator.isSelected())
     {
       p1x += VALUE_JUMP/2.0f;
       p2x -= VALUE_JUMP/2.0f;
@@ -219,12 +208,12 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
 
   public void Right()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1x += VALUE_JUMP;
       p2x += VALUE_JUMP;
     }
-    else if (dimensionsSelected)
+    else if (dimValuator.isSelected())
     {
       p1x -= VALUE_JUMP/2.0f;
       p2x += VALUE_JUMP/2.0f;
@@ -234,12 +223,12 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
 
   public void Up()
   {
-    if(centerSelected)
+    if(center.isSelected())
     {
       p1y += VALUE_JUMP;
       p2y += VALUE_JUMP;
     }
-    else if (dimensionsSelected)
+    else if (dimValuator.isSelected())
     {
       p1y += VALUE_JUMP/2.0f;
       p2y -= VALUE_JUMP/2.0f;
@@ -266,28 +255,11 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
           isDecimal = true;
         }
       }
-      if ( source.equals(widthField) )
-      {
-        //System.out.println("Width changed");
-        dimensions.setSelected(true);
-        p1x = Float.parseFloat(cenX.getText()) -
-                               Float.parseFloat(numericText)/2.0f;
-        p2x = p1x + Float.parseFloat(numericText);
-      }
       
-      else if(source.equals(heightField))
-      {
-//      //System.out.println("height changed");
-        dimensions.setSelected(true);
-        p1y = Float.parseFloat(cenY.getText()) +
-                               Float.parseFloat(numericText)/2.0f;
-        p2y = p1y - Float.parseFloat(numericText);
-      }
-      
-      else if (source.equals(cenX))
+      if (source.equals(cenX))
       {
         center.setSelected(true);
-        float w = Float.parseFloat(widthField.getText());
+        float w = dimValuator.getPoint().x;
         p1x = Float.parseFloat(numericText) - w/2.0f;
         p2x = Float.parseFloat(numericText) + w/2.0f;
       }
@@ -295,7 +267,7 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
       else if (source.equals(cenY))
       {
         center.setSelected(true);
-        float h = Float.parseFloat(heightField.getText());
+        float h = dimValuator.getPoint().y;
         p1y = Float.parseFloat(numericText) + h/2.0f;
         p2y = Float.parseFloat(numericText) - h/2.0f;
       }
@@ -305,22 +277,21 @@ public class BoxRegionOpEditFrame extends RegionOpEditFrame
     }
   }
   
-  private class radioButtonListener implements ActionListener
+  private class PanelListener implements PropertyChangeListener
   {
-    public void actionPerformed(ActionEvent e)
+    public void propertyChange(PropertyChangeEvent e)
     {
-      String message = e.getActionCommand();
-      if (message.equals("Center"))
+      //System.out.println("Panel Listener");
+      Object source = e.getSource();
+      if( source.equals(DimensionPanel) )
       {
-        centerSelected = true;
-        dimensionsSelected = false;
+        setDefiningPoints();
       }
-      else if( message.equals("Dimensions"))
-      {
-        centerSelected = false;
-        dimensionsSelected = true;
-      }
+      
+      this_editor.firePropertyChange(DRAW_CURSOR,1,2);
+      
     }
+    
   }
   
   
