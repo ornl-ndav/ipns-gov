@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.53  2007/07/10 18:41:00  oakgrovej
+ *  Changed the line thickness drawn over a region.
+ *
  *  Revision 1.52  2007/06/25 18:55:23  oakgrovej
  *  increased the cursor thickness for the line cursor
  *
@@ -1077,7 +1080,8 @@ public class SelectionOverlay extends OverlayJPanel {
         }
         else if(cursor instanceof EllipseCursor)
         {
-          g2d.setStroke(new BasicStroke(1,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
+          g2d.setStroke(new BasicStroke
+              (1,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
           ((EllipseCursor)cursor).draw(g2d,
               convertToPixelPoint(cursorPoints[2]),
               convertToPixelPoint(cursorPoints[1]));
@@ -1186,6 +1190,7 @@ public class SelectionOverlay extends OverlayJPanel {
     int y_initial = -1; // Initial y for draw line command
     int x_final = -1; // Final x for draw line command
     int y_final = -1; // Final y for draw line command
+    int lineThickness = 1;
 
     //----------------------------------Loop through all points
     for (int i = 0; i < p.length; i++) {
@@ -1219,7 +1224,15 @@ public class SelectionOverlay extends OverlayJPanel {
         // first map from array coords to pixel coords
         Point p1 = ArrayToPixel(x_initial, y_initial, array_global);
         Point p2 = ArrayToPixel(x_final, y_final, array_global);
+        
+        //(p1.x - p2.x)/(x_initial - x_final);
+        Point pt1 = ArrayToPixel(1, 1, array_global);
+        Point pt2 = ArrayToPixel(2, 2, array_global);
+        lineThickness = (int)Math.abs(Math.round
+              (.4*((pt1.x - pt2.x))));
 
+        g.setStroke(new BasicStroke
+            (lineThickness,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
         g.drawLine(p1.x, p1.y, p2.x, p2.y);
 
         x_initial = -1;
@@ -1289,16 +1302,38 @@ public class SelectionOverlay extends OverlayJPanel {
       // clear all selections from the vector
       if (message.equals(SelectionJPanel.RESET_SELECTED)) {
 
+        RegionOpEditFrame[] EditorsCopy = new RegionOpEditFrame[Editors.size()];
+        Editors.copyInto(EditorsCopy);
+        for(int j=0;j<EditorsCopy.length;j++)
+          EditorsCopy[j].dispose();
+        
         getRegionOpListWithColor(name).removeAll();
         sendMessage(ALL_REGIONS_REMOVED);
+        //for( int i=0; i<Editors.size();i++)
+        //{
+          //System.out.println("Disposing editor "+i);
+          //Editors.get(i).dispose();
+        //}
+        //Editors.clear();
       }
 
       // remove the last selection from the vector
       else if (message.equals(SelectionJPanel.RESET_LAST_SELECTED) ) {
 
+        RegionOpEditFrame[] EditorsCopy = new RegionOpEditFrame[Editors.size()];
+        Editors.copyInto(EditorsCopy);
+        for(int j=0;j<EditorsCopy.length;j++)
+          EditorsCopy[j].dispose();
+        
         RegionOpListWithColor list = getRegionOpListWithColor(name);
         list.removeLast();        
         sendMessage(REGION_REMOVED);
+        //for( int i=0; i<Editors.size();i++)
+       // {
+         // System.out.println("Disposing editor "+i);
+         // Editors.get(i).dispose();
+       // }
+       // Editors.clear();
       }
 
       else if ( message.equals(SelectionJPanel.COLOR_CHANGED) )
