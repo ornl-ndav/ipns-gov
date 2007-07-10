@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.28  2007/07/10 15:24:22  dennis
+ * Replaced isShowing() with isVisible().  This fixes the problem
+ * where the scene was not rendered when saving the image to a file.
+ *
  * Revision 1.27  2007/06/20 15:57:29  dennis
  * paintComponent() again turns off the cursors before drawing.  This
  * code had been temporarily commented out for testing.  It is needed
@@ -197,7 +201,7 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
   public void paintComponent( Graphics g )
   {
-    if ( !isShowing() || g == null )
+    if ( !isVisible() || g == null )
       return;
 
     int width = (int)getWidth();
