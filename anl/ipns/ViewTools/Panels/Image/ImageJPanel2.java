@@ -31,6 +31,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2007/07/10 14:34:24  dennis
+ *  Now again tests isVisible() instead of isShowing() before drawing.
+ *
  *  Revision 1.15  2007/06/15 16:42:00  dennis
  *  Removed do_thumbnail parameter from makeImage(), since the thumbnail
  *  image is now made in the method makeThumbnailImage().
@@ -896,7 +899,7 @@ protected void LocalTransformChanged()
   */
   private void makeImage()
   {
-    if ( ! isShowing() )             // don't do it yet if it's not displayed 
+    if ( ! isVisible() )             // don't do it yet if not "visible" 
       return;
     
     // Get world_to_image transform, and local world coord bounds.
