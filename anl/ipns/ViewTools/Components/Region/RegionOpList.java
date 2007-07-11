@@ -28,6 +28,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.6  2007/07/11 18:33:57  dennis
+ * Added toString() method to help with debugging.
+ *
  * Revision 1.5  2007/04/29 20:27:31  dennis
  * Replaced remove() method with removeLast(), which is the form
  * needed for UNDO.
@@ -331,5 +334,27 @@ public class RegionOpList {
    }
  }
  
+
+ /**
+  * The method forms a multi-line String containing the String form of
+  * all operations and regions in this region op list.
+  *
+  * @return a multi-line String.
+  */
+ public String toString()
+ {
+   RegionOp.Operation op;
+   Region    region;
+   String    result = "";   
+
+   for ( RegionOp regionOp:regionOpList )
+   {
+     op     = regionOp.getOp();
+     region = regionOp.getRegion();
+     result += "\n" + op + "\n" + region;
+   }
+   return result;
+
+ }
 
 }
