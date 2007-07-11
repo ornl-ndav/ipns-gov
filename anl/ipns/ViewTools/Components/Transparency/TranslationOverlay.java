@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2007/07/11 20:04:02  dennis
+ *  Removed one call to repaint() that caused an infinite loop and
+ *  another call to repaint() that was redundant.
+ *
  *  Revision 1.19  2007/06/19 20:34:39  dennis
  *  Added call to tjp.repaint() in paintComponent() method.  This fixes
  *  a problem where the zoomed region did not show up on the PanViewControl
@@ -245,14 +249,11 @@ public class TranslationOverlay extends OverlayJPanel
   */ 
   public void paintComponent(Graphics g)
   {
+    //System.out.println("TranslationOverlay paintComponent " + viewport);
     g.setXORMode(Color.gray);
     g.drawRect( (int)viewport.getX1(), (int)viewport.getY1(),
                 (int)viewport.getX2() - (int)viewport.getX1(),
 		(int)viewport.getY2() - (int)viewport.getY1() );
-
-    tjp.repaint();                     // ask for the cursor to be repainted
-                                       // otherwise the user must click once
-                                       // on the PanView control to see cursor
   }
   
  /**
@@ -274,6 +275,7 @@ public class TranslationOverlay extends OverlayJPanel
   */ 
   public void setLocalBounds( CoordBounds vp )
   {
+    // System.out.println("Calling tjp.setViewPort " + vp);
     tjp.setViewPort( vp.MakeCopy() );
   }
   
@@ -297,7 +299,6 @@ public class TranslationOverlay extends OverlayJPanel
   public void setGlobalBounds( CoordBounds global )
   {
     tjp.setGlobalPanelBounds( global.MakeCopy() );
-    repaint();
   }
  
  /**
@@ -413,6 +414,7 @@ public class TranslationOverlay extends OverlayJPanel
     public void actionPerformed( ActionEvent ae )
     {
       String message = ae.getActionCommand(); 
+      // System.out.println("TranslationOverlay ae = " + message );
       // clear all selections from the vector
       if( message.equals(TranslationJPanel.BOUNDS_CHANGED) ||
           message.equals(TranslationJPanel.BOUNDS_MOVED) ||
