@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/07/11 18:32:36  dennis
+ *  Relaced paint() by paintComponent, removed call to super.paint(),
+ *  and now work with a Graphics2D object that is a copy of the original
+ *  Graphics object.
+ *  Fixed main test program.
+ *
  *  Revision 1.11  2005/06/02 22:31:21  dennis
  *  Modified to only use IVirtualArray2D methods after creating a
  *  VirtualArray2D object.
@@ -388,10 +394,9 @@ public class MarkerOverlay extends OverlayJPanel
   *
   *  @param  g - graphics object
   */
-  public void paint(Graphics g) 
+  public void paintComponent(Graphics g) 
   {  
-    super.paint(g);
-    Graphics2D g2d = (Graphics2D)g;
+    Graphics2D g2d = (Graphics2D)g.create();
     
     current_bounds = component.getRegionInfo(); // current size of center 
     g2d.clipRect( (int)current_bounds.getX(),
@@ -413,8 +418,10 @@ public class MarkerOverlay extends OverlayJPanel
       ((Marker)markers.elementAt(m)).setCurrentTransform(pixel_local);
       ((Marker)markers.elementAt(m)).draw(g2d);
     }
+    g2d.dispose();
   } // end of paint()
  
+
  /*
   * This is an editor for the markers.
   */
@@ -740,6 +747,35 @@ public class MarkerOverlay extends OverlayJPanel
       }
     }
   }
+
+
+
+
+    public static class IVCListener implements ActionListener
+    {
+      ImageViewComponent ivc;
+      MarkerOverlay      mo;
+
+      public IVCListener( ImageViewComponent new_ivc,
+                          MarkerOverlay      new_mo   )
+      {
+        mo  = new_mo;
+        ivc = new_ivc;
+      }
+
+      public void actionPerformed( ActionEvent ae )
+      {
+        if(ae.getActionCommand().equals(ImageViewComponent.POINTED_AT_CHANGED) )
+        {
+          floatPoint2D current = ivc.getPointedAt();
+          Marker mark = new Marker( Marker.PLUS, current, Color.blue,
+                                    3f, 1 );
+          mo.addMarker( mark );
+          System.out.println("Added marker " + mark );
+        }
+      }
+    }
+
  
  /**
   * For testing purposes only.
@@ -759,7 +795,6 @@ public class MarkerOverlay extends OverlayJPanel
     			"TestY","TestYUnits", AxisInfo.LINEAR );
     va2D.setTitle("MarkerOverlay Test");
     ImageViewComponent ivc = new ImageViewComponent(va2D);
-    //ivc.addActionListener( new IVCListener() );
     Marker mark = new Marker( Marker.CIRCLE, new floatPoint2D(), Color.blue,
     			      3f, Marker.RESIZEABLE );
     floatPoint2D[] loc_array = new floatPoint2D[4];
@@ -770,6 +805,7 @@ public class MarkerOverlay extends OverlayJPanel
     Marker mark2 = new Marker( Marker.STAR, loc_array, Color.red, 5f, 
                                Marker.STATIC );
     MarkerOverlay mo = new MarkerOverlay(ivc);
+    ivc.addActionListener( new MarkerOverlay.IVCListener(ivc, mo) );
     mo.addMarker( mark );
     mo.addMarker( mark2 );
     
@@ -788,21 +824,7 @@ public class MarkerOverlay extends OverlayJPanel
     
     // show the display tester
     WindowShower.show(display);
-    /*
-    class IVCListener implements ActionListener
-    {
-      public void actionPerformed( ActionEvent ae )
-      {
-        if(ae.getActionCommand().equals(ImageViewComponent.POINTED_AT_CHANGED) )
-        {
-          floatPoint2D current = ivc.getPointedAt();
-	  Marker mark = new Marker( Marker.PLUS, current, Color.blue,
-	                            3f, true );
-	  mo.addMarker( mark );
-        }  
-      }
-    }*/
-  
+
   } // end main
   
 }
