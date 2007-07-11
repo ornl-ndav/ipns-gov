@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.54  2007/07/11 18:36:12  dennis
+ *  Replaced paint() by paintComponent, removed call to super.paint(),
+ *  and now work with a Graphics2D object that is a copy of the original
+ *  Graphics object.
+ *
  *  Revision 1.53  2007/07/10 18:41:00  oakgrovej
  *  Changed the line thickness drawn over a region.
  *
@@ -881,9 +886,9 @@ public class SelectionOverlay extends OverlayJPanel {
    *
    *  @param  g - graphics object
    */
-  public void paint(Graphics g) {
-    super.paint(g);
-    Graphics2D g2d = (Graphics2D) g;
+  public void paintComponent(Graphics g) 
+  {
+    Graphics2D g2d = (Graphics2D) g.create();
 
     current_bounds = component.getRegionInfo(); // current size of center
     sjp.setBounds(current_bounds);
@@ -1139,6 +1144,7 @@ public class SelectionOverlay extends OverlayJPanel {
           //defPt.draw(g2d, convertToPixelPoint(cursorPoints[1]),null);
         }
     }
+    g2d.dispose();
   } // end of paint()
 
 

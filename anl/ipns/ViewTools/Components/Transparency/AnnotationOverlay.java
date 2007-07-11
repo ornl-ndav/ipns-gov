@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.37  2007/07/11 18:36:12  dennis
+ *  Replaced paint() by paintComponent, removed call to super.paint(),
+ *  and now work with a Graphics2D object that is a copy of the original
+ *  Graphics object.
+ *
  *  Revision 1.36  2005/05/25 20:28:28  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -642,10 +647,9 @@ public class AnnotationOverlay extends OverlayJPanel
   *
   *  @param  g - graphics object
   */
-  public void paint(Graphics g) 
+  public void paintComponent(Graphics g) 
   {  
-    super.paint(g);
-    Graphics2D g2d = (Graphics2D)g;
+    Graphics2D g2d = (Graphics2D)g.create();
     g2d.setFont( font );
     // Change the opaqueness of the annotations.
     AlphaComposite ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER,
@@ -767,7 +771,10 @@ public class AnnotationOverlay extends OverlayJPanel
       g2d.setColor(text_color);
       g2d.drawString( snote, p2.x + autolocatex, p2.y + autolocatey );
     }	  
-  } // end of paint()
+
+    g2d.dispose();
+
+  } // end of paintComponent()
   
  /*
   * This method will get the current bounds of the center and reset

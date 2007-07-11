@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2007/07/11 18:36:12  dennis
+ *  Replaced paint() by paintComponent, removed call to super.paint(),
+ *  and now work with a Graphics2D object that is a copy of the original
+ *  Graphics object.
+ *
  *  Revision 1.20  2007/06/06 17:21:59  amoe
  *  -After every action from the LegendEditor's components, focus will be
  *  requested back to the titleField.  This is so the input keys for moving
@@ -426,10 +431,9 @@ public class LegendOverlay extends OverlayJPanel
   *
   *  @param  g - graphics object
   */
-  public void paint(Graphics g)
+  public void paintComponent(Graphics g)
   {
-    super.paint(g);
-    Graphics2D g2d = (Graphics2D)g;
+    Graphics2D g2d = (Graphics2D)g.create();
     f.deriveFont(0.1f);
     g2d.setFont(f);
     //FontMetrics fontdata = g2d.getFontMetrics();
@@ -437,7 +441,9 @@ public class LegendOverlay extends OverlayJPanel
     updateTransform();
     
     drawLegend(g2d);
+    g2d.dispose();
    }  
+
    
  /*
   * This method will get the current bounds of the center and reset
