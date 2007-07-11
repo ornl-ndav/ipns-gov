@@ -33,6 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.26  2007/07/11 18:28:53  dennis
+ * Replaced paint() by paintComponent, removed call to super.paint(),
+ * and now work with a Graphics2D object that is a copy of the original
+ * Graphics object.
+ *
  * Revision 1.25  2007/03/15 20:54:41  dennis
  * Made getRowColumnToWC() public.
  *
@@ -1328,12 +1333,15 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    /**
     * Does the actual work of painting the contour lines on the panel.
     */
-   public void paint(Graphics gr)
+   public void paintComponent(Graphics gr)
    {
-      draw((Graphics2D)gr);
+      Graphics2D g2d = (Graphics2D)gr.create();
+
+      draw(g2d);
       //record that the main contour plot has been initialized
       //(i.e. it has been drawn)
       this.mainImageNotInit = false;
+      g2d.dispose();
    }
 //------------------=[ End extra public methods ]=----------------------------//
    
@@ -1356,9 +1364,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
                                        // when the user moves the cursor (due
                                        // to XOR drawing).
       
-      //call the superclass to draw into the given Graphics2D
-        super.paint(g);
-        
       //first to extract the array of data to use
         float[][] arr = data2D.getRegionValues(0, 
                                                data2D.getNumRows()-1, 
