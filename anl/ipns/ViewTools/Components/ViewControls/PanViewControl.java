@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.28  2007/07/11 19:49:35  dennis
+ *  Removed some extra calls to repaint when the bounds were
+ *  adjusted from outside, since these caused extra repaints and
+ *  would redraw the thumbnail image over the pan cursor, when
+ *  the user zoomed in using the main JPanel.
+ *
  *  Revision 1.27  2007/06/15 18:18:52  rmikk
  *  Checked for a null thumbnail image
  *
@@ -255,7 +261,6 @@ public class PanViewControl extends ViewControl
     panel = new ThumbnailJPanel();
     overlay = new TranslationOverlay();
     actual_cjp = cjp;
-    refreshData();
     overlay.addActionListener( new OverlayListener() );
     setGlobalBounds( cjp.getGlobalWorldCoords() );
     setLocalBounds( cjp.getLocalWorldCoords() );
@@ -267,6 +272,7 @@ public class PanViewControl extends ViewControl
     addMouseListener( new PanMouseAdapter() );
     // this listener will preserve the aspect ratio of the control
     addComponentListener( new MaintainAspectRatio() );
+    refreshData();
   }
  
  /**
@@ -422,7 +428,9 @@ public class PanViewControl extends ViewControl
     }
     // Set clamped local bounds, which are stored in overlay.
     overlay.setLocalBounds( new CoordBounds(x1,y1,x2,y2) );
-    repaint();
+
+//  repaint();  DON'T CALL REPAINT HERE, SINCE setLocalBounds() will cause
+//              a repaint!!!!
   }  
   
  /**
@@ -446,9 +454,12 @@ public class PanViewControl extends ViewControl
   public void setGlobalBounds( CoordBounds gb )
   {
     overlay.setGlobalBounds( gb.MakeCopy() );
-    repaint();
+
+//  repaint();  DON'T CALL REPAINT HERE, SINCE setGlobalBounds() will cause
+//              a repaint!!!!
   }
   
+
  /**
   * This will overload the repaint method. This method calls refreshData()
   */
@@ -456,7 +467,8 @@ public class PanViewControl extends ViewControl
   {
     refreshData();
   }
-  
+
+
  /*
   * Call this method to repaint the thumbnail whenever the actual image changes.
   * This method calls the repaint method, so calling refreshData() will 
@@ -466,6 +478,7 @@ public class PanViewControl extends ViewControl
   {
     if ( !isShowing() )
       return; 
+    // System.out.println("refreshData.....");
 
     setImageDimension();
     setAspectRatio();
@@ -480,7 +493,8 @@ public class PanViewControl extends ViewControl
       // alter the image size according to the aspect ratio.
       panel_image = ((ImageJPanel2)actual_cjp).getThumbnail( panel_size.width, 
                             panel_size.height, makeNewPanImage );
-      if( panel_image != null) makeNewPanImage = false;
+      if( panel_image != null) 
+        makeNewPanImage = false;
     }
     else if ( actual_cjp instanceof ContourJPanel )
     {
@@ -490,8 +504,6 @@ public class PanViewControl extends ViewControl
           ((ContourJPanel)actual_cjp).getThumbnail(panel_size.width,
                                                    panel_size.height);
     }
-    else
-       super.repaint();
     
     if( validPanel && (panel_image != null) )
     {
@@ -550,6 +562,7 @@ public class PanViewControl extends ViewControl
     public void actionPerformed( ActionEvent ae )
     {
       String message = ae.getActionCommand();
+      // System.out.println("PanViewControl ae = " + message );
       send_message(message);
       // Only send out VALUE_CHANGED if local bounds are affected. Do not
       // send out message if setControlValue() is called.
@@ -581,6 +594,7 @@ public class PanViewControl extends ViewControl
       refreshData();
     }
   }
+
   
  /*
   * This private JPanel is used to hold the image of the thumbnail. A
@@ -603,7 +617,7 @@ public class PanViewControl extends ViewControl
     
     public void paintComponent( Graphics g )
     {
-//      super.paint(g);
+      // System.out.println("PanViewControl paintComponent");
       if( image != null )
         g.drawImage( image, 0, 0, this );
     }
