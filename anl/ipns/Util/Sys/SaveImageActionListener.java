@@ -32,6 +32,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.7  2007/07/11 18:46:23  rmikk
+ * Images can now be saved with any extension that is allowed by the underlying
+ * system
+ *
  * Revision 1.6  2007/04/27 13:00:44  rmikk
  * Fixed javadoc error
  *
@@ -193,12 +197,7 @@ public class SaveImageActionListener implements ActionListener{
          return new ErrorString("empty filename in SaveImage");
       
       int k=filename.lastIndexOf(".");
-      if( k >=0){
-         if( !filename.substring(k+1).equalsIgnoreCase("jpg")){
-           filename=filename.substring(0,k);
-           k=-1;
-         }
-      }
+      
          if( k < 0) 
             filename = filename +".jpg";
          
