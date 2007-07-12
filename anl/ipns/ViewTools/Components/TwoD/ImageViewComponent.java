@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.99  2007/07/12 16:49:28  oakgrovej
+ *  Added closeWindows() method
+ *
  *  Revision 1.98  2007/06/15 22:53:05  oakgrovej
  *  Added controls for making and selecting new selectors
  *
@@ -1851,6 +1854,11 @@ public class ImageViewComponent implements IViewComponent2D,
                                                    showEditor(name, show_hide);
   }
 
+  public void closeWindows()
+  {
+    if(transparencies.elementAt(1) != null)
+      ((SelectionOverlay)transparencies.elementAt(1)).closeWindows();
+  }
 
  /*
   * Tells all listeners about a new action.
