@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.17  2007/07/12 21:20:56  rmikk
+ *  Removed the Color Model Object State and moved the TwoSided object
+ *     state up to the ImageViewComponent, so the info was not recorded twice
+ *
  *  Revision 1.16  2007/07/10 14:34:24  dennis
  *  Now again tests isVisible() instead of isShowing() before drawing.
  *
@@ -336,14 +340,14 @@ public class ImageJPanel2 extends    CoordJPanel
     // since ImageJPanel extends CoordJPanel, set those state variables first.
     super.setObjectState(new_state);
     boolean redraw = false;  // if any values are changed, repaint.
-    Object temp = new_state.get(LOG_SCALE);
+     Object temp = new_state.get(LOG_SCALE);
     if( temp != null )
     {
       log_scale = (byte[])temp;
       redraw = true;  
     }  
-    
-    temp = new_state.get(TWO_SIDED);
+    /* 
+   temp = new_state.get(TWO_SIDED); //Moved to ImageViewComponent
     if( temp != null )
     {
       isTwoSided = ((Boolean)temp).booleanValue();
@@ -357,7 +361,7 @@ public class ImageJPanel2 extends    CoordJPanel
       setNamedColorModel( color_model_string, isTwoSided, true );
       redraw = true;  
     }
-    
+    */
     // may need changing
     if( redraw )
       repaint();
@@ -378,9 +382,9 @@ public class ImageJPanel2 extends    CoordJPanel
   {
     //get ObjectState of CoordJPanel
     ObjectState state = super.getObjectState(isDefault);
-    state.insert( COLOR_MODEL, color_model_string );
+    //state.insert( COLOR_MODEL, color_model_string );
     state.insert( LOG_SCALE, log_scale );
-    state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+   // state.insert( TWO_SIDED, new Boolean(isTwoSided) );
     
     return state;
   }
