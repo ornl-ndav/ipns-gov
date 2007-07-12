@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.55  2007/07/12 16:53:41  oakgrovej
+ *  Added closeWindows() and closeEditors() methods
+ *  removed some of the excessive Paint() calls
+ *
  *  Revision 1.54  2007/07/11 18:36:12  dennis
  *  Replaced paint() by paintComponent, removed call to super.paint(),
  *  and now work with a Graphics2D object that is a copy of the original
@@ -428,6 +432,7 @@ public class SelectionOverlay extends OverlayJPanel {
   private Vector<RegionOpEditFrame> Editors = new Vector<RegionOpEditFrame>();
   private floatPoint2D[] cursorPoints;
   private CursorTag cursor;
+  //private int paint = 0;
 
   /**
    * Constructor creates an overlay with a SelectionJPanel that shadows the
@@ -866,6 +871,21 @@ public class SelectionOverlay extends OverlayJPanel {
       this_panel.editSelection();
     }
   }
+  
+  public void closeWindows()
+  {
+    sjp.closeEditor();
+    closeEditors();
+  }
+  
+  public void closeEditors()
+  {
+    RegionOpEditFrame[] EditorsCopy = new RegionOpEditFrame[Editors.size()];
+    Editors.copyInto(EditorsCopy);
+    for(int j=0;j<EditorsCopy.length;j++)
+      EditorsCopy[j].dispose();
+    
+  }
 
 
   /**
@@ -886,9 +906,12 @@ public class SelectionOverlay extends OverlayJPanel {
    *
    *  @param  g - graphics object
    */
-  public void paintComponent(Graphics g) 
+  public void paint(Graphics g) 
   {
     Graphics2D g2d = (Graphics2D) g.create();
+    //System.out.println("painting " +paint);
+    //paint++;
+    //Graphics2D g2d = (Graphics2D) g;
 
     current_bounds = component.getRegionInfo(); // current size of center
     sjp.setBounds(current_bounds);
@@ -1066,7 +1089,6 @@ public class SelectionOverlay extends OverlayJPanel {
        }
      }
    }
-    
     if(cursor != null)
     {
       g2d.setColor(Color.white);
@@ -1308,10 +1330,7 @@ public class SelectionOverlay extends OverlayJPanel {
       // clear all selections from the vector
       if (message.equals(SelectionJPanel.RESET_SELECTED)) {
 
-        RegionOpEditFrame[] EditorsCopy = new RegionOpEditFrame[Editors.size()];
-        Editors.copyInto(EditorsCopy);
-        for(int j=0;j<EditorsCopy.length;j++)
-          EditorsCopy[j].dispose();
+        closeEditors();
         
         getRegionOpListWithColor(name).removeAll();
         sendMessage(ALL_REGIONS_REMOVED);
@@ -1321,15 +1340,13 @@ public class SelectionOverlay extends OverlayJPanel {
           //Editors.get(i).dispose();
         //}
         //Editors.clear();
+        this_panel.repaint();
       }
 
       // remove the last selection from the vector
       else if (message.equals(SelectionJPanel.RESET_LAST_SELECTED) ) {
 
-        RegionOpEditFrame[] EditorsCopy = new RegionOpEditFrame[Editors.size()];
-        Editors.copyInto(EditorsCopy);
-        for(int j=0;j<EditorsCopy.length;j++)
-          EditorsCopy[j].dispose();
+        closeEditors();
         
         RegionOpListWithColor list = getRegionOpListWithColor(name);
         list.removeLast();        
@@ -1340,24 +1357,28 @@ public class SelectionOverlay extends OverlayJPanel {
          // Editors.get(i).dispose();
        // }
        // Editors.clear();
+        this_panel.repaint();
       }
 
       else if ( message.equals(SelectionJPanel.COLOR_CHANGED) )
       { 
         RegionOpListWithColor list = getRegionOpListWithColor(name);
         list.setColor( named_sjp.getColor() );
+        this_panel.repaint();
       }
       
       else if ( message.equals(SelectionJPanel.OPACITY_CHANGED) )
       { 
         RegionOpListWithColor list = getRegionOpListWithColor(name);
         list.setOpacity( named_sjp.getOpacity() );
+        this_panel.repaint();
       }
       
       else if ( message.equals(SelectionJPanel.COMPLEMENT_CURRENT_SELECTION) ){
 
         getRegionOpListWithColor(name).add(
                             new RegionOp(null,RegionOp.Operation.COMPLEMENT) );
+        this_panel.repaint();
       }
 
       // region is specified by REGION_SELECTED>BOX >ELLIPSE >POINT   
@@ -1567,7 +1588,10 @@ public class SelectionOverlay extends OverlayJPanel {
           regionadded = false;
 
         if (regionadded)
+        {
           sendMessage(REGION_ADDED);
+          this_panel.repaint();
+        }
       }
       //Oakgrove
       else if(message.equals(SelectionJPanel.CLICK))
@@ -1726,8 +1750,7 @@ public class SelectionOverlay extends OverlayJPanel {
       }
         }
       }
-      this_panel.repaint(); // Without this, the newly drawn regions would
-                            // not appear.
+ 
     } // end actionPerformed()   
 
   } // end SelectListener 
@@ -1741,7 +1764,7 @@ public class SelectionOverlay extends OverlayJPanel {
       if (e.getPropertyName().equals(RegionOpEditFrame.DRAW_CURSOR))
       {
         //System.out.println("getting here!!!1");
-        
+
         if(e.getSource() instanceof BoxRegionOpEditFrame)
         {
           cursor = new BoxPanCursor(this_panel);
