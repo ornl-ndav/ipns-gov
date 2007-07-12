@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/07/12 22:03:13  amoe
+ * Made this interface public.
+ *
  * Revision 1.1  2007/07/12 16:37:50  dennis
  * Initial version of interface for objects that bundle data with
  * a view so that they can be displayed on a graphics device.
@@ -47,7 +50,7 @@ import javax.swing.*;
  *  a JComponent that can be printed, saved to a file or displayed on
  *  the screen by a specific GraphicsDevice.
  */
-interface IDisplayable
+public interface IDisplayable
 {
 
  /**
