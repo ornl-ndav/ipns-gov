@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.2  2007/07/12 19:52:02  dennis
+ * Added basic implementation of method to display a Displayable.
+ *
  * Revision 1.1  2007/07/12 15:45:04  amoe
  * Initial commit.
  *
@@ -8,6 +11,8 @@ package gov.anl.ipns.DisplayDevices;
 
 import java.awt.event.WindowEvent;
 import java.util.Vector;
+import javax.swing.*;
+import java.awt.*;
 
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Components.AxisInfo;
@@ -22,7 +27,6 @@ import gov.anl.ipns.ViewTools.Displays.Display;
 import gov.anl.ipns.ViewTools.Displays.Display1D;
 import gov.anl.ipns.ViewTools.Displays.Display2D;
 import gov.anl.ipns.ViewTools.Displays.Display3D;
-import gov.anl.ipns.ViewTools.UI.JQuickFrame;
 
 import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.FunctionTable;
@@ -113,6 +117,21 @@ public class ScreenDevice extends GraphicsDevice
     super.width = w;
     super.height = h;
   }
+
+
+  public void display( Displayable displayable )
+  {
+    JComponent panel = displayable.getJComponent(true);
+    JFrame frame = new JFrame();               // ### this should be a field
+                                               // so we have a reference to it
+                                               // to dispose on close()
+    frame.setSize( (int)width, (int)height ); 
+    frame.setLocation( (int)x_pos, (int)y_pos );
+    frame.getContentPane().setLayout( new GridLayout(1,1) );
+    frame.getContentPane().add(panel);
+    frame.setVisible(true);
+  }
+
   
   /**
    * Display the specified DataSet in the specified region, using the specified
