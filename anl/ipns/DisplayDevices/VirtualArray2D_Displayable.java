@@ -48,7 +48,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
          comp = new ImageViewComponent( array );
          Ostate =((ImageViewComponent)comp).getObjectState( true);
          
-         XlateAttrNames.put( "ColorModel", "ImageJPanel.Color Model" );
+         XlateAttrNames.put( "ColorModel", "Color Scale" );
          XlateAttrNames.put( "Axes Displayed" , "AxisOverlay2D.Axes Displayed");
       
       }else if( Type.equals( "TableV2D")){
@@ -107,8 +107,8 @@ public class VirtualArray2D_Displayable  extends Displayable {
       if( name == null)
          return;
 
-      if( name.toUpperCase().indexOf("Color")>=0)
-          value =Convert2Color( value );   
+      //if( name.toUpperCase().indexOf("Color")>=0)
+      //    value =Convert2Color( value );   
       
       if( value == null)
          return;
