@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.2  2007/07/12 19:53:11  dennis
+ * Added "stub" for method to display a Displayable.
+ *
  * Revision 1.1  2007/07/12 15:45:05  amoe
  * Initial commit.
  *
@@ -126,6 +129,18 @@ public class PreviewDevice extends GraphicsDevice
     super.width = w;
     super.height = h;
   }
+
+
+  /**
+   * Display the specified IDisplayable in the specified region.
+   * 
+   * @param displayable - The IDisplayable object to be displayed.
+   */
+  public void display( Displayable displayable )
+  {
+    System.err.println("display(Displayable) NOT implemented in PreviewDev");
+  }
+
   
   /**
    * Display the specified DataSet in the specified region, using the specified

@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.2  2007/07/12 19:53:11  dennis
+ * Added "stub" for method to display a Displayable.
+ *
  * Revision 1.1  2007/07/12 15:45:05  amoe
  * Initial commit.
  *
@@ -106,6 +109,18 @@ public class PrinterDevice extends GraphicsDevice
     super.x_pos = x;
     super.y_pos = y;
   }
+
+
+  /**
+   * Display the specified IDisplayable in the specified region.
+   * 
+   * @param displayable - The IDisplayable object to be displayed.
+   */
+  public void display( Displayable displayable )
+  {
+    System.err.println("display(Displayable) NOT implemented in PrinterDev");
+  }
+
   
   /**
    * Display the specified DataSet in the specified region, using the specified

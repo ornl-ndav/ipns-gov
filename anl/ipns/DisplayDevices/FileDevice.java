@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.2  2007/07/12 19:53:11  dennis
+ * Added "stub" for method to display a Displayable.
+ *
  * Revision 1.1  2007/07/12 15:45:05  amoe
  * Initial commit.
  *
@@ -39,7 +42,6 @@ import gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent;
 import gov.anl.ipns.ViewTools.Displays.Display;
 import gov.anl.ipns.ViewTools.Displays.Display1D;
 import gov.anl.ipns.ViewTools.Displays.Display2D;
-import gov.anl.ipns.ViewTools.UI.JQuickFrame;
 
 import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.FunctionTable;
@@ -125,6 +127,18 @@ public class FileDevice extends GraphicsDevice
     super.height = h;
   }
   
+
+  /**
+   * Display the specified IDisplayable in the specified region.
+   * 
+   * @param displayable - The IDisplayable object to be displayed.
+   */
+  public void display( Displayable displayable )
+  {
+    System.err.println("display(Displayable) NOT implemented in FileDev");
+  }
+
+
   /**
    * Display the specified DataSet in the specified region, using the specified
    * view type, line, and graph attributes.
