@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.2  2007/07/12 19:52:40  dennis
+ * Added abstract method to display a Displayable object.
+ *
  * Revision 1.1  2007/07/12 15:45:05  amoe
  * Initial commit.
  *
@@ -127,7 +130,15 @@ public abstract class GraphicsDevice
   {
     
   }
-  
+
+  /**
+   * Display the specified IDisplayable in the specified region.
+   * 
+   * @param displayable - The IDisplayable object to be displayed.
+   */
+  public abstract void display( Displayable displayable );
+
+
   /**
    * Display the specified DataSet in the specified region, using the specified
    * view type, line, and graph attributes.
