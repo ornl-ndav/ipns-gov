@@ -34,7 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2007/07/12 19:35:05  rmikk
+ *  returned the result of a recursive call instead of false in reset
+ *
  *  Revision 1.15  2005/08/17 21:25:28  kramer
+ *
  *  Added the containsKey() method.  This method was added so that it could
  *  be used by the Operators.Special.ObjectState.ObjectStateUtilities class.
  *
@@ -599,7 +603,7 @@ public class ObjectState implements java.io.Serializable
          Object nextstate = get( skey );
          // Get next level, Must be ObjectState, if not, something is wrong.
         if( nextstate instanceof ObjectState )
-          ((ObjectState)nextstate).editTable( nextkey, field, allow_replace );
+          return  ((ObjectState)nextstate).editTable( nextkey, field, allow_replace );
         else
           SharedMessages.addmsg("Invalid Path in ObjectState.java");
         // if it gets to here, the path was invalid
