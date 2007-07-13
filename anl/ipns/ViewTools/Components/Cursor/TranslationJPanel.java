@@ -33,7 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.14  2007/07/13 14:20:42  dennis
+ *  Added comment to clarify why a BOUNDS_CHANGED message was sent.
+ *
  *  Revision 1.13  2005/06/17 20:18:40  kramer
+ *
  *  Added 'requestFocus()' at the end of each mouseEntered(), mouseMoved(), ..
  *  methods.  This allows the pan view to be moved using the arrow keys.
  *  However, a better solution should be found.  For some reason at the
@@ -265,6 +269,7 @@ public class TranslationJPanel extends CoordJPanel
   */ 
   public void setViewPort( floatPoint2D vp1, floatPoint2D vp2 )
   {
+    //System.out.println("In tjp setViewport, vp1 = " + vp1 + " vp2 = " + vp2 );
     // Check to make sure new local bounds are within the global bounds.
     // Since it is possible for x1 > x2 and/or y1 > y2, must check this.
     CoordBounds global = getGlobalWorldCoords();
@@ -341,8 +346,9 @@ public class TranslationJPanel extends CoordJPanel
     Point pixelbotright = convertToPixelPoint(wcbotright);
     
     box.init( pixeltopleft, pixelbotright );
-    send_message(BOUNDS_CHANGED);
-  }
+    send_message(BOUNDS_CHANGED);             // NOTE: This sends the box info
+                                              //       back up to the overlay
+  }                                           //       so it gets drawn
   
  /**
   * Set the bounds for the entire image. This method must be called whenever the
