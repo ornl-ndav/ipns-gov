@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.4  2007/07/13 21:22:02  amoe
+ * -Added screen_bounds.
+ * -Finished getBounds().
+ *
  * Revision 1.3  2007/07/13 01:28:05  amoe
  * - Removed display( IVirtualArray ) and display( DataSet )
  * - Added display( IDisplayable ) and display( JComponent )
@@ -33,6 +37,9 @@ import javax.swing.JFrame;
 public class PreviewDevice extends GraphicsDevice
 {
   private JFrame display_frame = null;
+  
+  private Dimension screen_bounds = 
+                         java.awt.Toolkit.getDefaultToolkit().getScreenSize(); 
   
   public PreviewDevice()
   {    
@@ -75,14 +82,16 @@ public class PreviewDevice extends GraphicsDevice
   }
   
   /**
-   * @return - This returns a Vector with two floats: width and height of a 
-   * specific device.
+   * @return - This returns a Vector with two floats: the maximum width and 
+   * height of the PreviewDevice.
    */
   @Override
   public Vector getBounds() 
   {
-    // TODO Auto-generated method stub
-    return null;
+    Vector<Float> v = new Vector<Float>();
+    v.add((float)screen_bounds.getWidth());
+    v.add((float)screen_bounds.getHeight());
+    return v;
   }
 
   /**
@@ -167,7 +176,7 @@ public class PreviewDevice extends GraphicsDevice
                                new VirtualArray2D_Displayable( v2d, type);
     
     va2d_disp.setViewAttribute("ColorModel", "Rainbow");
-    va2d_disp.setViewAttribute("Axes Displayed", new Integer(2));
+    //va2d_disp.setViewAttribute("Axes Displayed", new Integer(2));
     
     PreviewDevice prv_dev = new PreviewDevice();
     prv_dev.setRegion(50,50,650,550);

@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.4  2007/07/13 21:22:18  amoe
+ * -Added screen_bounds.
+ * -Finished getBounds().
+ *
  * Revision 1.3  2007/07/13 01:29:22  amoe
  * - Removed display( IVirtualArray ) and display( DataSet )
  * - Added display( IDisplayable ) and display( JComponent )
@@ -14,6 +18,7 @@
  */
 package gov.anl.ipns.DisplayDevices;
 
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.util.Vector;
@@ -28,6 +33,9 @@ import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 public class ScreenDevice extends GraphicsDevice
 {
   private JFrame display_frame = null;
+  
+  private Dimension screen_bounds = 
+                         java.awt.Toolkit.getDefaultToolkit().getScreenSize(); 
   
   public ScreenDevice()
   {
@@ -70,14 +78,16 @@ public class ScreenDevice extends GraphicsDevice
   }
   
   /**
-   * @return - This returns a Vector with two floats: width and height of a 
-   * specific device.
+   * @return - This returns a Vector with two floats: the maximum width and 
+   * height of the ScreenDevice.
    */
   @Override
   public Vector getBounds() 
   {
-    // TODO Auto-generated method stub
-    return null;
+    Vector<Float> v = new Vector<Float>();
+    v.add((float)screen_bounds.getWidth());
+    v.add((float)screen_bounds.getHeight());
+    return v;
   }
 
   /**
@@ -129,7 +139,7 @@ public class ScreenDevice extends GraphicsDevice
                                new VirtualArray2D_Displayable( v2d, type);
     
     va2d_disp.setViewAttribute("ColorModel", "Rainbow");
-    va2d_disp.setViewAttribute("Axes Displayed", new Integer(2));
+    //va2d_disp.setViewAttribute("Axes Displayed", new Integer(2));
         
     ScreenDevice scr_dev = new ScreenDevice();
     scr_dev.setRegion(50,50,650,550);
