@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.4  2007/07/13 21:19:01  amoe
+ * Removed the max_width and the max_height.  Now, these bounds
+ * will be defined in the sub-classes of GraphicsDevice.
+ *
  * Revision 1.3  2007/07/13 01:36:43  amoe
  * - Removed graph specific hash tables
  * - Removed  abstract methods display( IVirtualArray ) and display( DataSet )
@@ -35,9 +39,6 @@ public abstract class GraphicsDevice
   protected float y_pos = -1;
   protected float width = -1;
   protected float height = -1;
-  
-  protected float max_width = 1024;
-  protected float max_height = 768;
   
   protected Hashtable requested_attributes;
   
