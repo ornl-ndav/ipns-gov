@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.4  2007/07/13 21:22:59  amoe
+ * Updated NOP comment in getBounds() .
+ *
  * Revision 1.3  2007/07/13 01:26:58  amoe
  * - Removed display( IVirtualArray ) and display( DataSet )
  * - Added display( IDisplayable ) and display( JComponent )
@@ -72,7 +75,7 @@ public class FileDevice extends GraphicsDevice
   @Override
   public Vector getBounds() 
   {
-    // TODO Auto-generated method stub
+    // NOP, the file resolution is limitless.
     return null;
   }
 
