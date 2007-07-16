@@ -51,9 +51,9 @@ public class VirtualArray2D_Displayable  extends Displayable {
          Ostate = comp.getObjectState( true);
          
          XlateAttrNames.put( "ColorModel", "Color Scale" );
-         XlateAttrNames.put( "Axes Displayed" , "AxisOverlay2D.Axes Displayed");
-         XlateAttrNames.put("intensity", "Log Scale Slider.Slider Value");
-         XlateAttrNames.put("xxx", "Axis Control.Unselected Color");
+         XlateAttrNames.put( "Axes Displayed" , "View Component.AxisOverlay2D.Axes Displayed");
+         XlateAttrNames.put("intensity", "View Component.Log Scale Slider.Slider Value");
+         XlateAttrNames.put("xxx", "View Component.Axis Control.Unselected Color");
       
       }else if( Type.equals( "TableV2D")){
          
@@ -76,7 +76,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
    }
    
    public void showOstate(){
-       showOstate( Ostate, 1);
+       showOstate( Ostate,1);
    }
    public void showOstate(ObjectState Ostate,  int nspaces ){
       
@@ -89,7 +89,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
           Object st = Ostate.get( e );
           if( st instanceof ObjectState){
              for( int i=0; i<nspaces +2; i++) System.out.print(" ");
-             System.out.println( e );
+             System.out.println("**"+ e+"**" );
              showOstate((ObjectState)st, nspaces+4 );
           }else {
              for( int j=0; j< nspaces ; j++)System.out.print(" ");
@@ -121,6 +121,10 @@ public class VirtualArray2D_Displayable  extends Displayable {
       
       Object Oval = null;
       
+      if( ObjectState.INVALID_PATH ==( DT))
+         DT = null;
+      
+      if( DT != null)
       try{
          
           Oval =Util.cvrt( DT.getClass(), value);
@@ -131,10 +135,10 @@ public class VirtualArray2D_Displayable  extends Displayable {
       }
       
       if( Oval == null)
-         return ;
+         Ostate.insert( S, Oval) ;
       
-      if(! Ostate.reset( S, Oval))
-         if( !Ostate.insert( XlateAttrNames.get(name), Oval))
+      else if(! Ostate.reset( S, Oval))
+         if( !Ostate.insert( S, Oval))
           System.out.println("Could not make the change")  ;
    }
    
@@ -173,9 +177,13 @@ public class VirtualArray2D_Displayable  extends Displayable {
          S =(String) XlateAttrNames.get("Line_"+name+"__"+index);
       
       Object DT = Ostate.get( S );
+ 
+      if( ObjectState.INVALID_PATH ==( DT))
+         DT = null;
       
       Object Oval = null;
       
+      if( DT != null)
       try{
          
           Oval =Util.cvrt(DT.getClass(), value);
@@ -186,8 +194,8 @@ public class VirtualArray2D_Displayable  extends Displayable {
       }
       
       if( Oval == null)
-         return ;
-      if(!Ostate.reset( S , value))
+         Ostate.insert( S, value );
+      else if(!Ostate.reset( S , value))
          Ostate.insert( S, value );
       
    }
@@ -208,7 +216,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
     */
    public JComponent getJComponent( boolean live){
        
-      if( live )
+      if( !live )
          Ostate.reset( Display2D.CONTROL_OPTION, Display.CTRL_NONE);
       else
          Ostate.reset(Display2D.CONTROL_OPTION, Display.CTRL_ALL );
