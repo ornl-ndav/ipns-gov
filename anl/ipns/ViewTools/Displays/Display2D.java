@@ -33,6 +33,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2007/07/16 19:39:16  rmikk
+ * Fixed the controls so that most of the states are remembered when changing
+ *    viewtypes in the live display
+ *
  * Revision 1.15  2007/04/14 14:04:42  rmikk
  * The tickmarks and axis labels are now shown when printing the image.
  *
@@ -193,6 +197,8 @@ public class Display2D extends Display
   private boolean os_region_added = false;
   private String colorscale;
   
+  ObjectState OState;
+  
  /**
   * Construct a frame with the specified image and title
   *  
@@ -205,6 +211,7 @@ public class Display2D extends Display
   {
     super(iva,view_code,include_ctrls);
     setTitle("Display2D");
+    OState = new ObjectState();
     addToMenubar();
     buildPane();
     loadProps(PROP_FILE);
@@ -220,16 +227,24 @@ public class Display2D extends Display
   */ 
   public void setObjectState( ObjectState new_state )
   {
+   
     boolean redraw = false;  // if any values are changed, repaint overlay.
     Object temp = new_state.get(VIEW_OPTION); 
+    
     if( temp != null )
     {
+       
+       update( OState);
       // If this view is different than the saved view, rebuild with new view.
       if( current_view != ((Integer)temp).intValue() )
       {
+       
         removeComponentMenuItems();
         current_view = ((Integer)temp).intValue();
         buildPane();
+        temp = OState.get( VIEW_COMPONENT+current_view);
+        if( temp !=null)
+           ivc.setObjectState( (ObjectState)temp );
       }
       redraw = true;  
     }
@@ -246,7 +261,7 @@ public class Display2D extends Display
       redraw = true;  
     }
     
-    temp = new_state.get(VIEW_COMPONENT);
+    temp = new_state.get(VIEW_COMPONENT+current_view);
     if( temp != null )
     {
       if( current_view == IMAGE )
@@ -299,16 +314,52 @@ public class Display2D extends Display
   */
   public ObjectState getObjectState( boolean isDefault )
   {
+     
+
+    update( OState );
+    if( !isDefault){
+       return OState;
+    }
     ObjectState state = new ObjectState();
-    state.insert( VIEW_OPTION, new Integer(current_view) );
-    state.insert( CONTROL_OPTION, new Integer(add_controls) );
+   
+    
+    state.insert( VIEW_OPTION, new Integer(0));
+    
+    state.insert( CONTROL_OPTION,  new Integer( Display.CTRL_ALL));
+    
     if( ivc != null )
-      state.insert( VIEW_COMPONENT, ivc.getObjectState(isDefault) );
+      state.insert( VIEW_COMPONENT+current_view, ivc.getObjectState(isDefault) );
+    
     state.insert( VIEWER_SIZE, getSize() );
-    if( colorscale != null )
-      state.insert( COLOR_SCALE, colorscale );
+   
+      state.insert( COLOR_SCALE,  "Heat 2");
+    
     return state;
   }
+  
+  
+  private void  update( ObjectState OState){
+    
+     if( !OState.reset( VIEW_OPTION, new Integer( current_view )))
+        OState.insert( VIEW_OPTION, new Integer( current_view ));
+     
+     if( !OState.reset( VIEWER_SIZE, getSize()))
+        OState.insert( VIEWER_SIZE, getSize());
+     
+     if( !OState.reset( COLOR_SCALE, colorscale))
+        OState.insert( COLOR_SCALE, colorscale);
+     
+     if( !OState.reset( CONTROL_OPTION, add_controls))
+        OState.insert( CONTROL_OPTION, add_controls);
+       
+     if( !OState.reset( VIEW_COMPONENT+current_view, 
+                            ivc.getObjectState( false )))
+        OState.insert( VIEW_COMPONENT+current_view, 
+                 ivc.getObjectState( false ));
+     
+     
+  }
+
 
  /**
   * Contains/Displays control information about this viewer.
@@ -418,16 +469,30 @@ public class Display2D extends Display
 //    ((ImageViewComponent)ivc).preserveAspectRatio(true);
       if( colorscale != null )
         ((ImageViewComponent)ivc).setColorScale(colorscale);
+      
+      ObjectState O = (ObjectState)OState.get( VIEW_COMPONENT+Display2D.IMAGE);
+      if( O != null)
+         ivc.setObjectState( O );
     }
     if( current_view == TABLE )
     {
       ivc = new TableViewComponent( (IVirtualArray2D)data );
       if( colorscale != null )
         ((TableViewComponent)ivc).setThumbnailColorScale(colorscale);
+      
+      
+      ObjectState O = (ObjectState)OState.get( VIEW_COMPONENT+Display2D.TABLE);
+      if( O != null)
+         ivc.setObjectState( O );
     }
     
     if( current_view == CONTOUR){
        ivc =  new  ContourViewComponent(  (IVirtualArray2D)data );
+       
+       
+       ObjectState O = (ObjectState)OState.get( VIEW_COMPONENT+Display2D.CONTOUR);
+       if( O != null)
+          ivc.setObjectState( O );
     }
     
     ivc.addActionListener( new ViewCompListener() );    
@@ -454,8 +519,10 @@ public class Display2D extends Display
     addComponentMenuItems();
     // Repaint the display, this is needed when the menu items are used
     // the switch between views.
-    validate();
-    repaint();
+  
+    getContentPane().validate();
+    getContentPane().repaint();
+   
   }
  
  /*
@@ -591,6 +658,7 @@ public class Display2D extends Display
       // This is called if the user switches the view to an image.
       else if( ae.getActionCommand().equals("Image") )
       {
+         update( OState );
         // Check to see if current view is already image, if not change it.
         if( current_view != IMAGE )
 	{
@@ -605,12 +673,14 @@ public class Display2D extends Display
 	  file_menu.getItem(2).setEnabled(true);
 	  file_menu.getItem(3).setEnabled(true);
 	  // Rebuild the display with an image.
+    
 	  buildPane();
 	}
       }
       // This is called if the user switches the view to a table.
       else if( ae.getActionCommand().equals("Table") )
       {
+         update( OState );
         // Check to see if current view is already a table, if not change it.
         if( current_view != TABLE )
 	{
@@ -631,6 +701,7 @@ public class Display2D extends Display
       //Called when user select Contour vies
       
       else if( ae.getActionCommand().equals( "Contour")){
+         update( OState );
          if( current_view == CONTOUR )
             return;
          current_view = CONTOUR;
