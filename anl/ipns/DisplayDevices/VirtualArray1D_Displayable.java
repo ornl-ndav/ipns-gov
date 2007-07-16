@@ -3,23 +3,24 @@ package gov.anl.ipns.DisplayDevices;
 import javax.swing.JComponent;
 import gov.anl.ipns.ViewTools.Components.OneD.*;
 import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Displays.*;
 
 public class VirtualArray1D_Displayable extends Displayable {
    
    IVirtualArrayList1D array;
    String Type;
    
-   IViewComponent1D comp ;
+   Display1D comp ;
    ObjectState Ostate ;
-   public static String FUNCTION_DISPLAY = "FunctionV1D";
-   public static String DIFFERENCE_DISPLAY = "DifferenceV1D";
+   public static String GRAPH_DISPLAY = "GraphV1D";
+   public static String TABLE_DISPLAY = "TableV1D";
 
    /**
     * Creates a Displayable of the given type  from a list of 1D arrays.
     * 
     * @param array  the list of 1D arrays to display
     * @param Type   the type of display needed.  The only values so far ar
-    *                    "FunctionV1D" and "DifferenceV1D"
+    *                    "GraphV1D, TableV1D" 
     */
    public VirtualArray1D_Displayable( IVirtualArrayList1D array, String Type)
        throws IllegalArgumentException{
@@ -35,15 +36,14 @@ public class VirtualArray1D_Displayable extends Displayable {
          throw new IllegalArgumentException(
                        "The Type of the display is needed ");
       
-      if( Type.equals( FUNCTION_DISPLAY )){
+      if( Type.equals( GRAPH_DISPLAY ))
          
-         comp = new FunctionViewComponent( array );
+         comp = new Display1D( array, Display1D.GRAPH, Display.CTRL_ALL);
       
-      }else if( Type.equals( DIFFERENCE_DISPLAY)){
+       else if( Type.equals( TABLE_DISPLAY ))
+          comp = new Display1D( array, Display1D.TABLE, Display.CTRL_ALL);
          
-         comp = new DifferenceViewComponent( array );
-         
-      }else
+      else
          throw new IllegalArgumentException( 
                        "This view type cannot display this data ");
       
@@ -53,9 +53,17 @@ public class VirtualArray1D_Displayable extends Displayable {
 
    public JComponent getJComponent( boolean with_controls ) {
    
+      if( with_controls)
+         Ostate.reset( Display1D.CONTROL_OPTION, Display.CTRL_ALL);
+      else
+         Ostate.reset( Display1D.CONTROL_OPTION, Display.CTRL_NONE);
+      
       comp.setObjectState( Ostate );
-      // TODO Auto-generated method stub
-      return comp.getDisplayPanel();
+      
+      if( with_controls)
+         return comp.getRootPane();
+      else
+         return (JComponent)comp.getContentPane();
    }
 
 

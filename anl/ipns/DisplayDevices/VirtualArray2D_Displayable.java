@@ -8,13 +8,14 @@ import gov.anl.ipns.ViewTools.Components.TwoD.Contour.*;
 import gov.anl.ipns.ViewTools.Layouts.*;
 import javax.swing.*;
 import java.awt.*;
+import gov.anl.ipns.ViewTools.Displays.*;
 
 public class VirtualArray2D_Displayable  extends Displayable {
 
    
    IVirtualArray2D array;
    String Type ;
-   IViewComponent2D comp;
+   Display2D comp;
    java.util.Hashtable XlateAttrNames;
    
    ObjectState Ostate;
@@ -40,27 +41,30 @@ public class VirtualArray2D_Displayable  extends Displayable {
       if( Type == null)
          throw new IllegalArgumentException( " No Type for view");
       
-      if( ".ImageV2D.TableV2D.ContourV2D.".indexOf("."+Type+".")< 0)
+      if( ".ImageV2D.TableV2D.ContourV2D.".indexOf("."+Type+".") <  0 )
          throw new IllegalArgumentException( " Improper View Type");
       
       if( Type .equals( "ImageV2D")) {
          
-         comp = new ImageViewComponent( array );
-         Ostate =((ImageViewComponent)comp).getObjectState( true);
+
+         comp = new Display2D( array , Display2D.IMAGE, 1 );
+         Ostate = comp.getObjectState( true);
          
          XlateAttrNames.put( "ColorModel", "Color Scale" );
          XlateAttrNames.put( "Axes Displayed" , "AxisOverlay2D.Axes Displayed");
+         XlateAttrNames.put("intensity", "Log Scale Slider.Slider Value");
+         XlateAttrNames.put("xxx", "Axis Control.Unselected Color");
       
       }else if( Type.equals( "TableV2D")){
          
-         comp = new TableViewComponent( array );
-         Ostate =((TableViewComponent)comp).getObjectState( true);
+         comp =  comp = new Display2D( array , Display2D.TABLE, 1 );;
+         Ostate = comp.getObjectState( true);
          //XlateAttrNames =
       
       }else if( Type.equals("ContourV2D")) {   
          
-         comp = new ContourViewComponent( array );
-         Ostate =((ContourViewComponent)comp).getObjectState( true);
+         comp =  comp = new Display2D( array , Display2D.CONTOUR, 1 );;
+         Ostate =comp.getObjectState( true);
          //XlateAttrNames =
       }else
          Ostate = new ObjectState();
@@ -107,14 +111,30 @@ public class VirtualArray2D_Displayable  extends Displayable {
       if( name == null)
          return;
 
-      //if( name.toUpperCase().indexOf("Color")>=0)
-      //    value =Convert2Color( value );   
-      
+          
       if( value == null)
          return;
+    
+      String S =  (String)XlateAttrNames.get(name);
       
-      if(! Ostate.reset( XlateAttrNames.get(name), value))
-         if( !Ostate.insert( XlateAttrNames.get(name), value))
+      Object DT = Ostate.get( S );
+      
+      Object Oval = null;
+      
+      try{
+         
+          Oval =Util.cvrt( DT.getClass(), value);
+          
+      }catch( Exception s){
+         
+         Oval = null;
+      }
+      
+      if( Oval == null)
+         return ;
+      
+      if(! Ostate.reset( S, Oval))
+         if( !Ostate.insert( XlateAttrNames.get(name), Oval))
           System.out.println("Could not make the change")  ;
    }
    
@@ -137,8 +157,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
       if( name == null)
          return;
 
-      if( name.toUpperCase().indexOf("Color")>=0)
-          value =Convert2Color( value );   
+     
       
       if( value == null)
          return;
@@ -153,11 +172,28 @@ public class VirtualArray2D_Displayable  extends Displayable {
       }else
          S =(String) XlateAttrNames.get("Line_"+name+"__"+index);
       
+      Object DT = Ostate.get( S );
+      
+      Object Oval = null;
+      
+      try{
+         
+          Oval =Util.cvrt(DT.getClass(), value);
+          
+      }catch( Exception s){
+         
+         Oval = null;
+      }
+      
+      if( Oval == null)
+         return ;
       if(!Ostate.reset( S , value))
          Ostate.insert( S, value );
       
    }
 
+   
+   
    
    /**
     *  This method returns a JComponent that can be displayed in a Frame,
@@ -171,53 +207,24 @@ public class VirtualArray2D_Displayable  extends Displayable {
     *          display.
     */
    public JComponent getJComponent( boolean live){
+       
+      if( live )
+         Ostate.reset( Display2D.CONTROL_OPTION, Display.CTRL_NONE);
+      else
+         Ostate.reset(Display2D.CONTROL_OPTION, Display.CTRL_ALL );
       
       comp.setObjectState( Ostate );
-      return comp.getDisplayPanel();
+      
+      
+      if( live )
+         return comp.getRootPane();
+      else
+         return (JComponent)comp.getContentPane();
+      
+     
    }
    
-   public static Color Convert2Color( Object value){
-      
-      if( value == null )
-         return null;
-      
-      if( value instanceof java.awt.Color )
-         return (Color)value;
-      
-      if( !(value instanceof String ) )
-         return null;
-      
-     String Col = ((String)value).toUpperCase().trim();
-     
-     if( Col.equals( "BLACK"))
-        return Color.black;
-     else if( Col.equals( "BLue"))
-        return Color.blue;
-     else      if( Col.equals( "RED"))
-        return Color.red;
-     else      if( Col.equals( "GREEN"))
-        return Color.green;
-     else      if( Col.equals( "GRAY"))
-        return Color.GRAY;
-     else      if( Col.equals( "CYAN"))
-        return Color.CYAN;
-     else      if( Col.equals( "ORANGE"))
-        return Color.ORANGE;
-     else      if( Col.equals( "MAGENTA"))
-        return Color.MAGENTA;
-     else if( Col.equals( "DARK GRAY"))
-        return Color.DARK_GRAY;
-     else if( Col.equals( "LIGHT GRAY"))
-        return Color.LIGHT_GRAY;
-     else if( Col.equals( "PINK"))
-        return Color.PINK;
-     else if( Col.equals( "YELLOW"))
-        return Color.YELLOW;
-     else 
-        return null;
-     
-   }
-
+ 
    /**
     * @param args
     */
@@ -237,6 +244,8 @@ public class VirtualArray2D_Displayable  extends Displayable {
       
       disp.setViewAttribute("ColorModel", "Rainbow");
       disp.setViewAttribute("Axes Displayed", new Integer(2));
+      disp.setViewAttribute( "intensity", new Integer(95));
+      disp.setViewAttribute( "xxx", "Red");
       JFrame jf = new JFrame("test");
       jf.getContentPane().setLayout( new GridLayout(1,1));
       jf.setSize( 400,400);
@@ -247,4 +256,5 @@ public class VirtualArray2D_Displayable  extends Displayable {
 
    }
 
+  
 }
