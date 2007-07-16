@@ -32,6 +32,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2007/07/16 18:26:40  rmikk
+ * Eliminated some mor  subtle conventions that forced saving jpeg files
+ *
  * Revision 1.7  2007/07/11 18:46:23  rmikk
  * Images can now be saved with any extension that is allowed by the underlying
  * system
@@ -138,7 +141,7 @@ public class SaveImageActionListener implements ActionListener{
    public void actionPerformed( ActionEvent evt)
    {
      JFileChooser jfc= new JFileChooser();
-     jfc.setFileFilter( new JPEGFileFilter() );
+     //jfc.setFileFilter( new JPEGFileFilter() );
      // make sure approve button was pressed.
      if( jfc.showSaveDialog(null) != JFileChooser.APPROVE_OPTION)
        return;
@@ -147,7 +150,17 @@ public class SaveImageActionListener implements ActionListener{
      if( file == null)
        return;
      // add .jpg to filename if it was not already added.
-     String filename = new JPEGFileFilter().appendExtension(file.toString());
+     String filename = file.toString();
+     if( filename == null )
+        return;
+     
+     String extension = null;
+     
+     int k= filename.lastIndexOf(".");
+     if( k >0)
+        extension =  filename.substring( k+1).toLowerCase();
+     
+     //String filename = new JPEGFileFilter().appendExtension(file.toString());
      Rectangle R = comp.getBounds();
      BufferedImage bimg= new BufferedImage(R.width, R.height,
                                            BufferedImage.TYPE_INT_RGB ); 
@@ -158,10 +171,11 @@ public class SaveImageActionListener implements ActionListener{
 
      try{
        FileOutputStream fout = new FileOutputStream( new File(filename) );
-       if( !javax.imageio.ImageIO.write( bimg, "jpg",
+       if( !javax.imageio.ImageIO.write( bimg, extension,
         			  (OutputStream)fout ) )
        {
-         SharedMessages.addmsg( " no appropriate writer is found");
+         SharedMessages.addmsg( " no appropriate writer is found for extension "
+                           + extension );
          fout.close();
          return; 
        }
@@ -174,13 +188,19 @@ public class SaveImageActionListener implements ActionListener{
    
    
    /**
-    * Saves an IViewComponent to a file as a jpeg image.
+    * Saves an IViewComponent to a file as an  image currently supported by 
+    *     Java's ImageIO system.
+    *     
     * @param Comp  The IViewComponent whose Display Panel is to be saved. NOTE that 
     *                the view component does not have to be displayable.
+    *                
     * @param filename  The filename for the saved image. It will be forced to end
     *                  in .jpg if that is not the case
+    *                  
     * @param width    the width in pixels of image or -1 to use default. 
+    * 
     * @param height   the height in pixels of the image or -1 for the default.
+    * 
     * 
     * 
     * @return null or an ErrorString if an error occurred.
@@ -203,7 +223,9 @@ public class SaveImageActionListener implements ActionListener{
          
          
       Component comp = Comp.getDisplayPanel();
+      
       JWindow jf1=null;
+      
       if( !comp.isDisplayable()){
          jf1 = new JWindow();
          jf1.setPreferredSize( new Dimension(width+7, height+25));   
@@ -300,13 +322,24 @@ class RunSvImage implements Runnable{
    public void run(){
       this.bimg = (BufferedImage)in_outData[0];
       SaveImageActionListener.err=null;
+      if( filename == null)
+         return;
+      
+      int k= filename.lastIndexOf( ".");
+      String extension = "jpg";
+      if( k >0 )
+         extension = filename.substring( k+1 );
+         
       try{
+         
          FileOutputStream fout = new FileOutputStream( new File(filename) );
-         if( !javax.imageio.ImageIO.write( bimg, "jpg",
+         if( !javax.imageio.ImageIO.write( bimg, extension,
                      (OutputStream)fout ) )
          {
-           SharedMessages.addmsg( " no appropriate writer is found");
-           SaveImageActionListener .err =" no appropriate writer is found";
+           SharedMessages.addmsg( " no appropriate writer is found for "+
+                    extension);
+           SaveImageActionListener .err =" no appropriate writer is found for"+
+                    extension;
            fout.close();
            return ;
          }
