@@ -1,5 +1,10 @@
 /*
  * $Log$
+ * Revision 1.4  2007/07/16 14:52:05  dennis
+ * Added parameter, with_controls, to the display method, so that
+ * any device type can easily display viewers with or without the
+ * controls.
+ *
  * Revision 1.3  2007/07/13 01:28:42  amoe
  * - Removed display( IVirtualArray ) and display( DataSet )
  * - Added display( IDisplayable ) and display( JComponent )
@@ -83,12 +88,15 @@ public class PrinterDevice extends GraphicsDevice
    * Display the specified IDisplayable with the specified region, view type, 
    * line, and graph attributes.
    * 
-   * @param disp - IDisplayable to be displayed.
+   * @param disp          - IDisplayable to be displayed.
+   * @param with_controls - boolean indicating whether to include any 
+   *                        associated controls, or just display the
+   *                        component showing the data.
    */
   @Override
-  public void display(IDisplayable disp) 
+  public void display( IDisplayable disp, boolean with_controls ) 
   {
-    JComponent jcomp = disp.getJComponent(false);
+    JComponent jcomp = disp.getJComponent( with_controls );
     
     display(jcomp); 
   }
@@ -128,7 +136,7 @@ public class PrinterDevice extends GraphicsDevice
     PrinterDevice pr_dev = new PrinterDevice("");
     pr_dev.setRegion(50,50,650,550);
     
-    pr_dev.display(va2d_disp);
+    pr_dev.display(va2d_disp,false);
     pr_dev.print();
   }
 

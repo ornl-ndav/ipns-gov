@@ -1,5 +1,10 @@
 /*
  * $Log$
+ * Revision 1.5  2007/07/16 14:52:05  dennis
+ * Added parameter, with_controls, to the display method, so that
+ * any device type can easily display viewers with or without the
+ * controls.
+ *
  * Revision 1.4  2007/07/13 21:22:18  amoe
  * -Added screen_bounds.
  * -Finished getBounds().
@@ -94,12 +99,15 @@ public class ScreenDevice extends GraphicsDevice
    * Display the specified IDisplayable with the specified region, view type, 
    * line, and graph attributes.
    * 
-   * @param disp - IDisplayable to be displayed.
+   * @param disp          - IDisplayable to be displayed.
+   * @param with_controls - boolean indicating whether to include any 
+   *                        associated controls, or just display the
+   *                        component showing the data.
    */
   @Override
-  public void display(IDisplayable disp) 
+  public void display( IDisplayable disp, boolean with_controls ) 
   {
-    JComponent jcomp = disp.getJComponent(true);
+    JComponent jcomp = disp.getJComponent( with_controls );
 
     display(jcomp);
   }
@@ -144,7 +152,7 @@ public class ScreenDevice extends GraphicsDevice
     ScreenDevice scr_dev = new ScreenDevice();
     scr_dev.setRegion(50,50,650,550);
     
-    scr_dev.display(va2d_disp);
+    scr_dev.display(va2d_disp,false);
   }
   
 }
