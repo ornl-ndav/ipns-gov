@@ -33,6 +33,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2007/07/16 22:17:20  rmikk
+ * Added a View Option to determine which view is showing( table or graph)
+ * Added table object states and graph object states so that their setings
+ *    can be retained when switching views
+ * updated the object state whenever things are changed.
+ *
  * Revision 1.10  2007/07/16 14:46:31  rmikk
  * Added an object state to dictate whether the controls were shown or not
  *
@@ -107,6 +113,14 @@ import gov.anl.ipns.Util.Sys.SaveImageActionListener;
  */
 public class Display1D extends Display
 { 
+   
+   /**
+    * "View Option" - This constant String is a key for referencing
+    * the state information about which view component is used to display data.
+    * The value this key references is of type Integer.
+    */
+    public static final String VIEW_OPTION           = "View Option";
+    
  /**
   * "ViewerSize" - This constant String is a key for referencing
   * the state information about the size of the viewer at the time
@@ -145,6 +159,8 @@ public class Display1D extends Display
     		                   System.getProperty("file.separator") +
 		                   "Display1DProps.isv";
   
+  private ObjectState OState;
+  
  /**
   * Construct a frame with the specified image and title
   *  
@@ -157,6 +173,7 @@ public class Display1D extends Display
   {
     super(iva,view_code,include_ctrls);
     setTitle("Display1D");
+    OState = new ObjectState();
     addToMenubar();
     buildPane();
     JMenu file_menu= menu_bar.getMenu(0);
@@ -164,6 +181,23 @@ public class Display1D extends Display
     loadProps(PROP_FILE);
   }
  
+  
+  private void updateObjectState(){
+     
+     if( OState == null)
+        OState = new ObjectState();
+     
+     if( !OState.reset( VIEW_OPTION, current_view))
+        OState.insert( VIEW_OPTION, current_view);
+     
+     if( ivc != null)
+     if( !OState.reset( VIEW_COMPONENT+current_view, ivc.getObjectState( false )));
+           OState.insert( VIEW_COMPONENT+current_view, ivc.getObjectState( false ));
+     
+     if( ! OState.reset( CONTROL_OPTION, new Integer(add_controls)))
+              OState.insert( CONTROL_OPTION, new Integer(add_controls));
+     
+  }
  /**
   * This method sets the ObjectState of this viewer to a previously saved
   * state.
@@ -173,8 +207,33 @@ public class Display1D extends Display
   */ 
   public void setObjectState( ObjectState new_state )
   {
+     
+     
     boolean redraw = false;  // if any values are changed, repaint overlay.
-    Object temp = new_state.get(VIEW_COMPONENT);
+    Object temp = new_state.get(VIEW_OPTION);
+    if( temp != null )
+  
+      if( temp instanceof Integer)
+         if( ((Integer)temp).intValue() != current_view)
+         {    
+            updateObjectState();
+            removeComponentMenuItems();
+            current_view = ((Integer)temp).intValue();
+            buildPane();
+            temp = OState.get( VIEW_COMPONENT+current_view);
+            if( temp !=null)
+               ivc.setObjectState( (ObjectState)temp );
+            else
+               OState.insert( VIEW_COMPONENT+current_view, 
+                            ivc.getObjectState( false ));
+            
+            redraw = true;  
+          }
+      
+     
+  
+    
+    temp = new_state.get(VIEW_COMPONENT+current_view);
     if( temp != null )
     {
       // set the object state of the view component.
@@ -196,6 +255,7 @@ public class Display1D extends Display
     {
       if( add_controls != ((Integer)temp).intValue() )
       {
+        updateObjectState();
         removeComponentMenuItems();
         add_controls = ((Integer)temp).intValue();
         buildPane();
@@ -203,6 +263,7 @@ public class Display1D extends Display
       redraw = true;  
     }
     
+    updateObjectState();
     if( redraw )
       repaint();
   }
@@ -218,14 +279,21 @@ public class Display1D extends Display
   */
   public ObjectState getObjectState( boolean isDefault )
   {
+     updateObjectState();
+     if( !isDefault)
+        return OState;
+     
     ObjectState state = new ObjectState();
+    
+    state.insert( VIEW_OPTION, new Integer( Display1D.GRAPH));
+    
     if( ivc != null )
-      state.insert( VIEW_COMPONENT, ivc.getObjectState(isDefault) );
+      state.insert( VIEW_COMPONENT+current_view, ivc.getObjectState(isDefault) );
+    
     state.insert( VIEWER_SIZE, getSize() );
-    if( isDefault )
+   
        state.insert( CONTROL_OPTION, new Integer(1) );
-    else
-       state.insert( CONTROL_OPTION, new Integer(add_controls) );
+   
     return state;
   }
 
@@ -337,18 +405,29 @@ public class Display1D extends Display
     
     if( current_view == GRAPH )
     {
+      
       // Be sure to remove any windows from other view components.
       if( ivc != null )
         ivc.kill();
       ivc = new FunctionViewComponent( (IVirtualArrayList1D)data );
+      
+      ObjectState st =(ObjectState)OState.get( VIEW_COMPONENT +Display1D.GRAPH);
+      if( st != null)
+         ivc.setObjectState( st );
     }
     else if( current_view == TABLE )
     {
+       
       // Be sure to remove any windows from other view components.
       if( ivc != null )
         ivc.kill();
       ivc = new TableViewComponent( ArrayConverter.makeInstance(
                                        (IVirtualArrayList1D)data) );
+      
+      ObjectState st =(ObjectState)OState.get( VIEW_COMPONENT +Display1D.TABLE);
+      if( st != null)
+         ivc.setObjectState( st );
+      
     }
     ivc.addActionListener( new ViewCompListener() );    
     
@@ -372,8 +451,8 @@ public class Display1D extends Display
     addComponentMenuItems();
     // Repaint the display, this is needed when the menu items are used
     // the switch between views.
-    validate();
-    repaint();
+    getContentPane().validate();
+    getContentPane().repaint();
   }
  
  /*
