@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.100  2007/07/16 14:50:26  rmikk
+ *  Removed the color model and two sided status object state entries from
+ *     the ImageJPanel2 and put them in the ImageViewComponent
+ *
  *  Revision 1.99  2007/07/12 16:49:28  oakgrovej
  *  Added closeWindows() method
  *
@@ -804,6 +808,7 @@ public class ImageViewComponent implements IViewComponent2D,
     font = FontUtil.LABEL_FONT2;
     ijp = new ImageJPanel2();
     colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
+    ijp.setNamedColorModel( colorscale, isTwoSided, false);
     setPrecision(4);
     null_data = true;
     if( varr == null )
@@ -850,6 +855,15 @@ public class ImageViewComponent implements IViewComponent2D,
       redraw = true;  
     }  
     
+    
+    temp = new_state.get(ImageJPanel2.TWO_SIDED);
+    if( temp != null )
+    {
+      isTwoSided = ((Boolean)temp).booleanValue();
+
+      ijp.setNamedColorModel( colorscale, isTwoSided, false);
+      redraw = true;  
+    }
     temp = new_state.get(PRECISION);
     if( temp != null )
     {
@@ -861,9 +875,12 @@ public class ImageViewComponent implements IViewComponent2D,
     if( temp != null )
     {
       colorscale = (String)temp; 
+      ijp.setNamedColorModel( colorscale, isTwoSided, false);
       redraw = true;  
     } 
     
+    
+   
     temp = new_state.get(COLOR_CONTROL);
     if( temp != null )
     {
@@ -1001,6 +1018,7 @@ public class ImageViewComponent implements IViewComponent2D,
     state.insert( COLOR_CONTROL, new Boolean(addColorControl) );
     state.insert( COLOR_CONTROL_EAST, new Boolean(addColorControlEast) );
     state.insert( COLOR_CONTROL_SOUTH, new Boolean(addColorControlSouth) );
+    state.insert( ImageJPanel2.TWO_SIDED, new Boolean( isTwoSided));
     state.insert( COLOR_SCALE, new String(colorscale) );
     state.insert( FONT, font );
     state.insert( IMAGEJPANEL, ijp.getObjectState(isDefault) );
@@ -1916,7 +1934,7 @@ public class ImageViewComponent implements IViewComponent2D,
   private void reInit()  
   {
     ijp.setNamedColorModel(colorscale, isTwoSided, false);
-    
+    ijp.repaint();
     // make sure logscale and two-sided are consistent
     ((AxisOverlay2D)transparencies.elementAt(2)).setTwoSided(isTwoSided);
     ijp.changeLogScale(logscale,true);
@@ -2521,6 +2539,7 @@ public class ImageViewComponent implements IViewComponent2D,
       else
       {
 	setColorScale(message);
+   ijp.setNamedColorModel( colorscale, isTwoSided, false);
 	return;
       }
   //###    background.validate();
