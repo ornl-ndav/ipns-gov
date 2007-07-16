@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2007/07/16 14:46:31  rmikk
+ * Added an object state to dictate whether the controls were shown or not
+ *
  * Revision 1.9  2007/04/14 14:04:42  rmikk
  * The tickmarks and axis labels are now shown when printing the image.
  *
@@ -128,6 +131,14 @@ public class Display1D extends Display
   * 1 - Use this int to specify display using the TableViewComponent.
   */
   public static final int TABLE = 1;
+  
+  /**
+   * "Control Option" - This constant String is a key for referencing
+   * the state information about whether or not controls are displayed with
+   * the view component. The value this key references is of type Integer.
+   */
+   public static final String CONTROL_OPTION           = "Control Option";
+   
   // many of the variables are protected in the Display base class
   private static JFrame helper = null;
   private final String PROP_FILE = System.getProperty("user.home") + 
@@ -179,6 +190,19 @@ public class Display1D extends Display
       redraw = true;  
     } 
     
+    
+    temp = new_state.get(CONTROL_OPTION); 
+    if( temp != null )
+    {
+      if( add_controls != ((Integer)temp).intValue() )
+      {
+        removeComponentMenuItems();
+        add_controls = ((Integer)temp).intValue();
+        buildPane();
+      }
+      redraw = true;  
+    }
+    
     if( redraw )
       repaint();
   }
@@ -198,6 +222,10 @@ public class Display1D extends Display
     if( ivc != null )
       state.insert( VIEW_COMPONENT, ivc.getObjectState(isDefault) );
     state.insert( VIEWER_SIZE, getSize() );
+    if( isDefault )
+       state.insert( CONTROL_OPTION, new Integer(1) );
+    else
+       state.insert( CONTROL_OPTION, new Integer(add_controls) );
     return state;
   }
 
