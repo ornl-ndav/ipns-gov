@@ -51,9 +51,9 @@ public class VirtualArray2D_Displayable  extends Displayable {
          Ostate = comp.getObjectState( true);
          
          XlateAttrNames.put( "ColorModel", "Color Scale" );
-         XlateAttrNames.put( "Axes Displayed" , "View Component.AxisOverlay2D.Axes Displayed");
-         XlateAttrNames.put("intensity", "View Component.Log Scale Slider.Slider Value");
-         XlateAttrNames.put("xxx", "View Component.Axis Control.Unselected Color");
+         XlateAttrNames.put( "Axes Displayed" , "View Component0.AxisOverlay2D.Axes Displayed");
+         XlateAttrNames.put("intensity", "View Component0.Log Scale Slider.Slider Value");
+         XlateAttrNames.put("xxx", "View Component0.Axis Control.Unselected Color");
       
       }else if( Type.equals( "TableV2D")){
          
@@ -257,7 +257,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
       JFrame jf = new JFrame("test");
       jf.getContentPane().setLayout( new GridLayout(1,1));
       jf.setSize( 400,400);
-      jf.getContentPane().add( disp.getJComponent( false ));
+      jf.getContentPane().add( disp.getJComponent( true ));
       jf.show();
       System.out.println("============================");
       disp.showOstate();
