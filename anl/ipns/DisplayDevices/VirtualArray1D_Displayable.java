@@ -4,6 +4,8 @@ import javax.swing.JComponent;
 import gov.anl.ipns.ViewTools.Components.OneD.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Displays.*;
+import java.util.*;
+import javax.swing.*;
 
 public class VirtualArray1D_Displayable extends Displayable {
    
@@ -70,6 +72,8 @@ public class VirtualArray1D_Displayable extends Displayable {
    public void setViewAttribute( String name , Object value ) {
 
       // TODO Auto-generated method stub
+      if(!Ostate.reset( name, value))
+         Ostate.insert( name, value );
 
    }
 
@@ -85,7 +89,30 @@ public class VirtualArray1D_Displayable extends Displayable {
     * @param args
     */
    public static void main( String[] args ) {
-
+     
+      float[] x1Vals ={1.0f, 2.1f, 3.2f, 6.8f, 10.2f };
+      float[] x2Vals ={1.2f, 2.3f, 3.5f, 6f, 8f };
+      float[] y1Vals ={1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
+      float[] y2Vals ={2.0f, 3f, 4f,5f, 6f };
+      Vector V = new Vector( );
+      V.add( new DataArray1D( x1Vals,y1Vals));
+      V.add( new DataArray1D( x2Vals,y2Vals));
+      VirtualArrayList1D vlist = new VirtualArrayList1D( V);
+      
+      VirtualArray1D_Displayable v1d = new VirtualArray1D_Displayable( vlist, GRAPH_DISPLAY);
+      
+      v1d.setViewAttribute( "View Component0.Graph JPanel.Graph Data1.Line Color", java.awt.Color.red);
+      v1d.setViewAttribute( "View Component0.Graph JPanel.Graph Data2.Line Color", java.awt.Color.green);
+      
+      JFrame jf = new JFrame();
+      jf.getContentPane().setLayout( new java.awt.GridLayout(1,1));
+      jf.getContentPane().add( v1d.getJComponent( true ));
+      jf.setSize( 300,400);
+      jf.show();
+      
+                
+      
+     
       // TODO Auto-generated method stub
 
    }
