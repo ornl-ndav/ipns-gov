@@ -7,7 +7,7 @@ import java.util.Vector;
 
 import javax.swing.JComponent;
 
-import newPackage.Style;
+
 
 import DataSetTools.dataset.DataSet;
 import DataSetTools.dataset.FunctionTable;
