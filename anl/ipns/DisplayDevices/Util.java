@@ -3,6 +3,7 @@ package gov.anl.ipns.DisplayDevices;
 import java.awt.Color;
 import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.Vector;
 import gov.anl.ipns.Parameters.*;
 
@@ -313,6 +314,15 @@ public class Util {
         return null;
      
    }
+  
+  public static Object TranslateKey(Hashtable tab,String key) throws Exception
+  {
+    if(tab.containsKey(key))
+      return tab.get(key);
+    else
+      throw new Exception("Attribute "+key+" not found");
+    
+  }
 
    
    /**
