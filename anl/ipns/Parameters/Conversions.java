@@ -32,6 +32,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2007/07/17 12:57:34  rmikk
+ *  Checked for and handled a null value to eliminate a null pointer excepton
+ *
  *  Revision 1.12  2007/02/03 17:22:57  rmikk
  *  Uses the Boolean class to determine the boolean value of a string.  Strings of
  *   yes, no, etc. will now be parsed better
@@ -508,6 +511,8 @@ public class Conversions
 	public static Vector StringToVec(String S)
 			throws java.lang.IllegalArgumentException {
 
+      if( S == null)
+         return null;
 		S = S.trim();
 		if (S.startsWith("["))
 			if (finddQuote(S, 1, "]", "()[]") == S.length() - 1)
