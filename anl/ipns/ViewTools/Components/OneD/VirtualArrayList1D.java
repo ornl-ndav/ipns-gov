@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/07/17 15:56:31  rmikk
+ *  Made the setGraphTitle method set the title, not return the previous title
+ *
+ *  Added a lot of error checking to this method
+ *
  *  Revision 1.11  2007/06/08 14:34:45  dennis
  *  setPointedAtGraph method now also checks for index < 0, when
  *  checking for a valid index.
@@ -349,10 +354,24 @@ public class VirtualArrayList1D implements IVirtualArrayList1D
   *
   *  @param  title Title for graph specified.
   *  @param  graph_num Index of the graph.
+  *  
+  *  @return the previous title or null if unable to change
   */
   public String setGraphTitle( String title, int graph_num )
   {
-    return ((DataArray1D)graphs.elementAt(graph_num)).getTitle();
+    if( graph_num <  0)
+       return null;
+    if( graphs == null )
+       return null;
+    if( graph_num >= graphs.size())
+       return null;
+    if( title == null )
+       return null;
+    
+    String Res = ((DataArray1D)graphs.elementAt(graph_num)).getTitle();
+    ((DataArray1D)graphs.elementAt(graph_num)).setTitle( title );
+    
+    return Res;
   }
   
  /**
