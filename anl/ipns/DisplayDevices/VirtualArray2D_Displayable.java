@@ -236,7 +236,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
    /**
     * @param args
     */
-   public static void main( String[] args ) {
+   public static void main( String[] args ) throws Exception{
       String Type = "ImageV2D";
       VirtualArray2D v2d = new VirtualArray2D( 
                new float[][]{
@@ -263,6 +263,18 @@ public class VirtualArray2D_Displayable  extends Displayable {
       disp.showOstate();
 
    }
+
+  public void setLineAttribute(int index, String name, String value) throws Exception
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
+  public void setViewAttribute(String name, String value) throws Exception
+  {
+    // TODO Auto-generated method stub
+    
+  }
 
   
 }
