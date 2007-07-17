@@ -31,6 +31,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/07/17 16:16:15  oakgrovej
+ * Added Throws Exception where needed
+ * setLineAttribute takes one int and two Strings instead of one int, one String and an Object
+ *
  * Revision 1.1  2007/07/12 16:50:41  dennis
  * Initial version of abstract base class for IDisplayable objects.
  *
@@ -81,7 +85,7 @@ abstract public class Displayable implements IDisplayable
   */
   public static void setViewAttribute( IDisplayable displayable,
                                        String       name, 
-                                       Object       value )
+                                       Object       value )throws Exception
   {
     displayable.setViewAttribute( name, value );
   }
@@ -103,7 +107,7 @@ abstract public class Displayable implements IDisplayable
   public void setLineAttribute( IDisplayable displayable,
                                 int          index, 
                                 String       name, 
-                                Object       value )
+                                String       value ) throws Exception
   {
     displayable.setLineAttribute( index, name, value );
   }
