@@ -110,7 +110,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      Hashtable<String, Object> values = getViewValueList();
      Hashtable<String,String> names = getViewAttributeList();
      
-     String OSAttribute = (String)Style.TranslateKey(names,name);
+     String OSAttribute = (String)Util.TranslateKey(names,name);
      if( Ostate.get(OSAttribute) instanceof Dimension)
      {
        String checkedVal = "";
@@ -152,7 +152,7 @@ public class VirtualArray1D_Displayable extends Displayable {
        }
      }
      else
-       OSVal = Style.TranslateKey(values,value);
+       OSVal = Util.TranslateKey(values,value);
      
      try
      {
@@ -177,9 +177,9 @@ public class VirtualArray1D_Displayable extends Displayable {
      Hashtable<String,String> selectedGraphDataTable = 
        getGraphLineAttributeList();
      
-     String OSAttribute = (String)Style.TranslateKey(selectedGraphDataTable,Attribute);
+     String OSAttribute = (String)Util.TranslateKey(selectedGraphDataTable,Attribute);
      OSAttribute = selectedGraphDataTable.get("graph data")+index+"."+OSAttribute;
-     Object OSVal = Style.TranslateKey(values,val);
+     Object OSVal = Util.TranslateKey(values,val);
      try
      {
        setLineAttribute(OSAttribute, OSVal);
