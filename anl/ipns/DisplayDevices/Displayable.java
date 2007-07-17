@@ -31,14 +31,16 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2007/07/17 19:56:55  dennis
+ * Made third method static, as it should have been originally.
+ *
  * Revision 1.2  2007/07/17 16:16:15  oakgrovej
  * Added Throws Exception where needed
- * setLineAttribute takes one int and two Strings instead of one int, one String and an Object
+ * setLineAttribute takes one int and two Strings instead of one int, 
+ * one String and an Object
  *
  * Revision 1.1  2007/07/12 16:50:41  dennis
  * Initial version of abstract base class for IDisplayable objects.
- *
- *
  */
 
 package gov.anl.ipns.DisplayDevices;
@@ -104,10 +106,10 @@ abstract public class Displayable implements IDisplayable
   *  @param  name         The name of the attribute being set.
   *  @param  value        The value to use for the attribute.
   */
-  public void setLineAttribute( IDisplayable displayable,
-                                int          index, 
-                                String       name, 
-                                String       value ) throws Exception
+  public static void setLineAttribute( IDisplayable displayable,
+                                       int          index, 
+                                       String       name, 
+                                       String       value ) throws Exception
   {
     displayable.setLineAttribute( index, name, value );
   }
