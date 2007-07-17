@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.6  2007/07/17 16:17:14  oakgrovej
+ * Added Throws Exception where needed
+ *
  * Revision 1.5  2007/07/16 14:52:05  dennis
  * Added parameter, with_controls, to the display method, so that
  * any device type can easily display viewers with or without the
@@ -130,7 +133,7 @@ public class ScreenDevice extends GraphicsDevice
     display_frame.setVisible(true);    
   }
   
-  public static void main(String[] args)
+  public static void main(String[] args)throws Exception
   {
     String type = "ImageV2D";
     VirtualArray2D v2d = new VirtualArray2D( 
