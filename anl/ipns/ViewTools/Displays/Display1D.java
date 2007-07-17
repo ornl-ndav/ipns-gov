@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2007/07/17 18:41:55  rmikk
+ * The default Object State type is now the current_view type not Graph
+ *
  * Revision 1.12  2007/07/17 15:37:59  rmikk
  * Fixed the object state so it now remembers a lot more including zooming.
  *
@@ -288,7 +291,7 @@ public class Display1D extends Display
      
     ObjectState state = new ObjectState();
     
-    state.insert( VIEW_OPTION, new Integer( Display1D.GRAPH));
+    state.insert( VIEW_OPTION, new Integer( current_view));
     
     if( ivc != null )
       state.insert( VIEW_COMPONENT+current_view, ivc.getObjectState(isDefault) );
