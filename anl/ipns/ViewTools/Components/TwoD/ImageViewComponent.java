@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.101  2007/07/17 17:38:08  dennis
+ *  Added call to buildAspectImage() when axes are made visible again.
+ *  This fixes a bug where the axes did not reappear properly when
+ *  they were turned of and then on again.
+ *
  *  Revision 1.100  2007/07/16 14:50:26  rmikk
  *  Removed the color model and two sided status object state entries from
  *     the ImageJPanel2 and put them in the ImageViewComponent
@@ -2356,8 +2361,7 @@ public class ImageViewComponent implements IViewComponent2D,
               back.getComponent(2).setVisible(false);	     // west
               back.getComponent(3).setVisible(false);	     // south
               back.getComponent(4).setVisible(false);	     // east
-              //System.out.println("visible..." + 
-               //((AxisOverlay2D)transparencies.elementAt(2)).isVisible() );
+              ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(false);
             }
             else
             {		   
@@ -2366,6 +2370,7 @@ public class ImageViewComponent implements IViewComponent2D,
               back.getComponent(3).setVisible(true);
               back.getComponent(4).setVisible(true);
               ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(true);
+              buildAspectImage();
             }
           }// end of if( axis overlay control ) 
           else if( control.getTitle().equals(ANNOTATION_OVERLAY_NAME) )
