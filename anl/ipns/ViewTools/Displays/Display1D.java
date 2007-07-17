@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2007/07/17 15:37:59  rmikk
+ * Fixed the object state so it now remembers a lot more including zooming.
+ *
  * Revision 1.11  2007/07/16 22:17:20  rmikk
  * Added a View Option to determine which view is showing( table or graph)
  * Added table object states and graph object states so that their setings
@@ -292,7 +295,7 @@ public class Display1D extends Display
     
     state.insert( VIEWER_SIZE, getSize() );
    
-       state.insert( CONTROL_OPTION, new Integer(1) );
+    state.insert( CONTROL_OPTION, new Integer(1) );
    
     return state;
   }
@@ -566,6 +569,7 @@ public class Display1D extends Display
         if( current_view != GRAPH )
 	{
 	  // Remove the menu items of the previous view component.
+     updateObjectState();
 	  removeComponentMenuItems();
           current_view = GRAPH;
 	  // Enable the "Print Image" and "Make JPEG Image" menu items.
@@ -582,6 +586,7 @@ public class Display1D extends Display
         if( current_view != TABLE )
 	{
 	  // Remove the menu items of the previous view component.
+     updateObjectState();
 	  removeComponentMenuItems();
           current_view = TABLE;
 	  // Disable the "Print Image" and "Make JPEG Image" menu items.
