@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.17  2007/07/18 18:36:31  rmikk
+ * Fixed default getObjectState to return default for current view type
+ *
  * Revision 1.16  2007/07/16 19:39:16  rmikk
  * Fixed the controls so that most of the states are remembered when changing
  *    viewtypes in the live display
@@ -323,7 +326,7 @@ public class Display2D extends Display
     ObjectState state = new ObjectState();
    
     
-    state.insert( VIEW_OPTION, new Integer(0));
+    state.insert( VIEW_OPTION, new Integer(current_view));
     
     state.insert( CONTROL_OPTION,  new Integer( Display.CTRL_ALL));
     
