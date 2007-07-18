@@ -1,3 +1,39 @@
+/* 
+ * File: VirtualArray2D_Displayable.java 
+ *  
+ * Copyright (C) 2007     Ruth Mikkelson
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contact :  Ruth Mikkelson<mikkelsonr@uwstout.edu>
+ *            MSCS Department
+ *            Menomonie, WI. 54751
+ *            (715)-235-8482
+ *
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0426797, and by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ *
+ * Modified:
+ *
+ * $Log$
+ * Revision 1.7  2007/07/18 15:12:27  rmikk
+ * Added GPL and public static strings for the view type
+ *
+ */
 package gov.anl.ipns.DisplayDevices;
 
 import java.awt.Color;
@@ -12,6 +48,10 @@ import gov.anl.ipns.ViewTools.Displays.*;
 
 public class VirtualArray2D_Displayable  extends Displayable {
 
+   
+   public static final String  TABLE = "Table";
+   public static final String  IMAGE = "Image";
+   public static final String  CONTOUR = "Contour";
    
    IVirtualArray2D array;
    String Type ;
@@ -44,7 +84,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
       if( ".ImageV2D.TableV2D.ContourV2D.".indexOf("."+Type+".") <  0 )
          throw new IllegalArgumentException( " Improper View Type");
       
-      if( Type .equals( "ImageV2D")) {
+      if( Type .equals( IMAGE)) {
          
 
          comp = new Display2D( array , Display2D.IMAGE, 1 );
@@ -55,13 +95,13 @@ public class VirtualArray2D_Displayable  extends Displayable {
          XlateAttrNames.put("intensity", "View Component0.Log Scale Slider.Slider Value");
          XlateAttrNames.put("xxx", "View Component0.Axis Control.Unselected Color");
       
-      }else if( Type.equals( "TableV2D")){
+      }else if( Type.equals( TABLE)){
          
          comp =  comp = new Display2D( array , Display2D.TABLE, 1 );;
          Ostate = comp.getObjectState( true);
          //XlateAttrNames =
       
-      }else if( Type.equals("ContourV2D")) {   
+      }else if( Type.equals( CONTOUR )) {   
          
          comp =  comp = new Display2D( array , Display2D.CONTOUR, 1 );;
          Ostate =comp.getObjectState( true);
