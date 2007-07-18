@@ -320,7 +320,7 @@ public class Util {
     if(tab.containsKey(key))
       return tab.get(key);
     else
-      throw new Exception("Attribute "+key+" not found");
+      throw new Exception("key "+key+" not found");
     
   }
 
