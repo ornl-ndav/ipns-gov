@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2007/07/18 15:25:04  rmikk
+ * Set default titles for graphs with an empty or absent title
+ *
  * Revision 1.13  2007/07/17 18:41:55  rmikk
  * The default Object State type is now the current_view type not Graph
  *
@@ -185,6 +188,12 @@ public class Display1D extends Display
     JMenu file_menu= menu_bar.getMenu(0);
     PrintComponentActionListener.setUpMenuItem(file_menu,getContentPane());
     loadProps(PROP_FILE);
+    for( int i=0; i< iva.getNumGraphs(); i++){
+       String title = iva.getGraphTitle( i );
+       if( title == null || title.trim().length() < 1)
+          iva.setGraphTitle( "Graph "+i, i+1);
+    }
+       
   }
  
   
