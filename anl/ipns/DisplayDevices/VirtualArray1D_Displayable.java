@@ -29,8 +29,8 @@ public class VirtualArray1D_Displayable extends Displayable {
    
    Display1D comp ;
    ObjectState Ostate ;
-   public static String GRAPH_DISPLAY = "GraphV1D";
-   public static String TABLE_DISPLAY = "TableV1D";
+   public static String GRAPH = "GraphV1D";
+   public static String TABLE = "TableV1D";
 
    /**
     * Creates a Displayable of the given type  from a list of 1D arrays.
@@ -53,11 +53,11 @@ public class VirtualArray1D_Displayable extends Displayable {
          throw new IllegalArgumentException(
                        "The Type of the display is needed ");
       
-      if( Type.equals( GRAPH_DISPLAY ))
+      if( Type.equals( GRAPH ))
          
          comp = new Display1D( array, Display1D.GRAPH, Display.CTRL_ALL);
       
-       else if( Type.equals( TABLE_DISPLAY ))
+       else if( Type.equals( TABLE ))
           comp = new Display1D( array, Display1D.TABLE, Display.CTRL_ALL);
          
       else
@@ -91,11 +91,11 @@ public class VirtualArray1D_Displayable extends Displayable {
        setViewAttribute( name, (String) value);
        return;
      }
-     if(Type.equals(GRAPH_DISPLAY))
+     if(Type.equals(GRAPH))
      {
        
      }
-     else if(Type.equals(TABLE_DISPLAY))
+     else if(Type.equals(TABLE))
      {
        
      }
@@ -300,10 +300,13 @@ public class VirtualArray1D_Displayable extends Displayable {
      data.add(data3);
      
      VirtualArrayList1D array = new VirtualArrayList1D(data);
+     array.setGraphTitle("Graph 1", 0);
+     array.setGraphTitle("Graph 2", 1);
+     array.setGraphTitle("Graph 3", 2);
      VirtualArray1D_Displayable disp = 
-       new VirtualArray1D_Displayable(array,GRAPH_DISPLAY);
+       new VirtualArray1D_Displayable(array,GRAPH);
      VirtualArray1D_Displayable dispTab = 
-       new VirtualArray1D_Displayable(array,TABLE_DISPLAY);
+       new VirtualArray1D_Displayable(array,TABLE);
      //System.out.println(dispTab.comp.getObjectState(true));
      
      disp.setLineAttribute(1, "line type", "dashdot");
@@ -314,11 +317,12 @@ public class VirtualArray1D_Displayable extends Displayable {
      disp.setLineAttribute(3, "line type", "dashed");
      disp.setLineAttribute(3, "mark type", "plus");
      disp.setLineAttribute(3, "mark color", "cyan");
-     //disp.setViewAttribute("viewer size","500,500");
+     disp.setViewAttribute("viewer size","500,500");
+     //dispTab.setViewAttribute("label background","red");
      //System.out.println(disp.comp.getObjectState(true));
      
      //dispTab.setViewAttribute("control option", "off");
-     //dispTab.setVisible(true);
+     dispTab.setVisible(true);
      disp.setVisible(true);
    }
      public static void main1( String[] args ) 
@@ -333,7 +337,7 @@ public class VirtualArray1D_Displayable extends Displayable {
       V.add( new DataArray1D( x2Vals,y2Vals));
       VirtualArrayList1D vlist = new VirtualArrayList1D( V);
       
-      VirtualArray1D_Displayable v1d = new VirtualArray1D_Displayable( vlist, GRAPH_DISPLAY);
+      VirtualArray1D_Displayable v1d = new VirtualArray1D_Displayable( vlist, GRAPH);
       
       //v1d.setViewAttribute( "View Component0.Graph JPanel.Graph Data1.Line Color", java.awt.Color.red);
       //v1d.setViewAttribute( "View Component0.Graph JPanel.Graph Data2.Line Color", java.awt.Color.green);
