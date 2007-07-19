@@ -1,5 +1,16 @@
 /*
  * $Log$
+ * Revision 1.6  2007/07/19 17:17:15  dennis
+ * Fixed bug in getInstance() method... it now returns a
+ * GraphicsDevice of the correct type based on the type
+ * parameter.
+ * getInstance() method now throws an illegal argument
+ * exception if the type word is not one of the supported
+ * types (Screen, File, etc.)  This check is NOT case
+ * sensitive.
+ * Add some more detailed javadocs for behavior of print()
+ * method.
+ *
  * Revision 1.5  2007/07/16 14:50:31  dennis
  * Added parameter, with_controls, to the display method, so that the
  * display can be done with or without controls for any GraphicsDevice.
@@ -66,8 +77,11 @@ public abstract class GraphicsDevice
 
   
   /**
-   * Flush any pending output.  For printer, print a page. No-Op for Screen.
-   * For File, flush the writer.
+   * Actually trigger sending the output to the device.
+   * If the device is a file, write the current display(s)
+   * to the file.  If the device is a printer, actually
+   * print the current display(s) to the printer.  
+   * For a "Screen" device this has no effect.
    */
   public abstract void print();
 
@@ -142,17 +156,23 @@ public abstract class GraphicsDevice
    */  
   public static GraphicsDevice getInstance( String type, String name )
   {
-    if ( GraphicsDevice.FILE.equals(name) )
+    if ( GraphicsDevice.SCREEN.equalsIgnoreCase(type) )
+      return new ScreenDevice();
+
+    if ( GraphicsDevice.FILE.equalsIgnoreCase(type) )
       return new FileDevice( name );
 
-    else if ( GraphicsDevice.PRINTER.equals(name) )
+    else if ( GraphicsDevice.PRINTER.equalsIgnoreCase(type) )
       return new PrinterDevice( name );
 
-    else if ( GraphicsDevice.PREVIEW.equals(name) )
+    else if ( GraphicsDevice.PREVIEW.equals(type) )
       return new PreviewDevice();
   
     else 
-      return new ScreenDevice();
+    { 
+      throw new IllegalArgumentException("Couldn't make device type " + type +
+                                         " with name " + name ); 
+    }
   }
   
 
@@ -173,8 +193,10 @@ public abstract class GraphicsDevice
 
   
   /**
-   * Flush any pending output.  For printer, print a page. No-Op for Screen.
-   * For File, flush the writer.
+   * Actually trigger sending the output to the device.
+   * If the device is a file, write the current display(s)
+   * to the file.  If the device is a printer, actually
+   * print the current display(s) to the printer.
    *
    * @param gd    - The graphics device to which output will be sent.
    */
