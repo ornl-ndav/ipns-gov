@@ -33,6 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.11  2007/07/19 21:06:17  dennis
+ * Now uses setGlobalBounds() to reset the zoom region only
+ * when a message to reset the zoom region is received, not
+ * when zooming in.  Also, now only calls the
+ * setLocalBounds() method when zooming in, not when
+ * resetting the zoom region.
+ *
  * Revision 1.10  2006/11/03 19:37:29  amoe
  * -Added method:  generateCalculateButton()
  * -Added calculate button to view control list.
@@ -1476,6 +1483,7 @@ public class ContourControlHandler extends ContourChangeHandler
                   message.equals(PanViewControl.BOUNDS_MOVED) || 
                      message.equals(PanViewControl.BOUNDS_RESIZED))
             {
+               System.out.println("Contour message: " + message );
                getContourPanel().
                   setLocalWorldCoords(panControl.getLocalBounds());
                displayChanged();
@@ -1506,13 +1514,14 @@ public class ContourControlHandler extends ContourChangeHandler
       public void actionPerformed(ActionEvent event)
       {
          String message = event.getActionCommand();
-         if (message.equals(ContourJPanel.ZOOM_IN) || 
-               message.equals(ContourJPanel.RESET_ZOOM))
+         if ( message.equals(ContourJPanel.ZOOM_IN)   || 
+              message.equals(ContourJPanel.RESET_ZOOM) )
          {
             ContourJPanel contourPanel = getContourPanel();
-            panControl.setGlobalBounds(contourPanel.getGlobalWorldCoords());
-            panControl.setLocalBounds(contourPanel.getLocalWorldCoords());
-            //panControl.repaint();
+            if ( message.equals(ContourJPanel.RESET_ZOOM) )
+              panControl.setGlobalBounds(contourPanel.getGlobalWorldCoords());
+            else
+              panControl.setLocalBounds(contourPanel.getLocalWorldCoords());
          }
       }
    }
