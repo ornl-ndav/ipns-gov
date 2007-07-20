@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.8  2007/07/20 01:54:41  dennis
+ * Fixed typo (double assignment to comp).
+ *
  * Revision 1.7  2007/07/18 15:12:27  rmikk
  * Added GPL and public static strings for the view type
  *
@@ -97,13 +100,13 @@ public class VirtualArray2D_Displayable  extends Displayable {
       
       }else if( Type.equals( TABLE)){
          
-         comp =  comp = new Display2D( array , Display2D.TABLE, 1 );;
+         comp = new Display2D( array , Display2D.TABLE, 1 );;
          Ostate = comp.getObjectState( true);
          //XlateAttrNames =
       
       }else if( Type.equals( CONTOUR )) {   
          
-         comp =  comp = new Display2D( array , Display2D.CONTOUR, 1 );;
+         comp = new Display2D( array , Display2D.CONTOUR, 1 );;
          Ostate =comp.getObjectState( true);
          //XlateAttrNames =
       }else
