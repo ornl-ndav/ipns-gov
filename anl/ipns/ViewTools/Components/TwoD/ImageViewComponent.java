@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.102  2007/07/20 02:58:17  dennis
+ *  Now calls the PanViewControl's generic setControlValue()
+ *  method, rather than the setLocalBounds() method which is
+ *  now private.
+ *  Removed some redundant calls to set bounds.
+ *  Moved call to ijp.changeLogScale() in the reInit() method
+ *  to a point after the ijp has been reset.  This fixed a
+ *  problem with array index out of bounds when the Display2D
+ *  method was switched between contour and image displays
+ *  and the PanViewControl had been used.
+ *
  *  Revision 1.101  2007/07/17 17:38:08  dennis
  *  Added call to buildAspectImage() when axes are made visible again.
  *  This fixes a bug where the axes did not reappear properly when
@@ -1531,7 +1542,7 @@ public class ImageViewComponent implements IViewComponent2D,
       buildViewComponent();
     // This is required since the PanViewControl holds its own bounds.
     ((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
-    ((PanViewControl)controls[9]).setLocalBounds(getLocalCoordBounds());
+ // ((PanViewControl)controls[9]).setControlValue(getLocalCoordBounds());
  // ((PanViewControl)controls[9]).validate();  // Need this to resize control.
     ((PanViewControl)controls[9]).makeNewPanImage = true ;
     ((PanViewControl)controls[9]).repaint();
@@ -1942,7 +1953,6 @@ public class ImageViewComponent implements IViewComponent2D,
     ijp.repaint();
     // make sure logscale and two-sided are consistent
     ((AxisOverlay2D)transparencies.elementAt(2)).setTwoSided(isTwoSided);
-    ijp.changeLogScale(logscale,true);
     // since flags have already been set, this will put the color scales
     // where they need to be.
     buildViewComponent();    // builds the background jpanel containing
@@ -1960,8 +1970,9 @@ public class ImageViewComponent implements IViewComponent2D,
     returnFocus();
     
     ((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
-    ((PanViewControl)controls[9]).setLocalBounds(getLocalCoordBounds());
+    ((PanViewControl)controls[9]).setControlValue(getLocalCoordBounds());
     ((PanViewControl)controls[9]).repaint();
+    ijp.changeLogScale(logscale,true);
   } 
   
  /*
@@ -2290,19 +2301,15 @@ public class ImageViewComponent implements IViewComponent2D,
       }
       else if (message == CoordJPanel.ZOOM_IN)
       {
-	ImageJPanel2 center = (ImageJPanel2)ae.getSource();
-	((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
-	((PanViewControl)controls[9]).setLocalBounds(getLocalCoordBounds());
+      ((PanViewControl)controls[9]).setControlValue(getLocalCoordBounds());
         buildAspectImage();
-	paintComponents();
+        paintComponents();
       }
       else if (message == CoordJPanel.RESET_ZOOM)
       {
-	ImageJPanel2 center = (ImageJPanel2)ae.getSource();
-	((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
-	((PanViewControl)controls[9]).setLocalBounds(getLocalCoordBounds());
+       ((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
         buildAspectImage();
-	paintComponents();
+	    paintComponents();
       }	 
     } 
   }
