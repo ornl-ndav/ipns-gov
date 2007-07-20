@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2007/07/20 03:03:31  dennis
+ *  Simplified logic in setGlobalPanelBounds().  Setting the global
+ *  panel bounds is only needed when new data has been set, so the
+ *  local viewport is also reset.
+ *
  *  Revision 1.14  2007/07/13 14:20:42  dennis
  *  Added comment to clarify why a BOUNDS_CHANGED message was sent.
  *
@@ -351,38 +356,18 @@ public class TranslationJPanel extends CoordJPanel
   }                                           //       so it gets drawn
   
  /**
-  * Set the bounds for the entire image. This method must be called whenever the
-  * global bounds of the CoordJPanel are changed. Also call this method to
-  * initialize the global bounds.
+  * Set the bounds for the entire image AND reset the local bounds to the
+  * Global bounds. This method should only be called when the global bounds 
+  * of the CoordJPanel are changed, or the ZOOM region is to be reset. 
+  * Also call this method to initialize the global and local bounds.
   *
   *  @param  global CoordBounds representing the entire possible viewable area.
   */ 
   public void setGlobalPanelBounds( CoordBounds global )
   {
-    setGlobalWorldCoords( global.MakeCopy() );
-    CoordBounds local_bounds = getLocalWorldCoords();
-    // since it is possible for x1 > x2 and/or y1 > y2, must check this.
-    boolean reverse_x = false;
-    boolean reverse_y = false;
-    if( global.getX1() > global.getX2() )
-      reverse_x = true;
-    if( global.getY1() > global.getY2() )
-      reverse_y = true;
-    
-    // if local bounds are larger than new global bounds, set local to global
-    // x2 > x1
-    if( reverse_x )
-      if( global.getX1() < local_bounds.getX1() ||
-          global.getX2() > local_bounds.getX2() )
-        setViewPort(global);
-    // y2 > y1
-    else if( reverse_y )
-      if( global.getY1() < local_bounds.getY1() ||
-	  global.getX2() > local_bounds.getY1() )
-        setViewPort(global);
-    // standard x1 < x2, y1 < y2
-    else
-      setViewPort(global);
+    CoordBounds copy = global.MakeCopy();
+    setGlobalWorldCoords( copy );
+    setViewPort( copy );
   }
   
  /**
