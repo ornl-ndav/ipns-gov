@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.103  2007/07/20 16:29:53  dennis
+ *  Made separate listener for the PanViewControl.
+ *  Removed call to paintComponents() at the end of the
+ *  buildAspectImage() method, to allow for finer control
+ *  of the repaints.
+ *
  *  Revision 1.102  2007/07/20 02:58:17  dennis
  *  Now calls the PanViewControl's generic setControlValue()
  *  method, rather than the setLocalBounds() method which is
@@ -1143,6 +1149,7 @@ public class ImageViewComponent implements IViewComponent2D,
     if( getDisplayPanel().isVisible() )
     {
       buildAspectImage();
+      paintComponents();
     }
   }
       
@@ -1615,6 +1622,7 @@ public class ImageViewComponent implements IViewComponent2D,
         nextup.setVisible(false);   // initialize this overlay to off.
         nextup.setRegionColor(Color.magenta);
         nextup.addActionListener( new SelectedRegionListener() );
+
         AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
         MarkerOverlay marker_overlay = new MarkerOverlay(this);
         
@@ -2042,6 +2050,7 @@ public class ImageViewComponent implements IViewComponent2D,
     background.add(south, "South");
     background.add(east, "East" );
     buildAspectImage();
+    paintComponents();
   }
   
  /*
@@ -2093,7 +2102,7 @@ public class ImageViewComponent implements IViewComponent2D,
     // Control that displays a thumbnail of the image
     controls[9] = new PanViewControl(ijp);
     controls[9].setTitle(PAN_NAME);
-    controls[9].addActionListener( new ControlListener() ); 
+    controls[9].addActionListener( new PanViewListener() ); 
   }
   
  /*
@@ -2236,8 +2245,10 @@ public class ImageViewComponent implements IViewComponent2D,
     background.validate();
     // reset the center bounds and update the overlays.
     regioninfo = new Rectangle( ijp.getLocation(), ijp.getSize() );
-    // this is needed to properly draw the axes.
-    paintComponents();
+
+    // NOTE: A call to paintComponents may still need to be made after
+    //       calling buildAspectImage(), since the call to paintComponents
+    //       was removed from here.
   }
   
  //***************************Assistance Classes******************************
@@ -2309,7 +2320,7 @@ public class ImageViewComponent implements IViewComponent2D,
       {
        ((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
         buildAspectImage();
-	    paintComponents();
+        paintComponents();
       }	 
     } 
   }
@@ -2378,6 +2389,7 @@ public class ImageViewComponent implements IViewComponent2D,
               back.getComponent(4).setVisible(true);
               ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(true);
               buildAspectImage();
+              paintComponents();
             }
           }// end of if( axis overlay control ) 
           else if( control.getTitle().equals(ANNOTATION_OVERLAY_NAME) )
@@ -2443,23 +2455,6 @@ public class ImageViewComponent implements IViewComponent2D,
           }
         }	
       }
-      // This message is sent by the pan view control when the viewable
-      // subregion changes.
-      else if( message.equals( PanViewControl.BOUNDS_CHANGED ) ||
-               message.equals( PanViewControl.BOUNDS_MOVED ) ||
-	       message.equals( PanViewControl.BOUNDS_RESIZED ) )
-      {
-        if( ae.getSource() instanceof PanViewControl )
-        {
-          PanViewControl pvc = (PanViewControl)ae.getSource();
-          // since the pan view control has a CoordJPanel in it with the
-          // same bounds, set its local bounds to the image local bounds.
-          ijp.setLocalWorldCoords( pvc.getLocalBounds() );
-          // this method is only here to repaint the image
-          ijp.changeLogScale( logscale, true );
-	  buildAspectImage();
-        }
-      }
       //Message from the list of selectors
       else if( message.equals( LabelCombobox.COMBOBOX_CHANGED ) )
       {
@@ -2483,6 +2478,23 @@ public class ImageViewComponent implements IViewComponent2D,
       paintComponents(); 
     }
   } 
+
+
+ /*
+  *  This class handles messages from the PanViewControl.
+  */
+  private class PanViewListener implements ActionListener
+  {
+     public void actionPerformed( ActionEvent ae )
+     {
+        PanViewControl pvc = (PanViewControl)ae.getSource();
+        ijp.setLocalWorldCoords( pvc.getLocalBounds() );
+        buildAspectImage();
+        ijp.RebuildImage();
+        paintComponents();
+    }
+  }
+
 
  /*
   * This class relays the message sent out by the ColorScaleMenu
@@ -2630,6 +2642,7 @@ public class ImageViewComponent implements IViewComponent2D,
       if( null_data )
         return;
       buildAspectImage();
+      paintComponents();
     }
   }
      
