@@ -33,6 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.13  2007/07/20 02:47:36  dennis
+ * Now calls PanViewControl's "generic" setControValue() method,
+ * rather than the specific setLocalWorldCoords() method, which
+ * has been made private.
+ *
  * Revision 1.12  2007/07/20 01:30:15  dennis
  * Removed debug print.
  *
@@ -143,7 +148,7 @@ import javax.swing.SpinnerNumberModel;
  * synchronized with the other modules.
  */
 public class ContourControlHandler extends ContourChangeHandler 
-                                      implements InformationHandler
+                                   implements InformationHandler
 {
 //--------------------=[ InformationCenter keys ]=----------------------------//
    /**
@@ -1523,7 +1528,7 @@ public class ContourControlHandler extends ContourChangeHandler
             if ( message.equals(ContourJPanel.RESET_ZOOM) )
               panControl.setGlobalBounds(contourPanel.getGlobalWorldCoords());
             else
-              panControl.setLocalBounds(contourPanel.getLocalWorldCoords());
+              panControl.setControlValue(contourPanel.getLocalWorldCoords());
          }
       }
    }
