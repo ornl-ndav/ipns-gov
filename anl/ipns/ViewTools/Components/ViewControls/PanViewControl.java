@@ -34,6 +34,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.29  2007/07/20 02:51:57  dennis
+ *  No longer sends two message when the region is changed, but
+ *  for now just forwards the message from the translation overlay.
+ *  This should eventually be changed so it just sends a
+ *  VALUE_CHANGED message.
+ *  Removed ignore_change flag that is no longer used.
+ *  Removed some redundant calls to setting global or local bounds.
+ *  The setLocalBounds() method is now private, since users of this
+ *  control should use the generic setControlValue() method.
+ *
  *  Revision 1.28  2007/07/11 19:49:35  dennis
  *  Removed some extra calls to repaint when the bounds were
  *  adjusted from outside, since these caused extra repaints and
@@ -245,7 +255,7 @@ public class PanViewControl extends ViewControl
   private TranslationOverlay overlay;  // where the region outline is drawn.
   private double data_width = 0;
   private double data_height = 0;
-  private boolean ignore_change = false;
+
   /**
    * Set to True if the data represented in the image has changed.
    */
@@ -262,8 +272,6 @@ public class PanViewControl extends ViewControl
     overlay = new TranslationOverlay();
     actual_cjp = cjp;
     overlay.addActionListener( new OverlayListener() );
-    setGlobalBounds( cjp.getGlobalWorldCoords() );
-    setLocalBounds( cjp.getLocalWorldCoords() );
     setLayout( new OverlayLayout(this) );
     setPreferredSize( new Dimension(0,150) );
     setMaximumSize( new Dimension(200,200) );
@@ -272,6 +280,7 @@ public class PanViewControl extends ViewControl
     addMouseListener( new PanMouseAdapter() );
     // this listener will preserve the aspect ratio of the control
     addComponentListener( new MaintainAspectRatio() );
+    setGlobalBounds( cjp.getGlobalWorldCoords() );
     refreshData();
   }
  
@@ -322,9 +331,7 @@ public class PanViewControl extends ViewControl
   {
     if( value == null || !(value instanceof CoordBounds) )
       return;
-    ignore_change = true;
     setLocalBounds( (CoordBounds)value );
-    ignore_change = false;
   }
   
  /**
@@ -344,10 +351,12 @@ public class PanViewControl extends ViewControl
   */
   public ViewControl copy()
   {
-    PanViewControl clone = new PanViewControl(actual_cjp);/*
+    PanViewControl clone = new PanViewControl(actual_cjp);
+    /*
     clone.setGlobalBounds(getGlobalBounds());
     clone.setLocalBounds(getLocalBounds());
-    clone.enableStretch(isStretchEnabled());*/
+    clone.enableStretch(isStretchEnabled());
+    */
     clone.setObjectState( getObjectState(PROJECT) );
     return clone;
   }
@@ -389,7 +398,7 @@ public class PanViewControl extends ViewControl
   *
   *  @param  lb Bounds of the viewable region.
   */ 
-  public void setLocalBounds( CoordBounds lb )
+  private void setLocalBounds( CoordBounds lb )
   {
     CoordBounds global = getGlobalBounds();
     float x1 = lb.getX1();
@@ -562,13 +571,14 @@ public class PanViewControl extends ViewControl
     public void actionPerformed( ActionEvent ae )
     {
       String message = ae.getActionCommand();
-      // System.out.println("PanViewControl ae = " + message );
-      send_message(message);
-      // Only send out VALUE_CHANGED if local bounds are affected. Do not
-      // send out message if setControlValue() is called.
-      if( !ignore_change && (message.equals(BOUNDS_CHANGED) ||
-          message.equals(BOUNDS_MOVED) || message.equals(BOUNDS_RESIZED) ) )
-        send_message(VALUE_CHANGED);
+                                            // NOTE: Eventually this should
+                                            // just send VALUE_CHANGED and 
+                                            // the receiver should get the
+                                            // new value 
+      if( message.equals(BOUNDS_CHANGED) ||
+          message.equals(BOUNDS_MOVED)   || 
+          message.equals(BOUNDS_RESIZED)  )
+        send_message(message);
     }
   }
  
