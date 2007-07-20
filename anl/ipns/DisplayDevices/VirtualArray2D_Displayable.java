@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2007/07/20 21:50:16  oakgrovej
+ * Builds the view Hashtables and can set some view attributes.  Has test data for all three types: Table, Contour, and Image.  The setLineAttribute() methods do not yet serve any purpose.
+ *
  * Revision 1.8  2007/07/20 01:54:41  dennis
  * Fixed typo (double assignment to comp).
  *
@@ -47,6 +50,8 @@ import gov.anl.ipns.ViewTools.Components.TwoD.Contour.*;
 import gov.anl.ipns.ViewTools.Layouts.*;
 import javax.swing.*;
 import java.awt.*;
+import java.util.Hashtable;
+
 import gov.anl.ipns.ViewTools.Displays.*;
 
 public class VirtualArray2D_Displayable  extends Displayable {
@@ -59,7 +64,11 @@ public class VirtualArray2D_Displayable  extends Displayable {
    IVirtualArray2D array;
    String Type ;
    Display2D comp;
-   java.util.Hashtable XlateAttrNames;
+   Hashtable<String, Object> viewValList;
+   Hashtable<String,String> viewAttributeList;
+   Hashtable<String, Object> lineValList;
+   Hashtable<String,String> lineAttributeList;
+
    
    ObjectState Ostate;
    /**
@@ -73,47 +82,48 @@ public class VirtualArray2D_Displayable  extends Displayable {
     */
    public VirtualArray2D_Displayable( IVirtualArray2D array, String Type)
                   throws IllegalArgumentException {
+     
 
-      super();
-      this.array= array;
-      this.Type = Type;
-      XlateAttrNames = new java.util.Hashtable();
-      if( array == null)
-         throw new IllegalArgumentException( " No array of values");
+     super();
+     this.array= array;
+     this.Type = Type;
+     viewValList = getViewValueTable();
+     viewAttributeList = getViewAttributeTable();
+     //lineValList = getLineValueTable();
+     //lineAttributeList = getLineAttributeTable();
+     
+     if( array == null)
+       throw new IllegalArgumentException( " No array of values");
       
-      if( Type == null)
-         throw new IllegalArgumentException( " No Type for view");
+     if( Type == null)
+       throw new IllegalArgumentException( " No Type for view");
       
-      if( ".ImageV2D.TableV2D.ContourV2D.".indexOf("."+Type+".") <  0 )
-         throw new IllegalArgumentException( " Improper View Type");
+     if( ".Image.Table.Contour.".indexOf("."+Type+".") <  0 )
+       throw new IllegalArgumentException( " Improper View Type");
       
-      if( Type .equals( IMAGE)) {
+     if( Type .equals( IMAGE)) {
          
 
-         comp = new Display2D( array , Display2D.IMAGE, 1 );
-         Ostate = comp.getObjectState( true);
+       comp = new Display2D( array , Display2D.IMAGE, 1 );
+       Ostate = comp.getObjectState( true);
+       System.out.println("Image");
+      
+     }else if( Type.equals( TABLE)){
          
-         XlateAttrNames.put( "ColorModel", "Color Scale" );
-         XlateAttrNames.put( "Axes Displayed" , "View Component0.AxisOverlay2D.Axes Displayed");
-         XlateAttrNames.put("intensity", "View Component0.Log Scale Slider.Slider Value");
-         XlateAttrNames.put("xxx", "View Component0.Axis Control.Unselected Color");
+       comp = new Display2D( array , Display2D.TABLE, 1 );;
+       Ostate = comp.getObjectState( true);
+       System.out.println("Table");
       
-      }else if( Type.equals( TABLE)){
+     }else if( Type.equals( CONTOUR )) {   
          
-         comp = new Display2D( array , Display2D.TABLE, 1 );;
-         Ostate = comp.getObjectState( true);
-         //XlateAttrNames =
-      
-      }else if( Type.equals( CONTOUR )) {   
-         
-         comp = new Display2D( array , Display2D.CONTOUR, 1 );;
-         Ostate =comp.getObjectState( true);
-         //XlateAttrNames =
-      }else
-         Ostate = new ObjectState();
-      
-      
-      showOstate( Ostate,1);
+       comp = new Display2D( array , Display2D.CONTOUR, 1 );;
+       Ostate =comp.getObjectState( true);
+       System.out.println("Contour");
+       
+     }else
+       Ostate = new ObjectState();
+            
+      //showOstate( Ostate,1);
     
       
    }
@@ -149,7 +159,8 @@ public class VirtualArray2D_Displayable  extends Displayable {
     *  @param  name     The name of the attribute being set.
     *  @param  value    The value to use for the attribute.
     */
-   public void  setViewAttribute(String name, Object value){
+   public void  setViewAttribute(String name, Object value)throws Exception
+   {
       
       if( name == null)
          return;
@@ -157,8 +168,49 @@ public class VirtualArray2D_Displayable  extends Displayable {
           
       if( value == null)
          return;
+      
+      name = name.toLowerCase();
+      String attrib = (String) Util.TranslateKey(viewAttributeList, name);
+      
+      if(value instanceof String)
+      {
+        setViewAttribute(name,(String)value);
+        return;
+      }
+      
+      if( attrib.contains("Field Values"))
+      {
+        String[] valArray = (String[])Ostate.get(attrib);
+        if( name.equals("minimum value"))
+        {
+          valArray[0] = value.toString();
+        }
+        
+        else if( name.equals("maximum value"))
+        {
+          valArray[1] = value.toString();
+        }
+        
+        else if( name.equals("number of levels"))
+        {
+          valArray[2] = value.toString();
+        }
+        
+        value = valArray;
+      }
+      
+      try
+      {
+        Ostate.reset(attrib, value);
+      }
+      catch(Exception e)
+      {
+        throw e;
+      }
+      
+      comp.setObjectState(Ostate);
     
-      String S =  (String)XlateAttrNames.get(name);
+      /*String S =  (String)XlateAttrNames.get(name);
       
       Object DT = Ostate.get( S );
       
@@ -182,7 +234,25 @@ public class VirtualArray2D_Displayable  extends Displayable {
       
       else if(! Ostate.reset( S, Oval))
          if( !Ostate.insert( S, Oval))
-          System.out.println("Could not make the change")  ;
+          System.out.println("Could not make the change")  ;*/
+   }
+   public void  setViewAttribute(String name, String value)throws Exception
+   {
+     name = name.toLowerCase();
+     value = value.toLowerCase();
+     
+     String attrib = (String) Util.TranslateKey(viewAttributeList, name);
+     Object val = Util.TranslateKey(viewValList, value);
+     
+     try
+     {
+       Ostate.reset(attrib, val);
+     }
+     catch(Exception e)
+     {
+       throw e;
+     }
+     comp.setObjectState(Ostate);
    }
    
    
@@ -198,52 +268,57 @@ public class VirtualArray2D_Displayable  extends Displayable {
     *  @param  name     The name of the attribute being set.
     *  @param  value    The value to use for the attribute.
     */
-   public void setLineAttribute(int index,  String name, Object value){
-      
-      
+   public void setLineAttribute(int index,  
+                                String name, 
+                                Object value)throws Exception
+   {   
       if( name == null)
          return;
 
-     
-      
       if( value == null)
          return;
-      
-      String S ;
-      if( index >=10){
-         
-         S = (String) XlateAttrNames.get("Line_"+name+"__"+7);
-         int k = S.indexOf("7");
-         S = S.substring(0,k)+index+S.substring(k+1);
-         
-      }else
-         S =(String) XlateAttrNames.get("Line_"+name+"__"+index);
-      
-      Object DT = Ostate.get( S );
- 
-      if( ObjectState.INVALID_PATH ==( DT))
-         DT = null;
-      
-      Object Oval = null;
-      
-      if( DT != null)
-      try{
-         
-          Oval =Util.cvrt(DT.getClass(), value);
-          
-      }catch( Exception s){
-         
-         Oval = null;
-      }
-      
-      if( Oval == null)
-         Ostate.insert( S, value );
-      else if(!Ostate.reset( S , value))
-         Ostate.insert( S, value );
-      
+
+      name = name.toLowerCase();
+      String attribute = (String)Util.TranslateKey(viewAttributeList, name);
+    
+      Ostate.reset(attribute, value);  
    }
 
+   public void setLineAttribute(int index, 
+                                String name, 
+                                String val) throws Exception
+   {
+     name = name.toLowerCase();
+     val = val.toLowerCase();
+     Ostate = comp.getObjectState(true); 
+         
+     String OSAttribute = (String)Util.TranslateKey(lineAttributeList,name);
+     OSAttribute = lineAttributeList.get("graph data")+index+"."+OSAttribute;
+     Object OSVal = Util.TranslateKey(lineValList,val);
+     try
+     {
+       setLineAttribute(OSAttribute, OSVal);
+     }
+     catch(Exception e)
+     {
+       throw new Exception("Cannot put "+val+" into "+name);
+     }
+     comp.setObjectState(Ostate);
+     
+   }
    
+   private void setLineAttribute(String name, Object val)throws Exception
+   {
+     try
+     {
+       Ostate.reset(name, val);
+     }
+     catch(Exception e)
+     {
+       throw e;
+     }
+     comp.setObjectState(Ostate);
+   }
    
    
    /**
@@ -275,6 +350,56 @@ public class VirtualArray2D_Displayable  extends Displayable {
      
    }
    
+   public Hashtable<String,Object> getViewValueTable()
+   {
+     Hashtable<String,Object> temp = new Hashtable<String,Object>();
+     temp.put("black", Color.black);
+     temp.put("white", Color.white);
+     temp.put("blue", Color.blue);
+     temp.put("cyan", Color.cyan);
+     temp.put("green", Color.green);
+     temp.put("orange", Color.orange);
+     temp.put("red", Color.red);
+     temp.put("yellow", Color.yellow);
+     temp.put("true", true);
+     temp.put("false", false);
+     temp.put("off", 0);
+     temp.put("on", 1);
+     return temp;
+   }
+   
+   public static Hashtable<String,String> getViewAttributeTable()
+   {
+     Hashtable<String,String> temp = new Hashtable<String,String>();
+     //---------------Contour------------\\
+     temp.put("background color", 
+         "View Component2.Layout handler key." +
+         "Control panel key.Background color");//dosn't seem to do anything
+     temp.put("minimum value", 
+         "View Component2.Controls handler key.Contour controls key." +
+         "Uniform contour state.Field Values");
+     temp.put("maximum value", 
+         "View Component2.Controls handler key.Contour controls key." +
+         "Uniform contour state.Field Values");
+     temp.put("number of levels", 
+         "View Component2.Controls handler key.Contour controls key." +
+         "Uniform contour state.Field Values");
+     //----------------Image--------------\\
+     temp.put("preserve aspect ratio","View Component0.Preserve Aspect Ratio");
+     temp.put("two sided",
+         "View Component0.Two Sided");//dosn't seem to do anything
+     temp.put("color control east","View Component0.Color Control East");
+     temp.put("color control west","View Component0.Color Control West");
+     temp.put("controls","Control Option");//dosn't seem to do anything
+     temp.put("horizontal scroll",
+         "View Component0.ImageJPanel.Horizontal Scroll");
+     //---------------Table---------------\\
+     temp.put("show row labels",
+         "View Component1.TableJPanel.Show Row Labels");
+     temp.put("show column labels",
+         "View Component1.TableJPanel.Show Column Labels");
+     return temp;
+   }
  
    /**
     * @param args
@@ -291,33 +416,41 @@ public class VirtualArray2D_Displayable  extends Displayable {
                         {  6,6,6,6,6,6,6,6,6}
                         
                });
-      VirtualArray2D_Displayable disp =  new VirtualArray2D_Displayable( v2d, "ImageV2D");
+      VirtualArray2D_Displayable disp =  new VirtualArray2D_Displayable( v2d, "Contour");
       
-      disp.setViewAttribute("ColorModel", "Rainbow");
-      disp.setViewAttribute("Axes Displayed", new Integer(2));
-      disp.setViewAttribute( "intensity", new Integer(95));
-      disp.setViewAttribute( "xxx", "Red");
+      //System.out.println(disp.comp.getObjectState(true));
+      /*int[] styles = (int[])disp.comp.getObjectState(true).get(
+          "View Component2.Layout handler key.Contour panel key.Line styles");
+      for( int i = 0; i<styles.length;i++)
+      {
+        System.out.println("index :"+i+"\n"+styles[i]);
+        
+      }*/
+      //-------Contour
+      disp.setViewAttribute( "background color", "red");//does nothing
+      disp.setViewAttribute( "minimum value", 2.5);
+      disp.setViewAttribute( "maximum value", 5.5);
+      disp.setViewAttribute( "number of levels", 4);
+      
+      //-------Image
+      //disp.setViewAttribute( "preserve aspect ratio", "true");
+      //disp.setViewAttribute("two sided", true);
+      //disp.setViewAttribute("color control east", "false");
+      //disp.setViewAttribute("color control west", true);
+      //disp.setViewAttribute("horizontal scroll", "true");
+      
+      //--------Table
+      //disp.setViewAttribute("show row labels", false);
+      //disp.setViewAttribute("show column labels", "false");
+      
       JFrame jf = new JFrame("test");
       jf.getContentPane().setLayout( new GridLayout(1,1));
       jf.setSize( 400,400);
       jf.getContentPane().add( disp.getJComponent( true ));
       jf.show();
       System.out.println("============================");
-      disp.showOstate();
+      //disp.showOstate();
 
    }
-
-  public void setLineAttribute(int index, String name, String value) throws Exception
-  {
-    // TODO Auto-generated method stub
-    
-  }
-
-  public void setViewAttribute(String name, String value) throws Exception
-  {
-    // TODO Auto-generated method stub
-    
-  }
-
   
 }
