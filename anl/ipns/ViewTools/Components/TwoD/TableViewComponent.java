@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.15  2007/07/20 02:54:22  dennis
+ *  Now uses the PanViewControl's generic method setControlValue()
+ *  rather than the setLocalBounds() method, which is now private.
+ *
  *  Revision 1.14  2007/06/14 22:08:33  rmikk
  *  Had the PanViewControl repaint itself when the data is changed.
  *
@@ -632,7 +636,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     ((PanViewControl)controls[1]).setTitle(PAN_NAME);
     ((PanViewControl)controls[1]).setGlobalBounds(
          new CoordBounds(0,0,varray.getNumColumns()-1,varray.getNumRows()-1) );
-    ((PanViewControl)controls[1]).setLocalBounds(
+    ((PanViewControl)controls[1]).setControlValue(
          new CoordBounds(0,0,varray.getNumColumns()-1,varray.getNumRows()-1) );
     ((PanViewControl)controls[1]).enableStretch(false);
     ((PanViewControl)controls[1]).addActionListener( new ControlListener() );
@@ -688,7 +692,7 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
 	  viewport.width = varray.getNumColumns() + viewport.width + 1;
 	if( viewport.height < 0 )
 	  viewport.height = varray.getNumRows() + viewport.height + 1;
-	((PanViewControl)controls[1]).setLocalBounds(
+	((PanViewControl)controls[1]).setControlValue(
 	                   new CoordBounds( viewport.x, viewport.y,
 			                    viewport.x+viewport.width,
 					    viewport.y+viewport.height ) );
