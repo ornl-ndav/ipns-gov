@@ -33,6 +33,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.12  2007/07/20 01:30:15  dennis
+ * Removed debug print.
+ *
  * Revision 1.11  2007/07/19 21:06:17  dennis
  * Now uses setGlobalBounds() to reset the zoom region only
  * when a message to reset the zoom region is received, not
@@ -1479,13 +1482,12 @@ public class ContourControlHandler extends ContourChangeHandler
          public void actionPerformed(ActionEvent event)
          {
             String message = event.getActionCommand();
-            if (message.equals(PanViewControl.BOUNDS_CHANGED) || 
-                  message.equals(PanViewControl.BOUNDS_MOVED) || 
-                     message.equals(PanViewControl.BOUNDS_RESIZED))
+            if ( message.equals(PanViewControl.BOUNDS_CHANGED) || 
+                 message.equals(PanViewControl.BOUNDS_MOVED)   || 
+                 message.equals(PanViewControl.BOUNDS_RESIZED  ) )
             {
-               System.out.println("Contour message: " + message );
                getContourPanel().
-                  setLocalWorldCoords(panControl.getLocalBounds());
+                              setLocalWorldCoords(panControl.getLocalBounds());
                displayChanged();
             }
          }
