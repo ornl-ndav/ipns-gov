@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.56  2007/07/21 02:33:23  dennis
+ *  Replacing paint() with paintComponent(), again.
+ *  (Previous change was lost.)
+ *
  *  Revision 1.55  2007/07/12 16:53:41  oakgrovej
  *  Added closeWindows() and closeEditors() methods
  *  removed some of the excessive Paint() calls
@@ -50,7 +54,8 @@
  *  increased the cursor thickness for the line cursor
  *
  *  Revision 1.51  2007/06/22 21:17:57  oakgrovej
- *  The wedge and the double wedge when clicked on, pass the whole defining points array into the editor.
+ *  The wedge and the double wedge when clicked on, pass the whole 
+ *  defining points array into the editor.
  *
  *  Revision 1.50  2007/06/15 22:49:00  oakgrovej
  *  Added vector to hold list of editors
@@ -906,12 +911,11 @@ public class SelectionOverlay extends OverlayJPanel {
    *
    *  @param  g - graphics object
    */
-  public void paint(Graphics g) 
+  public void paintComponent(Graphics g) 
   {
+    System.out.println("SelectionOverlay paintComponent()");
+
     Graphics2D g2d = (Graphics2D) g.create();
-    //System.out.println("painting " +paint);
-    //paint++;
-    //Graphics2D g2d = (Graphics2D) g;
 
     current_bounds = component.getRegionInfo(); // current size of center
     sjp.setBounds(current_bounds);
@@ -929,6 +933,9 @@ public class SelectionOverlay extends OverlayJPanel {
       IViewComponent2D ivc = (IViewComponent2D) component;
       CoordTransform world_to_array = ivc.getWorldToArrayTransform();
       CoordTransform array_global = CoordTransform.inverse(world_to_array);
+
+//    System.out.println( "in SelectionOverlay.paintComponent() " +
+//                        " world_to_array = " + world_to_array );
 
       //TODO Changed HERE
       for( RegionOpListWithColor list:regionOpLists.values() ) {
