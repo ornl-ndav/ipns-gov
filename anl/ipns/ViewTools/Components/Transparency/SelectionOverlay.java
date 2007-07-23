@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.57  2007/07/23 20:47:03  dennis
+ *  Now updates the pixel local transform BEFORE drawing the interior
+ *  rather than after drawing the interior, but BEFORE drawing the
+ *  region boundary.  This is a partial fix to the problem where the
+ *  interior is not draw properly.  However, there still seems to
+ *  be a problem relating to the cursors and the drawing of the
+ *  region boundaries.
+ *  Removed local list of listeners, and routines to manage the list,
+ *  since that functionality is provided by the ActionJPanel class,
+ *  which this (indirectly) extends.
+ *
  *  Revision 1.56  2007/07/21 02:33:23  dennis
  *  Replacing paint() with paintComponent(), again.
  *  (Previous change was lost.)
@@ -419,9 +430,6 @@ public class SelectionOverlay extends OverlayJPanel {
 
   private transient CoordTransform pixel_local; // pixel coords to WC
 
-  // for ImageViewC only
-  private transient Vector Listeners = null;
-
   //private float opacity = 1.0f; // value [0,1] where 0 is clear, 
 
   // and 1 is solid.
@@ -467,7 +475,6 @@ public class SelectionOverlay extends OverlayJPanel {
     pixel_local = new CoordTransform(pixel_map, component
         .getLocalCoordBounds());
 
-    Listeners = new Vector();
     sjp.requestFocus();
   }
 
@@ -548,7 +555,7 @@ public class SelectionOverlay extends OverlayJPanel {
       redraw = true;
       // only send message if region was added.
       if (regionOpLists.size() > 0)
-        sendMessage(REGION_ADDED);
+        send_message(REGION_ADDED);
     }
 
     temp = new_state.get(SELECTION_COLOR);
@@ -638,39 +645,6 @@ public class SelectionOverlay extends OverlayJPanel {
 
 
   /**
-   * Method to add a listener to this overlay.
-   *
-   *  @param act_listener
-   */
-  public void addActionListener( ActionListener act_listener ) {
-    for (int i = 0; i < Listeners.size(); i++)
-      // don't add it if it's
-      if (Listeners.elementAt(i).equals(act_listener)) // already there
-        return;
-
-    Listeners.add(act_listener); //Otherwise add act_listener
-  }
-
-
-  /**
-   * Method to remove a listener from this component.
-   *
-   *  @param act_listener
-   */
-  public void removeActionListener( ActionListener act_listener ) {
-    Listeners.remove(act_listener);
-  }
-
-
-  /**
-   * Method to remove all listeners from this component.
-   */
-  public void removeAllActionListeners() {
-    Listeners.removeAllElements();
-  }
-
-
-  /**
    *  This method with get a reference to the specified RegionOpListWithColor
    *  from the list of named regionOpLists, if the named regionOpList exists.
    *  If the name has not been previously used, this method creates a new
@@ -738,7 +712,7 @@ public class SelectionOverlay extends OverlayJPanel {
    */
   public void clearRegions() {
     getRegionOpListWithColor(regionName).getList().clear();
-    sendMessage(ALL_REGIONS_REMOVED);
+    send_message(ALL_REGIONS_REMOVED);
   }
 
 
@@ -759,7 +733,7 @@ public class SelectionOverlay extends OverlayJPanel {
     }
 
     // send message that region was added.
-    sendMessage(REGION_ADDED);
+    send_message(REGION_ADDED);
   }
 
 
@@ -913,7 +887,7 @@ public class SelectionOverlay extends OverlayJPanel {
    */
   public void paintComponent(Graphics g) 
   {
-    System.out.println("SelectionOverlay paintComponent()");
+    // System.out.println("SelectionOverlay paintComponent()");
 
     Graphics2D g2d = (Graphics2D) g.create();
 
@@ -926,19 +900,26 @@ public class SelectionOverlay extends OverlayJPanel {
                   (int) current_bounds.getWidth(), 
                   (int) current_bounds.getHeight());
 
+    // Update the current mapping to pixel coordinates before drawing the
+    // region interior OR boundaries, in case it has changed.
+    CoordBounds pixel_map = new CoordBounds(
+                 (float) current_bounds.getX(),
+                 (float) current_bounds.getY(),
+                 (float) (current_bounds.getX() + current_bounds.getWidth()),
+                 (float) (current_bounds.getY() + current_bounds.getHeight()));
+    pixel_local.setSource(pixel_map);
+    pixel_local.setDestination(component.getLocalCoordBounds());
+
     AlphaComposite ac;
 
-    if ( component instanceof IViewComponent2D ) {    //draw region interior
-
+    if ( component instanceof IViewComponent2D )  // draw region interior
+    {   
       IViewComponent2D ivc = (IViewComponent2D) component;
       CoordTransform world_to_array = ivc.getWorldToArrayTransform();
       CoordTransform array_global = CoordTransform.inverse(world_to_array);
 
-//    System.out.println( "in SelectionOverlay.paintComponent() " +
-//                        " world_to_array = " + world_to_array );
-
-      //TODO Changed HERE
-      for( RegionOpListWithColor list:regionOpLists.values() ) {
+      for( RegionOpListWithColor list:regionOpLists.values() ) 
+      {
         Point[] point_array = list.getSelectedPoints(world_to_array);
 
         g2d.setColor(list.getColor());
@@ -948,15 +929,6 @@ public class SelectionOverlay extends OverlayJPanel {
         paintPointArray(g2d, point_array, array_global);
       }
     }
-
-    // the current pixel coordinates
-    CoordBounds pixel_map = new CoordBounds(
-                 (float) current_bounds.getX(),
-                 (float) current_bounds.getY(),
-                 (float) (current_bounds.getX() + current_bounds.getWidth()),
-                 (float) (current_bounds.getY() + current_bounds.getHeight()));
-    pixel_local.setSource(pixel_map);
-    pixel_local.setDestination(component.getLocalCoordBounds());
 
     //get all the regions and draw outlines 
 
@@ -1310,19 +1282,6 @@ public class SelectionOverlay extends OverlayJPanel {
 
 
   /*
-   * Tells all listeners about a new action.
-   *
-   *  @param  message  The message to send.
-   */
-  private void sendMessage( String message ) {
-    for (int i = 0; i < Listeners.size(); i++) {
-      ActionListener listener = (ActionListener) Listeners.elementAt(i);
-      listener.actionPerformed(new ActionEvent(this, 0, message));
-    }
-  }
-
-
-  /*
    * SelectListener listens for messages being passed from the SelectionJPanel.
    */
   private class SelectListener implements ActionListener {
@@ -1340,7 +1299,7 @@ public class SelectionOverlay extends OverlayJPanel {
         closeEditors();
         
         getRegionOpListWithColor(name).removeAll();
-        sendMessage(ALL_REGIONS_REMOVED);
+        send_message(ALL_REGIONS_REMOVED);
         //for( int i=0; i<Editors.size();i++)
         //{
           //System.out.println("Disposing editor "+i);
@@ -1357,7 +1316,7 @@ public class SelectionOverlay extends OverlayJPanel {
         
         RegionOpListWithColor list = getRegionOpListWithColor(name);
         list.removeLast();        
-        sendMessage(REGION_REMOVED);
+        send_message(REGION_REMOVED);
         //for( int i=0; i<Editors.size();i++)
        // {
          // System.out.println("Disposing editor "+i);
@@ -1596,7 +1555,7 @@ public class SelectionOverlay extends OverlayJPanel {
 
         if (regionadded)
         {
-          sendMessage(REGION_ADDED);
+          send_message(REGION_ADDED);
           this_panel.repaint();
         }
       }
