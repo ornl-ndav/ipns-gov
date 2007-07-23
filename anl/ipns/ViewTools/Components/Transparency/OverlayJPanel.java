@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/07/23 20:10:18  dennis
+ *  Now extends ActiveJPanel (which maintains list of listeners)
+ *  so that subclasses do not need to maintain their own lists.
+ *
  *  Revision 1.10  2005/05/25 20:28:33  dennis
  *  Now calls convenience method WindowShower.show() to show
  *  the window, instead of instantiating a WindowShower object
@@ -74,7 +78,6 @@
 
 package gov.anl.ipns.ViewTools.Components.Transparency;
 
-import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JEditorPane;
@@ -82,10 +85,12 @@ import javax.swing.text.html.HTMLEditorKit;
 
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
+import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
 import gov.anl.ipns.Util.Sys.WindowShower;
 
-public abstract class OverlayJPanel extends JPanel implements IOverlay,
-                                                              IPreserveState
+public abstract class OverlayJPanel extends    ActiveJPanel 
+                                    implements IOverlay,
+                                               IPreserveState
 {
  /**
   * Constructor - sets the opaqueness of the JPanel to false.
