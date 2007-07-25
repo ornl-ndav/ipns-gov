@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.7  2007/07/25 22:23:34  oakgrovej
+ * Added Throws Exception as needed for setAttribute
+ *
  * Revision 1.6  2007/07/19 17:17:15  dennis
  * Fixed bug in getInstance() method... it now returns a
  * GraphicsDevice of the correct type based on the type
@@ -72,8 +75,9 @@ public abstract class GraphicsDevice
    * 
    * @param name - Name (key) for the attribute.
    * @param value - Value for the attribute
+   * @throws Exception 
    */
-  public abstract void setDeviceAttribute(String name,Object value);
+  public abstract void setDeviceAttribute(String name,Object value) throws Exception;
 
   
   /**
@@ -183,10 +187,11 @@ public abstract class GraphicsDevice
    * @param gd    - The graphics device for which the attribute is set.
    * @param name  - Name (key) for the attribute.
    * @param value - Value for the attribute
+   * @throws Exception 
    */
   public static void setDeviceAttribute( GraphicsDevice gd, 
                                          String         name,
-                                         Object         value )
+                                         Object         value ) throws Exception
   {
     gd.setDeviceAttribute(name,value);
   }
