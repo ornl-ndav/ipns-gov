@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.11  2007/07/26 22:12:33  amoe
+ * Removed debug console prints.
+ *
  * Revision 1.10  2007/07/26 19:42:08  oakgrovej
  * Test data for devices
  *
@@ -109,19 +112,16 @@ public class VirtualArray2D_Displayable  extends Displayable {
 
        comp = new Display2D( array , Display2D.IMAGE, 1 );
        Ostate = comp.getObjectState( true);
-       System.out.println("Image");
       
      }else if( Type.equals( TABLE)){
          
        comp = new Display2D( array , Display2D.TABLE, 1 );;
        Ostate = comp.getObjectState( true);
-       System.out.println("Table");
       
      }else if( Type.equals( CONTOUR )) {   
          
        comp = new Display2D( array , Display2D.CONTOUR, 1 );;
        Ostate =comp.getObjectState( true);
-       System.out.println("Contour");
        
      }else
        Ostate = new ObjectState();
