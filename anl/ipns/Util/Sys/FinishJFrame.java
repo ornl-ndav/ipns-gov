@@ -34,6 +34,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/07/26 17:20:25  rmikk
+ * Added the setDefaultCloseOperastion to be Dispose on close
+ *
  * Revision 1.1  2004/03/23 14:45:16  rmikk
  * Initial check in.  This is just a JFrame that finalizes itself
  *   after being disposed
@@ -82,6 +85,7 @@ public class FinishJFrame extends JFrame implements IFinish{
      
       addWindowListener( new FinishWindowListener());
 
+      setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE);
 
 
 
