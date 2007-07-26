@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.105  2007/07/26 14:28:51  dennis
+ *  Fixed a few more places where border layout panels were referred to
+ *  by index, rather than by role ("center", "south", etc.).
+ *  Now remove all ijp ActionListeners before adding more.
+ *
  *  Revision 1.104  2007/07/26 01:54:52  dennis
  *  Improved naming for overlay components.
  *  Now accesses background border layout elements via names "Center"
@@ -841,6 +846,7 @@ public class ImageViewComponent implements IViewComponent2D,
     ijp.setNamedColorModel( colorscale, isTwoSided, false);
     setPrecision(4);
     null_data = true;
+
     if( varr == null )
     {
       Varray2D = new VirtualArray2D(1,1);
@@ -1595,6 +1601,7 @@ public class ImageViewComponent implements IViewComponent2D,
       {
         big_picture.removeAll();
         ImageListener ijp_listener = new ImageListener();
+        ijp.removeAllActionListeners();
         ijp.addActionListener( ijp_listener );
         	    
         ComponentAltered comp_listener = new ComponentAltered();   
@@ -2381,22 +2388,26 @@ public class ImageViewComponent implements IViewComponent2D,
           // if this control turns on/off the axis overlay...
           else if( control.getTitle().equals(AXIS_OVERLAY_NAME) )
           {	
-            JPanel back = (JPanel)big_picture.getComponent( bpsize - 1 );
             if( !control.isSelected() )
             {						     // axis overlay
+              BorderLayout blayout = (BorderLayout)background.getLayout();
+              blayout.getLayoutComponent("North").setVisible(false);
+              blayout.getLayoutComponent("West").setVisible(false);
+              blayout.getLayoutComponent("South").setVisible(false);
+              blayout.getLayoutComponent("East").setVisible(false);
               ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(false);
-              back.getComponent(1).setVisible(false);	     // north
-              back.getComponent(2).setVisible(false);	     // west
-              back.getComponent(3).setVisible(false);	     // south
-              back.getComponent(4).setVisible(false);	     // east
-              ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(false);
+              // TO DO: The image is not being resized to fill the whole
+              //        frame when the axes are turned off!
+              buildAspectImage(); 
+              paintComponents();
             }
             else
             {		   
-              back.getComponent(1).setVisible(true);
-              back.getComponent(2).setVisible(true);
-              back.getComponent(3).setVisible(true);
-              back.getComponent(4).setVisible(true);
+              BorderLayout blayout = (BorderLayout)background.getLayout();
+              blayout.getLayoutComponent("North").setVisible(true);
+              blayout.getLayoutComponent("West").setVisible(true);
+              blayout.getLayoutComponent("South").setVisible(true);
+              blayout.getLayoutComponent("East").setVisible(true);
               ((AxisOverlay2D)transparencies.elementAt(2)).setVisible(true);
               buildAspectImage();
               paintComponents();
