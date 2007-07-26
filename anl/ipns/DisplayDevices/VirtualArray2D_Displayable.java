@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.10  2007/07/26 19:42:08  oakgrovej
+ * Test data for devices
+ *
  * Revision 1.9  2007/07/20 21:50:16  oakgrovej
  * Builds the view Hashtables and can set some view attributes.  Has test data for all three types: Table, Contour, and Image.  The setLineAttribute() methods do not yet serve any purpose.
  *
@@ -405,7 +408,6 @@ public class VirtualArray2D_Displayable  extends Displayable {
     * @param args
     */
    public static void main( String[] args ) throws Exception{
-      String Type = "ImageV2D";
       VirtualArray2D v2d = new VirtualArray2D( 
                new float[][]{
                         {  1,1,1,1,1,1,1,1,1},
@@ -416,7 +418,12 @@ public class VirtualArray2D_Displayable  extends Displayable {
                         {  6,6,6,6,6,6,6,6,6}
                         
                });
-      VirtualArray2D_Displayable disp =  new VirtualArray2D_Displayable( v2d, "Contour");
+    VirtualArray2D_Displayable disp =  
+        new VirtualArray2D_Displayable( v2d, "Contour");//*/
+/*    VirtualArray2D_Displayable disp =  
+        new VirtualArray2D_Displayable( v2d, "Table");//*/
+/*    VirtualArray2D_Displayable disp =  
+        new VirtualArray2D_Displayable( v2d, "Image");//*/
       
       //System.out.println(disp.comp.getObjectState(true));
       /*int[] styles = (int[])disp.comp.getObjectState(true).get(
@@ -426,31 +433,35 @@ public class VirtualArray2D_Displayable  extends Displayable {
         System.out.println("index :"+i+"\n"+styles[i]);
         
       }*/
-      //-------Contour
+    //-------Contour
       disp.setViewAttribute( "background color", "red");//does nothing
       disp.setViewAttribute( "minimum value", 2.5);
       disp.setViewAttribute( "maximum value", 5.5);
-      disp.setViewAttribute( "number of levels", 4);
+      disp.setViewAttribute( "number of levels", 4);//*/
       
-      //-------Image
-      //disp.setViewAttribute( "preserve aspect ratio", "true");
-      //disp.setViewAttribute("two sided", true);
-      //disp.setViewAttribute("color control east", "false");
-      //disp.setViewAttribute("color control west", true);
-      //disp.setViewAttribute("horizontal scroll", "true");
+/*    //-------Image
+      disp.setViewAttribute( "preserve aspect ratio", "true");
+      disp.setViewAttribute("two sided", false);//dosn't do anything
+      disp.setViewAttribute("color control east", "false");
+      disp.setViewAttribute("color control west", true);
+      //disp.setViewAttribute("horizontal scroll", "true");//*/
       
-      //--------Table
-      //disp.setViewAttribute("show row labels", false);
-      //disp.setViewAttribute("show column labels", "false");
+/*    //--------Table
+      disp.setViewAttribute("show row labels", false);
+      disp.setViewAttribute("show column labels", "false");//*/
       
-      JFrame jf = new JFrame("test");
-      jf.getContentPane().setLayout( new GridLayout(1,1));
-      jf.setSize( 400,400);
-      jf.getContentPane().add( disp.getJComponent( true ));
-      jf.show();
-      System.out.println("============================");
-      //disp.showOstate();
-
+//    GraphicsDevice gd = new ScreenDevice();
+//    GraphicsDevice gd = new FileDevice("/home/dennis/test.jpg");
+    GraphicsDevice gd = new PreviewDevice();
+//    GraphicsDevice gd = new PrinterDevice("Adobe PDF");
+      
+      // -------------For PrinterDevice
+      //gd.setDeviceAttribute("orientation", "landscape");
+      //gd.setDeviceAttribute("copies", 1);
+    
+      gd.setRegion( 200, 100, 600, 800 );
+      gd.display( disp, true );
+      gd.print();      
    }
   
 }
