@@ -33,6 +33,16 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2007/07/26 21:14:22  amoe
+ * -In init_component_container(), the container size is set to the same size
+ *  as the Component to be printed, not the default.
+ *
+ * -PrinterPage.print(..) no longer sets the component container to visible.
+ *  This in now done in silent_print() and dialog_print().  Also here, the
+ *  container is now moved off-screen since it is not necessary to see.  This
+ *  is a temporary fix, since making the container not visible will cause it
+ *  to make the output component to not show up when printed.
+ *
  * Revision 1.1  2007/07/25 22:05:23  amoe
  * Initial commit.
  *
@@ -44,6 +54,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
@@ -70,7 +81,7 @@ public class PrintUtilities2
   public static final int DEFAULT_COMPONENT_WIDTH = 500;  
   public static final int DEFAULT_COMPONENT_HEIGHT = 500;
   
-  private JWindow jwin;
+  private JWindow comp_container;
   
   //Constructor parameters
   private Component comp;
@@ -106,7 +117,7 @@ public class PrintUtilities2
     this.page_orientation = page_orientation;
     this.num_copies = num_copies;
 
-    validate_size(comp);
+    validate_size(this.comp);
     init_component_container();
     init_attributes();
   }
@@ -127,7 +138,7 @@ public class PrintUtilities2
     this.printer_name = printer_name;
     this.aset = aset;
 
-    validate_size(comp);
+    validate_size(this.comp);
     init_component_container();
   }
   
@@ -143,7 +154,7 @@ public class PrintUtilities2
     this.comp = comp;
     this.printer_name = "";
 
-    validate_size(comp);
+    validate_size(this.comp);
     init_component_container();
   }
   
@@ -253,11 +264,11 @@ public class PrintUtilities2
   private void init_component_container()
   {
     //setting up the JComponent containter
-    jwin = new JWindow();
-    jwin.setSize(DEFAULT_COMPONENT_WIDTH,DEFAULT_COMPONENT_HEIGHT);
+    comp_container = new JWindow();
+    comp_container.setSize(comp.getWidth(),comp.getHeight());
     //jc_container.getContentPane().setLayout( new GridLayout(1,1));
-    jwin.getContentPane().add(this.comp);
-    jwin.validate();
+    comp_container.getContentPane().add(this.comp);
+    comp_container.validate();
   }
   
   /*
@@ -273,7 +284,7 @@ public class PrintUtilities2
 
     try
     {
-      doc = new SimpleDoc(printer_page, doc_format, null); 
+      doc = new SimpleDoc(printer_page, doc_format, null);
     }
     catch(Throwable u)
     {
@@ -288,16 +299,25 @@ public class PrintUtilities2
   private void silent_print() 
   {
     DocPrintJob printJob = pservice.createPrintJob();
+    //TODO: Instead of just hiding the JWindow container off-screen, try to 
+    //      find a way to make it invisible and still have the containted 
+    //      Component actually printed out.
+    comp_container.setBounds(
+        Toolkit.getDefaultToolkit().getScreenSize().width + 1,
+        Toolkit.getDefaultToolkit().getScreenSize().height + 1,
+        comp_container.getWidth(),
+        comp_container.getHeight());
+    comp_container.setVisible(true);
     try 
     {    
-      printJob.print(doc, aset);
-      //System.err.println("FAKE PRINTING");
+      printJob.print(doc, aset);       
     } 
     catch (Exception pe) 
     {
       System.err.println( pe.toString() );
       pe.printStackTrace();
     }
+    comp_container.dispose();
   }
   
   /*
@@ -327,15 +347,25 @@ public class PrintUtilities2
     boolean do_print = job.printDialog(aset);    
     if (do_print) 
     {
-        try
-        {
-          job.print();
-        }
-        catch (PrinterException ex) 
-        {
-          System.err.println("Could not print to printer.");
-          ex.printStackTrace();
-        }
+      //TODO: Instead of just hiding the JWindow container off-screen, try to 
+      //      find a way to make it invisible and still have the containted 
+      //      Component actually printed out.      
+      comp_container.setBounds( 
+                      Toolkit.getDefaultToolkit().getScreenSize().width + 1,
+                      Toolkit.getDefaultToolkit().getScreenSize().height + 1,
+                      comp_container.getWidth(),
+                      comp_container.getHeight());
+      comp_container.setVisible(true); 
+      try
+      {
+        job.print();
+      }
+      catch (PrinterException ex) 
+      {
+        System.err.println("Could not print to printer.");
+        ex.printStackTrace();
+      }
+      comp_container.dispose();
     }
   }
   
@@ -383,9 +413,7 @@ public class PrintUtilities2
             h = page_format.getImageableHeight();         
          
          disableDoubleBuffering(comp_to_print);         
-         jwin.setVisible(true);////
-         comp_to_print.paint(g2d);
-         jwin.dispose();////         
+         comp_to_print.paint(g2d);       
          enableDoubleBuffering(comp_to_print);
          
          return(PAGE_EXISTS);
@@ -434,15 +462,14 @@ public class PrintUtilities2
   private static void validate_size(Component comp)
   {
     int width = comp.getWidth();
-    int height = comp.getHeight();    
+    int height = comp.getHeight();
     
     //Making sure the Component size is at least greater than 0.
     if(width <=0 && height <= 0) 
     {
-      System.err.println("Warning: The Component's "
-              +comp.getBounds().getSize()+" is less than or equal to 0.  The " 
-              +"output Component may not be visible.");
-      
+      //System.err.println("Warning: The Component's "
+      //        +comp.getBounds().getSize()+" is less than or equal to 0.  The " 
+      //        +"output Component may not be visible.");      
       width = DEFAULT_COMPONENT_WIDTH;
       height = DEFAULT_COMPONENT_HEIGHT;
       comp.setSize(width,height);
@@ -469,23 +496,25 @@ public class PrintUtilities2
 
     VirtualArray2D_Displayable va2d_disp = 
                                   new VirtualArray2D_Displayable( va2D, type);
+    JComponent jcomp = va2d_disp.getJComponent(false);
+    jcomp.setSize(300,600);
 
     HashPrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
     aset.add(OrientationRequested.PORTRAIT);
     aset.add(new Copies(2));
     
     
-    PrintUtilities2 pu=new PrintUtilities2(
-                    va2d_disp.getJComponent(false),"hp4000_A140",aset);
+    //PrintUtilities2 pu=new PrintUtilities2(
+    //                va2d_disp.getJComponent(false),"hp4000_A140",aset);
     //PrintUtilities2 pu = new PrintUtilities2(va2d_disp.getJComponent(false),
     //                                       "hp4000_A140",false, 2);
     
     //pu.print();
-    pu.print_with_dialog();
+    //pu.print_with_dialog();
 
     //PrintUtilities2.print(va2d_disp.getJComponent(false),"hp4000_A140",aset);
     
-    //PrintUtilities2.print(va2d_disp.getJComponent(false),"hp4000_A140",false,1);
+    PrintUtilities2.print(jcomp,"hp4000_A140",false,1);
     
     //PrintUtilities2.print_with_dialog(va2d_disp.getJComponent(false));
   }//*/
