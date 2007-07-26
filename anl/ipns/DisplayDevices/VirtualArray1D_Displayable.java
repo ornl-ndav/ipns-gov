@@ -211,7 +211,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      temp.put("column labels", "View Component1.TableJPanel.Show Column Labels");
      temp.put("label background", "View Component1.TableJPanel.Label Background");
      temp.put("control option","Control Option");
-     temp.put("viewer size","Viewer Size");
+//     temp.put("viewer size","Viewer Size"); the device will take care of size
      //temp.put();
      //temp.put();
      return temp;
@@ -303,51 +303,41 @@ public class VirtualArray1D_Displayable extends Displayable {
      array.setGraphTitle("Graph 1", 0);
      array.setGraphTitle("Graph 2", 1);
      array.setGraphTitle("Graph 3", 2);
+    /* VirtualArray1D_Displayable disp = 
+       new VirtualArray1D_Displayable(array,GRAPH);//*/
      VirtualArray1D_Displayable disp = 
-       new VirtualArray1D_Displayable(array,GRAPH);
-     VirtualArray1D_Displayable dispTab = 
-       new VirtualArray1D_Displayable(array,TABLE);
+       new VirtualArray1D_Displayable(array,TABLE);//*/
      //System.out.println(dispTab.comp.getObjectState(true));
+    
+     //--------------graph test
+//   disp.setLineAttribute(1, "line type", "dashdot");
+//   disp.setLineAttribute(1, "line color", "red");
+//   disp.setLineAttribute(2, "line color", "black");
+//   disp.setLineAttribute(1, "mark type", "cross");
+//   disp.setLineAttribute(1, "mark color", "green");
+//   disp.setLineAttribute(3, "line type", "dashed");
+//   disp.setLineAttribute(3, "mark type", "plus");
+//   disp.setLineAttribute(3, "mark color", "cyan");
+//   disp.setViewAttribute("viewer size","500,500");
      
-     disp.setLineAttribute(1, "line type", "dashdot");
-     disp.setLineAttribute(1, "line color", "red");
-     disp.setLineAttribute(2, "line color", "black");
-     disp.setLineAttribute(1, "mark type", "cross");
-     disp.setLineAttribute(1, "mark color", "green");
-     disp.setLineAttribute(3, "line type", "dashed");
-     disp.setLineAttribute(3, "mark type", "plus");
-     disp.setLineAttribute(3, "mark color", "cyan");
-     disp.setViewAttribute("viewer size","500,500");
-     //dispTab.setViewAttribute("label background","red");
-     //System.out.println(disp.comp.getObjectState(true));
+     //------------table test
+//   disp.setViewAttribute("label background","red");
+//   disp.setViewAttribute("row labels", "false");
+//   disp.setViewAttribute("column labels", "false");
      
-     //dispTab.setViewAttribute("control option", "off");
-     dispTab.setVisible(true);
-     disp.setVisible(true);
+//   disp.setViewAttribute("control option", "off");// doesn't do anything
+     
+//   GraphicsDevice gd = new ScreenDevice();
+//   GraphicsDevice gd = new FileDevice("/home/dennis/test.jpg");
+   GraphicsDevice gd = new PreviewDevice();
+//   GraphicsDevice gd = new PrinterDevice("Adobe PDF");
+     
+     // -------------For PrinterDevice
+     //gd.setDeviceAttribute("orientation", "landscape");
+     //gd.setDeviceAttribute("copies", 1);
+   
+     gd.setRegion( 200, 100, 600, 800 );
+     gd.display( disp, true );
+     gd.print();
    }
-     public static void main1( String[] args ) 
-     {
-     
-      float[] x1Vals ={1.0f, 2.1f, 3.2f, 6.8f, 10.2f };
-      float[] x2Vals ={1.2f, 2.3f, 3.5f, 6f, 8f };
-      float[] y1Vals ={1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
-      float[] y2Vals ={2.0f, 3f, 4f,5f, 6f };
-      Vector V = new Vector( );
-      V.add( new DataArray1D( x1Vals,y1Vals));
-      V.add( new DataArray1D( x2Vals,y2Vals));
-      VirtualArrayList1D vlist = new VirtualArrayList1D( V);
-      
-      VirtualArray1D_Displayable v1d = new VirtualArray1D_Displayable( vlist, GRAPH);
-      
-      //v1d.setViewAttribute( "View Component0.Graph JPanel.Graph Data1.Line Color", java.awt.Color.red);
-      //v1d.setViewAttribute( "View Component0.Graph JPanel.Graph Data2.Line Color", java.awt.Color.green);
-      
-      JFrame jf = new JFrame();
-      jf.getContentPane().setLayout( new java.awt.GridLayout(1,1));
-      jf.getContentPane().add( v1d.getJComponent( true ));
-      jf.setSize( 300,400);
-      jf.show();
-
-     }
-
 }
