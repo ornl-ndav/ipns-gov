@@ -1,5 +1,12 @@
 /*
  * $Log$
+ * Revision 1.7  2007/07/26 22:48:38  amoe
+ * -Removed un-needed imports.
+ * -Added ORIENTATION and COPIES static final variables.
+ * -Removed the setting of a default width and height in the constructor.
+ * -Removed debug console prints.
+ * -Updated main method.
+ *
  * Revision 1.6  2007/07/25 22:26:00  oakgrovej
  * Added Hashtables and logic for setting Attributes: orientation and number of pages are the only ones currently.
  *
@@ -26,13 +33,8 @@
 package gov.anl.ipns.DisplayDevices;
 
 import gov.anl.ipns.DisplayDevices.IDisplayable;
-import gov.anl.ipns.DisplayDevices.VirtualArray2D_Displayable;
-import gov.anl.ipns.Util.File.ImageRenderWriter;
 import gov.anl.ipns.Util.Sys.PrintUtilities2;
-import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -44,8 +46,11 @@ import javax.swing.JComponent;
 
 public class PrinterDevice extends GraphicsDevice
 {
+  public static String ORIENTATION = "orientation";
+  public static String COPIES = "copies";
+  
   public static String LANDSCAPE = "landscape";
-  public static String Portraite = "landscape";
+  public static String PORTRAIT = "portrait";
   
   private Hashtable<String, Attribute> attributes = 
     new Hashtable<String, Attribute>();
@@ -55,7 +60,6 @@ public class PrinterDevice extends GraphicsDevice
   
   private JComponent jcomp;
   private String printer_name;
-  private PrintUtilities2 prinUtil;
   
   public PrinterDevice(String printer_name)
   {
@@ -63,8 +67,6 @@ public class PrinterDevice extends GraphicsDevice
     aset = new HashPrintRequestAttributeSet();
     buildAttributes();
     buildValues();
-    width = 500;
-    height = 500;
   }
   
   /**
@@ -89,8 +91,6 @@ public class PrinterDevice extends GraphicsDevice
     if( attrib instanceof Copies && value instanceof Integer )
       attrib = new Copies((Integer)value);
     
-    System.out.println("setting attribute:\t"+attrib+":     \t"
-        +attrib.getClass());
     aset.add(attrib);
   }
   
@@ -101,15 +101,7 @@ public class PrinterDevice extends GraphicsDevice
   @Override
   public void print() 
   {
-    //System.out.println("PrinterDevice.print()");
-    Attribute[] array = aset.toArray();
-   /* for( int i = 0; i <array.length; i++ )
-    {
-      System.out.println(array[i]+":\t"+array[i].getClass());
-    }*/
-    //prinUtil = new PrinterUtilities2(aset);
-    prinUtil = new PrintUtilities2(jcomp, printer_name, aset);
-    prinUtil.print();
+    PrintUtilities2.print(jcomp, printer_name, aset);
   }
 
   /**
@@ -145,8 +137,7 @@ public class PrinterDevice extends GraphicsDevice
   @Override
   public void display( IDisplayable disp, boolean with_controls ) 
   {
-    JComponent jcomp = disp.getJComponent( with_controls );
-    
+    JComponent jcomp = disp.getJComponent( with_controls );    
     display(jcomp); 
   }
 
@@ -176,7 +167,8 @@ public class PrinterDevice extends GraphicsDevice
     values.put("landscape", ".landscape");
   }
   
-  /*public static void main(String[] args)throws Exception
+  /*
+  public static void main(String[] args)throws Exception
   {
     String type = "Image";
     VirtualArray2D v2d = new VirtualArray2D( 
@@ -189,22 +181,27 @@ public class PrinterDevice extends GraphicsDevice
                       { 6,6,6,6,6,6,6,6,6 }
                       
              });//
-    //VirtualArray2D_Displayable va2d_disp =  
-    //                           new VirtualArray2D_Displayable( v2d, type);
+    VirtualArray2D_Displayable va2d_disp =  
+                               new VirtualArray2D_Displayable( v2d, type);
     
-    //va2d_disp.setViewAttribute("ColorModel", "Rainbow");
-    //va2d_disp.setViewAttribute("Axes Displayed", new Integer(2));
+    va2d_disp.setViewAttribute("preserve aspect ratio", "true");
+    va2d_disp.setViewAttribute("two sided", false);
+    va2d_disp.setViewAttribute("color control east", "false");
+    va2d_disp.setViewAttribute("color control west", true);
     
-    PrinterDevice pr_dev = new PrinterDevice("");
+    PrinterDevice pr_dev = new PrinterDevice("hp4000_A140");
+    
+    pr_dev.setRegion(50,50,850,550);
+    
+    pr_dev.display(va2d_disp,false);    
+    
+    pr_dev.setDeviceAttribute(ORIENTATION, LANDSCAPE);
+    pr_dev.setDeviceAttribute(COPIES, 1);    
     pr_dev.print();
-    pr_dev.setDeviceAttribute("orientation", "portrait");
-    pr_dev.setDeviceAttribute("orientation", "landscape");
-    pr_dev.setDeviceAttribute("copies", 23);
-    pr_dev.print();
-    ///pr_dev.setRegion(50,50,650,550);
     
-    //pr_dev.display(va2d_disp,false);
-    //pr_dev.print();
+    pr_dev.setDeviceAttribute(ORIENTATION, PORTRAIT);
+    pr_dev.setDeviceAttribute(COPIES, 1);    
+    pr_dev.print();    
   }//*/
 
 }
