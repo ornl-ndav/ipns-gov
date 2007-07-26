@@ -1,3 +1,9 @@
+/*
+ * $Log$
+ * Revision 1.9  2007/07/26 17:54:02  amoe
+ * Added CVS log tag.
+ *
+ */
 package gov.anl.ipns.DisplayDevices;
 
 import java.awt.Color;
