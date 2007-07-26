@@ -34,6 +34,14 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.104  2007/07/26 01:54:52  dennis
+ *  Improved naming for overlay components.
+ *  Now accesses background border layout elements via names "Center"
+ *  "South", etc. rather than by index to all flexibility in the order
+ *  they are added.
+ *  paintComponents() method now triggers repainting by requestion
+ *  the big_picture object be repainted.
+ *
  *  Revision 1.103  2007/07/20 16:29:53  dennis
  *  Made separate listener for the PanViewControl.
  *  Removed call to paintComponents() at the end of the
@@ -1616,22 +1624,23 @@ public class ImageViewComponent implements IViewComponent2D,
         ijp.setNamedColorModel(colorscale, isTwoSided, false); 
         
         //create transparencies
-        AnnotationOverlay top = new AnnotationOverlay(this);
-        top.setVisible(false);      // initialize this overlay to off.
-        SelectionOverlay nextup = new SelectionOverlay(this);
-        nextup.setVisible(false);   // initialize this overlay to off.
-        nextup.setRegionColor(Color.magenta);
-        nextup.addActionListener( new SelectedRegionListener() );
+        AnnotationOverlay annote_overlay = new AnnotationOverlay(this);
+        annote_overlay.setVisible(false);    // initialize this overlay to off.
 
-        AxisOverlay2D bottom_overlay = new AxisOverlay2D(this);
+        SelectionOverlay select_overlay = new SelectionOverlay(this);
+        select_overlay.setVisible(false);   // initialize this overlay to off.
+        select_overlay.setRegionColor(Color.magenta);
+        select_overlay.addActionListener( new SelectedRegionListener() );
+
+        AxisOverlay2D axis_overlay   = new AxisOverlay2D(this);
         MarkerOverlay marker_overlay = new MarkerOverlay(this);
         
         // add the transparencies to the transparencies vector
         transparencies.clear();
-        transparencies.add(top);
-        transparencies.add(nextup);
-        transparencies.add(bottom_overlay);
-        transparencies.add(marker_overlay); 
+        transparencies.add( annote_overlay );
+        transparencies.add( select_overlay );
+        transparencies.add( axis_overlay );
+        transparencies.add( marker_overlay ); 
         
         OverlayLayout overlay = new OverlayLayout(big_picture);
         big_picture.setLayout(overlay);
@@ -1921,11 +1930,15 @@ public class ImageViewComponent implements IViewComponent2D,
   */ 
   private void paintComponents()
   {
+//    System.out.println("IVC paintComponents()");
     // Get the top-most parent and call it's repaint().
+/*
     Component temppainter = big_picture;
     while( temppainter.getParent() != null )
       temppainter = temppainter.getParent();
     temppainter.repaint();
+*/
+    big_picture.repaint();
   }
  
  /**
@@ -2227,18 +2240,11 @@ public class ImageViewComponent implements IViewComponent2D,
       s_h += fill_height/2;  // add integer value of half to f_h
       w_w += fill_width/2;   // add integer value of half to f_w 
     }
-    // north
-    ((JPanel)background.getComponent(1)).setPreferredSize( 
-    				new Dimension( 0, n_h ) );    
-    // west
-    ((JPanel)background.getComponent(2)).setPreferredSize(
-    				new Dimension( w_w, 0 ) );
-    // south
-    ((JPanel)background.getComponent(3)).setPreferredSize(
-    				new Dimension( 0, s_h ) );
-    // east
-    ((JPanel)background.getComponent(4)).setPreferredSize(
-    				new Dimension( e_w, 0 ) );
+     BorderLayout blayout = (BorderLayout)background.getLayout();
+     blayout.getLayoutComponent("North").setPreferredSize(new Dimension(0,n_h));
+     blayout.getLayoutComponent("West").setPreferredSize(new Dimension(w_w,0));
+     blayout.getLayoutComponent("South").setPreferredSize(new Dimension(0,s_h));
+     blayout.getLayoutComponent("East").setPreferredSize(new Dimension(e_w,0));
     
     //System.out.println("Dim: [" + center_width + "," + center_height + "]");
     background.invalidate();
@@ -2251,7 +2257,9 @@ public class ImageViewComponent implements IViewComponent2D,
     //       was removed from here.
   }
   
+
  //***************************Assistance Classes******************************
+
  /*
   * ComponentAltered monitors if the imagejpanel has been resized. If so,
   * the regioninfo is updated.
@@ -2293,14 +2301,16 @@ public class ImageViewComponent implements IViewComponent2D,
 	// current point to be traced by those color scales.
         if( addColorControlSouth )
 	{
-	  JPanel south = (JPanel)background.getComponent(3);
+          BorderLayout blayout = (BorderLayout)background.getLayout();
+	  JPanel south = (JPanel)blayout.getLayoutComponent("South");
 	  ControlColorScale cs = (ControlColorScale)south.getComponent(1);
 	  cs.setMarker( ijp.ImageValue_at_Cursor() );
 	}
         if( addColorControlEast )
 	{
+          BorderLayout blayout = (BorderLayout)background.getLayout();
 	  ControlColorScale east = 
-	           (ControlColorScale)background.getComponent(4);
+	           (ControlColorScale)blayout.getLayoutComponent("East");
 	  east.setMarker( ijp.ImageValue_at_Cursor() );
 	}
 	// update cursor readout when pointed-at is changed.
@@ -2563,7 +2573,7 @@ public class ImageViewComponent implements IViewComponent2D,
       else
       {
 	setColorScale(message);
-   ijp.setNamedColorModel( colorscale, isTwoSided, false);
+        ijp.setNamedColorModel( colorscale, isTwoSided, false);
 	return;
       }
   //###    background.validate();
