@@ -30,6 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.12  2007/07/27 03:42:25  dennis
+ * Fixed name inconsistency between javadoc and method.
+ * Some public methods still need javadocs added.
+ * Some public methods need to be checked to see if they should
+ * be private.
+ *
  * Revision 1.11  2007/07/26 22:12:33  amoe
  * Removed debug console prints.
  *
@@ -37,7 +43,9 @@
  * Test data for devices
  *
  * Revision 1.9  2007/07/20 21:50:16  oakgrovej
- * Builds the view Hashtables and can set some view attributes.  Has test data for all three types: Table, Contour, and Image.  The setLineAttribute() methods do not yet serve any purpose.
+ * Builds the view Hashtables and can set some view attributes.  
+ * Has test data for all three types: Table, Contour, and Image.  
+ * The setLineAttribute() methods do not yet serve any purpose.
  *
  * Revision 1.8  2007/07/20 01:54:41  dennis
  * Fixed typo (double assignment to comp).
@@ -62,7 +70,6 @@ import gov.anl.ipns.ViewTools.Displays.*;
 
 public class VirtualArray2D_Displayable  extends Displayable {
 
-   
    public static final String  TABLE = "Table";
    public static final String  IMAGE = "Image";
    public static final String  CONTOUR = "Contour";
@@ -74,9 +81,9 @@ public class VirtualArray2D_Displayable  extends Displayable {
    Hashtable<String,String> viewAttributeList;
    Hashtable<String, Object> lineValList;
    Hashtable<String,String> lineAttributeList;
-
    
    ObjectState Ostate;
+
    /**
     *  Produces a displayable
     *  
@@ -88,7 +95,6 @@ public class VirtualArray2D_Displayable  extends Displayable {
     */
    public VirtualArray2D_Displayable( IVirtualArray2D array, String Type)
                   throws IllegalArgumentException {
-     
 
      super();
      this.array= array;
@@ -108,7 +114,6 @@ public class VirtualArray2D_Displayable  extends Displayable {
        throw new IllegalArgumentException( " Improper View Type");
       
      if( Type .equals( IMAGE)) {
-         
 
        comp = new Display2D( array , Display2D.IMAGE, 1 );
        Ostate = comp.getObjectState( true);
@@ -127,13 +132,14 @@ public class VirtualArray2D_Displayable  extends Displayable {
        Ostate = new ObjectState();
             
       //showOstate( Ostate,1);
-    
-      
    }
+
    
    public void showOstate(){
-       showOstate( Ostate,1);
+       showOstate( Ostate,1 );
    }
+
+
    public void showOstate(ObjectState Ostate,  int nspaces ){
       
       if( Ostate == null)
@@ -152,8 +158,8 @@ public class VirtualArray2D_Displayable  extends Displayable {
              System.out.println( e+":::"+ st);
           }
        }
-       
    }
+
    
    /**
     *  This method sets an attribute of the displayable that pertains
@@ -164,10 +170,8 @@ public class VirtualArray2D_Displayable  extends Displayable {
     */
    public void  setViewAttribute(String name, Object value)throws Exception
    {
-      
       if( name == null)
          return;
-
           
       if( value == null)
          return;
@@ -239,7 +243,9 @@ public class VirtualArray2D_Displayable  extends Displayable {
          if( !Ostate.insert( S, Oval))
           System.out.println("Could not make the change")  ;*/
    }
-   public void  setViewAttribute(String name, String value)throws Exception
+
+
+   public void setViewAttribute(String name, String value)throws Exception
    {
      name = name.toLowerCase();
      value = value.toLowerCase();
@@ -257,7 +263,6 @@ public class VirtualArray2D_Displayable  extends Displayable {
      }
      comp.setObjectState(Ostate);
    }
-   
    
    
    /**
@@ -287,6 +292,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
       Ostate.reset(attribute, value);  
    }
 
+
    public void setLineAttribute(int index, 
                                 String name, 
                                 String val) throws Exception
@@ -307,8 +313,8 @@ public class VirtualArray2D_Displayable  extends Displayable {
        throw new Exception("Cannot put "+val+" into "+name);
      }
      comp.setObjectState(Ostate);
-     
    }
+
    
    private void setLineAttribute(String name, Object val)throws Exception
    {
@@ -335,23 +341,21 @@ public class VirtualArray2D_Displayable  extends Displayable {
     *  @return A reference to a JComponent containing the configured 
     *          display.
     */
-   public JComponent getJComponent( boolean live){
+   public JComponent getJComponent( boolean with_controls){
        
-      if( !live )
+      if( !with_controls )
          Ostate.reset( Display2D.CONTROL_OPTION, Display.CTRL_NONE);
       else
          Ostate.reset(Display2D.CONTROL_OPTION, Display.CTRL_ALL );
       
       comp.setObjectState( Ostate );
       
-      
-      if( live )
+      if( with_controls )
          return comp.getRootPane();
       else
          return (JComponent)comp.getContentPane();
-      
-     
    }
+
    
    public Hashtable<String,Object> getViewValueTable()
    {
@@ -371,6 +375,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
      return temp;
    }
    
+
    public static Hashtable<String,String> getViewAttributeTable()
    {
      Hashtable<String,String> temp = new Hashtable<String,String>();
@@ -403,6 +408,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
          "View Component1.TableJPanel.Show Column Labels");
      return temp;
    }
+
  
    /**
     * @param args
