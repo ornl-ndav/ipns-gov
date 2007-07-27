@@ -34,6 +34,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.106  2007/07/27 00:19:50  dennis
+ *  The big_picture JPanel that contains the overlays, is now
+ *  derived from a class that turns off optimized drawing.  Java's
+ *  optimized drawing did not properly render the fairly complicated
+ *  set of overlays with border border layouts containing border
+ *  layouts, etc. used in this View Component.
+ *  THIS FIXES A PROBLEM WHERE THE SELECTIONS DISAPPEARED WHEN THE
+ *  ZOOM REGION WAS MOVED.  (Thanks Ruth!)
+ *
  *  Revision 1.105  2007/07/26 14:28:51  dennis
  *  Fixed a few more places where border layout panels were referred to
  *  by index, rather than by role ("center", "south", etc.).
@@ -810,7 +819,7 @@ public class ImageViewComponent implements IViewComponent2D,
   //An object containing our array of data
   private transient IVirtualArray2D Varray2D;  
   private transient Vector Listeners = null;   
-  private transient JPanel big_picture = new JPanel();  
+  private transient JPanel big_picture = new BigPictureClass();  
   private transient JPanel background = new JPanel(new BorderLayout());  
   private transient ImageJPanel2 ijp;
   private transient Rectangle regioninfo;
@@ -2266,6 +2275,26 @@ public class ImageViewComponent implements IViewComponent2D,
   
 
  //***************************Assistance Classes******************************
+
+  /**
+   *  This class is needed as the container class for the overlays.
+   *  It's only role is to turn off optimized drawing, since the fairly
+   *  complicated set of overlays containg border layouts which contain
+   *  border layouts, etc. DOES NOT DRAW PROPERLY WITH JAVA's CURRENT
+   *  OPTIMIZED DRAWING.  (jkd 6, update 2)
+   */
+  private class BigPictureClass extends JPanel
+  {
+    /**
+     *  This class turns off optimized drawing by overriding this 
+     *  method and returning false.
+     */
+    public boolean isOptimizedDrawingEnabled()
+    {
+      return false;
+    }
+  }
+
 
  /*
   * ComponentAltered monitors if the imagejpanel has been resized. If so,
