@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.107  2007/07/28 22:49:06  dennis
+ *  Removed variable regioninfo, a local (duplicate) copy of the
+ *  ImageJPanel2's location and size.  This is now obtained directly
+ *  from the ImageJPanel2.  Also removed listener to the ImageJPanel2
+ *  that just updated the local regioninfo variable.
+ *
  *  Revision 1.106  2007/07/27 00:19:50  dennis
  *  The big_picture JPanel that contains the overlays, is now
  *  derived from a class that turns off optimized drawing.  Java's
@@ -822,7 +828,6 @@ public class ImageViewComponent implements IViewComponent2D,
   private transient JPanel big_picture = new BigPictureClass();  
   private transient JPanel background = new JPanel(new BorderLayout());  
   private transient ImageJPanel2 ijp;
-  private transient Rectangle regioninfo;
   private transient Vector transparencies = new Vector();
   private int precision;
   private Font font;
@@ -923,7 +928,6 @@ public class ImageViewComponent implements IViewComponent2D,
       ijp.setNamedColorModel( colorscale, isTwoSided, false);
       redraw = true;  
     } 
-    
     
    
     temp = new_state.get(COLOR_CONTROL);
@@ -1037,6 +1041,7 @@ public class ImageViewComponent implements IViewComponent2D,
       reInit();
   }
  
+
  /**
   * This method will get the current values of the state variables for this
   * object. These variables will be wrapped in an ObjectState.
@@ -1083,6 +1088,7 @@ public class ImageViewComponent implements IViewComponent2D,
     return state;
   }
 
+
  // ------ add/removeMarker() methods satifsy IMarkerAddible interface ------ 
  /**
   * Add a marker to be displayed on the image. The marker is best used for
@@ -1100,6 +1106,7 @@ public class ImageViewComponent implements IViewComponent2D,
       return;
     ((MarkerOverlay)(transparencies.elementAt(3))).addMarker(mark);
   }
+
   
  /**
   * Remove mark from the list of markers, causing it to no longer
@@ -1115,6 +1122,7 @@ public class ImageViewComponent implements IViewComponent2D,
       return;
     ((MarkerOverlay)(transparencies.elementAt(3))).removeMarker(mark);
   }
+
   
  /**
   * Remove all markers from the MarkerOverlay, causing no markers to appear
@@ -1128,6 +1136,7 @@ public class ImageViewComponent implements IViewComponent2D,
       return;
     ((MarkerOverlay)(transparencies.elementAt(3))).clearMarkers();
   }
+
   
  /**
   * Call this method to prevent the center image from being distorted. If true,
@@ -1175,6 +1184,7 @@ public class ImageViewComponent implements IViewComponent2D,
       paintComponents();
     }
   }
+
       
  /**
   * This method will disable the selections included in the names
@@ -1190,6 +1200,7 @@ public class ImageViewComponent implements IViewComponent2D,
       return;
     ((SelectionOverlay)(transparencies.elementAt(1))).disableSelection( names );
   }
+
      
  /**
   * This method will enable the selections included in the names
@@ -1205,6 +1216,7 @@ public class ImageViewComponent implements IViewComponent2D,
       return;
     ((SelectionOverlay)(transparencies.elementAt(1))).enableSelection( names );
   } 
+
   
  // These method are required because this component implements 
  // IColorScaleAddible
@@ -1217,6 +1229,7 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     return colorscale;
   }
+
   
  /**
   *
@@ -1243,6 +1256,7 @@ public class ImageViewComponent implements IViewComponent2D,
     sendMessage(COLORSCALE_CHANGED);
     paintComponents();
   }
+
   
  /**
   * This method will get the AxisInfo for the value axis. Use this for
@@ -1257,6 +1271,7 @@ public class ImageViewComponent implements IViewComponent2D,
       return new AxisInfo( 0, 1, "", "", AxisInfo.LINEAR );
     return getAxisInformation( AxisInfo.Z_AXIS );
   }
+
   
  // The following methods are required by IAxisAddible and ILogAxisAddible
  // and must be implemented because this component implements 
@@ -1302,20 +1317,22 @@ public class ImageViewComponent implements IViewComponent2D,
         		 Varray2D.getAxisInfo(AxisInfo.Z_AXIS).getUnits(),
         		 AxisInfo.LINEAR );
   }
+
   
  /**
   * This method returns a rectangle containing the location and size
   * of the imagejpanel.
   *
-  *  @return The region info about the imagejpanel
+  *  @return The bounds of the ImageJPanel2 object.
   */ 
   public Rectangle getRegionInfo()
   {
-    // If the original data passed in was null, do nothing.
-    if( null_data )
+    if( ijp == null )
       return new Rectangle();
-    return regioninfo;
+
+    return ijp.getBounds();
   }    
+
  
  /**
   * This method will return the title given to the image as specified by
@@ -1330,6 +1347,7 @@ public class ImageViewComponent implements IViewComponent2D,
       return "";
     return Varray2D.getTitle();
   }
+
   
  /**
   * This method will return the precision specified by the user. Precision
@@ -1342,6 +1360,7 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     return precision;
   }
+
   
  /**
   * This method will set the precision of numbers displayed by the
@@ -1356,6 +1375,7 @@ public class ImageViewComponent implements IViewComponent2D,
       return;
     this.precision = precision;
   }
+
   
  /**
   * This method will return the font used on by the overlays. The axis overlay
@@ -1367,6 +1387,7 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     return font;
   }
+
   
  /**
   * This method will return the local coordinate bounds of the center
@@ -1378,6 +1399,7 @@ public class ImageViewComponent implements IViewComponent2D,
   {
     return ijp.getLocalWorldCoords().MakeCopy();
   }
+
      
  /**
   * This method will return the global coordinate bounds of the center
@@ -1440,6 +1462,7 @@ public class ImageViewComponent implements IViewComponent2D,
     //ijp.setCurrent_WC_point(fpt);
   }
 
+
  /**
   * This method gets the current pointed-at position in world coordinates. The
   * current pointed-at position is point on the image where the crosshairs
@@ -1455,6 +1478,7 @@ public class ImageViewComponent implements IViewComponent2D,
       return new floatPoint2D();
     return new floatPoint2D(ijp.getCurrent_WC_point());
   }
+
   
  /**
   * This method allows users to add a selection without removing previous
@@ -1487,6 +1511,7 @@ public class ImageViewComponent implements IViewComponent2D,
     returnFocus();
     // SelectedRegionListener will send out SELECTED_CHANGED message.
   }
+
  
  /**
   * This method creates a selected region to be displayed over the imagejpanel
@@ -1524,6 +1549,7 @@ public class ImageViewComponent implements IViewComponent2D,
     }
     // SelectedRegionListener will send out SELECTED_CHANGED message.
   }
+
  
  /**
   * Get geometric regions created using the selection overlay.
@@ -1578,6 +1604,7 @@ public class ImageViewComponent implements IViewComponent2D,
     ((PanViewControl)controls[9]).repaint();
     paintComponents();
   }
+
  
  /**
   * This method will be called to notify this component of a change in data 
@@ -1609,15 +1636,10 @@ public class ImageViewComponent implements IViewComponent2D,
       if( null_data )
       {
         big_picture.removeAll();
-        ImageListener ijp_listener = new ImageListener();
         ijp.removeAllActionListeners();
+        ImageListener ijp_listener = new ImageListener();
         ijp.addActionListener( ijp_listener );
         	    
-        ComponentAltered comp_listener = new ComponentAltered();   
-        ijp.addComponentListener( comp_listener );
-        
-        regioninfo = new Rectangle( ijp.getBounds() );
-        
         AxisInfo xinfo = Varray2D.getAxisInfo(AxisInfo.X_AXIS);
         AxisInfo yinfo = Varray2D.getAxisInfo(AxisInfo.Y_AXIS);
         
@@ -1669,10 +1691,6 @@ public class ImageViewComponent implements IViewComponent2D,
         			 // the background and transparencies
         buildViewControls(); 
         buildViewMenuItems();
-	// Redraw the new image.
-//	big_picture.validate();
-//	big_picture.repaint();
-	//paintComponents();
       }
       else
       {
@@ -2265,8 +2283,6 @@ public class ImageViewComponent implements IViewComponent2D,
     //System.out.println("Dim: [" + center_width + "," + center_height + "]");
     background.invalidate();
     background.validate();
-    // reset the center bounds and update the overlays.
-    regioninfo = new Rectangle( ijp.getLocation(), ijp.getSize() );
 
     // NOTE: A call to paintComponents may still need to be made after
     //       calling buildAspectImage(), since the call to paintComponents
@@ -2295,28 +2311,6 @@ public class ImageViewComponent implements IViewComponent2D,
     }
   }
 
-
- /*
-  * ComponentAltered monitors if the imagejpanel has been resized. If so,
-  * the regioninfo is updated.
-  */
-  private class ComponentAltered extends ComponentAdapter
-  {
-    public void componentResized( ComponentEvent e )
-    {
-      // If the original data passed in was null, do nothing.
-      if( null_data )
-        return;
-      //System.out.println("Component Resized");
-      Component center = e.getComponent();
-      regioninfo = new Rectangle( center.getLocation(), center.getSize() );
-      /*
-      System.out.println("Location = " + center.getLocation() );
-      System.out.println("Size = " + center.getSize() );
-      System.out.println("class is " + center.getClass() );  
-      */
-    }
-  }
 
  /*
   * ImageListener monitors if the imagejpanel has sent any messages.
