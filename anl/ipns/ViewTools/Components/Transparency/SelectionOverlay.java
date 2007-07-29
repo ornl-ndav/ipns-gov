@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.58  2007/07/29 19:20:49  dennis
+ *  Minor cleanup.  Removed some commented out variables that are
+ *  no longer used.  Simplified references by current_bounds fields.
+ *
  *  Revision 1.57  2007/07/23 20:47:03  dennis
  *  Now updates the pixel local transform BEFORE drawing the interior
  *  rather than after drawing the interior, but BEFORE drawing the
@@ -424,28 +428,18 @@ public class SelectionOverlay extends OverlayJPanel {
   // used for repaint by SelectListener 
   private transient SelectionOverlay this_panel;
 
-  //private Color reg_color;
-
   private transient Rectangle current_bounds;
 
   private transient CoordTransform pixel_local; // pixel coords to WC
 
-  //private float opacity = 1.0f; // value [0,1] where 0 is clear, 
-
-  // and 1 is solid.
   //private transient SelectionEditor editor;
 
-  // buttons for making selections, used by editor.
-  //private JButton[] sjpbuttons;
-
-  //private Rectangle editor_bounds = new Rectangle(0, 0, 430, 290);
-  
   private String regionName = "Default";
   private RegionOp.Operation operation = RegionOp.Operation.UNION;
   private Vector<RegionOpEditFrame> Editors = new Vector<RegionOpEditFrame>();
   private floatPoint2D[] cursorPoints;
   private CursorTag cursor;
-  //private int paint = 0;
+
 
   /**
    * Constructor creates an overlay with a SelectionJPanel that shadows the
@@ -468,15 +462,17 @@ public class SelectionOverlay extends OverlayJPanel {
     this.add(sjp);
     sjp.addActionListener(new SelectListener());
     current_bounds = component.getRegionInfo();
-    CoordBounds pixel_map = new CoordBounds((float) current_bounds.getX(),
-        (float) current_bounds.getY(),
-        (float) (current_bounds.getX() + current_bounds.getWidth()),
-        (float) (current_bounds.getY() + current_bounds.getHeight()));
-    pixel_local = new CoordTransform(pixel_map, component
-        .getLocalCoordBounds());
+    CoordBounds pixel_map = new CoordBounds(
+                                  current_bounds.x,
+                                  current_bounds.y,
+                                  current_bounds.x + current_bounds.width,
+                                  current_bounds.y + current_bounds.height );
 
+    pixel_local = new CoordTransform( pixel_map, 
+                                      component.getLocalCoordBounds());
     sjp.requestFocus();
   }
+
 
   /**
    * Constructor creates an SelectionOverlay with previous state information.
@@ -488,6 +484,7 @@ public class SelectionOverlay extends OverlayJPanel {
     this(iza);
     setObjectState(state);
   }
+
 
   /**
    * Contains/Displays control information about this overlay.
@@ -541,6 +538,7 @@ public class SelectionOverlay extends OverlayJPanel {
     WindowShower.show(helper);
   }
 
+
   /**
    * This method will set the current state variables of the object to state
    * variables wrapped in the ObjectState passed in.
@@ -578,6 +576,7 @@ public class SelectionOverlay extends OverlayJPanel {
     if (redraw)
       this_panel.repaint();
   }
+
 
   /**
    * This method will get the current values of the state variables for this
@@ -851,19 +850,20 @@ public class SelectionOverlay extends OverlayJPanel {
     }
   }
   
+
   public void closeWindows()
   {
     sjp.closeEditor();
     closeEditors();
   }
   
+
   public void closeEditors()
   {
     RegionOpEditFrame[] EditorsCopy = new RegionOpEditFrame[Editors.size()];
     Editors.copyInto(EditorsCopy);
     for(int j=0;j<EditorsCopy.length;j++)
       EditorsCopy[j].dispose();
-    
   }
 
 
@@ -881,7 +881,8 @@ public class SelectionOverlay extends OverlayJPanel {
 
 
   /**
-   * Overrides paint method. This method will paint the selected regions.
+   * Overrides paintComponent method. This method will paint the selected 
+   * regions.
    *
    *  @param  g - graphics object
    */
@@ -895,18 +896,18 @@ public class SelectionOverlay extends OverlayJPanel {
     sjp.setBounds(current_bounds);
 
     // this limits the paint window to the size of the background image.
-    g2d.clipRect( (int) current_bounds.getX(), 
-                  (int) current_bounds.getY(),
-                  (int) current_bounds.getWidth(), 
-                  (int) current_bounds.getHeight());
+    g2d.clipRect( current_bounds.x, 
+                  current_bounds.y,
+                  current_bounds.width, 
+                  current_bounds.height );
 
     // Update the current mapping to pixel coordinates before drawing the
     // region interior OR boundaries, in case it has changed.
     CoordBounds pixel_map = new CoordBounds(
-                 (float) current_bounds.getX(),
-                 (float) current_bounds.getY(),
-                 (float) (current_bounds.getX() + current_bounds.getWidth()),
-                 (float) (current_bounds.getY() + current_bounds.getHeight()));
+                  current_bounds.x,
+                  current_bounds.y,
+                  current_bounds.x + current_bounds.width,
+                  current_bounds.y + current_bounds.height );
     pixel_local.setSource(pixel_map);
     pixel_local.setDestination(component.getLocalCoordBounds());
 
@@ -1146,7 +1147,7 @@ public class SelectionOverlay extends OverlayJPanel {
         }
     }
     g2d.dispose();
-  } // end of paint()
+  } // end of paintComponent()
 
 
   /**
@@ -1351,13 +1352,16 @@ public class SelectionOverlay extends OverlayJPanel {
       // if REGION_SELECTED is in the string, find which region 
 
       else if (message.indexOf(SelectionJPanel.REGION_SELECTED) > -1) {
-        
-        CoordBounds sjp_coords = new CoordBounds((float) (0),
-            (float) (0),
-            (float) (current_bounds.getWidth()),
-            (float) (current_bounds.getHeight()));
-        CoordTransform pixel_sjp = new CoordTransform(sjp_coords, component
-            .getLocalCoordBounds());
+
+//      System.out.println("IJP bounds      = " + component.getRegionInfo() ); 
+//      System.out.println("current_ bounds = " + current_bounds ); 
+
+        CoordBounds sjp_coords = new CoordBounds( 0, 
+                                                  0,
+                                                  current_bounds.width,
+                                                  current_bounds.height );
+        CoordTransform pixel_sjp = 
+               new CoordTransform(sjp_coords, component.getLocalCoordBounds());
 
         operation = named_sjp.getOp();
         boolean regionadded = true;
@@ -1384,19 +1388,19 @@ public class SelectionOverlay extends OverlayJPanel {
                                 .getCursor(SelectionJPanel.ELLIPSE)).region();
           // top-left corner
           Point p1 = new Point(ellipse.getDrawPoint());
-          p1.x += (int) current_bounds.getX();
-          p1.y += (int) current_bounds.getY();
+          p1.x += current_bounds.x;
+          p1.y += current_bounds.y;
           // bottom-right corner
           Point p2 = new Point(ellipse.getCenter());
-          p2.x += ellipse.getDx() + (int) current_bounds.getX();
-          p2.y += ellipse.getDy() + (int) current_bounds.getY();
+          p2.x += ellipse.getDx() + current_bounds.x;
+          p2.y += ellipse.getDy() + current_bounds.y;
           // center of circle
           Point p3 = new Point(ellipse.getCenter());
           //EllipseCursor ellipseCur = new EllipseCursor(this_panel);
           //ellipseCur.start(p1);
           //ellipseCur.stop(p2);
-          p3.x += (int) current_bounds.getX();
-          p3.y += (int) current_bounds.getY();
+          p3.x += current_bounds.x;
+          p3.y += current_bounds.y;
           floatPoint2D[] tempwcp = new floatPoint2D[3];
           tempwcp[0] = convertToWorldPoint(p1);
           tempwcp[1] = convertToWorldPoint(p2);
@@ -1412,18 +1416,18 @@ public class SelectionOverlay extends OverlayJPanel {
 
           // top-left corner
           Point p1 = new Point(circle.getDrawPoint());
-          p1.x += (int) current_bounds.getX();
-          p1.y += (int) current_bounds.getY();
+          p1.x += current_bounds.x;
+          p1.y += current_bounds.y;
 
           // bottom-right corner
           Point p2 = new Point(circle.getCenter());
-          p2.x += circle.getRadius() + (int) current_bounds.getX();
-          p2.y += circle.getRadius() + (int) current_bounds.getY();
+          p2.x += circle.getRadius() + current_bounds.x;
+          p2.y += circle.getRadius() + current_bounds.y;
 
           // center of circle
           Point p3 = new Point(circle.getCenter());
-          p3.x += (int) current_bounds.getX();
-          p3.y += (int) current_bounds.getY();
+          p3.x += current_bounds.x;
+          p3.y += current_bounds.y;
           floatPoint2D[] tempwcp = new floatPoint2D[3];
           tempwcp[0] = convertToWorldPoint(p1);
           tempwcp[1] = convertToWorldPoint(p2);
@@ -1437,11 +1441,11 @@ public class SelectionOverlay extends OverlayJPanel {
           Line line = ((LineCursor) sjp
                             .getCursor(SelectionJPanel.LINE)).region();
           Point p1 = new Point(line.getP1());
-          p1.x += (int) current_bounds.getX();
-          p1.y += (int) current_bounds.getY();
+          p1.x += current_bounds.x;
+          p1.y += current_bounds.y;
           Point p2 = new Point(line.getP2());
-          p2.x += (int) current_bounds.getX();
-          p2.y += (int) current_bounds.getY();
+          p2.x += current_bounds.x;
+          p2.y += current_bounds.y;
           floatPoint2D[] tempwcp = new floatPoint2D[2];
           tempwcp[0] = convertToWorldPoint(p1);
           tempwcp[1] = convertToWorldPoint(p2);
@@ -1454,8 +1458,8 @@ public class SelectionOverlay extends OverlayJPanel {
           // create new point, otherwise regions would be shared.
           Point np = new Point(((PointCursor) sjp
                                  .getCursor(SelectionJPanel.POINT)).region());
-          np.x += (int) current_bounds.getX();
-          np.y += (int) current_bounds.getY();
+          np.x += current_bounds.x;
+          np.y += current_bounds.y;
           floatPoint2D[] tempwcp = new floatPoint2D[1];
           tempwcp[0] = convertToWorldPoint(np);
           getRegionOpListWithColor(name).add(
@@ -1471,8 +1475,8 @@ public class SelectionOverlay extends OverlayJPanel {
           floatPoint2D[] tempwcp = new floatPoint2D[p_array.length];
 
           for (int i = 0; i < p_array.length - 1; i++) {
-            p_array[i].x += (int) current_bounds.getX();
-            p_array[i].y += (int) current_bounds.getY();
+            p_array[i].x += current_bounds.x;
+            p_array[i].y += current_bounds.y;
             tempwcp[i] = convertToWorldPoint(p_array[i]);
           }
 
@@ -1495,8 +1499,8 @@ public class SelectionOverlay extends OverlayJPanel {
               .region());
           floatPoint2D[] tempwcp = new floatPoint2D[p_array.length];
           for (int i = 0; i < p_array.length - 1; i++) {
-            p_array[i].x += (int) current_bounds.getX();
-            p_array[i].y += (int) current_bounds.getY();
+            p_array[i].x += current_bounds.x;
+            p_array[i].y += current_bounds.y;
             tempwcp[i] = convertToWorldPoint(p_array[i]);
           }
 
@@ -1518,8 +1522,8 @@ public class SelectionOverlay extends OverlayJPanel {
                                .get3ptCursor(SelectionJPanel.RING)).region());
           // center of ring
           Point p1 = new Point(p_array[0]);
-          p1.x += (int) current_bounds.getX();
-          p1.y += (int) current_bounds.getY();
+          p1.x += current_bounds.x;
+          p1.y += current_bounds.y;
 
           // inner top-left corner
           Point p2 = new Point(p1);
@@ -1568,8 +1572,8 @@ public class SelectionOverlay extends OverlayJPanel {
         if(Editors.size()==0)
         {
       Point clickPoint = sjp.getClickPoint();
-      clickPoint.x += current_bounds.getX();
-      clickPoint.y += current_bounds.getY();
+      clickPoint.x += current_bounds.x;
+      clickPoint.y += current_bounds.y;
       floatPoint2D fP2D = convertToWorldPoint(clickPoint);
       Vector<RegionOp> regionOps = 
         getRegionOpListWithColor(regionName).getList();
@@ -1611,7 +1615,7 @@ public class SelectionOverlay extends OverlayJPanel {
               regOp.getOp(),i);
         dWedgeEdit.addPropertyChangeListener(
             new RegionEditorPropertyListener());
-        dWedgeEdit.setVisible(true);
+       dWedgeEdit.setVisible(true);
         cursor = new DoubleWedgeCursor(this_panel);
         cursorPoints = dWedgeEdit.getDefiningPoints();
         Editors.add(dWedgeEdit);
@@ -1669,7 +1673,7 @@ public class SelectionOverlay extends OverlayJPanel {
         floatPoint2D[] points = reg.getDefiningPoints();
         for(int j =0;j<points.length;j++)
         {
-      if(convertToPixelPoint(points[j]).y<clickPoint.y+5 &&
+      if( convertToPixelPoint(points[j]).y<clickPoint.y+5 &&
           convertToPixelPoint(points[j]).y>clickPoint.y-5 &&
           convertToPixelPoint(points[j]).x<clickPoint.x+5 &&
           convertToPixelPoint(points[j]).x>clickPoint.x-5)
@@ -1721,6 +1725,7 @@ public class SelectionOverlay extends OverlayJPanel {
 
   } // end SelectListener 
   
+
   private class RegionEditorPropertyListener implements PropertyChangeListener
   {
 
