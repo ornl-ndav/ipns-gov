@@ -31,6 +31,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2007/07/29 19:12:53  dennis
+ *  Removed call to repaint() from makeImage() method, so the image
+ *  can be reconstructed internally without being repainted yet.
+ *  Modified LocalTransformChanged() method to call the super class's
+ *  LocalTranformedChanged() method, after re-making the image.
+ *
  *  Revision 1.17  2007/07/12 21:20:56  rmikk
  *  Removed the Color Model Object State and moved the TwoSided object
  *     state up to the ImageViewComponent, so the info was not recorded twice
@@ -363,6 +369,7 @@ public class ImageJPanel2 extends    CoordJPanel
     }
     */
     // may need changing
+
     if( redraw )
       repaint();
   } 
@@ -413,7 +420,7 @@ public class ImageJPanel2 extends    CoordJPanel
     setLogScale( s );
 
     if ( rebuild_image )
-      makeImage();
+      RebuildImage();
   }
 
 
@@ -451,7 +458,7 @@ public class ImageJPanel2 extends    CoordJPanel
       color_model = IndexColorMaker.getColorModel( color_model_string,
                                                    NUM_POSITIVE_COLORS );
     if ( rebuild_image )
-      makeImage();
+      RebuildImage();
   }
 
   
@@ -574,7 +581,7 @@ public class ImageJPanel2 extends    CoordJPanel
     thumbnail_image = null;
 
     if ( rebuild_image )
-      makeImage();
+      RebuildImage();
 
   } // End setData()
 
@@ -649,6 +656,7 @@ public class ImageJPanel2 extends    CoordJPanel
  */
   public void paintComponent( Graphics g )
   {
+    System.out.println("ImageJPanel2.paintComponent()" );
     Graphics2D g2d = (Graphics2D)g.create();
 
     stop_box( current_point, false );   // if the system redraws this without
@@ -881,10 +889,18 @@ public void RebuildImage()
 
 
 /* ---------------------- LocalTransformChanged -------------------------- */
-
+/**
+ *  This method is responsible for doing what is necessary to regenerate
+ *  the display, AFTER the local transform is changed.  For an ImageJPanel2,
+ *  the extra work required is to reconstruct a new image, corresponding to
+ *  the new source region of the image.
+ */
 protected void LocalTransformChanged()
 {
-  makeImage();
+  makeImage();                          // Reconstruct the image and then
+  super.LocalTransformChanged();        // do anything that the base class
+                                        // needs to do to regenerate after a
+                                        // a change of the local transform
 }
 
 
@@ -936,6 +952,8 @@ protected void LocalTransformChanged()
     int width  = getWidth(); 
     int height = getHeight(); 
 
+    System.out.println("IJP makeImage, xr2 = " + xr2 + ", xc2 = " + xc2 );
+
     image = subSample( start_row, end_row + xr2 - 1,
                        start_col, end_col + xc2 - 1,
                        width,     height         );
@@ -947,7 +965,6 @@ protected void LocalTransformChanged()
 
       rescaleImage();
       image = rescaled_image;
-      repaint();
     }
   }
  
@@ -1204,6 +1221,7 @@ class ImageKeyAdapter extends KeyAdapter
                                  false );
       this_panel.dispatchEvent( mouse_e );
     }
+
   }
 }
 
