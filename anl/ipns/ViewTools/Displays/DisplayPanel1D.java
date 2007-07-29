@@ -13,6 +13,7 @@ import gov.anl.ipns.ViewTools.Components.Transparency.AxisOverlay2D;
 import gov.anl.ipns.ViewTools.Components.Transparency.ITruLogAxisAddible;
 import gov.anl.ipns.ViewTools.Panels.Graph.GraphJPanel;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
+import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
 
 import java.awt.Color;
@@ -287,16 +288,18 @@ public class DisplayPanel1D extends GraphJPanel implements IOneDPlot,
      * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#yScreen2Data(int)
      */
     public float yScreen2Data(float y) {
-        return local_transform.MapYFrom(y
-                + local_transform.getDestination().getY1());
+    	CoordTransform local_tran = getLocal_transform();
+        return local_tran.MapYFrom(y
+                + local_tran.getDestination().getY1());
     }
 
     /* (non-Javadoc)
      * @see gov.anl.ipns.ViewTools.Displays.IOneDPlot#xScreen2Data(int)
      */
     public float xScreen2Data(float x) {
-        return local_transform.MapXFrom(x
-                + local_transform.getDestination().getX1());
+    	CoordTransform local_tran = getLocal_transform();
+        return local_tran.MapXFrom(x
+                + local_tran.getDestination().getX1());
     }
 
     /* (non-Javadoc)

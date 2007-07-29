@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.24  2007/07/29 20:45:14  dennis
+ *  Changed local_transform and global_transform to be private
+ *  in CoordJPanel class, to keep better control over who can
+ *  change them, and how they can be changed.
+ *
  *  Revision 1.23  2007/06/15 22:28:35  oakgrovej
  *  Added:
  *  Click message
@@ -968,6 +973,7 @@ public class SelectionJPanel extends ActiveJPanel
       return RegionOp.Operation.UNION;
   }
   
+
   public Point getClickPoint()
   {
     return new Point(clickPoint);
@@ -1027,6 +1033,7 @@ public class SelectionJPanel extends ActiveJPanel
       editSelection();
     }
   }
+
   
   public void closeEditor()
   {
@@ -1137,6 +1144,7 @@ public class SelectionJPanel extends ActiveJPanel
         }
       }             
     }
+
     
     public void keyReleased( KeyEvent ke )
     {
@@ -1181,6 +1189,7 @@ public class SelectionJPanel extends ActiveJPanel
         isWdown = false;
     }
   }
+
   
  /*
   * This class receives button events and substitutes them for key events.
@@ -1289,7 +1298,6 @@ public class SelectionJPanel extends ActiveJPanel
         clickPoint = new Point(e.getX(),e.getY());
         send_message( CLICK );
         //System.out.println("click "+clickPoint);
-        
       }
     }
 

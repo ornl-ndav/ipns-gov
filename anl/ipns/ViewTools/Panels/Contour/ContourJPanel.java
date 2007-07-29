@@ -33,6 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.27  2007/07/29 20:45:15  dennis
+ * Changed local_transform and global_transform to be private
+ * in CoordJPanel class, to keep better control over who can
+ * change them, and how they can be changed.
+ *
  * Revision 1.26  2007/07/11 18:28:53  dennis
  * Replaced paint() by paintComponent, removed call to super.paint(),
  * and now work with a Graphics2D object that is a copy of the original
@@ -1274,15 +1279,14 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
           setShowLabels(new boolean[] {false});
         //the local transform is momentarily modified to reflect the 
         //size of the thumbnail and not the entire panel
-          CoordTransform localBackup = this.local_transform;
-          local_transform = 
-             new CoordTransform(getGlobalWorldCoords(), 
-                                new CoordBounds(0, 0, width, height));
-      //now draw the thumbnail
+          CoordTransform localBackup = getLocal_transform();
+          setLocalWorldCoords( getGlobalWorldCoords() );
+
+          //now draw the thumbnail
         draw(image.createGraphics());
        
       //now revert all of the saved variables back
-        this.local_transform = localBackup;
+        setLocalWorldCoords( localBackup.getSource() );
         setShowLabels(labelBackup);
         this.wcNotInit = firstPaintCopy;
          
@@ -1399,7 +1403,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //correct subset of the entire panel.
        if (wcNotInit)
        {
-          local_transform.setSource(getGlobalWCBounds());
+          setLocalWorldCoords(getGlobalWCBounds());
           wcNotInit = false;
        }
        
@@ -1549,8 +1553,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          //pixel coordinates.  Here 'local_transform' is used because 
          //if the user zooms in on the data, 'local_transform' is modified 
          //to reflect viewing a smaller subsection of the panel.
-            local_transform.MapXListTo(xrcVals);
-            local_transform.MapYListTo(yrcVals);
+            CoordTransform local_tran = getLocal_transform();
+            local_tran.MapXListTo(xrcVals);
+            local_tran.MapYListTo(yrcVals);
 
          //now to draw the lines with the new pixel coordinates
            for (int j=0; (j+1)<contourPts.size(); j+=2)
@@ -1696,7 +1701,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //(using the local_transform transformation)
       //then using the rcToGlobal transformation, map the pixel coordinate 
       //to the correct column
-      float pseudoIndex = rcToGlobal.MapXFrom(local_transform.MapXFrom(px));
+      float pseudoIndex = rcToGlobal.MapXFrom(getLocal_transform().MapXFrom(px));
       return getValidIndex(pseudoIndex, maxIndex, roundUp);
    }
 
@@ -1729,7 +1734,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //(using the local_transform transformation)
       //then using the rcToGlobal transformation, map the pixel coordinate 
       //to the correct row
-      float pseudoIndex = rcToGlobal.MapYFrom(local_transform.MapYFrom(px));
+      float pseudoIndex = rcToGlobal.MapYFrom(getLocal_transform().MapYFrom(px));
       return getValidIndex(pseudoIndex, maxIndex, roundUp);
    }
    

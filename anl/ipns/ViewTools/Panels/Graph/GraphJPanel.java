@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.61  2007/07/29 20:45:15  dennis
+ * Changed local_transform and global_transform to be private
+ * in CoordJPanel class, to keep better control over who can
+ * change them, and how they can be changed.
+ *
  * Revision 1.60  2007/06/14 15:00:26  dennis
  * Now overrides paintComponent() instead of paint() method.
  * paintComponent() method now creates a Graphics2D "copy" of the
@@ -1390,11 +1395,11 @@ public boolean is_autoY_bounds()
            error_bars_lower[i] = y_copy[i] - error_copy[i];
 	  }  
         }
-        local_transform.MapYListTo(error_bars_upper); // map errors from WC to
-        local_transform.MapYListTo(error_bars_lower); // pixels
+        getLocal_transform().MapYListTo(error_bars_upper); // map errors from WC to
+        getLocal_transform().MapYListTo(error_bars_lower); // pixels
       }
          
-      local_transform.MapTo( x_copy, y_copy );       // map from WC to pixels
+      getLocal_transform().MapTo( x_copy, y_copy );       // map from WC to pixels
 
 
 

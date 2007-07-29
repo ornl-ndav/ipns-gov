@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.42  2007/07/29 20:45:16  dennis
+ *  Changed local_transform and global_transform to be private
+ *  in CoordJPanel class, to keep better control over who can
+ *  change them, and how they can be changed.
+ *
  *  Revision 1.41  2007/07/29 19:05:59  dennis
  *  Minor adjustment to ZoomToPixelSubregion().  Uses slightly larger
  *  region and cals setLocalWorldCoords() to clamp the region to
@@ -270,11 +275,12 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
   protected boolean         h_scroll = false;
   protected boolean         v_scroll = false;
 
-  protected boolean               CJP_handle_arrow_keys;
-  private   BoxCursor             rb_box;
-  private   CrosshairCursor       crosshair_cursor;
-  protected CoordTransform        global_transform;
-  protected CoordTransform  local_transform;
+  protected boolean          CJP_handle_arrow_keys;
+  private   BoxCursor        rb_box;
+  private   CrosshairCursor  crosshair_cursor;
+  private   CoordTransform   global_transform;
+  private   CoordTransform   local_transform;
+
   protected Point           current_point = new Point(0,0);
   protected CoordJPanel     this_panel;
   private   boolean         isListening = true;     // turns listeners on/off

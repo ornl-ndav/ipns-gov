@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2007/07/29 20:45:16  dennis
+ *  Changed local_transform and global_transform to be private
+ *  in CoordJPanel class, to keep better control over who can
+ *  change them, and how they can be changed.
+ *
  *  Revision 1.18  2007/07/29 19:12:53  dennis
  *  Removed call to repaint() from makeImage() method, so the image
  *  can be reconstructed internally without being repainted yet.
@@ -656,7 +661,6 @@ public class ImageJPanel2 extends    CoordJPanel
  */
   public void paintComponent( Graphics g )
   {
-    System.out.println("ImageJPanel2.paintComponent()" );
     Graphics2D g2d = (Graphics2D)g.create();
 
     stop_box( current_point, false );   // if the system redraws this without
@@ -687,7 +691,7 @@ public class ImageJPanel2 extends    CoordJPanel
  */
   public int ImageRow_of_PixelRow( int pix_row )
   {
-    float WC_y = local_transform.MapYFrom( pix_row );
+    float WC_y = getLocal_transform().MapYFrom( pix_row );
  
     return ImageRow_of_WC_y( WC_y );
   }
@@ -727,7 +731,7 @@ public class ImageJPanel2 extends    CoordJPanel
  */
   public int ImageCol_of_PixelCol( int pix_col )
   {
-    float WC_x = local_transform.MapXFrom( pix_col );
+    float WC_x = getLocal_transform().MapXFrom( pix_col );
 
     return  ImageCol_of_WC_x( WC_x );
   }
@@ -924,7 +928,7 @@ protected void LocalTransformChanged()
     
     // Get world_to_image transform, and local world coord bounds.
     CoordTransform world_to_image = getWorldToImageTransform();
-    CoordBounds    bounds         = local_transform.getSource();
+    CoordBounds    bounds         = getLocal_transform().getSource();
 
     // Convert local coord bounds to integer image row/column.
     bounds = world_to_image.MapTo( bounds );
@@ -951,8 +955,6 @@ protected void LocalTransformChanged()
 
     int width  = getWidth(); 
     int height = getHeight(); 
-
-    System.out.println("IJP makeImage, xr2 = " + xr2 + ", xc2 = " + xc2 );
 
     image = subSample( start_row, end_row + xr2 - 1,
                        start_col, end_col + xc2 - 1,

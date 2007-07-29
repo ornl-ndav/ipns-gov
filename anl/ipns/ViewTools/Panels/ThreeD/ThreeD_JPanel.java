@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.29  2007/07/29 20:45:16  dennis
+ * Changed local_transform and global_transform to be private
+ * in CoordJPanel class, to keep better control over who can
+ * change them, and how they can be changed.
+ *
  * Revision 1.28  2007/07/10 15:24:22  dennis
  * Replaced isShowing() with isVisible().  This fixes the problem
  * where the scene was not rendered when saving the image to a file.
@@ -681,7 +686,7 @@ public class ThreeD_JPanel extends    CoordJPanel
     if ( all_objects == null )         // nothing to project
       return;
                                    // can't project using null transforms
-    if ( tran == null || local_transform == null )
+    if ( tran == null || getLocal_transform() == null )
     {
       if ( debug )
         System.out.println("transforms null in ThreeD_JPanel");
@@ -691,7 +696,7 @@ public class ThreeD_JPanel extends    CoordJPanel
                                    // do the depth sort if the same transforms
                                    // are used.
     if ( tran3D_used != null  &&  tran3D_used.equals( tran )       &&
-         tran2D_used != null  &&  tran2D_used.equals( local_transform ) )
+         tran2D_used != null  &&  tran2D_used.equals( getLocal_transform() ) )
       return;
 
                                    // The observer to vrp distance is given by
@@ -703,13 +708,14 @@ public class ThreeD_JPanel extends    CoordJPanel
                                                   a[3][2] * a[3][2]  );
     float clip_distance = clip_factor * vrp_to_cop_dist;
 
+    CoordTransform local_tran = getLocal_transform();
     for ( int i = 0; i < all_objects.length; i++ )
-      all_objects[i].Project( tran, local_transform, clip_distance );
+      all_objects[i].Project( tran, local_tran, clip_distance );
 
     Arrays.sort( index, new DepthComparator( all_objects ) );
 
     tran3D_used = new Tran3D( tran );
-    tran2D_used = new CoordTransform( local_transform );
+    tran2D_used = new CoordTransform( getLocal_transform() );
   }
 
 

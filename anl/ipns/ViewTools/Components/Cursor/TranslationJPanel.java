@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2007/07/29 20:45:14  dennis
+ *  Changed local_transform and global_transform to be private
+ *  in CoordJPanel class, to keep better control over who can
+ *  change them, and how they can be changed.
+ *
  *  Revision 1.15  2007/07/20 03:03:31  dennis
  *  Simplified logic in setGlobalPanelBounds().  Setting the global
  *  panel bounds is only needed when new data has been set, so the
@@ -386,7 +391,7 @@ public class TranslationJPanel extends CoordJPanel
   */
   private Point convertToPixelPoint( floatPoint2D fp )
   {
-    floatPoint2D fp2d = global_transform.MapTo( fp );
+    floatPoint2D fp2d = getGlobal_transform().MapTo( fp );
     return new Point( (int)fp2d.x, (int)fp2d.y );
   }
  
@@ -395,7 +400,7 @@ public class TranslationJPanel extends CoordJPanel
   */
   private floatPoint2D convertToWorldPoint( Point p )
   {
-    return global_transform.MapFrom( new floatPoint2D((float)p.x, (float)p.y) );
+    return getGlobal_transform().MapFrom( new floatPoint2D((float)p.x, (float)p.y) );
   }
  
  /*

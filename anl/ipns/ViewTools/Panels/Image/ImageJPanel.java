@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.34  2007/07/29 20:45:15  dennis
+ *  Changed local_transform and global_transform to be private
+ *  in CoordJPanel class, to keep better control over who can
+ *  change them, and how they can be changed.
+ *
  *  Revision 1.33  2007/06/13 21:18:47  dennis
  *  Removed un-needed update() method that called paint().
  *  Replaced paint() by paintComponent().
@@ -427,15 +432,16 @@ public class ImageJPanel extends    CoordJPanel
   */ 
   public Image getThumbnail(int width, int height)
   {
-    CoordTransform temp = new CoordTransform(local_transform);
-    local_transform = new CoordTransform(global_transform);
+    CoordTransform temp = new CoordTransform( getLocal_transform());
+    CoordTransform local_tran = new CoordTransform(getGlobal_transform());
+    setLocalWorldCoords( local_tran.getSource() );
     makeImage();
     Image thumbnail;
     if( width == 0 || height == 0 )
       thumbnail = image.getScaledInstance( 100, 100, Image.SCALE_DEFAULT );
     else
       thumbnail = image.getScaledInstance( width, height, Image.SCALE_DEFAULT );
-    local_transform = new CoordTransform(temp);
+    setLocalWorldCoords( temp.getSource() );
     makeImage();
     return thumbnail;
   } 
@@ -514,7 +520,7 @@ public class ImageJPanel extends    CoordJPanel
  */
   public int ImageRow_of_PixelRow( int pix_row )
   {
-    float WC_y = local_transform.MapYFrom( pix_row );
+    float WC_y = getLocal_transform().MapYFrom( pix_row );
  
     return ImageRow_of_WC_y( WC_y );
   }
@@ -552,7 +558,7 @@ public class ImageJPanel extends    CoordJPanel
  */
   public int ImageCol_of_PixelCol( int pix_col )
   {
-    float WC_x = local_transform.MapXFrom( pix_col );
+    float WC_x = getLocal_transform().MapXFrom( pix_col );
 
     return  ImageCol_of_WC_x( WC_x );
   }
@@ -719,7 +725,7 @@ protected void LocalTransformChanged()
 
     SetTransformsToWindowSize();
     CoordTransform world_to_image = getWorldToImageTransform(); 
-    CoordBounds    bounds         = local_transform.getSource();
+    CoordBounds    bounds         = getLocal_transform().getSource();
 
     bounds = world_to_image.MapTo( bounds );
     int start_row = Math.max( (int)(bounds.getY1() ), 0 );
