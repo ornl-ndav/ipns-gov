@@ -33,6 +33,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.25  2007/07/30 15:58:55  dennis
+ *  Removed duplicated code in the default constructor.  The default
+ *  constructor now just passes in default values to the constructor
+ *  that takes initial values for the regions' name, opacity and color.
+ *
  *  Revision 1.24  2007/07/29 20:45:14  dennis
  *  Changed local_transform and global_transform to be private
  *  in CoordJPanel class, to keep better control over who can
@@ -147,6 +152,7 @@ import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
 
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
+import gov.anl.ipns.ViewTools.Components.Transparency.SelectionOverlay;
 import gov.anl.ipns.ViewTools.Components.ViewControls.ControlSlider;
 import gov.anl.ipns.ViewTools.Panels.Cursors.XOR_Cursor;
 import gov.anl.ipns.ViewTools.Panels.Cursors.BoxCursor;
@@ -284,20 +290,22 @@ public class SelectionJPanel extends ActiveJPanel
   private boolean intersectOpSelected;
   private boolean intersectComplementOpSelected;
   
-  private String name;
+  private String    name;
   private transient SelectionEditor editor;
-  private Point clickPoint;
+  private Point     clickPoint;
+
+  public  static final String EDITOR_BOUNDS = "Editor Bounds";
 
 //buttons for making selections, used by editor.
   private JButton[] sjpbuttons;
-  public static final String EDITOR_BOUNDS = "Editor Bounds";
   private Rectangle editor_bounds = new Rectangle(700, 0, 430, 390);
-  private float opacity = 1.0f; // value [0,1] where 0 is clear,
-  private Color reg_color;
-  private String[] ops = {UNION,INTERSECT,INTERSECT_COMPLEMENT};
+  private float     opacity = 1.0f; // value [0,1] where 0 is clear,
+  private Color     reg_color;
+  private String[]  ops = {UNION,INTERSECT,INTERSECT_COMPLEMENT};
   private JComboBox opChooser;
-  private JLabel opLabel = new JLabel("Operation");
+  private JLabel    opLabel = new JLabel("Operation");
   
+
  /**
   * Constructor adds listeners to this SelectionJPanel. All boolean values
   * are set to false. This JPanel is also contructed to receive keyboard
@@ -305,54 +313,7 @@ public class SelectionJPanel extends ActiveJPanel
   */ 
   public SelectionJPanel()
   { 
-    isAdown = false;
-    isBdown = false;
-    isCdown = false;
-    isDdown = false;
-    isLdown = false;
-    isPdown = false;
-    isRdown = false;
-    isWdown = false;
-    
-    doing_box = false;
-    doing_circle = false;
-    doing_ellipse = false;
-    doing_line = false;
-    doing_point = false;
-    doing_wedge = false;
-    doing_dblwedge = false;
-    doing_ring = false;
-    unionOpSelected = false;
-    intersectOpSelected = false;
-    intersectComplementOpSelected = false;
-    
-    // initialize all selections to enabled.
-    String[] enable = {ALL};
-    enableCursor( enable );
-    
-    firstRun = true;
-  
-    box = new BoxCursor(this);
-    circle = new CircleCursor(this);
-    ellipse = new EllipseCursor(this);
-    line = new LineCursor(this);
-    point = new PointCursor(this);
-    wedge = new WedgeCursor(this);
-    dblwedge = new DoubleWedgeCursor(this);
-    ring = new AnnularCursor(this);
-    
-    requestFocus();
-    
-    addMouseListener( new SelectMouseAdapter() );
-    addMouseMotionListener( new SelectMouseMotionAdapter() );
-    addKeyListener( new SelectKeyAdapter() );
-    reg_color = Color.white;
-    sjpbuttons = getControls();
-    opChooser = new JComboBox(ops);
-    opChooser.addActionListener(new JComboBoxListener());
-    opChooser.setSelectedIndex(0);
-    editor = new SelectionEditor();
-    addComponentListener(new NotVisibleListener());
+    this( SelectionOverlay.DEFAULT_REGION_NAME, Color.white, 1.0f );
   }
   
 
@@ -368,6 +329,10 @@ public class SelectionJPanel extends ActiveJPanel
   */
   public SelectionJPanel(String name, Color color, float transparency )
   { 
+      this.name = name;             // first record specified parameter values
+      reg_color = color; 
+      opacity   = transparency;
+                                    // next do the generic construction steps
       isAdown = false;
       isBdown = false;
       isCdown = false;
@@ -377,47 +342,48 @@ public class SelectionJPanel extends ActiveJPanel
       isRdown = false;
       isWdown = false;
       
-      doing_box = false;
-      doing_circle = false;
-      doing_ellipse = false;
-      doing_line = false;
-      doing_point = false;
-      doing_wedge = false;
+      doing_box      = false;
+      doing_circle   = false;
+      doing_ellipse  = false;
+      doing_line     = false;
+      doing_point    = false;
+      doing_wedge    = false;
       doing_dblwedge = false;
-      doing_ring = false;
+      doing_ring     = false;
+
+      unionOpSelected               = false;
+      intersectOpSelected           = false;
+      intersectComplementOpSelected = false;
       
-      this.name = name;
       // initialize all selections to enabled.
       String[] enable = {ALL};
       enableCursor( enable );
       
       firstRun = true;
     
-      box = new BoxCursor(this);
-      circle = new CircleCursor(this);
-      ellipse = new EllipseCursor(this);
-      line = new LineCursor(this);
-      point = new PointCursor(this);
-      wedge = new WedgeCursor(this);
+      box      = new BoxCursor(this);
+      circle   = new CircleCursor(this);
+      ellipse  = new EllipseCursor(this);
+      line     = new LineCursor(this);
+      point    = new PointCursor(this);
+      wedge    = new WedgeCursor(this);
       dblwedge = new DoubleWedgeCursor(this);
-      ring = new AnnularCursor(this);
-      unionOpSelected = false;
-      intersectOpSelected = false;
-      intersectComplementOpSelected = false;
+      ring     = new AnnularCursor(this);
       
       requestFocus();
       
       addMouseListener( new SelectMouseAdapter() );
       addMouseMotionListener( new SelectMouseMotionAdapter() );
       addKeyListener( new SelectKeyAdapter() );
-      reg_color = color;
-      setOpacity(transparency);
+      addComponentListener(new NotVisibleListener());
+
       sjpbuttons = getControls();
+
       opChooser = new JComboBox(ops);
       opChooser.addActionListener(new JComboBoxListener());
       opChooser.setSelectedIndex(0);
+
       editor = new SelectionEditor();
-      addComponentListener(new NotVisibleListener());
     }
 
   
