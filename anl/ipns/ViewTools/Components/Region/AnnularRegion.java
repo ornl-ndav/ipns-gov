@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.9  2007/07/30 14:30:32  dennis
+ *  The originally specified defining points are now modified to
+ *  enforce symmetry.  Since the originaly defining points are
+ *  typically obtained by transforming pixel locations (integer
+ *  coordinates on a grid) to WorldCoordinates, symmetry conditions
+ *  are often violated.  The constructor now adjusts the positions
+ *  of the defining points (except for the center point) as needed
+ *  to preserve symmetry.  This fixes a bug where a region would
+ *  not seem to be constructed properly and would have a slightly
+ *  different boundary after being drawn by a region editior.
+ *
  *  Revision 1.8  2007/03/16 16:57:56  dennis
  *  Major refactoring.  This class is now derived from the
  *  RegionWithInterior class.  The getSelectedPoints() method is
@@ -103,9 +114,12 @@ public class AnnularRegion extends RegionWithInterior
   float dy_2;
 
  /**
-  * Constructor - uses Region's constructor to set the defining points.
-  * The defining points are assumed to be in image values, where
-  * the input points are in (x,y) where (x = col, y = row ) form.
+  * Construct an annular region with the specified center and corner points.
+  * The defining points are assumed to be in World Coordinates.  Only the 
+  * center and the top left corner points of the inner and outer circles are
+  * used.  All of the corner points will be reset so that they are 
+  * symmetrically spaced around the center, in World Coordinates, and are
+  * upper left and lower right in World Coordinates.
   *
   *  @param  dp - world coord defining points of a ring.
   */ 
@@ -118,6 +132,18 @@ public class AnnularRegion extends RegionWithInterior
     dy_1 = Math.abs( dp[1].y - y_center );
     dx_2 = Math.abs( dp[3].x - x_center );
     dy_2 = Math.abs( dp[3].y - y_center );
+
+    dp[1].x = x_center - dx_1;     // Adjust the defining points, since they
+    dp[1].y = y_center + dy_1;     // might not have been symmetrically 
+                                   // spaced, or in the right order.
+    dp[2].x = x_center + dx_1;
+    dp[2].y = y_center - dy_1;
+
+    dp[3].x = x_center - dx_2;
+    dp[3].y = y_center + dy_2;
+
+    dp[4].x = x_center + dx_2;
+    dp[4].y = y_center - dy_2;
   }
   
 

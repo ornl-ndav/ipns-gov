@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/07/30 14:30:33  dennis
+ *  The originally specified defining points are now modified to
+ *  enforce symmetry.  Since the originaly defining points are
+ *  typically obtained by transforming pixel locations (integer
+ *  coordinates on a grid) to WorldCoordinates, symmetry conditions
+ *  are often violated.  The constructor now adjusts the positions
+ *  of the defining points (except for the center point) as needed
+ *  to preserve symmetry.  This fixes a bug where a region would
+ *  not seem to be constructed properly and would have a slightly
+ *  different boundary after being drawn by a region editior.
+ *
  *  Revision 1.11  2007/03/16 16:57:56  dennis
  *  Major refactoring.  This class is now derived from the
  *  RegionWithInterior class.  The getSelectedPoints() method is
@@ -109,7 +120,8 @@ public class BoxRegion extends RegionWithInterior
   private float max_y = 1;
 
  /**
-  * Constructor - provides basic initialization for all subclasses
+  * Construct a new BoxRegion using the specified corner points in
+  * World Coordinates. 
   *
   *  @param  dp - defining points of the box
   */ 
@@ -139,6 +151,7 @@ public class BoxRegion extends RegionWithInterior
      return true;
    return false;
  }
+
 
  /**
   *  Get a bounding box for the region, in World Coordinates.  The

@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.23  2007/07/30 14:30:33  dennis
+ *  The originally specified defining points are now modified to
+ *  enforce symmetry.  Since the originaly defining points are
+ *  typically obtained by transforming pixel locations (integer
+ *  coordinates on a grid) to WorldCoordinates, symmetry conditions
+ *  are often violated.  The constructor now adjusts the positions
+ *  of the defining points (except for the center point) as needed
+ *  to preserve symmetry.  This fixes a bug where a region would
+ *  not seem to be constructed properly and would have a slightly
+ *  different boundary after being drawn by a region editior.
+ *
  *  Revision 1.22  2007/07/05 00:17:24  dennis
  *  Fixed error in comment.
  *
@@ -178,11 +189,12 @@ public class WedgeRegion extends RegionWithInterior
   float included_angle; // included angle ( <= 360 ), in radians 
 
  /**
-  * Constructor - uses Region's constructor to set the defining points.
-  * The defining points are assumed to be in image values, where
-  * the input points are in (x,y) where (x = col, y = row ) form.
-  * The only exception is definingpoint[5] which holds angular (in degrees)
-  * values.
+  * Construct a WedgeRegion using the specified center, corner point and 
+  * angles.  The defining points are assumed to be in World Coordinates.  
+  * Only the center, top left corner point, and angles are used.  The corner 
+  * points are adjusted to be symmetric and located to the upper left and 
+  * lower right of center in World Coordinates.
+  * NOTE: definingpoint[5] holds angular values in degrees.
   *
   *  @param  dp - defining points of the wedge
   */ 
@@ -195,6 +207,12 @@ public class WedgeRegion extends RegionWithInterior
 
     dx = Math.abs( dp[3].x - x_center );
     dy = Math.abs( dp[3].y - y_center );
+
+    dp[3].x = x_center - dx;     // Adjust the corner points, since they
+    dp[3].y = y_center + dy;     // might not be symmetrically spaced around
+                                 // the center and they might be in the 
+    dp[4].x = x_center + dx;     // wrong order.
+    dp[4].y = y_center - dy;
 
     start_angle = (float)Math.atan2( dp[1].y - y_center, dp[1].x - x_center );
 

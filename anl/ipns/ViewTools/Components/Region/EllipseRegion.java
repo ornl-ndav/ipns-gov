@@ -34,6 +34,17 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/07/30 14:30:33  dennis
+ *  The originally specified defining points are now modified to
+ *  enforce symmetry.  Since the originaly defining points are
+ *  typically obtained by transforming pixel locations (integer
+ *  coordinates on a grid) to WorldCoordinates, symmetry conditions
+ *  are often violated.  The constructor now adjusts the positions
+ *  of the defining points (except for the center point) as needed
+ *  to preserve symmetry.  This fixes a bug where a region would
+ *  not seem to be constructed properly and would have a slightly
+ *  different boundary after being drawn by a region editior.
+ *
  *  Revision 1.11  2007/03/16 16:57:56  dennis
  *  Major refactoring.  This class is now derived from the
  *  RegionWithInterior class.  The getSelectedPoints() method is
@@ -123,9 +134,11 @@ public class EllipseRegion extends RegionWithInterior
   float dy;
 
  /**
-  * Constructor - uses Region's constructor to set the defining points.
-  * The defining points are assumed to be in image values, where
-  * the input points are in (x,y) where (x = col, y = row ) form.
+  * Construct an EllipseRegion using the specified center and corner point.
+  * The defining points are assumed to be in World Coordinates.  Only the 
+  * center and top left points are used.  In order to preserve symmetry
+  * the top left and bottom right points are reset to be symmetrically
+  * space to the upper left and bottom right in World Coordinates.
   *
   * dp[0] = top-left corner
   * dp[1] = bottom-right corner
@@ -139,8 +152,14 @@ public class EllipseRegion extends RegionWithInterior
 
     x_center = dp[2].x;
     y_center = dp[2].y;
-    dx       = Math.abs( dp[1].x - x_center );
-    dy       = Math.abs( dp[1].y - y_center );
+    dx       = Math.abs( dp[0].x - x_center );
+    dy       = Math.abs( dp[0].y - y_center );
+                                           
+    dp[0].x = x_center - dx;   // Adjust the corner defining points, since they
+    dp[0].y = y_center + dy;   // might have been off-center and/or not in
+                               // the right order.
+    dp[1].x = x_center + dx;
+    dp[1].y = y_center - dy;
   }
 
 
