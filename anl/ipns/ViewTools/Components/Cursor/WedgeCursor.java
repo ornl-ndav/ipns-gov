@@ -36,9 +36,11 @@
  *
  * Modified:
  *  $Log$
+ *  Revision 1.10  2007/07/30 14:31:41  dennis
+ *  Minor javadoc fix.
+ *
  *  Revision 1.9  2007/04/07 21:27:44  dennis
  *  Clean up of logic for selecting points that define the region.
- *
  *
  *  Revision 1.8  2007/03/23 20:24:54  dennis
  *  Now calculates symmetrically placed points across axis of wedge
@@ -117,7 +119,7 @@ public class WedgeCursor extends  XOR_Cursor3pt
   *
   *  @param  graphics   The graphics context that the circle will be drawn in.
   *  @param  p1         Vertex of wedge, the first point the user selects.
-  *  @param  p2         Point the axis of symmetry for the wedge 
+  *  @param  p2         Point on the axis of symmetry for the wedge 
   *  @param  p3         Point on the outer edge of the wedge.  This point is
   *                     reflected across the axis of symmetry to form the
   *                     full wedge. 
