@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.60  2007/07/30 15:56:53  dennis
+ *  Added publicly visible String name for the Default region list.
+ *
  *  Revision 1.59  2007/07/30 14:14:09  dennis
  *  Removed field "current_bounds", that was supposed to be a local
  *  copy of the location and size information of the central image
@@ -432,6 +435,11 @@ public class SelectionOverlay extends OverlayJPanel {
    */
   //public static final String EDITOR_BOUNDS = "Editor Bounds";
 
+  /**
+   * "Default" name for list of regions to be edited.
+   */
+  public static final String DEFAULT_REGION_NAME = "Default";
+
   private static JFrame helper = null;
 
   private transient SelectionJPanel sjp; // panel overlaying the center jpanel
@@ -447,7 +455,7 @@ public class SelectionOverlay extends OverlayJPanel {
 
   //private transient SelectionEditor editor;
 
-  private String regionName = "Default";
+  private String regionName = DEFAULT_REGION_NAME;
   private RegionOp.Operation operation = RegionOp.Operation.UNION;
   private Vector<RegionOpEditFrame> Editors = new Vector<RegionOpEditFrame>();
   private floatPoint2D[] cursorPoints;
