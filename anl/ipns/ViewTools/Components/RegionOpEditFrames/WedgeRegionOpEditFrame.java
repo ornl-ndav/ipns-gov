@@ -31,6 +31,9 @@
  * Modified: 
  * 
  * $Log$
+ * Revision 1.7  2007/07/30 20:27:33  oakgrovej
+ * Commented out System.out.print()
+ *
  * Revision 1.6  2007/07/10 18:37:58  oakgrovej
  * Added use of ValuatorPanels
  *
@@ -386,11 +389,11 @@ public class WedgeRegionOpEditFrame extends RegionOpEditFrame
   {
     public void propertyChange(PropertyChangeEvent e)
     {
-      System.out.println("Panel Listener");
+      //System.out.println("Panel Listener");
       Object source = e.getSource();
       if( source.equals(RadiusPanel) )
       {
-        System.out.println("firing draw cursor");
+        //System.out.println("firing draw cursor");
         setDefiningPoints();
         this_editor.firePropertyChange(DRAW_CURSOR,1,2);
       }

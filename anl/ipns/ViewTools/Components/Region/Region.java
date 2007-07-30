@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.19  2007/07/30 20:27:22  oakgrovej
+ *  Commented out System.out.print()
+ *
  *  Revision 1.18  2007/06/15 22:33:32  oakgrovej
  *  Added getRegionInstance methods
  *
@@ -568,6 +571,10 @@ public abstract class Region implements java.io.Serializable
     {
       //System.out.println("making Ellipse region");
       newRegion = new EllipseRegion(points);
+      /*for(int i=0;i<points.length;i++)
+      {
+        System.out.println("point ["+i+"] = "+points[i]);
+      }//*/
     }
     
     else if(cursor instanceof PointCursor)
