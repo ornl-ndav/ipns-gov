@@ -34,6 +34,21 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.59  2007/07/30 14:14:09  dennis
+ *  Removed field "current_bounds", that was supposed to be a local
+ *  copy of the location and size information of the central image
+ *  in the border layout.  Now this just calls getRegionInfo() to
+ *  get the current bounds when needed.  This avoids storing the
+ *  same information in two places, and any related synchronizaton
+ *  problems.
+ *  The LayoutManager for SelectionOverlay is now set to null.
+ *  Previously, a GridLayout(1,1) was used to hold one child, the
+ *  SelectionJPanel.  However, since the SelectionPanel was NOT to
+ *  be positioned over the full SelectionOverlay, but just over the
+ *  central image in a border layout, no LayoutManager is needed.
+ *  The SelectionJPanel is positioned by calling setBounds(), not
+ *  automatically positioned by a LayoutManager.
+ *
  *  Revision 1.58  2007/07/29 19:20:49  dennis
  *  Minor cleanup.  Removed some commented out variables that are
  *  no longer used.  Simplified references by current_bounds fields.
@@ -428,8 +443,6 @@ public class SelectionOverlay extends OverlayJPanel {
   // used for repaint by SelectListener 
   private transient SelectionOverlay this_panel;
 
-  private transient Rectangle current_bounds;
-
   private transient CoordTransform pixel_local; // pixel coords to WC
 
   //private transient SelectionEditor editor;
@@ -449,7 +462,7 @@ public class SelectionOverlay extends OverlayJPanel {
    */
   public SelectionOverlay(IZoomAddible iza) {
     super();
-    this.setLayout(new GridLayout(1, 1));
+    this.setLayout(null);
     sjp = new SelectionJPanel( regionName, Color.RED, 1.0f );
     sjp.setOpaque(false);
     component = iza;
@@ -461,7 +474,7 @@ public class SelectionOverlay extends OverlayJPanel {
 
     this.add(sjp);
     sjp.addActionListener(new SelectListener());
-    current_bounds = component.getRegionInfo();
+    Rectangle current_bounds = component.getRegionInfo();
     CoordBounds pixel_map = new CoordBounds(
                                   current_bounds.x,
                                   current_bounds.y,
@@ -892,8 +905,16 @@ public class SelectionOverlay extends OverlayJPanel {
 
     Graphics2D g2d = (Graphics2D) g.create();
 
-    current_bounds = component.getRegionInfo(); // current size of center
-    sjp.setBounds(current_bounds);
+    Rectangle current_bounds = component.getRegionInfo();// get location and 
+                                                         // size of central
+                                                         // JPanel (i.e. image)
+
+    sjp.setBounds(current_bounds);             // Since the SelectionOverlay
+                                               // covers the full background
+                                               // area, and sjp was added to it 
+                                               // the sjp bounds need to be
+                                               // adjusted to be placed just
+                                               // over the central JPanel 
 
     // this limits the paint window to the size of the background image.
     g2d.clipRect( current_bounds.x, 
@@ -1353,9 +1374,7 @@ public class SelectionOverlay extends OverlayJPanel {
 
       else if (message.indexOf(SelectionJPanel.REGION_SELECTED) > -1) {
 
-//      System.out.println("IJP bounds      = " + component.getRegionInfo() ); 
-//      System.out.println("current_ bounds = " + current_bounds ); 
-
+        Rectangle current_bounds = component.getRegionInfo();
         CoordBounds sjp_coords = new CoordBounds( 0, 
                                                   0,
                                                   current_bounds.width,
@@ -1571,6 +1590,7 @@ public class SelectionOverlay extends OverlayJPanel {
         //if no editors are up
         if(Editors.size()==0)
         {
+      Rectangle current_bounds = component.getRegionInfo();
       Point clickPoint = sjp.getClickPoint();
       clickPoint.x += current_bounds.x;
       clickPoint.y += current_bounds.y;
