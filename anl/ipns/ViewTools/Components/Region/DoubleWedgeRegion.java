@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2007/07/30 14:25:32  dennis
+ *  Updated javadocs.
+ *
  *  Revision 1.15  2007/03/16 16:57:56  dennis
  *  Major refactoring.  This class is now derived from the
  *  RegionWithInterior class.  The getSelectedPoints() method is
@@ -129,11 +132,12 @@ public class DoubleWedgeRegion extends WedgeRegion
 {
 
  /**
-  * Constructor - uses Region's constructor to set the defining points.
-  * The defining points are assumed to be in image values, where
-  * the input points are in (x,y) where (x = col, y = row ) form.
-  * The only exception is definingpoint[5] which holds angular (in degrees)
-  * values.
+  * Construct a DoubleWedgRegion in WorldCoordinates using the spcified
+  * center, corner point, axis angle and included angle.  The
+  * defining points are assumed to be in WorldCoordinates.  Only the
+  * center, top left corner point and angles are used to determine the
+  * region.  The other values are adjusted to preserve symmetry.
+  * NOTE: definingpoint[5] holds angular values in degrees.
   *
   *  @param  dp - defining points of the wedge
   */
