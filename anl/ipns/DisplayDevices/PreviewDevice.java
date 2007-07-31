@@ -1,5 +1,11 @@
 /*
  * $Log$
+ * Revision 1.7  2007/07/31 19:10:55  amoe
+ * -Added static final default frame width and height.
+ * -Added static final image-to-frame ratio.
+ * -Set the frame to the default size when the current size has not been set (when it's -1).
+ * -Set the image to a size based on a constant ratio and the size of the frame.
+ *
  * Revision 1.6  2007/07/17 16:16:54  oakgrovej
  * Added Throws Exception where needed
  *
@@ -46,8 +52,13 @@ public class PreviewDevice extends GraphicsDevice
 {
   private JFrame display_frame = null;
   
-  private Dimension screen_bounds = 
+  private final Dimension SCREEN_BOUNDS = 
                          java.awt.Toolkit.getDefaultToolkit().getScreenSize(); 
+  
+  private final float DEFAULT_FRAME_WIDTH  = SCREEN_BOUNDS.width*0.66f;
+  private final float DEFAULT_FRAME_HEIGHT = SCREEN_BOUNDS.height*0.66f;
+  
+  private final float IMAGE_TO_FRAME_RATIO = 1.25f;
   
   public PreviewDevice()
   {    
@@ -97,8 +108,8 @@ public class PreviewDevice extends GraphicsDevice
   public Vector getBounds() 
   {
     Vector<Float> v = new Vector<Float>();
-    v.add((float)screen_bounds.getWidth());
-    v.add((float)screen_bounds.getHeight());
+    v.add((float)SCREEN_BOUNDS.getWidth());
+    v.add((float)SCREEN_BOUNDS.getHeight());
     return v;
   }
 
@@ -130,10 +141,23 @@ public class PreviewDevice extends GraphicsDevice
   {
     display_frame = new JFrame();
     
-    jcomp.setSize((int)width, (int)height);
-    
-    PreviewPanel preview = new PreviewPanel(ImageRenderWriter.render(jcomp));
-    preview.setPreferredSize(new Dimension((int)width, (int)height));    
+    PreviewPanel preview;    
+    //checks if the size has not been set, if not then set defaults
+    if(this.width == -1 || this.height == -1)
+    {
+      jcomp.setSize((int)(DEFAULT_FRAME_WIDTH*IMAGE_TO_FRAME_RATIO), 
+                    (int)(DEFAULT_FRAME_HEIGHT*IMAGE_TO_FRAME_RATIO));
+      preview = new PreviewPanel(ImageRenderWriter.render(jcomp));
+      preview.setPreferredSize(new Dimension((int)DEFAULT_FRAME_WIDTH, 
+                                             (int)DEFAULT_FRAME_HEIGHT));
+    }
+    else
+    {
+      jcomp.setSize((int)(width*IMAGE_TO_FRAME_RATIO), 
+                    (int)(height*IMAGE_TO_FRAME_RATIO));
+      preview = new PreviewPanel(ImageRenderWriter.render(jcomp));
+      preview.setPreferredSize(new Dimension((int)width, (int)height));
+    }    
     
     display_frame.getContentPane().setLayout( new GridLayout(1,1) );
     display_frame.getContentPane().add(preview);
@@ -172,7 +196,7 @@ public class PreviewDevice extends GraphicsDevice
   
   public static void main(String[] args) throws Exception
   {
-    String type = "ImageV2D";
+    String type = "Image";
     VirtualArray2D v2d = new VirtualArray2D( 
              new float[][]{
                       { 1,1,1,1,1,1,1,1,1 },
@@ -186,11 +210,13 @@ public class PreviewDevice extends GraphicsDevice
     VirtualArray2D_Displayable va2d_disp =  
                                new VirtualArray2D_Displayable( v2d, type);
     
-    va2d_disp.setViewAttribute("ColorModel", "Rainbow");
-    //va2d_disp.setViewAttribute("Axes Displayed", new Integer(2));
+    va2d_disp.setViewAttribute( "preserve aspect ratio", "true");
+    va2d_disp.setViewAttribute("two sided", false);
+    va2d_disp.setViewAttribute("color control east", "false");
+    va2d_disp.setViewAttribute("color control west", true);
     
     PreviewDevice prv_dev = new PreviewDevice();
-    prv_dev.setRegion(50,50,650,550);
+    //prv_dev.setRegion(50,50,650,550);
     
     prv_dev.display(va2d_disp,false);
   }
