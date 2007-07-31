@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.7  2007/07/31 19:13:47  amoe
+ * -Added static final default image width and height.
+ * -Set the image to the default size when the current size has not been set (when it's -1).
+ *
  * Revision 1.6  2007/07/17 16:16:37  oakgrovej
  * Added Throws Exception where needed
  *
@@ -39,6 +43,9 @@ public class FileDevice extends GraphicsDevice
 {
   private String file_name;
   private BufferedImage bimg = null;
+  
+  private final float DEFAULT_IMAGE_WIDTH = 1280;
+  private final float DEFAULT_IMAGE_HEIGHT= 1024;
   
   public FileDevice(String file_name)
   {
@@ -113,13 +120,18 @@ public class FileDevice extends GraphicsDevice
   @Override
   public void display(JComponent jcomp) 
   {
-    jcomp.setSize( (int)width, (int)height );
+    //checks if the size has not been set, if not then set defaults
+    if(this.width == -1 || this.height == -1)
+      jcomp.setSize((int)DEFAULT_IMAGE_WIDTH,(int)DEFAULT_IMAGE_HEIGHT);
+    else
+      jcomp.setSize( (int)width, (int)height );
+    
     bimg = ImageRenderWriter.render(jcomp);
   }
  
   public static void main(String[] args)throws Exception
   {
-    String type = "ImageV2D";
+    String type = "Image";
     VirtualArray2D v2d = new VirtualArray2D( 
              new float[][]{
                       { 1,1,1,1,1,1,1,1,1 },
@@ -133,11 +145,13 @@ public class FileDevice extends GraphicsDevice
     VirtualArray2D_Displayable va2d_disp = 
                                new VirtualArray2D_Displayable( v2d, type);
     
-    va2d_disp.setViewAttribute("ColorModel", "Rainbow");
-    va2d_disp.setViewAttribute("Axes Displayed", new Integer(2));
+    va2d_disp.setViewAttribute( "preserve aspect ratio", "true");
+    va2d_disp.setViewAttribute("two sided", false);
+    va2d_disp.setViewAttribute("color control east", "false");
+    va2d_disp.setViewAttribute("color control west", true);
     
     FileDevice prv_dev = new FileDevice("/home/moea/fd_out.jpg");
-    prv_dev.setRegion(50,50,650,550);
+    //prv_dev.setRegion(50,50,650,550);
     
     prv_dev.display(va2d_disp,false);
     prv_dev.print();
