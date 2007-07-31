@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2007/07/31 14:01:59  dennis
+ *  Removed getRegionUnion() method.  This operation is now
+ *  carried out using the RegionOpList class.
+ *  Marked methods needing javadocs with "TO DO".
+ *
  *  Revision 1.19  2007/07/30 20:27:22  oakgrovej
  *  Commented out System.out.print()
  *
@@ -389,36 +394,18 @@ public abstract class Region implements java.io.Serializable
   }
 
 
- /**
-  * This method removes duplicate points selected by multiple regions.
-  * Calling this method will combine all regions' selected points into
-  * one list of points, where each point is unique.
-  *
-  *  @param regions         The list of regions to be unionized.
-  *
-  *  @param world_to_array  The transformation from world coordinates to
-  *                         array coordinates.  NOTE: The destination bounds
-  *                         for this mapping MUST correspond to the array
-  *                         size.  The destination CoordBounds object is used
-  *                         to get the array size!!!
-  *
-  *  @return A list of unique points for all of the regions.
-  */
-  public static Point[] getRegionUnion( Region[]       regions, 
-                                        CoordTransform world_to_array  )
-  {
-     RegionOpList op_list = new RegionOpList();
-     for ( int i = 0; i < regions.length; i++ )
-       op_list.add( new RegionOp( regions[i], RegionOp.Operation.UNION ) );
-
-     return op_list.getSelectedPoints( world_to_array );
-  }
-  
+  /**
+   *  TO DO: Document this
+   */
   public static Region getInstanceRegion(XOR_Cursor3pt cursor)
   {
     return null;
   }
+
   
+  /**
+   *  TO DO: Document this
+   */
   public static Region getInstanceRegion(XOR_Cursor cursor,CoordTransform trans)
   {
     Region newRegion;
@@ -455,6 +442,10 @@ public abstract class Region implements java.io.Serializable
     return newRegion;
   }
   
+
+  /**
+   *  TO DO: Document this
+   */
   public static Region getInstanceRegion(XOR_PanCursor cursor,
                                          CoordTransform trans)
   {
@@ -488,7 +479,11 @@ public abstract class Region implements java.io.Serializable
     }
     return newRegion;
   }
+
   
+  /**
+   *  TO DO: Document this
+   */ 
   public static Region getInstanceRegion(CursorTag cursor,floatPoint2D[] points)
   {
     if( cursor instanceof XOR_Cursor3pt)
@@ -502,7 +497,11 @@ public abstract class Region implements java.io.Serializable
     else
       return null;
   }
+
   
+  /**
+   *  TO DO: Document this
+   */
   private static Region getInstanceRegion(XOR_Cursor3pt cursor,
                                          floatPoint2D[] points)
   {
@@ -532,9 +531,7 @@ public abstract class Region implements java.io.Serializable
           newRegion = new DoubleWedgeRegion(tempwcp);
         else
           newRegion = new WedgeRegion(tempwcp);
-        
       }
-      
     }
     else if(cursor instanceof AnnularCursor)
     {
@@ -561,9 +558,13 @@ public abstract class Region implements java.io.Serializable
     }
     return newRegion;
   }
+
   
+  /**
+   *  TO DO: Document this
+   */
   private static Region getInstanceRegion(XOR_Cursor cursor,
-                                         floatPoint2D[] points)
+                                          floatPoint2D[] points)
   {
     Region newRegion = null;
     //System.out.println("making XOR_Cursor region");
@@ -595,10 +596,15 @@ public abstract class Region implements java.io.Serializable
     return newRegion;
   }
   
+
+  /**
+   *  TO DO: Document this
+   */
   private static Region getInstanceRegion(XOR_PanCursor cursor,
                                          floatPoint2D[] points)
   {
     Region newRegion = new BoxRegion(points);
     return newRegion;
   }
+
 }
