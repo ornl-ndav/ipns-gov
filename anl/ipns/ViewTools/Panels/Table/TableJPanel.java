@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.18  2007/07/31 14:05:28  dennis
+ *  Switched to combine regions using RegionOpList class rather
+ *  than the obsolete Region.getRegionUnion() method.
+ *
  *  Revision 1.17  2007/06/12 20:50:36  rmikk
  *  Made the POINTED_AT_CHANGED agree with IObserver's value
  *
@@ -187,6 +191,8 @@ import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.IPreserveState;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 import gov.anl.ipns.ViewTools.Components.Region.Region;
+import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
+import gov.anl.ipns.ViewTools.Components.Region.RegionOpList;
 import gov.anl.ipns.ViewTools.Components.Region.PointRegion;
 import gov.anl.ipns.ViewTools.Components.Region.TableRegion;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
@@ -1354,8 +1360,11 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
       {
         // Start a new group of non-TableRegions to be converted.
 	other_regions.clear();
+
 	// Group non-TableRegions together until the next TableRegion.
-    CoordTransform identity_tran = new CoordTransform();
+
+        CoordTransform identity_tran = new CoordTransform();  // TO DO: what
+                                                              // transform ?
 	while( i < any_region.length &&
 	       !( any_region[i] instanceof TableRegion ) )
 	{
@@ -1384,15 +1393,18 @@ public class TableJPanel extends ActiveJPanel implements IPreserveState
      	{
      	  // Convert the vector of misc. regions to an array of regions so the
      	  // union of the regions can be calculated.
-     	  Region[] misc_region = new Region[other_regions.size()];
+     	 // Region[] misc_region = new Region[other_regions.size()];
+     	  RegionOpList reg_op_list = new RegionOpList();
      	  for( int reg_num = 0; reg_num < other_regions.size(); reg_num++ )
      	  {
-     	    misc_region[reg_num] = (Region)other_regions.elementAt(reg_num);
+     	    RegionOp reg_op = new RegionOp((Region)other_regions.elementAt(reg_num),
+     	    								RegionOp.Operation.UNION);
+     	    reg_op_list.add(reg_op);
      	  }
      	  
      	  // Get all of the unique points selected by these regions.
-     	  Point[] misc_point = Region.getRegionUnion(misc_region,
-     			                                     identity_tran );
+     	  // TO DO: check on what transformation should be used to getSelectedPoints
+     	  Point[] misc_point = reg_op_list.getSelectedPoints(identity_tran);
      	  
      	  // Make grid and mark all of the selected points. Add an extra row
      	  // that should be all false, this will cause any remaining bounds in
