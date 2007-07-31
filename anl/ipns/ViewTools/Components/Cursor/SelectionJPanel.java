@@ -33,6 +33,18 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.26  2007/07/31 16:42:24  dennis
+ *  Split ButtonListener class into two separate classes, one for
+ *  the Region type selection, on for handling commands.
+ *  Added methods ListenToFutureEvents() and IgnoreFutureEvents() to
+ *  switch listeners in and out, allowing the mouse events to fall
+ *  through to the ImageJPanel for zooming, and POINTED AT events,
+ *  when the SelectionJPanel is visible, but NOT needing the events.
+ *  Added a checkbox, "Edit Selected Regions" that must be checked to
+ *  get events for editing regions.  Pressing a region type button
+ *  will also switch on events for the SelectionJPanel, until the
+ *  region selection is finished.
+ *
  *  Revision 1.25  2007/07/30 15:58:55  dennis
  *  Removed duplicated code in the default constructor.  The default
  *  constructor now just passes in default values to the constructor
@@ -304,7 +316,15 @@ public class SelectionJPanel extends ActiveJPanel
   private String[]  ops = {UNION,INTERSECT,INTERSECT_COMPLEMENT};
   private JComboBox opChooser;
   private JLabel    opLabel = new JLabel("Operation");
+  private JCheckBox region_edit_cb = new JCheckBox("Edit Selected Regions");
   
+//listeners for events that are added and removed to allow events to be passed
+//up to the ImageJPanel instead of being handled hare.  This allows for 
+//zooming in and out, while the SelectionOverlay is present.
+  private SelectMouseAdapter       select_mouse_adapter        = null;
+  private SelectMouseMotionAdapter select_mouse_motion_adapter = null;
+  private SelectKeyAdapter         select_key_adapter          = null;
+
 
  /**
   * Constructor adds listeners to this SelectionJPanel. All boolean values
@@ -371,12 +391,14 @@ public class SelectionJPanel extends ActiveJPanel
       ring     = new AnnularCursor(this);
       
       requestFocus();
-      
-      addMouseListener( new SelectMouseAdapter() );
-      addMouseMotionListener( new SelectMouseMotionAdapter() );
-      addKeyListener( new SelectKeyAdapter() );
-      addComponentListener(new NotVisibleListener());
 
+      select_mouse_adapter        = new SelectMouseAdapter();
+      select_mouse_motion_adapter = new SelectMouseMotionAdapter();
+      select_key_adapter          = new SelectKeyAdapter();
+
+      region_edit_cb.addItemListener( new EditEnableListener() );
+
+      addComponentListener(new NotVisibleListener());
       sjpbuttons = getControls();
 
       opChooser = new JComboBox(ops);
@@ -686,64 +708,65 @@ public class SelectionJPanel extends ActiveJPanel
   */ 
   public JButton[] getControls()
   {
-    ButtonListener button_listener = new ButtonListener();
+    SelectionChoiceListener choice_listener = new SelectionChoiceListener();
     JButton[] controls = new JButton[11];
     controls[0] = new JButton(BOX);
-    controls[0].addActionListener( button_listener );
+    controls[0].addActionListener( choice_listener );
     controls[0].setToolTipText("Shortcut Key: Hold B");
     if( disableBox )
       controls[0].setEnabled(false);
     
     controls[1] = new JButton(CIRCLE);
-    controls[1].addActionListener( button_listener );
+    controls[1].addActionListener( choice_listener );
     controls[1].setToolTipText("Shortcut Key: Hold C");
     if( disableCircle )
       controls[1].setEnabled(false);
 
     controls[2] = new JButton(ELLIPSE);
-    controls[2].addActionListener( button_listener );
+    controls[2].addActionListener( choice_listener );
     controls[2].setToolTipText("Shortcut Key: Hold E");
     if( disableEllipse )
       controls[1].setEnabled(false);
     
     controls[3] = new JButton(DOUBLE_WEDGE);
-    controls[3].addActionListener( button_listener );
+    controls[3].addActionListener( choice_listener );
     controls[3].setToolTipText("Shortcut Key: Hold D");
     if( disableDblWedge )
       controls[3].setEnabled(false);
     
     controls[4] = new JButton(LINE);
-    controls[4].addActionListener( button_listener );
+    controls[4].addActionListener( choice_listener );
     controls[4].setToolTipText("Shortcut Key: Hold L");
     if( disableLine )
       controls[4].setEnabled(false);
     
     controls[5] = new JButton(POINT);
-    controls[5].addActionListener( button_listener );
+    controls[5].addActionListener( choice_listener );
     controls[5].setToolTipText("Shortcut Key: Hold P");
     if( disablePoint )
       controls[5].setEnabled(false);
     
     controls[6] = new JButton(RING);
-    controls[6].addActionListener( button_listener );
+    controls[6].addActionListener( choice_listener );
     controls[6].setToolTipText("Shortcut Key: Hold R");
     if( disableRing )
       controls[6].setEnabled(false);
     
     controls[7] = new JButton(WEDGE);
-    controls[7].addActionListener( button_listener );
+    controls[7].addActionListener( choice_listener );
     controls[7].setToolTipText("Shortcut Key: Hold W");
     if( disableWedge )
       controls[7].setEnabled(false);
     
+    CommandButtonListener command_listener = new CommandButtonListener();
     controls[8] = new JButton(COMPLEMENT_CURRENT_SELECTION);
-    controls[8].addActionListener( button_listener );
+    controls[8].addActionListener( command_listener );
 
     controls[9] = new JButton(RESET_LAST_SELECTED);
-    controls[9].addActionListener( button_listener );
+    controls[9].addActionListener( command_listener );
     
     controls[10] = new JButton(RESET_SELECTED);
-    controls[10].addActionListener( button_listener );
+    controls[10].addActionListener( command_listener );
     controls[10].setToolTipText("Shortcut Key: Hold A");
     if( disableAll )
       controls[10].setEnabled(false);
@@ -1006,18 +1029,57 @@ public class SelectionJPanel extends ActiveJPanel
     editor.dispose();
   }
 
+
+ /*
+  *  Add the mouse, key and mouse motion listeners to this panel, so that
+  *  such events will be interpreted as selection requests.  This should
+  *  ONLY be called by the SelectionChoiceListener, when the user presses
+  *  a button to start the selection of a region, OR when the selection
+  *  of regions to edit will be allowed.
+  */
+  private void ListenToFutureEvents()
+  {
+    IgnoreFutureEvents();     // remove any existing listeners, just in case
+                              // this method was called when the listeners
+                              // were already there.
+
+    addMouseListener( select_mouse_adapter );
+    addMouseMotionListener( select_mouse_motion_adapter );
+    addKeyListener( select_key_adapter );
+  }
+
+
+ /*
+  *  Remove the mouse, key and mouse motion listeners from this panel, so that
+  *  such events will be ignored by this SelectionJPanel and will instead 
+  *  fall through to the ImageJPanel2 object.  This allows the events to be
+  *  interpreted as requests to zoom in or out, or to change the POINTED AT
+  *  location.
+  */
+  private void IgnoreFutureEvents()
+  {
+    removeMouseListener( select_mouse_adapter );
+    removeMouseMotionListener( select_mouse_motion_adapter );
+    removeKeyListener( select_key_adapter );
+  }
+
   
  /*
   * This method is to check to see if any selections have been started
   */
   private boolean doingAny()
   {
-    if( doing_box || doing_circle || doing_ellipse || doing_line || 
-  doing_point || doing_wedge || doing_dblwedge ||
-  doing_ring )
+    if ( doing_box      || 
+         doing_circle   || 
+         doing_ellipse  || 
+         doing_line     || 
+         doing_point    || 
+         doing_wedge    || 
+         doing_dblwedge ||
+         doing_ring       )
       return true;
-    // else nothing is selecting
-    return false;
+
+    return false;       // no selection in progress 
   }
 
   
@@ -1156,11 +1218,28 @@ public class SelectionJPanel extends ActiveJPanel
     }
   }
 
+
+  private class EditEnableListener implements ItemListener
+  {
+    public void itemStateChanged( ItemEvent e )
+    {
+      if ( region_edit_cb.isSelected() )
+      {
+        ListenToFutureEvents();  
+      }
+      else
+      {
+        if ( !doingAny() )
+          IgnoreFutureEvents();
+      }
+    }
+  } 
+
   
  /*
   * This class receives button events and substitutes them for key events.
   */ 
-  private class ButtonListener implements ActionListener
+  private class SelectionChoiceListener implements ActionListener
   {
     public void actionPerformed( ActionEvent ae )
     {
@@ -1202,7 +1281,27 @@ public class SelectionJPanel extends ActiveJPanel
         {
           isWdown = true;
         }
-        else if ( message.equals(RESET_SELECTED) )
+    
+        ListenToFutureEvents();
+      
+      } // end if !doingAny
+    }
+  }
+
+
+ /*
+  * This class receives button events and substitutes them for key events.
+  */
+  private class CommandButtonListener implements ActionListener
+  {
+    public void actionPerformed( ActionEvent ae )
+    {
+      String message = ae.getActionCommand();
+
+      // only send command if no selections are in progress
+      if ( !doingAny() )
+      {
+        if ( message.equals(RESET_SELECTED) )
         {
           send_message(RESET_SELECTED);
         }
@@ -1369,7 +1468,13 @@ public class SelectionJPanel extends ActiveJPanel
         }
         firstRun = !firstRun; 
       }
-      send_message(message);       
+
+      if ( !message.equals( REGION_SELECTED ) ) // selection process done since
+      {                                         // a region type was appended
+        send_message(message);       
+        if ( !region_edit_cb.isSelected() )
+          IgnoreFutureEvents();
+      }
     }
   } 
   
@@ -1438,6 +1543,8 @@ public class SelectionJPanel extends ActiveJPanel
       opPanel.add(opLabel);
       opPanel.add(opChooser);
       pane.add(opPanel);
+
+      pane.add( region_edit_cb );
       
       ColorSelector color_chooser = new ColorSelector( ColorSelector.SWATCH );
       color_chooser.addActionListener(new ControlListener());
