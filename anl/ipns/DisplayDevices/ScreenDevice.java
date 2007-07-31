@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.7  2007/07/31 19:00:55  amoe
+ * -Added static final default frame width and height.
+ * -Set the frame to the default size when the current size has not been set (when it's -1).
+ *
  * Revision 1.6  2007/07/17 16:17:14  oakgrovej
  * Added Throws Exception where needed
  *
@@ -40,10 +44,13 @@ import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
 
 public class ScreenDevice extends GraphicsDevice
 {
-  private JFrame display_frame = null;
+  private final Dimension SCREEN_BOUNDS = 
+    java.awt.Toolkit.getDefaultToolkit().getScreenSize();
   
-  private Dimension screen_bounds = 
-                         java.awt.Toolkit.getDefaultToolkit().getScreenSize(); 
+  private final float DEFAULT_FRAME_WIDTH  = (int)(SCREEN_BOUNDS.width*0.66);
+  private final float DEFAULT_FRAME_HEIGHT = (int)(SCREEN_BOUNDS.height*0.66);
+  
+  private JFrame display_frame = null; 
   
   public ScreenDevice()
   {
@@ -93,8 +100,8 @@ public class ScreenDevice extends GraphicsDevice
   public Vector getBounds() 
   {
     Vector<Float> v = new Vector<Float>();
-    v.add((float)screen_bounds.getWidth());
-    v.add((float)screen_bounds.getHeight());
+    v.add((float)SCREEN_BOUNDS.getWidth());
+    v.add((float)SCREEN_BOUNDS.getHeight());
     return v;
   }
 
@@ -126,7 +133,14 @@ public class ScreenDevice extends GraphicsDevice
   {
     display_frame = new JFrame();
     
-    display_frame.setSize( (int)width, (int)height ); 
+    //checks if the size has not been set, if not then set defaults
+    if(this.width == -1 || this.height == -1)
+      display_frame.setSize(
+                      (int)DEFAULT_FRAME_WIDTH,
+                      (int)DEFAULT_FRAME_HEIGHT);
+    else  
+      display_frame.setSize( (int)width, (int)height ); 
+    
     display_frame.setLocation( (int)x_pos, (int)y_pos );
     display_frame.getContentPane().setLayout( new GridLayout(1,1) );
     display_frame.getContentPane().add(jcomp);
@@ -135,25 +149,27 @@ public class ScreenDevice extends GraphicsDevice
   
   public static void main(String[] args)throws Exception
   {
-    String type = "ImageV2D";
+    String type = "Image";
     VirtualArray2D v2d = new VirtualArray2D( 
              new float[][]{
-                      {  1,1,1,1,1,1,1,1,1},
-                      {  2,2,2,2,2,2,2,2,2 },
-                      {  3,3,3,3,3,3,3,3,3},
-                      {  4,4,4,4,4,4,4,4,4},
-                      {  5,5,5,5,5,5,5,5,5},
-                      {  6,6,6,6,6,6,6,6,6}
+                      { 1,1,1,1,1,1,1,1,1 },
+                      { 2,2,2,2,2,2,2,2,2 },
+                      { 3,3,3,3,3,3,3,3,3 },
+                      { 4,4,4,4,4,4,4,4,4 },
+                      { 5,5,5,5,5,5,5,5,5 },
+                      { 6,6,6,6,6,6,6,6,6 }
                       
              });
     VirtualArray2D_Displayable va2d_disp = 
                                new VirtualArray2D_Displayable( v2d, type);
     
-    va2d_disp.setViewAttribute("ColorModel", "Rainbow");
-    //va2d_disp.setViewAttribute("Axes Displayed", new Integer(2));
+    va2d_disp.setViewAttribute( "preserve aspect ratio", "true");
+    va2d_disp.setViewAttribute("two sided", false);
+    va2d_disp.setViewAttribute("color control east", "false");
+    va2d_disp.setViewAttribute("color control west", true);
         
     ScreenDevice scr_dev = new ScreenDevice();
-    scr_dev.setRegion(50,50,650,550);
+    //scr_dev.setRegion(50,50,650,550);
     
     scr_dev.display(va2d_disp,false);
   }
