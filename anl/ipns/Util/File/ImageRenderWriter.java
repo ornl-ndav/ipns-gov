@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2007/07/31 18:30:44  amoe
+ * Added static final fields for the default image width and height.
+ *
  * Revision 1.3  2007/07/02 23:03:42  amoe
  * -Created new static methods render(..) and write(..) .
  * -Changed renderAndWrite(..) to static.
@@ -95,6 +98,9 @@ import javax.swing.SwingUtilities;
  */
 public class ImageRenderWriter
 { 
+  public static final int IMAGE_DEFAULT_WIDTH  = 1000;
+  public static final int IMAGE_DEFAULT_HEIGHT = 1000;
+  
   /**
    * This method renders an image from a <code>JComponent</code> and writes it 
    * to a file based on an format extension in the file_name. 
@@ -216,12 +222,12 @@ public class ImageRenderWriter
     //making sure the source size is at least greater than 0.
     if( width <=0) 
     {
-      width = 500;
+      width = IMAGE_DEFAULT_WIDTH;
       source.setSize(width,height);
     }    
     if( height <= 0)
     {
-      height = 500;
+      height = IMAGE_DEFAULT_HEIGHT;
       source.setSize(width,height);
     }
     
