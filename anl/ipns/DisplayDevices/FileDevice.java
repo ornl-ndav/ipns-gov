@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.8  2007/08/02 15:37:40  oakgrovej
+ * Allowed for multiple components to be displayed in the file.  Any empty space below or to the right of the components added will be cut off.
+ *
  * Revision 1.7  2007/07/31 19:13:47  amoe
  * -Added static final default image width and height.
  * -Set the image to the default size when the current size has not been set (when it's -1).
@@ -38,18 +41,30 @@ import java.awt.image.BufferedImage;
 import java.util.Vector;
 
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 public class FileDevice extends GraphicsDevice
 {
   private String file_name;
   private BufferedImage bimg = null;
+  private JComponent jcomp;
+  private int max_x = 0;
+  private int max_y = 0;
   
-  private final float DEFAULT_IMAGE_WIDTH = 1280;
-  private final float DEFAULT_IMAGE_HEIGHT= 1024;
+  private final int DEFAULT_IMAGE_WIDTH = 1280;
+  private final int DEFAULT_IMAGE_HEIGHT= 1024;
   
   public FileDevice(String file_name)
   {
     this.file_name = file_name;
+    x_pos = 0;
+    y_pos = 0;
+    width = DEFAULT_IMAGE_WIDTH;
+    height = DEFAULT_IMAGE_HEIGHT;
+    jcomp = new JPanel();
+    jcomp.setBounds(0, 0, width, height);
+    jcomp.setLayout(null);
+    
   }
 
   /**
@@ -120,13 +135,16 @@ public class FileDevice extends GraphicsDevice
   @Override
   public void display(JComponent jcomp) 
   {
-    //checks if the size has not been set, if not then set defaults
-    if(this.width == -1 || this.height == -1)
-      jcomp.setSize((int)DEFAULT_IMAGE_WIDTH,(int)DEFAULT_IMAGE_HEIGHT);
-    else
-      jcomp.setSize( (int)width, (int)height );
+    jcomp.setBounds( x_pos, y_pos, width, height );
     
-    bimg = ImageRenderWriter.render(jcomp);
+    if( x_pos + width > max_x )
+      max_x = x_pos + width;
+    if( y_pos + height > max_y )
+      max_y = y_pos + height;
+      
+    this.jcomp.add(jcomp);
+    this.jcomp.setSize(max_x,max_y);
+    bimg = ImageRenderWriter.render(this.jcomp);
   }
  
   public static void main(String[] args)throws Exception
