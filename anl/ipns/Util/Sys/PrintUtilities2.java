@@ -33,6 +33,10 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.4  2007/08/02 20:59:46  oakgrovej
+ * reintroduced the squish/stretch of the component to fit on the page.
+ * It will keep the aspect ratio.
+ *
  * Revision 1.3  2007/08/02 15:19:32  oakgrovej
  * Removed the stretching/shrinking of the component to be printed.
  *
@@ -69,6 +73,7 @@ import javax.print.DocPrintJob;
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
 import javax.print.SimpleDoc;
+import javax.print.attribute.Attribute;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.Copies;
 import javax.print.attribute.standard.OrientationRequested;
@@ -302,6 +307,8 @@ public class PrintUtilities2
   private void silent_print() 
   {
     DocPrintJob printJob = pservice.createPrintJob();
+    Attribute[] array = printJob.getAttributes().toArray();
+    
     //TODO: Instead of just hiding the JWindow container off-screen, try to 
     //      find a way to make it invisible and still have the containted 
     //      Component actually printed out.
@@ -411,18 +418,18 @@ public class PrintUtilities2
          
          g2d.translate(page_format.getImageableX(), 
                        page_format.getImageableY());
-         comp_to_print.setBounds(0, 0, 
+         /*comp_to_print.setBounds(0, 0, 
                        (int)Math.round(page_format.getImageableWidth()), 
-                       (int)Math.round(page_format.getImageableHeight()));
-         //g2d.scale(xscale ,xscale); 
+                       (int)Math.round(page_format.getImageableHeight()));//*/
+         g2d.scale(xscale ,xscale); 
 
-         //double w = R.width*xscale;
-         //double h = R.height*xscale;
+         double w = R.width*xscale;
+         double h = R.height*xscale;
          
-         /*if ( w > page_format.getImageableWidth() ) 
+         if ( w > page_format.getImageableWidth() ) 
             w = page_format.getImageableWidth();
          if ( h > page_format.getImageableHeight() ) 
-            h = page_format.getImageableHeight();//*/         
+            h = page_format.getImageableHeight();         
          
          disableDoubleBuffering(comp_to_print);         
          comp_to_print.paint(g2d);       
