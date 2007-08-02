@@ -33,6 +33,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.3  2007/08/02 15:19:32  oakgrovej
+ * Removed the stretching/shrinking of the component to be printed.
+ *
  * Revision 1.2  2007/07/26 21:14:22  amoe
  * -In init_component_container(), the container size is set to the same size
  *  as the Component to be printed, not the default.
@@ -400,17 +403,26 @@ public class PrintUtilities2
          if(yscale < xscale) 
             xscale= yscale; 
          
+         /*System.out.println("x: "+page_format.getImageableX()+
+                          "\ny: "+page_format.getImageableY()+
+                      "\nwidth: "+page_format.getImageableWidth()+
+                     "\nheight: "+page_format.getImageableHeight());//*/
+         
+         
          g2d.translate(page_format.getImageableX(), 
                        page_format.getImageableY());
-         g2d.scale(xscale ,xscale); 
+         comp_to_print.setBounds(0, 0, 
+                       (int)Math.round(page_format.getImageableWidth()), 
+                       (int)Math.round(page_format.getImageableHeight()));
+         //g2d.scale(xscale ,xscale); 
 
-         double w = R.width*xscale;
-         double h = R.height*xscale;
+         //double w = R.width*xscale;
+         //double h = R.height*xscale;
          
-         if ( w > page_format.getImageableWidth() ) 
+         /*if ( w > page_format.getImageableWidth() ) 
             w = page_format.getImageableWidth();
          if ( h > page_format.getImageableHeight() ) 
-            h = page_format.getImageableHeight();         
+            h = page_format.getImageableHeight();//*/         
          
          disableDoubleBuffering(comp_to_print);         
          comp_to_print.paint(g2d);       
