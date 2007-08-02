@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.8  2007/08/02 15:43:49  oakgrovej
+ * Changed x_pos, y_pos, width, height to integers
+ *
  * Revision 1.7  2007/07/25 22:23:34  oakgrovej
  * Added Throws Exception as needed for setAttribute
  *
@@ -61,10 +64,10 @@ public abstract class GraphicsDevice
   public static final String SCREEN  = "Screen";
   public static final String PREVIEW = "Preview";
 
-  protected float x_pos = -1;
-  protected float y_pos = -1;
-  protected float width = -1;
-  protected float height = -1;
+  protected int x_pos = -1;
+  protected int y_pos = -1;
+  protected int width = -1;
+  protected int height = -1;
   
   protected Hashtable requested_attributes;
   
