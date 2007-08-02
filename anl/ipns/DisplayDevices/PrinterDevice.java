@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.8  2007/08/02 15:34:11  oakgrovej
+ * Uses the bounds: x_pos, y_pos, width, height to set the region of a component passed in to display().  The component is set into a larger component at the particular region.
+ *   I also started some code as an attempt to control the margins; it's commented out.
+ *
  * Revision 1.7  2007/07/26 22:48:38  amoe
  * -Removed un-needed imports.
  * -Added ORIENTATION and COPIES static final variables.
@@ -35,14 +39,18 @@ package gov.anl.ipns.DisplayDevices;
 import gov.anl.ipns.DisplayDevices.IDisplayable;
 import gov.anl.ipns.Util.Sys.PrintUtilities2;
 
+import java.awt.Color;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.print.attribute.Attribute;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.Copies;
+import javax.print.attribute.standard.MediaPrintableArea;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.border.EtchedBorder;
 
 public class PrinterDevice extends GraphicsDevice
 {
@@ -51,6 +59,8 @@ public class PrinterDevice extends GraphicsDevice
   
   public static String LANDSCAPE = "landscape";
   public static String PORTRAIT = "portrait";
+  
+  //private Hashtable<String,Float> printableAreaValues;
   
   private Hashtable<String, Attribute> attributes = 
     new Hashtable<String, Attribute>();
@@ -64,9 +74,15 @@ public class PrinterDevice extends GraphicsDevice
   public PrinterDevice(String printer_name)
   {
     this.printer_name = printer_name;
+    jcomp = new JPanel();
+    jcomp.setBounds(0, 0, 600, 600);
+    jcomp.setLayout(null);
+    jcomp.setBackground(Color.white);
+    //jcomp.setBorder(new EtchedBorder());
     aset = new HashPrintRequestAttributeSet();
     buildAttributes();
     buildValues();
+    //buildPrintableAreaValues();
   }
   
   /**
@@ -92,6 +108,9 @@ public class PrinterDevice extends GraphicsDevice
       attrib = new Copies((Integer)value);
     
     aset.add(attrib);
+    /*Attribute[] blah = aset.toArray();
+    for(int i=0;i<blah.length;i++)
+      System.out.println(blah[i]);//*/
   }
   
   /**
@@ -99,9 +118,29 @@ public class PrinterDevice extends GraphicsDevice
    * the printer.
    */
   @Override
-  public void print() 
+  public void print()
   {
+    // this is an atempt to alter margins.
+    
+    /* if (!printableAreaValues.containsValue(null))
+    {
+      try
+      {
+        MediaPrintableArea area = new MediaPrintableArea(
+          (Float)Util.TranslateKey(printableAreaValues, "printableareax"),
+          (Float)Util.TranslateKey(printableAreaValues, "printableareay"),
+          (Float)Util.TranslateKey(printableAreaValues, "printableareawidth"),
+          (Float)Util.TranslateKey(printableAreaValues, "printableareaheight"),
+          ((Float)Util.TranslateKey(printableAreaValues, 
+                                    "printableareascale")).intValue());
+        aset.add(area);
+      }
+      catch(Exception e)
+      {System.out.println("One or more Pintable Area Values are of incorrect type");}
+    }//*/
+    
     PrintUtilities2.print(jcomp, printer_name, aset);
+    //PrintUtilities2.print_with_dialog(jcomp);
   }
 
   /**
@@ -150,8 +189,8 @@ public class PrinterDevice extends GraphicsDevice
   @Override
   public void display(JComponent jcomp) 
   {
-    this.jcomp = jcomp;
-    this.jcomp.setSize( (int)width, (int)height );  
+    jcomp.setBounds(x_pos, y_pos, width, height);
+    this.jcomp.add(jcomp);  
   }
   
   private void buildAttributes()
@@ -166,6 +205,18 @@ public class PrinterDevice extends GraphicsDevice
     values.put("portrait", ".portrait");
     values.put("landscape", ".landscape");
   }
+  
+  //part of an atempt to alter margins
+  /*{
+    printableAreaValues = new Hashtable<String, Float>();
+    Float x = null;
+    printableAreaValues.put
+    ("printableareax", x);
+    printableAreaValues.put("printableareay", null);
+    printableAreaValues.put("printableareawidth", null);
+    printableAreaValues.put("printableareaheight", null);
+    printableAreaValues.put("printableareascale", null);
+  }//*/
   
   /*
   public static void main(String[] args)throws Exception
