@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.9  2007/08/02 21:02:06  oakgrovej
+ * Will cut off any empty space of the larger component below or to the right
+ * of the smaller compnents within.
+ *
  * Revision 1.8  2007/08/02 15:34:11  oakgrovej
  * Uses the bounds: x_pos, y_pos, width, height to set the region of a component passed in to display().  The component is set into a larger component at the particular region.
  *   I also started some code as an attempt to control the margins; it's commented out.
@@ -70,6 +74,8 @@ public class PrinterDevice extends GraphicsDevice
   
   private JComponent jcomp;
   private String printer_name;
+  private int max_x = 0;
+  private int max_y = 0;
   
   public PrinterDevice(String printer_name)
   {
@@ -190,7 +196,14 @@ public class PrinterDevice extends GraphicsDevice
   public void display(JComponent jcomp) 
   {
     jcomp.setBounds(x_pos, y_pos, width, height);
-    this.jcomp.add(jcomp);  
+    
+    if( x_pos + width > max_x )
+      max_x = x_pos + width;
+    if( y_pos + height > max_y )
+      max_y = y_pos + height;
+    
+    this.jcomp.add(jcomp);
+    this.jcomp.setSize(max_x,max_y);
   }
   
   private void buildAttributes()
