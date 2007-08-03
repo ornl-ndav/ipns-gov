@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.24  2007/08/03 16:26:24  oakgrovej
+ * Added code to set the mark size in the setObjectState() method.
+ *
  * Revision 1.23  2007/06/08 20:03:56  dennis
  * Fixed one java doc comment, and minor reformatting.
  *
@@ -233,6 +236,12 @@ public class GraphData implements Serializable,
     if ( temp != null)
     {
       markcolor = (Color)temp;
+    }
+    
+    temp = new_state.get(MARK_SIZE);
+    if ( temp != null)
+    {
+      marksize = (Integer)temp;
     }
 
 /*  temp = new_state.get(STROKE);
