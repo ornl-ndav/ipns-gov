@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.11  2007/08/03 16:28:32  oakgrovej
+ *  - Added setLineAttribute() method that takes in an Object for the value.
+ *  - Added some more colors.
+ *
  * Revision 1.10  2007/08/03 14:55:18  oakgrovej
  * - Added attributes for grid lines, grid color and legend.
  * - Made View Hashtables private fields instead of creating
@@ -202,6 +206,29 @@ public class VirtualArray1D_Displayable extends Displayable {
      }
      comp.setObjectState(Ostate);
    }
+   
+   public void setLineAttribute(int index, 
+                                 String Attribute, 
+                                 Object val) throws Exception
+   {
+     Attribute = Attribute.toLowerCase();
+     Ostate = comp.getObjectState(true);
+     Hashtable<String, Object> values = getGraphLineValueList();
+     Hashtable<String,String> selectedGraphDataTable = 
+       getGraphLineAttributeList();
+     
+     String OSAttribute = (String)Util.TranslateKey(selectedGraphDataTable,Attribute);
+     OSAttribute = selectedGraphDataTable.get("graph data")+index+"."+OSAttribute;
+     try
+     {
+       setLineAttribute(OSAttribute, val);
+     }
+     catch(Exception e)
+     {
+       throw new Exception("Cannot put "+val+" into "+Attribute);
+     }
+     comp.setObjectState(Ostate);
+   }
 
    private void setLineAttribute(String Attribute, 
                                  Object Val) throws Exception
@@ -277,6 +304,8 @@ public class VirtualArray1D_Displayable extends Displayable {
      temp.put("orange", Color.orange);
      temp.put("red", Color.red);
      temp.put("yellow", Color.yellow);
+     temp.put("gray", Color.gray);
+     temp.put("light gray", Color.lightGray);
      temp.put("dotted", GraphJPanel.DOTTED);
      temp.put("dashed", GraphJPanel.DASHED);
      temp.put("dashdot", GraphJPanel.DASHDOT);
@@ -324,16 +353,18 @@ public class VirtualArray1D_Displayable extends Displayable {
      /*VirtualArray1D_Displayable disp = 
        new VirtualArray1D_Displayable(array,TABLE);//*/
      System.out.println(disp.comp.getObjectState(true));
-    
+     
      //--------------graph test
      disp.setViewAttribute("legend", "true");
      disp.setViewAttribute("grid lines x", "on");
      disp.setViewAttribute("grid lines y","on");
      disp.setViewAttribute("grid color","red");
 //   disp.setLineAttribute(1, "line type", "dashdot");
-//   disp.setLineAttribute(1, "line color", "red");
+   disp.setLineAttribute(1, "line color", "red");
+   disp.setLineAttribute(1, "line width", 2f);
 //   disp.setLineAttribute(2, "line color", "black");
-//   disp.setLineAttribute(1, "mark type", "cross");
+   disp.setLineAttribute(1, "mark type", "cross");
+   disp.setLineAttribute(1, "mark size", 2);
 //   disp.setLineAttribute(1, "mark color", "green");
 //   disp.setLineAttribute(3, "line type", "dashed");
 //   disp.setLineAttribute(3, "mark type", "plus");
