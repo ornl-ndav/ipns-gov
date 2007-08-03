@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.12  2007/08/03 18:41:59  oakgrovej
+ * Combined the value Hashtables
+ *
  * Revision 1.11  2007/08/03 16:28:32  oakgrovej
  *  - Added setLineAttribute() method that takes in an Object for the value.
  *  - Added some more colors.
@@ -46,8 +49,9 @@ public class VirtualArray1D_Displayable extends Displayable {
    ObjectState Ostate ;
    public static String GRAPH = "GraphV1D";
    public static String TABLE = "TableV1D";
-   private Hashtable<String, Object> viewValueList; 
+   private Hashtable<String, Object> valueList; 
    private Hashtable<String,String> viewAttributeList;
+   private Hashtable<String,String> graphLineAttributes;
 
    /**
     * Creates a Displayable of the given type  from a list of 1D arrays.
@@ -82,8 +86,9 @@ public class VirtualArray1D_Displayable extends Displayable {
                        "This view type cannot display this data ");
       
       Ostate = comp.getObjectState( true );
-      viewValueList = getViewValueList();
+      valueList = getValueList();
       viewAttributeList = getViewAttributeList();
+      graphLineAttributes = getGraphLineAttributeList();
       //System.out.println(Ostate);
    }
 
@@ -168,7 +173,7 @@ public class VirtualArray1D_Displayable extends Displayable {
        }
      }
      else
-       OSVal = Util.TranslateKey(viewValueList,value);
+       OSVal = Util.TranslateKey(valueList,value);
      
      try
      {
@@ -189,13 +194,10 @@ public class VirtualArray1D_Displayable extends Displayable {
      Attribute = Attribute.toLowerCase();
      val = val.toLowerCase();
      Ostate = comp.getObjectState(true); 
-     Hashtable<String, Object> values = getGraphLineValueList();
-     Hashtable<String,String> selectedGraphDataTable = 
-       getGraphLineAttributeList();
      
-     String OSAttribute = (String)Util.TranslateKey(selectedGraphDataTable,Attribute);
-     OSAttribute = selectedGraphDataTable.get("graph data")+index+"."+OSAttribute;
-     Object OSVal = Util.TranslateKey(values,val);
+     String OSAttribute = (String)Util.TranslateKey(graphLineAttributes,Attribute);
+     OSAttribute = graphLineAttributes.get("graph data")+index+"."+OSAttribute;
+     Object OSVal = Util.TranslateKey(valueList,val);
      try
      {
        setLineAttribute(OSAttribute, OSVal);
@@ -213,12 +215,9 @@ public class VirtualArray1D_Displayable extends Displayable {
    {
      Attribute = Attribute.toLowerCase();
      Ostate = comp.getObjectState(true);
-     Hashtable<String, Object> values = getGraphLineValueList();
-     Hashtable<String,String> selectedGraphDataTable = 
-       getGraphLineAttributeList();
      
-     String OSAttribute = (String)Util.TranslateKey(selectedGraphDataTable,Attribute);
-     OSAttribute = selectedGraphDataTable.get("graph data")+index+"."+OSAttribute;
+     String OSAttribute = (String)Util.TranslateKey(graphLineAttributes,Attribute);
+     OSAttribute = graphLineAttributes.get("graph data")+index+"."+OSAttribute;
      try
      {
        setLineAttribute(OSAttribute, val);
@@ -275,25 +274,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      return temp;
    }
    
-   public static Hashtable<String,Object> getViewValueList()
-   {
-     Hashtable<String,Object> temp = new Hashtable<String,Object>();
-     temp.put("black", Color.black);
-     temp.put("white", Color.white);
-     temp.put("blue", Color.blue);
-     temp.put("cyan", Color.cyan);
-     temp.put("green", Color.green);
-     temp.put("orange", Color.orange);
-     temp.put("red", Color.red);
-     temp.put("yellow", Color.yellow);
-     temp.put("true", true);
-     temp.put("false", false);
-     temp.put("off", 0);
-     temp.put("on", 1);
-     return temp;
-   }
-   
-   public static Hashtable<String,Object> getGraphLineValueList()
+   public static Hashtable<String,Object> getValueList()
    {
      Hashtable<String,Object> temp = new Hashtable<String,Object>();
      temp.put("black", Color.black);
@@ -310,6 +291,8 @@ public class VirtualArray1D_Displayable extends Displayable {
      temp.put("dashed", GraphJPanel.DASHED);
      temp.put("dashdot", GraphJPanel.DASHDOT);
      temp.put("none", 0);
+     temp.put("off", 0);
+     temp.put("on", 1);
      temp.put("true", true);
      temp.put("false", false);
      temp.put("dot", GraphJPanel.DOT);
@@ -358,9 +341,9 @@ public class VirtualArray1D_Displayable extends Displayable {
      disp.setViewAttribute("legend", "true");
      disp.setViewAttribute("grid lines x", "on");
      disp.setViewAttribute("grid lines y","on");
-     disp.setViewAttribute("grid color","red");
+     disp.setViewAttribute("grid color","gray");
 //   disp.setLineAttribute(1, "line type", "dashdot");
-   disp.setLineAttribute(1, "line color", "red");
+   disp.setLineAttribute(1, "line color", "light gray");
    disp.setLineAttribute(1, "line width", 2f);
 //   disp.setLineAttribute(2, "line color", "black");
    disp.setLineAttribute(1, "mark type", "cross");
