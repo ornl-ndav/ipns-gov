@@ -1,5 +1,10 @@
 /*
  * $Log$
+ * Revision 1.10  2007/08/03 14:55:18  oakgrovej
+ * - Added attributes for grid lines, grid color and legend.
+ * - Made View Hashtables private fields instead of creating
+ *   them locally in the method there used in
+ *
  * Revision 1.9  2007/07/26 17:54:02  amoe
  * Added CVS log tag.
  *
@@ -37,6 +42,8 @@ public class VirtualArray1D_Displayable extends Displayable {
    ObjectState Ostate ;
    public static String GRAPH = "GraphV1D";
    public static String TABLE = "TableV1D";
+   private Hashtable<String, Object> viewValueList; 
+   private Hashtable<String,String> viewAttributeList;
 
    /**
     * Creates a Displayable of the given type  from a list of 1D arrays.
@@ -71,6 +78,8 @@ public class VirtualArray1D_Displayable extends Displayable {
                        "This view type cannot display this data ");
       
       Ostate = comp.getObjectState( true );
+      viewValueList = getViewValueList();
+      viewAttributeList = getViewAttributeList();
       //System.out.println(Ostate);
    }
 
@@ -97,14 +106,13 @@ public class VirtualArray1D_Displayable extends Displayable {
        setViewAttribute( name, (String) value);
        return;
      }
-     if(Type.equals(GRAPH))
-     {
-       
-     }
-     else if(Type.equals(TABLE))
-     {
-       
-     }
+     
+     name = name.toLowerCase();
+     String attribute = (String)Util.TranslateKey(viewAttributeList, name);
+     
+     Ostate.reset(attribute, value);
+    
+     comp.setObjectState(Ostate);
    }
 
    public void setViewAttribute( String name , String value ) throws Exception
@@ -113,10 +121,8 @@ public class VirtualArray1D_Displayable extends Displayable {
      name = name.toLowerCase();
      value = value.toLowerCase();
      Ostate = comp.getObjectState(true); 
-     Hashtable<String, Object> values = getViewValueList();
-     Hashtable<String,String> names = getViewAttributeList();
      
-     String OSAttribute = (String)Util.TranslateKey(names,name);
+     String OSAttribute = (String)Util.TranslateKey(viewAttributeList,name);
      if( Ostate.get(OSAttribute) instanceof Dimension)
      {
        String checkedVal = "";
@@ -158,7 +164,7 @@ public class VirtualArray1D_Displayable extends Displayable {
        }
      }
      else
-       OSVal = Util.TranslateKey(values,value);
+       OSVal = Util.TranslateKey(viewValueList,value);
      
      try
      {
@@ -217,6 +223,10 @@ public class VirtualArray1D_Displayable extends Displayable {
      temp.put("column labels", "View Component1.TableJPanel.Show Column Labels");
      temp.put("label background", "View Component1.TableJPanel.Label Background");
      temp.put("control option","Control Option");
+     temp.put("legend", "View Component0.FunctionControls.Legend Control.Selected");
+     temp.put("grid lines x", "View Component0.AxisOverlay2D.Grid Display X");
+     temp.put("grid lines y", "View Component0.AxisOverlay2D.Grid Display Y");
+     temp.put("grid color", "View Component0.AxisOverlay2D.Grid Color");
 //     temp.put("viewer size","Viewer Size"); the device will take care of size
      //temp.put();
      //temp.put();
@@ -309,13 +319,17 @@ public class VirtualArray1D_Displayable extends Displayable {
      array.setGraphTitle("Graph 1", 0);
      array.setGraphTitle("Graph 2", 1);
      array.setGraphTitle("Graph 3", 2);
-    /* VirtualArray1D_Displayable disp = 
-       new VirtualArray1D_Displayable(array,GRAPH);//*/
      VirtualArray1D_Displayable disp = 
+       new VirtualArray1D_Displayable(array,GRAPH);//*/
+     /*VirtualArray1D_Displayable disp = 
        new VirtualArray1D_Displayable(array,TABLE);//*/
-     //System.out.println(dispTab.comp.getObjectState(true));
+     System.out.println(disp.comp.getObjectState(true));
     
      //--------------graph test
+     disp.setViewAttribute("legend", "true");
+     disp.setViewAttribute("grid lines x", "on");
+     disp.setViewAttribute("grid lines y","on");
+     disp.setViewAttribute("grid color","red");
 //   disp.setLineAttribute(1, "line type", "dashdot");
 //   disp.setLineAttribute(1, "line color", "red");
 //   disp.setLineAttribute(2, "line color", "black");
@@ -335,14 +349,14 @@ public class VirtualArray1D_Displayable extends Displayable {
      
 //   GraphicsDevice gd = new ScreenDevice();
 //   GraphicsDevice gd = new FileDevice("/home/dennis/test.jpg");
-   GraphicsDevice gd = new PreviewDevice();
-//   GraphicsDevice gd = new PrinterDevice("Adobe PDF");
+//   GraphicsDevice gd = new PreviewDevice();
+   GraphicsDevice gd = new PrinterDevice("Adobe PDF");
      
      // -------------For PrinterDevice
      //gd.setDeviceAttribute("orientation", "landscape");
      //gd.setDeviceAttribute("copies", 1);
    
-     gd.setRegion( 200, 100, 600, 800 );
+     gd.setRegion( 0, 0,701, 800 );
      gd.display( disp, true );
      gd.print();
    }
