@@ -31,6 +31,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.20  2007/08/05 20:11:35  dennis
+ *  Fixed calculation of new bounds in makeImage.  No longer assumes
+ *  that it will be called more than once, to set up new bounds that
+ *  fall on pixel boundaries.
+ *
  *  Revision 1.19  2007/07/29 20:45:16  dennis
  *  Changed local_transform and global_transform to be private
  *  in CoordJPanel class, to keep better control over who can
@@ -919,46 +924,75 @@ protected void LocalTransformChanged()
  /*
   * This method will create a visible image based on the data passed in.
   * By calling subSample(), this method can display any size array
-  * in approximately the same time frame.
+  * in approximately the same time frame.  NOTE: This method will readjust
+  * the local transformation so that it includes only whole pixels.  The
+  * fact that the local transformation is changed may cause problems.  Code
+  * that sets the local transformation should not assume that it has full
+  * control of the local transformation, but should always get it before 
+  * using it.
   */
   private void makeImage()
   {
     if ( ! isVisible() )             // don't do it yet if not "visible" 
       return;
     
-    // Get world_to_image transform, and local world coord bounds.
+    // Map the currently specified local world coordinate bounds to image
+    // coordinates...
+
     CoordTransform world_to_image = getWorldToImageTransform();
     CoordBounds    bounds         = getLocal_transform().getSource();
-
-    // Convert local coord bounds to integer image row/column.
     bounds = world_to_image.MapTo( bounds );
-    int start_row = Math.max( (int)(bounds.getY1() ), 0 );
-    int end_row   = Math.min( (int)(bounds.getY2() ), data.getNumRows() );
-    int start_col = Math.max( (int)(bounds.getX1() ), 0 );
-    int end_col   = Math.min( (int)(bounds.getX2() ), data.getNumColumns() );
 
-    int xr2=0;
-    int xc2=0;              //for rounding to integer pixels after first zoom
-   
-    if( bounds.getY2() != (int)bounds.getY2())
-       if(end_row <data.getNumRows() )
-           xr2=1;
-    
-    if( bounds.getX2() != (int)bounds.getX2())
-       if(end_col <  data.getNumColumns())
-          xc2=1;
-    
+    // Then find the range of rows and columns that are even partly included
+    // in the region.  Rows and columns in that range will be resampled and
+    // rescaled to be fully included in the displayed image. 
+
+    int start_row = (int)Math.floor( bounds.getY1() );
+    int end_row   = (int)Math.ceil( bounds.getY2() ) - 1;
+
+    int start_col = (int)Math.floor( bounds.getX1() );
+    int end_col   = (int)Math.ceil( bounds.getX2() ) - 1;
+
+    // Next, we need to bound the selected range of rows and columns so that
+    // they are actually rows and columns of the image, and the start is 
+    // before the end.
+                                                              // bound start_row
+    start_row = Math.max( start_row, 0 );
+    start_row = Math.min( start_row, data.getNumRows() - 1 );
+                                                              // bound end_row
+    end_row = Math.min( end_row, data.getNumRows() - 1 );
+    if ( end_row < start_row )
+      end_row = start_row;
+                                                             // bound start_col
+    start_col = Math.max( start_col, 0 );
+    start_col = Math.min( start_col, data.getNumColumns() - 1 );
+                                                             // bound end_col
+    end_col = Math.min( end_col, data.getNumColumns() - 1 );
+    if ( end_col < start_col )
+      end_col = start_col;
+
+    // Now that we know what range of rows and columns are in the image we
+    // can reset the local coordinate bounds.  Note: the coordinates range 
+    // the left edge of the first column to the right edge of the last
+    // column, and similarly for rows.  Consequently the end row and column
+    // values of the world coordinate bounds are one larger than the last
+    // row and column number.
+
     CoordBounds new_bounds = new CoordBounds( start_col, start_row,
-                                              end_col+xc2, end_row+xr2 );
+                                              end_col+1, end_row+1 );
+
     new_bounds = world_to_image.MapFrom( new_bounds );
     setLocalWorldCoords( new_bounds );
 
+    // Finally, make the image object by resampling and rescaling the range
+    // of image rows and columns to match the number of pixels on the screen
+   
     int width  = getWidth(); 
     int height = getHeight(); 
 
-    image = subSample( start_row, end_row + xr2 - 1,
-                       start_col, end_col + xc2 - 1,
-                       width,     height         );
+    image = subSample( start_row, end_row,
+                       start_col, end_col,
+                       width,     height  );
 
     if ( image != null )
     {
