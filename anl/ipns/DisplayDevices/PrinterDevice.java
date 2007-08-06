@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.10  2007/08/06 21:17:20  oakgrovej
+ * Added control over printable area.
+ *
  * Revision 1.9  2007/08/02 21:02:06  oakgrovej
  * Will cut off any empty space of the larger component below or to the right
  * of the smaller compnents within.
@@ -64,7 +67,7 @@ public class PrinterDevice extends GraphicsDevice
   public static String LANDSCAPE = "landscape";
   public static String PORTRAIT = "portrait";
   
-  //private Hashtable<String,Float> printableAreaValues;
+  private Hashtable<String,Float> printableAreaValues;
   
   private Hashtable<String, Attribute> attributes = 
     new Hashtable<String, Attribute>();
@@ -88,7 +91,7 @@ public class PrinterDevice extends GraphicsDevice
     aset = new HashPrintRequestAttributeSet();
     buildAttributes();
     buildValues();
-    //buildPrintableAreaValues();
+    buildPrintableAreaValues();
   }
   
   /**
@@ -106,6 +109,15 @@ public class PrinterDevice extends GraphicsDevice
     {
       value = ((String)value).toLowerCase();
       name += (String)Util.TranslateKey( values, (String)value );
+    }
+    
+    if( name.equals("printableareax") ||
+        name.equals("printableareay") ||
+        name.equals("printableareawidth") ||
+        name.equals("printableareaheight") )
+    {
+      printableAreaValues.put(name, (Float) value);
+      return;
     }
     
     Attribute attrib = (Attribute)Util.TranslateKey(attributes, name);
@@ -128,22 +140,18 @@ public class PrinterDevice extends GraphicsDevice
   {
     // this is an atempt to alter margins.
     
-    /* if (!printableAreaValues.containsValue(null))
+    try
     {
-      try
-      {
-        MediaPrintableArea area = new MediaPrintableArea(
-          (Float)Util.TranslateKey(printableAreaValues, "printableareax"),
-          (Float)Util.TranslateKey(printableAreaValues, "printableareay"),
-          (Float)Util.TranslateKey(printableAreaValues, "printableareawidth"),
-          (Float)Util.TranslateKey(printableAreaValues, "printableareaheight"),
-          ((Float)Util.TranslateKey(printableAreaValues, 
-                                    "printableareascale")).intValue());
-        aset.add(area);
-      }
-      catch(Exception e)
-      {System.out.println("One or more Pintable Area Values are of incorrect type");}
-    }//*/
+      MediaPrintableArea area = new MediaPrintableArea(
+        (Float)Util.TranslateKey(printableAreaValues, "printableareax"),
+        (Float)Util.TranslateKey(printableAreaValues, "printableareay"),
+        (Float)Util.TranslateKey(printableAreaValues, "printableareawidth"),
+        (Float)Util.TranslateKey(printableAreaValues, "printableareaheight"),
+        MediaPrintableArea.INCH);
+      aset.add(area);
+    }
+    catch(Exception e)
+    {System.out.println(e);}//*/
     
     PrintUtilities2.print(jcomp, printer_name, aset);
     //PrintUtilities2.print_with_dialog(jcomp);
@@ -220,15 +228,13 @@ public class PrinterDevice extends GraphicsDevice
   }
   
   //part of an atempt to alter margins
-  /*{
+  private void buildPrintableAreaValues()
+  {
     printableAreaValues = new Hashtable<String, Float>();
-    Float x = null;
-    printableAreaValues.put
-    ("printableareax", x);
-    printableAreaValues.put("printableareay", null);
-    printableAreaValues.put("printableareawidth", null);
-    printableAreaValues.put("printableareaheight", null);
-    printableAreaValues.put("printableareascale", null);
+    printableAreaValues.put("printableareax", 0f);
+    printableAreaValues.put("printableareay", 0f);
+    printableAreaValues.put("printableareawidth", 500f);
+    printableAreaValues.put("printableareaheight", 500f);
   }//*/
   
   /*
