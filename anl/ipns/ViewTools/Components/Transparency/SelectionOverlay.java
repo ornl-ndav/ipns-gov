@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.61  2007/08/06 01:15:01  dennis
+ *  Adjusted line thickness and offset for drawing interiors of
+ *  regions, so it still works ok for regions drawn on images that
+ *  do NOT preserve aspect ratio.  Thickness of lines used to draw
+ *  ellipse and line cursors are no longer thinner than the lines
+ *  used to draw the other cursors.
+ *
  *  Revision 1.60  2007/07/30 15:56:53  dennis
  *  Added publicly visible String name for the Default region list.
  *
@@ -967,10 +974,13 @@ public class SelectionOverlay extends OverlayJPanel {
     Region region;
     boolean nullfound = false;
 
-                // Change the opaqueness of the selections              
-                //TODO CHANGE HERE
     for( RegionOpListWithColor list:regionOpLists.values() ) {
       g2d.setColor(list.getColor());
+
+      g2d.setStroke( new BasicStroke( 3,
+                                      BasicStroke.CAP_SQUARE,
+                                      BasicStroke.JOIN_BEVEL ) );
+
       ac = AlphaComposite.getInstance( AlphaComposite.SRC_OVER, 
                                        list.getOpacity() );
       g2d.setComposite(ac);
@@ -993,6 +1003,7 @@ public class SelectionOverlay extends OverlayJPanel {
           nullfound = true; 
 
       if( !nullfound ){
+
         if ( region instanceof EllipseRegion ) {
           g2d.drawOval( p[0].x, 
                         p[0].y,
@@ -1116,8 +1127,8 @@ public class SelectionOverlay extends OverlayJPanel {
         }
         else if(cursor instanceof EllipseCursor)
         {
-          g2d.setStroke(new BasicStroke
-              (1,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
+         // g2d.setStroke(new BasicStroke
+         //     (1,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
           ((EllipseCursor)cursor).draw(g2d,
               convertToPixelPoint(cursorPoints[2]),
               convertToPixelPoint(cursorPoints[1]));
@@ -1166,8 +1177,8 @@ public class SelectionOverlay extends OverlayJPanel {
         }
         else if(cursor instanceof LineCursor)
         {
-         g2d.setStroke(new BasicStroke
-             (2,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
+         // g2d.setStroke(new BasicStroke
+         //    (2,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
           ((LineCursor)cursor).draw(g2d, 
               convertToPixelPoint(cursorPoints[0]),
               convertToPixelPoint(cursorPoints[1]));
@@ -1223,11 +1234,34 @@ public class SelectionOverlay extends OverlayJPanel {
                                 Point[]    p,
                                 CoordTransform array_global ) {
     boolean shouldPaint = false;
-    int x_initial = -1; // Initial x for draw line command
-    int y_initial = -1; // Initial y for draw line command
-    int x_final = -1; // Final x for draw line command
-    int y_final = -1; // Final y for draw line command
-    int lineThickness = 1;
+    int x_initial = -1;                  // Initial x for draw line command
+    int y_initial = -1;                  // Initial y for draw line command
+    int x_final = -1;                    // Final x for draw line command
+    int y_final = -1;                    // Final y for draw line command
+
+    int lineThickness;                   //"height" of bars drawn though points
+    int pixelOffset;                     // left & right offset for bars
+
+                                         // first calculate lineThickness and
+                                         // pixelOffset once outside of loop
+                                         // and set that in the graphics object
+      
+    Point pt1 = ArrayToPixel (0, 0, array_global );
+    Point pt2 = ArrayToPixel( 1, 1, array_global );
+
+    lineThickness = (int)Math.abs(Math.round(.4*((pt1.y - pt2.y))));
+    
+    if ( lineThickness < 1 )
+      lineThickness = 1;
+
+    g.setStroke( new BasicStroke( lineThickness,
+                                  BasicStroke.CAP_BUTT,
+                                  BasicStroke.JOIN_BEVEL ) );
+
+    pixelOffset = (int)Math.abs(Math.round(.2*((pt1.x - pt2.x))));
+
+                                          // NOW process each selected point
+                                          // and draw the lines through points
 
     //----------------------------------Loop through all points
     for (int i = 0; i < p.length; i++) {
@@ -1257,22 +1291,15 @@ public class SelectionOverlay extends OverlayJPanel {
         shouldPaint = true;
       }
 
-      if (shouldPaint) {
-        // first map from array coords to pixel coords
+      if (shouldPaint) {                         // first map from array coords
+                                                 // to pixel coords
         Point p1 = ArrayToPixel(x_initial, y_initial, array_global);
         Point p2 = ArrayToPixel(x_final, y_final, array_global);
-        
-        //(p1.x - p2.x)/(x_initial - x_final);
-        Point pt1 = ArrayToPixel(1, 1, array_global);
-        Point pt2 = ArrayToPixel(2, 2, array_global);
-        lineThickness = (int)Math.abs(Math.round
-              (.4*((pt1.x - pt2.x))));
+       
+        g.drawLine( p1.x-pixelOffset, p1.y, 
+                    p2.x+pixelOffset, p2.y );    // Then draw the line 
 
-        g.setStroke(new BasicStroke
-            (lineThickness,BasicStroke.CAP_SQUARE,BasicStroke.JOIN_BEVEL));
-        g.drawLine(p1.x, p1.y, p2.x, p2.y);
-
-        x_initial = -1;
+        x_initial = -1;                          // and reset initial and flag
         y_initial = -1;
         shouldPaint = false;
       }
