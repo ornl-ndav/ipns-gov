@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.13  2007/08/07 16:18:30  oakgrovej
+ * Added "line" option to the Value list
+ *
  * Revision 1.12  2007/08/03 18:41:59  oakgrovej
  * Combined the value Hashtables
  *
@@ -295,6 +298,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      temp.put("on", 1);
      temp.put("true", true);
      temp.put("false", false);
+     temp.put("line", GraphJPanel.LINE);
      temp.put("dot", GraphJPanel.DOT);
      temp.put("plus", GraphJPanel.PLUS);
      temp.put("star", GraphJPanel.STAR);
