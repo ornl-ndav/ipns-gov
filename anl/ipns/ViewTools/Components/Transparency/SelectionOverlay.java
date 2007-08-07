@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.63  2007/08/07 21:24:56  rmikk
+ *  Notifies ImageViewComponent earlier that an item is changed that corresponds
+ *   to a control.  This will cause the Selection Editor window to pop up. This now
+ *   removes or adds this window to show
+ *
  *  Revision 1.62  2007/08/07 20:51:26  rmikk
  *  Checked for null SelectionJPanel and created it if null.
  *  Added methods with new set of signatures where needed. These are paralleled
@@ -1477,13 +1482,15 @@ public class SelectionOverlay extends OverlayJPanel {
          regionOpLists.put(  name , new RegionOpListWithColor() );
       }
       regionName = name;
+      send_message(ButtonControl.COMBOBOX_CHANGED );  
+      
       if( !show)
          closeWindows();
       else
           editSelection();
         
      
-      send_message(ButtonControl.COMBOBOX_CHANGED );  
+     
      
          
               
