@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.109  2007/08/07 21:27:17  rmikk
+ *  Removed futile attempt to remove action listeners from controls that should
+ *    not send more messages because the change did not come from these
+ *    controls.  They only needed to reflect the actual values.
+ *
  *  Revision 1.108  2007/08/07 20:56:33  rmikk
  *  Now extends VirtualComponent2DwSelection.
  *  Adds the method getSelectionOverlay
@@ -2328,7 +2333,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
 
 
  /*
-  * ImageListener monitors if the imagejpanel has sent any messages.
+  * ImageListener monitors if the image jpanel has sent any messages.
   * If so, process the message and relay it to the viewer.
   */
   private class ImageListener implements ActionListener
@@ -2381,7 +2386,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   }
   
  /*
-  * ControlListener moniters activities of all controls 
+  * ControlListener monitors activities of all controls 
   * of the ImageViewComponent.
   */
   private class ControlListener implements ActionListener
@@ -2687,9 +2692,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
             return;
          
            
-          ActionListener[] Acts = controls[7].getListeners( ActionListener.class );
-          controls[7].removeAllActionListeners();
-          
+         
           //--------- disable notification--- SelectOverLay already knows------
           ((LabelCombobox)controls[7]).setItemList(names );
          
@@ -2700,10 +2703,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
           {}
           if( index < names.length)
             ((LabelCombobox)controls[7]).setSelectedIndex( index );
-          
-          if( Acts != null )
-             for( int i=0; i< Acts.length; i++)
-                controls[7].addActionListener( Acts[i] );
+       
           
         //--------- enable notification-------
           
