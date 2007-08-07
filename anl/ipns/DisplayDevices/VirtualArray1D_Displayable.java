@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.16  2007/08/07 21:55:22  oakgrovej
+ * GetJComponent() uses the boolean with_controls.
+ *
  * Revision 1.15  2007/08/07 21:21:20  oakgrovej
  * GetJComponent() now creates a copy of the Display1D
  *
@@ -106,10 +109,19 @@ public class VirtualArray1D_Displayable extends Displayable {
    {
      Display1D temp = null;
      if( Type.equals(GRAPH))
-       temp = new Display1D(array,Display1D.GRAPH,Display.CTRL_ALL);
+     {
+       if(with_controls)
+         temp = new Display1D(array,Display1D.GRAPH,Display.CTRL_ALL);
+       else
+         temp = new Display1D(array,Display1D.GRAPH,Display.CTRL_NONE);
+     }
      else if( Type.equals(TABLE) )
-       temp = new Display1D(array,Display1D.GRAPH,Display.CTRL_ALL);
-     
+     {
+       if(with_controls)
+         temp = new Display1D(array,Display1D.TABLE,Display.CTRL_ALL);
+       else
+         temp = new Display1D(array,Display1D.TABLE,Display.CTRL_NONE);
+     }
      temp.setObjectState(comp.getObjectState(false));
      return (JComponent)temp.getContentPane();
      /*if( with_controls)
