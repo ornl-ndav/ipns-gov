@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.13  2007/08/07 21:56:20  oakgrovej
+ * GetJComponent() creates a copy of the Display2D and uses the component from that.
+ *
  * Revision 1.12  2007/07/27 03:42:25  dennis
  * Fixed name inconsistency between javadoc and method.
  * Some public methods still need javadocs added.
@@ -63,6 +66,7 @@ import gov.anl.ipns.ViewTools.Components.TwoD.*;
 import gov.anl.ipns.ViewTools.Components.TwoD.Contour.*;
 import gov.anl.ipns.ViewTools.Layouts.*;
 import javax.swing.*;
+
 import java.awt.*;
 import java.util.Hashtable;
 
@@ -341,9 +345,33 @@ public class VirtualArray2D_Displayable  extends Displayable {
     *  @return A reference to a JComponent containing the configured 
     *          display.
     */
-   public JComponent getJComponent( boolean with_controls){
-       
-      if( !with_controls )
+   public JComponent getJComponent( boolean with_controls)
+   {
+     Display2D temp = null;
+     if( Type.equals(IMAGE))
+     {
+       if(with_controls)
+         temp = new Display2D(array,Display2D.IMAGE,Display.CTRL_ALL);
+       else
+         temp = new Display2D(array,Display2D.IMAGE,Display.CTRL_NONE);
+     }
+     else if( Type.equals(TABLE) )
+     {
+       if(with_controls)
+         temp = new Display2D(array,Display2D.TABLE,Display.CTRL_ALL);
+       else
+         temp = new Display2D(array,Display2D.TABLE,Display.CTRL_NONE);
+     }
+     else if( Type.equals(CONTOUR) )
+     {
+       if(with_controls)
+         temp = new Display2D(array,Display2D.CONTOUR,Display.CTRL_ALL);
+       else
+         temp = new Display2D(array,Display2D.CONTOUR,Display.CTRL_NONE);
+     }
+     temp.setObjectState(comp.getObjectState(false));
+     return (JComponent)temp.getContentPane();  
+      /*if( !with_controls )
          Ostate.reset( Display2D.CONTROL_OPTION, Display.CTRL_NONE);
       else
          Ostate.reset(Display2D.CONTROL_OPTION, Display.CTRL_ALL );
@@ -353,7 +381,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
       if( with_controls )
          return comp.getRootPane();
       else
-         return (JComponent)comp.getContentPane();
+         return (JComponent)comp.getContentPane();//*/
    }
 
    
