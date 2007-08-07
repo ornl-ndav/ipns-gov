@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.62  2007/08/07 20:51:26  rmikk
+ *  Checked for null SelectionJPanel and created it if null.
+ *  Added methods with new set of signatures where needed. These are paralleled
+ *    and called by Transparencies.ViewComponent2DwithSelection?
+ *
  *  Revision 1.61  2007/08/06 01:15:01  dennis
  *  Adjusted line thickness and offset for drawing interiors of
  *  regions, so it still works ok for regions drawn on images that
@@ -379,6 +384,7 @@ import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.Region.*;
 import gov.anl.ipns.ViewTools.Components.Cursor.*;
 import gov.anl.ipns.ViewTools.Components.TwoD.IViewComponent2D;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ButtonControl;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
@@ -429,7 +435,7 @@ public class SelectionOverlay extends OverlayJPanel {
   /**
    * "Opacity" - This constant String is a key for referencing the
    * state information about the invisibility of the selection outline.
-   * The value that this key references is a primative float on the range
+   * The value that this key references is a primitive float on the range
    * [0,1], with 0 = transparent, 1 = opaque.
    */
   public static final String OPACITY = "Opacity";
@@ -667,7 +673,19 @@ public class SelectionOverlay extends OverlayJPanel {
    * This method is used to view an instance of the Selection Editor.
    */
   public void editSelection() {
-    sjp.editSelection();
+     
+    if( sjp == null){
+       
+       sjp = new SelectionJPanel( regionName, Color.RED, 1.0f );
+       this_panel.add( sjp);
+       
+    }
+    if( sjp != null)
+       sjp.editSelection();
+    repaint();
+    
+        
+      
   }
 
 
@@ -703,7 +721,9 @@ public class SelectionOverlay extends OverlayJPanel {
    *  @return region vector
    */
   public Vector getRegions() {
+     
     Vector regions = new Vector();
+    
     Vector<RegionOp> regionOps = getRegionOpListWithColor(regionName).getList();
     for (RegionOp op : regionOps) {
       regions.add(op.getRegion());
@@ -794,7 +814,12 @@ public class SelectionOverlay extends OverlayJPanel {
    * center of the IZoomAddible component.
    */
   public void getFocus() {
-    sjp.requestFocus();
+     
+   if( sjp != null)
+   sjp.requestFocus();
+    
+   
+      
   }
 
 
@@ -1330,13 +1355,213 @@ public class SelectionOverlay extends OverlayJPanel {
    * @param  p    Point containing the pixel coordinates of a point on the
    *              display
    *
-   * @return a floatPoint2D object containg the world coodinates of the
+   * @return a floatPoint2D object contaning the world coordinates of the
    *           specified pixel. 
    */
   public floatPoint2D convertToWorldPoint( Point p ) {
     return pixel_local.MapTo(new floatPoint2D((float) p.x, (float) p.y));
   }
 
+  public  RegionOpListWithColor getSelectedRegions( String name){
+     
+     return regionOpLists.get( name );
+      
+  }
+  public void setSelectedRegions(RegionOpList reg, String name){
+     
+        if( reg == null || name == null)
+           return;
+        
+        RegionOpListWithColor Reg;
+        if( reg instanceof RegionOpListWithColor)
+           
+           Reg = (RegionOpListWithColor)reg;
+        
+        else
+           
+           Reg = new RegionOpListWithColor( reg, false );
+        
+        regionOpLists.put(  name ,Reg );
+     
+        repaint();
+  }
+  
+  /**
+   * Creates a new named selection if it does not exist. Adds
+   * The given region to the named selection list 
+   * 
+   * @param reg  The new region to be added to a named selection
+   *             list
+   *             
+   * @param name The name of the list to which the region is to 
+   *             be added
+   *             
+   */
+  public void addSelection( RegionOp reg, String name ){
+     
+     if( reg == null || name == null)
+        return;
+     
+     RegionOpListWithColor RegOp = regionOpLists.get( name  );
+     
+     if( RegOp == null){
+        
+        RegOp = new RegionOpListWithColor();
+        regionOpLists.put(  name ,RegOp );
+        send_message(ButtonControl.COMBOBOX_CHANGED );
+        
+     }
+     
+     RegOp.add(  reg  );
+     repaint();  
+   
+  }
+
+  
+  public String getCurrentName(){//get name for currently active selection
+     
+     return regionName;
+  }
+  
+  
+  public void removeSelection(String name ){ 
+     
+     regionOpLists.remove( name  );
+     send_message(ButtonControl.COMBOBOX_CHANGED );
+     repaint();
+      
+  }
+  public void clearSelection( String name ){
+     
+     
+    RegionOpListWithColor RegOp = regionOpLists.get( name  );
+    
+    if( RegOp == null)
+       return;
+    
+    RegOp.removeAll();
+    
+    repaint();
+  }
+
+  
+  public Point[] getSelectedPoints( String name){
+    
+     
+     RegionOpListWithColor RegOp = regionOpLists.get( name  );
+     
+     if( RegOp == null)
+         return null;
+     
+     if( component instanceof IViewComponent2D){
+        
+         CoordTransform world_to_array = ((IViewComponent2D)component)
+                 .getWorldToArrayTransform();
+         
+          return RegOp.getSelectedPoints( world_to_array );
+     }
+     
+     return null; 
+  }
+
+  public void enableSelection(String name, boolean show){
+     
+     String[] names = getAllNames();
+     
+     boolean found = false;
+     if( names!= null)
+        for( int i=0; i< names.length && !found; i++)
+           if( names[i].equals(  name ))
+                    found = true;
+      if( !found){
+         regionOpLists.put(  name , new RegionOpListWithColor() );
+      }
+      regionName = name;
+      if( !show)
+         closeWindows();
+      else
+          editSelection();
+        
+     
+      send_message(ButtonControl.COMBOBOX_CHANGED );  
+     
+         
+              
+     
+     // add named selection overlay, if named 
+     //selection doesn't exist.  Shows editor
+     //for specified name if show is true.
+  }
+  
+  public void disableSelection(){
+     
+     closeWindows();
+     
+     // turns off any current selection editor and
+     // turns off selection overlay
+  }
+  public void disableSelectionEditor(){
+     
+     closeWindows();
+     
+     // leaves selection overlay as is, but turns
+     //off the Editor
+  }
+  public void setColor( String name, Color color){
+     
+     RegionOpListWithColor RegOp = regionOpLists.get( name  );
+     
+     if( RegOp == null){
+        
+        RegOp = new RegionOpListWithColor();
+        regionOpLists.put(  name ,RegOp );
+
+        send_message(ButtonControl.COMBOBOX_CHANGED );
+     }
+     
+     RegOp.setColor(  color  );
+     repaint();
+     
+  }
+  
+  public void setOpacity(  String name, float Opacity){
+     
+     RegionOpListWithColor RegOp = regionOpLists.get( name );
+     if( RegOp == null ){
+        
+        RegOp = new RegionOpListWithColor();
+        regionOpLists.put(  name ,RegOp );
+
+        send_message(ButtonControl.COMBOBOX_CHANGED );
+     }
+     
+     RegOp.setOpacity(  Opacity );
+     repaint();
+     
+  }
+ 
+  public Color getColor( String name){ 
+     
+     RegionOpListWithColor RegOp = regionOpLists.get( name  );
+     
+     if( RegOp == null)
+        return null;
+     
+    
+     return RegOp.getColor();
+     
+     
+  }
+  
+  public float getOpacity(String name){ 
+     
+     RegionOpListWithColor RegOp = regionOpLists.get( name  );
+     
+     if( RegOp == null)
+        return Float.NaN;
+     
+     return RegOp.getOpacity();
+  }
 
   /*
    * SelectListener listens for messages being passed from the SelectionJPanel.
