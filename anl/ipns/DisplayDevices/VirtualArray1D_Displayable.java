@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.15  2007/08/07 21:21:20  oakgrovej
+ * GetJComponent() now creates a copy of the Display1D
+ *
  * Revision 1.14  2007/08/07 16:41:57  oakgrovej
  * Changed name of the value "line" to "solid".
  *
@@ -99,9 +102,17 @@ public class VirtualArray1D_Displayable extends Displayable {
    }
 
 
-   public JComponent getJComponent( boolean with_controls ) {
-   
-      if( with_controls)
+   public JComponent getJComponent( boolean with_controls ) 
+   {
+     Display1D temp = null;
+     if( Type.equals(GRAPH))
+       temp = new Display1D(array,Display1D.GRAPH,Display.CTRL_ALL);
+     else if( Type.equals(TABLE) )
+       temp = new Display1D(array,Display1D.GRAPH,Display.CTRL_ALL);
+     
+     temp.setObjectState(comp.getObjectState(false));
+     return (JComponent)temp.getContentPane();
+     /*if( with_controls)
          Ostate.reset( Display1D.CONTROL_OPTION, Display.CTRL_ALL);
       else
          Ostate.reset( Display1D.CONTROL_OPTION, Display.CTRL_NONE);
@@ -111,7 +122,7 @@ public class VirtualArray1D_Displayable extends Displayable {
       if( with_controls)
          return comp.getRootPane();
       else
-         return (JComponent)comp.getContentPane();
+         return (JComponent)comp.getContentPane();//*/
    }
 
    public void setViewAttribute( String name , Object value) throws Exception
@@ -369,16 +380,29 @@ public class VirtualArray1D_Displayable extends Displayable {
      
 //   disp.setViewAttribute("control option", "off");// doesn't do anything
      
-   GraphicsDevice gd = new ScreenDevice();
-//   GraphicsDevice gd = new FileDevice("/home/dennis/test.jpg");
-//   GraphicsDevice gd = new PreviewDevice();
-//   GraphicsDevice gd = new PrinterDevice("Adobe PDF");
+   GraphicsDevice gd3 = new ScreenDevice();
+   GraphicsDevice gd2= new FileDevice("C:/Documents and Settings/student/My Documents/My Pictures/test.jpg");
+   GraphicsDevice gd1 = new PreviewDevice();
+   GraphicsDevice gd = new PrinterDevice("Adobe PDF");
      
      // -------------For PrinterDevice
      //gd.setDeviceAttribute("orientation", "landscape");
      //gd.setDeviceAttribute("copies", 1);
    
-     gd.setRegion( 0, 0,701, 800 );
+         
+     gd1.setRegion( 0, 0,700, 800 );
+     gd1.display( disp, true );
+     gd1.print();
+     
+     gd2.setRegion( 0, 0,700, 800 );
+     gd2.display( disp, true );
+     gd2.print();
+     
+     gd3.setRegion( 200, 0,700, 800 );
+     gd3.display( disp, true );
+     gd3.print();
+     
+     gd.setRegion( 0, 0,700, 800 );
      gd.display( disp, true );
      gd.print();
    }
