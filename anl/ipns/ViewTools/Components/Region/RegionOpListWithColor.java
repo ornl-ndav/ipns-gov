@@ -28,6 +28,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.2  2007/08/07 20:57:21  rmikk
+ * Adds a constructor to make a RegionOpListWithColor from a RegionOpList
+ *
  * Revision 1.1  2007/04/28 03:24:44  dennis
  * Initial version of class that adds color and opacity information
  * to use when drawing regions.  (Chad Diller & Jonathan Morck)
@@ -49,6 +52,25 @@ public class RegionOpListWithColor extends RegionOpList{
   private Color color = Color.white;
 
 
+  
+  public RegionOpListWithColor(){
+     
+  }
+  /**
+   * Converts a RegionOpList to a RegionOpListWithColor
+   * 
+   * @param RegOp  The RegionOp to be copied
+   * @param clone  Not implemented yet. If true, it will
+   *               make a copy of the HashTable and all the 
+   *               RegionOps. Currently this regionOpList is
+   *               a reference to the given opList
+   */
+  public RegionOpListWithColor( RegionOpList RegOp, boolean clone){
+     
+     regionOpList = RegOp.regionOpList;
+     
+    
+  }
  /**
   *  Get the currently set color for the region
   *
