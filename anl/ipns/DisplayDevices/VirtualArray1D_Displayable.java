@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.14  2007/08/07 16:41:57  oakgrovej
+ * Changed name of the value "line" to "solid".
+ *
  * Revision 1.13  2007/08/07 16:18:30  oakgrovej
  * Added "line" option to the Value list
  *
@@ -298,7 +301,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      temp.put("on", 1);
      temp.put("true", true);
      temp.put("false", false);
-     temp.put("line", GraphJPanel.LINE);
+     temp.put("solid", GraphJPanel.LINE);
      temp.put("dot", GraphJPanel.DOT);
      temp.put("plus", GraphJPanel.PLUS);
      temp.put("star", GraphJPanel.STAR);
@@ -346,7 +349,8 @@ public class VirtualArray1D_Displayable extends Displayable {
      disp.setViewAttribute("grid lines x", "on");
      disp.setViewAttribute("grid lines y","on");
      disp.setViewAttribute("grid color","gray");
-//   disp.setLineAttribute(1, "line type", "dashdot");
+   disp.setLineAttribute(1, "line type", "dashdot");
+   //disp.setLineAttribute(1, "line type", "solid");
    disp.setLineAttribute(1, "line color", "light gray");
    disp.setLineAttribute(1, "line width", 2f);
 //   disp.setLineAttribute(2, "line color", "black");
@@ -365,10 +369,10 @@ public class VirtualArray1D_Displayable extends Displayable {
      
 //   disp.setViewAttribute("control option", "off");// doesn't do anything
      
-//   GraphicsDevice gd = new ScreenDevice();
+   GraphicsDevice gd = new ScreenDevice();
 //   GraphicsDevice gd = new FileDevice("/home/dennis/test.jpg");
 //   GraphicsDevice gd = new PreviewDevice();
-   GraphicsDevice gd = new PrinterDevice("Adobe PDF");
+//   GraphicsDevice gd = new PrinterDevice("Adobe PDF");
      
      // -------------For PrinterDevice
      //gd.setDeviceAttribute("orientation", "landscape");
