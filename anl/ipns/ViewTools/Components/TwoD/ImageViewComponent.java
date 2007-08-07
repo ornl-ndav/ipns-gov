@@ -34,6 +34,12 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.108  2007/08/07 20:56:33  rmikk
+ *  Now extends VirtualComponent2DwSelection.
+ *  Adds the method getSelectionOverlay
+ *  Adds code to reflect the programmatic changes in the Selection Overlay in
+ *     the associated controls
+ *
  *  Revision 1.107  2007/07/28 22:49:06  dennis
  *  Removed variable regioninfo, a local (duplicate) copy of the
  *  ImageJPanel2's location and size.  This is now obtained directly
@@ -624,8 +630,8 @@ import gov.anl.ipns.ViewTools.Components.Region.*;
  * which is the range of x-axis and y-axis values that can be found in
  * the AxisInfo class of each axis. 
  */
-public class ImageViewComponent implements IViewComponent2D, 
-           /*for Axis/Colorscale*/         IColorScaleAddible,
+public class ImageViewComponent extends ViewComponent2DwSelection
+           /*for Axis/Colorscale*/      implements    IColorScaleAddible,
            /*for Selection/Annotation*/    IZoomTextAddible,
 	                                   IMarkerAddible,
 	                                   IPreserveState,
@@ -2100,6 +2106,15 @@ public class ImageViewComponent implements IViewComponent2D,
     paintComponents();
   }
   
+  public SelectionOverlay getSelectionOverlay(){
+     
+     if( transparencies != null && transparencies.size() >1)
+        return (SelectionOverlay)transparencies.elementAt(1);
+     
+     else
+        return null;
+     
+  }
  /*
   * This method constructs the controls required by the ImageViewComponent
   */
@@ -2509,14 +2524,19 @@ public class ImageViewComponent implements IViewComponent2D,
       else if( message.equals( ButtonControl.BUTTON_PRESSED ) )
       {
 //      popup to ask for name of selector. 
-        String selName = JOptionPane.showInputDialog(
+        String selName = JOptionPane.showInputDialog( 
             "Enter name of selector");
         if (selName != null)
         {
           int itemIndex = ((LabelCombobox)controls[7]).addItem(selName);
           ((LabelCombobox)controls[7]).setSelectedIndex(itemIndex);
+          
         }
-      }
+      }/*else if( ae.getSource() instanceof SelectionOverlay &&
+               message.equals( ButtonControl.COMBOBOX_CHANGED )){
+         ((LabelCombobox)controls[7]).setItemList(
+                  ((SelectionOverlay)transparencies.elementAt(1)).getAllNames());
+     }*/
       //repaints overlays accurately
       returnFocus();
       paintComponents(); 
@@ -2657,7 +2677,38 @@ public class ImageViewComponent implements IViewComponent2D,
       // If the original data passed in was null, do nothing.
       if( null_data )
         return;
-      sendMessage( SELECTED_CHANGED );
+      String message = ae.getActionCommand();
+      if(  message.equals( ButtonControl.COMBOBOX_CHANGED )){// SelectionOverlay
+                            //programmed changes to the named regions, either
+                            //adding a new one or selecting a new name.
+         
+         String[] names = ((SelectionOverlay)transparencies.elementAt(1)).getAllNames();
+         if( names == null || names.length < 1)
+            return;
+         
+           
+          ActionListener[] Acts = controls[7].getListeners( ActionListener.class );
+          controls[7].removeAllActionListeners();
+          
+          //--------- disable notification--- SelectOverLay already knows------
+          ((LabelCombobox)controls[7]).setItemList(names );
+         
+          
+          int index;
+          String CurrName = ((SelectionOverlay)transparencies.elementAt(1)).getCurrentName();
+          for( index =0; index < names.length && !names[index].equals( CurrName );index++)
+          {}
+          if( index < names.length)
+            ((LabelCombobox)controls[7]).setSelectedIndex( index );
+          
+          if( Acts != null )
+             for( int i=0; i< Acts.length; i++)
+                controls[7].addActionListener( Acts[i] );
+          
+        //--------- enable notification-------
+          
+      }
+      //sendMessage( SELECTED_CHANGED );
     }
   }
 
