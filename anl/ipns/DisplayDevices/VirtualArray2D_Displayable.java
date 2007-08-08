@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2007/08/08 21:30:05  oakgrovej
+ * Commenting and cleanup
+ *   - Note: The setLineAttribute methods and their Hashtables are usless
+ *                because there is no graph view for the Display2D
+ *
  * Revision 1.13  2007/08/07 21:56:20  oakgrovej
  * GetJComponent() creates a copy of the Display2D and uses the component from that.
  *
@@ -62,12 +67,8 @@ package gov.anl.ipns.DisplayDevices;
 import java.awt.Color;
 
 import gov.anl.ipns.ViewTools.Components.*;
-import gov.anl.ipns.ViewTools.Components.TwoD.*;
-import gov.anl.ipns.ViewTools.Components.TwoD.Contour.*;
-import gov.anl.ipns.ViewTools.Layouts.*;
 import javax.swing.*;
 
-import java.awt.*;
 import java.util.Hashtable;
 
 import gov.anl.ipns.ViewTools.Displays.*;
@@ -138,7 +139,6 @@ public class VirtualArray2D_Displayable  extends Displayable {
       //showOstate( Ostate,1);
    }
 
-   
    public void showOstate(){
        showOstate( Ostate,1 );
    }
@@ -248,7 +248,12 @@ public class VirtualArray2D_Displayable  extends Displayable {
           System.out.println("Could not make the change")  ;*/
    }
 
-
+   /**
+    * This method sets a particular View Attribute to the specified Value
+    * 
+    * @param name The name of the Attribute to be set
+    * @param value the name of the Value to set the Attribute to
+    */
    public void setViewAttribute(String name, String value)throws Exception
    {
      name = name.toLowerCase();
@@ -296,7 +301,17 @@ public class VirtualArray2D_Displayable  extends Displayable {
       Ostate.reset(attribute, value);  
    }
 
-
+   /**
+    *  This method sets an attribute of the displayable that pertains
+    *  to a particular portion of the display, such as one particular
+    *  line. 
+    *
+    *  @param  index    An index identifying the part of the display
+    *                   that the attribute applies to, such as a 
+    *                   specific line number.
+    *  @param  name     The name of the attribute being set.
+    *  @param  val      The name of the value to use for the attribute.
+    */
    public void setLineAttribute(int index, 
                                 String name, 
                                 String val) throws Exception
@@ -319,7 +334,13 @@ public class VirtualArray2D_Displayable  extends Displayable {
      comp.setObjectState(Ostate);
    }
 
-   
+   /**
+    * This method is used by the other setLineAttribute methods after
+    * they have altered the Attribute name to be ObjectState specific.
+    * 
+    * @param name The ObjectState specific Attribute name
+    * @param val The Value to set the Attribute to
+    */
    private void setLineAttribute(String name, Object val)throws Exception
    {
      try
@@ -384,7 +405,12 @@ public class VirtualArray2D_Displayable  extends Displayable {
          return (JComponent)comp.getContentPane();//*/
    }
 
-   
+   /**
+    * This methods creates and returns a Hashtable containing the Value
+    * names along with the Object they represent
+    *  
+    * @return The Hashtable
+    */
    public Hashtable<String,Object> getViewValueTable()
    {
      Hashtable<String,Object> temp = new Hashtable<String,Object>();
@@ -403,7 +429,12 @@ public class VirtualArray2D_Displayable  extends Displayable {
      return temp;
    }
    
-
+   /**
+    * This methods creates and returns a Hashtable containing the View Attribute
+    * names along with their ObjectState specific path
+    *  
+    * @return The Hashtable
+    */
    public static Hashtable<String,String> getViewAttributeTable()
    {
      Hashtable<String,String> temp = new Hashtable<String,String>();
