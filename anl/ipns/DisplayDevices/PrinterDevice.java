@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.11  2007/08/08 16:45:22  oakgrovej
+ * Added private class PrintThread in order to foce the print to start later
+ *
  * Revision 1.10  2007/08/06 21:17:20  oakgrovej
  * Added control over printable area.
  *
@@ -57,6 +60,7 @@ import javax.print.attribute.standard.MediaPrintableArea;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 
 public class PrinterDevice extends GraphicsDevice
@@ -153,7 +157,11 @@ public class PrinterDevice extends GraphicsDevice
     catch(Exception e)
     {System.out.println(e);}//*/
     
-    PrintUtilities2.print(jcomp, printer_name, aset);
+    PrintThread runPrint = new PrintThread();
+    
+    
+    SwingUtilities.invokeLater(runPrint);
+    //PrintUtilities2.print(jcomp, printer_name, aset);
     //PrintUtilities2.print_with_dialog(jcomp);
   }
 
@@ -236,6 +244,17 @@ public class PrinterDevice extends GraphicsDevice
     printableAreaValues.put("printableareawidth", 500f);
     printableAreaValues.put("printableareaheight", 500f);
   }//*/
+  
+  private class PrintThread implements Runnable
+  {
+
+    public void run()
+    {
+      PrintUtilities2.print(jcomp, printer_name, aset);
+      
+    }
+    
+  }
   
   /*
   public static void main(String[] args)throws Exception
