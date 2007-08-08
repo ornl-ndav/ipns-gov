@@ -1,5 +1,42 @@
-/**
- * 
+/*
+ * File:  ViewComponent2DwSelection.java
+ *
+ * Copyright (C) 2007, Ruth Mikkelson
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ 
+ * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
+ *           Department of Mathematics, Statistics and Computer Science
+ *           University of Wisconsin-Stout
+ *           Menomonie, WI 54751, USA
+ *
+ * This work was supported by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ * For further information, see <http://www.pns.anl.gov/ISAW/>
+ *
+ * Modified:
+ *
+ * $Log$
+ * Revision 1.3  2007/08/08 15:07:11  rmikk
+ * Added documentation, GPL
+ * Changed one method, disableSelection, to disableOverlay and implemented it
+ *   by sending messages to anyone who can turn the overlay on and off to do so.
+ *
+ *
  */
 package gov.anl.ipns.ViewTools.Components.Transparency;
 
@@ -17,7 +54,9 @@ import gov.anl.ipns.ViewTools.Panels.Transforms.CoordTransform;
 import gov.anl.ipns.ViewTools.Components.Region.*;
 
 /**
- * @author Ruth
+ * This class contains methods to handle the SelectionOverlay programmatically
+ * instead of from GUI elements.  Most implementations call corresponding
+ * methods in the SelectionOverlay
  *
  */
 abstract public class ViewComponent2DwSelection implements IViewComponent2D {
@@ -111,7 +150,12 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
 
 
    /**
-    * -> returns RegionOpList for specified name
+    * Returns RegionOpList associated with the  specified name
+    * 
+    * @param name  The name of the region of interest
+    * 
+    * @return the Structure with the color and opacity and the list
+    *    of operations and regions the operation operates on.
     */
    public RegionOpListWithColor getSelectedRegions( String name){
       
@@ -120,7 +164,11 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
    
 
    /**
-    *  reset RegionOpList for specified name
+    *  Resets the RegionOpList for a given region name.
+    *  
+    *  @param regOp  the list of operations with associated region.
+    *                This could be a RegionOpListWithColor
+    *                
     */
    public void setSelectedRegions( RegionOpList regOp, String name){
       
@@ -129,7 +177,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
 
    
    /**
-    *   -> add RegionOp to specified name
+    *   Adds RegionOp to end of the list of RegionOp's associated
+    *   with the given name.
+    *   
+    *   @param RegionOp  the operations with its associated region.
+    *   
+    *   @param  name the name associated with the RegionOpList where
+    *                the RegionOp is added. NOTE: "Default" is the
+    *                name if no name is known.
     */
    public void addSelection( RegionOp RegionOp, String  name ){
       
@@ -138,7 +193,9 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
 
    
    /**
-    *         -> returns array of String names
+    *   Returns an array of names for names selections
+    *   
+    *   @return an array of names for names selections
     */
    public String[] getSelectionNames(){
       
@@ -147,7 +204,9 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
 
    
    /**
-    *            -> get name for currently active selection
+    * Returns the name for currently active selection
+    * 
+    * @return the name for currently active selection
     */
    public String getCurrentName() {
       
@@ -156,9 +215,9 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
    
 
    /**
-    *         -> removes name from overlay (entire list)
+    * Removes the named selection from all lists
     *         
-    * @param name
+    * @param name  the name of the named selection
     */
    public void removeSelection(  String name ){
       
@@ -167,9 +226,9 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
 
    
    /**
-    *          -> clear named selection, list remains
+    *  Removes the RegionOps associated with the named selection
     *          
-    * @param name
+    * @param name  the name of the named selection
     */
    public void clearSelection(  String name ){
       
@@ -178,8 +237,9 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
 
    
    /**
-    *     -> returns selected Point[] for specified name
-    * @param name
+    * Returns selected Point[] for specified name
+    * 
+    * @param name  the name of the named selection
     */
    public java.awt.Point[] getSelectedPoints( String name){
       
@@ -188,12 +248,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
 
 
    /**
-    *   -> add named selection overlay, if named 
-    *    selection doesn't exist.  Shows editor
-    *  for specified name if show is true.
+    *   Adds named selection overlay, if named  selection doesn't exist.  
+    *   Shows editor window for creating new selections for specified name if
+    *   show is true.
     *  
-    * @param name
-    * @param show
+    * @param name   the name of the named selection
+    * 
+    * @param show   if true, the window to specify new selections
+    *               will appear.
     */
    public void enableSelection( String name, boolean show){
       
@@ -202,17 +264,22 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
 
    
    /**
-    *           -> turns off any current selection editor and
-                                    turns off selection overlay
+    *  
+    *  Disables(enables) the selection overlay. If disabled all
+    *  windows are hidden
+    *  
+    *  @param hide_show   if true hide the selection overlay otherwise
+    *                     show the selection overlay
     */
-   public void disableSelection(){
+   public void disableOverlay( boolean hide_show){
       
-      getSelectionOverlay().disableSelection();
+      getSelectionOverlay().disableOverlay( hide_show);
+      
    }
 
    
   /**
-   *     -> leaves selection overlay as is, but turns off the Editor
+   *   Leaves selection overlay as is, but turns off all Editor windows
    */
     public void disableSelectionEditor(){
        
@@ -220,30 +287,72 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     }
                                     
 
+    
+    /**
+     * Sets the color for drawing the selected regions associated with the
+     * named selection
+     * 
+     * @param name  the name of the named selection
+     * @param Color the new color to draw the selected regions associated with
+     *              the given name
+     */
     public void setColor( String  name, java.awt.Color Color){
        
        getSelectionOverlay().setColor(   name,  Color);
     }
 
     
+    
+    /**
+     * Sets the opacity for drawing the selected regions associated with the
+     * named selection
+     * 
+     * @param name  the name of the named selection
+     * @param Opacity the new opacity to draw the selected regions associated with
+     *              the given name
+     */
     public void setOpacity(  String name, float Opacity){
        
        getSelectionOverlay().setOpacity( name, Opacity);
     }
     
     
+    
+    /**
+     * Gets the color for drawing the selected regions associated with the
+     * named selection
+     * 
+     * @param name  the name of the named selection
+     * @return  the color that the selected regions associated with
+     *              the given name uses to draw its selected regions
+     */
     public java.awt.Color getColor(  String name){
        
        return getSelectionOverlay().getColor(   name);
     }
 
 
+    
+    /**
+     * Gets the opacity for drawing the selected regions associated with the
+     * named selection
+     * 
+     * @param name  the name of the named selection
+     * @return  the opacity that the selected regions associated with
+     *              the given name uses to draw its selected regions
+     */
     public float getOpacity( String name){
        
        return getSelectionOverlay().getOpacity( name);
     }
 
     
+    
+   /**
+    * Returns a reference to the selection overlay
+    * 
+    * @return a reference to the selection overlay
+    */
    abstract protected SelectionOverlay getSelectionOverlay();
    
  

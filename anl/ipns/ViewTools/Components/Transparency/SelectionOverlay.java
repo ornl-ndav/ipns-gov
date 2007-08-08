@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.64  2007/08/08 15:07:11  rmikk
+ *  Added documentation, GPL
+ *  Changed one method, disableSelection, to disableOverlay and implemented it
+ *    by sending messages to anyone who can turn the overlay on and off to do so.
+ *
  *  Revision 1.63  2007/08/07 21:24:56  rmikk
  *  Notifies ImageViewComponent earlier that an item is changed that corresponds
  *   to a control.  This will cause the Selection Editor window to pop up. This now
@@ -444,6 +449,22 @@ public class SelectionOverlay extends OverlayJPanel {
    * [0,1], with 0 = transparent, 1 = opaque.
    */
   public static final String OPACITY = "Opacity";
+  
+  /**
+   * 
+   * Action event message to command everyone listening to
+   * turn off this overlay.
+   * 
+   */
+  public static final String TURN_OFF_OVERLAY = "Turn off overlay";
+  
+  /**
+   * 
+   * Action event message to command everyone listening to
+   * turn on this overlay.
+   * 
+   */
+  public static final String TURN_ON_OVERLAY = "Turn on overlay";
 
   /**
    * "Editor Bounds" - This constant String is a key for referencing the state
@@ -675,7 +696,8 @@ public class SelectionOverlay extends OverlayJPanel {
 
 
   /**
-   * This method is used to view an instance of the Selection Editor.
+   * This method is used to view an instance of the Selection Editor for creating
+   * new selections. It also turns on the selection overlay if it is not on.
    */
   public void editSelection() {
      
@@ -683,8 +705,10 @@ public class SelectionOverlay extends OverlayJPanel {
        
        sjp = new SelectionJPanel( regionName, Color.RED, 1.0f );
        this_panel.add( sjp);
+       sjp.addActionListener(new SelectListener());
        
     }
+    
     if( sjp != null)
        sjp.editSelection();
     repaint();
@@ -692,6 +716,8 @@ public class SelectionOverlay extends OverlayJPanel {
         
       
   }
+  
+ 
 
 
   /**
@@ -835,6 +861,7 @@ public class SelectionOverlay extends OverlayJPanel {
    */
   public void kill() {
     //editor.dispose();
+    closeWindows();
     if (helper != null)
       helper.dispose();
   }
@@ -854,8 +881,8 @@ public class SelectionOverlay extends OverlayJPanel {
 
 
   /**
-   *  This method will show (or hide) the selection editor for the specified
-   *  regionOpList.  
+   *  This method will show (or hide) the  editor that creates new selection
+   *   for the regionOpList associated with the given name.  
    *
    *  @param  name       The name of the regionOpList for which the editor
    *                     should be shown, or hidden.
@@ -863,22 +890,23 @@ public class SelectionOverlay extends OverlayJPanel {
    *  @param  show_hide  flag indicating whether to show (true) or hide (false)
    *                     the editor for the specified regionOpList.
    */
+  //TODO Fix: sjp=null ??? what are the conventions
   public void showEditor(String name, boolean show_hide)
   {
     if(sjp != null && !show_hide)
     {
-      // System.out.println("1");
+      
       this_panel.remove(sjp);
       sjp = null;
     }
     else if(sjp == null && !show_hide)
     {
-      // System.out.println("2");
+      
       return;
     }
     else if(sjp == null && show_hide)
     {
-      // System.out.println("3");
+      
       sjp = new SelectionJPanel(name,Color.RED,1.0f);
       sjp.setOpaque(false);
       this_panel.add(sjp);
@@ -908,7 +936,12 @@ public class SelectionOverlay extends OverlayJPanel {
     }
   }
   
-
+  /**
+   * Closes editors for both creating new selections and altering old 
+   * selections.
+   * 
+   * @see editSelection  
+   */
   public void closeWindows()
   {
     sjp.closeEditor();
@@ -916,6 +949,9 @@ public class SelectionOverlay extends OverlayJPanel {
   }
   
 
+  /**
+   * Closes the all editors for altering old selections
+   */
   public void closeEditors()
   {
     RegionOpEditFrame[] EditorsCopy = new RegionOpEditFrame[Editors.size()];
@@ -1110,7 +1146,7 @@ public class SelectionOverlay extends OverlayJPanel {
            */
            // Since p[5] is not a point, but angular measures, 
            //they are a direct
-           // cast from float to int, no convertion needed.
+           // cast from float to int, no conversion needed.
            p[p.length - 1].x = (int) fp[p.length - 1].x;
            p[p.length - 1].y = (int) fp[p.length - 1].y;
 
@@ -1227,7 +1263,7 @@ public class SelectionOverlay extends OverlayJPanel {
    *                        in the array of data values
    *  @param  y             The y-coordinate (i.e. row number) of a position
    *                        in the array of data values
-   *  @param  array_global  The tranformation from array (col,row) to the
+   *  @param  array_global  The transformation from array (col,row) to the
    *                        world coordinates
    *
    *  @return A point containing the on screen pixel coordinates corresponding
@@ -1360,18 +1396,34 @@ public class SelectionOverlay extends OverlayJPanel {
    * @param  p    Point containing the pixel coordinates of a point on the
    *              display
    *
-   * @return a floatPoint2D object contaning the world coordinates of the
+   * @return a floatPoint2D object containing the world coordinates of the
    *           specified pixel. 
    */
   public floatPoint2D convertToWorldPoint( Point p ) {
     return pixel_local.MapTo(new floatPoint2D((float) p.x, (float) p.y));
   }
 
+  /**
+   * Returns RegionOpList associated with the  specified name
+   * 
+   * @param name  The name of the region of interest
+   * 
+   * @return the Structure with the color and opacity and the list
+   *    of operations and regions the operation operates on.
+   */
   public  RegionOpListWithColor getSelectedRegions( String name){
      
      return regionOpLists.get( name );
       
   }
+  
+  /**
+   *  Resets the RegionOpList for a given region name.
+   *  
+   *  @param regOp  the list of operations with associated region.
+   *                This could be a RegionOpListWithColor
+   *                
+   */
   public void setSelectedRegions(RegionOpList reg, String name){
      
         if( reg == null || name == null)
@@ -1423,12 +1475,25 @@ public class SelectionOverlay extends OverlayJPanel {
   }
 
   
+  
+  
+  /**
+   * Returns the name for currently active selection
+   * 
+   * @return the name for currently active selection
+   */
   public String getCurrentName(){//get name for currently active selection
      
      return regionName;
   }
   
   
+  
+  /**
+   * Removes the named selection from all lists
+   *         
+   * @param name  the name of the named selection
+   */
   public void removeSelection(String name ){ 
      
      regionOpLists.remove( name  );
@@ -1436,6 +1501,13 @@ public class SelectionOverlay extends OverlayJPanel {
      repaint();
       
   }
+  
+  
+  /**
+   *  Removes the RegionOps associated with the named selection
+   *          
+   * @param name  the name of the named selection
+   */
   public void clearSelection( String name ){
      
      
@@ -1450,6 +1522,12 @@ public class SelectionOverlay extends OverlayJPanel {
   }
 
   
+  
+  /**
+   * Returns selected Point[] for specified name
+   * 
+   * @param name  the name of the named selection
+   */
   public Point[] getSelectedPoints( String name){
     
      
@@ -1469,6 +1547,18 @@ public class SelectionOverlay extends OverlayJPanel {
      return null; 
   }
 
+  
+
+  /**
+   *   Adds named selection overlay, if named  selection doesn't exist.  
+   *   Shows editor window for creating new selections for specified name if
+   *   show is true.
+   *  
+   * @param name   the name of the named selection
+   * 
+   * @param show   if true, the window to specify new selections
+   *               will appear.
+   */
   public void enableSelection(String name, boolean show){
      
      String[] names = getAllNames();
@@ -1490,30 +1580,49 @@ public class SelectionOverlay extends OverlayJPanel {
           editSelection();
         
      
-     
-     
-         
-              
-     
-     // add named selection overlay, if named 
-     //selection doesn't exist.  Shows editor
-     //for specified name if show is true.
   }
   
-  public void disableSelection(){
+  
+  /**
+   *  
+   *  Disables(enables) the selection overlay. If disabled all
+   *  windows are hidden
+   *  
+   *  @param hide_show   if true hide the selection overlay otherwise
+   *                     show the selection overlay
+   */
+  public void disableOverlay( boolean hide_show){
      
-     closeWindows();
-     
-     // turns off any current selection editor and
-     // turns off selection overlay
+     if( hide_show){
+        
+       closeWindows();
+
+       send_message( TURN_OFF_OVERLAY );
+       
+     }else
+        send_message( TURN_ON_OVERLAY);
+ 
   }
+  
+  
+  /**
+   *   Leaves selection overlay as is, but turns off all Editor windows
+   */
   public void disableSelectionEditor(){
      
      closeWindows();
-     
-     // leaves selection overlay as is, but turns
-     //off the Editor
+ 
   }
+  
+  
+  /**
+   * Sets the color for drawing the selected regions associated with the
+   * named selection
+   * 
+   * @param name  the name of the named selection
+   * @param Color the new color to draw the selected regions associated with
+   *              the given name
+   */
   public void setColor( String name, Color color){
      
      RegionOpListWithColor RegOp = regionOpLists.get( name  );
@@ -1531,6 +1640,16 @@ public class SelectionOverlay extends OverlayJPanel {
      
   }
   
+  
+  
+  /**
+   * Sets the opacity for drawing the selected regions associated with the
+   * named selection
+   * 
+   * @param name  the name of the named selection
+   * @param Opacity the new opacity to draw the selected regions associated with
+   *              the given name
+   */
   public void setOpacity(  String name, float Opacity){
      
      RegionOpListWithColor RegOp = regionOpLists.get( name );
@@ -1547,6 +1666,15 @@ public class SelectionOverlay extends OverlayJPanel {
      
   }
  
+  
+  /**
+   * Gets the color for drawing the selected regions associated with the
+   * named selection
+   * 
+   * @param name  the name of the named selection
+   * @return  the color that the selected regions associated with
+   *              the given name uses to draw its selected regions
+   */
   public Color getColor( String name){ 
      
      RegionOpListWithColor RegOp = regionOpLists.get( name  );
@@ -1560,6 +1688,17 @@ public class SelectionOverlay extends OverlayJPanel {
      
   }
   
+  
+  
+  /**
+   * Gets the opacity for drawing the selected regions associated with the
+   * named selection
+   * 
+   * @param name  the name of the named selection
+   * @return  the opacity that the selected regions associated with
+   *              the given name uses to draw its selected regions
+   */
+  
   public float getOpacity(String name){ 
      
      RegionOpListWithColor RegOp = regionOpLists.get( name  );
@@ -1569,6 +1708,9 @@ public class SelectionOverlay extends OverlayJPanel {
      
      return RegOp.getOpacity();
   }
+  
+  
+  
 
   /*
    * SelectListener listens for messages being passed from the SelectionJPanel.
