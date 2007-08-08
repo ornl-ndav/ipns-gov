@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2007/08/08 02:21:16  dennis
+ *  Commented out parts that rely on DataSets.  If this class
+ *  belongs in the gov hierarchy, it MUST not depend on DataSets.
+ *
  *  Revision 1.5  2006/11/03 19:46:12  amoe
  *  -Added:  String DATA_SET
  *                  getRawLayoutManager()
@@ -101,8 +105,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-import gov.anl.ipns.ViewTools.Components.ComponentView.DataSetSwapper;
-import gov.anl.ipns.ViewTools.Components.ComponentView.DataSetVirtualArray;
+//import gov.anl.ipns.ViewTools.Components.ComponentView.DataSetSwapper;
+//import gov.anl.ipns.ViewTools.Components.ComponentView.DataSetVirtualArray;
 
 
 /**
@@ -578,9 +582,10 @@ import gov.anl.ipns.ViewTools.Components.ComponentView.DataSetVirtualArray;
          else
             alm = new SingleLayoutManager(data);
       }
+/*    NOTE: The tools dealing with Virtual Arrays MUST NOT be dependent on DataSets!!!  
       else if (getLayoutManager().equals(DATA_SET))
       {
-         if ( !(data instanceof DataSetVirtualArray) )
+        if ( !(data instanceof DataSetVirtualArray) )
          {
             SharedMessages.addmsg("Layout ["+DATA_SET+"] is only supported " +
                                   "by ComponentViewManager.buildPanel() " +
@@ -592,6 +597,7 @@ import gov.anl.ipns.ViewTools.Components.ComponentView.DataSetVirtualArray;
          alm = new SingleLayoutManager(
                       new DataSetSwapper( (DataSetVirtualArray)data ));
       }
+*/
       else
       {
          // If this message appears, a new layout manager was probably created,
