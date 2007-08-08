@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.17  2007/08/08 20:45:55  oakgrovej
+ * Commenting and clean up
+ *
  * Revision 1.16  2007/08/07 21:55:22  oakgrovej
  * GetJComponent() uses the boolean with_controls.
  *
@@ -37,20 +40,10 @@ import java.util.Vector;
 
 import javax.swing.JComponent;
 
-
-
-import DataSetTools.dataset.DataSet;
-import DataSetTools.dataset.FunctionTable;
-import DataSetTools.dataset.UniformXScale;
-import DataSetTools.viewer.IViewManager;
-import DataSetTools.viewer.ViewManager;
 import gov.anl.ipns.ViewTools.Components.OneD.*;
-import gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Displays.*;
 import gov.anl.ipns.ViewTools.Panels.Graph.GraphJPanel;
-import java.util.*;
-import javax.swing.*;
 
 public class VirtualArray1D_Displayable extends Displayable {
    
@@ -104,7 +97,13 @@ public class VirtualArray1D_Displayable extends Displayable {
       //System.out.println(Ostate);
    }
 
-
+   /**
+    * returns a the ContentPanecopy of a copy of the Display1D comp 
+    * 
+    * @param with_controls flag indicating if the JComponent should 
+    *                      have controls.
+    * @return The ContentPane of the Display1D copy 
+    */
    public JComponent getJComponent( boolean with_controls ) 
    {
      Display1D temp = null;
@@ -136,7 +135,14 @@ public class VirtualArray1D_Displayable extends Displayable {
       else
          return (JComponent)comp.getContentPane();//*/
    }
-
+   
+   /**
+    * This method takes in the name of a View Attribute and sets it to the
+    * Value passed in.
+    * 
+    * @param name The name of the View Attribute to be altered
+    * @param value the Value to set the Attribute to
+    */
    public void setViewAttribute( String name , Object value) throws Exception
    {
      if( value instanceof String )
@@ -152,7 +158,14 @@ public class VirtualArray1D_Displayable extends Displayable {
     
      comp.setObjectState(Ostate);
    }
-
+   
+   /**
+    * This method takes in the name of a View Attribute and the name of the 
+    * Value to set it to
+    * 
+    * @param name The name of the View Attribute to be altered
+    * @param value The name of the Value to set the Attribute to.
+    */
    public void setViewAttribute( String name , String value ) throws Exception
    {
      Object OSVal = null;
@@ -215,7 +228,13 @@ public class VirtualArray1D_Displayable extends Displayable {
      comp.setObjectState(Ostate);
    }
    
-
+   /**
+    * This method sets the indicated line's Attribute to the Value
+    * 
+    * @param index The Index of the Line
+    * @param Attribute The name of the Attribute to be altered
+    * @param val The name of the Value 
+    */
    public void setLineAttribute(int index, 
                                     String Attribute, 
                                     String val) throws Exception
@@ -238,6 +257,13 @@ public class VirtualArray1D_Displayable extends Displayable {
      comp.setObjectState(Ostate);
    }
    
+   /**
+    * This method sets the indicated line's Attribute to the Value.
+    * 
+    * @param index The Index of the Line
+    * @param Attribute The name of the Attribute to be altered
+    * @param val The Value to set to the Attribute
+    */
    public void setLineAttribute(int index, 
                                  String Attribute, 
                                  Object val) throws Exception
@@ -258,6 +284,13 @@ public class VirtualArray1D_Displayable extends Displayable {
      comp.setObjectState(Ostate);
    }
 
+   /**
+    * This method is used by the other setLineAttribute methods after
+    * they have altered the Attribute name to be ObjectState specific.
+    * 
+    * @param Attribute The ObjectState specific Attribute name
+    * @param Val The Value to set the Attribute to
+    */
    private void setLineAttribute(String Attribute, 
                                  Object Val) throws Exception
    {
@@ -271,6 +304,12 @@ public class VirtualArray1D_Displayable extends Displayable {
      }
    }
    
+   /**
+    * This methods creates and returns a Hashtable containing the View Attribute
+    * names along with their ObjectState specific path
+    *  
+    * @return The Hashtable
+    */
    public static Hashtable<String,String> getViewAttributeList()
    {
      Hashtable<String,String> temp = new Hashtable<String,String>();
@@ -288,6 +327,12 @@ public class VirtualArray1D_Displayable extends Displayable {
      return temp;
    }
    
+   /**
+    * This methods creates and returns a Hashtable containing the Graph Line
+    * Attribute names along with their ObjectState specific name
+    *  
+    * @return The Hashtable
+    */
    public static Hashtable<String,String> getGraphLineAttributeList()
    {
      Hashtable<String,String> temp = new Hashtable<String,String>();
@@ -303,6 +348,12 @@ public class VirtualArray1D_Displayable extends Displayable {
      return temp;
    }
    
+   /**
+    * This methods creates and returns a Hashtable containing the Value
+    * names along with the Object they represent
+    *  
+    * @return The Hashtable
+    */
    public static Hashtable<String,Object> getValueList()
    {
      Hashtable<String,Object> temp = new Hashtable<String,Object>();
@@ -333,9 +384,14 @@ public class VirtualArray1D_Displayable extends Displayable {
      return temp;
    }
    
+   /**
+    * Sets the components visibility
+    * 
+    * @param visible flag indicating visibility
+    */
    public void setVisible(boolean visible)
    {
-     comp.setVisible(true);
+     comp.setVisible(visible);
    }
 
 
@@ -352,7 +408,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      DataArray1D data1 = new DataArray1D(xvals,yvals);
      DataArray1D data2 = new DataArray1D(xvals,yvals2);
      DataArray1D data3 = new DataArray1D(xvals,yvals3);
-     Vector<DataArray1D> data = new Vector();
+     Vector<DataArray1D> data = new Vector<DataArray1D>();
      data.add(data1);
      data.add(data2);
      data.add(data3);
