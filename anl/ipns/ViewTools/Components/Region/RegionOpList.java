@@ -28,6 +28,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.7  2007/08/08 01:17:16  rmikk
+ * Made a field protected so that subclasses could change it.
+ *
  * Revision 1.6  2007/07/11 18:33:57  dennis
  * Added toString() method to help with debugging.
  *
@@ -65,8 +68,8 @@ import java.awt.Point;
 /**
  * This class Holds a list of RegionOp objects and contains methods 
  * to carry out the specified operations on the specified regions.
- * The regions are specified in a "world coordinate systme", such
- * as the size in cenimeters of an area detector.  The range of 
+ * The regions are specified in a "world coordinate system", such
+ * as the size in centimeters of an area detector.  The range of 
  * world coordinates is assumed to correspond to an underlying two
  * dimensional data array, such as the array of data values from a
  * pixelated detector.  The method getSelectedPoints will return
@@ -75,7 +78,7 @@ import java.awt.Point;
  * result of applying the operations and corresponding operations
  * in the order that they appear in the list.  For example, the 
  * first pair is typically a region with the operation "UNION". This 
- * will set the selected points to the array elemets corresponding
+ * will set the selected points to the array elements corresponding
  * to the specified region.  If a second pair is the operation 
  * INTERSECT and another region, when this pair is processed, the
  * selected points will be set to the array elements that are in
@@ -84,7 +87,7 @@ import java.awt.Point;
  */
 public class RegionOpList {
 
-   private Vector<RegionOp> regionOpList = new Vector<RegionOp>();
+   protected Vector<RegionOp> regionOpList = new Vector<RegionOp>();
    private boolean[][]    regionMask;
 
  
