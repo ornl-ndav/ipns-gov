@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.110  2007/08/08 15:08:05  rmikk
+ *  Now handles the message TURN_OVERLAY_ON and TURN_OVERLAY_OFF from
+ *  the selection overlay.
+ *
  *  Revision 1.109  2007/08/07 21:27:17  rmikk
  *  Removed futile attempt to remove action listeners from controls that should
  *    not send more messages because the change did not come from these
@@ -2707,7 +2711,14 @@ public class ImageViewComponent extends ViewComponent2DwSelection
           
         //--------- enable notification-------
           
+      }else if( message.equals( SelectionOverlay.TURN_OFF_OVERLAY)){
+         
+         ((ControlCheckboxButton)controls[5]).setSelected( false );
+      }else if( message.equals( SelectionOverlay.TURN_ON_OVERLAY)){
+         
+         ((ControlCheckboxButton)controls[5]).setSelected( true );
       }
+         
       //sendMessage( SELECTED_CHANGED );
     }
   }
