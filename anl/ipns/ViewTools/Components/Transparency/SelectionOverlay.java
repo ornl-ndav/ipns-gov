@@ -34,6 +34,16 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.65  2007/08/09 14:44:04  rmikk
+ *  Method that adds only new names now returns whether the name was new or
+ *    not.
+ *  This method no longer sends out messages to notify  listeners of this event
+ *  Added code to ensure that the currentName and CreateSelect Editor
+ *    correspond visually.
+ *
+ *   The disableOverlay method no longer sends out messages indicating this
+ *      event.
+ *
  *  Revision 1.64  2007/08/08 15:07:11  rmikk
  *  Added documentation, GPL
  *  Changed one method, disableSelection, to disableOverlay and implemented it
@@ -1558,8 +1568,10 @@ public class SelectionOverlay extends OverlayJPanel {
    * 
    * @param show   if true, the window to specify new selections
    *               will appear.
+   *               
+   * @return   true if this is a new name, otherwise false
    */
-  public void enableSelection(String name, boolean show){
+  public boolean enableSelection(String name, boolean show){
      
      String[] names = getAllNames();
      
@@ -1571,18 +1583,47 @@ public class SelectionOverlay extends OverlayJPanel {
       if( !found){
          regionOpLists.put(  name , new RegionOpListWithColor() );
       }
-      regionName = name;
-      send_message(ButtonControl.COMBOBOX_CHANGED );  
+      
+      ChangeNamed_sjp( name);
+      //send_message(ButtonControl.COMBOBOX_CHANGED );  
       
       if( !show)
          closeWindows();
-      else
+      else{
+         
           editSelection();
+      }
+      
+      return !found;
         
      
   }
   
   
+   private void ChangeNamed_sjp( String name ){
+      
+      if( this_panel == null)
+         this_panel = this;
+      
+      if( sjp != null){
+        RegionOpEditFrame[] EditorsCopy = new RegionOpEditFrame[Editors.size()];
+        Editors.copyInto(EditorsCopy);
+        for(int j=0;j<EditorsCopy.length;j++)
+          EditorsCopy[j].dispose();
+        sjp.closeEditor();
+        //Editors.removeAllElements();
+        this_panel.remove(sjp);
+      }else if( this_panel != null)
+         this_panel.removeAll();
+     
+      sjp = new SelectionJPanel(name,Color.RED,1.0f);
+      sjp.setOpaque(false);
+      this_panel.add(sjp);
+      regionName = name;
+      sjp.addActionListener(new SelectListener());
+      
+      
+   }
   /**
    *  
    *  Disables(enables) the selection overlay. If disabled all
@@ -1597,10 +1638,10 @@ public class SelectionOverlay extends OverlayJPanel {
         
        closeWindows();
 
-       send_message( TURN_OFF_OVERLAY );
+       setVisible( false );
        
      }else
-        send_message( TURN_ON_OVERLAY);
+        setVisible( true);
  
   }
   
