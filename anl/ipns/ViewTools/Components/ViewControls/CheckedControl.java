@@ -33,7 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2007/08/09 17:46:06  rmikk
+ * Eliminated the addActionListener method in this class
+ *
  * Revision 1.4  2005/07/28 15:43:11  kramer
+ *
  * Added some needed imports.
  *
  * Revision 1.3  2005/07/19 19:00:43  kramer
@@ -130,6 +134,15 @@ public class CheckedControl extends ViewControl
       //store the subcontrol
       this.subControl = subControl;
       this.subControl.setBorderVisible(false);
+      this.subControl.addActionListener(new ActionListener()
+      {
+         public void actionPerformed(ActionEvent event)
+         {
+            
+               send_message( event.getActionCommand());
+            
+         }
+      });
       
       //create the checkbox
       //for now tell the checkbox to in the opposite state that the 
@@ -139,13 +152,16 @@ public class CheckedControl extends ViewControl
       this.checkbox.setBorderVisible(false);
       if (label!=null)
          this.checkbox.setText(label);
+      
       this.checkbox.addActionListener(new ActionListener()
       {
          public void actionPerformed(ActionEvent event)
          {
             if (event.getActionCommand().
-                  equals(ControlCheckbox.CHECKBOX_CHANGED))
+                  equals(ControlCheckbox.CHECKBOX_CHANGED)){
                setSubControlEnabled(isChecked());
+               send_message( ControlCheckbox.CHECKBOX_CHANGED);
+            }
          }
       });
       this.checkbox.doClick();
@@ -253,12 +269,12 @@ public class CheckedControl extends ViewControl
     * @param listener The listener that wants to listen to the 
     *                 checkbox and other control on this control.
     */
-   public void addActionListener(ActionListener listener)
+   /*public void addActionListener(ActionListener listener)
    {
-      checkbox.addActionListener(listener);
-      subControl.addActionListener(listener);
+      //checkbox.addActionListener(listener);
+      //subControl.addActionListener(listener);
    }
-   
+   */
    /**
     * Overriden so that the given <code>ActionListener</code> is 
     * removed from both the checkbox and other control on this control.
