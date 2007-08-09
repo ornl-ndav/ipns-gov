@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2007/08/09 13:02:07  rmikk
+ * Eliminated the use of a Display1D to store the object state and used the Object state directly
+ *
+ * Attempted to eliminate all persistent references to Display1D
+ *
  * Revision 1.14  2007/08/08 21:30:05  oakgrovej
  * Commenting and cleanup
  *   - Note: The setLineAttribute methods and their Hashtables are usless
@@ -67,8 +72,12 @@ package gov.anl.ipns.DisplayDevices;
 import java.awt.Color;
 
 import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Components.TwoD.*;
+import gov.anl.ipns.ViewTools.Components.TwoD.Contour.*;
+import gov.anl.ipns.ViewTools.Layouts.*;
 import javax.swing.*;
 
+import java.awt.*;
 import java.util.Hashtable;
 
 import gov.anl.ipns.ViewTools.Displays.*;
@@ -135,10 +144,14 @@ public class VirtualArray2D_Displayable  extends Displayable {
        
      }else
        Ostate = new ObjectState();
+     
+     comp.dispose();
+     comp = null;
             
       //showOstate( Ostate,1);
    }
 
+   
    public void showOstate(){
        showOstate( Ostate,1 );
    }
@@ -219,7 +232,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
         throw e;
       }
       
-      comp.setObjectState(Ostate);
+      //comp.setObjectState(Ostate);
     
       /*String S =  (String)XlateAttrNames.get(name);
       
@@ -270,7 +283,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
      {
        throw e;
      }
-     comp.setObjectState(Ostate);
+     //comp.setObjectState(Ostate);
    }
    
    
@@ -318,7 +331,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
    {
      name = name.toLowerCase();
      val = val.toLowerCase();
-     Ostate = comp.getObjectState(true); 
+     //Ostate = comp.getObjectState(true); 
          
      String OSAttribute = (String)Util.TranslateKey(lineAttributeList,name);
      OSAttribute = lineAttributeList.get("graph data")+index+"."+OSAttribute;
@@ -331,7 +344,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
      {
        throw new Exception("Cannot put "+val+" into "+name);
      }
-     comp.setObjectState(Ostate);
+     //comp.setObjectState(Ostate);
    }
 
    /**
@@ -351,7 +364,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
      {
        throw e;
      }
-     comp.setObjectState(Ostate);
+     //comp.setObjectState(Ostate);
    }
    
    
@@ -390,8 +403,11 @@ public class VirtualArray2D_Displayable  extends Displayable {
        else
          temp = new Display2D(array,Display2D.CONTOUR,Display.CTRL_NONE);
      }
-     temp.setObjectState(comp.getObjectState(false));
-     return (JComponent)temp.getContentPane();  
+     temp.setObjectState( Ostate);//comp.getObjectState(false));
+     JComponent comp =(JComponent)temp.getContentPane();
+     temp.dispose();
+     temp = null;
+     return comp;
       /*if( !with_controls )
          Ostate.reset( Display2D.CONTROL_OPTION, Display.CTRL_NONE);
       else
@@ -482,7 +498,7 @@ public class VirtualArray2D_Displayable  extends Displayable {
                         {  5,5,5,5,5,5,5,5,5},
                         {  6,6,6,6,6,6,6,6,6}
                         
-               });
+               }); 
     VirtualArray2D_Displayable disp =  
         new VirtualArray2D_Displayable( v2d, "Contour");//*/
 /*    VirtualArray2D_Displayable disp =  

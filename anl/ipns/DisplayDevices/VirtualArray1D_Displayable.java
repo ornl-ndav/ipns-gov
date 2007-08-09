@@ -1,5 +1,10 @@
 /*
  * $Log$
+ * Revision 1.18  2007/08/09 12:57:14  rmikk
+ * Eliminated the use of a Display1D to store the object state and used the Object state directly
+ *
+ * Attempted to eliminate all persistent references to Display1D
+ *
  * Revision 1.17  2007/08/08 20:45:55  oakgrovej
  * Commenting and clean up
  *
@@ -40,10 +45,13 @@ import java.util.Vector;
 
 import javax.swing.JComponent;
 
+
+
 import gov.anl.ipns.ViewTools.Components.OneD.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Displays.*;
 import gov.anl.ipns.ViewTools.Panels.Graph.GraphJPanel;
+import javax.swing.*;
 
 public class VirtualArray1D_Displayable extends Displayable {
    
@@ -94,6 +102,8 @@ public class VirtualArray1D_Displayable extends Displayable {
       valueList = getValueList();
       viewAttributeList = getViewAttributeList();
       graphLineAttributes = getGraphLineAttributeList();
+      comp.dispose();
+      comp=null;
       //System.out.println(Ostate);
    }
 
@@ -121,8 +131,11 @@ public class VirtualArray1D_Displayable extends Displayable {
        else
          temp = new Display1D(array,Display1D.TABLE,Display.CTRL_NONE);
      }
-     temp.setObjectState(comp.getObjectState(false));
-     return (JComponent)temp.getContentPane();
+     temp.setObjectState(Ostate);
+     JComponent comp =(JComponent)temp.getContentPane();
+     temp.dispose();
+     temp = null;
+     return comp;
      /*if( with_controls)
          Ostate.reset( Display1D.CONTROL_OPTION, Display.CTRL_ALL);
       else
@@ -171,7 +184,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      Object OSVal = null;
      name = name.toLowerCase();
      value = value.toLowerCase();
-     Ostate = comp.getObjectState(true); 
+     //Ostate = comp.getObjectState(true); 
      
      String OSAttribute = (String)Util.TranslateKey(viewAttributeList,name);
      if( Ostate.get(OSAttribute) instanceof Dimension)
@@ -225,7 +238,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      {
        throw e;
      }
-     comp.setObjectState(Ostate);
+    // comp.setObjectState(Ostate);
    }
    
    /**
@@ -241,7 +254,7 @@ public class VirtualArray1D_Displayable extends Displayable {
    {
      Attribute = Attribute.toLowerCase();
      val = val.toLowerCase();
-     Ostate = comp.getObjectState(true); 
+     //Ostate = comp.getObjectState(true); 
      
      String OSAttribute = (String)Util.TranslateKey(graphLineAttributes,Attribute);
      OSAttribute = graphLineAttributes.get("graph data")+index+"."+OSAttribute;
@@ -254,7 +267,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      {
        throw new Exception("Cannot put "+val+" into "+Attribute);
      }
-     comp.setObjectState(Ostate);
+     //comp.setObjectState(Ostate);
    }
    
    /**
@@ -269,7 +282,7 @@ public class VirtualArray1D_Displayable extends Displayable {
                                  Object val) throws Exception
    {
      Attribute = Attribute.toLowerCase();
-     Ostate = comp.getObjectState(true);
+    // Ostate = comp.getObjectState(true);
      
      String OSAttribute = (String)Util.TranslateKey(graphLineAttributes,Attribute);
      OSAttribute = graphLineAttributes.get("graph data")+index+"."+OSAttribute;
@@ -281,7 +294,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      {
        throw new Exception("Cannot put "+val+" into "+Attribute);
      }
-     comp.setObjectState(Ostate);
+     //comp.setObjectState(Ostate);
    }
 
    /**
