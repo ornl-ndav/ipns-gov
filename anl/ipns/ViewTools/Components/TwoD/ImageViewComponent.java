@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.112  2007/08/09 19:15:21  rmikk
+ *  Send messages from SelectionOverlay out to all listeners of
+ *  ImageViewComponewnt
+ *
  *  Revision 1.111  2007/08/09 14:35:22  rmikk
  *  Added methods to reflect changes initiated in SelectionOverlay in the
  *     corresponding GUI Elements without sending out events that would cause
@@ -2755,7 +2759,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       // If the original data passed in was null, do nothing.
       if( null_data )
         return;
-      String message = ae.getActionCommand();
+     /* String message = ae.getActionCommand();
       if(  message.equals( ButtonControl.COMBOBOX_CHANGED )){// SelectionOverlay
                             //programmed changes to the named regions, either
                             //adding a new one or selecting a new name.
@@ -2787,8 +2791,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
          
          ((ControlCheckboxButton)controls[5]).setSelected( true );
       }
-         
-      //sendMessage( SELECTED_CHANGED );
+    */     
+      sendMessage( SELECTED_CHANGED );
     }
   }
 
