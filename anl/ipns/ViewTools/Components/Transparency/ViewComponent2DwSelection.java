@@ -31,6 +31,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.4  2007/08/09 14:37:34  rmikk
+ * Added abstract methods to reflect changes initiated in SelectionOverlay to the
+ *    corresponding GUI Elements without sending out events that would cause
+ *    further changes
+ *
  * Revision 1.3  2007/08/08 15:07:11  rmikk
  * Added documentation, GPL
  * Changed one method, disableSelection, to disableOverlay and implemented it
@@ -259,7 +264,8 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     */
    public void enableSelection( String name, boolean show){
       
-      getSelectionOverlay().enableSelection( name , show );
+      boolean newName = getSelectionOverlay().enableSelection( name , show );
+      GUIshowOnlySelectionNames( newName ) ;
    }
 
    
@@ -273,7 +279,7 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     */
    public void disableOverlay( boolean hide_show){
       
-      getSelectionOverlay().disableOverlay( hide_show);
+      GUIshowOnlySelectionOverlayOn( !hide_show );
       
    }
 
@@ -354,6 +360,31 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     * @return a reference to the selection overlay
     */
    abstract protected SelectionOverlay getSelectionOverlay();
+   
+   
+   /**
+    * Makes the GUI element that indicates that the SelectionOverlay is
+    * on or off is showing the given state. It must NOT send messages
+    * that the state has changed.  This is used when the state has changed
+    * and the GUI element only has to reflect that change correctly,
+    * 
+    * @param on_off  if true the GUI system should indicate that the
+    *                SelectionOverlay is on, otherwise it is off
+    */
+   abstract protected void GUIshowOnlySelectionOverlayOn( boolean on_off);
+   
+   /**
+    * Makes the GUI element that indicates the name list for the
+    * named selections in the SelectionOverlay reflect a change in state. 
+    * This is used when the state has changed and the GUI element only
+    * has to reflect that change correctly,
+    * 
+    * @see getSelectionNames
+    * @see getCurrentName
+    */
+   abstract protected void GUIshowOnlySelectionNames( boolean newName );
+   
+  
    
  
 }
