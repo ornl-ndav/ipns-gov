@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.111  2007/08/09 14:35:22  rmikk
+ *  Added methods to reflect changes initiated in SelectionOverlay in the
+ *     corresponding GUI Elements without sending out events that would cause
+ *     further changes
+ *
  *  Revision 1.110  2007/08/08 15:08:05  rmikk
  *  Now handles the message TURN_OVERLAY_ON and TURN_OVERLAY_OFF from
  *  the selection overlay.
@@ -2114,14 +2119,78 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     buildAspectImage();
     paintComponents();
   }
-  
-  public SelectionOverlay getSelectionOverlay(){
+ 
+  //---------------------- ViewComponent2DwSelection  Methods -------------------
+  /**
+   * Returns a reference to the selection overlay
+   * 
+   * @return a reference to the selection overlay
+   */
+  protected SelectionOverlay getSelectionOverlay(){
      
      if( transparencies != null && transparencies.size() >1)
         return (SelectionOverlay)transparencies.elementAt(1);
      
      else
         return null;
+     
+  }
+  
+  /**
+   * Makes the GUI element that indicates that the SelectionOverlay is
+   * on or off is showing the given state. It must NOT send messages
+   * that the state has changed.  This is used when the state has changed
+   * and the GUI element only has to reflect that change correctly,
+   * 
+   * @param on_off  if true the GUI system should indicate that the
+   *                SelectionOverlay is on, otherwise it is off
+   */
+   protected void GUIshowOnlySelectionOverlayOn( boolean on_off){
+      
+      controls[5].send_out_messages( false );
+      
+   ((ControlCheckboxButton)controls[5]).setSelected( on_off );
+   
+      controls[5].send_out_messages( true );    
+
+   }
+  
+   /**
+    * Makes the GUI element that indicates the name list for the
+    * named selections in the SelectionOverlay reflect a change in state. 
+    * This is used when the state has changed and the GUI element only
+    * has to reflect that change correctly,
+    * 
+    * @param newName  A new name may be added. Change the selection in
+    *                 the combo box
+    * 
+    * @see getSelectionNames
+    * @see getCurrentName
+    */
+  protected void GUIshowOnlySelectionNames( boolean newName){
+     
+    
+     String[] names = ((SelectionOverlay)transparencies.elementAt(1)).getAllNames();
+     if( names == null || names.length < 1){
+       
+        return;
+     } 
+     
+     controls[7].send_out_messages( false );
+     
+     if( newName)
+         ((LabelCombobox)controls[7]).setItemList(names );
+     
+     
+      String name = getCurrentName();
+      int i;
+      for( i=0; i < names.length && !names[i].equals( name );i++)
+      {}
+      if( i < names.length)
+         ((LabelCombobox)controls[7]).setSelectedIndex( i );
+      
+      controls[7].send_out_messages( true );
+   
      
   }
  /*
