@@ -28,6 +28,10 @@
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
  * $Log$
+ * Revision 1.9  2007/08/09 14:33:25  rmikk
+ * Added and implemented a new method send_out_messages that can "disable"
+ *   one of these ActiveJPanels( though disable in terms of events to outside only)
+ *
  * Revision 1.8  2005/01/27 19:52:03  millermi
  * - Removed send_message(STATE_CHANGED) from main() test program.
  *
@@ -78,6 +82,7 @@ public class ActiveJPanel extends JPanel
                                   implements Serializable 
 {
   protected Vector listeners = null;
+  protected boolean send = true;
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -131,13 +136,29 @@ public class ActiveJPanel extends JPanel
  */
  public void send_message( String message )
  {
-   for ( int i = 0; i < listeners.size(); i++ )
-   {
-     ActionListener listener = (ActionListener)listeners.elementAt(i);
-     listener.actionPerformed( new ActionEvent( this, 0, message ) );
-   }
+   if( send )
+     for ( int i = 0; i < listeners.size(); i++ )
+      {
+        ActionListener listener = (ActionListener)listeners.elementAt(i);
+        listener.actionPerformed( new ActionEvent( this, 0, message ) );
+      }
  }
 
+ 
+ /**
+  * Enable or disable the sending of messages to registered listeners
+  * 
+  * @param send  if true, all messages will be forwarded to listeners, 
+  *              otherwise they will be ignored/dropped;
+  *   
+  *  NOTE: Will not be effective for checkedControl, FrameController and
+  *        RangeControl until they are fixed.
+  */
+ public void send_out_messages( boolean send){
+    
+    this.send = send;
+    
+ }
 
 /* -------------------------------------------------------------------------
  *
