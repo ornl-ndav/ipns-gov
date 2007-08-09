@@ -31,6 +31,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2007/08/09 18:27:54  rmikk
+ *  Removed the addActionListener method. Added a local ActionListener who then
+ *    passes the event to the ActiveJPanel send_message method
+ *
  *  Revision 1.4  2007/03/30 19:10:07  amoe
  *  - Added RANGE_CHANGED constant.  It acts as a flag for when the
  *  ranges change.
@@ -106,13 +110,26 @@ public class RangeControl extends ViewControl implements Serializable,
   RangeControl( String[] name)
   {
     super("Scale");
-    if (name.length < 1) return;    
+    if (name.length < 1) return; 
+    
+    ActionListener actlisten = new ActionListener(){
+      
+          public void actionPerformed(ActionEvent event)
+          {
+             
+                send_message( event.getActionCommand());
+             }
+          
+       };
+    
 
     range_field = new TextRangeUI[name.length];
     for(int index = 0; index < name.length; index++)
     {
       range_field[index] = new TextRangeUI(name[index],0,1);
       range_field[index].setActionCommand(RANGE_CHANGED);
+      range_field[index].addActionListener(  actlisten );
+      
       vert_box.add(range_field[index]);
     }
     add(vert_box);
@@ -313,7 +330,7 @@ public class RangeControl extends ViewControl implements Serializable,
   /**
     * Function to add an action Listener to the text fields.
     */
-   public void addActionListener(ActionListener listener)
+   /*public void addActionListener(ActionListener listener)
    {
 	   super.listeners.add(listener);
 	   
@@ -322,6 +339,7 @@ public class RangeControl extends ViewControl implements Serializable,
 		   range_field[i].addActionListener(listener);
 	   }
    }
+   */
    /**
      * Main Program for test purposes only.
      *
