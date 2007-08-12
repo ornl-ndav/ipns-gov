@@ -30,6 +30,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2007/08/12 21:54:09  amoe
+ * -Removed unused/commented out imports.
+ * -Fixed Javadoc typo.
+ * -Added gov.anl.ipns.Util.Sys.FinishWindowListener to JWindow when image is
+ *  being rendered.
+ *
  * Revision 1.4  2007/07/31 18:30:44  amoe
  * Added static final fields for the default image width and height.
  *
@@ -53,40 +59,15 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
-//import java.awt.Image;
+
 import java.awt.image.BufferedImage;
 import java.io.FileOutputStream;
-//import java.util.Vector;
-
-//import gov.anl.ipns.Util.Sys.WindowShower;
-//import gov.anl.ipns.ViewTools.Components.AxisInfo;
-//import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
-//import gov.anl.ipns.ViewTools.Components.IVirtualArrayList1D;
-//import gov.anl.ipns.ViewTools.Components.ComponentView.DataSetSwapper;
-//import gov.anl.ipns.ViewTools.Components.OneD.DataArray1D;
-//import gov.anl.ipns.ViewTools.Components.OneD.FunctionViewComponent;
-//import gov.anl.ipns.ViewTools.Components.OneD.VirtualArrayList1D;
-//import gov.anl.ipns.ViewTools.Components.TwoD.Contour.ContourViewComponent;
-//import gov.anl.ipns.ViewTools.Displays.Display1D;
-//import gov.anl.ipns.ViewTools.Displays.Display2D;
-//import gov.anl.ipns.ViewTools.Layouts.ComponentViewManager;
-//import gov.anl.ipns.ViewTools.UI.JQuickFrame;
-
-//import DataSetTools.dataset.DataSet;
-//import DataSetTools.dataset.FunctionTable;
-//import DataSetTools.dataset.UniformXScale;
-
-//import DataSetTools.viewer.DataSetViewer;
-//import DataSetTools.viewer.DataSetViewerMaker1;
-//import DataSetTools.viewer.IViewManager;
-//import DataSetTools.viewer.ViewManager;
-//import DataSetTools.viewer.ViewerState;
 
 import javax.swing.JComponent;
-//import javax.swing.JMenu;
-//import javax.swing.JTextField;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
+
+import gov.anl.ipns.Util.Sys.FinishWindowListener;
 
 /**
  * This class provides an easy way to render <code>BufferedImage</code>s from 
@@ -138,6 +119,7 @@ public class ImageRenderWriter
     Graphics2D gr = bimg.createGraphics();    
 
     JWindow jwin= new JWindow();
+    jwin.addWindowListener(new FinishWindowListener());
     jwin.setSize(width,height);
     jwin.getContentPane().setLayout( new GridLayout(1,1));
     jwin.getContentPane().add(source);
@@ -179,7 +161,7 @@ public class ImageRenderWriter
   }
     
   /**
-   * This method parses a file format extenstion from a filename.  If the 
+   * This method parses a file format extension from a filename.  If the 
    * filename does not contain a valid extension or any extension at all,
    * the method will return 'png' by default.
    */
