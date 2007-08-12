@@ -33,6 +33,11 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.5  2007/08/12 21:56:46  amoe
+ * -Fixed comment typos.
+ * -Added gov.anl.ipns.Util.Sys.FinishWindowListener to JWindow when the
+ *  component container is being initiated.
+ *
  * Revision 1.4  2007/08/02 20:59:46  oakgrovej
  * reintroduced the squish/stretch of the component to fit on the page.
  * It will keep the aspect ratio.
@@ -271,8 +276,9 @@ public class PrintUtilities2
    */
   private void init_component_container()
   {
-    //setting up the JComponent containter
+    //setting up the JComponent container
     comp_container = new JWindow();
+    comp_container.addWindowListener(new FinishWindowListener());
     comp_container.setSize(comp.getWidth(),comp.getHeight());
     //jc_container.getContentPane().setLayout( new GridLayout(1,1));
     comp_container.getContentPane().add(this.comp);
@@ -310,7 +316,7 @@ public class PrintUtilities2
     Attribute[] array = printJob.getAttributes().toArray();
     
     //TODO: Instead of just hiding the JWindow container off-screen, try to 
-    //      find a way to make it invisible and still have the containted 
+    //      find a way to make it invisible and still have the contained 
     //      Component actually printed out.
     comp_container.setBounds(
         Toolkit.getDefaultToolkit().getScreenSize().width + 1,
@@ -358,7 +364,7 @@ public class PrintUtilities2
     if (do_print) 
     {
       //TODO: Instead of just hiding the JWindow container off-screen, try to 
-      //      find a way to make it invisible and still have the containted 
+      //      find a way to make it invisible and still have the contained 
       //      Component actually printed out.      
       comp_container.setBounds( 
                       Toolkit.getDefaultToolkit().getScreenSize().width + 1,
