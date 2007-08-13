@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/08/13 23:50:18  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.1  2004/06/18 19:21:27  dennis
  * Moved to Shapes package.
  *
@@ -49,7 +52,7 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import gov.anl.ipns.MathTools.Geometry.*;
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 /**
  *  This class represents a surface z = f(x,y), above a rectangular
@@ -154,7 +157,7 @@ public class HeightField extends GeometryDisplayListObject
   }
 
 
-  synchronized protected void DrawGeometry( GLDrawable drawable )
+  synchronized protected void DrawGeometry( GLAutoDrawable drawable )
   {
      GL gl = drawable.getGL();
 

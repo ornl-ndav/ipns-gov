@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2007/08/13 23:50:18  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.2  2004/07/14 16:35:34  dennis
  * Updated java docs to clarify restrictions on what OpenGL calls can be
  * used in the Draw() method that is implemented in derived classes.
@@ -54,7 +57,7 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import java.awt.*;
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.IThreeD_GL_Object;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
@@ -251,7 +254,7 @@ abstract public class GL_Shape implements IThreeD_GL_Object
    *
    *  @param  drawable  The drawable into which the object is to be drawn.
    */
-  synchronized public void Render( GLDrawable drawable )
+  synchronized public void Render( GLAutoDrawable drawable )
   {
      GL gl = drawable.getGL();
 
@@ -282,7 +285,7 @@ abstract public class GL_Shape implements IThreeD_GL_Object
               i++;
             }
           gl.glPushMatrix();
-          gl.glMultMatrixf( vals );
+          gl.glMultMatrixf( vals, 0 );
        }
 
        if ( material != null )                    // only use material if set
@@ -291,7 +294,7 @@ abstract public class GL_Shape implements IThreeD_GL_Object
          {
            gl.glMaterialfv( GL.GL_FRONT_AND_BACK,
                             GL.GL_AMBIENT_AND_DIFFUSE,
-                            material );
+                            material, 0 );
            if ( material[3] < 1 )                  // if alpha != 1, do blending
              gl.glEnable( GL.GL_BLEND );
          }  
@@ -343,7 +346,7 @@ abstract public class GL_Shape implements IThreeD_GL_Object
    *  the first time that Render() is called and subsequently, Render() will
    *  just call the display list.
    */
-  abstract protected void Draw( GLDrawable drawable );
+  abstract protected void Draw( GLAutoDrawable drawable );
 
 
   /* --------------------------- setPickID ------------------------- */

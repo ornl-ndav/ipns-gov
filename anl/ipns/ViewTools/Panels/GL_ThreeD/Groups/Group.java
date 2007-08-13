@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/08/13 23:50:17  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.1  2004/07/16 14:51:00  dennis
  * Class to group collections of 3D objects.
  *
@@ -38,7 +41,7 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Groups;
 
 import java.util.*;
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.*;
 
 public class Group implements IThreeD_GL_Object 
@@ -97,7 +100,7 @@ public class Group implements IThreeD_GL_Object
    *
    *  @param  drawable  The drawable on which the object is to be rendered.
    */
-  public void Render( GLDrawable drawable )
+  public void Render( GLAutoDrawable drawable )
   {
     for ( int i = 0; i < objects.size(); i++ )
       ((IThreeD_GL_Object)objects.elementAt(i)).Render( drawable );

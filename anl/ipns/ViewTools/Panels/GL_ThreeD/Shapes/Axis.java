@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2007/08/13 23:50:17  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.4  2004/07/23 13:08:02  dennis
  * Now calculates the tick mark length (and spacing of labels from
  * the axis) in terms of the character height.
@@ -58,7 +61,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.*;
@@ -421,7 +424,7 @@ public class Axis extends GL_Shape
    *  Method that is called "automatically" by the system to actually 
    *  Draw the axis, if the axis was added to a ThreeD_GL_Panel.
    */
-  protected void Draw( GLDrawable drawable )
+  protected void Draw( GLAutoDrawable drawable )
   {
     GL gl = drawable.getGL();
     gl.glEnable( GL.GL_NORMALIZE );

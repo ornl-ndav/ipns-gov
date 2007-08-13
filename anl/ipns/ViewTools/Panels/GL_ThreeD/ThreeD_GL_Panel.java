@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.20  2007/08/13 23:50:17  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.19  2005/07/21 13:20:54  dennis
  * Removed dependency on DataSetTools by:
  * 1. Now gets PixelDepthScale property directly from System
@@ -147,8 +150,8 @@ import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ViewControls.*;
 import gov.anl.ipns.Util.Sys.*;
 
-import net.java.games.jogl.*;
-import net.java.games.jogl.util.*;
+import javax.media.opengl.*;
+import com.sun.opengl.util.*;
 
 
 /**
@@ -195,7 +198,7 @@ public class ThreeD_GL_Panel implements Serializable
 
   private final int HIT_BUFFER_SIZE = 512;
   private int n_hits = 0;
-  private IntBuffer hit_buffer = BufferUtils.newIntBuffer( HIT_BUFFER_SIZE );
+  private IntBuffer hit_buffer = BufferUtil.newIntBuffer( HIT_BUFFER_SIZE );
 
   private int cur_x,                              // x,y pixel coords of point
               cur_y;                              // used for picking and 
@@ -222,8 +225,8 @@ public class ThreeD_GL_Panel implements Serializable
       if ( debug )
         System.out.println("capabilites = " + capabilities );
 
-      canvas = GLDrawableFactory.getFactory().createGLCanvas(capabilities);
-      canvas.setAutoSwapBufferMode(false);
+      canvas = new GLCanvas(capabilities);
+//      canvas.setAutoSwapBufferMode(false);
       canvas.addGLEventListener(new Renderer());
     }
     catch (Exception e)
@@ -752,11 +755,14 @@ public float[] pickedWorldCoordinates( int x, int y )
     /**
      *  Called by the JOGL system when the panel is initialized. 
      *
-     *  @param drawable  The GLDrawable for this canvas.
+     *  @param drawable  The GLAutoDrawable for this canvas.
      */
-    public void init( GLDrawable drawable )
+    public void init( GLAutoDrawable drawable )
     {
       GL gl = drawable.getGL();
+
+//    drawable.setGL( new DebugGL( gl ) );
+
       gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     }
 
@@ -767,13 +773,13 @@ public float[] pickedWorldCoordinates( int x, int y )
      *  display method to set up the projection matrix before drawing the
      *  scene.
      *
-     *  @param drawable  The GLDrawable for this canvas.
+     *  @param drawable  The GLAutoDrawable for this canvas.
      *  @param x         The x position of the window (typically 0)
      *  @param y         The y position of the window (typically 0)
      *  @param width     The width of the window in pixels
      *  @param height    The height of the window in pixels
      */
-    public void reshape( GLDrawable drawable,
+    public void reshape( GLAutoDrawable drawable,
                          int x,
                          int y,
                          int width,
@@ -821,7 +827,7 @@ public float[] pickedWorldCoordinates( int x, int y )
      *  NOT IMPLEMENTED.  Called by the JOGL system when the panel is 
      *  moved to another display monitor.
      */
-    public void displayChanged( GLDrawable drawable,
+    public void displayChanged( GLAutoDrawable drawable,
                                 boolean modeChanged,
                                 boolean deviceChanged)
     {
@@ -832,9 +838,9 @@ public float[] pickedWorldCoordinates( int x, int y )
     /**
      *  Called by the JOGL system when the panel is to be redrawn.
      *
-     *  @param drawable  The GLDrawable for this canvas.
+     *  @param drawable  The GLAutoDrawable for this canvas.
      */
-    synchronized public void display(GLDrawable drawable)
+    synchronized public void display(GLAutoDrawable drawable)
     {
       if ( debug )
         System.out.println("display called: persp = " + use_perspective_proj +
@@ -854,7 +860,7 @@ public float[] pickedWorldCoordinates( int x, int y )
 
                              // return quickly if the the region is degenerate
                              // or if the list of objects is empty
-      Dimension size = drawable.getSize();
+      Dimension size = canvas.getSize();
       if ( size.width <= 0 || size.height <= 0 )
       {
         if ( debug )
@@ -875,16 +881,16 @@ public float[] pickedWorldCoordinates( int x, int y )
                          1, 1, 
                          GL.GL_DEPTH_COMPONENT,
                          GL.GL_FLOAT,
-                         depths ); 
+                         FloatBuffer.wrap(depths) ); 
         float cur_z = depths[0];
         cur_z *= pixel_depth_scale_factor; 
 
         int    viewport[] = new int[4];  
-        gl.glGetIntegerv( GL.GL_VIEWPORT, viewport ); 
+        gl.glGetIntegerv( GL.GL_VIEWPORT, viewport, 0 ); 
         double model_view_mat[] = new double[16];
         double projection_mat[] = new double[16];
-        gl.glGetDoublev( GL.GL_MODELVIEW_MATRIX, model_view_mat ); 
-        gl.glGetDoublev( GL.GL_PROJECTION_MATRIX, projection_mat ); 
+        gl.glGetDoublev( GL.GL_MODELVIEW_MATRIX, model_view_mat, 0 ); 
+        gl.glGetDoublev( GL.GL_PROJECTION_MATRIX, projection_mat, 0 ); 
         double world_x[] = new double[1];
         double world_y[] = new double[1];
         double world_z[] = new double[1];
@@ -942,7 +948,7 @@ public float[] pickedWorldCoordinates( int x, int y )
         float l0_position[] = { 0, 0, 0, 1 };
         gl.glLightModeli( GL.GL_LIGHT_MODEL_COLOR_CONTROL,
                           GL.GL_SEPARATE_SPECULAR_COLOR);
-        gl.glLightModelfv( GL.GL_LIGHT_MODEL_AMBIENT, white );
+        gl.glLightModelfv( GL.GL_LIGHT_MODEL_AMBIENT, white, 0 );
         gl.glBlendFunc( GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA );
         gl.glShadeModel(GL.GL_SMOOTH);
         gl.glEnable( GL.GL_LIGHTING );
@@ -950,9 +956,9 @@ public float[] pickedWorldCoordinates( int x, int y )
 
         // light 0 is the "headlight"
         gl.glEnable( GL.GL_LIGHT0 );
-        gl.glLightfv( GL.GL_LIGHT0, GL.GL_POSITION, l0_position );
-        gl.glLightfv( GL.GL_LIGHT0, GL.GL_AMBIENT, white );
-        gl.glLightfv( GL.GL_LIGHT0, GL.GL_DIFFUSE, white );
+        gl.glLightfv( GL.GL_LIGHT0, GL.GL_POSITION, l0_position, 0 );
+        gl.glLightfv( GL.GL_LIGHT0, GL.GL_AMBIENT, white, 0 );
+        gl.glLightfv( GL.GL_LIGHT0, GL.GL_DIFFUSE, white, 0 );
       }
 
       float cop_pt[] = cop.get();
@@ -981,7 +987,7 @@ public float[] pickedWorldCoordinates( int x, int y )
       else
       {                           // we only get here if we actually did a new
         gl.glFlush();             // drawing (not locate, not select), so now
-        canvas.swapBuffers();     // we can swap the buffers
+//        canvas.swapBuffers();     // we can swap the buffers
       }
     }
   }

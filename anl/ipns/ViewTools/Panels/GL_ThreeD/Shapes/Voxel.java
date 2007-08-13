@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/08/13 23:50:19  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.1  2004/06/18 19:21:29  dennis
  * Moved to Shapes package.
  *
@@ -42,7 +45,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 
 public class Voxel extends GL_Shape
@@ -59,7 +62,7 @@ public class Voxel extends GL_Shape
                new Vector3D( corner[page][row][col] );
   }
 
-  protected void Draw( GLDrawable drawable )
+  protected void Draw( GLAutoDrawable drawable )
   {
      GL gl = drawable.getGL();
 

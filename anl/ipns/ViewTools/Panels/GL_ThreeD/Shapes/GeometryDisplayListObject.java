@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/08/13 23:50:18  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.1  2004/06/18 19:21:26  dennis
  * Moved to Shapes package.
  *
@@ -43,7 +46,7 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 /**
  *  This class is the base class for ThreeD_GL_Objects that store the 
@@ -60,14 +63,14 @@ abstract public class GeometryDisplayListObject extends GL_Shape
   private int   draw_list_id = INVALID_LIST_ID;  
 
 
-  abstract protected void DrawGeometry( GLDrawable drawable );
+  abstract protected void DrawGeometry( GLAutoDrawable drawable );
 
   abstract protected void Clear();
 
   abstract protected boolean newData();
 
 
-  synchronized protected void Draw( GLDrawable drawable )
+  synchronized protected void Draw( GLAutoDrawable drawable )
   {
      GL gl = drawable.getGL();
 

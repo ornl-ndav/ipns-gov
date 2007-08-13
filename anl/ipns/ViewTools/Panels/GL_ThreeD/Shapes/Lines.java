@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/08/13 23:50:18  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.1  2004/06/18 19:21:27  dennis
  * Moved to Shapes package.
  *
@@ -37,7 +40,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 
 public class Lines extends GeometryDisplayListObject
@@ -92,7 +95,7 @@ public class Lines extends GeometryDisplayListObject
   }
 
 
-  protected void DrawGeometry( GLDrawable drawable )
+  protected void DrawGeometry( GLAutoDrawable drawable )
   {
     GL gl = drawable.getGL();
     float point[];

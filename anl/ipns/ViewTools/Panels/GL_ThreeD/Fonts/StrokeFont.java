@@ -30,6 +30,9 @@
  * Modified: 
  *
  * $Log$
+ * Revision 1.5  2007/08/13 23:50:17  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.4  2005/01/10 16:16:50  dennis
  * Removed empty statement(s).
  *
@@ -48,7 +51,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 /**
  *  A StrokeFont object encapsulates the low-level data describing how to draw
@@ -191,7 +194,7 @@ abstract public class StrokeFont
    *  @param  drawable  The OpenGL drawable to which the character is drawn.
    *  @param  ch        The character to draw.
    */
-  public void DrawCharacter( GLDrawable drawable, char ch )
+  public void DrawCharacter( GLAutoDrawable drawable, char ch )
   {
     int char_num = (int)ch - first_char_code;
     if ( char_num < 0 || char_num >= num_chars )     // invalid char so just

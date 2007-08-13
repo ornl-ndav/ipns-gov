@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/08/13 23:50:19  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.1  2004/06/18 19:22:13  dennis
  * Moved to Textures package
  *
@@ -42,7 +45,8 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Textures;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
+import java.nio.*;
 
 public class Texture1D extends Texture
 {
@@ -99,7 +103,7 @@ public class Texture1D extends Texture
                        0, 
                        GL.GL_RGB,
                        GL.GL_UNSIGNED_BYTE,
-                       getImage() );
+                       ByteBuffer.wrap(getImage()) );
 
       gl.glTexParameterf( GL.GL_TEXTURE_1D, GL.GL_TEXTURE_WRAP_S, wrap_s );
       gl.glTexParameterf( GL.GL_TEXTURE_1D, GL.GL_TEXTURE_MAG_FILTER, 

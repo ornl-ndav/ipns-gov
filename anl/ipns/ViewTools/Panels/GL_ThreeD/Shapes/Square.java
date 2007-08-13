@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/08/13 23:50:18  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.1  2004/06/18 19:21:28  dennis
  * Moved to Shapes package.
  *
@@ -42,7 +45,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 public class Square  extends  GL_Shape
 {
@@ -64,7 +67,7 @@ public class Square  extends  GL_Shape
   }
 
 
-  protected void Draw( GLDrawable drawable )
+  protected void Draw( GLAutoDrawable drawable )
   {
      GL gl = drawable.getGL();
 

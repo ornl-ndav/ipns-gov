@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2007/08/13 23:50:17  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.2  2004/06/02 15:47:04  dennis
  * Removed unused imports.
  *
@@ -41,7 +44,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 /** 
  *  This interface is the interface that classes must implement in order to
@@ -57,6 +60,6 @@ public interface IThreeD_GL_Object
    *
    *  @param  drawable  The drawable on which the object is to be rendered.
    */
-  public void Render( GLDrawable drawable );
+  public void Render( GLAutoDrawable drawable );
 
 }

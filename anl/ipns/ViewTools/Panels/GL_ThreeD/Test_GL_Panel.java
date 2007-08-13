@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.9  2007/08/13 23:50:17  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.8  2005/05/25 20:28:47  dennis
  * Now calls convenience method WindowShower.show() to show
  * the window, instead of instantiating a WindowShower object
@@ -75,7 +78,7 @@ import gov.anl.ipns.Util.Sys.WindowShower;
 import java.awt.event.*;
 import javax.swing.*;
 import gov.anl.ipns.MathTools.Geometry.*;
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 
 public class Test_GL_Panel

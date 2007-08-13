@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2007/08/13 23:50:18  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.2  2004/06/29 13:31:50  dennis
  * Added size parameter to control size of points.
  *
@@ -45,7 +48,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 
 import java.awt.*;
@@ -133,7 +136,7 @@ public class ColoredPoints extends GeometryDisplayListObject
   }
 
 
-  protected void DrawGeometry( GLDrawable drawable )
+  protected void DrawGeometry( GLAutoDrawable drawable )
   {
     GL gl = drawable.getGL();
 
@@ -147,7 +150,7 @@ public class ColoredPoints extends GeometryDisplayListObject
 //        gl.glColor3f( color[i][0], color[i][1], color[i][2] );
          gl.glMaterialfv( GL.GL_FRONT_AND_BACK,
                             GL.GL_AMBIENT_AND_DIFFUSE,
-                            color[i] );
+                            color[i], 0 );
         }
       gl.glEnd();
     }

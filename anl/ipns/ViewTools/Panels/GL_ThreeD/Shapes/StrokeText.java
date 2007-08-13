@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2007/08/13 23:50:19  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.4  2006/11/04 20:17:31  dennis
  * Minor efficiency improvement for new non-array Vector3D class.
  *
@@ -57,7 +60,7 @@ package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import gov.anl.ipns.MathTools.Geometry.*;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.*;
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 /**
  *  A StrokeText object draws a character string with a specified size, 
@@ -239,7 +242,7 @@ public class StrokeText extends GL_Shape
    *
    *  @param drawable  The GLDrawable to which the text is drawn.
    */
-  protected void Draw( GLDrawable drawable )
+  protected void Draw( GLAutoDrawable drawable )
   {
     float center;
     float right;
@@ -265,7 +268,7 @@ public class StrokeText extends GL_Shape
         vals[k] = m[row][col];
         k++;
       }
-    gl.glMultMatrixf( vals );
+    gl.glMultMatrixf( vals, 0 );
 
     switch ( v_align )
     {

@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/08/13 23:50:19  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.1  2004/06/18 19:22:13  dennis
  * Moved to Textures package
  *
@@ -41,7 +44,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Textures;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 abstract public class Texture 
 {
@@ -116,7 +119,7 @@ abstract public class Texture
     if ( texture_name == DEFAULT_TEXTURE_NAME )
     {
       int list[] = new int[1];
-      gl.glGenTextures( 1, list );
+      gl.glGenTextures( 1, list, 0 );
       texture_name = list[0];
 //      my_gl = gl;
     }

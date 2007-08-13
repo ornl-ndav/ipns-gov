@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.2  2007/08/13 23:50:18  dennis
+ * Switched from old JOGL to the JSR231 version of JOGL.
+ *
  * Revision 1.1  2004/07/14 16:26:45  dennis
  * Initial version of class for drawing markers at points in 3D using
  * OpenGL.
@@ -38,7 +41,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 
 public class Polymarker extends GeometryDisplayListObject
@@ -99,7 +102,7 @@ public class Polymarker extends GeometryDisplayListObject
   }
 
 
-  protected void DrawGeometry( GLDrawable drawable )
+  protected void DrawGeometry( GLAutoDrawable drawable )
   {
     if ( newData() )
     {
@@ -122,7 +125,7 @@ public class Polymarker extends GeometryDisplayListObject
   }
 
 
-  private void draw_dots( GLDrawable drawable )
+  private void draw_dots( GLAutoDrawable drawable )
   {
     if ( points != null )
     {
@@ -140,7 +143,7 @@ public class Polymarker extends GeometryDisplayListObject
   }
 
 
-  private void draw_pluses( GLDrawable drawable )
+  private void draw_pluses( GLAutoDrawable drawable )
   {
     if ( points != null )
     {
@@ -170,7 +173,7 @@ public class Polymarker extends GeometryDisplayListObject
   }
 
 
-  private void draw_boxes( GLDrawable drawable )
+  private void draw_boxes( GLAutoDrawable drawable )
   {
     if ( points != null )
     {
@@ -228,7 +231,7 @@ public class Polymarker extends GeometryDisplayListObject
     }
   }
 
-  private void draw_crosses( GLDrawable drawable )
+  private void draw_crosses( GLAutoDrawable drawable )
   {
     if ( points != null )
     {

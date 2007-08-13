@@ -19,6 +19,9 @@
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  $Log$
+ *  Revision 1.4  2007/08/13 23:50:17  dennis
+ *  Switched from old JOGL to the JSR231 version of JOGL.
+ *
  *  Revision 1.3  2004/06/17 19:19:44  dennis
  *  Removed debug print.
  *
@@ -35,7 +38,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 
 /**
@@ -147,7 +150,7 @@ public class BasicGLU
      m[3+4* 2] = 0.0;
      m[3+4* 3] = 1.0;
 
-     gl.glMultMatrixd(m);
+     gl.glMultMatrixd(m,0);
 
      /* Translate Eye to Origin */
      gl.glTranslated(-eyex, -eyey, -eyez);
@@ -241,7 +244,7 @@ public class BasicGLU
      m[14] = 0;
      m[15] = 1;
 
-     gl.glMultMatrixf(m);
+     gl.glMultMatrixf(m,0);
   }
 
 
