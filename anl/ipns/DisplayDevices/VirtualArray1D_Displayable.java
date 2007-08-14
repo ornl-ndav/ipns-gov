@@ -1,5 +1,8 @@
 /*
  * $Log$
+ * Revision 1.19  2007/08/14 20:05:49  worlton
+ * Revised the main routine so that the file and printer devices will have valid locations.  Also removed a printout that failed on my system.  The saved file will now go in the user home directory and the printer device will use the default printer.  These changes should be tested on a Linux system with printers.
+ *
  * Revision 1.18  2007/08/09 12:57:14  rmikk
  * Eliminated the use of a Display1D to store the object state and used the Object state directly
  *
@@ -44,6 +47,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.swing.JComponent;
+import javax.print.*;
 
 
 
@@ -434,7 +438,7 @@ public class VirtualArray1D_Displayable extends Displayable {
        new VirtualArray1D_Displayable(array,GRAPH);//*/
      /*VirtualArray1D_Displayable disp = 
        new VirtualArray1D_Displayable(array,TABLE);//*/
-     System.out.println(disp.comp.getObjectState(true));
+     //System.out.println(disp.comp.getObjectState(true));
      
      //--------------graph test
      disp.setViewAttribute("legend", "true");
@@ -462,12 +466,19 @@ public class VirtualArray1D_Displayable extends Displayable {
 //   disp.setViewAttribute("control option", "off");// doesn't do anything
      
    GraphicsDevice gd3 = new ScreenDevice();
-   GraphicsDevice gd2= new FileDevice("C:/Documents and Settings/student/My Documents/My Pictures/test.jpg");
+   //GraphicsDevice gd2= new FileDevice("C:/Documents and Settings/student/My Documents/My Pictures/test.jpg");
+   String outfile = System.getProperty("user.home") + "/test.jpg";
+   GraphicsDevice gd2 = new FileDevice(outfile);
+
    GraphicsDevice gd1 = new PreviewDevice();
-   GraphicsDevice gd = new PrinterDevice("Adobe PDF");
+   //GraphicsDevice gd = new PrinterDevice("Adobe PDF");
+	PrintService defserv = PrintServiceLookup.lookupDefaultPrintService();
+	String defname = defserv.getName();
+	GraphicsDevice gd = new PrinterDevice(defname);
+	System.out.println(" Printed on " + defname );  
      
      // -------------For PrinterDevice
-     //gd.setDeviceAttribute("orientation", "landscape");
+     gd.setDeviceAttribute("orientation", "landscape");
      //gd.setDeviceAttribute("copies", 1);
    
          
@@ -483,7 +494,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      gd3.display( disp, true );
      gd3.print();
      
-     gd.setRegion( 0, 0,700, 800 );
+     gd.setRegion( 0, 0,756, 576 );
      gd.display( disp, true );
      gd.print();
    }
