@@ -34,6 +34,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/08/14 01:21:25  dennis
+ *  Switched to JSR231 version of jogl.
+ *
  *  Revision 1.10  2006/11/04 20:17:31  dennis
  *  Minor efficiency improvement for new non-array Vector3D class.
  *
@@ -95,7 +98,7 @@ import java.util.Iterator;
 
 import javax.swing.*;
 
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 import gov.anl.ipns.MathTools.Geometry.Vector3D;
 import SSG_Tools.Viewers.*;
@@ -238,11 +241,8 @@ public class DetectorSceneBase extends Group
           Vector3D[] pts = new Vector3D[1];
           pts[0] = point_list.getPoint(i);
           
-          shape = new PixelPolymarker(i, pts, Color.WHITE);
-//        ((PixelPolymarker)shape).setSize((int)extents[0]);
-          ((PixelPolymarker)shape).setSize((2));        // ### should calcluate
-                                                        // ### proper dot size
-          ((PixelPolymarker)shape).setType(PixelPolymarker.DOT);
+          int size = 2;
+          shape = new PixelPolymarker(i, pts, size, PixelPolymarker.DOT, Color.WHITE);
         }
         
         else if(shapeType == RECTANGLE)
@@ -903,7 +903,7 @@ public class DetectorSceneBase extends Group
    *
    *   @param  drawable  The drawable on which the object is to be rendered.
    */
-  public void Render( GLDrawable drawable )
+  public void Render( GLAutoDrawable drawable )
   { 
     GL gl = drawable.getGL();
     
