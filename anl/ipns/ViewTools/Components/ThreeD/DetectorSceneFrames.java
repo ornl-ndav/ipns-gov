@@ -34,6 +34,9 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.9  2007/08/14 01:27:27  dennis
+ *  Switched to JSR231 based jogl.
+ *
  *  Revision 1.8  2006/11/04 20:17:31  dennis
  *  Minor efficiency improvement for new non-array Vector3D class.
  *
@@ -71,7 +74,7 @@ package gov.anl.ipns.ViewTools.Components.ThreeD;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import net.java.games.jogl.*;
+import javax.media.opengl.*;
 
 import gov.anl.ipns.MathTools.Geometry.Vector3D;
 import SSG_Tools.Viewers.*;

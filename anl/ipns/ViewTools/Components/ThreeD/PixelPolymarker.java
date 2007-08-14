@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.3  2007/08/14 01:27:27  dennis
+ *  Switched to JSR231 based jogl.
+ *
  *  Revision 1.2  2005/08/04 22:36:46  cjones
  *  Updated documentation and comment header.
  *
@@ -59,25 +62,36 @@ public class PixelPolymarker extends Polymarker
 {
   private int PixelID = -1;
   private float PixelVal = 0;
-
+  
   /* --------------------------- Constructor --------------------------- */
   /**
-   *  Construct a Polymarker of the specified type through the specified points.
+   *  Construct a Polymarker with marks at the specified points.  The 
+   *  default marker type is a dot.
    *
-   *  @param  id           The id of the pixel.
-   *  @param  verts         The vertices of the polymarker
+   *  @param  id           The pick id associate with this object
+   *  @param  verts        Array of Vector3D objects specifying where the
+   *                       markers should be drawn.
+   *  @param  size         The size of the marker.  For all markers other 
+   *                       than DOT, the size is specified in terms of a 
+   *                       percentage of a unit length in world coordinates. 
+   *                       For a DOT, the actual size in pixels is specified.
+   *                       
+   *  @param  type         Type code for the marker to use.  This should be 
+   *                       one of the defined marker types such as DOT, PLUS, 
+   *                       STAR, etc.
    *  @param  new_color    The color of the parallelogram.
-   *
    */
-  public PixelPolymarker( int id, Vector3D verts[], 
+  public PixelPolymarker( int id,
+                          Vector3D verts[], 
+                          int      size,
+                          int      type,
                           Color    new_color )
   {
-    super(verts, new_color);
-
+    super( verts, size, type, new_color );
     PixelID = id;
   }
-  
-  /**
+ 
+   /**
    * Return pixel's id.
    *
    *    @return Pixel id
