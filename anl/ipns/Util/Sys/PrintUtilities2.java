@@ -33,6 +33,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.6  2007/08/16 22:13:11  rmikk
+ * Added a few more InvokeLater's so there is time for the Window to draw
+ *
  * Revision 1.5  2007/08/12 21:56:46  amoe
  * -Fixed comment typos.
  * -Added gov.anl.ipns.Util.Sys.FinishWindowListener to JWindow when the
@@ -306,6 +309,8 @@ public class PrintUtilities2
       u.printStackTrace();
     }
   }
+  
+ 
     
   /*
    * This method silently prints the Component with the specified attributes.
@@ -324,7 +329,7 @@ public class PrintUtilities2
         comp_container.getWidth(),
         comp_container.getHeight());
     comp_container.setVisible(true);
-    try 
+   /* try 
     {    
       printJob.print(doc, aset);       
     } 
@@ -334,8 +339,13 @@ public class PrintUtilities2
       pe.printStackTrace();
     }
     comp_container.dispose();
+    */
+    
+    javax.swing.SwingUtilities.invokeLater( new printJb( doc, aset,printJob) );
+    
   }
   
+ 
   /*
    * This method brings up the printer dialog and prints the Component.
    */
@@ -395,11 +405,13 @@ public class PrintUtilities2
     public PrinterPage(Component comp)
     {
       this.comp_to_print = comp;
+      
     }
     
     public int print(Graphics g, PageFormat page_format, int pageIndex) 
                                                      throws PrinterException 
     {
+      
       if (pageIndex > 0)
        {
          return(NO_SUCH_PAGE);
@@ -543,4 +555,42 @@ public class PrintUtilities2
     
     //PrintUtilities2.print_with_dialog(va2d_disp.getJComponent(false));
   }//*/
+}
+class printJb implements Runnable{
+   Doc doc;
+   HashPrintRequestAttributeSet aset;
+   DocPrintJob printJob;
+   
+   public printJb( Doc doc, HashPrintRequestAttributeSet aset,
+            DocPrintJob printJob){
+      this.doc = doc;
+      this.aset = aset;
+      this.printJob = printJob;
+   }
+   
+   public void run(){
+      try 
+      {    
+        printJob.print(doc, aset);       
+      } 
+      catch (Exception pe) 
+      {
+        System.err.println( pe.toString() );
+        pe.printStackTrace();
+      } 
+   }
+}
+
+class dspose implements Runnable{
+   
+   JWindow wind;
+   public dspose( JWindow wind ){
+      
+      this.wind = wind;
+   }
+   
+   public void run(){
+      if( wind != null)
+      wind.dispose();
+   }
 }
