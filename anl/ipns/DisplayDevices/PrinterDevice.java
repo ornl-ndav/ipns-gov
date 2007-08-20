@@ -1,5 +1,9 @@
 /*
  * $Log$
+ * Revision 1.12  2007/08/20 19:34:15  rmikk
+ * Eliminated code to  set the MediaPrintableArea. It turned out to be 500 inches
+ *   by 500 inches
+ *
  * Revision 1.11  2007/08/08 16:45:22  oakgrovej
  * Added private class PrintThread in order to foce the print to start later
  *
@@ -144,15 +148,15 @@ public class PrinterDevice extends GraphicsDevice
   {
     // this is an atempt to alter margins.
     
-    try
+   try
     {
-      MediaPrintableArea area = new MediaPrintableArea(
-        (Float)Util.TranslateKey(printableAreaValues, "printableareax"),
-        (Float)Util.TranslateKey(printableAreaValues, "printableareay"),
-        (Float)Util.TranslateKey(printableAreaValues, "printableareawidth"),
-        (Float)Util.TranslateKey(printableAreaValues, "printableareaheight"),
-        MediaPrintableArea.INCH);
-      aset.add(area);
+      //MediaPrintableArea area = new MediaPrintableArea(
+      //  (Float)Util.TranslateKey(printableAreaValues, "printableareax"),
+      //  (Float)Util.TranslateKey(printableAreaValues, "printableareay"),
+      //  (Float)Util.TranslateKey(printableAreaValues, "printableareawidth"),
+      //  (Float)Util.TranslateKey(printableAreaValues, "printableareaheight"),
+     //   MediaPrintableArea.INCH);
+     // aset.add(area);
     }
     catch(Exception e)
     {System.out.println(e);}//*/
@@ -255,6 +259,7 @@ public class PrinterDevice extends GraphicsDevice
     }
     
   }
+  
   
   /*
   public static void main(String[] args)throws Exception
