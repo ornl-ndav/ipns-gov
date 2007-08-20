@@ -1,5 +1,10 @@
 /*
  * $Log$
+ * Revision 1.8  2007/08/20 17:38:25  amoe
+ * The following changes were made to undo part of the previous change.
+ * -Removed image-to-frame ratio.
+ * -Made the image size based on actual pixels of the Viewer.
+ *
  * Revision 1.7  2007/07/31 19:10:55  amoe
  * -Added static final default frame width and height.
  * -Added static final image-to-frame ratio.
@@ -58,8 +63,6 @@ public class PreviewDevice extends GraphicsDevice
   private final float DEFAULT_FRAME_WIDTH  = SCREEN_BOUNDS.width*0.66f;
   private final float DEFAULT_FRAME_HEIGHT = SCREEN_BOUNDS.height*0.66f;
   
-  private final float IMAGE_TO_FRAME_RATIO = 1.25f;
-  
   public PreviewDevice()
   {    
   }
@@ -105,7 +108,7 @@ public class PreviewDevice extends GraphicsDevice
    * height of the PreviewDevice.
    */
   @Override
-  public Vector getBounds() 
+  public Vector<Float> getBounds() 
   {
     Vector<Float> v = new Vector<Float>();
     v.add((float)SCREEN_BOUNDS.getWidth());
@@ -145,16 +148,16 @@ public class PreviewDevice extends GraphicsDevice
     //checks if the size has not been set, if not then set defaults
     if(this.width == -1 || this.height == -1)
     {
-      jcomp.setSize((int)(DEFAULT_FRAME_WIDTH*IMAGE_TO_FRAME_RATIO), 
-                    (int)(DEFAULT_FRAME_HEIGHT*IMAGE_TO_FRAME_RATIO));
+      jcomp.setSize((int)(DEFAULT_FRAME_WIDTH), 
+                    (int)(DEFAULT_FRAME_HEIGHT));
       preview = new PreviewPanel(ImageRenderWriter.render(jcomp));
       preview.setPreferredSize(new Dimension((int)DEFAULT_FRAME_WIDTH, 
                                              (int)DEFAULT_FRAME_HEIGHT));
     }
     else
     {
-      jcomp.setSize((int)(width*IMAGE_TO_FRAME_RATIO), 
-                    (int)(height*IMAGE_TO_FRAME_RATIO));
+      jcomp.setSize((int)(width), 
+                    (int)(height));
       preview = new PreviewPanel(ImageRenderWriter.render(jcomp));
       preview.setPreferredSize(new Dimension((int)width, (int)height));
     }    
