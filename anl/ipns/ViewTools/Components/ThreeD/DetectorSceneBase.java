@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/08/21 20:26:58  dennis
+ *  Removed the setBackgroundColor method, since the setBackgroundColor
+ *  method from the JoglPanel class must be used instead of this one.
+ *
  *  Revision 1.11  2007/08/14 01:21:25  dennis
  *  Switched to JSR231 version of jogl.
  *
@@ -165,8 +169,6 @@ public class DetectorSceneBase extends Group
   private   boolean is_list            = false;
   protected boolean compileDisplayList = true;   
   
-  private boolean changeBackground = false; 
-  private Color backgroundColor;
   private Group scene_circle;
   private Group scene_axes;
   
@@ -473,18 +475,7 @@ public class DetectorSceneBase extends Group
     return diameter;
   }
   
-  /**
-   * This changes the background (glClearColor) to the specified
-   * Color object.
-   *
-   *  @param background The color to change the background to.
-   */
-  public void setBackgroundColor(Color background)
-  {
-    backgroundColor = background;
-    changeBackground = true;
-  }
-  
+
   /*-------------- SELECTION METHODS ------------------------*/
   
   /**
@@ -906,16 +897,6 @@ public class DetectorSceneBase extends Group
   public void Render( GLAutoDrawable drawable )
   { 
     GL gl = drawable.getGL();
-    
-    if(changeBackground)
-    {
-      gl.glClearColor(backgroundColor.getRed()/255.f, 
-                      backgroundColor.getGreen()/255.f,
-                      backgroundColor.getBlue()/255.f,
-                      backgroundColor.getAlpha()/255.f);
-      gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-      changeBackground = false;
-    }
     
     if( !is_list || compileDisplayList ) 
     {
