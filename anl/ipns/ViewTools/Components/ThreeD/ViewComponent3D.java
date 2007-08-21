@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.11  2007/08/21 20:25:47  dennis
+ *  Now uses the setBackgroundColor method from the JoglPanel class.
+ *  The background can now be changed.
+ *
  *  Revision 1.10  2006/08/10 15:05:11  dennis
  *  Set default background color to a blue-gray, instead of black.
  *
@@ -1342,8 +1346,7 @@ public abstract class ViewComponent3D implements IViewComponent3D
     {
       if (event.getActionCommand().equals(ColorControl.COLOR_CHANGED))
       {
-        ((DetectorSceneBase)joglpane.getScene()).setBackgroundColor(
-                                    background_control.getSelectedColor());
+        joglpane.setBackgroundColor(background_control.getSelectedColor());
         joglpane.Draw();
       }
     }

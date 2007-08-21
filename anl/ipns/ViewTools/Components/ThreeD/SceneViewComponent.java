@@ -34,6 +34,10 @@
  *  Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/08/21 20:25:47  dennis
+ *  Now uses the setBackgroundColor method from the JoglPanel class.
+ *  The background can now be changed.
+ *
  *  Revision 1.11  2006/08/10 15:05:11  dennis
  *  Set default background color to a blue-gray, instead of black.
  *
@@ -252,8 +256,8 @@ public class SceneViewComponent extends ViewComponent3D
     // Create scene and place in rendering panel
     DetectorScene scene = new DetectorScene( (IPhysicalArray3D[])varrays, 
                                               currentShapeType );
-    scene.setBackgroundColor( DEFAULT_BACKGROUND_COLOR );
 
+    joglpane.setBackgroundColor( DEFAULT_BACKGROUND_COLOR );
     joglpane.setScene( scene );
     
     if ( first_time )                            // only set camera the first
