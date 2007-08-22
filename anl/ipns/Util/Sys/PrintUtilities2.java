@@ -33,6 +33,12 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.7  2007/08/22 15:19:08  rmikk
+ * Created a public static get_print_service that included the attribute set
+ * The low-level print code has a scale factor of 1
+ * The JWindow's do NOT need to be visible.  Removed that code
+ * Broke up the printing code and put into several Runnables
+ *
  * Revision 1.6  2007/08/16 22:13:11  rmikk
  * Added a few more InvokeLater's so there is time for the Window to draw
  *
@@ -84,6 +90,7 @@ import javax.print.SimpleDoc;
 import javax.print.attribute.Attribute;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.Copies;
+import javax.print.attribute.standard.MediaPrintableArea;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.swing.JWindow;
 import javax.swing.RepaintManager;
@@ -132,7 +139,7 @@ public class PrintUtilities2
     this.printer_name = printer_name;
     this.page_orientation = page_orientation;
     this.num_copies = num_copies;
-
+    
     validate_size(this.comp);
     init_component_container();
     init_attributes();
@@ -285,6 +292,7 @@ public class PrintUtilities2
     comp_container.setSize(comp.getWidth(),comp.getHeight());
     //jc_container.getContentPane().setLayout( new GridLayout(1,1));
     comp_container.getContentPane().add(this.comp);
+    comp_container.pack();
     comp_container.validate();
   }
   
@@ -295,7 +303,7 @@ public class PrintUtilities2
   private void init_silent_print()
   {          
     //setting up printer service 
-    pservice = get_print_service(this.printer_name);
+    //pservice = get_print_service(this.printer_name);
     
     printer_page = new PrinterPage(comp);
 
@@ -311,24 +319,34 @@ public class PrintUtilities2
   }
   
  
-    
+  
+  
   /*
    * This method silently prints the Component with the specified attributes.
    */
   private void silent_print() 
   {
+    pservice = PrintUtilities2.get_print_service(  printer_name,aset);
+    
+    if( pservice == null){
+       javax.swing.JOptionPane.showMessageDialog( null,"Cannot Find Printer");
+       return;
+    }
+    
+   
     DocPrintJob printJob = pservice.createPrintJob();
     Attribute[] array = printJob.getAttributes().toArray();
     
     //TODO: Instead of just hiding the JWindow container off-screen, try to 
     //      find a way to make it invisible and still have the contained 
     //      Component actually printed out.
-    comp_container.setBounds(
+    /*comp_container.setBounds(
         Toolkit.getDefaultToolkit().getScreenSize().width + 1,
         Toolkit.getDefaultToolkit().getScreenSize().height + 1,
         comp_container.getWidth(),
         comp_container.getHeight());
     comp_container.setVisible(true);
+    */
    /* try 
     {    
       printJob.print(doc, aset);       
@@ -359,7 +377,7 @@ public class PrintUtilities2
     {
       try
       {
-        job.setPrintService(get_print_service(printer_name));
+        job.setPrintService(get_print_service(printer_name, aset));
       }
       catch(PrinterException pe)
       {
@@ -376,12 +394,13 @@ public class PrintUtilities2
       //TODO: Instead of just hiding the JWindow container off-screen, try to 
       //      find a way to make it invisible and still have the contained 
       //      Component actually printed out.      
-      comp_container.setBounds( 
+     /* comp_container.setBounds( 
                       Toolkit.getDefaultToolkit().getScreenSize().width + 1,
                       Toolkit.getDefaultToolkit().getScreenSize().height + 1,
                       comp_container.getWidth(),
                       comp_container.getHeight());
-      comp_container.setVisible(true); 
+     comp_container.setVisible(true); 
+     */
       try
       {
         job.print();
@@ -411,7 +430,7 @@ public class PrintUtilities2
     public int print(Graphics g, PageFormat page_format, int pageIndex) 
                                                      throws PrinterException 
     {
-      
+            
       if (pageIndex > 0)
        {
          return(NO_SUCH_PAGE);
@@ -424,21 +443,13 @@ public class PrintUtilities2
 
          double xscale=(double)(page_format.getImageableWidth() )/(R.width);
          double yscale=(double)(page_format.getImageableHeight())/(R.height);
-
+         xscale = yscale =1;
          if(yscale < xscale) 
             xscale= yscale; 
-         
-         /*System.out.println("x: "+page_format.getImageableX()+
-                          "\ny: "+page_format.getImageableY()+
-                      "\nwidth: "+page_format.getImageableWidth()+
-                     "\nheight: "+page_format.getImageableHeight());//*/
-         
-         
+     
          g2d.translate(page_format.getImageableX(), 
                        page_format.getImageableY());
-         /*comp_to_print.setBounds(0, 0, 
-                       (int)Math.round(page_format.getImageableWidth()), 
-                       (int)Math.round(page_format.getImageableHeight()));//*/
+  
          g2d.scale(xscale ,xscale); 
 
          double w = R.width*xscale;
@@ -472,29 +483,43 @@ public class PrintUtilities2
     }
   }
   
+  
+ 
+  
   /*
-   * This method retrieves the printer service from the specified name.  This 
-   * method returns a null if the desired printer does not exist.  
+   * This method retrieves the printer service from the specified priner name and
+   * attributes. 
+   *  
+   * @param printerName  the name of the printer
+   * 
+   * @param aset  the set of attributes
+   * 
+   * @return a PrintService for a corresponding printer with the given name
+   *             and can satisfy all the attributs that were set
    */
-  private PrintService get_print_service(String printer_name)  
-  {        
-    PrintService[] services=PrintServiceLookup.lookupPrintServices(null,null); 
-    
-    for( int i = 0; i < services.length; i++)
-    {
-      if( services[i] != null && services[i].toString() != null &&
-          services[i].getName().trim().equals( printer_name.trim() ) )
-      {
-        return services[i];
-      }
-    }
-    System.err.println("Printer \'"+printer_name+"\' is not available.");
-    return null;
+  public static PrintService get_print_service( String printerName,
+           HashPrintRequestAttributeSet aset) {
+     
+     PrintService[] pservices = PrintServiceLookup.lookupPrintServices(
+              DocFlavor.SERVICE_FORMATTED.PRINTABLE,aset); 
+     
+     if( pservices == null)
+        return null;
+     
+     for( int i=0; i<pservices.length;i++){
+        
+        if(pservices[i] != null &&pservices[i].toString() != null &&
+          pservices[i].getName().trim().equals( printerName.trim()))
+           return pservices[i];
+     }
+     
+     return null;
   }
+  
   
   /*
    * This method makes sure that the specified Component's size is greater 
-   * than zero.
+   * than zero.  
    */
   private static void validate_size(Component comp)
   {
@@ -504,9 +529,7 @@ public class PrintUtilities2
     //Making sure the Component size is at least greater than 0.
     if(width <=0 && height <= 0) 
     {
-      //System.err.println("Warning: The Component's "
-      //        +comp.getBounds().getSize()+" is less than or equal to 0.  The " 
-      //        +"output Component may not be visible.");      
+      
       width = DEFAULT_COMPONENT_WIDTH;
       height = DEFAULT_COMPONENT_HEIGHT;
       comp.setSize(width,height);
@@ -556,6 +579,13 @@ public class PrintUtilities2
     //PrintUtilities2.print_with_dialog(va2d_disp.getJComponent(false));
   }//*/
 }
+/**
+ * Placed the code to print the document on the event queue so it is executed
+ * after the JWindow is through painting.
+ * 
+ * @author Ruth
+ *
+ */
 class printJb implements Runnable{
    Doc doc;
    HashPrintRequestAttributeSet aset;
@@ -578,9 +608,18 @@ class printJb implements Runnable{
         System.err.println( pe.toString() );
         pe.printStackTrace();
       } 
+      doc = null;
+      aset = null;
+      printJob = null;
    }
 }
-
+/**
+ * Placed the code to dispose of the JWindow on the event queue so it is executed
+ * after the printing is executed.
+ * 
+ * @author Ruth
+ *
+ */
 class dspose implements Runnable{
    
    JWindow wind;
@@ -592,5 +631,6 @@ class dspose implements Runnable{
    public void run(){
       if( wind != null)
       wind.dispose();
+      wind = null;
    }
 }
