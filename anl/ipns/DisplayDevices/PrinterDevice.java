@@ -1,5 +1,45 @@
 /*
+ * File: PrinterDevice.java 
+ *  
+ * Copyright (C) 2007     Andy Moe
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contact :  Dennis Mikkelson<mikkelsond@uwstout.edu>
+ *            MSCS Department
+ *            Menomonie, WI. 54751
+ *            (715)-232-2291
+ *
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0426797, and by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ *
+ * Modified:
+ *
  * $Log$
+ * Revision 1.13  2007/08/22 15:26:15  rmikk
+ * Added GPL
+ * Size of large JComponent not calculated until a display command is given.
+ *   Hopefully all attributes( especially paper size and orientation) have been set.
+ *   Kept track of orientation
+ *   Set Default MediaSize to be MediaSizeName.NA_LETTER
+ *   Implemented getBounds to get the imageable width and height corresponding
+ *       to the MediaSizeName and orientation( flips width and height on landscape)
+ *    Added letter and legal attributes for orientation keys.
+ *
  * Revision 1.12  2007/08/20 19:34:15  rmikk
  * Eliminated code to  set the MediaPrintableArea. It turned out to be 500 inches
  *   by 500 inches
@@ -57,15 +97,17 @@ import java.awt.Color;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import javax.print.DocFlavor;
 import javax.print.attribute.Attribute;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.Copies;
-import javax.print.attribute.standard.MediaPrintableArea;
+import javax.print.attribute.standard.*;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.EtchedBorder;
+//import javax.swing.border.EtchedBorder;
+import javax.print.*;
 
 public class PrinterDevice extends GraphicsDevice
 {
@@ -83,23 +125,44 @@ public class PrinterDevice extends GraphicsDevice
   
   protected HashPrintRequestAttributeSet aset;
   
-  private JComponent jcomp;
+  private JComponent jcomp ;
   private String printer_name;
-  private int max_x = 0;
-  private int max_y = 0;
+
+  private boolean portrait;
   
   public PrinterDevice(String printer_name)
   {
     this.printer_name = printer_name;
-    jcomp = new JPanel();
+    /*jcomp = new JPanel();
     jcomp.setBounds(0, 0, 600, 600);
     jcomp.setLayout(null);
     jcomp.setBackground(Color.white);
+    */
+    jcomp = null;
+    portrait = true;
     //jcomp.setBorder(new EtchedBorder());
     aset = new HashPrintRequestAttributeSet();
+    aset.add(  javax.print.attribute.standard.MediaSizeName.NA_LETTER );
     buildAttributes();
     buildValues();
     buildPrintableAreaValues();
+  }
+  
+  
+  // Sets up jcomp if it is not null.  Its dimensions should be determined
+  //    after the paper size and orientation attributes have been set.
+  private void setUpContainerComponent(){
+     
+     if( jcomp != null)
+        return;
+     jcomp = new JPanel();
+     
+     Vector<Float> V = getBounds();
+     jcomp.setBounds(0, 0,V.firstElement().intValue(), 
+                           V.lastElement().intValue());
+     
+     jcomp.setLayout(null);
+     jcomp.setBackground(Color.white);     
   }
   
   /**
@@ -117,6 +180,10 @@ public class PrinterDevice extends GraphicsDevice
     {
       value = ((String)value).toLowerCase();
       name += (String)Util.TranslateKey( values, (String)value );
+      if( value.equals( "landscape" )) 
+         portrait = false;
+      else 
+         portrait = true;
     }
     
     if( name.equals("printableareax") ||
@@ -146,48 +213,72 @@ public class PrinterDevice extends GraphicsDevice
   @Override
   public void print()
   {
-    // this is an atempt to alter margins.
-    
-   try
-    {
-      //MediaPrintableArea area = new MediaPrintableArea(
-      //  (Float)Util.TranslateKey(printableAreaValues, "printableareax"),
-      //  (Float)Util.TranslateKey(printableAreaValues, "printableareay"),
-      //  (Float)Util.TranslateKey(printableAreaValues, "printableareawidth"),
-      //  (Float)Util.TranslateKey(printableAreaValues, "printableareaheight"),
-     //   MediaPrintableArea.INCH);
-     // aset.add(area);
-    }
-    catch(Exception e)
-    {System.out.println(e);}//*/
     
     PrintThread runPrint = new PrintThread();
     
-    
     SwingUtilities.invokeLater(runPrint);
-    //PrintUtilities2.print(jcomp, printer_name, aset);
-    //PrintUtilities2.print_with_dialog(jcomp);
   }
 
   /**
    * Flush and closes any pending output for the PrinterDevice.
    */
-  @Override
+ 
   public void close()
   {
-    // TODO Auto-generated method stub
+    // TODO invoke a print if not done and something is  pending
     
   }
   
   /**
    * @return - This returns a Vector with two floats: width and height of a 
    * specific device.
+   * 
+   * NOTE: Call this method after attributes are set, especially the paper size
+   *        and orientation attributes.
    */
-  @Override
+ 
   public Vector getBounds() 
   {
-    // TODO Auto-generated method stub
-    return null;
+    
+     PrintService pservice = PrintUtilities2.get_print_service( this.printer_name , aset );
+     
+     MediaPrintableArea[] X =(MediaPrintableArea[])pservice.getSupportedAttributeValues
+                                                       ( MediaPrintableArea.class , 
+                                                         DocFlavor.SERVICE_FORMATTED.PRINTABLE, 
+                                                         aset );
+     
+     Vector<Float> Result = new Vector<Float>();
+     float width=8f, 
+             height=10.5f;
+     
+     if( X != null && X.length >0 ){
+        
+        width = X[0].getWidth(  MediaPrintableArea.INCH );
+        height =X[0].getHeight(  MediaPrintableArea.INCH );
+     }
+       
+     
+     if( portrait){
+        
+        Result.add( 72*width);
+        Result.add( 72*height);
+        
+     }else{
+        
+        Result.add( 72*height);
+        Result.add( 72*width);
+        
+     }
+     
+     //This gets the total page size.  Can possibly be used reduce margins by setting
+     // the media size in aset--though getSupportedAttributeValues is supposed to get max
+     
+    /* MediaSize ms = MediaSize.getMediaSizeForName(MediaSizeName.NA_LETTER );
+     float[]F = ms.getSize( MediaSize.INCH);
+     System.out.println("Media size="+F[0]+","+F[1] );
+     */
+     
+     return Result;
   }
 
   /**
@@ -216,18 +307,17 @@ public class PrinterDevice extends GraphicsDevice
   public void display(JComponent jcomp) 
   {
     jcomp.setBounds(x_pos, y_pos, width, height);
-    
-    if( x_pos + width > max_x )
-      max_x = x_pos + width;
-    if( y_pos + height > max_y )
-      max_y = y_pos + height;
-    
+ 
+    setUpContainerComponent();
     this.jcomp.add(jcomp);
-    this.jcomp.setSize(max_x,max_y);
+  
   }
   
   private void buildAttributes()
   {
+    attributes.put( "letter" , javax.print.attribute.standard.MediaSize.NA.LETTER );
+    
+    attributes.put( "legal" , javax.print.attribute.standard.MediaSize.NA.LEGAL );
     attributes.put("orientation.portrait", OrientationRequested.PORTRAIT);
     attributes.put("orientation.landscape", OrientationRequested.LANDSCAPE);
     attributes.put("copies", new Copies(1));
@@ -239,7 +329,7 @@ public class PrinterDevice extends GraphicsDevice
     values.put("landscape", ".landscape");
   }
   
-  //part of an atempt to alter margins
+  //part of an attempt to alter margins
   private void buildPrintableAreaValues()
   {
     printableAreaValues = new Hashtable<String, Float>();
@@ -254,6 +344,7 @@ public class PrinterDevice extends GraphicsDevice
 
     public void run()
     {
+       setUpContainerComponent();
       PrintUtilities2.print(jcomp, printer_name, aset);
       
     }
