@@ -1,5 +1,41 @@
 /*
+ * File: VirtualArray1D_Displayable.java 
+ *  
+ * Copyright (C) 2007     Ruth Mikkelson
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contact :  Ruth Mikkelson<mikkelsonr@uwstout.edu>
+ *            MSCS Department
+ *            Menomonie, WI. 54751
+ *            (715)-235-8482
+ *
+ * This work was supported by the National Science Foundation under grant
+ * number DMR-0426797, and by the Intense Pulsed Neutron Source Division
+ * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
+ *
+ *
+ * Modified:
+ *
  * $Log$
+ * Revision 1.20  2007/08/22 15:36:36  rmikk
+ * Added GPL
+ * Disposed of several components
+ * The main test program has changed and may not be runnable as is
+ * Added Titles for picture, x axis and yaxis
+ *
  * Revision 1.19  2007/08/14 20:05:49  worlton
  * Revised the main routine so that the file and printer devices will have valid locations.  Also removed a printout that failed on my system.  The saved file will now go in the user home directory and the printer device will use the default printer.  These changes should be tested on a Linux system with printers.
  *
@@ -56,6 +92,7 @@ import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Displays.*;
 import gov.anl.ipns.ViewTools.Panels.Graph.GraphJPanel;
 import javax.swing.*;
+import gov.anl.ipns.Util.Sys.*;
 
 public class VirtualArray1D_Displayable extends Displayable {
    
@@ -106,6 +143,7 @@ public class VirtualArray1D_Displayable extends Displayable {
       valueList = getValueList();
       viewAttributeList = getViewAttributeList();
       graphLineAttributes = getGraphLineAttributeList();
+      comp.removeAll();
       comp.dispose();
       comp=null;
       //System.out.println(Ostate);
@@ -137,6 +175,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      }
      temp.setObjectState(Ostate);
      JComponent comp =(JComponent)temp.getContentPane();
+     //temp.removeAll();
      temp.dispose();
      temp = null;
      return comp;
@@ -434,6 +473,9 @@ public class VirtualArray1D_Displayable extends Displayable {
      array.setGraphTitle("Graph 1", 0);
      array.setGraphTitle("Graph 2", 1);
      array.setGraphTitle("Graph 3", 2);
+     array.setTitle( "Graph" );
+     array.setAxisInfo( 0 , 0 , 35 ,"x-axis" ,"hours", 0 );
+     array.setAxisInfo( 1 , 0 , 35 ,"y-axis" ,"dollars", 0 );
      VirtualArray1D_Displayable disp = 
        new VirtualArray1D_Displayable(array,GRAPH);//*/
      /*VirtualArray1D_Displayable disp = 
@@ -452,11 +494,19 @@ public class VirtualArray1D_Displayable extends Displayable {
 //   disp.setLineAttribute(2, "line color", "black");
    disp.setLineAttribute(1, "mark type", "cross");
    disp.setLineAttribute(1, "mark size", 2);
-//   disp.setLineAttribute(1, "mark color", "green");
-//   disp.setLineAttribute(3, "line type", "dashed");
-//   disp.setLineAttribute(3, "mark type", "plus");
-//   disp.setLineAttribute(3, "mark color", "cyan");
-//   disp.setViewAttribute("viewer size","500,500");
+   
+/*  // For testing good finis
+    FinishJFrame jf = new FinishJFrame("Test");
+    jf.getContentPane().setLayout( new java.awt.GridLayout(1,1));
+    jf.getContentPane().add(  disp.getJComponent( false ) );
+    jf.setSize( 400,500);
+    WindowShower.show(  jf  );
+*/   
+    disp.setLineAttribute(1, "mark color", "green");
+    disp.setLineAttribute(3, "line type", "dashed");
+    disp.setLineAttribute(3, "mark type", "plus");
+    disp.setLineAttribute(3, "mark color", "cyan");
+    // disp.setViewAttribute("viewer size","500,500");
      
      //------------table test
 //   disp.setViewAttribute("label background","red");
@@ -465,11 +515,33 @@ public class VirtualArray1D_Displayable extends Displayable {
      
 //   disp.setViewAttribute("control option", "off");// doesn't do anything
      
-   GraphicsDevice gd3 = new ScreenDevice();
+  //  GraphicsDevice gd3 = new ScreenDevice();
+   
+ /*  JFileChooser jf = new JFileChooser();
+      String filename = null;
+      if( jf.showSaveDialog( null )== JFileChooser.APPROVE_OPTION)
+         filename = jf.getSelectedFile().getPath();
+      else
+         System.exit(0);
+   
+    GraphicsDevice gd3= new FileDevice( filename );
+ */
+  //    GraphicsDevice gd4= new FileDevice("c:\\xx.jpg" );
+ //  GraphicsDevice gd3 = new PreviewDevice();
+  GraphicsDevice gd3 = new PrinterDevice("HP LaserJet 4 Plus");
+  gd3.setDeviceAttribute( "orientation" , "landscape" );
+  Vector  bounds = gd3.getBounds();
+  float width = ((Float)bounds.firstElement()).floatValue();
+  float height = ((Float)bounds.lastElement()).floatValue();
+ 
+   // float width =576;
+   // float height = 768;
+  // GraphicsDevice gd3 = new ScreenDevice();
    //GraphicsDevice gd2= new FileDevice("C:/Documents and Settings/student/My Documents/My Pictures/test.jpg");
    String outfile = System.getProperty("user.home") + "/test.jpg";
    GraphicsDevice gd2 = new FileDevice(outfile);
 
+ 
    GraphicsDevice gd1 = new PreviewDevice();
    //GraphicsDevice gd = new PrinterDevice("Adobe PDF");
 	PrintService defserv = PrintServiceLookup.lookupDefaultPrintService();
@@ -494,8 +566,11 @@ public class VirtualArray1D_Displayable extends Displayable {
      gd3.display( disp, true );
      gd3.print();
      
+/*     gd.setRegion( 0, 0,700, 800 );
      gd.setRegion( 0, 0,756, 576 );
      gd.display( disp, true );
      gd.print();
+*/
    }
+
 }
