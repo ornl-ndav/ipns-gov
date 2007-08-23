@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.63  2007/08/23 06:15:33  dennis
+ * Fixed off by one error when drawing markers.  The last marker
+ * was not being drawn.
+ *
  * Revision 1.62  2007/08/23 05:46:52  dennis
  * Reduced the number of times the data is scanned to find the min
  * and max values.  It is now just done when the list of graphs
@@ -1358,6 +1362,7 @@ public boolean is_autoY_bounds()
         x_copy = new float[ n_points ];
         System.arraycopy( gd.x_vals, first_index, x_copy, 0, n_points );
       }
+
       y_copy = new float[ n_points ];
       System.arraycopy( gd.y_vals, first_index, y_copy, 0, n_points );
       
@@ -1497,7 +1502,7 @@ public boolean is_autoY_bounds()
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = 0; i < n_points - 1; i++ )
+          for ( int i = 0; i < n_points; i++ )
           {
 	     if ( type == DOT )
               g2.drawLine( x_int[i], y_int[i], 
@@ -1641,18 +1646,20 @@ public boolean is_autoY_bounds()
         */ 
 	if (gd.marktype != 0)
 	{
-          int x_int[] = new int[ n_points ];
+          int x_int[] = new int[ n_points + 1 ];
           int y_int[] = new int[ n_points ];
           for ( int i = 0; i < n_points; i++ )
           {
             x_int[i] = (int)( x_copy[i] ) + x_offset;
             y_int[i] = (int)( y_copy[i] ) - y_offset;
           }
+          x_int[n_points] = (int)( x_copy[n_points] ) + x_offset;
+
 	  g2.setStroke(new BasicStroke(1));
           int size = gd.marksize;
 	  g2.setColor( gd.markcolor );
 	  int type = gd.marktype;
-          for ( int i = 0; i < n_points - 1; i++ )
+          for ( int i = 0; i < n_points; i++ )
           {
 	     int x_midpt = ((x_int[i] + x_int[i+1])/2);
 	     if ( type == DOT )
