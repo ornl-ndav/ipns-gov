@@ -31,6 +31,9 @@
  * Modified: 
  * 
  * $Log$
+ * Revision 1.7  2007/08/23 21:06:32  dennis
+ * Removed unused imports.
+ *
  * Revision 1.6  2007/07/02 20:02:56  oakgrovej
  * Added Copyright notice & log message
  * commented out a line that was causing an error with the done button command
@@ -41,7 +44,6 @@ package gov.anl.ipns.ViewTools.Components.RegionOpEditFrames;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
-import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp.Operation;
 
 import java.awt.BorderLayout;

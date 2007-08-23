@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.13  2007/08/23 21:06:31  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.12  2007/05/10 20:55:43  dennis
  *  Now uses the Region.ClampPointsToArray() to restrict the points returned
  *  by getSelectedPoints() to lie in the array.
@@ -90,7 +93,6 @@
 package gov.anl.ipns.ViewTools.Components.Region;
 
 import java.awt.Point;
-import java.util.Vector;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;

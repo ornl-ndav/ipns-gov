@@ -31,6 +31,9 @@
  * Modified: 
  * 
  * $Log$
+ * Revision 1.8  2007/08/23 21:06:31  dennis
+ * Removed unused imports.
+ *
  * Revision 1.7  2007/07/30 20:27:42  oakgrovej
  * Commented out System.out.print()
  *
@@ -44,28 +47,17 @@
  */ 
 package gov.anl.ipns.ViewTools.Components.RegionOpEditFrames;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
 import gov.anl.ipns.ViewTools.Components.Cursor.WedgeCursor;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
-import gov.anl.ipns.ViewTools.Components.Region.RegionOp.Operation;
 import gov.anl.ipns.ViewTools.UI.ValuatorPanels.AngleValuatorPanel;
 import gov.anl.ipns.ViewTools.UI.ValuatorPanels.RadiusValuatorPanel;
 

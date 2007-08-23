@@ -31,6 +31,9 @@
  * Modified: 
  * 
  * $Log$
+ * Revision 1.5  2007/08/23 21:06:31  dennis
+ * Removed unused imports.
+ *
  * Revision 1.4  2007/07/10 18:37:27  oakgrovej
  * Added use of ValuatorPanels
  *
@@ -46,8 +49,6 @@ import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
 import gov.anl.ipns.ViewTools.UI.ValuatorPanels.PointValuatorPanel;
 
-
-import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

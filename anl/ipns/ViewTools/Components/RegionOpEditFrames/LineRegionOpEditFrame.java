@@ -31,6 +31,9 @@
  * Modified: 
  * 
  * $Log$
+ * Revision 1.6  2007/08/23 21:06:32  dennis
+ * Removed unused imports.
+ *
  * Revision 1.5  2007/07/10 18:37:51  oakgrovej
  * Added use of ValuatorPanels
  *
@@ -40,7 +43,6 @@
  */ 
 package gov.anl.ipns.ViewTools.Components.RegionOpEditFrames;
 
-import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

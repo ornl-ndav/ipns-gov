@@ -33,6 +33,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.8  2007/08/23 21:06:31  dennis
+ * Removed unused imports.
+ *
  * Revision 1.7  2007/08/22 15:19:08  rmikk
  * Created a public static get_print_service that included the attribute set
  * The low-level print code has a scale factor of 1
@@ -75,7 +78,6 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
@@ -90,7 +92,6 @@ import javax.print.SimpleDoc;
 import javax.print.attribute.Attribute;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.Copies;
-import javax.print.attribute.standard.MediaPrintableArea;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.swing.JWindow;
 import javax.swing.RepaintManager;

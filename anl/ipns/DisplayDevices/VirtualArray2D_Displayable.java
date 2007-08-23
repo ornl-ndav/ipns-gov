@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2007/08/23 21:06:31  dennis
+ * Removed unused imports.
+ *
  * Revision 1.15  2007/08/09 13:02:07  rmikk
  * Eliminated the use of a Display1D to store the object state and used the Object state directly
  *
@@ -72,12 +75,12 @@ package gov.anl.ipns.DisplayDevices;
 import java.awt.Color;
 
 import gov.anl.ipns.ViewTools.Components.*;
-import gov.anl.ipns.ViewTools.Components.TwoD.*;
-import gov.anl.ipns.ViewTools.Components.TwoD.Contour.*;
-import gov.anl.ipns.ViewTools.Layouts.*;
+//import gov.anl.ipns.ViewTools.Components.TwoD.*;
+//import gov.anl.ipns.ViewTools.Components.TwoD.Contour.*;
+//import gov.anl.ipns.ViewTools.Layouts.*;
 import javax.swing.*;
 
-import java.awt.*;
+//import java.awt.*;
 import java.util.Hashtable;
 
 import gov.anl.ipns.ViewTools.Displays.*;

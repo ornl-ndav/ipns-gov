@@ -1,8 +1,6 @@
 package gov.anl.ipns.ViewTools.UI.ValuatorPanels;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 public abstract class ValuatorPanel
 {

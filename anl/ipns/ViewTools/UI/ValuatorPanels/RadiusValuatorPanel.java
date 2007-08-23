@@ -1,11 +1,7 @@
 package gov.anl.ipns.ViewTools.UI.ValuatorPanels;
 
-import gov.anl.ipns.Util.Numeric.floatPoint2D;
-
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 

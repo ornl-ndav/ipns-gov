@@ -31,6 +31,9 @@
  * Modified: 
  * 
  * $Log$
+ * Revision 1.5  2007/08/23 21:06:31  dennis
+ * Removed unused imports.
+ *
  * Revision 1.4  2007/07/10 18:37:45  oakgrovej
  * Added use of ValuatorPanels
  *
@@ -49,7 +52,6 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.Cursor.CursorTag;
 import gov.anl.ipns.ViewTools.Components.Cursor.EllipseCursor;
 import gov.anl.ipns.ViewTools.Components.Region.RegionOp;
-import gov.anl.ipns.ViewTools.Components.Region.RegionOp.Operation;
 import gov.anl.ipns.ViewTools.UI.ValuatorPanels.PointValuatorPanel;
 
 import javax.swing.*;

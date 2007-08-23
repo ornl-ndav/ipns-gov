@@ -29,6 +29,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.9  2007/08/23 21:06:31  dennis
+ * Removed unused imports.
+ *
  * Revision 1.8  2007/08/22 15:14:36  rmikk
  * Added GPL
  *
@@ -73,7 +76,6 @@ import javax.swing.JFrame;
 import gov.anl.ipns.DisplayDevices.IDisplayable;
 import gov.anl.ipns.DisplayDevices.VirtualArray2D_Displayable;
 import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
-import gov.anl.ipns.Util.Sys.*;
 
 public class ScreenDevice extends GraphicsDevice
 {

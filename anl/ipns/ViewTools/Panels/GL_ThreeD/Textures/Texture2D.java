@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.3  2007/08/23 21:06:32  dennis
+ * Removed unused imports.
+ *
  * Revision 1.2  2007/08/13 23:50:19  dennis
  * Switched from old JOGL to the JSR231 version of JOGL.
  *
@@ -46,7 +49,6 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Textures;
 
 import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
 import java.nio.*;
 
 public class Texture2D extends Texture

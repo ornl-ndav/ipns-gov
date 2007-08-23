@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.30  2007/08/23 21:06:32  dennis
+ *  Removed unused imports.
+ *
  *  Revision 1.29  2007/07/20 02:51:57  dennis
  *  No longer sends two message when the region is changed, but
  *  for now just forwards the message from the translation overlay.
@@ -196,7 +199,6 @@ import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordBounds;
 import gov.anl.ipns.ViewTools.Panels.Transforms.CoordJPanel;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;

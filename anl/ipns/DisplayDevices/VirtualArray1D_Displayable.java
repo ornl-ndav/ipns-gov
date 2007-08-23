@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.21  2007/08/23 21:06:31  dennis
+ * Removed unused imports.
+ *
  * Revision 1.20  2007/08/22 15:36:36  rmikk
  * Added GPL
  * Disposed of several components
@@ -91,8 +94,6 @@ import gov.anl.ipns.ViewTools.Components.OneD.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Displays.*;
 import gov.anl.ipns.ViewTools.Panels.Graph.GraphJPanel;
-import javax.swing.*;
-import gov.anl.ipns.Util.Sys.*;
 
 public class VirtualArray1D_Displayable extends Displayable {
    
