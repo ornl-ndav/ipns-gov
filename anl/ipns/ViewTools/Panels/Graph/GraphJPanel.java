@@ -30,6 +30,18 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.62  2007/08/23 05:46:52  dennis
+ * Reduced the number of times the data is scanned to find the min
+ * and max values.  It is now just done when the list of graphs
+ * is changed.  This reduces the amount of calculation that is
+ * being done when the SelectedGraph view is loaded.
+ * NOTE: This could be made still more efficient by just scanning
+ * the last graph added when the graphs are added one at a time.
+ * Alternatively, perhaps it would be best to add a new method
+ * that takes a whole vector of graphs at one time, so that
+ * the work of updating min/max values does not get repeated
+ * so many times.
+ *
  * Revision 1.61  2007/07/29 20:45:15  dennis
  * Changed local_transform and global_transform to be private
  * in CoordJPanel class, to keep better control over who can
@@ -321,6 +333,8 @@ public class GraphJPanel extends    CoordJPanel
   private transient CoordBounds     auto_data_bound;
   private boolean         log_scale_x = false;
   private boolean         log_scale_y = false;
+  private transient boolean min_max_x_valid = false;
+  private transient boolean min_max_y_valid = false;
   private transient float maxy;
   private transient float minx;
   private transient float maxx;
@@ -356,6 +370,9 @@ public class GraphJPanel extends    CoordJPanel
     graphs = new Vector();
     graphs.addElement( gd );
 
+    min_max_x_valid = false;
+    min_max_y_valid = false;
+
     h_scroll = false;
     v_scroll = false;
 
@@ -387,6 +404,11 @@ public class GraphJPanel extends    CoordJPanel
       redraw = true;
       }
     }
+                             // recalculate min & max after restoring graphs
+    min_max_x_valid = false;  
+    min_max_y_valid = false;
+    getXmin();
+    getYmin();
                                                     
     temp = new_state.get(X_OFFSET_FACTOR);
     if ( temp != null)
@@ -510,6 +532,9 @@ public class GraphJPanel extends    CoordJPanel
     gd.x_vals = x_vals;
     gd.y_vals = y_vals;
     
+    min_max_x_valid = false;
+    min_max_y_valid = false;
+
     set_auto_data_bound();
     SetDataBounds();
 
@@ -531,6 +556,10 @@ public class GraphJPanel extends    CoordJPanel
     GraphData gd = (GraphData)graphs.elementAt(0);   
     gd.x_vals = x;
     gd.y_vals = y;
+
+    min_max_x_valid = false;
+    min_max_y_valid = false;
+
     set_auto_data_bound();
     SetDataBounds();
     repaint();
@@ -546,6 +575,10 @@ public class GraphJPanel extends    CoordJPanel
   {
     graphs.clear();
     graphs.addElement( new GraphData() );    
+
+    min_max_x_valid = false;
+    min_max_y_valid = false;
+
     set_auto_data_bound();
     SetDataBounds();
   }
@@ -785,7 +818,6 @@ public boolean setTransparent(boolean transparent, int graph_num,
       repaint(); 
     
     return true;
-    
   }
 
 
@@ -835,6 +867,7 @@ public BasicStroke strokeType(int key, int graph_num)
     return createStroke(key, gd.linewidth);
 }
 
+
 public static BasicStroke createStroke(int key, float linewidth)
 {
     if (key == DASHED)
@@ -878,6 +911,7 @@ public static BasicStroke createStroke(int key, float linewidth)
        return new BasicStroke();
     }
 }
+
 
 /*-------------------------- setLineWidth ---------------------------------*/
 /**
@@ -969,6 +1003,7 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
     return true;
  }
 
+
 /* --------------------------- setLogScaleX  ------------------------ */
 /**
   *  Set the boolean value to check wether or not to scale the x
@@ -982,6 +1017,7 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
     log_scale_x = x_log;
   }  
 
+
 /* --------------------------- setLogScaleY  ------------------------ */
 /**
  *  Set the boolean value to check wether or not to scale the y
@@ -994,6 +1030,8 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
   {
     log_scale_y = y_log;
   } 
+
+
 /* --------------------------- getLogScaleX  ------------------------ */
 /**
   *  Gets the boolean value to check wether or not to scale the x
@@ -1007,6 +1045,7 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
     return log_scale_x;
   }  
 
+
 /* --------------------------- getLogScaleY  ------------------------ */
 /**
  *  Gets the boolean value to check wether or not to scale the y
@@ -1019,6 +1058,7 @@ public boolean setMarkSize(int size, int graph_num, boolean redraw)
   {
     return log_scale_y;
   } 
+
  
 /**
  * Set the number of pixels that additional graphs are offset vertically
@@ -1298,7 +1338,6 @@ public boolean is_autoY_bounds()
       if ( last_index < gd.x_vals.length-1 )     // include one extra point 
         last_index++;                            // to include last segment
                                                  // going off screen
-
       int n_points = last_index - first_index + 1;
       if ( is_histogram )
         n_points--;
@@ -1401,8 +1440,6 @@ public boolean is_autoY_bounds()
          
       getLocal_transform().MapTo( x_copy, y_copy );       // map from WC to pixels
 
-
-
       g2.setStroke(strokeType(gd.linetype, gr_index));
       
       if ( x_copy.length == y_copy.length )            // Function data
@@ -1462,10 +1499,9 @@ public boolean is_autoY_bounds()
 	  int type = gd.marktype;
           for ( int i = 0; i < n_points - 1; i++ )
           {
-	     
 	     if ( type == DOT )
               g2.drawLine( x_int[i], y_int[i], 
-	  			x_int[i], y_int[i] );      
+                           x_int[i], y_int[i] );      
              else if ( type == PLUS )
              {
                g2.drawLine( x_int[i]-size, y_int[i],
@@ -1501,7 +1537,6 @@ public boolean is_autoY_bounds()
                             x_int[i]+size, y_int[i]+size );      
                g2.drawLine( x_int[i]-size, y_int[i]+size, 
                             x_int[i]+size, y_int[i]-size );  
-            	 
              }
              else	//BAR 
              {    
@@ -1728,7 +1763,6 @@ public boolean is_autoY_bounds()
   }
 
 
-
 /* ---------------------------- getPreferredSize ------------------------- */
 /**
  *  Calculate the preferred size based on whether or not the graph should be
@@ -1836,7 +1870,6 @@ private void SetDataBounds()
                                        // and the automatically scaled bounds
     CoordBounds current_bound = getGlobalWorldCoords().MakeCopy();
     current_bound.invertBounds();
-
                                       // choose new y_bounds based on flag
     if ( y_bound_set )
     {
@@ -1875,12 +1908,14 @@ private void SetDataBounds()
     CoordBounds local_bounds = getLocalWorldCoords();
     // If "don't reset local bounds and local bounds are within the
     // global bounds, only reset the world coordinates.
+
     if( !reset_local )
       setGlobalWorldCoords(data_bound);
     // Otherwise reinitialize both.
     else
       initializeWorldCoords( data_bound );
 }
+
 
 /**
  * This method will return the scale factor used on the y-axis to create a
@@ -1895,9 +1930,15 @@ public float getScaleFactor()
 
 
 /* ------------------------------getYmin--------------------------------*/
-
+/**
+ *  Get the minimum y value from the current list of graphs
+ */
 public float getYmin()
 {
+  if ( min_max_y_valid )
+    return miny;
+  //System.out.println("Calculating Y min");
+
   // check number of graphs
   if( graphs.size() == 0 || ((GraphData)graphs.elementAt(0)).y_vals == null )
     return Float.NaN;
@@ -1925,35 +1966,49 @@ public float getYmin()
 	        min_positive_y = val;
 	   }
         }
+    min_max_y_valid = true;
     return miny;
 }
 
+
 /*------------------------------- getYmax -----------------------------------*/
 /**
- *  CAUTION: getYmin must be called first, to set the max & min.  ######
- *           TODO: ##### change to have a calculateMinMax, keep flag and
- *                 only recalculate if something changed.
- *                 Change getYmin, getYmax, getXmin, getXmax to be
- *                 one routine with parameters, and no side effects. 
+ *  Get the max y value from the current list of graphs
  */
 public float getYmax()
 {
-  getYmin();
+  if ( !min_max_y_valid )
+    getYmin();            // go through calcluation of min and max y
+
   return maxy;
 }
 
 
 /*---------------------------- getPositiveYmin ------------------------------*/
+/**
+ *  Get the minimum y value that is greater than 0, 
+ *  from the current list of graphs.  If all values are less than or
+ *  equal to zero, this will return Float.POSITIVE_INFINITY.
+ */
 public float getPositiveYmin()
 {
-  getYmin();
+  if ( !min_max_y_valid )
+    getYmin();            // go through calcluation of min and max y
+
   return min_positive_y;
 }
 
 
 /* ------------------------------getXmin--------------------------------*/     
+/**
+ *  Get the minimum x value from the current list of graphs
+ */
 public float getXmin()
 {
+  if ( min_max_x_valid )
+    return minx;
+  // System.out.println("Calculating X min");
+
   // check number of graphs
   if( graphs.size() == 0 || ((GraphData)graphs.elementAt(0)).y_vals == null )
     return Float.NaN;
@@ -1981,23 +2036,38 @@ public float getXmin()
 	        min_positive_x = val;
            }
         }
-
+    min_max_x_valid = true;
     return minx;
 }
 
+
 /*------------------------------- getXmax -----------------------------------*/
+/**
+ *  Get the maximum x value from the current list of graphs
+ */
 public float getXmax()
 {
-  getXmin();
+  if ( !min_max_x_valid )   // go through calculation of min and max x
+    getXmin();
+
   return maxx;
 }
 
+
 /*---------------------------- getPositiveXmin -----------------------------*/
+/**
+ *  Get the minimum x value that is greater than 0, 
+ *  from the current list of graphs. If all values are less than or
+ *  equal to zero, this will return Float.POSITIVE_INFINITY.
+ */
 public float getPositiveXmin()
 {
-  getXmin();
+  if ( !min_max_x_valid )   // go through calculation of min and max x
+    getXmin();
+
   return min_positive_x;
 }
+
 
 /*
  * This listener flags whether the current local region is a zoomed region
@@ -2015,6 +2085,7 @@ private class ZoomListener implements ActionListener
       reset_local = true;
   }
 }
+
 
 /*--------------------------getLocalLogWorldCoords()------------------------*/
 /*
@@ -2039,7 +2110,6 @@ public CoordBounds getLocalLogWorldCoords()
       world_coords.setBounds( world_coords.getX1(), world_coords.getY1(),
     			      min_positive_x, world_coords.getY2() );
     }
-  
   }
   // If x1 < x2, check to make sure x1 is positive.
   else if( world_coords.getX1() < 0 )
@@ -2049,6 +2119,7 @@ public CoordBounds getLocalLogWorldCoords()
     world_coords.setBounds( min_positive_x, world_coords.getY1(),
                             world_coords.getX2(), world_coords.getY2() );
   }
+
   // Do the same steps above for the y axis.
   if( world_coords.getY1() > world_coords.getY2() )
   {
@@ -2059,7 +2130,6 @@ public CoordBounds getLocalLogWorldCoords()
       world_coords.setBounds( world_coords.getX1(), world_coords.getY1(),
     			      world_coords.getX2(), min_positive_y );
     }
-  
   }
   else if( world_coords.getY1() < 0 )
   {
@@ -2129,4 +2199,3 @@ public CoordBounds getLocalLogWorldCoords()
     System.out.println("Pos Y Min: "+graph.getPositiveYmin());
   }
 }
-
