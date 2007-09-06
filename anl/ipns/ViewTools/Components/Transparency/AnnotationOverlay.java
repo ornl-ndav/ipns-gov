@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.38  2007/09/06 20:05:20  rmikk
+ *  Added a line to prevent a null pointer exception if the editor was null
+ *
  *  Revision 1.37  2007/07/11 18:36:12  dennis
  *  Replaced paint() by paintComponent, removed call to super.paint(),
  *  and now work with a Graphics2D object that is a copy of the original
@@ -1404,6 +1407,8 @@ public class AnnotationOverlay extends OverlayJPanel
     {
       public void componentResized( ComponentEvent we )
       {
+         if( editor == null)
+            return;
     	editor_bounds = editor.getBounds();
       }
     }	     
