@@ -30,6 +30,11 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.22  2007/09/06 16:30:08  worlton
+ * Modified the main routine to test laying out multiple graphs on a printed page.  This shows how it is done, but also highlights a problem with the left and right margins.  It looks like margins are set to 1" whether you want it or not.  The top and bottom margins don't seem to do that.
+ *
+ * The problem is particularly evident for the portrait plot.  The graphs are narrower than they need to be.  We should allow using all available space.
+ *
  * Revision 1.21  2007/08/23 21:06:31  dennis
  * Removed unused imports.
  *
@@ -529,11 +534,11 @@ public class VirtualArray1D_Displayable extends Displayable {
  */
   //    GraphicsDevice gd4= new FileDevice("c:\\xx.jpg" );
  //  GraphicsDevice gd3 = new PreviewDevice();
-  GraphicsDevice gd3 = new PrinterDevice("HP LaserJet 4 Plus");
+  /*GraphicsDevice gd3 = new PrinterDevice("HP LaserJet 4 Plus");
   gd3.setDeviceAttribute( "orientation" , "landscape" );
   Vector  bounds = gd3.getBounds();
   float width = ((Float)bounds.firstElement()).floatValue();
-  float height = ((Float)bounds.lastElement()).floatValue();
+  float height = ((Float)bounds.lastElement()).floatValue();*/
  
    // float width =576;
    // float height = 768;
@@ -544,34 +549,73 @@ public class VirtualArray1D_Displayable extends Displayable {
 
  
    GraphicsDevice gd1 = new PreviewDevice();
+
+   // -------------gd is PrinterDevice
    //GraphicsDevice gd = new PrinterDevice("Adobe PDF");
 	PrintService defserv = PrintServiceLookup.lookupDefaultPrintService();
 	String defname = defserv.getName();
 	GraphicsDevice gd = new PrinterDevice(defname);
 	System.out.println(" Printed on " + defname );  
      
-     // -------------For PrinterDevice
+	//test multiple plots on a page
+    VirtualArray1D_Displayable disp2 = 
+        new VirtualArray1D_Displayable(array,GRAPH);//*/
      gd.setDeviceAttribute("orientation", "landscape");
      //gd.setDeviceAttribute("copies", 1);
-   
-         
+     Vector  bounds = gd.getBounds();
+     int width = ((Float)bounds.firstElement()).intValue();
+     int height = ((Float)bounds.lastElement()).intValue();
+     System.out.println("bounds = " + width + ", " + height);
+     int halfheight = height/2;
+     int halfwidth =width/2;
+     int x0 = 0;
+     int y0 = 0;
+     int x1 = halfwidth;
+     int y1 = halfheight;
+     gd.setRegion(x0, y0, width, halfheight);
+     gd.display( disp, true );
+     gd.setRegion(x0, y1, width, halfheight);
+     gd.display( disp2, true );
+     gd.print();
+     //create second device with 2x2 layout
+ 	 GraphicsDevice gdp2 = new PrinterDevice(defname);
+     gd2.setDeviceAttribute("orientation", "portrait");
+     Vector  bounds2 = gdp2.getBounds();
+     int width2 = ((Float)bounds2.firstElement()).intValue();
+     int height2 = ((Float)bounds2.lastElement()).intValue();
+     System.out.println("bounds2 = " + width2 + ", " + height2);
+     int halfheight2 = height2/2;
+     int halfwidth2 =width2/2;
+     int x20 = 0;
+     int y20 = 0;
+     int x21 = halfwidth2;
+     int y21 = halfheight2;
+     gdp2.setRegion(x20, y20, halfwidth2, halfheight2);
+     disp.setLineAttribute(1, "line color", "green");
+     gdp2.display( disp, true );
+     gdp2.setRegion(x21, y20, halfwidth2, halfheight2);
+     disp2.setLineAttribute(2, "line color", "orange");
+     gdp2.display(disp2, true);
+     gdp2.setRegion(x21, y21, halfwidth2, halfheight2);
+     disp.setLineAttribute(1, "line color", "red");
+     gdp2.display(disp, true);
+     gdp2.print();
+     
+     //gd1 is preview device
      gd1.setRegion( 0, 0,700, 800 );
      gd1.display( disp, true );
      gd1.print();
      
+     //gd2 is file device
      gd2.setRegion( 0, 0,700, 800 );
      gd2.display( disp, true );
      gd2.print();
      
-     gd3.setRegion( 200, 0,700, 800 );
-     gd3.display( disp, true );
-     gd3.print();
-     
-/*     gd.setRegion( 0, 0,700, 800 );
-     gd.setRegion( 0, 0,756, 576 );
-     gd.display( disp, true );
-     gd.print();
-*/
+     //gd3 was file device, now commented out
+     //gd3.setRegion( 200, 0,700, 800 );
+     //gd3.display( disp, true );
+     //gd3.print();
+ 
    }
 
 }
