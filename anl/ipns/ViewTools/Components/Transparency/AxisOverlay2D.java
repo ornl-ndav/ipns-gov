@@ -34,6 +34,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.57  2007/09/06 23:30:52  amoe
+ *  Remove println() used for debugging.
+ *
  *  Revision 1.56  2007/08/24 01:06:11  amoe
  *  Made the Y axis title shift left in accordance with the widest tick label.
  *    -Made paintLinearY(..) and paintTruLogY(..) calculate the longest label.
@@ -967,12 +970,7 @@ public class AxisOverlay2D extends OverlayJPanel
         
         //g2d.drawString( ylabel.toString(), 
         //                xstart + yaxis/2 - fontdata.stringWidth(ylabel.toString())/2,
-        //                yaxis + ystart - xstart + fontdata.getHeight() );
-        
-        
-        System.out.println("Xtotal("+(yaxis/2 + xstart - fontdata.stringWidth(ylabel.toString())/2)+") = yaxis*0.5("+yaxis/2+")+xstart("+xstart+")-stringWidth*0.5("+fontdata.stringWidth(ylabel.toString())/2+")");
-        System.out.println("Ytotal("+(yaxis + ystart - (xstart*0.25) + fontdata.getHeight())+") = yaxis("+yaxis+")+ystart("+ystart+")-xstart("+(xstart*0.25)+")+fontdata.getHeight("+fontdata.getHeight()+")");
-        System.out.println("--");
+        //                yaxis + ystart - xstart + fontdata.getHeight() );        
         
         //longest_tick_label
         
