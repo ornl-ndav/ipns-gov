@@ -31,6 +31,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.5  2007/09/06 20:06:25  rmikk
+ * Checked for a null return from  the  getSelectionOverlay method
+ *
  * Revision 1.4  2007/08/09 14:37:34  rmikk
  * Added abstract methods to reflect changes initiated in SelectionOverlay to the
  *    corresponding GUI Elements without sending out events that would cause
@@ -164,7 +167,10 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     */
    public RegionOpListWithColor getSelectedRegions( String name){
       
-      return getSelectionOverlay().getSelectedRegions(  name ); 
+      if( getSelectionOverlay() == null )
+         return null;
+      else
+         return getSelectionOverlay().getSelectedRegions(  name ); 
    }
    
 
@@ -176,8 +182,11 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     *                
     */
    public void setSelectedRegions( RegionOpList regOp, String name){
-      
-      getSelectionOverlay().setSelectedRegions(regOp , name );
+
+      if( getSelectionOverlay() == null )
+         return ;
+      else
+         getSelectionOverlay().setSelectedRegions(regOp , name );
    }
 
    
@@ -192,8 +201,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     *                name if no name is known.
     */
    public void addSelection( RegionOp RegionOp, String  name ){
+
+      if( getSelectionOverlay() == null )
+         
+         return ;
       
-      getSelectionOverlay().addSelection(  RegionOp , name );
+      else
+         
+         getSelectionOverlay().addSelection(  RegionOp , name );
    }
 
    
@@ -203,8 +218,13 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     *   @return an array of names for names selections
     */
    public String[] getSelectionNames(){
-      
-      return getSelectionOverlay().getAllNames();
+
+      if( getSelectionOverlay() == null )
+         
+         return null;
+      else
+         
+         return getSelectionOverlay().getAllNames();
    }
 
    
@@ -214,6 +234,13 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     * @return the name for currently active selection
     */
    public String getCurrentName() {
+      
+
+      if( getSelectionOverlay() == null )
+         
+         return null;
+      
+      else
       
       return getSelectionOverlay().getCurrentName();
    }
@@ -226,7 +253,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     */
    public void removeSelection(  String name ){
       
-      getSelectionOverlay().removeSelection( name );
+
+      if( getSelectionOverlay() == null )
+         
+         return ;
+      
+      else
+         
+         getSelectionOverlay().removeSelection( name );
    }
 
    
@@ -237,7 +271,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     */
    public void clearSelection(  String name ){
       
-      getSelectionOverlay().clearSelection(  name  );
+
+      if( getSelectionOverlay() == null )
+         
+         return ;
+      
+      else
+         
+         getSelectionOverlay().clearSelection(  name  );
    }
 
    
@@ -264,8 +305,16 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     */
    public void enableSelection( String name, boolean show){
       
-      boolean newName = getSelectionOverlay().enableSelection( name , show );
-      GUIshowOnlySelectionNames( newName ) ;
+
+      if( getSelectionOverlay() == null )
+         
+         return ;
+      
+      else{
+         
+          boolean newName = getSelectionOverlay().enableSelection( name , show );
+          GUIshowOnlySelectionNames( newName ) ;
+      }
    }
 
    
@@ -279,7 +328,17 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     */
    public void disableOverlay( boolean hide_show){
       
-      GUIshowOnlySelectionOverlayOn( !hide_show );
+
+      if( getSelectionOverlay() == null )
+         
+         return ;
+      
+      else{
+         
+         getSelectionOverlay().disableOverlay( hide_show );
+         GUIshowOnlySelectionOverlayOn( !hide_show );
+         
+      }
       
    }
 
@@ -289,7 +348,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
    */
     public void disableSelectionEditor(){
        
-       getSelectionOverlay().disableSelectionEditor();
+
+       if( getSelectionOverlay() == null )
+          
+          return ;
+       
+       else
+          
+          getSelectionOverlay().disableSelectionEditor();
     }
                                     
 
@@ -304,7 +370,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
      */
     public void setColor( String  name, java.awt.Color Color){
        
-       getSelectionOverlay().setColor(   name,  Color);
+
+       if( getSelectionOverlay() == null )
+          
+          return ;
+       
+       else
+          
+          getSelectionOverlay().setColor(   name,  Color);
     }
 
     
@@ -319,7 +392,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
      */
     public void setOpacity(  String name, float Opacity){
        
-       getSelectionOverlay().setOpacity( name, Opacity);
+
+       if( getSelectionOverlay() == null )
+          
+          return ;
+       
+       else
+          
+          getSelectionOverlay().setOpacity( name, Opacity);
     }
     
     
@@ -334,7 +414,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
      */
     public java.awt.Color getColor(  String name){
        
-       return getSelectionOverlay().getColor(   name);
+
+       if( getSelectionOverlay() == null )
+          
+          return null;
+       
+       else
+          
+          return getSelectionOverlay().getColor(   name);
     }
 
 
@@ -349,7 +436,14 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
      */
     public float getOpacity( String name){
        
-       return getSelectionOverlay().getOpacity( name);
+
+       if( getSelectionOverlay() == null )
+          
+          return Float.NaN;
+       
+       else
+          
+          return getSelectionOverlay().getOpacity( name);
     }
 
     
@@ -372,6 +466,7 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     *                SelectionOverlay is on, otherwise it is off
     */
    abstract protected void GUIshowOnlySelectionOverlayOn( boolean on_off);
+   
    
    /**
     * Makes the GUI element that indicates the name list for the
