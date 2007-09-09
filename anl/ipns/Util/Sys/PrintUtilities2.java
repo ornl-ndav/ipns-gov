@@ -33,6 +33,10 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.9  2007/09/09 16:12:48  rmikk
+ * Added code to handle the case where no printer can be found. It first tries to
+ *    find a printer with a null attribute set.
+ *
  * Revision 1.8  2007/08/23 21:06:31  dennis
  * Removed unused imports.
  *
@@ -304,7 +308,7 @@ public class PrintUtilities2
   private void init_silent_print()
   {          
     //setting up printer service 
-    //pservice = get_print_service(this.printer_name);
+    //pservice = get_print_service1(this.printer_name);
     
     printer_page = new PrinterPage(comp);
 
@@ -327,7 +331,7 @@ public class PrintUtilities2
    */
   private void silent_print() 
   {
-    pservice = PrintUtilities2.get_print_service(  printer_name,aset);
+    pservice = get_print_service1(  printer_name,aset);
     
     if( pservice == null){
        javax.swing.JOptionPane.showMessageDialog( null,"Cannot Find Printer");
@@ -359,8 +363,10 @@ public class PrintUtilities2
     }
     comp_container.dispose();
     */
-    
-    javax.swing.SwingUtilities.invokeLater( new printJb( doc, aset,printJob) );
+    if(printJob != null)
+        javax.swing.SwingUtilities.invokeLater( new printJb( doc, aset,printJob) );
+    else
+       javax.swing.JOptionPane.showMessageDialog( null,"Cannot Create PrintJob");
     
   }
   
@@ -378,7 +384,7 @@ public class PrintUtilities2
     {
       try
       {
-        job.setPrintService(get_print_service(printer_name, aset));
+        job.setPrintService(get_print_service1(printer_name, aset));
       }
       catch(PrinterException pe)
       {
@@ -444,7 +450,7 @@ public class PrintUtilities2
 
          double xscale=(double)(page_format.getImageableWidth() )/(R.width);
          double yscale=(double)(page_format.getImageableHeight())/(R.height);
-         xscale = yscale =1;
+        // xscale = yscale =1;
          if(yscale < xscale) 
             xscale= yscale; 
      
@@ -517,6 +523,16 @@ public class PrintUtilities2
      return null;
   }
   
+  //uses aset first.  If there is no printer it uses null
+  private  PrintService get_print_service1( String printerName,
+           HashPrintRequestAttributeSet aset) {
+     
+     PrintService P = get_print_service( printerName, aset);
+     if( P == null)
+        return get_print_service( printerName, null);
+     return P;
+     
+  }
   
   /*
    * This method makes sure that the specified Component's size is greater 
