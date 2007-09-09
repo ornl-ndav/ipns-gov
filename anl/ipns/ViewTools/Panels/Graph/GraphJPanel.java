@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.64  2007/09/09 23:24:02  dennis
+ * Commented out an unused variable.
+ *
  * Revision 1.63  2007/08/23 06:15:33  dennis
  * Fixed off by one error when drawing markers.  The last marker
  * was not being drawn.
@@ -1912,7 +1915,7 @@ private void SetDataBounds()
     data_bound.invertBounds();               // needed for "upside down" pixel
                                              // coordinates
   
-    CoordBounds local_bounds = getLocalWorldCoords();
+    // CoordBounds local_bounds = getLocalWorldCoords();
     // If "don't reset local bounds and local bounds are within the
     // global bounds, only reset the world coordinates.
 
