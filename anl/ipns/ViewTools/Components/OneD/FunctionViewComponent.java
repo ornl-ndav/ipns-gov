@@ -33,6 +33,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.95  2007/09/09 23:28:45  dennis
+ *  Now only sends POINTED_AT_CHANGED message in response to a
+ *  CURSOR_MOVED message, if this component did NOT itself request
+ *  the move.  This fixes a problem with an infinite loop of
+ *  POINTED_AT_CHANGED messages and a cursor update problem.
+ *  Some cleanup:
+ *    -removed unused local variable
+ *    -removed some old code that was commented out.
+ *
  *  Revision 1.94  2007/06/08 20:29:48  dennis
  *  setAxisInfo() now inverts the bounds to be consistent with
  *  other parts of the system.
@@ -461,15 +470,14 @@ public class FunctionViewComponent implements IViewComponent1D,
   private transient JPanel background = new JPanel(new BorderLayout());
   protected transient GraphJPanel gjp;
   private final int MAX_GRAPHS = 20;
+
+  private transient boolean ignore_pointed_at = false;
  
   // for component size and location adjustments
-  //private ComponentAltered comp_listener;
   private transient Rectangle regioninfo;
   protected transient Vector transparencies = new Vector(  );
   private int precision;
   private Font font;
- // private transient LinkedList controls = new LinkedList(  );
- // private int linewidth      = 1;
   protected FunctionControls mainControls;
   private boolean draw_pointed_at = false;
   private JMenuItem control_box = new JMenuItem();
@@ -516,7 +524,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     }
 */
     setAxisInfo();
-    ImageListener gjp_listener = new ImageListener(  );
+    GraphListener gjp_listener = new GraphListener(  );
 
     gjp.addActionListener( gjp_listener );
 
@@ -630,36 +638,29 @@ public class FunctionViewComponent implements IViewComponent1D,
   */
   public void setObjectState( ObjectState new_state )
   {
-    boolean redraw = false;  // if any values change redraw.
-   
     Object temp = new_state.get(GRAPHJPANEL);
     if ( temp != null){
       gjp.setObjectState( (ObjectState)temp );
-      redraw = true;
     }
 
     temp = new_state.get(PRECISION);
     if ( temp != null){
       precision = ((Integer)temp).intValue();
-      redraw = true;
     }
     
     temp = new_state.get(FONT);
     if( temp != null ){
       font = (Font)temp;
-      redraw = true;
     }
 
     temp = new_state.get(POINTED_AT_CONTROL);
     if( temp != null ){
       draw_pointed_at = ((Boolean)temp).booleanValue();
-      redraw = true;
     }
 
     temp = new_state.get(CONTROL_BOX);
     if( temp != null ){
       control_box.setSelected( ((Boolean)temp).booleanValue() );
-      redraw = true;
     }
     
     temp = new_state.get(LEGEND_OVERLAY);
@@ -667,7 +668,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     {
        ((OverlayJPanel)transparencies.elementAt(0)).setObjectState(
 						(ObjectState)temp);
-       redraw = true;
     }
     
     temp = new_state.get(ANNOTATION_OVERLAY);
@@ -675,7 +675,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     {
        ((OverlayJPanel)transparencies.elementAt(1)).setObjectState(
 						(ObjectState)temp);
-       redraw = true;
     }       
     
     temp = new_state.get(AXIS_OVERLAY_2D);
@@ -683,7 +682,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     {
        ((OverlayJPanel)transparencies.elementAt(2)).setObjectState(
 						(ObjectState)temp);
-       redraw = true;
     }
     
     temp = new_state.get(FUNCTION_CONTROLS);
@@ -691,7 +689,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     {
        mainControls.setObjectState((ObjectState)temp);
  
-       redraw = true;
     }       
   } 
 
@@ -964,7 +961,7 @@ public class FunctionViewComponent implements IViewComponent1D,
 
   public boolean isDrawingPointedAtGraph()
   {
-	  return draw_pointed_at;
+    return draw_pointed_at;
   }
   
   /**
@@ -979,8 +976,11 @@ public class FunctionViewComponent implements IViewComponent1D,
     //System.out.println( "X value = " + pt.getX(  ) );
     //System.out.println( "Y value = " + pt.getY(  ) );
     //set the cursor position on GraphJPanel
-    gjp.setCurrent_WC_point( pt );
-    gjp.set_crosshair_WC(new floatPoint2D(pt.x,gjp.getY_value(pt.x,0)));
+
+    floatPoint2D graph_pt = new floatPoint2D(pt.x, gjp.getY_value(pt.x,0));
+    gjp.setCurrent_WC_point( graph_pt );
+    gjp.set_crosshair_WC(new floatPoint2D( graph_pt.x, graph_pt.y ) );
+    ignore_pointed_at = true;
   }
 
 
@@ -1008,6 +1008,7 @@ public class FunctionViewComponent implements IViewComponent1D,
        }
        paintComponents(big_picture.getGraphics());
        //System.out.println("FVC.datachanged().gjp.isDoingBox()");
+
        sendMessage(POINTED_AT_CHANGED); 
        //System.out.println( "FunctionViewComponent.dataChanged()" );
     }
@@ -1121,30 +1122,8 @@ public class FunctionViewComponent implements IViewComponent1D,
     Listeners.removeAllElements(  );
   }
 
-  public ViewControl[] getControls(  ) {
- /*  // if no 
-   if( Varray1D.getNumGraphs(  ) < 1 )
-     return new ViewControl[0];
-    //System.out.println("");
-   ViewControl[] Res = new ViewControl [2];
-   /
-   JPanel test_p = new JPanel();
-   JLabel test_l = new JLabel("Graph View");
-   test_p.add(test_l);
-   Res[0] = test_p;
-   /
-   Res[0] = control_box;
-   ((ControlCheckbox)Res[0]).setText("Function Controls");
-   ((ControlCheckbox)Res[0]).addActionListener( new ControlListener() );
-    
-   Res[1] = new ControlCheckbox(true);
-   ((ControlCheckbox)Res[1]).setText("Show Pointed At");
-   ((ControlCheckbox)Res[1]).addActionListener( new ControlListener() );
-   
-   // Res[0]   =  mainControls.get_panel().getPanel();
 
-    return Res;
-*/
+  public ViewControl[] getControls(  ) {
      return new ViewControl[0];
   }
 
@@ -1223,11 +1202,12 @@ public class FunctionViewComponent implements IViewComponent1D,
    *  @param  message
    */
   private void sendMessage( String message ) {
+
     for( int i = 0; i < Listeners.size(  ); i++ ) {
       ActionListener listener = ( ActionListener )Listeners.elementAt( i );
-
       listener.actionPerformed( new ActionEvent( this, 0, message ) );
     }
+
   }
 
 
@@ -1259,7 +1239,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     return false;
   }
 
-
+/*
   private void reInit(){
 
     if( Varray1D.getNumGraphs(  ) > 0 )
@@ -1282,7 +1262,7 @@ public class FunctionViewComponent implements IViewComponent1D,
       big_picture.add( no_graph );
     }
   }  
-    
+*/  
 
   private int DrawSelectedGraphs() {
     int draw_count = 0;
@@ -1338,12 +1318,15 @@ public class FunctionViewComponent implements IViewComponent1D,
    
   // required since implementing ActionListener
 
+
   /**
    * To be continued...
    */
   public void actionPerformed( ActionEvent e ) {
+
     //get POINTED_AT_CHANGED or SELECTED_CHANGED message from e 
     String message = e.getActionCommand(  );
+
     //Send message to tester 
     if( message.equals(POINTED_AT_CHANGED) ) {
       sendMessage( POINTED_AT_CHANGED );
@@ -1481,33 +1464,34 @@ public class FunctionViewComponent implements IViewComponent1D,
   }
 
   /*
-   * ImageListener monitors if the graphjpanel has sent any messages.
+   * GraphListener monitors if the graphjpanel has sent any messages.
    * If so, process the message and relay it to the viewer.
    */
-  private class ImageListener implements ActionListener {
+  private class GraphListener implements ActionListener {
     //~ Methods ****************************************************************
 
     public void actionPerformed( ActionEvent ae ) {
       String message = ae.getActionCommand(  );
       
       //System.out.println("FunctionViewComponent...isDoingBox1? "+gjp.isDoingBox());
-
       //System.out.println("Graph sent message " + message );
+
       if( message == CoordJPanel.CURSOR_MOVED ) {
-        //System.out.println("FunctionViewComponent$ImageListener - CURSOR_MOVED" );
-        sendMessage( POINTED_AT_CHANGED );
-        //sendMessage( GraphJPanel.CURSOR_MOVED );
-        
+        //System.out.println("FunctionViewComponent$GraphListener - CURSOR_MOVED" );
+        if ( ignore_pointed_at ) 
+          ignore_pointed_at = false;           // ignore one pointed at message echoed back
+        else                                   // from the GraphJPanel
+          sendMessage( POINTED_AT_CHANGED );
       }
 
       if( message == CoordJPanel.ZOOM_IN ) {
-        //System.out.println("FunctionViewComponent$ImageListener - ZOOM_IN" + regioninfo );
+        //System.out.println("FunctionViewComponent$GraphListener - ZOOM_IN" + regioninfo );
         paintComponents();
         sendMessage( SELECTED_CHANGED );
       }
 
       if( message == CoordJPanel.RESET_ZOOM ) {
-        //System.out.println("FunctionViewComponent$ImageListener - RESET_ZOOM" );
+        //System.out.println("FunctionViewComponent$GraphListener - RESET_ZOOM" );
         paintComponents();
         sendMessage( SELECTED_CHANGED );
       }      	
