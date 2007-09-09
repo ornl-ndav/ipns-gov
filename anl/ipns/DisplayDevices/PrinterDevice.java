@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.14  2007/09/09 16:08:44  rmikk
+ * Added code to handle the case where no printer can be found.
+ *
  * Revision 1.13  2007/08/22 15:26:15  rmikk
  * Added GPL
  * Size of large JComponent not calculated until a display command is given.
@@ -143,6 +146,9 @@ public class PrinterDevice extends GraphicsDevice
     //jcomp.setBorder(new EtchedBorder());
     aset = new HashPrintRequestAttributeSet();
     aset.add(  javax.print.attribute.standard.MediaSizeName.NA_LETTER );
+    PrintService pservice = PrintUtilities2.get_print_service( this.printer_name , aset );
+    if( pservice == null)
+       aset = new HashPrintRequestAttributeSet();
     buildAttributes();
     buildValues();
     buildPrintableAreaValues();
@@ -242,7 +248,10 @@ public class PrinterDevice extends GraphicsDevice
     
      PrintService pservice = PrintUtilities2.get_print_service( this.printer_name , aset );
      
-     MediaPrintableArea[] X =(MediaPrintableArea[])pservice.getSupportedAttributeValues
+     MediaPrintableArea[] X = null;
+     
+     if( pservice != null)
+        X=(MediaPrintableArea[])pservice.getSupportedAttributeValues
                                                        ( MediaPrintableArea.class , 
                                                          DocFlavor.SERVICE_FORMATTED.PRINTABLE, 
                                                          aset );
