@@ -30,10 +30,20 @@
  * Modified:
  *
  * $Log$
- * Revision 1.22  2007/09/06 16:30:08  worlton
- * Modified the main routine to test laying out multiple graphs on a printed page.  This shows how it is done, but also highlights a problem with the left and right margins.  It looks like margins are set to 1" whether you want it or not.  The top and bottom margins don't seem to do that.
+ * Revision 1.23  2007/09/09 23:31:04  dennis
+ * Commented out an unused variable.
+ * Reformated log messages to fit in 80 characters.
  *
- * The problem is particularly evident for the portrait plot.  The graphs are narrower than they need to be.  We should allow using all available space.
+ * Revision 1.22  2007/09/06 16:30:08  worlton
+ * Modified the main routine to test laying out multiple graphs on a 
+ * printed page.  This shows how it is done, but also highlights a problem 
+ * with the left and right margins.  It looks like margins are set to 1" 
+ * whether you want it or not.  The top and bottom margins don't seem to do 
+ * that.
+ *
+ * The problem is particularly evident for the portrait plot.  The graphs 
+ * are narrower than they need to be.  We should allow using all available 
+ * space.
  *
  * Revision 1.21  2007/08/23 21:06:31  dennis
  * Removed unused imports.
@@ -45,10 +55,15 @@
  * Added Titles for picture, x axis and yaxis
  *
  * Revision 1.19  2007/08/14 20:05:49  worlton
- * Revised the main routine so that the file and printer devices will have valid locations.  Also removed a printout that failed on my system.  The saved file will now go in the user home directory and the printer device will use the default printer.  These changes should be tested on a Linux system with printers.
+ * Revised the main routine so that the file and printer devices will have 
+ * valid locations.  Also removed a printout that failed on my system.  The 
+ * saved file will now go in the user home directory and the printer device 
+ * will use the default printer.  These changes should be tested on a Linux 
+ * system with printers.
  *
  * Revision 1.18  2007/08/09 12:57:14  rmikk
- * Eliminated the use of a Display1D to store the object state and used the Object state directly
+ * Eliminated the use of a Display1D to store the object state and used 
+ * the Object state directly
  *
  * Attempted to eliminate all persistent references to Display1D
  *
@@ -567,10 +582,10 @@ public class VirtualArray1D_Displayable extends Displayable {
      int height = ((Float)bounds.lastElement()).intValue();
      System.out.println("bounds = " + width + ", " + height);
      int halfheight = height/2;
-     int halfwidth =width/2;
+//     int halfwidth  = width/2;
      int x0 = 0;
      int y0 = 0;
-     int x1 = halfwidth;
+//     int x1 = halfwidth;
      int y1 = halfheight;
      gd.setRegion(x0, y0, width, halfheight);
      gd.display( disp, true );
@@ -585,7 +600,7 @@ public class VirtualArray1D_Displayable extends Displayable {
      int height2 = ((Float)bounds2.lastElement()).intValue();
      System.out.println("bounds2 = " + width2 + ", " + height2);
      int halfheight2 = height2/2;
-     int halfwidth2 =width2/2;
+     int halfwidth2  = width2/2;
      int x20 = 0;
      int y20 = 0;
      int x21 = halfwidth2;
@@ -615,7 +630,6 @@ public class VirtualArray1D_Displayable extends Displayable {
      //gd3.setRegion( 200, 0,700, 800 );
      //gd3.display( disp, true );
      //gd3.print();
- 
    }
 
 }
