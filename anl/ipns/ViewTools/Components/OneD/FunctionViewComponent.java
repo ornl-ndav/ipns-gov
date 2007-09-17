@@ -33,6 +33,38 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.96  2007/09/17 02:50:12  dennis
+ *  Some code cleanup and additions working towards fixing the problem
+ *  with specified axis values not having an effect.  This is ultimately
+ *  due to the code always auto-scaling to fit the data, regardless of
+ *  whether or not Axis information was specified for the VirtualArray1D.
+ *  Additional information is needed by the FunctionViewComponent to
+ *  determine whether it should auto-scale or not.  So:
+ *  1. Added another constructor that takes an additional boolean flag,
+ *     autoscale.  If passed in as false, this should use data from the
+ *     AxisInfo objects that are part of the virtual array, instead of
+ *     autoscaling to the data values.  This is NOT FULLY IMPLEMENTED
+ *     YET.
+ *  2. Removed methods and messaging related to selection.  The
+ *     methods were not yet used, and were only partly implemented or were
+ *     just "stubs".  Since the selection process has been updated for the
+ *     ImageViewComponent, the selection related methods in
+ *     FunctionViewComponent need to be entirely redone.  These "stubs"
+ *     were therefore useless and could cause problems if people tried to
+ *     use them.
+ *  3. Removed some commented out code that would initialize line colors
+ *     and types, since this is now done elsewhere.
+ *  4. Renamed setAxisInfo() method to setMaximumDisplayableWCRegion(),
+ *     since that name is more descriptive.  This method did nothing with
+ *     the AxisInfo objects, but just initializes the gjp's global world
+ *     coordinate system to just fit the range covered by the data.
+ *     This is yet another autoscaling operation.  However, when this
+ *     is called in the constructor, the region set by this method is
+ *     later changed when the RangeControl is built.  This method is
+ *     also called by the dataChanged() method.
+ *     This method should take into account whether the AxisInfo that
+ *     was specified should be used.
+ *
  *  Revision 1.95  2007/09/09 23:28:45  dennis
  *  Now only sends POINTED_AT_CHANGED message in response to a
  *  CURSOR_MOVED message, if this component did NOT itself request
@@ -378,7 +410,6 @@ import java.io.Serializable;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import java.awt.Point;
 
 /**
  * This class allows the user to view data in the form of an image. Meaning
@@ -461,10 +492,13 @@ public class FunctionViewComponent implements IViewComponent1D,
      public static final String FUNCTION_CONTROLS = "FunctionControls";       
       
 
-  
+  private boolean   autoscale;                     // Set true if the maximum displayable 
+                                                   // region is determined by the actual
+                                                   // data. Set false if the values passed
+                                                   // in as AxisInfo in the VirtualArray
+                                                   // are to be used.
   private transient IVirtualArrayList1D Varray1D;  //An object containing our
-                                               // array of data
-  private transient Point[] selectedset;  //To be returned by getSelectedSet()
+                                                   // array of data
   private transient Vector Listeners   = null;
   private transient JPanel big_picture = new JPanel();
   private transient JPanel background = new JPanel(new BorderLayout());
@@ -484,13 +518,37 @@ public class FunctionViewComponent implements IViewComponent1D,
   protected FunctionViewComponent fvc;
 
   /**
-   * Constructor that takes in a virtual array and creates an graphjpanel
-   * to be viewed in a border layout.
+   * Constructor that just takes in a virtual array.  The graph
+   * region will be automatically scaled to fit the data.  Any 
+   * information regarding the range of data in the AxisInfo 
+   * objects stored in the virtual array is ignored.  
    *
-   *  @param varr The IVirtual array containing data for producing the graph.
+   * @param varr The IVirtual array containing data for producing the graph.
    */
   public FunctionViewComponent( IVirtualArrayList1D varr ) {
+    this( varr, true );
+  }
+  
+  
+  /**
+   * Constructor that takes in a virtual array and a boolean flag.
+   * The flag indicates whether the view should be auto scaled to
+   * fit the data, or if the region specified by the AxisInfo objects
+   * in the virtual array should be used to specifiy the region used.
+   *
+   * @param varr       The IVirtual array containing data for 
+   *                   producing the graph.
+   * @param autoscale  Flag indicating whether to autoscale or use
+   *                   the AxisInfo from the virtual array to 
+   *                   specifiy the region covered by the graph.
+   *                   If this parameter is true, the region will
+   *                   be automatically determined based on the 
+   *                   region covered by the data.
+   */
+  public FunctionViewComponent( IVirtualArrayList1D varr, boolean autoscale ) {
 
+    this.autoscale =  autoscale;    // record autoscaling preference
+    
     Varray1D    = varr;  // Get reference to varr
     precision   = 6;
     font        = FontUtil.LABEL_FONT2;
@@ -502,28 +560,15 @@ public class FunctionViewComponent implements IViewComponent1D,
     int num_lines = varr.getNumSelectedGraphs(  );
     float x[];
     float y[];
-    for( int i = 1; i < num_lines+1; i++ ) {
-       x = Varray1D.getXValues(i-1);
-       y = Varray1D.getYValues(i-1);
-       gjp.setData( x, y, i, false );     
+    for( int i = 0; i < num_lines; i++ ) {
+       x = Varray1D.getXValues(i);
+       y = Varray1D.getYValues(i);
+       gjp.setData( x, y, i+1, false );     // graph0 reserved for pointed at
     }
     gjp.setBackground( Color.white );
     gjp.setBorder(new LineBorder(Color.black));
     
-/*    // set initial line styles
-    if( varr.getNumSelectedGraphs(  ) > 1 ) {
-      gjp.setColor( Color.blue, 2, true );
-      gjp.setStroke( gjp.strokeType( gjp.LINE, 2 ), 2, true );
-      gjp.setLineWidth( linewidth, 2, false );
-    }
-
-    if( varr.getNumSelectedGraphs(  ) > 2 ) {
-      gjp.setColor( Color.green, 3, false );
-      gjp.setStroke( gjp.strokeType( gjp.LINE, 3 ), 3, true );
-      gjp.setLineWidth( linewidth, 3, false );
-    }
-*/
-    setAxisInfo();
+    setMaximumDisplayableWCRegion();
     GraphListener gjp_listener = new GraphListener(  );
 
     gjp.addActionListener( gjp_listener );
@@ -532,7 +577,7 @@ public class FunctionViewComponent implements IViewComponent1D,
 
     gjp.addComponentListener( comp_listener );
 
-    regioninfo      = new Rectangle( gjp.getBounds(  ) );
+    regioninfo = new Rectangle( gjp.getBounds(  ) );
 
     Listeners = new Vector(  );
     
@@ -540,30 +585,16 @@ public class FunctionViewComponent implements IViewComponent1D,
     {
       buildViewComponent();     // initializes big_picture to jpanel containing
                                 // the background and transparencies
-      /*
-      // create transparencies
-      AnnotationOverlay top = new AnnotationOverlay( this );
-      top.setVisible( false );    // initialize this overlay to off.
-
-                                  // Default ticks inward for this component
-      AxisOverlay2D bottom = new AxisOverlay2D( this, true );
-
-      LegendOverlay leg_overlay = new LegendOverlay( this );
-   
-      transparencies.add( leg_overlay ); 
-      transparencies.add( top );
-      transparencies.add( bottom );  // add the transparency to the vector
-      */
       initTransparancies();
       OverlayLayout overlay = new OverlayLayout( big_picture );
-
+      
       big_picture.setLayout( overlay );
 
       for( int trans = 0; trans < transparencies.size(  ); trans++ ) {
      	big_picture.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
       }
       big_picture.add( background );
-      
+   
       if(Varray1D.getNumSelectedGraphs() > 0)
       {
         draw_pointed_at = false;
@@ -587,7 +618,6 @@ public class FunctionViewComponent implements IViewComponent1D,
 
       if(Varray1D.getNumSelectedGraphs() > 1)
       {
-    	  
     	  //Retrieving viewcontrol list 
     	  //ViewControl[] vcontrol = mainControls.getControlList();
     	  
@@ -604,7 +634,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     	  gjp.setMultiplotOffsets((int)(20 ),
                                 (int)( 20 ));
     	  gjp.repaint(); 
-      }
+       }
     }
     else
     {
@@ -688,7 +718,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     if (temp != null)
     {
        mainControls.setObjectState((ObjectState)temp);
- 
     }       
   } 
 
@@ -727,27 +756,22 @@ public class FunctionViewComponent implements IViewComponent1D,
   /**
    * This method initializes the world coords.
    */
-  public void setAxisInfo() {
+  private void setMaximumDisplayableWCRegion() {
     CoordBounds bounds = new CoordBounds( gjp.getXmin(), gjp.getYmin(),
                                           gjp.getXmax(), gjp.getYmax() );
+    bounds.scaleBounds(1, gjp.getScaleFactor() );
     bounds.invertBounds();
     gjp.initializeWorldCoords( bounds );
-
   }
 
  
   public AxisInfo getAxisInformation( int axis ) {
-    /*float xmin,xmax,ymin,ymax;
-       xmin = gjp.getXmin();
-       xmax = gjp.getXmax();
-       ymin = gjp.getYmin();
-       ymax = gjp.getYmax();*/
 
     // if true, return x info
     if( axis == AxisInfo.X_AXIS) {
       if(gjp.getLogScaleX() == true) {
         return new AxisInfo( 
-	    gjp.getPositiveXmin(),
+	        gjp.getPositiveXmin(),
             gjp.getXmax(),
             Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getLabel(  ),
             Varray1D.getAxisInfo( AxisInfo.X_AXIS ).getUnits(  ),
@@ -826,7 +850,7 @@ public class FunctionViewComponent implements IViewComponent1D,
    *
    *  @return font of displayed values
    */
-  public Font getFont(  ) {
+  public Font getFont() {
     return font;
   }
 
@@ -841,8 +865,10 @@ public class FunctionViewComponent implements IViewComponent1D,
    public GraphData getGraphData(int graph){
      GraphData data = null;
 
-     if ( gjp != null && gjp.graphs != null && graph > 
-          0 && graph < gjp.graphs.size() )
+     if ( gjp != null        && 
+          gjp.graphs != null && 
+          graph > 0          && 
+          graph < gjp.graphs.size() )
        data = ( GraphData )gjp.graphs.elementAt( graph );
     
      return data; //test 
@@ -955,7 +981,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     // If y axis, return smallest positive y.
     if( axis == ITruLogAxisAddible.Y_AXIS )
       return gjp.getScaleFactor();
-    // Invalid axis, return zero.
+
     return 1f;
   }
 
@@ -985,19 +1011,6 @@ public class FunctionViewComponent implements IViewComponent1D,
 
 
   /**
-   * This method creates a selected region to be displayed over the graphjpanel
-   * by an overlay.
-   *
-   *  @param  pts
-   */
-  public void setSelectedSet( Point[] pts ) {
-    // implement after selection overlay has been created
-    //System.out.println( "Entering: void setSelectedSet( Point[] coords )" );
-    //System.out.println( "" );
-  }
-
-
-  /**
    * This method will be called to notify this component of a change in data.
    */
   public void dataChanged(  ) {
@@ -1023,7 +1036,6 @@ public class FunctionViewComponent implements IViewComponent1D,
    */
   public void dataChanged( IVirtualArrayList1D pin_varray ) //pin == "passed in"
   {
-    // System.out.println("gjp.clearData()");
     gjp.clearData();          // since any of the graphs might have changed, we
                               // clear out all stored copies and start over.
 
@@ -1034,7 +1046,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     float[] x_vals = pin_varray.getXValues(0);
     float[] y_vals = pin_varray.getYValues(0);
     gjp.setData(x_vals,y_vals, 0, false);
-    setAxisInfo();            // force update of Axis (Jim Kohl)
+    setMaximumDisplayableWCRegion();            // force update of Axis (Jim Kohl)
  
     Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
@@ -1064,21 +1076,6 @@ public class FunctionViewComponent implements IViewComponent1D,
     {
       ((LegendOverlay)transparencies.elementAt(0)).setVisible(true);    	
     }
-  }
-
-
-  /**
-   * Get selected set specified by setSelectedSet. The selection overlay
-   * will need to use this method.
-   *
-   *  @return selectedset
-   */
-  public Point[] getSelectedSet(  )  //keep the same (for now)
-   {
-    //System.out.println( "Entering: Point[] getSelectedSet()" );
-    //System.out.println( "" );
-
-    return selectedset;
   }
 
 
@@ -1332,7 +1329,7 @@ public class FunctionViewComponent implements IViewComponent1D,
       sendMessage( POINTED_AT_CHANGED );
     }
     else if( message.equals(SELECTED_CHANGED) ) {
-       sendMessage (SELECTED_CHANGED);
+      sendMessage (SELECTED_CHANGED);
     }
   }
 
@@ -1517,8 +1514,8 @@ public class FunctionViewComponent implements IViewComponent1D,
             mainControls.close_frame();
             control_box.setSelected(false);
           }
-          
         }
+        
         else if( control.getText(  ).equals( "Show Pointed At" ) ) {
           if( control.isSelected(  ) ) {
             draw_pointed_at = true;
@@ -1528,10 +1525,9 @@ public class FunctionViewComponent implements IViewComponent1D,
             draw_pointed_at = false;
           }
           paintComponents(big_picture.getGraphics()); 
-           
         }
-        
       }
+      
       else if( message.equals("Options.Function Controls"))
       {  
          JMenuItem theItem = ((ViewMenuItem)ae.getSource()).getItem();
