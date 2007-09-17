@@ -31,6 +31,16 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.61  2007/09/17 02:20:45  dennis
+ * When the graph_range control is constructed, it has its min and
+ * max values set to exactly fit the data.  This destroys the work
+ * done in the GraphJPanel to set a slight border of 5% above and
+ * below the data.  So...added code to add the 5% border in the
+ * y-direction here as well.  This should NOT be needed in the long
+ * run.
+ * Replaced calls to gjp.setZoom_region() to gjp.setLocalWorldCoords()
+ * to match the changed method name in GraphJPanel.
+ *
  * Revision 1.60  2007/06/01 15:35:56  amoe
  * Removed redundant block of code in reInit() .
  *
@@ -743,8 +753,13 @@ import javax.swing.*;
     graph_range = new RangeControl(range_string);
     graph_range.setMin(0, gjp.getXmin());
     graph_range.setMax(0, gjp.getXmax());
-    graph_range.setMin(1, gjp.getYmin());
-    graph_range.setMax(1, gjp.getYmax());
+                                               // We should not have to
+                                               // use the scalefactor here
+                                               // but this code is resetting
+                                               // max world coord range
+    float scale_factor = gjp.getScaleFactor(); 
+    graph_range.setMin(1, scale_factor * gjp.getYmin());
+    graph_range.setMax(1, scale_factor * gjp.getYmax());
     String the_string[] = {"X ","Y "};
     cursor = new CursorOutputControl(the_string);
 
@@ -870,6 +885,7 @@ import javax.swing.*;
     */
   public void reInit()
   {
+    System.out.println("FC reInit() called ");
     // the range control
       LogScaleUtil loggery = new LogScaleUtil(gjp.getPositiveYmin(),
                                               gjp.getYmax(),
@@ -882,19 +898,19 @@ import javax.swing.*;
 
       if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == true) {
 
-        gjp.setZoom_region( loggerx.toDest(graph_range.getMin(0)),
+        gjp.setLocalWorldCoords( loggerx.toDest(graph_range.getMin(0)),
                             loggery.toDest(graph_range.getMax(1)),
                             loggerx.toDest(graph_range.getMax(0)),
                             loggery.toDest(graph_range.getMin(1)) );
       }
       else if(gjp.getLogScaleX() == true && gjp.getLogScaleY() == false) {
-        gjp.setZoom_region( loggerx.toDest(graph_range.getMin(0)),
+        gjp.setLocalWorldCoords( loggerx.toDest(graph_range.getMin(0)),
                             graph_range.getMax(1),
                             loggerx.toDest(graph_range.getMax(0)),
                             graph_range.getMin(1) );
       }
       else
-      gjp.setZoom_region( graph_range.getMin(0), graph_range.getMax(1),
+      gjp.setLocalWorldCoords( graph_range.getMin(0), graph_range.getMax(1),
                           graph_range.getMax(0), graph_range.getMin(1) );
         
    /*
@@ -1035,7 +1051,7 @@ import javax.swing.*;
   
   private void setZoom(float x1, float y1, float x2, float y2)
   {
-	  gjp.setZoom_region(x1, y1, x2, y2);
+	  gjp.setLocalWorldCoords(x1, y1, x2, y2);
   }
 
   /*
