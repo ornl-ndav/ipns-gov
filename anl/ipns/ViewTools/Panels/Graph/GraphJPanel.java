@@ -30,6 +30,13 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.65  2007/09/17 02:12:52  dennis
+ * Removed some blocks of code that were commented out, since the
+ * functionality was now implemented in other ways.  Specifically,
+ * removed commented out method getLocalLogWorldCoords() which is
+ * not logically needed.  Also removed commented out code for
+ * growing the auto_data_bound.
+ *
  * Revision 1.64  2007/09/09 23:24:02  dennis
  * Commented out an unused variable.
  *
@@ -350,8 +357,8 @@ public class GraphJPanel extends    CoordJPanel
   private transient float min_positive_y;
   private transient boolean 
 	  reset_local = true; // This variable is used to determine
-                                      // whether or not the local bounds
-				      // are zoomed or global.
+                          // whether or not the local bounds
+                          // are zoomed or global.
 
   public static final int DOT   = 1;
   public static final int PLUS  = 2;
@@ -749,6 +756,7 @@ public class GraphJPanel extends    CoordJPanel
     GraphData gd = (GraphData)graphs.elementAt( graph_num );
     return gd.color;
   }
+  
 /* ----------------------------- getErrorColor --------------------------------*/
 /**
  *  Gets the mark color for the specified graph.  
@@ -796,6 +804,7 @@ public boolean setStroke(int strokeType, int graph_num, boolean redraw)
 
     return true;
   }
+
 /*------------------------------ setTransparent --------------------------------*/
 /**
  *  Set the transparent variable to make a line in a graph transparent.  
@@ -811,7 +820,6 @@ public boolean setStroke(int strokeType, int graph_num, boolean redraw)
  *
  *  @return             true if the graph_num is valid, false otherwise.
  */
-
 public boolean setTransparent(boolean transparent, int graph_num,
                               boolean redraw)
   {
@@ -839,7 +847,6 @@ public boolean setTransparent(boolean transparent, int graph_num,
  *
  *  @return            the Stroke type.
  */
-
 public int getStroke(int graph_num)
   { 
     if ( graph_num < 0 || graph_num >= graphs.size() )    // no such graph
@@ -864,7 +871,6 @@ public int getStroke(int graph_num)
  *
  *  @return             the stroke type for the particular key.
  */
-
 public BasicStroke strokeType(int key, int graph_num)
 {
     if (graph_num < 0 || graph_num >= graphs.size() )    // no such graph
@@ -1770,7 +1776,7 @@ public boolean is_autoY_bounds()
     } 
 
     g2.dispose();
-  }
+}
 
 
 /* ---------------------------- getPreferredSize ------------------------- */
@@ -1839,14 +1845,7 @@ private float[] FixInterval( float min, float max )
 private void set_auto_data_bound()
 {
    auto_data_bound = new CoordBounds();
-  /* GraphData gd = (GraphData)graphs.elementAt(0);
-   auto_data_bound.setBounds( gd.x_vals, gd.y_vals );
-   for ( int i = 1; i < graphs.size(); i++ )
-   {
-     gd = (GraphData)graphs.elementAt(i);
-     auto_data_bound.growBounds( gd.x_vals, gd.y_vals );
-   }
-*/
+ 
    float xmin, xmax, ymin, ymax;
                                         // get min/max, but force the
                                         // interval to be non-degenerate
@@ -1919,6 +1918,8 @@ private void SetDataBounds()
     // If "don't reset local bounds and local bounds are within the
     // global bounds, only reset the world coordinates.
 
+    //   System.out.println("SetDataBounds, reset_local = " + reset_local );
+    //   System.out.println("bounds = " + data_bound );
     if( !reset_local )
       setGlobalWorldCoords(data_bound);
     // Otherwise reinitialize both.
@@ -2096,61 +2097,6 @@ private class ZoomListener implements ActionListener
   }
 }
 
-
-/*--------------------------getLocalLogWorldCoords()------------------------*/
-/*
- * This method returns positive current local world coordinate bounds. Like
- * getLocalWorldCoords(), this method gives the bounds of the zoomed region.
- * However, if any of the bounds are negative, they are replaced with the
- * smallest positive value for that interval.
- *
- *  @return Positive local world coord bounds.
- *
-public CoordBounds getLocalLogWorldCoords()
-{
-  CoordBounds world_coords = super.getLocalWorldCoords();
-  // If x2 < x1, see if x2 is less than zero. If so, replace the negative
-  // number with the minimum positive value.
-  if( world_coords.getX1() > world_coords.getX2() )
-  {
-    if( world_coords.getX2() < 0 )
-    {
-      // Call this to set min_positive_x.
-      getXmin();
-      world_coords.setBounds( world_coords.getX1(), world_coords.getY1(),
-    			      min_positive_x, world_coords.getY2() );
-    }
-  }
-  // If x1 < x2, check to make sure x1 is positive.
-  else if( world_coords.getX1() < 0 )
-  {
-    // Call this to set min_positive_x.
-    getXmin();
-    world_coords.setBounds( min_positive_x, world_coords.getY1(),
-                            world_coords.getX2(), world_coords.getY2() );
-  }
-
-  // Do the same steps above for the y axis.
-  if( world_coords.getY1() > world_coords.getY2() )
-  {
-    if( world_coords.getY2() < 0 )
-    {
-      // Call this to set min_positive_y.
-      getYmin();
-      world_coords.setBounds( world_coords.getX1(), world_coords.getY1(),
-    			      world_coords.getX2(), min_positive_y );
-    }
-  }
-  else if( world_coords.getY1() < 0 )
-  {
-    // Call this to set min_positive_y.
-    getYmin();
-    world_coords.setBounds( world_coords.getX1(), min_positive_y,
-                            world_coords.getX2(), world_coords.getY2() );
-  }
-  return world_coords;
-}
-*/
 
 /* -------------------------------- Main ------------------------------- */
 
