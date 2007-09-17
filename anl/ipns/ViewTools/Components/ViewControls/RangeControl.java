@@ -31,6 +31,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.6  2007/09/17 02:16:15  dennis
+ *  Modified setObjectState so that a RANGE_CHANGED message would only
+ *  be sent if the min or max values are actually set.  Removed method
+ *  validate_ranges() which just sent the RANGE_CHANGED message.  Calling
+ *  send_message( RANGE_CHANGED ) is no harder than calling validate(),
+ *  and the meaning is clearer.
+ *
  *  Revision 1.5  2007/08/09 18:27:54  rmikk
  *  Removed the addActionListener method. Added a local ActionListener who then
  *    passes the event to the ActiveJPanel send_message method
@@ -116,13 +123,10 @@ public class RangeControl extends ViewControl implements Serializable,
       
           public void actionPerformed(ActionEvent event)
           {
-             
                 send_message( event.getActionCommand());
-             }
-          
-       };
+          }  
+    };
     
-
     range_field = new TextRangeUI[name.length];
     for(int index = 0; index < name.length; index++)
     {
@@ -144,15 +148,17 @@ public class RangeControl extends ViewControl implements Serializable,
    */
    public void setObjectState( ObjectState new_state )
    {
-      Object temp = new_state.get(MIN_RANGE);
+     boolean range_changed = false;
+     
+     Object temp = new_state.get(MIN_RANGE);
       
       for( int x = 0; x < range_field.length; x++){
         String MIN_RANGEX = MIN_RANGE + x;
         temp = new_state.get(MIN_RANGEX);
         if ( temp != null)
         {
-          range_field[x].setMin(
-            ((Float)temp).floatValue());
+          range_field[x].setMin(((Float)temp).floatValue());
+          range_changed = true;
         }
       }
 
@@ -161,12 +167,11 @@ public class RangeControl extends ViewControl implements Serializable,
         temp = new_state.get(MAX_RANGEX);
         if ( temp != null)
         {
-          range_field[x].setMax(
-             ((Float)temp).floatValue());
+          range_field[x].setMax(((Float)temp).floatValue());
+          range_changed = true;
         }
       }
       
-
       for( int x = 0; x < range_field.length; x++){
         String RANGE_LABELX = RANGE_LABEL + x;
         temp = new_state.get(RANGE_LABELX);
@@ -178,7 +183,8 @@ public class RangeControl extends ViewControl implements Serializable,
       }
       validate();
       repaint();
-      validate_ranges();
+      if ( range_changed )
+        send_message(RANGE_CHANGED);
    }
  
   /**
@@ -284,7 +290,7 @@ public class RangeControl extends ViewControl implements Serializable,
    *
    * @param value the value to set the control to.
    */
-   public void setControlValue(Object value)
+  public void setControlValue(Object value)
   {
     if( value == null || !(value instanceof Vector) )
     return;
@@ -322,14 +328,9 @@ public class RangeControl extends ViewControl implements Serializable,
     return values;
   }
   
-  public void validate_ranges()
-  {
-	  send_message(RANGE_CHANGED);
-  }
-
   /**
-    * Function to add an action Listener to the text fields.
-    */
+   * Function to add an action Listener to the text fields.
+   */
    /*public void addActionListener(ActionListener listener)
    {
 	   super.listeners.add(listener);
