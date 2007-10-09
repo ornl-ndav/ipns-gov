@@ -33,6 +33,10 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.14  2007/10/09 01:06:26  rmikk
+ * Introduced static String constants for some of the viewControls so there is
+ *    access to them outside the unit
+ *
  * Revision 1.13  2007/07/20 02:47:36  dennis
  * Now calls PanViewControl's "generic" setControValue() method,
  * rather than the specific setLocalWorldCoords() method, which
@@ -434,8 +438,31 @@ public class ContourControlHandler extends ContourChangeHandler
     */
    private ViewControl[] controls;
 //---------------------------=[ End fields ]=---------------------------------//
-   
-   
+//---------------------------=[ Control Titles]=------------------------------// 
+  
+  /**
+   * "Set Default Contours"-The label on the ButtonControl that resets the contour
+   * levels
+   */
+  public static String  CALCULATE_BUTTON_LABEL = "Set Default Contours";
+  
+  /**
+   * "Label every"-The label on the ControlCheckboxSpinner used to specify
+   * which contours are labeled with its value
+   */
+  public static String  LABEL_EVERY_LABEL = "Label every";
+  
+
+  /**
+   * "Significant Figures-The label on the ControlCheckboxSpinner used to 
+   * specify the number of significant figures used in the contour numeric
+   * labels.
+   */
+  public static String  SIGNIFICANT_FIGURES_LABEL = "Significant Figures";
+  
+
+//---------------------------=[ End Control Titles]=------------------------------// 
+  
 //--------------------------=[ Constructors ]=--------------------------------//
    /**
     * Constructs a module for a 
@@ -1241,7 +1268,7 @@ public class ContourControlHandler extends ContourChangeHandler
 //--------------=[ Methods used to generate the controls ]=-------------------//
    private ButtonControl generateCalculateButton()
    {
-      ButtonControl calcButton = new ButtonControl("Calculate");
+      ButtonControl calcButton = new ButtonControl( CALCULATE_BUTTON_LABEL );
       calcButton.addActionListener(new ActionListener()
       {
          public void actionPerformed(ActionEvent event)
@@ -1404,7 +1431,7 @@ public class ContourControlHandler extends ContourChangeHandler
          initialValue = min;
       
       labelControl = 
-         new ControlCheckboxSpinner("Labels", enable, "Label every", 
+         new ControlCheckboxSpinner("Labels", enable, LABEL_EVERY_LABEL, 
                new SpinnerNumberModel(initialValue, min, max, stepSize), 
                   new Integer(DEFAULT_LABEL_EVERY_N_LINES), 
                      new Integer(initialValue));
@@ -1446,7 +1473,7 @@ public class ContourControlHandler extends ContourChangeHandler
          initialValue = min;
       
       sigFigControl = 
-         new ControlCheckboxSpinner("Significant Figures", enable, 
+         new ControlCheckboxSpinner( SIGNIFICANT_FIGURES_LABEL, enable, 
                "Number of significant figures", 
                new SpinnerNumberModel(initialValue, min, max, stepSize), 
                new Integer(DEFAULT_NUM_SIG_DIGS), new Integer(initialValue));
