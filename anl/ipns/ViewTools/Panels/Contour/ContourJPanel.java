@@ -33,6 +33,9 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.28  2007/10/09 01:06:58  rmikk
+ * Filled the main display with the background color
+ *
  * Revision 1.27  2007/07/29 20:45:15  dennis
  * Changed local_transform and global_transform to be private
  * in CoordJPanel class, to keep better control over who can
@@ -1339,6 +1342,9 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     */
    public void paintComponent(Graphics gr)
    {
+      java.awt.Rectangle R = getBounds();
+      gr.setColor(  this.getBackground() );
+      gr.fillRect( R.x , R.y , R.width , R.height );
       Graphics2D g2d = (Graphics2D)gr.create();
 
       draw(g2d);
