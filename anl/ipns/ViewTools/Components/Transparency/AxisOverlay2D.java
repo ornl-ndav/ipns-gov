@@ -34,6 +34,13 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.58  2007/10/12 22:33:26  amoe
+ *  Fixed a bug that caused DifferenceViewComponent's Y Axis label to not
+ *  shift with the number labels.
+ *      -Removed longest_tick_label parameter from paintLabelsAndUnits(..)
+ *      -Made the y axis label shift be calculated regardless of whether the Y
+ *  	  axis is displayed or not.
+ *
  *  Revision 1.57  2007/09/06 23:30:52  amoe
  *  Remove println() used for debugging.
  *
@@ -455,6 +462,8 @@ public class AxisOverlay2D extends OverlayJPanel
   protected int ticksinoutX = 0;          // 0 = outside, 1 = inside
   protected int ticksinoutY = 0;          // 0 = outside, 1 = inside
   
+  protected int yaxis_label_shift = 0;
+  
   private transient AxisOverlay2D this_panel;
   private transient AxisEditor editor;
   private Color gridcolor = Color.black;
@@ -864,12 +873,6 @@ public class AxisOverlay2D extends OverlayJPanel
   
  /* ***********************Private Methods************************** */
   
-  private void paintLabelsAndUnits( String num, int axis, 
-      boolean log, Graphics2D g2d )
-  {
-    paintLabelsAndUnits(num,"",axis,log,g2d);
-  }  
-  
  /*
   * This will display the labels, units, and common exponent (if not 0).
   * if the string is specifically the AxisInfo.NO_LABEL or AxisInfo.NO_UNITS
@@ -877,13 +880,10 @@ public class AxisOverlay2D extends OverlayJPanel
   *
   *  @param num The String number with exponent, ex: 1E3
   *  @param axis Use axis codes above to determine axes, either X or Y
-  *  @param longest_tick_label This is the number by a tick with the greatest 
-  *                            string width.
   */
-  private void paintLabelsAndUnits( String num, String longest_tick_label, int axis, 
+  private void paintLabelsAndUnits( String num, int axis, 
                                     boolean log, Graphics2D g2d )
-  {    
-
+  {
     
     // true if "(" has been appended but not ")"
     boolean open_parenthesis = false;
@@ -968,15 +968,9 @@ public class AxisOverlay2D extends OverlayJPanel
       {
         g2d.rotate( -Math.PI/2, xstart, ystart + yaxis );    
         
-        //g2d.drawString( ylabel.toString(), 
-        //                xstart + yaxis/2 - fontdata.stringWidth(ylabel.toString())/2,
-        //                yaxis + ystart - xstart + fontdata.getHeight() );        
-        
-        //longest_tick_label
-        
-        g2d.drawString( ylabel.toString(), 
+		g2d.drawString( ylabel.toString(), 
             yaxis/2 + xstart - fontdata.stringWidth(ylabel.toString())/2,
-            yaxis + ystart - (int)(xstart*0.25) + fontdata.getHeight() - (fontdata.stringWidth(longest_tick_label)+3) );
+            yaxis + ystart - (int)(xstart*0.25) + fontdata.getHeight() - (yaxis_label_shift+3) );
     	  
         g2d.rotate( Math.PI/2, xstart, ystart + yaxis );
       }
@@ -1328,10 +1322,11 @@ public class AxisOverlay2D extends OverlayJPanel
     float a = 0;
     float amin = ymin - starty;
     
-    String longest_tick_label = "";
-    
-    // yskip is the space between calibrations: 1 = every #, 2 = every other
-    
+    // make sure the y label shift is reset before the yaxis labels are 
+    // generated
+    yaxis_label_shift = 0;
+        
+    // yskip is the space between calibrations: 1 = every #, 2 = every other    
     int yskip = 1;
     while( (yaxis*yskip/numysteps) < fontdata.getHeight() && yskip < numysteps)
        yskip++;
@@ -1360,16 +1355,17 @@ public class AxisOverlay2D extends OverlayJPanel
       // if pixel is between top and bottom of imagejpanel, draw it  
       if( ypixel <= pmin && ypixel >= pmax )
       {
+        String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
+        
+        //Checking if this tick label is the longest
+        if(fontdata.stringWidth(temp_num) > yaxis_label_shift)
+          yaxis_label_shift = fontdata.stringWidth(temp_num);        
+        
         if((displayY) && (((float)(ysteps-rem)/(float)yskip) == ((ysteps-rem)/yskip))  )
         {
           //draw labels for ticks
-          String temp_num = removeTrailingZeros( num.substring(0,exp_index) );
           g2d.drawString( temp_num, xstart - ytick_length - fontdata.stringWidth(temp_num),
         		  ypixel + fontdata.getHeight()/4 );
-          
-          //Checking if this tick label is the longest
-          if(fontdata.stringWidth(temp_num) > fontdata.stringWidth(longest_tick_label))
-            longest_tick_label = temp_num;
         }	       
         
       // paint gridlines for major ticks
@@ -1532,8 +1528,8 @@ public class AxisOverlay2D extends OverlayJPanel
     	 }
       }
      }
-    }    
-    paintLabelsAndUnits( num,longest_tick_label, Y_AXIS, false, g2d );
+    }     
+    paintLabelsAndUnits( num, Y_AXIS, false, g2d );
   } // end of paintLinearY()
   
  /*
@@ -2517,8 +2513,6 @@ public class AxisOverlay2D extends OverlayJPanel
   */
   private void paintTruLogY(Graphics2D g2d)
   {
-    String longest_tick_label = "";
-    
     // Make sure component has the method getPositiveMin(), which is
     // required by the ITruLogAxisAddible interface.
     if( !(component instanceof ITruLogAxisAddible) )
@@ -2589,6 +2583,10 @@ public class AxisOverlay2D extends OverlayJPanel
     int pixel = 0;
     float glb = yUtil.greatestLowerBound();
     float lub = yUtil.leastUpperBound();
+    
+    // make sure the y label shift is reset before the yaxis labels are 
+    // generated
+    yaxis_label_shift = 0;
 
     //paint y axis using linear numbers that are scaled logrithmically
     // if they don't have enough orders of magnitude between them.
@@ -2622,8 +2620,8 @@ public class AxisOverlay2D extends OverlayJPanel
             pixel + fontdata.getHeight()/4 );
 			
       //Checking if this tick label is the longest
-      if(fontdata.stringWidth(string_num) > fontdata.stringWidth(longest_tick_label))
-        longest_tick_label = string_num;
+      if(fontdata.stringWidth(string_num) > yaxis_label_shift)
+        yaxis_label_shift = fontdata.stringWidth(string_num);
 		}
         
         //draw minor ticks
@@ -2700,8 +2698,8 @@ public class AxisOverlay2D extends OverlayJPanel
 	               pixel + fontdata.getHeight()/4 );
 	    	     
 	    	      //Checking if this tick label is the longest
-	    	      if(fontdata.stringWidth(string_num) > fontdata.stringWidth(longest_tick_label))
-	    	        longest_tick_label = string_num;
+	    	      if(fontdata.stringWidth(string_num) > yaxis_label_shift)
+	    	        yaxis_label_shift = fontdata.stringWidth(string_num);
 	    		}
               
 	    		//draw on axis if it actually will fit on the axis.
@@ -2775,7 +2773,7 @@ public class AxisOverlay2D extends OverlayJPanel
         } // end for( minorsteps )
       } // end for( steps )
     } // end else
-    paintLabelsAndUnits( "",longest_tick_label, Y_AXIS, true, g2d );
+    paintLabelsAndUnits( "", Y_AXIS, true, g2d );
   }
   
  /*
