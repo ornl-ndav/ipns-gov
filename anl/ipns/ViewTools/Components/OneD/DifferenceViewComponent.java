@@ -33,6 +33,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.12  2007/10/12 22:36:22  amoe
+ *  Made the right and left separated axes not be displayed if the displayY
+ *  flags are false.
+ *
  *  Revision 1.11  2006/10/06 03:54:02  amoe
  *  Edited DifferenceAxisOverlay.paint() so that when the
  *  differenceGraph is not shifted, the difference axis would turn off and
@@ -140,7 +144,7 @@ public class DifferenceViewComponent extends FunctionViewComponent
 	 *  
 	 *  @param varr The IVirtual array containing data for producing the graph(s).
 	 */
-	public DifferenceViewComponent(IVirtualArrayList1D varr )
+	public DifferenceViewComponent(IVirtualArrayList1D varr)
 	{
 		super(varr);				
 		
@@ -990,20 +994,23 @@ public class DifferenceViewComponent extends FunctionViewComponent
 	        		(plotShiftedDiff) )
 	        {
 	        	Graphics2D g2d = (Graphics2D)g;
-			    g2d.setFont(fvc.getFont());
+	        	g2d.setFont(fvc.getFont());
 			    
-			    // Reset precision, make sure it is always consistent.		    
-			    precision = fvc.getPrecision();
+	        	// Reset precision, make sure it is always consistent.		    
+	        	precision = fvc.getPrecision();
 	        	
-	        	//paint seperated right axis
-	        	paintRightSeparatedAxis(g2d);
-	        	paintLeftSeparatedAxis(g2d);
+	        	//paint separated right axis
+	        	if(displayYop)
+	        	  paintRightSeparatedAxis(g2d);
+	        	
+	        	if(displayY)
+	        	  paintLeftSeparatedAxis(g2d);
 	        	
 	        	displayYop = false;
-	        	displayY   = false;
+	        	//displayY   = false;
 	        	super.paint(g);
 	        	displayYop = displayDiffAxis;
-	        	displayY   = true;
+	        	//displayY   = true;
 	        }
 	        else
 	        {
