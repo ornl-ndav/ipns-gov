@@ -30,6 +30,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.44  2007/11/20 17:56:25  amoe
+ *  Added a feature to show the current World Coordinate from the mouse pointer in
+ *  a tool-tip box.  This involved adding mouseMoved(..) to the inner class
+ *  CoordMouseMotionAdapter .
+ *
  *  Revision 1.43  2007/09/17 02:08:48  dennis
  *  Some code cleanup while working toward finding and fixing a problem
  *  with setting ranges in the FunctionViewComponent class.
@@ -301,11 +306,15 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
                                                     // on this panel
   
   protected Dimension       preferred_size = null;
+  
+  private CoordJPanel coordJPanel = null;
 
 
   /* --------------------------- constructor -------------------------- */
   public CoordJPanel()
   { 
+    coordJPanel = this;
+    
     CoordMouseAdapter mouse_adapter = new CoordMouseAdapter();
     addMouseListener( mouse_adapter );
 
@@ -561,7 +570,7 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
    *  should start.
    */
   public void setCurrent_WC_point( floatPoint2D WC_point )
-  {
+  {    
     SetTransformsToWindowSize();
     current_point.x = (int)( 0.5 + local_transform.MapXTo( WC_point.x ) );
     current_point.y = (int)( 0.5 + local_transform.MapYTo( WC_point.y ) );
@@ -725,8 +734,8 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
    */
   public void set_crosshair_WC( floatPoint2D pt )
   {
-   setCurrent_WC_point( pt );
-   set_crosshair( current_point );
+    setCurrent_WC_point( pt );
+    set_crosshair( current_point );
   }
 
 
@@ -738,7 +747,7 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
    *  @param current  The point where the crosshair should be drawn
    */
   public void set_crosshair( Point current )
-  {
+  {    
     stop_box( current, false );
     current_point = current;
     if ( doing_crosshair )
@@ -784,7 +793,7 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
    *  @param current  The point where the rubber band box should be drawn
    */
   public void set_box( Point current )
-  {
+  {    
     stop_crosshair( current );
     current_point = current;
     if ( doing_box )
@@ -1179,6 +1188,7 @@ class CoordMouseAdapter extends MouseAdapter
       mouse_on_panel = false;
     }
   }
+  
 }
 
 
@@ -1195,13 +1205,31 @@ class CoordMouseMotionAdapter extends MouseMotionAdapter
         set_box( e.getPoint() );
       else
         if( mouse_on_panel )
+        {
           set_crosshair( e.getPoint() );
+        }
     }
     else
       current_point = e.getPoint();
   }
+  
+  public void mouseMoved(MouseEvent e)
+  {
+    if ( isListening )
+    {      
+      if( mouse_on_panel )
+      {
+        //convert current mouse point to World Coordinates
+        floatPoint2D fp2d = new floatPoint2D( 
+            local_transform.MapXFrom( e.getPoint().x ), 
+            local_transform.MapYFrom( e.getPoint().y ) );
+        
+        //set the tool-tip text to the current World Coordinate
+        coordJPanel.setToolTipText("["+fp2d.x+","+fp2d.y+"]");
+      }
+    }
+  }
 }
-
 
 class CoordKeyAdapter extends KeyAdapter
 {
