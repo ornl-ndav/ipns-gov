@@ -30,6 +30,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2007/11/29 20:54:28  rmikk
+ * Fixed error that occurs when bounds were not set before a display.
+ *
  * Revision 1.14  2007/09/09 16:08:44  rmikk
  * Added code to handle the case where no printer can be found.
  *
@@ -220,7 +223,7 @@ public class PrinterDevice extends GraphicsDevice
   public void print()
   {
     
-    PrintThread runPrint = new PrintThread();
+    PrintThread runPrint = new PrintThread( jcomp );
     
     SwingUtilities.invokeLater(runPrint);
   }
@@ -302,7 +305,8 @@ public class PrinterDevice extends GraphicsDevice
   @Override
   public void display( IDisplayable disp, boolean with_controls ) 
   {
-    JComponent jcomp = disp.getJComponent( with_controls );    
+    JComponent jcomp = disp.getJComponent( with_controls );   
+    
     display(jcomp); 
   }
 
@@ -315,13 +319,25 @@ public class PrinterDevice extends GraphicsDevice
   @Override
   public void display(JComponent jcomp) 
   {
+    
+    if( x_pos < 0 || y_pos < 0 ||width < 0 ||height < 0)
+       setBounds();
     jcomp.setBounds(x_pos, y_pos, width, height);
- 
     setUpContainerComponent();
     this.jcomp.add(jcomp);
+   
+    
   
   }
   
+  //sets default bounds for printer
+  private void setBounds(){
+     
+     Vector<Float> V = getBounds();
+     setRegion(0, 0,V.firstElement().intValue(), 
+                           V.lastElement().intValue());
+     
+  }
   private void buildAttributes()
   {
     attributes.put( "letter" , javax.print.attribute.standard.MediaSize.NA.LETTER );
@@ -348,11 +364,19 @@ public class PrinterDevice extends GraphicsDevice
     printableAreaValues.put("printableareaheight", 500f);
   }//*/
   
+ 
   private class PrintThread implements Runnable
   {
-
+     private JComponent jcomp ;
+     
+    public PrintThread( JComponent jcomp){
+       this.jcomp = jcomp;
+    }
+    
     public void run()
     {
+
+       
        setUpContainerComponent();
       PrintUtilities2.print(jcomp, printer_name, aset);
       
