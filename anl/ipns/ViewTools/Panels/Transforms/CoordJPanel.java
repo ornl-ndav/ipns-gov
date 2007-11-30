@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.45  2007/11/30 22:47:21  amoe
+ *  Made the world coordinate tooltip be displayed depending on the boolean IsawProps variable "ShowWCToolTip" .  Changes made in inner class CoordMouseMotionAdapter .
+ *
  *  Revision 1.44  2007/11/20 17:56:25  amoe
  *  Added a feature to show the current World Coordinate from the mouse pointer in
  *  a tool-tip box.  This involved adding mouseMoved(..) to the inner class
@@ -1194,6 +1197,24 @@ class CoordMouseAdapter extends MouseAdapter
 
 class CoordMouseMotionAdapter extends MouseMotionAdapter
 {
+  private boolean show_tooltip;
+  
+  public CoordMouseMotionAdapter()
+  {
+    super();
+    
+    //loading the flag that decides if the tooltip should be drawn
+    String prop_str = System.getProperty("ShowToolTip");
+    
+    if(prop_str != null)
+    {
+      show_tooltip = Boolean.parseBoolean(prop_str.trim());
+    }
+    else 
+      show_tooltip = false;
+  }
+  
+  //This handles the drawing of the zoom box
   public void mouseDragged(MouseEvent e)
   {
     if ( isListening )
@@ -1213,20 +1234,18 @@ class CoordMouseMotionAdapter extends MouseMotionAdapter
       current_point = e.getPoint();
   }
   
+  //This handles the showing of the tooltip box
   public void mouseMoved(MouseEvent e)
   {
-    if ( isListening )
+    if ( isListening && mouse_on_panel && show_tooltip)
     {      
-      if( mouse_on_panel )
-      {
-        //convert current mouse point to World Coordinates
-        floatPoint2D fp2d = new floatPoint2D( 
-            local_transform.MapXFrom( e.getPoint().x ), 
-            local_transform.MapYFrom( e.getPoint().y ) );
+      //convert current mouse point to World Coordinates
+      floatPoint2D fp2d = new floatPoint2D( 
+          local_transform.MapXFrom( e.getPoint().x ), 
+          local_transform.MapYFrom( e.getPoint().y ) );
         
-        //set the tool-tip text to the current World Coordinate
-        coordJPanel.setToolTipText("["+fp2d.x+","+fp2d.y+"]");
-      }
+      //set the tool-tip text to the current World Coordinate
+      coordJPanel.setToolTipText("["+fp2d.x+","+fp2d.y+"]");
     }
   }
 }
