@@ -30,6 +30,10 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.16  2007/11/30 17:12:54  rmikk
+ * Added several new paper sizes( Poster C and D) and added documentation
+ *    for attributes that can be set.
+ *
  * Revision 1.15  2007/11/29 20:54:28  rmikk
  * Fixed error that occurs when bounds were not set before a display.
  *
@@ -179,13 +183,23 @@ public class PrinterDevice extends GraphicsDevice
    * 
    * @param name - Name (key) for the attribute.
    * @param value - Value for the attribute
+   * 
+   * NOTE: Currently the following non case sensitive name/value pairs that can be set are:
+   * <table><tr><td>name</td><td>values</td></tr>
+   *    <tr><td>orientation </td><td>portrait </td></tr>
+   *    <tr><td>orientation </td><td>landscape </td></tr>
+   *    <tr><td>mediasize </td><td>letter </td></tr>
+   *    <tr><td> mediasize</td><td>legal </td></tr>
+   *    <tr><td>mediasize </td><td> posterc</td></tr>
+   *    <tr><td>mediasize </td><td>posterd </td></tr>
+   *  </table>
    */
   @Override
   public void setDeviceAttribute(String name, Object value) throws Exception
   {
     name = name.toLowerCase();
     
-    if( name.equals("orientation") && value instanceof String)
+    if( (name.equals("orientation")|| name.equals("mediasize")) && value instanceof String)
     {
       value = ((String)value).toLowerCase();
       name += (String)Util.TranslateKey( values, (String)value );
@@ -340,9 +354,12 @@ public class PrinterDevice extends GraphicsDevice
   }
   private void buildAttributes()
   {
-    attributes.put( "letter" , javax.print.attribute.standard.MediaSize.NA.LETTER );
+    attributes.put( "mediasize.letter" , javax.print.attribute.standard.MediaSizeName.NA_LETTER );
     
-    attributes.put( "legal" , javax.print.attribute.standard.MediaSize.NA.LEGAL );
+    attributes.put( "mediasize.legal" , javax.print.attribute.standard.MediaSizeName.NA_LEGAL );
+    attributes.put( "mediasize.a" , javax.print.attribute.standard.MediaSizeName.A );
+    attributes.put( "mediasize.posterc" , javax.print.attribute.standard.MediaSizeName.C );
+    attributes.put( "mediasize.posterd" , javax.print.attribute.standard.MediaSizeName.D );
     attributes.put("orientation.portrait", OrientationRequested.PORTRAIT);
     attributes.put("orientation.landscape", OrientationRequested.LANDSCAPE);
     attributes.put("copies", new Copies(1));
@@ -352,6 +369,11 @@ public class PrinterDevice extends GraphicsDevice
   {
     values.put("portrait", ".portrait");
     values.put("landscape", ".landscape");
+    values.put("letter", ".letter");
+    values.put("legal", ".legal");
+    values.put("a", ".a");
+    values.put("posterc", ".posterc");
+    values.put("posterd", ".posterd");
   }
   
   //part of an attempt to alter margins
