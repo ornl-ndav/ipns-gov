@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.46  2007/12/14 07:23:14  amoe
+ *  Same as the previous log.  The previous revision was not actually carried
+ *  out...until this revision
+ *
  *  Revision 1.45  2007/11/30 22:47:21  amoe
  *  Made the world coordinate tooltip be displayed depending on the boolean IsawProps variable "ShowWCToolTip" .  Changes made in inner class CoordMouseMotionAdapter .
  *
@@ -1204,7 +1208,7 @@ class CoordMouseMotionAdapter extends MouseMotionAdapter
     super();
     
     //loading the flag that decides if the tooltip should be drawn
-    String prop_str = System.getProperty("ShowToolTip");
+    String prop_str = System.getProperty("ShowWCToolTip");
     
     if(prop_str != null)
     {
