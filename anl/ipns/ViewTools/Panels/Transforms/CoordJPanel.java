@@ -30,6 +30,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.47  2008/01/11 22:46:45  amoe
+ *  Added functionality for setting the tooltip visibility .
+ *  Added method setWCToolTipVisible(..) .
+ *
  *  Revision 1.46  2007/12/14 07:23:14  amoe
  *  Same as the previous log.  The previous revision was not actually carried
  *  out...until this revision
@@ -314,6 +318,9 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
   
   protected Dimension       preferred_size = null;
   
+  private boolean tooltip_enabled;
+  private boolean tooltip_visible = true;   
+  
   private CoordJPanel coordJPanel = null;
 
 
@@ -321,6 +328,16 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
   public CoordJPanel()
   { 
     coordJPanel = this;
+    
+    //loading the flag that decides if the tooltip should be drawn
+    String prop_str = System.getProperty("ShowWCToolTip");    
+    if(prop_str != null)
+    {
+      tooltip_enabled = Boolean.parseBoolean(prop_str.trim());
+    }
+    else 
+      tooltip_enabled = false;
+    
     
     CoordMouseAdapter mouse_adapter = new CoordMouseAdapter();
     addMouseListener( mouse_adapter );
@@ -716,7 +733,17 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
     return( local_transform.getSource( ) );
   }
 
-
+  /**
+   * This method sets the visibility of the tooltip.
+   * 
+   * @param is_vis - true if the tooltip should be visible.
+   *                 false if the tooltip should not be visible.
+   */
+  public void setWCToolTipVisible(boolean is_vis)
+  {
+    tooltip_visible = is_vis;
+  }
+  
   /* ---------------------------- showState ------------------------------ */
   /**
    *  Print the current global and local coordinate bounds and the current
@@ -1201,22 +1228,6 @@ class CoordMouseAdapter extends MouseAdapter
 
 class CoordMouseMotionAdapter extends MouseMotionAdapter
 {
-  private boolean show_tooltip;
-  
-  public CoordMouseMotionAdapter()
-  {
-    super();
-    
-    //loading the flag that decides if the tooltip should be drawn
-    String prop_str = System.getProperty("ShowWCToolTip");
-    
-    if(prop_str != null)
-    {
-      show_tooltip = Boolean.parseBoolean(prop_str.trim());
-    }
-    else 
-      show_tooltip = false;
-  }
   
   //This handles the drawing of the zoom box
   public void mouseDragged(MouseEvent e)
@@ -1241,7 +1252,7 @@ class CoordMouseMotionAdapter extends MouseMotionAdapter
   //This handles the showing of the tooltip box
   public void mouseMoved(MouseEvent e)
   {
-    if ( isListening && mouse_on_panel && show_tooltip)
+    if ( isListening && mouse_on_panel && tooltip_enabled && tooltip_visible)
     {      
       //convert current mouse point to World Coordinates
       floatPoint2D fp2d = new floatPoint2D( 
@@ -1250,6 +1261,10 @@ class CoordMouseMotionAdapter extends MouseMotionAdapter
         
       //set the tool-tip text to the current World Coordinate
       coordJPanel.setToolTipText("["+fp2d.x+","+fp2d.y+"]");
+    }
+    else
+    {
+    	coordJPanel.setToolTipText(null);
     }
   }
 }
