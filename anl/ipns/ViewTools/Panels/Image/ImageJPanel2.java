@@ -31,6 +31,15 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.21  2008/01/28 19:06:36  dennis
+ *  The ImageJPanel2 maintains a copy of a thumbnail image, so that it
+ *  does not need to be recalculated everytime the PanViewControl requests
+ *  it.  This copy is now set to null if the color scale is changed, so that
+ *  the next time the PanViewControl requests the thumbnail image, the
+ *  thumbnail image will be reconstructed using the new color scale.  This
+ *  fixes a bug where the color scale of the PanViewControl was not changed
+ *  if the main image color scale was changed.
+ *
  *  Revision 1.20  2007/08/05 20:11:35  dennis
  *  Fixed calculation of new bounds in makeImage.  No longer assumes
  *  that it will be called more than once, to set up new bounds that
@@ -469,6 +478,9 @@ public class ImageJPanel2 extends    CoordJPanel
                                                    NUM_POSITIVE_COLORS );
     if ( rebuild_image )
       RebuildImage();
+
+    thumbnail_image = null;    // Changing color scale makes the old 
+                               // thumbnail invalid
   }
 
   
@@ -607,7 +619,7 @@ public class ImageJPanel2 extends    CoordJPanel
   *
   *  @return A thumbnail of the Image.
   */ 
-  public Image getThumbnail(int width, int height, boolean forceRedraw)
+  public Image getThumbnail(int width, int height)
   {
     if ( thumbnail_image == null )
       thumbnail_image = makeThumbnailImage();
