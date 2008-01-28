@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.16  2008/01/28 19:15:42  dennis
+ *  Removed reference to PanViewControl.makeNewPanImage, which is no
+ *  longer used.
+ *
  *  Revision 1.15  2007/07/20 02:54:22  dennis
  *  Now uses the PanViewControl's generic method setControlValue()
  *  rather than the setLocalBounds() method, which is now private.
@@ -398,7 +402,6 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   {
     tjp.repaint();
     if( controls != null && controls.length >=1){
-       ((PanViewControl)controls[1]).makeNewPanImage = true;
        ((PanViewControl)controls[1]).repaint();
     }
   }

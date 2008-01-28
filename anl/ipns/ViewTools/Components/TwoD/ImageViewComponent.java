@@ -34,6 +34,10 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.113  2008/01/28 19:14:48  dennis
+ *  Removed reference to PanViewControl.makeNewPanImage, which is no
+ *  longer used.
+ *
  *  Revision 1.112  2007/08/09 19:15:21  rmikk
  *  Send messages from SelectionOverlay out to all listeners of
  *  ImageViewComponewnt
@@ -1624,7 +1628,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     ((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
  // ((PanViewControl)controls[9]).setControlValue(getLocalCoordBounds());
  // ((PanViewControl)controls[9]).validate();  // Need this to resize control.
-    ((PanViewControl)controls[9]).makeNewPanImage = true ;
     ((PanViewControl)controls[9]).repaint();
     paintComponents();
   }
