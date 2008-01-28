@@ -33,6 +33,16 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.30  2008/01/28 22:34:34  dennis
+ * Modified the draw() routine to accept a transformation mapping
+ * world coordinates to pixels.  This allows the draw() routine to
+ * properly be applied to both draw the main contour display and
+ * draw the thumbnail image.  This fixes a bug where only part of
+ * contour region was drawn in the thumbnail image.
+ * A related bug is UNRESOLVED: When the 2d array data is changed
+ * by the 2d View Component, the pan view control does not get
+ * updated to a new thumbnail.
+ *
  * Revision 1.29  2008/01/28 21:57:03  dennis
  * The world coordinates are now initialized in the constructor.
  * Removed flag wcNotInit, which had been used to track when world
@@ -1246,21 +1256,19 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
            for (int y=0; y<height; y++)
               image.setRGB(x, y, rgb);
         
-      //the following variables are effected by the painting of the 
-      //thumbnail and need to be reverted when the painting is complete
-        //labels are momentarily disabled in the thumbnail image
-          boolean[] labelBackup = getShowLabels();
-          setShowLabels(new boolean[] {false});
-        //the local transform is momentarily modified to reflect the 
-        //size of the thumbnail and not the entire panel
-          CoordTransform localBackup = getLocal_transform();
-          setLocalWorldCoords( getGlobalWorldCoords() );
+      //labels are momentarily disabled in the thumbnail image
+        boolean[] labelBackup = getShowLabels();
+        setShowLabels(new boolean[] {false});
 
-          //now draw the thumbnail
-        draw(image.createGraphics());
+      //Make a transformation to draw all the contours on the image
+      //  with the appropriate size for the thumbnail.
+        CoordTransform my_local_transform = new CoordTransform();
+        my_local_transform.setSource( getGlobalWorldCoords() );
+        my_local_transform.setDestination( 
+                              new CoordBounds( 0, 0, width, height) );
+        draw(image.createGraphics(), my_local_transform );
        
-      //now revert all of the saved variables back
-        setLocalWorldCoords( localBackup.getSource() );
+      //now reset the show labels flag 
         setShowLabels(labelBackup);
          
       //cache the image made
@@ -1268,6 +1276,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
         
       return this.thumbnail;
    }
+
 //--------------------=[ End getter/setter methods ]=-------------------------//
    
    
@@ -1317,7 +1326,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       g2d.setColor(  this.getBackground() );
       g2d.fillRect( R.x , R.y , R.width , R.height );
 
-      draw(g2d);
+      draw( g2d, getLocal_transform() );
       //record that the main contour plot has been initialized
       //(i.e. it has been drawn)
       this.mainImageNotInit = false;
@@ -1333,8 +1342,13 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
     * @param g The graphics object that describes something that can be 
     *          drawn to.  This could, for example, correspond to a 
     *          <code>JPanel</code> or an image.
+    *
+    * @param my_local_tran  This is the transform used to map from world
+    *                       coordinates to pixel coordinates. It must be
+    *                       different for drawing the thumbnail and for
+    *                       drawing the main display.
     */
-   private void draw(Graphics2D g)
+   private void draw(Graphics2D g, CoordTransform my_local_tran )
    {
       stop_box( current_point, false );// if the system redraws this without
 
@@ -1371,13 +1385,6 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
       //array of data to the world coordinates of the entire panel.
         CoordTransform rcToWC = getRowColumnToWC();
         
-      //If the panel's world coordinates have not been initialized yet, 
-      //set the local_transform to have its input region be the output 
-      //region of 'rcToWC' (i.e. the entire panel).  After the 
-      //contour image is drawn the user can zoom in and the superclass 
-      //handles setting the source (input) of local_transform to be the 
-      //correct subset of the entire panel.
-       
       //These are the bounds of the array of data that is currently being 
       //  displayed on the screen.
       //ex.) If the user has zoomed in on some portion of the data, then 
@@ -1524,7 +1531,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
          //pixel coordinates.  Here 'local_transform' is used because 
          //if the user zooms in on the data, 'local_transform' is modified 
          //to reflect viewing a smaller subsection of the panel.
-            CoordTransform local_tran = getLocal_transform();
+            CoordTransform local_tran = my_local_tran; 
             local_tran.MapXListTo(xrcVals);
             local_tran.MapYListTo(yrcVals);
 
