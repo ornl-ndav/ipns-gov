@@ -34,6 +34,11 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.31  2008/01/28 19:12:48  dennis
+ *  Removed variable, makeNewPanImage, which is no longer used.
+ *  Removed unused constructor, ThumbnailJPanel(Image i), from the private
+ *  inner class ThumbnailJPanel.
+ *
  *  Revision 1.30  2007/08/23 21:06:32  dennis
  *  Removed unused imports.
  *
@@ -258,10 +263,7 @@ public class PanViewControl extends ViewControl
   private double data_width = 0;
   private double data_height = 0;
 
-  /**
-   * Set to True if the data represented in the image has changed.
-   */
-  public boolean makeNewPanImage = false;
+
  /**
   * Constructor for creating a thumbnail of the CoordJPanel passed in.
   *
@@ -489,7 +491,6 @@ public class PanViewControl extends ViewControl
   {
     if ( !isShowing() )
       return; 
-    // System.out.println("refreshData.....");
 
     setImageDimension();
     setAspectRatio();
@@ -502,10 +503,8 @@ public class PanViewControl extends ViewControl
       // Since panel is in the PanViewControl, the aspect ratio of the
       // control affects the aspect ratio of the image. Don't need to
       // alter the image size according to the aspect ratio.
-      panel_image = ((ImageJPanel2)actual_cjp).getThumbnail( panel_size.width, 
-                            panel_size.height, makeNewPanImage );
-      if( panel_image != null) 
-        makeNewPanImage = false;
+      panel_image = ((ImageJPanel2)actual_cjp).getThumbnail( 
+    		                   panel_size.width, panel_size.height );
     }
     else if ( actual_cjp instanceof ContourJPanel )
     {
@@ -610,7 +609,7 @@ public class PanViewControl extends ViewControl
   
  /*
   * This private JPanel is used to hold the image of the thumbnail. A
-  * separate class was required to repaint the image without interferring
+  * separate class was required to repaint the image without interfering
   * with the rest of the PanViewControl.
   */ 
   private class ThumbnailJPanel extends JPanel
@@ -620,16 +619,9 @@ public class PanViewControl extends ViewControl
     {
       super();
     }
-    
-    public ThumbnailJPanel(Image i)
-    {
-      super();
-      image = i;
-    }
-    
+
     public void paintComponent( Graphics g )
     {
-      // System.out.println("PanViewControl paintComponent");
       if( image != null )
         g.drawImage( image, 0, 0, this );
     }
