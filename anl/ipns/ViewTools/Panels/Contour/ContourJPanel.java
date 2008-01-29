@@ -33,6 +33,19 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.31  2008/01/29 22:13:38  dennis
+ * This commit represents more progress on fixing the update of
+ * the thumbnail for the PanViewControl.  Specifically:
+ * - Added method changeData() that calls changeData( data2D ) so
+ *   that the ContourViewComponent can notify the ContourJPanel when
+ *   values in the underlying array are changed, but the array is
+ *   NOT replaced with a new array.  The ContourViewComponent does
+ *   not keep a reference to the data, but it can call this new method
+ *   that does not accept a (possibly) new array.
+ * - When a thumbnail image is made, it's background is cleared using
+ *   g2d.clearRect() rather than using loops to set each pixel to the
+ *   background color, as was previously done.
+ *
  * Revision 1.30  2008/01/28 22:34:34  dennis
  * Modified the draw() routine to accept a transformation mapping
  * world coordinates to pixels.  This allows the draw() routine to
@@ -1236,27 +1249,23 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
         BufferedImage image = 
            new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         
-        //If the main image hasn't been drawn yet, don't even bother 
-        //  trying to draw the thumbnail.  
-        //This improves performance because if there is not image for 
-        //  the thumbnail to reflect, time isn't spent trying to make a 
-        //  thumbnail.
-        //Also, if 'this.mainImageNotInit==true' the thumbnail isn't 
-        //  considered valid by 'isThumbnailValid()' anyway
+      //If the main image hasn't been drawn yet, don't even bother 
+      //  trying to draw the thumbnail.  
+      //This improves performance because if there is not image for 
+      //  the thumbnail to reflect, time isn't spent trying to make a 
+      //  thumbnail.
+      //Also, if 'this.mainImageNotInit==true' the thumbnail isn't 
+      //  considered valid by 'isThumbnailValid()' anyway
         if (this.mainImageNotInit)
            return image;
         
-      //TODO This forces the background color of the image to correspond to 
-      //     the background of the panel.  This is here because the draw() 
-      //     method sometimes leaves a black stripe on the right side of the 
-      //     thumbnail.  This is not very efficient and thus a better 
-      //     solution should be found
-        int rgb = getBackgroundColor().getRGB();
-        for (int x=0; x<width; x++)
-           for (int y=0; y<height; y++)
-              image.setRGB(x, y, rgb);
+      // Set the background color of the image to correspond to 
+      //   this panel's background. 
+      Graphics2D thumbnail_gc = (Graphics2D)image.createGraphics();    
+      thumbnail_gc.setBackground( getBackgroundColor() );
+      thumbnail_gc.clearRect( 0, 0, width, height );
         
-      //labels are momentarily disabled in the thumbnail image
+      //labels are momentarily disabled for the thumbnail image
         boolean[] labelBackup = getShowLabels();
         setShowLabels(new boolean[] {false});
 
@@ -1266,7 +1275,7 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
         my_local_transform.setSource( getGlobalWorldCoords() );
         my_local_transform.setDestination( 
                               new CoordBounds( 0, 0, width, height) );
-        draw(image.createGraphics(), my_local_transform );
+        draw( thumbnail_gc, my_local_transform );
        
       //now reset the show labels flag 
         setShowLabels(labelBackup);
@@ -1291,12 +1300,23 @@ public class ContourJPanel extends CoordJPanel implements Serializable,
    public void changeData(IVirtualArray2D arr)
    {
       if (this.data2D != arr)
-      {
          data2D = arr;
-         invalidateThumbnail();
-         reRender();
-      }
+
+      invalidateThumbnail();
+      reRender();
    }
+
+
+   /**
+    * Use this method to inform this ContourJPanel that the contents of
+    * it IVirtualArray2D have been changed, so that it can invalidate
+    * it's thumbnail copy and refresh the display.
+    */
+   public void changeData()
+   {
+     changeData( data2D );
+   }
+
    
    /**
     * Used to make the cached thumbnail invalid.  As a result, when the 
