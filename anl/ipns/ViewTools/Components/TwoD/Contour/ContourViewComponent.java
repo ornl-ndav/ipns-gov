@@ -33,6 +33,13 @@
  *
  * Modified:
  * $Log$
+ * Revision 1.10  2008/01/29 22:16:42  dennis
+ * This CountourViewComponent now keeps a reference to the
+ * ContourJPanel that displays the contours, so that it can notify
+ * the ContourJPanel (using the changeData() ) method, when the contents
+ * of the underlying array are changed, even if the array is not being
+ * replaced with a new array.
+ *
  * Revision 1.9  2007/03/15 21:08:47  dennis
  * Added method getWorldToArrayTransform() to get the mapping from
  * world coordinates to the array coordinates.
@@ -273,6 +280,18 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
     * this state information.
     */
    private ContourColorScaleHandler colorscaleHandler;
+
+   /**
+    * This is the underlying ContourJPanel that displays the contour lines.
+    * A refrence to this is needed so that it can be informed when the
+    * data is changed, so it will construct a new thumbnail for the 
+    * PanViewControl.  It is very inefficient to reconstruct the thumbnail
+    * everytime the PanViewControl requests the thumbnail, so the ContorJPanel
+    * keeps a copy of the thumbnail image to use unless the data is changed.
+    */
+   private ContourJPanel my_contour_display = null;
+
+
 //--------------------------=[ End fields ]=----------------------------------//
   
    
@@ -340,6 +359,8 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
       //specification
         menuHandler.setLineColor(menuHandler.getLineColor());
         
+      my_contour_display = contourPanel;
+
       dataChanged(v2D);
    }
    
@@ -567,10 +588,12 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
    {
       menuHandler.reinit(v2D);
       controlHandler.reinit(v2D);
+
       layoutHandler.reinit(v2D);
-      
       layoutHandler.changeDisplay();
       layoutHandler.displayChanged();
+
+      my_contour_display.changeData(v2D);
    }
 
    /**
@@ -578,6 +601,7 @@ public class ContourViewComponent implements IViewComponent2D, Serializable
     */
    public void dataChanged()
    {
+      my_contour_display.changeData();
       layoutHandler.changeDisplay();
    }
 
