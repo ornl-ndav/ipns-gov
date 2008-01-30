@@ -31,6 +31,12 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.63  2008/01/30 18:06:07  dennis
+ * Now checks whether the SelGraphDSIndx array is non-empty before
+ * using the line_index to set error bars.  This fixes an array index
+ * out of bounds problem, when trying to set error bars when no
+ * graph had been selected.
+ *
  * Revision 1.62  2008/01/11 22:50:22  amoe
  * When the logarithmic axes are turned on, the tooltip will be turned off.
  *
@@ -1480,18 +1486,26 @@ import javax.swing.*;
           //System.out.println("zoom region:"+ gjp.getZoom_region());
           //CoordBounds data_bound = getGlobalWorldCoords();
           //data_bound.getBounds()
-          if( labelbox6.getSelectedItem(  ).equals( "None" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues
-                  ( SelGraphDSIndx[line_index - 1]  ), 0, 
-                           line_index, true );
-          } else if( labelbox6.getSelectedItem(  ).equals( "At Points" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues
-                  ( SelGraphDSIndx[line_index - 1]  ), 
-                           GraphJPanel.ERROR_AT_POINT, line_index, true );
-          } else if( labelbox6.getSelectedItem(  ).equals( "At Top" ) ) {
-            gjp.setErrors( Varray1D.getErrorValues
-                  ( SelGraphDSIndx[line_index - 1] ),
-                           GraphJPanel.ERROR_AT_TOP, line_index, true );
+                                            // make sure we have some selected
+                                            // graphs and that line_index is
+                                            // ok before we use it.
+          if ( SelGraphDSIndx.length >  0  &&        
+               line_index - 1        >= 0  &&
+               line_index - 1        <  SelGraphDSIndx.length )
+          {
+            if( labelbox6.getSelectedItem(  ).equals( "None" ) ) {
+              gjp.setErrors( Varray1D.getErrorValues
+                    ( SelGraphDSIndx[line_index - 1]  ), 0, 
+                             line_index, true );
+            } else if( labelbox6.getSelectedItem(  ).equals( "At Points" ) ) {
+              gjp.setErrors( Varray1D.getErrorValues
+                    ( SelGraphDSIndx[line_index - 1]  ), 
+                             GraphJPanel.ERROR_AT_POINT, line_index, true );
+            } else if( labelbox6.getSelectedItem(  ).equals( "At Top" ) ) {
+              gjp.setErrors( Varray1D.getErrorValues
+                    ( SelGraphDSIndx[line_index - 1] ),
+                             GraphJPanel.ERROR_AT_TOP, line_index, true );
+            }
           }
 
         /* 
