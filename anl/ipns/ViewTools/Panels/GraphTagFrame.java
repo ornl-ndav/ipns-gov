@@ -30,6 +30,9 @@
  * Modified:
  *
  *  $Log$
+ *  Revision 1.5  2008/01/30 15:07:59  rmikk
+ *  Made initial attempts at showing a cursor
+ *
  *  Revision 1.4  2007/06/14 20:13:38  rmikk
  *  Eliminated an unused import
  *  Reused the same instance of the graphJPanel and container fpr
@@ -60,6 +63,7 @@ import java.awt.*;
 import java.awt.event.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Graph.*;
+import gov.anl.ipns.Util.Numeric.*;
 
 
 
@@ -216,6 +220,9 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
 
       int length = 0;
       
+      float x_pointedAt = Float.NaN,
+            y_pointedAt = Float.NaN;
+      
       if( Mode == TIME )
          
          if( TimeValues == null ) {
@@ -265,6 +272,17 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
 
          }
          
+         if( !Float.isNaN( pointedAtTime) && pointedAtTime >=0 &&
+                  pointedAtTime < length && length > 0){
+            
+         
+             x_pointedAt = pointedAtTime;
+             y_pointedAt = TimeValues[ pointedAtTime ];
+         }else
+            x_pointedAt = y_pointedAt = Float.NaN;
+         
+       
+         
       }
       else if( Mode == ROW ) {
          
@@ -290,6 +308,15 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
 
          }
 
+         if( !Float.isNaN( pointedAtCol) && pointedAtCol >=0 &&
+                  pointedAtCol < length && length > 0){
+            
+         
+             x_pointedAt = pointedAtCol;
+             y_pointedAt = data.getDataValue( pointedAtRow, pointedAtCol);;
+         }else
+            x_pointedAt = y_pointedAt = Float.NaN;
+         
       }
       else if( Mode == COL ) {
          
@@ -316,28 +343,53 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
                maxy = graphValues[ - ( row - start ) ];
             
          }
+         
+         if( !Float.isNaN( pointedAtRow) && pointedAtRow >=0 &&
+                  pointedAtRow < length && length > 0){
+            
+         
+             x_pointedAt = pointedAtRow;
+             y_pointedAt = data.getDataValue( pointedAtRow, pointedAtCol);;
+         }else
+            x_pointedAt = y_pointedAt = Float.NaN;
 
       }
       
       else
          
          return;
-     
+      
+      
       graph.clearData();
       if( ! Mode.equals( COL ) ) {
          
-         graph.setX_bounds( xvals[ 0 ] + .5f , xvals[ xvals.length - 1 ] - .5f );
+         graph.setX_bounds( xvals[ 0 ] + .5f ,
+                            xvals[ xvals.length - 1 ] - .5f );
+         
          graph.setY_bounds( miny , maxy );
          graph.setData( xvals , graphValues ,0,true );
-        
+         /*
+          //Does not work
+           if(!Float.isNaN(  x_pointedAt ) && !Float.isNaN( y_pointedAt ))
+             graph.set_crosshair_WC( new floatPoint2D( x_pointedAt,
+                  y_pointedAt) );
+          */
          
       }
       else {
          
         
-         graph.setY_bounds( xvals[ 0 ] - .5f , xvals[ xvals.length - 1 ] + .5f );
+         graph.setY_bounds( xvals[ 0 ] - .5f , 
+                            xvals[ xvals.length - 1 ] + .5f );
+         
          graph.setX_bounds( miny , maxy );
          graph.setData( graphValues , xvals,0,true);
+         
+         /*//Does not work
+            if(!Float.isNaN(  x_pointedAt ) && !Float.isNaN( y_pointedAt ))
+                  graph.set_crosshair_WC( new floatPoint2D( x_pointedAt,
+                       y_pointedAt) );
+        */
       }
 
  
