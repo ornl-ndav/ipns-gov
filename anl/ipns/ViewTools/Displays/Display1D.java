@@ -33,6 +33,9 @@
  * Modified:
  *
  * $Log$
+ * Revision 1.15  2008/01/30 18:15:42  dennis
+ * Trivial reformatting to make use of white space more consistent.
+ *
  * Revision 1.14  2007/07/18 15:25:04  rmikk
  * Set default titles for graphs with an empty or absent title
  *
@@ -91,7 +94,6 @@
  * - Initial Version - Allow users to view data as a graph. Be aware
  *   that some functionality with the FunctionViewComponent still
  *   needs to be worked out.
- *
  */
 
 package gov.anl.ipns.ViewTools.Displays;
@@ -193,7 +195,6 @@ public class Display1D extends Display
        if( title == null || title.trim().length() < 1)
           iva.setGraphTitle( "Graph "+i, i+1);
     }
-       
   }
  
   
@@ -211,8 +212,9 @@ public class Display1D extends Display
      
      if( ! OState.reset( CONTROL_OPTION, new Integer(add_controls)))
               OState.insert( CONTROL_OPTION, new Integer(add_controls));
-     
   }
+
+
  /**
   * This method sets the ObjectState of this viewer to a previously saved
   * state.
@@ -222,8 +224,6 @@ public class Display1D extends Display
   */ 
   public void setObjectState( ObjectState new_state )
   {
-     
-     
     boolean redraw = false;  // if any values are changed, repaint overlay.
     Object temp = new_state.get(VIEW_OPTION);
     if( temp != null )
@@ -244,9 +244,6 @@ public class Display1D extends Display
             
             redraw = true;  
           }
-      
-     
-  
     
     temp = new_state.get(VIEW_COMPONENT+current_view);
     if( temp != null )
@@ -263,7 +260,6 @@ public class Display1D extends Display
       setSize( (Dimension)temp );
       redraw = true;  
     } 
-    
     
     temp = new_state.get(CONTROL_OPTION); 
     if( temp != null )
@@ -283,6 +279,7 @@ public class Display1D extends Display
       repaint();
   }
  
+
  /**
   * This method will get the current values of the state variables for this
   * object. These variables will be wrapped in an ObjectState.
@@ -311,6 +308,7 @@ public class Display1D extends Display
    
     return state;
   }
+
 
  /**
   * Contains/Displays control information about this viewer.
@@ -344,6 +342,7 @@ public class Display1D extends Display
     helper.getContentPane().add(scroll);
     WindowShower.show(helper);
   }
+
   
  /**
   * This method takes in a virtual array and updates the image. If the array
@@ -360,9 +359,9 @@ public class Display1D extends Display
     else if( ivc instanceof TableViewComponent )
       ((TableViewComponent)ivc).dataChanged(
                                      ArrayConverter.makeInstance(values));
-    
   }
   
+
  /*
   * This method sets the pointed-at on this display. This may need to be changed
   * to allow for "pointed-at graphs" concept.
@@ -375,6 +374,7 @@ public class Display1D extends Display
     ((IViewComponent1D)ivc).setPointedAt( fpt ); 
   }*/
 
+
  /*
   * This method gets the current floatPoint2D from the ViewComponent.
   *
@@ -384,6 +384,7 @@ public class Display1D extends Display
   {
     return ((IViewComponent1D)ivc).getPointedAt();
   }*/
+
  
  /* ### currently not applicable ###
   * This method creates a selected region to be displayed over the imagejpanel
@@ -400,6 +401,7 @@ public class Display1D extends Display
     ((IViewComponent2D)ivc).setSelectedRegions(rgn);
   }*/
  
+
  /* ### currently not applicable ###
   * Get geometric regions created using the selection overlay.
   *
@@ -409,6 +411,7 @@ public class Display1D extends Display
   {
     return ((IViewComponent2D)ivc).getSelectedRegions();
   }*/
+
 
  /*
   * This method builds the content pane of the frame.
@@ -432,7 +435,6 @@ public class Display1D extends Display
     }
     else if( current_view == TABLE )
     {
-       
       // Be sure to remove any windows from other view components.
       if( ivc != null )
         ivc.kill();
@@ -442,8 +444,8 @@ public class Display1D extends Display
       ObjectState st =(ObjectState)OState.get( VIEW_COMPONENT +Display1D.TABLE);
       if( st != null)
          ivc.setObjectState( st );
-      
     }
+
     ivc.addActionListener( new ViewCompListener() );    
     
     Box view_comp_controls = buildControlPanel();
@@ -469,6 +471,7 @@ public class Display1D extends Display
     getContentPane().validate();
     getContentPane().repaint();
   }
+
  
  /*
   * This private method will (re)build the menubar. This is necessary since
@@ -485,7 +488,6 @@ public class Display1D extends Display
     Vector display_help      = new Vector();
     Vector option_listeners  = new Vector();
     Vector help_listeners    = new Vector();
-    
     
     // build options menu
     options.add("Options");
@@ -547,6 +549,7 @@ public class Display1D extends Display
     help_menu.getItem(0).setAccelerator(binding);   // Help Menu
   }
   
+
  /*
   * This class listens to the view component.
   */
@@ -557,6 +560,7 @@ public class Display1D extends Display
       sendMessage( ae.getActionCommand() );
     }
   }
+
   
  /*
   * This class is required to handle all messages within the Display1D.
@@ -581,7 +585,7 @@ public class Display1D extends Display
         if( current_view != GRAPH )
 	{
 	  // Remove the menu items of the previous view component.
-     updateObjectState();
+          updateObjectState();
 	  removeComponentMenuItems();
           current_view = GRAPH;
 	  // Enable the "Print Image" and "Make JPEG Image" menu items.
@@ -598,7 +602,7 @@ public class Display1D extends Display
         if( current_view != TABLE )
 	{
 	  // Remove the menu items of the previous view component.
-     updateObjectState();
+          updateObjectState();
 	  removeComponentMenuItems();
           current_view = TABLE;
 	  // Disable the "Print Image" and "Make JPEG Image" menu items.
@@ -642,6 +646,7 @@ public class Display1D extends Display
     }
   }
   
+
  /*
   * This class will convert an IVirtualArrayList1D to an IVirtualArray2D.
   */ 
@@ -772,6 +777,7 @@ public class Display1D extends Display
         values[i] = getDataValue( row, i );
       return values;
     }
+
     /* -------------------------------- Stubs ------------------------------- */
     public void setDataValue( int row, int col )
     {
@@ -839,6 +845,7 @@ public class Display1D extends Display
     }
   }
   
+
  /*
   * Main program.
   */
@@ -883,6 +890,7 @@ public class Display1D extends Display
     // Make instance of a Display1D frame, giving the array, the initial
     // view type, and whether or not to add controls.
     Display1D display = new Display1D(va1D,Display1D.GRAPH,Display1D.CTRL_ALL);
+
     
     // Class that "correctly" draws the display.
     WindowShower.show(display);
