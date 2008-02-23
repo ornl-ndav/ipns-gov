@@ -33,7 +33,10 @@
  *
  * Modified:
  *
- *  $Log$
+ *  $Log: SelectionOverlay.java,v $
+ *  Revision 1.66  2008/02/13 20:11:52  dennis
+ *  Minor fixes to javadocs.
+ *
  *  Revision 1.65  2007/08/09 14:44:04  rmikk
  *  Method that adds only new names now returns whether the name was new or
  *    not.
@@ -1430,8 +1433,10 @@ public class SelectionOverlay extends OverlayJPanel {
   /**
    *  Resets the RegionOpList for a given region name.
    *  
-   *  @param regOp  the list of operations with associated region.
-   *                This could be a RegionOpListWithColor
+   *  @param reg   The list of operations with associated region.
+   *               This can be a RegionOpListWithColor.
+
+   *  @param name  The name of the region being set.
    *                
    */
   public void setSelectedRegions(RegionOpList reg, String name){
@@ -1661,7 +1666,7 @@ public class SelectionOverlay extends OverlayJPanel {
    * named selection
    * 
    * @param name  the name of the named selection
-   * @param Color the new color to draw the selected regions associated with
+   * @param color the new color to draw the selected regions associated with
    *              the given name
    */
   public void setColor( String name, Color color){
