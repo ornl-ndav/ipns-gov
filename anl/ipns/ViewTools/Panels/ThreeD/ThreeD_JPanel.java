@@ -29,7 +29,16 @@
  *
  * Modified:
  *
- * $Log$
+ * $Log: ThreeD_JPanel.java,v $
+ * Revision 1.30  2008/02/23 22:15:34  dennis
+ * Fixed problem with finding "Pointed At" objects when the
+ * first object has invalid coordinates (Float.NaN).
+ * The scan for the object that is drawn with the min distance
+ * to the current mouse position, now initializes the distance
+ * to Float.POSITIVE_INFINITY.  This enables finding the nearest
+ * VALID position, even in case some of the objects have positions
+ * with Float.NaN values.
+ *
  * Revision 1.29  2007/07/29 20:45:16  dennis
  * Changed local_transform and global_transform to be private
  * in CoordJPanel class, to keep better control over who can
@@ -504,7 +513,7 @@ public class ThreeD_JPanel extends    CoordJPanel
      return IThreeD_Object.INVALID_PICK_ID;
 
    float distance;
-   float min_distance = all_objects[0].distance_to( x, y );
+   float min_distance = Float.POSITIVE_INFINITY; 
    int   min_index = 0;
    
    for ( int i = 1; i < all_objects.length; i++ )
