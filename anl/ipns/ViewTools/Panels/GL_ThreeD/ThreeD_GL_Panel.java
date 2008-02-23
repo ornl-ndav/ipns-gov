@@ -29,7 +29,11 @@
  *
  * Modified:
  *
- * $Log$
+ * $Log: ThreeD_GL_Panel.java,v $
+ * Revision 1.21  2008/02/18 20:00:14  dennis
+ * Added workaround for a bug in some OpenGL implementations that
+ * causes the screen to blank after rendering in selection mode.
+ *
  * Revision 1.20  2007/08/13 23:50:17  dennis
  * Switched from old JOGL to the JSR231 version of JOGL.
  *
@@ -981,6 +985,12 @@ public float[] pickedWorldCoordinates( int x, int y )
       {                                           // to get the number of hits
         n_hits = gl.glRenderMode( GL.GL_RENDER );
         do_select = false; 
+        Draw();                             // This Draw() should NOT be needed
+                                            // but it provides a work-around 
+                                            // for the scene blacking out when
+                                            // using selection with some OpenGL
+                                            // implementations.
+                                            // (Eg:ATI/VESA on HP xw8240 laptop)
         if ( debug )
           System.out.println("n_hits = " + n_hits );
       }
