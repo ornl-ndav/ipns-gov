@@ -44,6 +44,7 @@
 package gov.anl.ipns.Parameters;
 
 import java.util.*;
+import java.lang.reflect.*;
 
 /**
  * A StringListChoicePG is an abstract base class that implements common
@@ -82,7 +83,12 @@ public abstract class StringListChoicePG extends StringPG_base
        str_value = "";
        return;
     }
-
+    if( val.getClass().isArray()){//Convert to Vector
+       Vector V = new Vector();
+       for( int i=0; i< Array.getLength(val); i++)
+          V.addElement( Array.get( val , i ));
+       val = V;
+    }
     if ( val instanceof Vector )                // get an array of Strings from
     {                                           // the Vector
       String list[] = new String[ ((Vector)val).size() ];
