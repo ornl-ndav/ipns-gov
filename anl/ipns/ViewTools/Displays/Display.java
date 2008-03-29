@@ -430,7 +430,7 @@ abstract public class Display extends gov.anl.ipns.Util.Sys.FinishJFrame impleme
       else if( ae.getActionCommand().equals("Exit") )
       {
 	this_viewer.dispose();
-	System.gc();
+	//System.gc();
 	//System.exit(0);
       }
     }

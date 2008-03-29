@@ -942,7 +942,7 @@ import javax.swing.KeyStroke;
             // Release all screen resources used by the ViewManager.
             dispose();
             // Run garbage collector.
-            System.gc();
+            // System.gc();
          }
       }
    }
@@ -962,7 +962,7 @@ import javax.swing.KeyStroke;
        if( cvm_counter <= 0 )
          shared_ctrls_ui.dispose();
        // Call garbage collector to free up system resources.
-       System.gc();
+       // System.gc();
      }
    }
    
