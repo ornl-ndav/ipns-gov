@@ -1568,10 +1568,9 @@ import javax.swing.*;
               note.setTwoSided(false);
               gjp.setLogScaleX(false);
               gjp.setLogScaleY(false);
-              gjp.setWCToolTipVisible(true); //Set world-coordinate tooltip to 
-                                              //false.  This is because 
-                                              //CoordJPanel's world-coordinates 
-                                              //are not logrithmic (yet).
+              
+              gjp.setCoordInfoSource(new LinearInfoSource(3,gjp));
+              
               fvc.paintComponents(  );
             }
             else if( labelbox8.getSelectedItem().equals( "X" ))
@@ -1594,10 +1593,8 @@ import javax.swing.*;
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(false);
-              gjp.setWCToolTipVisible(false); //Set world-coordinate tooltip to 
-                                              //false.  This is because 
-                                              //CoordJPanel's world-coordinates 
-                                              //are not logrithmic (yet).
+              
+              gjp.setCoordInfoSource( new LogInfoSource(3,gjp,LogInfoSource.LOG_X) );
               fvc.paintComponents(  );
             }  
             else if( labelbox8.getSelectedItem().equals( "Y" ))
@@ -1614,16 +1611,14 @@ import javax.swing.*;
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getLabel(),
                         Varray1D.getAxisInfo(AxisInfo.Y_AXIS).getUnits(),
                         AxisInfo.LINEAR);
-
-              note.setYScale( AxisInfo.TRU_LOG );
+              
               note.setXScale( AxisInfo.LINEAR );
+              note.setYScale( AxisInfo.TRU_LOG );              
               note.setTwoSided(false);
               gjp.setLogScaleY(true);
               gjp.setLogScaleX(false);
-              gjp.setWCToolTipVisible(false); //Set world-coordinate tooltip to 
-                                              //false.  This is because 
-                                              //CoordJPanel's world-coordinates 
-                                              //are not logrithmic (yet).
+              
+              gjp.setCoordInfoSource(new LogInfoSource(3,gjp,LogInfoSource.LOG_Y));
               fvc.paintComponents(  );
             }  
             else if( labelbox8.getSelectedItem().equals( "X and Y" ))
@@ -1646,10 +1641,8 @@ import javax.swing.*;
               note.setTwoSided(false);
               gjp.setLogScaleX(true);
               gjp.setLogScaleY(true);
-              gjp.setWCToolTipVisible(false); //Set world-coordinate tooltip to 
-                                              //false.  This is because 
-                                              //CoordJPanel's world-coordinates 
-                                              //are not logrithmic (yet).
+              
+              gjp.setCoordInfoSource(new LogInfoSource(3,gjp,LogInfoSource.LOG_XY));
               fvc.paintComponents( );
 
             }
