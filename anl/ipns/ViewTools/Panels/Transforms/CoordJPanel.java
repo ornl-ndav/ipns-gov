@@ -319,7 +319,7 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
   protected Dimension       preferred_size = null;
   
   private boolean tooltip_enabled;
-  private boolean tooltip_visible = true;   
+  private ICoordInfoSource coordInfo = null;
   
   private CoordJPanel coordJPanel = null;
 
@@ -366,6 +366,8 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
     set_box( current_point );
     stop_box( current_point, false );
     CJP_handle_arrow_keys = true;
+    
+    coordInfo = new LinearInfoSource(3,coordJPanel);
   }
 
   /**
@@ -732,16 +734,10 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
     SetTransformsToWindowSize();
     return( local_transform.getSource( ) );
   }
-
-  /**
-   * This method sets the visibility of the tooltip.
-   * 
-   * @param is_vis - true if the tooltip should be visible.
-   *                 false if the tooltip should not be visible.
-   */
-  public void setWCToolTipVisible(boolean is_vis)
+ 
+  public void setCoordInfoSource(ICoordInfoSource cis)
   {
-    tooltip_visible = is_vis;
+	  coordInfo = cis;
   }
   
   /* ---------------------------- showState ------------------------------ */
@@ -964,7 +960,7 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
 
 /* ------------------------- LocalTransformChanged ------------------------ */
 /**
- *  The responsibility of this method is to do what is necessary to regemerate
+ *  The responsibility of this method is to do what is necessary to regenerate
  *  the panel on the screen, after changing the local transformation.  
  *  Derived may need to override this method.  For example the ImageJPanel
  *  overrides this method to regenerate a rescaled image and then call
@@ -1252,15 +1248,10 @@ class CoordMouseMotionAdapter extends MouseMotionAdapter
   //This handles the showing of the tooltip box
   public void mouseMoved(MouseEvent e)
   {
-    if ( isListening && mouse_on_panel && tooltip_enabled && tooltip_visible)
-    {      
-      //convert current mouse point to World Coordinates
-      floatPoint2D fp2d = new floatPoint2D( 
-          local_transform.MapXFrom( e.getPoint().x ), 
-          local_transform.MapYFrom( e.getPoint().y ) );
-        
+    if ( isListening && mouse_on_panel && tooltip_enabled && coordInfo != null)
+    {             
       //set the tool-tip text to the current World Coordinate
-      coordJPanel.setToolTipText("["+fp2d.x+","+fp2d.y+"]");
+      coordJPanel.setToolTipText( coordInfo.getInfoString(e.getPoint().x, e.getPoint().y) );
     }
     else
     {
