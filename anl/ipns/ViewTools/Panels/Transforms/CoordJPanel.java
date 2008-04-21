@@ -27,6 +27,9 @@
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
+ *  $Author$
+ *  $Date$            
+ *  $Revision$
  * Modified:
  *
  *  $Log$
@@ -684,6 +687,11 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
    *  panel to be the rectangle specified.
    *  The specified bounds will restricted to a subregion of the  
    *  world coordinate region for the global transform.
+   *  NOTE: If the specified bounds do not intersect the current GLOBAL 
+   *  world coordinates, this method will NOT change the LOCAL world 
+   *  coordinates.  It necessary to first call setGlobalWorldCoordinates to 
+   *  to set the global coordinate region to a large enough region to 
+   *  enclose the desired local coordinate region.
    *
    *  @param  x1   The min x value for the rectangle.
    *  @param  y1   The min y value for the rectangle.
@@ -704,7 +712,12 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
    *  Set the world coordinate system for the local transform for the
    *  panel to be the rectangle specified by the bounds parameter, b.  
    *  The specified bounds are restricted to a subregion of the  
-   *  world coordinate region for the global transform.
+   *  world coordinate region for the global transform.  
+   *  NOTE: If the specified bounds do not intersect the current GLOBAL 
+   *  world coordinates, this method will NOT change the LOCAL world 
+   *  coordinates.  It necessary to first call setGlobalWorldCoordinates to 
+   *  to set the global coordinate region to a large enough region to 
+   *  enclose the desired local coordinate region.
    *
    *  @param b The bounds that determine the world coordinate system for
    *           the zoomed subregion of the panel.
@@ -717,7 +730,9 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
 
     CoordBounds global_WC = getGlobalWorldCoords();      // keep new bounds
                                                          // within global WC
-    local_transform.setSource( b.intersect( global_WC ));
+    CoordBounds restrictedBounds = b.intersect( global_WC );
+    if ( restrictedBounds != null )
+      local_transform.setSource( b.intersect( global_WC ));
   }
  
 
