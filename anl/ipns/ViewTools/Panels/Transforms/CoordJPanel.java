@@ -42,11 +42,13 @@
  *  out...until this revision
  *
  *  Revision 1.45  2007/11/30 22:47:21  amoe
- *  Made the world coordinate tooltip be displayed depending on the boolean IsawProps variable "ShowWCToolTip" .  Changes made in inner class CoordMouseMotionAdapter .
+ *  Made the world coordinate tooltip be displayed depending on the boolean 
+ *  IsawProps variable "ShowWCToolTip" .  Changes made in inner class 
+ *  CoordMouseMotionAdapter .
  *
  *  Revision 1.44  2007/11/20 17:56:25  amoe
- *  Added a feature to show the current World Coordinate from the mouse pointer in
- *  a tool-tip box.  This involved adding mouseMoved(..) to the inner class
+ *  Added a feature to show the current World Coordinate from the mouse pointer
+ *  in a tool-tip box.  This involved adding mouseMoved(..) to the inner class
  *  CoordMouseMotionAdapter .
  *
  *  Revision 1.43  2007/09/17 02:08:48  dennis
@@ -732,7 +734,7 @@ public class CoordJPanel extends ActiveJPanel implements Serializable,
                                                          // within global WC
     CoordBounds restrictedBounds = b.intersect( global_WC );
     if ( restrictedBounds != null )
-      local_transform.setSource( b.intersect( global_WC ));
+      local_transform.setSource( restrictedBounds );
   }
  
 
