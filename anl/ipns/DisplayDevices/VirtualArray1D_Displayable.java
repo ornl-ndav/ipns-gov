@@ -27,6 +27,10 @@
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
  *
+ *  $Author: eu7 $
+ *  $Date: 2008-04-08 16:31:08 -0500 (Tue, 08 Apr 2008) $            
+ *  $Revision: 19031 $
+ *
  * Modified:
  *
  * $Log$
@@ -312,7 +316,7 @@ public class VirtualArray1D_Displayable extends Displayable {
     * @param Attribute The name of the Attribute to be altered
     * @param val The name of the Value 
     */
-   public void setLineAttribute(int index, 
+   private void setLineAttribute(int index, 
                                     String Attribute, 
                                     String val) throws Exception
    {
@@ -345,19 +349,23 @@ public class VirtualArray1D_Displayable extends Displayable {
                                  String Attribute, 
                                  Object val) throws Exception
    {
-     Attribute = Attribute.toLowerCase();
-    // Ostate = comp.getObjectState(true);
+	 if(val instanceof String)
+	  	setLineAttribute(index,Attribute,(String)val);
+	 else{  
+	   Attribute = Attribute.toLowerCase();
+      // Ostate = comp.getObjectState(true);
      
-     String OSAttribute = (String)Util.TranslateKey(graphLineAttributes,Attribute);
-     OSAttribute = graphLineAttributes.get("graph data")+index+"."+OSAttribute;
-     try
-     {
-       setLineAttribute(OSAttribute, val);
-     }
-     catch(Exception e)
-     {
-       throw new Exception("Cannot put "+val+" into "+Attribute);
-     }
+       String OSAttribute = (String)Util.TranslateKey(graphLineAttributes,Attribute);
+       OSAttribute = graphLineAttributes.get("graph data")+index+"."+OSAttribute;
+       try
+       {
+         setLineAttribute(OSAttribute, val);
+       }
+       catch(Exception e)
+       {
+         throw new Exception("Cannot put "+val+" into "+Attribute);
+       }
+	 }
      //comp.setObjectState(Ostate);
    }
 
