@@ -26,6 +26,11 @@
  * number DMR-0426797, and by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
+ *  Last Modified:
+ * 
+ *  $Author$
+ *  $Date$            
+ *  $Revision$
  *
  * Modified:
  *
@@ -34,11 +39,13 @@
  * Added GPL
  *
  * Revision 1.8  2007/08/02 15:37:40  oakgrovej
- * Allowed for multiple components to be displayed in the file.  Any empty space below or to the right of the components added will be cut off.
+ * Allowed for multiple components to be displayed in the file.  Any empty 
+ * space below or to the right of the components added will be cut off.
  *
  * Revision 1.7  2007/07/31 19:13:47  amoe
  * -Added static final default image width and height.
- * -Set the image to the default size when the current size has not been set (when it's -1).
+ * -Set the image to the default size when the current size has not been set 
+ *  (when it's -1).
  *
  * Revision 1.6  2007/07/17 16:16:37  oakgrovej
  * Added Throws Exception where needed
