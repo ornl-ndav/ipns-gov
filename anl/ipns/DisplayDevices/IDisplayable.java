@@ -28,12 +28,19 @@
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
  *
+ *  Last Modified:
+ * 
+ *  $Author$
+ *  $Date$            
+ *  $Revision$
+ *
  * Modified:
  *
  * $Log$
  * Revision 1.3  2007/07/17 16:16:04  oakgrovej
  * Added Throws Exception where needed
- * setLineAttribute takes one int and two Strings instead of one int, one String and an Object
+ * setLineAttribute takes one int and two Strings instead of one int, one 
+ * String and an Object
  *
  * Revision 1.2  2007/07/12 22:03:13  amoe
  * Made this interface public.
@@ -92,6 +99,6 @@ public interface IDisplayable
   *  @param  name     The name of the attribute being set.
   *  @param  value    The value to use for the attribute.
   */
-  public void setLineAttribute( int index, String name, String value )throws Exception;
+  public void setLineAttribute( int index, String name, Object value )throws Exception;
 
 }
