@@ -27,6 +27,10 @@
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
  *
+ *  $Author: eu7 $
+ *  $Date: 2008-04-08 16:31:08 -0500 (Tue, 08 Apr 2008) $            
+ *  $Revision: 19031 $
+ *
  * Modified:
  *
  * $Log$
@@ -34,7 +38,8 @@
  * Removed unused imports.
  *
  * Revision 1.15  2007/08/09 13:02:07  rmikk
- * Eliminated the use of a Display1D to store the object state and used the Object state directly
+ * Eliminated the use of a Display1D to store the object state and used the 
+ * Object state directly
  *
  * Attempted to eliminate all persistent references to Display1D
  *
@@ -44,7 +49,8 @@
  *                because there is no graph view for the Display2D
  *
  * Revision 1.13  2007/08/07 21:56:20  oakgrovej
- * GetJComponent() creates a copy of the Display2D and uses the component from that.
+ * GetJComponent() creates a copy of the Display2D and uses the component 
+ * from that.
  *
  * Revision 1.12  2007/07/27 03:42:25  dennis
  * Fixed name inconsistency between javadoc and method.
@@ -311,6 +317,12 @@ public class VirtualArray2D_Displayable  extends Displayable {
       if( value == null)
          return;
 
+      if( value instanceof String)
+      {
+		  setLineAttribute(index,name,(String)value);
+		  return;
+      }
+      
       name = name.toLowerCase();
       String attribute = (String)Util.TranslateKey(viewAttributeList, name);
     
@@ -476,14 +488,15 @@ public class VirtualArray2D_Displayable  extends Displayable {
          "View Component0.Two Sided");//dosn't seem to do anything
      temp.put("color control east","View Component0.Color Control East");
      temp.put("color control west","View Component0.Color Control West");
-     temp.put("controls","Control Option");//dosn't seem to do anything
      temp.put("horizontal scroll",
          "View Component0.ImageJPanel.Horizontal Scroll");
      //---------------Table---------------\\
-     temp.put("show row labels",
+     temp.put("row labels",
          "View Component1.TableJPanel.Show Row Labels");
-     temp.put("show column labels",
+     temp.put("column labels",
          "View Component1.TableJPanel.Show Column Labels");
+     temp.put("label background", "View Component1.TableJPanel.Label Background");
+     temp.put("control option","Control Option");// also for the Image
      return temp;
    }
 
