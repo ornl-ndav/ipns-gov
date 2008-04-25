@@ -27,6 +27,11 @@
  * number DMR-0426797, and by the Intense Pulsed Neutron Source Division
  * of Argonne National Laboratory, Argonne, IL 60439-4845, USA.
  *
+ *  Last Modified:
+ *
+ *  $Author$
+ *  $Date$            
+ *  $Revision$
  *
  * Modified:
  *
@@ -109,7 +114,7 @@ abstract public class Displayable implements IDisplayable
   public static void setLineAttribute( IDisplayable displayable,
                                        int          index, 
                                        String       name, 
-                                       String       value ) throws Exception
+                                       Object       value ) throws Exception
   {
     displayable.setLineAttribute( index, name, value );
   }
