@@ -35,15 +35,14 @@
  * Checked for a null return from  the  getSelectionOverlay method
  *
  * Revision 1.4  2007/08/09 14:37:34  rmikk
- * Added abstract methods to reflect changes initiated in SelectionOverlay to the
- *    corresponding GUI Elements without sending out events that would cause
- *    further changes
+ * Added abstract methods to reflect changes initiated in SelectionOverlay to 
+ * the corresponding GUI Elements without sending out events that would cause
+ * further changes
  *
  * Revision 1.3  2007/08/08 15:07:11  rmikk
  * Added documentation, GPL
  * Changed one method, disableSelection, to disableOverlay and implemented it
- *   by sending messages to anyone who can turn the overlay on and off to do so.
- *
+ * by sending messages to anyone who can turn the overlay on and off to do so.
  *
  */
 package gov.anl.ipns.ViewTools.Components.Transparency;
@@ -327,7 +326,6 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     *                     show the selection overlay
     */
    public void disableOverlay( boolean hide_show){
-      
 
       if( getSelectionOverlay() == null )
          
@@ -337,9 +335,7 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
          
          getSelectionOverlay().disableOverlay( hide_show );
          GUIshowOnlySelectionOverlayOn( !hide_show );
-         
       }
-      
    }
 
    
@@ -348,7 +344,6 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
    */
     public void disableSelectionEditor(){
        
-
        if( getSelectionOverlay() == null )
           
           return ;
@@ -369,7 +364,6 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
      *              the given name
      */
     public void setColor( String  name, java.awt.Color Color){
-       
 
        if( getSelectionOverlay() == null )
           
@@ -386,12 +380,11 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
      * Sets the opacity for drawing the selected regions associated with the
      * named selection
      * 
-     * @param name  the name of the named selection
-     * @param Opacity the new opacity to draw the selected regions associated with
-     *              the given name
+     * @param name    the name of the named selection
+     * @param Opacity the new opacity to draw the selected regions 
+     *                associated with the given name
      */
     public void setOpacity(  String name, float Opacity){
-       
 
        if( getSelectionOverlay() == null )
           
@@ -413,7 +406,6 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
      *              the given name uses to draw its selected regions
      */
     public java.awt.Color getColor(  String name){
-       
 
        if( getSelectionOverlay() == null )
           
@@ -423,7 +415,6 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
           
           return getSelectionOverlay().getColor(   name);
     }
-
 
     
     /**
@@ -435,7 +426,6 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
      *              the given name uses to draw its selected regions
      */
     public float getOpacity( String name){
-       
 
        if( getSelectionOverlay() == null )
           
@@ -445,7 +435,6 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
           
           return getSelectionOverlay().getOpacity( name);
     }
-
     
     
    /**
@@ -473,13 +462,7 @@ abstract public class ViewComponent2DwSelection implements IViewComponent2D {
     * named selections in the SelectionOverlay reflect a change in state. 
     * This is used when the state has changed and the GUI element only
     * has to reflect that change correctly,
-    * 
-    * @see getSelectionNames
-    * @see getCurrentName
     */
    abstract protected void GUIshowOnlySelectionNames( boolean newName );
-   
-  
-   
  
 }
