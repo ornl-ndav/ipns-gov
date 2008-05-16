@@ -949,11 +949,10 @@ public class SelectionOverlay extends OverlayJPanel {
     }
   }
   
+
   /**
    * Closes editors for both creating new selections and altering old 
    * selections.
-   * 
-   * @see editSelection  
    */
   public void closeWindows()
   {
