@@ -2169,12 +2169,9 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     * has to reflect that change correctly,
     * 
     * @param newName  A new name may be added. Change the selection in
-    *                 the combo box
-    * 
-    * @see getSelectionNames
-    * @see getCurrentName
+    *                 the combo box.
     */
-  protected void GUIshowOnlySelectionNames( boolean newName){
+  protected void GUIshowOnlySelectionNames( boolean newName ){
      
     
      String[] names = ((SelectionOverlay)transparencies.elementAt(1)).getAllNames();
