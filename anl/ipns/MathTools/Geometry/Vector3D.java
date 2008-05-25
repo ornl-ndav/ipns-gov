@@ -300,6 +300,56 @@ public class Vector3D
   }
 
 
+  /*------------------------------- getX --------------------------------*/
+  /**
+   *  Get the X coordinate of this vector.
+   *
+   *  return the X coordinate.
+   */
+  public float getX()
+  {
+    return x;
+  }
+
+
+  /*------------------------------- getY --------------------------------*/
+  /**
+   *  Get the Y coordinate of this vector.
+   *
+   *  return the Y coordinate.
+   */
+  public float getY()
+  {
+    return y;
+  }
+
+
+  /*------------------------------- getZ --------------------------------*/
+  /**
+   *  Get the Z coordinate of this vector.
+   *
+   *  return the Z coordinate.
+   */
+  public float getZ()
+  {
+    return z;
+  }
+
+
+  /*------------------------------- getW --------------------------------*/
+  /**
+   *  Get the homogeneous W coordinate of this vector.  This will usually
+   *  return 1 unless the vector has justbeen multiplied by a projection
+   *  matrix and not standardized.
+   *
+   *  return the W coordinate.
+   */
+  public float getW()
+  {
+    return w;
+  }
+
+
   /*------------------------------- add ---------------------------------*/
   /**
    *  Set the value for this vector to the sum of it's current value plus 
