@@ -92,10 +92,10 @@ public class Test_GL_Panel
     
     ThreeD_GL_Panel panel = new ThreeD_GL_Panel();
 
-    GL_Shape obj_0 = new Cube( 0, 0, 0, 0.1f );
-    GL_Shape obj_1 = new Cube( 0, 0, 0, .8f );
-    GL_Shape obj_2 = new Cube( 1, 0, 0, .8f );
-    GL_Shape obj_3 = new Cube( 1, 1, 0, .8f );
+    GL_Shape obj_0 = new Cube( panel, 0, 0, 0, 0.1f );
+    GL_Shape obj_1 = new Cube( panel, 0, 0, 0, .8f );
+    GL_Shape obj_2 = new Cube( panel, 1, 0, 0, .8f );
+    GL_Shape obj_3 = new Cube( panel, 1, 1, 0, .8f );
     obj_0.setPickID( pick_id++ );
     obj_1.setPickID( pick_id++ );
     obj_2.setPickID( pick_id++ );
@@ -151,7 +151,7 @@ public class Test_GL_Panel
       	panel.setObjects( "Obj:" + i + ", " +j, obj_list );
       }
 */
-    obj = new Cube( 0, 0, 0, 0.7f );
+    obj = new Cube( panel, 0, 0, 0, 0.7f );
     obj.setPickID( pick_id++ );
     Tran3D tran = new Tran3D();
     tran.setOrientation( new Vector3D( 1, 0, 0 ), 
@@ -173,7 +173,7 @@ public class Test_GL_Panel
     texture.setWrap_t( GL.GL_CLAMP );
     texture.setFilter( GL.GL_NEAREST );
     texture.setMode( GL.GL_MODULATE );
-    obj = new Square( 2, 0, 0, 3 );
+    obj = new Square( panel, 2, 0, 0, 3 );
     obj.setPickID( pick_id++ );
     obj.setColor( gray );
     obj.setTexture( texture );
@@ -183,7 +183,7 @@ public class Test_GL_Panel
     Texture1D texture1 = new Texture1D( image1, 4 );
     texture1.setFilter( GL.GL_NEAREST );
     texture1.setWrap_s( GL.GL_CLAMP );
-    obj = new Square( 2, 3,4,5 );
+    obj = new Square( panel, 2, 3,4,5 );
     obj.setPickID( pick_id++ );
     obj.setTexture( texture1 );
     panel.setObject( "1D Textured Object", obj );
@@ -197,7 +197,7 @@ public class Test_GL_Panel
     texture2.setWrap_t( GL.GL_REPEAT );
     texture2.setFilter( GL.GL_LINEAR );
     texture2.setMode( GL.GL_DECAL );
-    obj = new Square( 2, 0, 0, 3 );
+    obj = new Square( panel, 2, 0, 0, 3 );
     obj.setPickID( pick_id++ );
     obj.setColor( white );
     obj.setTexture( texture2 );
@@ -228,7 +228,7 @@ public class Test_GL_Panel
       for ( int col = 0; col < 11; col++ )
         z[row][col] = -((row-5)*(row-5)+(col-5)*(col-5)) / 5.0f - 3;
         
-    obj = new HeightField( z, 10, 10, 0, 50 );
+    obj = new HeightField( panel, z, 10, 10, 0, 50 );
     obj.setPickID( pick_id++ );
     obj.setTexture( texture );
     obj.setTransparency( 0.4f );
@@ -260,7 +260,7 @@ public class Test_GL_Panel
 
    
     ThreeD_GL_Panel panel2 = new ThreeD_GL_Panel();
-    obj = new HeightField( z, 10, 10, 0, 50 );
+    obj = new HeightField( panel, z, 10, 10, 0, 50 );
     obj.setPickID( pick_id++ );
     obj.setColor( white );
     obj.setTransparency( 0.4f );
@@ -268,7 +268,7 @@ public class Test_GL_Panel
     obj.setTexture( texture3 );
     panel2.setObject("Surface_in_panel_2",obj );
 
-    obj_3 = new Cube( 1, 1, 0, 1 );
+    obj_3 = new Cube( panel2, 1, 1, 0, 1 );
     obj_3.setPickID( pick_id++ );
     obj_3.setColor( red );
     panel2.setObject("Cube_in_panel_2", obj_3 );
@@ -292,18 +292,18 @@ public class Test_GL_Panel
 //  StrokeFont font = new ScriptSimplex();
   
     StrokeText text;
-    text = new StrokeText( "Text in x, y plane, +x direction", font );
+    text = new StrokeText( panel2, "Text in x, y plane, +x direction", font );
     text.setColor( red );
     text.setAlignment( StrokeText.HORIZ_RIGHT, StrokeText.VERT_HALF );
     panel2.setObject("x axis", text );
 
-    text = new StrokeText( "Text in y, z plane, +y direction", font );
+    text = new StrokeText( panel2, "Text in y, z plane, +y direction", font );
     text.setOrientation( new Vector3D(0,1,0), new Vector3D(0,0,1) );
     text.setColor( green );
     text.setAlignment( StrokeText.HORIZ_CENTER, StrokeText.VERT_HALF );
     panel2.setObject("y axis", text );
 
-    text = new StrokeText( "Text in z, x plane, +z direction", font );
+    text = new StrokeText( panel2, "Text in z, x plane, +z direction", font );
     text.setOrientation( new Vector3D(0,0,1), new Vector3D(1,0,0) );
     text.setColor( blue );
     text.setAlignment( StrokeText.HORIZ_CENTER, StrokeText.VERT_HALF );
@@ -313,7 +313,7 @@ public class Test_GL_Panel
       for ( int col = -5; col <= 5; col += 10 )
         for ( int page = -5; page <= 5; page += 10 )
         {
-          obj_0 = new Cube( row, col, page, 1 );
+          obj_0 = new Cube( panel2, row, col, page, 1 );
           obj_0.setPickID( pick_id++ ); 
           if ( row == -5 )
             obj_0.setColor( red );
@@ -338,9 +338,9 @@ public class Test_GL_Panel
         marks[i].add( shift );
 
       if ( type == Polymarker.DOT )
-        marker = new Polymarker( marks, type, 4 );
+        marker = new Polymarker( panel2, marks, type, 4 );
       else
-        marker = new Polymarker( marks, type, 0.25f );
+        marker = new Polymarker( panel2, marks, type, 0.25f );
       if ( type % 2 == 1 )
         marker.setColor( red );
       else
