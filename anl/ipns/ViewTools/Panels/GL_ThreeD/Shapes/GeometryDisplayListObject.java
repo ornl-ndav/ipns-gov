@@ -45,7 +45,6 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
-import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
 import javax.media.opengl.*;
 
 /**
@@ -72,41 +71,18 @@ abstract public class GeometryDisplayListObject extends GL_Shape
 
   synchronized protected void Draw( GLAutoDrawable drawable )
   {
-     GL gl = drawable.getGL();
-
-     if ( draw_list_id != INVALID_LIST_ID  &&  !newData() )
-     {
-       gl.glCallList( draw_list_id );         // just use previously compiled
-       return;                                // list
-     }
-
-     if ( !newData() )
-     {
-       System.out.println("ERROR: Invalid list ID and null array in " );
-       System.out.println("HeightField.DrawObject." );
-       return;
-     }
-
-     if ( draw_list_id == INVALID_LIST_ID )
-       draw_list_id = gl.glGenLists(1);
-                                      
-     gl.glNewList(draw_list_id, GL.GL_COMPILE);   // first just make the list
      DrawGeometry( drawable );
-     gl.glEndList();
-
-     gl.glCallList( draw_list_id );               // then call it and clear
-     Clear();                                     // the local copy of the data
+     return;
   }
 
 
   protected void finalize()
   {                                           // free our display list if it
                                               // was allocated.
-    if ( draw_list_id != INVALID_LIST_ID )
-      ThreeD_GL_Panel.ChangeOldLists( draw_list_id );
+    if ( draw_list_id != INVALID_LIST_ID && my_panel != null )
+      my_panel.ChangeOldLists( draw_list_id );
 
     super.finalize();
   }
-
 
 }
