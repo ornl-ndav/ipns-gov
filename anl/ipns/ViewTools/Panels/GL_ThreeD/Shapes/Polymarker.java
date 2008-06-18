@@ -43,6 +43,7 @@ package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
 
 public class Polymarker extends GeometryDisplayListObject
 {
@@ -57,8 +58,10 @@ public class Polymarker extends GeometryDisplayListObject
   private int      type = PLUS;
   private float    size = 1;
 
-  public Polymarker( Vector3D new_points[], int type, float size )
+  public Polymarker( ThreeD_GL_Panel panel,
+                     Vector3D new_points[], int type, float size )
   {
+    my_panel = panel;
     set( new_points, type, size );
   }
 
@@ -90,6 +93,7 @@ public class Polymarker extends GeometryDisplayListObject
   protected void Clear()
   {
     points = null;
+    clearList();
   }
 
 

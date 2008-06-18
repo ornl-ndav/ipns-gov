@@ -50,6 +50,7 @@ package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
 
 import java.awt.*;
 
@@ -62,8 +63,12 @@ public class ColoredPoints extends GeometryDisplayListObject
   private float point_size = 1;
 
 
-  public ColoredPoints( Vector3D new_points[], Color new_colors[], float size )
+  public ColoredPoints( ThreeD_GL_Panel panel,
+                        Vector3D new_points[], 
+                        Color new_colors[], 
+                        float size )
   {
+    my_panel = panel;
     set( new_points, new_colors, size );
   }
 
@@ -124,6 +129,7 @@ public class ColoredPoints extends GeometryDisplayListObject
   {
     point = null;
     color = null;
+    clearList();
   }
 
 
@@ -148,9 +154,9 @@ public class ColoredPoints extends GeometryDisplayListObject
         {  
           gl.glVertex3f( point[i][0], point[i][1], point[i][2] );
 //        gl.glColor3f( color[i][0], color[i][1], color[i][2] );
-         gl.glMaterialfv( GL.GL_FRONT_AND_BACK,
-                            GL.GL_AMBIENT_AND_DIFFUSE,
-                            color[i], 0 );
+          gl.glMaterialfv( GL.GL_FRONT_AND_BACK,
+                           GL.GL_AMBIENT_AND_DIFFUSE,
+                           color[i], 0 );
         }
       gl.glEnd();
     }

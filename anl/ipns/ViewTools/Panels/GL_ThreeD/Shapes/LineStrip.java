@@ -42,13 +42,15 @@ package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
 
 public class LineStrip extends GeometryDisplayListObject
 {
   Vector3D points[]; 
 
-  public LineStrip( Vector3D new_points[] )
+  public LineStrip( ThreeD_GL_Panel panel, Vector3D new_points[] )
   {
+    my_panel = panel;
     set( new_points );
   }
 
@@ -73,6 +75,7 @@ public class LineStrip extends GeometryDisplayListObject
   protected void Clear()
   {
     points = null;
+    clearList();
   }
 
 

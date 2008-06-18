@@ -42,14 +42,18 @@ package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
 
 public class Lines extends GeometryDisplayListObject
 {
   Vector3D start[]; 
   Vector3D end[]; 
 
-  public Lines( Vector3D new_start[], Vector3D new_end[] )
+  public Lines( ThreeD_GL_Panel panel, 
+                Vector3D        new_start[], 
+                Vector3D        new_end[] )
   {
+    my_panel = panel;
     set( new_start, new_end );
   }
 
@@ -83,6 +87,7 @@ public class Lines extends GeometryDisplayListObject
   {
     start = null;
     end = null;
+    clearList();
   }
 
 

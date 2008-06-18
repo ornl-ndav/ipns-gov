@@ -52,6 +52,8 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
+
 import javax.media.opengl.*;
 
 /**
@@ -80,8 +82,9 @@ public class HeightField extends GeometryDisplayListObject
   private float range_max = 1;
 
 
-  public HeightField()
+  public HeightField( ThreeD_GL_Panel panel )
   {
+    my_panel = panel;
     float heights[][] = { {1, 2}, {3, 4} };    // default values
     setHeights( heights, 2, 2, 1, 4 );
   }
@@ -90,12 +93,14 @@ public class HeightField extends GeometryDisplayListObject
   /**
    *  
    */
-  public HeightField( float heights[][],
-                      float x_size, 
-                      float y_size,
-                      float range_min,
-                      float range_max )
+  public HeightField( ThreeD_GL_Panel panel,
+                      float           heights[][],
+                      float           x_size, 
+                      float           y_size,
+                      float           range_min,
+                      float           range_max )
   {
+    this( panel );
     setHeights( heights, x_size, y_size, range_min, range_max );
   }
 
@@ -145,6 +150,7 @@ public class HeightField extends GeometryDisplayListObject
     z = null;
     width = -1;
     depth = -1;
+    clearList();
   }
 
 
