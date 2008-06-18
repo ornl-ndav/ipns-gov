@@ -79,6 +79,8 @@ abstract public class GL_Shape implements IThreeD_GL_Object
                                                // ID for selection of object
   protected int pick_id = INVALID_PICK_ID;  
 
+  protected ThreeD_GL_Panel my_panel = null;
+  
   protected boolean rebuild_list = true;       // Flag indicating whether any
                                                // changes were made that require
                                                // a rebuild of the display list.
@@ -377,6 +379,29 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   }
   
 
+  /* ---------------------------- clearList ------------------------- */
+  /**
+   *  Delete the display list and reset the list_id to invalid.  This
+   *  will force the display list to be regenerated if this node is
+   *  rendered again.  This method should be called when this shape is
+   *  no longer needed.  Although the finalize method will free the
+   *  cause the display list to be deleted, the garbage collector may
+   *  not run for quite some time, and the OpenGL display list would
+   *  not be freed until the garbage collector runs.  To reduce the
+   *  number of stale display lists maintained by OpenGL, call this 
+   *  method, as soon as the shape is no longer needed.
+   */
+  public void clearList()
+  {
+     if ( list_id != INVALID_LIST_ID && my_panel != null )
+     {
+       my_panel.ChangeOldLists( list_id );
+       list_id = INVALID_LIST_ID;
+       rebuild_list = true;
+     }
+  }
+
+
   /* ---------------------------- finalize -------------------------- */
   /**
    *  The finalize method SHOULD NOT BE CALLED BY USER CODE, since it 
@@ -386,8 +411,8 @@ abstract public class GL_Shape implements IThreeD_GL_Object
   protected void finalize()
   {                                           // free our display list if it
                                               // was allocated.
-    if ( list_id != INVALID_LIST_ID )
-      ThreeD_GL_Panel.ChangeOldLists( list_id );
+    if ( list_id != INVALID_LIST_ID  && my_panel != null )
+      my_panel.ChangeOldLists( list_id );
   }
 
 
