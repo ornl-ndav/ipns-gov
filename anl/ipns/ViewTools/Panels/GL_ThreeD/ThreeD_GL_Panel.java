@@ -172,7 +172,7 @@ public class ThreeD_GL_Panel implements Serializable
 
   private static float   pixel_depth_scale_factor = 1;  // needed to workaround
                                                         // quirk with ATI cards
-  private static Vector  old_list_ids = null;
+  private Vector         old_list_ids = null;
 
   private GLCanvas       canvas;
 
@@ -296,7 +296,7 @@ public class ThreeD_GL_Panel implements Serializable
  *               code is running in the OpenGL rendering thread and will 
  *               free the list ids.
  */
-  synchronized static public int[] ChangeOldLists( int code )
+  synchronized public int[] ChangeOldLists( int code )
   {
     if ( code == GL_Shape.INVALID_LIST_ID )
     {
@@ -351,12 +351,19 @@ public class ThreeD_GL_Panel implements Serializable
  *                this panel.
  *  @param  obj   Array of ThreeD objects to be set for this panel.
  */
- public void setObjects( String name, IThreeD_GL_Object obj[] )
+ synchronized public void setObjects( String name, IThreeD_GL_Object obj[] )
  {
                                                      // ignore degenerate cases
    if ( name == null || obj == null || obj.length <= 0 )  
      return;
-
+                                                     // free any objects with
+                                                     // this name
+   IThreeD_GL_Object old_obj[] = (IThreeD_GL_Object[])obj_lists.get(name);
+   if ( old_obj != null )
+     for ( int i = 0; i < old_obj.length; i++ )
+       old_obj[i].clearList();
+                                                     // make new list of 
+                                                     // objects for this name
    IThreeD_GL_Object new_obj[] = new IThreeD_GL_Object[ obj.length ];
    for ( int i = 0; i < obj.length; i++ )
      new_obj[i] = obj[i];
@@ -378,7 +385,7 @@ public class ThreeD_GL_Panel implements Serializable
  *  @return  Array of ThreeD objects or null if the named objects don't
  *           exit.
  */
- public IThreeD_GL_Object[] getObjects( String name )
+ private IThreeD_GL_Object[] getObjects( String name )
  {                                                // ignore degenerate cases
    if ( name == null )
      return null;
@@ -401,7 +408,7 @@ public class ThreeD_GL_Panel implements Serializable
  *  @return  Array of ThreeD objects or null if no objects have been added
  *           to the panel. 
  */
- public IThreeD_GL_Object[] getAllObjects()
+ private IThreeD_GL_Object[] getAllObjects()
  {
    IThreeD_GL_Object result[] = null;
 
@@ -431,8 +438,15 @@ public class ThreeD_GL_Panel implements Serializable
  *  @param  name  Unique string identifer to be used for the new array
  *                of objects being removed from this panel
  */
- public void removeObjects( String name )
+ synchronized public void removeObjects( String name )
  {
+                                                     // free any objects with
+                                                     // this name
+   IThreeD_GL_Object old_obj[] = (IThreeD_GL_Object[])obj_lists.get(name);
+   if ( old_obj != null )
+     for ( int i = 0; i < old_obj.length; i++ )
+       old_obj[i].clearList();
+
    obj_lists.remove( name );
    obj_lists_valid = false; 
  }
@@ -446,7 +460,7 @@ public class ThreeD_GL_Panel implements Serializable
  *  NOTE: The application must call repaint() or request_painting() to 
  *        redraw the panel after removing the objects.
  */
- public void removeObjects()
+ synchronized public void removeObjects()
  {
    obj_lists.clear();
    obj_lists_valid = false; 
@@ -692,8 +706,17 @@ public float[] pickedWorldCoordinates( int x, int y )
  */
  public void Draw()
  {
+   if ( !canvas.isShowing() || !canvas.isValid() )
+     return;
+   
+   float width = canvas.getWidth();
+   float height = canvas.getHeight();
+   if ( width <= 0 || height <= 0 )
+     return;
+
 //   canvas.setRenderingThread( Thread.currentThread() );
-   canvas.repaint();
+//   canvas.repaint();
+     canvas.display();
 //   canvas.setRenderingThread( null );
  }
 
@@ -709,7 +732,7 @@ public float[] pickedWorldCoordinates( int x, int y )
  *  Make a single array with references to all of the objects from all of the
  *  named object lists for purposes of depth-sorting, projecting and drawing.
  */
- private void build_object_list()
+ synchronized private void build_object_list()
  {
    if ( obj_lists_valid )                   // no need to rebuild
      return;
@@ -799,6 +822,20 @@ public float[] pickedWorldCoordinates( int x, int y )
       gl.glViewport( 0, 0, width, height );
       gl.glMatrixMode(GL.GL_PROJECTION);
       gl.glLoadIdentity();
+      
+      if ( !canvas.isShowing() || !canvas.isValid() )
+      {
+        System.out.println("ERROR: reshape called when not visible");
+        return;
+      }
+      
+      if ( width <= 0 || height <= 0 )
+      {
+        System.out.println("ERROR: reshape called with zero size, width ="+
+                            width + " height = " + height );
+        return;
+      }
+      
       if ( do_select )
       {
         int viewport[] = { 0, 0, width, height };
@@ -997,7 +1034,7 @@ public float[] pickedWorldCoordinates( int x, int y )
       else
       {                           // we only get here if we actually did a new
         gl.glFlush();             // drawing (not locate, not select), so now
-//        canvas.swapBuffers();     // we can swap the buffers
+//      canvas.swapBuffers();     // we can swap the buffers
       }
     }
   }
@@ -1051,8 +1088,8 @@ public float[] pickedWorldCoordinates( int x, int y )
                      
                                                      // add objects and show 
                                                      // the frame
-      panel.setObject( "Cube 1", new Cube( 0, 0, 0, 2 ) );     
-      Cube cube2 =  new Cube( 0, 0, 1.5f, 1 );
+      panel.setObject( "Cube 1", new Cube( panel, 0, 0, 0, 2 ) );     
+      Cube cube2 =  new Cube( panel, 0, 0, 1.5f, 1 );
       cube2.setPickID( 1010101 );
       panel.setObject( "Cube 2", cube2 );     
       WindowShower.show(frame);
