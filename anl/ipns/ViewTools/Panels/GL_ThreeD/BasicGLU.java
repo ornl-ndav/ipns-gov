@@ -18,6 +18,12 @@
  * License along with this library; if not, write to the Free
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ *  Last Modified:
+ * 
+ *  $Author$
+ *  $Date$            
+ *  $Revision$
+ *
  *  $Log$
  *  Revision 1.4  2007/08/13 23:50:17  dennis
  *  Switched from old JOGL to the JSR231 version of JOGL.
@@ -40,6 +46,7 @@ package gov.anl.ipns.ViewTools.Panels.GL_ThreeD;
 
 import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.MathTools.*;
 
 /**
  *  This class contains several utilities from the GLU package, ported from
@@ -283,27 +290,33 @@ public class BasicGLU
                                    double world_y[], 
                                    double world_z[] )
   {
-     Tran3D_d model_view = new Tran3D_d( model_view_mat );
-     Tran3D_d projection = new Tran3D_d( projection_mat );
+     double model_view[][] = new double[4][4];
+     double projection[][] = new double[4][4];
 
-     model_view.transpose();                    // GL & GLU list matrices in 
-     projection.transpose();                    // column major order
+     int index = 0;                                     // copy into 2D array
+     for ( int col = 0; col < 4; col++ )                // NOTE: GL & GLU list
+       for ( int row = 0; row < 4; row++ )              // matrices in column
+       {                                                // major order!!
+         model_view[row][col] = model_view_mat[ index ];
+         projection[row][col] = projection_mat[ index ];
+         index++;
+       }
 
-     projection.multiply_by( model_view ); 
-     projection.invert();
+     double product_matrix[][] = LinearAlgebra.mult(projection, model_view);
 
      double point[] = new double[4];
      point[0] = (win_x - viewport[0]) * 2.0 / viewport[2] - 1.0;
      point[1] = (win_y - viewport[1]) * 2.0 / viewport[3] - 1.0;
      point[2] = 2 * win_z - 1.0;
      point[3] = 1.0;
-     Vector3D_d vector = new Vector3D_d( point );
 
-     projection.apply_to( vector, vector );
-     double w = vector.get()[3];
-     world_x[0] = vector.get()[0]/w;
-     world_y[0] = vector.get()[1]/w;
-     world_z[0] = vector.get()[2]/w;
+     LinearAlgebra.solve( product_matrix, point );
+     double w = point[3];
+     world_x[0] = point[0]/w;
+     world_y[0] = point[1]/w;
+     world_z[0] = point[2]/w;
+
+     System.out.println("In gluUnProject, w = " + w );
   }
  
 }
