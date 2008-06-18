@@ -73,14 +73,21 @@ public class VectorReadout extends    ActiveJPanel
   private JLabel    d_value;
   private Vector3D  vector = null;
   private JButton   select_button; 
- 
+  private Boolean   Scale_StepMode;
+  /* ------------------------------ CONSTRUCTOR ---------------------------- */
+  /** 
+   */
+   public VectorReadout( String title )
+   { 
+      this( title, true);
+   }
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
   */
-  public VectorReadout( String title )
+  public VectorReadout( String title, boolean Scale_StepMode )
   { 
      this.title = title;
-
+     this.Scale_StepMode =Scale_StepMode;
      TextValueUI      scale_value;    
 
      TitledBorder border = 
@@ -100,7 +107,10 @@ public class VectorReadout extends    ActiveJPanel
      JPanel control_panel = new JPanel();
      control_panel.setLayout( new GridLayout(1,2) );
      select_button = new JButton("Select");
-     scale_value = new TextValueUI( "Scale", 1 );
+     if( Scale_StepMode)
+        scale_value = new TextValueUI( "Scale", 1 );
+     else
+        scale_value = new TextValueUI( "# Steps", 1 );
      control_panel.add( select_button );
      control_panel.add( scale_value );
      setBackground( Color.white );
@@ -144,13 +154,19 @@ public class VectorReadout extends    ActiveJPanel
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /**
   */
-  public VectorReadout( String title, String select_title )
+  public VectorReadout( String title, String select_title, boolean Scale_StepMode  )
   {
-    this(title);
+    this(title, Scale_StepMode );
     select_button.setText( select_title ); 
   }
 
-
+  /* ------------------------------ CONSTRUCTOR ---------------------------- */
+  /**
+   */
+   public VectorReadout( String title, String select_title  )
+   {
+     this(title, select_title, true );
+   }
  public void setVector( Vector3D vec )
  {
    if ( vec == null )
