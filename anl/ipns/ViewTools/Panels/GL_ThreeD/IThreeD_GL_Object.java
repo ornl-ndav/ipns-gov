@@ -60,6 +60,20 @@ public interface IThreeD_GL_Object
    *
    *  @param  drawable  The drawable on which the object is to be rendered.
    */
-  public void Render( GLAutoDrawable drawable );
+  void Render( GLAutoDrawable drawable );
+
+
+  /**
+   *  Delete the display list and reset the list_id to invalid.  This
+   *  will force the display list to be regenerated if this node is
+   *  rendered again.  This method should be called when this shape is
+   *  no longer needed.  Although the finalize method will free the
+   *  cause the display list to be deleted, the garbage collector may
+   *  not run for quite some time, and the OpenGL display list would
+   *  not be freed until the garbage collector runs.  To reduce the
+   *  number of stale display lists maintained by OpenGL, call this 
+   *  method, as soon as the shape is no longer needed.
+   */
+  void clearList();
 
 }
