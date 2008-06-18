@@ -315,8 +315,6 @@ public class BasicGLU
      world_x[0] = point[0]/w;
      world_y[0] = point[1]/w;
      world_z[0] = point[2]/w;
-
-     System.out.println("In gluUnProject, w = " + w );
   }
  
 }
