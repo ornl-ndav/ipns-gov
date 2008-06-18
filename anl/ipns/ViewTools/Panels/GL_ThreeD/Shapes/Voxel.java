@@ -47,13 +47,15 @@ package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
 
 public class Voxel extends GL_Shape
 {
   private Vector3D corner[][][] = null;
 
-  public Voxel( Vector3D corner[][][] )
+  public Voxel( ThreeD_GL_Panel panel, Vector3D corner[][][] )
   {
+    my_panel = panel;
     this.corner = new Vector3D[2][2][2];
     for ( int row = 0; row < 2; row++ )
       for ( int col = 0; col < 2; col++ )

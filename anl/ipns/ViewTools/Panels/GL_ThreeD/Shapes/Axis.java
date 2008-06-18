@@ -64,6 +64,7 @@ package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 import javax.media.opengl.*;
 import gov.anl.ipns.MathTools.Geometry.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.*;
 
 /**
@@ -113,9 +114,12 @@ public class Axis extends GL_Shape
   /* ------------------------ default constructor ------------------------- */
   /**
    *  Make an axis with default vaues for testing purposes.
+   *  
+   *  @param panel  The ThreeD_GL_Panel that will display this Axis
    */
-  public Axis()
+  public Axis( ThreeD_GL_Panel panel )
   {
+    my_panel = panel;
     make_axis();
   }
 
@@ -123,6 +127,8 @@ public class Axis extends GL_Shape
   /* ----------------------------- constructor ---------------------------- */
   /**
    *  Make an axis with the specified characteristics.
+   *  
+   *  @param  panel          The ThreeD_GL_Panel that will display this Axis
    *
    *  @param  start_point    The location in 3D where the min_val end of the
    *                         axis is drawn.
@@ -144,14 +150,17 @@ public class Axis extends GL_Shape
    *  @param  axis_label     Label to place along the axis direction, beyond
    *                         the numeric labels.
    */
-  public Axis( Vector3D start_point,
-               Vector3D end_point,
-               float    min_val,
-               float    max_val,
-               Vector3D tick_direction,
-               int      text_alignment,
-               String   axis_label      )
+  public Axis( ThreeD_GL_Panel panel,
+               Vector3D        start_point,
+               Vector3D        end_point,
+               float           min_val,
+               float           max_val,
+               Vector3D        tick_direction,
+               int             text_alignment,
+               String          axis_label      )
   {
+    this(panel);
+    
     ignore_make_axis_request = true;   // The "set" methods all call make_axis
                                        // to recalculate the axis info after
                                        // setting parameters separately.  
@@ -181,6 +190,8 @@ public class Axis extends GL_Shape
    *  in the x direction.  Also, the min and max value for the axis will be
    *  the x-values of the projections of the start_point and end_point on the
    *  i-direction.  
+   *  
+   *  @param  panel          The ThreeD_GL_Panel that will display this Axis
    *
    *  @param  start_point    The location in 3D where the min_val end of the
    *                         axis is drawn.
@@ -191,14 +202,15 @@ public class Axis extends GL_Shape
    *
    *  @return An axis configured with useful default values.
    */
-  public static Axis getInstance( Vector3D  start_point, 
-                                  Vector3D  end_point, 
-                                  String    axis_label )
+  public static Axis getInstance( ThreeD_GL_Panel panel,
+                                  Vector3D        start_point, 
+                                  Vector3D        end_point, 
+                                  String          axis_label )
   {
     if ( start_point == null ||                      
          end_point   == null || 
          start_point.distance(end_point) == 0 )
-      return new Axis();
+      return new Axis( panel );
  
     Vector3D i = new Vector3D( 1, 0, 0 );
     Vector3D j = new Vector3D( 0, 1, 0 );
@@ -229,7 +241,7 @@ public class Axis extends GL_Shape
       min_val  = start_point.dot( i );
       max_val  = end_point.dot( i );
       tick_dir = new Vector3D(0,-1,0);
-      axis = new Axis( start_point, end_point, min_val, max_val,
+      axis = new Axis( panel, start_point, end_point, min_val, max_val,
                        tick_dir, Axis.TOP, axis_label );
     }
     else if ( max_index == 1 )
@@ -237,7 +249,7 @@ public class Axis extends GL_Shape
       min_val  = start_point.dot( j );
       max_val  = end_point.dot( j );
       tick_dir = new Vector3D(-1,0,0);
-      axis = new Axis( start_point, end_point, min_val, max_val,
+      axis = new Axis( panel, start_point, end_point, min_val, max_val,
                        tick_dir, Axis.BOTTOM, axis_label );
     }
     else
@@ -248,7 +260,7 @@ public class Axis extends GL_Shape
         tick_dir = new Vector3D(0,-1,0);       // so put labels in x,z plane
       else                                     // other wize axis is tilted
         tick_dir = new Vector3D(0,0,1);        // so put in z,axis_dir plane
-      axis = new Axis( start_point, end_point, min_val, max_val,
+      axis = new Axis( panel, start_point, end_point, min_val, max_val,
                        tick_dir, Axis.RIGHT, axis_label );
     }
     
@@ -516,7 +528,7 @@ public class Axis extends GL_Shape
       Vector3D text_position = new Vector3D( p2[i+1] );
       text_position.add( tick_end );
 
-      StrokeText text = new StrokeText( ""+div_points[i], font );
+      StrokeText text = new StrokeText( my_panel, ""+div_points[i], font );
       float yellow[] = { 0.7f, 0.7f, 0 };
       text.setColor( yellow );
       text.setPosition( text_position );
@@ -565,7 +577,7 @@ public class Axis extends GL_Shape
       tick_end.multiply( ( 3*tick_length + label_space ) / tick_length );
       label_position.add( tick_end );
     
-      axis_label = new StrokeText( label, font );
+      axis_label = new StrokeText( my_panel, label, font );
       axis_label.setPosition( label_position );
       axis_label.setHeight( 1.5f * char_height );
       if ( alignment == TOP || alignment == LEFT  )

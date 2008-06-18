@@ -45,6 +45,8 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
+
 import javax.media.opengl.*;
 
 public class Cube extends GL_Shape
@@ -54,10 +56,11 @@ public class Cube extends GL_Shape
                 center_z,
                 size;
 
-  public Cube( float      center_x, 
-               float      center_y, 
-               float      center_z, 
-               float      size      )
+  public Cube( ThreeD_GL_Panel panel,
+               float           center_x, 
+               float           center_y, 
+               float           center_z, 
+               float           size   )
   {
      this.center_x = center_x;
      this.center_y = center_y;

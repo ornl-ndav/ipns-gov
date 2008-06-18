@@ -45,6 +45,8 @@
 
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
+
 import javax.media.opengl.*;
 
 public class Square  extends  GL_Shape
@@ -54,11 +56,13 @@ public class Square  extends  GL_Shape
                 center_z,
                 size;
 
-  public Square( float      center_x, 
-                 float      center_y, 
-                 float      center_z, 
-                 float      size )
+  public Square( ThreeD_GL_Panel panel, 
+                 float           center_x, 
+                 float           center_y, 
+                 float           center_z, 
+                 float           size )
   {
+     my_panel = panel;
      this.center_x = center_x;
      this.center_y = center_y;
      this.center_z = center_z;

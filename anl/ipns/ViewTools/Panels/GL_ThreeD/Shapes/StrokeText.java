@@ -59,6 +59,7 @@
 package gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Shapes;
 
 import gov.anl.ipns.MathTools.Geometry.*;
+import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.ThreeD_GL_Panel;
 import gov.anl.ipns.ViewTools.Panels.GL_ThreeD.Fonts.*;
 import javax.media.opengl.*;
 
@@ -117,14 +118,16 @@ public class StrokeText extends GL_Shape
    *  in the x,y plane with base in the +x direction and up in the +y
    *  direction by default.
    * 
+   *  @param panel The panel that will display this text.
    *  @param text  The text string to draw when this object is drawn.
    *  @param font  The font to use when this object is drawn.
    */
-  public StrokeText( String text, StrokeFont font )
+  public StrokeText( ThreeD_GL_Panel panel, String text, StrokeFont font )
   {
+    my_panel     = panel;
     use_lighting = false;           // Turn off lighting so that the text is
-    this.font = font;               // the same color from all sides
-    this.str  = text;
+    this.font    = font;            // the same color from all sides
+    this.str     = text;
     rebuild_list = true;
   }
 
