@@ -169,6 +169,7 @@ public class VectorReadout extends    ActiveJPanel
    }
  public void setVector( Vector3D vec )
  {
+   
    if ( vec == null )
    {
       vector = null;
@@ -247,6 +248,7 @@ private class ValueListener implements ActionListener
   {
     TextValueUI scale_value = (TextValueUI)(e.getSource());
     float value = scale_value.getValue();
+    scale_value.setValue( 1f );
     send_message( ""+value ); 
   }
 }
