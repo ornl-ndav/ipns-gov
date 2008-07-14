@@ -354,8 +354,14 @@ public class ThreeD_GL_Panel implements Serializable
  synchronized public void setObjects( String name, IThreeD_GL_Object obj[] )
  {
                                                      // ignore degenerate cases
-   if ( name == null || obj == null || obj.length <= 0 )  
+   if ( name == null || obj == null )  
      return;
+
+   if ( obj.length <= 0 )
+   {
+     removeObjects( name );
+     return;
+   }
                                                      // free any objects with
                                                      // this name
    IThreeD_GL_Object old_obj[] = (IThreeD_GL_Object[])obj_lists.get(name);
