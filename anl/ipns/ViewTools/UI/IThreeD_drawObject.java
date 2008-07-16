@@ -43,8 +43,6 @@ import java.util.*;
  */
 public interface IThreeD_drawObject {
 
-
-
    // Size is 1-5
    public static int    NO_FILL                    = 100;
 
@@ -85,7 +83,7 @@ public interface IThreeD_drawObject {
     * @param fillType
     *           One of the *_FILL integers above. If it is not one of the above,
     *           NO_FILL will be chosen.
-    * @param sizes
+    * @param size
     *           a value between 1 and 5, corresponding to the GraphJPanel sizes.
     * @param color
     *           a color to draw these objects. If null, Color.red will be used
