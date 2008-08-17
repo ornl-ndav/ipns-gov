@@ -95,6 +95,10 @@ public class OrthoPolyFit {
   
   /**
    * Curve fitting with orthogonal polynomials.
+   * This constructs a 2D double array A, A[i][j] being the coefficient 
+   * of jth order Chebyshev term in the approximating polynomial of 
+   * degree i. See the main() method for how to evaluate the 
+   * polynomial using array A.
    * 
    * @param xs0     list of x values, they will be transformed linearly into
    *                [-1, 1]. 
@@ -103,9 +107,6 @@ public class OrthoPolyFit {
    *                associated with each y, weighting for each y value is
    *                calculated as one over square of sigma.
    * @param kplus1  highest order of polynomials used will be kplus1-1.
-   * @return a 2D double array A, A[i][j] being the coefficient of jth order
-   *         Chebyshev term in the approximating polynomial of degree i. See
-   *         the main() method for how to evaluate the polynomial using A.
    */
   public void opolyfit (double xs0[], double ys[], double ss[], int kplus1) {
 
