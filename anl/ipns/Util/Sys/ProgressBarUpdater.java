@@ -1,7 +1,8 @@
 /*
  * File:  ProgressBarUpdater.java
  *
- * Copyright (C) 2004 Chris M. Bouzek
+ * Copyright (C) 2008 Dennis Mikkelson
+ *
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,87 +19,162 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
  *
  * Contact : Dennis Mikkelson <mikkelsond@uwstout.edu>
- *           Chris Bouzek <coldfusion78@yahoo.com>
  *           Department of Mathematics, Statistics and Computer Science
  *           University of Wisconsin-Stout
  *           Menomonie, WI 54751, USA
  *
- * This work was supported by the Intense Pulsed Neutron Source Division
- * of Argonne National Laboratory, Argonne, IL 60439-4845, USA and by
- * the National Science Foundation under grant number DMR-0218882.
+ * This work was supported by the Spallation Neutron Source Division
+ * of Oak Ridge National Laboratory, Oak Ridge, TN, USA.
  *
- * For further information, see <http://www.pns.anl.gov/ISAW/>
- *
- * $Log$
- * Revision 1.2  2004/05/21 21:57:08  dennis
- * Fixed name of parameter in javadoc comment.
- *
- * Revision 1.1  2004/04/21 19:16:27  bouzekc
- * Added to CVS.
- *
+ *  Last Modified:
+ * 
+ *  $Author$
+ *  $Date$            
+ *  $Revision$
  */
+
 package gov.anl.ipns.Util.Sys;
 
 import javax.swing.*;
+import java.awt.*;
 
 
 /**
- * Runnable class to update a JProgressBar using the event thread, AFTER it has
- * been completely built.  This class was taken from the
- * gov.anl.ipns.Util.Sys.WindowShower  class.  This class was created because
- * of known conditions in the Swing toolset and the event queue causing
- * problems with thread deadlock and NullPointerException.  Here is how to use
- * this class:<br>
- * <br>
- * Call setVisible( false ) on the JProgressBar.<br>
- * <br>
- * Update your progress bar (setString, setIndeterminate, etc.<br>
- * <br>
- * Construct a new ProgressBarUpdater, passing in the JProgressBar to be
- * updated (e.g. pBarUpdater).<br>
- * <br>
- * Call EventQueue.invokeLater( pBarUpdater ).<br>
- * <br>
- * Set the pBarUpdater to null, so that it can be garbage collected  after the
- * event queue finishes with it.<br>
- * <br>
- * This class will call setVisible(true) in its run method, updating your
- * progress bar in the process.<br>
- * Note: you should follow these steps each time you want to update a progress
- * bar. See: Core Java Technologies Tech Tips, December 8, 2003
+ * This class provides a mechanism to record requested updates to a 
+ * JProgressBar object, and subsequently apply those updates from the 
+ * event handling thread.  In particular after constructing a
+ * a ProgressBarUpdater for a specific JProgressBar, calls to setValue(),
+ * setString() and setIndeterminate() should be directed to the 
+ * ProgressBarUpdater, NOT to the JProgressBar directly.  The 
+ * ProgressBarUpdater will use EventQueue.invokeLater() to call the
+ * corresponding methods on the actual JProgressBar.
+ *
+ * The ideas behind this class were adapted from:
+ * http://forums.sun.com/thread.jspa?threadID=5316900&messageID=10352456
+ *
  */
-public class ProgressBarUpdater implements Runnable {
-  //~ Instance fields **********************************************************
+public class ProgressBarUpdater
+{
 
   private JProgressBar pBar;
+  private boolean      queued;
+  private int          value;
+  private boolean      indeterminate;
+  private String       string_value;
 
-  //~ Constructors *************************************************************
+  private final Runnable updater = new Runnable() {
+                                                    public void run()
+                                                    {
+                                                      update(); 
+                                                    }
+                                                  };
 
   /**
    * Construct a ProgressBarUpdater runnable, for the specified JProgressBar so
-   * that the updates can be called by the event thread.  The code that
-   * creates this ProgressBarUpdater MUST also call  EventQueue.invokeLater(
-   * pBarUpdater ).
+   * that changes to the progress bar can be made from the the event thread. 
    *
    * @param  progressBar  The JProgressBar to be updated later.
    */
-  public ProgressBarUpdater( JProgressBar progressBar ) {
-    this(  );
-    this.pBar = progressBar;
+  public ProgressBarUpdater( JProgressBar progressBar ) 
+  {
+    if ( progressBar == null )
+      throw new IllegalArgumentException( "ProgressBar is NULL " + 
+                                          "in ProgressBarUpdater constructor" );
+    this.pBar     = progressBar;
+    queued        = false;
+    value         = progressBar.getValue();
+    indeterminate = pBar.isIndeterminate();
+    string_value  = pBar.getString();
   }
 
-  /**
-   * Fail-safety to avoid creating one without a progress bar.
-   */
-  private ProgressBarUpdater(  ) {}
-
-  //~ Methods ******************************************************************
 
   /**
-   * The run method will be called later by the event thread to actually update
-   * the JProgressBar.
+   * Set the value of the progress bar using EventQueue.invokeLater().
+   *
+   * @param  newValue  The new value for the progress bar
    */
-  public void run(  ) {
-    pBar.setVisible( true );
+  public void setValue(int newValue) 
+  {
+    boolean wasQueued;
+
+    synchronized(updater) 
+    {
+      value = newValue;
+      wasQueued = queued;
+      queued = true;
+    }
+
+    if (!wasQueued) 
+      EventQueue.invokeLater(updater);
   }
+
+
+  /**
+   * Set the String the progress bar using EventQueue.invokeLater().
+   *
+   * @param  newString  The new String to display in the progress bar
+   */
+  public void setString(String newString) 
+  {
+    boolean wasQueued;
+    
+    synchronized(updater)
+    {
+      string_value = newString;
+      wasQueued = queued;
+      queued = true;
+    }
+
+    if (!wasQueued) 
+      EventQueue.invokeLater(updater);
+  }
+
+
+  /**
+   * Set the indeterminate property of the progress bar using 
+   * EventQueue.invokeLater().
+   *
+   * @param  flag  The new indeterminate state to set for the progress bar
+   */
+  public void setIndeterminate( boolean flag )
+  {
+    boolean wasQueued;
+   
+    synchronized(updater)
+    {
+      indeterminate = flag;
+      wasQueued = queued;
+      queued = true;
+    }
+    
+    if (!wasQueued)
+      EventQueue.invokeLater(updater);
+  }
+
+
+ /**
+  * This method is called by the updater Runnable, from the 
+  * EventQueue.
+  */
+  private void update() 
+  {
+    int     valueCopy;
+    String  string_valueCopy;
+    boolean indeterminateCopy;
+
+    synchronized(updater) 
+    {
+      valueCopy         = value;
+      string_valueCopy  = string_value;
+      indeterminateCopy = indeterminate; 
+
+      queued = false;
+    }
+
+    pBar.setIndeterminate( indeterminateCopy );
+    pBar.setValue(valueCopy);
+    pBar.setString(string_valueCopy);
+  }
+
+
 }
