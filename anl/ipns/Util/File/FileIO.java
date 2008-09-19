@@ -72,7 +72,90 @@ public class FileIO{
   public FileIO(){
   }
 
-
+  /**
+   * Creates the filename for an executable that can be used be java's Runnable.exec. The
+   * name differes for each operating system as follows:<P>
+   * <table><th><td>Op System</td><td>architecure</td><td>Tail added to name</td></th>
+   *     <tr><td>Windows *</td><td>x86</td><td>_w</td></tr>
+   *     <tr><td>Windows *</td><td>x86_64</td><td>_w64</td></tr>
+   *     <tr><td>Linux *</td><td>x86</td><td>_l</td></tr>
+   *     <tr><td>Linux *</td><td>x86_64</td><td>_l64</td></tr>
+   *     <tr><td>FreeBSD</td><td>x86</td><td>_bsd</td></tr>
+   *     <tr><td>Mac OS X</td><td>ppc</td><td>_m</td></tr>
+   *     </table>
+   * @param Path  The directory where the executables are located
+   * @param Name The base name of the executable. The suffix will be added to this
+   * @param AddOpSysTail  add the default tail to an executable file corresponding
+   *                     to the operating system
+   *                     
+   * @return  The full filename of the executable or null if the operating system
+   *           or architecture is not known
+   */
+  public static String  CreateExecFileName( String Path, String ExecBaseName, boolean AddOpSysTail){
+     
+     String op = System.getProperty("os.name");
+     String arch = System.getProperty( "os.arch" );
+     if( Path != null && Path.trim().length() >0){
+        Path= Path.replace( '\\' , '/' );
+        if(!Path.endsWith( "/" ))
+           Path +="/";
+     }
+     if( Path == null)
+        Path ="";
+     if( op == null || arch == null || ExecBaseName == null || 
+                             ExecBaseName.length()<1)
+        return null;
+     
+     Path +=ExecBaseName;
+     Path = Path.replace('\\','/');
+     int ii = 0;
+    
+     for( boolean done = ii+1 >= Path.length(); !done && (ii+1 < Path.length()); ){
+        ii = Path.indexOf( '/' ,ii);
+        if( ii < 0)
+           done = true;
+        else if( ii+1 >= Path.length())
+           done = true;
+        else if( Path.charAt(ii+1)=='/'){
+           Path = Path.substring( 0,ii+1 )+Path.substring( ii+2 );
+        }else
+           ii++;
+        
+     }
+     if(!AddOpSysTail)
+        return Path;
+     if( op.startsWith( "Windows" )){
+        if( arch.equals( "x86" ))
+          return Path+"_w";
+        if( arch.equals("x86_64"))
+           return Path +"_w64";
+        return null;
+           
+     }
+     if( op.startsWith( "Linux" )){
+        if( arch.equals( "x86" ))
+           return Path+"_l";
+         if( arch.equals("x86_64"))
+            return Path +"_l64";
+         return null;
+        
+     }
+     
+     if( op.startsWith( "Mac OS X" )){
+        if( arch.equals( "ppc" ))
+           return Path+"_m";
+         return null;
+        
+     }
+     if( op.startsWith( "FreeBSD" )){
+        if( arch.equals( "x86" ))
+           return Path+"_bsd";
+         return null;
+        
+     }
+     return null;
+     
+  }
  /**
  *    Writes Data to a file in the specified Format. 
  *
@@ -286,11 +369,14 @@ public class FileIO{
         
 
   }
-
+  public static void main( String args[]){
+    
+     System.out.println( FileIO.CreateExecFileName("C:\\/Isaw1///anvred" , "abc" , true ));
+  }
   /** 
   *    Test program for this module.  NO arguments
   */  
-  public static void main( String args[] ){
+  public static void main1( String args[] ){
 
     //int i;
     Vector V;
