@@ -71,6 +71,51 @@ public class FileIO{
   public static boolean debug = false;
   public FileIO(){
   }
+  
+  
+  /**
+   * Creates a Distinct filename by affixing 0,1,2,... before the Extension
+   * @param Path          The path only of the filename. A Path separator 
+   *                         will be appended if not given
+   * @param TemplateName  The name of the file to which the 0,1,2,... will be 
+   *                      appended
+   * @param Extension     The extension for the filename, or what will be 
+   *                       concatenated after the affixed index
+   * @param maxInt      The largest positive integer to use or -1 if none
+   * @return            The String name of a file( fixed) that does not 
+   *                    correspond to any other file in the directory or null
+   *                    if there is no name available
+   */
+  public static String CreateDistinctFileName( String Path, 
+                                String TemplateName, String Extension, 
+                                int maxInt){
+     
+     if( Path == null)
+        Path ="/";
+     Path = Path.replace(  '\\' ,'/' );
+     if( !Path.endsWith("/"))
+        Path = Path +'/';
+     if(TemplateName == null)
+        TemplateName ="";
+     TemplateName=TemplateName.replace('\\','/');
+     Path = Path+TemplateName;
+     if(Extension == null)
+        Extension ="";
+     Extension = Extension.replace('\\','/');
+     if( maxInt < 0)
+        maxInt = Integer.MAX_VALUE;
+     for( int i=0; i < maxInt; i++){
+        String X = ""+i;
+        X=Path+X.trim()+Extension;
+        if( ! (new File( X)).exists())
+            return X;
+     }
+     throw new java.lang.IndexOutOfBoundsException(
+                       "No File with index in range available");
+     
+     
+     
+  }
 
   /**
    * Creates the filename for an executable that can be used be java's Runnable.exec. The
@@ -137,6 +182,8 @@ public class FileIO{
            return Path+"_l";
          if( arch.equals("x86_64"))
             return Path +"_l64";
+         if( arch.equals("amd64"))
+            return Path+"_lA64";
          return null;
         
      }
@@ -371,7 +418,8 @@ public class FileIO{
   }
   public static void main( String args[]){
     
-     System.out.println( FileIO.CreateExecFileName("C:\\/Isaw1///anvred" , "abc" , true ));
+     //System.out.println( FileIO.CreateExecFileName("C:\\/Isaw1///anvred" , "abc" , true ));
+     System.out.println(FileIO.CreateDistinctFileName( "C:/ISAW1","xxx",".txt",20));
   }
   /** 
   *    Test program for this module.  NO arguments
