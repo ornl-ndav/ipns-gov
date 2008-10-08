@@ -183,7 +183,7 @@ public class FileIO{
          if( arch.equals("x86_64"))
             return Path +"_l64";
          if( arch.equals("amd64"))
-            return Path+"_lA64";
+            return Path+"_l64";
          return null;
         
      }
