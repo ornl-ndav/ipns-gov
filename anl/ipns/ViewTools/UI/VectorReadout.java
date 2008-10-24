@@ -74,6 +74,7 @@ public class VectorReadout extends    ActiveJPanel
   private Vector3D  vector = null;
   private JButton   select_button; 
   private Boolean   Scale_StepMode;
+  private boolean   dSpace_mode;
   /* ------------------------------ CONSTRUCTOR ---------------------------- */
   /** 
    */
@@ -89,7 +90,7 @@ public class VectorReadout extends    ActiveJPanel
      this.title = title;
      this.Scale_StepMode =Scale_StepMode;
      TextValueUI      scale_value;    
-
+     dSpace_mode = true;
      TitledBorder border = 
                   new TitledBorder(LineBorder.createBlackLineBorder(), title );
      border.setTitleFont( FontUtil.BORDER_FONT );
@@ -167,6 +168,14 @@ public class VectorReadout extends    ActiveJPanel
    {
      this(title, select_title, true );
    }
+   
+   /**
+    * Sets whether d is 2Pi/|Q|(true) or 1/|Q| (false)
+    * @param dSpace_mode  true if |Q| is 2Pi/d otherwise false
+    */
+   public void set_dSpace_mode( boolean dSpace_mode){
+      this.dSpace_mode = dSpace_mode;
+   }
  public void setVector( Vector3D vec )
  {
    
@@ -195,7 +204,10 @@ public class VectorReadout extends    ActiveJPanel
         d_value.setText  (" d : undefined" );
       else
       {
-        result = Format.real( 2*Math.PI/vec.length(), 6, 3 );
+        double mult = 1;
+        if( dSpace_mode)
+           mult = 2*Math.PI;
+        result = Format.real( mult/vec.length(), 6, 3 );
         d_value.setText  (" d : " + result );
       }
    }
