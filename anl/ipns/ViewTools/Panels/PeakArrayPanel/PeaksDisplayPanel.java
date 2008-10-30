@@ -56,13 +56,13 @@ import gov.anl.ipns.Util.Numeric.*;
  */
 public class PeaksDisplayPanel extends JPanel
 {
+  /**
+   *  Limit on the maximum number of images that can be displayed.
+   */
   public static final int MAX_DISPLAYABLE = 1200;
   private ImageJPanel2[]     ijp_array;
 
-// This is not needed yet, but will be when we add controls to 
-// step back and forth on slices, display the counts at a location
-// etc.
-//  private PeakDisplayInfo[]  peak_infos;
+  private PeakDisplayInfo[]  peak_infos;
 
   private int N_PANEL_ROWS;
   private int N_PANEL_COLS;
@@ -70,17 +70,24 @@ public class PeaksDisplayPanel extends JPanel
   static final float[][] DEFAULT_ARRAY   = { {0} }; 
   static final VirtualArray2D ZERO_ARRAY = new VirtualArray2D( DEFAULT_ARRAY ); 
 
-  private JSlider intensity_slider;
-  private int     INITIAL_LOG_SCALE_VALUE = 40;
+  private JLabel   coord_label;
 
-  private JLabel  coord_label;
+  private JSpinner slice_spinner;
+  private int      max_slice_delta;  
+
+  private JSlider  intensity_slider;
+  private int      INITIAL_LOG_SCALE_VALUE = 40;
 
 
   /**
    *  Construct a PeaksDisplayPanel to display a list of peaks represented 
    *  by PeakDisplayInfo objects.
+   *
    *  NOTE: The PeaksDisplayPanel saves a REFERENCE to the array of peak_info
    *        objects.
+   *
+   *  NOTE: The size of the 3D array of values MUST be the same for all of
+   *        the PeakDisplayInfo objects in the list.
    *
    *  @param peak_infos  The array of peaks to be displayed
    */
@@ -98,14 +105,16 @@ public class PeaksDisplayPanel extends JPanel
    */
   private void init( PeakDisplayInfo[] peak_infos )
   {
-//    this.peak_infos = peak_infos;
+    removeAll();                       // if this was previously initialized
+                                       // get rid of any old components
+    this.peak_infos = peak_infos;
 
     int num_displayed = Math.min( peak_infos.length, MAX_DISPLAYABLE );
     if ( num_displayed != peak_infos.length )
       System.out.println("Warning: number of peaks displayed limited to" +
                           MAX_DISPLAYABLE );
-
-    if ( num_displayed <= 5 )
+                                               // figure out how to split
+    if ( num_displayed <= 5 )                  // these into rows and columns
     {
       N_PANEL_COLS = num_displayed;
       N_PANEL_ROWS = 1;
@@ -136,11 +145,47 @@ public class PeaksDisplayPanel extends JPanel
       N_PANEL_ROWS = (num_displayed-1) / 25 + 1;
     }
 
+                                           // Make the main panel
     setLayout( new BorderLayout() );
     JPanel center_panel = new JPanel();
     add( center_panel, BorderLayout.CENTER );
     center_panel.setLayout( new GridLayout(N_PANEL_ROWS,N_PANEL_COLS) ); 
 
+                                           // Make the control panel across
+                                           // the bottom of the display
+    Box control_panel = Box.createHorizontalBox();
+    add( control_panel, BorderLayout.SOUTH );
+
+    coord_label = new JLabel();
+    control_panel.add( coord_label );
+
+    max_slice_delta = (peak_infos[0].maxChan() - peak_infos[0].minChan()) / 2;
+    JLabel spinner_label = new JLabel("  Slice Offset ");
+    control_panel.add( spinner_label );
+
+    slice_spinner = new JSpinner();
+    slice_spinner.addChangeListener( new SliceSpinnerListener() );
+    JPanel spinner_container = new JPanel();
+    spinner_container.setLayout( new GridLayout(1,1) );
+    spinner_container.setMinimumSize( new Dimension( 40, 20) );
+    spinner_container.setMaximumSize( new Dimension( 40, 20) );
+    spinner_container.setPreferredSize( new Dimension( 40, 20) );
+    spinner_container.add( slice_spinner );
+    control_panel.add( spinner_container );
+
+    intensity_slider = new JSlider( 0, 100, INITIAL_LOG_SCALE_VALUE );
+    intensity_slider.addChangeListener( new SliderListener() );
+    intensity_slider.setMinimumSize( new Dimension( 150, 20) );
+    intensity_slider.setMaximumSize( new Dimension( 150, 20) );
+    intensity_slider.setPreferredSize( new Dimension( 150, 20) );
+    control_panel.add( intensity_slider );
+
+    JPanel filler = new JPanel();
+    filler.setPreferredSize( new Dimension( 2000, 20) );
+    control_panel.add( filler );
+
+                                            // Now build all the images and 
+                                            // add them to the central display
     ijp_array = new ImageJPanel2[ num_displayed ];    
     VirtualArray2D va2D;
     TitledBorder   border;
@@ -177,22 +222,13 @@ public class PeaksDisplayPanel extends JPanel
       container.add( ijp_array[index] );
       center_panel.add(container);
     }
-
-    // if we don't add a full rectangle of panels, the grid layout doesn't work
+                                          // If we don't have a full rectangle
+                                          // of panels, the grid layout doesn't 
+                                          // work, so fill out any remaining
+                                          // positions with empty panels.
     int num_positions = N_PANEL_ROWS * N_PANEL_COLS;
     for ( int i = num_displayed; i < num_positions; i++ )
       center_panel.add( new JPanel() );
-
-    JPanel control_panel = new JPanel();
-    control_panel.setLayout( new GridLayout(1,2) );
-    add( control_panel, BorderLayout.SOUTH );
-
-    coord_label = new JLabel();
-    control_panel.add( coord_label );
-
-    intensity_slider = new JSlider( 0, 100, INITIAL_LOG_SCALE_VALUE );
-    intensity_slider.addChangeListener( new SliderListener() );
-    control_panel.add( intensity_slider );
   }
 
 
@@ -221,6 +257,9 @@ public class PeaksDisplayPanel extends JPanel
   }
 
 
+  /**
+   *  Listener class for the intensity slider
+   */
   public class SliderListener implements ChangeListener
   {
      public void stateChanged( ChangeEvent e )
@@ -233,14 +272,60 @@ public class PeaksDisplayPanel extends JPanel
   }
 
 
+  /**
+   *  Listener class for the slice offset selector
+   */
+  public class SliceSpinnerListener implements ChangeListener
+  {
+     public void stateChanged( ChangeEvent e )
+     {
+        Integer value = (Integer)slice_spinner.getValue();
+        if ( value > max_slice_delta )
+        {
+          slice_spinner.setValue( max_slice_delta );
+          return;
+        }
+        else if ( value < -max_slice_delta )
+        {
+          slice_spinner.setValue( -max_slice_delta );
+          return;
+        }
+        
+        float[][] slice;
+        VirtualArray2D va2D;
+        for ( int i = 0; i < peak_infos.length; i++ )
+        {
+          peak_infos[i].setRelativeChannel( value );
+          slice = peak_infos[i].getSlice();
+          va2D = new VirtualArray2D( slice );
+          ijp_array[i].setData( va2D, true );
+        }
+     }
+  }
+
+
+  /**
+   *  Listener class for the cross hair pixel selector.
+   */
   public class LocationListener implements ActionListener
   {
+     public LocationListener()
+     {
+       setLabel( 0, 0, 0 );
+     }
+
      public void actionPerformed( ActionEvent event )
      {
        ImageJPanel2 ijp = (ImageJPanel2)event.getSource();        
        floatPoint2D wc_point = ijp.getCurrent_WC_point();
-       String coord_str = String.format("Col = %5.2f, Row = %5.2f", 
-                                        wc_point.x, wc_point.y );
+       float        value    = ijp.ImageValue_at_Cursor();
+       setLabel( wc_point.x, wc_point.y, value );
+     }
+
+     private void setLabel( float x, float y, float value )
+     {
+       String format = " Col: %5.1f, Row: %5.1f, Counts: %4.0f ";
+       String coord_str = String.format(format, x, y, value);
        coord_label.setText( coord_str );
      }
   }
