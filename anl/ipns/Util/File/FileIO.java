@@ -113,9 +113,9 @@ public class FileIO{
      throw new java.lang.IndexOutOfBoundsException(
                        "No File with index in range available");
      
-     
-     
   }
+
+
 
   /**
    * Creates the filename for an executable that can be used be java's Runnable.exec. The
@@ -128,10 +128,10 @@ public class FileIO{
    *     <tr><td>FreeBSD</td><td>x86</td><td>_bsd</td></tr>
    *     <tr><td>Mac OS X</td><td>ppc</td><td>_m</td></tr>
    *     </table>
-   * @param Path  The directory where the executables are located
-   * @param Name The base name of the executable. The suffix will be added to this
+   * @param Path          The directory where the executables are located
+   * @param ExecBaseName  The base name of the executable. The suffix will be added to this
    * @param AddOpSysTail  add the default tail to an executable file corresponding
-   *                     to the operating system
+   *                      to the operating system
    *                     
    * @return  The full filename of the executable or null if the operating system
    *           or architecture is not known

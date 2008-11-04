@@ -133,8 +133,8 @@ public class PeakDisplayInfo
    * determine which slice is returned by getImageData().  The value is
    * clamped, so that the specified slice exists.
    *
-   * @param rel_channel  The offset from the middle page of the counts
-   *                     array.
+   * @param rel_chan    The offset from the middle page of the counts
+   *                    array.
    */
   public boolean setRelativeChannel( int rel_chan )
   {
