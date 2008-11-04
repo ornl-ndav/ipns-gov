@@ -76,7 +76,7 @@ public class PeaksDisplayPanel extends JPanel
   private int      max_slice_delta;  
 
   private JSlider  intensity_slider;
-  private int      INITIAL_LOG_SCALE_VALUE = 40;
+  private int      INITIAL_LOG_SCALE_VALUE = 30;
 
 
   /**
