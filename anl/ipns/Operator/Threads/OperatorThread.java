@@ -78,6 +78,16 @@ public class OperatorThread extends Thread
     return result;
   }
   
+
+  /**
+   *  Get the operator that is executed by this thread.
+   *
+   *  @return a reference to the operator run by this thread.
+   */
+  public IOperator getOperator()
+  {
+    return my_operator;
+  }
   
   /**
    *  Execute the specified operator by calling its getResult() method
