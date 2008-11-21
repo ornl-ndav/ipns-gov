@@ -104,6 +104,8 @@
 
 package gov.anl.ipns.ViewTools.Components;
 
+import java.io.Serializable;
+
 import gov.anl.ipns.Util.Sys.SharedMessages;
 
 /**
@@ -116,7 +118,7 @@ import gov.anl.ipns.Util.Sys.SharedMessages;
  * are numbered 0 - M-1 and the columns are numbered 0 - N-1. 
  */
 
-public class VirtualArray2D implements IMutableVirtualArray2D
+public class VirtualArray2D implements IMutableVirtualArray2D, Serializable
 {
   // data members
   private float[][] dataArray;

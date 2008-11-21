@@ -28,10 +28,12 @@
  */
 package gov.anl.ipns.ViewTools.Panels.Transforms;
 
+import java.io.Serializable;
+
 /**
  * This class is used to make a information string from a linear point.
  */
-public class LinearInfoSource implements ICoordInfoSource 
+public class LinearInfoSource implements ICoordInfoSource ,Serializable
 { 
   private CoordTransform local_transform;  
   private String format_str;  

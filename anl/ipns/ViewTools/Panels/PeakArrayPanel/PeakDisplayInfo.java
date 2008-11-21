@@ -34,11 +34,13 @@
 
 package gov.anl.ipns.ViewTools.Panels.PeakArrayPanel;
 
+import java.io.Serializable;
+
 /**
  *  This class holds the basic data needed to display one peak in a
  *  PeaksDisplayPanel object showing a whole array of peaks.
  */
-public class PeakDisplayInfo 
+public class PeakDisplayInfo implements Serializable
 {
   private String       name;             // name for the peak on titled border
   private float[][][]  counts;           // array of counts centered on peak

@@ -86,6 +86,8 @@
 
 package gov.anl.ipns.ViewTools.Components;
 
+import java.io.Serializable;
+
 /**
  * This class groups all of the information about an axis into one object.
  * The class contains the "world coordinates" minimum and maximum, the
@@ -94,7 +96,7 @@ package gov.anl.ipns.ViewTools.Components;
  *
  *  @see gov.anl.ipns.ViewTools.Components.IVirtualArray
  */
-public class AxisInfo
+public class AxisInfo  implements Serializable
 {  
  /**
   * 0 - this int variable defines the use of the x axis.

@@ -36,6 +36,8 @@ package gov.anl.ipns.ViewTools.Panels.PeakArrayPanel;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.Serializable;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -99,6 +101,9 @@ public class PeaksDisplayPanel extends JPanel
     init( peak_infos );
   }
 
+  public PeakDisplayInfo[] getPeakInfos(){
+     return peak_infos;
+  }
 
   /**
    *  Initialize the panel for this array of peak objects.
@@ -275,7 +280,7 @@ public class PeaksDisplayPanel extends JPanel
   /**
    *  Listener class for the slice offset selector
    */
-  public class SliceSpinnerListener implements ChangeListener
+  public class SliceSpinnerListener implements ChangeListener, Serializable
   {
      public void stateChanged( ChangeEvent e )
      {
@@ -307,7 +312,7 @@ public class PeaksDisplayPanel extends JPanel
   /**
    *  Listener class for the cross hair pixel selector.
    */
-  public class LocationListener implements ActionListener
+  public class LocationListener implements ActionListener, Serializable
   {
      public LocationListener()
      {
