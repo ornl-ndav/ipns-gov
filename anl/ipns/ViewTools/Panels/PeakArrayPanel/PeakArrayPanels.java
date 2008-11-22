@@ -125,7 +125,7 @@ public class PeakArrayPanels extends JFrame {
       for( int i = 0 ; i < SpinnerValues.length ; i++ ) {
 
          String Val = TitlePrompt + ":" + Titles.elementAt( i ) + "--"
-                  + IDPrompt + ":" + IDs.elementAt( i );
+                  + IDPrompt + ":" + IDs.elementAt( i )+" ";
          SpinnerValues[ i ] = Val;
       }
 
@@ -136,10 +136,14 @@ public class PeakArrayPanels extends JFrame {
      
       this.setLayout( new BorderLayout() );
       
-      JPanel base = new JPanel( new GridLayout( 1 , 1 ) );
+      JPanel base = new JPanel();
+      base.setLayout( new BoxLayout( base, BoxLayout.X_AXIS) );
       JSpinner spinner = new JSpinner( new SpinnerListModel( SpinnerValues ) );
       spinner.addChangeListener( new SpinnerChangeListener( this ) );
+      base.add( Box.createHorizontalGlue());
       base.add( spinner );
+      base.add( Box.createHorizontalGlue());
+      
 
       getContentPane().add( base , BorderLayout.SOUTH );
 
