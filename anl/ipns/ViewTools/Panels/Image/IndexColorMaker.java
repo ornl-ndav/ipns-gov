@@ -27,7 +27,11 @@
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
- * Modified:
+ *  Last Modified:
+ * 
+ *  $Author$
+ *  $Date$            
+ *  $Revision$
  *
  *  $Log$
  *  Revision 1.15  2005/07/19 18:51:13  kramer
@@ -101,7 +105,7 @@ public class IndexColorMaker implements Serializable
    *                      defined by this class, GRAY_SCALE...SPECTRUM_SCALE.
    *
    *  @param num_colors   The number of pseudo colors to use in the range
-   *                      16 to 256.
+   *                      2 to 256.
    *
    *  @return  Returns an IndexColorModel to be used to map indices in the
    *           range 0 to num_colors-1 to pseudo colors in the color model.
@@ -111,8 +115,8 @@ public class IndexColorMaker implements Serializable
   {
     if ( num_colors > 256 )                // force valid and usable num_colors
       num_colors = 256;
-    else if ( num_colors < 16 )
-      num_colors = 16;
+    else if ( num_colors < 2 )
+      num_colors = 2;
 
     byte red[]   = new byte [ num_colors ];
     byte green[] = new byte [ num_colors ];
@@ -506,16 +510,27 @@ public class IndexColorMaker implements Serializable
   }
 
 
-  // 
-  //  Build a color table by interpolating between a base set of colors.
-  //  The "base" color arrays must all be of the same length ( the length
-  //  being the number of base colors given.  The base color values must
-  //  be between 0 and 255. 
-  //  The calling routine must provide red, green and blue arrays, each 
-  //  of the same length ( less than 257) to hold the color table being 
-  //  constructed.  The number of colors being constructed must exceed 
-  //  the number of base colors given;
-  //  
+  /** 
+   *  Build a color table by interpolating between a base set of colors.
+   *  The "base" color arrays must all be of the same length ( the length
+   *  being the number of base colors given.  The base color values must
+   *  be between 0 and 255.  The arrays of base colors must be of length
+   *  two or more.
+   *  The calling routine must provide red, green and blue arrays, each 
+   *  of the same length (less than 257) to hold the color table being 
+   *  constructed.  
+   *
+   *  @param base_red    Red components of the base colors to interpolate.
+   *  @param base_green  Green components of the base colors to interpolate.
+   *  @param base_blue   Blue components of the base colors to interpolate.
+   *  @param red         Array that will be filled with the red components
+   *                     of the interpolated colors.
+   *  @param green       Array that will be filled with the green components
+   *                     of the interpolated colors.
+   *  @param blue        Array that will be filled with the blue components
+   *                     of the interpolated colors.
+   */ 
+  
   private static void InterpolateColorScale( float base_red[],
                                              float base_green[],
                                              float base_blue[],
@@ -523,27 +538,38 @@ public class IndexColorMaker implements Serializable
                                              byte  green[],
                                              byte  blue[]  )
   {
-    int   n_ranges   = base_red.length - 1;
-    int   out_length = red.length; 
-    float range_size = ( out_length - 0.999f) / (float)n_ranges;
-  
-    float t;
-    int   range     = 0;
-    float step_base = 0;
-    for ( int i = 0; i < out_length; i++ )
+                                           // first output color is first base
+    red[0]   = (byte)base_red[0];          // color
+    green[0] = (byte)base_green[0];
+    blue[0]  = (byte)base_blue[0]; 
+                                           // last output color is last base
+    int last_out = red.length - 1;         // color
+    int last_in  = base_red.length - 1;
+    red[last_out]   = (byte)base_red[last_in]; 
+    green[last_out] = (byte)base_green[last_in];
+    blue[last_out]  = (byte)base_blue[last_in];
+          
+                                           // interpolate remaining output
+                                           // colors
+    for ( int i = 1; i < last_out; i++ )
     {
-      if ( i > (step_base + range_size) )
-      {
-        range     = range + 1;
-        step_base = step_base + range_size;
-      }
-      t = ( i - step_base ) / range_size;
-      red[i]   = (byte) ( (1.0-t) * base_red[range]+ 
-                                t * base_red[range+1] );
-      green[i] = (byte) ( (1.0-t) * base_green[range]+ 
-                                t * base_green[range+1] );
-      blue[i]  = (byte) ( (1.0-t) * base_blue[range]+ 
-                                t * base_blue[range+1] );
+      float t_out = i / (float)last_out;   // fraction of way along output 
+                                           // indices
+
+      float float_index = t_out * last_in; // corresponding "floating point"
+                                           // index in array of input colors
+      int base_index = (int)float_index;
+      
+      float t = float_index - base_index;
+
+      red[i]   = (byte) ( (1.0-t) * base_red[base_index]+ 
+                             t    * base_red[base_index + 1] );
+
+      green[i] = (byte) ( (1.0-t) * base_green[base_index]+ 
+                             t    * base_green[base_index + 1] );
+
+      blue[i]  = (byte) ( (1.0-t) * base_blue[base_index]+ 
+                             t    * base_blue[base_index + 1] );
     } 
   }
 }
