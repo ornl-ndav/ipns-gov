@@ -128,10 +128,11 @@ public class ColorEditPanel extends ActiveJPanel
 		colorMapping = new byte[SUBINTERVAL];
 		initColorMap = new byte[SUBINTERVAL];
 		
-		for( int i=0; i<SUBINTERVAL;i++)
+		for( int i=0; i<SUBINTERVAL-1;i++)
 		{
 			initColorMap[i] = (byte)Math.round(i * (colorOptions.getNumColors() )/(SUBINTERVAL-1));
 		}
+                initColorMap[ SUBINTERVAL-1 ] = initColorMap[ SUBINTERVAL-2 ];     
 		System.arraycopy(initColorMap,0,colorMapping,0,SUBINTERVAL);
 	}
 	
@@ -329,7 +330,7 @@ public class ColorEditPanel extends ActiveJPanel
 	 */
 	private void logScale(byte[] map, float valMax,float valMin)
 	{		
-		for ( int i = 0; i < SUBINTERVAL; i++ )
+ 	    for ( int i = 0; i < SUBINTERVAL-1; i++ )
 	    {
 	      float x =valMin + i * (valMax - valMin) / 
 	      		(SUBINTERVAL-1);
@@ -342,6 +343,7 @@ public class ColorEditPanel extends ActiveJPanel
 	    		  (x - Math.log10(valMin)) / 
 	    		  (Math.log10(valMax) - Math.log10(valMin)));
 	    }
+            map[ SUBINTERVAL - 1 ] = map[ SUBINTERVAL - 2 ];
 	}
 	
    private boolean checkMaxMinValues(){
