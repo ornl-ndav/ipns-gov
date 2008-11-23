@@ -70,12 +70,14 @@ public class ColorOptions extends ActiveJPanel
 		
 	}
 	
-	public void checkValue()
+	public boolean checkValue()
 	{
 		if(!selectNumColors.getText().equals(numColors))
 		{
-			
+		   changeNumColors();
+		   return true;
 		}
+		return false;
 	}
 	
 	/*
@@ -150,12 +152,12 @@ public class ColorOptions extends ActiveJPanel
 		try
 		{
 			numColors = new Integer(number).intValue();
-			if( numColors < 2 || numColors > 128 )
+			if( numColors < 16 || numColors > 128 )
 			{
-				JOptionPane.showMessageDialog (null, "Enter a number of colors within the range 2-128. The number of colors has been reset to 128.", 
+				JOptionPane.showMessageDialog (null, "Enter a number of colors within the range 16-128. The number of colors has been reset to 100.", 
 						"Number of Colors Field Error", JOptionPane.ERROR_MESSAGE);
-				numColors = 128;
-				selectNumColors.setText(""+128);
+				numColors = 100;
+				selectNumColors.setText(""+100);
 			}
 		}
 		catch(Exception ex)
@@ -166,6 +168,14 @@ public class ColorOptions extends ActiveJPanel
 		}
 	}
 	
+	private void changeNumColors(){
+	   
+	   String number = selectNumColors.getText();
+      setNumColors(number);
+      System.out.println(numColors);
+      System.out.println("num colors: "+numColors);
+	   
+	}
 	private class colorOptionsListener implements ActionListener
 	{
 
@@ -173,11 +183,8 @@ public class ColorOptions extends ActiveJPanel
 		{
 			if( e.getSource() == selectNumColors )
 			{
-				String number = selectNumColors.getText();
-				setNumColors(number);
-				System.out.println(numColors);
-				System.out.println("num colors: "+numColors);
-				send_message(NUM_OF_COLORS_CHANGED);
+				changeNumColors();
+		      send_message(NUM_OF_COLORS_CHANGED);
 			}
 
 			if ( e.getSource() == colorScale )

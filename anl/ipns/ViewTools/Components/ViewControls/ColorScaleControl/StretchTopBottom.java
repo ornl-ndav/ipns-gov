@@ -104,6 +104,7 @@ public class StretchTopBottom extends ActiveJPanel
 
 		topTextValue = topStretch.getValue();
 		bottomTextValue = bottomStretch.getValue();
+		setGang( false );
 	}
 	
 	/**
@@ -240,7 +241,15 @@ public class StretchTopBottom extends ActiveJPanel
 		}
 	}
 	
-	
+	/**
+	 *   Determines if the text box 
+	 */
+	public boolean checkValues(){
+	   boolean b = topStretch.checkValues();
+	   b = b || bottomStretch.checkValues();
+	   return b;
+	   
+	}
 	
 	/** The ActionListener for the top stretcher. */
 	private ActionListener topAction = new ActionListener()

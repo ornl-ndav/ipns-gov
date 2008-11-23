@@ -59,6 +59,8 @@ public class Stretcher extends ActiveJPanel
 	/** The text field. */
 	private JTextField textField;
 	
+	private String prevTextFieldValue;
+	
 	/** The minimum. */
 	private float minimum;
 	
@@ -98,6 +100,7 @@ public class Stretcher extends ActiveJPanel
 		this.setLayout(new GridLayout(1,2));
 		add(slider);
 		add(textField);
+		prevTextFieldValue = textField.getText();
 	}
 
 	
@@ -120,6 +123,7 @@ public class Stretcher extends ActiveJPanel
 	{
 		String str = Float.toString(Round(value,2));
 		textField.setText(str);
+	   prevTextFieldValue = str;
 		changeValue(true);
 	}
 	
@@ -144,8 +148,8 @@ public class Stretcher extends ActiveJPanel
 	 */
 	public void setMaxMin(float newMax, float newMin, int initial)
 	{
-		float tempMax = maxInterval/(maximum - minimum);
-		float tempMin = minInterval/(maximum - minimum);
+		float tempMax = (maxInterval-minimum)/(maximum - minimum);
+		float tempMin = (minInterval-minimum)/(maximum - minimum);
 		maximum = newMax;
 		minimum = newMin;
 		setValue((slider.getValue()*
@@ -237,6 +241,22 @@ public class Stretcher extends ActiveJPanel
 			changeValue(true);
 		}
 	};
+	/**
+    * Checks if text Field has been changed without entering a return.
+    */
+    public boolean checkValues(){
+       if( !textField.getText().equals( prevTextFieldValue )){
+          if(validateRange(false))
+            {
+               changeValue(true);
+               prevTextFieldValue = textField.getText();
+               //sendAction();
+               return true;
+            }
+          
+       }
+       return false;
+    }
 	
 	/** The MouseMotionListener to control input from the mouse for the slider. */
 	MouseMotionListener motion = new MouseMotionListener()
@@ -264,6 +284,7 @@ public class Stretcher extends ActiveJPanel
 		if(updateSlider)
 		{
 			String text = textField.getText();
+			prevTextFieldValue = text;
 			float datanumber = 0;
 			datanumber = new Float(text).floatValue();
 			int slidervalue = (int) (((datanumber-minimum)/((maximum-minimum)/100)));
@@ -276,6 +297,7 @@ public class Stretcher extends ActiveJPanel
 			masterValue = (value*((Math.max(maximum,minimum)-Math.min(minimum,maximum))/100))+Math.min(minimum,maximum);
 			String str = Float.toString(Round(masterValue, 2));
 			textField.setText(str);
+			prevTextFieldValue = str;
 		}
 		textField.addActionListener(action);
 	}
@@ -294,7 +316,8 @@ public class Stretcher extends ActiveJPanel
 		{
 			float value = slider.getValue();
 			value = (value*((Math.max(maximum,minimum)-Math.min(minimum,maximum))/100))+Math.min(minimum,maximum);
-			if(Math.abs(value) <= Math.abs(maxInterval) && Math.abs(value) >= Math.abs(minInterval))
+		
+			if(value <=maxInterval && value >=minInterval)
 			  return true;
 			
 			return false;
@@ -302,6 +325,7 @@ public class Stretcher extends ActiveJPanel
 		else
 		{
 		  String text = textField.getText();
+		  prevTextFieldValue = text;
 		  float datanumber = 0;
 			  
 		  try
@@ -313,6 +337,7 @@ public class Stretcher extends ActiveJPanel
 		    JOptionPane.showMessageDialog(null, "Syntax Error");
 		    datanumber = masterValue;
 		    textField.setText(Float.toString(datanumber));
+		    prevTextFieldValue = textField.getText();
 		  }
 			  
 		  if(datanumber <= maxInterval && datanumber >= minInterval)
@@ -324,6 +349,7 @@ public class Stretcher extends ActiveJPanel
 		  	datanumber = masterValue;
 		  	String str = Float.toString(datanumber);
 		  	textField.setText(str);
+         prevTextFieldValue = textField.getText();
 		  	return false;
 		  }
 
@@ -333,6 +359,7 @@ public class Stretcher extends ActiveJPanel
 			datanumber = masterValue;
 			String str = Float.toString(datanumber);
 			textField.setText(str);
+         prevTextFieldValue = textField.getText();
 			return false;
 		  }
 			  

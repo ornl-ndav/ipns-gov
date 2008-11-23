@@ -1,3 +1,4 @@
+
 /*
  * File: ColorEditPanel.java
  *
@@ -343,31 +344,45 @@ public class ColorEditPanel extends ActiveJPanel
 	    }
 	}
 	
+   private boolean checkMaxMinValues(){
+      
+     
+      if(!maxField.getText().equals(""+max)||!minField.getText().equals(""+min))
+      {
+         setMax(maxField.getText());
+         setMin(minField.getText());
+         sliders.setMaxMin(max,min);
+         maxField.setText(""+max);
+         minField.setText(""+min);
+         return true;
+      }  
+      return false;
+   }
+   
+   
+   
 	private void checkValues()
 	{
-		if(!maxField.getText().equals(""+max)||!minField.getText().equals(""+min))
-		{
-			setMax(maxField.getText());
-			setMin(minField.getText());
-			sliders.setMaxMin(max,min);
-		}
-		maxField.setText(""+max);
-    minField.setText(""+min);
+		boolean b =checkMaxMinValues();
 		//call sliderTopBottom check method
 		
 		//check preScale
 		if(!prescaleField.getText().equals(scale))
 		{
 			setPrescale(prescaleField.getText());
+			
 		}
 		
 		//check num colors
-		colorOptions.checkValue();
+		b = b || colorOptions.checkValue();
 		
 		System.out.println("min: "+ min);
 		System.out.println("max: "+ max);
 		System.out.println("prescale: "+ scale);
 		System.out.println("num of colors: "+ colorOptions.numColors);
+		boolean b1 = sliders.checkValues();
+		b = b || b1;
+		
 	}
 	
 	public int getNumColors()
@@ -539,6 +554,7 @@ public class ColorEditPanel extends ActiveJPanel
 		{
 			if( e.getSource() == doneButton )
 			{
+			   checkValues();
 				send_message(doneMessage);
 				calculateMapping();
 				System.out.println(doneMessage);
@@ -554,7 +570,7 @@ public class ColorEditPanel extends ActiveJPanel
 			}
 			
 			if( e.getSource() == cancelButton )
-			{
+			{ 
 				send_message(cancelMessage);
 				System.out.println(cancelMessage);
 			}
@@ -569,7 +585,7 @@ public class ColorEditPanel extends ActiveJPanel
 		public void actionPerformed(ActionEvent e) 
 		{
 			if( e.getSource() == logCheck )
-			{
+			{  checkValues();
 				if (((JCheckBox)e.getSource()).isSelected())
 				{
 				  //if(max<1) max = 1;
@@ -586,7 +602,7 @@ public class ColorEditPanel extends ActiveJPanel
 			}
 			
 			else if(e.getSource() == autoScale)
-			{
+			{  checkValues();
 				if (((JRadioButton)e.getSource()).isSelected())
 				{
 					autoScale.setSelected(true);
@@ -604,7 +620,7 @@ public class ColorEditPanel extends ActiveJPanel
 			}
 			
 			else if(e.getSource() == specMinMax)
-			{
+			{  
 				if (((JRadioButton)e.getSource()).isSelected())
 				{
 					specMinMax.setSelected(true);
@@ -621,6 +637,7 @@ public class ColorEditPanel extends ActiveJPanel
 			{
 				String maxValue = maxField.getText();
 				setMax(maxValue);
+				checkValues();
 				if(max<1&&logScale) max = 1;
 				maxField.setText(""+max);
 				sliders.setMaxMin(max,min);
@@ -631,7 +648,7 @@ public class ColorEditPanel extends ActiveJPanel
 			{
 				String minValue = minField.getText();
 				setMin(minValue);
-				
+				checkValues();
 				if(min<1&&logScale) min = 1;
 				minField.setText(""+min);
 				sliders.setMaxMin(max,min);
@@ -639,7 +656,8 @@ public class ColorEditPanel extends ActiveJPanel
 			}
 			
 			else if( e.getSource() == prescaleField )
-			{
+			{  
+			   checkValues();
 				String value = prescaleField.getText();
 				setPrescale(value);
 					System.out.println(scale);
@@ -656,12 +674,13 @@ public class ColorEditPanel extends ActiveJPanel
 			System.out.println(e.getActionCommand());
 			if(e.getActionCommand().equals(ColorOptions.COLOR_SCALE_CHANGED))
 			{
+			   checkValues();
 				System.out.println("setColorModel: ColorScaleChanged to "+colorOptions.getColorScale());
 				colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
 			}
 			
 			else if(e.getActionCommand().equals(ColorOptions.NUM_OF_COLORS_CHANGED))
-			{
+			{  checkValues();
 				System.out.println("setColorModel: NumOfColorsChanged to "+ colorOptions.getNumColors());
 				colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
 				calculateMapping();
@@ -674,6 +693,7 @@ public class ColorEditPanel extends ActiveJPanel
 	{
 
 		public void actionPerformed(ActionEvent e) {
+		   checkValues();
 			calculateMapping();
 			System.out.println("Max: "+sliders.getTopValue());
 			System.out.println("Min: "+sliders.getBottomValue());
