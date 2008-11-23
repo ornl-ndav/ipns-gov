@@ -51,7 +51,7 @@ public class ColorPanel extends JPanel
 
   private ImageJPanel2   image_panel;
   private JPanel         scale_panel;
-  private float          range_min;
+  private float          range_min; 
   private float          range_max;
 
   /**
@@ -101,6 +101,29 @@ public class ColorPanel extends JPanel
     range_min = min;
     range_max = max;
 
+    float[][] values = new float[1][NUM_VALUES];
+    for ( int i = 0; i < NUM_VALUES; i++ )
+      values[0][i] =  i * ( max - min ) / (NUM_VALUES - 1) + min;
+
+    VirtualArray2D virtual_array = new VirtualArray2D( values );
+    image_panel.setData( virtual_array, rebuild_now );
+    image_panel.setDataRange( min, max );
+    System.out.println("Set data range to " + min + ", " + max );
+
+    resetCalibrations( min, max );
+  }
+
+
+  /**
+   *  Rebuild the calibrated axis across the bottom of the
+   *  image display, if the panel is resized, or if the 
+   *  min and/or max values are changed.
+   *
+   *  @param min  The minimum value on the color axis.
+   *  @param max  The maximumn value on the color axis.
+   */
+  private void resetCalibrations( float min, float max )
+  {
     CalibrationUtil calib = new CalibrationUtil( min, max );
     float[] info = calib.subDivide();
     float first = info[1];
@@ -113,7 +136,6 @@ public class ColorPanel extends JPanel
     System.out.println("\nLinear calibrations: ");
     for ( int i = 0; i < points.length; i++ )
       System.out.printf( "%3d  %4.2f\n", i, points[i] );
-
 /*
     System.out.println("\nLog calibrations: ");
     points = calib.subDivideLog();
@@ -133,14 +155,6 @@ public class ColorPanel extends JPanel
     panel.AddObject( new LinearAxis( width, height, min, max, points ) );
     panel.draw();
     scale_panel.setVisible( true );
-
-    float[][] values = new float[1][NUM_VALUES];
-    for ( int i = 0; i < NUM_VALUES; i++ )
-      values[0][i] =  i * ( max - min ) / (NUM_VALUES - 1) + min;
-
-    VirtualArray2D virtual_array = new VirtualArray2D( values );
-    image_panel.setData( virtual_array, rebuild_now );
-    image_panel.setDataRange( min, max );
   }
 
 
@@ -168,20 +182,20 @@ public class ColorPanel extends JPanel
    *
    * @param table        Table with color index entries, from zero to one less
    *                     than the number of colors used.
-   * @param min          The minimum data value for the color table.
-   * @param max          The maximum data value for the color table.
+   * @param table_min    The minimum data value for the color table.
+   * @param table_max    The maximum data value for the color table.
    * @param rebuild_now  If true, the image will be redraw immediately.  Set
    *                     false if several other operations are to be done
    *                     before redrawing the image.
    */
   public void setColorTable( byte[]  table,
-                             float   min, 
-                             float   max, 
+                             float   table_min, 
+                             float   table_max, 
                              boolean rebuild_now )
   {
     System.out.println("setColorTable called with " + table.length );
-    System.out.println("min = " + min + "  max = " + max );
-    image_panel.setDataRange( min, max );
+    System.out.println("min = " + table_min + "  max = " + table_max );
+    image_panel.setDataRange( table_min, table_max );
     image_panel.changeColorIndexTable( table, rebuild_now );
   }
 
@@ -194,11 +208,7 @@ public class ColorPanel extends JPanel
   {
     public void componentResized(ComponentEvent e) 
     {
-      setDataRange( range_min, range_max, true );
-    }
-    public void componentShown(ComponentEvent e) 
-    {
-      setDataRange( range_min, range_max, true );
+      resetCalibrations( range_min, range_max );
     }
   };
   
