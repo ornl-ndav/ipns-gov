@@ -167,7 +167,7 @@ public class IndexColorMaker implements Serializable
    *                      defined by this class, GRAY_SCALE...SPECTRUM_SCALE.
    *
    *  @param num_colors   The number of pseudo colors to use for positive 
-   *                      values.  This must be in the range 16 to 127.
+   *                      values.  This must be in the range 2 to 127.
    *
    *  @return  Returns an IndexColorModel to be used to map indices in the
    *           range 0 to 2*num_colors to pseudo colors in the color model.
@@ -189,8 +189,8 @@ public class IndexColorMaker implements Serializable
   {
     if ( num_colors > 127 )                // force valid and usable num_colors
       num_colors = 127;
-    else if ( num_colors < 16 ) 
-      num_colors = 16;
+    else if ( num_colors < 2 ) 
+      num_colors = 2;
                                                 // colors for positive values
     byte p_red[]   = new byte [ num_colors ];
     byte p_green[] = new byte [ num_colors ];
@@ -292,7 +292,7 @@ public class IndexColorMaker implements Serializable
    *                      defined by this class, GRAY_SCALE...SPECTRUM_SCALE.
    *
    *  @param num_colors   The number of pseudo colors to use in the range
-   *                      16 to 256.
+   *                      2 to 256.
    *
    *  @return  Returns a table of Color objects to be used to map indices 
    *           in the range 0 to num_colors-1 to pseudo colors.
@@ -313,7 +313,7 @@ public class IndexColorMaker implements Serializable
    *                      defined by this class, GRAY_SCALE...SPECTRUM_SCALE.
    *
    *  @param num_colors   The number of pseudo colors to use for positive
-   *                      values.  This must be in the range 16 to 127.
+   *                      values.  This must be in the range 2 to 127.
    *
    *  @return  Returns a table of Color objects to be used to map indices
    *           in the range 0 to 2*num_colors to pseudo colors.
