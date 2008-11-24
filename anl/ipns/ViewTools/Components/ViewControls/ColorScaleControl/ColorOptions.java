@@ -152,11 +152,11 @@ public class ColorOptions extends ActiveJPanel
 		try
 		{
 			numColors = new Integer(number).intValue();
-			if( numColors < 2 || numColors > 128 )
+			if( numColors < 2 || numColors > 127 )
 			{
-				JOptionPane.showMessageDialog (null, "Enter a number of colors within the range 2-128. The number of colors has been reset to 128.", 
+				JOptionPane.showMessageDialog (null, "Enter a number of colors within the range 2-127. The number of colors has been reset to 127.", 
 						"Number of Colors Field Error", JOptionPane.ERROR_MESSAGE);
-				numColors = 128;
+				numColors = 127;
 				selectNumColors.setText(""+numColors);
 			}
 		}
