@@ -31,7 +31,6 @@
 
 package gov.anl.ipns.ViewTools.Components.ViewControls.ColorScaleControl;
 
-
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -47,12 +46,13 @@ import gov.anl.ipns.ViewTools.Components.Transparency.*;
  */
 public class ColorPanel extends JPanel
 {
-  private final int NUM_VALUES = 1000;
+  private final int NUM_VALUES = 500;
 
   private ImageJPanel2   image_panel;
   private JPanel         scale_panel;
   private float          range_min; 
   private float          range_max;
+  private boolean        is_log_scale = false;
 
   /**
    *  Construct a color panel with values in the default data range, [0,1].
@@ -62,7 +62,6 @@ public class ColorPanel extends JPanel
     image_panel = new ImageJPanel2();
     scale_panel = new JPanel();
 
-//    scale_panel.setMaximumSize( new Dimension(1000,30) );
     scale_panel.setPreferredSize( new Dimension(100,30) );
     scale_panel.setLayout( new GridLayout(1,1) );
     
@@ -102,15 +101,31 @@ public class ColorPanel extends JPanel
     range_max = max;
 
     float[][] values = new float[1][NUM_VALUES];
-    for ( int i = 0; i < NUM_VALUES; i++ )
-      values[0][i] =  i * ( max - min ) / (NUM_VALUES - 1) + min;
+    if ( is_log_scale )                  // make exponential image values
+    {
+      double ratio = Math.pow( max/min, 1.0/(NUM_VALUES-1) );
+      double val = min;
+      for ( int i = 0; i < NUM_VALUES; i++ )
+      {
+        values[0][i] = (float)val;
+        val *= ratio;
+      }
+    }
+    else                                  // make linear array of image values
+    {
+      for ( int i = 0; i < NUM_VALUES; i++ )
+        values[0][i] =  i * ( max - min ) / (NUM_VALUES - 1) + min;
+    }
 
     VirtualArray2D virtual_array = new VirtualArray2D( values );
     image_panel.setData( virtual_array, rebuild_now );
     image_panel.setDataRange( min, max );
-    System.out.println("Set data range to " + min + ", " + max );
 
-    resetCalibrations( min, max );
+    System.out.println("Set data range to " + min + ", " + max );
+    System.out.println("Values from " + values[0][0] + 
+                       ", " + values[0][NUM_VALUES-1] );
+
+    resetCalibrations( min, max, is_log_scale );
   }
 
 
@@ -119,40 +134,44 @@ public class ColorPanel extends JPanel
    *  image display, if the panel is resized, or if the 
    *  min and/or max values are changed.
    *
-   *  @param min  The minimum value on the color axis.
-   *  @param max  The maximumn value on the color axis.
+   *  @param min           The minimum value on the color axis.
+   *  @param max           The maximumn value on the color axis.
+   *  @param is_log_scale  Flag indicating whether to make a log
+   *                       or linear axis.
    */
-  private void resetCalibrations( float min, float max )
+  private void resetCalibrations( float min, float max, boolean is_log_scale )
   {
     CalibrationUtil calib = new CalibrationUtil( min, max );
-    float[] info = calib.subDivide();
-    float first = info[1];
-    float step  = info[0];
-    int   n_steps = (int) info[2];
-    float[] points = new float[n_steps];
-    for ( int i = 0; i < n_steps; i++ )
-      points[i] = first + i * step;
 
-    System.out.println("\nLinear calibrations: ");
-    for ( int i = 0; i < points.length; i++ )
-      System.out.printf( "%3d  %4.2f\n", i, points[i] );
-/*
-    System.out.println("\nLog calibrations: ");
-    points = calib.subDivideLog();
-    for ( int i = 0; i < points.length; i++ )
-      System.out.printf( "%3d  %4.2f\n", i, points[i] );
-*/
+    float[] points;
+
+    if ( is_log_scale )
+      points = calib.subDivideLog();
+    else
+    {
+      float[] info = calib.subDivide();
+      float first = info[1];
+      float step  = info[0];
+      int   n_steps = (int) info[2];
+      points = new float[n_steps];
+      for ( int i = 0; i < n_steps; i++ )
+        points[i] = first + i * step;
+    }
+
     scale_panel.setVisible( false );
     scale_panel.removeAll();
 
     int width = scale_panel.getWidth();
     int height = scale_panel.getHeight();
 
-    System.out.println("Current Size = " + width + ", " + height );
-
     TwoD_JPanel panel = new TwoD_JPanel();
     scale_panel.add( panel );
-    panel.AddObject( new LinearAxis( width, height, min, max, points ) );
+
+    if ( is_log_scale )
+      panel.AddObject( new LogAxis( width, height, min, max, points ) );
+    else
+      panel.AddObject( new LinearAxis( width, height, min, max, points ) );
+
     panel.draw();
     scale_panel.setVisible( true );
   }
@@ -171,7 +190,7 @@ public class ColorPanel extends JPanel
    */
   public void setColorModel( String name, int num_colors, boolean rebuild_now )
   {
-    boolean twosided = false;
+    boolean twosided = true;
     image_panel.setNamedColorModel( name, twosided, num_colors, rebuild_now );
   }
 
@@ -191,12 +210,19 @@ public class ColorPanel extends JPanel
   public void setColorTable( byte[]  table,
                              float   table_min, 
                              float   table_max, 
+                             boolean is_log,
                              boolean rebuild_now )
   {
     System.out.println("setColorTable called with " + table.length );
     System.out.println("min = " + table_min + "  max = " + table_max );
-    image_panel.setDataRange( table_min, table_max );
-    image_panel.changeColorIndexTable( table, rebuild_now );
+
+    is_log_scale = is_log; 
+
+    image_panel.changeColorIndexTable( table, 
+                                       is_log,
+                                       table_min, 
+                                       table_max, 
+                                       rebuild_now );
   }
 
 
@@ -208,7 +234,7 @@ public class ColorPanel extends JPanel
   {
     public void componentResized(ComponentEvent e) 
     {
-      resetCalibrations( range_min, range_max );
+      resetCalibrations( range_min, range_max, is_log_scale );
     }
   };
   
@@ -262,7 +288,7 @@ public class ColorPanel extends JPanel
     float min_data =   0;
     float max_data = 345;
     color_panel.setDataRange( min_data, max_data, false );
-    color_panel.setColorTable( table, min_data, max_data, false );
+    color_panel.setColorTable( table, min_data, max_data, false, false );
     color_panel.setColorModel( IndexColorMaker.RAINBOW_SCALE, NUM_COLORS, true);
 
                                  // put the panel in a frame for testing
