@@ -31,6 +31,8 @@
 
 package gov.anl.ipns.ViewTools.Components.ViewControls.ColorScaleControl;
 
+import gov.anl.ipns.ViewTools.Components.ObjectState;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl;
 import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
 
 import java.awt.*;
@@ -40,9 +42,256 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 
-public class ColorEditPanel extends ActiveJPanel
+public class ColorEditPanel extends ViewControl
 {
-	/**
+	/* (non-Javadoc)
+    * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#copy()
+    */
+   @Override
+   public ViewControl copy() {
+
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   /* (non-Javadoc)
+    * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#getControlValue()
+    */
+   @Override
+   public Object getControlValue() {
+
+      
+      return getObjectState( false );
+   }
+
+   /* (non-Javadoc)
+    * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#getObjectState(boolean)
+    */
+   @Override
+   public ObjectState getObjectState( boolean isDefault ) {
+
+           ObjectState state =  super.getObjectState( isDefault );
+           if( isDefault){
+              state.insert( MAXSET, 60000 );
+              state.insert(MINSET,1 );
+              state.insert(NUM_COLORS ,100);
+              state.insert(COLOR_INDEX_CHOICE, "Rainbow" );
+              state.insert(LOGSCALE ,false);
+              state.insert( SLIDERS+"."+ StretchTopBottom.GANG,false);
+              ObjectState Slider = new ObjectState();
+              state.insert(SLIDERS , Slider );
+              Slider.insert(StretchTopBottom.MAX ,60000f);
+              Slider.insert(  StretchTopBottom.MIN ,1f);
+              Slider.insert( StretchTopBottom.BOTTOM_VALUE,1f);
+              Slider.insert( StretchTopBottom.TOP_VALUE,60000f);
+              Slider.insert( StretchTopBottom.INTERVAL_MAX_BOTTOM ,6000f);
+              Slider.insert( StretchTopBottom.INTERVAL_MIN_BOTTOM ,1);
+              Slider.insert( StretchTopBottom.INTERVAL_MAX_TOP ,60000);
+              Slider.insert( StretchTopBottom.INTERVAL_MAX_TOP ,1);
+              state.insert(PRESCALE,1f );
+              state.insert( AUTO_SCALE,true );
+              
+           }else{
+              state.insert( MAXSET, max );
+              state.insert(MINSET,min );
+              state.insert(NUM_COLORS ,getNumColors());
+              state.insert(COLOR_INDEX_CHOICE, colorOptions.getColorScale() );
+              state.insert(LOGSCALE ,logScale);
+              ObjectState Slider = new ObjectState();
+              state.insert(SLIDERS , Slider );
+              Slider.insert( StretchTopBottom.GANG, sliders.getGang());
+
+              Slider.insert(  StretchTopBottom.MAX ,sliders.getMaximum());
+              Slider.insert(  StretchTopBottom.MIN , sliders.getMinimum());
+              Slider.insert( StretchTopBottom.BOTTOM_VALUE,1);
+              Slider.insert( StretchTopBottom.INTERVAL_MAX_BOTTOM ,6000f);
+              Slider.insert( StretchTopBottom.INTERVAL_MIN_BOTTOM ,1);
+              Slider.insert( StretchTopBottom.INTERVAL_MAX_TOP ,60000);
+              Slider.insert( StretchTopBottom.INTERVAL_MAX_TOP ,1);
+              state.insert(PRESCALE,getPrescale() );
+              state.insert( AUTO_SCALE,autoScale.isSelected() );
+              
+           }
+           return state;
+   }
+
+   /* (non-Javadoc)
+    * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#getTitle()
+    */
+   @Override
+   public String getTitle() {
+
+      // TODO Auto-generated method stub
+      return super.getTitle();
+   }
+
+   /* (non-Javadoc)
+    * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#setControlValue(java.lang.Object)
+    */
+   @Override
+   public void setControlValue( Object value ) {
+
+      if( value == null)
+         return;
+      if( !(value instanceof ObjectState))
+         return;
+      ObjectState state = (ObjectState) value;
+      setControlValue( state.get( MAXSET ),MAXSET );
+      setControlValue( state.get( MINSET ),MINSET );
+      setControlValue( state.get( NUM_COLORS ),NUM_COLORS );
+      setControlValue( state.get( COLOR_INDEX_CHOICE ),COLOR_INDEX_CHOICE );
+      setControlValue( state.get( LOGSCALE ),LOGSCALE );
+      ObjectState sliderState =  (ObjectState)state.get( SLIDERS );
+           setControlValue( sliderState.get( StretchTopBottom.MAX),
+                                           SLIDERS+"."+StretchTopBottom.MAX);
+     
+           setControlValue( sliderState.get( StretchTopBottom.MIN),
+                                           SLIDERS+"."+StretchTopBottom.MIN);
+      
+           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAX_BOTTOM),
+                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAX_BOTTOM);
+     
+           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAX_TOP),
+                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAX_TOP);
+     
+           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MIN_TOP),
+                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MIN_TOP);
+     
+           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MIN_BOTTOM),
+                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MIN_BOTTOM);
+     
+           setControlValue( sliderState.get( StretchTopBottom.TOP_VALUE),
+                                           SLIDERS+"."+StretchTopBottom.TOP_VALUE);
+
+           
+           setControlValue( sliderState.get( StretchTopBottom.BOTTOM_VALUE),
+                                           SLIDERS+"."+StretchTopBottom.BOTTOM_VALUE);
+     
+     
+           setControlValue( sliderState.get( StretchTopBottom.GANG),
+                                           SLIDERS+"."+StretchTopBottom.GANG);
+          
+      setControlValue( state.get( PRESCALE ),PRESCALE );
+      setControlValue( state.get( AUTO_SCALE ),AUTO_SCALE );
+      
+      
+   }
+   /**
+    * Will set the appropriate part of GUI Component and the internal value 
+    * for the control
+    * @param value  the new value for the  control
+    * @param key    the key for the part of this ViewControl.
+    */
+   public void setControlValue( Object value, String key){
+      if( value == null || key== null)
+         return;
+      if( key == MAXSET ){
+         if(!( value instanceof Number))
+            return;
+         float val = ((Number)value).floatValue();
+         maxField.setText( ""+val );
+         setMax( val);
+         sliders.setMaxMin( min , max );
+         
+      }else if( key == MINSET){
+         if(!( value instanceof Number))
+            return;
+         float val = ((Number)value).floatValue();
+         minField.setText( ""+val );
+         setMin( val );
+         sliders.setMaxMin( min , max );
+         
+      }else if( key ==NUM_COLORS ){
+         if(!( value instanceof Number))
+            return;
+         int ncolors = ((Number)value).intValue();
+         colorOptions.changeNumColors( ncolors );
+         
+      }else if( key == COLOR_INDEX_CHOICE ){
+         if( value instanceof String){
+            colorOptions.setColor( value.toString());
+            colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
+         }
+         
+      }else if( key == LOGSCALE ){
+         if( value instanceof Boolean)
+            if(((Boolean)value).booleanValue()){
+               logCheck.setSelected( true );
+               setLogScale( true );
+            }else{
+               logCheck.setSelected( false );
+               setLogScale( false );
+               
+            }
+         
+         
+      }else if( key.startsWith( SLIDERS+"." )){
+         sliders.setControlValue( value, key.substring(9));
+         
+      }else if( key == PRESCALE ){
+   
+         
+         if( value instanceof Number){
+            float val =( ((Number)value).floatValue());
+            prescaleField.setText( ""+val );
+         }
+         
+      }else if( key == AUTO_SCALE ){
+         
+         if( value instanceof Boolean)
+            if(((Boolean)value).booleanValue())
+               autoScale.setSelected( true );
+            else
+               autoScale.setSelected( false );
+               
+      }
+   }
+   
+   public Object getControlValue( String key){
+      if(key== null)
+         return null;
+      if( key == MAXSET ){
+         return max;
+      }else if( key == MINSET){
+          return min;
+      }else if( key ==NUM_COLORS ){
+         
+      }else if( key == COLOR_INDEX_CHOICE ){
+         
+      }else if( key == LOGSCALE ){
+         
+      }else if( key ==SLIDERS){
+         
+      }else if( key == PRESCALE ){
+         
+      }else if( key == AUTO_SCALE ){
+         
+      }
+      return null;
+   }
+
+   /* (non-Javadoc)
+    * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#setObjectState(gov.anl.ipns.ViewTools.Components.ObjectState)
+    */
+   @Override
+   public void setObjectState( ObjectState new_state ) {
+
+      
+      super.setObjectState( new_state );
+      setControlValue( new_state);
+   }
+
+   /* (non-Javadoc)
+    * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#setTitle(java.lang.String)
+    */
+   @Override
+   public void setTitle( String control_title ) {
+
+      // TODO Auto-generated method stub
+      super.setTitle( control_title );
+   }
+
+   /**
 	 * This class...
 	 */
 	private static final long serialVersionUID = 1L;
@@ -81,10 +330,27 @@ public class ColorEditPanel extends ActiveJPanel
 	private float max;
 	private float min;
 	private boolean flipped = false;
-		
+	public static String TITLE ="Color Edit Panel";	
+	public static String NUM_COLORS ="Number of Colors";
+   public static String LOGSCALE ="Use Log Scale";
+   public static String PRESCALE ="Prescale factor";
+   public static String MINSET ="Set Minimum";
+   public static String MAXSET ="Set Maximum";
+   public static String AUTO_SCALE ="Automatic scale";
+   public static String SLIDERS ="Sliders";
+   public static String COLOR_INDEX_CHOICE ="Color Model";
+   
+   
+   
+      ;
+   
 	
+	public ColorEditPanel(){
+	   this( 0f,100f);
+	}
 	public ColorEditPanel(float min, float max)
-	{
+	{  
+	   super(  TITLE );
 		this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
 		setBounds(20,20,400,500);
 		
@@ -540,6 +806,21 @@ public class ColorEditPanel extends ActiveJPanel
 	{
 		JFrame blah = new JFrame("ColorEditPanel");
 		ColorEditPanel test = new ColorEditPanel(1,5000);
+		JMenuBar jmb = blah.getJMenuBar();
+		if(jmb == null){
+		   jmb = new JMenuBar();
+		   blah.setJMenuBar( jmb );
+		}
+		JMenu jmen= new JMenu("File");
+		jmb.add(  jmen );
+		JMenuItem jmi = new JMenuItem("Load Object State");
+		jmen.add(  jmi );
+		mActionListener mact =   new mActionListener( test);
+		jmi.addActionListener( mact );
+      jmi = new JMenuItem("Save Object State");
+      jmen.add(  jmi );
+      jmi.addActionListener(  mact );
+		
 		blah.add(test);
 		blah.setBounds(20,20,400,500);	
 		blah.setVisible(true);
@@ -549,6 +830,7 @@ public class ColorEditPanel extends ActiveJPanel
 		//test.printMapping();
 	}
 	
+
 	private class ButtonListener implements ActionListener
 	{
 
@@ -703,4 +985,19 @@ public class ColorEditPanel extends ActiveJPanel
 		
 	}
 	
+}
+class mActionListener implements ActionListener{
+   ColorEditPanel t;
+   public mActionListener( ColorEditPanel t){
+      this.t = t;
+   }
+   public void actionPerformed( ActionEvent evt){
+      ObjectState state = t.getObjectState( false );
+      if( evt.getActionCommand().startsWith( "Save" )){
+         state.openFileChooser( true);
+      }else{
+         state.openFileChooser( false );
+         t.setObjectState( state);
+      }
+   }
 }

@@ -168,6 +168,21 @@ public class ColorOptions extends ActiveJPanel
 		}
 	}
 	
+	public void setColor( String Color){
+	   if( colorScale != null)
+	      colorScale.setSelectedItem( Color );
+	}
+	
+	/**
+	 * Will change GUI representation of this number and also internal stored value
+	 * @param numColors
+	 */
+	public void changeNumColors( int numColors){
+	   if( numColors <2)
+	      return;
+	   selectNumColors.setText(  ""+numColors );
+	   
+	}
 	private void changeNumColors(){
 	   
 	   String number = selectNumColors.getText();

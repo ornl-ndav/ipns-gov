@@ -37,7 +37,6 @@ import javax.swing.*;
 
 import java.awt.GridLayout;
 import java.awt.event.*;
-
 /**
  * The Class StretchTopBottom.
  * 
@@ -45,9 +44,24 @@ import java.awt.event.*;
  * so they move together and updates both the stretchers depending on
  * whether they change the stretcher or textbox.
  */
-public class StretchTopBottom extends ActiveJPanel
+public class StretchTopBottom extends ActiveJPanel 
 {
+	public static String GANG ="Use ganging";
 	
+	public static String MAX ="maximum";
+	public static String MIN = "minimum";
+	public static String INTERVAL_MIN_TOP ="Minimum value for top";
+   public static String INTERVAL_MAX_TOP ="Maximum value for top";
+   public static String INTERVAL_MIN_BOTTOM ="Minimum value for bottom";
+   public static String INTERVAL_MAX_BOTTOM ="Maximum value for bottom";
+	public static String TOP_VALUE ="Top Stretcher Value";
+   public static String BOTTOM_VALUE ="Bottom Stretcher Value";
+	
+   private float minTopval;
+   private float maxTopval;
+   private float minBotval;
+   private float maxBotval;
+   
 	/** The minimum data range. */
 	private float minimum;
 	
@@ -107,6 +121,69 @@ public class StretchTopBottom extends ActiveJPanel
 		setGang( false );
 	}
 	
+	
+	public Object getControlValue( String key){
+	   if( key == null)
+	      return null;
+	   if( key.equals( GANG)){
+	        return gang;
+	      } else if( key .equals( MAX)) {
+	         return maximum;
+	      } else if( key .equals( MIN )) {
+	        return minimum;
+	        
+	      } else if( key .equals(INTERVAL_MIN_TOP)) {
+	        return minTopval;
+	      } else if( key .equals(INTERVAL_MAX_TOP)) {
+	        return maxTopval;
+	      } else if( key .equals(INTERVAL_MAX_BOTTOM)){
+	        return maxBotval;
+	      } else if( key .equals(INTERVAL_MIN_BOTTOM)){
+	        return minBotval;
+	      }else if( key .equals(TOP_VALUE)) {
+	        return topStretch.getValue();
+	      }else if( key .equals(BOTTOM_VALUE)) {
+	         return bottomStretch.getValue();
+	        
+	      } 
+	   
+	   return  null;
+	}
+	/**
+	 * Sets the Control internal and GUI value to correspond
+	 * 
+	 * @param value  the new value
+	 * @param key  The key that represents the part of the control this
+	 *             value applies to
+	 */
+	
+	public void setControlValue( Object value, String key){
+	   if( value == null || key == null)
+	      return;
+	   if( key.equals( GANG)){
+        if( value instanceof Boolean)
+           gangCheck.setSelected( ((Boolean)value).booleanValue());
+      } else if( key .equals( MAX)) {
+           if( value instanceof Number)
+              setMaxMin( ((Number)value).floatValue(), getMinimum());
+      } else if( key .equals( MIN )) {
+         if( value instanceof Number)
+            setMaxMin(  getMaximum(), ((Number)value).floatValue());
+        
+      } else if( key .equals(INTERVAL_MIN_TOP)) {
+      
+      } else if( key .equals(INTERVAL_MAX_TOP)) {
+        
+      } else if( key .equals(INTERVAL_MAX_BOTTOM)){
+        
+      } else if( key .equals(INTERVAL_MIN_BOTTOM)){
+        
+      }else if( key .equals(TOP_VALUE)) {
+        
+      }else if( key .equals(BOTTOM_VALUE)) {
+        
+      }
+	}
 	/**
 	 * Sets the gang.
 	 * 
@@ -141,6 +218,11 @@ public class StretchTopBottom extends ActiveJPanel
 			                        topStretch.getValue() + maxInterval);
 			//System.out.println(bottomStretch.getValue() - minInterval + minimum);
 			//System.out.println(bottomStretch.getValue() + maxInterval);
+			minTopval =topStretch.getValue() - minInterval;
+			maxTopval = topStretch.getValue() + maxInterval;
+         minBotval =bottomStretch.getValue() - minInterval;
+         maxBotval = bottomStretch.getValue() + maxInterval;
+			
 		}
 		else
 		{
@@ -148,9 +230,20 @@ public class StretchTopBottom extends ActiveJPanel
 			maxInterval = 0;
 			bottomStretch.setInterval(minimum, maximum);
 			topStretch.setInterval(minimum, maximum);
+         minTopval =minimum;
+         maxTopval = maximum;
+         minBotval =minimum;
+         maxBotval = maximum;
+			
 		}
 	}
-	
+	/**
+	 * Gets the gang status
+	 * @return  the current gang status
+	 */
+	public boolean getGang(){
+	   return gang;
+	}
 	/**
 	 * Gets the minimum.
 	 * 
