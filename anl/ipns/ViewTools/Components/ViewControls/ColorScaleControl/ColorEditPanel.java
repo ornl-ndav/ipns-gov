@@ -586,7 +586,11 @@ public class ColorEditPanel extends ViewControl
 			flipped = false;
 		}
 		
-		colorPanel.setColorTable(colorMapping, localMin, localMax, true);
+		colorPanel.setColorTable( colorMapping, 
+                                          localMin, 
+                                          localMax, 
+                                          logScale,
+                                          true);
 		//printColorMapping();
 
 	}
