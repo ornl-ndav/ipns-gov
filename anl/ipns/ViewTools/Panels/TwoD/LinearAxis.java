@@ -96,7 +96,7 @@ public class LinearAxis extends Drawable
          label.setAlignment( TextDrawable.Horizontal.CENTER, 
                              TextDrawable.Vertical.TOP  );
 
-       Point position = WorldToPixel( points[i], 0.5f );
+       Point position = WorldToPixel( points[i], 0.45f );
        label.setPosition( position );
        label.setFont( font );
        labels[i] = label;
@@ -125,7 +125,7 @@ public class LinearAxis extends Drawable
       Point top    = WorldToPixel( points[i], 0.99f );
       Point bottom;
       if ( i % 2 == 0 )
-        bottom = WorldToPixel( points[i], 0.75f );
+        bottom = WorldToPixel( points[i], 0.70f );
       else
         bottom = WorldToPixel( points[i], 0.85f );
 
@@ -140,6 +140,17 @@ public class LinearAxis extends Drawable
                                               // graphics context 
   }
 
+
+  /**
+   *  Calculate the point in pixel coordinates that corresponds to the
+   *  specified x, y in "world coordinates".
+   *
+   *  @param  x   The horizontal position along the line from the min to max 
+   *              scale value.
+   *  @param  y   The vertical position between 0 and 1.
+   *
+   *  @param the pixel point in the panel corresponding to the specified (x,y).
+   */
   private Point WorldToPixel( float x, float y )
   {
     int pix_x = (int)( ( x - min ) * (width-1) / ( max - min ) );
@@ -147,6 +158,10 @@ public class LinearAxis extends Drawable
     return new Point( pix_x, pix_y );
   }
 
+
+  /**
+   *  Basic functionality test.
+   */
   public static void main( String args[] )
   {                              
     int WIDTH  = 300;
