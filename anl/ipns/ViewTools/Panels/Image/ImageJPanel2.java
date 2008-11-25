@@ -30,7 +30,10 @@
  *
  * Modified:
  *
- *  $Log$
+ *  $Log: ImageJPanel2.java,v $
+ *  Revision 1.1  2008/11/20 18:31:23  dennis
+ *  Initial revision
+ *
  *  Revision 1.21  2008/01/28 19:06:36  dennis
  *  The ImageJPanel2 maintains a copy of a thumbnail image, so that it
  *  does not need to be recalculated everytime the PanViewControl requests
@@ -253,7 +256,9 @@ import javax.swing.*;
 
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
+import gov.anl.ipns.ViewTools.Panels.Image.*;
 import gov.anl.ipns.Util.Numeric.*;
+import gov.anl.ipns.Util.Sys.*;
 
 /**
  *    This class displays two dimensional arrays of floating point values as 
@@ -311,20 +316,23 @@ public class ImageJPanel2 extends    CoordJPanel
   public static final int THUMBNAIL_SIZE = 256;
 
   
-  private final int       LOG_TABLE_SIZE      = 60000;
-  private final int       NUM_POSITIVE_COLORS = 127; 
-  private final byte      ZERO_COLOR_INDEX    = (byte)NUM_POSITIVE_COLORS; 
+  private final int       DEFAULT_TABLE_SIZE          = 60000;
+  private final int       DEFAULT_NUM_POSITIVE_COLORS = 127; 
   private Image           image;
   private Image           rescaled_image  = null;
   private Image           thumbnail_image = null;
   private IVirtualArray2D data;
-  private float           min_data = 0;
-  private float           max_data = 3;
+  private float           min_data;
+  private float           max_data;
 
   private transient IndexColorModel color_model;
+  private transient int             num_positive_colors;
+
   private String          color_model_string;
-  private byte[]          log_scale;
-  private boolean         isTwoSided = true;
+  private byte[]          color_scale;
+  private boolean         isTwoSided;
+  private boolean         log_color_map;
+
   private boolean         auto_scale_data = true; // Initially allow auto scale.
 
 
@@ -337,17 +345,19 @@ public class ImageJPanel2 extends    CoordJPanel
  */
   public ImageJPanel2()
   { 
-    float[][] temp = { {0f,1f}, {2f,3f} };
+    float[][] temp = { { -4, -3, -2 },
+                       { -1,  0,  1 }, 
+                       {  2,  3,  4 } };
     data = new VirtualArray2D( temp );
+    setData( data, false );
     
-    color_model_string = IndexColorMaker.HEATED_OBJECT_SCALE_2;
-    color_model =
-    IndexColorMaker.getDualColorModel( color_model_string,
-          NUM_POSITIVE_COLORS );
- 
-    log_scale = new byte[LOG_TABLE_SIZE];
-    setLogScale( 0 );
+    color_scale = new byte[DEFAULT_TABLE_SIZE];
+    setLogScale( 10 );                       // this sets log_color_map = true
+                                             // and isTwoSided = true
   
+    color_model_string = IndexColorMaker.HEATED_OBJECT_SCALE_2;
+    setNamedColorModel( color_model_string, isTwoSided, false ); 
+ 
     CJP_handle_arrow_keys = false;
     addKeyListener( new ImageKeyAdapter() );
   }
@@ -368,7 +378,7 @@ public class ImageJPanel2 extends    CoordJPanel
      Object temp = new_state.get(LOG_SCALE);
     if( temp != null )
     {
-      log_scale = (byte[])temp;
+      color_scale = (byte[])temp;
       redraw = true;  
     }  
     /* 
@@ -409,7 +419,7 @@ public class ImageJPanel2 extends    CoordJPanel
     //get ObjectState of CoordJPanel
     ObjectState state = super.getObjectState(isDefault);
     //state.insert( COLOR_MODEL, color_model_string );
-    state.insert( LOG_SCALE, log_scale );
+    state.insert( LOG_SCALE, color_scale );
    // state.insert( TWO_SIDED, new Boolean(isTwoSided) );
     
     return state;
@@ -443,6 +453,74 @@ public class ImageJPanel2 extends    CoordJPanel
   }
 
 
+/* ----------------------- changeColorIndexTable -------------------------- */
+/**
+ *  Change the lookup table giving the color index relative to the 
+ *  the image value.  Image values are mapped linearly from interval
+ *  [min_val,max_val] to an index in [0,table.length-1].  The byte entry at
+ *  the corresponding index is used as the color index in the current 
+ *  color model.  This method also changes the data range bounds, setting
+ *  the range max to max_val and the range min to min_val.  
+ *
+ *  @param  table          Array of bytes providing indices into the 
+ *                         color table.  The bytes should have values
+ *                         between 0 and the number of colors-1;
+ *
+ *  @param  is_log_scale   Set true if this color table represents a log
+ *                         of intensity scale.  If true, the min and max
+ *                         values must both be positive with max > min.
+ *
+ *  @param  min_val        The image data value that corresponds to the
+ *                         last entry in the table.  This must be less than
+ *                         max_val.  For log scales this must be positive. 
+ *
+ *  @param  max_val        The image data value that corresponds to the
+ *                         last entry in the table.  This must be more than
+ *                         min.
+ *
+ *  @param  rebuild_image  Flag to determine whether the displayed image is
+ *                         rebuilt immediately with the new color table, or if
+ *                         rebuilding the displayed image should be delayed
+ *                         since other changes will also be made before
+ *                         rebuilding the image.  A value of "true" will
+ *                         cause the image to be rebuilt immediately.
+ */
+  public void changeColorIndexTable( byte[]   table, 
+                                     boolean  is_log_scale,
+                                     float    min_val,
+                                     float    max_val,
+                                     boolean  rebuild_image )
+  {
+    color_scale = new byte[ table.length ];
+    System.arraycopy( table, 0, color_scale, 0, table.length );
+
+    log_color_map = is_log_scale;
+    if ( is_log_scale )
+    {
+      if ( min_val <= 0 )
+      {
+        min_val = 0.01f;
+        SharedMessages.addmsg("ERROR: min_val <= 0 when using log scale in " +
+                          " changeColorIndexTable(), setting min_val to " +
+                          min_val );
+      }
+
+      if ( max_val <= min_val )
+      {
+        max_val = min_val * 10000;
+        SharedMessages.addmsg("ERROR: max_val <= min_val in "+
+                          " changeColorIndexTable(), setting max_val = " +
+                            max_val );
+      }
+    }
+
+    setDataRange( min_val, max_val );
+
+    if ( rebuild_image )
+      RebuildImage();
+  }
+
+
 /* -------------------------- setNamedColorModel --------------------------- */
 /**
  *  Change the color model to used for the image.  If the data has negative
@@ -453,7 +531,7 @@ public class ImageJPanel2 extends    CoordJPanel
  *                             the IndexColorMaker class.
  *  @param   twosided          Flag that determines whether a color scale 
  *                             that includes colors for both positive and 
- *                             negative values is used, or if only positive
+ *                             negative values is built, or if only positive
  *                             values are represented.
  *  @param   rebuild_image     Flag to determine whether the displayed image is
  *                             rebuilt with the new log scale factor, or if
@@ -468,14 +546,64 @@ public class ImageJPanel2 extends    CoordJPanel
                                   boolean  twosided,
                                   boolean  rebuild_image   )
   {
+     setNamedColorModel( color_scale_name, 
+                         twosided, 
+                         DEFAULT_NUM_POSITIVE_COLORS,
+                         rebuild_image );
+  }
+
+
+/* -------------------------- setNamedColorModel --------------------------- */
+/**
+ *  Change the color model to used for the image.  If the data has negative
+ *  values, one of the "Dual" color models should be used.
+ *
+ *  @param   color_scale_name  Name of the new color scale to use for the
+ *                             image.  Supported color scales are listed in
+ *                             the IndexColorMaker class.
+ *  @param   twosided          Flag that determines whether a color scale 
+ *                             that includes colors for both positive and 
+ *                             negative values is used, or if only positive
+ *                             values are represented.
+ *  @param   num_colors        The number of colors to use in the color scale,
+ *                             between 2 and 127;
+ *  @param   rebuild_image     Flag to determine whether the displayed image is
+ *                             rebuilt with the new log scale factor, or if
+ *                             rebuilding the displayed image should be delayed
+ *                             since other changes will also be made before 
+ *                             rebuilding the image.  A value of "true" will
+ *                             cause the image to be rebuilt immediately.
+ * 
+ *  @see IndexColorMaker
+ */
+  public void setNamedColorModel( String   color_scale_name,
+                                  boolean  twosided,
+                                  int      num_colors,
+                                  boolean  rebuild_image   )
+  {
+    if ( num_colors < 2 )
+      num_colors = 2;
+
+    if ( num_colors > 127 )
+      num_colors = 127;
+
     isTwoSided = twosided;
-    color_model_string =  color_scale_name;
-    if( isTwoSided )
+
+    color_model_string = color_scale_name;
+
+    if( isTwoSided )                      // color table is built with 2*n+1 
+    {                                     // entries, 0, n positive, n negative
+      num_positive_colors = num_colors;
       color_model = IndexColorMaker.getDualColorModel( color_model_string,
-                                                       NUM_POSITIVE_COLORS );
-    else
+                                                       num_colors );
+    }
+    else                                  // color table is built with n colors
+    {                                     // 0 and n-1 positive colors
+      num_positive_colors = num_colors - 1;
       color_model = IndexColorMaker.getColorModel( color_model_string,
-                                                   NUM_POSITIVE_COLORS );
+                                                   num_colors );
+    }
+
     if ( rebuild_image )
       RebuildImage();
 
@@ -522,7 +650,8 @@ public class ImageJPanel2 extends    CoordJPanel
  /**
   * This method will set the data range to [data_min,data_max]. Calling this
   * method will disable auto data range calculation done when setData() is
-  * called.
+  * called.  The color scale mapping will apply only to image values in
+  * the specified range.  
   *
   *  @param  data_min The minimum data value mapped to the minimum color.
   *  @param  data_max The maximum data value to be mapped to the max color.
@@ -942,10 +1071,23 @@ protected void LocalTransformChanged()
   * that sets the local transformation should not assume that it has full
   * control of the local transformation, but should always get it before 
   * using it.
+  *
+  * Note: The color model used is either built as one-sided:
+  *
+  *   Color model has indices [0,k-1] with color "intensity" increasing with
+  *   index.  k-1 is the number of positive colors.
+  *
+  * or as two-sided:
+  *
+  *   Color model has indices [0,2k].  The middle index k, corresponds to the
+  *   color index that will be associated with the single value 0.  Positive 
+  *   color intensities increase with increasing index, k+1 to 2k.  Negative 
+  *   color intensities increase with decreasing index k-1 to 0.  Here, k is
+  *   the number of positive (or negative) colors.
   */
   private void makeImage()
   {
-    if ( ! isVisible() )             // don't do it yet if not "visible" 
+    if ( ! isShowing() )             // don't do it yet if not "visible" 
       return;
     
     // Map the currently specified local world coordinate bounds to image
@@ -1042,7 +1184,19 @@ protected void LocalTransformChanged()
   *  This method produces an Image object by sub sampling (if necessary) a 
   *  specified sub rectangle of the array of data.  The returned image is
   *  has size at most width X height, but may be smaller, if the number of
-  *  data rows or columns is less than the specified height or width.
+  *  data rows or columns is less than the specified height or width.  
+  *  There are two possible cases regarding the color model, either the 
+  *  color model is "one-sided" in which case indices 0..k-1 are used, where
+  *  k is the total number of colors, or the color model is split with 
+  *  approximately have of the colors used for positive value and half for
+  *  negative values.
+  *    If the color model is two-sided then the total table length is 2k+1
+  *  where k is the number of positive colors.  The "zero" position in the 
+  *  table will be in position k, with positive values mapping to indices
+  *  k+1 to 2k, and negative values mapping in reverse order to indices
+  *  k-1 to 0.
+  *    For a "true" logarithmic color scale the user should guarantee that
+  *  the minimum data value is positive.
   *  
   *  @param  start_row   The first row of data to use.
   *  @param  end_row     The last row of data to use.
@@ -1058,24 +1212,62 @@ protected void LocalTransformChanged()
                            int start_col, int end_col,
                            int width,     int height  )
   {
+    int color_table_size = color_scale.length;
                                      // find the scale factor and zero offset
                                      // index based on the min/max data values
-    float max_abs = 0;
-    if ( Math.abs( max_data ) > Math.abs( min_data ) )
-      max_abs = Math.abs( max_data );
-    else
-      max_abs = Math.abs( min_data );
-
     float scale_factor = 0;
-    if ( max_abs > 0 )
-      scale_factor = (LOG_TABLE_SIZE - 1) / max_abs;
-    else
-      scale_factor = 0;
+    float shift = 0;
+    byte  zero_index = 0; 
+                                    // NOTE: For one sided log scale, we 
+                                    //       require 0 < min_data < max_data
 
-    byte zero_index = 0;
-    if( isTwoSided )
-      zero_index = ZERO_COLOR_INDEX;
+    int last = color_table_size - 1;
 
+/*
+    System.out.println("------In subSample, width = " + width );
+    System.out.println("In subSample, log_color_map = " + log_color_map );
+    System.out.println("In subSample, isTwoSided    = " + isTwoSided );
+    System.out.println("In subSample, min_data      = " + min_data );
+    System.out.println("In subSample, max_data      = " + max_data );
+    System.out.println("In subSample, table[0]      = " + color_scale[0] );
+    System.out.println("In subSample, table[last]   = " + color_scale[last] );
+*/
+
+                                      // NOTE: For two sided color map, make
+    if (isTwoSided)                   //       mapping symmetric around 0.
+    { 
+      float max_abs = 0;
+      if ( Math.abs( max_data ) > Math.abs( min_data ) )
+        max_abs = Math.abs( max_data );
+      else
+        max_abs = Math.abs( min_data );
+
+      if ( max_abs > 0 )
+        scale_factor = color_table_size / max_abs;
+      else
+      {
+        scale_factor = 1;
+        SharedMessages.addmsg("ERROR: Max absolute value of data range = 0, "+
+                            "set scale factor to 1" );
+      }
+      zero_index = (byte)num_positive_colors;
+    }
+    else                          // just map values between min and max data
+    {   
+      scale_factor = color_table_size / (max_data - min_data);
+      shift = -min_data * scale_factor;
+      zero_index = 0;
+    }
+
+/*
+    System.out.println("MIN_DATA = " + min_data );
+    System.out.println("MAX_DATA = " + max_data );
+    System.out.println("TABLE_SIZE = " + color_table_size );
+    System.out.println("NUM POSIITVE = " + num_positive_colors );
+    System.out.println("ZERO INDEX = " + zero_index );
+    System.out.println("SCALE_FACTOR = " + scale_factor );
+    System.out.println("SHIFT = " + shift );
+*/
                                      // Get the number of rows and columns to
                                      // use for the image.  This will be
                                      // approximately width and height
@@ -1094,27 +1286,42 @@ protected void LocalTransformChanged()
 
     int n_image_cols = (int)Math.ceil( n_data_cols/(double)x_step );
     int n_image_rows = (int)Math.ceil( n_data_rows/(double)y_step );
-
-                                     // now make an array of bytes by sampling
-                                     // the array in steps of x_step and y_step
     byte  pix[] = new byte[ n_image_rows * n_image_cols ];
     float temp  = 0;
     int   index = 0;
-    for (int y = start_row; y <= end_row; y = y + y_step)
-    {
-      for (int x = start_col; x <= end_col; x = x + x_step)
-      {
-        temp = data.getDataValue(y,x) * scale_factor;
-	if( temp > LOG_TABLE_SIZE - 1 )
-	  temp = LOG_TABLE_SIZE - 1;
-        else if( temp < -(LOG_TABLE_SIZE - 1) )
-	  temp = -(LOG_TABLE_SIZE - 1);
+                                     // make an array of bytes by sampling the
+                                     // array in steps of x_step and y_step
+
+    if ( isTwoSided )                // two-sided case is symmetric about 0.
+    {                                // we use the same table for + and - vals
+      for (int y = start_row; y <= end_row; y = y + y_step)
+        for (int x = start_col; x <= end_col; x = x + x_step)
+        {
+          temp = data.getDataValue(y,x) * scale_factor;
+	  if( temp > color_table_size - 1 )
+	    temp = color_table_size - 1;
+          else if( temp < -( color_table_size - 1) )
+	    temp = -( color_table_size - 1);
 	
-	if ( temp >= 0 )
-          pix[index++] = (byte)(zero_index + log_scale[(int)temp]);
-        else
-          pix[index++] = (byte)(zero_index - log_scale[(int)(-temp)]);
-      }
+          if ( temp >= 0 )
+            pix[index++] = (byte)(zero_index + 1 + color_scale[(int)temp]);
+          else
+            pix[index++] = (byte)(zero_index - 1 - color_scale[(int)(-temp)]);
+        }
+    }
+    else                             // one-sided case may not be symmetric
+    {
+      for (int y = start_row; y <= end_row; y = y + y_step)
+        for (int x = start_col; x <= end_col; x = x + x_step)
+        {
+          temp = data.getDataValue(y,x) * scale_factor + shift;
+          if ( temp > color_table_size - 1 )
+            temp = color_table_size - 1;
+          else if ( temp < 0 )
+            temp = 0;
+
+          pix[index++] = (byte)(zero_index + color_scale[(int)temp]);
+        }
     }
 
     Image new_image = createImage(new MemoryImageSource(n_image_cols,
@@ -1156,14 +1363,19 @@ protected void LocalTransformChanged()
 
 
 /* ----------------------------- setLogScale -------------------------- */
-
+/**
+ *  "Old style" pseudo-log scale.  This sets log_color_map true.
+ */
   private void setLogScale( double s )
   {
+    int color_table_size = color_scale.length;
     PseudoLogScaleUtil log_scaler = new PseudoLogScaleUtil(
-                                          0f, (float)LOG_TABLE_SIZE,
-					  0f, NUM_POSITIVE_COLORS );
-    for( int i = 0; i < LOG_TABLE_SIZE; i++ )
-      log_scale[i] = (byte)(log_scaler.toDest(i,s));
+                                          0f, (float)color_table_size,
+					  0f, DEFAULT_NUM_POSITIVE_COLORS );
+    for( int i = 0; i < color_table_size; i++ )
+      color_scale[i] = (byte)(log_scaler.toDest(i,s));
+
+    log_color_map = true;
   }
 
 
@@ -1283,7 +1495,15 @@ class ImageKeyAdapter extends KeyAdapter
  /* Basic main program for testing purposes only. */
 
   public static void main(String[] args)
-  {
+  {                                        // Test the default image
+    ImageJPanel2 default_image = new ImageJPanel2();
+    JFrame default_frame = new JFrame("Default Image");
+    default_frame.setBounds(500,500,400,400);
+    default_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    default_frame.getContentPane().add( default_image );
+    default_frame.setVisible( true ); 
+
+                                           // Test a huge image
     int rows = 10000;
     int cols = 1000;  
     float test_array[][] = new float[rows][cols];
