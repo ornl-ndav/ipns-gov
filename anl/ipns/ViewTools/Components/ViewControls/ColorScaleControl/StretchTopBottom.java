@@ -48,12 +48,9 @@ public class StretchTopBottom extends ActiveJPanel
 {
 	public static String GANG ="Use ganging";
 	
-	public static String MAX ="maximum";
-	public static String MIN = "minimum";
-	public static String INTERVAL_MIN_TOP ="Minimum value for top";
-   public static String INTERVAL_MAX_TOP ="Maximum value for top";
-   public static String INTERVAL_MIN_BOTTOM ="Minimum value for bottom";
-   public static String INTERVAL_MAX_BOTTOM ="Maximum value for bottom";
+	public static String MAXMIN ="max-Minimum";
+	public static String INTERVAL_MAXMIN_TOP ="Max-Minvalues for top";
+   public static String INTERVAL_MAXMIN_BOTTOM ="Max-Minimum value for bottom";
 	public static String TOP_VALUE ="Top Stretcher Value";
    public static String BOTTOM_VALUE ="Bottom Stretcher Value";
 	
@@ -121,25 +118,26 @@ public class StretchTopBottom extends ActiveJPanel
 		setGang( false );
 	}
 	
-	
+	 private float[] makeArray( float v1, float v2){
+	      float[] Res = new float[2];
+	      Res[0]=v1;
+	      Res[1]=v2;
+	      return Res;
+	   }
 	public Object getControlValue( String key){
 	   if( key == null)
 	      return null;
 	   if( key.equals( GANG)){
 	        return gang;
-	      } else if( key .equals( MAX)) {
-	         return maximum;
-	      } else if( key .equals( MIN )) {
-	        return minimum;
+	      } else if( key .equals( MAXMIN)) {
+	         return makeArray(maximum,minimum);
+	      } else if( key .equals(INTERVAL_MAXMIN_TOP)) {
 	        
-	      } else if( key .equals(INTERVAL_MIN_TOP)) {
-	        return minTopval;
-	      } else if( key .equals(INTERVAL_MAX_TOP)) {
-	        return maxTopval;
-	      } else if( key .equals(INTERVAL_MAX_BOTTOM)){
-	        return maxBotval;
-	      } else if( key .equals(INTERVAL_MIN_BOTTOM)){
-	        return minBotval;
+	        return makeArray(maxTopval,minTopval);
+	      } else if( key .equals(INTERVAL_MAXMIN_BOTTOM)){
+	        
+	        return makeArray( maxBotval, minBotval);
+          
 	      }else if( key .equals(TOP_VALUE)) {
 	        return topStretch.getValue();
 	      }else if( key .equals(BOTTOM_VALUE)) {
@@ -163,24 +161,29 @@ public class StretchTopBottom extends ActiveJPanel
 	   if( key.equals( GANG)){
         if( value instanceof Boolean)
            gangCheck.setSelected( ((Boolean)value).booleanValue());
-      } else if( key .equals( MAX)) {
-           if( value instanceof Number)
-              setMaxMin( ((Number)value).floatValue(), getMinimum());
-      } else if( key .equals( MIN )) {
-         if( value instanceof Number)
-            setMaxMin(  getMaximum(), ((Number)value).floatValue());
-        
-      } else if( key .equals(INTERVAL_MIN_TOP)) {
-      
-      } else if( key .equals(INTERVAL_MAX_TOP)) {
-        
-      } else if( key .equals(INTERVAL_MAX_BOTTOM)){
-        
-      } else if( key .equals(INTERVAL_MIN_BOTTOM)){
-        
+      } else if( key .equals( MAXMIN)) {
+           if( value instanceof float[]){
+              float[] v =(float[])value;
+              setMaxMin( v[0], v[1]);
+           }
+     
+      } else if( key .equals(INTERVAL_MAXMIN_TOP)) {
+         if( value instanceof float[]){
+            float[] v =(float[])value;
+            topStretch.setInterval(  v[1],v[0]);
+         }
+   
+      } else if( key .equals(INTERVAL_MAXMIN_BOTTOM)){
+         if( value instanceof float[]){
+            float[] v =(float[])value;
+            bottomStretch.setInterval( v[1],v[0]);
+         }
       }else if( key .equals(TOP_VALUE)) {
-        
+         
+          topStretch.setValue( ((Number)value).floatValue());
       }else if( key .equals(BOTTOM_VALUE)) {
+         
+         bottomStretch.setValue( ((Number)value).floatValue());
         
       }
 	}
@@ -300,10 +303,15 @@ public class StretchTopBottom extends ActiveJPanel
 	 */
 	public void setMaxMin(float newmax, float newmin)
 	{
+	   minTopval =(minTopval-minimum)/(maximum-minimum)*(newmax-newmin)+newmin;
+	   maxTopval =(maxTopval-minimum)/(maximum-minimum)*(newmax-newmin)+newmin;
+      minBotval =(minBotval-minimum)/(maximum-minimum)*(newmax-newmin)+newmin;
+      maxBotval =(maxBotval-minimum)/(maximum-minimum)*(newmax-newmin)+newmin;
 		maximum = newmax;
 		minimum = newmin;
 		bottomStretch.setMaxMin(maximum, minimum, 0);
 		topStretch.setMaxMin(maximum, minimum, 100);
+		
 		topTextValue = topStretch.getValue();
 		bottomTextValue = bottomStretch.getValue();
 	}

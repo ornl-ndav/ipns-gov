@@ -190,7 +190,7 @@ public class ColorPanel extends JPanel
    */
   public void setColorModel( String name, int num_colors, boolean rebuild_now )
   {
-    boolean twosided = true;
+    boolean twosided = false;
     image_panel.setNamedColorModel( name, twosided, num_colors, rebuild_now );
   }
 

@@ -54,10 +54,11 @@ public class ColorOptions extends ActiveJPanel
 	JComboBox   colorScale;      //Allows a user to select a color scale from a list.
 	private colorOptionsListener colorOptionsListener = new colorOptionsListener();
 	
+	
 	//public String[] colorScales;
 	public String scaleSelected;
 	public int numColors = NUM_COLORS;
-	
+	private String Sav_selectNumColors;
 	public ColorOptions()
 	{
 		this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
@@ -65,6 +66,7 @@ public class ColorOptions extends ActiveJPanel
 		
 		buildColorOptionsPanel();
 		this.add(colorOptionsPanel);
+	   Sav_selectNumColors = selectNumColors.getText();
 		//this.addActionListener(colorOptionsListener);
 		//this.setVisible(true);
 		
@@ -72,7 +74,7 @@ public class ColorOptions extends ActiveJPanel
 	
 	public boolean checkValue()
 	{
-		if(!selectNumColors.getText().equals(numColors))
+		if(!selectNumColors.getText().equals(Sav_selectNumColors))
 		{
 		   changeNumColors();
 		   return true;
@@ -158,6 +160,7 @@ public class ColorOptions extends ActiveJPanel
 						"Number of Colors Field Error", JOptionPane.ERROR_MESSAGE);
 				numColors = 127;
 				selectNumColors.setText(""+numColors);
+				Sav_selectNumColors = selectNumColors.getText();
 			}
 		}
 		catch(Exception ex)
@@ -165,6 +168,7 @@ public class ColorOptions extends ActiveJPanel
 			JOptionPane.showMessageDialog (null, ex.getMessage(), "Number of Colors Field Error", JOptionPane.ERROR_MESSAGE);
 			System.out.println(ex.getMessage());
 			selectNumColors.setText(""+numColors);
+			Sav_selectNumColors = selectNumColors.getText();
 		}
 	}
 	
@@ -174,21 +178,33 @@ public class ColorOptions extends ActiveJPanel
 	}
 	
 	/**
-	 * Will change GUI representation of this number and also internal stored value
-	 * @param numColors
+	 * Will change GUI representation of this number and also internal stored
+	 * value
+	 * 
+	 * @param numColors  the number of colors
+	 * @param notify     Will notify all action listeners that the number of 
+	 *                   colors has changed
 	 */
-	public void changeNumColors( int numColors){
-	   if( numColors <2)
+	public void setNumColors( int nColors, boolean notify){
+	   if( nColors <2)
 	      return;
-	   selectNumColors.setText(  ""+numColors );
+	   numColors = nColors;
+	   if(!notify)
+	     selectNumColors.removeActionListener( colorOptionsListener );
+	   selectNumColors.setText(  ""+nColors );
+	   if(!notify)
+	     selectNumColors.addActionListener(colorOptionsListener);
+	   Sav_selectNumColors = selectNumColors.getText();
 	   
 	}
 	private void changeNumColors(){
 	   
 	   String number = selectNumColors.getText();
+	   Sav_selectNumColors = selectNumColors.getText();
       setNumColors(number);
       System.out.println(numColors);
       System.out.println("num colors: "+numColors);
+      send_message(NUM_OF_COLORS_CHANGED);
 	   
 	}
 	private class colorOptionsListener implements ActionListener
@@ -199,7 +215,7 @@ public class ColorOptions extends ActiveJPanel
 			if( e.getSource() == selectNumColors )
 			{
 				changeNumColors();
-		      send_message(NUM_OF_COLORS_CHANGED);
+		     
 			}
 
 			if ( e.getSource() == colorScale )

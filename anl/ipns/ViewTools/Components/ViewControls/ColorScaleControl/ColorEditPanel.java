@@ -44,6 +44,106 @@ import javax.swing.border.TitledBorder;
 
 public class ColorEditPanel extends ViewControl
 {
+   /**
+    * This class...
+    */
+   private static final long serialVersionUID = 1L;
+   
+   private JPanel buttonPanel, scaleOptionsPanel, dataOptionsPanel, colorOptionsPanel,
+   sliderPanel, colorScalePanel;
+   private ColorPanel colorPanel;
+   private ColorOptions colorOptions;
+   private JButton doneButton, updateButton, cancelButton;
+   private JRadioButton autoScale, specMinMax;
+   private JCheckBox logCheck;  // gangCheck;
+   private JTextField prescaleField, minField, maxField;
+   private ButtonGroup buttonGroup = new ButtonGroup();
+   private StretchTopBottom sliders;
+   
+   private ButtonListener buttonListener = new ButtonListener();
+   private OptionsListener optionsListener = new OptionsListener();
+   private ColorOptionsListener colorListener = new ColorOptionsListener();
+   private StretcherListener stretcherListener = new StretcherListener();
+   
+   public static final String doneMessage = "DONE";
+   public static final String updateMessage = "UPDATE";
+   public static final String cancelMessage = "CANCEL";
+   public static final String advancedMessage = "ADVANCED";
+   
+   private static final int SUBINTERVAL = 60000;
+   private static final float MAX = 60000;       // AutoScale max
+   private static final float MIN = 1;         // AutoScale min
+   //private float[] valueMapping;
+   private byte[] initColorMap;
+   private byte[] colorMapping;
+   //private float[] initMap;
+   private boolean logScale = false;
+   //private boolean gang = false;
+   private float scale = Float.NaN;
+   private float max;
+   private float min;
+   private boolean flipped = false;
+   //Saved previous TextField values
+   String Sav_prescaleField, 
+          Sav_minField, 
+          Sav_maxField;
+   //ObjectState keys
+   public static String TITLE ="Color Edit Panel"; 
+   public static String NUM_COLORS ="Number of Colors";
+   public static String LOGSCALE ="Use Log Scale";
+   public static String PRESCALE ="Prescale factor";
+   public static String MINSET ="Set Minimum";
+   public static String MAXSET ="Set Maximum";
+   public static String AUTO_SCALE ="Automatic scale";
+   public static String SLIDERS ="Sliders";
+   public static String COLOR_INDEX_CHOICE ="Color Model";
+   
+   
+   
+      ;
+   
+   
+   public ColorEditPanel(){
+      this( 0f,100f);
+   }
+   public ColorEditPanel(float min, float max)
+   {  
+      super(  TITLE );
+      this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
+      setBounds(20,20,400,500);
+      
+      this.min = min;
+      this.max = max;
+      
+      colorPanel = new ColorPanel();
+      
+      buildColorScalePanel();
+      buildStretcherPanel();
+      buildOptionsPanel();
+      buildColorOptionsPanel();
+      buildButtonPanel();
+      colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
+      colorPanel.setDataRange( min, max, true );
+      
+      this.add(colorScalePanel);
+      this.add(sliderPanel);
+      this.add(scaleOptionsPanel);
+      this.add(dataOptionsPanel);
+      this.add(colorOptionsPanel);
+      this.add(buttonPanel);
+      
+      prescaleField.setText(""+scale);
+      Sav_prescaleField= prescaleField.getText();
+      calculateMapping();
+      
+      //testing code//
+      //scale = 20;
+      //prescale(mapping);
+      //logScale(mapping);
+      //printMapping();
+      //end testing //
+   }
+   
 	/* (non-Javadoc)
     * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#copy()
     */
@@ -80,14 +180,11 @@ public class ColorEditPanel extends ViewControl
               state.insert( SLIDERS+"."+ StretchTopBottom.GANG,false);
               ObjectState Slider = new ObjectState();
               state.insert(SLIDERS , Slider );
-              Slider.insert(StretchTopBottom.MAX ,60000f);
-              Slider.insert(  StretchTopBottom.MIN ,1f);
+              Slider.insert(StretchTopBottom.MAXMIN ,makeArray(6000f,1f));
               Slider.insert( StretchTopBottom.BOTTOM_VALUE,1f);
               Slider.insert( StretchTopBottom.TOP_VALUE,60000f);
-              Slider.insert( StretchTopBottom.INTERVAL_MAX_BOTTOM ,6000f);
-              Slider.insert( StretchTopBottom.INTERVAL_MIN_BOTTOM ,1);
-              Slider.insert( StretchTopBottom.INTERVAL_MAX_TOP ,60000);
-              Slider.insert( StretchTopBottom.INTERVAL_MAX_TOP ,1);
+              Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM ,makeArray(6000f,1f));
+              Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_TOP ,makeArray(6000f,1f));
               state.insert(PRESCALE,1f );
               state.insert( AUTO_SCALE,true );
               
@@ -101,18 +198,28 @@ public class ColorEditPanel extends ViewControl
               state.insert(SLIDERS , Slider );
               Slider.insert( StretchTopBottom.GANG, sliders.getGang());
 
-              Slider.insert(  StretchTopBottom.MAX ,sliders.getMaximum());
-              Slider.insert(  StretchTopBottom.MIN , sliders.getMinimum());
-              Slider.insert( StretchTopBottom.BOTTOM_VALUE,1);
-              Slider.insert( StretchTopBottom.INTERVAL_MAX_BOTTOM ,6000f);
-              Slider.insert( StretchTopBottom.INTERVAL_MIN_BOTTOM ,1);
-              Slider.insert( StretchTopBottom.INTERVAL_MAX_TOP ,60000);
-              Slider.insert( StretchTopBottom.INTERVAL_MAX_TOP ,1);
+              Slider.insert(  StretchTopBottom.MAXMIN ,
+                         makeArray(sliders.getMaximum(),sliders.getMinimum()));
+              Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM ,
+                       sliders.getControlValue( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM ));
+              Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_TOP ,
+                       sliders.getControlValue( StretchTopBottom.INTERVAL_MAXMIN_TOP));
+              Slider.insert( StretchTopBottom.BOTTOM_VALUE,
+                       sliders.getControlValue( StretchTopBottom.BOTTOM_VALUE ));
+              Slider.insert( StretchTopBottom.TOP_VALUE,
+                          sliders.getControlValue( StretchTopBottom.TOP_VALUE ));
               state.insert(PRESCALE,getPrescale() );
               state.insert( AUTO_SCALE,autoScale.isSelected() );
               
            }
            return state;
+   }
+   
+   private float[] makeArray( float v1, float v2){
+      float[] Res = new float[2];
+      Res[0]=v1;
+      Res[1]=v2;
+      return Res;
    }
 
    /* (non-Javadoc)
@@ -136,29 +243,28 @@ public class ColorEditPanel extends ViewControl
       if( !(value instanceof ObjectState))
          return;
       ObjectState state = (ObjectState) value;
+
+      setControlValue( state.get( AUTO_SCALE ),AUTO_SCALE );
       setControlValue( state.get( MAXSET ),MAXSET );
       setControlValue( state.get( MINSET ),MINSET );
       setControlValue( state.get( NUM_COLORS ),NUM_COLORS );
       setControlValue( state.get( COLOR_INDEX_CHOICE ),COLOR_INDEX_CHOICE );
       setControlValue( state.get( LOGSCALE ),LOGSCALE );
       ObjectState sliderState =  (ObjectState)state.get( SLIDERS );
-           setControlValue( sliderState.get( StretchTopBottom.MAX),
-                                           SLIDERS+"."+StretchTopBottom.MAX);
+           setControlValue( sliderState.get( StretchTopBottom.MAXMIN),
+                                           SLIDERS+"."+StretchTopBottom.MAXMIN);
      
-           setControlValue( sliderState.get( StretchTopBottom.MIN),
-                                           SLIDERS+"."+StretchTopBottom.MIN);
+         
       
-           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAX_BOTTOM),
-                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAX_BOTTOM);
+           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM),
+                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_BOTTOM);
      
-           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAX_TOP),
-                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAX_TOP);
+          
      
-           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MIN_TOP),
-                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MIN_TOP);
+           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_TOP),
+                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_TOP);
      
-           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MIN_BOTTOM),
-                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MIN_BOTTOM);
+          
      
            setControlValue( sliderState.get( StretchTopBottom.TOP_VALUE),
                                            SLIDERS+"."+StretchTopBottom.TOP_VALUE);
@@ -172,7 +278,6 @@ public class ColorEditPanel extends ViewControl
                                            SLIDERS+"."+StretchTopBottom.GANG);
           
       setControlValue( state.get( PRESCALE ),PRESCALE );
-      setControlValue( state.get( AUTO_SCALE ),AUTO_SCALE );
       
       
    }
@@ -189,23 +294,25 @@ public class ColorEditPanel extends ViewControl
          if(!( value instanceof Number))
             return;
          float val = ((Number)value).floatValue();
-         maxField.setText( ""+val );
-         setMax( val);
-         sliders.setMaxMin( min , max );
+         setMaxMin( val, min);
+        // setMax( val);
+        // sliders.setMaxMin( min , max );
          
       }else if( key == MINSET){
          if(!( value instanceof Number))
             return;
          float val = ((Number)value).floatValue();
-         minField.setText( ""+val );
-         setMin( val );
-         sliders.setMaxMin( min , max );
+         setMaxMin( max, val);
+        // setMin( val );
+        // sliders.setMaxMin( min , max );
          
       }else if( key ==NUM_COLORS ){
          if(!( value instanceof Number))
             return;
          int ncolors = ((Number)value).intValue();
-         colorOptions.changeNumColors( ncolors );
+         colorOptions.setNumColors( ncolors , false);
+         colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
+         calculateMapping();
          
       }else if( key == COLOR_INDEX_CHOICE ){
          if( value instanceof String){
@@ -215,18 +322,11 @@ public class ColorEditPanel extends ViewControl
          
       }else if( key == LOGSCALE ){
          if( value instanceof Boolean)
-            if(((Boolean)value).booleanValue()){
-               logCheck.setSelected( true );
-               setLogScale( true );
-            }else{
-               logCheck.setSelected( false );
-               setLogScale( false );
-               
-            }
+            setLogCheck( ((Boolean)value).booleanValue());
          
          
       }else if( key.startsWith( SLIDERS+"." )){
-         sliders.setControlValue( value, key.substring(9));
+         sliders.setControlValue( value, key.substring(8));
          
       }else if( key == PRESCALE ){
    
@@ -234,15 +334,14 @@ public class ColorEditPanel extends ViewControl
          if( value instanceof Number){
             float val =( ((Number)value).floatValue());
             prescaleField.setText( ""+val );
+
+            Sav_prescaleField= prescaleField.getText();
          }
          
       }else if( key == AUTO_SCALE ){
          
          if( value instanceof Boolean)
-            if(((Boolean)value).booleanValue())
-               autoScale.setSelected( true );
-            else
-               autoScale.setSelected( false );
+            setAutoScaleCheck(((Boolean)value).booleanValue());
                
       }
    }
@@ -291,101 +390,7 @@ public class ColorEditPanel extends ViewControl
       super.setTitle( control_title );
    }
 
-   /**
-	 * This class...
-	 */
-	private static final long serialVersionUID = 1L;
-	
-	private JPanel buttonPanel, scaleOptionsPanel, dataOptionsPanel, colorOptionsPanel,
-	sliderPanel, colorScalePanel;
-	private ColorPanel colorPanel;
-	private ColorOptions colorOptions;
-	private JButton doneButton, updateButton, cancelButton;
-	private JRadioButton autoScale, specMinMax;
-	private JCheckBox logCheck;  // gangCheck;
-	private JTextField prescaleField, minField, maxField;
-	private ButtonGroup buttonGroup = new ButtonGroup();
-	private StretchTopBottom sliders;
-	
-	private ButtonListener buttonListener = new ButtonListener();
-	private OptionsListener optionsListener = new OptionsListener();
-	private ColorOptionsListener colorListener = new ColorOptionsListener();
-	private StretcherListener stretcherListener = new StretcherListener();
-	
-	public static final String doneMessage = "DONE";
-	public static final String updateMessage = "UPDATE";
-	public static final String cancelMessage = "CANCEL";
-	public static final String advancedMessage = "ADVANCED";
-	
-	private static final int SUBINTERVAL = 60000;
-	private static final float MAX = 60000;       // AutoScale max
-	private static final float MIN = 1;			  // AutoScale min
-	//private float[] valueMapping;
-	private byte[] initColorMap;
-	private byte[] colorMapping;
-	//private float[] initMap;
-	private boolean logScale = false;
-	//private boolean gang = false;
-	private float scale = Float.NaN;
-	private float max;
-	private float min;
-	private boolean flipped = false;
-	public static String TITLE ="Color Edit Panel";	
-	public static String NUM_COLORS ="Number of Colors";
-   public static String LOGSCALE ="Use Log Scale";
-   public static String PRESCALE ="Prescale factor";
-   public static String MINSET ="Set Minimum";
-   public static String MAXSET ="Set Maximum";
-   public static String AUTO_SCALE ="Automatic scale";
-   public static String SLIDERS ="Sliders";
-   public static String COLOR_INDEX_CHOICE ="Color Model";
-   
-   
-   
-      ;
-   
-	
-	public ColorEditPanel(){
-	   this( 0f,100f);
-	}
-	public ColorEditPanel(float min, float max)
-	{  
-	   super(  TITLE );
-		this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
-		setBounds(20,20,400,500);
-		
-		this.min = min;
-		this.max = max;
-		
-		colorPanel = new ColorPanel();
-		
-		buildColorScalePanel();
-		buildStretcherPanel();
-		buildOptionsPanel();
-		buildColorOptionsPanel();
-		buildButtonPanel();
-		colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
-		colorPanel.setDataRange( min, max, true );
-		
-		this.add(colorScalePanel);
-		this.add(sliderPanel);
-		this.add(scaleOptionsPanel);
-		this.add(dataOptionsPanel);
-		this.add(colorOptionsPanel);
-		this.add(buttonPanel);
-		
-		prescaleField.setText(""+scale);
-		
-		calculateMapping();
-		
-		//testing code//
-		//scale = 20;
-		//prescale(mapping);
-		//logScale(mapping);
-		//printMapping();
-		//end testing //
-	}
-	
+  
 	/**
 	 * Creates an initial mapping with the given SUBINTERVAL
 	 */
@@ -460,6 +465,8 @@ public class ColorEditPanel extends ViewControl
 		maxField.setText(""+max);
 		minField.setText(""+min);
 
+      Sav_minField = minField.getText();
+      Sav_maxField = maxField.getText();
 		scaleOptionsPanel.setLayout(new BoxLayout(scaleOptionsPanel,BoxLayout.Y_AXIS));
 		dataOptionsPanel.setLayout(new GridLayout(3,2));
 		scaleOptionsPanel.setBorder(new TitledBorder(" Scale Factor "));
@@ -591,6 +598,7 @@ public class ColorEditPanel extends ViewControl
                                           localMax, 
                                           logScale,
                                           true);
+		colorPanel.setDataRange( min , max , true );
 		//printColorMapping();
 
 	}
@@ -619,13 +627,15 @@ public class ColorEditPanel extends ViewControl
    private boolean checkMaxMinValues(){
       
      
-      if(!maxField.getText().equals(""+max)||!minField.getText().equals(""+min))
+      if(!maxField.getText().equals(Sav_maxField)||!minField.getText().equals(Sav_minField))
       {
          setMax(maxField.getText());
          setMin(minField.getText());
          sliders.setMaxMin(max,min);
          maxField.setText(""+max);
          minField.setText(""+min);
+         Sav_minField = minField.getText();
+         Sav_maxField = maxField.getText();
          return true;
       }  
       return false;
@@ -639,7 +649,7 @@ public class ColorEditPanel extends ViewControl
 		//call sliderTopBottom check method
 		
 		//check preScale
-		if(!prescaleField.getText().equals(scale))
+		if(!prescaleField.getText().equals(Sav_prescaleField))
 		{
 			setPrescale(prescaleField.getText());
 			
@@ -701,6 +711,8 @@ public class ColorEditPanel extends ViewControl
 			JOptionPane.showMessageDialog (null, ex.getMessage(), "Edit Max Value Field Error", JOptionPane.ERROR_MESSAGE);
 			System.out.println(ex.getMessage());
 			maxField.setText(""+max);
+
+         Sav_maxField = maxField.getText();
 		}	
 	}
 	
@@ -721,6 +733,7 @@ public class ColorEditPanel extends ViewControl
 			JOptionPane.showMessageDialog (null, ex.getMessage(), "Edit Min Value Field Error", JOptionPane.ERROR_MESSAGE);
 			System.out.println(ex.getMessage());
 			minField.setText(""+min);
+         Sav_minField = minField.getText();
 		}
 	}
 	
@@ -809,6 +822,7 @@ public class ColorEditPanel extends ViewControl
 	public static void main(String[]args)
 	{
 		JFrame blah = new JFrame("ColorEditPanel");
+		blah.setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
 		ColorEditPanel test = new ColorEditPanel(1,5000);
 		JMenuBar jmb = blah.getJMenuBar();
 		if(jmb == null){
@@ -866,7 +880,57 @@ public class ColorEditPanel extends ViewControl
 		}
 		
 	}
+	// 
+	private void setLogCheck( boolean isLog){
+	   logScale = isLog;
+	   logCheck.removeActionListener( optionsListener);
+	   logCheck.setSelected( isLog );
+	   logCheck.addActionListener( optionsListener);
+	   calculateMapping();
+	}
 	
+	private void setMaxMin( float Max, float Min){
+	   maxField.removeActionListener(  optionsListener );
+	   minField.removeActionListener(  optionsListener );
+	   maxField.setText(  ""+Max );
+	   minField.setText(""+Min);
+	   Sav_maxField = maxField.getText();
+	   Sav_minField = minField.getText();
+	   maxField.addActionListener(  optionsListener );
+      minField.addActionListener(  optionsListener );
+      max = Max;
+      min = Min;
+      sliders.setMaxMin(  Max , Min );
+      calculateMapping();
+	}
+	
+	private void setAutoScaleCheck( boolean isChecked){
+	   autoScale.removeActionListener(optionsListener);
+	   specMinMax.removeActionListener( optionsListener );
+	   if (isChecked )
+      {
+         autoScale.setSelected(true);
+         specMinMax.setSelected(false);
+         maxField.setEditable(false);
+         minField.setEditable(false);
+         setMaxMin( MAX, MIN);
+      }else{
+         
+         specMinMax.setSelected(true);
+         autoScale.setSelected(false);
+         maxField.setEditable(true);
+         minField.setEditable(true);
+         Sav_minField = minField.getText();
+         Sav_maxField = maxField.getText();
+      }
+      System.out.println("autoScale "+autoScale.isSelected());
+      //System.out.println("specMinMax "+specMinMax.isSelected());
+      calculateMapping();
+
+      autoScale.addActionListener(optionsListener);
+      specMinMax.addActionListener( optionsListener );
+	   
+	}
 	private class OptionsListener implements ActionListener
 	{
 
@@ -885,7 +949,9 @@ public class ColorEditPanel extends ViewControl
 				}
 				else
 					logScale = false;
+				calculateMapping();
 				checkValues();
+            calculateMapping();
 				//System.out.println(logScale);
 			}
 			
@@ -900,7 +966,10 @@ public class ColorEditPanel extends ViewControl
 					maxField.setEditable(false);
 					minField.setEditable(false);
 					maxField.setText(""+MAX);
+               
+		         Sav_maxField = maxField.getText();
 					minField.setText(""+MIN);
+		         Sav_minField = minField.getText();
 				}
 				sliders.setMaxMin(max,min);
 				System.out.println("autoScale "+autoScale.isSelected());
@@ -915,6 +984,8 @@ public class ColorEditPanel extends ViewControl
 					autoScale.setSelected(false);
 					maxField.setEditable(true);
 					minField.setEditable(true);
+		         Sav_minField = minField.getText();
+		         Sav_maxField = maxField.getText();
 				}
 				System.out.println("specMinMax "+specMinMax.isSelected());
 				//System.out.println("autoScale "+autoScale.isSelected());	
@@ -928,6 +999,7 @@ public class ColorEditPanel extends ViewControl
 				checkValues();
 				if(max<1&&logScale) max = 1;
 				maxField.setText(""+max);
+	         Sav_maxField = maxField.getText();
 				sliders.setMaxMin(max,min);
 				System.out.println(max);
 			}
@@ -939,6 +1011,7 @@ public class ColorEditPanel extends ViewControl
 				checkValues();
 				if(min<1&&logScale) min = 1;
 				minField.setText(""+min);
+				Sav_minField = minField.getText();
 				sliders.setMaxMin(max,min);
 				System.out.println(min);
 			}

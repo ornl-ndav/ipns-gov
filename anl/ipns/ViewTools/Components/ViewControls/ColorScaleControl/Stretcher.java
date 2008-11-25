@@ -238,7 +238,7 @@ public class Stretcher extends ActiveJPanel
 
 		public void mouseReleased(MouseEvent e) 
 		{
-			changeValue(true);
+			changeValue(false);
 		}
 	};
 	/**
