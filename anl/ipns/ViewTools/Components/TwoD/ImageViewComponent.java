@@ -641,6 +641,8 @@ import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 import gov.anl.ipns.ViewTools.Components.Menu.*;
 import gov.anl.ipns.ViewTools.Components.Region.*;
+import gov.anl.ipns.ViewTools.Components.ViewControls.ColorScaleControl.*;
+
 
 /**
  * This class allows the user to view data in the form of an image. Meaning
@@ -666,6 +668,12 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   * the ViewControl returned is the intensity slider.
   */
   public static final String INTENSITY_SLIDER_NAME = "Intensity Slider";
+
+ /**
+  * "Pseudo Color Scale" - use this static String to verify that the title of
+  * the ViewControl returned is the new pseudo color scale control.
+  */
+  public static final String NEW_COLOR_SCALE_NAME = "Pseudo Color Scale";
   
  /**
   * "Color Scale" - use this static String to verify that the title of
@@ -938,6 +946,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     if( temp != null )
     {
       isTwoSided = ((Boolean)temp).booleanValue();
+
+      System.out.println("ImageViewComponent isTwoSided = " + true );
 
       ijp.setNamedColorModel( colorscale, isTwoSided, false);
       redraw = true;  
@@ -2031,6 +2041,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   */ 
   private void reInit()  
   {
+    System.out.println("IVC.reInit(), isTwoSided = " + isTwoSided );
     ijp.setNamedColorModel(colorscale, isTwoSided, false);
     ijp.repaint();
     // make sure logscale and two-sided are consistent
@@ -2208,10 +2219,15 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     // Adding a spacer panel to "crunch" controls may result in the
     // PanViewControl getting drawn over any latter controls.
     controls = new ViewControl[10];
-    // Control that adjusts the image intensity
+    // Old slider control that adjusts the image intensity
+    /*
     controls[0] = new ControlSlider();
     controls[0].setTitle(INTENSITY_SLIDER_NAME);
     ((ControlSlider)controls[0]).setValue((float)logscale);		  
+    controls[0].addActionListener( new ControlListener() );
+    */
+    // New color scale control that adjusts the image intensity
+    controls[0] = new ColorEditPanelManager( NEW_COLOR_SCALE_NAME, ijp );
     controls[0].addActionListener( new ControlListener() );
     // Control that displays uncalibrated color scale
     controls[1] = new ControlColorScale(colorscale, isTwoSided );
@@ -2485,6 +2501,12 @@ public class ImageViewComponent extends ViewComponent2DwSelection
 	// with slider movements.
 	sendMessage(COLORSCALE_CHANGED);
       } 
+
+      else if ( message == ColorEditPanelManager.COLOR_SCALE_CHANGED )
+      {
+        System.out.println("TEST: show color scale control");
+      }
+
       else if ( message == ControlCheckboxButton.CHECKBOX_CHANGED )
       { 
         int bpsize = big_picture.getComponentCount();
@@ -2493,6 +2515,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
         {
           ControlCheckboxButton control = 
                 		      (ControlCheckboxButton)ae.getSource();
+
           if( control.getTitle().equals(MARKER_OVERLAY_NAME) )
           {
             // if control is unchecked, don't show the overlay.
@@ -2569,6 +2592,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
         if( ae.getSource() instanceof ControlCheckboxButton )
         {
           ControlCheckboxButton ccb = (ControlCheckboxButton)ae.getSource();
+
           if( ccb.getTitle().equals(AXIS_OVERLAY_NAME) )
           {
             AxisOverlay2D axis = (AxisOverlay2D)transparencies.elementAt(2);
