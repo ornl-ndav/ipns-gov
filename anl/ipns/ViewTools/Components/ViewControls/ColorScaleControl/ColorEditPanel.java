@@ -82,6 +82,8 @@ public class ColorEditPanel extends ViewControl
    private float scale = Float.NaN;
    private float max;
    private float min;
+   private float localMax;
+   private float localMin;
    private boolean flipped = false;
    //Saved previous TextField values
    String Sav_prescaleField, 
@@ -99,13 +101,10 @@ public class ColorEditPanel extends ViewControl
    public static String COLOR_INDEX_CHOICE ="Color Model";
    
    
-   
-      ;
-   
-   
    public ColorEditPanel(){
       this( 0f,100f);
    }
+
    public ColorEditPanel(float min, float max)
    {  
       super(  TITLE );
@@ -253,34 +252,26 @@ public class ColorEditPanel extends ViewControl
       ObjectState sliderState =  (ObjectState)state.get( SLIDERS );
            setControlValue( sliderState.get( StretchTopBottom.MAXMIN),
                                            SLIDERS+"."+StretchTopBottom.MAXMIN);
-     
-         
       
            setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM),
                                            SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_BOTTOM);
      
-          
-     
            setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_TOP),
                                            SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_TOP);
      
-          
-     
            setControlValue( sliderState.get( StretchTopBottom.TOP_VALUE),
                                            SLIDERS+"."+StretchTopBottom.TOP_VALUE);
-
            
            setControlValue( sliderState.get( StretchTopBottom.BOTTOM_VALUE),
                                            SLIDERS+"."+StretchTopBottom.BOTTOM_VALUE);
-     
      
            setControlValue( sliderState.get( StretchTopBottom.GANG),
                                            SLIDERS+"."+StretchTopBottom.GANG);
           
       setControlValue( state.get( PRESCALE ),PRESCALE );
-      
-      
    }
+
+
    /**
     * Will set the appropriate part of GUI Component and the internal value 
     * for the control
@@ -374,7 +365,6 @@ public class ColorEditPanel extends ViewControl
     */
    @Override
    public void setObjectState( ObjectState new_state ) {
-
       
       super.setObjectState( new_state );
       setControlValue( new_state);
@@ -545,16 +535,16 @@ public class ColorEditPanel extends ViewControl
 		buttonPanel.add(updateButton);
 		buttonPanel.add(doneButton);
 		buttonPanel.add(cancelButton);
-		
 	}
+
 	
 	/*
 	 * Calculates mapping, determined by the options selected by user....
 	 */
 	private void calculateMapping()
 	{
-		float localMin = sliders.getBottomValue();
-		float localMax = sliders.getTopValue();
+		localMin = sliders.getBottomValue();
+		localMax = sliders.getTopValue();
 		
 		if(localMin<min) localMin = min;
 		if(localMin>max) localMin = max;
@@ -600,8 +590,8 @@ public class ColorEditPanel extends ViewControl
                                           true);
 		colorPanel.setDataRange( min , max , true );
 		//printColorMapping();
-
 	}
+
 	
 	/*
 	 * Performs the log function on each value in the array....
@@ -624,9 +614,9 @@ public class ColorEditPanel extends ViewControl
             map[ SUBINTERVAL - 1 ] = map[ SUBINTERVAL - 2 ];
 	}
 	
+
    private boolean checkMaxMinValues(){
       
-     
       if(!maxField.getText().equals(Sav_maxField)||!minField.getText().equals(Sav_minField))
       {
          setMax(maxField.getText());
@@ -640,8 +630,6 @@ public class ColorEditPanel extends ViewControl
       }  
       return false;
    }
-   
-   
    
 	private void checkValues()
 	{
@@ -672,21 +660,31 @@ public class ColorEditPanel extends ViewControl
 		return colorOptions.getNumColors();
 	}
 	
-	public Object getColorScale()
+	public String getColorScale()
 	{
 		return colorOptions.getColorScale();
 	}
 	
+        public float getLocalMin()
+        {
+          return localMin;
+        }
+
+        public float getLocalMax()
+        {
+          return localMax;
+        }
+
 	public float getMin()
 	{
 		return min;
 	}
 	
 	public void setMax(float m)
-  {
-    max = m;
-    colorPanel.setDataRange(min, max, true);
-  }
+	{
+		max = m;
+		colorPanel.setDataRange(min, max, true);
+	}
   
 	public void setMin(float m)
 	{
@@ -694,6 +692,7 @@ public class ColorEditPanel extends ViewControl
 		colorPanel.setDataRange(min, max, true);
 	}
 	
+
 	public void setMax(String m)
 	{
 		try
@@ -722,9 +721,9 @@ public class ColorEditPanel extends ViewControl
 		{
 		  float minTemp = new Float(m).floatValue();
 		  if(minTemp<max)
-      {
+		  {
 		    setMin(minTemp);
-      }
+		  }
 		  colorPanel.setDataRange(min, max, true);
 			//minField.setText(""+min);
 		}
@@ -733,7 +732,7 @@ public class ColorEditPanel extends ViewControl
 			JOptionPane.showMessageDialog (null, ex.getMessage(), "Edit Min Value Field Error", JOptionPane.ERROR_MESSAGE);
 			System.out.println(ex.getMessage());
 			minField.setText(""+min);
-         Sav_minField = minField.getText();
+			Sav_minField = minField.getText();
 		}
 	}
 	
@@ -781,6 +780,11 @@ public class ColorEditPanel extends ViewControl
 		return colorMapping;
 	}
 	
+        public boolean getLogScale()
+        {
+           return logScale;
+        }
+
 	public void setLogScale(boolean log)
 	{
 		logScale = log;
@@ -851,7 +855,6 @@ public class ColorEditPanel extends ViewControl
 
 	private class ButtonListener implements ActionListener
 	{
-
 		public void actionPerformed(ActionEvent e) 
 		{
 			if( e.getSource() == doneButton )
@@ -876,10 +879,11 @@ public class ColorEditPanel extends ViewControl
 				send_message(cancelMessage);
 				System.out.println(cancelMessage);
 			}
-			
 		}
-		
 	}
+
+        
+
 	// 
 	private void setLogCheck( boolean isLog){
 	   logScale = isLog;
@@ -1047,9 +1051,9 @@ public class ColorEditPanel extends ViewControl
 				calculateMapping();
 			}
 		}
-		
 	}
 	
+
 	private class StretcherListener implements ActionListener
 	{
 
@@ -1059,10 +1063,10 @@ public class ColorEditPanel extends ViewControl
 			System.out.println("Max: "+sliders.getTopValue());
 			System.out.println("Min: "+sliders.getBottomValue());
 		}
-		
 	}
-	
 }
+
+
 class mActionListener implements ActionListener{
    ColorEditPanel t;
    public mActionListener( ColorEditPanel t){
