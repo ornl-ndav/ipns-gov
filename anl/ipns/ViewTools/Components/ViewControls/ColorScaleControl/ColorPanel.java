@@ -36,6 +36,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import gov.anl.ipns.ViewTools.Components.*;
+import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2;
 import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 import gov.anl.ipns.ViewTools.Panels.TwoD.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;
