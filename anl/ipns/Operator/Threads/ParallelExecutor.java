@@ -65,8 +65,12 @@ public class ParallelExecutor
    *  Construct a new ParallelExecutor to execute the specified list of
    *  operators in separate Threads.
    *
-   *  @param operators  The list of OperatorThreads that are to be run
-   *                    concurrently.
+   *  @param operators         The list of OperatorThreads that are to be run
+   *                           concurrently.
+   *  @param max_threads       The maximum number of thread to use while
+   *                           processing the operators.
+   *  @param max_milliseconds  The maximum total amount of time allowd for
+   *                           running these operators
    *
    *  @param max_threads The maximum total number of threads to use.
    *
