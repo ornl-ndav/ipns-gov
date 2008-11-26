@@ -157,10 +157,20 @@ public class ColorEditPanel extends ViewControl
     * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#getControlValue()
     */
    @Override
-   public Object getControlValue() {
+   public Object getControlValue() 
+   {
+     int     num_colors = colorOptions.getNumColors();
+     String  cs_name    = colorOptions.getColorScale();
+     boolean two_sided  = false;
 
-      
-      return getObjectState( false );
+     return new ColorScaleInfo( localMin, 
+                                localMax, 
+                                scale, 
+                                cs_name, 
+                                two_sided,
+                                num_colors,
+                                colorMapping,
+                                logScale );
    }
 
    /* (non-Javadoc)
