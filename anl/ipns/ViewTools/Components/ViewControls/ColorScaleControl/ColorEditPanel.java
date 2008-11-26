@@ -149,8 +149,11 @@ public class ColorEditPanel extends ViewControl
    @Override
    public ViewControl copy() {
 
-      // TODO Auto-generated method stub
-      return null;
+      ObjectState state = getObjectState( false );
+      ColorEditPanel Res = new ColorEditPanel( max, min);
+      Res.setObjectState(  state  );
+      return Res;
+       
    }
 
    /* (non-Javadoc)
@@ -247,40 +250,7 @@ public class ColorEditPanel extends ViewControl
    @Override
    public void setControlValue( Object value ) {
 
-      if( value == null)
-         return;
-      if( !(value instanceof ObjectState))
-         return;
-      ObjectState state = (ObjectState) value;
-
-      setControlValue( state.get( AUTO_SCALE ),AUTO_SCALE );
-      setControlValue( state.get( MAXSET ),MAXSET );
-      setControlValue( state.get( MINSET ),MINSET );
-      setControlValue( state.get( NUM_COLORS ),NUM_COLORS );
-      setControlValue( state.get( COLOR_INDEX_CHOICE ),COLOR_INDEX_CHOICE );
-      setControlValue( state.get( LOGSCALE ),LOGSCALE );
-      ObjectState sliderState =  (ObjectState)state.get( SLIDERS );
-           setControlValue( sliderState.get( StretchTopBottom.MAXMIN),
-                                           SLIDERS+"."+StretchTopBottom.MAXMIN);
-      
-           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM),
-                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_BOTTOM);
-     
-           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_TOP),
-                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_TOP);
-     
-           setControlValue( sliderState.get( StretchTopBottom.TOP_VALUE),
-                                           SLIDERS+"."+StretchTopBottom.TOP_VALUE);
-           
-           setControlValue( sliderState.get( StretchTopBottom.BOTTOM_VALUE),
-                                           SLIDERS+"."+StretchTopBottom.BOTTOM_VALUE);
-     
-           setControlValue( sliderState.get( StretchTopBottom.GANG),
-                                           SLIDERS+"."+StretchTopBottom.GANG);
-          
-      setControlValue( state.get( PRESCALE ),PRESCALE );
    }
-
 
    /**
     * Will set the appropriate part of GUI Component and the internal value 
@@ -348,25 +318,7 @@ public class ColorEditPanel extends ViewControl
    }
    
    public Object getControlValue( String key){
-      if(key== null)
-         return null;
-      if( key == MAXSET ){
-         return max;
-      }else if( key == MINSET){
-          return min;
-      }else if( key ==NUM_COLORS ){
-         
-      }else if( key == COLOR_INDEX_CHOICE ){
-         
-      }else if( key == LOGSCALE ){
-         
-      }else if( key ==SLIDERS){
-         
-      }else if( key == PRESCALE ){
-         
-      }else if( key == AUTO_SCALE ){
-         
-      }
+     
       return null;
    }
 
@@ -377,7 +329,40 @@ public class ColorEditPanel extends ViewControl
    public void setObjectState( ObjectState new_state ) {
       
       super.setObjectState( new_state );
-      setControlValue( new_state);
+   
+      if( new_state == null)
+         return;
+      if( !(new_state instanceof ObjectState))
+         return;
+      ObjectState state = new_state;
+
+      setControlValue( state.get( AUTO_SCALE ),AUTO_SCALE );
+      setControlValue( state.get( MAXSET ),MAXSET );
+      setControlValue( state.get( MINSET ),MINSET );
+      setControlValue( state.get( NUM_COLORS ),NUM_COLORS );
+      setControlValue( state.get( COLOR_INDEX_CHOICE ),COLOR_INDEX_CHOICE );
+      setControlValue( state.get( LOGSCALE ),LOGSCALE );
+      ObjectState sliderState =  (ObjectState)state.get( SLIDERS );
+           setControlValue( sliderState.get( StretchTopBottom.MAXMIN),
+                                           SLIDERS+"."+StretchTopBottom.MAXMIN);
+      
+           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM),
+                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_BOTTOM);
+     
+           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_TOP),
+                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_TOP);
+     
+           setControlValue( sliderState.get( StretchTopBottom.TOP_VALUE),
+                                           SLIDERS+"."+StretchTopBottom.TOP_VALUE);
+           
+           setControlValue( sliderState.get( StretchTopBottom.BOTTOM_VALUE),
+                                           SLIDERS+"."+StretchTopBottom.BOTTOM_VALUE);
+     
+           setControlValue( sliderState.get( StretchTopBottom.GANG),
+                                           SLIDERS+"."+StretchTopBottom.GANG);
+          
+      setControlValue( state.get( PRESCALE ),PRESCALE );
+
    }
 
    /* (non-Javadoc)
@@ -577,8 +562,11 @@ public class ColorEditPanel extends ViewControl
 		
 		//-----------------------Log Scaling
 		if(logScale)
-		{
+		{  //imagePanel2 sets min to .01 if too small
 			System.out.println("logging");
+	      if( localMax > 0)
+	         if( localMin <=0)
+	             localMin = (float)Math.pow( 10 , Math.log10(localMax)-6 );
 			logScale(colorMapping,localMax,localMin);
 		}
 		
@@ -607,21 +595,25 @@ public class ColorEditPanel extends ViewControl
 	 * Performs the log function on each value in the array....
 	 */
 	private void logScale(byte[] map, float valMax,float valMin)
-	{		
+	{	 
+	    if(valMax <=0 || valMin <=0){
+	       java.util.Arrays.fill( map , (byte)0 );
+	       return;
+	    }
  	    for ( int i = 0; i < SUBINTERVAL-1; i++ )
 	    {
 	      float x =valMin + i * (valMax - valMin) / 
 	      		(SUBINTERVAL-1);
-	      if ( x > 1 )
+	      if ( x > valMin )
 	        x = (float)Math.log10(x);
 	      else
-	        x = 0;
+	        x =(float)Math.log10( valMin );
 
 	      map[i] = (byte)((colorOptions.numColors) * 
 	    		  (x - Math.log10(valMin)) / 
 	    		  (Math.log10(valMax) - Math.log10(valMin)));
 	    }
-            map[ SUBINTERVAL - 1 ] = map[ SUBINTERVAL - 2 ];
+       map[ SUBINTERVAL - 1 ] = map[ SUBINTERVAL - 2 ];
 	}
 	
 
@@ -894,7 +886,7 @@ public class ColorEditPanel extends ViewControl
 
         
 
-	// 
+	//Sets GUI and internal values and other implications. No notifications
 	private void setLogCheck( boolean isLog){
 	   logScale = isLog;
 	   logCheck.removeActionListener( optionsListener);
@@ -902,6 +894,8 @@ public class ColorEditPanel extends ViewControl
 	   logCheck.addActionListener( optionsListener);
 	   calculateMapping();
 	}
+	
+	//Sets GUI and internal values and slider results. No notifications
 	
 	private void setMaxMin( float Max, float Min){
 	   maxField.removeActionListener(  optionsListener );
@@ -954,15 +948,18 @@ public class ColorEditPanel extends ViewControl
 			{  checkValues();
 				if (((JCheckBox)e.getSource()).isSelected())
 				{
-				  //if(max<1) max = 1;
-	        //if(min<1) min = 1;
-	        //if(max == min) max++;
-	        //maxField.setText(""+max);
-	        //minField.setText(""+min);
+				 if(max<0) max = -max;
+	          if(min<0) min = 0;
+	          if( min == 0){
+	             min =(float) Math.pow( 10f, Math.log10(max) -6);
+	         
+	          }
+	          setMaxMin( max, min);
 				  logScale = true;
 				}
 				else
 					logScale = false;
+				
 				calculateMapping();
 				checkValues();
             calculateMapping();
@@ -1011,7 +1008,7 @@ public class ColorEditPanel extends ViewControl
 				String maxValue = maxField.getText();
 				setMax(maxValue);
 				checkValues();
-				if(max<1&&logScale) max = 1;
+				if(max<0&&logScale) max = -max;
 				maxField.setText(""+max);
 	         Sav_maxField = maxField.getText();
 				sliders.setMaxMin(max,min);
@@ -1023,7 +1020,9 @@ public class ColorEditPanel extends ViewControl
 				String minValue = minField.getText();
 				setMin(minValue);
 				checkValues();
-				if(min<1&&logScale) min = 1;
+				// TODO
+				if(min<0&&logScale) 
+				   min = (float)Math.pow( 10 , Math.log10(max)-6 ) ;
 				minField.setText(""+min);
 				Sav_minField = minField.getText();
 				sliders.setMaxMin(max,min);
