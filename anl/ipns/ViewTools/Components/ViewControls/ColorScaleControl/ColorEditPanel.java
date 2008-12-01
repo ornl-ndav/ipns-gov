@@ -71,8 +71,8 @@ public class ColorEditPanel extends ViewControl
    public static final String advancedMessage = "ADVANCED";
    
    private static final int SUBINTERVAL = 60000;
-   private static final float MAX = 60000;       // AutoScale max
-   private static final float MIN = 1;         // AutoScale min
+   private static  float MAX = 60000;       // AutoScale max
+   private static  float MIN = 1;         // AutoScale min
    //private float[] valueMapping;
    private byte[] initColorMap;
    private byte[] colorMapping;
@@ -113,7 +113,8 @@ public class ColorEditPanel extends ViewControl
       
       this.min = min;
       this.max = max;
-      
+      MAX = max;
+      MIN = min;
       colorPanel = new ColorPanel();
       
       buildColorScalePanel();
