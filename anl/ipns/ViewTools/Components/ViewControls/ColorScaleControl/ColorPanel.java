@@ -40,6 +40,7 @@ import gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2;
 import gov.anl.ipns.ViewTools.Panels.Image.IndexColorMaker;
 import gov.anl.ipns.ViewTools.Panels.TwoD.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;
+import gov.anl.ipns.Util.Numeric.*;
 
 
 /**
@@ -150,13 +151,17 @@ public class ColorPanel extends JPanel
       points = calib.subDivideLog();
     else
     {
-      float[] info = calib.subDivide();
-      float first = info[1];
-      float step  = info[0];
+/*
+      double[] info = Subdivide.subdivide( min, max );
+      double first = info[1];
+      double step  = info[0];
       int   n_steps = (int) info[2];
       points = new float[n_steps];
+
       for ( int i = 0; i < n_steps; i++ )
-        points[i] = first + i * step;
+        points[i] = (float)(first + i * step);
+*/
+      points = Subdivide.subdivideStrict( min, max );
     }
 
     scale_panel.setVisible( false );
@@ -169,9 +174,9 @@ public class ColorPanel extends JPanel
     scale_panel.add( panel );
 
     if ( is_log_scale )
-      panel.AddObject( new LogAxis( width, height, min, max, points ) );
+      panel.AddObject( new LogAxis( 0, 0, width, height, min, max, points ) );
     else
-      panel.AddObject( new LinearAxis( width, height, min, max, points ) );
+      panel.AddObject( new LinearAxis(0, 0, width, height, min, max, points) );
 
     panel.draw();
     scale_panel.setVisible( true );
