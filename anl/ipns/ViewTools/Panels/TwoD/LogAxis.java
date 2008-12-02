@@ -44,48 +44,44 @@ import gov.anl.ipns.ViewTools.Components.Transparency.CalibrationUtil;
  * @author Dennis Mikkelson
  *
  */
-public class LogAxis extends Drawable
+public class LogAxis extends AxisBaseClass
 {
-  private int     width,
-                  height;
-  private double  min,
-                  max;
-  private double  log_min,
-                  log_max;
   private float   real_height = 1;  // We'll work on a virtual rectangle
                                     // [min,max] X [0,1] to draw the axis.
-  private float[] points;
-
-  private TextDrawable[] labels;
+  private double  log_min,
+                  log_max;
   
   /**
    * Construct a log axis of the specified dimensions, with
    * the specified calibrations.
    * 
-   * @param width   The width of the axis in pixels 
-   * @param height  The height of the axis in pixels 
+   * @param x0      The x-coordinate, of the lower left hand corner of the 
+   *                rectangle containing the axis, specified in pixel 
+   *                coordinates with y  INCREASING UPWARD 
+   * @param y0      The y-coordinate, of the lower left hand corner of the 
+   *                rectangle containing the axis, specified in pixel 
+   *                coordinates with y  INCREASING UPWARD 
+   * @param width   The width of the rectangle containing the axis in pixels 
+   * @param height  The height of the rectangle conatining axis in pixels 
    * @param min     The real number associated with the
    *                left hand end point of the axis
    * @param max     The real number associated with the
    *                right hand end point of the axis
    * @param points  The points to mark along the axis
    */
-  public LogAxis( int     width, 
+  public LogAxis( int     x0,
+                  int     y0,
+                  int     width, 
                   int     height, 
                   float   min, 
                   float   max, 
                   float[] points )
   {
-    this.width   = width;
-    this.height  = height;
-    this.min     = min;
-    this.max     = max;
-    this.log_min = Math.log10( min );
-    this.log_max = Math.log10( max );
-    this.points  = points;
-    
-    Font font = new Font("SansSerif", Font.PLAIN, 9 );
+    super( x0, y0, width, height, min, max, points );
 
+    log_min = Math.log10( min );
+    log_max = Math.log10( max );
+ 
     labels = new TextDrawable[points.length];
     for ( int i = 0; i < points.length; i++ )
     {
@@ -212,6 +208,10 @@ public class LogAxis extends Drawable
     double log_x = Math.log10( x );
     int pix_x = (int)(( log_x - log_min ) * (width-1) / ( log_max - log_min ));
     int pix_y = (int)( y * (height-1) );
+
+    pix_x += x0;
+    pix_y += y0;
+
     return new Point( pix_x, pix_y );
   }
 
@@ -251,7 +251,7 @@ public class LogAxis extends Drawable
     for ( int i = 0; i < points.length; i++ )
       System.out.printf( "%3d  %4.5f\n", i, points[i] );
 
-    LogAxis axis = new LogAxis( width, height, min, max, points );
+    LogAxis axis = new LogAxis( 100, 100, width, height, min, max, points );
 
     panel.AddObject( axis );
     panel.draw();
