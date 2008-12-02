@@ -42,48 +42,45 @@ import javax.swing.*;
  * @author Dennis Mikkelson
  *
  */
-public class LinearAxis extends Drawable
+public class LinearAxis extends AxisBaseClass
 {
-  private int     width,
-                  height;
-  private float   min,
-                  max;
   private float   real_height = 1;  // We'll work on a virtual rectangle
                                     // [min,max] X [0,1] to draw the axis.
-  private float[] points;
-
-  private TextDrawable[] labels;
-  
   /**
    * Construct an axis of the specified dimensions, with
    * the specified calibrations.
    * 
-   * @param width   The width of the axis in pixels 
-   * @param height  The height of the axis in pixels 
+   * @param x0      The x-coordinate, of the lower left hand corner of the 
+   *                rectangle containing the axis, specified in pixel 
+   *                coordinates with y  INCREASING UPWARD 
+   * @param y0      The y-coordinate, of the lower left hand corner of the 
+   *                rectangle containing the axis, specified in pixel 
+   *                coordinates with y  INCREASING UPWARD 
+   * @param width   The width of the axis box in pixels 
+   * @param height  The height of the axis box in pixels 
    * @param min     The real number associated with the
    *                left hand end point of the axis
    * @param max     The real number associated with the
    *                right hand end point of the axis
    * @param points  The points to mark along the axis
    */
-  public LinearAxis( int     width, 
+  public LinearAxis( int     x0,
+                     int     y0,
+                     int     width, 
                      int     height, 
                      float   min, 
                      float   max, 
                      float[] points )
   {
-    this.width  = width;
-    this.height = height;
-    this.min    = min;
-    this.max    = max;
-    this.points = points;
-    
-    Font font = new Font("SansSerif", Font.PLAIN, 9 );
+    super( x0, y0, width, height, min, max, points );
+ 
+    String format = makeFormat( points ); 
+    System.out.println("FORMAT = " + format );
 
     labels = new TextDrawable[points.length];
     for ( int i = 0; i < points.length; i++ )
     {
-       String text = String.format("%4.0f", points[i] );
+       String text = String.format(format, points[i] );
        TextDrawable label = new TextDrawable( text.trim() );
 
        if ( i == 0 )
@@ -101,6 +98,45 @@ public class LinearAxis extends Drawable
        label.setFont( font );
        labels[i] = label;
     }
+  }
+
+
+  public String makeFormat( float[] points )
+  {
+    String format = "%3.2f";
+    if ( points.length > 1 )
+    {
+      int n_decimal = 0;
+
+      double m_step = 1.1*(points[1] - points[0]); // modified step size allows
+                                                   // some rounding error
+      System.out.println("STEP = " + m_step );
+
+      int exponent = (int)Math.floor( Math.log10( m_step ) );
+      if ( exponent < 0 )
+        n_decimal = -exponent;
+
+      double first = points[0];
+      double last  = points[ points.length - 1 ];
+      int n_digits = (int)Math.max( Math.log10( Math.abs(first) ),
+                                    Math.log10( Math.abs(last) )  );
+/*
+      System.out.println("EXPONENT  = " + exponent );
+      System.out.println("N_DECIMAL = " + n_decimal );
+      System.out.println("N_DIGITS  = " + n_digits );
+*/
+      if ( n_digits >= 6 || n_decimal > 6 )        // use scientific notation
+      {
+        int sig_fig = n_digits - exponent;
+        if ( n_digits < 0 )
+          sig_fig -= 1;
+        format = "%" + (sig_fig+4) + "." + sig_fig + "E";
+      }
+      else
+        format = "%" + (n_digits + n_decimal + 2) + "." + n_decimal + "f";
+    }
+
+    return format;
   }
   
   
@@ -122,6 +158,7 @@ public class LinearAxis extends Drawable
     graphics.drawLine( left.x, left.y, right.x, right.y ); 
     for ( int i = 0; i < points.length; i++ )
     {
+      System.out.println("x = " + points[i] );
       Point top    = WorldToPixel( points[i], 0.99f );
       Point bottom;
       if ( i % 2 == 0 )
@@ -153,8 +190,8 @@ public class LinearAxis extends Drawable
    */
   private Point WorldToPixel( float x, float y )
   {
-    int pix_x = (int)( ( x - min ) * (width-1) / ( max - min ) );
-    int pix_y = (int)( y * (height-1) );
+    int pix_x = (int)( ( x - min ) * (width-1) / ( max - min ) ) + x0;
+    int pix_y = (int)( y * (height-1) ) + y0;
     return new Point( pix_x, pix_y );
   }
 
@@ -179,7 +216,7 @@ public class LinearAxis extends Drawable
     float   min = -10;
     float   max = 110;
     float[] points = {0, 25, 50, 75, 100};
-    LinearAxis axis = new LinearAxis( width, height, min, max, points );
+    LinearAxis axis = new LinearAxis( 0, 0, width, height, min, max, points );
 
     panel.AddObject( axis );
     panel.draw();
