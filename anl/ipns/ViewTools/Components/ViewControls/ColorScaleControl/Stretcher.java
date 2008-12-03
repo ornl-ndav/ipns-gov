@@ -306,6 +306,7 @@ public class Stretcher extends ActiveJPanel
 	   
 	   if( currentPos >= small.length())
 	      return small.substring( posStart);
+	  if( small.charAt(currentPos)=='.')currentPos++;
 	  if( small.charAt( currentPos )!='9' || large.charAt( currentPos )!='0'){
 	     int nextChar1 = (int)small.charAt( posStart+1 );
         int nextChar2 = (int)large.charAt( posStart+1 );
