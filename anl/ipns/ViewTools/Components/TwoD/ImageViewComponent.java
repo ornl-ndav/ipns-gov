@@ -871,6 +871,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   private transient ViewMenuItem[] menus;
   private String colorscale;
   private boolean isTwoSided = true;
+  private boolean use_new_color_control = true;
   private double logscale = 0;
   private boolean addColorControlEast = false;   // add calibrated color scale
   private boolean addColorControlSouth = false;  // add calibrated color scale
@@ -883,13 +884,18 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   private boolean null_data = false;
  
  /**
-  * Constructor that takes in a virtual array and creates an imagejpanel
-  * to be viewed in a border layout.
+  * Constructor that takes in a virtual array together with a flag to select
+  * the type of color control, and creates an ImageViewComponent to display 
+  * that data.
   *
-  *  @param  varr IVirtualArray2D containing data for image creation
+  *  @param  varr               IVirtualArray2D containing the data for 
+  *                             for the image
+  *  @param  new_color_control  If true, use the new color scale control
+  *                             instead of a simple slider.
   */
-  public ImageViewComponent( IVirtualArray2D varr )  
+  public ImageViewComponent( IVirtualArray2D varr, boolean new_color_control )  
   {
+    use_new_color_control = new_color_control;
     font = FontUtil.LABEL_FONT2;
     ijp = new ImageJPanel2();
     colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
@@ -907,13 +913,26 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     else
       dataChanged(varr);
   } 
-  
+
+ /**
+  * Constructor that takes in a virtual array and creates an 
+  * ImageViewComponent to display that data.
+  *
+  *  @param  varr               IVirtualArray2D containing the data for 
+  *                             for the image
+  */
+  public ImageViewComponent( IVirtualArray2D varr )
+  {
+    this( varr, false );
+  }
+
+ 
  /**
   * Constructor that takes in a virtual array and a previous state to create
-  * an imagejpanel to be viewed in a border layout.
+  * an ImageViewComponent to display that data.
   *
-  *  @param  varr IVirtualArray2D containing data for image creation
-  *  @param  state The state of a previous ImageViewComponent.
+  * @param  varr  IVirtualArray2D containing data for image creation
+  * @param  state The state of a previous ImageViewComponent.
   */
   public ImageViewComponent( IVirtualArray2D varr, ObjectState state )  
   {
@@ -946,8 +965,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     if( temp != null )
     {
       isTwoSided = ((Boolean)temp).booleanValue();
-
-      System.out.println("ImageViewComponent isTwoSided = " + true );
 
       ijp.setNamedColorModel( colorscale, isTwoSided, false);
       redraw = true;  
@@ -1290,9 +1307,66 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     ijp.setNamedColorModel( colorscale, isTwoSided, true );
     ((ControlColorScale)controls[1]).setColorScale( colorscale, 
     						    isTwoSided );	 
-    ((PanViewControl)controls[9]).repaint();
     sendMessage(COLORSCALE_CHANGED);
+    ((PanViewControl)controls[9]).repaint();
     paintComponents();
+  }
+
+
+ /**
+  *  Set the image and controls to use new values for the color model,
+  *  color table, etc., as provided by the new ColorEditPanelManager.
+  *
+  *  @param info  The object with the new color information.
+  */
+  public void updateNewColorScale( ColorScaleInfo info )
+  {
+    float   min        = info.getTableMin();
+    float   max        = info.getTableMax();
+    float   prescale   = info.getPrescale();
+
+    String  cs_name    = info.getColorScaleName();
+    boolean two_sided  = info.isTwoSided();
+    int     num_colors = info.getNumColors();
+
+    byte[]  table      = info.getColorIndexTable();
+    boolean isLog      = info.isLog();
+
+    ijp.setNamedColorModel( cs_name, two_sided, num_colors, false );
+    ijp.changeColorIndexTable( table,
+                               isLog,
+                               min,
+                               max,
+                               true );
+    colorscale = cs_name;
+    isTwoSided = two_sided;
+    ((ControlColorScale)controls[1]).setColorScale( colorscale,
+                                                    two_sided );
+    sendMessage(COLORSCALE_CHANGED);
+    ((PanViewControl)controls[9]).repaint();
+    paintComponents();
+  }
+
+
+ /**
+  *  Get the minimum value in the image data.
+  *
+  *  @return the minimum value in the image data.
+  */
+  public float getDataMin()
+  {
+    return ijp.getDataMin();
+  }
+
+
+ /**
+  *  Get the maximum value in the image data.
+  *
+  *  @return the maximum value in the image data.
+  */
+  public float getDataMax()
+  {
+    return ijp.getDataMax();
   }
 
   
@@ -2041,7 +2115,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   */ 
   private void reInit()  
   {
-    System.out.println("IVC.reInit(), isTwoSided = " + isTwoSided );
     ijp.setNamedColorModel(colorscale, isTwoSided, false);
     ijp.repaint();
     // make sure logscale and two-sided are consistent
@@ -2219,16 +2292,22 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     // Adding a spacer panel to "crunch" controls may result in the
     // PanViewControl getting drawn over any latter controls.
     controls = new ViewControl[10];
-    // Old slider control that adjusts the image intensity
-    /*
-    controls[0] = new ControlSlider();
-    controls[0].setTitle(INTENSITY_SLIDER_NAME);
-    ((ControlSlider)controls[0]).setValue((float)logscale);		  
-    controls[0].addActionListener( new ControlListener() );
-    */
-    // New color scale control that adjusts the image intensity
-    controls[0] = new ColorEditPanelManager( NEW_COLOR_SCALE_NAME, ijp );
-    controls[0].addActionListener( new ControlListener() );
+
+    if ( use_new_color_control )
+    {                      // New color scale control that adjusts color info
+
+      controls[0] = new ColorEditPanelManager( NEW_COLOR_SCALE_NAME, this );
+      controls[0].addActionListener( new ControlListener() );
+    }
+    else
+    {                  // Old slider control that just changes image intensity
+   
+      controls[0] = new ControlSlider();
+      controls[0].setTitle(INTENSITY_SLIDER_NAME);
+      ((ControlSlider)controls[0]).setValue((float)logscale);		  
+      controls[0].addActionListener( new ControlListener() );
+    } 
+
     // Control that displays uncalibrated color scale
     controls[1] = new ControlColorScale(colorscale, isTwoSided );
     controls[1].setTitle(COLOR_SCALE_NAME);
@@ -2276,18 +2355,21 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     Vector cs_listener = new Vector(); 
     colorscale.add("Color Scale");
     cs_listener.add( new ColorListener() );
-    colorscale.add(choices);
-     choices.add("Scales");
-      cs_listener.add( new ColorListener() );
-      choices.add(IndexColorMaker.HEATED_OBJECT_SCALE);
-      choices.add(IndexColorMaker.HEATED_OBJECT_SCALE_2);
-      choices.add(IndexColorMaker.GRAY_SCALE);
-      choices.add(IndexColorMaker.NEGATIVE_GRAY_SCALE);
-      choices.add(IndexColorMaker.GREEN_YELLOW_SCALE);
-      choices.add(IndexColorMaker.RAINBOW_SCALE);
-      choices.add(IndexColorMaker.OPTIMAL_SCALE);
-      choices.add(IndexColorMaker.MULTI_SCALE);
-      choices.add(IndexColorMaker.SPECTRUM_SCALE);
+    if ( !use_new_color_control )
+    {
+      colorscale.add(choices);
+      choices.add("Scales");
+        cs_listener.add( new ColorListener() );
+        choices.add(IndexColorMaker.HEATED_OBJECT_SCALE);
+        choices.add(IndexColorMaker.HEATED_OBJECT_SCALE_2);
+        choices.add(IndexColorMaker.GRAY_SCALE);
+        choices.add(IndexColorMaker.NEGATIVE_GRAY_SCALE);
+        choices.add(IndexColorMaker.GREEN_YELLOW_SCALE);
+        choices.add(IndexColorMaker.RAINBOW_SCALE);
+        choices.add(IndexColorMaker.OPTIMAL_SCALE);
+        choices.add(IndexColorMaker.MULTI_SCALE);
+        choices.add(IndexColorMaker.SPECTRUM_SCALE);
+    }
     colorscale.add(position);
      position.add("Display Position");
       cs_listener.add( new ColorListener() );
@@ -2504,7 +2586,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
 
       else if ( message == ColorEditPanelManager.COLOR_SCALE_CHANGED )
       {
-        System.out.println("TEST: show color scale control");
+        // System.out.println("TEST: show color scale control");
+        // NO OPERATION NEEDED: the ColorEditPanelManager pops up the control
       }
 
       else if ( message == ControlCheckboxButton.CHECKBOX_CHANGED )
@@ -2515,7 +2598,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
         {
           ControlCheckboxButton control = 
                 		      (ControlCheckboxButton)ae.getSource();
-
           if( control.getTitle().equals(MARKER_OVERLAY_NAME) )
           {
             // if control is unchecked, don't show the overlay.
@@ -2592,7 +2674,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
         if( ae.getSource() instanceof ControlCheckboxButton )
         {
           ControlCheckboxButton ccb = (ControlCheckboxButton)ae.getSource();
-
           if( ccb.getTitle().equals(AXIS_OVERLAY_NAME) )
           {
             AxisOverlay2D axis = (AxisOverlay2D)transparencies.elementAt(2);
