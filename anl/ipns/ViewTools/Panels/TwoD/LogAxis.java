@@ -48,6 +48,9 @@ public class LogAxis extends AxisBaseClass
                                     // [min,max] X [0,1] to draw the axis.
   private double  log_min,
                   log_max;
+
+  private String linear_format = null;  // Only set non-null if the division
+                                        // points are actually linear.
   
   /**
    * Construct a log axis of the specified dimensions, with
@@ -84,10 +87,13 @@ public class LogAxis extends AxisBaseClass
     log_min = Math.log10( min );
     log_max = Math.log10( max );
  
+    if ( max / min <= 10 )                       // points will be linear
+      linear_format = LinearAxis.makeFormat( points );
+
     labels = new TextDrawable[points.length];
     for ( int i = 0; i < points.length; i++ )
     {
-       String text = Format( points[i] );
+       String text = Format( linear_format, points[i] );
        TextDrawable label = new TextDrawable( text.trim() );
        label.setAlignment( TextDrawable.Horizontal.CENTER, 
                            TextDrawable.Vertical.TOP  );
@@ -109,15 +115,22 @@ public class LogAxis extends AxisBaseClass
 
 
   /**
-   *  Attempt to format the point in a "nice" compact String form, without
-   *  excessive trailing zeros.
+   *  Attempt to format the specified value in a "nice" compact String form, 
+   *  without excessive trailing zeros.
    *
+   *  @param  format  If not null, use this format to convert the value into
+   *                  string form, otherwise an internally generated format 
+   *                  will be used.
    *  @param  point   The value to format
+   *
    *  @return A String form of the value.
    */
-  public static String Format( double point )
+  public static String Format( String format, double point )
   {
     String text;
+
+    if ( format != null )
+      return String.format( format, point ); 
 
     if ( point < 0.00001 )
       text = String.format("%4.1E", point );
