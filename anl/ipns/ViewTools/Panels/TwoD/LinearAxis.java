@@ -100,7 +100,16 @@ public class LinearAxis extends AxisBaseClass
   }
 
 
-  public String makeFormat( double[] points )
+  /**
+   *  Construct a format string describing an appropriate format to use
+   *  for the specified points.
+   *
+   *  @param  points  an array of floating point values in increasing order
+   *
+   *  @return A string, such as %6.3E" describing a format to use for the
+   *          points.
+   */
+  public static String makeFormat( double[] points )
   {
     String format = "%3.2f";
     if ( points.length > 1 )
