@@ -35,8 +35,6 @@ package gov.anl.ipns.ViewTools.Panels.TwoD;
 import java.awt.*;
 import javax.swing.*;
 
-import gov.anl.ipns.ViewTools.Components.Transparency.CalibrationUtil;
-
 /**
  * This class is a Drawable that draws a calibrated logarithmic axis with the
  * specified points marked.
@@ -46,7 +44,7 @@ import gov.anl.ipns.ViewTools.Components.Transparency.CalibrationUtil;
  */
 public class LogAxis extends AxisBaseClass
 {
-  private float   real_height = 1;  // We'll work on a virtual rectangle
+  private double  real_height = 1;  // We'll work on a virtual rectangle
                                     // [min,max] X [0,1] to draw the axis.
   private double  log_min,
                   log_max;
@@ -69,16 +67,20 @@ public class LogAxis extends AxisBaseClass
    *                right hand end point of the axis
    * @param points  The points to mark along the axis
    */
-  public LogAxis( int     x0,
-                  int     y0,
-                  int     width, 
-                  int     height, 
-                  float   min, 
-                  float   max, 
-                  float[] points )
+  public LogAxis( int      x0,
+                  int      y0,
+                  int      width, 
+                  int      height, 
+                  double   min, 
+                  double   max, 
+                  double[] points )
   {
     super( x0, y0, width, height, min, max, points );
-
+/*
+    System.out.println("========================= LOG POINTS ==");
+    for ( int i = 0; i < points.length; i++ )
+       System.out.println("" + points[i] );
+*/
     log_min = Math.log10( min );
     log_max = Math.log10( max );
  
@@ -87,15 +89,15 @@ public class LogAxis extends AxisBaseClass
     {
        String text = Format( points[i] );
        TextDrawable label = new TextDrawable( text.trim() );
+       label.setAlignment( TextDrawable.Horizontal.CENTER, 
+                           TextDrawable.Vertical.TOP  );
 
-       if ( i == 0 )
+       if ( i == 0 && (points[0] - min) < (points[1] - points[0])/2 )
          label.setAlignment( TextDrawable.Horizontal.LEFT, 
                              TextDrawable.Vertical.TOP  );
-       else if ( i == points.length - 1 )
+
+       if ( i == points.length - 1 )
          label.setAlignment( TextDrawable.Horizontal.RIGHT, 
-                             TextDrawable.Vertical.TOP  );
-       else
-         label.setAlignment( TextDrawable.Horizontal.CENTER, 
                              TextDrawable.Vertical.TOP  );
 
        Point position = WorldToPixel( points[i], 0.45 );
@@ -113,19 +115,19 @@ public class LogAxis extends AxisBaseClass
    *  @param  point   The value to format
    *  @return A String form of the value.
    */
-  private String Format( float point )
+  public static String Format( double point )
   {
     String text;
 
-    if ( point < 0.00001f )
+    if ( point < 0.00001 )
       text = String.format("%4.1E", point );
-    else if ( point < 0.0001f )
+    else if ( point < 0.0001 )
       text = String.format("%4.5f", point );
-    else if ( point < 0.001f )
+    else if ( point < 0.001 )
       text = String.format("%4.4f", point );
-    else if ( point < 0.01f )
+    else if ( point < 0.01 )
       text = String.format("%4.3f", point );
-    else if ( point < 0.1f )
+    else if ( point < 0.1 )
       text = String.format("%4.2f", point );
     else if ( point < 1 )
       text = String.format("%4.1f", point );
@@ -151,8 +153,8 @@ public class LogAxis extends AxisBaseClass
                                               // get a new graphics context
                                               // with those attributes set.
 
-    Point left = WorldToPixel( min, 0.99f );
-    Point right = WorldToPixel( max, 0.99f );
+    Point left = WorldToPixel( min, 0.99 );
+    Point right = WorldToPixel( max, 0.99 );
     graphics.drawLine( left.x, left.y, right.x, right.y ); 
     for ( int i = 0; i < points.length; i++ )
     {
@@ -166,10 +168,41 @@ public class LogAxis extends AxisBaseClass
       graphics.drawLine( top.x, top.y, bottom.x, bottom.y );
     }
 
-    for ( int i = 0; i < labels.length; i++ )
-      if ( i % 3 == 0 )
-        labels[i].draw( graphics );
 
+    if ( max / min > 500000 )                // label alternate powers of 10
+    {
+      int count = 0;
+      for ( int i = 0; i < labels.length; i++ )
+        if ( isPowerOfTen( points[i] ) )
+        {
+          if ( count % 2 == 0 )
+            labels[i].draw( graphics );
+          count++;
+        }
+    }
+
+    else if ( max / min > 5000 )             // just label powers of 10 
+    {
+      for ( int i = 0; i < labels.length; i++ )
+        if ( isPowerOfTen( points[i] ) )
+          labels[i].draw( graphics );
+    }
+
+    else if ( max / min >= 10 )               // label 5's and 10's points
+    {
+      for ( int i = 0; i < labels.length; i++ )
+        if ( isPowerOfTen(points[i])           || 
+             isThreeTimesPowerOfTen(points[i]) )
+          labels[i].draw( graphics );
+    }
+
+    else                                      // linear scale, label alternate 
+    {                                         // points
+      for ( int i = 0; i < labels.length; i++ )
+        if ( i % 2 == 0 )
+          labels[i].draw( graphics );
+    }
+ 
     graphics.dispose();                       // get rid of the new 
                                               // graphics context 
   }
@@ -191,6 +224,45 @@ public class LogAxis extends AxisBaseClass
     else
       return false;
   }
+
+
+  /**
+   * Check whether the specified value is 5 times a power of ten.
+   *
+   * @param  x  The number to check.
+   *
+   * @return true if the parameter is essentially a 5 times power of ten.
+   */
+  private boolean isFiveTimesPowerOfTen( double x )
+  {
+    double exponent = Math.log10( x );
+    double fraction = exponent - Math.floor(exponent);
+
+    if ( Math.abs(fraction - Math.log10(5)) < 0.00001 )
+      return true;
+    else
+      return false;
+  }
+
+
+  /**
+   * Check whether the specified value is 3 times a power of ten.
+   *
+   * @param  x  The number to check.
+   *
+   * @return true if the parameter is essentially a 3 times power of ten.
+   */
+  private boolean isThreeTimesPowerOfTen( double x )
+  {
+    double exponent = Math.log10( x );
+    double fraction = exponent - Math.floor(exponent);
+
+    if ( Math.abs(fraction - Math.log10(3)) < 0.00001 )
+      return true;
+    else
+      return false;
+  }
+
 
 
   /**
@@ -234,22 +306,13 @@ public class LogAxis extends AxisBaseClass
     int     width  = frame.getContentPane().getWidth();
     int     height = frame.getContentPane().getHeight();
  
-/*
-    float[] points = {1, 3, 10, 30, 100, 300, 1000, 3000, 10000};
+    double[] points = {1, 3, 10, 30, 100, 300, 1000, 3000, 10000};
 
     for ( int i = 0; i < points.length; i++ )
       points[i] *= 100;
 
-    float   min = points[0];
-    float   max = points[points.length-1]; 
-*/
-    float   min = 1f;
-    float   max = 1.1f; 
-
-    CalibrationUtil calib = new CalibrationUtil( min, max );
-    float[] points = calib.subDivideLog();
-    for ( int i = 0; i < points.length; i++ )
-      System.out.printf( "%3d  %4.5f\n", i, points[i] );
+    double   min = points[0];
+    double   max = points[points.length-1]; 
 
     LogAxis axis = new LogAxis( 100, 100, width, height, min, max, points );
 
