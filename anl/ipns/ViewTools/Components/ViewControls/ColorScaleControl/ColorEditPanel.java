@@ -443,7 +443,7 @@ public class ColorEditPanel extends ViewControl
 		buttonGroup.add(autoScale);
 		buttonGroup.add(specMinMax);
 		
-		autoScale.setSelected(true);
+		specMinMax.setSelected(true);
 		maxField = new JTextField();
 		minField = new JTextField();
 		maxField.setEditable(false);
