@@ -44,7 +44,7 @@ import javax.swing.*;
  */
 public class LinearAxis extends AxisBaseClass
 {
-  private float   real_height = 1;  // We'll work on a virtual rectangle
+  private double  real_height = 1;  // We'll work on a virtual rectangle
                                     // [min,max] X [0,1] to draw the axis.
   /**
    * Construct an axis of the specified dimensions, with
@@ -64,18 +64,17 @@ public class LinearAxis extends AxisBaseClass
    *                right hand end point of the axis
    * @param points  The points to mark along the axis
    */
-  public LinearAxis( int     x0,
-                     int     y0,
-                     int     width, 
-                     int     height, 
-                     float   min, 
-                     float   max, 
-                     float[] points )
+  public LinearAxis( int      x0,
+                     int      y0,
+                     int      width, 
+                     int      height, 
+                     double   min, 
+                     double   max, 
+                     double[] points )
   {
     super( x0, y0, width, height, min, max, points );
  
     String format = makeFormat( points ); 
-    System.out.println("FORMAT = " + format );
 
     labels = new TextDrawable[points.length];
     for ( int i = 0; i < points.length; i++ )
@@ -93,7 +92,7 @@ public class LinearAxis extends AxisBaseClass
          label.setAlignment( TextDrawable.Horizontal.CENTER, 
                              TextDrawable.Vertical.TOP  );
 
-       Point position = WorldToPixel( points[i], 0.45f );
+       Point position = WorldToPixel( points[i], 0.45 );
        label.setPosition( position );
        label.setFont( font );
        labels[i] = label;
@@ -101,7 +100,7 @@ public class LinearAxis extends AxisBaseClass
   }
 
 
-  public String makeFormat( float[] points )
+  public String makeFormat( double[] points )
   {
     String format = "%3.2f";
     if ( points.length > 1 )
@@ -110,8 +109,6 @@ public class LinearAxis extends AxisBaseClass
 
       double m_step = 1.1*(points[1] - points[0]); // modified step size allows
                                                    // some rounding error
-      System.out.println("STEP = " + m_step );
-
       int exponent = (int)Math.floor( Math.log10( m_step ) );
       if ( exponent < 0 )
         n_decimal = -exponent;
@@ -153,18 +150,17 @@ public class LinearAxis extends AxisBaseClass
                                               // get a new graphics context
                                               // with those attributes set.
 
-    Point left = WorldToPixel( min, 0.99f );
-    Point right = WorldToPixel( max, 0.99f );
+    Point left = WorldToPixel( min, 0.99 );
+    Point right = WorldToPixel( max, 0.99 );
     graphics.drawLine( left.x, left.y, right.x, right.y ); 
     for ( int i = 0; i < points.length; i++ )
     {
-      System.out.println("x = " + points[i] );
-      Point top    = WorldToPixel( points[i], 0.99f );
+      Point top    = WorldToPixel( points[i], 0.99 );
       Point bottom;
       if ( i % 2 == 0 )
-        bottom = WorldToPixel( points[i], 0.70f );
+        bottom = WorldToPixel( points[i], 0.70 );
       else
-        bottom = WorldToPixel( points[i], 0.85f );
+        bottom = WorldToPixel( points[i], 0.85 );
 
       graphics.drawLine( top.x, top.y, bottom.x, bottom.y );
     }
@@ -188,7 +184,7 @@ public class LinearAxis extends AxisBaseClass
    *
    *  @param the pixel point in the panel corresponding to the specified (x,y).
    */
-  private Point WorldToPixel( float x, float y )
+  private Point WorldToPixel( double x, double y )
   {
     int pix_x = (int)( ( x - min ) * (width-1) / ( max - min ) ) + x0;
     int pix_y = (int)( y * (height-1) ) + y0;
@@ -213,9 +209,9 @@ public class LinearAxis extends AxisBaseClass
     
     int     width  = frame.getContentPane().getWidth();
     int     height = frame.getContentPane().getHeight();
-    float   min = -10;
-    float   max = 110;
-    float[] points = {0, 25, 50, 75, 100};
+    double  min = -10;
+    double  max = 110;
+    double[] points = {0, 25, 50, 75, 100};
     LinearAxis axis = new LinearAxis( 0, 0, width, height, min, max, points );
 
     panel.AddObject( axis );

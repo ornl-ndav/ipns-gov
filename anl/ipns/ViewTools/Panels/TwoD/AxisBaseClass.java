@@ -42,16 +42,16 @@ import javax.swing.*;
  */
 public abstract class AxisBaseClass extends Drawable
 {
-  protected int     x0,               // coordinates of lower left corner of
-                    y0,               // axis region, in pixels with y  
-                                      // increasing upward.
-                    width,            // width and height of axis in pixels
-                    height;
-  protected float   min,
-                    max;
-  protected float   real_height = 1;  // We'll work on a virtual rectangle
+  protected int      x0,               // coordinates of lower left corner of
+                     y0,               // axis region, in pixels with y  
+                                       // increasing upward.
+                     width,            // width and height of axis in pixels
+                     height;
+  protected double   min,
+                     max;
+  protected double   real_height = 1;  // We'll work on a virtual rectangle
                                     // [min,max] X [0,1] to draw the axis.
-  protected float[] points;
+  protected double[] points;
 
   protected TextDrawable[] labels;
 
@@ -76,13 +76,13 @@ public abstract class AxisBaseClass extends Drawable
    *                right hand end point of the axis
    * @param points  The points to mark along the axis
    */
-  public AxisBaseClass( int     x0,
-                        int     y0,
-                        int     width,
-                        int     height,
-                        float   min,
-                        float   max,
-                        float[] points )
+  public AxisBaseClass( int      x0,
+                        int      y0,
+                        int      width,
+                        int      height,
+                        double   min,
+                        double   max,
+                        double[] points )
   {
     this.x0     = x0;
     this.y0     = y0;
