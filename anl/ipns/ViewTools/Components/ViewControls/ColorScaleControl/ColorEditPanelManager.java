@@ -39,41 +39,43 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
+import gov.anl.ipns.ViewTools.Components.TwoD.*;
 import gov.anl.ipns.ViewTools.Panels.Image.*;
 import gov.anl.ipns.Util.Sys.*;
 
 /**
  *  This class coordinates the color scale editor and an 
- *  ImageJPanel2 object.  When the user clicks the Update button
+ *  ImageViewComponent object.  When the user clicks the Update button
  *  on the editor, the corresponding color scale information will
- *  be passed on to the ImageJPanel2.
+ *  be passed on to the ImageJPanel2 or ImageViewComponent.
  */
 public class ColorEditPanelManager extends ViewControl 
 {
-  ImageJPanel2    ijp;
-  ColorEditPanel  color_editor;
-  JFrame          frame;
+  ImageViewComponent  ivc = null;
+  ColorEditPanel      color_editor;
+  JFrame              frame;
 
   public static final String COLOR_SCALE_CHANGED = "Color Scale Changed";  
 
-  public ColorEditPanelManager( String title, ImageJPanel2 ijp )
+  public ColorEditPanelManager( String title, ImageViewComponent ivc )
   {
     super( title );
 
-    this.ijp = ijp;    
+    this.ivc = ivc;    
 
     JButton edit_button = new JButton("Edit Color Scale");    
     edit_button.addActionListener( new EditButtonListener() );
     this.setLayout( new GridLayout(1,1) );
     this.add( edit_button ); 
 
-    color_editor = new ColorEditPanel( ijp.getDataMin(), ijp.getDataMax() );
+    color_editor = new ColorEditPanel( ivc.getDataMin(), ivc.getDataMax() );
     color_editor.addActionListener( new EditorListener() );
     frame = new JFrame("Color Scale Editor"); 
     frame.add( color_editor );
     frame.setBounds( 0, 0, 400, 500 );
     frame.setDefaultCloseOperation( WindowConstants.HIDE_ON_CLOSE );
   } 
+
 
   @Override
   public void setControlValue(Object value)
@@ -114,24 +116,7 @@ public class ColorEditPanelManager extends ViewControl
       return;
     }
 
-    float   min        = info.getTableMin(); 
-    float   max        = info.getTableMax(); 
-    float   prescale   = info.getPrescale();
-
-    String  cs_name    = info.getColorScaleName();
-    boolean two_sided  = info.isTwoSided();
-    int     num_colors = info.getNumColors(); 
-
-    byte[]  table      = info.getColorIndexTable();
-    boolean isLog      = info.isLog();
-
-    ijp.setNamedColorModel( cs_name, two_sided, num_colors, false );
-
-    ijp.changeColorIndexTable( table,
-                               isLog,
-                               min,
-                               max,
-                               true );
+    ivc.updateNewColorScale( info );
   }
 
 
