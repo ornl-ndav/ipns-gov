@@ -467,7 +467,9 @@ public class Display2D extends Display
     
     if( current_view == IMAGE )
     {
-      ivc = new ImageViewComponent( (IVirtualArray2D)data );
+      boolean use_new_color_control = true;
+      ivc = new ImageViewComponent( (IVirtualArray2D)data, 
+                                    use_new_color_control );
       ((ImageViewComponent)ivc).setColorControlEast(true);
 //    ((ImageViewComponent)ivc).preserveAspectRatio(true);
       if( colorscale != null )
