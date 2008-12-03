@@ -31,6 +31,8 @@
 
 package gov.anl.ipns.Util.Numeric;
 
+import java.util.Vector;
+
 public class Subdivide
 {
 
@@ -45,8 +47,11 @@ public class Subdivide
   * get an array of subdivision points that are guaranteed to be
   * contained in [a,b] use the method subdivideStrict(a,b);
   *
-  *  @return array containing the step size, starting value, and 
-  *          number of steps in positions 0, 1 and 2, respectively.
+  * @param  xmin   The left  hand endpoint of the interval [a,b] 
+  * @param  xmax   The right hand endpoint of the interval [a,b] 
+  *
+  * @return array containing the step size, starting value, and 
+  *         number of steps in positions 0, 1 and 2, respectively.
   */
   public static double[] subdivide( double xmin, double xmax )
   {
@@ -60,8 +65,11 @@ public class Subdivide
 
     s_diff = xmax - xmin;
 
- /* Now express the length of the interval in the form  s_diff * 10^ipower
-    where s_diff is in the interval [1., 10.) */
+ /*
+  *  Now express the length of the interval in the form  s_diff * 10^ipower
+  *  where s_diff is in the interval [1., 10.) 
+  */
+
     i_power = 0;
     while ( s_diff >= 10.0 )
     {
@@ -74,8 +82,10 @@ public class Subdivide
       i_power = i_power - 1;
     }
 
- /* Now choose step size to give a reasonable number of subdivisions
-    over an interval of length b-a. */
+ /*
+  *  Now choose step size to give a reasonable number of subdivisions
+  *  over an interval of length b-a. 
+  */
 
     if ( s_diff <= 1.2 )
       step = .1 * Math.pow(10.0, i_power );
@@ -88,7 +98,9 @@ public class Subdivide
     else
       step = Math.pow( 10.0, i_power );
 
- /* Now find the first grid point in the specified interval. */
+ /*
+  * Now find the first grid point in the specified interval. 
+  */
 
     start = step * Math.floor( xmin / step );
     if ( start < xmin - step/1000 )
@@ -128,18 +140,24 @@ public class Subdivide
     }
 
     return values;
-  } /* subDivide */
+  }
 
  
-  /**
-   *  Subdivide an interval and return points whose floating point
-   *  representations are strictly within the interval. 
-   *  NOTE: Due to rounding errors, this may not be exactly what is
-   *  needed.  In particular if the interval [0,2000] is subdivided into
-   *  10 intervals of length 100, the final point is calculated as
-   *  2000.0000298..., which is not in the interval.
-   */
-  public static float[] subdivideStrict( double xmin, double xmax )
+ /**
+  * Subdivide an interval and return points whose floating point
+  * representations are strictly within the interval. 
+  * NOTE: Due to rounding errors, this may not be exactly what is
+  * needed.  If the interval would divide perfectly with exact arithmetic
+  * it may happen that one or both endpoints might be missed due to
+  * rounding error in the calculation of the division points.
+  *
+  * @param  xmin   The left  hand endpoint of the interval [a,b] 
+  * @param  xmax   The right hand endpoint of the interval [a,b] 
+  *
+  * @return array containing the step size, starting value, and 
+  *         number of steps in positions 0, 1 and 2, respectively.
+  */
+  public static double[] subdivideStrict( double xmin, double xmax )
   {
     double[] info = subdivide( xmin, xmax );
     double step  = info[0];
@@ -155,15 +173,125 @@ public class Subdivide
     while ( start + count * step <= xmax )
       count++;
 
-    float[] result = new float[count];
+    double[] result = new double[count];
     for ( i = 0; i < count; i++ )
-      result[i] = (float)(start + i * step);
+      result[i] = start + i * step;
 
-    System.out.println("xmin, xmax = " + xmin + ", " + xmax );
+/*
+    System.out.println("subdivideStrict: xmin, xmax = " + xmin + ", " + xmax );
     for ( i = 0; i < count; i++ )
       System.out.println("POINT = " + result[i] );
 
-    System.out.println("POINT = " + (start + count * step) );
+    System.out.println("EXTRA POINT = " + (start + count * step) );
+*/
+ 
+    return result;
+  }
+
+
+ /* --------------------------- subDivideLinear -------------------------*
+ /** 
+  * Given an interval [a,b] return a list of evenly spaced points with
+  * "nice" values that subdivide the interval.
+  * NOTE: Due to possible problems with rounding, the returned 
+  * starting value may be slightly less than a and the right hand end
+  * point may be slightly more than b.  To get an array of subdivision 
+  * points that are guaranteed to be contained in [a,b] use the method 
+  * subdivideStrict(a,b);
+  *
+  * @param  xmin   The left  hand endpoint of the interval [a,b] 
+  * @param  xmax   The right hand endpoint of the interval [a,b] 
+  *
+  * @return array containing a list of "nice" subdivision points for the
+  *         interval.
+  */
+
+  public static double[] subdivideLinear( double xmin, double xmax )
+  {
+    double[] info  = subdivide( xmin, xmax );
+    double step    = info[0];
+    double start   = info[1];
+    int    n_steps = (int)info[2];
+
+    double[] result = new double[n_steps];
+
+    for ( int i = 0; i < n_steps; i++ )
+      result[i] = start + i * step;
+/*
+    System.out.println("subdivideLinear: xmin, xmax = " + xmin + ", " + xmax );
+    for ( int i = 0; i < n_steps; i++ )
+      System.out.println("POINT = " + result[i] );
+*/
+    return result;
+  }
+
+
+ /* ---------------------------- subDivideLog ----------------------------*
+ /** 
+  * Given an interval [a,b] with a > 0 and b > a, return a list of points 
+  * with that subdivide the interval.  If the ratio of b/a is less than 10, 
+  * this method will juat return a linear subdivision.  Over one order of 
+  * magnitude the difference between linear and log division points is not 
+  * critical.  If b/a is at least 10, this method will return a list of 
+  * points of the form v * 10^N "in" [a,b] with v in {1,2,3,4,5,6,7,8,9}. 
+  *
+  * NOTE: Due to possible problems with rounding, the first point returned 
+  * may be slightly less than a and the last point returned may be slightly 
+  * more than b.  
+  *
+  * @param  xmin   The left  hand endpoint of the interval [a,b].  This
+  *                MUST be more than 0.
+  * @param  xmax   The right hand endpoint of the interval [a,b].  This
+  *                MUST be more than xmin. 
+  *
+  * @return array containing a list of "nice" subdivision points for the
+  *         interval.
+  */
+
+  public static double[] subdivideLog( double xmin, double xmax )
+  {
+    if ( xmin <= 0 )
+      throw new IllegalArgumentException( "xmin is < 0 in subdivideLog " 
+                                         + xmin );
+    if ( xmax <= xmin )
+      throw new IllegalArgumentException( "xmin <= xmin in subdivideLog, " +
+                                          "xmin= " + xmin + " xmax = " + xmax);
+
+                                              // if the interval does not even
+    if ( xmax / xmin < 10 )                   // span one order of magnitude,
+      return subdivideLinear( xmin, xmax );   // just use linear case
+
+//  double[] factors = { 2, 5, 10 }; 
+    double[] factors = { 2, 3, 4, 5, 6, 7, 8, 9, 10 }; 
+    int exponent = (int)Math.floor( Math.log10( xmin ) ); 
+
+    Vector values = new Vector();
+
+    int i = 0;
+    int n_factors = factors.length;
+    double value = Math.pow( 10, exponent );
+    while ( value < xmin * 0.9999999 )
+    {
+      value = factors[i] * Math.pow( 10, exponent );
+      i = (i + 1) % n_factors;               // i points to the next factor
+                                             // to use
+      if ( i == 0 )
+        exponent++;
+    }   
+
+    while ( value <= xmax * 1.0000001 )
+    {
+      values.add( new Double(value) );
+      value = factors[i] * Math.pow( 10, exponent );
+      i = (i + 1) % n_factors;               // i points to the next factor
+                                             // to use
+      if ( i == 0 )
+        exponent++;
+    }
+
+    double[] result = new double[ values.size() ];
+    for ( i = 0; i < result.length; i++ )
+      result[i] = (Double)(values.elementAt(i));
  
     return result;
   }
