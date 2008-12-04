@@ -35,6 +35,7 @@ public class NewColorScale extends ViewControl
     super( title );
 
     Axis.Orientation orientation = Axis.Orientation.HORIZONTAL;
+
     float   max        = 100;
     float   min        = 0;
     float   prescale   = 1;
@@ -54,7 +55,6 @@ public class NewColorScale extends ViewControl
                                table,
                                is_log  );
     buildPanel();
-    resetCalibrations();
   }
 
   /**
@@ -70,7 +70,6 @@ public class NewColorScale extends ViewControl
     this.info = info;
 
     buildPanel();
-    resetCalibrations();
   }
 
   /**
@@ -82,12 +81,14 @@ public class NewColorScale extends ViewControl
    */
   public void setControlValue(Object value)
   {
+    System.out.println( "NewColorScale.setControlValue called ..." );
     if ( !(value instanceof ColorScaleInfo) )
       throw new IllegalArgumentException("Need ColorScaleInfo parameter");
 
+    System.out.println( "got a ColorScaleInfo object ..." );
+
     this.info = (ColorScaleInfo)value;
     buildPanel();
-    resetCalibrations();
   }
   
 
@@ -119,6 +120,8 @@ public class NewColorScale extends ViewControl
    */
   private void buildPanel()
   {
+    removeAll();
+
     image_panel = new ImageJPanel2();
     scale_panel = new JPanel();
     if ( info.getOrientation() == Axis.Orientation.HORIZONTAL )
@@ -129,7 +132,9 @@ public class NewColorScale extends ViewControl
     scale_panel.setLayout( new GridLayout(1,1) );
 
     setLayout( new BorderLayout() );
+
     add( image_panel, BorderLayout.CENTER );
+
     if ( info.getOrientation() == Axis.Orientation.HORIZONTAL )
       add( scale_panel, BorderLayout.SOUTH );
     else
@@ -150,6 +155,7 @@ public class NewColorScale extends ViewControl
                                     info.isTwoSided(),
                                     info.getNumColors(),
                                     true );
+    resetCalibrations();
   }
 
   private void resetCalibrations()
@@ -235,6 +241,12 @@ public class NewColorScale extends ViewControl
     {
       resetCalibrations();
     }
+
+    public void componentShown(ComponentEvent e)
+    {
+      resetCalibrations();
+    }
+
   };
 
 
