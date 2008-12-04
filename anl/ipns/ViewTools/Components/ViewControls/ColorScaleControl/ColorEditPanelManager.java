@@ -161,7 +161,10 @@ public void setObjectState( ObjectState new_state ) {
      public void actionPerformed( ActionEvent ae )
      {
         send_message( COLOR_SCALE_CHANGED );
-        frame.setVisible( true );
+        if( !frame.isVisible()){
+           frame.setVisible( true );
+           color_editor.reDraw();
+        }
      }
   } 
 

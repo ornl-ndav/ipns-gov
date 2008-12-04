@@ -196,8 +196,10 @@ public class ColorEditPanel extends ViewControl
               Slider.insert(StretchTopBottom.MAXMIN ,makeArray(6000f,1f));
               Slider.insert( StretchTopBottom.BOTTOM_VALUE,1f);
               Slider.insert( StretchTopBottom.TOP_VALUE,60000f);
-              Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM ,makeArray(6000f,1f));
-              Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_TOP ,makeArray(6000f,1f));
+              Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM ,
+                                                      makeArray(6000f,1f));
+              Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_TOP ,
+                                                      makeArray(6000f,1f));
               state.insert(PRESCALE,1f );
               state.insert( AUTO_SCALE,true );
               
@@ -214,9 +216,11 @@ public class ColorEditPanel extends ViewControl
               Slider.insert(  StretchTopBottom.MAXMIN ,
                          makeArray(sliders.getMaximum(),sliders.getMinimum()));
               Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM ,
-                       sliders.getControlValue( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM ));
+                       sliders.getControlValue( StretchTopBottom.
+                                INTERVAL_MAXMIN_BOTTOM ));
               Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_TOP ,
-                       sliders.getControlValue( StretchTopBottom.INTERVAL_MAXMIN_TOP));
+                       sliders.getControlValue( StretchTopBottom.
+                                INTERVAL_MAXMIN_TOP));
               Slider.insert( StretchTopBottom.BOTTOM_VALUE,
                        sliders.getControlValue( StretchTopBottom.BOTTOM_VALUE ));
               Slider.insert( StretchTopBottom.TOP_VALUE,
@@ -250,7 +254,23 @@ public class ColorEditPanel extends ViewControl
     */
    @Override
    public void setControlValue( Object value ) {
-
+      
+      if( value == null )
+         return;
+      if( !(value instanceof ColorScaleInfo))
+         return;
+      
+      ColorScaleInfo colInf = (ColorScaleInfo)value;
+      colorOptions.setNumColors( colInf.getNumColors() , false );
+      colorOptions.setColor( colInf.getColorScaleName() ); 
+      setControlValue( colInf.isLog(), LOGSCALE);
+      setControlValue(colInf.getTableMin(), 
+                    SLIDERS+"."+StretchTopBottom.BOTTOM_VALUE);
+      setControlValue(colInf.getTableMax(), 
+               SLIDERS+"."+StretchTopBottom.TOP_VALUE);
+      
+      checkValues();
+      calculateMapping();
    }
 
    /**
@@ -283,13 +303,15 @@ public class ColorEditPanel extends ViewControl
             return;
          int ncolors = ((Number)value).intValue();
          colorOptions.setNumColors( ncolors , false);
-         colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
+         colorPanel.setColorModel(colorOptions.getColorScale(), 
+                                        colorOptions.getNumColors(), true);
          calculateMapping();
          
       }else if( key == COLOR_INDEX_CHOICE ){
          if( value instanceof String){
             colorOptions.setColor( value.toString());
-            colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
+            colorPanel.setColorModel(colorOptions.getColorScale(), 
+                                        colorOptions.getNumColors(), true);
          }
          
       }else if( key == LOGSCALE ){
@@ -345,19 +367,21 @@ public class ColorEditPanel extends ViewControl
       setControlValue( state.get( LOGSCALE ),LOGSCALE );
       ObjectState sliderState =  (ObjectState)state.get( SLIDERS );
            setControlValue( sliderState.get( StretchTopBottom.MAXMIN),
-                                           SLIDERS+"."+StretchTopBottom.MAXMIN);
+                                         SLIDERS+"."+StretchTopBottom.MAXMIN);
       
-           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_BOTTOM),
-                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_BOTTOM);
+           setControlValue( sliderState.get( 
+                          StretchTopBottom.INTERVAL_MAXMIN_BOTTOM),
+                          SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_BOTTOM);
      
-           setControlValue( sliderState.get( StretchTopBottom.INTERVAL_MAXMIN_TOP),
-                                           SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_TOP);
+           setControlValue( sliderState.get( 
+                             StretchTopBottom.INTERVAL_MAXMIN_TOP),
+                             SLIDERS+"."+StretchTopBottom.INTERVAL_MAXMIN_TOP);
      
            setControlValue( sliderState.get( StretchTopBottom.TOP_VALUE),
-                                           SLIDERS+"."+StretchTopBottom.TOP_VALUE);
+                                      SLIDERS+"."+StretchTopBottom.TOP_VALUE);
            
            setControlValue( sliderState.get( StretchTopBottom.BOTTOM_VALUE),
-                                           SLIDERS+"."+StretchTopBottom.BOTTOM_VALUE);
+                                 SLIDERS+"."+StretchTopBottom.BOTTOM_VALUE);
      
            setControlValue( sliderState.get( StretchTopBottom.GANG),
                                            SLIDERS+"."+StretchTopBottom.GANG);
@@ -365,12 +389,23 @@ public class ColorEditPanel extends ViewControl
       setControlValue( state.get( PRESCALE ),PRESCALE );
       checkValues();
       calculateMapping();
-      colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
-      colorPanel.setDataRange( min , max , true );
+      colorPanel.setColorModel(colorOptions.getColorScale(), 
+                                            colorOptions.getNumColors(), true);
+     // colorPanel.setDataRange( min , max , true );
       colorPanel.repaint();
     
       send_message(updateMessage);
 
+   }
+   
+   /**
+    * Causes a redraw of images that may have changed. Right now it only 
+    * redraws the color panel
+    */
+   public void reDraw(){
+      
+      calculateMapping();
+     
    }
 
    /* (non-Javadoc)
