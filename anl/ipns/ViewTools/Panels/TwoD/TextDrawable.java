@@ -157,7 +157,7 @@ public class TextDrawable extends Drawable
       w = w/2;                                        // horizontal and
                                                       // vertical alignment
     int h = metrics.getHeight();                      // values.
-    int v_offset = 7;
+    int v_offset = 1;
     if ( v_align == Vertical.BOTTOM )
       h = -v_offset;
     else if ( v_align == Vertical.CENTER )
