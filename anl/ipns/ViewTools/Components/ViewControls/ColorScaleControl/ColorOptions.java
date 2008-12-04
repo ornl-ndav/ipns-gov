@@ -105,15 +105,15 @@ public class ColorOptions extends ActiveJPanel
 		selectNumColors.postActionEvent();
 		colorScale = new JComboBox();
 		colorScale.addActionListener(colorOptionsListener);
-		colorScale.addItem(makeObj("Rainbow"));
-		colorScale.addItem(makeObj("Gray"));
-		colorScale.addItem(makeObj("Negative Gray"));
-		colorScale.addItem(makeObj("Green-Yellow"));
-		colorScale.addItem(makeObj("Heat 1"));
-		colorScale.addItem(makeObj("Heat 2"));
-		colorScale.addItem(makeObj("Optimal"));
-		colorScale.addItem(makeObj("Multi"));
-		colorScale.addItem(makeObj("Spectrum"));
+		colorScale.addItem(("Rainbow"));
+		colorScale.addItem(("Gray"));
+		colorScale.addItem(("Negative Gray"));
+		colorScale.addItem(("Green-Yellow"));
+		colorScale.addItem(("Heat 1"));
+		colorScale.addItem(("Heat 2"));
+		colorScale.addItem(("Optimal"));
+		colorScale.addItem(("Multi"));
+		colorScale.addItem(("Spectrum"));
 		numColorsPanel.add(numColorsLabel);
 		numColorsPanel.add(selectNumColors);
 		selectColorScalePanel.add(colorScaleLabel);
@@ -172,9 +172,17 @@ public class ColorOptions extends ActiveJPanel
 		}
 	}
 	
+	/**
+	 * Sets the color on the GUI and its internal representation, but does not Notify anyone
+	 * @param Color  The new color
+	 */
 	public void setColor( String Color){
-	   if( colorScale != null)
-	      colorScale.setSelectedItem( Color );
+	   if( colorScale != null){
+	      colorScale.removeActionListener( colorOptionsListener );
+	      colorScale.getModel().setSelectedItem( Color );
+	      colorScale.addActionListener(  colorOptionsListener );
+	      scaleSelected = colorScale.getSelectedItem().toString();
+	   }
 	}
 	
 	/**
