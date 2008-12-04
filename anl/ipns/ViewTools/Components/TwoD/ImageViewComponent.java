@@ -754,6 +754,21 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   */
   public static final String LOG_SCALE_SLIDER  	 = "Log Scale Slider";
  
+  /**
+   * "Use new Color Controls"- This constant String is a key for referencing
+   * the state information about the type of color control that is used. The
+   * value associated with this key is a Boolean.
+   */
+  public static final String NEW_COLOR_CONTROLS ="Use new Color Controls";
+  
+  
+  /**
+   * "State for new Color controls"-his constant String is a key for referencing
+   * the state information from the new Color Control
+   */
+  public static final String NEW_COLOR_STATE ="State for new Color controls";
+  
+  
  /**
   * "Color Control" - This constant String is a key for referencing the state
   * information about the preference of a color scale in the control panel. Of
@@ -1006,15 +1021,29 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       redraw = true;  
     }  
     
+    temp = new_state.get( NEW_COLOR_CONTROLS );
+    if( temp != null){
+       if( ((Boolean)temp).booleanValue() != use_new_color_control)
+          JOptionPane.showMessageDialog( null , 
+                   "Object State for new color controls incorrect" );
+       
+    }
+       
     temp = new_state.get(LOG_SCALE_SLIDER);
-    if( temp != null )
+    if( temp != null && controls[0] instanceof ControlSlider  )
     {
       ((ControlSlider)controls[0]).setObjectState( (ObjectState)temp );
+    
       // by doing this, the value in the slider will be used to set all
       // other values. This will keep the logscale values consistent.
       logscale = ((ControlSlider)controls[0]).getValue(); 
       redraw = true;  
     } 
+    if( use_new_color_control ){
+       temp = new_state.get( NEW_COLOR_STATE );
+       controls[0].setObjectState( (ObjectState) temp );
+       redraw = true;
+    }
     
     temp = new_state.get(IMAGEJPANEL);
     if( temp != null )
@@ -1127,8 +1156,15 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     state.insert( COLOR_SCALE, new String(colorscale) );
     state.insert( FONT, font );
     state.insert( IMAGEJPANEL, ijp.getObjectState(isDefault) );
-    state.insert( LOG_SCALE_SLIDER, 
-      ((ControlSlider)controls[0]).getObjectState(isDefault) );
+    if( controls[0] instanceof ControlSlider)
+      state.insert( LOG_SCALE_SLIDER, 
+         ((ControlSlider)controls[0]).getObjectState(isDefault) );
+    state.insert( NEW_COLOR_CONTROLS , use_new_color_control );
+    if( use_new_color_control){
+        ObjectState st = controls[0].getObjectState(  isDefault );
+        state.insert( NEW_COLOR_STATE,st );
+    }
+       
     state.insert( MARKER_CONTROL, 
               ((ControlCheckboxButton)controls[3]).getObjectState(isDefault) );
     state.insert( MARKER_OVERLAY,  
@@ -2389,6 +2425,50 @@ public class ImageViewComponent extends ViewComponent2DwSelection
                                  do_preserve_aspect );
     JMenuItem helpmenu = MenuItemMaker.getOverlayMenu( new HelpListener() );
     menus[2] = new ViewMenuItem(ViewMenuItem.PUT_IN_HELP, helpmenu );
+  }
+  
+  private void removeViewMenuItems(){
+     
+     Vector colorscale = new Vector();
+     Vector position = new Vector();
+     Vector choices = new Vector();
+     Vector cs_listener = new Vector(); 
+     colorscale.add("Color Scale");
+     cs_listener.add( new ColorListener() );
+     if ( !use_new_color_control )
+     {
+       colorscale.add(choices);
+       choices.add("Scales");
+         cs_listener.add( new ColorListener() );
+         choices.add(IndexColorMaker.HEATED_OBJECT_SCALE);
+         choices.add(IndexColorMaker.HEATED_OBJECT_SCALE_2);
+         choices.add(IndexColorMaker.GRAY_SCALE);
+         choices.add(IndexColorMaker.NEGATIVE_GRAY_SCALE);
+         choices.add(IndexColorMaker.GREEN_YELLOW_SCALE);
+         choices.add(IndexColorMaker.RAINBOW_SCALE);
+         choices.add(IndexColorMaker.OPTIMAL_SCALE);
+         choices.add(IndexColorMaker.MULTI_SCALE);
+         choices.add(IndexColorMaker.SPECTRUM_SCALE);
+     }
+     colorscale.add(position);
+      position.add("Display Position");
+       cs_listener.add( new ColorListener() );
+       position.add("Control Panel");
+       position.add("Below Image (calibrated)");
+       position.add("Right of Image (calibrated)");
+       position.add("None");
+     
+     menus = new ViewMenuItem[3];
+     JMenuItem scalemenu = MenuItemMaker.makeMenuItem( colorscale,cs_listener );
+     menus[0] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS, scalemenu ); 
+     
+     JCheckBoxMenuItem do_preserve_aspect = new JCheckBoxMenuItem(
+                                              "Preserve Image Aspect Ratio");
+     do_preserve_aspect.addActionListener( new AspectListener() );
+     menus[1] = new ViewMenuItem( ViewMenuItem.PUT_IN_OPTIONS,
+                                  do_preserve_aspect );
+     JMenuItem helpmenu = MenuItemMaker.getOverlayMenu( new HelpListener() );
+     menus[2] = new ViewMenuItem(ViewMenuItem.PUT_IN_HELP, helpmenu );
   }
   
  /*
