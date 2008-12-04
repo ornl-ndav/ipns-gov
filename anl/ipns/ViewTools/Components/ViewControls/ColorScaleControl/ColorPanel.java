@@ -78,6 +78,11 @@ public class ColorPanel extends JPanel
   /**
    * Set the data range for the displayed color panel to the range of
    * values from min to max.  The min value should be less the max value.
+   * This should only be called when the overall max and min range values
+   * are changed, or if the scale is changed between log and linear.  
+   * It is not necessary to call this everytime a new color table is 
+   * constructed.  When a new color table is constructed, call the 
+   * setColorTable() method.
    *
    * @param min  The minimum data value in the color panel array.
    * @param max  The maximum data value in the color panel array.
@@ -118,7 +123,7 @@ public class ColorPanel extends JPanel
 
     VirtualArray2D virtual_array = new VirtualArray2D( values );
     image_panel.setData( virtual_array, rebuild_now );
-    image_panel.setDataRange( (float)min, (float)max );
+    image_panel.enableAutoDataRange( false );
 /*
     System.out.println("Set data range to " + min + ", " + max );
     System.out.println("Values from " + values[0][0] + 
@@ -140,8 +145,6 @@ public class ColorPanel extends JPanel
    */
   private void resetCalibrations(double min, double max, boolean is_log_scale)
   {
-
-
     scale_panel.setVisible( false );
     scale_panel.removeAll();
 
@@ -186,8 +189,8 @@ public class ColorPanel extends JPanel
 
 
   /**
-   * Set the color index table to use for mapping data values to color
-   * indices. 
+   * Set the color index table and local min and max to use for mapping
+   * data values to color indices. 
    *
    * @param table        Table with color index entries, from zero to one less
    *                     than the number of colors used.
@@ -267,8 +270,8 @@ public class ColorPanel extends JPanel
     double  min_data = 123;
     double  max_data = 456;
     boolean isLog    = false;
-    color_panel.setColorTable( table, min_data, max_data, isLog, false );
     color_panel.setDataRange( min_data, max_data, false );
+    color_panel.setColorTable( table, min_data, max_data, isLog, false );
     color_panel.setColorModel( IndexColorMaker.RAINBOW_SCALE, NUM_COLORS, true);
 
                                  // put the panel in a frame for testing
