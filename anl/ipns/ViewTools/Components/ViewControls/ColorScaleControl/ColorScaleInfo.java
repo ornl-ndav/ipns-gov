@@ -32,6 +32,7 @@
 
 package gov.anl.ipns.ViewTools.Components.ViewControls.ColorScaleControl;
 
+import gov.anl.ipns.ViewTools.Panels.TwoD.*;
 
 /**
  *  This class records the information about color scales that is
@@ -39,9 +40,7 @@ package gov.anl.ipns.ViewTools.Components.ViewControls.ColorScaleControl;
  */
 public class ColorScaleInfo 
 {
-  public enum  Orientation { HORIZONTAL, VERTICAL };
-
-  private Orientation  orientation; // scale orientation
+  private Axis.Orientation  orientation; // scale orientation
 
   private float   min;        // minimum data value corresponding to the first
                               // color table entry.
@@ -91,7 +90,7 @@ public class ColorScaleInfo
                          byte[]   table,
                          boolean  is_log )
   {
-    this( Orientation.HORIZONTAL, 
+    this( Axis.Orientation.HORIZONTAL, 
           min, 
           max, 
           prescale, 
@@ -121,7 +120,7 @@ public class ColorScaleInfo
    *  @param is_log       Flag indicating whether the color table is 
    *                      logarithmic.
    */
-  public ColorScaleInfo( Orientation orientation,
+  public ColorScaleInfo( Axis.Orientation orientation,
                          float       min,
                          float       max,
                          float       prescale,
@@ -143,12 +142,12 @@ public class ColorScaleInfo
   }
 
 
-  public void setOrientation( Orientation orientation )
+  public void setOrientation( Axis.Orientation orientation )
   {
     this.orientation = orientation;
   }
 
-  public Orientation getOrientation()
+  public Axis.Orientation getOrientation()
   {
     return orientation;
   }
