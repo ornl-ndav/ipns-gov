@@ -363,6 +363,12 @@ public class ColorEditPanel extends ViewControl
                                            SLIDERS+"."+StretchTopBottom.GANG);
           
       setControlValue( state.get( PRESCALE ),PRESCALE );
+      checkValues();
+      calculateMapping();
+      colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
+      colorPanel.setDataRange( min , max , true );
+      colorPanel.repaint();
+    
       send_message(updateMessage);
 
    }
