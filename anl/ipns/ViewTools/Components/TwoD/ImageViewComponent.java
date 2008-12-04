@@ -1357,6 +1357,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   */
   public void updateNewColorScale( ColorScaleInfo info )
   {
+    System.out.println("ImageViewComponent.updateNewColorScale called");
     float   min        = info.getTableMin();
     float   max        = info.getTableMax();
     float   prescale   = info.getPrescale();
@@ -1376,8 +1377,21 @@ public class ImageViewComponent extends ViewComponent2DwSelection
                                true );
     colorscale = cs_name;
     isTwoSided = two_sided;
-    ((ControlColorScale)controls[1]).setColorScale( colorscale,
-                                                    two_sided );
+
+    if ( controls[1] instanceof ControlColorScale )
+    {
+      System.out.println("controls[1] is ControlColorScale");
+      ((ControlColorScale)controls[1]).setColorScale( colorscale,
+                                                      two_sided );
+    }
+    else  // must be NewColorScale
+    {
+      System.out.println("controls[1] is NewColorScale");
+      NewColorScale  cs_display = (NewColorScale)(controls[1]);
+      ColorScaleInfo old_info = (ColorScaleInfo)(cs_display.getControlValue());
+      info.setOrientation( old_info.getOrientation() );
+      cs_display.setControlValue( info );
+    }
     sendMessage(COLORSCALE_CHANGED);
     ((PanViewControl)controls[9]).repaint();
     paintComponents();
@@ -1961,7 +1975,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     if( addColorControlEast )
     {
       addColorControl = false;
-      ((ControlColorScale)controls[1]).setVisible(false);
+      controls[1].setVisible(false);
     }
     buildViewComponent();
   }
@@ -1985,7 +1999,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     if( addColorControlSouth )
     {
       addColorControl = false;
-      ((ControlColorScale)controls[1]).setVisible(false);
+      controls[1].setVisible(false);
     }
     buildViewComponent();
   }
@@ -2163,10 +2177,10 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     if( addColorControl )
     {
       ((ControlColorScale)controls[1]).setColorScale( colorscale, isTwoSided );
-      ((ControlColorScale)controls[1]).setVisible(true);
+      controls[1].setVisible(true);
     }
     else
-      ((ControlColorScale)controls[1]).setVisible(false);
+      controls[1].setVisible(false);
     
     // give focus to the top overlay
     returnFocus();
@@ -2203,7 +2217,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       east.setPreferredSize( new Dimension( east_width, 0 ) );
       //((ControlColorScale)east).setTwoSided(isTwoSided);
       //((ControlColorScale)east).setLogScale(logscale);
-      ((ControlColorScale)east).setTitle(title);
+//      ((ControlColorScale)east).setTitle(title);
+//      ((ViewControl)east).setTitle(title);
     }
     else
     {
@@ -2219,11 +2234,17 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       JPanel mininorth = new JPanel();
       mininorth.setPreferredSize( new Dimension( 0, south_height ) );
       south.add( mininorth, "North" );
+/*
       // add calibrated color control to lower part of south panel
       ControlColorScale ccs = new ControlColorScale(
 				    this,ControlColorScale.HORIZONTAL);
       ccs.setTitle(title);
       south.add( ccs, "Center" );
+*/
+      NewColorScale new_cs = new NewColorScale( title );
+      south.add( new_cs );
+      controls[1] = new_cs;
+
       south_height += 75; // add 75 to south panel if colorscale.
       south.setPreferredSize( new Dimension( 0, south_height) );
     }
@@ -2608,15 +2629,21 @@ public class ImageViewComponent extends ViewComponent2DwSelection
 	{
           BorderLayout blayout = (BorderLayout)background.getLayout();
 	  JPanel south = (JPanel)blayout.getLayoutComponent("South");
-	  ControlColorScale cs = (ControlColorScale)south.getComponent(1);
-	  cs.setMarker( ijp.ImageValue_at_Cursor() );
+          if ( south.getComponent(1) instanceof ControlColorScale )
+          {
+	    ControlColorScale cs = (ControlColorScale)south.getComponent(1);
+	    cs.setMarker( ijp.ImageValue_at_Cursor() );
+          }
 	}
         if( addColorControlEast )
 	{
           BorderLayout blayout = (BorderLayout)background.getLayout();
-	  ControlColorScale east = 
-	           (ControlColorScale)blayout.getLayoutComponent("East");
-	  east.setMarker( ijp.ImageValue_at_Cursor() );
+          ViewControl east = (ViewControl)blayout.getLayoutComponent("East");
+          if ( east instanceof ControlColorScale )
+          {
+            ControlColorScale cs = (ControlColorScale)east;
+            cs.setMarker( ijp.ImageValue_at_Cursor() );
+          }
 	}
 	// update cursor readout when pointed-at is changed.
 	((CursorOutputControl)controls[2]).setValue(0,getPointedAt().x);
@@ -2841,7 +2868,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       // these determine which color scale is to be viewed.
       if( message.equals("Control Panel") )
       {
-	((ControlColorScale)controls[1]).setVisible(true);
+	controls[1].setVisible(true);
         addColorControlEast = false;
         addColorControlSouth = false;
 	addColorControl = true;
@@ -2862,7 +2889,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       }
       else if( message.equals("Below Image (calibrated)") )
       {
-	((ControlColorScale)controls[1]).setVisible(false);
+	controls[1].setVisible(false);
         addColorControlEast = false;
         addColorControlSouth = true;
 	addColorControl = false;
@@ -2872,7 +2899,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       }
       else if( message.equals("Right of Image (calibrated)") )
       {
-	((ControlColorScale)controls[1]).setVisible(false);
+	controls[1].setVisible(false);
         addColorControlEast = true;
         addColorControlSouth = false;
 	addColorControl = false;
@@ -2882,7 +2909,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       }
       else if( message.equals("None") )
       {
-	((ControlColorScale)controls[1]).setVisible(false);
+	controls[1].setVisible(false);
         addColorControlEast = false;
         addColorControlSouth = false;
 	addColorControl = false;
