@@ -251,7 +251,7 @@ public class Subdivide
   public static double[] subdivideLog( double xmin, double xmax )
   {
     if ( xmin <= 0 )
-      throw new IllegalArgumentException( "xmin is < 0 in subdivideLog " 
+      throw new IllegalArgumentException( "xmin is <= 0 in subdivideLog " 
                                          + xmin );
     if ( xmax <= xmin )
       throw new IllegalArgumentException( "xmin <= xmin in subdivideLog, " +
