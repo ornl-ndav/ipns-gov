@@ -42,7 +42,7 @@ import javax.swing.*;
  * @author Dennis Mikkelson
  *
  */
-public class LogAxis extends AxisBaseClass
+public class LogAxis extends Axis
 {
   private double  real_height = 1;  // We'll work on a virtual rectangle
                                     // [min,max] X [0,1] to draw the axis.
@@ -54,6 +54,88 @@ public class LogAxis extends AxisBaseClass
   
   /**
    * Construct a log axis of the specified dimensions, with
+   * the specified calibrations and orientation.
+   * 
+   * @param x0          The x-coordinate, of the lower left hand corner of the 
+   *                    rectangle containing the axis, specified in pixel 
+   *                    coordinates with y  INCREASING UPWARD 
+   * @param y0          The y-coordinate, of the lower left hand corner of the 
+   *                    rectangle containing the axis, specified in pixel 
+   *                    coordinates with y  INCREASING UPWARD 
+   * @param width       The width of the rectangle containing the axis in 
+   *                    pixels 
+   * @param height      The height of the rectangle conatining axis in pixels 
+   * @param min         The real number associated with the
+   *                    left hand end point of the axis
+   * @param max         The real number associated with the
+   *                    right hand end point of the axis
+   * @param points      The points to mark along the axis
+   * @param orientation Specifies whether the axis should be extended in
+   *                    the horizontal or vertical direction
+   */
+  public LogAxis( int         x0,
+                  int         y0,
+                  int         width, 
+                  int         height, 
+                  double      min, 
+                  double      max, 
+                  double[]    points,
+                  Orientation orientation )
+  {
+    super( x0, y0, width, height, min, max, points, orientation );
+
+    log_min = Math.log10( min );
+    log_max = Math.log10( max );
+ 
+    if ( max / min <= 10 )                       // points will be linear
+      linear_format = LinearAxis.makeFormat( points );
+    else
+      linear_format = null;                      // use default format 
+
+    labels = new TextDrawable[points.length];
+    for ( int i = 0; i < points.length; i++ )
+    {
+       String text = Format( linear_format, points[i] );
+       TextDrawable label = new TextDrawable( text.trim() );
+
+                                                  // adjust first and last if
+                                                  // vertical
+       if ( orientation == Orientation.VERTICAL )
+       {
+         if ( i == 0 )
+           label.setAlignment( TextDrawable.Horizontal.RIGHT, 
+                               TextDrawable.Vertical.BOTTOM  );
+
+         else if ( i == points.length - 1 )
+           label.setAlignment( TextDrawable.Horizontal.RIGHT, 
+                               TextDrawable.Vertical.TOP  );
+
+         else label.setAlignment( TextDrawable.Horizontal.RIGHT, 
+                                  TextDrawable.Vertical.CENTER );
+       }
+       else                                       // adjust first and last if
+       {                                          // horizontal
+         if ( i == 0 )
+           label.setAlignment( TextDrawable.Horizontal.LEFT,
+                               TextDrawable.Vertical.TOP  );
+
+         else if ( i == points.length - 1 )
+           label.setAlignment( TextDrawable.Horizontal.RIGHT,
+                               TextDrawable.Vertical.TOP  );
+
+         else label.setAlignment( TextDrawable.Horizontal.CENTER,
+                                  TextDrawable.Vertical.TOP  );
+       }
+
+       Point position = WorldToPixel( points[i], 0.79 );
+       label.setPosition( position );
+       label.setFont( font );
+       labels[i] = label;
+    }
+  }
+
+  /**
+   * Construct a horizontal log axis of the specified dimensions, with
    * the specified calibrations.
    * 
    * @param x0      The x-coordinate, of the lower left hand corner of the 
@@ -72,45 +154,13 @@ public class LogAxis extends AxisBaseClass
    */
   public LogAxis( int      x0,
                   int      y0,
-                  int      width, 
-                  int      height, 
-                  double   min, 
-                  double   max, 
+                  int      width,
+                  int      height,
+                  double   min,
+                  double   max,
                   double[] points )
   {
-    super( x0, y0, width, height, min, max, points );
-/*
-    System.out.println("========================= LOG POINTS ==");
-    for ( int i = 0; i < points.length; i++ )
-       System.out.println("" + points[i] );
-*/
-    log_min = Math.log10( min );
-    log_max = Math.log10( max );
- 
-    if ( max / min <= 10 )                       // points will be linear
-      linear_format = LinearAxis.makeFormat( points );
-
-    labels = new TextDrawable[points.length];
-    for ( int i = 0; i < points.length; i++ )
-    {
-       String text = Format( linear_format, points[i] );
-       TextDrawable label = new TextDrawable( text.trim() );
-       label.setAlignment( TextDrawable.Horizontal.CENTER, 
-                           TextDrawable.Vertical.TOP  );
-
-       if ( i == 0 && (points[0] - min) < (points[1] - points[0])/2 )
-         label.setAlignment( TextDrawable.Horizontal.LEFT, 
-                             TextDrawable.Vertical.TOP  );
-
-       if ( i == points.length - 1 )
-         label.setAlignment( TextDrawable.Horizontal.RIGHT, 
-                             TextDrawable.Vertical.TOP  );
-
-       Point position = WorldToPixel( points[i], 0.45 );
-       label.setPosition( position );
-       label.setFont( font );
-       labels[i] = label;
-    }
+    this( x0, y0, width, height, min, max, points, Orientation.HORIZONTAL );
   }
 
 
@@ -174,9 +224,9 @@ public class LogAxis extends AxisBaseClass
       Point top    = WorldToPixel( points[i], 0.99 );
       Point bottom;
       if ( isPowerOfTen( points[i] ) ) 
-        bottom = WorldToPixel( points[i], 0.70 );
+        bottom = WorldToPixel( points[i], 0.80 );
       else
-        bottom = WorldToPixel( points[i], 0.85 );
+        bottom = WorldToPixel( points[i], 0.90 );
 
       graphics.drawLine( top.x, top.y, bottom.x, bottom.y );
     }
@@ -277,7 +327,6 @@ public class LogAxis extends AxisBaseClass
   }
 
 
-
   /**
    *  Calculate the point in pixel coordinates that corresponds to the
    *  specified x, y in "log world coordinates".
@@ -290,9 +339,21 @@ public class LogAxis extends AxisBaseClass
    */
   private Point WorldToPixel( double x, double y )
   {
+    int pix_x,
+        pix_y;
+
     double log_x = Math.log10( x );
-    int pix_x = (int)(( log_x - log_min ) * (width-1) / ( log_max - log_min ));
-    int pix_y = (int)( y * (height-1) );
+
+    if ( orientation == Orientation.HORIZONTAL )
+    {
+      pix_x = (int)(( log_x - log_min ) * (width-1) / ( log_max - log_min ));
+      pix_y = (int)( y * (height-1) );
+    }
+    else 
+    {
+      pix_y = (int)(( log_x - log_min ) * (height-1) / ( log_max - log_min ));
+      pix_x = (int)( y * (width-1) );
+    }
 
     pix_x += x0;
     pix_y += y0;
