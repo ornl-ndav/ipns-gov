@@ -39,6 +39,9 @@ package gov.anl.ipns.ViewTools.Components.ViewControls.ColorScaleControl;
  */
 public class ColorScaleInfo 
 {
+  public enum  Orientation { HORIZONTAL, VERTICAL };
+
+  private Orientation  orientation; // scale orientation
 
   private float   min;        // minimum data value corresponding to the first
                               // color table entry.
@@ -60,6 +63,25 @@ public class ColorScaleInfo
                               // table has been built with indices increasing
                               // logarithmically
 
+  /*
+   *  Construct a ColorScaleInfo object from the specified information,
+   *  with orientation set to HORIZONTAL by default.
+   *  
+   *  @param orientation  Specifies whether to scale should be HORIZONTAL or
+   *                      VERTICAL.
+   *  @param min          The minimum value corresponding to the start of 
+   *                      the table.
+   *  @param max          The maximum value corresponding to the start of 
+   *                      the table.
+   *  @param prescale     Prescale value to be applied to image values.
+   *  @param cs_name      The name of the color model.
+   *  @param two_sided    Flag indicating whether or not the color scale is
+   *                      symmetric around 0.
+   *  @param num_colors   The number of color indices used in the color scale.
+   *  @param table        Table of psuedo color indices.
+   *  @param is_log       Flag indicating whether the color table is 
+   *                      logarithmic.
+   */
   public ColorScaleInfo( float    min,
                          float    max,
                          float    prescale,
@@ -69,14 +91,66 @@ public class ColorScaleInfo
                          byte[]   table,
                          boolean  is_log )
   {
-    this.min        = min;
-    this.max        = max;
-    this.prescale   = prescale;
-    this.cs_name    = cs_name;
-    this.two_sided  = two_sided;
-    this.num_colors = num_colors;
-    this.table      = table;
-    this.is_log     = is_log;
+    this( Orientation.HORIZONTAL, 
+          min, 
+          max, 
+          prescale, 
+          cs_name, 
+          two_sided,
+          num_colors,
+          table,
+          is_log );
+  }
+
+
+  /*
+   *  Construct a ColorScaleInfo object from the specified information.
+   *  
+   *  @param orientation  Specifies whether to scale should be HORIZONTAL or
+   *                      VERTICAL.
+   *  @param min          The minimum value corresponding to the start of 
+   *                      the table.
+   *  @param max          The maximum value corresponding to the start of 
+   *                      the table.
+   *  @param prescale     Prescale value to be applied to image values.
+   *  @param cs_name      The name of the color model.
+   *  @param two_sided    Flag indicating whether or not the color scale is
+   *                      symmetric around 0.
+   *  @param num_colors   The number of color indices used in the color scale.
+   *  @param table        Table of psuedo color indices.
+   *  @param is_log       Flag indicating whether the color table is 
+   *                      logarithmic.
+   */
+  public ColorScaleInfo( Orientation orientation,
+                         float       min,
+                         float       max,
+                         float       prescale,
+                         String      cs_name,
+                         boolean     two_sided,
+                         int         num_colors,
+                         byte[]      table,
+                         boolean     is_log )
+  {
+    this.orientation = orientation;
+    this.min         = min;
+    this.max         = max;
+    this.prescale    = prescale;
+    this.cs_name     = cs_name;
+    this.two_sided   = two_sided;
+    this.num_colors  = num_colors;
+    this.table       = table;
+    this.is_log      = is_log;
+  }
+
+
+  public void setOrientation( Orientation orientation )
+  {
+    this.orientation = orientation;
+  }
+
+  public Orientation getOrientation()
+  {
+    return orientation;
   }
 
   public float getTableMin()
