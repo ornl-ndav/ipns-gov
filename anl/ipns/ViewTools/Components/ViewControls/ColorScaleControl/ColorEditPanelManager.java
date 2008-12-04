@@ -38,6 +38,7 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
+import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
 import gov.anl.ipns.ViewTools.Components.TwoD.*;
 import gov.anl.ipns.ViewTools.Panels.Image.*;
@@ -54,7 +55,11 @@ public class ColorEditPanelManager extends ViewControl
   ImageViewComponent  ivc = null;
   ColorEditPanel      color_editor;
   JFrame              frame;
-
+  /**
+   * "Color Edit Panel State"- The object state key for the state information
+   *             from the ColorEditPanel 
+   */
+  public static final String COLOR_EDIT_PANEL ="Color Edit Panel State";
   public static final String COLOR_SCALE_CHANGED = "Color Scale Changed";  
 
   public ColorEditPanelManager( String title, ImageViewComponent ivc )
@@ -77,7 +82,34 @@ public class ColorEditPanelManager extends ViewControl
   } 
 
 
-  @Override
+  /* (non-Javadoc)
+ * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#getObjectState(boolean)
+ */
+
+public ObjectState getObjectState( boolean isDefault ) {
+
+   // TODO Auto-generated method stub
+   ObjectState ostate =  super.getObjectState( isDefault );
+  
+   ostate.insert(  COLOR_EDIT_PANEL , color_editor.getObjectState(  isDefault ) );
+   return ostate;
+}
+
+
+/* (non-Javadoc)
+ * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#setObjectState(gov.anl.ipns.ViewTools.Components.ObjectState)
+ */
+
+public void setObjectState( ObjectState new_state ) {
+
+  
+   super.setObjectState( new_state );
+   ObjectState state = (ObjectState)new_state.get( COLOR_EDIT_PANEL );
+   color_editor.setObjectState(  state );
+}
+
+
+@Override
   public void setControlValue(Object value)
   {
   }
