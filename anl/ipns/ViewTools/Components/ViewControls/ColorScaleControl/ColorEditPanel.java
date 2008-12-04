@@ -123,7 +123,7 @@ public class ColorEditPanel extends ViewControl
       buildColorOptionsPanel();
       buildButtonPanel();
       colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
-      colorPanel.setDataRange( min, max, true );
+      colorPanel.setDataRange( min, max,logScale, true );
       
       this.add(colorScalePanel);
       this.add(sliderPanel);
@@ -623,13 +623,13 @@ public class ColorEditPanel extends ViewControl
 			
 			flipped = false;
 		}
-		
+
+      colorPanel.setDataRange( min , max , logScale,false );
 		colorPanel.setColorTable( colorMapping, 
                                           localMin, 
                                           localMax, 
                                           logScale,
                                           true);
-		colorPanel.setDataRange( min , max , true );
 		//printColorMapping();
 	}
 
@@ -728,13 +728,13 @@ public class ColorEditPanel extends ViewControl
 	public void setMax(float m)
 	{
 		max = m;
-		colorPanel.setDataRange(min, max, true);
+		colorPanel.setDataRange(min, max,logScale, true);
 	}
   
 	public void setMin(float m)
 	{
 		min = m;
-		colorPanel.setDataRange(min, max, true);
+		colorPanel.setDataRange(min, max,logScale, true);
 	}
 	
 
@@ -747,7 +747,7 @@ public class ColorEditPanel extends ViewControl
 			{
 		    setMax(maxTemp);
 			}
-		  colorPanel.setDataRange(min, max, true);
+		  colorPanel.setDataRange(min, max, logScale,true);
 			//maxField.setText(""+max);
 		}
 		catch(Exception ex)
@@ -769,7 +769,7 @@ public class ColorEditPanel extends ViewControl
 		  {
 		    setMin(minTemp);
 		  }
-		  colorPanel.setDataRange(min, max, true);
+		  colorPanel.setDataRange(min, max, logScale,true);
 			//minField.setText(""+min);
 		}
 		catch(Exception ex)

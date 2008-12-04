@@ -71,7 +71,7 @@ public class ColorPanel extends JPanel
     add( scale_panel, BorderLayout.SOUTH );
 
     addComponentListener( new RedrawListener() );
-    setDataRange( 0, 1, false );
+    setDataRange( 0, 1, is_log_scale, false );
   }
 
 
@@ -86,14 +86,16 @@ public class ColorPanel extends JPanel
    *
    * @param min  The minimum data value in the color panel array.
    * @param max  The maximum data value in the color panel array.
+   * @param is_log    Flag indicating whether to make a log
+   *                       or linear axis.  
    * @param rebuild_now  If true, the image will be redraw immediately.  Set
    *                     false if several other operations are to be done
    *                     before redrawing the image.
    */
-  public void setDataRange( double min, double max, boolean rebuild_now )
+  public void setDataRange( double min, double max, boolean is_log,  boolean rebuild_now )
   {
 //  System.out.println("setDataRange called for min, max = " + min + ", " +max);
-
+     is_log_scale = is_log;
     if ( max < min )
     {
       double temp = min;
@@ -196,6 +198,8 @@ public class ColorPanel extends JPanel
    *                     than the number of colors used.
    * @param table_min    The minimum data value for the color table.
    * @param table_max    The maximum data value for the color table.
+   * @param is_log    Flag indicating whether to make a log
+   *                       or linear axis.  
    * @param rebuild_now  If true, the image will be redraw immediately.  Set
    *                     false if several other operations are to be done
    *                     before redrawing the image.
@@ -270,7 +274,7 @@ public class ColorPanel extends JPanel
     double  min_data = 123;
     double  max_data = 456;
     boolean isLog    = false;
-    color_panel.setDataRange( min_data, max_data, false );
+    color_panel.setDataRange( min_data, max_data, false,false );
     color_panel.setColorTable( table, min_data, max_data, isLog, false );
     color_panel.setColorModel( IndexColorMaker.RAINBOW_SCALE, NUM_COLORS, true);
 
