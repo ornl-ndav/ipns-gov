@@ -185,8 +185,8 @@ public class ColorEditPanel extends ViewControl
 
            ObjectState state =  super.getObjectState( isDefault );
            if( isDefault){
-              state.insert( MAXSET, 60000 );
-              state.insert(MINSET,1 );
+              state.insert( MAXSET, MAX );
+              state.insert(MINSET,MIN );
               state.insert(NUM_COLORS ,100);
               state.insert(COLOR_INDEX_CHOICE, "Rainbow" );
               state.insert(LOGSCALE ,false);
@@ -363,6 +363,7 @@ public class ColorEditPanel extends ViewControl
                                            SLIDERS+"."+StretchTopBottom.GANG);
           
       setControlValue( state.get( PRESCALE ),PRESCALE );
+      send_message(updateMessage);
 
    }
 
@@ -446,8 +447,8 @@ public class ColorEditPanel extends ViewControl
 		specMinMax.setSelected(true);
 		maxField = new JTextField();
 		minField = new JTextField();
-		maxField.setEditable(false);
-		minField.setEditable(false);
+		maxField.setEditable(true);
+		minField.setEditable(true);
 		maxField.setText(""+max);
 		minField.setText(""+min);
 
