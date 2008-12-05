@@ -43,10 +43,9 @@ import java.io.*;
  * This class creates a JFrame to cycle through a series of PeakDisplayPanels
  * 
  * @author Ruth
- * @see PeakDisplayPanels
+ * @see PeaksDisplayPanel
  */
 public class PeakArrayPanels extends JFrame {
-
 
 
    private Vector< PeaksDisplayPanel > PeakDisplays;
