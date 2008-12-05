@@ -186,12 +186,12 @@ public class ColorOptions extends ActiveJPanel
 	}
 	
 	/**
-	 * Will change GUI representation of this number and also internal stored
-	 * value
+	 * Will change GUI representation of this number and also the 
+         * interrnally stored value.
 	 * 
-	 * @param numColors  the number of colors
-	 * @param notify     Will notify all action listeners that the number of 
-	 *                   colors has changed
+	 * @param nColors  The number of colors
+	 * @param notify   If true, notify all action listeners that the 
+         *                 number of colors has changed
 	 */
 	public void setNumColors( int nColors, boolean notify){
 	   if( nColors <2)

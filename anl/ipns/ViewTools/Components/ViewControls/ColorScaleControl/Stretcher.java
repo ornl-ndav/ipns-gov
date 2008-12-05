@@ -145,7 +145,7 @@ public class Stretcher extends ActiveJPanel
 	 * 
 	 * @param newMax
 	 * @param newMin
-	 * @param intial
+	 * @param initial
 	 */
 	public void setMaxMin(float newMax, float newMin, int initial)
 	{
