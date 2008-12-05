@@ -44,8 +44,6 @@ import javax.swing.*;
  */
 public class LogAxis extends Axis
 {
-  private double  real_height = 1;  // We'll work on a virtual rectangle
-                                    // [min,max] X [0,1] to draw the axis.
   private double  log_min,
                   log_max;
 
@@ -279,7 +277,7 @@ public class LogAxis extends Axis
    *
    * @return true if the parameter is essentially a power of ten.
    */
-  private boolean isPowerOfTen( double x )
+  public static boolean isPowerOfTen( double x )
   {
     double exponent = Math.log10( x );
     if ( Math.abs((int)exponent - exponent) < 0.00001 )
@@ -296,7 +294,7 @@ public class LogAxis extends Axis
    *
    * @return true if the parameter is essentially a 5 times power of ten.
    */
-  private boolean isFiveTimesPowerOfTen( double x )
+  public static boolean isFiveTimesPowerOfTen( double x )
   {
     double exponent = Math.log10( x );
     double fraction = exponent - Math.floor(exponent);
@@ -315,7 +313,7 @@ public class LogAxis extends Axis
    *
    * @return true if the parameter is essentially a 3 times power of ten.
    */
-  private boolean isThreeTimesPowerOfTen( double x )
+  public static boolean isThreeTimesPowerOfTen( double x )
   {
     double exponent = Math.log10( x );
     double fraction = exponent - Math.floor(exponent);
