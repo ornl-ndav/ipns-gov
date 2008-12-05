@@ -55,6 +55,7 @@ public class ColorEditPanelManager extends ViewControl
   ImageViewComponent  ivc = null;
   ColorEditPanel      color_editor;
   JFrame              frame;
+
   /**
    * "Color Edit Panel State"- The object state key for the state information
    *             from the ColorEditPanel 
@@ -82,43 +83,50 @@ public class ColorEditPanelManager extends ViewControl
   } 
 
 
-  /* (non-Javadoc)
- * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#getObjectState(boolean)
- */
-
-public ObjectState getObjectState( boolean isDefault ) {
-
-   // TODO Auto-generated method stub
-   ObjectState ostate =  super.getObjectState( isDefault );
-  
-   ostate.insert(  COLOR_EDIT_PANEL , color_editor.getObjectState(  isDefault ) );
-   return ostate;
-}
-
-
-/* (non-Javadoc)
- * @see gov.anl.ipns.ViewTools.Components.ViewControls.ViewControl#setObjectState(gov.anl.ipns.ViewTools.Components.ObjectState)
- */
-
-public void setObjectState( ObjectState new_state ) {
-
-  
-   super.setObjectState( new_state );
-   ObjectState state = (ObjectState)new_state.get( COLOR_EDIT_PANEL );
-   color_editor.setObjectState(  state );
-}
-
-
-@Override
-  public void setControlValue(Object value)
+  @Override
+  public ObjectState getObjectState( boolean isDefault ) 
   {
+    ObjectState ostate =  super.getObjectState( isDefault );
+    ostate.insert( COLOR_EDIT_PANEL, color_editor.getObjectState( isDefault ) );
+    return ostate;
   }
 
+
+  @Override
+  public void setObjectState( ObjectState new_state ) 
+  {
+    super.setObjectState( new_state );
+    ObjectState state = (ObjectState)new_state.get( COLOR_EDIT_PANEL );
+    color_editor.setObjectState( state );
+  }
+
+
+  @Override
+  public void setControlValue(Object value)
+  {
+    SharedMessages.addmsg("setControlValue not implemented in " +
+                          "ColorEditPanelManager ");
+  }
+
+
+  /**
+   *  NOTE: This will either return a ColorScaleInfo object or it
+   *  will return null.
+   */
   @Override
   public Object getControlValue()
   {
+    Object value = color_editor.getControlValue();
+
+    if ( value instanceof ColorScaleInfo )
+      return value;
+    else
+      SharedMessages.addmsg("Value NOT ColorScaleInfo in " +
+                            " ColorEditPanelManager, class is: " +
+                              value.getClass() );
     return null;
   }
+
 
   @Override
   public ViewControl copy()
@@ -134,21 +142,10 @@ public void setObjectState( ObjectState new_state ) {
    */
   private void doUpdate()
   {
-    ColorScaleInfo info = null;
+    Object value = getControlValue();
 
-    Object value = color_editor.getControlValue();
-
-    if ( value instanceof ColorScaleInfo )
-      info = (ColorScaleInfo)value;
-    else
-    {
-      SharedMessages.addmsg("Value NOT ColorScaleInfo in " +
-                            " ColorEditPanelManager, class is: " +
-                              value.getClass() );
-      return;
-    }
-
-    ivc.updateNewColorScale( info );
+    if ( value != null )
+      ivc.updateNewColorScale( (ColorScaleInfo)value );
   }
 
 
