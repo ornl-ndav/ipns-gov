@@ -33,7 +33,6 @@ package gov.anl.ipns.ViewTools.Panels.TwoD;
 
 
 import java.awt.*;
-import javax.swing.*;
 
 /**
  * This class is an abstract base class for Drawables that draw a calibrated 

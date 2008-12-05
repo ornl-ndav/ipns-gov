@@ -44,9 +44,7 @@ import javax.swing.*;
  */
 public class LinearAxis extends Axis
 {
-  private double  real_height = 1;  // We'll work on a virtual rectangle
-                                    // [min,max] X [0,1] to draw the axis.
-  /**
+   /**
    * Construct an axis of the specified dimensions, with
    * the specified calibrations and orientation.
    * 
