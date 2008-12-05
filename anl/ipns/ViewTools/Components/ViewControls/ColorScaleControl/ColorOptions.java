@@ -114,6 +114,7 @@ public class ColorOptions extends ActiveJPanel
 		colorScale.addItem(("Optimal"));
 		colorScale.addItem(("Multi"));
 		colorScale.addItem(("Spectrum"));
+		colorScale.setSelectedItem( System.getProperty( "ColorScale","Heat 1" ) );
 		numColorsPanel.add(numColorsLabel);
 		numColorsPanel.add(selectNumColors);
 		selectColorScalePanel.add(colorScaleLabel);
@@ -122,14 +123,7 @@ public class ColorOptions extends ActiveJPanel
 		colorOptionsPanel.add(selectColorScalePanel);
 	}
 	
-	private Object makeObj(final String item)  
-	{
-		return new Object() 
-		{ public String toString() 
-			{ return item; } 
-		};
-	}
-	 
+	
 	
 	public static void main(String[]args)
 	{
@@ -166,7 +160,7 @@ public class ColorOptions extends ActiveJPanel
 		catch(Exception ex)
 		{
 			JOptionPane.showMessageDialog (null, ex.getMessage(), "Number of Colors Field Error", JOptionPane.ERROR_MESSAGE);
-			System.out.println(ex.getMessage());
+			
 			selectNumColors.setText(""+numColors);
 			Sav_selectNumColors = selectNumColors.getText();
 		}
@@ -210,8 +204,6 @@ public class ColorOptions extends ActiveJPanel
 	   String number = selectNumColors.getText();
 	   Sav_selectNumColors = selectNumColors.getText();
       setNumColors(number);
-      System.out.println(numColors);
-      System.out.println("num colors: "+numColors);
       send_message(NUM_OF_COLORS_CHANGED);
 	   
 	}
@@ -231,8 +223,7 @@ public class ColorOptions extends ActiveJPanel
 				//int colors = colorScale.getSelectedIndex();
 				scaleSelected = colorScale.getSelectedItem().toString();
 				send_message(COLOR_SCALE_CHANGED);
-				//System.out.println(COLOR_SCALE_MESSAGE);
-				System.out.println(scaleSelected.toString());
+				
 				
 			}
 		}
