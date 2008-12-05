@@ -24,6 +24,7 @@ public class NewColorScale extends ViewControl
   private ImageJPanel2   image_panel;
   private JPanel         scale_panel;
 
+  private boolean        first_time = true;
 
   /**
    *  Construct a color scale with default values.
@@ -120,27 +121,33 @@ public class NewColorScale extends ViewControl
    */
   private void buildPanel()
   {
-    removeAll();
+    if ( first_time )
+    {
+      first_time = false;
 
-    image_panel = new ImageJPanel2();
-    scale_panel = new JPanel();
+      setLayout( new BorderLayout() );
+      addComponentListener( new RedrawListener() );
+
+      image_panel = new ImageJPanel2();
+      scale_panel = new JPanel();
+      scale_panel.setLayout( new GridLayout(1,1) );
+
+      add( image_panel, BorderLayout.CENTER );
+    }
+    else
+      remove( scale_panel );              // remove it so we can re-add it in
+                                          // a new orientation, if that changed
+
     if ( info.getOrientation() == Axis.Orientation.HORIZONTAL )
+    {
       scale_panel.setPreferredSize( new Dimension(100,25) );
-    else
-      scale_panel.setPreferredSize( new Dimension(55,100) );
-
-    scale_panel.setLayout( new GridLayout(1,1) );
-
-    setLayout( new BorderLayout() );
-
-    add( image_panel, BorderLayout.CENTER );
-
-    if ( info.getOrientation() == Axis.Orientation.HORIZONTAL )
       add( scale_panel, BorderLayout.SOUTH );
+    }
     else
+    {
+      scale_panel.setPreferredSize( new Dimension(55,100) );
       add( scale_panel, BorderLayout.WEST );
-
-    addComponentListener( new RedrawListener() );
+    }
 
     VirtualArray2D va2D = buildImageArray( NUM_VALUES );
     image_panel.setData( va2D, false );
@@ -157,6 +164,8 @@ public class NewColorScale extends ViewControl
                                     true );
     resetCalibrations();
   }
+
+
 
   private void resetCalibrations()
   {
