@@ -1157,7 +1157,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     state.insert( ImageJPanel2.TWO_SIDED, new Boolean( isTwoSided));
     state.insert( COLOR_SCALE, new String(colorscale) );
     state.insert( FONT, font );
-    state.insert( IMAGEJPANEL, ijp.getObjectState(isDefault) );
     if( controls[0] instanceof ControlSlider)
       state.insert( LOG_SCALE_SLIDER, 
          ((ControlSlider)controls[0]).getObjectState(isDefault) );
@@ -1166,7 +1165,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
         ObjectState st = controls[0].getObjectState(  isDefault );
         state.insert( NEW_COLOR_STATE,st );
     }
-       
+
+    state.insert( IMAGEJPANEL, ijp.getObjectState(isDefault) );  
     state.insert( MARKER_CONTROL, 
               ((ControlCheckboxButton)controls[3]).getObjectState(isDefault) );
     state.insert( MARKER_OVERLAY,  
@@ -2196,7 +2196,9 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     ((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
     ((PanViewControl)controls[9]).setControlValue(getLocalCoordBounds());
     ((PanViewControl)controls[9]).repaint();
-    ijp.changeLogScale(logscale,true);
+   
+     if( !use_new_color_control)
+        ijp.changeLogScale(logscale,true);
   } 
   
  /*
@@ -2713,7 +2715,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       {
         ControlSlider control = (ControlSlider)ae.getSource();
         logscale = control.getValue();
-        ijp.changeLogScale( logscale, true );
+        if( !use_new_color_control)
+           ijp.changeLogScale( logscale, true );
 	((PanViewControl)controls[9]).repaint();
 	// Causes any calibrated ControlColorScale to be updated
 	// with slider movements.
