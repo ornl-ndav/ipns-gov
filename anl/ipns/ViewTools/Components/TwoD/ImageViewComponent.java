@@ -635,6 +635,7 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.Util.Sys.WindowShower;
 import gov.anl.ipns.ViewTools.UI.FontUtil;
 import gov.anl.ipns.ViewTools.Panels.Image.*;
+import gov.anl.ipns.ViewTools.Panels.TwoD.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 import gov.anl.ipns.ViewTools.Components.Transparency.*;
 import gov.anl.ipns.ViewTools.Components.*;
@@ -886,11 +887,12 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   private transient ViewMenuItem[] menus;
   private String colorscale;
   private boolean isTwoSided = true;
-  private boolean use_new_color_control = true;
+  private boolean use_new_color_control = false;
+  private ColorScaleInfo color_scale_info;
   private double logscale = 0;
   private boolean addColorControlEast = false;   // add calibrated color scale
   private boolean addColorControlSouth = false;  // add calibrated color scale
-  private boolean addColorControl = true;  // add color scale with controls
+  private boolean addColorControl = false;  // add color scale with controls
   private int north_height = 0;  // These four values give the total height
   private int south_height = 0;  // and width of the north, east, south, and
   private int east_width = 0;    // west components of the background panel to
@@ -975,7 +977,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       redraw = true;  
     }  
     
-    
     temp = new_state.get(ImageJPanel2.TWO_SIDED);
     if( temp != null )
     {
@@ -984,6 +985,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       ijp.setNamedColorModel( colorscale, isTwoSided, false);
       redraw = true;  
     }
+
     temp = new_state.get(PRECISION);
     if( temp != null )
     {
@@ -998,7 +1000,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       ijp.setNamedColorModel( colorscale, isTwoSided, false);
       redraw = true;  
     } 
-    
    
     temp = new_state.get(COLOR_CONTROL);
     if( temp != null )
@@ -1159,7 +1160,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     if( controls[0] instanceof ControlSlider)
       state.insert( LOG_SCALE_SLIDER, 
          ((ControlSlider)controls[0]).getObjectState(isDefault) );
-    state.insert( NEW_COLOR_CONTROLS , use_new_color_control );
+    state.insert( NEW_COLOR_CONTROLS, use_new_color_control );
     if( use_new_color_control){
         ObjectState st = controls[0].getObjectState(  isDefault );
         state.insert( NEW_COLOR_STATE,st );
@@ -1341,8 +1342,10 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     // else change color scale.
     colorscale = color_scale;
     ijp.setNamedColorModel( colorscale, isTwoSided, true );
-    ((ControlColorScale)controls[1]).setColorScale( colorscale, 
-    						    isTwoSided );	 
+
+    if ( controls[1] instanceof ControlColorScale )
+      ((ControlColorScale)controls[1]).setColorScale( colorscale, 
+                                                      isTwoSided );	 
     sendMessage(COLORSCALE_CHANGED);
     ((PanViewControl)controls[9]).repaint();
     paintComponents();
@@ -1380,18 +1383,23 @@ public class ImageViewComponent extends ViewComponent2DwSelection
 
     if ( controls[1] instanceof ControlColorScale )
     {
-      System.out.println("controls[1] is ControlColorScale");
       ((ControlColorScale)controls[1]).setColorScale( colorscale,
                                                       two_sided );
     }
     else  // must be NewColorScale
     {
-      System.out.println("controls[1] is NewColorScale");
       NewColorScale  cs_display = (NewColorScale)(controls[1]);
+
+                                                  // preserve the current 
+                                                  // scale orientation
       ColorScaleInfo old_info = (ColorScaleInfo)(cs_display.getControlValue());
       info.setOrientation( old_info.getOrientation() );
+
       cs_display.setControlValue( info );
-    }
+
+      color_scale_info = info;                // save latest value in case
+    }                                         // user later adds color scale
+
     sendMessage(COLORSCALE_CHANGED);
     ((PanViewControl)controls[9]).repaint();
     paintComponents();
@@ -1848,6 +1856,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
         big_picture.add(background);
         
         Listeners = new Vector();
+
         buildViewComponent();	 // initializes big_picture to jpanel containing
         			 // the background and transparencies
         buildViewControls(); 
@@ -2176,7 +2185,14 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     // this control is an uncalibrated colorscale
     if( addColorControl )
     {
-      ((ControlColorScale)controls[1]).setColorScale( colorscale, isTwoSided );
+      if ( controls[1] instanceof ControlColorScale )
+        ((ControlColorScale)controls[1]).setColorScale(colorscale, isTwoSided);
+      else
+      {
+        color_scale_info.setOrientation(Axis.Orientation.HORIZONTAL);
+        controls[1].setControlValue( color_scale_info );
+      }
+
       controls[1].setVisible(true);
     }
     else
@@ -2209,22 +2225,34 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     north.setPreferredSize(new Dimension( 0, north_height ) );
     JPanel east; 
     JPanel south;
+
     // add calibrated color scale to the east panel
     if( addColorControlEast )
     {
       east_width += 40;  // reset east_width to 90 if it has a colorscale
-      east = new ControlColorScale( this, ControlColorScale.VERTICAL );
-      east.setPreferredSize( new Dimension( east_width, 0 ) );
-      //((ControlColorScale)east).setTwoSided(isTwoSided);
-      //((ControlColorScale)east).setLogScale(logscale);
-//      ((ControlColorScale)east).setTitle(title);
-//      ((ViewControl)east).setTitle(title);
+      if ( use_new_color_control )
+      {
+        color_scale_info.setOrientation( Axis.Orientation.VERTICAL );
+        east = new NewColorScale( title, color_scale_info );
+        controls[1] = (ViewControl)east;
+      }
+      else
+      {
+        east = new ControlColorScale( this, ControlColorScale.VERTICAL );
+        east.setPreferredSize( new Dimension( east_width, 0 ) );
+        controls[1] = (ViewControl)east;
+        //((ControlColorScale)east).setTwoSided(isTwoSided);
+        //((ControlColorScale)east).setLogScale(logscale);
+        //((ControlColorScale)east).setTitle(title);
+        //((ViewControl)east).setTitle(title);
+      }
     }
     else
     {
       east = new JPanel();
       east.setPreferredSize(new Dimension( east_width, 0 ) );
     }
+
     // add calibrated color scale to the south panel
     if( addColorControlSouth )
     {
@@ -2234,16 +2262,23 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       JPanel mininorth = new JPanel();
       mininorth.setPreferredSize( new Dimension( 0, south_height ) );
       south.add( mininorth, "North" );
-/*
+
       // add calibrated color control to lower part of south panel
-      ControlColorScale ccs = new ControlColorScale(
+      if ( use_new_color_control )
+      {
+        color_scale_info.setOrientation( Axis.Orientation.HORIZONTAL );
+        NewColorScale new_cs = new NewColorScale( title, color_scale_info );
+        south.add( new_cs, "Center" );
+        controls[1] = new_cs;
+      }
+      else
+      {
+        ControlColorScale ccs = new ControlColorScale(
 				    this,ControlColorScale.HORIZONTAL);
-      ccs.setTitle(title);
-      south.add( ccs, "Center" );
-*/
-      NewColorScale new_cs = new NewColorScale( title );
-      south.add( new_cs );
-      controls[1] = new_cs;
+        ccs.setTitle(title);
+        south.add( ccs, "Center" );
+        controls[1] = ccs;
+      }
 
       south_height += 75; // add 75 to south panel if colorscale.
       south.setPreferredSize( new Dimension( 0, south_height) );
@@ -2352,9 +2387,13 @@ public class ImageViewComponent extends ViewComponent2DwSelection
 
     if ( use_new_color_control )
     {                      // New color scale control that adjusts color info
-
+      
       controls[0] = new ColorEditPanelManager( NEW_COLOR_SCALE_NAME, this );
       controls[0].addActionListener( new ControlListener() );
+                                                    // get default color info
+      Object value = controls[0].getControlValue(); // from the manager
+      if ( value != null ) 
+        color_scale_info = (ColorScaleInfo)value;
     }
     else
     {                  // Old slider control that just changes image intensity
@@ -2366,8 +2405,14 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     } 
 
     // Control that displays uncalibrated color scale
-    controls[1] = new ControlColorScale(colorscale, isTwoSided );
-    controls[1].setTitle(COLOR_SCALE_NAME);
+
+    if ( use_new_color_control )                    // use default color info
+      controls[1] = new NewColorScale( COLOR_SCALE_NAME, color_scale_info );
+    else
+    {
+      controls[1] = new ControlColorScale(colorscale, isTwoSided );
+      controls[1].setTitle(COLOR_SCALE_NAME);
+    }
     // Control that displays current pointed-at.
     String[] cursorlabels = {"X","Y"};
     controls[2] = new CursorOutputControl(cursorlabels);
@@ -2868,6 +2913,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       // these determine which color scale is to be viewed.
       if( message.equals("Control Panel") )
       {
+        System.out.println("ERROR ... got Control Panel message ******");
 	controls[1].setVisible(true);
         addColorControlEast = false;
         addColorControlSouth = false;
