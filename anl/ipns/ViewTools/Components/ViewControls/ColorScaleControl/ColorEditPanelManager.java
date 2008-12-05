@@ -37,6 +37,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 
 import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.Components.ViewControls.*;
@@ -80,12 +82,24 @@ public class ColorEditPanelManager extends ViewControl
     frame.add( color_editor );
     frame.setBounds( 0, 0, 400, 500 );
     frame.setDefaultCloseOperation( WindowConstants.HIDE_ON_CLOSE );
+    edit_button.addAncestorListener( new myAncestorListener( frame) );
   } 
 
+  private void initColorEditor() {
 
-  @Override
+      if( color_editor != null )
+         return;
+
+      color_editor = new ColorEditPanel( ivc.getDataMin() , ivc.getDataMax() );
+      color_editor.addActionListener( new EditorListener() );
+      frame = new JFrame( "Color Scale Editor" );
+      frame.add( color_editor );
+      frame.setBounds( 0 , 0 , 400 , 500 );
+      frame.setDefaultCloseOperation( WindowConstants.HIDE_ON_CLOSE );
+   }
+  
   public ObjectState getObjectState( boolean isDefault ) 
-  {
+  { initColorEditor() ;
     ObjectState ostate =  super.getObjectState( isDefault );
     ostate.insert( COLOR_EDIT_PANEL, color_editor.getObjectState( isDefault ) );
     return ostate;
@@ -95,6 +109,7 @@ public class ColorEditPanelManager extends ViewControl
   @Override
   public void setObjectState( ObjectState new_state ) 
   {
+     initColorEditor() ;
     super.setObjectState( new_state );
     ObjectState state = (ObjectState)new_state.get( COLOR_EDIT_PANEL );
     color_editor.setObjectState( state );
@@ -116,6 +131,7 @@ public class ColorEditPanelManager extends ViewControl
   @Override
   public Object getControlValue()
   {
+    initColorEditor() ;
     Object value = color_editor.getControlValue();
 
     if ( value instanceof ColorScaleInfo )
@@ -157,6 +173,7 @@ public class ColorEditPanelManager extends ViewControl
   {
      public void actionPerformed( ActionEvent ae )
      {
+        initColorEditor() ;
         send_message( COLOR_SCALE_CHANGED );
         if( !frame.isVisible()){
            frame.setVisible( true );
@@ -189,5 +206,62 @@ public class ColorEditPanelManager extends ViewControl
      }
   }
 
+  /**
+   * Causes the JFrame to be disposed of when the button is removed from
+   * a panel.
+   * @author Ruth
+   *
+   */
+ public class myAncestorListener implements AncestorListener {
 
+
+
+      JFrame frame;
+
+
+      public myAncestorListener( JFrame frame ) {
+
+         this.frame = frame;
+      }
+
+
+      /*
+       * (non-Javadoc)
+       * 
+       * @see javax.swing.event.AncestorListener#ancestorAdded(javax.swing.event.AncestorEvent)
+       */
+      
+      public void ancestorAdded( AncestorEvent event ) {
+
+
+      }
+
+
+      /*
+       * (non-Javadoc)
+       * 
+       * @see javax.swing.event.AncestorListener#ancestorMoved(javax.swing.event.AncestorEvent)
+       */
+     
+      public void ancestorMoved( AncestorEvent event ) {
+
+
+      }
+
+
+      /*
+       * (non-Javadoc)
+       * 
+       * @see javax.swing.event.AncestorListener#ancestorRemoved(javax.swing.event.AncestorEvent)
+       */
+     
+      public void ancestorRemoved( AncestorEvent event ) {
+
+         frame.dispose();
+         frame = null;
+         color_editor = null;
+
+      }
+
+   }
 }
