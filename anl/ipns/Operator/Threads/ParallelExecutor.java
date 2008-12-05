@@ -67,19 +67,15 @@ public class ParallelExecutor
    *
    *  @param operators         The list of OperatorThreads that are to be run
    *                           concurrently.
-   *  @param max_threads       The maximum number of thread to use while
+   *  @param max_threads       The maximum number of threads to use while
    *                           processing the operators.
-   *  @param max_milliseconds  The maximum total amount of time allowd for
-   *                           running these operators
    *
-   *  @param max_threads The maximum total number of threads to use.
-   *
-   *  @param max_milliseconds The maximum total running time allow for 
-   *                          executing all operators.  If this time is
-   *                          execeeded, an exception will be thrown by
-   *                          the runOperators() method.  The exception
-   *                          contains the results from the operators that
-   *                          did complete.
+   *  @param max_milliseconds  The maximum total running time allow for 
+   *                           executing all operators.  If this time is
+   *                           execeeded, an exception will be thrown by
+   *                           the runOperators() method.  The exception
+   *                           contains the results from the operators that
+   *                           did complete.
    *
    *  @throws IllegalArgumentException if the Vector of operators is null
    *                                   or has a null IOperator, or if the
