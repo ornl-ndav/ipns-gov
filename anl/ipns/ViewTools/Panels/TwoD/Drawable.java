@@ -109,14 +109,14 @@ abstract public class Drawable implements IDrawable
    * If this method is not called, the scale factors will be one 
    * by default. 
    * 
-   * @param angle The rotation angle in degrees.
+   * @param sx The scale factor in the x direction.
+   * @param sy The scale factor in the y direction.
    */
   public void setScaleFactors( double sx, double sy )
   {
     this.sx = sx;
     this.sy = sy;
   }
-
 
 
   /**
