@@ -70,9 +70,9 @@ public class ColorEditPanel extends ViewControl
    public static final String cancelMessage = "CANCEL";
    public static final String advancedMessage = "ADVANCED";
    
-   private static final int SUBINTERVAL = 60000;
-   private static  float MAX = 60000;       // AutoScale max
-   private static  float MIN = 1;         // AutoScale min
+   private  int SUBINTERVAL = 256;
+   private  float MAX = 60000;       // AutoScale max
+   private  float MIN = 1;         // AutoScale min
    //private float[] valueMapping;
    private byte[] initColorMap;
    private byte[] colorMapping;
@@ -85,10 +85,12 @@ public class ColorEditPanel extends ViewControl
    private float localMax;
    private float localMin;
    private boolean flipped = false;
+   
    //Saved previous TextField values
    String Sav_prescaleField, 
           Sav_minField, 
           Sav_maxField;
+   
    //ObjectState keys
    public static String TITLE ="Color Edit Panel"; 
    public static String NUM_COLORS ="Number of Colors";
@@ -581,6 +583,7 @@ public class ColorEditPanel extends ViewControl
 	 */
 	private void calculateMapping()
 	{
+	   setSUBINTERVAL();
 		localMin = sliders.getBottomValue();
 		localMax = sliders.getTopValue();
 		
@@ -597,19 +600,16 @@ public class ColorEditPanel extends ViewControl
 			localMax = temp;
 		}
 		
-		System.out.println("localMin = "+localMin);
-		System.out.println("localMax = "+localMax);
-		
+				
 		initMapping();
 		//printMapping();
 		
 		//-----------------------Log Scaling
 		if(logScale)
 		{  //imagePanel2 sets min to .01 if too small
-			System.out.println("logging");
 	      if( localMax > 0)
 	         if( localMin <=0)
-	             localMin = (float)Math.pow( 10 , Math.log10(localMax)-6 );
+	             localMin = (float)Math.pow( 10 , Math.log10(localMax)-4 );
 			logScale(colorMapping,localMax,localMin);
 		}
 		
@@ -639,6 +639,7 @@ public class ColorEditPanel extends ViewControl
 	 */
 	private void logScale(byte[] map, float valMax,float valMin)
 	{	 
+	    setSUBINTERVAL();
 	    if(valMax <=0 || valMin <=0){
 	       java.util.Arrays.fill( map , (byte)0 );
 	       return;
@@ -691,10 +692,6 @@ public class ColorEditPanel extends ViewControl
 		//check num colors
 		b = b || colorOptions.checkValue();
 		
-		System.out.println("min: "+ min);
-		System.out.println("max: "+ max);
-		System.out.println("prescale: "+ scale);
-		System.out.println("num of colors: "+ colorOptions.numColors);
 		boolean b1 = sliders.checkValues();
 		b = b || b1;
 		
@@ -753,7 +750,7 @@ public class ColorEditPanel extends ViewControl
 		catch(Exception ex)
 		{
 			JOptionPane.showMessageDialog (null, ex.getMessage(), "Edit Max Value Field Error", JOptionPane.ERROR_MESSAGE);
-			System.out.println(ex.getMessage());
+			
 			maxField.setText(""+max);
 
          Sav_maxField = maxField.getText();
@@ -775,7 +772,7 @@ public class ColorEditPanel extends ViewControl
 		catch(Exception ex)
 		{
 			JOptionPane.showMessageDialog (null, ex.getMessage(), "Edit Min Value Field Error", JOptionPane.ERROR_MESSAGE);
-			System.out.println(ex.getMessage());
+			
 			minField.setText(""+min);
 			Sav_minField = minField.getText();
 		}
@@ -790,7 +787,7 @@ public class ColorEditPanel extends ViewControl
 		catch(Exception ex)
 		{
 			JOptionPane.showMessageDialog (null, ex.getMessage(), "Scale Field Error", JOptionPane.ERROR_MESSAGE);
-			System.out.println(ex.getMessage());
+			
 			prescaleField.setText(""+scale);
 		}
 	}
@@ -825,15 +822,17 @@ public class ColorEditPanel extends ViewControl
 		return colorMapping;
 	}
 	
-        public boolean getLogScale()
-        {
-           return logScale;
-        }
+   public boolean getLogScale()
+   {
+      return logScale;
+   }
 
 	public void setLogScale(boolean log)
 	{
 		logScale = log;
 		logCheck.setSelected(log);
+		setSUBINTERVAL();
+		calculateMapping();
 	}
 	
 	/*public void setGang(boolean gang)
@@ -907,7 +906,7 @@ public class ColorEditPanel extends ViewControl
 			   checkValues();
 				send_message(doneMessage);
 				calculateMapping();
-				System.out.println(doneMessage);
+				
 			}
 			
 			if( e.getSource() == updateButton )
@@ -915,26 +914,36 @@ public class ColorEditPanel extends ViewControl
 				checkValues();
 				send_message(updateMessage);
 				calculateMapping();
-				System.out.println(updateMessage);
-				//printMapping();
+				
 			}
 			
 			if( e.getSource() == cancelButton )
 			{ 
 				send_message(cancelMessage);
-				System.out.println(cancelMessage);
+				
 			}
 		}
 	}
 
         
-
+   private void setSUBINTERVAL(){
+      if( logScale){
+      SUBINTERVAL = Math.max( 256,  (int)(10*max/min+.5));
+      if( SUBINTERVAL >500000)
+         SUBINTERVAL = 500000;
+      
+      }
+      else
+        
+         SUBINTERVAL = 256;
+   }
 	//Sets GUI and internal values and other implications. No notifications
 	private void setLogCheck( boolean isLog){
 	   logScale = isLog;
 	   logCheck.removeActionListener( optionsListener);
 	   logCheck.setSelected( isLog );
 	   logCheck.addActionListener( optionsListener);
+	   setSUBINTERVAL();
 	   calculateMapping();
 	}
 	
@@ -974,8 +983,7 @@ public class ColorEditPanel extends ViewControl
          Sav_minField = minField.getText();
          Sav_maxField = maxField.getText();
       }
-      System.out.println("autoScale "+autoScale.isSelected());
-      //System.out.println("specMinMax "+specMinMax.isSelected());
+      
       calculateMapping();
 
       autoScale.addActionListener(optionsListener);
@@ -993,20 +1001,21 @@ public class ColorEditPanel extends ViewControl
 				{
 				 if(max<0) max = -max;
 	          if(min<0) min = 0;
-	          if( min == 0){
-	             min =(float) Math.pow( 10f, Math.log10(max) -6);
+	          if( min == 0)
+	             min =(float) Math.pow( 10f, Math.log10(max) -4);	         
 	         
-	          }
-	          setMaxMin( max, min);
+	           setMaxMin( max, min);
 				  logScale = true;
+				  
+				  
 				}
-				else
+				else{
 					logScale = false;
-				
+				}
+				setSUBINTERVAL();
 				calculateMapping();
 				checkValues();
             calculateMapping();
-				//System.out.println(logScale);
 			}
 			
 			else if(e.getSource() == autoScale)
@@ -1026,8 +1035,7 @@ public class ColorEditPanel extends ViewControl
 		         Sav_minField = minField.getText();
 				}
 				sliders.setMaxMin(max,min);
-				System.out.println("autoScale "+autoScale.isSelected());
-				//System.out.println("specMinMax "+specMinMax.isSelected());
+			
 			}
 			
 			else if(e.getSource() == specMinMax)
@@ -1041,8 +1049,6 @@ public class ColorEditPanel extends ViewControl
 		         Sav_minField = minField.getText();
 		         Sav_maxField = maxField.getText();
 				}
-				System.out.println("specMinMax "+specMinMax.isSelected());
-				//System.out.println("autoScale "+autoScale.isSelected());	
 			}
 			
 			
@@ -1055,7 +1061,6 @@ public class ColorEditPanel extends ViewControl
 				maxField.setText(""+max);
 	         Sav_maxField = maxField.getText();
 				sliders.setMaxMin(max,min);
-				System.out.println(max);
 			}
 			
 			else if(e.getSource() == minField )
@@ -1069,7 +1074,6 @@ public class ColorEditPanel extends ViewControl
 				minField.setText(""+min);
 				Sav_minField = minField.getText();
 				sliders.setMaxMin(max,min);
-				System.out.println(min);
 			}
 			
 			else if( e.getSource() == prescaleField )
@@ -1077,7 +1081,6 @@ public class ColorEditPanel extends ViewControl
 			   checkValues();
 				String value = prescaleField.getText();
 				setPrescale(value);
-					System.out.println(scale);
 			}
 			calculateMapping();
 		}
@@ -1088,17 +1091,17 @@ public class ColorEditPanel extends ViewControl
 
 		public void actionPerformed(ActionEvent e) 
 		{
-			System.out.println(e.getActionCommand());
+			
 			if(e.getActionCommand().equals(ColorOptions.COLOR_SCALE_CHANGED))
 			{
 			   checkValues();
-				System.out.println("setColorModel: ColorScaleChanged to "+colorOptions.getColorScale());
+				
 				colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
 			}
 			
 			else if(e.getActionCommand().equals(ColorOptions.NUM_OF_COLORS_CHANGED))
 			{  checkValues();
-				System.out.println("setColorModel: NumOfColorsChanged to "+ colorOptions.getNumColors());
+				
 				colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
 				calculateMapping();
 			}
@@ -1112,8 +1115,6 @@ public class ColorEditPanel extends ViewControl
 		public void actionPerformed(ActionEvent e) {
 		   checkValues();
 			calculateMapping();
-			System.out.println("Max: "+sliders.getTopValue());
-			System.out.println("Min: "+sliders.getBottomValue());
 		}
 	}
 }
