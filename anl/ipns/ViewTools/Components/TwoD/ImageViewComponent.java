@@ -916,8 +916,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     use_new_color_control = new_color_control;
     font = FontUtil.LABEL_FONT2;
     ijp = new ImageJPanel2();
-    colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_2;
-    ijp.setNamedColorModel( colorscale, isTwoSided, false);
+    colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_1;
+    ijp.setNamedColorModel( colorscale, isTwoSided, false );
     setPrecision(4);
     null_data = true;
 
@@ -982,8 +982,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     if( temp != null )
     {
       isTwoSided = ((Boolean)temp).booleanValue();
-
-      ijp.setNamedColorModel( colorscale, isTwoSided, false);
+      update_IJP_ColorModel( false );
       redraw = true;  
     }
 
@@ -998,7 +997,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     if( temp != null )
     {
       colorscale = (String)temp; 
-      ijp.setNamedColorModel( colorscale, isTwoSided, false);
+      update_IJP_ColorModel( false );
       redraw = true;  
     } 
    
@@ -1024,7 +1023,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     }  
     
     temp = new_state.get( NEW_COLOR_CONTROLS );
-    if( temp != null){
+    if( temp != null)
+    {
        if( ((Boolean)temp).booleanValue() != use_new_color_control)
           JOptionPane.showMessageDialog( null , 
                    "Object State for new color controls incorrect" );
@@ -1041,9 +1041,14 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       logscale = ((ControlSlider)controls[0]).getValue(); 
       redraw = true;  
     } 
-    if( use_new_color_control ){
+    
+    if( use_new_color_control )
+    {
        temp = new_state.get( NEW_COLOR_STATE );
+       
        controls[0].setObjectState( (ObjectState) temp );
+       ColorScaleInfo info = (ColorScaleInfo)(controls[0].getControlValue());
+       updateNewColorScale( info );
        redraw = true;
     }
     
@@ -1344,8 +1349,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     colorscale = color_scale;
     ijp.setNamedColorModel( colorscale, isTwoSided, true );
 
-    System.out.println("In setColorScale, isTwoSided = " + isTwoSided );
-
     ((ControlColorScale)controls[1]).setColorScale( colorscale, isTwoSided );	 
     sendMessage(COLORSCALE_CHANGED);
     ((PanViewControl)controls[9]).repaint();
@@ -1361,7 +1364,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   */
   public void updateNewColorScale( ColorScaleInfo info )
   {
-    System.out.println("ImageViewComponent.updateNewColorScale called");
     float   min        = info.getTableMin();
     float   max        = info.getTableMax();
     float   prescale   = info.getPrescale();
@@ -1373,16 +1375,16 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     byte[]  table      = info.getColorIndexTable();
     boolean isLog      = info.isLog();
 
+    colorscale = cs_name;
+    isTwoSided = two_sided;
+
     ijp.setNamedColorModel( cs_name, two_sided, num_colors, false );
     ijp.changeColorIndexTable( table,
                                isLog,
                                min,
                                max,
                                true );
-    colorscale = cs_name;
-    isTwoSided = two_sided;
 
-    System.out.println("In updateNewColorScale, isTwoSided = " + isTwoSided );
     ((ControlColorScale)controls[1]).setColorScale( colorscale, two_sided );
 
                                                   // preserve the current 
@@ -1397,7 +1399,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
 
     color_scale_info = info;                  // save latest value in case
                                               // user later adds color scale
-
+    
     sendMessage(COLORSCALE_CHANGED);
     ((PanViewControl)controls[9]).repaint();
     paintComponents();
@@ -1826,7 +1828,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
         // one-sided model
         else
            isTwoSided = false;
-        ijp.setNamedColorModel(colorscale, isTwoSided, false); 
+        update_IJP_ColorModel( false ); 
         
         //create transparencies
         AnnotationOverlay annote_overlay = new AnnotationOverlay(this);
@@ -2166,13 +2168,33 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     else
       getDisplayPanel().requestFocus();
   }
+
+
+  private void update_IJP_ColorModel( boolean rebuild_now )
+  {
+    if ( use_new_color_control && color_scale_info != null )
+    {
+      String  cs_name    = color_scale_info.getColorScaleName();
+      boolean two_sided  = color_scale_info.isTwoSided();
+      int     num_colors = color_scale_info.getNumColors();
+
+      colorscale = cs_name;
+      isTwoSided = two_sided;
+
+      ijp.setNamedColorModel( cs_name, two_sided, num_colors, rebuild_now );
+    }
+    else
+      ijp.setNamedColorModel(colorscale, isTwoSided, rebuild_now );
+
+  }
+
  
  /*
   * This method is used by the setObjectState() to set all saved state.
   */ 
   private void reInit()  
   {
-    ijp.setNamedColorModel(colorscale, isTwoSided, false);
+    update_IJP_ColorModel( false );
     ijp.repaint();
     // make sure logscale and two-sided are consistent
     ((AxisOverlay2D)transparencies.elementAt(2)).setTwoSided(isTwoSided);
@@ -2183,7 +2205,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     // this control is an uncalibrated colorscale
     if( addColorControl )
     {
-     System.out.println("In reInit, isTwoSided = " + isTwoSided );
      ((ControlColorScale)controls[1]).setColorScale(colorscale, isTwoSided);
       controls[1].setVisible(true);
     }
@@ -2953,7 +2974,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       else
       {
 	setColorScale(message);
-        ijp.setNamedColorModel( colorscale, isTwoSided, false);
+        update_IJP_ColorModel( false );
 	return;
       }
   //###    background.validate();
