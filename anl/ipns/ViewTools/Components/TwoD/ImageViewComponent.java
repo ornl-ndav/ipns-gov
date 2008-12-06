@@ -916,7 +916,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     use_new_color_control = new_color_control;
     font = FontUtil.LABEL_FONT2;
     ijp = new ImageJPanel2();
-    colorscale = IndexColorMaker.HEATED_OBJECT_SCALE_1;
+    colorscale = IndexColorMaker.HEATED_OBJECT_SCALE;
     ijp.setNamedColorModel( colorscale, isTwoSided, false );
     setPrecision(4);
     null_data = true;
