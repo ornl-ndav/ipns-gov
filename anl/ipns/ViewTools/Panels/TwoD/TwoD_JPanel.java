@@ -53,7 +53,7 @@ public class TwoD_JPanel extends JPanel
   static final long serialVersionUID = 1;  // Keep the compiler happy
 
   private Vector<IDrawable> object_list = new Vector<IDrawable>();
-  private Color background = Color.LIGHT_GRAY;
+  private Color background = Color.WHITE;
   private Color foreground = Color.BLACK;
   
   /**
@@ -102,7 +102,7 @@ public class TwoD_JPanel extends JPanel
    * 
    * @param background The new color to use for the background.
    */
-  public void setBackgroud( Color background )
+  public void setBackGround( Color background )
   {
     this.background = background;
   }
@@ -112,7 +112,7 @@ public class TwoD_JPanel extends JPanel
    * 
    * @param foreground The new default color for objects.
    */
-  public void setForegroud( Color foreground )
+  public void setForeGround( Color foreground )
   {
     this.foreground = foreground;
   }
