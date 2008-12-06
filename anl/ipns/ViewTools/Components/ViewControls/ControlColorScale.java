@@ -280,7 +280,7 @@ public class ControlColorScale extends ViewControl
   private AxisOverlay2D axis;
   private JPanel background;
   private ColorScaleImage csi;
-  private String colorscheme = IndexColorMaker.HEATED_OBJECT_SCALE_2;
+  private String colorscheme = IndexColorMaker.HEATED_OBJECT_SCALE;
   private boolean isBasic = true; // basic vs calibrated color scales
   private Font font;
   private AxisInfo value_info;
