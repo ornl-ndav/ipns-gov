@@ -82,11 +82,8 @@ public class NewColorScale extends ViewControl
    */
   public void setControlValue(Object value)
   {
-    System.out.println( "NewColorScale.setControlValue called ..." );
     if ( !(value instanceof ColorScaleInfo) )
       throw new IllegalArgumentException("Need ColorScaleInfo parameter");
-
-    System.out.println( "got a ColorScaleInfo object ..." );
 
     this.info = (ColorScaleInfo)value;
     buildPanel();
