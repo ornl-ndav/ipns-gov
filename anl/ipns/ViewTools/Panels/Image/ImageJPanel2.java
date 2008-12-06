@@ -319,6 +319,7 @@ public class ImageJPanel2 extends    CoordJPanel
   private final int       DEFAULT_TABLE_SIZE          = 60000;
   private final int       DEFAULT_NUM_POSITIVE_COLORS = 127; 
   private Image           image;
+  private float           prescale = 1;            // factor for scaling data
   private Image           rescaled_image  = null;
   private Image           thumbnail_image = null;
   private IVirtualArray2D data;
@@ -447,6 +448,25 @@ public class ImageJPanel2 extends    CoordJPanel
   public void changeLogScale( double s, boolean rebuild_image )
   {                                       
     setLogScale( s );
+
+    if ( rebuild_image )
+      RebuildImage();
+  }
+
+
+/* ---------------------------- setPrescale ------------------------------ */
+/**
+ *  Set a prescaling factor that will be multiplied times all data values
+ *  before the data values are associated with colors.
+ *
+ *  @param  prescale       The prescale factor that should multiply 
+ *                         all data values.
+ *  @param   rebuild_image Flag to determine whether the displayed image is
+ *                         immediately rebuilt using the new prescale factor. 
+ */
+  public void setPrescale( float prescale, boolean rebuild_image )
+  {
+    this.prescale = prescale;
 
     if ( rebuild_image )
       RebuildImage();
@@ -1258,6 +1278,9 @@ protected void LocalTransformChanged()
       shift = -min_data * scale_factor;
       zero_index = 0;
     }
+
+    scale_factor *= prescale;     // multiply in the prescale factor so that
+                                  // it applies to all data values
 
 /*
     System.out.println("MIN_DATA = " + min_data );
