@@ -79,7 +79,7 @@ public class ColorEditPanel extends ViewControl
    //private float[] initMap;
    private boolean logScale = false;
    //private boolean gang = false;
-   private float scale = Float.NaN;
+   private float scale = 1;
    private float max;
    private float min;
    private float localMax;
@@ -325,11 +325,10 @@ public class ColorEditPanel extends ViewControl
          sliders.setControlValue( value, key.substring(8));
          
       }else if( key == PRESCALE ){
-   
          
          if( value instanceof Number){
-            float val =( ((Number)value).floatValue());
-            prescaleField.setText( ""+val );
+            scale =( ((Number)value).floatValue());
+            prescaleField.setText( ""+scale );
 
             Sav_prescaleField= prescaleField.getText();
          }
@@ -338,7 +337,6 @@ public class ColorEditPanel extends ViewControl
          
          if( value instanceof Boolean)
             setAutoScaleCheck(((Boolean)value).booleanValue());
-               
       }
    }
    
@@ -686,7 +684,6 @@ public class ColorEditPanel extends ViewControl
 		if(!prescaleField.getText().equals(Sav_prescaleField))
 		{
 			setPrescale(prescaleField.getText());
-			
 		}
 		
 		//check num colors
@@ -805,6 +802,7 @@ public class ColorEditPanel extends ViewControl
 	public void setPrescale(float s)
 	{
 		scale = s;
+		prescaleField.setText(""+scale);
 	}
 	
 	public float getAutoMax()
