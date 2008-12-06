@@ -55,7 +55,7 @@ import gov.anl.ipns.Util.Sys.*;
 public class ColorEditPanelManager extends ViewControl 
 {
   ImageViewComponent  ivc = null;
-  ColorEditPanel      color_editor;
+  ColorEditPanel      color_editor = null;
   JFrame              frame;
 
   /**
@@ -76,15 +76,13 @@ public class ColorEditPanelManager extends ViewControl
     this.setLayout( new GridLayout(1,1) );
     this.add( edit_button ); 
 
-    color_editor = new ColorEditPanel( ivc.getDataMin(), ivc.getDataMax() );
-    color_editor.addActionListener( new EditorListener() );
-    frame = new JFrame("Color Scale Editor"); 
-    frame.add( color_editor );
-    frame.setBounds( 0, 0, 400, 500 );
-    frame.setDefaultCloseOperation( WindowConstants.HIDE_ON_CLOSE );
+    initColorEditor();
     edit_button.addAncestorListener( new myAncestorListener( frame) );
   } 
 
+  /**
+   *  ONLY initialize color_editor if it is NULL.
+   */
   private void initColorEditor() {
 
       if( color_editor != null )
@@ -98,6 +96,7 @@ public class ColorEditPanelManager extends ViewControl
       frame.setDefaultCloseOperation( WindowConstants.HIDE_ON_CLOSE );
    }
   
+  @Override
   public ObjectState getObjectState( boolean isDefault ) 
   { initColorEditor() ;
     ObjectState ostate =  super.getObjectState( isDefault );
@@ -214,54 +213,27 @@ public class ColorEditPanelManager extends ViewControl
    */
  public class myAncestorListener implements AncestorListener {
 
-
-
       JFrame frame;
 
-
-      public myAncestorListener( JFrame frame ) {
-
+      public myAncestorListener( JFrame frame ) 
+      {
          this.frame = frame;
       }
 
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see javax.swing.event.AncestorListener#ancestorAdded(javax.swing.event.AncestorEvent)
-       */
-      
-      public void ancestorAdded( AncestorEvent event ) {
-
-
+      public void ancestorAdded( AncestorEvent event ) 
+      {
       }
 
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see javax.swing.event.AncestorListener#ancestorMoved(javax.swing.event.AncestorEvent)
-       */
-     
-      public void ancestorMoved( AncestorEvent event ) {
-
-
+      public void ancestorMoved( AncestorEvent event ) 
+      {
       }
 
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see javax.swing.event.AncestorListener#ancestorRemoved(javax.swing.event.AncestorEvent)
-       */
-     
-      public void ancestorRemoved( AncestorEvent event ) {
-
+      public void ancestorRemoved( AncestorEvent event ) 
+      {
          frame.dispose();
          frame = null;
          color_editor = null;
-
       }
-
    }
+
 }
