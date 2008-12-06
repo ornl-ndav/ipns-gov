@@ -1049,6 +1049,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
        controls[0].setObjectState( (ObjectState) temp );
        ColorScaleInfo info = (ColorScaleInfo)(controls[0].getControlValue());
        updateNewColorScale( info );
+       color_scale_info = info;
+
        redraw = true;
     }
     
@@ -1378,6 +1380,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     colorscale = cs_name;
     isTwoSided = two_sided;
 
+    ijp.setPrescale( prescale, false );
     ijp.setNamedColorModel( cs_name, two_sided, num_colors, false );
     ijp.changeColorIndexTable( table,
                                isLog,
