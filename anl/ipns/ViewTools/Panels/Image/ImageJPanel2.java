@@ -308,7 +308,27 @@ public class ImageJPanel2 extends    CoordJPanel
   */
   public static final String TWO_SIDED   = "Two Sided";
 
+  /**
+   * "Number of Colors" - The constant String is a key for referencing
+   * object state info on the number of colors used in for the color model
+   */
+  public static final String NUM_COLORS = "Number of Colors";
+  
+  /**
+   * "Is pseudo log Scale" - The constant String is a key for referencing
+   * object state info on the whether this panel is displaying a psudo log
+   * scale
+   */
+  public static final String IS_LOG = "Is pseudo log Scale";
+  
 
+  
+  /**
+   * "PreScale factor" - The constant String is a key for referencing
+   * object state info on the prescaling facto applied to all the data
+   */
+  public static final String PRESCALE ="PreScale factor";
+  
  /**
   * This constant specifies the size at which the thumbnail image is 
   * calculated internally.
@@ -376,17 +396,22 @@ public class ImageJPanel2 extends    CoordJPanel
     // since ImageJPanel extends CoordJPanel, set those state variables first.
     super.setObjectState(new_state);
     boolean redraw = false;  // if any values are changed, repaint.
+    boolean makeNewColorModel = false;
      Object temp = new_state.get(LOG_SCALE);
     if( temp != null )
     {
       color_scale = (byte[])temp;
       redraw = true;  
     }  
-    /* 
+   
    temp = new_state.get(TWO_SIDED); //Moved to ImageViewComponent
     if( temp != null )
     {
-      isTwoSided = ((Boolean)temp).booleanValue();
+      boolean r1 =((Boolean)temp).booleanValue();
+      if( r1 != isTwoSided)
+         makeNewColorModel = true;
+      isTwoSided = r1;
+      
       redraw = true;  
     }
     
@@ -394,14 +419,48 @@ public class ImageJPanel2 extends    CoordJPanel
     if( temp != null )
     {
       color_model_string = (String)temp;
-      setNamedColorModel( color_model_string, isTwoSided, true );
+
+      makeNewColorModel = true;
+     
       redraw = true;  
     }
-    */
-    // may need changing
+    temp = new_state.get( NUM_COLORS );
+    if( temp != null){
+       int n1 = ((Number)temp).intValue();
+       if( n1 != num_positive_colors)
+          makeNewColorModel = true;
+       num_positive_colors = n1;
+       redraw = true;
+    }
+    temp = new_state.get(  IS_LOG);
+    if( temp != null){
+       boolean r1 =((Boolean)temp).booleanValue();
 
-    if( redraw )
+       if( r1 != log_color_map)
+          makeNewColorModel = true;
+       log_color_map = r1;
+
+       makeNewColorModel = true;
+       redraw = true;
+    }
+    if( makeNewColorModel){
+      setNamedColorModel(  color_model_string,
+               isTwoSided,
+                num_positive_colors,
+                true );
+    }
+    temp = new_state.get(  PRESCALE);
+    if( temp != null){
+     
+       prescale = ((Number)temp).floatValue();
+       redraw = true;
+    }
+    
+    if( redraw ){
+      image = null;//will remake image
       repaint();
+    }
+      
   } 
 
  
@@ -417,11 +476,33 @@ public class ImageJPanel2 extends    CoordJPanel
   */ 
   public ObjectState getObjectState( boolean isDefault )
   {
+
+     ObjectState state = super.getObjectState(isDefault);
+     if( isDefault){
+
+        state.insert( COLOR_MODEL, System.getProperty( "ColorScale","Heat 1" ) );
+        
+        byte[] Cscale = color_scale;
+        boolean SaveLogColorMap = log_color_map;
+        setLogScale( 10 );
+        color_scale = Cscale;
+        state.insert( LOG_SCALE, color_scale );
+        log_color_map = SaveLogColorMap;
+        state.insert( TWO_SIDED, false );
+        state.insert( NUM_COLORS , DEFAULT_NUM_POSITIVE_COLORS );
+        state.insert( IS_LOG ,false );
+        state.insert( PRESCALE, 1f );
+        
+        return state;
+       
+     }
     //get ObjectState of CoordJPanel
-    ObjectState state = super.getObjectState(isDefault);
-    //state.insert( COLOR_MODEL, color_model_string );
+    state.insert( COLOR_MODEL, color_model_string );
     state.insert( LOG_SCALE, color_scale );
-   // state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+    state.insert( TWO_SIDED, new Boolean(isTwoSided) );
+    state.insert( NUM_COLORS , num_positive_colors );
+    state.insert( IS_LOG ,log_color_map );
+    state.insert( PRESCALE, prescale );
     
     return state;
   }
