@@ -1396,7 +1396,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     {
       Object value = new_color_scale.getControlValue();
       ColorScaleInfo old_info = (ColorScaleInfo)value;
-      info.setOrientation( old_info.getOrientation() );
+      info = info.newOrientation( old_info.getOrientation() );
       new_color_scale.setControlValue( info );
     }
 
@@ -2250,7 +2250,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       east_width += 40;  // reset east_width to 90 if it has a colorscale
       if ( use_new_color_control )
       {
-        color_scale_info.setOrientation( Axis.Orientation.VERTICAL );
+        color_scale_info = 
+                  color_scale_info.newOrientation( Axis.Orientation.VERTICAL );
         east = new NewColorScale( title, color_scale_info );
         new_color_scale = (NewColorScale)east;
       }
@@ -2283,7 +2284,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       // add calibrated color control to lower part of south panel
       if ( use_new_color_control )
       {
-        color_scale_info.setOrientation( Axis.Orientation.HORIZONTAL );
+        color_scale_info = 
+                color_scale_info.newOrientation( Axis.Orientation.HORIZONTAL );
         NewColorScale new_cs = new NewColorScale( title, color_scale_info );
         south.add( new_cs, "Center" );
         new_color_scale = new_cs;
