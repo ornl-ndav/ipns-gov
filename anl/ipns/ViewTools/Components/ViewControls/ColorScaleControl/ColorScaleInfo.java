@@ -142,46 +142,139 @@ public class ColorScaleInfo
   }
 
 
-  public void setOrientation( Axis.Orientation orientation )
+  /**
+   *  Construct a new color scale info object with a new orientation value
+   *  using the values from the current object for all other fields.
+   *
+   *  @param  new_orientation The new orientation to be set in the new
+   *                          object.
+   *
+   *  @return a new ColorInfoObject with the orientation updated.
+   */
+  public ColorScaleInfo  newOrientation( Axis.Orientation new_orientation )
   {
-    this.orientation = orientation;
+    return new ColorScaleInfo( new_orientation,
+                               min,
+                               max,
+                               prescale,
+                               cs_name,
+                               two_sided,
+                               num_colors,
+                               table,
+                               is_log
+                             ); 
   }
 
+
+  /**
+   *  Construct a new color scale info object with a new color scale name 
+   *  using the values from the current object for all other fields.
+   *
+   *  @param  new_color_scale The new color scale name to be set in the new
+   *                          object.
+   *
+   *  @return a new ColorInfoObject with the color scale updated.
+   */
+  public ColorScaleInfo  newColorScale( String new_color_scale )
+  {
+    return new ColorScaleInfo( orientation,
+                               min,
+                               max,
+                               prescale,
+                               new_color_scale,
+                               two_sided,
+                               num_colors,
+                               table,
+                               is_log
+                             );
+  }
+
+  
+  /**
+   *  Get the orientation value.
+   *
+   *  @return the orientation.
+   */
   public Axis.Orientation getOrientation()
   {
     return orientation;
   }
 
+
+  /**
+   *  Get the data value associated with the first entry in the color table. 
+   *
+   *  @return the data value associated with position 0 in the color table.
+   */
   public float getTableMin()
   {
     return min;
   }
 
+
+  /**
+   *  Get the data value associated with the last entry in the color table. 
+   *
+   *  @return the data value associated with the last entry in the color table.
+   */
   public float getTableMax()
   {
     return max;
   }
 
+
+  /**
+   *  Get the currently set pre-scale value that will be applied to image
+   *  values BEFORE they are mapped to a color. 
+   *
+   *  @return the pre-scale value.
+   */
   public float getPrescale()
   {
     return prescale;
   }
 
+
+  /**
+   *  Get the name of the color scale to be used.
+   *
+   *  @return the color scale name.
+   */
   public String getColorScaleName()
   {
     return cs_name;
   }
 
+
+  /**
+   *  Get the value of the flag that indicates whether or not the color
+   *  scale should be two-sided with a different set of colors used for
+   *  any negative values.
+   *
+   *  @return the value of the "two-sided" flag.
+   */
   public boolean isTwoSided()
   {
     return two_sided;
   }
 
+
+  /**
+   *  Get the number of color values to be constructed in the color table.
+   *
+   *  @return the number of colors.
+   */
   public int getNumColors()
   {
     return num_colors;
   }
 
+
+  /**
+   *  Get a reference to the color index look up table.
+   *
+   *  @return reference to the color look up table.
+   */
   public byte[] getColorIndexTable()
   {
     byte[] table_copy = new byte[ table.length ];
@@ -189,6 +282,13 @@ public class ColorScaleInfo
     return table_copy; 
   }
 
+
+  /**
+   *  Get the value of the flag that indicates whether or not the color
+   *  scale was constructed as a logarithmic scale.
+   *
+   *  @return the value of the "is_log" flag.
+   */
   public boolean isLog()
   {
     return is_log; 
