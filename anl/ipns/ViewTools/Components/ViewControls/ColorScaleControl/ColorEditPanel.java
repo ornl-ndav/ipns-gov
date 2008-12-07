@@ -394,7 +394,7 @@ public class ColorEditPanel extends ViewControl
      // colorPanel.setDataRange( min , max , true );
       colorPanel.repaint();
     
-      send_message(updateMessage);
+     // send_message(updateMessage);
 
    }
    
