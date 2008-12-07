@@ -118,8 +118,7 @@ public class ColorEditPanelManager extends ViewControl
   @Override
   public void setControlValue(Object value)
   {
-    SharedMessages.addmsg("setControlValue not implemented in " +
-                          "ColorEditPanelManager ");
+    color_editor.setControlValue(  value );
   }
 
 
