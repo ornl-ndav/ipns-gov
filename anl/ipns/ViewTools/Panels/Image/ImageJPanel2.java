@@ -329,6 +329,26 @@ public class ImageJPanel2 extends    CoordJPanel
    */
   public static final String PRESCALE ="PreScale factor";
   
+  /**
+   * "PreScale factor" - The constant String is a key for referencing
+   * object state info on the prescaling facto applied to all the data
+   */
+  public static final String  AUTOSCALE="Auto scale using the data";
+  
+  /**
+   * "PreScale factor" - The constant String is a key for referencing
+   * object state info on the prescaling facto applied to all the data
+   */
+  public static final String  MINDATA="Min Data Value";
+  
+  /**
+   * "PreScale factor" - The constant String is a key for referencing
+   * object state info on the prescaling facto applied to all the data
+   */
+  public static final String  MAXDATA="Max Data Value";
+  
+  
+  
  /**
   * This constant specifies the size at which the thumbnail image is 
   * calculated internally.
@@ -449,12 +469,49 @@ public class ImageJPanel2 extends    CoordJPanel
                 num_positive_colors,
                 true );
     }
+    
     temp = new_state.get(  PRESCALE);
     if( temp != null){
      
        prescale = ((Number)temp).floatValue();
        redraw = true;
     }
+    
+    temp = new_state.get(  MINDATA);
+    if( temp != null){
+       
+       float x =((Number)temp).floatValue();
+       if( x != min_data){
+          min_data =x;
+          redraw = true;
+       }
+       
+    }
+    
+    temp = new_state.get(  MAXDATA);
+    if( temp != null){
+
+       
+       float x =((Number)temp).floatValue();
+       if( x != max_data){
+          max_data =x;
+          redraw = true;
+       }
+    }
+    
+    
+    temp = new_state.get(  AUTOSCALE);
+    if( temp != null){
+       boolean b1 = ((Boolean)temp).booleanValue();
+       if( b1 != auto_scale_data){
+          auto_scale_data = b1;
+          setData( data, false);
+          redraw = true;
+       }
+       
+    }
+  
+    
     
     if( redraw ){
       image = null;//will remake image
@@ -492,6 +549,9 @@ public class ImageJPanel2 extends    CoordJPanel
         state.insert( NUM_COLORS , DEFAULT_NUM_POSITIVE_COLORS );
         state.insert( IS_LOG ,false );
         state.insert( PRESCALE, 1f );
+        state.insert( AUTOSCALE , true );
+        state.insert(  MINDATA , -4f );
+        state.insert(  MAXDATA , 4f );
         
         return state;
        
@@ -503,6 +563,9 @@ public class ImageJPanel2 extends    CoordJPanel
     state.insert( NUM_COLORS , num_positive_colors );
     state.insert( IS_LOG ,log_color_map );
     state.insert( PRESCALE, prescale );
+    state.insert( AUTOSCALE , auto_scale_data );
+    state.insert(  MINDATA , min_data );
+    state.insert(  MAXDATA , max_data);
     
     return state;
   }
