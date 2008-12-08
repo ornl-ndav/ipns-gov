@@ -263,8 +263,8 @@ public class ColorEditPanel extends ViewControl
          return;
       
       ColorScaleInfo colInf = (ColorScaleInfo)value;
-      colorOptions.setNumColors( colInf.getNumColors() , false );
-      colorOptions.setColor( colInf.getColorScaleName() ); 
+      setControlValue( colInf.getNumColors() , NUM_COLORS );
+      setControlValue( colInf.getColorScaleName() , COLOR_INDEX_CHOICE ); 
       setControlValue( colInf.isLog(), LOGSCALE);
       setControlValue(colInf.getTableMin(), 
                     SLIDERS+"."+StretchTopBottom.BOTTOM_VALUE);
@@ -273,6 +273,7 @@ public class ColorEditPanel extends ViewControl
       
       checkValues();
       calculateMapping();
+      
    }
 
    /**
@@ -405,6 +406,7 @@ public class ColorEditPanel extends ViewControl
    public void reDraw(){
       
       calculateMapping();
+      
      
    }
 
