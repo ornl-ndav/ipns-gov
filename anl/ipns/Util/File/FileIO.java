@@ -115,7 +115,40 @@ public class FileIO{
      
   }
 
-
+  /**
+   * Appends nextPath to a starting path including the path separator 
+   * characters when needed. The resultant string ends with the 
+   * path separator character
+   * 
+   * @param path1  The first part of a directory path
+   * @param nextPath  The next part of a directory path
+   * @return  The concatenation of the two parts of the path ending with
+   *          the path separator character.
+   * NOTE: if either one or both arguments are null or have length 0, they
+   * will be ignored. 
+   */
+  public static String appendPath( String path1, String nextPath){
+     
+     if( path1 == null ||path1.length() < 1 )
+        path1 ="";
+     else if( "/\\".indexOf(  path1.charAt(path1.length()-1)) >=0 )
+        path1 = path1.substring(0,path1.length()-1)+ File.separator;
+     else
+        path1 = path1+ File.separator;
+     
+     path1 +=nextPath;
+     
+     if( path1.length() < 1)
+        return path1;
+     
+     if( "/\\".indexOf(  path1.charAt(path1.length()-1)) >=0 )
+        path1 = path1.substring(0,path1.length()-1)+ File.separator;
+     else
+        path1 = path1+ File.separator;
+     
+     return path1;
+       
+  }
 
   /**
    * Creates the filename for an executable that can be used be java's Runnable.exec. The
