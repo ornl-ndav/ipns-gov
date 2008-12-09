@@ -30,6 +30,7 @@
 
 package gov.anl.ipns.ViewTools.Panels.PeakArrayPanel;
 
+import gov.anl.ipns.Util.File.FileIO;
 import gov.anl.ipns.Util.Sys.WindowShower;
 
 import javax.swing.*;
@@ -306,16 +307,12 @@ public class PeakArrayPanels extends JFrame {
       
       boolean defaultDirectory = false;
       if( Directory == null ){
-         Directory = System.getProperty( "user.home" );
-         defaultDirectory = true;
-      }
+         Directory = FileIO.appendPath(System.getProperty( "user.home" ),
+                                 "ISAW"+File.separator+"tmp"+File.separator);
+         
+      }else
+         Directory= FileIO.appendPath(  null , Directory );
       
-      Directory = Directory.replace( '\\' , '/' );
-      if( ! Directory.endsWith( "/ " ) )
-         Directory += "/";
-      
-      if( defaultDirectory)
-         Directory += "ISAW/tmp/";
       
       if( prefix == null )
          prefix = "PeakV";
@@ -337,51 +334,68 @@ public class PeakArrayPanels extends JFrame {
             if( filename != null && filename.startsWith( prefix )
                      && filename.endsWith( extension )
                      && currentTime < Files[ i ].lastModified() )
-               try {
-                  
-                  ObjectInputStream inp = new ObjectInputStream(
-                           new FileInputStream( Files[ i ] ) );
-                  
-                  PeaksDisplayPanel disp = (PeaksDisplayPanel) inp.readObject();
-                  filename = filename.substring( 0 , filename.length()
-                           - extension.length() );
-                  
-                  int k1 = filename.lastIndexOf( "_" );
-                  String ID = null;
-                  
-                  if( k1 >= 0 )
-                     ID = filename.substring( k1 + 1 );
-                  
-                  else {
-                     ID = null;
-                     k1 = filename.length() - 1;
-                  }
-                  
-                  int k2 = filename.lastIndexOf( "/" , k1 );
-                  
-                  String title = null;
-                  if( k2 < 0 )
-                     k2 = - 1;
-                  
-                  title = filename.substring( k2 + 1 , k1 );
-                  panels.addPanel( disp , title , ID );
-                  
-               }
-               catch( Exception ss ) {
-                
-                  JOptionPane.showMessageDialog( null ,
-                           "Cannot read Peak images for "
-                                    + Files[ i ].toString() );
-
-               }
+               getOneFilename(panels,  Directory+filename )   ;     
          }
-      
       panels.display( "File" , "Detector" );
 
 
    }
 
 
+   public static void DisplayPeaks( String Title, String[] filenames){
+      if( filenames == null)
+         return;
+      
+
+      PeakArrayPanels panels = new PeakArrayPanels( Title );
+      for( int i=0; i<filenames.length ; i++){
+         getOneFilename(panels,  filenames[i] )   ;
+
+         panels.display( "File" , "Detector" );
+      }
+   }
+   
+   
+   private static void getOneFilename( PeakArrayPanels panels, String filename){
+      try {
+         
+         ObjectInputStream inp = new ObjectInputStream(
+                  new FileInputStream( filename ) );
+         
+         PeaksDisplayPanel disp = (PeaksDisplayPanel) inp.readObject();
+         int k=filename.lastIndexOf( '.' );
+         String file = filename.substring( 0 , k);
+         
+         int k1 = file.lastIndexOf( "_" );
+         String ID = null;
+         
+         if( k1 >= 0 )
+            ID = file.substring( k1 + 1 );
+         
+         else {
+            ID = null;
+            k1 = file.length() - 1;
+         }
+         
+         int k2 = file.lastIndexOf( "/" , k1 );
+         
+         String title = null;
+         if( k2 < 0 )
+            k2 = - 1;
+         
+         title = file.substring( k2 + 1 , k1 );
+         panels.addPanel( disp , title , ID );
+         
+      }
+      catch( Exception ss ) {
+       
+         JOptionPane.showMessageDialog( null ,
+                  "Cannot read Peak images for "
+                           + filename);
+
+      }
+
+   }
    /**
     *  Will Display Peaks whose files are in default directory with default prefix 
     *  and extension
@@ -389,7 +403,7 @@ public class PeakArrayPanels extends JFrame {
     */
    public static void main( String[] args ) {
 
-      PeakArrayPanels.DisplayPeaks( "Test" , null , null , null , - 1 );
+      PeakArrayPanels.DisplayPeaks( "Test" , null , "" , null , - 1 );
 
    }
 
