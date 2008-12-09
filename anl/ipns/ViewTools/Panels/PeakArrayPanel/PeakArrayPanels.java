@@ -274,13 +274,13 @@ public class PeakArrayPanels extends JFrame {
 
 
    /**
-    * Utility to create this JFrame a Display the Peaks. The PeaksDisplayPanels
+    * Utility to create this JFrame and Display the Peaks. Arrays of PeakDisplayInfos
     * are serialized and stored in files in the specified Directory. The names
     * of the files start with the specified prefix and have the specified
     * extension. Only files created after currentTime will be used. Also, part
     * of the filename after the last "_" will represent an ID and the part of
     * the name of the file before the last "_" will represent a title associated
-    * with the PeaksDisplay panel in that file.
+    * with the PeaksDisplay panel created from the array of PeakDisplayInfo's.
     * 
     * @param Title
     *           Title to appear on the JFrame that will pop up
@@ -342,6 +342,17 @@ public class PeakArrayPanels extends JFrame {
    }
 
 
+   /**
+    * Utility to create this JFrame and Display the Peaks. Arrays of PeaksDisplayInfos
+    * are serialized and stored in the array of filenames. The parts of the file name
+    * before and after the last "_" will become titles for the resultant display.
+    * 
+    * @param Title
+    *           Title to appear on the JFrame that will pop up
+    *           
+    * @param filenames  An array of filenames each of which stores the Object value
+    *        of an array of PeakDisplaInfo's
+    */           
    public static void DisplayPeaks( String Title, String[] filenames){
       if( filenames == null)
          return;
@@ -362,7 +373,7 @@ public class PeakArrayPanels extends JFrame {
          ObjectInputStream inp = new ObjectInputStream(
                   new FileInputStream( filename ) );
          
-         PeaksDisplayPanel disp = (PeaksDisplayPanel) inp.readObject();
+         PeakDisplayInfo[] disp =  (PeakDisplayInfo[]) inp.readObject();
          int k=filename.lastIndexOf( '.' );
          String file = filename.substring( 0 , k);
          
@@ -384,7 +395,8 @@ public class PeakArrayPanels extends JFrame {
             k2 = - 1;
          
          title = file.substring( k2 + 1 , k1 );
-         panels.addPanel( disp , title , ID );
+         PeaksDisplayPanel one_panel = new PeaksDisplayPanel( disp);
+         panels.addPanel( one_panel , title , ID );
          
       }
       catch( Exception ss ) {
