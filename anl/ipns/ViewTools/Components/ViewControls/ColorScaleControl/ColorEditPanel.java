@@ -276,6 +276,7 @@ public class ColorEditPanel extends ViewControl
       
    }
 
+   
    /**
     * Will set the appropriate part of GUI Component and the internal value 
     * for the control
@@ -289,7 +290,8 @@ public class ColorEditPanel extends ViewControl
          if(!( value instanceof Number))
             return;
          float val = ((Number)value).floatValue();
-         setMaxMin( val, min);
+         if( val != max)
+            setMaxMin( val, min);
         // setMax( val);
         // sliders.setMaxMin( min , max );
          
@@ -297,7 +299,8 @@ public class ColorEditPanel extends ViewControl
          if(!( value instanceof Number))
             return;
          float val = ((Number)value).floatValue();
-         setMaxMin( max, val);
+        if( val != min )
+           setMaxMin( max, val);
         // setMin( val );
         // sliders.setMaxMin( min , max );
          
@@ -305,20 +308,25 @@ public class ColorEditPanel extends ViewControl
          if(!( value instanceof Number))
             return;
          int ncolors = ((Number)value).intValue();
-         colorOptions.setNumColors( ncolors , false);
-         colorPanel.setColorModel(colorOptions.getColorScale(), 
-                                        colorOptions.getNumColors(), true);
-         calculateMapping();
+        if( ncolors != colorOptions.getNumColors())
+         {
+            colorOptions.setNumColors( ncolors , false);
+            colorPanel.setColorModel(colorOptions.getColorScale(), 
+                                           colorOptions.getNumColors(), true);
+            calculateMapping();
+         }
          
       }else if( key == COLOR_INDEX_CHOICE ){
-         if( value instanceof String){
+         if( value instanceof String && !(value.equals(colorOptions.getColorScale())))
+         {
             colorOptions.setColor( value.toString());
             colorPanel.setColorModel(colorOptions.getColorScale(), 
                                         colorOptions.getNumColors(), true);
          }
          
       }else if( key == LOGSCALE ){
-         if( value instanceof Boolean)
+         if( value instanceof Boolean )
+            if( ((Boolean)value).booleanValue() != logScale)
             setLogCheck( ((Boolean)value).booleanValue());
          
          
@@ -328,15 +336,21 @@ public class ColorEditPanel extends ViewControl
       }else if( key == PRESCALE ){
          
          if( value instanceof Number){
-            scale =( ((Number)value).floatValue());
-            prescaleField.setText( ""+scale );
+            float new_scale =( ((Number)value).floatValue());
+           if( new_scale != scale)
+            {
+               scale = new_scale;
+            
+               prescaleField.setText( ""+scale );
 
-            Sav_prescaleField= prescaleField.getText();
+               Sav_prescaleField= prescaleField.getText();
+            }
          }
          
       }else if( key == AUTO_SCALE ){
          
-         if( value instanceof Boolean)
+         if( value instanceof Boolean )// need to chek on GUI element autoscale which
+                                       // has no variable for its value.
             setAutoScaleCheck(((Boolean)value).booleanValue());
       }
    }
@@ -928,9 +942,9 @@ public class ColorEditPanel extends ViewControl
         
    private void setSUBINTERVAL(){
       if( logScale){
-      SUBINTERVAL = Math.max( 256,  (int)(10*max/min+.5));
-      if( SUBINTERVAL >500000)
-         SUBINTERVAL = 500000;
+         SUBINTERVAL = Math.max( 256,  (int)(10*max/min+.5));
+         if( SUBINTERVAL >500000)
+            SUBINTERVAL = 500000;
       
       }
       else
@@ -1024,15 +1038,22 @@ public class ColorEditPanel extends ViewControl
 				{
 					autoScale.setSelected(true);
 					specMinMax.setSelected(false);
-					setMax(MAX);
-					setMin(MIN);
+					max  = MAX;
+					min =  MIN;
+					if( logScale ) {
+					   if(max<0) max = -max;
+		             if(min<0) min = 0;
+		             if( min == 0)
+		                min =(float) Math.pow( 10f, Math.log10(max) -4);
+               }
+	            setMaxMin( max, min);
+	            
 					maxField.setEditable(false);
 					minField.setEditable(false);
-					maxField.setText(""+MAX);
                
 		         Sav_maxField = maxField.getText();
-					minField.setText(""+MIN);
 		         Sav_minField = minField.getText();
+               setSUBINTERVAL();
 				}
 				sliders.setMaxMin(max,min);
 			
