@@ -24,6 +24,7 @@ package gov.anl.ipns.Parameters;
 //import java.io.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.JPanel;
+import javax.swing.filechooser.FileFilter;
 
 /**
  *	A LoadFilePG uses a JTextField component and a JButton component that triggers a JFileChooser,
@@ -36,6 +37,7 @@ public class LoadFilePG extends StringPG_base
 	private boolean enabled		 = true; 	// we store the enabled state, so the
 	                                         	// setEnabled() method can be called
 	                                         	// before constructing the widget.
+	private javax.swing.filechooser.FileFilter fileFilter   = null; // filter for file dialog
 	
 	/**
 	 * Creates a new LoadFilePG object with the specified name and initial
@@ -76,12 +78,16 @@ public class LoadFilePG extends StringPG_base
 	{
 		LoadFilePG copy = new LoadFilePG( getName(), str_value );
 		copy.setValidFlag( getValidFlag() );
+		if( fileFilter != null)
+		   copy.setFilter( fileFilter );
 		return copy;
 	}
 	
         public void setFilter( FileFilter filter )
         {
-           // TODO implement the ability to set a file filter
+           fileFilter = filter;
+           if( fcPanel != null)
+              fcPanel.setFileFilter( filter );
         }
 
 
@@ -161,10 +167,13 @@ public class LoadFilePG extends StringPG_base
 		if( fcPanel == null )	// make new panel with label, TextField, and button 
 	    {
 	      fcPanel      = new FileChooserPanel(FileChooserPanel.LOAD_FILE,getName(),str_value);
-	 
+	      if( fileFilter != null)
+	         fcPanel.setFileFilter( fileFilter );
+	         
 	      //ActionListeners
 	      fcPanel.getTextField().addActionListener( new PG_ActionListener( this ) );
 	      fcPanel.getTextField().addKeyListener( new PG_KeyListener( this ) );
+	     
 	    }
 
 	    setEnabled( enabled );                 // set widget state from

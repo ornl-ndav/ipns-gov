@@ -29,6 +29,7 @@ public class SaveFilePG extends StringPG_base
 	private FileChooserPanel fcPanel = null;
 	private boolean enabled			 = true; 	// we store the enabled state, so the
 	                                         	// setEnabled() method can be called
+	private FileFilter fileFilter = null;
 	
 	/**
 	 * Creates a new SaveFilePG object with the specified name and initial
@@ -69,13 +70,18 @@ public class SaveFilePG extends StringPG_base
 	{
 		SaveFilePG copy = new SaveFilePG( getName(), str_value );
 		copy.setValidFlag( getValidFlag() );
+		if( fileFilter != null)
+		   copy.setFilter( fileFilter);
 		return copy;
 	}
 
 
         public void setFilter( FileFilter filter )
         {
-           // TODO implement the ability to set a file filter
+          this.fileFilter = filter;
+          if( fcPanel != null)
+             fcPanel.setFileFilter( filter );
+        
         }
 	
 	/**
@@ -152,7 +158,8 @@ public class SaveFilePG extends StringPG_base
 		if( fcPanel == null )			// make new panel with label, TextField, and button 
 	    {
 	      fcPanel      = new FileChooserPanel(FileChooserPanel.SAVE_FILE,getName(), str_value);
-	 
+	      if( fileFilter != null)
+	         fcPanel.setFileFilter( fileFilter );
 	      //ActionListeners
 	      fcPanel.getTextField().addActionListener( new PG_ActionListener( this ) );
 	      fcPanel.getTextField().addKeyListener( new PG_KeyListener( this ) );

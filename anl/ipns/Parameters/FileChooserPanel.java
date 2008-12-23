@@ -5,12 +5,14 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
+import javax.swing.*;
 
 import java.awt.GridLayout;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.filechooser.FileFilter;
 
 /**
  *	This class is the panel of visual components, designed for DataDirPG, LoadFilePG, and
@@ -96,7 +98,6 @@ public class FileChooserPanel extends JPanel
 		pnl.setLayout(new BorderLayout());
 		pnl.add(text_field,BorderLayout.CENTER);
 		pnl.add(button,BorderLayout.LINE_END);
-		
 		fcp.add(pnl);		
 	}
 	
@@ -183,6 +184,12 @@ public class FileChooserPanel extends JPanel
 		button.setEnabled(bol);
 	}	
 
+	public void setFileFilter( FileFilter filter){
+	   if( fileChooser != null)
+	      fileChooser.setFileFilter( filter );
+	}
+	
+	
 	private class ControlListener implements ActionListener
 	{
 		public void actionPerformed( ActionEvent ae ) throws IllegalArgumentException
@@ -194,6 +201,7 @@ public class FileChooserPanel extends JPanel
 			{
 				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				returnInt = fileChooser.showDialog(fcp,"Select");
+				
 			}
 			else if(chooseMode == LOAD_FILE)
 			{
