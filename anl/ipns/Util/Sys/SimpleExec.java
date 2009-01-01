@@ -53,6 +53,9 @@ public class SimpleExec
 
       String line;
 
+      OutputStream process_out = process.getOutputStream();
+      InputStream  process_in  = process.getInputStream();
+
       InputStream process_err = process.getErrorStream();
       InputStreamReader process_err_reader = new InputStreamReader(process_err);
       BufferedReader process_err_buff = new BufferedReader( process_err_reader);
@@ -76,6 +79,15 @@ public class SimpleExec
       {
         System.err.println(e);
       }
+
+      process_out.close();
+      process_in.close();
+
+      process_err_buff.close();
+      process_err_reader.close();
+      process_err.close();
+
+      process.destroy();                          // get rid of the process
     }
     catch( Exception ex )
     {
