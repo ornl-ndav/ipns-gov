@@ -62,6 +62,10 @@ public static final int SOLID  = 1;
  
 private int type = SOLID;
 
+private static int[] xtemp;    // to avoid rebuilding temp arrays
+private static int[] ytemp;    // everytime we draw, keep static arrays
+                               // big enough to hold anything we've drawn 
+
   /** 
    *  Construct a polygon using the specified vertices and color.
    *
@@ -74,6 +78,11 @@ private int type = SOLID;
   public Polygon( Vector3D verts[], Color color )
   {
     super( verts, color );
+    if ( xtemp == null || x.length > xtemp.length )
+    {
+      xtemp = new int[ x.length ];
+      ytemp = new int[ y.length ];
+    }
   }
 
 
@@ -100,20 +109,41 @@ private int type = SOLID;
      if ( clipped )
        return;
 
-     int xtemp[] = new int[ x.length ];
-     int ytemp[] = new int[ y.length ];
-    
-     for ( int i = 0; i < x.length; i++ )
+     int max_dist = 0;          // find the maximum x,y distance to x[0],y[0]
+     int dx,                    // so that if the polygon is extremely small
+         dy;                    // we can draw as a point, or just the border
+
+     xtemp[0] = (int)x[0];
+     ytemp[0] = (int)y[0];
+     for ( int i = 1; i < x.length; i++ )
      {
        xtemp[i] = (int)x[i];
        ytemp[i] = (int)y[i];
+
+       dx = Math.abs(xtemp[i] - xtemp[0]);
+       dy = Math.abs(ytemp[i] - ytemp[0]);
+       if ( dx > max_dist )
+         max_dist = dx;
+
+       if ( dy > max_dist )
+         max_dist = dy;
      }
 
      g.setColor( color );
-     if ( type == SOLID )
-       g.fillPolygon( xtemp, ytemp, xtemp.length );      
+
+     if ( max_dist <= 0 )                                     // draw "point"
+       g.drawLine( xtemp[0], ytemp[0], xtemp[0], ytemp[0] );
+
+     else if ( max_dist <= 1 )                                // draw border
+       g.drawPolygon( xtemp, ytemp, x.length );
+
      else
-       g.drawPolygon( xtemp, ytemp, xtemp.length ); 
+     {
+       if ( type == SOLID )
+         g.fillPolygon( xtemp, ytemp, x.length );      
+       else
+         g.drawPolygon( xtemp, ytemp, x.length ); 
+     }
   }
 
 }
