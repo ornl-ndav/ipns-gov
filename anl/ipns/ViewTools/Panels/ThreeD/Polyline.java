@@ -50,6 +50,10 @@ import gov.anl.ipns.MathTools.Geometry.*;
 public class Polyline  extends     ThreeD_Object
                        implements  Serializable
 {
+  private static int[] xtemp;    // to avoid rebuilding temp arrays
+  private static int[] ytemp;    // everytime we draw, keep static arrays
+                                 // big enough to hold anything we've drawn 
+
   /** 
    *  Construct a polyline consisting of straight line segments of the 
    *  specified color joining the specified vertices in the order listed.
@@ -62,6 +66,11 @@ public class Polyline  extends     ThreeD_Object
   public Polyline( Vector3D verts[], Color color )
   {
     super( verts, color );
+    if ( xtemp == null || x.length > xtemp.length )
+    {
+      xtemp = new int[ x.length ];
+      ytemp = new int[ y.length ];
+    }
   }
 
 
@@ -76,9 +85,6 @@ public class Polyline  extends     ThreeD_Object
      if ( clipped )
        return;
 
-     int xtemp[] = new int[ x.length ];
-     int ytemp[] = new int[ y.length ];
-    
      for ( int i = 0; i < x.length; i++ )
      {
        xtemp[i] = (int)x[i];
@@ -86,7 +92,7 @@ public class Polyline  extends     ThreeD_Object
      }
 
      g.setColor( color );
-     g.drawPolyline( xtemp, ytemp, xtemp.length );      
+     g.drawPolyline( xtemp, ytemp, x.length );      
   }
 
 }
