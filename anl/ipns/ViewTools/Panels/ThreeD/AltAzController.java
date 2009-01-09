@@ -320,6 +320,14 @@ public class AltAzController extends    ViewController
        else if ( slider.equals( distance_slider ) )
          border.setTitle( "Distance " + getDistance() );
 
+       slider.getParent().repaint();          // force update of border
+
+       String update_policy = System.getProperty("ViewUpdateWhileAdjusting");
+       if ( update_policy != null  &&
+            update_policy.equalsIgnoreCase( "false" )  &&
+            slider.getValueIsAdjusting()  )   // don't update the view yet if
+         return;                              // the value is still changing
+
        if ( slider.equals( distance_slider ) )
          setView( true );
        else
