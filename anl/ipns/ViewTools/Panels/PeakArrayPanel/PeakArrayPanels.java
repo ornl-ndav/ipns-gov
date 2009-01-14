@@ -333,7 +333,7 @@ public class PeakArrayPanels extends JFrame {
     *           The extension with the "." that these file will have. If null it
     *           will ".pvw"
     *           
-    * @param kepFiles
+    * @param keepFiles
     *          if false the files with the image information will be deleted.
     *           
     * @param currentTime
