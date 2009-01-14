@@ -314,7 +314,7 @@ abstract public class Display extends gov.anl.ipns.Util.Sys.FinishJFrame impleme
   {
     // if file exists, load it into the ObjectState automatically.
     // This code will load user settings.
-    ObjectState temp = getObjectState(IPreserveState.DEFAULT);
+    ObjectState temp = getObjectState(IPreserveState.PROJECT);
     temp.silentFileChooser(filename,false);
     setObjectState(temp);
   }
