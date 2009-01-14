@@ -153,7 +153,7 @@ public class ColorEditPanel extends ViewControl
    public ViewControl copy() {
 
       ObjectState state = getObjectState( false );
-      ColorEditPanel Res = new ColorEditPanel( max, min);
+      ColorEditPanel Res = new ColorEditPanel( min, max );
       Res.setObjectState(  state  );
       return Res;
        
@@ -203,7 +203,7 @@ public class ColorEditPanel extends ViewControl
               Slider.insert( StretchTopBottom.INTERVAL_MAXMIN_TOP ,
                                                       makeArray(6000f,1f));
               state.insert(PRESCALE,1f );
-              state.insert( AUTO_SCALE,true );
+              state.insert( AUTO_SCALE, false );
               
            }else{
               state.insert( MAXSET, max );
