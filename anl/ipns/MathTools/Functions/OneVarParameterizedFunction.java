@@ -137,7 +137,7 @@ abstract public class OneVarParameterizedFunction extends OneVarFunction
     }
     else
       for ( int i = 0; i < this.parameters.length; i++ )
-        parameter_names[i] = "P"+i; 
+        this.parameter_names[i] = "P"+i; 
   }
   
   /**
