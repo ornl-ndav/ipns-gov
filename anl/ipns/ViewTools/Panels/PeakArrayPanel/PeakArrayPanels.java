@@ -99,7 +99,9 @@ public class PeakArrayPanels extends JFrame {
     *           The ID for this panel
     */
    public void addPanel( PeaksDisplayPanel panel , String Title , String ID ) {
-
+     
+      if( panel == null )
+         return;
       PeakDisplays.add( panel );
       IDs.add( ID );
       Titles.add( Title );
@@ -116,7 +118,11 @@ public class PeakArrayPanels extends JFrame {
     *           The prompt describing what the ID of the Panel means.
     */
    public void display( String TitlePrompt , String IDPrompt ) {
-
+      
+      if( IDs.size() < 1 || Titles.size() < 1 ||TitlePrompt == null 
+                   ||IDPrompt == null )
+         return;
+      
       sortInfo = new Integer[ IDs.size() ];
       for( int i = 0 ; i < sortInfo.length ; i++ )
          sortInfo[ i ] = i;
