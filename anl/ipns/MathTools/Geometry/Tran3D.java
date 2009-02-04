@@ -185,7 +185,7 @@ public class Tran3D implements java.io.Serializable
 
   /*------------------------------- get ---------------------------------*/
   /**
-   *  Set a reference to the 4x4 array containing the matrix for this
+   *  Get a reference to the 4x4 array containing the matrix for this
    *  transformation.
    *
    *  return reference to the 4x4 array containing the matrix.
