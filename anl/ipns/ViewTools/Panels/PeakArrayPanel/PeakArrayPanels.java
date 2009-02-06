@@ -155,7 +155,8 @@ public class PeakArrayPanels extends JFrame {
 
       spinner.setValue( SpinnerValues[ 0 ] );
       Comp = new JPanel( new GridLayout( 1 , 1 ) );
-      PeaksDisplayPanel panel = PeakDisplays.elementAt( 0 );
+      int k = sortInfo[0];
+      PeaksDisplayPanel panel = PeakDisplays.elementAt( k );
       Comp.add( new PeaksDisplayPanel( panel.getPeakInfos() ) );
 
       getContentPane().add( Comp , BorderLayout.CENTER );
