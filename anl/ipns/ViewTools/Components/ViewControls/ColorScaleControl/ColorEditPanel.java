@@ -380,6 +380,7 @@ public class ColorEditPanel extends ViewControl
       setControlValue( state.get( NUM_COLORS ),NUM_COLORS );
       setControlValue( state.get( COLOR_INDEX_CHOICE ),COLOR_INDEX_CHOICE );
       setControlValue( state.get( LOGSCALE ),LOGSCALE );
+/*
       ObjectState sliderState =  (ObjectState)state.get( SLIDERS );
            setControlValue( sliderState.get( StretchTopBottom.MAXMIN),
                                          SLIDERS+"."+StretchTopBottom.MAXMIN);
@@ -400,7 +401,7 @@ public class ColorEditPanel extends ViewControl
      
            setControlValue( sliderState.get( StretchTopBottom.GANG),
                                            SLIDERS+"."+StretchTopBottom.GANG);
-          
+*/          
       setControlValue( state.get( PRESCALE ),PRESCALE );
       checkValues();
       calculateMapping();
@@ -597,6 +598,7 @@ public class ColorEditPanel extends ViewControl
 	 */
 	private void calculateMapping()
 	{
+           checkValues();
 	   setSUBINTERVAL();
 		localMin = sliders.getBottomValue();
 		localMax = sliders.getTopValue();
