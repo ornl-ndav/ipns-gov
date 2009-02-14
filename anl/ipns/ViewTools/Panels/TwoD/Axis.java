@@ -40,7 +40,7 @@ import java.awt.*;
  */
 public abstract class Axis extends Drawable
 {
-  public static enum  Orientation { HORIZONTAL, VERTICAL };
+  public enum  Orientation { HORIZONTAL, VERTICAL };
 
   protected Orientation orientation;
 
