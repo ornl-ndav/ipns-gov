@@ -308,7 +308,7 @@ public class AnnotationOverlay extends OverlayJPanel
   private Vector notes; 		 // all annotations
   // used for repaint by NoteListener  
   private transient AnnotationOverlay this_panel;
-  private transient Rectangle current_bounds;
+  private transient Rectangle current_bounds = new Rectangle(100,100);
   private Color line_color;		 // annotation arrow color
   private Color text_color;		 // annotation text color
   private transient AnnotationEditor editor;
@@ -347,7 +347,7 @@ public class AnnotationOverlay extends OverlayJPanel
     overlay.setOpaque(false); 
     overlay.addActionListener( new NoteListener() );
     pixel_local = new CoordTransform();
-    updateTransform();
+    // updateTransform();
     overlay.requestFocus();	      
   }
   
