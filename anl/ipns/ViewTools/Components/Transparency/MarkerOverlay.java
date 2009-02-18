@@ -128,13 +128,10 @@ public class MarkerOverlay extends OverlayJPanel
   public static final String EDITOR_BOUNDS  = "Editor Bounds";
   
   private static JFrame helper = null;
-  // panel overlaying the center jpanel
-  private transient Rectangle current_bounds;
   private transient MarkerOverlay this_overlay;
   private Vector markers;
   private transient IZoomAddible component;	 // component being passed
   private Rectangle editor_bounds = new Rectangle(0,0,200,(35 * 5) );
-  private transient CoordTransform pixel_local;
   private transient MarkerEditor editor;
   
  /**
@@ -150,15 +147,6 @@ public class MarkerOverlay extends OverlayJPanel
     component = iza;
     markers = new Vector();
     editor = new MarkerEditor(); 
-    current_bounds =  component.getRegionInfo();
-    Rectangle temp = component.getRegionInfo();
-    CoordBounds pixel_map = 
- 		 new CoordBounds( (float)temp.getX(), 
- 				  (float)temp.getY(),
- 				  (float)(temp.getX() + temp.getWidth()),
- 				  (float)(temp.getY() + temp.getHeight() ) );
-    pixel_local = new CoordTransform( pixel_map, 
- 				      component.getLocalCoordBounds() );
   }
   
  /**
@@ -398,7 +386,9 @@ public class MarkerOverlay extends OverlayJPanel
   {  
     Graphics2D g2d = (Graphics2D)g.create();
     
-    current_bounds = component.getRegionInfo(); // current size of center 
+                                                // current size of center 
+    Rectangle current_bounds = component.getRegionInfo();
+
     g2d.clipRect( (int)current_bounds.getX(),
  		  (int)current_bounds.getY(),
  		  (int)current_bounds.getWidth(),
@@ -411,8 +401,8 @@ public class MarkerOverlay extends OverlayJPanel
  				     current_bounds.getWidth()),
  			     (float)(current_bounds.getY() + 
  				     current_bounds.getHeight() ) );
-    pixel_local.setSource( pixel_map );
-    pixel_local.setDestination( component.getLocalCoordBounds() );
+    CoordTransform pixel_local = new CoordTransform( pixel_map, 
+ 				      component.getLocalCoordBounds() );
     for( int m = 0; m < markers.size(); m++ )
     {
       ((Marker)markers.elementAt(m)).setCurrentTransform(pixel_local);

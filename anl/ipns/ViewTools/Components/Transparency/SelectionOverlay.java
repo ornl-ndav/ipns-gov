@@ -534,15 +534,9 @@ public class SelectionOverlay extends OverlayJPanel {
 
     this.add(sjp);
     sjp.addActionListener(new SelectListener());
-    Rectangle current_bounds = component.getRegionInfo();
-    CoordBounds pixel_map = new CoordBounds(
-                                  current_bounds.x,
-                                  current_bounds.y,
-                                  current_bounds.x + current_bounds.width,
-                                  current_bounds.y + current_bounds.height );
 
-    pixel_local = new CoordTransform( pixel_map, 
-                                      component.getLocalCoordBounds());
+    pixel_local = new CoordTransform();
+
     sjp.requestFocus();
   }
 
