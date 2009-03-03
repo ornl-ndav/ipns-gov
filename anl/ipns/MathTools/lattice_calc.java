@@ -304,10 +304,14 @@ public class lattice_calc
      double cos_alpha = Math.cos( alpha );
      double cos_beta  = Math.cos( beta  );
      double cos_gamma = Math.cos( gamma );
+
      parms[6] = a * b * c * Math.sqrt(1 - cos_alpha * cos_alpha 
                                         - cos_beta  * cos_beta
                                         - cos_gamma * cos_gamma
                                         + 2*cos_alpha * cos_beta * cos_gamma); 
+
+     parms[6] *= 8 * Math.PI * Math.PI * Math.PI;
+
      return parms;
    }
 
