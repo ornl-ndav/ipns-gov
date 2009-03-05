@@ -47,7 +47,7 @@ import java.util.*;
  * @author Ruth
  * 
  */
-class RunExecInteractive extends JPanel implements ActionListener
+public class RunExecInteractive extends JPanel implements ActionListener
 {
 
 
