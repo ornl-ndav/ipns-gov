@@ -516,10 +516,11 @@ public class ThreeD_JPanel extends    CoordJPanel
    float min_distance = Float.POSITIVE_INFINITY; 
    int   min_index = 0;
    
-   for ( int i = 1; i < all_objects.length; i++ )
+   for ( int i = 0; i < all_objects.length; i++ )
    {
      distance = all_objects[i].distance_to( x, y );
-     if ( distance < min_distance )
+     if ( distance < min_distance && 
+          all_objects[i].getPickID() != IThreeD_Object.INVALID_PICK_ID )
      {
        min_distance = distance;
        min_index    = i;
