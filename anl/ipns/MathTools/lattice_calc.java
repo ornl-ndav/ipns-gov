@@ -310,7 +310,13 @@ public class lattice_calc
                                         - cos_gamma * cos_gamma
                                         + 2*cos_alpha * cos_beta * cos_gamma); 
 
-     parms[6] *= 8 * Math.PI * Math.PI * Math.PI;
+//   NOTE: Depending on which convention is followed regarding 2PI, the 
+//         cell volume may need to be multiplied by (2PI)^3.  Currently 
+//         most code in ISAW already adjusts for that, so we will NOT multiply 
+//         by that factor here.  Hence the following statement should be
+//         commented out.
+//
+//   parms[6] *= 8 * Math.PI * Math.PI * Math.PI;
 
      return parms;
    }
