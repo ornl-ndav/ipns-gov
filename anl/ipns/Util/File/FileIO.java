@@ -204,9 +204,9 @@ public class FileIO{
         return Path;
      if( op.startsWith( "Windows" )){
         if( arch.equals( "x86" ))
-          return Path+"_w";
+          return Path+"_w.exe";
         if( arch.equals("x86_64"))
-           return Path +"_w64";
+           return Path +"_w64.exe";
         return null;
            
      }
