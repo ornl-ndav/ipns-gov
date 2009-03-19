@@ -31,15 +31,10 @@
 
 package gov.anl.ipns.Util.Sys;
 
-//import java.awt.Dimension;
-//import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.*;
-//import javax.swing.text.html.HTMLEditorKit;
-
-//import DataSetTools.util.SharedData;
 import java.io.*;
 
 /**
@@ -77,48 +72,14 @@ public class ShowHelpActionListener implements ActionListener
             try
             {
                String fname =(new File(HelpFilename)).toURI().toURL().toString();
-               new IsawGUI.Browser( fname);
+               new Browser( fname);
                
             }catch( Exception s)
             {
                JOptionPane.showMessageDialog( null ,"Caannot Find Help File");
             }
       }
-      /*Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
-      int screenheight = screensize.height;
-      int screenwidth = ( screenheight );
-
-
-      JFrame Hframe = new JFrame();
-      JMenuBar jmenBar = new JMenuBar();
-      Hframe.setJMenuBar( jmenBar );
-
-      JEditorPane jedPane = new JEditorPane();
-      jedPane.setEditable( false );
-      jedPane.setEditorKit( new HTMLEditorKit() );
-
-      // Add the text to the JEditorPane
-      try
-      {
-
-         jedPane.setPage( ( new File( HelpFilename ) ).toURI().toURL() );
-
-      }
-      catch( Exception ss )
-      {
-         return;
-      }
-      // Add the action listener for printing
-      gov.anl.ipns.Util.Sys.PrintComponentActionListener.setUpMenuItem(
-               jmenBar , jedPane );
-
-      // Add Jeditor pane to the JFrame
-      JScrollPane scroll = new JScrollPane( jedPane );
-      Hframe.getContentPane().add( scroll );
-      Hframe.setSize( ( screenwidth / 2 ) , ( 3 * screenheight / 4 ) );
-
-      WindowShower.show( Hframe );
-   */
+     
     
 
    }
