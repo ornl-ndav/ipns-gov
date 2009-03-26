@@ -647,7 +647,7 @@ public class ColorEditPanel extends ViewControl
 		if(flipped)
 		{
 			
-			for(int i = 0; i < SUBINTERVAL-1; i++)
+			for(int i = 0; i < SUBINTERVAL; i++)
 			{
 				colorMapping[i] = (byte)( ( colorOptions.getNumColors() - 1 ) - colorMapping[i] );
 			}
