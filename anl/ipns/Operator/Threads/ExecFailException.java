@@ -53,14 +53,14 @@ public class ExecFailException extends RuntimeException
    *  Construct an ExecFaileException for the specified reason and
    *  list of partial results.
    *
-   *  @param  status  FailureStatus indicating whether the execution was
+   *  @param  status  FailState indicating whether the execution was
    *                  interrupted or the work was not done due to exceeding
    *                  the maximum time limit. 
    *  @param  results Ordered Vector containing results from all Operators.
    *                  If an Operator finished normally, the Object returned
    *                  by getResult() MUST be stored in the corresponding
    *                  position of this Vector.  If an Operator did NOT
-   *                  finish correctly, FailureStatus.NOT_DONE will be
+   *                  finish correctly, FailState.NOT_DONE will be
    *                  stored in the corresponding position.
    */
   public ExecFailException( FailState status, Vector results )
@@ -69,23 +69,26 @@ public class ExecFailException extends RuntimeException
     this.results = results;
   }
 
+
   /**
-   *  Get the vector containing results from Operators that completed and
-   *  FailureStatus.NOT_DONE for Operators that did not finish. 
+   *  Get a vector containing results from Operators that completed and
+   *  FaileState.NOT_DONE or FailState.INTERRUPED for any Operators that 
+   *  did not finish. 
    *
-   *  @return A String containing the operator id, result of summing max
-   *          integers and the execution time in milliseconds.
+   *  @return A Vector containing results of any operators that finished
+   *          completely before the execution halted and flags indicating
+   *          the state of the other operators.
    */
   public Vector getPartialResults()
   {
      return results;
   }
 
+
   /**
-   *  Get the vector containing results from Operators that completed and
-   *  FailureStatus.NOT_DONE for Operators that did not finish. 
+   *  Get the reason a parallel execution of operators failed.
    *
-   *  @return A FailureStatus Object with the value INTERRUPTED if one of
+   *  @return A FailState Object with the value INTERRUPTED if one of
    *          the Operators was interrupted, and NOT_DONE if the the
    *          maximum run time was exceeded.
    */
