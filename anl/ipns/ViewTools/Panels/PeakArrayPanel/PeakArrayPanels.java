@@ -48,7 +48,11 @@ import java.io.*;
  */
 public class PeakArrayPanels extends JFrame {
 
-
+  /**
+   * System property Key. Its value is "KeepPeakImageFiles"
+   */
+   public static String KEEP_IMAGES  = "KeepPeakImageFiles";
+   
    private Vector< PeaksDisplayPanel > PeakDisplays;
 
    private Vector< String >            IDs;
@@ -351,7 +355,7 @@ public class PeakArrayPanels extends JFrame {
    public static void DisplayPeaks( String Title , String Directory ,
             String prefix , String extension , long currentTime, boolean keepFiles ) {
       
-      boolean defaultDirectory = false;
+      //boolean defaultDirectory = false;
       if( Directory == null ){
          Directory = FileIO.appendPath(System.getProperty( "user.home" ),
                                  "ISAW"+File.separator+"tmp"+File.separator);
