@@ -127,7 +127,7 @@ public class RunExecInteractive extends JPanel implements ActionListener
     * @param HelpFilename  Help filename without the IsawHelp path prefix
     *                      included. This file must be in the {ISAW_HOME}/IsawHelp
     *                      directory or in one of its subdirectories
-    * @return
+    * @return  success or an error string
     */
    public static Object InterActiveExec( String execName , String shortName ,
             Vector args , String workingDir , String HelpFilename )
@@ -190,6 +190,11 @@ public class RunExecInteractive extends JPanel implements ActionListener
                && workingDir.length() > 0
                && "/\\".indexOf( workingDir.charAt( workingDir.length() - 1 ) ) >= 0 )
          workingDir = workingDir.substring( 0 , workingDir.length() - 1 );
+      workingDir +=File.separator;
+      workingDir = workingDir.replace( '/' , File.separatorChar );
+      workingDir = workingDir.replace( '\\' , File.separatorChar );
+      
+      
       try
       {
          proc = Runtime.getRuntime().exec( execName , null ,
@@ -360,7 +365,7 @@ public class RunExecInteractive extends JPanel implements ActionListener
          tag = message;
          if( tag.length() < 1 )
             tag = "Anvred";
-      }
+     }
 
 
       /**
@@ -369,11 +374,10 @@ public class RunExecInteractive extends JPanel implements ActionListener
        */
       public void run()
       {
-
          try
          {
             for( int c = Inp.read() ; c != - 1 ; c = Inp.read() )
-            {
+            {  
                String S = "" + (char) c;
                int nAvailable = inp.available();
                for( int j = 0 ; j < nAvailable && c != - 1 ; j++ )
@@ -388,9 +392,7 @@ public class RunExecInteractive extends JPanel implements ActionListener
          }
          catch( Exception ss )
          {
-            // System.out.println("Exception on input for "+ tag +" "+ ss);
-            // ss.printStackTrace();
-
+            
             if( message.length() < 1 )
                SwingUtilities.invokeLater( new DisplayText( shortName
                         + " is finished\n" , area ) );
