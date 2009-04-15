@@ -122,10 +122,12 @@ public class Stretcher extends ActiveJPanel
 	 */
 	public void setValue(float value)
 	{
+	   RemoveSliderListeners();
 		String str = "" + value;
 		textField.setText(str);
 	   prevTextFieldValue = str;
 		changeValue(true);
+		AddSliderListeners();
 	}
 	
 	/**
@@ -453,6 +455,20 @@ public class Stretcher extends ActiveJPanel
 		public void mouseMoved(MouseEvent e) {}
 	};
 	
+	private void AddSliderListeners()
+	{
+
+      slider.addMouseListener(mouse);
+      slider.addMouseMotionListener(motion);
+      slider.addKeyListener(keys);
+	}
+	private void RemoveSliderListeners()
+	{
+
+      slider.removeMouseListener( mouse);
+      slider.removeMouseMotionListener( motion);
+      slider.removeKeyListener( keys);
+	}
 	/**
 	 * Change value.
 	 * 
@@ -463,6 +479,8 @@ public class Stretcher extends ActiveJPanel
 		textField.removeActionListener(action);
 		if(updateSlider)
 		{
+
+	      RemoveSliderListeners();
 			String text = textField.getText();
 			prevTextFieldValue = text;
 			float datanumber = 0;
@@ -470,6 +488,7 @@ public class Stretcher extends ActiveJPanel
 			int slidervalue = (int) (((datanumber-minimum)/((maximum-minimum)/100)));
 			masterValue = datanumber;
 			slider.setValue(slidervalue);
+			AddSliderListeners();
 		}
 		else
 		{
