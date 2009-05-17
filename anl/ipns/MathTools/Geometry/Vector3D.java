@@ -93,6 +93,8 @@
 
 package  gov.anl.ipns.MathTools.Geometry;
 
+import java.io.Serializable;
+
 /**
  *  This class represents a 3D vector using 4D homogeneous coordinates for
  *  use with the Tran3D class.  The use of 4D homogeneous coordinates allows
@@ -101,8 +103,10 @@ package  gov.anl.ipns.MathTools.Geometry;
  *  length, normalize, add, subtract, dot and cross products are provided.
  */
 
-public class Vector3D 
+public class Vector3D implements Serializable
 {
+  public  static final long serialVersionUID = 1L;
+
   protected float x = 0f,
                   y = 0f,
                   z = 0f,
