@@ -1,5 +1,5 @@
 /*
- * File:  IntArrayPG.java
+ * File:  ParamUsesString.java
  *
  * Copyright (C) 2006, Dennis Mikkelson
  *

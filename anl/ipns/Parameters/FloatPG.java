@@ -56,8 +56,8 @@ import javax.swing.*;
 
 
 /**
- *  A BooleanPG uses a JCheckBox component to let the user specify a value
- *  of true (box checked) or false (box unchecked).
+ *  A FLoatPG uses a text field component to let the user specify a floating 
+ *  point value.  The text field is filtered to help avoid invalid values.
  */
 public class FloatPG extends FloatPG_base 
 {
