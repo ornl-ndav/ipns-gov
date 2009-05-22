@@ -113,7 +113,6 @@ public class PeaksDisplayPanel extends JPanel
     removeAll();                       // if this was previously initialized
                                        // get rid of any old components
     this.peak_infos = peak_infos;
-
     int num_displayed = Math.min( peak_infos.length, MAX_DISPLAYABLE );
     if ( num_displayed != peak_infos.length )
       System.out.println("Warning: number of peaks displayed limited to" +
@@ -156,6 +155,7 @@ public class PeaksDisplayPanel extends JPanel
     add( center_panel, BorderLayout.CENTER );
     center_panel.setLayout( new GridLayout(N_PANEL_ROWS,N_PANEL_COLS) ); 
 
+
                                            // Make the control panel across
                                            // the bottom of the display
     Box control_panel = Box.createHorizontalBox();
@@ -164,6 +164,7 @@ public class PeaksDisplayPanel extends JPanel
     coord_label = new JLabel();
     control_panel.add( coord_label );
 
+    
     max_slice_delta = (peak_infos[0].maxChan() - peak_infos[0].minChan()) / 2;
     JLabel spinner_label = new JLabel("  Slice Offset ");
     control_panel.add( spinner_label );
@@ -178,6 +179,7 @@ public class PeaksDisplayPanel extends JPanel
     spinner_container.add( slice_spinner );
     control_panel.add( spinner_container );
 
+    
     intensity_slider = new JSlider( 0, 100, INITIAL_LOG_SCALE_VALUE );
     intensity_slider.addChangeListener( new SliderListener() );
     intensity_slider.setMinimumSize( new Dimension( 150, 20) );
@@ -185,9 +187,11 @@ public class PeaksDisplayPanel extends JPanel
     intensity_slider.setPreferredSize( new Dimension( 150, 20) );
     control_panel.add( intensity_slider );
 
-    JPanel filler = new JPanel();
-    filler.setPreferredSize( new Dimension( 2000, 20) );
-    control_panel.add( filler );
+    
+   
+    control_panel.add(  Box.createHorizontalGlue() );
+
+    
 
                                             // Now build all the images and 
                                             // add them to the central display
@@ -198,6 +202,7 @@ public class PeaksDisplayPanel extends JPanel
     String         name;
     ActionListener location_listener = new LocationListener();
 
+   
     for ( int index = 0; index < num_displayed; index ++ )
     {
       ijp_array[index] = new ImageJPanel2();
@@ -227,6 +232,8 @@ public class PeaksDisplayPanel extends JPanel
       container.add( ijp_array[index] );
       center_panel.add(container);
     }
+
+   
                                           // If we don't have a full rectangle
                                           // of panels, the grid layout doesn't 
                                           // work, so fill out any remaining
@@ -234,6 +241,7 @@ public class PeaksDisplayPanel extends JPanel
     int num_positions = N_PANEL_ROWS * N_PANEL_COLS;
     for ( int i = num_displayed; i < num_positions; i++ )
       center_panel.add( new JPanel() );
+
   }
 
 
