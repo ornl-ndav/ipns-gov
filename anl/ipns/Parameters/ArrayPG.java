@@ -145,6 +145,7 @@ public class ArrayPG extends VectorPG_base {
         entryField.setPreferredSize( new Dimension(2,2));
         entryWidget.add(  entryField );
         entryField.addKeyListener( new PG_KeyListener( this));
+        entryField.addActionListener( new PG_ActionListener( this));
         
         return entryWidget;
 	}
