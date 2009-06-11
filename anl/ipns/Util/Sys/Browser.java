@@ -72,6 +72,7 @@ public class Browser implements HyperlinkListener,
 	 final String Forward = "Forward";
     final String Home = "Home";
     final String Print = "Print";
+    String StartString = null;
     int positionOfPage = -1;
     JEditorPane ep = new JEditorPane(); //a JEditorPane allows display of HTML & RTF
     JToolBar tb = new JToolBar(); //a JToolBar sits above the JEditorPane & contains 
@@ -158,7 +159,14 @@ public class Browser implements HyperlinkListener,
             tf.setText(urlString); //this sets the JTextField, tf, to the URL
         } catch (Exception e) {
             System.out.println("Can't open " + urlString + " " + e);
+            if( StartString == null)
+               StartString = urlString.substring( 7 );
+           ep.setContentType( "text/html" );
+           ep.setText( StartString );
+           
         }//end try-catch
+        if( StartString == null)
+           StartString ="";
     }// end openURL
 
     public void hyperlinkUpdate(HyperlinkEvent e) {
@@ -228,9 +236,9 @@ public class Browser implements HyperlinkListener,
                 String lastURL = (String) history.elementAt(positionOfPage-1);
                 //history.removeElement(lastURL);
                 //lastURL = (String) history.lastElement();
-                ep.setPage(lastURL);
-					 tf.setText(lastURL);
-					 
+                //ep.setPage(lastURL);
+					 //tf.setText(lastURL);
+					 openURL(lastURL);
                 positionOfPage--;
                 if (positionOfPage <=0)
                     back.setEnabled(false);
