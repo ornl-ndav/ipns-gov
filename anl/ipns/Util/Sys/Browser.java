@@ -158,7 +158,12 @@ public class Browser implements HyperlinkListener,
             ep.setPage(url); //this sets the ep page to the URL page
             tf.setText(urlString); //this sets the JTextField, tf, to the URL
         } catch (Exception e) {
-            System.out.println("Can't open " + urlString + " " + e);
+            String message = urlString;
+            if( message == null)
+               message="(null)";
+            else if( message.length() >30)
+               message= message.substring(0,30);
+            System.out.println("Can't open " + message + " " + e);
             if( StartString == null)
                StartString = urlString.substring( 7 );
            ep.setContentType( "text/html" );
