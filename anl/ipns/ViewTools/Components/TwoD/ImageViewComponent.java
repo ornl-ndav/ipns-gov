@@ -1772,16 +1772,26 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     // If the original data passed in was null, do nothing.
     if( null_data )
       return;
-    ijp.setData(Varray2D, true);
+    ijp.setData(Varray2D, true); 
+   
     // Since data bounds could have changed, if either calibrated color scale
     // was displayed, redraw them by rebuilding the view component.
     if( addColorControlEast || addColorControlSouth )
       buildViewComponent();
+    CoordBounds local = getLocalCoordBounds();
+    CoordBounds global =getGlobalCoordBounds();
     // This is required since the PanViewControl holds its own bounds.
-    ((PanViewControl)controls[9]).setGlobalBounds(getGlobalCoordBounds());
+    ((PanViewControl)controls[9]).setGlobalBounds(global);
+    ijp.setLocalWorldCoords( local);
+    //PanViewControl.setGlobalBounds initializes local bounds
+    ((PanViewControl)controls[9]).setControlValue(local);
  // ((PanViewControl)controls[9]).setControlValue(getLocalCoordBounds());
  // ((PanViewControl)controls[9]).validate();  // Need this to resize control.
     ((PanViewControl)controls[9]).repaint();
+    // In case PanViewController sends back messages about an
+    //incomplete state
+    ijp.RebuildImage();
+    ijp.repaint();
     paintComponents();
   }
 
@@ -1828,7 +1838,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
         					    xinfo.getMax(),
         					    yinfo.getMin() ) ); 
 
-	null_data = false;
+	     null_data = false;
         ijp.setData(Varray2D, false);  // this is needed to setup coord trans
                                        // before overlays are made.  Also
                                        // ijp needs data before checking for
@@ -2917,6 +2927,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   {
      public void actionPerformed( ActionEvent ae )
      {
+        
         PanViewControl pvc = (PanViewControl)ae.getSource();
         ijp.setLocalWorldCoords( pvc.getLocalBounds() );
         buildAspectImage();
