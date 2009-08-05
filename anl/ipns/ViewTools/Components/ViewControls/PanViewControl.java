@@ -479,6 +479,8 @@ public class PanViewControl extends ViewControl
   public void repaint()
   {
     refreshData();
+    if( overlay != null)
+      overlay.repaint();
   }
 
 
@@ -519,6 +521,7 @@ public class PanViewControl extends ViewControl
     {
       panel.setImage(panel_image);
       panel.repaint();
+      overlay.repaint();
     }
   }
   
@@ -529,8 +532,8 @@ public class PanViewControl extends ViewControl
   {
     if( actual_cjp instanceof ImageJPanel2 )
     {
-      data_width = (double)((ImageJPanel2)actual_cjp).getNumDataColumns();
-      data_height = (double)((ImageJPanel2)actual_cjp).getNumDataRows();
+      data_width = ((ImageJPanel2)actual_cjp).getNumDataColumns();
+      data_height = ((ImageJPanel2)actual_cjp).getNumDataRows();
     }
     else if ( actual_cjp instanceof ContourJPanel )
     {
@@ -605,7 +608,10 @@ public class PanViewControl extends ViewControl
       refreshData();
     }
   }
-
+  public boolean isOptimizedDrawingEnabled()
+  {
+     return false;
+  }
   
  /*
   * This private JPanel is used to hold the image of the thumbnail. A
@@ -624,11 +630,17 @@ public class PanViewControl extends ViewControl
     {
       if( image != null )
         g.drawImage( image, 0, 0, this );
+    
     }
     
     public void setImage( Image i )
     {
       image = i;
+    }
+    
+    public boolean isOptimizedDrawingEnabled()
+    {
+       return false;
     }
   }
 
