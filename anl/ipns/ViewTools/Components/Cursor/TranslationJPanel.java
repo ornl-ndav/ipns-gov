@@ -255,20 +255,43 @@ public class TranslationJPanel extends CoordJPanel
   {
     return !ignore_stretch;
   }
-  
+  /**
+   * Set the size of the viewport. This method must be called whenever the
+   * local bounds of the CoordJPanel are changed. Also call this method to
+   * initialize a viewport size.
+   *
+   *  @param  viewport CoordBounds representing the viewable area.
+   */ 
+   public void setViewPort( CoordBounds viewport )
+   {
+      setViewPort( viewport,false);
+   }
  /**
   * Set the size of the viewport. This method must be called whenever the
   * local bounds of the CoordJPanel are changed. Also call this method to
   * initialize a viewport size.
   *
   *  @param  viewport CoordBounds representing the viewable area.
+  *  @param notify  if true will notify all listeners of this action
   */ 
-  public void setViewPort( CoordBounds viewport )
+  public void setViewPort( CoordBounds viewport, boolean notify )
   {
     setViewPort( new floatPoint2D( viewport.getX1(),viewport.getY1()), 
-                 new floatPoint2D( viewport.getX2(),viewport.getY2() ) ); 
+                 new floatPoint2D( viewport.getX2(),viewport.getY2() ), notify ); 
   }
   
+  /**
+   * Set the size of the viewport. This method must be called whenever the
+   * local bounds of the CoordJPanel are changed. Also call this method to
+   * initialize a viewport size.
+   *
+   *  @param  vp1 Top-left corner of the viewable area.
+   *  @param  vp2 Bottom-right corner of the viewable area.
+   */ 
+   public void setViewPort( floatPoint2D vp1, floatPoint2D vp2 )
+   {
+      setViewPort( vp1,vp2,false);
+   }
  /**
   * Set the size of the viewport. This method must be called whenever the
   * local bounds of the CoordJPanel are changed. Also call this method to
@@ -276,8 +299,9 @@ public class TranslationJPanel extends CoordJPanel
   *
   *  @param  vp1 Top-left corner of the viewable area.
   *  @param  vp2 Bottom-right corner of the viewable area.
+  *  @param notify  if true will notify all listeners of this action
   */ 
-  public void setViewPort( floatPoint2D vp1, floatPoint2D vp2 )
+  public void setViewPort( floatPoint2D vp1, floatPoint2D vp2, boolean notify )
   {
     //System.out.println("In tjp setViewport, vp1 = " + vp1 + " vp2 = " + vp2 );
     // Check to make sure new local bounds are within the global bounds.
@@ -347,16 +371,17 @@ public class TranslationJPanel extends CoordJPanel
     setLocalWorldCoords( new CoordBounds( vp1.x, vp1.y, vp2.x, vp2.y ) );
     // bounds are assumed to be stable when set here. Set the restore value.
     restoreBounds(true);
-    floatPoint2D wctopleft  = new floatPoint2D( (float)vp1.x,
-                                                (float)vp1.y );
-    floatPoint2D wcbotright = new floatPoint2D( (float)vp2.x,
-                                                (float)vp2.y );
+    floatPoint2D wctopleft  = new floatPoint2D( vp1.x,
+                                                vp1.y );
+    floatPoint2D wcbotright = new floatPoint2D( vp2.x,
+                                                vp2.y );
     // convert from wc to pixel
     Point pixeltopleft = convertToPixelPoint(wctopleft);
     Point pixelbotright = convertToPixelPoint(wcbotright);
     
     box.init( pixeltopleft, pixelbotright );
-    send_message(BOUNDS_CHANGED);             // NOTE: This sends the box info
+    if( notify)
+       send_message(BOUNDS_CHANGED);             // NOTE: This sends the box info
                                               //       back up to the overlay
   }                                           //       so it gets drawn
   
@@ -372,7 +397,7 @@ public class TranslationJPanel extends CoordJPanel
   {
     CoordBounds copy = global.MakeCopy();
     setGlobalWorldCoords( copy );
-    setViewPort( copy );
+    setViewPort( copy,false );
   }
   
  /**
@@ -400,7 +425,7 @@ public class TranslationJPanel extends CoordJPanel
   */
   private floatPoint2D convertToWorldPoint( Point p )
   {
-    return getGlobal_transform().MapFrom( new floatPoint2D((float)p.x, (float)p.y) );
+    return getGlobal_transform().MapFrom( new floatPoint2D(p.x, p.y) );
   }
  
  /*
