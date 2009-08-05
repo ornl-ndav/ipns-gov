@@ -197,6 +197,7 @@ public class TranslationOverlay extends OverlayJPanel
     setObjectState(state);
   }
   
+  
  /**
   * This method will be used to display help information about this overlay.
   * It should open it's own JFrame with information about the overlay.
@@ -254,6 +255,7 @@ public class TranslationOverlay extends OverlayJPanel
   {
     // System.out.println("TranslationOverlay paintComponent " + viewport);
     g.setXORMode(Color.gray);
+  
     g.drawRect( (int)viewport.getX1(), (int)viewport.getY1(),
                 (int)viewport.getX2() - (int)viewport.getX1(),
 		(int)viewport.getY2() - (int)viewport.getY1() );
@@ -279,7 +281,8 @@ public class TranslationOverlay extends OverlayJPanel
   public void setLocalBounds( CoordBounds vp )
   {
     // System.out.println("Calling tjp.setViewPort " + vp);
-    tjp.setViewPort( vp.MakeCopy() );
+    tjp.setViewPort( vp.MakeCopy() ,false);
+    setViewPort();
   }
   
  /**
@@ -302,6 +305,7 @@ public class TranslationOverlay extends OverlayJPanel
   public void setGlobalBounds( CoordBounds global )
   {
     tjp.setGlobalPanelBounds( global.MakeCopy() );
+    setViewPort();
   }
  
  /**
@@ -363,7 +367,19 @@ public class TranslationOverlay extends OverlayJPanel
       helper.dispose();
   }
   
-  
+  private void setViewPort()
+  {
+     Rectangle box = ((BoxPanCursor)tjp.getBoxCursor()).region();
+     Point p1 = new Point( box.getLocation() );
+     Point p2 = new Point( p1 );
+     p2.x += (int)box.getWidth();
+     p2.y += (int)box.getHeight();
+
+     viewport = new CoordBounds( p1.x, p1.y,
+                            p2.x, p2.y );
+
+     repaint();      
+  }
  /*
   * TranslateListener listens for messages being passed from the
   * TranslationJPanel.
