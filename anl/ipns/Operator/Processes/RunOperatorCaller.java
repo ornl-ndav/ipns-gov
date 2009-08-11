@@ -69,8 +69,6 @@ public class RunOperatorCaller implements IOperator
    * @param op_command    String specifying the name of the operator to run, 
    *                      followed by the list of parameters to use for that 
    *                      operator.
-   *
-   * @return true if the processes seemed to complete normally.
    */
   public RunOperatorCaller( String  queue_name, 
                             int     mem_size,
