@@ -949,16 +949,16 @@ public class ColorEditPanel extends ViewControl
 			if( e.getSource() == doneButton )
 			{
 			   checkValues();
+            calculateMapping();
 				send_message(doneMessage);
-				calculateMapping();
 				
 			}
 			
 			if( e.getSource() == updateButton )
 			{
 				checkValues();
+            calculateMapping();
 				send_message(updateMessage);
-				calculateMapping();
 				
 			}
 			
