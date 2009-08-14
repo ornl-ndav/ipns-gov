@@ -108,6 +108,13 @@ public class ColorEditPanel extends ViewControl
    }
 
    public ColorEditPanel(float min, float max)
+   {
+      this( min, max, true, true);
+   }
+   public ColorEditPanel(float min, 
+                         float max, 
+                         boolean showDoneButton, 
+                         boolean showCancelButton)
    {  
       super(  TITLE );
       this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
@@ -123,7 +130,7 @@ public class ColorEditPanel extends ViewControl
       buildStretcherPanel();
       buildOptionsPanel();
       buildColorOptionsPanel();
-      buildButtonPanel();
+      buildButtonPanel( showDoneButton, showCancelButton);
       colorPanel.setColorModel(colorOptions.getColorScale(), colorOptions.getNumColors(), true);
       colorPanel.setDataRange( min, max,logScale, true );
       
@@ -588,23 +595,30 @@ public class ColorEditPanel extends ViewControl
 	 * Builds the button panel;
 	 * comprised of 'Done','Update','Cancel','Advanced' buttons
 	 */
-	private void buildButtonPanel()
+	private void buildButtonPanel( boolean showDoneButton, 
+	                            boolean showCancelButton)
 	{
 		buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel,BoxLayout.X_AXIS));
 		//buttonPanel.setBorder(BorderFactory.createEtchedBorder());
 		
-		doneButton = new JButton("Done");
+		if( showDoneButton)
+		   doneButton = new JButton("Done");
 		updateButton = new JButton("Update");
-		cancelButton = new JButton("Cancel");
+		if( showCancelButton)
+		   cancelButton = new JButton("Cancel");
 		
-		doneButton.addActionListener(buttonListener);
+		if( showDoneButton)
+		   doneButton.addActionListener(buttonListener);
 		updateButton.addActionListener(buttonListener);
-		cancelButton.addActionListener(buttonListener);
+		if( showCancelButton)
+         cancelButton.addActionListener(buttonListener);
 		
 		buttonPanel.add(updateButton);
-		buttonPanel.add(doneButton);
-		buttonPanel.add(cancelButton);
+		if( showDoneButton)
+         buttonPanel.add(doneButton);
+		if( showCancelButton)
+         buttonPanel.add(cancelButton);
 	}
 
 	
