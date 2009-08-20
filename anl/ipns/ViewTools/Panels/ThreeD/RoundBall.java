@@ -103,11 +103,11 @@ public class RoundBall extends ThreeD_Object
       else
          R = R - 2;
 
-      int xx = (int) x[ 0 ];
-      int yy = (int) y[ 0 ];
+      int xx = (int)( x[ 0 ] -R);
+      int yy = (int)( y[ 0 ] -R);
       
-      g.fillOval( xx , yy , R , R );
-      g.drawOval( xx , yy , R , R );
+      g.fillOval( xx , yy , 2*R , 2*R );
+      g.drawOval( xx , yy , 2*R , 2*R );
       
       CC = new Color( (int) ( .7 * red + .3 * Wred ) ,
                (int) ( .7 * green + .3 * Wgreen ) ,
@@ -116,7 +116,7 @@ public class RoundBall extends ThreeD_Object
       g.setColor( CC );
       
       if( R + 1 < radius )
-         g.drawOval( xx , yy , R + 1 , R + 1 );
+         g.drawOval( xx-1 , yy-1 , 2*R + 1 , 2*R + 1 );
 
       CC = new Color( (int) ( .4 * red + .6 * Wred ) ,
                (int) ( .4 * green + .6 * Wgreen ) ,
@@ -125,7 +125,7 @@ public class RoundBall extends ThreeD_Object
       g.setColor( CC );
       
       if( R + 2 < radius )
-         g.drawOval( xx , yy , R + 2 , R + 2 );
+         g.drawOval( xx-2 , yy-2 , 2*R + 2 , 2*R + 2 );
    }
 
 
