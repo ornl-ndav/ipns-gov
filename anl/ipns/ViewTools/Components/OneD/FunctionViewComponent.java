@@ -399,10 +399,10 @@ import gov.anl.ipns.ViewTools.Panels.Graph.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 import gov.anl.ipns.ViewTools.UI.*;
 import gov.anl.ipns.Util.Numeric.*;
+import gov.anl.ipns.Util.Sys.WindowShower;
 
 // component changes
 import java.awt.*;
-import java.awt.Rectangle;
 import java.awt.event.*;
 
 // Component location and resizing within the big_picture
@@ -658,14 +658,130 @@ public class FunctionViewComponent implements IViewComponent1D,
     setObjectState(state);
   }
 
+/**
+ * Creates a simple instance of a FunctionViewComponent with the given
+ * parameters
+ * 
+ * @param x_values    The x values to display
+ * @param y_values    The y values to display
+ * @param errors      The errors or null
+ * @param Title       The Title 
+ * @param x_units     The units for the x values( or null)
+ * @param y_units     The units for the y values( or null)
+ * @param x_label     The label for the x values( or null)
+ * @param y_label     The label for the x values( or null)
+ * @return A FucntionViewComponent with the appropriate information set or
+ *         null if an error occurs
+ * 
+ * NOTE: The axis information, overlays settings, etc. can be subsequently
+ *    changed via handles from this FunctionViewComponent.
+ */
+  public static FunctionViewComponent getInstance( float[]x_values, 
+                                                   float[]y_values, 
+                                                   float[]errors, 
+                                                   String Title,
+                                                   String x_units,
+                                                   String y_units,
+                                                   String x_label,
+                                                   String y_label)
+  {
+    if(x_values == null || y_values == null)
+       return null;
+    
+    if( x_values.length !=y_values.length && x_values.length != y_values.length +1 )
+       return null;
+    
+    try
+    {
+     DataArray1D data;
+     if( errors == null)
+        data = new DataArray1D( x_values, y_values);
+     else
+        data = new DataArray1D( x_values, y_values, errors);
+     
+     VirtualArrayList1D  vList = new VirtualArrayList1D( data);
+     
+     if( Title != null)
+          vList.setTitle(  Title );
+     
+     setAxis( AxisInfo.X_AXIS, vList, x_units,x_label);
+     setAxis( AxisInfo.Y_AXIS, vList, y_units,y_label);
+     
+     return new FunctionViewComponent( vList, true) ;
+     
+    }catch( Exception s)
+    {
+       JOptionPane.showMessageDialog( null , "Could Not create Graph. Error= "+s );
+       return null;
+    }
+    
+  }
+  
+  
+  /**
+   * Creates a simple instance of a FunctionViewComponent with the given
+   * parameters
+   * 
+   * @param x_values    The x values to display
+   * @param y_values    The y values to display
+   * @param errors      The errors or null
+   * @param Title       The Title for titled border if not null
+   * @param x_units     The units for the x values( or null)
+   * @param y_units     The units for the y values( or null)
+   * @param x_label     The label for the x values( or null)
+   * @param y_label     The label for the x values( or null)
+   * @return
+   */
+  public static JPanel ShowGraphWithAxes( float[]x_values, 
+                                float[]y_values, 
+                                float[]errors, 
+                                String Title,
+                                String x_units,
+                                String y_units,
+                                String x_label,
+                                String y_label)
+  {
+     FunctionViewComponent Fcomp = FunctionViewComponent.getInstance( x_values,
+                                                                     y_values,
+                                                                     errors,
+                                                                     Title,
+                                                                     x_units,
+                                                                     y_units,
+                                                                     x_label,
+                                                                     y_label);
+     if(Fcomp == null)
+        return null;
+    
+    return Fcomp.getDisplayPanel();
+    
+    
+  }
+  private static void setAxis( int                axis, 
+                        VirtualArrayList1D vList, 
+                        String             units, 
+                        String             label)
+  {
+     if( units == null && label == null )
+         return;
 
- // setState() and getState() are required by IPreserveState interface   
+      AxisInfo X = vList.getAxisInfo( axis );
+      
+      if( units == null )
+         units = X.getUnits();
+      
+      if( label == null )
+         label = X.getLabel();
+      
+      vList.setAxisInfo( axis , X.getMin() , X.getMax() , label , units , 1 );
+    
+  }
+ // setState() and getState() are required by IPreserveState interface
  /**
-  * This method will set the current state variables of the object to state
-  * variables wrapped in the ObjectState passed in.
-  *
-  *  @param  new_state
-  */
+    * This method will set the current state variables of the object to state
+    * variables wrapped in the ObjectState passed in.
+    * 
+    * @param new_state
+    */
   public void setObjectState( ObjectState new_state )
   {
     Object temp = new_state.get(GRAPHJPANEL);
@@ -1377,14 +1493,31 @@ public class FunctionViewComponent implements IViewComponent1D,
     background.add( east, "East" );
   }
 
-
+ /* 
+  //Test program for ShowGraphWithAxes
+  public static void main( String[] args)
+  {
+     float[]x={1f,2f,3f,4f,5f,6f};
+     float[]y ={1.1f,1.1f,2.2f,2.2f,3.3f};
+     JFrame jf = new JFrame("Test");
+     jf.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+     jf.setSize( 400,400 );
+     jf.getContentPane().add( FunctionViewComponent.ShowGraphWithAxes(x,y,null,
+              null,null,"ghi","lmn","opq"));
+     WindowShower.show(jf);
+     
+     
+  }
+  */
   /*
    * MAIN - Basic main program to test a FunctionViewComponent object
    */
-  public static void main( String[] args ) {
+  public static void main1( String[] args ) {
     if( args == null ) {
       System.exit( 0 );
     }
+   
+    
 /*
     DataSet[] DSS = ( new IsawGUI.Util(  ) ).loadRunfile( args[0] );
 
