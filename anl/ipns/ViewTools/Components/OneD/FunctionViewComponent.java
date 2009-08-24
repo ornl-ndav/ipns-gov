@@ -741,6 +741,8 @@ public class FunctionViewComponent implements IViewComponent1D,
                                 String x_label,
                                 String y_label)
   {
+     String prop_str = System.getProperty("ShowWCToolTip");
+     System.setProperty("ShowWCToolTip","true");
      FunctionViewComponent Fcomp = FunctionViewComponent.getInstance( x_values,
                                                                      y_values,
                                                                      errors,
@@ -752,7 +754,14 @@ public class FunctionViewComponent implements IViewComponent1D,
      if(Fcomp == null)
         return null;
     
-    return Fcomp.getDisplayPanel();
+    JPanel panel = Fcomp.getDisplayPanel();
+    
+    if(prop_str == null)
+       System.clearProperty( "ShowWCToolTip" );
+    else
+       System.setProperty(  "ShowWCToolTip" , prop_str );
+    
+    return panel;
     
     
   }
