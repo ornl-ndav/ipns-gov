@@ -98,7 +98,6 @@ public class Browser implements HyperlinkListener,
         positionOfPage =0;
         back.setEnabled(false);
 		  forward.setEnabled(false);
-
         ep.setEditable(false); //this makes the HTML viewable only in teh JEditorPane, ep
         ep.addHyperlinkListener(this); //this adds a listener for clicking on links
 
@@ -194,7 +193,19 @@ public class Browser implements HyperlinkListener,
         }
        if(url==null)
              return;
-        if (history == null) history = new Vector();
+        if (history == null)
+        {
+           history = new Vector();
+           positionOfPage =0;
+        }else
+        {
+           positionOfPage++;
+           positionOfPage = Math.max( 0 , positionOfPage );
+           for( int i= history.size()-1; i>=positionOfPage; i--)
+              history.remove(i);
+           
+        }
+        
         history.add(url.toExternalForm());
         positionOfPage= history.size()-1;
         if (history.size() > 1)
