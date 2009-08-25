@@ -675,6 +675,9 @@ public class FunctionViewComponent implements IViewComponent1D,
  * 
  * NOTE: The axis information, overlays settings, etc. can be subsequently
  *    changed via handles from this FunctionViewComponent.
+ *    @see #getControlList() For the list of controls
+ *    @see #dataChanged(IVirtualArrayList1D) To change the data
+ *    @see FunctionControls#get_frame()    To display Function controls 
  */
   public static FunctionViewComponent getInstance( float[]x_values, 
                                                    float[]y_values, 
@@ -730,7 +733,11 @@ public class FunctionViewComponent implements IViewComponent1D,
    * @param y_units     The units for the y values( or null)
    * @param x_label     The label for the x values( or null)
    * @param y_label     The label for the x values( or null)
-   * @return
+   * @return  JPanel with one Graph with given information
+   * 
+   * NOTE: To change to logarithmic axes, change line colors/styles,turn on 
+   *      other overlays, see the getInstance method
+   *      @see #getInstance(float[], float[], float[], String, String, String, String, String)
    */
   public static JPanel ShowGraphWithAxes( float[]x_values, 
                                 float[]y_values, 
@@ -1021,27 +1028,48 @@ public class FunctionViewComponent implements IViewComponent1D,
 
 
   /**
-   *  This function will return an array of 17 ViewControls 
-   *  which are used by the Function View Component.
-   *  [0] - Control to choose a selected line. (Line Selected)
-   *  [1] - Control to choose the style of the chosen line. (Line Style)
-   *  [2] - Control to choose the thickness of the chosen line. (Line Width)
-   *  [3] - Control to display point markers for the chosen line. (Point Marker)
-   *  [4] - Control to choose the size of the point markers for the line. (Point Marker Size)
-   *  [5] - Control to display error bars for the choosen line. (Error Bars)
-   *  [6] - Button Control to select the color of the chosen line. (Line Color)
-   *  [7] - Button Control to select the color of the point markers. (Point Marker Color)
-   *  [8] - Button Control to select the color of the error bars. (Error Bar Color)
-   *  [9] - Control to offset the selected lines. (Shift)
-   *  [10]- Control to set a shift factor to offset the selected lines by. (Shift Factor)
-   *  [11]- Control to select the axis overlay. (Axis Checkbox)
-   *  [12]- Control to select the annotation overlay. (Annotation Checkbox)
-   *  [13]- Control to select the legend overlay. (Legend Checkbox)
-   *  [14]- Control to select a range for the graph to display. (Graph Range)
-   *  [15]- Control to show the location of the cursor. (Cursor)
-   *  [16]- Control to display logarithmic axes. (Logarith Axes)
-   *
+   * This function will return an array of 17 ViewControls 
+   *  which are used by the Function View Component. 
+   *  <table border ="1" ><tr><th>Index</th><th>Function</th><th>get/set ControlValues</th></tr>
+   *<tr><td>  [0]</td><td> Control to choose a selected line.<BR> (Line Selected)</td><td></td></tr>
+   *<tr><td> [1] </td><td>Control to choose the style of the <BR>chosen line. (Line Style)</td>
+   *                                    <td>0,1..4 for Solid,Dashed,<BR>Dotted,Dash Dot Dot, Transparent<BR></td></tr>
+   *<tr><td>  [2]</td><td> Control to choose the thickness of the <BR>chosen line. (Line Width)</td>
+   *                                   <td>0,1,..4 for widths<BR> 1,2,3,4,and 5</td></tr>
+   *<tr><td>  [3] </td><td> Control to display point markers for<BR> the chosen line. (Point Marker)</td>
+   *                                    <td>0(DOT),1(PLUS),2(STAR),3(BOX),<BR>4(CROSS),5(BAR),6(No Mark)</td></tr>
+   *<tr><td>  [4] </td><td> Control to choose the size of the point<BR> markers for the line. (Point Marker Size)</td>
+   *                                   <td> 0,1,..4 for sizes 1,2,<BR>3,4, and 5</td></tr>
+   *<tr><td>  [5] </td><td> Control to display error bars for the<BR> chosen line. (Error Bars)</td>
+   *                                     <td>0(None),1(At Points),2(At top)</td></tr>
+   * <tr><td> [6] </td><td> Button Control to select the color of <BR>the chosen line. (Line Color)</td>
+   *                                    <td>java.awt.Color</td></tr>
+   *<tr><td>  [7] </td><td> Button Control to select the color of <BR>the point markers. (Point Marker Color)</td>
+   *                                    <td>java.awt.Color</td></tr>
+   *<tr><td>  [8]</td><td> Button Control to select the color of <BR>the error bars. (Error Bar Color)</td>
+   *                                   <td>java.awt.Color</td></tr>
+   *<tr><td>  [9] </td><td> Control to offset the selected lines. <BR>(Shift)</td>
+   *                                  <td>0(Diag),1(Vert),2(Overlaid)</td></tr>
+   * <tr><td> [10]</td><td> Control to set a shift factor to offset<BR> the selected lines by. (Shift Factor)</td>
+   *                                  <td>0,1,or 2 for <BR> factors 1,1.5, and 2</td></tr>
+   *<tr><td>  [11]</td><td> Control to select the axis overlay. <BR>(Axis Checkbox)</td>
+   *                                 <td>Boolean</td></tr>
+   *<tr><td>  [12]</td><td> Control to select the annotation <BR>overlay. (Annotation Checkbox)</td>
+   *                                  <td>Boolean</td></tr>
+   *<tr><td>  [13]</td><td> Control to select the legend overlay. <BR>(Legend Checkbox)</td>
+   *                                  <td>Boolean</td></tr>
+   *<tr><td>  [14]</td><td> Control to select a range for the <BR>graph to display. (Graph Range)</td>
+   *                                   <td>Vector<float[2]> each float[2]=[min,max]</td></tr>
+   * <tr><td> [15]</td><td> Control to show the location of the <BR>cursor. (Cursor)</td><td></td></tr>
+   * <tr><td> [16]</td><td> Control to display logarithmic axes.<BR> (Logarith Axes)</td>
+   *                         <td>0(Neither),1(X-axis Only)<BR>,2(Y axis Only), 3(Both Axes)</td></tr>
+   *</table>
    *  @return ViewControl[] the array of view controls
+   *  
+   *  Note: An outside user should be able to programmatically change these values by using
+   *  the set and getControlValues with the given values.
+   *  
+   *  
    */
    public ViewControl[] getControlList()
    {
