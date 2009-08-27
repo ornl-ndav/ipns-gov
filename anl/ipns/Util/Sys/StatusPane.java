@@ -189,19 +189,38 @@ public class StatusPane extends JPanel implements PropertyChangeListener{
              int RowHeight = spb.getBounds().height/spb.getRows();
                   
              X.getViewport().setViewPosition( new Point( 0, (line -1)*RowHeight) );
-             */
-             Dimension ViewportExtent = X.getViewport().getExtentSize();
+             
+             //Dimension ViewportExtent = X.getViewport().getExtentSize();
              Point UPLeft = X.getViewport().getViewPosition();
              int nlines = spb.getLineCount();
              if( nlines  < 5 ) return;
              int pos = spb.getLineStartOffset( nlines -5);
              Rectangle R = spb.modelToView( pos);
-             if(R.y > UPLeft.y)
-               if( R.y < UPLeft.y+ViewportExtent.height)
+             //if(R.y <= UPLeft.y)
+             if( R.y <= UPLeft.y)
             	   return;
-            
+                         
              //X.getViewport().setViewPosition( new Point( R.x,R.y));
-             X.scrollRectToVisible( R );
+             System.out.println("UPLeft,R.y,line-5pos,ViewHt="+UPLeft.y+","+R.y+","+pos
+          +","+X.getViewport().getHeight() + "," + R.height);
+                      ;
+             spb.scrollRectToVisible( R );
+             X.repaint();
+             */
+             Rectangle R1 = X.getViewport().getViewRect();
+             int ViewHeight = R1.height;
+             int nlines = spb.getLineCount();
+             if( nlines  < 5 ) return;
+             int pos = spb.getLineStartOffset( nlines -5);
+             Rectangle R = spb.modelToView( pos);
+             if( R.y+R.height*5 <R1.y + ViewHeight && R.y > R1.y)
+                return;
+             
+             Point P = new Point(0,R.y);
+             X.getViewport().setViewPosition( P );
+             X.repaint();
+             
+             
              }
            catch( Exception ss){
              System.out.println("StatusPane listen error ="+ss);
