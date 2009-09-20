@@ -766,6 +766,7 @@ public class ColorEditPanel extends ViewControl
 		return min;
 	}
 	
+	 
 	public void setMax(float m)
 	{
 		max = m;
@@ -992,9 +993,17 @@ public class ColorEditPanel extends ViewControl
 	   calculateMapping();
 	}
 	
-	//Sets GUI and internal values and slider results. No notifications
+	/**
+	 * Sets the Range of Data values to consider.  This method does NOT notify
+	 * any outside listeners, but it does change the internal values and the GUI 
+	 * elements that display the information. Also all other internal information
+	 * is recalculated relative to these new values.
+	 * 
+	 * @param Max  The maximum data value to consider
+	 * @param Min  The minimum data value to consider
+	 */
 	
-	private void setMaxMin( float Max, float Min){
+	public void setMaxMin( float Max, float Min){
 	   maxField.removeActionListener(  optionsListener );
 	   minField.removeActionListener(  optionsListener );
 	   maxField.setText(  ""+Max );
@@ -1005,6 +1014,7 @@ public class ColorEditPanel extends ViewControl
       minField.addActionListener(  optionsListener );
       max = Max;
       min = Min;
+      colorPanel.setDataRange(min, max,logScale, true);
       sliders.setMaxMin(  Max , Min );
       calculateMapping();
 	}
