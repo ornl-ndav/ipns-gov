@@ -772,10 +772,11 @@ public class FunctionViewComponent implements IViewComponent1D,
     
     
   }
-  private static void setAxis( int                axis, 
-                        VirtualArrayList1D vList, 
-                        String             units, 
-                        String             label)
+
+  private static void setAxis( int                 axis, 
+                               IVirtualArrayList1D vList, 
+                               String              units, 
+                               String              label)
   {
      if( units == null && label == null )
          return;
@@ -791,10 +792,11 @@ public class FunctionViewComponent implements IViewComponent1D,
       vList.setAxisInfo( axis , X.getMin() , X.getMax() , label , units , 1 );
     
   }
- // setState() and getState() are required by IPreserveState interface
+
  /**
     * This method will set the current state variables of the object to state
     * variables wrapped in the ObjectState passed in.
+    * setState() and getState() are required by IPreserveState interface
     * 
     * @param new_state
     */
@@ -1182,7 +1184,10 @@ public class FunctionViewComponent implements IViewComponent1D,
 
   /**
    * This method changes the array of data being displayed and 
-   * updates the display accordingly.
+   * updates the display accordingly.  The title and x and y axis labels
+   * and units are all retained from the current graph.  If this information
+   * is being changed as well, it would be best to construct a whole new
+   * function view component. 
    * 
    * @param pin_varray The IVirtualArrayList1D containing the new data. 
    * 
@@ -1199,22 +1204,30 @@ public class FunctionViewComponent implements IViewComponent1D,
     float[] x_vals = pin_varray.getXValues(0);
     float[] y_vals = pin_varray.getYValues(0);
     gjp.setData(x_vals,y_vals, 0, false);
-    setMaximumDisplayableWCRegion();            // force update of Axis (Jim Kohl)
+    setMaximumDisplayableWCRegion();         // force update of Axis (Jim Kohl)
  
+                                             // get the name, units and title
+                                             // from the old virtual array list
+    AxisInfo x_info = Varray1D.getAxisInfo(AxisInfo.X_AXIS); 
+    AxisInfo y_info = Varray1D.getAxisInfo(AxisInfo.Y_AXIS); 
+    setAxis( AxisInfo.X_AXIS, pin_varray, 
+                              x_info.getUnits(), x_info.getLabel() );
+    setAxis( AxisInfo.Y_AXIS, pin_varray, 
+                              y_info.getUnits(), x_info.getLabel() );
+    pin_varray.setTitle( Varray1D.getTitle() );
     Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
                               // SAME FRAME, so that the frame doesn't move.
     mainControls.dataChanged(Varray1D);
-    DrawSelectedGraphs(); 
+    DrawSelectedGraphs();
     dataChanged();
-
     transparencies.set( 0,  new LegendOverlay(this) );
     big_picture.removeAll();
       for( int trans = 0; trans < transparencies.size(  ); trans++ ) {
-     	big_picture.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
+        big_picture.add( ( OverlayJPanel )transparencies.elementAt( trans ) );
       }
       big_picture.add( background );
-    
+
     //      System.out.println("Value of first element: " + x_array[0] +
     //							y_array[0] );
     //System.out.println( "Thank you for notifying us" );
