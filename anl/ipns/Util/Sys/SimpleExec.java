@@ -35,7 +35,6 @@ package gov.anl.ipns.Util.Sys;
 
 import java.io.*;
 
-
 /**
  *  The Exec method of this class will simple execute the specified
  *  command and simply dump any errors, input or output.  This is intended to
@@ -51,25 +50,21 @@ public class SimpleExec
     {    
       Process process = Runtime.getRuntime().exec( command );
 
-      String line;
-
       OutputStream process_out = process.getOutputStream();
+      
       InputStream  process_in  = process.getInputStream();
+      InputStreamReader process_in_reader = new InputStreamReader(process_in);
+      BufferedReader process_in_buff = new BufferedReader( process_in_reader);
 
       InputStream process_err = process.getErrorStream();
       InputStreamReader process_err_reader = new InputStreamReader(process_err);
       BufferedReader process_err_buff = new BufferedReader( process_err_reader);
-
-      boolean first_time = true;
-      while ((line = process_err_buff.readLine()) != null)
-      {
-        if ( first_time )
-        {
-          System.out.println("ERRORS FOR COMMAND: " + command );
-          first_time = false;
-        }
-        System.out.println(line);
-      }  
+      
+      ProcessDumper err_dump = new ProcessDumper( process_err_buff, " STD ERR " );
+      ProcessDumper out_dump = new ProcessDumper( process_in_buff, " STD OUT " );
+      err_dump.start();
+      out_dump.start();
+      
       try 
       {
         if (process.waitFor() != 0) 
@@ -81,8 +76,11 @@ public class SimpleExec
       }
 
       process_out.close();
+      
+      process_in_buff.close();
+      process_in_reader.close();
       process_in.close();
-
+      
       process_err_buff.close();
       process_err_reader.close();
       process_err.close();
@@ -95,5 +93,4 @@ public class SimpleExec
       ex.printStackTrace();
     }
   }
-
 }
