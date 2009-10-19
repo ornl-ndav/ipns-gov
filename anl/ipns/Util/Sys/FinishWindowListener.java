@@ -58,7 +58,9 @@ public class FinishWindowListener extends WindowAdapter{
       Object src = e.getSource();
       if( src instanceof Window)
         if( src instanceof IFinish)
+        {   ((Window)src).removeAll();
            ((IFinish)src).finish();
+        }
    }
 
 }
