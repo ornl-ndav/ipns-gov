@@ -179,6 +179,8 @@ public class DataDirPG extends StringPG_base
 	 */
 	private String Append( String dir){
 		//dir = dir.replace('/', java.io.File.separatorChar);
+	   if( dir == null)
+	      dir ="";
 		dir = dir.replace('\\', '/');
 		if( ! dir.endsWith( "/"))
 			dir = dir +"/";
