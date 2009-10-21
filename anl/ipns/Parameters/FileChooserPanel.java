@@ -222,6 +222,14 @@ public class FileChooserPanel extends JPanel
 			if (returnInt == JFileChooser.APPROVE_OPTION) 
             {                
                 text_field.setText(fileChooser.getSelectedFile().getAbsolutePath());
+                ActionListener[] actListeners = text_field.getActionListeners();
+                if( actListeners != null)
+                   for( int i=0; i< actListeners.length; i++)
+                   {
+                      actListeners[i].actionPerformed(
+                               new ActionEvent( text_field,ActionEvent.ACTION_PERFORMED,
+                                        "ValueChanged") );
+                   }
             }			
 		}
 	}
