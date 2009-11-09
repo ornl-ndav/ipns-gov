@@ -93,6 +93,9 @@ public class RunOperatorCaller implements IOperator
                     RETURN_NAME;
 
     String command = "srun -p " + queue_name +
+//                     " --exclusive " +
+//                     " --ntasks=1 " +
+                     " --mem-per-cpu=" + mem_size +
                      " -J ISAW_RunOperatorCaller -o " + result;
 
     String cp = System.getProperty( "java.class.path" );
@@ -109,7 +112,8 @@ public class RunOperatorCaller implements IOperator
                   " gov.anl.ipns.Operator.Processes.RunOperator " + op_command;
 
     command = command + cmd;
-
+    
+    System.out.println("=====================================================");
     System.out.println("COMMAND = " + command );
                       
     try
