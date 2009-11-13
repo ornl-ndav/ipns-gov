@@ -36,7 +36,6 @@ package gov.anl.ipns.Util.Sys;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.lang.*;
 import java.io.*;
 import java.util.*;
 
@@ -197,8 +196,20 @@ public class RunExecInteractive extends JPanel implements ActionListener
       
       try
       {
-         proc = Runtime.getRuntime().exec( execName , null ,
-                  new File( workingDir ) );
+         if( args == null || args.size() < 1)
+            proc = Runtime.getRuntime().exec( execName , null ,
+                     new File( workingDir ) );
+         else
+         {
+            String[] commands = new String[1+args.size()];
+            commands[0] = execName;
+            
+            for( int k=0; k< args.size(); k++)
+               commands[k+1] = args.elementAt(k).toString();
+
+            proc = Runtime.getRuntime().exec( commands , null ,
+                     new File( workingDir ) );
+         }
       }
       catch( Exception s )
       {
