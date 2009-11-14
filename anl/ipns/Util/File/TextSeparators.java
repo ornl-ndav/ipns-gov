@@ -64,6 +64,8 @@ public class TextSeparators
     private static int INDENT=15;
     private static int ENDINDENT=16;
     private static int WRAP_EOLN = 17;
+    private static int TABLE_B1 = 18;
+    private static int TABLE_B2 = 18;
     
     private String[] Plain={"",""  ,   
                             "\n", "\n\n"   ,
@@ -73,7 +75,7 @@ public class TextSeparators
                             "", ""       , 
                             "",""       , 
                             "",""       ,
-                            "", "\n" };
+                            "", "\n", "\n","\n"};
     
     private String[]Html ={"<html><body>\n","\n</html></body>",
                             "<BR>","<P>"   ,
@@ -83,7 +85,8 @@ public class TextSeparators
                             "<I>", "<B>"           , 
                             "</C>", "</I>"          ,
                             "</B>","<UL>",
-                            "</UL>",""};
+                            "</UL>","","\n<table border=1>",
+                            "\n<table border=2>"};
     
     private String[] currentString;
    
@@ -149,6 +152,28 @@ public class TextSeparators
     {
        return currentString[TABLE];
     }
+    
+    /**
+     * 
+     * @return  start table with border=1 string for this type of text.
+     *     Includes a textual return for html
+     */
+    public String tableBorder1()
+    {
+       return currentString[TABLE_B1];
+    }
+    
+    
+    
+    /**
+     * 
+     * @return  start table with border=2 string for this type of text.
+     *     Includes a textual return for html
+     */
+    public String tableBorder2()
+    {
+       return currentString[TABLE_B2];
+    }    
     /**
      * 
      * @return  end of table string for this type of text.
