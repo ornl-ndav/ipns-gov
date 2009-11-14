@@ -390,7 +390,7 @@ public class RunExecInteractive extends JPanel implements ActionListener
             for( int c = Inp.read() ; c != - 1 ; c = Inp.read() )
             {  
                String S = "" + (char) c;
-               int nAvailable = inp.available();
+               int nAvailable = Inp.available();
                for( int j = 0 ; j < nAvailable && c != - 1 ; j++ )
                {
                   c = Inp.read();
