@@ -100,7 +100,7 @@ public class IntArrayPG extends FilteredStringPG
    */
   public int[] getArrayValue()
   {
-    return IntList.ToArray( str_value );
+    return IntList.ToArray( (String)getValue() );
   }
 
 }
