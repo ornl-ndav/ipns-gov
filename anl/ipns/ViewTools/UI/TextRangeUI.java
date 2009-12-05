@@ -187,7 +187,18 @@ public class TextRangeUI extends    JTextField
     parse_text();
     return max;
   }
-
+  
+  /* ----------------------------- setFont ------------------------------- */
+  /**
+   * Set the font of the object so that it can be changed for any display
+   * or any need.
+   * 
+   * @param font    Name of the font from FontUtil.
+   */
+  public void setTextFont(Font font)
+  {
+      setFont(font);
+  }
  
 /* -------------------------------------------------------------------------
  *
