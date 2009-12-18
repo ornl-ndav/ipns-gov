@@ -173,8 +173,10 @@ public class SaveDocToFileListener
 	   filename  = SelectedFile.toString() ; */
         
         
-        DocumentIO.saveDoc( doc , filename );
-        if( FilenameListener != null)
+        String Res = DocumentIO.saveDoc( doc , filename );
+        if( Res != null)
+      	  SharedMessages.addmsg( "Error in Saving File "+filename );
+        else if( FilenameListener != null)
             FilenameListener.propertyChange(
                             new PropertyChangeEvent(this, FilenamePropertyName ,
                                                     filename, filename));  
