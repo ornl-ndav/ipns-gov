@@ -153,9 +153,9 @@ public class FileIO{
   /**
    * Creates the filename for an executable that can be used be java's Runnable.exec. The
    * name differes for each operating system as follows:<P>
-   * <table><th><td>Op System</td><td>architecure</td><td>Tail added to name</td></th>
-   *     <tr><td>Windows *</td><td>x86</td><td>_w</td></tr>
-   *     <tr><td>Windows *</td><td>x86_64</td><td>_w64</td></tr>
+   * <table><tr><th>Op System</th><th>architecure</th><th>Tail added to name</th></tr>
+   *     <tr><td>Windows *</td><td>x86</td><td>_w.exe</td></tr>
+   *     <tr><td>Windows *</td><td>x86_64</td><td>_w64.exe</td></tr>
    *     <tr><td>Linux *</td><td>x86</td><td>_l</td></tr>
    *     <tr><td>Linux *</td><td>x86_64</td><td>_l64</td></tr>
    *     <tr><td>FreeBSD</td><td>x86</td><td>_bsd</td></tr>
