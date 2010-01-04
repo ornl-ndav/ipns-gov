@@ -202,10 +202,13 @@ public class FileIO{
      }
      if(!AddOpSysTail)
         return Path;
+     if( arch.indexOf( "64" )>=0)
+   	  arch = "amd64";
+     
      if( op.startsWith( "Windows" )){
         if( arch.equals( "x86" ))
           return Path+"_w.exe";
-        if( arch.equals("x86_64"))
+        if( arch.equals("amd64") )
            return Path +"_w64.exe";
         return null;
            
