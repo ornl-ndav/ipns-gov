@@ -5,31 +5,38 @@ import java.awt.event.ActionListener;
 import java.lang.ref.WeakReference;
 import java.util.Vector;
 
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 
-import gov.anl.ipns.Util.Messaging.IObservable;
+//import gov.anl.ipns.Util.Messaging.IObservable;
 
 
 
 /**
  * This parameterGUI is just a button that has listeners.  When pressed the listeners are invoked
  * It can be used to pop up a larger dialog box or show information available to the listeners.
+ * If a listener also implements IReturnValue a value can be returned via the setValue method.
+ *  The return value is an Object 
  * @author Ruth
  *
  */
 public class ButtonPG extends ParameterGUI implements IParameter ,
-         IParameterGUI , IObservable
+         IParameterGUI //, IObservable
 {
+   
+   private static String NULL = "(null)";
    String Text;
    Vector<WeakReference<ActionListener>> listeners;
    JButton button = null;
    JPanel panel;
+   boolean retValue = false;//If true a spot for result on GUI is displayed
+   
+   Object Value = null;
+   JTextArea OutPut;//Spot for returned value
    public ButtonPG( String Text)
    {
       super(Text, false);
       this.Text = Text;
+      OutPut = null;
       listeners = new  Vector<WeakReference<ActionListener>> ();
    }
    
@@ -45,6 +52,11 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
             return;
       }
       listeners.addElement(  new WeakReference<ActionListener>(act) );
+      if( act instanceof IReturnValue)
+         {
+            retValue = true;
+            ((IReturnValue)act).setRecipient( this);
+         }
       if( button!= null)
          button.addActionListener(  act );
    }
@@ -53,7 +65,7 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
    {
       if( act == null)
       return;
-        for( int i=0;i< listeners.size(); i++)
+        for( int i= listeners.size()-1;i>=0; i--)
       if( listeners.elementAt(i)!= null)
    {
       ActionListener e = listeners.elementAt( i ).get(); 
@@ -72,6 +84,8 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
    {
       listeners.clear();
    }
+   
+   
    @Override
    public Object clone()
    {
@@ -115,8 +129,17 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
       for( int i=0; i< listeners.size(); i++)
          button.addActionListener( listeners.elementAt( i ).get());
      panel = new JPanel();
-     panel.setLayout( new GridLayout(1,2) );
+     int n=2;
+     if( retValue ) n++;
+     panel.setLayout( new GridLayout(1,n) );
      panel.add( button);
+     if( n>2 )
+     {
+        if( OutPut == null)
+           OutPut= new JTextArea( NULL);
+        panel.add( OutPut );
+     }else
+        OutPut = null;
      panel.add( new JLabel());
      return panel;
    }
@@ -125,9 +148,16 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
    @Override
    public Object getValue()
    {
-
-      // TODO Auto-generated method stub
-      return "";
+       
+      if( OutPut == null ||!retValue )
+         return null;
+      if( OutPut.getText() == NULL)
+      {
+         Value = null;
+      }
+      if(Value != null)
+         return Value;
+      return new Object();
    }
 
 
@@ -135,7 +165,13 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
    public void setValue( Object value )
    {
 
-   
+      Value = value;
+      if( retValue)
+         if( value != null)
+            OutPut.setText( value.toString() );
+         else
+            OutPut.setText( NULL );
+      
 
    }
 
@@ -171,7 +207,7 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
    public void setEnabled( boolean on_off )
    {
 
-  button.setEnabled( on_off );
+       button.setEnabled( on_off );
 
    }
 
