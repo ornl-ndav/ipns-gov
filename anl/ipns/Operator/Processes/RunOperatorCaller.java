@@ -54,6 +54,7 @@ public class RunOperatorCaller implements IOperator
 
   private String queue_name;
   private int    mem_size;
+  private int    seconds;
   private String op_command;
 
   /**
@@ -66,17 +67,25 @@ public class RunOperatorCaller implements IOperator
    * @param mem_size      The amount of memory to allocate for each process
    *                      specified by an integer, giving the number of 
    *                      megabytes.
+   * @param seconds       The maximum amount of time each process 
+   *                      is allowed to run. CAUTION: This must NOT
+   *                      exceed the SLURM TIME LIMIT set in the 
+   *                      slurm configuration, or the process will
+   *                      be left in a PENDING state!  The number of
+   *                      seconds allowed will be forced to be at least 10.
    * @param op_command    String specifying the name of the operator to run, 
    *                      followed by the list of parameters to use for that 
    *                      operator.
    */
   public RunOperatorCaller( String  queue_name, 
                             int     mem_size,
+                            int     seconds,
                             String  op_command )
   {
-    this.queue_name    = queue_name;
-    this.mem_size      = mem_size;
-    this.op_command    = op_command;
+    this.queue_name = queue_name;
+    this.mem_size   = mem_size;
+    this.seconds    = seconds;
+    this.op_command = op_command;
   }
 
 
@@ -88,6 +97,9 @@ public class RunOperatorCaller implements IOperator
    */
   public Object getResult()
   {
+    if ( seconds < 10 )                        // allow at least 10 seconds
+      seconds = 10;                            // per process.
+
     String result = Util.ISAW_SCRATCH_DIRECTORY + 
                     instance_count++  +
                     RETURN_NAME;
@@ -95,6 +107,7 @@ public class RunOperatorCaller implements IOperator
     String command = "srun -p " + queue_name +
 //                     " --exclusive " +
 //                     " --ntasks=1 " +
+                     " --time=" + seconds +
                      " --mem-per-cpu=" + mem_size +
                      " -J ISAW_RunOperatorCaller -o " + result;
 
@@ -189,7 +202,7 @@ public class RunOperatorCaller implements IOperator
   public static void main( String args[] )
   {
     RunOperatorCaller caller = new RunOperatorCaller(
-                               "mikkcomp", 3000, "SEQUOIA-223_test2 92 3 10"); 
+                          "mikkcomp", 3000, 300, "SEQUOIA-223_test2 92 3 10"); 
 
     System.out.println( caller.getResult() );
   }

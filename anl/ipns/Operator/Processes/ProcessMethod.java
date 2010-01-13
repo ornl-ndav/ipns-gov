@@ -92,14 +92,25 @@ public class ProcessMethod
     Util.CheckTmpDirectory();
     Util.ClearFiles( "", Util.SLURM_RETURN_SUFFIX );
 
+    if ( op_commands.size() == 0 )             // Nothing to do
+      throw new IllegalArgumentException("NO Operators to run in srunOps");
+
+    if ( max_processes > op_commands.size() )  // Don't ask for more processes 
+      max_processes = op_commands.size();      // than the number of Ops to run
+
+    int processes_per_core  = op_commands.size() / max_processes;
+    int seconds_per_process = max_time / processes_per_core;
+
     Vector ops = new Vector();
     for ( int i = 0; i < op_commands.size(); i++ )
     {
       String op_command = op_commands.elementAt(i);
  
       RunOperatorCaller caller =
-               new RunOperatorCaller( queue_name, mem_size, op_command );
-
+               new RunOperatorCaller( queue_name, 
+                                      mem_size, 
+                                      seconds_per_process, 
+                                      op_command );
       ops.add( caller );
     }
 
