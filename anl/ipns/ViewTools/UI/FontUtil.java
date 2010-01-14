@@ -72,6 +72,8 @@ public class FontUtil
   public static final String ANGSTROM     = "\u00c5";
   public static final String INV_ANGSTROM = "Inv("+ANGSTROM+")";
 
+  public static final String DEGREE       = "\u00B0";
+
 //  five digit unicode not working, 7/9/2002, D.M.
 //  public static final String SCRIPT_L     = "\u02113"; 
                                                   
