@@ -160,7 +160,8 @@ public class SaveDocToFileListener
 		return;
 	    }
 	}catch(Exception e){
-	    SharedMessages.addmsg("Choose and input file");
+	    SharedMessages.addmsg("Choose and input file:"+e);
+	    JOptionPane.showMessageDialog( null ,"Choose and input file:"+e );
 	    return;
 	}
         
