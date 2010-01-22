@@ -27,6 +27,12 @@
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
+ *  Last Modified:
+ * 
+ *  $Author$
+ *  $Date$            
+ *  $Revision$
+ *
  * Modified:
  *
  *  Programmer:  Dennis Mikkelson
@@ -501,6 +507,65 @@ public final class LinearAlgebra
     }
     return det;
   }
+
+
+  /**
+   * Find the determinant of a 3x3 or 2x2 matrix
+   */
+  static public float determinant( float[][] A){
+    if(A==null) return Float.NaN;
+    if(!isSquare(A)) return Float.NaN;
+
+    double[][] dA=float2double(A);
+    double det = determinant( dA );
+
+    if ( Double.isNaN(det) )
+      return Float.NaN;
+
+    return (float)det;
+  }
+
+
+  /**
+   * Create a new matrix by multiplyin a matrix by a scalar
+   */
+  public static double[][] mult( double[][] A, double scale )
+  {
+    if ( A == null )
+      return null;
+
+    double[][] A_scaled = new double[A.length][];
+    for ( int row = 0; row < A.length; row++ )
+    {
+      if ( A[row] == null )
+        return null;
+
+      A_scaled[row] = new double[ A[row].length ];
+      for ( int col = 0; col < A[0].length; col++ )
+        A_scaled[row][col] = A[row][col] * scale;
+    } 
+
+    return A_scaled;
+  }
+
+
+  /**
+   * Create a new matrix by multiplyin a matrix by a scalar
+   */
+  public static float[][] mult( float[][] A, float scale )
+  {
+    if ( A == null ) 
+      return null;
+
+    double[][] dA = float2double(A);
+    double[][] dA_scaled = mult( dA, scale );
+
+    if ( dA_scaled == null )
+      return null;
+
+    return double2float( dA_scaled );
+  }
+
 
 
   /**
