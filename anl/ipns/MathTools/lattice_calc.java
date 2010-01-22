@@ -28,7 +28,11 @@
  *
  * For further information, see <http://www.pns.anl.gov/ISAW/>
  *
- * Modified:
+ *  Last Modified:
+ * 
+ *  $Author$
+ *  $Date$            
+ *  $Revision$
  *
  * $Log$
  * Revision 1.7  2006/01/16 04:24:15  dennis
@@ -65,6 +69,7 @@
 package gov.anl.ipns.MathTools;
 
 import  gov.anl.ipns.Util.Numeric.*;
+import  gov.anl.ipns.MathTools.Geometry.Vector3D_d;
 
 /**
  *  This class provides basic calculations for direct and reciprocal lattices.
@@ -443,33 +448,87 @@ public class lattice_calc
    }
 
 
+  /**
+   * Construct a UB matrix from the lattice parameters and 
+   * two indexed Q-vectors.
+   *
+   * @param lat_params Array containing the lattice parameters a, b, c,
+   *                   alpha, beta, gamma as it's first six entries.
+   * @param H1         Array containing first (h,k,l) triple
+   * @param H2         Array containing second (h,k,l) triple
+   * @param q1         Array containing first Q-Vector
+   * @param q2         Array containing second Q-Vector
+   *                   
+   * @return A matrix UB that maps H1 to q1, and H2 to q2
+   */
+   static public double[][] getUB( double[] lat_params, 
+                                   double[] H1,
+                                   double[] H2,
+                                   double[] q1,
+                                   double[] q2 )
+   {
+     double[][] A_matrix = A_matrix( lat_params );     
+     double[][] B = LinearAlgebra.getInverse( A_matrix );
+
+     Vector3D_d q1_vec = new Vector3D_d( q1 );
+     Vector3D_d q2_vec = new Vector3D_d( q2 );
+     Vector3D_d q3_vec = new Vector3D_d();
+     q3_vec.cross( q1_vec, q2_vec );
+     double[] q3 = q3_vec.get();
+
+     double[] b1 = LinearAlgebra.mult( B, H1 );
+     double[] b2 = LinearAlgebra.mult( B, H2 );
+
+     Vector3D_d b1_vec = new Vector3D_d( b1 );
+     Vector3D_d b2_vec = new Vector3D_d( b2 );
+     Vector3D_d b3_vec = new Vector3D_d();
+     b3_vec.cross( b1_vec, b2_vec );
+     double[] b3 = b3_vec.get();
+
+     double[][] M = { { b1[0], b2[0], b3[0] },
+                      { b1[1], b2[1], b3[1] },
+                      { b1[2], b2[2], b3[2] } };
+
+     double[][] Q = { { q1[0], q2[0], q3[0] },
+                      { q1[1], q2[1], q3[1] },
+                      { q1[2], q2[2], q3[2] } };
+
+     double[][] M_inv = LinearAlgebra.getInverse( M );
+ 
+     double[][] U  = LinearAlgebra.mult( Q, M_inv );
+     double[][] UB = LinearAlgebra.mult( U, B );
+
+     return UB;
+   }
+
+
   /*
    *  Main program for testing purposes.
    */
 
    public static void main( String args[] )
    {
+/*
      double a = 4.766;           // Ruby calibrant for LANSCE
      double b = 4.766;
      double c = 12.996; 
      double alpha = 90; 
      double beta  = 90;
      double gamma = 120;
-/*
+
      double a = 4.91642;
      double b = 4.91254;
      double c = 5.42703; 
      double alpha = 88.7985;
      double beta  = 89.3668;
      double gamma = 61.3224;
-
+*/
      double a = 4.9138;          // Quartz calibrant for IPNS
      double b = 4.9138;
      double c = 5.4051;
      double alpha = 90;
      double beta  = 90;
      double gamma = 120;
-*/
 
      double A[][]     = A_matrix( a, b, c, alpha, beta, gamma );
      double Aunit[][] = A_unit( a, b, c, alpha, beta, gamma );
@@ -514,6 +573,7 @@ public class lattice_calc
      double det_G = LinearAlgebra.determinant( G );
      double cell_V = Math.sqrt( det_G );
 
+     System.out.println("Original a, b, c, alpha, beta, gamma, new V");
      System.out.println("" + Format.real(a,5,5) + "   " +
                              Format.real(b,5,5) + "   " +
                              Format.real(c,5,5) + "   " +
@@ -597,5 +657,36 @@ public class lattice_calc
      double prod[][]  = LinearAlgebra.mult( RanU, RanUt );    
      System.out.println("product of RanU and RanUt is ");
      LinearAlgebra.print( prod );
+
+
+     //
+     // Test getUB method using some quartz peaks and indexing from IsawEV:
+     // UB:
+     //      0.0058656      -0.1280224       0.1454910 
+     //     -0.0039880      -0.1582295      -0.1131304 
+     //      0.2347778      -0.1166481      -0.0060742 
+     //
+     System.out.println("\nTesting getUB from lat parameters and indexing");
+     double[] lat_par = { 4.913, 4.920, 5.423, 89.881, 89.802, 60.053 };
+     double[] H1 = {  1.0,  3.0, -1.0 };
+     double[] H2 = {  1.0,  2.0,  0.0 };
+     double[] q1 = { -0.525, -0.366, -0.108 };
+     double[] q2 = { -0.251, -0.321,  0.001 };
+
+     UB = getUB( lat_par, H1, H2, q1, q2 );
+
+     System.out.println( "AFTER call to getUB, UB = " );
+     LinearAlgebra.print( UB );
+
+     System.out.println("Resulting Lattice Parameters, from UB");
+     LinearAlgebra.print( LatticeParamsOfUB( UB ) );
+
+     double[] new_q1 = LinearAlgebra.mult( UB, H1 );
+     double[] new_q2 = LinearAlgebra.mult( UB, H2 );
+
+     System.out.println("new_q1 = ");
+     LinearAlgebra.print( new_q1 );
+     System.out.println("new_q2 = ");
+     LinearAlgebra.print( new_q2 );
    }
 }
