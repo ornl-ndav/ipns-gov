@@ -104,12 +104,20 @@ public class RunOperatorCaller implements IOperator
                     instance_count++  +
                     RETURN_NAME;
 
-    String command = "srun -p " + queue_name +
-//                     " --exclusive " +
-//                     " --ntasks=1 " +
-                     " --time=" + seconds +
-                     " --mem-per-cpu=" + mem_size +
-                     " -J ISAW_RunOperatorCaller -o " + result;
+    boolean use_slurm = true;
+    if ( queue_name == null || queue_name.trim().length() == 0 )
+      use_slurm = false;
+   
+    String command = "";
+    if ( use_slurm )
+    { 
+      command = "srun -p " + queue_name +
+//              " --exclusive " +
+//              " --ntasks=1 " +
+                " --time=" + seconds +
+                " --mem-per-cpu=" + mem_size +
+                " -J ISAW_RunOperatorCaller -o " + result;
+    }
 
     String cp = System.getProperty( "java.class.path" );
     if ( cp == null )
@@ -128,57 +136,12 @@ public class RunOperatorCaller implements IOperator
     
     System.out.println("=====================================================");
     System.out.println("COMMAND = " + command );
-                      
-    try
-    { 
-      Process process = Runtime.getRuntime().exec( command );
 
-      OutputStream process_out = process.getOutputStream();
-      InputStream  process_in  = process.getInputStream();
+    SimpleExec.Exec( command );
 
-      InputStream process_err = process.getErrorStream();
-      InputStreamReader process_err_reader = new InputStreamReader(process_err);
-      BufferedReader process_err_buff = new BufferedReader( process_err_reader);
-
-      String line;
-      boolean first_time = true;
-      while ((line = process_err_buff.readLine()) != null)
-      {
-        if ( first_time )
-        {
-          System.out.println("ERRORS FOR COMMAND: " + command );
-          first_time = false;
-        }
-        System.out.println(line);
-      }
-      try
-      {
-        if (process.waitFor() != 0)
-          System.out.println("exit value = " + process.exitValue() );
-      }
-      catch (InterruptedException e)
-      {
-        System.err.println(e);
-      }
-
-      process_err_buff.close();
-      process_err_reader.close();
-      process_err.close();
-
-      process_out.close();
-      process_in.close();
-      process.destroy();                       // get rid of the process 
-    }
-    catch( Exception ex )
-    {
-      System.out.println( "EXCEPTION executing command " + command +
-                          " on server " + queue_name );
-      ex.printStackTrace();
-      return false;
-    }
-
-    if (Util.ISAW_SCRATCH_DIRECTORY.startsWith("/SNS/")) // do SNS Logging if
-                                                         // using slurm at SNS
+    if ( use_slurm &&
+         Util.ISAW_SCRATCH_DIRECTORY.startsWith("/SNS/") )// do SNS Logging if
+                                                          // using slurm at SNS
     {
       cmd = "/usr/bin/logger -p local5.notice ISAW ISAW_" +
              Isaw.getVersion(false) +
