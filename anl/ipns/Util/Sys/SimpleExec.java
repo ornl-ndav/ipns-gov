@@ -60,8 +60,8 @@ public class SimpleExec
       InputStreamReader process_err_reader = new InputStreamReader(process_err);
       BufferedReader process_err_buff = new BufferedReader( process_err_reader);
       
-      ProcessDumper err_dump = new ProcessDumper( process_err_buff, " STD ERR " );
-      ProcessDumper out_dump = new ProcessDumper( process_in_buff, " STD OUT " );
+      ProcessDumper err_dump = new ProcessDumper( process_err_buff," STD ERR ");
+      ProcessDumper out_dump = new ProcessDumper( process_in_buff," STD OUT ");
       err_dump.start();
       out_dump.start();
       
@@ -73,6 +73,21 @@ public class SimpleExec
       catch (InterruptedException e) 
       {
         System.err.println(e);
+      }
+
+      int counter = 0;
+      while ( ( out_dump.getState() != Thread.State.TERMINATED ||
+                err_dump.getState() != Thread.State.TERMINATED  ) &&
+                counter < 200 )
+      {
+        try
+        {
+          Thread.sleep(10);
+        }
+        catch (Exception ex)
+        {
+          System.out.println("Exception sleeping in SimpleExec");
+        }
       }
 
       process_out.close();
