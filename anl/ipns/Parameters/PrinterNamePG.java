@@ -66,22 +66,33 @@ public class PrinterNamePG extends ChoiceListPG
   {
     super( name, val );  
    
-    DocFlavor flavor = DocFlavor.SERVICE_FORMATTED.PRINTABLE;
+    System.out.println("START of PrinterNamePG");
+    PrintService[] services = null;
+    try
+    {
+      DocFlavor flavor = DocFlavor.SERVICE_FORMATTED.PRINTABLE;
 
-    HashPrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
+      HashPrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
 
-    PrintService[] services =
-                     PrintServiceLookup.lookupPrintServices(flavor, aset);
+      services = PrintServiceLookup.lookupPrintServices(flavor, aset);
 
-    for (int i = 0; i < services.length; i++)
-      addItem(services[i].getName());
+      for (int i = 0; i < services.length; i++)
+        addItem(services[i].getName());
+    }
+    catch ( Throwable th )
+    {
+      System.out.println("PrintServiceLookup failed in PrinterNamePG");
+    }
 
-    if ( services.length == 0 )      // This happens if no printers present 
+                                        // This happens if no printers present 
+                                        // or there is a problem getting them 
+    if ( services == null || services.length == 0 )     
     {
       addItem("NO Printer 1");
       addItem("NO Printer 2");
       addItem("NO Printer 3");
     }
+    System.out.println("END of PrinterNamePG");
   }
 
 
