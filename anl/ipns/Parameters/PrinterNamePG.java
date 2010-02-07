@@ -66,7 +66,6 @@ public class PrinterNamePG extends ChoiceListPG
   {
     super( name, val );  
    
-    System.out.println("START of PrinterNamePG");
     PrintService[] services = null;
     try
     {
@@ -92,7 +91,6 @@ public class PrinterNamePG extends ChoiceListPG
       addItem("NO Printer 2");
       addItem("NO Printer 3");
     }
-    System.out.println("END of PrinterNamePG");
   }
 
 
