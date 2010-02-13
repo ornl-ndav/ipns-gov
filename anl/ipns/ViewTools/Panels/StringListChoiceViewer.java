@@ -57,6 +57,8 @@ public class StringListChoiceViewer extends JPanel
    JTextArea   text;
 
    JSpinner    spinner;
+   
+   JLabel      Nitems;
 
    int         selected;
 
@@ -102,11 +104,14 @@ public class StringListChoiceViewer extends JPanel
          select = new JButton( "Select" );
          select.addActionListener( this );
       }
+      
+      Nitems = new JLabel("List Size="+ Choices.length);
       // -------------------------------------
       JPanel panel = new JPanel( );
       BoxLayout bl = new BoxLayout( panel , BoxLayout.X_AXIS );
       panel.setLayout( bl );
       
+      panel.add( Nitems);
       panel.add( Box.createHorizontalGlue( ) );
       if ( select != null )
          panel.add( select );
@@ -136,6 +141,7 @@ public class StringListChoiceViewer extends JPanel
       spinner.setModel( new SpinnerNumberModel( 1 , 1 , Choices.length , 1 ) );
       text.setText( Choices[0] );
       selected = -1;
+      Nitems.setText( "List Size="+Choices.length );
    }
 
    /**
