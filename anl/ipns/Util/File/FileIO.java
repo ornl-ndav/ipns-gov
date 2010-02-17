@@ -239,6 +239,52 @@ public class FileIO{
      return null;
      
   }
+  
+  /**
+   * Returns the part of the filename after the path and ending where
+   * the regular expression matches
+   * 
+   * @param fileName  The filename to be used
+   * 
+   * @return  the part of the filename after the path and  ending where
+   *           the regular expression matches
+   */
+  public static String getInstrumentName( String fileName, String regex)
+  {
+     if( fileName == null || regex == null)
+        return fileName;
+     
+     if( fileName.length() < 1 || regex.length() < 1)
+        return fileName;
+     
+     int k = fileName.lastIndexOf( "/" );
+     if( k < 0)
+        k = fileName.lastIndexOf( "\\" );
+     
+     String Fil = fileName;
+     if( k >0)
+        Fil = fileName.substring( k+1 );
+     
+     String[] Parts = Fil.split( regex );
+     
+     if( Parts == null || Parts.length < 1)
+        return null;
+     
+     return Parts[0];
+     
+  }
+  
+  /**
+   * Returns the part of the filename after the path and before "_"
+   * 
+   * @param fileName  The filename to be used
+   * 
+   * @return  the part of the filename after the path and before "_"
+   */
+  public static String getSNSInstrumentName( String fileName)
+  {
+     return getInstrumentName( fileName, "_");
+  }
  /**
  *    Writes Data to a file in the specified Format. 
  *
@@ -455,7 +501,8 @@ public class FileIO{
   public static void main( String args[]){
     
      //System.out.println( FileIO.CreateExecFileName("C:\\/Isaw1///anvred" , "abc" , true ));
-     System.out.println(FileIO.CreateDistinctFileName( "C:/ISAW1","xxx",".txt",20));
+    // System.out.println(FileIO.CreateDistinctFileName( "C:/ISAW1","xxx",".txt",20));
+     System.out.println( FileIO.getSNSInstrumentName( "C:\\ISAW\\SampleRuns\\SNS\\SNAP1_235.nxs","[_-]"));
   }
   /** 
   *    Test program for this module.  NO arguments
