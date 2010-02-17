@@ -502,7 +502,7 @@ public class FileIO{
     
      //System.out.println( FileIO.CreateExecFileName("C:\\/Isaw1///anvred" , "abc" , true ));
     // System.out.println(FileIO.CreateDistinctFileName( "C:/ISAW1","xxx",".txt",20));
-     System.out.println( FileIO.getSNSInstrumentName( "C:\\ISAW\\SampleRuns\\SNS\\SNAP1_235.nxs","[_-]"));
+     System.out.println( FileIO.getInstrumentName( "C:\\ISAW\\SampleRuns\\SNS\\SNAP1_235.nxs","[_-]"));
   }
   /** 
   *    Test program for this module.  NO arguments
