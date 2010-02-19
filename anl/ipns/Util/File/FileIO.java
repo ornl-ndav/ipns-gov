@@ -281,10 +281,11 @@ public class FileIO{
    * 
    * @return  the part of the filename after the path and before "_"
    */
-  public static String getSNSInstrumentName( String fileName)
+  public static String getSNSInstrumentName( String fileName )
   {
-     return getInstrumentName( fileName, "_");
+     return getInstrumentName( fileName, "_" );
   }
+
  /**
  *    Writes Data to a file in the specified Format. 
  *
