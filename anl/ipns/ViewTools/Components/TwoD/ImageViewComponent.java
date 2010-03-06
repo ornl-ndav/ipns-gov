@@ -900,6 +900,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   private int west_width = 0;    // be used for setting aspect ratio of image.
   private boolean preserve_ratio = false;  // if true, preserve aspect ratio
   private boolean null_data = false;
+  private boolean autoScale = true;
  
  /**
   * Constructor that takes in a virtual array together with a flag to select
@@ -1241,7 +1242,21 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     ((MarkerOverlay)(transparencies.elementAt(3))).clearMarkers();
   }
 
-  
+  /**
+   * Turns autoscaling on or off in the low level ImageJPanel2. 
+   * 
+   * @param on_off  if true, autoscaling is on othewise it is turned off
+   * 
+   * @see gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2.enableAutoDataRange( boolean)
+   */
+  public void setAutoScale( boolean on_off)
+  {
+     if( ijp != null)
+        ijp.enableAutoDataRange( on_off);
+     
+     autoScale = on_off;
+        
+  }
  /**
   * Call this method to prevent the center image from being distorted. If true,
   * the zoomed image will resize to the aspect ratio of the image rows and
@@ -1773,6 +1788,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
     if( null_data )
       return;
     ijp.setData(Varray2D, true); 
+    ijp.enableAutoDataRange( autoScale );
    
     // Since data bounds could have changed, if either calibrated color scale
     // was displayed, redraw them by rebuilding the view component.
@@ -1843,6 +1859,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
                                        // before overlays are made.  Also
                                        // ijp needs data before checking for
                                        // two-sided model below:
+        ijp.enableAutoDataRange( autoScale );
         // two-sided model
         if( ijp.getDataMin() < 0 && !use_new_color_control )
            isTwoSided = true;
@@ -1943,7 +1960,9 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   * [4] = Axis Overlay Control<BR>
   * [5] = Selection Overlay Control<BR>
   * [6] = Annotation Overlay Control<BR>
-  * [7] = Pan View Control<BR>
+  * [7]=  Select Name combobox
+  * [8] = AddName button
+  * [9] = Pan View Control<BR>
   *
   *  @return controls
   */ 
