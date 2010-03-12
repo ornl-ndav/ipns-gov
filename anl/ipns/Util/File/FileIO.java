@@ -237,9 +237,9 @@ public class FileIO{
         
      }
      return null;
-     
   }
   
+
   /**
    * Returns the part of the filename after the path and ending where
    * the regular expression matches
@@ -271,8 +271,8 @@ public class FileIO{
         return null;
      
      return Parts[0];
-     
   }
+
   
   /**
    * Returns the part of the filename after the path and before "_"
@@ -283,8 +283,22 @@ public class FileIO{
    */
   public static String getSNSInstrumentName( String fileName )
   {
-     return getInstrumentName( fileName, "_" );
+     String name = getInstrumentName( fileName, "_" );
+
+     if ( name.equalsIgnoreCase("REF") )      // could be REF_L or REF_M
+     {
+       int k = fileName.lastIndexOf( "/" );   // we need to check for REF_L
+       if( k < 0)                             // or REF_M after the last "/"
+          k = fileName.lastIndexOf( "\\" );
+       if ( fileName.lastIndexOf("REF_L") > k )
+         name = "REF_L";
+       else if ( fileName.lastIndexOf("REF_M") > k )
+         name = "REF_M";
+     }
+
+     return name;
   }
+
 
  /**
  *    Writes Data to a file in the specified Format. 
