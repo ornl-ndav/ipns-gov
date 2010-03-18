@@ -1213,7 +1213,7 @@ public class FunctionViewComponent implements IViewComponent1D,
     setAxis( AxisInfo.X_AXIS, pin_varray, 
                               x_info.getUnits(), x_info.getLabel() );
     setAxis( AxisInfo.Y_AXIS, pin_varray, 
-                              y_info.getUnits(), x_info.getLabel() );
+                              y_info.getUnits(), y_info.getLabel() );
     pin_varray.setTitle( Varray1D.getTitle() );
     Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
