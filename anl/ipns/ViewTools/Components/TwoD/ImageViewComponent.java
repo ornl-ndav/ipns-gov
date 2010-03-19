@@ -1247,7 +1247,7 @@ public class ImageViewComponent extends ViewComponent2DwSelection
    * 
    * @param on_off  if true, autoscaling is on othewise it is turned off
    * 
-   * @see gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2.enableAutoDataRange( boolean)
+   * @see gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2.enableAutoDataRange
    */
   public void setAutoScale( boolean on_off)
   {
@@ -1255,8 +1255,8 @@ public class ImageViewComponent extends ViewComponent2DwSelection
         ijp.enableAutoDataRange( on_off);
      
      autoScale = on_off;
-        
   }
+
  /**
   * Call this method to prevent the center image from being distorted. If true,
   * the zoomed image will resize to the aspect ratio of the image rows and
