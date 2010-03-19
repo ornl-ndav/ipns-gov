@@ -1246,8 +1246,6 @@ public class ImageViewComponent extends ViewComponent2DwSelection
    * Turns autoscaling on or off in the low level ImageJPanel2. 
    * 
    * @param on_off  if true, autoscaling is on othewise it is turned off
-   * 
-   * @see gov.anl.ipns.ViewTools.Panels.Image.ImageJPanel2.enableAutoDataRange
    */
   public void setAutoScale( boolean on_off)
   {
