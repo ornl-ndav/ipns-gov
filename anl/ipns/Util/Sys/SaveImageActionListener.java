@@ -69,6 +69,8 @@ package gov.anl.ipns.Util.Sys;
 
 import gov.anl.ipns.Util.File.*;
 import java.awt.event.*;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import java.awt.image.*;
@@ -110,13 +112,21 @@ public class SaveImageActionListener implements ActionListener{
  }
 
   /**
-   * This class sets up the menubar on a component with the "print" menuitem
+   * This class sets up the menu bar on a component with the "print" menu item
+   * 
+   * @param jm   the JMenu to add the new menu item to
+   * 
+   * @param comp  The component whose image is to be saved to a file.
+   * 
    */
   public static void setUpMenuItem(JMenu jm, Component comp )
     {
      JMenuItem jmi= new JMenuItem("Save Image");
+     
      int nitems= jm.getItemCount();
-     if( nitems < 0) nitems= 0;
+     if( nitems < 0) 
+        nitems= 0;
+     
      jm.add(jmi, nitems );
      jmi.addActionListener(new SaveImageActionListener( comp));
 
@@ -128,7 +138,9 @@ public class SaveImageActionListener implements ActionListener{
    * this menu item will save as an image the component passed in.
    *
    *  @param  menu_text Display text on the JMenuItem
-   *  @param  comp Component to be saved.
+   *  
+   *  @param  comp Component whose image is to be saved.
+   *  
    *  @return menu item with listener to initiate image saving routine.
    */
    public static JMenuItem getActiveMenuItem( String menu_text, Component comp )
@@ -138,27 +150,53 @@ public class SaveImageActionListener implements ActionListener{
      return jmi;
    }
 
+   
    public void actionPerformed( ActionEvent evt)
    {
      JFileChooser jfc= new JFileChooser();
-     //jfc.setFileFilter( new JPEGFileFilter() );
-     // make sure approve button was pressed.
+     
      if( jfc.showSaveDialog(null) != JFileChooser.APPROVE_OPTION)
        return;
+     
      File file = jfc.getSelectedFile();
+     
      // make sure file was selected
      if( file == null)
        return;
-     // add .jpg to filename if it was not already added.
+     
+     // add/change extensio of filename to .jpg, if it is not a supported 
+     //extension
      String filename = file.toString();
      if( filename == null )
         return;
      
-     String extension = null;
+     String extension = "";
      
      int k= filename.lastIndexOf(".");
      if( k >0)
         extension =  filename.substring( k+1).toLowerCase();
+     else
+        k= filename.length();
+     
+     String[] extensionList = ImageIO.getWriterFileSuffixes( );
+     if( extensionList == null )
+     {
+        JOptionPane.showMessageDialog( null , "No File Extensios supported" );
+        return;
+     }
+     //Check if it is a supported extension.
+     boolean found = false;
+     for( int i=0; i< extensionList.length && !found ; i++)
+        if( extensionList[i].equals( extension ))
+           found = true;
+     
+     if( !found)
+     {
+        filename = filename.substring( 0,k )+".jpg";
+        extension ="jpg";
+        JOptionPane.showMessageDialog( null , "Improper extension. Saving to "+filename );
+     }
+     
      
      //String filename = new JPEGFileFilter().appendExtension(file.toString());
      Rectangle R = comp.getBounds();
@@ -169,7 +207,8 @@ public class SaveImageActionListener implements ActionListener{
   
      comp.paint( gr);
 
-     try{
+     try
+     {
        FileOutputStream fout = new FileOutputStream( new File(filename) );
        if( !javax.imageio.ImageIO.write( bimg, extension,
         			  (OutputStream)fout ) )
@@ -179,6 +218,7 @@ public class SaveImageActionListener implements ActionListener{
          fout.close();
          return; 
        }
+       
        fout.close();
      }
      catch( Exception ss){
@@ -253,6 +293,11 @@ public class SaveImageActionListener implements ActionListener{
   */ 
   class JPEGFileFilter extends RobustFileFilter
   {
+   /**
+    * 
+    */
+   private static final long serialVersionUID = 1L;
+
    /*
     *  Default constructor.  Calls the super constructor,
     *  sets the description, and sets the file extensions.
