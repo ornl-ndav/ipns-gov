@@ -72,7 +72,7 @@ public class RunOperatorCaller implements IOperator
    *                      exceed the SLURM TIME LIMIT set in the 
    *                      slurm configuration, or the process will
    *                      be left in a PENDING state!  The number of
-   *                      seconds allowed will be forced to be at least 10.
+   *                      seconds allowed will be forced to be at least 120.
    * @param op_command    String specifying the name of the operator to run, 
    *                      followed by the list of parameters to use for that 
    *                      operator.
@@ -97,8 +97,11 @@ public class RunOperatorCaller implements IOperator
    */
   public Object getResult()
   {
-    if ( seconds < 10 )                        // allow at least 10 seconds
-      seconds = 10;                            // per process.
+    if ( seconds < 120 )                       // allow at least 120 seconds
+      seconds = 120;                           // per process.
+
+    int s_minutes = seconds / 60;              // slurm time limit will be
+    int s_seconds = seconds % 60;              // set as min:seconds
 
     String result = Util.ISAW_SCRATCH_DIRECTORY + 
                     instance_count++  +
@@ -114,7 +117,7 @@ public class RunOperatorCaller implements IOperator
       command = "srun -p " + queue_name +
 //              " --exclusive " +
 //              " --ntasks=1 " +
-                " --time=" + seconds +
+                " --time=" + s_minutes + ":" + s_seconds +
                 " --mem-per-cpu=" + mem_size +
                 " -J ISAW_RunOperatorCaller -o " + result;
     }
