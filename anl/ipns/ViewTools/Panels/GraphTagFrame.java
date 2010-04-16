@@ -808,6 +808,47 @@ public class GraphTagFrame extends FinishJFrame implements ActionListener {
       return Res;
    }
 
+   /**
+    * Gets the Position relative to Screen of the top left corner of
+    * the component
+    * 
+    * @param base  The component whose position on the screen is desired
+    * 
+    * @return  The upper left corner of base 
+    */
+   public static Point getPositionAbs( Container base)
+   {
+      int x_offset = 0;
+      int y_offset = 0;
+      Window jf = null;
+      Container C = base;
+      for( int i = 0 ; i < 25 && jf == null && C != null ; i++ ) {
+         
+         Container C1 = C.getParent();
+         if( C1 == null )
+            
+            C = C1;
+         
+         else {
+            
+            x_offset += C.getX() + C.getInsets().left;
+            y_offset += C.getY() + C.getInsets().top;
+            C = C1;
+            if( C1 instanceof Window ) 
+               {
+                 jf = (Window) C1;
+                 x_offset += jf.getX( );
+                 y_offset +=jf.getY( );
+               }
+            
+         }
+         
+      }
+      
+      if( jf == null ) return null;
+      
+      return new Point( x_offset,y_offset);      
+   }
 
    public static JFrame getJFrameWsubPixelBounds( Container basePanel ,
             CoordBounds Result ) {
