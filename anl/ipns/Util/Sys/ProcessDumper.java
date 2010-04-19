@@ -44,12 +44,31 @@ public class ProcessDumper extends Thread
 {
   BufferedReader reader = null;
   String         name = null;
+  boolean        saveInputs;
+  StringBuffer   buff;
+  
   public ProcessDumper( BufferedReader reader, String name )
+  {
+    this(reader,name, false);
+    
+  }
+  
+
+  public ProcessDumper( BufferedReader reader, String name, boolean saveInputs )
   {
     this.reader = reader;
     this.name = name;
+    this.saveInputs = saveInputs;
+    if( saveInputs)
+       buff = new StringBuffer(20);
   }
   
+  public String getResult()
+  {
+     if( saveInputs)
+        return buff.toString( );
+     return null;
+  }
   public void run()
   {
     try
@@ -57,8 +76,11 @@ public class ProcessDumper extends Thread
       String line = reader.readLine();
       while ( line != null )
       {
-        System.out.println( line );
-        line = reader.readLine();
+         if( saveInputs)
+            buff.append( line );
+         else
+            System.out.println( line );
+         line = reader.readLine();
       }
       reader.close();
     }

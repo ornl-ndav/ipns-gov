@@ -33,6 +33,8 @@
  */
 package gov.anl.ipns.Util.Sys;
 
+import gov.anl.ipns.Util.SpecialStrings.ErrorString;
+
 import java.io.*;
 
 /**
@@ -45,6 +47,12 @@ import java.io.*;
 public class SimpleExec 
 {
   public static void Exec( String command )  
+  {
+     SimpleExec.Exec( command, false);
+  }
+  
+  
+  public static Object Exec( String command, boolean returnResults)
   {
     try
     {    
@@ -60,8 +68,8 @@ public class SimpleExec
       InputStreamReader process_err_reader = new InputStreamReader(process_err);
       BufferedReader process_err_buff = new BufferedReader( process_err_reader);
       
-      ProcessDumper err_dump = new ProcessDumper( process_err_buff," STD ERR ");
-      ProcessDumper out_dump = new ProcessDumper( process_in_buff," STD OUT ");
+      ProcessDumper err_dump = new ProcessDumper( process_err_buff," STD ERR ",returnResults);
+      ProcessDumper out_dump = new ProcessDumper( process_in_buff," STD OUT ", returnResults);
       err_dump.start();
       out_dump.start();
       
@@ -73,6 +81,7 @@ public class SimpleExec
       catch (InterruptedException e) 
       {
         System.err.println(e);
+        
       }
 
       int counter = 0;
@@ -89,7 +98,9 @@ public class SimpleExec
           System.out.println("Exception sleeping in SimpleExec");
         }
       }
-
+      String S = out_dump.getResult( );
+      String err = err_dump.getResult( );
+     
       process_out.close();
       
       process_in_buff.close();
@@ -99,13 +110,19 @@ public class SimpleExec
       process_err_buff.close();
       process_err_reader.close();
       process_err.close();
-
+      
       process.destroy();                          // get rid of the process
+      
+      if( err != null && err.trim( ).length() > 0)
+         return new ErrorString(err);
+      
+      return S;
     }
     catch( Exception ex )
     {
       System.out.println( "EXCEPTION executing command: " + command );
       ex.printStackTrace();
+      return new ErrorString("Cannot execute "+command+"."+ex.toString());
     }
   }
 }
