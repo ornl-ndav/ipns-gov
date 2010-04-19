@@ -285,7 +285,11 @@ public class FileIO{
      if( startDir != null && startDir.length() > 0)
         command += "  --prefix="+startDir;
      
-    
+     String T = trailingChars;
+     if( trailingChars != null && trailingChars.indexOf( '.' )>=0)
+         command += "  --prenexus";
+     else
+        T="";
    
      if( recursiveLevel >=0 )
         command += " r"+recursiveLevel;
@@ -307,6 +311,8 @@ public class FileIO{
      
      //Parse Result.
      int k=0;
+     String Trail ="";
+     
      Vector<String> results = new Vector<String>();//use split
      for( int i=0; i < Result.length( ); i++)
      {
@@ -315,9 +321,10 @@ public class FileIO{
            k = Result.indexOf( '\r' );
         if( k < 0)
            k= Result.length();
-        String S = Result.substring( i,k );
+        String S = Result.substring( i,k ).trim();
         if( S.indexOf(':')<0)
-           results.add(  S.trim() );
+           if( (new File( S+T)).exists())
+           results.add(  (S+T).trim() );
      }
      
      //May not be correct
