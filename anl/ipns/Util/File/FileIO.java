@@ -60,15 +60,22 @@
  */
 
 package gov.anl.ipns.Util.File;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
+
+import javax.swing.JComboBox;
+
 import gov.anl.ipns.Util.Numeric.Format;
 import gov.anl.ipns.Util.SpecialStrings.ErrorString;
+import gov.anl.ipns.Util.Sys.SimpleExec;
 import gov.anl.ipns.Util.Sys.StringUtil;
 public class FileIO{
   public static final String NO_MORE_DATA = "No More Data";
   public static boolean debug = false;
+  public static final String COMBO_BOX_SIZE_CHANGE ="COMBO_BOX_SIZE_CHANGE";
   public FileIO(){
   }
   
@@ -239,6 +246,89 @@ public class FileIO{
      return null;
   }
   
+  
+ 
+  
+  /**
+   * Find all Nexus files  satisfying the conditions of the arguments
+   * @param runNum   The run number associated with the files
+   * @param instrument the instrument of interest
+   * @param proposal The proposal number associated with the files or 0
+   * @param collection The collection number associated with the files or 0
+   * @param startDir   The first directory to start looking in or ""
+   * @param trailingChars  The extension or last characters in the filename
+   *                      or "".Could be neutron_events.dat
+   * @param recursiveLevel  The level of directories to dig into or -1
+   * @return   The list of names of all files that match or an errorString
+   */
+   public static Object findNexusAtSNS(int runNum, 
+                               String instrument,
+                               int proposal, 
+                               int collection,   
+                               String startDir, 
+                               String trailingChars, 
+                               int recursiveLevel )
+  {
+     String command="findnexus ";
+     
+     if( proposal >0)
+        command +="-p "+proposal;
+     
+     if( instrument == null || instrument.length()<1 )
+        return new String[0];
+     
+     command += " -i"+instrument;
+     
+     if( collection > 0)
+        command +=  " -c "+collection; 
+     
+     if( startDir != null && startDir.length() > 0)
+        command += "  --prefix="+startDir;
+     
+    
+   
+     if( recursiveLevel >=0 )
+        command += " r"+recursiveLevel;
+     
+     command += " --listall  "+runNum;
+     
+     Object Res = SimpleExec.Exec( command, true);
+     
+     if( Res instanceof ErrorString)
+        return Res;
+     
+     String Result = null;
+     if( Res != null)        
+        Result = Res.toString();
+     
+     
+     if( Result == null)
+        return new String[0];
+     
+     //Parse Result.
+     int k=0;
+     Vector<String> results = new Vector<String>();//use split
+     for( int i=0; i < Result.length( ); i++)
+     {
+        k= Result.indexOf( '\n' );
+        if( k  < 0)
+           k = Result.indexOf( '\r' );
+        if( k < 0)
+           k= Result.length();
+        String S = Result.substring( i,k );
+        if( S.indexOf(':')<0)
+           results.add(  S.trim() );
+     }
+     
+     //May not be correct
+     if( results.size() < 1)
+        return new String[0];
+     
+     
+    return (String[])results.toArray( new String[0]);
+     
+  }
+   
 
   /**
    * Returns the part of the filename after the path and ending where
@@ -297,6 +387,62 @@ public class FileIO{
      }
 
      return name;
+  }
+
+  /**
+   * Adds the fileName to the comboBox, if it is not already there. If the fileName is
+   * already there, it will appear at the top. If it is not there and there are more than
+   * NMax items, the last one will be eliminated
+   * 
+   * @param combBox    comboBox to add the fileName to
+   * 
+   * @param fileName   The fileName
+   * 
+   * @param listener   A listener to process a selection of the element from the comboBox.
+   *                   The source of the ActionEvent will be the comboBox so use
+   *                   combBox.getSelectedItem() to get the name of the file as a String.
+   *                  
+   */
+  public static void addNewOpenedFile( JComboBox combBox, String fileName, int NMax, ActionListener listener)
+  {
+     if( combBox == null || fileName == null)
+        return;
+     int i;
+     ActionListener[] allListeners = combBox.getActionListeners( );
+     if( allListeners != null)
+        for(  i=0; i<allListeners.length; i++)
+           combBox.removeActionListener( allListeners[i] );
+     
+     boolean inList = false;
+     
+     for( i=0; i< combBox.getComponentCount( ) && !inList ; )
+     {
+        if( combBox.getItemAt( i ).toString( ).equals( fileName))
+           inList = true;
+        else
+           i++;
+     }
+     
+     if( inList)
+        combBox.remove( i );
+     if( combBox.getComponentCount()>=NMax)
+        combBox.remove(  combBox.getComponentCount( )-1);
+     combBox.addItem( fileName );
+     
+     ActionEvent evt =
+           new ActionEvent(combBox,ActionEvent.ACTION_PERFORMED,COMBO_BOX_SIZE_CHANGE);
+     
+     if( allListeners != null)
+        for(  i=0; i<allListeners.length; i++)
+        {
+           combBox.addActionListener( allListeners[i] );
+           allListeners[i].actionPerformed(evt);
+        }
+     
+     combBox.addActionListener(  listener );
+     
+     listener.actionPerformed(evt);
+     
   }
 
 
