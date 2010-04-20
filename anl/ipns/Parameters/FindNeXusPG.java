@@ -18,6 +18,11 @@ public class FindNeXusPG extends ButtonPG
 {
 
    ButtonPressedListener ButtonListener;
+   public FindNeXusPG(String Prompt, Object Value)
+   {
+      this();
+      super.setValue( Value);
+   }
    public FindNeXusPG()
    {
 
@@ -70,6 +75,8 @@ public class FindNeXusPG extends ButtonPG
             jf.getContentPane().add( FindNexParams);
             JPanel butPan = button_pg.getGUIPanel( false );
             Point P = GraphTagFrame.getPositionAbs( butPan );
+            if( P== null)
+               P= new Point(0,0);
             Dimension D= butPan.getToolkit( ).getScreenSize( );
             butPan.addAncestorListener(  new WindowAncestorListener( jf) );
             jf.addWindowListener(  new IndirectWindowCloseListener( this,"Frame" ) );
