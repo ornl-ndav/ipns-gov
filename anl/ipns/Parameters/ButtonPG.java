@@ -42,6 +42,13 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
       listeners = new  Vector<WeakReference<ActionListener>> ();
    }
    
+   public ButtonPG(String prompt , Object Value)
+   {
+      super(prompt,false);
+      this.Value = Value;
+      
+   }
+   
    public void addActionListener( ActionListener act)
    {
       if( act == null)
@@ -143,7 +150,7 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
      panel.setLayout( new GridLayout(1,n) );
      panel.add( button);
      
-     if( n>2 )
+     if( n>1 )
      {
         if( OutPut == null)
            OutPut= new JTextArea( NULL);
@@ -161,11 +168,35 @@ public class ButtonPG extends ParameterGUI implements IParameter ,
    @Override
    public Object getValue()
    {
-       
-      if( OutPut == null ||!retValue )
-         return null;
+      if( !retValue )
+         return new Object();
       
+      if( OutPut == null  )
+         return Value;
+      try
+      {
+        
       if( OutPut.getText() == NULL)
+      {
+         Value = new Object();
+      }else if( Value == null || Value instanceof String)
+      {
+        Value =OutPut.getText( );
+      }else if (Value instanceof Integer)
+      {
+         Value = Conversions.get_int(OutPut.getText());
+      }else if (Value instanceof Float)
+       {
+          Value = Conversions.get_float(OutPut.getText());
+       } else if (Value instanceof Boolean)
+       {
+          Value = Conversions.get_boolean(OutPut.getText());
+       }else if (Value instanceof Float)
+       {
+          Value = Conversions.get_float(OutPut.getText());
+       } else
+          Value= Conversions.StringToVec( OutPut.getText() );
+      }catch(Exception ss)
       {
          Value = null;
       }
