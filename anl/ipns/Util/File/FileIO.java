@@ -257,9 +257,9 @@ public class FileIO{
    * @param collection The collection number associated with the files or 0
    * @param startDir   The first directory to start looking in or ""
    * @param trailingChars  The extension or last characters in the filename
-   *                      or "".Could be neutron_events.dat
+   *                      or "".Could be neutron_events.dat.UNUSABLE
    * @param recursiveLevel  The level of directories to dig into or -1
-   * @return   The list of names of all files that match or an errorString
+   * @return   The name of a files that matches or an errorString
    */
    public static Object findNexusAtSNS(int runNum, 
                                String instrument,
@@ -285,16 +285,17 @@ public class FileIO{
      if( startDir != null && startDir.length() > 0)
         command += "  --prefix="+startDir;
      
-     String T = trailingChars;
+ /*    String T = trailingChars;
      if( trailingChars != null && trailingChars.indexOf( '.' )>=0)
          command += "  --prenexus";
      else
         T="";
-   
+ */  
      if( recursiveLevel >=0 )
         command += " r"+recursiveLevel;
      
-     command += " --listall  "+runNum;
+     command += "  "+runNum;//--listAll did not have any normal 
+                            //separators between lines
      
      Object Res = SimpleExec.Exec( command, true);
      
@@ -302,15 +303,25 @@ public class FileIO{
         return Res;
      
      String Result = null;
+     
      if( Res != null)        
         Result = Res.toString();
+     else
+        return new ErrorString(" No Files found");
      
+     if( !(new File(Result)).exists())
+        return new ErrorString("the file "+Result+" does NOT exist");
      
-     if( Result == null)
-        return new String[0];
+   
      
+     return Result; //Could not get them to fine prenexus files
+                    // in any other place. Could NOT separate lines, etc.
      //Parse Result.
-     int k=0;
+ /*
+    //Could NOT find the line separator character for multiline files
+    //  Could not find preNexus files any other place except in the ARchives.
+    // etc. 
+    int k=0;
      String Trail ="";
      
      Vector<String> results = new Vector<String>();//use split
@@ -333,7 +344,7 @@ public class FileIO{
      
      
     return (String[])results.toArray( new String[0]);
-     
+ */    
   }
    
 
