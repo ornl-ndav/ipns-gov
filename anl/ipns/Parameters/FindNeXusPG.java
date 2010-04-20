@@ -5,9 +5,7 @@ import gov.anl.ipns.Util.SpecialStrings.ErrorString;
 import gov.anl.ipns.Util.Sys.*;
 import gov.anl.ipns.ViewTools.Panels.GraphTagFrame;
 
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -31,6 +29,12 @@ public class FindNeXusPG extends ButtonPG
       super.addActionListener( ButtonListener);
       ButtonListener.setRecipient( this );
      
+   }
+   
+   public Object clone()
+   {
+      FindNeXusPG fpg = new FindNeXusPG("Find SNS NeXus File", getValue());
+      return fpg;
    }
 
    /**
@@ -63,17 +67,19 @@ public class FindNeXusPG extends ButtonPG
          this.button_pg = button_pg;
          FindNexParams = new FindNexJPanel();
       }
-      
+ 
       public void actionPerformed(ActionEvent arg0)
       {
          if( jf == null )
          {
-            jf = new FinishJFrame();
+            jf = new FinishJFrame("Find NeXus Parameters");
             jf.getContentPane( ).setLayout(  new GridLayout(1,1) );
           
            
             jf.getContentPane().add( FindNexParams);
-            JPanel butPan = button_pg.getGUIPanel( false );
+            JPanel butPan = button_pg.getWidget( );
+            
+             
             Point P = GraphTagFrame.getPositionAbs( butPan );
             if( P== null)
                P= new Point(0,0);
@@ -83,6 +89,7 @@ public class FindNeXusPG extends ButtonPG
             jf.setBounds( P.x+100 , P.y+100 , Math.min( D.width/4 , D.width-P.x ) ,
                             Math.min( D.height/3 , D.height-P.y ));
             WindowShower.show( jf );
+           
             
          }
          
@@ -93,7 +100,8 @@ public class FindNeXusPG extends ButtonPG
       public void WindowClose(String ID)
       {
 
-         jf = null;
+         if( ID.equals( "Frame" ))
+               jf = null;
          
       }
 
@@ -178,6 +186,7 @@ public class FindNeXusPG extends ButtonPG
         try
         {
           proposal = Integer.parseInt( Prop.getText( ).trim());
+          
         }catch(Exception s_run)
         {
            if( Prop.getText( ).trim( ).length() >0)
@@ -217,11 +226,16 @@ public class FindNeXusPG extends ButtonPG
         Object Res = FileIO.findNexusAtSNS(run, instrument, proposal,collect, 
              StartDir,"", recurs);
         if( !(Res instanceof String))
+        { 
            JOptionPane.showMessageDialog( null , "Could Not find a File" );
+          
+        
+        }
         else
         {
            Result.setText( (String)Res);
-           ValueRecipient.setValue( (String )Res); 
+           if(ValueRecipient != null)
+              ValueRecipient.setValue( (String )Res); 
            
         }
         
@@ -230,7 +244,7 @@ public class FindNeXusPG extends ButtonPG
       public void setRecipient(IParameter param)
       {
 
-         
+         ValueRecipient = param;
          
       }
       
