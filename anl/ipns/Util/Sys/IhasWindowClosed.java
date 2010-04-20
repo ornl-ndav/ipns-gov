@@ -34,7 +34,8 @@
 package gov.anl.ipns.Util.Sys;
 
 /**
- *  Implementer of this class have the given method.  
+ *  Implementer of this class have the given method.  The IndirectWindowClosedListener calls this
+ *  method when a window is closed.
  *  
  * @author ruth
  *
