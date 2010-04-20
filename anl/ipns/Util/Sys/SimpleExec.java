@@ -118,7 +118,7 @@ public class SimpleExec
       
       return S;
     }
-    catch( Exception ex )
+    catch( Throwable ex )
     {
       System.out.println( "EXCEPTION executing command: " + command );
       ex.printStackTrace();
