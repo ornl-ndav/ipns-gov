@@ -1,39 +1,109 @@
+/* 
+ * File: FindNeXusPG.java
+ *
+ * Copyright (C) 2010, Ruth Mikkelson
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contact : Ruth Mikkelson <mikkelsonr@uwstout.edu>
+ *           Department of Mathematics, Statistics and Computer Science
+ *           University of Wisconsin-Stout
+ *           Menomonie, WI 54751, USA
+ *
+ * This work was supported by the Spallation Neutron Source Division
+ * of Oak Ridge National Laboratory, Oak Ridge, TN, USA.
+ *
+ *  Last Modified:
+ * 
+ *  $Author:$
+ *  $Date:$            
+ *  $Rev:$
+ */
+
 package gov.anl.ipns.Parameters;
 
 import gov.anl.ipns.Util.File.FileIO;
-import gov.anl.ipns.Util.SpecialStrings.ErrorString;
+//import gov.anl.ipns.Util.SpecialStrings.ErrorString;
 import gov.anl.ipns.Util.Sys.*;
 import gov.anl.ipns.ViewTools.Panels.GraphTagFrame;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
 import javax.swing.*;
 
-
+/**
+ * The class represents a PG that works only at SNS. It calls the findnexus command
+ * @author ruth
+ *
+ */
 public class FindNeXusPG extends ButtonPG
 {
-
+   /**
+    * 
+    */
+   private static final long serialVersionUID = 1L;
+   Vector InitialValue = null;
    ButtonPressedListener ButtonListener;
+   
+   /**
+    * Constructor
+    * @param Prompt  Prompt(Not used)
+    * @param Value   The initial input values followed by the initial value.
+    *               The order is runNum,Instrument,proposal num,collection num, 
+    *               recursive level, and starting directory. 
+    */
    public FindNeXusPG(String Prompt, Object Value)
    {
-      this();
-      super.setValue( Value);
+
+      super( "Find SNS NeXus File");;
+      try
+      {   
+        InitialValue =Conversions.ToVec( Value );
+      }catch( Exception s)
+      {
+         InitialValue = null;
+      }
+      if( InitialValue != null && InitialValue.size()>=7)
+            
+         super.setValue( Conversions.get_String( InitialValue.elementAt(6) ));
+
+      ButtonListener = new ButtonPressedListener( this,InitialValue);
+      super.addActionListener( ButtonListener);
+      ButtonListener.setRecipient( this );
    }
    public FindNeXusPG()
    {
-
-      super( "Find SNS NeXus File");
-      ButtonListener = new ButtonPressedListener( this);
-      super.addActionListener( ButtonListener);
-      ButtonListener.setRecipient( this );
+      this( null, null);
      
    }
    
    public Object clone()
    {
-      FindNeXusPG fpg = new FindNeXusPG("Find SNS NeXus File", getValue());
+      FindNeXusPG fpg = new FindNeXusPG("Find SNS NeXus File", InitialValue);
+      
+      for( int i=0; i< listeners.size(); i++)
+         if( listeners.elementAt(i).get() != null &&
+                !(listeners.elementAt(i).get() instanceof ButtonPressedListener))
+         fpg.addActionListener(  listeners.elementAt(i).get() );
+      
+      if( panel != null || button != null)
+         fpg.getWidget();
+     
       return fpg;
    }
 
@@ -52,24 +122,36 @@ public class FindNeXusPG extends ButtonPG
 
    }
    
+   /**
+    * Pops up and handles a JFrame containing the input textfields.
+    * @author ruth
+    *
+    */
    class ButtonPressedListener implements java.awt.event.ActionListener,
                                           IhasWindowClosed, IReturnValue
    {
 
       FinishJFrame jf = null;
       ButtonPG  button_pg;
-      FindNexJPanel    FindNexParams;
+      FindNexJPanel    FindNexParams = null;
       IParameter ValueRecipient;
+      Vector InitialValue;
       
    
-      public ButtonPressedListener( ButtonPG  button_pg)
+      public ButtonPressedListener( ButtonPG  button_pg, Vector InitialValue)
       {
          this.button_pg = button_pg;
-         FindNexParams = new FindNexJPanel();
+         this.InitialValue = InitialValue;
       }
  
       public void actionPerformed(ActionEvent arg0)
       {
+         if( FindNexParams == null)
+         {
+            FindNexParams = new FindNexJPanel(InitialValue);
+            FindNexParams.setRecipient( ValueRecipient );
+         }
+         
          if( jf == null )
          {
             jf = new FinishJFrame("Find NeXus Parameters");
@@ -111,7 +193,8 @@ public class FindNeXusPG extends ButtonPG
         this.ValueRecipient = ValueRecipient;
         ValueRecipient.setValue("");// To get Data Type to be a String for this Parameter
 
-        FindNexParams.setRecipient( ValueRecipient );
+        if( FindNexParams != null)
+           FindNexParams.setRecipient( ValueRecipient );
          
       }
       
@@ -120,26 +203,55 @@ public class FindNeXusPG extends ButtonPG
       
    }
    
+   private String GetFieldValue( Vector values, int i)
+   {
+      if(values == null || i <0 || i >= values.size())
+         return "-1";
+      return new Integer(Conversions.get_int( values.elementAt(i) )).toString();
+   }
+   
+   
+
+   private String GetStringFieldValue( Vector values, int i)
+   {
+      if(values == null || i <0 || i >= values.size())
+         return "";
+      return Conversions.get_String(  values.elementAt(i) );
+   }
+   
+   
+   /**
+    * This panel contains the text fields that have to be filled out
+    * to specify the file desired.
+    * @author ruth
+    *
+    */
    class FindNexJPanel  extends JPanel implements IReturnValue, ActionListener
    {
 
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
       IParameter ValueRecipient;
       JTextField Run, Inst,Prop,Coll,Recurs;
       JLabel Result;
       FileChooserPanel filePick;
       JButton OK;
-      public FindNexJPanel( )
+      
+      
+      public FindNexJPanel(Vector InitialValue )
       {
          super();
          ValueRecipient = null;
          BoxLayout bl = new BoxLayout( this,BoxLayout.Y_AXIS);
          setLayout( bl);
          JPanel TopPanel = new JPanel( new GridLayout( 3,4));
-         Run = new JTextField(5);
-         Inst = new JTextField(5);
-         Prop = new JTextField(5);
-         Coll = new JTextField(5);
-         Recurs = new JTextField(5);
+         Run = new JTextField(GetFieldValue(InitialValue,0));
+         Inst = new JTextField(GetStringFieldValue(InitialValue,1));
+         Prop = new JTextField(GetFieldValue(InitialValue,2));
+         Coll = new JTextField(GetFieldValue(InitialValue,3));
+         Recurs = new JTextField(GetFieldValue(InitialValue,4));
          TopPanel.add(  new JLabel("Run Number", SwingConstants.RIGHT) );
          TopPanel.add( Run);
          TopPanel.add(  new JLabel("Collection Number", SwingConstants.RIGHT) );
@@ -157,7 +269,7 @@ public class FindNeXusPG extends ButtonPG
          
          filePick = new FileChooserPanel( FileChooserPanel.SET_DIRECTORY,"Start Directory");
          add( filePick);
-         Result = new JLabel();
+         Result = new JLabel(GetStringFieldValue(InitialValue,6));
          OK = new JButton("OK");
          JPanel bottom = new JPanel( new GridLayout( 1,2));
          bottom.add( Result );
@@ -223,6 +335,7 @@ public class FindNeXusPG extends ButtonPG
            JOptionPane.showMessageDialog(  null , ErrMessages );
         }
     
+        StartDir = filePick.getTextField( ).getText( ).trim( );
         Object Res = FileIO.findNexusAtSNS(run, instrument, proposal,collect, 
              StartDir,"", recurs);
         if( !(Res instanceof String))
