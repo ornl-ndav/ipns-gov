@@ -1,3 +1,36 @@
+/* 
+ * File: ImageFilledRectangle.java
+ *
+ * Copyright (C) 2010, Ruth Mikkelson
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contact : Ruth Mikkelson <mikkelsonr@uwstout.edu>
+ *           Department of Mathematics, Statistics and Computer Science
+ *           University of Wisconsin-Stout
+ *           Menomonie, WI 54751, USA
+ *
+ * This work was supported by the Spallation Neutron Source Division
+ * of Oak Ridge National Laboratory, Oak Ridge, TN, USA.
+ *
+ *  Last Modified:
+ * 
+ *  $Author:$
+ *  $Date:$            
+ *  $Rev:$
+ */
 package gov.anl.ipns.ViewTools.UI;
 
 import java.awt.*;
@@ -38,14 +71,20 @@ public class ImageFilledRectangle
    Vector3D normalOut = null;
    float Out2In_x;
    float Out2In_y;
+   BufferedImage ResImage = null;
    /**
     * Constructor
     * @param image      2D array of color indexes. Row0,col 0 upper left corner
     * @param colModel   colors for the image data
     * @param rect       Dimensions of the rectangle( pixel coordinates)
     * @param center     Center 3D of Rectangle. In "Pixel" coordinates
-    * @param xvec       direction of increasing x(col) for pixels on rectangle surface
-    * @param yvec       direction of increasing y(row) for pixels on rectangle surface
+    * @param xvec       direction from upper left corner of rectangle to upper right corner
+    * @param yvec       direction from  lower left corner of rectangle to upper left corner
+    * NOTE: upper left can be any corner. lower left can be any other corner. upper right
+    *       must be the other corner adjacent to the upper left corner
+    * 
+    * NOTE: The image will start(row 1) at top left corner and will fill the whole
+    *       rectangle row by row down to the lower left corner.  
     */
    public ImageFilledRectangle(IVirtualArray2D image, 
                                IndexColorModel colModel,
@@ -55,7 +94,7 @@ public class ImageFilledRectangle
                                Vector3D yvec)
    {
       this.image= image;
-      this.rect= rect;
+      setRectangle(rect);
       this.colModel = BuildAlphaColModel(colModel);
       this.yvec= yvec;
       this.yvec.normalize( );
@@ -75,7 +114,11 @@ public class ImageFilledRectangle
       normalOut.normalize();
       
      
-      
+      if( image == null)
+      {
+         
+         image = new VirtualArray2D( new float[10][10]);
+      }
       
    }
    
@@ -83,6 +126,12 @@ public class ImageFilledRectangle
    {
       this.image = image;
       this.colModel = BuildAlphaColModel(colModel);
+      ResImage = null;
+      if( image == null)
+      {
+         
+         this.image = new VirtualArray2D( new float[10][10]);
+      }
       
    }
    
@@ -116,13 +165,14 @@ public class ImageFilledRectangle
    public void setRectangle( Dimension  rect)
    {
       this.rect = rect;
+      ResImage = null;
       Edges = null;
    }
    
    /**
     * Sets indicated vectors if they are not null
-    * @param normal
     * @param xvec
+    * @param yvec
     * @param center
     */
    public void setPlane( Vector3D xvec, Vector3D yvec,  Vector3D center)
@@ -150,7 +200,7 @@ public class ImageFilledRectangle
       normalIn = new Vector3D(xvec);
       normalIn.cross( yvec );
       normalIn.normalize();
-      
+      ResImage = null;
    }
    
    
@@ -234,19 +284,33 @@ public class ImageFilledRectangle
       
    }
    
+   public Dimension getRectangle()
+   {
+      return rect;
+   }
+   
    public BufferedImage getImage()
    {
+      if(ResImage != null)
+         return ResImage;
+      
+      
       floatPoint2D[] Edges = get2DRectangleProjections();
       Point[] Span = getTopLeftImagePosition();
+      
       int nImageRows = Span[1].y- Span[0].y;//pixels
       int nImageCols =Span[1].x- Span[0].x;//pixels
       
+      if( nImageRows <2 || nImageCols < 2)
+         return null;
+      
       BufferedImage Res = new BufferedImage(nImageCols, nImageRows, 
                       BufferedImage.TYPE_BYTE_INDEXED, colModel );
+      
       //Now Setraster to get Data in
       WritableRaster rast = colModel.createCompatibleWritableRaster( 
             nImageCols ,  nImageRows );
-      System.out.println("num columns="+nImageCols);
+      
       int[] xs= new int[4];
       int[]ys= new int[4];
       for( int i=0; i<4;i++)
@@ -261,8 +325,6 @@ public class ImageFilledRectangle
       for(int r=0; r < nImageRows ; r++)
          for( int c=0; c < nImageCols ; c++)
          {
-            if( c==0)
-               if(r < 12)System.out.println( );
             if(!Pol.contains(  new Point(c+TopLeft[0].x,TopLeft[0].y+r) ))
             {
                rast.setPixel( c , r , new int[]{0} );
@@ -275,7 +337,7 @@ public class ImageFilledRectangle
                {   rast.setPixel( c , r , new int[]{0} );
               
                }
-               else//TODO  do weighted sum 
+               else//TODO  do weighted sum .Nope
                {
                   rast.setPixel( c,r, new int[]
                           {(int)image.getDataValue(rc[0] , rc[1] )+1});
@@ -284,12 +346,12 @@ public class ImageFilledRectangle
                  
                }
             }
-         }
-      
+         }    
       
       
       
       Res.setData( rast );
+      ResImage = Res;
       return Res;
    }
    
@@ -300,7 +362,7 @@ public class ImageFilledRectangle
     * 
     * @param outRow
     * @param outCol
-    * @return
+    * @return  int array containing row and col of image 
     */
    public int[] getInputImageRC( int outRow, int outCol, Point[] Span,
                    int nImageRows, int nImageCols)
@@ -311,11 +373,15 @@ public class ImageFilledRectangle
       PtIn.subtract( center );
       
       int[] Res = new int[2];
+      
       int numCols = image.getNumColumns( );
       int numRows = image.getNumRows( );
-      Res[1] = (int)Math.floor(.5+PtIn.dot( xvec )+ (1+numCols)/2f);
-      Res[0] = (int)Math.floor(.5+PtIn.dot( yvec )+ (1+numRows)/2f);
+      
+      Res[1] = (int)Math.floor(.5+PtIn.dot( xvec )*numCols/(float)rect.width+ (1+numCols)/2f);
+      Res[0] = (int)Math.floor(.5+PtIn.dot( yvec )*numRows/(float)rect.height+ (1+numRows)/2f);
+      
       Res[0] = numRows -Res[0]+1;
+     
       if( Res[0] <1 || Res[0]>numRows )
          return null;
       
@@ -373,8 +439,11 @@ public class ImageFilledRectangle
    }
    
    /**
-    *  Image position of top left corner of imate
-    * @return
+    *  Image position of top left corner of image
+    * @return  An array of two points.  The first point is the "top left corner"
+    *         and the 2nd point is the bottom right corner( Really interchanged but
+    *         rest do correspondences correctly). Prop: x and y's increase as go from
+    *         Point[0] to Point(1}
     */
    public Point[]  getTopLeftImagePosition()
    {
@@ -409,11 +478,38 @@ public class ImageFilledRectangle
       Point[] Res = new Point[2];
       Res[0] = new Point( (int)Math.floor(.5+minx), (int)Math.floor(.5+miny));
       Res[1]= new Point( (int)Math.floor(.5+maxx), (int)Math.floor(.5+maxy) );
-      
+     //   Res[1] = new Point( (int)Math.floor(.5+minx), (int)Math.floor(.5+miny));
+     //   Res[0]= new Point( (int)Math.floor(.5+maxx), (int)Math.floor(.5+maxy) );
+       
       return Res;
    }
    
- 
+   /**
+    * Returns the 2D position on the rectangle from center relative to xvec and yvec
+    * 
+    * @param x_proj  The x value of the  2D projection of the point in a rectangle 
+    * @param y_proj  The y value of the  2D projection of the point in a rectangle 
+    * @return  the 2D position on the rectangle from center relative to xvec and yvec
+    */
+   public floatPoint2D getRectPos( float x_proj, float y_proj)
+   {
+      Point[] p= getTopLeftImagePosition();
+      
+      if( p== null || x_proj < p[0].x  || x_proj > p[1].x)
+         return null;
+
+      if(  y_proj < p[0].y  || y_proj > p[1].y)
+         return null;
+      
+      x_proj =  x_proj - p[0].x ;
+      y_proj = y_proj -  p[0].y ;
+      
+      Vector3D P = Out2D2In3D( y_proj, x_proj,  p);
+      P.subtract( center );
+      System.out.println("current rect="+rect);
+      return new floatPoint2D( P.dot(xvec), P.dot(yvec) );
+      
+   }
    public JPanel getTestPanel( BufferedImage image, Point TopLeft )
    {
       return new MyPanel( image, TopLeft);
@@ -421,6 +517,10 @@ public class ImageFilledRectangle
    
    class MyPanel  extends JPanel implements MouseListener
    {
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
       BufferedImage image;
       Point  TopLeft;
       public MyPanel( BufferedImage image, Point TopLeft)
@@ -437,7 +537,7 @@ public class ImageFilledRectangle
       {
 
         System.out.println("Mouse Clicked at "+ arg0.getX( )+","+arg0.getY());
-         
+        System.out.println("    width,height, center="+ rect.width+","+rect.height+","+center);
       }
 
       @Override
@@ -490,12 +590,14 @@ public class ImageFilledRectangle
    {
       
       int N=200;
-      int rectWidth =100;
-      int rectHeight =200;
-      float[][]Image = new float[rectHeight][rectWidth];
-      for( int r=0; r<rectHeight;r++)
-         for( int c=0; c<rectWidth;c++)
-            Image[r][c] = r*c/(float)(rectWidth*rectHeight)*N;
+      int rectWidth =200;
+      int rectHeight =400;
+      
+      float[][]Image = new float[80][80];
+      for( int r=0; r<80;r++)
+         for( int c=0; c<80;c++)
+            Image[r][c] = r*c/(float)(6400)*N;
+      
       VirtualArray2D image2D = new VirtualArray2D( Image);
       System.out.println("image rows/cols="+image2D.getNumRows( )+","+
             image2D.getNumColumns( ));
@@ -504,7 +606,7 @@ public class ImageFilledRectangle
       
       ImageFilledRectangle Rect = new ImageFilledRectangle( image2D,
                colMap, new Dimension(rectWidth,rectHeight), new Vector3D(150,215,-300),
-               new Vector3D( 1f,1f,0f), new Vector3D(-1,1,0f));
+               new Vector3D( 1f,0f,0f), new Vector3D(0,1,0f));
       
       FinishJFrame jf = new FinishJFrame("Test");
       jf.getContentPane( ).setLayout(  new GridLayout(1,1) );
