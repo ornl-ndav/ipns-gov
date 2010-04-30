@@ -72,6 +72,11 @@ public class ImageFilledRectangle
    float Out2In_x;
    float Out2In_y;
    BufferedImage ResImage = null;
+   float logScaleFactor =1;
+   float[] logScale;
+   float MinVal, MaxVal;
+   int ZERO_COLOR_INDEX =0;
+   float IndexFactor=1;
    /**
     * Constructor
     * @param image      2D array of color indexes. Row0,col 0 upper left corner
@@ -93,9 +98,9 @@ public class ImageFilledRectangle
                                Vector3D xvec, 
                                Vector3D yvec)
    {
-      this.image= image;
-      setRectangle(rect);
-      this.colModel = BuildAlphaColModel(colModel);
+      //this.image= image;
+      //this.colModel = BuildAlphaColModel(colModel);
+      setImage( image, colModel);
       this.yvec= yvec;
       this.yvec.normalize( );
       this.center = center;
@@ -132,29 +137,111 @@ public class ImageFilledRectangle
          
          this.image = new VirtualArray2D( new float[10][10]);
       }
+      MinVal = Float.POSITIVE_INFINITY;
+      MaxVal = Float.NEGATIVE_INFINITY;
+      for( int r=0; r < image.getNumRows( ); r++)
+         for( int c =0; c < image.getNumColumns( ); c++)
+         {
+            float x = image.getDataValue( r , c );
+            
+            if( x < MinVal)
+               MinVal =x;
+            
+            if( x > MaxVal)
+               MaxVal = x;
+                             
+         }
+      
+      if( MinVal == MaxVal)
+         MaxVal +=1;
+      
+      if( MinVal >=0)
+         ZERO_COLOR_INDEX =0;
+      
+      
+   }
+   
+   public void setMaxMin( float Max, float Min)
+   {
+      MaxVal = Max;
+      MinVal = Min;
+   }
+   /**
+    * Sets color information. If entries are null or negative the corresponding
+    * values will NOT be set.
+    * 
+    * @param colors     The array of colors used( Not implemented yet)
+    * @param logScale   The log scale to adjust values
+    * @param ZERO_COLOR_INDEX   if non-negative, the position in colors where
+    *                           colors for negative numbers end. 
+    */
+   public void setColorInfo( Color[] colors, float[] logScale,int ZERO_COLOR_INDEX)
+   {
+      this.logScale = logScale;
+      
+      if( ZERO_COLOR_INDEX >=0)
+          this.ZERO_COLOR_INDEX = ZERO_COLOR_INDEX;
+      
+      ResImage = null;
+      
+      if( logScale == null)
+      {
+         logScaleFactor = 1;
+         IndexFactor =1;
+         return;
+      }
+      //Assume colors is null for now
+      
+      float max_abs = Math.max( Math.abs( MinVal ) , Math.abs( MaxVal ) );
+      
+      int NColors = colModel.getMapSize( );
+      if ( max_abs > 0 )
+      {   
+         logScaleFactor = (logScale.length- 1 ) / (MaxVal-MinVal); 
+         IndexFactor = (NColors-2)/               // Added one 
+                       ( logScale[logScale.length-1]);
+      
+      }else
+      {  
+         logScaleFactor = 0;
+      }   
       
    }
    
    // New colormodel where 0 represents completely transparent. The
    // other indecies map( with offset 1) to the other color model
-   private IndexColorModel BuildAlphaColModel(IndexColorModel colModel)
+   private IndexColorModel BuildAlphaColModel(IndexColorModel colorModel)
    {
-      int size = colModel.getMapSize( );
+      if( colorModel == null )
+         if( this.colModel != null )
+            return this.colModel;
+         else
+            colorModel = IndexColorMaker.getColorModel(
+                           IndexColorMaker.HEATED_OBJECT_SCALE_2 , 200 );
+      
+      int size = colorModel.getMapSize( );
+      
       byte[] red = new byte[size+1];
       byte[] green = new byte[size+1];
       byte[] blue = new byte[size+1];
       byte[] alpha = new byte[size+1];
+      
       Arrays.fill( alpha , (byte)255 );
       red[0]= green[0]= blue[0]=alpha[0]= 0;
+      
       byte[] buff = new byte[size];
-      colModel.getReds( buff );
+      
+      colorModel.getReds( buff );
       System.arraycopy( buff , 0, red , 1 , size );
-      colModel.getGreens( buff );
+      
+      colorModel.getGreens( buff );
       System.arraycopy( buff , 0, green , 1 , size );
-      colModel.getBlues( buff );
+      
+      colorModel.getBlues( buff );
       System.arraycopy( buff , 0, blue , 1 , size );
       
       int nbits =(int)(.5+Math.log( size+1 )/Math.log( 2 ));
+      
       if( nbits < 1)
          nbits = 3;
       
@@ -284,6 +371,10 @@ public class ImageFilledRectangle
       
    }
    
+   public floatPoint2D[] getEdges()
+   {
+      return Edges;
+   }
    public Dimension getRectangle()
    {
       return rect;
@@ -322,6 +413,7 @@ public class ImageFilledRectangle
       
       Polygon Pol = new Polygon( xs,ys,4) ;// for contains
       Point[] TopLeft = getTopLeftImagePosition();
+      int NColors = colModel.getMapSize( );
       for(int r=0; r < nImageRows ; r++)
          for( int c=0; c < nImageCols ; c++)
          {
@@ -337,13 +429,25 @@ public class ImageFilledRectangle
                {   rast.setPixel( c , r , new int[]{0} );
               
                }
-               else//TODO  do weighted sum .Nope
-               {
+               else
+               {        
+                  float f = image.getDataValue(rc[0] , rc[1] ); 
+                  int index =(int)f;
+                  if( logScale != null)
+                  {
+                     f =f-MinVal;
+                     f = f*logScaleFactor;
+                    
+                    
+                     index = ( int ) ( logScale[( int ) f] );
+                     
+                     index =(int)( index*IndexFactor);
+                    
+                    
+                  }
+                  
                   rast.setPixel( c,r, new int[]
-                          {(int)image.getDataValue(rc[0] , rc[1] )+1});
-                
-                 
-                 
+                          {index +1});
                }
             }
          }    
@@ -354,6 +458,8 @@ public class ImageFilledRectangle
       ResImage = Res;
       return Res;
    }
+   
+   
    
    /**
     * Calculates row and col from input image from row and col of output
@@ -370,6 +476,9 @@ public class ImageFilledRectangle
       
 
       Vector3D PtIn = Out2D2In3D( outRow, outCol, Span);
+      if( PtIn == null)
+         return null;
+      
       PtIn.subtract( center );
       
       int[] Res = new int[2];
@@ -377,11 +486,12 @@ public class ImageFilledRectangle
       int numCols = image.getNumColumns( );
       int numRows = image.getNumRows( );
       
-      Res[1] = (int)Math.floor(.5+PtIn.dot( xvec )*numCols/(float)rect.width+ (1+numCols)/2f);
-      Res[0] = (int)Math.floor(.5+PtIn.dot( yvec )*numRows/(float)rect.height+ (1+numRows)/2f);
+      Res[1] = (int)Math.floor(.5+PtIn.dot( xvec )*numCols/(float)rect.width+ (numCols)/2f);
+      Res[0] = (int)Math.floor(.5+PtIn.dot( yvec )*numRows/(float)rect.height+ (numRows)/2f);
       
-      Res[0] = numRows -Res[0]+1;
-     
+     // Res[0] = numRows -Res[0]-1;
+     //the returned TopLeft[0]where image will be drawn is really the bottom left
+      //      corner of this rectangle 0-->0
       if( Res[0] <1 || Res[0]>numRows )
          return null;
       
@@ -506,15 +616,17 @@ public class ImageFilledRectangle
       
       Vector3D P = Out2D2In3D( y_proj, x_proj,  p);
       P.subtract( center );
-      System.out.println("current rect="+rect);
+     
       return new floatPoint2D( P.dot(xvec), P.dot(yvec) );
       
    }
+   
    public JPanel getTestPanel( BufferedImage image, Point TopLeft )
    {
       return new MyPanel( image, TopLeft);
    }
    
+   // For Testing purposes only
    class MyPanel  extends JPanel implements MouseListener
    {
       /**
@@ -523,6 +635,8 @@ public class ImageFilledRectangle
       private static final long serialVersionUID = 1L;
       BufferedImage image;
       Point  TopLeft;
+      
+      
       public MyPanel( BufferedImage image, Point TopLeft)
       {
          super();
@@ -578,8 +692,7 @@ public class ImageFilledRectangle
          g.fillRect( 0,0,800,800);
          g.drawImage(image, TopLeft.x,TopLeft.y,image.getWidth( ),
                image.getHeight( ),this);
-         System.out.println("image("+image.getWidth( )+","+
-                  image.getHeight());
+        
        
       }
    }
@@ -589,18 +702,20 @@ public class ImageFilledRectangle
    public static void main(String[] args)
    {
       
-      int N=200;
+     
       int rectWidth =200;
       int rectHeight =400;
       
       float[][]Image = new float[80][80];
       for( int r=0; r<80;r++)
          for( int c=0; c<80;c++)
-            Image[r][c] = r*c/(float)(6400)*N;
+            if( r<20 && c >60)
+               Image[r][c] = 100;
+            else
+            Image[r][c] =0;// r*c/(float)(6400)*N;
       
       VirtualArray2D image2D = new VirtualArray2D( Image);
-      System.out.println("image rows/cols="+image2D.getNumRows( )+","+
-            image2D.getNumColumns( ));
+      
       IndexColorModel colMap = IndexColorMaker.getColorModel( 
             IndexColorMaker.HEATED_OBJECT_SCALE, 200 );
       
