@@ -269,13 +269,30 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
    @Override
    public void Draw(Graphics g)
    {
+    Point[]TopLeft = Rect.getTopLeftImagePosition( );
+    CoordBounds tr =window_tran.getDestination( );
+    if( TopLeft == null )
+       return;
+    
+    if( TopLeft[0].x > tr.getX1( ) &&  TopLeft[0].x > tr.getX2( ))
+       return;
+    
+    if( TopLeft[0].y > tr.getY1( ) &&  TopLeft[0].y > tr.getY2( ))
+          return;
+    
+    if( TopLeft[1].y <tr.getY1( ) &&  TopLeft[1].y < tr.getY2( ))
+       return;
+
+    if( TopLeft[1].x <tr.getX1( ) &&  TopLeft[1].x < tr.getX2( ))
+       return;
+   //TODO: get subimage that just fits the window.
     
     BufferedImage img = Rect.getImage( );
     
     if( img == null)
        return;
     
-    Point[]TopLeft = Rect.getTopLeftImagePosition( );
+   
    
     g.drawImage( img , TopLeft[0].x, TopLeft[0].y, Comp);
 
