@@ -1243,15 +1243,21 @@ public class ImageViewComponent extends ViewComponent2DwSelection
   }
 
   /**
-   * Turns autoscaling on or off in the low level ImageJPanel2. 
+   * Turns autoscaling on or off in the low level ImageJPanel2.  The max and min
+   * is determined by AxisInfo.Z_AXIS
    * 
    * @param on_off  if true, autoscaling is on othewise it is turned off
    */
   public void setAutoScale( boolean on_off)
   {
      if( ijp != null)
+     {
         ijp.enableAutoDataRange( on_off);
-     
+        AxisInfo z = getAxisInformation(AxisInfo.Z_AXIS);
+        ijp.setDataRange( z.getMin() , Math.max( z.getMin()+1 , z.getMax() ));
+        
+     }
+    
      autoScale = on_off;
   }
 
@@ -1787,7 +1793,14 @@ public class ImageViewComponent extends ViewComponent2DwSelection
       return;
     ijp.setData(Varray2D, true); 
     ijp.enableAutoDataRange( autoScale );
-   
+    if( !autoScale)
+    {
+       AxisInfo z = Varray2D.getAxisInfo( AxisInfo.Z_AXIS );
+       
+       ijp.setDataRange( z.getMin( ), Math.max( z.getMin()+1 ,z.getMax( )) );
+       
+    }
+    
     // Since data bounds could have changed, if either calibrated color scale
     // was displayed, redraw them by rebuilding the view component.
     if( addColorControlEast || addColorControlSouth )
