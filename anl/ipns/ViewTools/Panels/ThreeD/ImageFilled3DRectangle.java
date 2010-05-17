@@ -204,10 +204,12 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
       return vertices;
    }
    
-   public void setColorInfo( Color[] colormodel, float[] logScale, int ZERO_COLOR_INDEX)
+   public void setColorInfo( ColorModel colormodel,float[] logScale, int ZERO_COLOR_INDEX)
    {
       Rect.setColorInfo( colormodel, logScale, ZERO_COLOR_INDEX);
    }
+   
+   
    public float distance_to(float pix_x,
          float pix_y)
    {
