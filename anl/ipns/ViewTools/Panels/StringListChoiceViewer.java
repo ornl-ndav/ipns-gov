@@ -39,6 +39,8 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.ref.WeakReference;
+import java.util.Vector;
 
 /**
  * 
@@ -50,6 +52,8 @@ public class StringListChoiceViewer extends JPanel
                                                ActionListener
 {
 
+   public static String CHOICE_CHANGED = "CHOICE_CHANGED";
+   
    String[]    Choices;
 
    boolean     showSelectButton;
@@ -63,6 +67,9 @@ public class StringListChoiceViewer extends JPanel
    int         selected;
 
    JScrollPane scr;
+   
+   Vector<WeakReference<ActionListener>> listeners =
+         new Vector<WeakReference<ActionListener>>();
 
    /**
     * Constructor
@@ -128,6 +135,20 @@ public class StringListChoiceViewer extends JPanel
       add( scr , BorderLayout.CENTER );
    }
 
+   public void addActionListener( ActionListener act)
+   {
+      if( act == null)
+         return;
+      
+      for( int i=0; i< listeners.size( ); i++)
+      {
+         if(act.equals(listeners.elementAt( i ).get( )))
+            return;
+      }
+      
+      listeners.add( new WeakReference<ActionListener>(act) );
+      
+   }
    
    /**
     * Sets a new List of Strings to cycle through
@@ -154,6 +175,15 @@ public class StringListChoiceViewer extends JPanel
    {
 
       return selected;
+   }
+   
+   /**
+    * 
+    * @param choice  starts at 0
+    */
+   public void setSelectedChoice( int choice)
+   {
+      spinner.setValue(  choice + 1 );
    }
 
    /**
@@ -183,6 +213,14 @@ public class StringListChoiceViewer extends JPanel
       int show = ( ( Integer ) spinner.getValue( ) ).intValue( ) - 1;
       text.setText( Choices[show] );
       scr.getViewport( ).setViewPosition( new Point( 0 , 0 ) );
+      
+      for( int i=0; i< listeners.size( ); i++)
+      {
+         ActionListener act = listeners.elementAt(i).get( );
+         if( act != null)
+            act.actionPerformed( new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
+                            CHOICE_CHANGED) );
+      }
    }
 
    /**
