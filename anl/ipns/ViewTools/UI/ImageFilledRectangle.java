@@ -175,8 +175,9 @@ public class ImageFilledRectangle
     * @param ZERO_COLOR_INDEX   if non-negative, the position in colors where
     *                           colors for negative numbers end. 
     */
-   public void setColorInfo( Color[] colors, float[] logScale,int ZERO_COLOR_INDEX)
+   public void setColorInfo( ColorModel colormodel,  float[] logScale,int ZERO_COLOR_INDEX)
    {
+     
       this.logScale = logScale;
       
       if( ZERO_COLOR_INDEX >=0)
@@ -191,7 +192,7 @@ public class ImageFilledRectangle
          return;
       }
       //Assume colors is null for now
-      
+     
       float max_abs = Math.max( Math.abs( MinVal ) , Math.abs( MaxVal ) );
       
       int NColors = colModel.getMapSize( );
@@ -205,7 +206,7 @@ public class ImageFilledRectangle
       {  
          logScaleFactor = 0;
       }   
-      
+     
    }
    
    // New colormodel where 0 represents completely transparent. The
@@ -381,7 +382,7 @@ public class ImageFilledRectangle
    }
    
    public BufferedImage getImage()
-   {
+   {     
       if(ResImage != null)
          return ResImage;
       
@@ -440,10 +441,12 @@ public class ImageFilledRectangle
                     
                     
                      index = ( int ) ( logScale[( int ) f] );
-                     
-                     index =(int)( index*IndexFactor);
-                    
-                    
+                     //index =(int)( index*IndexFactor);
+                     if( index < 0)
+                        index =0;
+                   
+                     if( index +1 >= colModel.getMapSize( ))
+                        index = colModel.getMapSize()-2;
                   }
                   
                   rast.setPixel( c,r, new int[]
