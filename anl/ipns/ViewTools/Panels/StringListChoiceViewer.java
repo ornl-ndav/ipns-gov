@@ -157,12 +157,13 @@ public class StringListChoiceViewer extends JPanel
     */
    public void setNewStringList(String[] Choices)
    {
-
+      spinner.removeChangeListener(  this );
       this.Choices = Choices;
       spinner.setModel( new SpinnerNumberModel( 1 , 1 , Choices.length , 1 ) );
       text.setText( Choices[0] );
       selected = -1;
       Nitems.setText( "List Size="+Choices.length );
+      spinner.addChangeListener( this );
    }
 
    /**
@@ -178,12 +179,15 @@ public class StringListChoiceViewer extends JPanel
    }
    
    /**
-    * 
+    *  Sets the choice for the spinner.  Does not notify entities of this
+    *  change.
     * @param choice  starts at 0
     */
    public void setSelectedChoice( int choice)
    {
+      spinner.removeChangeListener(  this );
       spinner.setValue(  choice + 1 );
+      spinner.addChangeListener(  this );
    }
 
    /**
