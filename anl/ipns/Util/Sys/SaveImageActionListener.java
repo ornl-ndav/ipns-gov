@@ -181,7 +181,8 @@ public class SaveImageActionListener implements ActionListener{
      String[] extensionList = ImageIO.getWriterFileSuffixes( );
      if( extensionList == null )
      {
-        JOptionPane.showMessageDialog( null , "No File Extensios supported" );
+        JOptionPane.showMessageDialog( null,
+              "No File Extensions Supported." );
         return;
      }
      //Check if it is a supported extension.
@@ -194,7 +195,8 @@ public class SaveImageActionListener implements ActionListener{
      {
         filename = filename.substring( 0,k )+".jpg";
         extension ="jpg";
-        JOptionPane.showMessageDialog( null , "Improper extension. Saving to "+filename );
+        JOptionPane.showMessageDialog( null ,
+              "Improper Extension. Saving as JPEG to "+filename );
      }
      
      
