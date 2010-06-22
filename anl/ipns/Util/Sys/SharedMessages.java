@@ -86,6 +86,15 @@ public class SharedMessages implements java.io.Serializable
    */
   private static FileOutputStream LOGout = null;
   
+  /**
+   * The name of the current Global LOGoutput file. You can get this filename,
+   * change to a new Logging filename, and then restore the old log filename
+   * (with append option) in case others are relying on data to be logged
+   * to the original filename
+   */
+  private static String fileName = null;
+  
+  
   //addmsg places a return after each message.  LOGaddmsg may have several
   //entries per line so this stores output until a return is entered
   private static String buff ="";
@@ -100,6 +109,16 @@ public class SharedMessages implements java.io.Serializable
     return status_pane;
   }
  
+  /**
+   * Returns the name of the current logging file that received
+   * the LOGaddmsg  data.
+   * 
+   * @return the name of the current logging file
+   */
+  public static String getLoggingFileName()
+  {
+     return fileName;
+  }
  
   /**
    *  Returns the FileOutputStream where the log information is sent
@@ -190,6 +209,7 @@ public class SharedMessages implements java.io.Serializable
          LOGout = null;
       }
     buff = "";
+    fileName = filename;
  }
  
  
@@ -210,5 +230,6 @@ public class SharedMessages implements java.io.Serializable
        buff = null;
        LOGout = null;
    }
+   fileName = null;
  }
 }
