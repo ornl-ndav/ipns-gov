@@ -52,6 +52,76 @@ public class UtilSm
       return children.toArray( new Node[0]);
    }
    
+   
+   /**
+    * Uses NextSibling and drills down thru all children 
+    *  
+    * @param parentNode  The Node whose children are to be searched
+    * 
+    * @param thisNode    null for first child, otherwise the last returned child of the parent.
+    * 
+    * @param nodeName    The xml name of the node. If null all nodes will be considered.
+    * 
+    * @param attributes  Vector of key and value pairs for match. If an element contains a third item
+    *                    it will describe * type matching info. Regex expression matching
+    *                    
+    * @return      The next node matching the given criteria
+    */
+   public static  Node NextChildNodeRecursive( Node parentNode, Node thisNode,
+                                   String nodeName, Vector<String[]> attributes )
+   {
+      Node SaveThisNode = thisNode;//in case need parent
+      
+      if( parentNode == null)
+         return null;
+      
+      if( thisNode == null)
+         
+         thisNode = parentNode.getFirstChild();
+      
+      else if( thisNode.getFirstChild() == null)
+         
+         thisNode = thisNode.getNextSibling( );
+      
+      else
+         
+         thisNode = thisNode.getFirstChild();
+      
+      if( thisNode == null)//Thru at this level , go up a level
+      {
+         thisNode = SaveThisNode.getParentNode( );
+         
+         if( thisNode == parentNode || thisNode == null)
+            return null;
+         
+         Node thisNode1 = null;
+         
+         for( thisNode1 = thisNode.getNextSibling( );thisNode1 == null;
+                                      thisNode = thisNode.getParentNode())
+            
+            if( thisNode == null || thisNode== parentNode)
+               
+               return null;
+         
+            else
+               thisNode1=thisNode.getNextSibling( );
+         
+         thisNode = thisNode1;
+         
+      }
+      
+      if( Match( thisNode, nodeName, attributes))
+         
+         return thisNode;
+      
+      else if( thisNode !=null)
+         
+         return NextChildNodeRecursive(parentNode, thisNode, nodeName,attributes )
+;         
+         
+         
+      return null; 
+   }
    /**
     * Uses NextSibling 
     * @param parentNode  The Node whose children are to be searched
@@ -218,7 +288,7 @@ public class UtilSm
    /**
     * @param args
     */
-   public static void main(String[] args)
+   public static void main1(String[] args)
    {
       String fileName = "C:/Users/ruth/SNS/EventData/PG3_539_cvinfo.xml";
       
@@ -236,6 +306,38 @@ public class UtilSm
            System.out.println("There are "+ Nds.length + " nodes");
            for( int i=0; i< Nds.length; i++)
               System.out.println( UtilSm.getNodeValue( Nds[i]));
+        }
+        else
+           System.out.println("There are no Nodes");
+        
+     }catch( Exception ss)
+     {
+        System.out.println( "Error:"+ss);
+        ss.printStackTrace( );
+     }
+
+   }
+   
+   /**
+    * @param args
+    */
+   public static void main(String[] args)
+   {
+      String fileName = "C:/Users/ruth/SNS/EventData/PG3_539_cvinfo.xml";
+      
+     try
+     {
+        Document D = UtilSm.Open( fileName);
+       
+        Vector<String[] >attributes =UtilSm.Add(
+                          UtilSm.Add( null , "name" , "Speed2" , null),
+                          "device","ChopperSystem" ,null);
+ 
+        Node N = UtilSm.NextChildNodeRecursive( D,null,"cvlog", attributes);
+        
+        if( N != null)
+        {
+              System.out.println("Node value is\n"+ UtilSm.getNodeValue( N));
         }
         else
            System.out.println("There are no Nodes");
