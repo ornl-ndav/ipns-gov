@@ -345,13 +345,22 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
  /**
   * Get the current pointed-at cell. The pointed-at cell has a highlighted
   * border. The current cell is specified by a floatPoint2D in world
-  * coordinates.
+  * coordinates. 
   *
   *  @return The current point in world coordinates.
   */ 
   public floatPoint2D getPointedAt()
   {
-    return getWorldCoordsAtColumnRow(tjp.getPointedAtCell());
+//    return getWorldCoordsAtColumnRow(tjp.getPointedAtCell());
+//error the above returns floatPoint2D for pan viewer
+    Point P = tjp.getPointedAtCell( );
+    AxisInfo xaxisInfo =varray.getAxisInfo( AxisInfo.X_AXIS );
+    float x = P.x+(int)(xaxisInfo.getMin( )+.5);
+    
+
+    AxisInfo yaxisInfo =varray.getAxisInfo( AxisInfo.Y_AXIS );
+    float y = (int)(yaxisInfo.getMax()-.5)-P.y;
+    return new floatPoint2D(x,y);
   }
 
  /**
@@ -430,10 +439,10 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     						  yinfo.getMin() ) );
       float Delta = (yinfo.getMax()-yinfo.getMin())/varray.getNumRows();
       rowNames = new String[ varray.getNumRows()];
-      float Val = yinfo.getMin()+Delta/2f;
+      float Val = yinfo.getMax()-Delta/2f;
       for( int i= 0; i< rowNames.length; i++){
          rowNames[i] = ""+Val;
-         Val += Delta;
+         Val -= Delta;
       }
          
     }
