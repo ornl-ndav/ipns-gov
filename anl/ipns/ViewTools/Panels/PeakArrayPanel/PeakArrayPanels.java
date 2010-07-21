@@ -86,7 +86,6 @@ public class PeakArrayPanels extends JFrame {
       setSize( D );
       setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
       Comp = null;
-
    }
 
 
@@ -154,7 +153,6 @@ public class PeakArrayPanels extends JFrame {
       base.add( spinner );
       base.add( Box.createHorizontalGlue());
       
-
       getContentPane().add( base , BorderLayout.SOUTH );
 
       spinner.setValue( SpinnerValues[ 0 ] );
@@ -165,26 +163,21 @@ public class PeakArrayPanels extends JFrame {
 
       getContentPane().add( Comp , BorderLayout.CENTER );
 
-
       invalidate();
 
       WindowShower.show( this );
-
-
    }
 
   
-   class SpinnerChangeListener implements ChangeListener , Serializable {
-
-
+   class SpinnerChangeListener implements ChangeListener, Serializable {
 
       JFrame jf;
-
 
       /*
        * (non-Javadoc)
        * 
-       * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
+       * @see javax.swing.event.ChangeListener#stateChanged(
+       *                                        javax.swing.event.ChangeEvent)
        */
 
       public void stateChanged( ChangeEvent e ) {
@@ -203,7 +196,6 @@ public class PeakArrayPanels extends JFrame {
 
          int k = sortInfo[ i ];
 
-
          Comp.removeAll();
          Comp.setLayout( new GridLayout( 1 , 1 ) );
          PeaksDisplayPanel panel = PeakDisplays.elementAt( k );
@@ -211,17 +203,15 @@ public class PeakArrayPanels extends JFrame {
          Comp.add( panel );
 
          jf.setVisible( true );
-
       }
-
       
 
       public SpinnerChangeListener( JFrame jf ) {
 
          this.jf = jf;
       }
-
    }
+
 
    /**
     * Implements rank sort on an array of Strings
@@ -231,13 +221,9 @@ public class PeakArrayPanels extends JFrame {
     */
    class ThisComparator implements Comparator {
 
-
-
       String[] ID;
 
-
       public ThisComparator( String[] IDs ) {
-
          this.ID = IDs;
       }
 
@@ -248,7 +234,6 @@ public class PeakArrayPanels extends JFrame {
        * 
        * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
        */
-
       public int compare( Object o1 , Object o2 ) {
 
          if( o1 == null )
@@ -262,7 +247,6 @@ public class PeakArrayPanels extends JFrame {
          
          if( ! ( o2 instanceof Integer ) )
             return - 1;
-         
 
          int n1 = ( (Integer) o1 ).intValue();
          int n2 = ( (Integer) o2 ).intValue();
@@ -280,18 +264,18 @@ public class PeakArrayPanels extends JFrame {
          
          return ID[ n1 ].compareTo( ID[ n2 ] );
       }
-
    }
 
    
    /**
-    * Utility to create this JFrame and Display the Peaks. Arrays of PeakDisplayInfos
-    * are serialized and stored in files in the specified Directory. The names
-    * of the files start with the specified prefix and have the specified
-    * extension. Only files created after currentTime will be used. Also, part
-    * of the filename after the last "_" will represent an ID and the part of
-    * the name of the file before the last "_" will represent a title associated
-    * with the PeaksDisplay panel created from the array of PeakDisplayInfo's.
+    * Utility to create this JFrame and Display the Peaks. Arrays of 
+    * PeakDisplayInfos are serialized and stored in files in the specified
+    * Directory. The names of the files start with the specified prefix 
+    * and have the specified extension. Only files created after currentTime 
+    * will be used. Also, part of the filename after the last "_" will 
+    * represent an ID and the part of the name of the file before the last 
+    * "_" will represent a title associated with the PeaksDisplay panel 
+    * created from the array of PeakDisplayInfo's.
     * 
     * @param Title
     *           Title to appear on the JFrame that will pop up
@@ -308,26 +292,29 @@ public class PeakArrayPanels extends JFrame {
     *           The extension with the "." that these file will have. If null it
     *           will ".pvw"
     *           
-    
     * @param currentTime
     *           The time in milliseconds since January 1, 1970 UTC. Only files
     *           created after this time will be considered.
     *           
     */
-   public static void DisplayPeaks( String Title , String Directory ,
-            String prefix , String extension , long currentTime) {
-       
+   public static void DisplayPeaks( String Title, 
+                                    String Directory,
+                                    String prefix, 
+                                    String extension, 
+                                    long   currentTime) {
       DisplayPeaks( Title, Directory, prefix, extension, currentTime, false );
    }
 
+
    /**
-    * Utility to create this JFrame and Display the Peaks. Arrays of PeakDisplayInfos
-    * are serialized and stored in files in the specified Directory. The names
-    * of the files start with the specified prefix and have the specified
-    * extension. Only files created after currentTime will be used. Also, part
-    * of the filename after the last "_" will represent an ID and the part of
-    * the name of the file before the last "_" will represent a title associated
-    * with the PeaksDisplay panel created from the array of PeakDisplayInfo's.
+    * Utility to create this JFrame and Display the Peaks. Arrays of 
+    * PeakDisplayInfos are serialized and stored in files in the specified 
+    * Directory. The names of the files start with the specified prefix and 
+    * have the specified extension. Only files created after currentTime 
+    * will be used. Also, part of the filename after the last "_" will 
+    * represent an ID and the part of the name of the file before the last 
+    * "_" will represent a title associated with the PeaksDisplay panel 
+    * created from the array of PeakDisplayInfo's.
     * 
     * @param Title
     *           Title to appear on the JFrame that will pop up
@@ -352,17 +339,18 @@ public class PeakArrayPanels extends JFrame {
     *           created after this time will be considered.
     *           
     */
-   public static void DisplayPeaks( String Title , String Directory ,
-            String prefix , String extension , long currentTime, boolean keepFiles ) {
-      
+   public static void DisplayPeaks( String  Title, 
+                                    String  Directory,
+                                    String  prefix, 
+                                    String  extension, 
+                                    long    currentTime, 
+                                    boolean keepFiles ) {
       //boolean defaultDirectory = false;
       if( Directory == null ){
          Directory = FileIO.appendPath(System.getProperty( "user.home" ),
                                  "ISAW"+File.separator+"tmp"+File.separator);
-         
       }else
          Directory= FileIO.appendPath(  null , Directory );
-      
       
       if( prefix == null )
          prefix = "PeakV";
@@ -385,33 +373,31 @@ public class PeakArrayPanels extends JFrame {
                      && filename.endsWith( extension )
                      && currentTime < Files[ i ].lastModified() )
                getOneFilename(panels,  Directory+filename, keepFiles )   ;   
-            
-               
          }
+
       panels.display( "File" , "Detector" );
-
-
    }
 
 
    /**
-    * Utility to create this JFrame and Display the Peaks. Arrays of PeaksDisplayInfos
-    * are serialized and stored in the array of filenames. The parts of the file name
-    * before and after the last "_" will become titles for the resultant display.
+    * Utility to create this JFrame and Display the Peaks. Arrays of 
+    * PeaksDisplayInfos are serialized and stored in the array of filenames. 
+    * The parts of the file name before and after the last "_" will become 
+    * titles for the resultant display.
     * 
-    * @param Title
-    *           Title to appear on the JFrame that will pop up
+    * @param Title      Title to appear on the JFrame that will pop up
     *           
-    * @param filenames  An array of filenames each of which stores the Object value
-    *        of an array of PeakDisplaInfo's
+    * @param filenames  An array of filenames each of which stores the Object
+    *                   value of an array of PeakDisplaInfo's
     *        
     * @param keepFiles  if false the files will be deleted
     */           
-   public static void DisplayPeaks( String Title, String[] filenames, boolean keepFiles){
+   public static void DisplayPeaks( String   Title, 
+                                    String[] filenames, 
+                                    boolean  keepFiles){
       if( filenames == null)
          return;
       
-
       PeakArrayPanels panels = new PeakArrayPanels( Title );
       for( int i=0; i<filenames.length ; i++){
          getOneFilename(panels,  filenames[i] , keepFiles)   ;
@@ -465,19 +451,18 @@ public class PeakArrayPanels extends JFrame {
          JOptionPane.showMessageDialog( null ,
                   "Cannot read Peak images for "
                            + filename);
-
       }
-
    }
+
+
    /**
-    *  Will Display Peaks whose files are in default directory with default prefix 
-    *  and extension
+    *  Will Display Peaks whose files are in default directory with default 
+    *  prefix and extension
     * @param args   Not used
     */
    public static void main( String[] args ) {
 
       PeakArrayPanels.DisplayPeaks( "Test" , null , "" , null , - 1 );
-
    }
 
 }
