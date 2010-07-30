@@ -30,7 +30,8 @@
  * $Log$
  * Revision 1.9  2007/08/09 14:33:25  rmikk
  * Added and implemented a new method send_out_messages that can "disable"
- *   one of these ActiveJPanels( though disable in terms of events to outside only)
+ * one of these ActiveJPanels(though disable in terms of events to outside 
+ * only)
  *
  * Revision 1.8  2005/01/27 19:52:03  millermi
  * - Removed send_message(STATE_CHANGED) from main() test program.
@@ -145,6 +146,7 @@ public class ActiveJPanel extends JPanel
  }
 
  
+/* ---------------------------- send_out_messages ------------------------- */
  /**
   * Enable or disable the sending of messages to registered listeners
   * 
@@ -154,10 +156,9 @@ public class ActiveJPanel extends JPanel
   *  NOTE: Will not be effective for checkedControl, FrameController and
   *        RangeControl until they are fixed.
   */
- public void send_out_messages( boolean send){
-    
+ public void send_out_messages( boolean send)
+ {
     this.send = send;
-    
  }
 
 /* -------------------------------------------------------------------------

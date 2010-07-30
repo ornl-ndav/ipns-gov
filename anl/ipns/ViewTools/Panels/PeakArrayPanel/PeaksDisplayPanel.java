@@ -45,6 +45,7 @@ import gov.anl.ipns.ViewTools.Panels.Image.*;
 import gov.anl.ipns.ViewTools.Panels.Transforms.*;
 import gov.anl.ipns.ViewTools.Components.*;
 import gov.anl.ipns.ViewTools.UI.FontUtil;
+import gov.anl.ipns.ViewTools.UI.ActiveJPanel;
 import gov.anl.ipns.Util.Numeric.*;
 
 /**
@@ -56,12 +57,19 @@ import gov.anl.ipns.Util.Numeric.*;
  *  obtained from this object.  This information should be used to determine
  *  the size of the Frame that displays this panel.
  */
-public class PeaksDisplayPanel extends JPanel
+public class PeaksDisplayPanel extends ActiveJPanel
 {
   /**
    *  Limit on the maximum number of images that can be displayed.
    */
   public static final int MAX_DISPLAYABLE = 1200;
+
+  /**
+   *  String send to any action listeners when the user points a different
+   *  image pixel.
+   */
+  public static final String POINTED_AT_CHANGED = "POINTED_AT_CHANGED";
+
   private ImageJPanel2[]     ijp_array;
 
   private PeakDisplayInfo[]  peak_infos;
@@ -79,6 +87,11 @@ public class PeaksDisplayPanel extends JPanel
 
   private JSlider  intensity_slider;
   private int      INITIAL_LOG_SCALE_VALUE = 30;
+
+  private int      pointed_at_page = -1;
+  private int      pointed_at_row  = -1;
+  private int      pointed_at_col  = -1;
+  private int      pointed_at_peak_index = -1;
 
 
   /**
@@ -162,8 +175,15 @@ public class PeaksDisplayPanel extends JPanel
 
     coord_label = new JLabel();
     control_panel.add( coord_label );
-    
-    max_slice_delta = (peak_infos[0].maxChan() - peak_infos[0].minChan()) / 2;
+
+    int slice_delta;
+    max_slice_delta = 0;
+    for ( int i = 0; i < peak_infos.length; i++ )
+    {    
+      slice_delta = (peak_infos[i].maxChan() - peak_infos[i].minChan()) / 2;
+      if ( slice_delta > max_slice_delta )
+        max_slice_delta = slice_delta;
+    }
     JLabel spinner_label = new JLabel("  Slice Offset ");
     control_panel.add( spinner_label );
 
@@ -261,6 +281,54 @@ public class PeaksDisplayPanel extends JPanel
 
 
   /**
+   *  Get the index of the last peak whose image was pointed at by the user.
+   *
+   *  @return the index in the list of peaks for the last image that was
+   *          pointed at, or -1 if no image has been pointed at.
+   */
+  public int getPointedAtPeakIndex()
+  {
+    return pointed_at_peak_index;
+  }
+
+
+  /**
+   *  Get the index of the last page that was pointed at by the user.
+   *
+   *  @return the "z-index" of the "page" for the last image that was
+   *          pointed at, or -1 if no image has been pointed at.
+   */
+  public int getPointedAtPage()
+  {
+    return pointed_at_page;
+  }
+
+
+  /**
+   *  Get the index of the last row that was pointed at by the user.
+   *
+   *  @return the "y-index" of the "row" on the last image that was
+   *          pointed at, or -1 if no pixel has been pointed at.
+   */
+  public int getPointedAtRow()
+  {
+    return pointed_at_row;
+  }
+
+
+  /**
+   *  Get the index of the last column that was pointed at by the user.
+   *
+   *  @return the "x-index" of the "col" on the last image that was
+   *          pointed at, or -1 if no pixel has been pointed at.
+   */
+  public int getPointedAtCol()
+  {
+    return pointed_at_col;
+  }
+
+
+  /**
    *  Listener class for the intensity slider
    */
   public class SliderListener implements ChangeListener
@@ -323,6 +391,31 @@ public class PeaksDisplayPanel extends JPanel
        floatPoint2D wc_point = ijp.getCurrent_WC_point();
        float        value    = ijp.ImageValue_at_Cursor();
        setLabel( wc_point.x, wc_point.y, value );
+
+       boolean found = false;
+       int     index = 0;
+       while ( !found && index < ijp_array.length )
+         if ( ijp == ijp_array[ index ] )
+         {
+           found = true;
+           int page = peak_infos[index].getSliceNum();
+           int col = (int)wc_point.x;
+           int row = peak_infos[index].maxRow() - (int)wc_point.y;
+                                     // NOTE: The ijp coordinates were flipped
+                                     //       upside down
+           pointed_at_page = page;
+           pointed_at_row  = row;
+           pointed_at_col  = col;
+           pointed_at_peak_index = index;
+           send_message( POINTED_AT_CHANGED );
+/*
+           System.out.println(" PAGE = " + pointed_at_page + 
+                              " ROW  = " + pointed_at_row +
+                              " COL  = " + pointed_at_col +
+                              " PEAK# = " + pointed_at_peak_index );
+*/
+         }
+         else index++;
      }
 
      private void setLabel( float x, float y, float value )

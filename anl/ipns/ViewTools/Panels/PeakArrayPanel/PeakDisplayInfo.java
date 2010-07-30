@@ -130,6 +130,7 @@ public class PeakDisplayInfo implements Serializable
      relative_channel = 0;
   } 
 
+
   /**
    * Set offset, -2, -1, 0, 1, 2 etc. from the mid channel, that will
    * determine which slice is returned by getImageData().  The value is
@@ -158,6 +159,7 @@ public class PeakDisplayInfo implements Serializable
     return true;
   }
 
+
   /**
    *  Get the effective absolute channel number based on the relative
    *  channel number that was last specified by a call to setRelativeChannel.
@@ -171,17 +173,34 @@ public class PeakDisplayInfo implements Serializable
     return ( min_chan + max_chan ) / 2 + relative_channel;
   }
 
+
   /**
    *  Get the "clamped" relative channel number based on the relative channel
    *  number that was last specified by a call to setRelativeChannel.
    *
-   *  @return the page number (in counts[page][row][col]) of the page that 
-   *          will be returned by getSlice().  
+   *  @return the relative page number (in counts[page][row][col]) of the 
+   *          page that will be returned by getSlice().  
    */
   public int relativeDisplayedChannel()
   {
     return relative_channel;
   }
+
+
+  /**
+   *  Get the index of the page that should be displayed from the array
+   *  counts[page][col][row], between 0 and n_pages-1.
+   */
+  public int getSliceNum()
+  {
+    int slice_num = relative_channel + counts.length/2;
+    if ( slice_num < 0 )
+      slice_num = 0;
+    if ( slice_num > counts.length - 1 )
+      slice_num = counts.length - 1;
+    return slice_num;
+  }
+
 
   /**
    *  Get a reference to the slice of data that was specified by the 
@@ -189,8 +208,9 @@ public class PeakDisplayInfo implements Serializable
    */
   public float[][] getSlice()
   {
-    return counts[ relative_channel + counts.length/2 ];
+    return counts[ getSliceNum() ];
   } 
+
   
   /**
    *  Get the number of the first row that was extracted from the data
