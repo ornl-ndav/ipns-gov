@@ -136,6 +136,16 @@ import gov.anl.ipns.ViewTools.Components.VirtualArray2D;
  * The TableViewComponent is used to display data in a table. Currently, this
  * the tables will only display rectangular arrays, ragged arrays must be
  * put into a rectangular array.
+ * 
+ * It is assumed that row 0 of the virtual array will be the top row,
+ * row1 is under this row.  Column 0 of the virtual array will be the left most
+ * column.
+ * 
+ * There are labels for the rows and columns. These are determined by the AxisInfo's
+ * from the virtual array.  The top left point should correspond to Axisinfo's ymax,xmin and
+ * the bottom right point corresponds to AxisInfo's ymin,xmax.  ymax can be less than
+ * ymin.
+ * 
  */
 public class TableViewComponent implements IViewComponent2D, IPreserveState
 {
@@ -354,13 +364,15 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
 //    return getWorldCoordsAtColumnRow(tjp.getPointedAtCell());
 //error the above returns floatPoint2D for pan viewer
     Point P = tjp.getPointedAtCell( );
-    AxisInfo xaxisInfo =varray.getAxisInfo( AxisInfo.X_AXIS );
+ /*   AxisInfo xaxisInfo =varray.getAxisInfo( AxisInfo.X_AXIS );
     float x = P.x+(int)(xaxisInfo.getMin( )+.5);
     
 
     AxisInfo yaxisInfo =varray.getAxisInfo( AxisInfo.Y_AXIS );
     float y = (int)(yaxisInfo.getMax()-.5)-P.y;
     return new floatPoint2D(x,y);
+    */
+    return getWorldCoordsAtColumnRow(new Point((int)(P.x+.5),(int)(P.y+.5)));
   }
 
  /**
@@ -392,17 +404,68 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
       index++;
     // If there are no unselected TableRegions, return the list of TableRegions.
     if( index == table_regions.length )
-      return table_regions;
+    {
+       return  Axisfy(table_regions, tjp.getColumnCount( ),tjp.getRowCount( ),
+   
+            varray.getAxisInfo(AxisInfo.X_AXIS ),varray.getAxisInfo(AxisInfo.Y_AXIS ));
+       
+    }
     // If an unselected TableRegion is included, return a single PointRegion
     // containing all of the selected cells.
     else
     {
       Region[] single_pt_region = new Region[1];
       single_pt_region[0] = tjp.getSelectedCells();
-      return single_pt_region;
+      return Axisfy(single_pt_region,tjp.getColumnCount( ),tjp.getRowCount( ),
+          varray.getAxisInfo(AxisInfo.X_AXIS ),varray.getAxisInfo(AxisInfo.Y_AXIS ));
     }
   }
   
+  /**
+   * Region R comes directly from a JTable with Nrows and Ncols. Translate these
+   * boundaries to correspond to the axisInfo stuff.
+   * 
+   * @param R       Regions directly from JTable. row 0 at top
+   * @param Ncols   The number of columns in the JTable
+   * @param Nrows   The number of rows in the JTable
+   * @param xaxis   The xaxisInfo
+   * @param yaxis   The yaxisInfo
+   * @return        The Region in terms of this Components namings
+   */
+  private Region[] Axisfy( Region[] R, int Ncols, int Nrows, AxisInfo xaxis, AxisInfo yaxis)
+  {
+     if( R == null)
+        return null;
+     
+     Region[] Res = new Region[R.length];
+     
+     for( int i=0; i< Res.length; i++)
+     {
+        floatPoint2D[] pts= R[i].getDefiningPoints( );
+        if( pts != null)
+           for( int j=0; j< pts.length; j++)
+              pts[j] = Axisfy(pts[j], Ncols,Nrows,xaxis, yaxis);
+        if( R[i] instanceof TableRegion)
+           Res[i] = new TableRegion( pts,((TableRegion )R[i]).isSelected());
+        else if( R[i] instanceof Region)
+           Res[i] = new PointRegion( pts);
+     }
+     return R;
+  }
+  
+  //pt comes from a JTable with Ncols and Nrows, row=0 at top.
+  //axisInfo's define this table naming convention.
+  //TopLeft is xaxis.min , yaxis.max.  Bottom rigth is xaxis.max, yaxis.min
+  //  No ordering is needed
+  //WOOPS: Need in world coordinates
+  private floatPoint2D  Axisfy(floatPoint2D pt, int Ncols, int Nrows, AxisInfo xaxis,
+                          AxisInfo yaxis)
+  {
+     
+     //float x = xaxis.getMin() +(pt.x)/Ncols *(xaxis.getMax()-xaxis.getMin());
+    // float y = yaxis.getMin() +(1-pt.y/Nrows) *(yaxis.getMax()-yaxis.getMin());
+     return getWorldCoordsAtColumnRow( new Point((int)(pt.x), (int)(pt.y)) );
+  }
  /**
   * This method is invoked to notify the view component when the data
   * has changed within the same array.
@@ -572,13 +635,25 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
     CoordBounds imagebounds = ijp.getImageCoords();
     CoordBounds wcbounds = ijp.getGlobalWorldCoords();
     CoordTransform image_to_wc = new CoordTransform( imagebounds, wcbounds );
-    return new floatPoint2D( image_to_wc.MapXTo(col_row_pt.x),
-                             image_to_wc.MapYTo(col_row_pt.y) );
+    return new floatPoint2D( image_to_wc.MapXTo(col_row_pt.x+.5f),
+                             image_to_wc.MapYTo(col_row_pt.y+.5f) );
   }
-
-
+  
+  // Transf --> World2ReverseArray   want it to send World2Array
+  // World is pixels,  2Array is to col,row
+ private CoordTransform ReverseY( CoordTransform Transf)
+ {
+    CoordTransform Res = new CoordTransform( Transf);
+    int nRows = varray.getNumRows( )-1;
+    CoordBounds Dest = Res.getDestination( );
+    Dest = new CoordBounds( Dest.getX1( ), nRows-Dest.getY1( ),
+                            Dest.getX2( ), nRows-Dest.getY2( )  );
+    Res.setDestination( Dest );
+    return Res;
+    
+ }
  /**
-  * Get a copy of the tranformation that maps world coordinates to array
+  * Get a copy of the transformation that maps world coordinates to array
   * (col,row) coordinates for this view component. 
   *
   * @return a CoordTransform object that maps from world coordinates
@@ -586,7 +661,14 @@ public class TableViewComponent implements IViewComponent2D, IPreserveState
   */
   public CoordTransform getWorldToArrayTransform()
   {
-    return ijp.getWorldToImageTransform();
+    CoordTransform transf = (ijp.getWorldToImageTransform());
+    return transf;
+    /*
+    CoordTransform Res = new CoordTransform( transf.getSource( ),
+                    new CoordBounds( -.5f,-.5f,varray.getNumColumns( )-.5f,
+                          varray.getNumRows( )-.5f));
+    return Res;
+    */
   }
 
   
