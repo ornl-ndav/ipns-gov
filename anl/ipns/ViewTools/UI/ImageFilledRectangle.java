@@ -170,7 +170,7 @@ public class ImageFilledRectangle
     * Sets color information. If entries are null or negative the corresponding
     * values will NOT be set.
     * 
-    * @param colors     The array of colors used( Not implemented yet)
+    * @param colormodel     The array of colors used( Not implemented yet)
     * @param logScale   The log scale to adjust values
     * @param ZERO_COLOR_INDEX   if non-negative, the position in colors where
     *                           colors for negative numbers end. 
