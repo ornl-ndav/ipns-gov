@@ -37,7 +37,7 @@ public class UtilSm
     * @param nodeName    The xml name of the node. If null all nodes will be considered.
     * @param attributes  Vector of key and value pairs for match. If an element contains a third item
     *                    it will describe * type matching info.
-    * @return
+    * @return the list of all children nodes of a given node satisfying the conditions.
     */
    public static  Node[] SearchChildrenNodes( Node parentNode, String nodeName, Vector<String[]> attributes )
    {
