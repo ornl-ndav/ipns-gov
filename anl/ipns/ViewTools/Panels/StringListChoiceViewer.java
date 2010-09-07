@@ -187,6 +187,13 @@ public class StringListChoiceViewer extends JPanel
    {
       spinner.removeChangeListener(  this );
       spinner.setValue(  choice + 1 );
+      
+      if( Choices != null && choice < Choices.length)
+       {
+         text.setText( Choices[choice] );
+         scr.getViewport( ).setViewPosition( new Point( 0 , 0 ) );
+       }
+      
       spinner.addChangeListener(  this );
    }
 
