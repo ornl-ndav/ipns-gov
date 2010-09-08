@@ -40,7 +40,7 @@ import gov.anl.ipns.Parameters.IParameter;
 
 /**
  *  The main program of this class will take a an operator name and list of 
- *  parameters from the command line and execute the parameter.  The 
+ *  parameters from the command line and execute the operator.  The 
  *  parameters must be numeric, boolean or strings, not DataSets or arrays.
  *  Since this runs in a separate process, several of these can run 
  *  simultaneously on a multi-core machine or using slurm.  
@@ -140,7 +140,7 @@ public class RunOperator
    *  passing the remaing command line parameters to that operator.
    *
    *  @param args  Array of Strings containing the operator name as the 
-   *               first paramter and the operator's paramters in the 
+   *               first parameter and the operator's parameters in the 
    *               remaining positions.
    *               args[0] - the operator to run 
    *               args[1] - first parameter for the operator
