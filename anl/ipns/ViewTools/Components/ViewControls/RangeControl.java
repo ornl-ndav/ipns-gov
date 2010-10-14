@@ -157,8 +157,9 @@ public class RangeControl extends ViewControl implements Serializable,
         temp = new_state.get(MIN_RANGEX);
         if ( temp != null)
         {
+          if( range_field[x].getMin() != ((Float)temp).floatValue())
+              range_changed = true;
           range_field[x].setMin(((Float)temp).floatValue());
-          range_changed = true;
         }
       }
 
@@ -167,8 +168,11 @@ public class RangeControl extends ViewControl implements Serializable,
         temp = new_state.get(MAX_RANGEX);
         if ( temp != null)
         {
+
+           if( range_field[x].getMax() != ((Float)temp).floatValue())
+               range_changed = true;
           range_field[x].setMax(((Float)temp).floatValue());
-          range_changed = true;
+          
         }
       }
       
