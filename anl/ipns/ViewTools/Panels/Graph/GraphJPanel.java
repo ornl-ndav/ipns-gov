@@ -406,7 +406,7 @@ public class GraphJPanel extends    CoordJPanel
   public void setObjectState( ObjectState new_state )
   {
     boolean redraw = false;  // if any values change redraw.
-
+    super.setObjectState( new_state );
     Object temp = new_state.get(GRAPH_DATA);
     for( int x = 0; x < graphs.size(); x++){
       String GRAPH_DATAX = GRAPH_DATA + x;	    
@@ -464,7 +464,7 @@ public class GraphJPanel extends    CoordJPanel
    */
     public ObjectState getObjectState(boolean isDefault)
     {
-      ObjectState state = new ObjectState();
+      ObjectState state = super.getObjectState( isDefault );//new ObjectState();
       for(int x =0; x < graphs.size(); x++){
       String GRAPH_DATAX = GRAPH_DATA + x;
       state.insert(GRAPH_DATAX, 
