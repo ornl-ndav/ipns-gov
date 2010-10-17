@@ -1208,13 +1208,16 @@ public class FunctionViewComponent implements IViewComponent1D,
  
                                              // get the name, units and title
                                              // from the old virtual array list
-    AxisInfo x_info = Varray1D.getAxisInfo(AxisInfo.X_AXIS); 
-    AxisInfo y_info = Varray1D.getAxisInfo(AxisInfo.Y_AXIS); 
+    /*//Why?? not needed if all data changes
+     *  AxisInfo x_info = pin_varray.getAxisInfo(AxisInfo.X_AXIS); 
+    AxisInfo y_info = pin_varray.getAxisInfo(AxisInfo.Y_AXIS); 
     setAxis( AxisInfo.X_AXIS, pin_varray, 
                               x_info.getUnits(), x_info.getLabel() );
     setAxis( AxisInfo.Y_AXIS, pin_varray, 
                               y_info.getUnits(), y_info.getLabel() );
-    pin_varray.setTitle( Varray1D.getTitle() );
+    //pin_varray.setTitle( Varray1D.getTitle() );
+ 
+     */
     Varray1D = pin_varray;
                               // rebuild controls for the new data IN THE 
                               // SAME FRAME, so that the frame doesn't move.
