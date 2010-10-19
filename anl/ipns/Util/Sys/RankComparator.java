@@ -37,7 +37,7 @@ package gov.anl.ipns.Util.Sys;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
 
 /**
  * This is a comparator that can be used with Arrays.sort. It will sort
