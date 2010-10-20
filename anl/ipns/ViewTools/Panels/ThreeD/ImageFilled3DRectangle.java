@@ -97,11 +97,11 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
     *                    in the "lower left" corner
     *                    
     * @param ncols_rect number of cols of the rectangle. row 1 col 1 is 
-    *                    in the lower left corner. row 1 col ncol is the upper
+    *                    in the lower left corner. row= 1 col= ncol is the upper
     *                    "right" corner.  
     *                    
     * @param image       The image data. Assume row 1, col 1 of data is mapped to
-    *                    the "upper left corner" of the rectangle.
+    *                    the "upper left corner" of the Detector.
     */
    public ImageFilled3DRectangle(Vector3D center, 
                                  Vector3D xvec,
@@ -164,6 +164,7 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
      {
         x[i] *=mult;
         y[i] *= mult;
+        vertices[i].multiply( mult );
      }
      center_orig.multiply( mult );
      center = new Vector3D(center_orig);
@@ -336,7 +337,10 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
       return res;
    }
    
-   
+   private Vector3D ChangeYsign(Vector3D X)
+   {
+      return new Vector3D( X.getX( ),-X.getY( ),X.getZ());
+   }
    @Override
    public void Project(Tran3D projection, CoordTransform windowTran,
          float frontClip)
@@ -351,12 +355,25 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
         
       }
       
-      projection.apply_to( center_orig, center );
+      projection.apply_to( ChangeYsign(center_orig), center );
 
-      projection.apply_to( xvec_orig, xvec );
+      projection.apply_to( (xvec_orig), xvec );
 
-      projection.apply_to( yvec_orig, yvec );
-      
+      projection.apply_to( (yvec_orig), yvec );
+      xvec= new Vector3D( xvec.getX( ),xvec.getY( ),-xvec.getZ());
+    
+      /*if( this.pick_id %100 ==6 )
+      {
+         System.out.println("xvec,yvec="+xvec+","+yvec);
+         System.out.println( "tran3D="+projection);
+         Vector3D r = new Vector3D();
+         Vector3D xvecEnd = ChangeYsign(center_orig);
+         xvecEnd.add( ( xvec_orig));
+         projection.apply_to( xvecEnd, r );
+         r.subtract( center );
+         System.out.println( "Xformed XvecEnd="+r);
+         
+      }*/
       float[] coords = center.get();
 
       if ( coords[2] >= frontClip )
@@ -383,11 +400,12 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
       ProjHeight = multx*height;
       Rect.setRectangle( new Dimension((int)(.5+ProjWidth), (int)(.5+ProjHeight)) );
       yvec.standardize();
-
+     // xvec = new Vector3D(-xvec.getX( ),-xvec.getY( ),-xvec.getZ( ));
+      
       xvec.standardize();
       xvec.normalize( );
       yvec.normalize( );
-      
+      xvec.multiply(-1);
       Rect.setPlane( xvec , yvec , center );
       changed = true;
      
