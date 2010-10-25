@@ -341,6 +341,10 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
    {
       return new Vector3D( X.getX( ),-X.getY( ),X.getZ());
    }
+   
+   /**
+    * Projects a la AltAzi controller used in the threeD view.
+    */
    @Override
    public void Project(Tran3D projection, CoordTransform windowTran,
          float frontClip)
@@ -355,6 +359,13 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
         
       }
       
+      // There seemed to be a coordinate system mismatch with the
+      // AltAzt controller and ...  When the center was "behind" which should mean
+      //                           y>0(IPNS) and in window coord's z<0. This was not
+      //                           the case.
+      //       Also, had to subsequently negate xvec to get left right to correspond.
+      //       Did all this experimentally. Did not find basis( though picture had y axis
+      //                  pointing in opposite direction than it should have)
       projection.apply_to( ChangeYsign(center_orig), center );
 
       projection.apply_to( (xvec_orig), xvec );
