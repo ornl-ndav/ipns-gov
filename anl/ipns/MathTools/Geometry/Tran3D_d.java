@@ -409,6 +409,22 @@ public class Tran3D_d
   }
 
 
+  /* ------------------------ determinant ------------------------------- */
+  /**
+   * Calculate the determinant of the upper left 3x3 portion of this matrix.
+   * @return A double representing the determinant of this transformation as
+   *         a 3x3 matrix.
+   */
+  public double determinant()
+  {
+    double sub_1 = a[1][1] * a[2][2] - a[1][2] * a[2][1];
+    double sub_2 = a[1][0] * a[2][2] - a[1][2] * a[2][0];
+    double sub_3 = a[1][0] * a[2][1] - a[1][1] * a[2][0];
+
+    return ( a[0][0] * sub_1 - a[0][1] * sub_2 + a[0][2] * sub_3 );
+  }
+
+
   /*------------------------- setOrientation -----------------------------*/
   /**
    *  Set this transform to position and orient an object in 3D.

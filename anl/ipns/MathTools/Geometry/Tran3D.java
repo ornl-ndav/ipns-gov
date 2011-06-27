@@ -415,6 +415,21 @@ public class Tran3D implements java.io.Serializable
   }
 
 
+  /* ------------------------ determinant ------------------------------- */
+  /**
+   * Calculate the determinant of the upper left 3x3 portion of this matrix.
+   * @return A float representing the determinant of this transformation as
+   *         a 3x3 matrix.
+   */
+  public float determinant()
+  {
+    float sub_1 = a[1][1] * a[2][2] - a[1][2] * a[2][1];
+    float sub_2 = a[1][0] * a[2][2] - a[1][2] * a[2][0];
+    float sub_3 = a[1][0] * a[2][1] - a[1][1] * a[2][0];
+
+    return ( a[0][0] * sub_1 - a[0][1] * sub_2 + a[0][2] * sub_3 );
+  }
+
 
   /*------------------------- setOrientation -----------------------------*/
   /**
