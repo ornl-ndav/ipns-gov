@@ -243,7 +243,7 @@ public class CoordTransform implements Serializable
 
 
   /**
-   *  Map one point from the current destiantion region to the current source 
+   *  Map one point from the current destination region to the current source 
    *  region.
    *
    *  @param  p1  The two-dimensional point to be transformed.  
