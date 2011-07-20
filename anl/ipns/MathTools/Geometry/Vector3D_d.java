@@ -224,6 +224,24 @@ public class Vector3D_d
 
 
   /*------------------------------- set ---------------------------------*/
+  /** 
+   *  Set the four components of this vector to the 4 specified values.
+   *
+   *  @param x    The x coordinate of the point
+   *  @param y    The y coordinate of the point
+   *  @param z    The z coordinate of the point
+   *  @param w    The w coordinate of the point
+   */
+  public void set( double x, double y, double z, double w )
+  {
+     this.x = x;
+     this.y = y;
+     this.z = z;
+     this.w = w;
+  }
+
+
+  /*------------------------------- set ---------------------------------*/
   /**
    *  Set the value for this vector to the same value as the given vector.
    *
@@ -241,13 +259,16 @@ public class Vector3D_d
 
   /*------------------------------- set ---------------------------------*/
   /**
-   *  Set the value for this vector using values from the array.  If more
-   *  than three values are given, the extra values are ignored.  If less
-   *  than three values are given, the values will be set to zero.  The 
-   *  fourth component, w, is set to 1.
+   *  Set the value for this vector using values from the array.
+   *  If the array has less than three values, the x, y, z values will be set 
+   *  to zero and the fourth component, w, will be set to 1.  If
+   *  three values are given, the first three values will be used for x, y 
+   *  and z and the fourth component, w, will be set to 1.  If four or more 
+   *  values are given the first four values in the array will be used for
+   *  x, y, z and w, respectively.
    *
-   *  @param arr  Array containing values to use for the x,y,z components
-   *              of this vector. 
+   *  @param arr  Array containing values to use for the x, y, z and possibly
+   *              w components of this vector. 
    */
   public void set( double arr[] )
   {
@@ -256,14 +277,22 @@ public class Vector3D_d
        x = 0f;
        y = 0f;
        z = 0f;
+       w = 1f;
+     }
+     else if ( arr.length == 3 )
+     {
+       x = arr[0];
+       y = arr[1];
+       z = arr[2];
+       w = 1f;
      }
      else
      {
        x = arr[0];
        y = arr[1];
        z = arr[2];
+       w = arr[3];
      }
-     w = 1.0;
   }
 
 

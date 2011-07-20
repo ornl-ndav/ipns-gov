@@ -792,6 +792,11 @@ public class Tran3D implements java.io.Serializable
     System.out.println("calculated inverse = ");
     System.out.println("" + tran_1 );
 
+    Vector3D cop = new Vector3D(  1,  2, 3 );
+    Vector3D vrp = new Vector3D( -3,  5, 2 );
+    Vector3D vuv = new Vector3D(  3, -1, 4 );
+    tran.setViewMatrix( cop, vrp, vuv, true );
+    System.out.println("Viewing tran is: \n" + tran );
   }
 
 }
