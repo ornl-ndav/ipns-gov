@@ -132,7 +132,7 @@ public class floatPoint2D implements java.io.Serializable {
      * @param       x  the <i>x</i> coordinate of the new location.
      * @param       y  the <i>y</i> coordinate of the new location.
      */
-    public void setLocation(int x, int y) {
+    public void setLocation(float x, float y) {
 	this.x = x;
 	this.y = y;
     }	
