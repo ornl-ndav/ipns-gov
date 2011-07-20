@@ -358,14 +358,68 @@ public class AltAzController extends    ViewController
     window.setVisible( true );
 
     controller.addControlledPanel( test );
-    IThreeD_Object objs[] = new IThreeD_Object[1];
-    Vector3D       pts[]  = new Vector3D[4];
+    IThreeD_Object objs[] = new IThreeD_Object[6];
+    Vector3D       pts[]  = new Vector3D[6];
     pts[0] = new Vector3D( -1,  1, 0 );
     pts[1] = new Vector3D(  1,  1, 0 );
-    pts[2] = new Vector3D(  1, -1, 0 );
-    pts[3] = new Vector3D( -1, -1, 0 );
-    objs[0] = new Polyline( pts, Color.green );
+    pts[2] = new Vector3D(  1,  1, 1 );
+    pts[3] = new Vector3D(  1,  1, 0 );
+    pts[4] = new Vector3D(  1, -1, 0 );
+    pts[5] = new Vector3D( -1, -1, 0 );
+    objs[0] = new Polyline( pts, Color.CYAN );
+
+    pts     = new Vector3D[2];
+    pts[0]  = new Vector3D( 0, 0, 0 );
+    pts[1]  = new Vector3D( 1, 0, 0 );
+    objs[1] = new Polyline( pts, Color.RED );
+
+    pts     = new Vector3D[2];
+    pts[0]  = new Vector3D( 0, 0, 0 );
+    pts[1]  = new Vector3D( 0, 1, 0 );
+    objs[2] = new Polyline( pts, Color.GREEN );
+
+    pts     = new Vector3D[2];
+    pts[0]  = new Vector3D( 0, 0, 0 );
+    pts[1]  = new Vector3D( 0, 0, 1 );
+    objs[3] = new Polyline( pts, Color.BLUE );
+
+    Vector3D center = new Vector3D( -1, -1, 1 );
+    Vector3D x_vec  = new Vector3D( -1, 1, 0 );
+    Vector3D y_vec  = new Vector3D(  0, 0, 1 );
+    float    width  = 3;
+    float    height = 2;
+    Color[][] colors = { { Color.RED,    Color.GREEN, Color.BLUE    },
+                         { Color.YELLOW, Color.CYAN,  Color.MAGENTA },
+                         { Color.ORANGE, Color.GRAY,  Color.WHITE   } };
+
+    ImageRectangle im_rect = new ImageRectangle( center,
+                                                 x_vec,
+                                                 y_vec,
+                                                 width,
+                                                 height,
+                                                 colors );
+    objs[4] = im_rect;
+
+
+    center = new Vector3D(  1,  1, 1 );
+    y_vec  = new Vector3D(  1,  1, 0 );
+    x_vec  = new Vector3D(  1, -1, 0 );
+    width  = 2;
+    height = 4;
+    Color[][] colors_2 = { { Color.RED,    Color.GREEN, Color.BLUE    },
+                           { Color.YELLOW, Color.CYAN,  Color.MAGENTA } };
+
+    ImageRectangle im_rect_2 = new ImageRectangle( center,
+                                                   x_vec,
+                                                   y_vec,
+                                                   width,
+                                                   height,
+                                                   colors_2 );
+    objs[5] = im_rect_2;
+
+
     test.setObjects( "SAMPLE_OBJECTS", objs );
+
     controller.apply( true );
   }
  

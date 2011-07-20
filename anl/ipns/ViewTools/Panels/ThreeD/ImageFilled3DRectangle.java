@@ -349,7 +349,6 @@ public class ImageFilled3DRectangle extends ThreeD_Object implements MouseListen
    public void Project(Tran3D projection, CoordTransform windowTran,
          float frontClip)
    {
-
       
       super.Project( projection , windowTran , frontClip );
       if ( projection == null || windowTran == null )

@@ -80,6 +80,9 @@ abstract public class ThreeD_Object implements IThreeD_Object
   protected  int       pick_id    = INVALID_PICK_ID;
   protected  boolean   clipped    = false;
 
+  protected  Tran3D          projection  = null;
+  protected  CoordTransform  window_tran = null;
+
   /** 
    *  Construct a 3D object using the specified list of vertices and the
    *  given color.
@@ -169,7 +172,10 @@ abstract public class ThreeD_Object implements IThreeD_Object
       System.out.println( "Error: no transform in ThreeD_Object.Project()" );
       return;
     }
-    
+
+    this.projection  = projection;                    // save the tranforms for
+    this.window_tran = window_tran;                   // use by more advnaced
+                                                      // draw routines
     Vector3D point = new Vector3D();
     float    coords[];
     float    sum = 0;
@@ -179,12 +185,12 @@ abstract public class ThreeD_Object implements IThreeD_Object
     { 
       projection.apply_to( vertices[i], point );
 
+      point.standardize();
+
       coords = point.get();
 
       if ( coords[2] >= front_clip )
         clipped = true;
-
-      point.standardize();
 
       sum += coords[2];                                // to calculate the
                                                        // average depth in scene

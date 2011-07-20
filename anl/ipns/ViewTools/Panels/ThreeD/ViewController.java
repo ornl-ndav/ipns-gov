@@ -274,8 +274,7 @@ public class ViewController extends    JPanel
     if ( n_panels <= 0 )
       return;
 
-    Tran3D tran = new Tran3D();
-    tran.setViewMatrix( cop, vrp, vuv, true );
+    ViewingTran3D tran = new ViewingTran3D( cop, vrp, vuv, true );
     set_screen_size_from_view_angle();
 
     for ( int i = 0; i < n_panels; i++ )

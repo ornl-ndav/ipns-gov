@@ -279,7 +279,11 @@ public class ThreeD_JPanel extends    CoordJPanel
  */
   public void setViewTran( Tran3D view_tran )
   {
-    tran = new Tran3D( view_tran );
+    if ( view_tran instanceof ViewingTran3D )
+      tran = new ViewingTran3D( (ViewingTran3D)view_tran );
+    else
+      tran = new Tran3D( view_tran );
+
     data_painted = false; 
   } 
 
@@ -724,7 +728,11 @@ public class ThreeD_JPanel extends    CoordJPanel
 
     Arrays.sort( index, new DepthComparator( all_objects ) );
 
-    tran3D_used = new Tran3D( tran );
+    if ( tran instanceof ViewingTran3D )
+      tran3D_used = new ViewingTran3D( (ViewingTran3D)tran );
+    else
+      tran3D_used = new Tran3D( tran );
+
     tran2D_used = new CoordTransform( getLocal_transform() );
   }
 
