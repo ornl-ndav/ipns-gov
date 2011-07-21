@@ -392,7 +392,7 @@ public class AltAzController extends    ViewController
                          { Color.YELLOW, Color.CYAN,  Color.MAGENTA },
                          { Color.ORANGE, Color.GRAY,  Color.WHITE   } };
 
-    ImageRectangle im_rect = new ImageRectangle( center,
+    ImageRectangle1 im_rect = new ImageRectangle1( center,
                                                  x_vec,
                                                  y_vec,
                                                  width,
@@ -409,7 +409,7 @@ public class AltAzController extends    ViewController
     Color[][] colors_2 = { { Color.RED,    Color.GREEN, Color.BLUE    },
                            { Color.YELLOW, Color.CYAN,  Color.MAGENTA } };
 
-    ImageRectangle im_rect_2 = new ImageRectangle( center,
+    ImageRectangle1 im_rect_2 = new ImageRectangle1( center,
                                                    x_vec,
                                                    y_vec,
                                                    width,

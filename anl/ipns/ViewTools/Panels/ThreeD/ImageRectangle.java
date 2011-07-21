@@ -32,9 +32,16 @@
 package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
+import java.awt.image.WritableRaster;
 import java.io.*;
+
+import javax.swing.JComponent;
+
 import gov.anl.ipns.MathTools.Geometry.*;
 import gov.anl.ipns.Util.Numeric.floatPoint2D;
+import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 
 /**
  *  This class represents a rectangular image in 3D.
@@ -46,10 +53,13 @@ public class ImageRectangle  extends     ThreeD_Object
   Vector3D   x_vector;
   Vector3D   y_vector;
   Vector3D   normal_vector;
+  BufferedImage image= null;
 
+  int[][]  data;
+  IndexColorModel  model;  
+  JComponent  panel;
   float      width;
   float      height;
-  Color[][]  colors;
   int[]      xtemp = new int[4];
   int[]      ytemp = new int[4];
 
@@ -74,7 +84,18 @@ public class ImageRectangle  extends     ThreeD_Object
    *                     "x" direction.  The width must be positive.
    *  @param  height     Overall height of the whole rectangle in the "y" 
    *                     direction.  The height must be positive.
-   *  @param colors      Two-dimensional array of colors for this rectangle 
+   *  @param data        "2D" data of values.  The data at row 0 and col 0 is assumed
+   *                     to be the lower left point of the rectangle
+   *                            ( center-xvec*width/3,center-yvec*height/2)
+   *  @param model       An indexColorModel where index=0 is completely transparent and supports dual color.
+   *                     The colors corresponding to non-negative values start at zeroValIndex
+   *                    
+   *  @param zeroValIndex   The index in the ColorModel corresponding to the value zero.Positive values
+   *                         have indicies greater than zeroValIndex.
+   *                        
+   *  @param logscale    Transformation of indicies to highlight different ranges of values.
+   *  
+   *  @param MaxAbsVal   The maximum of the absolute values in the data. 
    */
   
   public ImageRectangle( Vector3D  center,
@@ -82,7 +103,9 @@ public class ImageRectangle  extends     ThreeD_Object
                          Vector3D  y_vector,
                          float     width,
                          float     height,
-                         Color[][] colors )
+                         int[][]  data,
+                         IndexColorModel  model, 
+                         JComponent  panel)
   {
     super( null, Color.BLACK );
 
@@ -92,15 +115,24 @@ public class ImageRectangle  extends     ThreeD_Object
     this.width    = width;
     this.height   = height;
     create_verts();
-    this.colors = colors;
-
+    this.data = data;
+    this.model = model;
+    this.panel = panel;
     this.x_vector.normalize();
     this.y_vector.normalize();
     this.normal_vector = new Vector3D();
     normal_vector.cross( x_vector, y_vector );
     normal_vector.normalize();
   }
-
+  
+  public void setColorModel( int[][] data,IndexColorModel model)
+  {
+     
+     this.model = model;
+     this.data = data;    
+  }
+  
+ 
   /**
    *  Create the array of vertices in the super class, containing the corners
    *  of the rectangle.
@@ -139,15 +171,7 @@ public class ImageRectangle  extends     ThreeD_Object
     y = new float [ vertices.length ];
   }
 
-  /**
-   *  change the array of colors for this ImageRectangle 
-   *
-   *  @param colors  Two-dimensional array of colors for this rectangle 
-   */
-  public void setColors( Color[][] colors )
-  {
-    this.colors = colors;
-  }
+ 
 
   /**
    *  Draw this ImageRectangle using the projected 2D points in the specified
@@ -163,10 +187,10 @@ public class ImageRectangle  extends     ThreeD_Object
        !(projection instanceof ViewingTran3D) )
        throw new IllegalArgumentException( 
           "Image Rectange requires a ViewingTran3D, NOT Tran3D, to draw" );
-
-     int max_dist = 0;          // find the maximum x,y distance to x[0],y[0]
-     int dx,                    // so that if the polygon is extremely small
-         dy;                    // we can draw as a point, or just the border
+     
+     //int max_dist = 0;          // find the maximum x,y distance to x[0],y[0]
+     //int dx,                    // so that if the polygon is extremely small
+     //    dy;                    // we can draw as a point, or just the border
 
      int min_x = Math.round(x[0]);
      int min_y = Math.round(y[0]);
@@ -201,7 +225,18 @@ public class ImageRectangle  extends     ThreeD_Object
                                          // re-implemented here to avoid 
                                          // repeatedly calculating the basic
                                          // information that is used for all
-                                         // pixels.
+   
+    if( max_x-min_x+1 <=0)
+       return;
+    if( max_y-min_y+1 <=0)
+       return;
+    image = new BufferedImage(max_x-min_x+1, max_y-min_y+1, 
+             BufferedImage.TYPE_BYTE_INDEXED, model );
+    
+    WritableRaster rast = model.createCompatibleWritableRaster( 
+          max_x-min_x+1 ,  max_y-min_y+1 );
+    
+    // pixels.
     ViewingTran3D view_tran = (ViewingTran3D)projection;
 
     Vector3D cop = view_tran.getCOP();
@@ -220,8 +255,8 @@ public class ImageRectangle  extends     ThreeD_Object
     u.normalize();
     v.normalize();
 
-    int n_rows = colors.length;
-    int n_cols = colors[0].length;
+    int n_rows = data.length;
+    int n_cols = data[0].length;
 
     Vector3D ray_dir = new Vector3D();
     Vector3D virtual_screen_pt = new Vector3D();
@@ -231,7 +266,8 @@ public class ImageRectangle  extends     ThreeD_Object
 
     floatPoint2D pixel = new floatPoint2D();
     floatPoint2D plane_pt;
-
+    
+   // long start =System.currentTimeMillis( );
     for ( int i = min_x; i <= max_x; i++ )
       for ( int j = min_y; j <= max_y; j++ )
       {
@@ -266,14 +302,31 @@ public class ImageRectangle  extends     ThreeD_Object
           if ( col >= 0 && col < n_cols &&
                row >= 0 && row < n_rows )
           {
-            g.setColor( colors[ (int)row ][ (int)col ] );
-            g.drawLine( i, j, i, j ); 
+             int index = data[(int)row][(int)col];
+            
+            // int index =128;// (int)(NColors*.8 );//+10*Math.random()-5);
+             //System.out.println("r,c,i,j,val,index ="+row+","+col+","+","+i+","+j+","+val+","+index);
+            rast.setPixel(i-min_x , j-min_y , new int[]{index} );
+        
+          }else
+          {
+             rast.setPixel( i-min_x , j-min_y , new int[]{0} ); 
           }
+            
         }
       }
+   
+    image.setData( rast );
+    g.setColor( Color.red);
+    for( int i=0;i<3;i++)
+    g.drawLine( (int)x[i],(int)y[i],(int)x[i+1],(int)y[i+1]);
+    g.drawLine((int)x[0],(int)y[0], (int)x[3],(int)y[3]);
+    
+    g.drawImage( image , min_x , min_y , panel );
+      
   }
 
-
+ 
  /**
   *  Given the coordinates of a pixel on the actual screen find the 
   *  corresponding column and row in the image, and the distance from the
@@ -370,8 +423,8 @@ public class ImageRectangle  extends     ThreeD_Object
                                               // and row numbers in the image
                                               // array corresponding to the
                                               // intersection point
-    int n_rows = colors.length;
-    int n_cols = colors[0].length;
+    int n_rows = data.length;
+    int n_cols = data[0].length;
 
     float col = (alpha + width/2 )/width * n_cols;
     float row = (beta  + height/2)/height * n_rows;
