@@ -244,6 +244,19 @@ public abstract class ViewControl extends ActiveJPanel implements IViewControl
   */
   abstract public void setControlValue(Object value);
   
+  /**
+   * Override to Not notify if the control value is not set by the user
+   * changing the underlying gui/
+   * 
+   * @param value  The new value
+   * @param notify  if true notify all listeners, otherwise do NOT notify listers of 
+   *               the change with the documented CHANGE string.
+   */
+  public void setControlValue( Object value, boolean notify)
+  {
+     setControlValue( value);
+  }
+  
  /**
   * Get value associated with this control that will change and need to be
   * updated.

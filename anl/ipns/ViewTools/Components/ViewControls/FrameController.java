@@ -42,6 +42,7 @@
 package gov.anl.ipns.ViewTools.Components.ViewControls;
 
 import java.io.*;
+import java.util.Vector;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -59,14 +60,21 @@ import gov.anl.ipns.ViewTools.UI.AnimationController;
  * 
  * This object is implemented using AnimationController.
  * 
+ * When the frame is changed by a user using the AnimationController, the action 
+ * message FRAME_CHANGED is sent to all listeners.
+ * 
  * @see gov.anl.ipns.ViewTools.UI.AnimationController 
  */
 
 public class FrameController extends    ViewControl 
-                                 implements Serializable 
+                                 implements Serializable,  ActionListener 
 {
-  private AnimationController animator;
-  
+  /**
+    * 
+    */
+   private static final long serialVersionUID = 1L;
+private AnimationController animator;
+  public static String FRAME_CHANGED ="FRAME_CHANGED";
   private String      value_label  = "";
   private String      border_title =  "";
   private float[]     frame_values = null;
@@ -85,7 +93,7 @@ public class FrameController extends    ViewControl
   {
   	super("ControlAnimator");
     animator = new AnimationController();
-    
+    animator.addActionListener(  this );
     add(animator);
   }
 
@@ -93,22 +101,44 @@ public class FrameController extends    ViewControl
   /**
    * Set value associated with this control.
    *
-   *  @param  value Setable value for this control.
+   *  @param  value Setable value for this control, This is the float value associated with
+   *          the frame, not the index of the frame. Use setFrameNumber for that .
    */
    public void setControlValue(Object value)
    {
-   	
+    
+   	   setControlValue( value, true );
+   }
+   
+   /**
+    * Set value associated with this control.
+    *
+    *  @param  value Setable value for this control, This is the float value associated with
+    *          the frame, not the index of the frame. Use setFrameNumber for that .
+    *          
+    *  @param  notify  if true, all FrameController listeners will be notified, otherwise
+    *                  they will not be notified.  This should be false when set from another
+    *                  source besides the animator.
+    */
+   public void setControlValue( Object value, boolean notify)
+   {
+      if( !notify)
+         animator.removeActionListener(  this );
+      setFrameValue( ((Number)value).floatValue());
+      animator.addActionListener(  this  );
+      if( notify)
+         send_message( FRAME_CHANGED);
    }
    
   /**
    * Get value associated with this control that will change and need to be
    * updated.
    *
-   *  @return Value for this control.
+   *  @return Value associated with the current frame.
    */
    public Object getControlValue()
    {
-     return null;
+     return getFrameValue();
    }
    
   /**
@@ -250,6 +280,19 @@ public class FrameController extends    ViewControl
     animator.setFrameValue( value );
   }
 
+  /**
+   * Should only come from animator  when frame number is changed
+   * 
+   * @param evt  The action event
+   */
+  public void actionPerformed( ActionEvent evt)
+  {
+    
+     if( evt.getSource() .equals(  animator ))
+        super.send_message( FRAME_CHANGED);
+     
+  
+  }
   
   /* ---------------------------Listeners---------------------------------*/
   /* ------------------------ addActionListener -------------------------- */
@@ -261,6 +304,7 @@ public class FrameController extends    ViewControl
   */
   public void addActionListener( ActionListener listener )
   {
+    super.addActionListener( listener );
     animator.addActionListener(listener);
   }
 
@@ -274,6 +318,7 @@ public class FrameController extends    ViewControl
   */
   public void removeActionListener( ActionListener listener )
   {
+    super.removeActionListener(  listener );
     animator.removeActionListener(listener);
   }
 
@@ -283,6 +328,7 @@ public class FrameController extends    ViewControl
   */ 
   public void removeAllActionListeners()
   {
+    super.removeAllActionListeners( );
     animator.removeAllActionListeners();
   }
 
@@ -292,7 +338,10 @@ public class FrameController extends    ViewControl
   */
   public void send_message( String message )
   {
+  
     animator.send_message(message);
+    
+  
   }
 
 /* -------------------------------------------------------------------------

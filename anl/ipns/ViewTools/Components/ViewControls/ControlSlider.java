@@ -120,7 +120,8 @@
 /**
  * This class is an ViewControl (ActiveJPanel) with a generic slider for use 
  * by ViewComponents. It includes a hook to send out messages when the  
- * slider has been adjusted.
+ * slider has been adjusted.  The Action message sent is 
+ * ControlSlider.SLIDER_CHANGED
  */ 
 public class ControlSlider extends ViewControl
 { 
@@ -133,7 +134,7 @@ public class ControlSlider extends ViewControl
  /**
   * "Slider Value" - This constant String is a key for referencing the state
   * information about what value is at the current "knob" position.
-  * The value that this key references is a primative float within
+  * The value that this key references is a primitive float within
   * the range of slider values.
   */
   public static final String SLIDER_VALUE = "Slider Value";
@@ -180,6 +181,7 @@ public class ControlSlider extends ViewControl
 					// suitable integer range for use
 					// with a JSlider.
   private boolean ignore_change = false;
+  SlideListener   slide_list;
  /**
   * Default constructor specifies no title but initializes slider with range
   * (0.0,100.0) and interval of 0.1. The default slider is useful for use as
@@ -227,9 +229,10 @@ public class ControlSlider extends ViewControl
     if( numsteps == 0 )
       numsteps = 1;
     setStep(numsteps);
-    
-    slide.addChangeListener( new SlideListener() );
+    slide_list =new SlideListener() ; 
+    slide.addChangeListener( slide_list );
     setValue(min);
+   
   }
  
  /**
@@ -332,11 +335,21 @@ public class ControlSlider extends ViewControl
   */
   public void setControlValue(Object value)
   {
-    if( value == null || !(value instanceof Float) )
-      return;
-    ignore_change = true;
-    setValue( ((Float)value).floatValue() );
-    ignore_change = false;
+     setControlValue( value, true );
+  }
+  
+  public void setControlValue( Object value, boolean notify)
+  {
+     if( value == null || !(value instanceof Float) )
+        return;
+      ignore_change = true;
+      if( !notify)
+         slide.removeChangeListener( slide_list);
+      setValue( ((Float)value).floatValue() );
+      ignore_change = false;
+      slide.addChangeListener(  slide_list );
+      if( notify)
+         send_message(SLIDER_CHANGED);
   }
   
  /**
