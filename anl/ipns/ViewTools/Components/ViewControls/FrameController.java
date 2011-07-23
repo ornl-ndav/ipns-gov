@@ -47,6 +47,8 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+
+import gov.anl.ipns.ViewTools.Components.ObjectState;
 import gov.anl.ipns.ViewTools.UI.AnimationController;
 
 /**
@@ -79,6 +81,12 @@ private AnimationController animator;
   private String      border_title =  "";
   private float[]     frame_values = null;
   private int         step_time_ms = 100;
+  public static String  VAL_LABEL_OS ="VAL_LABEL_OS";
+  public static String  BORD_LABEL_OS ="BORD_LABEL_OS";
+  public static String  FRAMEVALS_OS ="FRAMEVALS_OS";
+  public static String   STEP_OS ="STEP_OS";
+  public static String   FRAMENUM_OS="FRAMENUM_OS";
+  
  
  /* ------------------------------ CONSTRUCTOR ---------------------------- */
  /** 
@@ -159,7 +167,53 @@ private AnimationController animator;
    	 return control_copy;
    }
   
+  public void setObjectState( ObjectState new_state)
+  {
+     if( new_state == null)
+        return;
+     if( new_state.get( VAL_LABEL_OS )!= null)
+          value_label  =(String)  new_state.get( VAL_LABEL_OS );
+     
+     if( new_state.get( BORD_LABEL_OS )!= null)        
+        border_title = (String) new_state.get( BORD_LABEL_OS );
+     
+     if( new_state.get( FRAMEVALS_OS)!= null)        
+        frame_values =(float[]) new_state.get( FRAMEVALS_OS);
+     
+     if( new_state.get(  STEP_OS )!= null)        
+         step_time_ms = ((Number)new_state.get(  STEP_OS )).intValue( );
+     
+     int FrameNum =((Number) new_state.get( FRAMENUM_OS )).intValue();
+    
+     animator.setBorderTitle( border_title );
+     animator.setTextLabel( value_label );
+     animator.setStep_time( step_time_ms );
+     animator.setFrame_values(frame_values );
+     setFrameNumber(FrameNum);
+  }
   
+  public ObjectState getObjectState( boolean isDefault)
+  {
+     ObjectState state = new ObjectState();
+     if( isDefault)
+     {
+        state.insert( VAL_LABEL_OS , "");
+        state.insert(BORD_LABEL_OS,"");
+      //  state.insert(FRAMEVALS_OS ="FRAMEVALS_OS";
+        state.insert(STEP_OS,100);
+        state.insert( FRAMENUM_OS ,0 );
+     }else
+     {
+        state.insert( VAL_LABEL_OS ,value_label);
+        state.insert(BORD_LABEL_OS,border_title);
+        state.insert(FRAMEVALS_OS ,frame_values);
+        state.insert(STEP_OS,100);
+        state.insert( FRAMENUM_OS ,getFrameNumber() );
+        
+     }
+     
+     return state;
+  }
   
  /* ---------------------------- setBorderTitle ------------------------- */
  /** 
