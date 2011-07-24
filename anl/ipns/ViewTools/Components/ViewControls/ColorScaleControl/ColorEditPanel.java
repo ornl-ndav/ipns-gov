@@ -481,7 +481,7 @@ public class ColorEditPanel extends ViewControl
 	{
 		colorScalePanel = new JPanel();
 		//JPanel labelPanel = new JPanel();
-		colorScalePanel.setLayout(new BorderLayout());
+		colorScalePanel.setLayout(new GridLayout(1,1));
 		colorScalePanel.setBorder(new TitledBorder(" Effective Color Scale "));
 		
 		colorScalePanel.add(colorPanel);
@@ -560,7 +560,7 @@ public class ColorEditPanel extends ViewControl
 		//prescalePanel.add("", new JPanel());
 		prescalePanel.add(logCheck);
 		
-		scaleOptionsPanel.add(prescalePanel,BorderLayout.NORTH);
+		scaleOptionsPanel.add(prescalePanel);
 		
 		dataOptionsPanel.add(autoScale);
 		dataOptionsPanel.add(specMinMax);
@@ -587,8 +587,8 @@ public class ColorEditPanel extends ViewControl
 		//JLabel coOpt = new JLabel(" Color Options ");
 		//coOpt.setBorder(BorderFactory.createLineBorder(Color.GRAY,2));
 		//labelPanel.add(coOpt);
-		colorOptionsPanel.add(labelPanel,BorderLayout.CENTER);
-		colorOptionsPanel.add(colorOptions,BorderLayout.SOUTH);
+		colorOptionsPanel.add(labelPanel);
+		colorOptionsPanel.add(colorOptions);
 	}
 		
 	/*
