@@ -1,7 +1,7 @@
 /*
  * File:  ImageRectangle.java
  *
- * Copyright (C) 2011, Dennis Mikkelson
+ * Copyright (C) 2011, Dennis Mikkelson, Ruth Mikkelson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,7 +44,11 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 
 /**
- *  This class represents a rectangular image in 3D.
+ *  This class represents a rectangular image in 3D. It is a take off of ImageRectangle1 
+ *  with image features from ImageFilledRectangle
+ *  
+ *  @see gov.anl.ipns.ViewTools.Panels.ThreeD.ImageRectangle1
+ *  @see gov.anl.ipns.ViewTools.UI.ImageFilledRectange
  */
 public class ImageRectangle  extends     ThreeD_Object
                              implements  Serializable
@@ -87,8 +91,9 @@ public class ImageRectangle  extends     ThreeD_Object
    *  @param data        "2D" data of values.  The data at row 0 and col 0 is assumed
    *                     to be the lower left point of the rectangle
    *                            ( center-xvec*width/3,center-yvec*height/2)
-   *  @param model       An indexColorModel where index=0 is completely transparent and supports dual color.
-   *                     The colors corresponding to non-negative values start at zeroValIndex
+   *  @param model       An indexColorModel where index=0 is completely transparent
+   *                     and supports dual color. The colors corresponding to non-negative 
+   *                     values start at zeroValIndex.
    *                    
    *  @param zeroValIndex   The index in the ColorModel corresponding to the value zero.Positive values
    *                         have indicies greater than zeroValIndex.
