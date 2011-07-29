@@ -322,11 +322,7 @@ public class ImageRectangle  extends     ThreeD_Object
       }
    
     image.setData( rast );
-    g.setColor( Color.red);
-    for( int i=0;i<3;i++)
-    g.drawLine( (int)x[i],(int)y[i],(int)x[i+1],(int)y[i+1]);
-    g.drawLine((int)x[0],(int)y[0], (int)x[3],(int)y[3]);
-    
+   
     g.drawImage( image , min_x , min_y , panel );
       
   }
