@@ -48,7 +48,7 @@ import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
  *  ImageRectangle1 with image features from ImageFilledRectangle
  *  
  *  @see gov.anl.ipns.ViewTools.Panels.ThreeD.ImageRectangle1
- *  @see gov.anl.ipns.ViewTools.UI.ImageFilled3DRectangle
+ *  @see gov.anl.ipns.ViewTools.UI.ImageFilledRectangle
  */
 public class ImageRectangle  extends     ThreeD_Object
                              implements  Serializable
