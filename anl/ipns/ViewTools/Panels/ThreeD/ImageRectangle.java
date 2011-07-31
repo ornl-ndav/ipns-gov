@@ -44,11 +44,11 @@ import gov.anl.ipns.Util.Numeric.floatPoint2D;
 import gov.anl.ipns.ViewTools.Components.IVirtualArray2D;
 
 /**
- *  This class represents a rectangular image in 3D. It is a take off of ImageRectangle1 
- *  with image features from ImageFilledRectangle
+ *  This class represents a rectangular image in 3D. It is a take off of 
+ *  ImageRectangle1 with image features from ImageFilledRectangle
  *  
  *  @see gov.anl.ipns.ViewTools.Panels.ThreeD.ImageRectangle1
- *  @see gov.anl.ipns.ViewTools.UI.ImageFilledRectange
+ *  @see gov.anl.ipns.ViewTools.UI.ImageFilled3DRectangle
  */
 public class ImageRectangle  extends     ThreeD_Object
                              implements  Serializable
@@ -88,19 +88,14 @@ public class ImageRectangle  extends     ThreeD_Object
    *                     "x" direction.  The width must be positive.
    *  @param  height     Overall height of the whole rectangle in the "y" 
    *                     direction.  The height must be positive.
-   *  @param data        "2D" data of values.  The data at row 0 and col 0 is assumed
-   *                     to be the lower left point of the rectangle
+   *  @param data        "2D" array of values.  The data at row 0 and col 0 
+   *                     is assumed to be the lower left point of the rectangle
    *                            ( center-xvec*width/3,center-yvec*height/2)
-   *  @param model       An indexColorModel where index=0 is completely transparent
-   *                     and supports dual color. The colors corresponding to non-negative 
-   *                     values start at zeroValIndex.
-   *                    
-   *  @param zeroValIndex   The index in the ColorModel corresponding to the value zero.Positive values
-   *                         have indicies greater than zeroValIndex.
-   *                        
-   *  @param logscale    Transformation of indicies to highlight different ranges of values.
-   *  
-   *  @param MaxAbsVal   The maximum of the absolute values in the data. 
+   *  @param model       An indexColorModel where index=0 is completely 
+   *                     transparent and supports the dual indexed color model.
+   *                     The colors corresponding to non-negative values 
+   *                     start at zeroValIndex.
+   *  @param panel       The panel where this will be drawn.
    */
   
   public ImageRectangle( Vector3D  center,
