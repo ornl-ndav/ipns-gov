@@ -214,10 +214,10 @@ public class ThreeD_JPanel extends    CoordJPanel
  *  @param  g   The graphics context to use when painting the scene.
  */
   public void paintComponent( Graphics g )
-  {
+  { 
     if ( !isVisible() || g == null )
       return;
-
+    
     int width = (int)getWidth();
     int height = (int)getHeight();
 
@@ -237,7 +237,7 @@ public class ThreeD_JPanel extends    CoordJPanel
                                               // the user moves the cusor
                                               // (due to XOR drawing). 
      build_object_list();
-
+    
     g2d.setColor( getBackground() );
     g2d.fillRect( 0, 0, width, height );
 
@@ -255,6 +255,7 @@ public class ThreeD_JPanel extends    CoordJPanel
     }
     g2d.dispose();
     data_painted = true;
+    
   }
 
 

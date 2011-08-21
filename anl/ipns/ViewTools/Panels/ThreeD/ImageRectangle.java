@@ -32,7 +32,11 @@
 package gov.anl.ipns.ViewTools.Panels.ThreeD;
 
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentListener;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.*;
@@ -95,7 +99,7 @@ public class ImageRectangle  extends     ThreeD_Object
    *                     transparent and supports the dual indexed color model.
    *                     The colors corresponding to non-negative values 
    *                     start at zeroValIndex.
-   *  @param panel       The panel where this will be drawn.
+   *  @param panel       The panel(ThreeD_JPanel) where this will be drawn.
    */
   
   public ImageRectangle( Vector3D  center,
@@ -123,6 +127,8 @@ public class ImageRectangle  extends     ThreeD_Object
     this.normal_vector = new Vector3D();
     normal_vector.cross( x_vector, y_vector );
     normal_vector.normalize();
+    image=null;
+   
   }
   
   public void setColorModel( int[][] data,IndexColorModel model)
@@ -130,6 +136,7 @@ public class ImageRectangle  extends     ThreeD_Object
      
      this.model = model;
      this.data = data;    
+     image =null;
   }
   
  
@@ -181,7 +188,9 @@ public class ImageRectangle  extends     ThreeD_Object
    *              be drawn.
    */
   public void Draw( Graphics g )
-  {
+  { 
+
+	  image = null;
     if ( projection == null || 
          window_tran == null || 
        !(projection instanceof ViewingTran3D) )
@@ -210,22 +219,23 @@ public class ImageRectangle  extends     ThreeD_Object
          max_y = ytemp[i];
      }
                                           // restrict to drawing area 
-     Rectangle region = g.getClipRect();    
+     //Rectangle region = g.getClipBounds();    
      if ( min_x < 0 )
        min_x = -1;
-     if ( max_x > region.width )
-       max_x = region.width;
+     if ( max_x > panel.getWidth() )
+       max_x = panel.getWidth();
      if ( min_y < 0 )
        min_y = -1;
-     if ( max_y > region.height )
-       max_y = region.height;
-                                         // set getColRowAndDistance() method
+     if ( max_y > panel.getHeight() )
+       max_y = panel.getHeight();
+                                        // set getColRowAndDistance() method
                                          // for more documentation on this
                                          // calculation.  The calculation is
                                          // re-implemented here to avoid 
                                          // repeatedly calculating the basic
                                          // information that is used for all
    
+
     if( max_x-min_x+1 <=0)
        return;
     if( max_y-min_y+1 <=0)
@@ -235,7 +245,7 @@ public class ImageRectangle  extends     ThreeD_Object
     
     WritableRaster rast = model.createCompatibleWritableRaster( 
           max_x-min_x+1 ,  max_y-min_y+1 );
-    
+
     // pixels.
     ViewingTran3D view_tran = (ViewingTran3D)projection;
 
@@ -318,7 +328,10 @@ public class ImageRectangle  extends     ThreeD_Object
    
     image.setData( rast );
    
-    g.drawImage( image , min_x , min_y , panel );
+    g.drawImage( image , min_x , min_y , panel);
+    
+  
+  
       
   }
 
@@ -434,5 +447,6 @@ public class ImageRectangle  extends     ThreeD_Object
 
     return true;    
   }
-
+  
+ 
 }
