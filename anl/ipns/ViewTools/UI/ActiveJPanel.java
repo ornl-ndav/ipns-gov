@@ -161,6 +161,10 @@ public class ActiveJPanel extends JPanel
     this.send = send;
  }
 
+ public  boolean isOptimizedDrawingEnabled()
+ {
+	 return false;
+ }
 /* -------------------------------------------------------------------------
  *
  * MAIN  ( Basic main program for testing purposes only. )
