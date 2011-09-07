@@ -255,7 +255,6 @@ public class ThreeD_JPanel extends    CoordJPanel
     }
     g2d.dispose();
     data_painted = true;
-    
   }
 
 

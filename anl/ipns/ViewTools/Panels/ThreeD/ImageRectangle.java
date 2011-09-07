@@ -128,12 +128,10 @@ public class ImageRectangle  extends     ThreeD_Object
     normal_vector.cross( x_vector, y_vector );
     normal_vector.normalize();
     image=null;
-   
   }
   
   public void setColorModel( int[][] data,IndexColorModel model)
   {
-     
      this.model = model;
      this.data = data;    
      image =null;
@@ -177,7 +175,6 @@ public class ImageRectangle  extends     ThreeD_Object
     x = new float [ vertices.length ];
     y = new float [ vertices.length ];
   }
-
  
 
   /**
@@ -189,18 +186,13 @@ public class ImageRectangle  extends     ThreeD_Object
    */
   public void Draw( Graphics g )
   { 
-
-	  image = null;
-    if ( projection == null || 
+    image = null;
+    if ( projection  == null || 
          window_tran == null || 
        !(projection instanceof ViewingTran3D) )
        throw new IllegalArgumentException( 
           "Image Rectange requires a ViewingTran3D, NOT Tran3D, to draw" );
      
-     //int max_dist = 0;          // find the maximum x,y distance to x[0],y[0]
-     //int dx,                    // so that if the polygon is extremely small
-     //    dy;                    // we can draw as a point, or just the border
-
      int min_x = Math.round(x[0]);
      int min_y = Math.round(y[0]);
      int max_x = Math.round(x[0]);
@@ -219,7 +211,6 @@ public class ImageRectangle  extends     ThreeD_Object
          max_y = ytemp[i];
      }
                                           // restrict to drawing area 
-     //Rectangle region = g.getClipBounds();    
      if ( min_x < 0 )
        min_x = -1;
      if ( max_x > panel.getWidth() )
@@ -228,25 +219,41 @@ public class ImageRectangle  extends     ThreeD_Object
        min_y = -1;
      if ( max_y > panel.getHeight() )
        max_y = panel.getHeight();
-                                        // set getColRowAndDistance() method
-                                         // for more documentation on this
-                                         // calculation.  The calculation is
+
+    int rect_width  = max_x - min_x + 1;
+    int rect_height = max_y - min_y + 1;
+                                         
+    if( rect_width <=0 || rect_height <= 0 )
+       return;
+
+    image = new BufferedImage( rect_width, rect_height, 
+                               BufferedImage.TYPE_BYTE_INDEXED, model );
+    if ( image == null )
+    {
+      System.out.println("Failed to get BufferedImage of size " + 
+                          rect_width + " by " + rect_height + 
+                         " min_x = " + min_x + " max_x = " + max_x +
+                         " min_y = " + min_y + " max_y = " + max_y );
+      return;
+    }
+
+    WritableRaster rast = model.createCompatibleWritableRaster( 
+                           rect_width, rect_height );
+    if ( rast == null )
+    {
+      System.out.println("Failed to get WritableRaster of size " +
+                          rect_width + " by " + rect_height +
+                         " min_x = " + min_x + " max_x = " + max_x +
+                         " min_y = " + min_y + " max_y = " + max_y );
+      return;
+    }
+                                         // see getColRowAndDistance() method
+                                         // for more documentation on the
+                                         // following.  The calculation is
                                          // re-implemented here to avoid 
                                          // repeatedly calculating the basic
                                          // information that is used for all
-   
-
-    if( max_x-min_x+1 <=0)
-       return;
-    if( max_y-min_y+1 <=0)
-       return;
-    image = new BufferedImage(max_x-min_x+1, max_y-min_y+1, 
-             BufferedImage.TYPE_BYTE_INDEXED, model );
-    
-    WritableRaster rast = model.createCompatibleWritableRaster( 
-          max_x-min_x+1 ,  max_y-min_y+1 );
-
-    // pixels.
+                                         // pixels.
     ViewingTran3D view_tran = (ViewingTran3D)projection;
 
     Vector3D cop = view_tran.getCOP();
@@ -277,7 +284,7 @@ public class ImageRectangle  extends     ThreeD_Object
     floatPoint2D pixel = new floatPoint2D();
     floatPoint2D plane_pt;
     
-   // long start =System.currentTimeMillis( );
+    // long start =System.currentTimeMillis( );
     for ( int i = min_x; i <= max_x; i++ )
       for ( int j = min_y; j <= max_y; j++ )
       {
@@ -315,24 +322,24 @@ public class ImageRectangle  extends     ThreeD_Object
              int index = data[(int)row][(int)col];
             
             // int index =128;// (int)(NColors*.8 );//+10*Math.random()-5);
-             //System.out.println("r,c,i,j,val,index ="+row+","+col+","+","+i+","+j+","+val+","+index);
+            //System.out.println("r,c,i,j,val,index ="+row+","+col+","+
+            //                   ","+i+","+j+","+val+","+index);
             rast.setPixel(i-min_x , j-min_y , new int[]{index} );
         
           }else
           {
              rast.setPixel( i-min_x , j-min_y , new int[]{0} ); 
           }
-            
         }
       }
    
-    image.setData( rast );
-   
-    g.drawImage( image , min_x , min_y , panel);
-    
-  
-  
-      
+    if ( image != null && rast != null )          // this fails if scene is 
+    {                                             // redrawn while it is being
+      image.setData( rast );                      // moved or the tof changes.
+      g.drawImage( image , min_x , min_y , panel );
+    }
+//    else 
+//      System.out.println("Warning: image/raster null in ImageRectangle.Draw");
   }
 
  
