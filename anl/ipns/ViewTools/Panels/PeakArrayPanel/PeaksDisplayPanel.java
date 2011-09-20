@@ -62,7 +62,7 @@ public class PeaksDisplayPanel extends ActiveJPanel
   /**
    *  Limit on the maximum number of images that can be displayed.
    */
-  public static final int MAX_DISPLAYABLE = 1200;
+  public static final int MAX_DISPLAYABLE = 2000;
 
   /**
    *  String send to any action listeners when the user points a different
@@ -128,7 +128,7 @@ public class PeaksDisplayPanel extends ActiveJPanel
     this.peak_infos = peak_infos;
     int num_displayed = Math.min( peak_infos.length, MAX_DISPLAYABLE );
     if ( num_displayed != peak_infos.length )
-      System.out.println("Warning: number of peaks displayed limited to" +
+      System.out.println("Warning: number of peaks displayed limited to " +
                           MAX_DISPLAYABLE );
                                                // figure out how to split
     if ( num_displayed <= 5 )                  // these into rows and columns
@@ -151,15 +151,10 @@ public class PeaksDisplayPanel extends ActiveJPanel
       N_PANEL_COLS = 15;
       N_PANEL_ROWS = (num_displayed-1) / 15 + 1;
     }
-    else if ( num_displayed <= 400 )
+    else 
     {
       N_PANEL_COLS = 20;
       N_PANEL_ROWS = (num_displayed-1) / 20 + 1;
-    }
-    else
-    {
-      N_PANEL_COLS = 25;
-      N_PANEL_ROWS = (num_displayed-1) / 25 + 1;
     }
 
                                            // Make the main panel
