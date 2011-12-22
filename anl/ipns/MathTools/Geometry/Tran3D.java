@@ -411,7 +411,10 @@ public class Tran3D implements java.io.Serializable
       return true;
     }
     else
+    {
+      System.out.println("COULD NOT INVERT " + temp );
       return false;
+    }
   }
 
 
