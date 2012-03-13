@@ -93,14 +93,12 @@ public class ChoiceListPG extends StringListChoicePG
   public ChoiceListPG( String name, Object val ) 
                                         throws IllegalArgumentException
   {
-    super( name, "" );  
+    super( name, val );  
                           // NOTE: The construction of the GUI with label
                           //       and widget is done on demand, so it does
                           //       NOT get done in the constructor.  We just
                           //       need to call the super class constructor
                           //       to record the name and default value.
-
-    InitChoiceVector( val );
   }
 
   

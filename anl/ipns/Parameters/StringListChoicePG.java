@@ -62,11 +62,18 @@ public abstract class StringListChoicePG extends StringPG_base
    *
    * @param  name   The name (i.e. prompt string) for this PG.
    * @param  val    String or Vector of Strings giving the value 
-   *                for this PG.
+   *                for this PG.  If one string is specified, it
+   *                will be placed in the list of choices, and be
+   *                the default choice.  If 'val' is a list of
+   *                strings, and the last item in the list is a
+   *                repeat of one of the earlier items, it will 
+   *                become the default choice, but it will not
+   *                appear twice in the list.
    */
   public StringListChoicePG( String name, Object val )
   {
     super( name, val );
+    InitChoiceVector( val );
   }
 
 
@@ -115,7 +122,10 @@ public abstract class StringListChoicePG extends StringPG_base
       }
     }
     else                                        // set value from simple object
+    {
       str_value = Conversions.get_String( val );
+      addItem( val );                           // add initial value to list
+    }
   }
 
   
@@ -129,7 +139,24 @@ public abstract class StringListChoicePG extends StringPG_base
    */
   public void addItem( Object item )
   {
-    choices.add( Conversions.get_String( item ) ); 
+    String temp = Conversions.get_String( item );
+    if ( choices == null )
+      choices = new Vector();
+
+    if ( choices.size() == 0 )
+    {
+      choices.add( temp );
+      return;
+    }
+                                     // make sure this is not a duplicate
+                                     // before adding it to the list
+    boolean duplicate = false;
+    for ( int i = 0; i < choices.size(); i++ )
+      if ( temp.equals( choices.elementAt(i) ) )
+        duplicate = true;
+
+    if ( !duplicate )
+      choices.add( temp ); 
   }
 
 
@@ -146,7 +173,7 @@ public abstract class StringListChoicePG extends StringPG_base
       return;
 
     for ( int i = 0; i < vec.size(); i++ )
-      choices.add( Conversions.get_String( vec.elementAt(i) ) );
+      addItem( vec.elementAt(i) );
   }
 
 
@@ -187,7 +214,7 @@ public abstract class StringListChoicePG extends StringPG_base
     for ( int i = 0; i < choices.size(); i++ )
     {
       String choice_str = Conversions.get_String( choices.elementAt(i));
-      if ( choice_str.equalsIgnoreCase( temp ) )
+      if ( choice_str.equals( temp ) )
       {
         str_value = choice_str;
         match_found = true;
@@ -200,7 +227,6 @@ public abstract class StringListChoicePG extends StringPG_base
 
     if ( hasGUI() )  
       setWidgetValue( str_value ); 
-
   }
 
 }
