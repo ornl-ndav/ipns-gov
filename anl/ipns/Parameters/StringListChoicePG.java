@@ -161,4 +161,46 @@ public abstract class StringListChoicePG extends StringPG_base
   }
 
 
+  /**
+   * Set the value of this PG, its GUI entry widget, and the valid flag,
+   * if the specified object can be converted to a String value that is
+   * already present in the list of possible choices.  Throw an
+   * exception if conversion to a String is not possible, of if the
+   * specified value is not in the list of choices.  NOTE:  Derived 
+   * classes should only be responsible for handling the value displayed
+   * in the GUI entry widget, via setWidgetValue(), so this method is
+   * final.
+   *
+   * @param  obj  The new value.
+   *
+   * @throws IllegalArgumentException if the specific object cannot be 
+   *         converted to a String value.
+   */
+  public final void setValue( Object obj ) throws IllegalArgumentException
+  {
+    String temp = Conversions.get_String( obj );    // this could throw an
+                                                    // exception
+    if ( choices == null || choices.size() == 0 )
+      return;
+                                                     
+    boolean match_found = false;
+    for ( int i = 0; i < choices.size(); i++ )
+    {
+      String choice_str = Conversions.get_String( choices.elementAt(i));
+      if ( choice_str.equalsIgnoreCase( temp ) )
+      {
+        str_value = choice_str;
+        match_found = true;
+        setValidFlag( false );
+      }
+    }
+
+    if ( !match_found )
+      throw new IllegalArgumentException("Requested choice NOT in list");
+
+    if ( hasGUI() )  
+      setWidgetValue( str_value ); 
+
+  }
+
 }

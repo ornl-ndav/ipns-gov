@@ -142,17 +142,14 @@ public abstract class StringPG_base extends ParamUsesString
   /**
    * Set the value of this PG, its GUI entry widget, and the valid flag,
    * if the specified object can be converted to a String value.  Throw an
-   * exception if conversion to a String is not possible.  NOTE: This 
-   * method is final, so derived classes cannot override it.  Derived 
-   * classes are only responsible for handling the value displayed in the 
-   * GUI entry widget, via setWidgetValue().
+   * exception if conversion to a String is not possible. 
    *
    * @param  obj  The new value.
    *
    * @throws IllegalArgumentException if the specific object cannot be 
    *         converted to a String value.
    */
-  public final void setValue( Object obj ) throws IllegalArgumentException
+  public void setValue( Object obj ) throws IllegalArgumentException
   {
     str_value = Conversions.get_String( obj );    // this could throw an
                                                   // exception
