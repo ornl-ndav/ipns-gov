@@ -527,7 +527,7 @@ public final class LinearAlgebra
 
 
   /**
-   * Create a new matrix by multiplyin a matrix by a scalar
+   * Create a new matrix by multiplying a matrix by a scalar
    */
   public static double[][] mult( double[][] A, double scale )
   {
@@ -550,7 +550,7 @@ public final class LinearAlgebra
 
 
   /**
-   * Create a new matrix by multiplyin a matrix by a scalar
+   * Create a new matrix by multiplying a matrix by a scalar
    */
   public static float[][] mult( float[][] A, float scale )
   {
