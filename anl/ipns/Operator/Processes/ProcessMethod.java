@@ -42,8 +42,9 @@ import gov.anl.ipns.Operator.Threads.*;
 import gov.anl.ipns.Util.Sys.*;
 
 /**
- *  This class has methods to run a list of operators in parallel.  Currently
- *  the only supported method is using SLURM.
+ *  This class has a method to run a list of operators in parallel either 
+ *  using slurm, or local processes, if the slum queue name is null or
+ *  of zero length.
  */
 public class ProcessMethod 
 {
@@ -69,8 +70,7 @@ public class ProcessMethod
    * @param queue_name    The name of the SLURM queue to use.  If this
    *                      is null or a zero length string, local processes
    *                      will be used instead of SLURM.  The number of
-   *                      local processes is limited to the number of cores
-   *                      minus 1.
+   *                      local processes is limited to the number of cores.
    * @param max_processes The maximum number of processes to launch
    *                      simultaneously.  This should be less than or
    *                      equal to the number of cores available in the
@@ -108,8 +108,8 @@ public class ProcessMethod
     if ( queue_name == null || queue_name.trim().length() == 0 )
     {
       int n_cores = Runtime.getRuntime().availableProcessors();
-      if ( max_processes > n_cores - 1 )
-        max_processes = n_cores - 1;
+      if ( max_processes > n_cores )
+        max_processes = n_cores;
     }
  
     if ( max_processes <= 0 )
