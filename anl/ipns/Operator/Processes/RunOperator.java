@@ -137,7 +137,7 @@ public class RunOperator
 
   /**
    *  Execute the operator specified by the first command line paramater
-   *  passing the remaing command line parameters to that operator.
+   *  passing the remaining command line parameters to that operator.
    *
    *  @param args  Array of Strings containing the operator name as the 
    *               first parameter and the operator's parameters in the 

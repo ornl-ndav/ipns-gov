@@ -50,9 +50,10 @@ public class ProcessMethod
 
   /**
    * Execute the specified list of operators on the specified SLURM queue
-   * using the specified maximum number of cores.  The operators to execute
-   * must only take "simple" parameters such as integer, float, boolean and
-   * String(NO DataSets!).  Any output of the individual operators and 
+   * or using local processes, using at most the specified maximum number 
+   * of cores.  The operators to execute must only take "simple" parameters 
+   * such as integer, float, boolean and String(NO DataSets!).  If SLURM
+   * is used, any output of the individual operators and 
    * scripts will be written to a temporary file in 
    * <user_home>/ISAW/tmp/*_returned.txt.  These temporary files are 
    * intended only for debugging purposes and will be erased each time 
@@ -65,7 +66,11 @@ public class ProcessMethod
    * coordinated between the low-level operators & scripts
    * and the script using this srunOps( ) operator. 
    *
-   * @param queue_name    The name of the SLURM queue to use.
+   * @param queue_name    The name of the SLURM queue to use.  If this
+   *                      is null or a zero length string, local processes
+   *                      will be used instead of SLURM.  The number of
+   *                      local processes is limited to the number of cores
+   *                      minus 1.
    * @param max_processes The maximum number of processes to launch
    *                      simultaneously.  This should be less than or
    *                      equal to the number of cores available in the
@@ -97,6 +102,18 @@ public class ProcessMethod
 
     if ( max_processes > op_commands.size() )  // Don't ask for more processes 
       max_processes = op_commands.size();      // than the number of Ops to run
+
+                                               // if not using slurm, don't
+                                               // take too many processes 
+    if ( queue_name == null || queue_name.trim().length() == 0 )
+    {
+      int n_cores = Runtime.getRuntime().availableProcessors();
+      if ( max_processes > n_cores - 1 )
+        max_processes = n_cores - 1;
+    }
+ 
+    if ( max_processes <= 0 )
+      max_processes = 1;
 
     int processes_per_core  = op_commands.size() / max_processes;
     int seconds_per_process = max_time / processes_per_core;

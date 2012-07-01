@@ -59,11 +59,14 @@ public class RunOperatorCaller implements IOperator
 
   /**
    * Construct a RunOperatorCaller to execute the specified operator on
-   * the specified SLURM queue using the specified maximum memory size.
+   * the specified SLURM queue using the specified maximum memory size,
+   * or using local processes.
    * The operator to execute must only take "simple" parameters such as 
    * integer, float, boolean and String.
    *
-   * @param queue_name    The name of the SLURM queue to use.
+   * @param queue_name    The name of the SLURM queue to use.  If this is
+   *                      null or a zero length string, local processes
+   *                      will be used instead of SLURM.
    * @param mem_size      The amount of memory to allocate for each process
    *                      specified by an integer, giving the number of 
    *                      megabytes.
